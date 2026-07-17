@@ -8,6 +8,8 @@ Phase 2 status: implemented and quality-gate checked.
 
 Phase 3 status: implemented and quality-gate checked.
 
+Phase 4 status: implemented and quality-gate checked.
+
 ## Repository Assessment
 
 Workspace root inspected: `/Users/akashx/AntigravityTest`
@@ -38,12 +40,16 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/metrics_catalogue.md` | Metrics documentation | Phase 3 metric definitions, formulas, availability, and percentile policy. |
 | `docs/evidence_pack_spec.md` | Evidence documentation | Versioned evidence-pack contract for future deterministic rules. |
 | `docs/comparison_methodology.md` | Comparison documentation | Pairwise comparison and descriptive aggregation policy. |
+| `docs/user_guide.md` | User guide | Phase 4 launch and workflow instructions. |
+| `docs/ui_design.md` | UI design | Streamlit page structure and presentation policy. |
+| `docs/demo_script.md` | Demo script | Keystone synthetic demonstration steps and expected states. |
 
 ## Relevant Assets Found
 
 - No real run data, CSV files, SUMO files, Randy environment, checkpoints, or simulator scripts are present.
 - No external environment integration is implemented.
-- No Streamlit UI, diagnostic rules, simulator adapters, or canonical traffic/task data storage are implemented.
+- Streamlit UI is implemented for synthetic fixtures and imported historical bundles.
+- No diagnostic rules, simulator adapters, or canonical traffic/task data storage are implemented.
 - Python 3.12 is available locally and was used for validation. The package declares Python 3.11+ support.
 
 ## Design Specification Status
@@ -150,6 +156,25 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
   - `experiment summarise`
 - Golden expected metric and comparison outputs for synthetic fixtures.
 
+## Implemented In Phase 4
+
+- Streamlit application shell at `src/traffictwin/ui/app.py`.
+- UI state defaults and logical replay clock.
+- UI service layer over Phase 1-3 library functions.
+- Home / Project Status page.
+- Scenario Studio with YAML preview, seed validation, export, and disabled direct-launch control.
+- Bundle Import & Validation page.
+- Operations View in historical replay mode.
+- Run Overview page.
+- Infrastructure & Congestion page.
+- What-if Compare page.
+- Journey-Time Lens page.
+- Evidence & Diagnostic Readiness page.
+- Reusable UI components for badges, cards, validation, provenance, unavailable states, and selectors.
+- Plotly chart preparation for traffic, infrastructure, task events, trip durations, and metric availability.
+- UI tests for formatting, state, chart data, service models, page guards, and AppTest startup.
+- Demo documentation and UI design notes.
+
 ## Quality Gates
 
 Commands run successfully:
@@ -178,6 +203,7 @@ Commands run successfully:
 .venv/bin/traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
 .venv/bin/traffictwin evidence build tests/fixtures/bundles/baseline_valid --output <tmp-evidence>
 .venv/bin/traffictwin experiment summarise --registry <tmp-registry> --experiment-id exp-gridlock-001
+streamlit run src/traffictwin/ui/app.py --server.headless true --server.port <tmp-port>
 ```
 
 Results:
@@ -185,8 +211,8 @@ Results:
 - Ruff format: clean after formatting.
 - Ruff check: all checks passed.
 - mypy: no issues found.
-- pytest: 70 passed.
-- coverage: 81%.
+- pytest: 85 passed.
+- coverage: 71%.
 - CLI seed validation: passed.
 - CLI seed normalisation: passed.
 - CLI capability manifest: direct and asynchronous launch are `false`; unconfirmed Randy controls are `unknown`.
@@ -196,6 +222,8 @@ Results:
 - Comparison CLI smoke: baseline versus variation bundle comparison passed.
 - Evidence CLI smoke: evidence-pack JSON generation passed.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
+- Streamlit smoke: headless server started and health endpoint responded.
+- Streamlit AppTest: Home and all core pages rendered with synthetic defaults without uncaught exceptions.
 - JSON finite check: metric JSON contained no `NaN` or infinity.
 - Fixture raw-file hashes were unchanged after validation/import smoke checks.
 
@@ -204,13 +232,11 @@ Results:
 - Real VEC/SUMO adapters are blocked until representative run bundles, schemas, and invocation details are supplied.
 - Direct launch is blocked until a documented CLI, Python API, or script contract exists.
 - Live or near-live modes are blocked until real feed details exist.
-- Metrics using energy, drop causes, trip data, queue-clearance time, or capacity-normalised load remain blocked until source fields and units exist.
+- Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load remain blocked until source fields and units exist.
 
 ## Not Started
 
-- Full diagnostic rules R0-R3.
-- Streamlit UI.
-- Replay clock.
+- Full deterministic diagnostic rules R1-R3.
 - External SUMO/VEC/sensor adapters.
 - LLM rendering.
 - XAI.
@@ -348,25 +374,26 @@ Development dependencies:
 - `mypy`
 - `types-PyYAML`
 
+Runtime dependencies added in Phase 4:
+
+- `streamlit`
+- `plotly`
+
 Deferred:
 
-- `pandas`, `polars`, `duckdb`, `pyarrow`: wait until ingestion and data-size evidence.
-- `streamlit`, `plotly`: wait until Phase 4 UI.
+- `pandas`, `polars`, `duckdb`: wait until data-size evidence. Streamlit installs pandas and pyarrow transitively, but TrafficTwin code does not import them directly.
 - `pre-commit`: practical later, not required for Phase 1.
 - ORM: avoided; Phase 1 uses standard library `sqlite3`.
 
-## Exact Proposed Phase 3 Scope
+## Exact Proposed Phase 5 Scope
 
-Phase 3 should implement deterministic metrics and comparison only:
+Phase 5 should implement deterministic diagnostic readiness into deterministic diagnostic hypotheses:
 
-1. Metric registry with stable keys, names, definitions, required fields, units, aggregation level, and implementation version.
-2. Task metrics from canonical task records: generated, completed, completion rate, class breakdown, deadline misses, latency P50/P95, decision shares, offload ratio.
-3. Infrastructure metrics from canonical infrastructure records: queue length, utilisation, saturation episodes, arrivals/completions where available.
-4. Traffic/trip metrics from canonical traffic/trip records: observed count, average speed, trip duration distribution, journey-time P50/P95.
-5. Metric unavailability reasons driven by Phase 2 evidence availability.
-6. Evidence pack generation for future rules.
-7. Baseline-versus-variation comparison by aligned seed and random seed.
-8. Golden expected metric outputs for the synthetic baseline and variation bundles.
-9. Registry links for derived metric artifacts, without storing full canonical row data unless justified.
+1. Rules R1-R3 over `EvidencePack` only.
+2. Rule outputs with `triggered`, `not_triggered`, and `insufficient_evidence` states.
+3. Evidence keys tied directly to Phase 3 metric keys.
+4. Alternatives, missing evidence, and confidence category based on evidence completeness.
+5. Golden rule cases for baseline, variation, partial, and invalid fixtures.
+6. UI page rename or extension from readiness to hypotheses only after rules exist.
 
-Phase 3 should still not implement Streamlit, external launchers, SUMO/VEC adapters, live data, LLM rendering, XAI, or portfolio selection.
+Phase 5 should still not implement SUMO/VEC adapters, live data, LLM rendering, XAI, portfolio selection, or direct launch.

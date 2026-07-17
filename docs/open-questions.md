@@ -14,13 +14,20 @@ Answered before Phase 1:
 
 Open:
 
-1. Should Phase 4 Streamlit pages use only bundle paths during the first UI slice, or should they require a registry workflow from the start?
-2. Which Phase 3 metric subset should be most prominent in the first Run Overview page?
+1. Which exact thresholds should R1-R3 use for dissertation evaluation, and should they remain synthetic-demo defaults until real evidence exists?
+2. Should the Phase 5 rules page replace Evidence & Diagnostic Readiness or become a separate Diagnostic Hypotheses page?
+3. Which rule outputs should be included in dissertation screenshots?
 
 Resolved during Phase 3:
 
 - Saturation threshold is held in `MetricEngineConfig` and documented as synthetic-demo configuration.
 - Synthetic expected metric outputs are stored as JSON golden projections under `tests/golden/expected/`.
+
+Resolved during Phase 4:
+
+- The first UI supports both direct bundle paths and optional registry-backed imports.
+- Run Overview prioritises task completion, incomplete rate, deadline-miss rate, latency, and offload metrics.
+- The Streamlit launch command is documented rather than adding a Typer wrapper.
 
 ## Questions For Dr. Sandra Sampaio
 

@@ -13,6 +13,8 @@ Metric implementation version: `1.0`.
 
 Unavailable metrics have `value: null`. JSON outputs must not contain `NaN` or infinity.
 
+In the Phase 4 UI, unavailable metrics are displayed as `Unavailable` with reason codes. They must not be rendered as zero in cards, charts, or tables.
+
 ## Percentiles
 
 Percentiles use deterministic linear interpolation:

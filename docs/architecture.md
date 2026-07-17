@@ -152,9 +152,17 @@ First UI pages after the library slice:
 - Infrastructure & Congestion
 - What-if Compare
 - Journey-Time Lens
-- Diagnostic Hypotheses
+- Evidence & Diagnostic Readiness until deterministic rules exist
 
 Every replay or fixture view must label the data mode, for example `Historical Replay` or `Synthetic Fixture`.
+
+Implemented Phase 4 UI boundary:
+
+- `ui.services` calls Phase 1-3 library functions.
+- `ui.state` owns reconstructable session defaults and logical replay clock state.
+- `ui.charts` and `ui.tables` prepare display data without metric formulas.
+- `ui.pages` render Streamlit pages and guard rejected bundles from analysis views.
+- Direct launch remains disabled for the default generic CSV adapter.
 
 ## Implemented Phase 1 Package Tree
 
@@ -215,12 +223,13 @@ Implemented:
 - descriptive experiment aggregation
 - versioned evidence packs
 - metric/evidence JSON references in the SQLite registry
+- Streamlit application shell
+- Home, Scenario Studio, Bundle Import, Operations, Run Overview, Infrastructure, Compare, Journey-Time, and Evidence Readiness pages
 - golden and integration tests
 
 Not implemented:
 
 - full diagnostic rules
-- Streamlit
 - external adapters
 - launchers
 
@@ -304,6 +313,31 @@ diss/
 ```
 
 Phase 3 remains library-first. The CLI calls these modules, and future Streamlit pages should do the same rather than recomputing metrics in the UI.
+
+## Implemented Phase 4 Package Additions
+
+```text
+diss/
+    src/
+        traffictwin/
+            ui/
+                app.py
+                charts.py
+                formatting.py
+                labels.py
+                navigation.py
+                services.py
+                state.py
+                tables.py
+                components/
+                pages/
+```
+
+The UI launch command is:
+
+```bash
+streamlit run src/traffictwin/ui/app.py
+```
 
 ## Dependency Set
 

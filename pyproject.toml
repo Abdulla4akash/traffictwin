@@ -11,7 +11,9 @@ requires-python = ">=3.11"
 authors = [{ name = "Abdulla Al Mamun Akash" }]
 dependencies = [
     "pydantic>=2",
+    "plotly>=5",
     "PyYAML>=6",
+    "streamlit>=1.36",
     "typer>=0.12",
 ]
 
@@ -51,11 +53,21 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 plugins = ["pydantic.mypy"]
 strict = true
 warn_unused_configs = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy",
+    "numpy.*",
+    "plotly.*",
+    "streamlit",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
 
 [tool.coverage.run]
 source = ["traffictwin"]
