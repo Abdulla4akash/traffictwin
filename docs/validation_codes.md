@@ -83,3 +83,29 @@ Validation continues where safe so a complete report is produced.
 | `EVIDENCE_TRAFFIC_UNAVAILABLE` | warning | Traffic evidence is unavailable. |
 | `EVIDENCE_TRIPS_UNAVAILABLE` | warning | Trip evidence is unavailable. |
 | `EVIDENCE_INSUFFICIENT_FOR_DIAGNOSIS` | warning | Future diagnostic rules must be suppressed. |
+
+## Metric Unavailability Reason Codes
+
+Phase 3 metric results use separate reason codes from validation findings:
+
+| Reason code | Meaning |
+|---|---|
+| `REQUIRED_TABLE_UNAVAILABLE` | Required canonical table is absent or unavailable. |
+| `REQUIRED_FIELD_UNAVAILABLE` | Required canonical field is absent or has no valid observations. |
+| `NO_VALID_ROWS` | No usable rows exist for the metric. |
+| `INSUFFICIENT_SAMPLE_SIZE` | Reserved for metrics requiring more observations. |
+| `INVALID_SOURCE_DATA` | Bundle validation rejected the source data. |
+| `UNIT_UNKNOWN` | Reserved for metrics blocked by unknown units. |
+| `CAPACITY_UNAVAILABLE` | Capacity evidence required for the metric is absent. |
+| `TASK_CLASS_UNAVAILABLE` | Task-class evidence is absent. |
+| `VEHICLE_TIER_UNAVAILABLE` | Vehicle-tier evidence is absent. |
+| `NO_COMPLETED_TRIPS` | No completed trip duration evidence exists. |
+| `NO_LATENCY_VALUES` | No latency observations exist. |
+| `COMPARISON_PAIR_INCOMPATIBLE` | Reserved for incompatible comparison pairs. |
+| `RANDOM_SEED_MISMATCH` | Compared runs have different random seeds where matching is required. |
+| `BASELINE_ZERO` | Relative delta is unavailable because baseline is zero and variation is non-zero. |
+| `METRIC_NOT_APPLICABLE` | Metric is not applicable to the current input. |
+| `METRIC_VERSION_MISMATCH` | Compared metric collections use different versions. |
+| `UNIT_MISMATCH` | Compared metric values have different units. |
+| `EXPERIMENT_MISMATCH` | Compared runs have different experiment IDs where matching is required. |
+| `SEED_RELATIONSHIP_UNKNOWN` | Reserved for seed-relationship checks when seed snapshots are absent. |

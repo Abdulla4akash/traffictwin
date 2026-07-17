@@ -1,0 +1,44 @@
+{
+  "baseline_run_id": "run-baseline-001",
+  "variation_run_id": "run-variation-001",
+  "metrics": {
+    "task.completion.rate": {
+      "baseline": 1.0,
+      "variation": 0.75,
+      "absolute_delta": -0.25,
+      "relative_delta": -0.25,
+      "direction": "decreased",
+      "status": "available"
+    },
+    "infra.queue_length.mean": {
+      "baseline": 1.0,
+      "variation": 4.75,
+      "absolute_delta": 3.75,
+      "relative_delta": 3.75,
+      "direction": "increased",
+      "status": "available"
+    },
+    "traffic.speed.mean_mps": {
+      "baseline": 11.75,
+      "variation": 7.6,
+      "absolute_delta": -4.15,
+      "relative_delta": -0.35319148936170214,
+      "direction": "decreased",
+      "status": "available"
+    },
+    "trip.duration.mean_s": {
+      "baseline": 630.0,
+      "variation": 960.0,
+      "absolute_delta": 330.0,
+      "relative_delta": 0.5238095238095238,
+      "direction": "increased",
+      "status": "available"
+    }
+  },
+  "changed_seed_paths": [
+    "demand.multiplier",
+    "infrastructure.failed_rsus",
+    "infrastructure.rsu_capacity_mode",
+    "workload.birth_rate_multiplier"
+  ]
+}

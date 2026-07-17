@@ -14,8 +14,13 @@ Answered before Phase 1:
 
 Open:
 
-1. Should Phase 3 metric thresholds and saturation definitions be configured in YAML or kept as code constants until real data arrives?
-2. Should synthetic Phase 3 expected metrics be stored as JSON golden files or asserted directly in tests?
+1. Should Phase 4 Streamlit pages use only bundle paths during the first UI slice, or should they require a registry workflow from the start?
+2. Which Phase 3 metric subset should be most prominent in the first Run Overview page?
+
+Resolved during Phase 3:
+
+- Saturation threshold is held in `MetricEngineConfig` and documented as synthetic-demo configuration.
+- Synthetic expected metric outputs are stored as JSON golden projections under `tests/golden/expected/`.
 
 ## Questions For Dr. Sandra Sampaio
 

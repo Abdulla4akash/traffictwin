@@ -42,6 +42,8 @@ class RegistrySummary:
     experiment_count: int
     run_count: int
     bundle_import_count: int
+    metric_collection_count: int = 0
+    evidence_pack_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,24 @@ class Registry:
                     validation_report_json TEXT NOT NULL,
                     imported_at TEXT NOT NULL,
                     UNIQUE(run_id),
+                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS metric_collections (
+                    run_id TEXT PRIMARY KEY,
+                    metric_version TEXT NOT NULL,
+                    source_fingerprint TEXT,
+                    payload_json TEXT NOT NULL,
+                    stored_at TEXT NOT NULL,
+                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS evidence_packs (
+                    pack_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    source_fingerprint TEXT,
+                    payload_json TEXT NOT NULL,
+                    stored_at TEXT NOT NULL,
                     FOREIGN KEY(run_id) REFERENCES runs(run_id)
                 );
                 """
@@ -233,6 +253,8 @@ class Registry:
                 experiment_count=self._count(conn, "experiments"),
                 run_count=self._count(conn, "runs"),
                 bundle_import_count=self._count(conn, "bundle_imports"),
+                metric_collection_count=self._count(conn, "metric_collections"),
+                evidence_pack_count=self._count(conn, "evidence_packs"),
             )
 
     def register_bundle_import(
@@ -323,6 +345,124 @@ class Registry:
             message="bundle imported",
         )
 
+    def store_metric_collection(
+        self,
+        *,
+        run_id: str,
+        metric_version: str,
+        source_fingerprint: str | None,
+        payload_json: str,
+    ) -> bool:
+        """Store or refresh metric collection JSON for a run.
+
+        Returns True when a new row is inserted and False when an existing row
+        is refreshed.
+        """
+
+        self.initialize()
+        now = utc_now().isoformat()
+        with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT run_id FROM metric_collections WHERE run_id = ?",
+                (run_id,),
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    """
+                    INSERT INTO metric_collections (
+                        run_id,
+                        metric_version,
+                        source_fingerprint,
+                        payload_json,
+                        stored_at
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (run_id, metric_version, source_fingerprint, payload_json, now),
+                )
+                return True
+            conn.execute(
+                """
+                UPDATE metric_collections
+                SET metric_version = ?,
+                    source_fingerprint = ?,
+                    payload_json = ?,
+                    stored_at = ?
+                WHERE run_id = ?
+                """,
+                (metric_version, source_fingerprint, payload_json, now, run_id),
+            )
+            return False
+
+    def get_metric_collection_json(self, run_id: str) -> str:
+        """Retrieve metric collection JSON for a run."""
+
+        self.initialize()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM metric_collections WHERE run_id = ?",
+                (run_id,),
+            ).fetchone()
+        if row is None:
+            msg = f"metric collection not found: {run_id}"
+            raise RegistryNotFoundError(msg)
+        return cast(str, row["payload_json"])
+
+    def list_metric_collection_json(self) -> list[str]:
+        """List stored metric collection JSON payloads."""
+
+        self.initialize()
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT payload_json FROM metric_collections ORDER BY run_id"
+            ).fetchall()
+        return [cast(str, row["payload_json"]) for row in rows]
+
+    def store_evidence_pack(
+        self,
+        *,
+        pack_id: str,
+        run_id: str,
+        source_fingerprint: str | None,
+        payload_json: str,
+    ) -> bool:
+        """Store or refresh an evidence pack JSON payload."""
+
+        self.initialize()
+        now = utc_now().isoformat()
+        with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT pack_id FROM evidence_packs WHERE pack_id = ?",
+                (pack_id,),
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    """
+                    INSERT INTO evidence_packs (
+                        pack_id,
+                        run_id,
+                        source_fingerprint,
+                        payload_json,
+                        stored_at
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (pack_id, run_id, source_fingerprint, payload_json, now),
+                )
+                return True
+            conn.execute(
+                """
+                UPDATE evidence_packs
+                SET run_id = ?,
+                    source_fingerprint = ?,
+                    payload_json = ?,
+                    stored_at = ?
+                WHERE pack_id = ?
+                """,
+                (run_id, source_fingerprint, payload_json, now, pack_id),
+            )
+            return False
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row
@@ -402,6 +542,8 @@ class Registry:
             "experiments": "SELECT COUNT(*) AS count FROM experiments",
             "runs": "SELECT COUNT(*) AS count FROM runs",
             "bundle_imports": "SELECT COUNT(*) AS count FROM bundle_imports",
+            "metric_collections": "SELECT COUNT(*) AS count FROM metric_collections",
+            "evidence_packs": "SELECT COUNT(*) AS count FROM evidence_packs",
         }
         row = conn.execute(queries[table]).fetchone()
         return cast(int, row["count"])

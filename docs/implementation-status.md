@@ -6,6 +6,8 @@ Phase 1 status: implemented and committed.
 
 Phase 2 status: implemented and quality-gate checked.
 
+Phase 3 status: implemented and quality-gate checked.
+
 ## Repository Assessment
 
 Workspace root inspected: `/Users/akashx/AntigravityTest`
@@ -33,12 +35,15 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/data_contract.md` | Canonical data documentation | Phase 2 in-memory canonical record contract. |
 | `docs/validation_codes.md` | Validation documentation | Stable validation code catalogue and severity policy. |
 | `tests/` | Test suite | Unit, golden, and integration tests. |
+| `docs/metrics_catalogue.md` | Metrics documentation | Phase 3 metric definitions, formulas, availability, and percentile policy. |
+| `docs/evidence_pack_spec.md` | Evidence documentation | Versioned evidence-pack contract for future deterministic rules. |
+| `docs/comparison_methodology.md` | Comparison documentation | Pairwise comparison and descriptive aggregation policy. |
 
 ## Relevant Assets Found
 
 - No real run data, CSV files, SUMO files, Randy environment, checkpoints, or simulator scripts are present.
 - No external environment integration is implemented.
-- No Streamlit UI, metrics engine, diagnostic rules, simulator adapters, or canonical traffic/task data storage are implemented.
+- No Streamlit UI, diagnostic rules, simulator adapters, or canonical traffic/task data storage are implemented.
 - Python 3.12 is available locally and was used for validation. The package declares Python 3.11+ support.
 
 ## Design Specification Status
@@ -102,6 +107,49 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
 - Run-bundle, data-contract, and validation-code documentation.
 - Unit, golden, and integration tests.
 
+## Implemented In Phase 3
+
+- Stable metric-definition catalogue.
+- Metric result models with available, unavailable, partial, and invalid statuses.
+- Deterministic metric engine over Phase 2 canonical records.
+- Task metrics:
+  - generated and completed counts;
+  - completion and incomplete rates;
+  - completion by class;
+  - deadline-miss rate over completed observed tasks;
+  - latency count, mean, P50, and P95;
+  - decision counts and shares;
+  - offload rate;
+  - drop and energy metrics as unavailable when evidence is absent.
+- Infrastructure metrics:
+  - per-RSU summary;
+  - observed RSU count;
+  - queue mean and max;
+  - utilisation mean and P95;
+  - configurable saturation episode count and duration;
+  - capacity-normalised load balance as unavailable without capacity and active-task evidence.
+- Traffic metrics:
+  - observation count;
+  - total and mean counts;
+  - mean, P50, P95, and minimum speed;
+  - time coverage;
+  - sensor count.
+- Trip metrics:
+  - record, completed, and incomplete counts;
+  - completion rate;
+  - duration count, mean, P50, P95, min, and max.
+- Versioned evidence-pack model and builder.
+- Baseline-versus-variation comparison model and deterministic seed-parameter diff.
+- Experiment-level descriptive aggregation and paired random-seed differences.
+- Additive SQLite tables for metric collection JSON and evidence-pack JSON references.
+- CLI commands:
+  - `metrics compute`
+  - `metrics report`
+  - `compare`
+  - `evidence build`
+  - `experiment summarise`
+- Golden expected metric and comparison outputs for synthetic fixtures.
+
 ## Quality Gates
 
 Commands run successfully:
@@ -123,6 +171,13 @@ Commands run successfully:
 .venv/bin/traffictwin bundle validate tests/fixtures/bundles/invalid_manifest
 .venv/bin/traffictwin bundle import tests/fixtures/bundles/baseline_valid --registry <tmp-registry>
 .venv/bin/traffictwin bundle report tests/fixtures/bundles/partial_valid --format json
+.venv/bin/traffictwin metrics compute tests/fixtures/bundles/baseline_valid
+.venv/bin/traffictwin metrics compute tests/fixtures/bundles/variation_valid
+.venv/bin/traffictwin metrics compute tests/fixtures/bundles/partial_valid
+.venv/bin/traffictwin metrics report <baseline.zip> --format json
+.venv/bin/traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
+.venv/bin/traffictwin evidence build tests/fixtures/bundles/baseline_valid --output <tmp-evidence>
+.venv/bin/traffictwin experiment summarise --registry <tmp-registry> --experiment-id exp-gridlock-001
 ```
 
 Results:
@@ -130,13 +185,18 @@ Results:
 - Ruff format: clean after formatting.
 - Ruff check: all checks passed.
 - mypy: no issues found.
-- pytest: 37 passed.
-- coverage: 83%.
+- pytest: 70 passed.
+- coverage: 81%.
 - CLI seed validation: passed.
 - CLI seed normalisation: passed.
 - CLI capability manifest: direct and asynchronous launch are `false`; unconfirmed Randy controls are `unknown`.
 - Registry smoke: registry created by one process and inspected by another.
 - Bundle CLI smoke: valid directory, valid ZIP, partial bundle, rejected bundle, idempotent import, and JSON report passed.
+- Metrics CLI smoke: baseline, variation, partial, ZIP report, and rejected-manifest failure passed.
+- Comparison CLI smoke: baseline versus variation bundle comparison passed.
+- Evidence CLI smoke: evidence-pack JSON generation passed.
+- Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
+- JSON finite check: metric JSON contained no `NaN` or infinity.
 - Fixture raw-file hashes were unchanged after validation/import smoke checks.
 
 ## Blocked
@@ -148,8 +208,6 @@ Results:
 
 ## Not Started
 
-- Metrics registry and metric computation.
-- Evidence packs.
 - Full diagnostic rules R0-R3.
 - Streamlit UI.
 - Replay clock.
@@ -209,7 +267,14 @@ diss/
             evidence/
                 __init__.py
                 availability.py
+                builder.py
                 insufficient.py
+                pack.py
+            experiments/
+                __init__.py
+                aggregation.py
+                comparison.py
+                grouping.py
             ingestion/
                 __init__.py
                 bundle.py
@@ -217,6 +282,21 @@ diss/
                 hashes.py
                 loader.py
                 manifest.py
+            metrics/
+                __init__.py
+                aggregation.py
+                availability.py
+                catalogue.py
+                comparison.py
+                definitions.py
+                engine.py
+                engine_config.py
+                infrastructure.py
+                results.py
+                statistics.py
+                task.py
+                traffic.py
+                trips.py
             validation/
                 __init__.py
                 codes.py

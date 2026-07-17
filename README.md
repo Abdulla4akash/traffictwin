@@ -2,7 +2,7 @@
 
 TrafficTwin is a modular, import-first research software platform for reproducible urban traffic and vehicular edge-computing what-if experiments.
 
-Current scope: Phase 1 core library only. No SUMO adapter, Randy VEC adapter, Streamlit UI, metrics engine, diagnostic rules, live data, or external launch integration is implemented yet.
+Current scope: Phase 3 import-first library slice. The project can validate synthetic run bundles, canonicalise them in memory, compute deterministic metrics, build evidence packs, and compare baseline-versus-variation runs. No SUMO adapter, Randy VEC adapter, Streamlit UI, diagnostic rules, live data, or external launch integration is implemented yet.
 
 ## Quick Start
 
@@ -63,13 +63,33 @@ Export a machine-readable validation report:
 traffictwin bundle report tests/fixtures/bundles/partial_valid --format json
 ```
 
+Compute deterministic metrics:
+
+```bash
+traffictwin metrics compute tests/fixtures/bundles/baseline_valid
+traffictwin metrics report tests/fixtures/bundles/variation_valid --format json
+```
+
+Compare baseline and variation bundles:
+
+```bash
+traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
+```
+
+Build an evidence pack for future deterministic rules:
+
+```bash
+traffictwin evidence build tests/fixtures/bundles/baseline_valid --output /tmp/baseline-evidence.json
+```
+
 ## Data-Mode Disclaimer
 
 Any examples in this repository are synthetic or structural unless explicitly documented otherwise. The project does not currently include Randy's environment, SUMO networks, Manchester sensor data, or live feeds.
 
 ## Current Limitations
 
-- No metrics engine yet.
 - No dashboard or Streamlit UI yet.
 - No SUMO/VEC adapter or external launcher.
 - No live, near-live, or simulated-stream ingestion.
+- No diagnostic rules beyond Phase 2 insufficient-evidence compatibility.
+- Energy, drop-cause, vehicle-tier, and capacity-normalised load metrics are unavailable unless source fields are declared and valid.

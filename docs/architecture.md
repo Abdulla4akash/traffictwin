@@ -111,6 +111,15 @@ Metrics should be registered by stable metadata:
 
 Metrics must refuse to run when required canonical fields are absent.
 
+Implemented Phase 3 modules:
+
+- `metrics.catalogue` and `metrics.definitions` register stable metric definitions.
+- `metrics.engine` orchestrates deterministic calculation over canonical records.
+- `metrics.task`, `metrics.infrastructure`, `metrics.traffic`, and `metrics.trips` own domain calculators.
+- `metrics.comparison` compares baseline and variation metric collections.
+- `metrics.aggregation` provides descriptive experiment-level summaries.
+- `evidence.pack` and `evidence.builder` create versioned evidence packs for future rules.
+
 ### Rules
 
 Rules consume evidence packs, not raw data. Rule outputs are diagnostic hypotheses with alternatives and missing evidence, never proven causes.
@@ -200,11 +209,16 @@ Implemented:
 - validation reports
 - evidence availability
 - idempotent bundle import
+- deterministic metric catalogue and engine
+- task, infrastructure, traffic, and trip metrics
+- baseline-versus-variation comparison
+- descriptive experiment aggregation
+- versioned evidence packs
+- metric/evidence JSON references in the SQLite registry
 - golden and integration tests
 
 Not implemented:
 
-- metrics
 - full diagnostic rules
 - Streamlit
 - external adapters
@@ -257,6 +271,39 @@ diss/
 ```
 
 Phase 2 keeps validation orchestration focused in `ingestion.bundle` and row conversion in `adapters.generic_csv`; the empty validation placeholder modules document the intended later split without adding behaviour.
+
+## Implemented Phase 3 Package Additions
+
+```text
+diss/
+    src/
+        traffictwin/
+            metrics/
+                __init__.py
+                aggregation.py
+                availability.py
+                catalogue.py
+                comparison.py
+                definitions.py
+                engine.py
+                engine_config.py
+                infrastructure.py
+                results.py
+                statistics.py
+                task.py
+                traffic.py
+                trips.py
+            evidence/
+                builder.py
+                pack.py
+            experiments/
+                __init__.py
+                aggregation.py
+                comparison.py
+                grouping.py
+```
+
+Phase 3 remains library-first. The CLI calls these modules, and future Streamlit pages should do the same rather than recomputing metrics in the UI.
 
 ## Dependency Set
 

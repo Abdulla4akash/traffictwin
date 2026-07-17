@@ -1,0 +1,42 @@
+{
+  "run_id": "run-partial-001",
+  "metric_version": "1.0",
+  "metrics": {
+    "task.generated.count": {
+      "status": "available",
+      "value": 2,
+      "unit": "count",
+      "reason_codes": []
+    },
+    "task.completion.rate": {
+      "status": "available",
+      "value": 1.0,
+      "unit": "ratio",
+      "reason_codes": []
+    },
+    "infra.queue_length.mean": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "tasks",
+      "reason_codes": [
+        "REQUIRED_TABLE_UNAVAILABLE"
+      ]
+    },
+    "traffic.speed.mean_mps": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "m/s",
+      "reason_codes": [
+        "REQUIRED_TABLE_UNAVAILABLE"
+      ]
+    },
+    "trip.duration.mean_s": {
+      "status": "unavailable",
+      "value": null,
+      "unit": "s",
+      "reason_codes": [
+        "REQUIRED_TABLE_UNAVAILABLE"
+      ]
+    }
+  }
+}

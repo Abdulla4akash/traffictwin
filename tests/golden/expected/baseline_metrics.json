@@ -1,0 +1,54 @@
+{
+  "run_id": "run-baseline-001",
+  "metric_version": "1.0",
+  "metrics": {
+    "task.generated.count": {
+      "status": "available",
+      "value": 3,
+      "unit": "count",
+      "reason_codes": []
+    },
+    "task.completed.count": {
+      "status": "available",
+      "value": 3,
+      "unit": "count",
+      "reason_codes": []
+    },
+    "task.completion.rate": {
+      "status": "available",
+      "value": 1.0,
+      "unit": "ratio",
+      "reason_codes": []
+    },
+    "task.latency.p95_ms": {
+      "status": "available",
+      "value": 174.0,
+      "unit": "ms",
+      "reason_codes": []
+    },
+    "infra.queue_length.mean": {
+      "status": "available",
+      "value": 1.0,
+      "unit": "tasks",
+      "reason_codes": []
+    },
+    "infra.utilisation.mean": {
+      "status": "available",
+      "value": 0.3875,
+      "unit": "fraction",
+      "reason_codes": []
+    },
+    "traffic.speed.mean_mps": {
+      "status": "available",
+      "value": 11.75,
+      "unit": "m/s",
+      "reason_codes": []
+    },
+    "trip.duration.mean_s": {
+      "status": "available",
+      "value": 630.0,
+      "unit": "s",
+      "reason_codes": []
+    }
+  }
+}

@@ -80,3 +80,29 @@ Evidence categories use:
 - `invalid`
 
 Future metrics and rules must consume this state before attempting computation.
+
+## Phase 3 Metric Contract
+
+Metric computation consumes `CanonicalTables`, `RunMetricContext`, and `EvidenceAvailability`. It does not mutate canonical records and it does not read raw files directly.
+
+Metric outputs are `MetricValue` records grouped into a `MetricCollection`.
+
+Each `MetricValue` includes:
+
+- stable metric key;
+- status: `available`, `unavailable`, `partial`, or `invalid`;
+- value or `null`;
+- unit;
+- aggregation scope;
+- required evidence;
+- missing evidence;
+- stable reason codes;
+- implementation version;
+- run, experiment, seed, algorithm, checkpoint, random-seed, and synthetic provenance;
+- computation timestamp.
+
+Rejected validation reports produce `invalid` metric values rather than computed numbers.
+
+## Phase 3 Evidence Pack Contract
+
+Evidence packs contain validation summaries, evidence availability, metric-engine configuration, metric collections, and provenance. They are the only supported input for future diagnostic rules. They do not include narrative diagnoses, recommendations, LLM-rendered prose, or XAI output.
