@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traffictwin"
+version = "0.1.0"
+description = "Import-first research software for TrafficTwin what-if traffic and VEC experiments."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Abdulla Al Mamun Akash" }]
+dependencies = [
+    "pydantic>=2",
+    "PyYAML>=6",
+    "typer>=0.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "types-PyYAML>=6",
+]
+
+[project.scripts]
+traffictwin = "traffictwin.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "ANN", "S", "C4", "SIM"]
+ignore = [
+    "S101",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+strict = true
+warn_unused_configs = true
+files = ["src", "tests"]
+
+[tool.coverage.run]
+source = ["traffictwin"]

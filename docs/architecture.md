@@ -42,9 +42,8 @@ Direct launch is an adapter capability, not a default feature. The UI may show a
 
 Owns versioned seed schemas, capability manifests, and YAML I/O.
 
-Initial modules:
+Phase 1 modules:
 
-- `config.models`
 - `config.capabilities`
 - `config.seed_io`
 
@@ -62,7 +61,7 @@ Owns first-class research objects independent of file formats and UI:
 
 Own uncertainty at the edges. Adapter interfaces should describe what an environment can do and how raw files map to canonical records.
 
-Initial adapters:
+Initial adapter plan:
 
 - `synthetic`: creates deterministic fixture bundles only.
 - `generic_csv`: imports the documented bundle contract only.
@@ -84,7 +83,7 @@ Validation outputs must include:
 
 ### Storage
 
-Phase 1 should use SQLite for metadata and filesystem paths for raw/canonical/derived artifacts. It is simpler and sufficient while there are no data-volume requirements.
+Phase 1 uses SQLite for metadata and filesystem paths for raw/canonical/derived artifacts. It is simpler and sufficient while there are no data-volume requirements.
 
 Proposed layout:
 
@@ -148,49 +147,97 @@ First UI pages after the library slice:
 
 Every replay or fixture view must label the data mode, for example `Historical Replay` or `Synthetic Fixture`.
 
-## Proposed Phase 1 Package Tree
+## Implemented Phase 1 Package Tree
 
 ```text
 diss/
     README.md
     pyproject.toml
-    ruff.toml
     .gitignore
-    traffictwin/
-        __init__.py
-        cli.py
-        config/
+    src/
+        traffictwin/
             __init__.py
-            capabilities.py
-            models.py
-            seed_io.py
-        domain/
-            __init__.py
-            enums.py
-            experiment.py
-            models.py
-            run.py
-        storage/
-            __init__.py
-            paths.py
-            registry.py
-            metadata.py
-        validation/
-            __init__.py
-            report.py
+            cli.py
+            config/
+                __init__.py
+                capabilities.py
+                seed_io.py
+            domain/
+                __init__.py
+                enums.py
+                experiment.py
+                run.py
+                scenario.py
+            storage/
+                __init__.py
+                registry.py
     tests/
         fixtures/
             seeds/
-                valid_seed.yaml
-                invalid_seed.yaml
+                invalid_class_mix.yaml
+                invalid_schema_version.yaml
         unit/
             test_seed_io.py
-            test_seed_validation.py
+            test_scenario.py
             test_capabilities.py
             test_registry.py
 ```
 
-## Proposed Dependency Set
+## Phase 1 Package Boundary
+
+Implemented:
+
+- domain models
+- YAML seed I/O
+- capability manifest
+- SQLite metadata registry
+- CLI
+- unit tests
+
+Not implemented:
+
+- ingestion
+- canonical traffic/task tables
+- metrics
+- diagnostic rules
+- Streamlit
+- external adapters
+- launchers
+
+## Proposed Phase 2 Package Additions
+
+```text
+diss/
+    examples/
+        bundles/
+            synthetic_baseline/
+            synthetic_variation/
+    src/
+        traffictwin/
+            adapters/
+                __init__.py
+                base.py
+                generic_csv.py
+                synthetic.py
+            ingestion/
+                __init__.py
+                bundle.py
+                canonicalise.py
+                manifest.py
+            validation/
+                __init__.py
+                data_quality.py
+                report.py
+                schema.py
+            rules/
+                __init__.py
+                r0_insufficient_data.py
+    tests/
+        golden/
+        integration/
+```
+
+## Dependency Set
 
 Runtime:
 
@@ -198,10 +245,6 @@ Runtime:
 - Pydantic v2
 - PyYAML
 - Typer
-- Rich
-- pandas
-- Streamlit
-- Plotly
 
 Development:
 
@@ -213,9 +256,12 @@ Development:
 
 Deferred:
 
+- pandas
 - DuckDB
 - Polars
 - PyArrow
+- Streamlit
+- Plotly
 - pre-commit
 
 ## Capability Model
@@ -232,6 +278,9 @@ For `generic_csv`, initial capabilities should be:
 environment:
   adapter: generic_csv
   supports:
+    seed_import: true
+    seed_export: true
+    run_bundle_import: true
     direct_launch: false
     asynchronous_launch: false
     task_arrival_multiplier: unknown

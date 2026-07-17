@@ -1,0 +1,21 @@
+schema_version: "1.0"
+seed:
+  id: "invalid-class-mix"
+  name: "Invalid class mix"
+  workload:
+    birth_rate_multiplier: 1.0
+    class_mix:
+      T1: 0.50
+      T2: 0.30
+      T3: 0.30
+    ordering: "mixed"
+  allowed_decisions:
+    - "local"
+  policy:
+    algorithm: "MAPPO"
+    checkpoint: null
+  evaluation:
+    random_seed: 1
+  provenance:
+    created_by: "Abdulla Al Mamun Akash"
+    source: "TrafficTwin tests"

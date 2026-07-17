@@ -1,0 +1,42 @@
+schema_version: "1.0"
+seed:
+  id: "s1-arena-gridlock-x2"
+  name: "Synthetic arena egress gridlock at double demand"
+  description: "Synthetic Phase 1 seed for baseline-versus-variation testing."
+  base: "S1-arena-egress-gridlock"
+  preset_id: "S1"
+  traffic:
+    event_type: "arena_egress"
+    location: "synthetic_arena_egress"
+    lanes_closed: 1
+    duration_min: 30
+    demand_profile: "synthetic_evening_peak"
+  demand:
+    multiplier: 2.0
+  workload:
+    birth_rate_multiplier: 2.0
+    class_mix:
+      T1: 0.30
+      T2: 0.30
+      T3: 0.40
+    ordering: "mixed"
+  fleet:
+    count: null
+    tier_mix: "mixed"
+  infrastructure:
+    rsu_count: 2
+    rsu_capacity_mode: "standard"
+    failed_rsus: []
+  allowed_decisions:
+    - "local"
+    - "v2i"
+    - "v2v"
+  policy:
+    algorithm: "MAPPO"
+    checkpoint: null
+  evaluation:
+    random_seed: 7
+  compare_against: null
+  provenance:
+    created_by: "Abdulla Al Mamun Akash"
+    source: "TrafficTwin Phase 1 synthetic example"

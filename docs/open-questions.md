@@ -14,7 +14,7 @@ Answered before Phase 1:
 
 Open:
 
-1. Should the initial Git branch be renamed to anything other than the default branch created locally?
+1. Should Phase 2 synthetic bundle IDs and file names follow the exact names in the current proposed contract, or should they wait for a Randy sample bundle?
 
 ## Questions For Dr. Sandra Sampaio
 
@@ -54,6 +54,7 @@ Open:
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load require source columns and units.
 - R1-R3 thresholds require synthetic calibration first and real calibration only after representative data is supplied.
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
+- Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility remains blocked on sample files.
 
 ## Non-Blocking Unknowns
 
