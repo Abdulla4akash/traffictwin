@@ -1,0 +1,30 @@
+{
+  "case_id": "insufficient_evidence",
+  "overall_readiness": "partially_ready",
+  "triggered_rule_ids": ["R0"],
+  "insufficient_rule_ids": ["R1", "R2", "R3"],
+  "conflicting_rule_ids": [],
+  "result_statuses": {
+    "R0": "triggered",
+    "R1": "insufficient_evidence",
+    "R2": "insufficient_evidence",
+    "R3": "insufficient_evidence"
+  },
+  "confidences": {
+    "R0": "moderate",
+    "R1": "unavailable",
+    "R2": "unavailable",
+    "R3": "unavailable"
+  },
+  "active_evidence_keys": {
+    "R0": [
+      "infra.queue_length.max",
+      "infra.saturation.duration_s",
+      "infra.utilisation.mean",
+      "task.completion.rate_by_class",
+      "task.generated.count",
+      "task.incomplete.rate",
+      "task.offload.rate"
+    ]
+  }
+}

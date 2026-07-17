@@ -26,15 +26,16 @@ class UiPage(StrEnum):
     INFRASTRUCTURE = "Infrastructure & Congestion"
     COMPARE = "What-if Compare"
     JOURNEY_TIME = "Journey-Time Lens"
-    EVIDENCE = "Evidence & Diagnostic Readiness"
+    EVIDENCE = "Evidence & Diagnostic Hypotheses"
 
 
 REQUIRED_PROTOTYPE_NOTICE = (
-    "Current prototype supports synthetic fixtures, imported run bundles, and historical replay. "
-    "Direct simulator launch, live data, and diagnostic rules are not yet implemented."
+    "Current prototype supports synthetic fixtures, imported run bundles, historical replay, and "
+    "deterministic diagnostic hypotheses. Direct simulator launch and live data are not yet "
+    "implemented."
 )
 
 DIAGNOSTIC_NOTICE = (
-    "Deterministic diagnostic hypotheses R1-R3 are planned for Phase 5 and are not active "
-    "in this version."
+    "These are deterministic, evidence-based diagnostic hypotheses. They are not proven root "
+    "causes and should be verified through controlled follow-up experiments."
 )

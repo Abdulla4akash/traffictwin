@@ -10,14 +10,18 @@ import yaml
 
 from traffictwin.config.capabilities import default_export_import_manifest, manifest_to_plain_dict
 from traffictwin.config.seed_io import SeedIOError, load_seed, normalise_seed_file
+from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
+from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.bundle import BundleValidationResult, inspect_bundle, validate_bundle
 from traffictwin.ingestion.bundle import import_bundle as import_run_bundle
 from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
 from traffictwin.metrics.results import MetricCollection, MetricStatus
+from traffictwin.rules.engine import evaluate_rules
+from traffictwin.rules.evaluation import evaluate_fixture_set, load_fixture_set
 from traffictwin.storage.registry import Registry, RegistryConflictError, RegistryNotFoundError
 
 app = typer.Typer(no_args_is_help=True, help="TrafficTwin research-software CLI.")
@@ -26,11 +30,13 @@ bundle_app = typer.Typer(no_args_is_help=True, help="Run-bundle commands.")
 metrics_app = typer.Typer(no_args_is_help=True, help="Deterministic metric commands.")
 evidence_app = typer.Typer(no_args_is_help=True, help="Evidence-pack commands.")
 experiment_app = typer.Typer(no_args_is_help=True, help="Experiment aggregation commands.")
+diagnose_app = typer.Typer(no_args_is_help=True, help="Deterministic diagnostic commands.")
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
 app.add_typer(evidence_app, name="evidence")
 app.add_typer(experiment_app, name="experiment")
+app.add_typer(diagnose_app, name="diagnose")
 
 
 @app.command("validate-seed")
@@ -319,6 +325,65 @@ def summarise_experiment_command(
         typer.echo(f"{condition.condition_id}: runs={condition.run_count}")
 
 
+@diagnose_app.command("bundle")
+def diagnose_bundle_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+) -> None:
+    """Evaluate deterministic diagnostics for a bundle."""
+
+    result = validate_bundle(path)
+    _ensure_metric_context_available(result)
+    collection = compute_metrics_for_bundle(result)
+    pack = build_evidence_pack(result, collection)
+    report = evaluate_rules(pack)
+    typer.echo(f"run: {collection.run_id}")
+    typer.echo(f"report: {report.report_id}")
+    typer.echo(f"readiness: {report.overall_readiness.value}")
+    typer.echo(f"triggered: {', '.join(report.triggered_rule_ids) or 'none'}")
+    typer.echo(f"insufficient: {', '.join(report.insufficient_rule_ids) or 'none'}")
+    if not result.report.may_import:
+        typer.echo("bundle rejected; ordinary hypotheses are suppressed", err=True)
+        raise typer.Exit(code=1)
+
+
+@diagnose_app.command("evidence")
+def diagnose_evidence_command(
+    path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+) -> None:
+    """Evaluate deterministic diagnostics for a saved EvidencePack JSON file."""
+
+    pack = EvidencePack.model_validate_json(path.read_text(encoding="utf-8"))
+    report = evaluate_rules(pack)
+    typer.echo(f"evidence_pack: {pack.pack_id}")
+    typer.echo(f"report: {report.report_id}")
+    typer.echo(f"readiness: {report.overall_readiness.value}")
+    typer.echo(f"triggered: {', '.join(report.triggered_rule_ids) or 'none'}")
+
+
+@diagnose_app.command("report")
+def diagnose_report_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Emit a complete machine-readable DiagnosticReport for a bundle or EvidencePack JSON."""
+
+    if output_format != "json":
+        typer.echo("only --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    report = _diagnostic_report_from_path(path)
+    typer.echo(report.to_json())
+
+
+@diagnose_app.command("evaluate")
+def diagnose_evaluate_command(
+    fixture_set: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+) -> None:
+    """Evaluate labelled synthetic diagnostic fixtures."""
+
+    report = evaluate_fixture_set(load_fixture_set(fixture_set))
+    typer.echo(report.to_json())
+
+
 def _collection_from_identifier(
     identifier: str,
     registry_path: Path | None,
@@ -347,3 +412,14 @@ def _ensure_metric_context_available(result: BundleValidationResult) -> None:
             err=True,
         )
         raise typer.Exit(code=1)
+
+
+def _diagnostic_report_from_path(path: Path) -> DiagnosticReport:
+    if path.is_file() and path.suffix.lower() == ".json":
+        pack = EvidencePack.model_validate_json(path.read_text(encoding="utf-8"))
+        return evaluate_rules(pack)
+    result = validate_bundle(path)
+    _ensure_metric_context_available(result)
+    collection = compute_metrics_for_bundle(result)
+    pack = build_evidence_pack(result, collection)
+    return evaluate_rules(pack)

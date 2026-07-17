@@ -1,0 +1,31 @@
+{
+  "case_id": "infrastructure_bottleneck",
+  "overall_readiness": "partially_ready",
+  "triggered_rule_ids": ["R2"],
+  "insufficient_rule_ids": ["R3"],
+  "conflicting_rule_ids": [],
+  "result_statuses": {
+    "R0": "not_triggered",
+    "R1": "not_triggered",
+    "R2": "triggered",
+    "R3": "insufficient_evidence"
+  },
+  "confidences": {
+    "R0": "unavailable",
+    "R1": "unavailable",
+    "R2": "moderate",
+    "R3": "unavailable"
+  },
+  "active_evidence_keys": {
+    "R2": [
+      "infra.queue_length.max",
+      "infra.saturation.duration_s",
+      "infra.saturation.episode_count",
+      "infra.utilisation.p95",
+      "task.completed.count",
+      "task.deadline_miss.completed_observed_rate",
+      "task.generated.count",
+      "task.incomplete.rate"
+    ]
+  }
+}

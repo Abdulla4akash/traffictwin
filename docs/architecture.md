@@ -1,6 +1,6 @@
 # TrafficTwin Initial Architecture
 
-This document proposes the Phase 1-4 architecture for the protected vertical slice. It is based on the canonical v0.4 design text at `docs/traffictwin-design-v0_4.md` and the current repository evidence. No Randy integration, live feed, or real simulator capability is assumed.
+This document proposes the Phase 1-5 architecture for the protected vertical slice. It is based on the canonical v0.4 design text at `docs/traffictwin-design-v0_4.md` and the current repository evidence. No Randy integration, live feed, or real simulator capability is assumed.
 
 ## Architectural Goal
 
@@ -34,7 +34,7 @@ Deterministic diagnostic hypotheses
 Streamlit views and documentation
 ```
 
-Direct launch is an adapter capability, not a default feature. The UI may show a Run action only when an adapter proves support for direct execution.
+Direct launch is an adapter capability, not a default feature. The UI may show a Run action only when an adapter documents support for direct execution.
 
 ## Core Boundaries
 
@@ -118,13 +118,24 @@ Implemented Phase 3 modules:
 - `metrics.task`, `metrics.infrastructure`, `metrics.traffic`, and `metrics.trips` own domain calculators.
 - `metrics.comparison` compares baseline and variation metric collections.
 - `metrics.aggregation` provides descriptive experiment-level summaries.
-- `evidence.pack` and `evidence.builder` create versioned evidence packs for future rules.
+- `evidence.pack` and `evidence.builder` create versioned evidence packs for deterministic rules.
 
 ### Rules
 
 Rules consume evidence packs, not raw data. Rule outputs are diagnostic hypotheses with alternatives and missing evidence, never proven causes.
 
-Phase 2 starts with R0. Phase 5 completes R1-R3 after metrics and comparison are stable.
+Implemented Phase 5 modules:
+
+- `rules.config` owns versioned provisional thresholds.
+- `rules.models` owns rule statuses, findings, confidence categories, and conditional recommendations.
+- `rules.r0_insufficient_evidence` implements data-readiness qualification.
+- `rules.r1_under_offloading` implements the under-offloading candidate.
+- `rules.r2_infrastructure_bottleneck` implements the infrastructure-bottleneck candidate.
+- `rules.r3_scenario_triviality` implements the scenario-triviality candidate when experiment-level EvidencePack metrics exist.
+- `rules.engine` evaluates rules independently and validates cited evidence keys.
+- `diagnostics.report` owns the versioned DiagnosticReport contract.
+
+R3 returns `insufficient_evidence` for ordinary single-run EvidencePacks because cross-algorithm dispersion is not present there.
 
 ### Experiments And Comparison
 
@@ -152,7 +163,7 @@ First UI pages after the library slice:
 - Infrastructure & Congestion
 - What-if Compare
 - Journey-Time Lens
-- Evidence & Diagnostic Readiness until deterministic rules exist
+- Evidence & Diagnostic Hypotheses
 
 Every replay or fixture view must label the data mode, for example `Historical Replay` or `Synthetic Fixture`.
 
@@ -224,12 +235,14 @@ Implemented:
 - versioned evidence packs
 - metric/evidence JSON references in the SQLite registry
 - Streamlit application shell
-- Home, Scenario Studio, Bundle Import, Operations, Run Overview, Infrastructure, Compare, Journey-Time, and Evidence Readiness pages
+- Home, Scenario Studio, Bundle Import, Operations, Run Overview, Infrastructure, Compare, Journey-Time, and Evidence & Diagnostic Hypotheses pages
+- deterministic rules R0-R3
+- versioned diagnostic reports
+- synthetic fault-injection evaluation utility
 - golden and integration tests
 
 Not implemented:
 
-- full diagnostic rules
 - external adapters
 - launchers
 
@@ -415,7 +428,7 @@ The smallest complete slice is a deterministic synthetic baseline-versus-variati
 - R0-R3 evidence outputs
 - Streamlit display with explicit synthetic/replay labels
 
-This slice proves the research-software contract without fabricating external integration.
+This slice demonstrates the research-software contract without fabricating external integration.
 
 ## Initial ADR Candidates
 

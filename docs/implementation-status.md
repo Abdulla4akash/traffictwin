@@ -10,6 +10,8 @@ Phase 3 status: implemented and quality-gate checked.
 
 Phase 4 status: implemented and quality-gate checked.
 
+Phase 5 status: implemented and quality-gate checked.
+
 ## Repository Assessment
 
 Workspace root inspected: `/Users/akashx/AntigravityTest`
@@ -40,7 +42,10 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/metrics_catalogue.md` | Metrics documentation | Phase 3 metric definitions, formulas, availability, and percentile policy. |
 | `docs/evidence_pack_spec.md` | Evidence documentation | Versioned evidence-pack contract for future deterministic rules. |
 | `docs/comparison_methodology.md` | Comparison documentation | Pairwise comparison and descriptive aggregation policy. |
-| `docs/user_guide.md` | User guide | Phase 4 launch and workflow instructions. |
+| `docs/user_guide.md` | User guide | Phase 5 launch and workflow instructions. |
+| `docs/diagnostic_rules.md` | Rules documentation | R0-R3 logic, thresholds, evidence requirements, and limitations. |
+| `docs/diagnostic_report_spec.md` | Report documentation | Versioned DiagnosticReport schema and evidence-key policy. |
+| `docs/fault_injection_methodology.md` | Evaluation documentation | Synthetic fault-injection cases and engineering evaluation limits. |
 | `docs/ui_design.md` | UI design | Streamlit page structure and presentation policy. |
 | `docs/demo_script.md` | Demo script | Keystone synthetic demonstration steps and expected states. |
 
@@ -49,7 +54,8 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 - No real run data, CSV files, SUMO files, Randy environment, checkpoints, or simulator scripts are present.
 - No external environment integration is implemented.
 - Streamlit UI is implemented for synthetic fixtures and imported historical bundles.
-- No diagnostic rules, simulator adapters, or canonical traffic/task data storage are implemented.
+- Deterministic diagnostic rules R0-R3 are implemented over EvidencePacks.
+- No simulator adapters or canonical traffic/task data storage are implemented.
 - Python 3.12 is available locally and was used for validation. The package declares Python 3.11+ support.
 
 ## Design Specification Status
@@ -169,11 +175,33 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
 - Infrastructure & Congestion page.
 - What-if Compare page.
 - Journey-Time Lens page.
-- Evidence & Diagnostic Readiness page.
+- Evidence & Diagnostic Readiness page, later updated in Phase 5.
 - Reusable UI components for badges, cards, validation, provenance, unavailable states, and selectors.
 - Plotly chart preparation for traffic, infrastructure, task events, trip durations, and metric availability.
 - UI tests for formatting, state, chart data, service models, page guards, and AppTest startup.
 - Demo documentation and UI design notes.
+
+## Implemented In Phase 5
+
+- Versioned diagnostic rule configuration.
+- Rule result models with triggered, not-triggered, insufficient-evidence, conflicting-evidence, and invalid statuses.
+- Deterministic R0 data-readiness rule.
+- Deterministic R1 under-offloading candidate rule.
+- Deterministic R2 infrastructure-bottleneck candidate rule.
+- Deterministic R3 scenario-triviality candidate rule.
+- Rule registry and catalogue.
+- Rule engine with independent execution, disabled-rule support, evidence-key validation, and exception isolation.
+- Versioned DiagnosticReport model with readiness, provenance, warnings, and conflict observations.
+- Synthetic fault-injection fixture set with development and held-out labels.
+- Fault-injection evaluation utility reporting precision, recall, support count, and confusion table.
+- CLI commands:
+  - `diagnose bundle`
+  - `diagnose evidence`
+  - `diagnose report`
+  - `diagnose evaluate`
+- UI page updated to Evidence & Diagnostic Hypotheses with rule results, alternatives, missing evidence, confidence basis, thresholds, and JSON download.
+- Golden diagnostic expected outputs.
+- Unit, golden, integration, and UI tests.
 
 ## Quality Gates
 
@@ -203,6 +231,11 @@ Commands run successfully:
 .venv/bin/traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
 .venv/bin/traffictwin evidence build tests/fixtures/bundles/baseline_valid --output <tmp-evidence>
 .venv/bin/traffictwin experiment summarise --registry <tmp-registry> --experiment-id exp-gridlock-001
+.venv/bin/traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+.venv/bin/traffictwin diagnose bundle tests/fixtures/bundles/invalid_rows
+.venv/bin/traffictwin diagnose evidence <tmp-evidence>
+.venv/bin/traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
+.venv/bin/traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
 streamlit run src/traffictwin/ui/app.py --server.headless true --server.port <tmp-port>
 ```
 
@@ -211,8 +244,10 @@ Results:
 - Ruff format: clean after formatting.
 - Ruff check: all checks passed.
 - mypy: no issues found.
-- pytest: 85 passed.
-- coverage: 71%.
+- pytest after Phase 4: 85 passed.
+- pytest after Phase 5: 119 passed.
+- coverage after Phase 4: 71%.
+- coverage after Phase 5: 76%.
 - CLI seed validation: passed.
 - CLI seed normalisation: passed.
 - CLI capability manifest: direct and asynchronous launch are `false`; unconfirmed Randy controls are `unknown`.
@@ -221,6 +256,8 @@ Results:
 - Metrics CLI smoke: baseline, variation, partial, ZIP report, and rejected-manifest failure passed.
 - Comparison CLI smoke: baseline versus variation bundle comparison passed.
 - Evidence CLI smoke: evidence-pack JSON generation passed.
+- Diagnostic CLI smoke: baseline, R1 fixture, R2 fixture, R3 fixture, mixed fault, insufficient evidence, saved EvidencePack, and rejected bundle behavior passed.
+- Fault-injection evaluation: precision/recall returned without `NaN` or infinity.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
 - Streamlit smoke: headless server started and health endpoint responded.
 - Streamlit AppTest: Home and all core pages rendered with synthetic defaults without uncaught exceptions.
@@ -236,7 +273,6 @@ Results:
 
 ## Not Started
 
-- Full deterministic diagnostic rules R1-R3.
 - External SUMO/VEC/sensor adapters.
 - LLM rendering.
 - XAI.
@@ -296,6 +332,11 @@ diss/
                 builder.py
                 insufficient.py
                 pack.py
+            diagnostics/
+                __init__.py
+                builder.py
+                report.py
+                serialization.py
             experiments/
                 __init__.py
                 aggregation.py
@@ -323,6 +364,20 @@ diss/
                 task.py
                 traffic.py
                 trips.py
+            rules/
+                __init__.py
+                base.py
+                catalogue.py
+                config.py
+                conflicts.py
+                engine.py
+                evaluation.py
+                models.py
+                registry.py
+                r0_insufficient_evidence.py
+                r1_under_offloading.py
+                r2_infrastructure_bottleneck.py
+                r3_scenario_triviality.py
             validation/
                 __init__.py
                 codes.py
@@ -343,6 +398,8 @@ diss/
             seeds/
                 invalid_class_mix.yaml
                 invalid_schema_version.yaml
+            diagnostics/
+                cases.json
         golden/
             test_baseline_bundle.py
             test_validation_reports.py
@@ -385,15 +442,14 @@ Deferred:
 - `pre-commit`: practical later, not required for Phase 1.
 - ORM: avoided; Phase 1 uses standard library `sqlite3`.
 
-## Exact Proposed Phase 5 Scope
+## Exact Proposed Phase 6 Scope
 
-Phase 5 should implement deterministic diagnostic readiness into deterministic diagnostic hypotheses:
+Phase 6 should begin only after real environment evidence is available:
 
-1. Rules R1-R3 over `EvidencePack` only.
-2. Rule outputs with `triggered`, `not_triggered`, and `insufficient_evidence` states.
-3. Evidence keys tied directly to Phase 3 metric keys.
-4. Alternatives, missing evidence, and confidence category based on evidence completeness.
-5. Golden rule cases for baseline, variation, partial, and invalid fixtures.
-6. UI page rename or extension from readiness to hypotheses only after rules exist.
+1. Inspect Randy/VEC and SUMO output samples.
+2. Confirm real schemas, units, supported controls, and invocation contract.
+3. Implement real adapters behind capability manifests.
+4. Keep direct launch unavailable unless a documented headless contract exists.
+5. Add adapter-specific validation and fixture tests.
 
-Phase 5 should still not implement SUMO/VEC adapters, live data, LLM rendering, XAI, portfolio selection, or direct launch.
+Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or training orchestration unless the real environment contract and vertical-slice evidence justify them.

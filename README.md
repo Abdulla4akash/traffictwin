@@ -2,7 +2,7 @@
 
 TrafficTwin is a modular, import-first research software platform for reproducible urban traffic and vehicular edge-computing what-if experiments.
 
-Current scope: Phase 4 import-first library plus Streamlit UI slice. The project can validate synthetic run bundles, canonicalise them in memory, compute deterministic metrics, build evidence packs, compare baseline-versus-variation runs, and present the workflow in a restrained research UI. No SUMO adapter, Randy VEC adapter, diagnostic rules, live data, or external launch integration is implemented yet.
+Current scope: Phase 5 import-first library plus Streamlit UI slice. The project can validate synthetic run bundles, canonicalise them in memory, compute deterministic metrics, build evidence packs, compare baseline-versus-variation runs, evaluate deterministic diagnostic hypotheses R0-R3, and present the workflow in a restrained research UI. No SUMO adapter, Randy VEC adapter, live data, or external launch integration is implemented yet.
 
 ## Quick Start
 
@@ -76,10 +76,18 @@ Compare baseline and variation bundles:
 traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
 ```
 
-Build an evidence pack for future deterministic rules:
+Build an evidence pack for deterministic rules:
 
 ```bash
 traffictwin evidence build tests/fixtures/bundles/baseline_valid --output /tmp/baseline-evidence.json
+```
+
+Evaluate deterministic diagnostic hypotheses:
+
+```bash
+traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
+traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
 ```
 
 Launch the Streamlit UI:
@@ -104,7 +112,7 @@ Screenshot placeholders are reserved for the dissertation write-up after Phase 4
 - Bundle Import & Validation
 - Run Overview
 - What-if Compare
-- Evidence & Diagnostic Readiness
+- Evidence & Diagnostic Hypotheses
 
 ## Data-Mode Disclaimer
 
@@ -114,5 +122,5 @@ Any examples in this repository are synthetic or structural unless explicitly do
 
 - No SUMO/VEC adapter or external launcher.
 - No live, near-live, or simulated-stream ingestion.
-- No deterministic diagnostic rules R1-R3 yet.
+- Diagnostic rules are deterministic hypotheses only, not proven root-cause analysis.
 - Energy, drop-cause, vehicle-tier, and capacity-normalised load metrics are unavailable unless source fields are declared and valid.

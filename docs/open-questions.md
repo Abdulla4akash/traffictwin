@@ -15,8 +15,10 @@ Answered before Phase 1:
 Open:
 
 1. Which exact thresholds should R1-R3 use for dissertation evaluation, and should they remain synthetic-demo defaults until real evidence exists?
-2. Should the Phase 5 rules page replace Evidence & Diagnostic Readiness or become a separate Diagnostic Hypotheses page?
-3. Which rule outputs should be included in dissertation screenshots?
+2. Which rule outputs should be included in dissertation screenshots?
+3. Should R3 experiment-level evidence be represented as a first-class aggregation EvidencePack in Phase 6?
+4. What evidence is needed before R1 can use a T1-by-low-tier cross-tab rather than the current lower-confidence proxy?
+5. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
 
 Resolved during Phase 3:
 
@@ -28,6 +30,12 @@ Resolved during Phase 4:
 - The first UI supports both direct bundle paths and optional registry-backed imports.
 - Run Overview prioritises task completion, incomplete rate, deadline-miss rate, latency, and offload metrics.
 - The Streamlit launch command is documented rather than adding a Typer wrapper.
+
+Resolved during Phase 5:
+
+- The UI page is now `Evidence & Diagnostic Hypotheses`.
+- Diagnostic rules are deterministic code over EvidencePacks only.
+- R3 returns `insufficient_evidence` for ordinary single-run bundles.
 
 ## Questions For Dr. Sandra Sampaio
 
@@ -66,6 +74,8 @@ Resolved during Phase 4:
 - Direct launch requires a documented invocation contract.
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load require source columns and units.
 - R1-R3 thresholds require synthetic calibration first and real calibration only after representative data is supplied.
+- R1 direct low-tier/T1 evidence requires vehicle-tier and task-class cross-tab evidence.
+- R2 temporal-overlap evidence requires windowed or event-level task and infrastructure evidence in the EvidencePack.
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility remains blocked on sample files.
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on Randy/SUMO evidence.

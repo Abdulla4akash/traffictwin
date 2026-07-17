@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from traffictwin.config.capabilities import CapabilityManifest, default_export_import_manifest
 from traffictwin.config.seed_io import SeedIOError, dump_seed, load_seed
+from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.domain.enums import (
     Decision,
     FleetTierMix,
@@ -27,6 +28,7 @@ from traffictwin.metrics.comparison import ComparisonReport, compare_metric_coll
 from traffictwin.metrics.engine import compute_metrics_for_bundle
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricCollection
+from traffictwin.rules.engine import evaluate_rules
 from traffictwin.storage.registry import (
     BundleImportResult,
     Registry,
@@ -44,7 +46,7 @@ class ProjectStatus:
     registry_summary: RegistrySummary | None
     latest_runs: list[Run]
     capability_manifest: CapabilityManifest
-    current_phase: str = "Phase 4 UI prototype"
+    current_phase: str = "Phase 5 diagnostic prototype"
     canonical_design_version: str = "TrafficTwin v0.4"
 
 
@@ -56,6 +58,7 @@ class BundleAnalysis:
     validation: BundleValidationResult
     metrics: MetricCollection | None
     evidence_pack: EvidencePack | None
+    diagnostic_report: DiagnosticReport | None
 
     @property
     def analysis_ready(self) -> bool:
@@ -93,10 +96,11 @@ def validate_bundle_for_ui(
     source = Path(path)
     result = validate_bundle(source)
     if result.manifest is None or not result.report.may_import:
-        return BundleAnalysis(source, result, None, None)
+        return BundleAnalysis(source, result, None, None, None)
     metrics = compute_run_metrics_for_ui(result, config)
     evidence = build_evidence_pack_for_ui(result, metrics, config)
-    return BundleAnalysis(source, result, metrics, evidence)
+    diagnostic_report = build_diagnostic_report_for_ui(evidence)
+    return BundleAnalysis(source, result, metrics, evidence, diagnostic_report)
 
 
 def import_bundle_for_ui(path: str | Path, registry_path: str | Path) -> BundleImportResult:
@@ -122,6 +126,12 @@ def build_evidence_pack_for_ui(
     """Build an evidence pack through the Phase 3 evidence builder."""
 
     return build_evidence_pack(result, metrics, config or MetricEngineConfig())
+
+
+def build_diagnostic_report_for_ui(pack: EvidencePack) -> DiagnosticReport:
+    """Build deterministic diagnostics through the Phase 5 rules engine."""
+
+    return evaluate_rules(pack)
 
 
 def compare_runs_for_ui(

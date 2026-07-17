@@ -111,3 +111,14 @@ Comparison reports use:
 - `comparison.seed_aligned_difference` for same-experiment, same-random-seed paired runs where required.
 
 If baseline is zero and variation is zero, relative delta is `0`. If baseline is zero and variation is non-zero, relative delta is unavailable with `BASELINE_ZERO`. Infinity is never emitted.
+
+## Diagnostic Context Keys
+
+Phase 5 synthetic diagnostic EvidencePacks may include experiment-level context keys for R3:
+
+- `experiment.algorithm.count`
+- `experiment.cross_algorithm_dispersion`
+- `experiment.always_local_gap_from_best`
+- `experiment.pressure.indicator`
+
+These are stable diagnostic evidence keys used in synthetic fault-injection fixtures. They are not yet produced by the normal single-run metric engine. Ordinary bundle-derived EvidencePacks therefore return R3 as `insufficient_evidence`.

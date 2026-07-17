@@ -1,6 +1,6 @@
 # Evidence Pack Specification
 
-An evidence pack is the Phase 3 handoff object for future deterministic diagnostic rules. It contains structured evidence only. It does not contain narrative diagnoses, causal claims, recommendations, LLM prose, or XAI output.
+An evidence pack is the Phase 3 handoff object consumed by Phase 5 deterministic diagnostic rules. It contains structured evidence only. It does not contain narrative diagnoses, causal claims, recommendations, LLM prose, or XAI output.
 
 ## Schema
 
@@ -56,10 +56,24 @@ The embedded metric collection contains ordered `MetricValue` objects. Each metr
 
 ## Validation And Evidence
 
-The evidence pack includes the Phase 2 validation status and evidence availability categories. Future rules must use this information to suppress unsupported hypotheses. In Phase 3, no deterministic R1-R3 rules are implemented.
+The evidence pack includes the Phase 2 validation status and evidence availability categories. Phase 5 rules use this information to suppress unsupported hypotheses.
+
+## Diagnostic Consumption
+
+Rules consume only the EvidencePack:
+
+- R0 reads validation status, evidence availability, and metric statuses.
+- R1 reads task-class completion, task count, offload rate, and mean utilisation.
+- R2 reads saturation, queue, utilisation, and task outcome metrics.
+- R3 requires experiment-level metric keys such as `experiment.algorithm.count` and `experiment.cross_algorithm_dispersion`.
+
+Rules do not mutate the EvidencePack.
 
 ## Limitations
 
 - Excluded row counts are zero for accepted synthetic fixtures because Phase 2 rejects bundles with invalid rows rather than computing partial metrics from rejected data.
 - Canonical rows remain in memory; the evidence pack stores metric results and provenance, not raw CSV contents.
 - Real Randy/SUMO evidence remains unavailable until representative bundles and units are supplied.
+- R1 lacks direct T1-by-low-tier cross-tab evidence in current packs.
+- R2 lacks direct task-to-saturation temporal overlap in current packs.
+- R3 experiment-level evidence is available only in synthetic diagnostic fixtures at this stage.

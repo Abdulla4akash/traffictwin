@@ -1,6 +1,6 @@
 # UI Design
 
-The Phase 4 UI is a thin Streamlit layer over the tested TrafficTwin library.
+The Phase 5 UI is a thin Streamlit layer over the tested TrafficTwin library.
 
 ## Principles
 
@@ -20,7 +20,7 @@ The Phase 4 UI is a thin Streamlit layer over the tested TrafficTwin library.
 - Infrastructure & Congestion: RSU queue/utilisation, saturation config, load balance availability.
 - What-if Compare: compatibility, seed diff, metric deltas by domain.
 - Journey-Time Lens: imported trip duration metrics and comparison.
-- Evidence & Diagnostic Readiness: validation/evidence state and evidence-pack download.
+- Evidence & Diagnostic Hypotheses: validation/evidence state, rule results, alternatives, missing evidence, conditional recommendations, and report download.
 
 ## Visual Policy
 
@@ -35,3 +35,14 @@ Operational modes in Phase 4:
 - `HISTORICAL REPLAY`
 
 `NEAR-LIVE` and `TRUE LIVE` may appear only as unsupported future capability labels.
+
+## Diagnostic Presentation
+
+The diagnostic page uses cautious language:
+
+- “candidate hypothesis”
+- “may indicate”
+- “is consistent with”
+- “requires verification”
+
+It avoids causal-proof language that would turn a candidate hypothesis into a settled conclusion. Recommendations are displayed as conditional follow-up checks, not automatic actions.

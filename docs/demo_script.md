@@ -7,13 +7,14 @@ This demo uses synthetic fixtures only.
 - Baseline: `tests/fixtures/bundles/baseline_valid`
 - Variation: `tests/fixtures/bundles/variation_valid`
 - Partial evidence example: `tests/fixtures/bundles/partial_valid`
+- Diagnostic synthetic cases: `tests/fixtures/diagnostics/cases.json`
 
 ## Steps And Expected States
 
 1. Open Home / Project Status.
-   - Current phase is Phase 4 UI prototype.
+   - Current phase is Phase 5 diagnostic prototype.
    - Capability manifest shows direct launch as Unsupported.
-   - Notice states that direct simulator launch, live data, and diagnostic rules are not implemented.
+   - Notice states that direct simulator launch and live data are not implemented.
 
 2. Open Scenario Studio.
    - Seed fields render.
@@ -59,8 +60,14 @@ This demo uses synthetic fixtures only.
     - Trip duration chart renders.
     - Labels avoid real Manchester prediction claims.
 
-11. Open Evidence & Diagnostic Readiness.
+11. Open Evidence & Diagnostic Hypotheses.
     - Evidence availability and validation status are visible.
     - EvidencePack ID and fingerprint are visible.
-    - Required notice states that R1-R3 are planned for Phase 5 and inactive.
-    - No causal recommendation or diagnosis appears.
+    - Baseline has no strong triggered R1/R2/R3 hypothesis.
+    - R3 is insufficient for ordinary single-run evidence.
+    - The page states that hypotheses are not proven root causes.
+
+12. Run the synthetic fault-injection evaluation.
+    - Command: `traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json`.
+    - Expected cases include under-offloading, infrastructure bottleneck, trivial scenario, mixed fault, insufficient evidence, and contradictory evidence.
+    - Precision/recall are implementation checks over synthetic labels, not real-world validation.

@@ -1,0 +1,28 @@
+{
+  "case_id": "under_offloading",
+  "overall_readiness": "partially_ready",
+  "triggered_rule_ids": ["R1"],
+  "insufficient_rule_ids": ["R3"],
+  "conflicting_rule_ids": [],
+  "result_statuses": {
+    "R0": "not_triggered",
+    "R1": "triggered",
+    "R2": "not_triggered",
+    "R3": "insufficient_evidence"
+  },
+  "confidences": {
+    "R0": "unavailable",
+    "R1": "moderate",
+    "R2": "unavailable",
+    "R3": "unavailable"
+  },
+  "active_evidence_keys": {
+    "R1": [
+      "infra.utilisation.mean",
+      "task.completion.rate_by_class",
+      "task.completion.rate_by_vehicle_tier",
+      "task.generated.count",
+      "task.offload.rate"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "case_id": "contradictory_evidence",
+  "overall_readiness": "partially_ready",
+  "triggered_rule_ids": ["R2"],
+  "insufficient_rule_ids": ["R3"],
+  "conflicting_rule_ids": ["R1"],
+  "result_statuses": {
+    "R0": "not_triggered",
+    "R1": "conflicting_evidence",
+    "R2": "triggered",
+    "R3": "insufficient_evidence"
+  },
+  "confidences": {
+    "R0": "unavailable",
+    "R1": "low",
+    "R2": "moderate",
+    "R3": "unavailable"
+  },
+  "active_evidence_keys": {
+    "R1": [
+      "infra.utilisation.mean",
+      "task.completion.rate_by_class",
+      "task.completion.rate_by_vehicle_tier",
+      "task.generated.count",
+      "task.offload.rate"
+    ],
+    "R2": [
+      "infra.queue_length.max",
+      "infra.saturation.duration_s",
+      "infra.saturation.episode_count",
+      "infra.utilisation.p95",
+      "task.completed.count",
+      "task.deadline_miss.completed_observed_rate",
+      "task.generated.count",
+      "task.incomplete.rate"
+    ]
+  },
+  "conflict_observations": [
+    "The current evidence contains contradictions; follow-up experiments are needed before choosing one hypothesis."
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0",
+  "description": "Synthetic diagnostic fault-injection cases for Phase 5. These cases validate deterministic rule behavior only; they are not real experimental evidence.",
+  "cases": [
+    {
+      "case_id": "baseline_no_strong_hypothesis",
+      "split": "development",
+      "metrics": {
+        "task.generated.count": 30,
+        "task.completed.count": 30,
+        "task.completion.rate_by_class": {"T1": 0.96, "T2": 1.0, "T3": 1.0, "unknown": null},
+        "task.incomplete.rate": 0.0,
+        "task.deadline_miss.completed_observed_rate": 0.02,
+        "task.offload.rate": 0.45,
+        "infra.utilisation.mean": 0.42,
+        "infra.utilisation.p95": 0.58,
+        "infra.queue_length.max": 2,
+        "infra.saturation.duration_s": 0,
+        "infra.saturation.episode_count": 0
+      },
+      "unavailable_metrics": [
+        "task.completion.rate_by_vehicle_tier",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "expected_triggered_rules": [],
+      "expected_insufficient_rules": ["R3"],
+      "acceptable_alternatives": [],
+      "synthetic_faults": [],
+      "notes": "Healthy synthetic case with no strong R1/R2/R3 hypothesis."
+    },
+    {
+      "case_id": "under_offloading",
+      "split": "development",
+      "metrics": {
+        "task.generated.count": 40,
+        "task.completed.count": 26,
+        "task.completion.rate_by_class": {"T1": 0.55, "T2": 0.90, "T3": 0.95, "unknown": null},
+        "task.incomplete.rate": 0.35,
+        "task.deadline_miss.completed_observed_rate": 0.18,
+        "task.offload.rate": 0.10,
+        "infra.utilisation.mean": 0.38,
+        "infra.utilisation.p95": 0.55,
+        "infra.queue_length.max": 2,
+        "infra.saturation.duration_s": 0,
+        "infra.saturation.episode_count": 0
+      },
+      "unavailable_metrics": [
+        "task.completion.rate_by_vehicle_tier",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "expected_triggered_rules": ["R1"],
+      "expected_insufficient_rules": ["R3"],
+      "acceptable_alternatives": ["poor link quality", "reward-function priorities"],
+      "synthetic_faults": ["low_offload", "t1_failures", "available_infrastructure"],
+      "notes": "Synthetic R1 support pattern."
+    },
+    {
+      "case_id": "infrastructure_bottleneck",
+      "split": "development",
+      "metrics": {
+        "task.generated.count": 45,
+        "task.completed.count": 31,
+        "task.completion.rate_by_class": {"T1": 0.70, "T2": 0.75, "T3": 0.80, "unknown": null},
+        "task.incomplete.rate": 0.31,
+        "task.deadline_miss.completed_observed_rate": 0.25,
+        "task.offload.rate": 0.62,
+        "infra.utilisation.mean": 0.88,
+        "infra.utilisation.p95": 0.97,
+        "infra.queue_length.max": 12,
+        "infra.saturation.duration_s": 80,
+        "infra.saturation.episode_count": 2
+      },
+      "unavailable_metrics": [
+        "task.completion.rate_by_vehicle_tier",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "expected_triggered_rules": ["R2"],
+      "expected_insufficient_rules": ["R3"],
+      "acceptable_alternatives": ["communication bottleneck", "policy routing imbalance"],
+      "synthetic_faults": ["sustained_saturation", "queue_pressure", "task_misses"],
+      "notes": "Synthetic R2 support pattern."
+    },
+    {
+      "case_id": "trivial_scenario",
+      "split": "held_out",
+      "metrics": {
+        "task.generated.count": 50,
+        "task.completed.count": 50,
+        "task.completion.rate_by_class": {"T1": 0.98, "T2": 1.0, "T3": 1.0, "unknown": null},
+        "task.incomplete.rate": 0.0,
+        "task.deadline_miss.completed_observed_rate": 0.01,
+        "task.offload.rate": 0.30,
+        "infra.utilisation.mean": 0.30,
+        "infra.utilisation.p95": 0.42,
+        "infra.queue_length.max": 1,
+        "infra.saturation.duration_s": 0,
+        "infra.saturation.episode_count": 0,
+        "experiment.algorithm.count": 3,
+        "experiment.cross_algorithm_dispersion": 0.01,
+        "experiment.always_local_gap_from_best": 0.01,
+        "experiment.pressure.indicator": 0.10
+      },
+      "expected_triggered_rules": ["R3"],
+      "expected_insufficient_rules": [],
+      "acceptable_alternatives": ["all algorithms are genuinely similarly capable"],
+      "synthetic_faults": ["low_dispersion", "low_pressure"],
+      "notes": "Synthetic R3 support pattern."
+    },
+    {
+      "case_id": "mixed_fault",
+      "split": "held_out",
+      "metrics": {
+        "task.generated.count": 60,
+        "task.completed.count": 36,
+        "task.completion.rate_by_class": {"T1": 0.50, "T2": 0.82, "T3": 0.90, "unknown": null},
+        "task.incomplete.rate": 0.40,
+        "task.deadline_miss.completed_observed_rate": 0.22,
+        "task.offload.rate": 0.12,
+        "infra.utilisation.mean": 0.55,
+        "infra.utilisation.p95": 0.96,
+        "infra.queue_length.max": 15,
+        "infra.saturation.duration_s": 70,
+        "infra.saturation.episode_count": 1
+      },
+      "unavailable_metrics": [
+        "task.completion.rate_by_vehicle_tier",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "expected_triggered_rules": ["R1", "R2"],
+      "expected_insufficient_rules": ["R3"],
+      "acceptable_alternatives": ["one RSU receiving disproportionate demand", "V2I or V2V unavailable at decision time"],
+      "synthetic_faults": ["low_offload", "localised_saturation", "task_misses"],
+      "notes": "Synthetic mixed case where R1 and R2 are both plausible."
+    },
+    {
+      "case_id": "insufficient_evidence",
+      "split": "held_out",
+      "metrics": {
+        "task.generated.count": 25,
+        "task.completed.count": 24,
+        "task.completion.rate_by_class": {"T1": 0.95, "T2": 1.0, "T3": 1.0, "unknown": null},
+        "task.incomplete.rate": 0.04,
+        "task.deadline_miss.completed_observed_rate": 0.01,
+        "task.offload.rate": 0.50
+      },
+      "unavailable_metrics": [
+        "infra.utilisation.mean",
+        "infra.utilisation.p95",
+        "infra.queue_length.max",
+        "infra.saturation.duration_s",
+        "infra.saturation.episode_count",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "evidence_availability": {
+        "infrastructure": "unavailable",
+        "diagnosis": "unavailable"
+      },
+      "expected_triggered_rules": ["R0"],
+      "expected_insufficient_rules": ["R1", "R2", "R3"],
+      "acceptable_alternatives": [],
+      "synthetic_faults": ["missing_infrastructure_evidence"],
+      "notes": "Tasks-only case."
+    },
+    {
+      "case_id": "contradictory_evidence",
+      "split": "held_out",
+      "metrics": {
+        "task.generated.count": 45,
+        "task.completed.count": 30,
+        "task.completion.rate_by_class": {"T1": 0.55, "T2": 0.80, "T3": 0.90, "unknown": null},
+        "task.incomplete.rate": 0.33,
+        "task.deadline_miss.completed_observed_rate": 0.18,
+        "task.offload.rate": 0.08,
+        "infra.utilisation.mean": 0.92,
+        "infra.utilisation.p95": 0.98,
+        "infra.queue_length.max": 10,
+        "infra.saturation.duration_s": 60,
+        "infra.saturation.episode_count": 2
+      },
+      "unavailable_metrics": [
+        "task.completion.rate_by_vehicle_tier",
+        "experiment.algorithm.count",
+        "experiment.cross_algorithm_dispersion"
+      ],
+      "expected_triggered_rules": ["R2"],
+      "expected_insufficient_rules": ["R3"],
+      "acceptable_alternatives": ["action-space restrictions", "communication bottleneck"],
+      "synthetic_faults": ["low_offload", "high_infrastructure_saturation"],
+      "notes": "Low offload conflicts with high infrastructure pressure for R1; R2 remains plausible."
+    }
+  ]
+}

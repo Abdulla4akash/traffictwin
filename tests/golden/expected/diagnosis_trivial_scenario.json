@@ -1,0 +1,26 @@
+{
+  "case_id": "trivial_scenario",
+  "overall_readiness": "ready",
+  "triggered_rule_ids": ["R3"],
+  "insufficient_rule_ids": [],
+  "conflicting_rule_ids": [],
+  "result_statuses": {
+    "R0": "not_triggered",
+    "R1": "not_triggered",
+    "R2": "not_triggered",
+    "R3": "triggered"
+  },
+  "confidences": {
+    "R0": "unavailable",
+    "R1": "unavailable",
+    "R2": "unavailable",
+    "R3": "moderate"
+  },
+  "active_evidence_keys": {
+    "R3": [
+      "experiment.algorithm.count",
+      "experiment.always_local_gap_from_best",
+      "experiment.cross_algorithm_dispersion"
+    ]
+  }
+}

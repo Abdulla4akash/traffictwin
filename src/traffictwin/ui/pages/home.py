@@ -65,7 +65,7 @@ def render(config: UiConfig) -> None:
         [
             "Direct simulator launch is unavailable for the default generic CSV adapter.",
             "No live, near-live, or true-live Manchester data is connected.",
-            "Diagnostic hypotheses R1-R3 are planned for Phase 5 and are not active.",
+            "Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.",
             "SUMO and Randy/VEC adapters remain blocked until real schemas exist.",
         ]
     )
