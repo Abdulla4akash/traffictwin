@@ -19,6 +19,8 @@ Open:
 3. Should R3 experiment-level evidence be represented as a first-class aggregation EvidencePack in Phase 6?
 4. What evidence is needed before R1 can use a T1-by-low-tier cross-tab rather than the current lower-confidence proxy?
 5. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
+6. Can a real or sanitised Randy/SUMO sample set be supplied for Phase 6B, and which files may be committed as fixtures?
+7. Should Phase 6B start with Randy/VEC logs, SUMO trip/FCD outputs, or a combined standard TrafficTwin bundle once artifacts are supplied?
 
 Resolved during Phase 3:
 
@@ -37,6 +39,11 @@ Resolved during Phase 5:
 - Diagnostic rules are deterministic code over EvidencePacks only.
 - R3 returns `insufficient_evidence` for ordinary single-run bundles.
 
+Resolved during Phase 6A:
+
+- No real Randy/VEC or SUMO artifacts are present in the inspected workspace.
+- Phase 6B adapter implementation is blocked until schemas, units, source samples, and execution contracts are supplied.
+
 ## Questions For Dr. Sandra Sampaio
 
 1. Confirm the actual dissertation submission date and interim milestone dates.
@@ -50,23 +57,26 @@ Resolved during Phase 5:
 
 ## Questions For Randy
 
-1. Can the VEC/SUMO environment be invoked headlessly through a CLI, script, or Python API?
-2. If yes, what exact command or API accepts scenario seed parameters?
-3. What is the expected wall-clock duration for one lightweight run and one SUMO validation run?
-4. Can one complete run bundle be supplied with header rows and units?
-5. Which files are exported today: task logs, RSU logs, vehicle traces, traffic observations, trip outputs, incident/event records, or something else?
-6. Are per-RSU queue length, utilisation, arrivals, completions, drops, and capacity exported over time?
-7. Are task arrival time, completion time, latency, deadline, deadline-met flag, decision, target, class, vehicle tier, data size, workload, energy, and drop reason exported?
-8. Are trip departure and arrival times available from SUMO output?
-9. Which units are used for time, speed, distance, data size, workload, energy, queue length, and utilisation?
-10. Are task IDs unique across a run?
-11. Are decision values represented as `local`, `v2i`, and `v2v`, or with different labels?
-12. How are V2I and V2V decision targets represented?
-13. Does the environment support varying demand, task birth rate, class mix, task ordering, vehicle count, vehicle tier mix, RSU count, RSU capacity, RSU placement, RSU failure, and decision toggles?
-14. Are environment version, Git commit, algorithm, checkpoint, random seed, and training budget recorded in run outputs?
-15. Is sensor-to-SUMO scenario generation shareable?
-16. Does the VEC environment consume arbitrary FCD/network files or only prepared scenes?
-17. Are there existing plotting or metric scripts that should be reused rather than reimplemented?
+1. Can one complete real or sanitised output directory be supplied from a single validation run?
+2. For every supplied file, what are the header rows, field meanings, units, missing-value conventions, and timestamp conventions?
+3. Does the sample represent training, lightweight validation, SUMO validation, scenario configuration, or post-processed summaries?
+4. Can the VEC/SUMO environment be invoked headlessly through a CLI, script, or Python API?
+5. If yes, what exact command or API accepts scenario seed parameters?
+6. What is the expected wall-clock duration for one lightweight run and one SUMO validation run?
+7. Which files are exported today: task logs, RSU logs, vehicle traces, traffic observations, trip outputs, incident/event records, or something else?
+8. Are per-RSU queue length, utilisation, arrivals, completions, drops, and capacity exported over time?
+9. Are task arrival time, completion time, latency, deadline, deadline-met flag, decision, target, class, vehicle tier, data size, workload, energy, and drop reason exported?
+10. Are SUMO `.sumocfg`, network, route, FCD, tripinfo, detector, queue, or summary outputs available?
+11. Which units are used for time, speed, distance, data size, workload, energy, queue length, capacity, and utilisation?
+12. Are task IDs unique across a run?
+13. Are decision values represented as `local`, `v2i`, and `v2v`, or with different labels?
+14. How are V2I and V2V decision targets represented?
+15. Does the environment support varying demand, task birth rate, class mix, task ordering, vehicle count, vehicle tier mix, RSU count, RSU capacity, RSU placement, RSU failure, and decision toggles?
+16. Are environment version, Git commit, algorithm, checkpoint, random seed, and training budget recorded in run outputs?
+17. Is sensor-to-SUMO scenario generation shareable?
+18. Does the VEC environment consume arbitrary FCD/network files or only prepared scenes?
+19. Are there existing plotting or metric scripts that should be reused or reconciled rather than reimplemented?
+20. Which real or sanitised artifacts may be committed to the repository as fixtures, and which must remain private?
 
 ## Implementation Blockers
 
@@ -79,6 +89,7 @@ Resolved during Phase 5:
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility remains blocked on sample files.
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on Randy/SUMO evidence.
+- Phase 6B adapter implementation is blocked on real or sanitised Randy/SUMO artifacts, units, schemas, provenance, and invocation contracts.
 
 ## Non-Blocking Unknowns
 

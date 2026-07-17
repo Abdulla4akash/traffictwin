@@ -12,6 +12,8 @@ Phase 4 status: implemented and quality-gate checked.
 
 Phase 5 status: implemented and quality-gate checked.
 
+Phase 6A status: discovery implemented. Real adapter implementation is blocked because no real Randy/VEC or SUMO artifacts are present in the inspected workspace.
+
 ## Repository Assessment
 
 Workspace root inspected: `/Users/akashx/AntigravityTest`
@@ -48,10 +50,12 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/fault_injection_methodology.md` | Evaluation documentation | Synthetic fault-injection cases and engineering evaluation limits. |
 | `docs/ui_design.md` | UI design | Streamlit page structure and presentation policy. |
 | `docs/demo_script.md` | Demo script | Keystone synthetic demonstration steps and expected states. |
+| `docs/integration/` | Integration discovery documentation | Phase 6A artifact inventory, schema mapping, execution contract, gap analysis, and implementation decision. |
 
 ## Relevant Assets Found
 
-- No real run data, CSV files, SUMO files, Randy environment, checkpoints, or simulator scripts are present.
+- No real run data, SUMO files, Randy environment, checkpoints, notebooks, job scripts, logs, or simulator scripts are present.
+- The only CSV/YAML/JSON run artifacts present are TrafficTwin synthetic fixtures under `tests/fixtures/`.
 - No external environment integration is implemented.
 - Streamlit UI is implemented for synthetic fixtures and imported historical bundles.
 - Deterministic diagnostic rules R0-R3 are implemented over EvidencePacks.
@@ -203,6 +207,24 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
 - Golden diagnostic expected outputs.
 - Unit, golden, integration, and UI tests.
 
+## Implemented In Phase 6A
+
+- Repository and workspace discovery for Randy/VEC and SUMO artifacts.
+- Candidate artifact search across CSV, YAML, JSON, XML, ZIP, notebooks, scripts, job files, checkpoints, logs, databases, and Parquet files.
+- Confirmation that no real Randy/VEC or SUMO artifacts are present.
+- Documentation of the distinction between existing synthetic TrafficTwin fixture schemas and real Randy/SUMO evidence.
+- Integration discovery documents:
+  - `docs/integration/randy_artifact_inventory.md`
+  - `docs/integration/randy_schema_mapping.md`
+  - `docs/integration/randy_execution_contract.md`
+  - `docs/integration/randy_gap_analysis.md`
+  - `docs/integration/phase6_decision.md`
+- Capability decision:
+  - `direct_launch=false`
+  - `asynchronous_launch=false`
+  - unconfirmed scenario and infrastructure controls remain `unknown`
+- Phase 6B adapter implementation stopped because the required evidence is absent.
+
 ## Quality Gates
 
 Commands run successfully:
@@ -211,8 +233,8 @@ Commands run successfully:
 .venv/bin/ruff format .
 .venv/bin/ruff check .
 .venv/bin/mypy
-.venv/bin/pytest
-.venv/bin/pytest --cov=traffictwin --cov-report=term-missing
+.venv/bin/python -m pytest
+.venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
 .venv/bin/traffictwin validate-seed examples/seeds/arena_gridlock.yaml
 .venv/bin/traffictwin normalise-seed examples/seeds/arena_gridlock.yaml /tmp/traffictwin_arena_gridlock.normalised.yaml
 .venv/bin/traffictwin capabilities
@@ -237,6 +259,7 @@ Commands run successfully:
 .venv/bin/traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
 .venv/bin/traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
 streamlit run src/traffictwin/ui/app.py --server.headless true --server.port <tmp-port>
+find /Users/akashx/AntigravityTest ... <artifact discovery searches>
 ```
 
 Results:
@@ -258,6 +281,8 @@ Results:
 - Evidence CLI smoke: evidence-pack JSON generation passed.
 - Diagnostic CLI smoke: baseline, R1 fixture, R2 fixture, R3 fixture, mixed fault, insufficient evidence, saved EvidencePack, and rejected bundle behavior passed.
 - Fault-injection evaluation: precision/recall returned without `NaN` or infinity.
+- Phase 6A discovery: no real Randy/VEC or SUMO artifacts found; only synthetic TrafficTwin fixtures and historical notes found.
+- Phase 6A quality gates: Ruff format/check passed; mypy passed; 119 tests passed; coverage remained 76%; no real adapter-specific tests or sanitised real-fixture validation were applicable because no real artifacts were present.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
 - Streamlit smoke: headless server started and health endpoint responded.
 - Streamlit AppTest: Home and all core pages rendered with synthetic defaults without uncaught exceptions.

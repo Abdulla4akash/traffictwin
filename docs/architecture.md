@@ -352,6 +352,60 @@ The UI launch command is:
 streamlit run src/traffictwin/ui/app.py
 ```
 
+## Phase 6 Integration Boundary
+
+Phase 6A discovery searched the inspected workspace for Randy/VEC and SUMO artifacts. No real task logs, infrastructure logs, SUMO XML/configuration files, notebooks, launch scripts, job files, checkpoints, logs, or real output directories were found.
+
+The architecture therefore remains import-first and adapter-gated:
+
+```text
+real Randy/SUMO artifacts
+        |
+        v
+adapter-specific schema and unit validation
+        |
+        v
+standard TrafficTwin run bundle
+        |
+        v
+existing Phase 2 validation and canonicalisation
+        |
+        v
+existing Phase 3 metrics and evidence packs
+        |
+        v
+existing Phase 5 diagnostics
+        |
+        v
+existing Phase 4 UI services and pages
+```
+
+No real adapter may bypass the existing validation, canonical record, metric, evidence-pack, or diagnostic layers. The generic CSV adapter must remain manifest-driven and free of Randy-specific behavior.
+
+Current integration capability decision:
+
+```yaml
+environment:
+  adapter: randy_vec_discovery
+  supports:
+    direct_launch: false
+    asynchronous_launch: false
+    task_arrival_multiplier: unknown
+    workload_class_mix: unknown
+    workload_ordering: unknown
+    vehicle_count: unknown
+    vehicle_tier_mix: unknown
+    rsu_count: unknown
+    rsu_capacity: unknown
+    rsu_placement: unknown
+    rsu_failure: unknown
+    action_toggles: unknown
+    signal_timing: unknown
+    lane_closure: unknown
+```
+
+Phase 6B can begin only after real or sanitised artifacts provide schemas, units, source samples, provenance, and any execution contract.
+
 ## Dependency Set
 
 Runtime:
