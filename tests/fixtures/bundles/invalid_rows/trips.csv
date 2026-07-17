@@ -1,0 +1,2 @@
+trip_id,vehicle_id,departure_time,arrival_time,duration,route_id
+trip-bad,veh-1,100,90,10,route-a

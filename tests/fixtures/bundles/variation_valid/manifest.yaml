@@ -1,0 +1,54 @@
+schema_version: "1.0"
+bundle:
+  bundle_id: "bundle-variation-001"
+  created_at: "2026-07-17T12:05:00Z"
+  source: "synthetic_fixture"
+run:
+  run_id: "run-variation-001"
+  experiment_id: "exp-gridlock-001"
+  seed_id: "s1-gridlock-variation"
+  algorithm: "MAPPO"
+  checkpoint: null
+  random_seed: 7
+  execution_mode: "imported"
+  started_at: null
+  completed_at: null
+environment:
+  name: "synthetic"
+  version: "1.0"
+  commit: null
+files:
+  tasks:
+    path: "tasks.csv"
+    schema_version: "1.0"
+    required_columns: ["task_id", "vehicle_id", "task_class", "arrival_time", "deadline_ms", "decision", "completed"]
+    units:
+      arrival_time: "s"
+      completion_time: "s"
+      deadline_ms: "ms"
+      latency_ms: "ms"
+  infra_state:
+    path: "infra_state.csv"
+    schema_version: "1.0"
+    required_columns: ["timestamp", "rsu_id", "queue_length", "utilisation"]
+    units:
+      timestamp: "s"
+      utilisation: "fraction"
+  traffic_obs:
+    path: "traffic_obs.csv"
+    schema_version: "1.0"
+    required_columns: ["timestamp", "sensor_id"]
+    units:
+      timestamp: "s"
+      average_speed: "m/s"
+  trips:
+    path: "trips.csv"
+    schema_version: "1.0"
+    required_columns: ["trip_id", "departure_time"]
+    units:
+      departure_time: "s"
+      arrival_time: "s"
+      duration: "s"
+provenance:
+  producer: "TrafficTwin synthetic fixture generator"
+  notes: "Synthetic variation bundle with higher demand and reduced capacity"

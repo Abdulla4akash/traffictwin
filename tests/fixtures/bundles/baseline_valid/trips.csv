@@ -1,0 +1,3 @@
+trip_id,vehicle_id,departure_time,arrival_time,duration,route_id
+trip-1,veh-1,0,600,600,route-a
+trip-2,veh-2,30,690,660,route-a

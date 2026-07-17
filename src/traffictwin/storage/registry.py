@@ -5,9 +5,7 @@ from __future__ import annotations
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TypeVar, cast
-
-from pydantic import BaseModel
+from typing import cast
 
 from traffictwin.domain.enums import ExperimentStatus, RunStatus
 from traffictwin.domain.experiment import Experiment, utc_now
@@ -31,6 +29,10 @@ class InvalidStatusTransitionError(RegistryError):
     """Raised when a lifecycle transition is not allowed."""
 
 
+class RegistryConflictError(RegistryError):
+    """Raised when an import conflicts with existing registry metadata."""
+
+
 @dataclass(frozen=True)
 class RegistrySummary:
     """Simple registry inspection result."""
@@ -39,9 +41,20 @@ class RegistrySummary:
     seed_count: int
     experiment_count: int
     run_count: int
+    bundle_import_count: int
 
 
-ModelT = TypeVar("ModelT", bound=BaseModel)
+@dataclass(frozen=True)
+class BundleImportResult:
+    """Result of registering a validated bundle."""
+
+    bundle_id: str | None
+    run_id: str | None
+    created: bool
+    idempotent: bool
+    status: str
+    message: str
+
 
 EXPERIMENT_TRANSITIONS: dict[ExperimentStatus, set[ExperimentStatus]] = {
     ExperimentStatus.PLANNED: {ExperimentStatus.RUNNING, ExperimentStatus.ARCHIVED},
@@ -101,6 +114,18 @@ class Registry:
                     payload TEXT NOT NULL,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS bundle_imports (
+                    bundle_id TEXT PRIMARY KEY,
+                    run_id TEXT NOT NULL,
+                    source_reference TEXT NOT NULL,
+                    fingerprint TEXT NOT NULL,
+                    manifest_json TEXT NOT NULL,
+                    validation_report_json TEXT NOT NULL,
+                    imported_at TEXT NOT NULL,
+                    UNIQUE(run_id),
+                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
                 );
                 """
             )
@@ -207,7 +232,96 @@ class Registry:
                 seed_count=self._count(conn, "seeds"),
                 experiment_count=self._count(conn, "experiments"),
                 run_count=self._count(conn, "runs"),
+                bundle_import_count=self._count(conn, "bundle_imports"),
             )
+
+    def register_bundle_import(
+        self,
+        *,
+        run: Run,
+        bundle_id: str,
+        source_reference: str,
+        fingerprint: str,
+        manifest_json: str,
+        validation_report_json: str,
+        import_status: str = "accepted",
+    ) -> BundleImportResult:
+        """Register a validated bundle idempotently."""
+
+        self.initialize()
+        now = utc_now().isoformat()
+        with self._connect() as conn:
+            existing_bundle = conn.execute(
+                "SELECT bundle_id, run_id, fingerprint FROM bundle_imports WHERE bundle_id = ?",
+                (bundle_id,),
+            ).fetchone()
+            if existing_bundle is not None:
+                existing_fingerprint = cast(str, existing_bundle["fingerprint"])
+                existing_run_id = cast(str, existing_bundle["run_id"])
+                if existing_fingerprint == fingerprint and existing_run_id == run.run_id:
+                    return BundleImportResult(
+                        bundle_id=bundle_id,
+                        run_id=run.run_id,
+                        created=False,
+                        idempotent=True,
+                        status=import_status,
+                        message="bundle already imported with identical fingerprint",
+                    )
+                msg = f"bundle_id already exists with different content: {bundle_id}"
+                raise RegistryConflictError(msg)
+
+            existing_run = conn.execute(
+                "SELECT run_id FROM runs WHERE run_id = ?",
+                (run.run_id,),
+            ).fetchone()
+            if existing_run is not None:
+                msg = f"run_id already exists for a different bundle: {run.run_id}"
+                raise RegistryConflictError(msg)
+
+            conn.execute(
+                """
+                INSERT INTO runs (run_id, status, payload, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    run.run_id,
+                    run.status.value,
+                    run.model_dump_json(),
+                    run.created_at.isoformat(),
+                    run.updated_at.isoformat(),
+                ),
+            )
+            conn.execute(
+                """
+                INSERT INTO bundle_imports (
+                    bundle_id,
+                    run_id,
+                    source_reference,
+                    fingerprint,
+                    manifest_json,
+                    validation_report_json,
+                    imported_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    bundle_id,
+                    run.run_id,
+                    source_reference,
+                    fingerprint,
+                    manifest_json,
+                    validation_report_json,
+                    now,
+                ),
+            )
+        return BundleImportResult(
+            bundle_id=bundle_id,
+            run_id=run.run_id,
+            created=True,
+            idempotent=False,
+            status=import_status,
+            message="bundle imported",
+        )
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path)
@@ -287,6 +401,7 @@ class Registry:
             "seeds": "SELECT COUNT(*) AS count FROM seeds",
             "experiments": "SELECT COUNT(*) AS count FROM experiments",
             "runs": "SELECT COUNT(*) AS count FROM runs",
+            "bundle_imports": "SELECT COUNT(*) AS count FROM bundle_imports",
         }
         row = conn.execute(queries[table]).fetchone()
         return cast(int, row["count"])

@@ -1,0 +1,32 @@
+schema_version: "1.0"
+bundle:
+  bundle_id: "bundle-partial-001"
+  created_at: "2026-07-17T12:10:00Z"
+  source: "synthetic_fixture"
+run:
+  run_id: "run-partial-001"
+  experiment_id: "exp-gridlock-001"
+  seed_id: "s1-gridlock-baseline"
+  algorithm: "MAPPO"
+  checkpoint: null
+  random_seed: 7
+  execution_mode: "imported"
+  started_at: null
+  completed_at: null
+environment:
+  name: "synthetic"
+  version: "1.0"
+  commit: null
+files:
+  tasks:
+    path: "tasks.csv"
+    schema_version: "1.0"
+    required_columns: ["task_id", "vehicle_id", "task_class", "arrival_time", "deadline_ms", "decision", "completed"]
+    units:
+      arrival_time: "s"
+      completion_time: "s"
+      deadline_ms: "ms"
+      latency_ms: "ms"
+provenance:
+  producer: "TrafficTwin synthetic fixture generator"
+  notes: "Synthetic partial bundle with task evidence only"

@@ -14,7 +14,8 @@ Answered before Phase 1:
 
 Open:
 
-1. Should Phase 2 synthetic bundle IDs and file names follow the exact names in the current proposed contract, or should they wait for a Randy sample bundle?
+1. Should Phase 3 metric thresholds and saturation definitions be configured in YAML or kept as code constants until real data arrives?
+2. Should synthetic Phase 3 expected metrics be stored as JSON golden files or asserted directly in tests?
 
 ## Questions For Dr. Sandra Sampaio
 
@@ -55,6 +56,7 @@ Open:
 - R1-R3 thresholds require synthetic calibration first and real calibration only after representative data is supplied.
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility remains blocked on sample files.
+- Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on Randy/SUMO evidence.
 
 ## Non-Blocking Unknowns
 

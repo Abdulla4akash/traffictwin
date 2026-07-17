@@ -1,0 +1,66 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+from traffictwin.validation.codes import ValidationCode
+
+REQUIRED_CODES = {
+    "BUNDLE_MANIFEST_MISSING",
+    "BUNDLE_MANIFEST_INVALID",
+    "MANIFEST_SCHEMA_UNSUPPORTED",
+    "MANIFEST_REQUIRED_FIELD_MISSING",
+    "FILE_DECLARED_MISSING",
+    "FILE_UNDECLARED_PRESENT",
+    "FILE_UNREADABLE",
+    "FILE_CHECKSUM_MISMATCH",
+    "SEED_MISSING",
+    "SEED_ID_MISMATCH",
+    "RUN_ID_DUPLICATE",
+    "RUN_METADATA_INCONSISTENT",
+    "ENVIRONMENT_VERSION_MISSING",
+    "REQUIRED_COLUMN_MISSING",
+    "UNKNOWN_COLUMN",
+    "UNKNOWN_UNIT",
+    "UNIT_CONVERSION_UNSUPPORTED",
+    "TYPE_PARSE_FAILED",
+    "TASK_ID_MISSING",
+    "TASK_ID_DUPLICATE",
+    "TASK_CLASS_UNKNOWN",
+    "TASK_DECISION_UNKNOWN",
+    "TASK_COMPLETION_BEFORE_ARRIVAL",
+    "TASK_LATENCY_NEGATIVE",
+    "TASK_DEADLINE_NEGATIVE",
+    "TASK_COMPLETION_INCONSISTENT",
+    "RSU_ID_MISSING",
+    "UTILISATION_OUT_OF_RANGE",
+    "QUEUE_LENGTH_NEGATIVE",
+    "TIMESTAMP_INVALID",
+    "SPEED_NEGATIVE",
+    "COUNT_NEGATIVE",
+    "VEHICLE_ID_MISSING",
+    "TRIP_ARRIVAL_BEFORE_DEPARTURE",
+    "TRIP_DURATION_NEGATIVE",
+    "TRIP_DURATION_INCONSISTENT",
+    "TASK_COUNT_MISMATCH",
+    "UNKNOWN_VEHICLE_REFERENCE",
+    "UNKNOWN_RSU_REFERENCE",
+    "TEMPORAL_COVERAGE_GAP",
+    "EVIDENCE_TASKS_UNAVAILABLE",
+    "EVIDENCE_INFRA_UNAVAILABLE",
+    "EVIDENCE_TRAFFIC_UNAVAILABLE",
+    "EVIDENCE_TRIPS_UNAVAILABLE",
+    "EVIDENCE_INSUFFICIENT_FOR_DIAGNOSIS",
+}
+
+
+def test_required_validation_codes_are_defined() -> None:
+    defined = {code.value for code in ValidationCode}
+
+    assert defined >= REQUIRED_CODES
+
+
+def test_validation_codes_are_documented() -> None:
+    documentation = Path("docs/validation_codes.md").read_text(encoding="utf-8")
+
+    for code in REQUIRED_CODES:
+        assert f"`{code}`" in documentation

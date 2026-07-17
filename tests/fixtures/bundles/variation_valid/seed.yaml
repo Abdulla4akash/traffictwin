@@ -1,0 +1,33 @@
+schema_version: "1.0"
+seed:
+  id: "s1-gridlock-variation"
+  name: "Synthetic variation gridlock"
+  description: "Synthetic variation fixture for Phase 2."
+  base: "s1-gridlock-baseline"
+  preset_id: "S1"
+  demand:
+    multiplier: 2.0
+  workload:
+    birth_rate_multiplier: 2.0
+    class_mix:
+      T1: 0.30
+      T2: 0.30
+      T3: 0.40
+    ordering: "mixed"
+  fleet:
+    count: null
+    tier_mix: "mixed"
+  infrastructure:
+    rsu_count: 2
+    rsu_capacity_mode: "reduced"
+    failed_rsus: ["rsu-2"]
+  allowed_decisions: ["local", "v2i", "v2v"]
+  policy:
+    algorithm: "MAPPO"
+    checkpoint: null
+  evaluation:
+    random_seed: 7
+  compare_against: "s1-gridlock-baseline"
+  provenance:
+    created_by: "Abdulla Al Mamun Akash"
+    source: "TrafficTwin synthetic fixture"

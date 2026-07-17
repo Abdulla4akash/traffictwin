@@ -1,0 +1,3 @@
+timestamp,sensor_id,count,average_speed
+0,sensor-a,18,12.0
+300,sensor-a,22,11.5

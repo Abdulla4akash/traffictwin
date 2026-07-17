@@ -1,0 +1,20 @@
+schema_version: "1.0"
+seed:
+  id: "s1-gridlock-baseline"
+  name: "Synthetic baseline gridlock"
+  workload:
+    birth_rate_multiplier: 1.0
+    class_mix:
+      T1: 0.30
+      T2: 0.30
+      T3: 0.40
+    ordering: "mixed"
+  allowed_decisions: ["local", "v2i", "v2v"]
+  policy:
+    algorithm: "MAPPO"
+    checkpoint: null
+  evaluation:
+    random_seed: 7
+  provenance:
+    created_by: "Abdulla Al Mamun Akash"
+    source: "TrafficTwin synthetic fixture"

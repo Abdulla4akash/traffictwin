@@ -9,6 +9,7 @@ class TaskClass(StrEnum):
     T1 = "T1"
     T2 = "T2"
     T3 = "T3"
+    UNKNOWN = "unknown"
 
 
 class Decision(StrEnum):
@@ -17,6 +18,7 @@ class Decision(StrEnum):
     LOCAL = "local"
     V2I = "v2i"
     V2V = "v2v"
+    UNKNOWN = "unknown"
 
 
 class WorkloadOrdering(StrEnum):

@@ -183,7 +183,7 @@ diss/
             test_registry.py
 ```
 
-## Phase 1 Package Boundary
+## Current Package Boundary
 
 Implemented:
 
@@ -193,49 +193,70 @@ Implemented:
 - SQLite metadata registry
 - CLI
 - unit tests
+- run-bundle manifests
+- directory and ZIP bundle loading
+- generic CSV adapter
+- in-memory canonical records
+- validation reports
+- evidence availability
+- idempotent bundle import
+- golden and integration tests
 
 Not implemented:
 
-- ingestion
-- canonical traffic/task tables
 - metrics
-- diagnostic rules
+- full diagnostic rules
 - Streamlit
 - external adapters
 - launchers
 
-## Proposed Phase 2 Package Additions
+## Implemented Phase 2 Package Additions
 
 ```text
 diss/
-    examples/
-        bundles/
-            synthetic_baseline/
-            synthetic_variation/
     src/
         traffictwin/
             adapters/
                 __init__.py
                 base.py
                 generic_csv.py
-                synthetic.py
+            canonical/
+                __init__.py
+                records.py
+                tables.py
+            evidence/
+                __init__.py
+                availability.py
+                insufficient.py
             ingestion/
                 __init__.py
                 bundle.py
                 canonicalise.py
+                hashes.py
+                loader.py
                 manifest.py
             validation/
                 __init__.py
-                data_quality.py
+                codes.py
+                findings.py
+                files.py
+                manifest.py
                 report.py
-                schema.py
-            rules/
-                __init__.py
-                r0_insufficient_data.py
+                reconciliation.py
+                rows.py
     tests/
+        fixtures/
+            bundles/
+                baseline_valid/
+                variation_valid/
+                partial_valid/
+                invalid_manifest/
+                invalid_rows/
         golden/
         integration/
 ```
+
+Phase 2 keeps validation orchestration focused in `ingestion.bundle` and row conversion in `adapters.generic_csv`; the empty validation placeholder modules document the intended later split without adding behaviour.
 
 ## Dependency Set
 

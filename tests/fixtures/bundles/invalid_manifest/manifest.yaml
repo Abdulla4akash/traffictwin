@@ -1,0 +1,8 @@
+schema_version: "2.0"
+bundle:
+  bundle_id: "bundle-invalid-manifest-001"
+  created_at: "2026-07-17T12:20:00Z"
+  source: "synthetic_fixture"
+provenance:
+  producer: "TrafficTwin synthetic fixture generator"
+  notes: "Unsupported manifest schema"

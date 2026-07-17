@@ -1,0 +1,5 @@
+timestamp,rsu_id,queue_length,utilisation
+0,rsu-1,4,0.82
+10,rsu-1,8,0.95
+0,rsu-2,2,0.60
+10,rsu-2,5,0.88

@@ -1,0 +1,5 @@
+task_id,vehicle_id,task_class,arrival_time,deadline_ms,decision,completed,completion_time,latency_ms,target_id
+v1,veh-1,T1,0,100,v2i,true,0.140,140,rsu-1
+v2,veh-2,T2,4,250,local,true,4.240,240,
+v3,veh-3,T3,6,500,v2v,true,6.420,420,veh-2
+v4,veh-4,T1,9,100,v2i,false,,,rsu-1
