@@ -215,6 +215,42 @@ from traffictwin.diagnostics.report import DiagnosticReport
 
 Rules consume only EvidencePack objects. `DiagnosticReport` includes ordered rule results, triggered/insufficient/conflicting IDs, readiness, provenance, warnings, conflict observations, and JSON/fingerprint helpers.
 
+## Provenance
+
+```python
+from traffictwin.provenance.builder import (
+    build_metric_trace,
+    build_rule_trace,
+    build_run_trace,
+    build_evidence_rule_trace,
+)
+from traffictwin.provenance.models import (
+    ProvenanceTrace,
+    ProvenanceNode,
+    ProvenanceEdge,
+    SourceRowPreview,
+)
+from traffictwin.provenance.query import (
+    build_provenance_context,
+    get_metric_provenance,
+    get_rule_provenance,
+    get_run_provenance,
+    get_source_provenance,
+)
+from traffictwin.provenance.source_rows import get_source_row
+```
+
+- `build_metric_trace(metric_key, bundle_result, metric_collection, evidence_pack=None, diagnostic_report=None, clock=...) -> ProvenanceTrace`
+- `build_rule_trace(rule_id, bundle_result, metric_collection, evidence_pack, diagnostic_report, clock=...) -> ProvenanceTrace`
+- `build_run_trace(bundle_result, metric_collection=None, evidence_pack=None, diagnostic_report=None, clock=...) -> ProvenanceTrace`
+- `build_evidence_rule_trace(rule_id, evidence_pack, diagnostic_report, clock=...) -> ProvenanceTrace`
+- `build_provenance_context(path, metric_config=None, rule_config=None, clock=None) -> ProvenanceContext`
+- `get_source_row(bundle_reference, source_file, source_row, context_rows=2, ...) -> SourceRowPreview`
+
+Provenance builders are read-only. They do not recompute metrics with alternate formulas, reinterpret
+rules, or mutate source files. Bundle-backed traces can preview CSV source rows. EvidencePack-only
+traces mark canonical/source-row links unavailable unless the original bundle is also supplied.
+
 ## Minimal Example
 
 ```python
@@ -223,6 +259,7 @@ from pathlib import Path
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.ingestion.bundle import validate_bundle
 from traffictwin.metrics.engine import compute_metrics_for_bundle
+from traffictwin.provenance.builder import build_metric_trace
 from traffictwin.rules.engine import evaluate_rules
 
 bundle = validate_bundle(Path("tests/fixtures/bundles/baseline_valid"))
@@ -232,6 +269,9 @@ report = evaluate_rules(pack)
 
 print(metrics.run_id)
 print(report.overall_readiness)
+
+trace = build_metric_trace("task.completion.rate", bundle, metrics, pack, report)
+print(trace.root_node_id)
 ```
 
 Related documents:
@@ -239,4 +279,5 @@ Related documents:
 - [Developer guide](developer_guide.md)
 - [Data contract](data_contract.md)
 - [EvidencePack specification](evidence_pack_spec.md)
+- [Provenance model](provenance_model.md)
 - [Diagnostic report specification](diagnostic_report_spec.md)

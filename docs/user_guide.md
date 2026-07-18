@@ -164,12 +164,42 @@ This page displays:
 
 Warning: these are deterministic, evidence-based diagnostic hypotheses. They are not proven root causes and should be verified through controlled follow-up experiments.
 
+## Provenance Explorer
+
+The Provenance Explorer is a read-only audit page. It shows how TrafficTwin derived a displayed
+metric or diagnostic hypothesis from available artifacts.
+
+Use it to trace:
+
+- `task.completion.rate` back to the metric definition, canonical `TaskRecord` samples, `tasks.csv`
+  rows, manifest, seed, run, environment, and fingerprint;
+- `infra.utilisation.p95` back to `InfrastructureRecord` samples and `infra_state.csv`;
+- `trip.duration.p95_s` back to `TripRecord` samples and `trips.csv`;
+- a diagnostic rule result back through findings, evidence keys, metric results, definitions, and
+  unavailable links.
+
+Steps:
+
+1. Load an accepted bundle through the existing workflow.
+2. Open `Provenance Explorer`.
+3. Choose `Metric`, `Diagnostic rule`, `Source file row`, or `Run metadata`.
+4. Inspect completeness, lineage, grouped nodes, source-row previews, and validation context.
+5. Download trace JSON or Markdown if needed.
+
+Warnings:
+
+- Provenance supports auditability; it does not prove real-world causality.
+- Aggregate metrics show eligible input rows and exact counts, not per-row causal weights.
+- EvidencePack-only fault-injection traces cannot inspect source rows unless a source bundle exists.
+- Source-row previews are bounded and read-only.
+
 ## Downloading JSON
 
 The UI can expose:
 
 - EvidencePack JSON;
 - DiagnosticReport JSON;
+- ProvenanceTrace JSON and Markdown;
 - validation/metric data through CLI commands.
 
 These JSON documents are useful for reproducibility, tests, and dissertation appendices.
@@ -189,4 +219,5 @@ Related documents:
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
 - [CLI reference](cli_reference.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Limitations and future work](limitations_and_future_work.md)

@@ -7,7 +7,7 @@ TrafficTwin is a modular what-if experimentation and decision-support prototype 
 The project targets a research workflow where traffic and VEC experiment evidence is scattered across scenario parameters, source files, metrics scripts, plots, and informal interpretation. TrafficTwin turns that workflow into a reproducible pipeline:
 
 ```text
-scenario seed -> run bundle -> validation -> canonical records -> metrics -> evidence -> diagnostics -> comparison/UI
+scenario seed -> run bundle -> validation -> canonical records -> metrics -> evidence -> diagnostics -> comparison/provenance/UI
 ```
 
 The goal is not to replace a simulator. The goal is to make imported simulator or environment outputs traceable, validated, comparable, and easier to inspect.
@@ -31,8 +31,9 @@ Implemented:
 - EvidencePack generation.
 - Baseline-versus-variation comparison.
 - Deterministic diagnostic hypotheses R0-R3.
+- Read-only Provenance Explorer for metric, diagnostic, source-row, and run traces.
 - Streamlit pages for the synthetic/imported workflow.
-- CLI commands for validation, metrics, evidence, comparison, registry, and diagnostics.
+- CLI commands for validation, metrics, evidence, comparison, registry, diagnostics, and provenance.
 
 Synthetic-only:
 
@@ -70,6 +71,10 @@ flowchart LR
     F --> I[Compare baseline and variation]
     H --> J[Streamlit/CLI output]
     I --> J
+    D --> K[Provenance Explorer audit]
+    F --> K
+    H --> K
+    K --> J
 ```
 
 ## Why Import-First
@@ -109,5 +114,6 @@ Related documents:
 
 - [Architecture](architecture.md)
 - [Implementation status](implementation-status.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Randy/SUMO artifact inventory](integration/randy_artifact_inventory.md)
 - [Limitations and future work](limitations_and_future_work.md)

@@ -1,13 +1,13 @@
 # TrafficTwin Architecture
 
-This document describes the implemented Phase 1-6A architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume Randy/VEC, SUMO, Manchester sensor, near-live, true-live, or external launch support.
+This document describes the implemented Phase 1-6A plus Provenance Explorer architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume Randy/VEC, SUMO, Manchester sensor, near-live, true-live, or external launch support.
 
 ## Architectural Position
 
 TrafficTwin is a tested Python research-software library with a thin Streamlit interface and Typer CLI. The guaranteed workflow is import-first:
 
 ```text
-seed YAML -> run bundle -> validation -> canonical records -> metrics -> EvidencePack -> diagnostics/UI
+seed YAML -> run bundle -> validation -> canonical records -> metrics -> EvidencePack -> diagnostics/provenance/UI
 ```
 
 Direct launch is an adapter capability, not a default feature.
@@ -32,6 +32,7 @@ flowchart TD
         Evidence[evidence: EvidencePack builder]
         Rules[rules: deterministic R0-R3]
         Diagnostics[diagnostics: DiagnosticReport]
+        Provenance[provenance: read-only trace DAG]
         Storage[storage: SQLite metadata registry]
     end
 
@@ -46,6 +47,9 @@ flowchart TD
     Metrics --> Evidence
     Evidence --> Rules
     Rules --> Diagnostics
+    Metrics --> Provenance
+    Diagnostics --> Provenance
+    Validation --> Provenance
     Ingestion --> Storage
     Metrics --> Storage
     Evidence --> Storage
@@ -65,12 +69,13 @@ flowchart TD
 | Evidence | `src/traffictwin/evidence/` | Versioned EvidencePack construction and data-readiness summaries. |
 | Rules | `src/traffictwin/rules/` | Deterministic R0-R3 rule evaluation over EvidencePack only. |
 | Diagnostics | `src/traffictwin/diagnostics/` | DiagnosticReport schema and serialisation. |
+| Provenance | `src/traffictwin/provenance/` | Read-only trace graph, source-row preview, JSON and Markdown export. |
 | Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
 | UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
 
 ## Dependency Direction
 
-Dependencies flow inward from interfaces to library modules. Metrics do not read raw files. Rules do not read raw files or canonical rows. The UI does not implement metrics, validation, comparison, or diagnostic formulas.
+Dependencies flow inward from interfaces to library modules. Metrics do not read raw files. Rules do not read raw files or canonical rows. Provenance does not recompute metrics or reinterpret rules. The UI does not implement metrics, validation, comparison, diagnostic formulas, or provenance derivation logic.
 
 ```mermaid
 flowchart LR
@@ -162,6 +167,39 @@ flowchart TD
 
 EvidencePack is the only supported input to diagnostic rules. Rules cite metric keys and return candidate hypotheses with alternatives, missing evidence, and conditional recommendations. They do not prove root causes.
 
+## Provenance Pipeline
+
+```mermaid
+flowchart TD
+    Report[DiagnosticReport] --> RuleResult[RuleResult]
+    RuleResult --> Finding[Finding]
+    Finding --> EvidenceKey[Evidence key]
+    EvidenceKey --> MetricResult[MetricValue]
+    MetricResult --> MetricDefinition[MetricDefinition]
+    MetricResult --> CanonicalTable[Canonical table]
+    CanonicalTable --> CanonicalRecord[Canonical record sample]
+    CanonicalRecord --> SourceRow[Source CSV row]
+    SourceRow --> SourceFile[Source file]
+    CanonicalRecord --> ValidationFinding[Validation finding]
+    SourceFile --> Manifest[manifest.yaml]
+    Manifest --> Run[Run metadata]
+    Run --> Seed[ScenarioSeed]
+    Run --> Experiment[Experiment id]
+    Run --> Environment[Environment version]
+    Manifest --> Fingerprint[Bundle fingerprint]
+```
+
+The provenance layer builds a small internal DAG from existing objects:
+
+- `BundleValidationResult`;
+- `MetricCollection`;
+- `EvidencePack`;
+- `DiagnosticReport`;
+- metric and rule catalogues;
+- canonical record `source_file` and `source_row` fields.
+
+For aggregate metrics, row provenance is reported as eligible input records and bounded source-row samples. The explorer does not assign fabricated per-row contribution weights. EvidencePack-only diagnostic fixtures can trace rule findings to metric keys, but source rows are explicit unavailable links unless the original run bundle is also available.
+
 ## Metadata Registry
 
 The registry in [src/traffictwin/storage/registry.py](../src/traffictwin/storage/registry.py) uses SQLite and stores:
@@ -186,6 +224,7 @@ flowchart TD
     Services --> Metrics[compute_metrics_for_bundle]
     Services --> Evidence[build_evidence_pack]
     Services --> Rules[evaluate_rules]
+    Services --> Provenance[build provenance traces]
     Services --> Compare[compare_metric_collections]
     Services --> Registry[Registry]
 ```
@@ -240,6 +279,7 @@ See [security_and_privacy.md](security_and_privacy.md).
 | New manifest field | Add Pydantic field, validation, bundle spec, fixtures, tests. |
 | New metric | Add definition, calculator, availability behavior, golden tests, metrics docs. |
 | New diagnostic rule | Add EvidencePack inputs, rule config, rule model output, tests, docs. |
+| Provenance trace root | Add builder/query support without recomputing metrics or reading unsafe paths. |
 | New Streamlit page | Add service-backed page; no duplicated formulas. |
 | Real adapter | Wait for real artifacts, schemas, units, and approval after discovery. |
 
@@ -251,4 +291,6 @@ See [security_and_privacy.md](security_and_privacy.md).
 - [Run bundle specification](run_bundle_spec.md)
 - [Metrics catalogue](metrics_catalogue.md)
 - [Diagnostic rules](diagnostic_rules.md)
+- [Provenance Explorer](provenance_explorer.md)
+- [Provenance model](provenance_model.md)
 - [Integration decision](integration/phase6_decision.md)

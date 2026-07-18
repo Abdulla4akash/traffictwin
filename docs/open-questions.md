@@ -21,6 +21,7 @@ Open:
 5. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
 6. Can a real or sanitised Randy/SUMO sample set be supplied for Phase 6B, and which files may be committed as fixtures?
 7. Should Phase 6B start with Randy/VEC logs, SUMO trip/FCD outputs, or a combined standard TrafficTwin bundle once artifacts are supplied?
+8. Should future metric results store full contributing canonical-record references for selected aggregates, or is bounded source-row sampling sufficient for the dissertation demo?
 
 Resolved during Phase 3:
 
@@ -48,6 +49,13 @@ Resolved during documentation pass:
 
 - Documentation reference artifacts are generated from code under `docs/reference/generated/`.
 - Automated screenshots are not produced; a manual screenshot checklist is documented instead.
+
+Resolved during Provenance Explorer productisation:
+
+- Provenance is read-only and does not recompute metrics or reinterpret rules.
+- Aggregate metric traces show eligible rows and bounded samples rather than fabricated per-row
+  contribution weights.
+- EvidencePack-only fault-injection traces mark source-row links unavailable unless a bundle exists.
 
 ## Questions For Dr. Sandra Sampaio
 
@@ -96,6 +104,8 @@ Resolved during documentation pass:
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on Randy/SUMO evidence.
 - Phase 6B adapter implementation is blocked on real or sanitised Randy/SUMO artifacts, units, schemas, provenance, and invocation contracts.
 - Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
+- Exact row-level contribution lists for aggregate metrics remain a future design choice; current
+  provenance provides aggregate-level traceability and source-row samples.
 
 ## Non-Blocking Unknowns
 

@@ -32,6 +32,9 @@ streamlit run src/traffictwin/ui/app.py
 - [ ] What-if Compare shows baseline/variation deltas.
 - [ ] Journey-Time Lens shows synthetic/imported trip duration, not live prediction.
 - [ ] Evidence & Diagnostic Hypotheses shows rule statuses and JSON download.
+- [ ] Provenance Explorer traces `task.completion.rate` to metric definition and `tasks.csv` rows.
+- [ ] Provenance Explorer source-row preview shows `tasks.csv` row `2` read-only.
+- [ ] Provenance Explorer exports JSON or Markdown.
 
 ## CLI Fallback
 
@@ -41,6 +44,8 @@ traffictwin bundle validate tests/fixtures/bundles/baseline_valid
 traffictwin metrics compute tests/fixtures/bundles/baseline_valid
 traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
 ```
 
 ## Post-Demo Cleanup
@@ -57,5 +62,6 @@ git status --short tests/fixtures examples/seeds
 - [ ] Synthetic fixtures are not real Manchester data.
 - [ ] Historical replay is not live data.
 - [ ] Diagnostic hypotheses are not proven root causes.
+- [ ] Provenance supports traceability and auditability, not proof of correctness or causality.
 - [ ] Randy/SUMO integration is blocked until real artifacts are supplied.
 - [ ] Direct launch is intentionally disabled.

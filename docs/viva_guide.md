@@ -8,7 +8,7 @@ It turns scattered traffic/VEC experiment artifacts into a reproducible workflow
 
 ## What did you personally contribute?
 
-The repository implements the TrafficTwin research-software architecture: schemas, validation, canonicalisation, registry, metrics, evidence packs, comparison, deterministic diagnostics, Streamlit UI, CLI, tests, fixtures, and documentation.
+The repository implements the TrafficTwin research-software architecture: schemas, validation, canonicalisation, registry, metrics, evidence packs, comparison, deterministic diagnostics, provenance tracing, Streamlit UI, CLI, tests, fixtures, and documentation.
 
 ## Why import-first?
 
@@ -28,7 +28,11 @@ EvidencePacks create a strict boundary between computed evidence and diagnostic 
 
 ## How is reproducibility preserved?
 
-Through versioned schemas, deterministic YAML, explicit units, validation before metrics, stable metric keys, fixed-clock tests, bundle/evidence fingerprints, provenance fields, and golden tests.
+Through versioned schemas, deterministic YAML, explicit units, validation before metrics, stable metric keys, fixed-clock tests, bundle/evidence/provenance fingerprints, source row references, and golden tests.
+
+## What does the Provenance Explorer add?
+
+It makes the prototype auditable. A supervisor can select a displayed metric or diagnostic rule and trace it back to metric definitions, canonical records, validation findings, source files/rows, manifest metadata, seed, experiment, environment, and fingerprint. It shows traceability through the software pipeline; it does not prove real-world causality.
 
 ## What is synthetic and what is real?
 
@@ -82,4 +86,5 @@ Related documents:
 
 - [Dissertation mapping](dissertation_mapping.md)
 - [Traceability matrix](traceability_matrix.md)
+- [Viva traceability demo](viva_traceability_demo.md)
 - [Limitations and future work](limitations_and_future_work.md)

@@ -16,6 +16,7 @@ This index points only to documentation and repository paths that exist in the c
 - [User guide](user_guide.md)
 - [CLI reference](cli_reference.md)
 - [UI design](ui_design.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
 - [Screenshot checklist](assets/screenshots/README.md)
@@ -25,6 +26,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Architecture](architecture.md)
 - [Developer guide](developer_guide.md)
 - [API reference](api_reference.md)
+- [Provenance model](provenance_model.md)
 - [Security and privacy](security_and_privacy.md)
 - [ADR index](decisions/index.md)
 
@@ -50,6 +52,12 @@ This index points only to documentation and repository paths that exist in the c
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [Generated rule catalogue](reference/generated/rule_catalogue.json)
 
+## Provenance And Traceability
+
+- [Provenance Explorer](provenance_explorer.md)
+- [Provenance model](provenance_model.md)
+- [Viva traceability demo](viva_traceability_demo.md)
+
 ## Integration
 
 - [Randy/SUMO artifact inventory](integration/randy_artifact_inventory.md)
@@ -72,6 +80,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Assumption register](assumption-register.md)
 - [Open questions](open-questions.md)
 - [Viva guide](viva_guide.md)
+- [Viva traceability demo](viva_traceability_demo.md)
 - [Dissertation mapping](dissertation_mapping.md)
 - [Traceability matrix](traceability_matrix.md)
 - [Limitations and future work](limitations_and_future_work.md)

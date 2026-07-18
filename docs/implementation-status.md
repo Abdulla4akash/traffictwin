@@ -16,6 +16,11 @@ Phase 6A status: discovery implemented. Real adapter implementation is blocked b
 
 Documentation pass status: completed and quality-gate checked.
 
+Productisation Provenance Explorer status: implemented. The explorer is read-only and traces
+metrics, diagnostic rule results, source rows, run metadata, metric definitions, validation
+findings, EvidencePacks, DiagnosticReports, and bundle fingerprints where existing Phase 1-5
+artifacts provide the links.
+
 ## Repository Assessment
 
 Workspace root inspected: repository parent workspace
@@ -62,6 +67,9 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/testing_strategy.md` | Testing strategy | Test pyramid, invariants, fixture policy, and coverage interpretation. |
 | `docs/viva_guide.md` | Viva guide | Concise answers to likely supervisor/examiner questions. |
 | `docs/decisions/` | ADRs | Concise architecture decision records for major project decisions. |
+| `src/traffictwin/provenance/` | Provenance package | Read-only trace graph, query service, source-row previews, and JSON/Markdown export. |
+| `docs/provenance_explorer.md` | Provenance documentation | User and CLI workflow for trace inspection. |
+| `docs/provenance_model.md` | Provenance model documentation | Trace model, current row-level gaps, and aggregate limitations. |
 
 ## Relevant Assets Found
 
@@ -218,6 +226,39 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
 - Golden diagnostic expected outputs.
 - Unit, golden, integration, and UI tests.
 
+## Implemented In Productisation Provenance Explorer Phase
+
+- Versioned provenance trace models:
+  - `ProvenanceNode`;
+  - `ProvenanceEdge`;
+  - `ProvenanceTrace`;
+  - `SourceRowPreview`.
+- Internal deterministic trace graph with edge endpoint validation.
+- Metric trace builder from `MetricCollection`, metric catalogue, canonical tables, validation
+  findings, source rows, manifest, run, seed, experiment, environment, and fingerprint.
+- Diagnostic-rule trace builder from `DiagnosticReport`, findings, evidence keys, metric results,
+  metric definitions, canonical evidence, and unavailable links.
+- EvidencePack-only diagnostic trace support with canonical/source-row links explicitly unavailable.
+- Safe CSV source-row preview using existing Phase 2 bundle loader and bundle-relative paths.
+- Provenance query service for bundle-backed traces.
+- JSON and deterministic Markdown export.
+- Typer commands:
+  - `provenance metric`
+  - `provenance rule`
+  - `provenance run`
+  - `provenance source`
+  - `provenance export`
+- Streamlit `Provenance Explorer` page.
+- Golden provenance trace projections and Markdown output.
+- Documentation:
+  - `docs/provenance_explorer.md`
+  - `docs/provenance_model.md`
+  - `docs/viva_traceability_demo.md`
+
+Known limitation: Phase 3 metrics do not store materialised per-row contribution lists for every
+aggregate metric. Provenance therefore reports required tables, eligible record counts, source-row
+samples, and limitations rather than fabricated row-level contribution weights.
+
 ## Implemented In Phase 6A
 
 - Repository and workspace discovery for Randy/VEC and SUMO artifacts.
@@ -272,10 +313,10 @@ Commands run successfully:
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
 .venv/bin/python scripts/generate_reference_docs.py
 .venv/bin/traffictwin validate-seed examples/seeds/arena_gridlock.yaml
-.venv/bin/traffictwin normalise-seed examples/seeds/arena_gridlock.yaml /tmp/traffictwin_arena_gridlock.normalised.yaml
+.venv/bin/traffictwin normalise-seed examples/seeds/arena_gridlock.yaml build/traffictwin_arena_gridlock.normalised.yaml
 .venv/bin/traffictwin capabilities
-.venv/bin/traffictwin registry init /tmp/traffictwin_phase1_registry.sqlite
-.venv/bin/traffictwin registry inspect /tmp/traffictwin_phase1_registry.sqlite
+.venv/bin/traffictwin registry init build/traffictwin_phase1_registry.sqlite
+.venv/bin/traffictwin registry inspect build/traffictwin_phase1_registry.sqlite
 .venv/bin/traffictwin bundle validate tests/fixtures/bundles/baseline_valid
 .venv/bin/traffictwin bundle validate <baseline.zip>
 .venv/bin/traffictwin bundle validate tests/fixtures/bundles/partial_valid
@@ -294,6 +335,10 @@ Commands run successfully:
 .venv/bin/traffictwin diagnose evidence <tmp-evidence>
 .venv/bin/traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
 .venv/bin/traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
+.venv/bin/traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+.venv/bin/traffictwin provenance rule tests/fixtures/bundles/variation_valid R2
+.venv/bin/traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+.venv/bin/traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format json
 streamlit run src/traffictwin/ui/app.py --server.headless true --server.port <tmp-port>
 http://127.0.0.1:<tmp-port>/_stcore/health
 find <workspace-root> ... <artifact discovery searches>
@@ -321,6 +366,7 @@ Results:
 - Phase 6A discovery: no real Randy/VEC or SUMO artifacts found; only synthetic TrafficTwin fixtures and historical notes found.
 - Phase 6A quality gates: Ruff format/check passed; mypy passed; 119 tests passed; coverage remained 76%; no real adapter-specific tests or sanitised real-fixture validation were applicable because no real artifacts were present.
 - Documentation pass quality gates: Ruff format/check passed; mypy passed; generated reference JSON regenerated and parsed; Markdown links checked; API imports checked; fixture paths checked; Mermaid fences checked; unsupported-claim scan completed; 119 tests passed; coverage remained 76%; synthetic CLI demo flow passed; Streamlit health check returned `200 ok`.
+- Provenance Explorer quality gates: Ruff format/check passed; mypy passed; 147 tests passed; coverage reached 77%; generated reference JSON regenerated; Markdown links checked; provenance CLI metric/rule/source/export smoke checks passed; Streamlit AppTest rendered the Provenance Explorer; Streamlit headless server started; exported provenance JSON contained no absolute local paths; provenance Markdown contained no causal-proof wording.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
 - Streamlit smoke: headless server started and health endpoint responded.
 - Streamlit AppTest: Home and all core pages rendered with synthetic defaults without uncaught exceptions.

@@ -20,6 +20,19 @@ from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
 from traffictwin.metrics.results import MetricCollection, MetricStatus
+from traffictwin.provenance.markdown import trace_to_markdown
+from traffictwin.provenance.models import ProvenanceTrace
+from traffictwin.provenance.query import (
+    ProvenanceQueryError,
+    build_provenance_context,
+    export_provenance,
+    get_metric_provenance,
+    get_rule_provenance,
+    get_run_provenance,
+    get_source_provenance,
+    node_type_counts,
+)
+from traffictwin.provenance.serialization import trace_to_json
 from traffictwin.rules.engine import evaluate_rules
 from traffictwin.rules.evaluation import evaluate_fixture_set, load_fixture_set
 from traffictwin.storage.registry import Registry, RegistryConflictError, RegistryNotFoundError
@@ -31,12 +44,14 @@ metrics_app = typer.Typer(no_args_is_help=True, help="Deterministic metric comma
 evidence_app = typer.Typer(no_args_is_help=True, help="Evidence-pack commands.")
 experiment_app = typer.Typer(no_args_is_help=True, help="Experiment aggregation commands.")
 diagnose_app = typer.Typer(no_args_is_help=True, help="Deterministic diagnostic commands.")
+provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance trace commands.")
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
 app.add_typer(evidence_app, name="evidence")
 app.add_typer(experiment_app, name="experiment")
 app.add_typer(diagnose_app, name="diagnose")
+app.add_typer(provenance_app, name="provenance")
 
 
 @app.command("validate-seed")
@@ -384,6 +399,113 @@ def diagnose_evaluate_command(
     typer.echo(report.to_json())
 
 
+@provenance_app.command("metric")
+def provenance_metric_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    metric_key: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Trace one metric result back to definitions, canonical records, and source rows."""
+
+    try:
+        context = build_provenance_context(path)
+        trace = get_metric_provenance(context, metric_key)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_provenance_trace(trace, output_format)
+
+
+@provenance_app.command("rule")
+def provenance_rule_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    rule_id: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Trace one diagnostic rule result back to cited metric evidence."""
+
+    try:
+        context = build_provenance_context(path)
+        trace = get_rule_provenance(context, rule_id)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_provenance_trace(trace, output_format)
+
+
+@provenance_app.command("run")
+def provenance_run_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Trace the run, manifest, validation, metric, and diagnostic context."""
+
+    context = build_provenance_context(path)
+    trace = get_run_provenance(context)
+    _emit_provenance_trace(trace, output_format)
+
+
+@provenance_app.command("source")
+def provenance_source_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    source_file: Annotated[str, typer.Argument()],
+    row: Annotated[int, typer.Argument(min=1)],
+    context_rows: Annotated[int, typer.Option("--context-rows", min=0)] = 2,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect one read-only CSV source row inside a bundle."""
+
+    context = build_provenance_context(path)
+    preview = get_source_provenance(context, source_file, row, context_rows=context_rows)
+    if output_format == "json":
+        typer.echo(preview.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"source: {preview.file}:{preview.row_number}")
+    typer.echo(f"status: {preview.status.value}")
+    typer.echo(f"inclusion_status: {preview.inclusion_status}")
+    if preview.canonical_record_type is not None:
+        typer.echo(f"canonical_record_type: {preview.canonical_record_type}")
+    if preview.validation_findings:
+        typer.echo(f"validation_findings: {len(preview.validation_findings)}")
+    for warning in preview.warnings:
+        typer.echo(f"warning: {warning}")
+
+
+@provenance_app.command("export")
+def provenance_export_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    root_type: Annotated[str, typer.Option("--root-type")],
+    root_id: Annotated[str, typer.Option("--root-id")] = "",
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Export a provenance trace as JSON or Markdown."""
+
+    try:
+        context = build_provenance_context(path)
+        if root_type == "metric":
+            trace = get_metric_provenance(context, root_id)
+        elif root_type == "rule":
+            trace = get_rule_provenance(context, root_id)
+        elif root_type == "run":
+            trace = get_run_provenance(context)
+        else:
+            msg = "root-type must be one of: metric, rule, run"
+            raise ProvenanceQueryError(msg)
+        payload = export_provenance(trace, output_format)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output is not None:
+        output.write_text(payload, encoding="utf-8")
+        typer.echo(f"provenance_trace: {output}")
+    else:
+        typer.echo(payload)
+
+
 def _collection_from_identifier(
     identifier: str,
     registry_path: Path | None,
@@ -423,3 +545,27 @@ def _diagnostic_report_from_path(path: Path) -> DiagnosticReport:
     collection = compute_metrics_for_bundle(result)
     pack = build_evidence_pack(result, collection)
     return evaluate_rules(pack)
+
+
+def _emit_provenance_trace(trace: ProvenanceTrace, output_format: str) -> None:
+    if output_format == "json":
+        typer.echo(trace_to_json(trace))
+        return
+    if output_format == "markdown":
+        typer.echo(trace_to_markdown(trace))
+        return
+    if output_format != "text":
+        typer.echo("only --format text, json, or markdown is supported", err=True)
+        raise typer.Exit(code=1)
+    counts = node_type_counts(trace)
+    typer.echo(f"trace: {trace.trace_id}")
+    typer.echo(f"root: {trace.root_node_id}")
+    typer.echo(f"completeness: {trace.completeness.overall.value}")
+    typer.echo(f"synthetic: {trace.synthetic}")
+    typer.echo(f"nodes: {len(trace.nodes)}")
+    typer.echo(f"edges: {len(trace.edges)}")
+    typer.echo("node_types:")
+    for key in sorted(counts):
+        typer.echo(f"  {key}: {counts[key]}")
+    for warning in trace.warnings:
+        typer.echo(f"warning: {warning}")

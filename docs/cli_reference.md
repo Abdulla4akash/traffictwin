@@ -45,7 +45,8 @@ Arguments:
 Example:
 
 ```bash
-traffictwin normalise-seed examples/seeds/arena_gridlock.yaml /tmp/arena_gridlock.normalised.yaml
+mkdir -p build
+traffictwin normalise-seed examples/seeds/arena_gridlock.yaml build/arena_gridlock.normalised.yaml
 ```
 
 Common errors:
@@ -272,8 +273,74 @@ traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
 
 This is implementation verification over synthetic cases, not external diagnostic validation.
 
+## Provenance Commands
+
+### `traffictwin provenance metric PATH METRIC_KEY [--format text|json|markdown]`
+
+Purpose: trace one metric result back to its metric definition, required canonical evidence,
+source-row samples where available, validation context, run metadata, and fingerprint.
+
+Example:
+
+```bash
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+```
+
+Rejected bundles return exit code `1` for metric traces because metrics are unavailable.
+
+### `traffictwin provenance rule PATH RULE_ID [--format text|json|markdown]`
+
+Purpose: trace one DiagnosticReport rule result back through findings, evidence keys, metric
+results, metric definitions, and source evidence where the accepted bundle provides it.
+
+Example:
+
+```bash
+traffictwin provenance rule tests/fixtures/bundles/variation_valid R2 --format json
+```
+
+### `traffictwin provenance run PATH [--format text|json|markdown]`
+
+Purpose: trace bundle, manifest, run, seed, environment, validation, metric, evidence, and
+diagnostic context for a bundle.
+
+Example:
+
+```bash
+traffictwin provenance run tests/fixtures/bundles/baseline_valid
+```
+
+### `traffictwin provenance source PATH FILE ROW [--context-rows N] [--format text|json]`
+
+Purpose: inspect one read-only CSV source row inside a directory or ZIP bundle. Paths must be
+bundle-relative.
+
+Example:
+
+```bash
+traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+```
+
+### `traffictwin provenance export PATH --root-type TYPE --root-id ID [--format json|markdown] [--output FILE]`
+
+Purpose: export a complete `ProvenanceTrace` document. Supported root types are `metric`, `rule`,
+and `run`.
+
+Example:
+
+```bash
+traffictwin provenance export tests/fixtures/bundles/baseline_valid \
+  --root-type metric \
+  --root-id task.completion.rate \
+  --format markdown \
+  --output provenance-task-completion.md
+```
+
+Provenance commands are read-only and do not mutate imported files or registry contents.
+
 Related documents:
 
 - [User guide](user_guide.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Reproducibility guide](reproducibility.md)
 - [Generated CLI help](reference/generated/cli_help.json)

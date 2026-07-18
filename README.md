@@ -1,8 +1,8 @@
 # TrafficTwin
 
-TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if experiments. It lets a user define a versioned scenario seed, import a completed run bundle, validate source files, canonicalise records, compute deterministic metrics, build a structured EvidencePack, compare baseline and variation runs, and evaluate deterministic diagnostic hypotheses. OffloadLens is the VEC analysis module inside the platform.
+TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if experiments. It lets a user define a versioned scenario seed, import a completed run bundle, validate source files, canonicalise records, compute deterministic metrics, build a structured EvidencePack, compare baseline and variation runs, evaluate deterministic diagnostic hypotheses, and inspect provenance from displayed results back to source rows. OffloadLens is the VEC analysis module inside the platform.
 
-Status: Phase 1-6A prototype. The current repository supports synthetic fixtures, generic run-bundle import, deterministic metrics, deterministic diagnostic hypotheses R0-R3, a SQLite metadata registry, a Typer CLI, and a Streamlit UI. It does not include Randy's environment, SUMO adapters, Manchester sensor data, live data, near-live polling, external launchers, LLM rendering, XAI, or portfolio selection.
+Status: Phase 1-6A plus Provenance Explorer prototype. The current repository supports synthetic fixtures, generic run-bundle import, deterministic metrics, deterministic diagnostic hypotheses R0-R3, provenance tracing, a SQLite metadata registry, a Typer CLI, and a Streamlit UI. It does not include Randy's environment, SUMO adapters, Manchester sensor data, live data, near-live polling, external launchers, LLM rendering, XAI, or portfolio selection.
 
 ## Current Scope
 
@@ -19,6 +19,7 @@ Implemented:
 - EvidencePack generation.
 - Baseline-versus-variation comparison.
 - Deterministic diagnostic hypotheses R0-R3 over EvidencePacks.
+- Read-only provenance tracing for metrics, diagnostic rules, run context, and CSV source rows.
 - Streamlit UI over the tested library.
 - Synthetic baseline, variation, partial, invalid-manifest, invalid-row, and diagnostic fault-injection fixtures.
 
@@ -67,6 +68,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Deterministic metrics | Implemented | Missing evidence yields unavailable results. |
 | EvidencePack | Implemented | Only supported input for diagnostics. |
 | Diagnostic rules R0-R3 | Implemented | Candidate hypotheses, not proven causes. |
+| Provenance Explorer | Implemented | Read-only trace from metrics/rules to definitions, canonical evidence, validation, source rows, and run context where available. |
 | Streamlit UI | Implemented | Thin presentation layer over library services. |
 | Registry | Implemented | SQLite metadata and JSON payload references. |
 | Randy/VEC integration | Blocked | No real artifacts, schemas, units, or command contract present. |
@@ -116,6 +118,12 @@ Evaluate deterministic diagnostics:
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 ```
 
+Trace a metric back to source evidence:
+
+```bash
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+```
+
 Launch the UI:
 
 ```bash
@@ -144,6 +152,7 @@ Recommended flow:
 9. Open What-if Compare and compare baseline against variation.
 10. Open Journey-Time Lens and inspect synthetic trip-duration metrics.
 11. Open Evidence & Diagnostic Hypotheses and download JSON if needed.
+12. Open Provenance Explorer and trace `task.completion.rate` to `tasks.csv` rows.
 
 Full scripts:
 
@@ -163,6 +172,9 @@ traffictwin metrics report tests/fixtures/bundles/variation_valid --format json
 traffictwin evidence build tests/fixtures/bundles/baseline_valid --output evidence-baseline.json
 traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
 traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
 ```
 
 Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
@@ -190,6 +202,7 @@ Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 │       ├── experiments/
 │       ├── ingestion/
 │       ├── metrics/
+│       ├── provenance/
 │       ├── rules/
 │       ├── storage/
 │       ├── ui/
@@ -213,7 +226,7 @@ Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 .venv/bin/python scripts/generate_reference_docs.py
 ```
 
-At the latest documentation pass, the suite reported 119 tests passing and 76% coverage. Treat the exact numbers as a checked snapshot, not a permanent target.
+At the latest provenance productisation pass, the suite reported 147 tests passing and 77% coverage. Treat the exact numbers as a checked snapshot, not a permanent target.
 
 ## Data-Mode Disclaimer
 
@@ -240,6 +253,7 @@ Start at [docs/index.md](docs/index.md). Key documents:
 - [docs/api_reference.md](docs/api_reference.md)
 - [docs/cli_reference.md](docs/cli_reference.md)
 - [docs/reproducibility.md](docs/reproducibility.md)
+- [docs/provenance_explorer.md](docs/provenance_explorer.md)
 - [docs/viva_guide.md](docs/viva_guide.md)
 - [docs/limitations_and_future_work.md](docs/limitations_and_future_work.md)
 

@@ -19,6 +19,7 @@ Recommended filenames:
 - `07-what-if-compare.png`
 - `08-journey-time-lens.png`
 - `09-evidence-diagnostics.png`
+- `10-provenance-explorer.png`
 
 Expected source labels:
 
@@ -26,4 +27,4 @@ Expected source labels:
 - `IMPORTED` where applicable
 - `HISTORICAL REPLAY`
 
-Before using screenshots in dissertation material, check that no page claims live data, real Manchester data, real Randy integration, or proven root causes.
+Before using screenshots in dissertation material, check that no page claims live data, real Manchester data, real Randy integration, proven root causes, or provenance as proof of real-world causality.

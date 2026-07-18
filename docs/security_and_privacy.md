@@ -19,7 +19,22 @@ Imported bundle contents are treated as data. TrafficTwin does not execute scrip
 
 ## Source Immutability
 
-Validation and metrics read source files without modifying them. Registry imports store metadata and JSON payloads, not edited copies of raw files.
+Validation, metrics, diagnostics, and provenance read source files without modifying them. Registry
+imports store metadata and JSON payloads, not edited copies of raw files.
+
+## Provenance Source-Row Preview
+
+The Provenance Explorer source-row preview:
+
+- uses bundle-relative source paths;
+- rejects absolute paths and `..` traversal;
+- reuses the safe directory/ZIP bundle loader;
+- reads a bounded row window rather than an entire large source file;
+- treats source text as data, not executable content.
+
+Trace exports avoid machine-specific absolute paths. They may still include bundle-relative source
+filenames, row numbers, validation messages, and raw values from the requested preview, so do not
+export traces containing private real data without review.
 
 ## Manifest And Text Handling
 
@@ -77,4 +92,5 @@ Related documents:
 
 - [Run bundle specification](run_bundle_spec.md)
 - [Architecture](architecture.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Limitations and future work](limitations_and_future_work.md)

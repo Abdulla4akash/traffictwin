@@ -27,6 +27,7 @@ class UiPage(StrEnum):
     COMPARE = "What-if Compare"
     JOURNEY_TIME = "Journey-Time Lens"
     EVIDENCE = "Evidence & Diagnostic Hypotheses"
+    PROVENANCE = "Provenance Explorer"
 
 
 REQUIRED_PROTOTYPE_NOTICE = (

@@ -20,6 +20,8 @@ The package supports Python 3.11+. The checked local environment for this docume
 - Metrics consume canonical records, not raw CSV text.
 - Diagnostic rules consume EvidencePack objects, not raw data.
 - Rules do not recompute metrics.
+- Provenance traces consume existing validation, metric, EvidencePack, and DiagnosticReport objects;
+  they do not recalculate results.
 - Golden tests use fixed clocks or stable projections.
 - JSON fingerprints normalise generated timestamps where implemented.
 
@@ -33,13 +35,16 @@ Current schema/config versions:
 - Metric version: `1.0`
 - EvidencePack schema: `1.0`
 - DiagnosticReport schema: `1.0`
+- ProvenanceTrace schema: `1.0`
 - RuleSet schema/ruleset: `1.0`
 
 Run provenance includes run ID, experiment ID, seed ID, algorithm, checkpoint, random seed, environment name, environment version or commit where supplied, and source bundle fingerprint.
 
 ## Fingerprints
 
-Bundle fingerprints are built from source files during validation. EvidencePack and DiagnosticReport fingerprints are based on canonical JSON with volatile generated timestamps normalised.
+Bundle fingerprints are built from source files during validation. EvidencePack, DiagnosticReport,
+and ProvenanceTrace fingerprints are based on canonical JSON with volatile generated timestamps
+normalised.
 
 These fingerprints support reproducibility checks. They are not cryptographic signatures for adversarial security.
 
@@ -54,7 +59,8 @@ Repository fixtures under `tests/fixtures/` are synthetic and hand-auditable. Th
 - testing validation behavior;
 - testing metric formulas;
 - testing comparison output;
-- testing diagnostic rule implementation.
+- testing diagnostic rule implementation;
+- testing provenance trace construction and source-row preview.
 
 They are not real Manchester, Randy/VEC, or SUMO results.
 
@@ -71,8 +77,8 @@ They are not real Manchester, Randy/VEC, or SUMO results.
 
 Current verified snapshot from this documentation pass:
 
-- tests: 119 passed;
-- coverage: 76%.
+- tests: 147 passed;
+- coverage: 77%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 
@@ -100,6 +106,19 @@ traffictwin diagnose evidence evidence-baseline.json
 traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
 ```
 
+## Regenerate Provenance Traces
+
+```bash
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+traffictwin provenance rule tests/fixtures/bundles/variation_valid R2 --format json
+traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+traffictwin provenance export tests/fixtures/bundles/baseline_valid \
+  --root-type metric \
+  --root-id task.completion.rate \
+  --format markdown \
+  --output provenance-task-completion.md
+```
+
 ## Confirm Fixture Immutability
 
 Before and after a run:
@@ -108,7 +127,8 @@ Before and after a run:
 git status --short tests/fixtures examples/seeds
 ```
 
-No fixture files should be modified by validation, metrics, evidence, diagnostics, CLI, or UI workflows.
+No fixture files should be modified by validation, metrics, evidence, diagnostics, provenance, CLI,
+or UI workflows.
 
 ## Known Sources Of Non-Determinism
 
@@ -126,4 +146,5 @@ Related documents:
 - [Testing strategy](testing_strategy.md)
 - [Run bundle specification](run_bundle_spec.md)
 - [EvidencePack specification](evidence_pack_spec.md)
+- [Provenance model](provenance_model.md)
 - [Integration decision](integration/phase6_decision.md)

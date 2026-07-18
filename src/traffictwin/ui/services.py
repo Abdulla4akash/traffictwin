@@ -28,6 +28,14 @@ from traffictwin.metrics.comparison import ComparisonReport, compare_metric_coll
 from traffictwin.metrics.engine import compute_metrics_for_bundle
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricCollection
+from traffictwin.provenance.models import ProvenanceTrace, SourceRowPreview
+from traffictwin.provenance.query import (
+    ProvenanceContext,
+    get_metric_provenance,
+    get_rule_provenance,
+    get_run_provenance,
+    get_source_provenance,
+)
 from traffictwin.rules.engine import evaluate_rules
 from traffictwin.storage.registry import (
     BundleImportResult,
@@ -132,6 +140,53 @@ def build_diagnostic_report_for_ui(pack: EvidencePack) -> DiagnosticReport:
     """Build deterministic diagnostics through the Phase 5 rules engine."""
 
     return evaluate_rules(pack)
+
+
+def provenance_context_for_ui(analysis: BundleAnalysis) -> ProvenanceContext:
+    """Build a read-only provenance context from already computed UI artifacts."""
+
+    return ProvenanceContext(
+        bundle_path=analysis.source_path,
+        validation=analysis.validation,
+        metrics=analysis.metrics,
+        evidence_pack=analysis.evidence_pack,
+        diagnostic_report=analysis.diagnostic_report,
+    )
+
+
+def metric_provenance_for_ui(analysis: BundleAnalysis, metric_key: str) -> ProvenanceTrace:
+    """Build a metric provenance trace for the selected analysis."""
+
+    return get_metric_provenance(provenance_context_for_ui(analysis), metric_key)
+
+
+def rule_provenance_for_ui(analysis: BundleAnalysis, rule_id: str) -> ProvenanceTrace:
+    """Build a diagnostic-rule provenance trace for the selected analysis."""
+
+    return get_rule_provenance(provenance_context_for_ui(analysis), rule_id)
+
+
+def run_provenance_for_ui(analysis: BundleAnalysis) -> ProvenanceTrace:
+    """Build a run-level provenance trace for the selected analysis."""
+
+    return get_run_provenance(provenance_context_for_ui(analysis))
+
+
+def source_preview_for_ui(
+    analysis: BundleAnalysis,
+    source_file: str,
+    source_row: int,
+    *,
+    context_rows: int = 2,
+) -> SourceRowPreview:
+    """Return a read-only source-row preview for the selected analysis."""
+
+    return get_source_provenance(
+        provenance_context_for_ui(analysis),
+        source_file,
+        source_row,
+        context_rows=context_rows,
+    )
 
 
 def compare_runs_for_ui(

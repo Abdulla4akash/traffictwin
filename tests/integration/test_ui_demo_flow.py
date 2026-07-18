@@ -47,3 +47,12 @@ def test_streamlit_app_starts_with_apptest() -> None:
     app.run(timeout=10)
 
     assert not app.exception
+
+
+def test_streamlit_provenance_page_renders_with_apptest() -> None:
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app.run(timeout=10)
+    app.radio[0].set_value("Provenance Explorer").run(timeout=10)
+
+    assert not app.exception

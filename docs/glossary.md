@@ -36,7 +36,11 @@ Diagnostic hypothesis: Evidence-based candidate explanation requiring verificati
 
 Capability manifest: Three-valued adapter capability declaration using `true`, `false`, and `unknown`.
 
-Provenance: Metadata connecting outputs to seed, run, environment, source files, random seed, versions, and algorithms.
+Provenance: Metadata and trace links connecting outputs to seed, run, environment, source files, random seed, versions, algorithms, metric definitions, validation findings, and source rows where available.
+
+ProvenanceTrace: Versioned read-only trace graph containing typed nodes and edges from a metric, rule result, source row, or run back through the deterministic TrafficTwin pipeline.
+
+Source-row preview: Bounded read-only CSV row inspection that shows raw values, canonical mapping, declared units, and validation findings without loading or mutating an entire source file.
 
 Fingerprint: Deterministic hash used to identify bundle/evidence/report content for reproducibility checks.
 

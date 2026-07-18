@@ -27,6 +27,12 @@ from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricCollection
+from traffictwin.provenance.models import (
+    ProvenanceEdge,
+    ProvenanceNode,
+    ProvenanceTrace,
+    SourceRowPreview,
+)
 from traffictwin.rules.catalogue import rule_catalogue
 from traffictwin.rules.config import RuleSetConfig
 from traffictwin.validation.codes import ValidationCode
@@ -54,6 +60,10 @@ MODEL_TYPES = {
     "MetricEngineConfig": MetricEngineConfig,
     "MetricCollection": MetricCollection,
     "EvidencePack": EvidencePack,
+    "ProvenanceNode": ProvenanceNode,
+    "ProvenanceEdge": ProvenanceEdge,
+    "ProvenanceTrace": ProvenanceTrace,
+    "SourceRowPreview": SourceRowPreview,
     "RuleSetConfig": RuleSetConfig,
 }
 
@@ -83,6 +93,12 @@ CLI_COMMANDS = [
     ["diagnose", "evidence"],
     ["diagnose", "report"],
     ["diagnose", "evaluate"],
+    ["provenance"],
+    ["provenance", "metric"],
+    ["provenance", "rule"],
+    ["provenance", "run"],
+    ["provenance", "source"],
+    ["provenance", "export"],
 ]
 
 

@@ -72,7 +72,16 @@ streamlit run src/traffictwin/ui/app.py
     - Explain hypotheses are candidate explanations, not proven causes.
     - Download DiagnosticReport JSON if needed.
 
-11. Run fault-injection evaluation in a terminal:
+11. Open Provenance Explorer.
+    - Select `Metric` and `task.completion.rate`.
+    - Show the metric result, metric definition, canonical `tasks` table, `tasks.csv` row samples, manifest, run, seed, environment, and fingerprint.
+    - Select `Source file row`, `tasks.csv`, row `2`.
+    - Show the raw CSV row and canonical `TaskRecord`.
+    - Select `Diagnostic rule` and `R2`.
+    - Explain that rule traces separate observed evidence, rule logic, candidate hypotheses, alternatives, and missing evidence.
+    - Download trace Markdown if needed.
+
+12. Run fault-injection evaluation in a terminal:
 
     ```bash
     traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
@@ -95,6 +104,8 @@ traffictwin bundle validate tests/fixtures/bundles/baseline_valid
 traffictwin metrics compute tests/fixtures/bundles/baseline_valid
 traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
 ```
 
 ## Cleanup
@@ -112,4 +123,5 @@ Related documents:
 
 - [Demo checklist](demo_checklist.md)
 - [User guide](user_guide.md)
+- [Viva traceability demo](viva_traceability_demo.md)
 - [Screenshot checklist](assets/screenshots/README.md)

@@ -1,10 +1,10 @@
 # UI Design
 
-The Phase 5 UI is a thin Streamlit layer over the tested TrafficTwin library.
+The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 
 ## Principles
 
-- Validation, metrics, comparison, and evidence packs are computed by library services.
+- Validation, metrics, comparison, evidence packs, diagnostics, and provenance traces are computed by library services.
 - Streamlit pages render state and call UI service functions.
 - Unsupported and unknown capabilities are disabled.
 - Direct launch is visibly unavailable for the generic CSV adapter.
@@ -21,6 +21,7 @@ The Phase 5 UI is a thin Streamlit layer over the tested TrafficTwin library.
 - What-if Compare: compatibility, seed diff, metric deltas by domain.
 - Journey-Time Lens: imported trip duration metrics and comparison.
 - Evidence & Diagnostic Hypotheses: validation/evidence state, rule results, alternatives, missing evidence, conditional recommendations, and report download.
+- Provenance Explorer: read-only metric, diagnostic-rule, source-row, and run-context traces with JSON and Markdown export.
 
 ## Visual Policy
 
@@ -46,3 +47,18 @@ The diagnostic page uses cautious language:
 - “requires verification”
 
 It avoids causal-proof language that would turn a candidate hypothesis into a settled conclusion. Recommendations are displayed as conditional follow-up checks, not automatic actions.
+
+## Provenance Presentation
+
+The Provenance Explorer uses a readable vertical lineage and grouped node tables rather than a
+force-directed graph. It distinguishes:
+
+- observed source evidence;
+- canonical records;
+- metric results and definitions;
+- rule findings;
+- candidate hypotheses;
+- missing or unavailable links.
+
+Aggregate metrics show eligible input rows and bounded samples. The UI must not imply that an
+individual row caused an aggregate result.

@@ -54,6 +54,12 @@ The embedded metric collection contains ordered `MetricValue` objects. Each metr
 
 `EvidencePack.fingerprint()` uses canonical JSON with generated timestamps normalised. It is intended for reproducibility checks, not as a security signature.
 
+## Provenance Use
+
+The Provenance Explorer can use an EvidencePack to trace metric keys, metric results, rule evidence,
+and run context. EvidencePack-only traces cannot inspect canonical rows or source CSV rows unless the
+original run bundle is also available; those links are represented as unavailable.
+
 ## Validation And Evidence
 
 The evidence pack includes the Phase 2 validation status and evidence availability categories. Phase 5 rules use this information to suppress unsupported hypotheses.
@@ -83,5 +89,7 @@ Rules do not mutate the EvidencePack.
 - [Metrics catalogue](metrics_catalogue.md)
 - [Diagnostic rules](diagnostic_rules.md)
 - [Diagnostic report specification](diagnostic_report_spec.md)
+- [Provenance model](provenance_model.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Reproducibility guide](reproducibility.md)
 - [Generated Pydantic schemas](reference/generated/pydantic_schemas.json)

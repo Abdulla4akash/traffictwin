@@ -14,6 +14,7 @@ from traffictwin.ui.pages import (
     infrastructure,
     journey_time,
     operations,
+    provenance_explorer,
     run_overview,
     scenario_studio,
 )
@@ -48,6 +49,8 @@ def main() -> None:
         journey_time.render()
     elif page is UiPage.EVIDENCE:
         evidence_readiness.render()
+    elif page is UiPage.PROVENANCE:
+        provenance_explorer.render()
 
 
 if __name__ == "__main__":

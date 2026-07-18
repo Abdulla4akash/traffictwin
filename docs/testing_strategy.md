@@ -6,10 +6,12 @@ TrafficTwin uses a test pyramid: focused unit tests at the base, integration tes
 
 Verified during this documentation pass:
 
-- 119 tests passed.
-- Coverage: 76%.
+- 147 tests passed.
+- Coverage: 77%.
 
-Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI workflows are partly covered through service tests, AppTest-style tests, and smoke commands rather than exhaustive browser automation.
+Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI
+workflows are partly covered through service tests, AppTest-style tests, and smoke commands rather
+than exhaustive browser automation.
 
 ## Unit Tests
 
@@ -27,7 +29,9 @@ Coverage includes:
 - metric catalogue and calculators;
 - comparison and aggregation;
 - EvidencePack generation;
-- rule configuration, registry, models, engine, and R0-R3 behavior.
+- rule configuration, registry, models, engine, and R0-R3 behavior;
+- provenance trace models, graph validation, source-row preview, query service, serialisation, and
+  Markdown export.
 
 ## Integration Tests
 
@@ -40,6 +44,8 @@ They check:
 - bundle to metrics;
 - bundle to diagnostics;
 - evidence to diagnostics;
+- bundle to provenance;
+- diagnostic fixture to EvidencePack-only provenance;
 - UI service/demo flows.
 
 ## Golden Tests
@@ -52,7 +58,8 @@ Golden files verify exact projections for:
 - variation metrics;
 - comparison output;
 - validation reports;
-- diagnostic reports.
+- diagnostic reports;
+- provenance trace projections and Markdown export.
 
 Do not update golden files merely to pass tests. Recompute expected values from fixture rows and document the intended behavior change.
 
@@ -83,6 +90,8 @@ traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles
 traffictwin evidence build tests/fixtures/bundles/baseline_valid --output evidence-baseline.json
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
+traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
 ```
 
 ## ZIP Security Tests
@@ -106,6 +115,9 @@ Tests and code enforce or exercise:
 - JSON contains no `NaN` or infinity;
 - rules cite existing evidence keys;
 - rules do not mutate EvidencePacks;
+- provenance traces do not mutate metric or rule outputs;
+- provenance exports contain no absolute local paths;
+- source-row preview rejects path traversal;
 - repeated imports are idempotent;
 - directory and ZIP bundles produce equivalent results.
 
@@ -122,3 +134,4 @@ Related documents:
 - [Reproducibility guide](reproducibility.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [Developer guide](developer_guide.md)
+- [Provenance model](provenance_model.md)

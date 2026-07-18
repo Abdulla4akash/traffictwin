@@ -1,0 +1,56 @@
+{
+  "completeness": "partial",
+  "node_types": {
+    "bundle": 1,
+    "canonical_record": 8,
+    "canonical_table": 2,
+    "checkpoint": 1,
+    "diagnostic_report": 1,
+    "environment": 1,
+    "evidence_key": 8,
+    "evidence_pack": 1,
+    "experiment": 1,
+    "finding": 5,
+    "fingerprint": 1,
+    "manifest": 1,
+    "metric_definition": 8,
+    "metric_result": 8,
+    "rule_definition": 1,
+    "rule_result": 1,
+    "run": 1,
+    "scenario_seed": 1,
+    "source_file": 2,
+    "source_row": 8,
+    "unavailable_reference": 2
+  },
+  "relations": [
+    "belongs_to",
+    "canonicalised_from",
+    "cites",
+    "computed_from",
+    "configured_by",
+    "contains",
+    "contradicts",
+    "defined_by",
+    "executed_with",
+    "generated_from",
+    "identified_by",
+    "located_in",
+    "supports",
+    "unavailable_because"
+  ],
+  "required_nodes": [
+    "metric_definition:infra.utilisation.p95",
+    "canonical_table:tasks",
+    "canonical_table:infrastructure",
+    "source_file:tasks.csv",
+    "source_file:infra_state.csv",
+    "rule_result:R2"
+  ],
+  "root_node_id": "rule_result:R2",
+  "source_rows": 8,
+  "unavailable": [
+    "direct queue-growth time series",
+    "task misses overlapping saturation windows"
+  ]
+}

@@ -58,6 +58,13 @@ There is deliberately no `proven_cause` field.
 The engine validates cited evidence keys against the EvidencePack metric collection.
 If a rule cites a missing key, that result is marked `invalid` and a technical warning is added.
 
+## Provenance Use
+
+Diagnostic provenance starts from a `RuleResult`, then traces findings to cited evidence keys,
+metric results, metric definitions, canonical evidence, validation findings, and source rows when an
+accepted run bundle is available. Recommendations and alternatives are displayed as rule outputs,
+not as source evidence.
+
 ## JSON Policy
 
 Reports serialise with Pydantic JSON. Golden tests use fixed clocks and projections that exclude volatile timestamps.
@@ -68,5 +75,7 @@ No `NaN`, infinity, invented probabilities, or causal-proof language is allowed.
 
 - [Diagnostic rules](diagnostic_rules.md)
 - [EvidencePack specification](evidence_pack_spec.md)
+- [Provenance model](provenance_model.md)
+- [Provenance Explorer](provenance_explorer.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [API reference](api_reference.md)

@@ -56,6 +56,7 @@ src/traffictwin/
 ├── experiments/   # experiment-level grouping placeholders
 ├── ingestion/     # bundle loader, manifest, canonicalisation, fingerprints
 ├── metrics/       # metric definitions, calculators, comparison, aggregation
+├── provenance/    # read-only trace DAG, source-row preview, JSON/Markdown export
 ├── rules/         # deterministic diagnostic rules R0-R3
 ├── storage/       # SQLite registry
 ├── ui/            # Streamlit app, services, components, pages
@@ -108,6 +109,19 @@ Do not compute from raw CSV files. Metrics consume canonical records and evidenc
 
 Rules consume only EvidencePack objects. They must not recompute metrics or read raw/canonical rows.
 
+## Adding A Provenance Trace Root
+
+1. Add builder support in [provenance/builder.py](../src/traffictwin/provenance/builder.py).
+2. Expose a read-only query function in [provenance/query.py](../src/traffictwin/provenance/query.py).
+3. Use existing `MetricCollection`, `EvidencePack`, `DiagnosticReport`, catalogues, and canonical `source_file`/`source_row` fields.
+4. Add unavailable-reference nodes when a link is missing.
+5. Add JSON and Markdown export coverage.
+6. Add unit, integration, and golden tests.
+7. Update [provenance_model.md](provenance_model.md) and [provenance_explorer.md](provenance_explorer.md).
+
+Do not recompute metric values, reinterpret rule outputs, read unsafe paths, or invent row-level
+contribution weights for aggregate metrics.
+
 ## Adding A Streamlit Page
 
 1. Add page logic under [ui/pages/](../src/traffictwin/ui/pages/).
@@ -117,7 +131,7 @@ Rules consume only EvidencePack objects. They must not recompute metrics or read
 5. Call library services through [ui/services.py](../src/traffictwin/ui/services.py).
 6. Add tests for service models, chart/table data, state, and page guards.
 
-Do not duplicate metric, validation, comparison, or diagnostic logic in Streamlit code.
+Do not duplicate metric, validation, comparison, diagnostic, or provenance logic in Streamlit code.
 
 ## Adding An Adapter Safely
 
@@ -191,6 +205,7 @@ Related documents:
 
 - [Architecture](architecture.md)
 - [API reference](api_reference.md)
+- [Provenance model](provenance_model.md)
 - [Testing strategy](testing_strategy.md)
 - [Reproducibility guide](reproducibility.md)
 - [ADR index](decisions/index.md)
