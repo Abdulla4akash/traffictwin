@@ -133,6 +133,11 @@ contribution weights for aggregate metrics.
 
 Do not duplicate metric, validation, comparison, diagnostic, or provenance logic in Streamlit code.
 
+Product polish pages follow the same rule. `Scenario Builder` may call the synthetic generator,
+`Experiment Manager` may read registry/workspace metadata, `Reports` may call reporting builders,
+and `Search` may scan local metadata. They must not add metrics, diagnostic rules, adapters, live
+data, or launch behavior.
+
 ## Adding An Adapter Safely
 
 1. Complete discovery first: source files, schemas, units, identifiers, row counts, provenance, and execution commands.

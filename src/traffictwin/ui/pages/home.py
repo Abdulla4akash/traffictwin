@@ -6,8 +6,9 @@ import streamlit as st
 
 from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE
-from traffictwin.ui.services import load_project_status
+from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tables import capability_rows
 
@@ -39,7 +40,7 @@ def render(config: UiConfig) -> None:
     cols[3].metric("Metric collections", metric_count)
 
     if config.workspace_path is not None:
-        st.subheader("Standalone Demo")
+        section_header("Standalone Demo")
         demo_status = workspace_status(config.workspace_path)
         st.info(
             "Standalone mode uses repository-contained synthetic fixtures only. "
@@ -51,11 +52,50 @@ def render(config: UiConfig) -> None:
         demo_cols[2].metric("Imported runs", demo_status.imported_run_count)
         demo_cols[3].metric("Diagnostics", demo_status.diagnostics_status)
         st.caption(f"Workspace: {demo_status.path}")
+        report_count = len(list_workspace_reports(config.workspace_path))
+        export_dir = config.workspace_path / "exports"
+        provenance_count = (
+            len(list(export_dir.glob("*provenance*.json"))) if export_dir.exists() else 0
+        )
+        comparison_count = demo_status.comparison_count
+        cols = st.columns(3)
+        cols[0].metric("Available reports", report_count)
+        cols[1].metric("Comparisons", comparison_count)
+        cols[2].metric("Provenance exports", provenance_count)
 
-    st.subheader("Capability Manifest")
+        section_header("Quick Actions")
+        st.write(
+            [
+                "Open Scenario Builder to duplicate a synthetic preset.",
+                "Open Experiment Manager to browse registered runs and fingerprints.",
+                "Open Reports to download or deliberately regenerate deterministic reports.",
+                "Open Provenance Explorer to trace a metric or hypothesis to source rows.",
+            ]
+        )
+
+        section_header("Recent Workspace Artifacts")
+        reports = list_workspace_reports(config.workspace_path)[:5]
+        if reports:
+            st.dataframe(
+                [
+                    {
+                        "report": report.name,
+                        "type": report.report_type,
+                        "format": report.format_label,
+                        "scenario": report.scenario_hint,
+                    }
+                    for report in reports
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+        else:
+            st.info("No report artifacts found in the active workspace.")
+
+    section_header("Capability Manifest")
     st.dataframe(capability_rows(status.capability_manifest), hide_index=True, width="stretch")
 
-    st.subheader("Latest Imported Runs")
+    section_header("Latest Imported Runs")
     if status.latest_runs:
         st.dataframe(
             [
@@ -75,7 +115,7 @@ def render(config: UiConfig) -> None:
     else:
         st.info("No registered runs yet. Import a synthetic or historical bundle first.")
 
-    st.subheader("Current Limitations")
+    section_header("Current Limitations")
     st.write(
         [
             "Direct simulator launch is unavailable for the default generic CSV adapter.",

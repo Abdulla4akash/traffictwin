@@ -149,8 +149,8 @@ The synthetic fault-injection precision/recall values are implementation checks 
 
 Current verified standalone product snapshot:
 
-- tests: 163 passed;
-- coverage: 79%.
+- tests: 168 passed;
+- coverage: 77%.
 
 Related documents:
 

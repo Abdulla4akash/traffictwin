@@ -23,6 +23,8 @@ class UiConfig(BaseModel):
     debug: bool = False
     page_title: str = "TrafficTwin"
     replay_default_speed: float = Field(default=1.0, gt=0)
+    default_report_format: str = "markdown"
+    preferred_export_directory: Path = Path("exports")
     metric_engine_config: MetricEngineConfig = Field(default_factory=MetricEngineConfig)
     file_upload_size_guidance: str = "Use small ZIP or directory bundles for the Phase 4 prototype."
 
@@ -55,6 +57,11 @@ class ReplayClockState(BaseModel):
 
         return self.model_copy(update={"playing": True})
 
+    def resume(self) -> ReplayClockState:
+        """Return a resumed clock."""
+
+        return self.play()
+
     def step(self, delta_s: float) -> ReplayClockState:
         """Return a clock advanced by a logical delta."""
 
@@ -70,6 +77,24 @@ class ReplayClockState(BaseModel):
         bounded = min(self.max_timestamp_s, max(self.min_timestamp_s, timestamp_s))
         return self.model_copy(update={"current_timestamp_s": bounded})
 
+    def restart(self) -> ReplayClockState:
+        """Return a restarted, playing clock from the first timestamp."""
+
+        return self.model_copy(
+            update={"current_timestamp_s": self.min_timestamp_s, "playing": True}
+        )
+
+
+class ReplayFilters(BaseModel):
+    """Framework-independent replay filters."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    vehicle_id: str | None = None
+    rsu_id: str | None = None
+    task_class: str | None = None
+    incident_type: str | None = None
+
 
 DEFAULT_SESSION_STATE: dict[str, object] = {
     "active_registry_path": "data/registry/traffictwin.sqlite",
@@ -82,8 +107,16 @@ DEFAULT_SESSION_STATE: dict[str, object] = {
     "latest_metric_collection": None,
     "latest_evidence_pack": None,
     "replay_clock": ReplayClockState().model_dump(mode="json"),
+    "replay_filters": ReplayFilters().model_dump(mode="json"),
     "display_preferences": {"show_metric_keys": False},
     "data_mode_label": "SYNTHETIC",
+    "ui_settings": {
+        "theme": "Research",
+        "default_replay_speed": 1.0,
+        "default_report_format": "markdown",
+        "preferred_export_directory": "exports",
+        "demo_auto_initialise": True,
+    },
 }
 
 
@@ -151,29 +184,64 @@ def replay_window_counts(
     current_timestamp_s: float,
     *,
     window_s: float = 60.0,
+    filters: ReplayFilters | None = None,
 ) -> dict[str, int]:
     """Return simple counts for records visible in the current replay window."""
 
     start = max(0.0, current_timestamp_s - window_s)
+    active_filters = filters or ReplayFilters()
     return {
         "task_arrivals": sum(
-            start <= task.arrival_time_s <= current_timestamp_s for task in tables.tasks
+            start <= task.arrival_time_s <= current_timestamp_s
+            and _task_matches(task, active_filters)
+            for task in tables.tasks
         ),
         "task_completions": sum(
             task.completion_time_s is not None
             and start <= task.completion_time_s <= current_timestamp_s
+            and _task_matches(task, active_filters)
             for task in tables.tasks
         ),
         "traffic_observations": sum(
             start <= record.timestamp_s <= current_timestamp_s for record in tables.traffic
         ),
         "infrastructure_observations": sum(
-            start <= record.timestamp_s <= current_timestamp_s for record in tables.infrastructure
+            start <= record.timestamp_s <= current_timestamp_s
+            and (active_filters.rsu_id is None or record.rsu_id == active_filters.rsu_id)
+            for record in tables.infrastructure
         ),
         "vehicle_observations": sum(
-            start <= record.timestamp_s <= current_timestamp_s for record in tables.vehicles
+            start <= record.timestamp_s <= current_timestamp_s
+            and (
+                active_filters.vehicle_id is None or record.vehicle_id == active_filters.vehicle_id
+            )
+            for record in tables.vehicles
         ),
         "incidents": sum(
-            start <= incident.timestamp_s <= current_timestamp_s for incident in tables.incidents
+            start <= incident.timestamp_s <= current_timestamp_s
+            for incident in tables.incidents
+            if (
+                active_filters.incident_type is None
+                or incident.incident_type == active_filters.incident_type
+            )
         ),
     }
+
+
+def replay_filter_options(tables: CanonicalTables) -> dict[str, list[str]]:
+    """Return deterministic filter options for replay controls."""
+
+    return {
+        "vehicles": sorted({record.vehicle_id for record in tables.vehicles}),
+        "rsus": sorted({record.rsu_id for record in tables.infrastructure}),
+        "task_classes": sorted({record.task_class.value for record in tables.tasks}),
+        "incident_types": sorted({record.incident_type for record in tables.incidents}),
+    }
+
+
+def _task_matches(task: object, filters: ReplayFilters) -> bool:
+    task_vehicle = getattr(task, "vehicle_id", None)
+    task_class = getattr(getattr(task, "task_class", None), "value", None)
+    return (filters.vehicle_id is None or task_vehicle == filters.vehicle_id) and (
+        filters.task_class is None or task_class == filters.task_class
+    )

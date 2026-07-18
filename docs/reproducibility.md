@@ -82,8 +82,8 @@ They are not real Manchester, Randy/VEC, or SUMO results.
 
 Current verified snapshot from the standalone product quality-gate run:
 
-- tests: 163 passed;
-- coverage: 79%.
+- tests: 168 passed;
+- coverage: 77%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 

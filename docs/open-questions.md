@@ -119,6 +119,7 @@ Resolved during Standalone Product phase:
   provenance provides aggregate-level traceability and source-row samples.
 - Real integration remains the next blocker for moving beyond synthetic demonstration.
 - A project licence still needs explicit selection before public release.
+- Product Polish improves workflow but does not resolve the missing real Randy/SUMO artifact blocker.
 
 ## Non-Blocking Unknowns
 
@@ -127,3 +128,5 @@ Resolved during Standalone Product phase:
 - Optional language rendering.
 - Optional XAI instrumentation.
 - Near-live or true-live data sources.
+- Persistent multi-user settings or authentication.
+- Richer UI screenshot automation.

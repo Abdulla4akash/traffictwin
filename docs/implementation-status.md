@@ -27,6 +27,11 @@ metrics, build EvidencePacks, evaluate diagnostics, prepare provenance traces, e
 Markdown/HTML reports, and launch Streamlit without Randy/VEC, SUMO, live data, or external
 services.
 
+Product Polish & Research UX status: implemented. The Streamlit UI now includes Scenario Builder,
+Experiment Manager, Reports, Search, Settings, About, improved Replay controls, shared badges/cards,
+and a clearer Home dashboard. This is workflow polish only; it adds no new metrics, diagnostic
+rules, simulator adapters, live data, launchers, ML algorithms, or LLM behavior.
+
 ## Repository Assessment
 
 Workspace root inspected: repository parent workspace
@@ -587,6 +592,24 @@ Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or t
 - Deterministic report export commands for run, comparison, diagnostics, and full reports.
 - Streamlit Home standalone demo status section.
 - Release metadata helper, changelog, release guide, and GitHub Actions CI workflow.
+
+## Implemented In Product Polish & Research UX
+
+- `Scenario Builder` page over `SyntheticScenarioConfig`.
+- Improved replay controls: play, pause, resume, restart, timestamp jump, scrubber, speed presets,
+  step controls, and deterministic filters.
+- `Experiment Manager` page over registry/workspace metadata.
+- `Reports` page for deterministic report inventory, downloads, and explicit regeneration.
+- `Search` page for local metadata search.
+- `Settings` page for session-scoped preferences.
+- `About` page for version, schema, metric, diagnostic, provenance, Python, commit, and licence
+  metadata.
+- Shared section headers, report cards, metadata cards, status badges, and lightweight UI theme.
+- Homepage dashboard improvements for workspace, reports, comparisons, provenance exports, quick
+  actions, and recent artifacts.
+- Quality gates: Ruff format/check passed; mypy passed; 168 tests passed; coverage 77%; demo
+  workspace smoke passed; comparison/report/provenance smoke checks passed; Streamlit health check
+  returned `ok`; package build passed.
 
 ## Standalone Product Remaining Limits
 

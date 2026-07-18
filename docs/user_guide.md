@@ -36,19 +36,23 @@ Use Home to check:
 
 Warning: direct simulator launch, live data, and Randy/SUMO integration are not implemented. The capability manifest must show direct launch as unsupported for the default adapter.
 
-## Scenario Studio
+## Scenario Builder
 
-Scenario Studio creates or edits a `ScenarioSeed` draft.
+Scenario Builder creates deterministic synthetic scenario configurations and can generate standard
+TrafficTwin run bundles from those configurations.
 
 Steps:
 
-1. Fill in seed ID, name, description, parent/preset references, demand multiplier, workload mix, fleet settings, RSU settings, decisions, policy, checkpoint, random seed, and provenance.
-2. Review live validation errors.
-3. Review the YAML preview.
-4. Download/export the seed YAML.
-5. Optionally register the seed if using a registry.
+1. Choose an existing synthetic preset to duplicate.
+2. Edit documented generator parameters such as vehicle count, trip count, congestion multiplier,
+   RSU count, RSU capacity, task-arrival rate, task mix, random seed, and synthetic policy profile.
+3. Review validation errors from `SyntheticScenarioConfig`.
+4. Review the expected bundle ID, run ID, and file list.
+5. Download the generator configuration YAML or generate a bundle directory.
+6. Validate the generated bundle through the normal import-first workflow.
 
-Controls for unknown or unsupported environment capabilities remain disabled. The Run button is disabled because direct launch is unavailable.
+The builder exposes only the current synthetic generator model. It does not launch Randy, SUMO, or
+any live data source.
 
 ## Bundle Import & Validation
 
@@ -78,16 +82,38 @@ Severity meanings:
 
 Unavailable evidence is not the same as zero. It means the required source table or field is absent, invalid, or not declared.
 
-## Operations View
+## Experiment Manager
 
-Phase 4/5 Operations View is historical replay only.
+Experiment Manager is a read-only organisational page for browsing local project state.
+
+It shows:
+
+- experiments;
+- runs;
+- seeds;
+- synthetic policy labels;
+- bundle fingerprints;
+- stored metric and evidence counts;
+- available comparisons;
+- reports.
+
+Use the search and filter controls to narrow tables. The page does not modify experiments or rerun
+analysis.
+
+## Replay
+
+Replay is historical replay only.
 
 Expected labels:
 
 - `HISTORICAL REPLAY`
 - `SYNTHETIC` or `IMPORTED`
 
-The replay clock filters imported timestamps. It does not consume wall-clock live data. If coordinates are absent, the UI shows time-series and tables rather than fabricating a map.
+The replay clock filters imported timestamps. It does not consume wall-clock live data. If
+coordinates are absent, the UI shows time-series and tables rather than fabricating a map.
+
+Controls include play, pause, resume, restart, timestamp jump, scrubber, speed presets, step
+forward/back, and filters for vehicle, RSU, task class, and incident type where evidence exists.
 
 ## Run Overview
 
@@ -117,7 +143,7 @@ This page uses `infra_state` evidence where available:
 
 The saturation threshold is a configurable demo threshold, default `0.90`. It is not a validated research threshold.
 
-## What-if Compare
+## Comparison
 
 Compare an accepted baseline and variation.
 
@@ -146,7 +172,7 @@ It shows:
 
 Use labels such as synthetic trip duration or imported trip duration. Do not interpret fixture outputs as real Manchester journey-time predictions.
 
-## Evidence & Diagnostic Hypotheses
+## Diagnostics & Evidence
 
 This page displays:
 
@@ -203,6 +229,36 @@ The UI can expose:
 - validation/metric data through CLI commands.
 
 These JSON documents are useful for reproducibility, tests, and dissertation appendices.
+
+## Reports
+
+Reports lists deterministic Markdown and HTML reports in the active workspace.
+
+You can:
+
+- search reports by name, type, format, or scenario hint;
+- download existing reports;
+- deliberately regenerate a selected report from explicit bundle paths.
+
+Reports are never regenerated automatically. Report content comes from `traffictwin.reporting`, not
+from Streamlit page logic.
+
+## Search
+
+Search performs local substring search over registry metadata, reports, metrics, diagnostic rules,
+and source file names. It does not use an external search engine.
+
+## Settings
+
+Settings stores session-scoped preferences such as theme label, default replay speed, default report
+format, preferred export directory, and demo defaults. It does not create user accounts or persist
+profiles outside the Streamlit session.
+
+## About
+
+About shows package version, synthetic generator version, metric version, diagnostic ruleset
+version, provenance schema version, Python version, commit hash when available, and licence status.
+The licence remains not yet specified.
 
 ## Data-Mode Labels
 

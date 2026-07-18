@@ -12,16 +12,39 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 
 ## Pages
 
-- Home / Project Status: registry counts, capability manifest, limitations.
-- Scenario Studio: seed draft, validation, YAML preview, export, optional registry save.
+- Home: registry counts, workspace status, quick actions, recent reports, capability manifest, and
+  limitations.
+- Scenario Builder: synthetic generator configuration, validation, YAML preview, bundle generation,
+  and normal bundle validation.
 - Bundle Import & Validation: manifest, files, validation findings, evidence availability, import.
-- Operations View: historical replay clock and time-series views.
+- Experiment Manager: experiments, runs, seeds, policies, fingerprints, comparisons, reports, metric
+  storage, and evidence storage.
+- Replay: historical replay clock, deterministic controls, filters, and time-series views.
 - Run Overview: KPI cards, task charts, metric availability, provenance.
 - Infrastructure & Congestion: RSU queue/utilisation, saturation config, load balance availability.
-- What-if Compare: compatibility, seed diff, metric deltas by domain.
+- Comparison: compatibility, seed diff, metric deltas by domain.
 - Journey-Time Lens: imported trip duration metrics and comparison.
-- Evidence & Diagnostic Hypotheses: validation/evidence state, rule results, alternatives, missing evidence, conditional recommendations, and report download.
+- Diagnostics & Evidence: validation/evidence state, rule results, alternatives, missing evidence,
+  conditional recommendations, and report download.
 - Provenance Explorer: read-only metric, diagnostic-rule, source-row, and run-context traces with JSON and Markdown export.
+- Reports: existing report inventory, downloads, and explicit report regeneration.
+- Search: local metadata search over runs, experiments, reports, metrics, rules, and source files.
+- Settings: session-scoped UI preferences.
+- About: version, schema, generator, diagnostic, provenance, build, and licence metadata.
+
+## Shared Components
+
+The UI uses reusable helpers for:
+
+- `StatusBadge`, `ScenarioBadge`, `EvidenceBadge`, and related compact labels;
+- `MetricCard`;
+- `ReportCard`;
+- `SectionHeader`;
+- metadata tables;
+- unavailable-data panels.
+
+Pages should call service functions and shared components rather than duplicating formulas, report
+builders, validation logic, or diagnostic interpretation.
 
 ## Visual Policy
 
@@ -71,3 +94,8 @@ badge and selector aid only; the normal import-first pages remain the same.
 
 The UI must continue to label all generated data as synthetic and must not enable direct launch,
 Randy/SUMO integration, near-live data, or true-live data from the standalone workspace.
+
+## Product Polish
+
+The Product Polish phase adds research workflow pages and consistent navigation without changing the
+scientific pipeline. See [Product polish and research UX](product_polish.md).

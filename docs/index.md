@@ -17,6 +17,7 @@ This index points only to documentation and repository paths that exist in the c
 - [User guide](user_guide.md)
 - [CLI reference](cli_reference.md)
 - [UI design](ui_design.md)
+- [Product polish and research UX](product_polish.md)
 - [Provenance Explorer](provenance_explorer.md)
 - [Standalone demo](standalone_demo.md)
 - [Report export](report_export.md)
@@ -31,6 +32,7 @@ This index points only to documentation and repository paths that exist in the c
 - [API reference](api_reference.md)
 - [Provenance model](provenance_model.md)
 - [Synthetic data model](synthetic_data_model.md)
+- [Product polish and research UX](product_polish.md)
 - [Security and privacy](security_and_privacy.md)
 - [ADR index](decisions/index.md)
 

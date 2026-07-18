@@ -72,6 +72,7 @@ flowchart TD
 | Provenance | `src/traffictwin/provenance/` | Read-only trace graph, source-row preview, JSON and Markdown export. |
 | Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
 | UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
+| Product UX | `src/traffictwin/ui/pages/` and `src/traffictwin/ui/components/` | Scenario Builder, Experiment Manager, Reports, Search, Settings, About, replay controls, and reusable presentation helpers. |
 
 ## Dependency Direction
 
@@ -308,6 +309,25 @@ See [security_and_privacy.md](security_and_privacy.md).
 | New diagnostic rule | Add EvidencePack inputs, rule config, rule model output, tests, docs. |
 | Provenance trace root | Add builder/query support without recomputing metrics or reading unsafe paths. |
 | New Streamlit page | Add service-backed page; no duplicated formulas. |
+
+## Product Polish Layer
+
+The Product Polish & Research UX phase adds workflow pages and reusable presentation components
+without changing the deterministic pipeline:
+
+```mermaid
+flowchart LR
+    Pages[Streamlit pages] --> Services[ui.services]
+    Components[Reusable UI components] --> Pages
+    Services --> Generator[Synthetic generator]
+    Services --> Registry[SQLite registry]
+    Services --> Reports[Reporting builders]
+    Services --> Existing[Validation / metrics / evidence / diagnostics / provenance]
+```
+
+Scenario Builder uses `SyntheticScenarioConfig` and `write_synthetic_bundle`; Experiment Manager
+uses registry and workspace metadata; Reports calls `traffictwin.reporting`; Search performs local
+metadata search. None of these pages implement new metrics, rules, adapters, live data, or launchers.
 | Real adapter | Wait for real artifacts, schemas, units, and approval after discovery. |
 
 ## Related Documents

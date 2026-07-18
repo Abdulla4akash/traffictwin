@@ -18,16 +18,42 @@ class DataMode(StrEnum):
 class UiPage(StrEnum):
     """Application pages."""
 
-    HOME = "Home / Project Status"
-    SCENARIO = "Scenario Studio"
+    HOME = "Home"
+    SCENARIO = "Scenario Builder"
     BUNDLE_IMPORT = "Bundle Import & Validation"
-    OPERATIONS = "Operations View"
+    EXPERIMENT_MANAGER = "Experiment Manager"
+    OPERATIONS = "Replay"
     RUN_OVERVIEW = "Run Overview"
     INFRASTRUCTURE = "Infrastructure & Congestion"
-    COMPARE = "What-if Compare"
+    COMPARE = "Comparison"
     JOURNEY_TIME = "Journey-Time Lens"
-    EVIDENCE = "Evidence & Diagnostic Hypotheses"
+    EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
+    REPORTS = "Reports"
+    SEARCH = "Search"
+    SETTINGS = "Settings"
+    ABOUT = "About"
+
+
+PAGE_DESCRIPTIONS: dict[UiPage, str] = {
+    UiPage.HOME: "Workspace status, quick actions, and current prototype limits.",
+    UiPage.SCENARIO: "Author deterministic synthetic scenario configurations and bundles.",
+    UiPage.BUNDLE_IMPORT: "Validate and import TrafficTwin run bundles.",
+    UiPage.EXPERIMENT_MANAGER: (
+        "Browse experiments, runs, seeds, comparisons, and provenance links."
+    ),
+    UiPage.OPERATIONS: "Inspect imported data through deterministic historical replay controls.",
+    UiPage.RUN_OVERVIEW: "Review run-level metrics computed by the Phase 3 engine.",
+    UiPage.INFRASTRUCTURE: "Inspect RSU queue, utilisation, and saturation summaries.",
+    UiPage.COMPARE: "Compare baseline and variation runs without causal labels.",
+    UiPage.JOURNEY_TIME: "Review imported or synthetic trip-duration evidence.",
+    UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
+    UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
+    UiPage.REPORTS: "Find, download, and deliberately regenerate deterministic reports.",
+    UiPage.SEARCH: "Search local runs, experiments, metrics, rules, reports, and source files.",
+    UiPage.SETTINGS: "Adjust local UI preferences for replay, reports, and demo workflow.",
+    UiPage.ABOUT: "Review package, schema, metric, diagnostic, and generator versions.",
+}
 
 
 REQUIRED_PROTOTYPE_NOTICE = (

@@ -29,19 +29,24 @@ traffictwin demo launch .demo
 
 - [ ] Home shows prototype notice and capability manifest.
 - [ ] Direct launch is unsupported.
-- [ ] Scenario Studio renders seed form and YAML preview.
-- [ ] Run action is disabled or clearly unavailable.
+- [ ] Scenario Builder renders synthetic generator controls and YAML preview.
+- [ ] Scenario Builder validates before generation and does not imply simulator launch.
 - [ ] Bundle Import validates baseline.
 - [ ] Bundle Import validates variation.
+- [ ] Experiment Manager lists experiments, runs, seeds, fingerprints, reports, and comparisons.
 - [ ] Run Overview shows task metrics and unavailable optional metrics honestly.
-- [ ] Operations View shows `HISTORICAL REPLAY`.
+- [ ] Replay shows `HISTORICAL REPLAY`, speed presets, scrubber, timestamp jump, and filters.
 - [ ] Infrastructure page shows queue/utilisation and threshold notice.
-- [ ] What-if Compare shows baseline/variation deltas.
+- [ ] Comparison shows baseline/variation deltas.
 - [ ] Journey-Time Lens shows synthetic/imported trip duration, not live prediction.
-- [ ] Evidence & Diagnostic Hypotheses shows rule statuses and JSON download.
+- [ ] Diagnostics & Evidence shows rule statuses and JSON download.
 - [ ] Provenance Explorer traces `task.completion.rate` to metric definition and `tasks.csv` rows.
 - [ ] Provenance Explorer source-row preview shows `tasks.csv` row `2` read-only.
 - [ ] Provenance Explorer exports JSON or Markdown.
+- [ ] Reports lists Markdown/HTML exports and requires explicit regeneration.
+- [ ] Search finds local metadata without external services.
+- [ ] Settings stores only session-scoped UI preferences.
+- [ ] About shows version/schema/build/licence metadata.
 
 ## CLI Fallback
 
