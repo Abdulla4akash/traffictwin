@@ -1,54 +1,59 @@
-# Randy/SUMO Execution Contract
+# Randy/VEC Execution Contract
 
-Discovery date: 2026-07-17
+Discovery date: 2026-07-18
+
+External data package inspected: `external/tos-data`
 
 ## Execution Discovery Result
 
-No documented Randy/VEC or SUMO invocation contract was found in the inspected workspace.
+The `TOS Data` package is a results/data package. It is not the runnable VEC/SUMO environment.
 
-The following were not present:
-
-- CLI entry point;
-- Python API;
-- shell script;
-- notebook workflow with executable state;
-- CSF, SLURM, PBS, or other job script;
-- documented command arguments;
-- configuration override examples;
-- output directory contract;
-- exit status semantics;
-- runtime measurement;
-- checkpoint files;
-- environment version or commit;
-- existing logs showing how outputs are produced.
+The package README states that the code which produced the data lives in a separate `vec_env`
+repository and refers to `docs/REPRODUCING.md` in that repository. That source repository and its
+reproduction documentation were not present in the cloned data package.
 
 ## Invocation Classification
 
-| Interface type | Evidence found | Status |
+| Interface type | Evidence found in `external/tos-data` | Status |
 |---|---|---|
-| CLI | none | unsupported |
+| CLI | No executable command contract. Training records mention flags such as `--fleet uk2030` and `--cap-scalar`, but not a complete command. | unknown |
 | Python API | none | unsupported |
 | Shell script | none | unsupported |
-| Notebook only | none | unsupported |
-| CSF or job script | none | unsupported |
-| Documented output bundle | none | unsupported |
+| Notebook workflow | none | unsupported |
+| CSF/SLURM job script | Training records mention CSF3/SLURM logs and job IDs, but no job scripts or logs are present in this package. | unknown |
+| Standard TrafficTwin output bundle | none | unsupported until a converter is built |
+| Offline data import | Real result files are present and documented. | plausible for Phase 6B after mapping questions are answered |
 
-Because no invocation contract exists locally, TrafficTwin must remain import-first and export-only for Randy/SUMO integration.
+## Runtime And Output-Size Evidence
+
+| Item | Evidence | Status |
+|---|---|---|
+| Data package size | approximately 1.2 GB cloned repository | confirmed |
+| Instrumented folder size | approximately 499 MB | confirmed |
+| Trace folder size | approximately 82 MB | confirmed |
+| Training folder size | approximately 5.5 MB | confirmed |
+| Evaluation master CSV size | small, 300 rows | confirmed |
+| Per-run wall time | Summary JSONs include `wall_s`; training records include approximate wall-clock ranges by machine | partial |
+| Lightweight-environment runtime | no runnable small command present | unknown |
+| SUMO-validation runtime | no SUMO command/config present | unknown |
+| Runs per experiment | master CSV has campaigns x cells x fleet seeds; full experiment-generation command absent | partial |
+| Checkpoint availability | checkpoint paths and md5 values are documented; checkpoint files are not present | partial |
 
 ## Capability Manifest Decision
 
-This manifest records the capability decision from inspected evidence only.
+This manifest is based only on inspected evidence. It does not enable UI launch controls.
 
 ```yaml
 environment:
-  adapter: randy_vec_discovery
-  evidence_date: "2026-07-17"
+  adapter: randy_tos_data_discovery
+  evidence_date: "2026-07-18"
+  source_package_commit: "d27294ef5213e6a20f55632448bd20f5a76a45ab"
   supports:
-    seed_import: unknown
-    seed_export: unknown
-    run_bundle_import: unknown
     direct_launch: false
     asynchronous_launch: false
+    run_bundle_import: false
+    offline_result_conversion: unknown
+    eval_summary_import: unknown
     task_arrival_multiplier: unknown
     workload_class_mix: unknown
     workload_ordering: unknown
@@ -65,35 +70,32 @@ environment:
 
 Notes:
 
-- `direct_launch` is `false` because no documented and tested headless command exists.
-- `asynchronous_launch` is `false` because no observable queue or job mechanism exists in the workspace.
-- Scenario controls remain `unknown`, not `false`, because no real configuration files or command arguments were available to inspect.
-- Existing `generic_csv` import remains supported for documented TrafficTwin bundles, but that does not prove Randy/SUMO compatibility.
-
-## Runtime And Output-Size Evidence
-
-| Item | Status | Evidence |
-|---|---|---|
-| Lightweight-environment runtime | unknown | No command, logs, or benchmark output found. |
-| SUMO-validation runtime | unknown | No SUMO configuration, command, logs, or benchmark output found. |
-| Expected output size | unknown | No real output files found. |
-| Runs per experiment | unknown | No real experiment plan or job script found. |
-| Checkpoint availability | unknown | No checkpoint files found. |
+- `direct_launch` is `false` because no complete documented and tested headless command exists in
+  the data package.
+- `asynchronous_launch` is `false` for TrafficTwin because no observable queue/job interface is
+  available locally, even though training records mention CSF3/SLURM history.
+- `run_bundle_import` is `false` because Randy's files are not TrafficTwin bundles yet.
+- `offline_result_conversion` is `unknown`, not `true`, until the NPZ field ambiguities are resolved
+  and a converter is implemented.
+- Scenario controls remain `unknown` because records mention some environment variables/flags but no
+  safe invocation contract or config schema is present.
 
 ## Launcher Decision
 
-No launcher should be implemented in Phase 6A.
+No launcher should be implemented from the current package.
 
-A future launcher may be considered only after supplied evidence confirms:
+A future launcher may be considered only after the separate execution repository or Randy's
+documentation confirms:
 
 - stable headless entry point;
-- documented argument list;
-- controlled working directory and output directory;
+- complete argument list;
+- seed/config override policy;
+- controlled input and output directories;
 - non-interactive execution;
-- exit status behavior;
-- timeout and cancellation behavior;
+- exit status semantics;
+- timeout/cancellation behavior;
 - no automatic retraining;
-- no destructive side effects;
-- small test case that can run locally or in a documented environment.
+- small smoke run that can be executed safely.
 
-Until then, the UI Run button must remain disabled or absent for Randy/SUMO adapters.
+Until then, TrafficTwin remains import-first for Randy/VEC data.
+

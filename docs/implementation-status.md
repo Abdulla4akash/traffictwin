@@ -12,7 +12,7 @@ Phase 4 status: implemented and quality-gate checked.
 
 Phase 5 status: implemented and quality-gate checked.
 
-Phase 6A status: discovery implemented. Real adapter implementation is blocked because no real Randy/VEC or SUMO artifacts are present in the inspected workspace.
+Phase 6A status: reopened and updated after Randy granted GitLab access to the external `TOS Data` package. Real Randy/VEC result artifacts are now present under `external/tos-data`, but real adapter implementation remains blocked pending unit/semantic confirmations, fixture permission, and the separate `vec_env` execution contract.
 
 Documentation pass status: completed and quality-gate checked.
 
@@ -88,12 +88,14 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 
 ## Relevant Assets Found
 
-- No real run data, SUMO files, Randy environment, checkpoints, notebooks, job scripts, logs, or simulator scripts are present.
+- Randy's external `TOS Data` package is present outside `diss/` at `external/tos-data`.
+- The external package includes evaluation summary CSV, training curves, greedy-evaluation JSON, instrumented per-step NPZ files, instrumented per-task NPZ files, Manchester trace NPZ files, and training-record documentation.
+- The external package does not include the runnable `vec_env` repository, SUMO XML/config files, direct launch scripts, job scripts, or checkpoint files.
 - The only CSV/YAML/JSON run artifacts present are TrafficTwin synthetic fixtures under `tests/fixtures/`.
 - No external environment integration is implemented.
 - Streamlit UI is implemented for synthetic fixtures and imported historical bundles.
 - Deterministic diagnostic rules R0-R3 are implemented over EvidencePacks.
-- No simulator adapters or canonical traffic/task data storage are implemented.
+- No Randy/VEC adapter, SUMO adapter, direct launcher, or canonical traffic/task data storage for real external runs is implemented.
 - Python 3.12 is available locally and was used for validation. The package declares Python 3.11+ support.
 
 ## Design Specification Status
@@ -276,10 +278,12 @@ samples, and limitations rather than fabricated row-level contribution weights.
 
 ## Implemented In Phase 6A
 
-- Repository and workspace discovery for Randy/VEC and SUMO artifacts.
-- Candidate artifact search across CSV, YAML, JSON, XML, ZIP, notebooks, scripts, job files, checkpoints, logs, databases, and Parquet files.
-- Confirmation that no real Randy/VEC or SUMO artifacts are present.
-- Documentation of the distinction between existing synthetic TrafficTwin fixture schemas and real Randy/SUMO evidence.
+- Initial repository and workspace discovery for Randy/VEC and SUMO artifacts.
+- Updated discovery after Randy granted GitLab access to the external `TOS Data` package.
+- Confirmation that real Randy/VEC result artifacts are now present outside `diss/` in `external/tos-data`.
+- Confirmation that the external package is not a standard TrafficTwin run bundle and does not contain the runnable `vec_env` execution repository.
+- Confirmation that no raw SUMO XML/config files, checkpoint files, direct launch scripts, or job scripts are present in the external package.
+- Documentation of the distinction between summary metrics, instrumented NPZ source arrays, trace NPZ files, and TrafficTwin canonical records.
 - Integration discovery documents:
   - `docs/integration/randy_artifact_inventory.md`
   - `docs/integration/randy_schema_mapping.md`
@@ -290,7 +294,7 @@ samples, and limitations rather than fabricated row-level contribution weights.
   - `direct_launch=false`
   - `asynchronous_launch=false`
   - unconfirmed scenario and infrastructure controls remain `unknown`
-- Phase 6B adapter implementation stopped because the required evidence is absent.
+- Phase 6B adapter implementation remains stopped until remaining schema/unit questions, fixture permissions, and execution-contract evidence are resolved.
 
 ## Implemented In Documentation Pass
 
@@ -378,8 +382,9 @@ Results:
 - Evidence CLI smoke: evidence-pack JSON generation passed.
 - Diagnostic CLI smoke: baseline, R1 fixture, R2 fixture, R3 fixture, mixed fault, insufficient evidence, saved EvidencePack, and rejected bundle behavior passed.
 - Fault-injection evaluation: precision/recall returned without `NaN` or infinity.
-- Phase 6A discovery: no real Randy/VEC or SUMO artifacts found; only synthetic TrafficTwin fixtures and historical notes found.
-- Phase 6A quality gates: Ruff format/check passed; mypy passed; 119 tests passed; coverage remained 76%; no real adapter-specific tests or sanitised real-fixture validation were applicable because no real artifacts were present.
+- Original Phase 6A discovery: no real Randy/VEC or SUMO artifacts were present before Randy's GitLab package was cloned.
+- Updated Phase 6A discovery: `external/tos-data` contains real Randy/VEC result artifacts, including evaluation CSV, training CSV/JSON, instrumented NPZ, and trace NPZ sources. Adapter-specific tests are still not applicable until a confirmed converter design and sanitised fixture permission exist.
+- Updated Phase 6A documentation validation: Ruff format check passed; Ruff check passed; mypy passed; 168 tests passed; coverage remained 77%.
 - Documentation pass quality gates: Ruff format/check passed; mypy passed; generated reference JSON regenerated and parsed; Markdown links checked; API imports checked; fixture paths checked; Mermaid fences checked; unsupported-claim scan completed; 119 tests passed; coverage remained 76%; synthetic CLI demo flow passed; Streamlit health check returned `200 ok`.
 - Provenance Explorer quality gates: Ruff format/check passed; mypy passed; 147 tests passed; coverage reached 77%; generated reference JSON regenerated; Markdown links checked; provenance CLI metric/rule/source/export smoke checks passed; Streamlit AppTest rendered the Provenance Explorer; Streamlit headless server started; exported provenance JSON contained no absolute local paths; provenance Markdown contained no causal-proof wording.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
@@ -390,7 +395,7 @@ Results:
 
 ## Blocked
 
-- Real VEC/SUMO adapters are blocked until representative run bundles, schemas, and invocation details are supplied.
+- Real VEC/SUMO adapters are blocked until the remaining Randy field semantics, units, sanitised fixture permission, and invocation details are supplied.
 - Direct launch is blocked until a documented CLI, Python API, or script contract exists.
 - Live or near-live modes are blocked until real feed details exist.
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load remain blocked until source fields and units exist.
@@ -403,8 +408,9 @@ Results:
 
 ## Evidence Required Next
 
-- One example of Randy's completed run output, even if partial.
-- Header rows and units for task, infrastructure, vehicle, traffic, trip, and incident files.
+- Confirmation of Randy's `task_type`, `task_met`, `rsu_busy_ms`, `rsu_load`, trace coordinate, and trace speed semantics.
+- Permission to commit a small sanitised real-schema fixture.
+- Access to the separate `vec_env` reproduction documentation if direct execution or stronger capability mapping is required.
 - Confirmation of supported scenario controls.
 - Environment invocation contract, if direct launch is expected.
 
@@ -616,6 +622,6 @@ Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or t
 - Synthetic generation is not calibrated simulation.
 - Synthetic policy profiles are not real trained algorithms.
 - Registry-run report shortcuts are not the primary report path; bundle paths are supported first.
-- Real Randy/VEC and SUMO integration remain blocked by missing artifacts, schemas, units, and
-  invocation contracts.
+- Real Randy/VEC and SUMO integration remain blocked by unresolved field semantics, source units,
+  sanitised fixture permission, and invocation contracts.
 - Direct launch, near-live, and true-live support remain unavailable.

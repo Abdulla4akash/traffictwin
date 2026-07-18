@@ -1,6 +1,6 @@
 # TrafficTwin Architecture
 
-This document describes the implemented Phase 1-6A plus Provenance Explorer architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume Randy/VEC, SUMO, Manchester sensor, near-live, true-live, or external launch support.
+This document describes the implemented Phase 1-6A plus Provenance Explorer architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume runnable Randy/VEC, SUMO XML, Manchester sensor, near-live, true-live, or external launch support.
 
 ## Architectural Position
 
@@ -250,7 +250,9 @@ flowchart LR
     Evidence --> Diagnostics[Existing diagnostics]
 ```
 
-Phase 6A found no real artifacts. Future adapters must:
+Updated Phase 6A discovery found Randy's external `TOS Data` result package under
+`external/tos-data`. Those files are real result artifacts, but they are not standard TrafficTwin
+run bundles and they do not provide a runnable environment contract. Future adapters must:
 
 - declare supported schemas and units;
 - preserve raw sources;
@@ -294,7 +296,8 @@ launch support.
 - ZIP loading rejects path traversal, absolute paths, and symlinks.
 - Raw source fixtures remain unchanged.
 - SQLite is local metadata storage, not a credential store.
-- No private Randy/SUMO data is present.
+- Randy's external `TOS Data` package is kept outside `diss/`; raw external files should not be
+  copied into this repository until sanitised fixture permission is explicit.
 - Future live or user-study data would require a stronger privacy and threat model.
 
 See [security_and_privacy.md](security_and_privacy.md).

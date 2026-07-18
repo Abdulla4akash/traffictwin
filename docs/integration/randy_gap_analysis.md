@@ -1,69 +1,90 @@
-# Randy/SUMO Gap Analysis
+# Randy/VEC Gap Analysis
 
-Discovery date: 2026-07-17
+Discovery date: 2026-07-18
 
-## Stop Condition Triggered
+External data package inspected: `external/tos-data`
 
-The Phase 6A stop condition is met: no real Randy/VEC or SUMO artifacts are present in the inspected workspace.
+## Discovery Update
 
-Adapter implementation must not proceed from the current evidence because it would require inventing schemas, units, launch commands, or simulator behavior.
+The earlier Phase 6A conclusion, "no Randy artifacts present", is superseded by the cloned GitLab
+data package. Real Randy/VEC result artifacts are now present for discovery.
 
-## Blocking Gaps
+The stop condition now changes from "no artifacts" to "do not implement adapters until the
+remaining schema/unit/execution gaps below are resolved".
+
+## What Is Now Unblocked
+
+| Area | Status | Evidence |
+|---|---|---|
+| Evaluation-summary analysis | partially unblocked | `evals/eval_results_master.csv` has 300 rows with campaign/cell/fleet-seed summaries and documented fields. |
+| Training-curve inventory | unblocked for documentation | 66 CSV files share a common training-curve schema. |
+| Training-summary inventory | unblocked for documentation | 65 greedy-eval JSON files share a common schema. |
+| Per-step instrumented schema | partially unblocked | 60 per-step NPZ files share documented keys and per-cell shape variants. |
+| Per-task instrumented schema | partially unblocked | 6 per-task NPZ files provide full per-arrival logs for showcase runs. |
+| Manchester trace schema | partially unblocked | 5 trace NPZ files provide vehicle positions, speed, mask, RSU coordinates, times, and metadata. |
+| Engine version provenance | confirmed | Package documents `v2_post_nrsus_fix`; all master rows use this engine version. |
+
+## Remaining Blocking Gaps
 
 | Gap | Status | Impact | Required evidence |
 |---|---|---|---|
-| Real Randy task schema absent | unknown | Cannot implement VEC task adapter or validate real task files. | Sample task log with headers, units, row examples, field definitions. |
-| Real Randy infrastructure schema absent | unknown | Cannot implement RSU utilisation, queue, capacity, or R2-ready mappings. | Per-RSU time-series output with units and semantics. |
-| Vehicle tier/action availability/link quality absent | unknown | R1 remains lower-confidence or insufficient on real data. | Vehicle-tier file or task-level tier column; action availability and link-quality evidence if available. |
-| SUMO source files absent | unknown | Cannot implement FCD, tripinfo, detector, queue, or scenario adapters. | Actual SUMO output formats and run configuration. |
-| Units absent | unknown | Cannot safely convert real fields to canonical units. | Per-file unit documentation or manifest. |
-| Identifier conventions absent | unknown | Cannot join tasks, vehicles, RSUs, trips, sensors, and routes. | ID definitions and examples across files. |
-| Execution contract absent | unsupported | Direct launch must stay disabled. | CLI/API/script/notebook/job contract with command examples and output semantics. |
-| Runtime and output sizes absent | unknown | Cannot assess local, CSF, or hybrid execution feasibility. | Lightweight and SUMO runtime measurements, output-size estimates, sweep plans. |
-| Existing metric scripts absent | unknown | Cannot reconcile Randy's current metrics against TrafficTwin formulas. | Plotting/metric scripts, notebooks, or written formula definitions. |
-| Environment version or commit absent | unknown | Provenance cannot be complete for real runs. | Git commit, release tag, environment version, dependency notes. |
+| Runnable `vec_env` source/reproduction docs absent | unknown | Cannot implement launchers or confirm command/config controls. | Access to the source repo or copied `docs/REPRODUCING.md`. |
+| `task_type` integer mapping unconfirmed | unknown | Cannot safely map per-task NPZ to T1/T2/T3 canonical classes. | Randy confirmation or source-code enum. |
+| `task_met` semantics need confirmation | unknown | TrafficTwin `completed` may not be identical to "met deadline" if missed tasks still complete later. | Written semantics or source-code definition. |
+| `rsu_busy_ms` utilisation conversion unconfirmed | unknown | Cannot compute canonical utilisation fraction safely. | Denominator, timestep relation, and range policy. |
+| `rsu_load` meaning unconfirmed | unknown | Cannot decide whether it is queue length, active tasks, workload, or another count. | Field definition. |
+| Trace coordinate/speed units unconfirmed | unknown | Vehicle replay could show values but units would be unsafe. | SUMO/export unit documentation. |
+| Per-vehicle tier data absent | not found | R1 cannot directly test low-tier T1 miss pattern. | Per-vehicle tier array/table or task-level vehicle-tier field. |
+| Link quality/action availability absent | not found | R1 alternatives remain unresolved. | Any per-decision availability/connectivity evidence. |
+| Trip/journey-time outputs absent | not found | Real Journey-Time Lens remains unavailable. | SUMO `tripinfo` or equivalent trip output. |
+| Raw SUMO files absent | not found | SUMO-specific adapters remain unsupported. | `.sumocfg`, `.net.xml`, `.rou.xml`, FCD/tripinfo/detector/queue/summary outputs if intended. |
+| Checkpoint files absent | partial | Run provenance can cite checkpoint paths/hash, but TrafficTwin cannot execute or inspect checkpoints. | Checkpoint files only if approved and necessary; otherwise keep as metadata. |
+| Sanitised fixture permission absent | unknown | Cannot commit representative Randy fixtures into TrafficTwin tests. | Randy confirmation of what may be committed. |
 
-## Evidence Required Before Phase 6B
+## Metric And Rule Readiness
 
-Request the following from Randy or the environment owner:
-
-1. One complete real or sanitised output directory from a single validation run.
-2. Header rows and unit documentation for every exported file.
-3. A short README describing whether the sample is training, lightweight validation, SUMO validation, or a post-processed summary.
-4. Task outputs with task ID, vehicle ID, task class, arrival time, deadline, decision, decision target, completion status, completion time or latency, and any available workload, data-size, energy, or drop fields.
-5. Infrastructure outputs with RSU ID, timestamp, queue length, utilisation, arrivals, completions or active tasks, drops, and capacity if available.
-6. Vehicle state outputs or SUMO FCD files if vehicle trajectories or tiers should be analysed.
-7. Trip outputs, preferably SUMO `tripinfo`, if journey-time metrics are required.
-8. Detector, traffic observation, queue, incident, or event files if present.
-9. SUMO `.sumocfg`, `.net.xml`, `.rou.xml`, `.add.xml`, FCD, tripinfo, detector, queue, and summary files actually used by the workflow.
-10. Scenario configuration files and a description of which seed controls are genuinely supported.
-11. Environment version, Git commit, algorithm, checkpoint ID/path, random seed, training budget, and evaluation seed provenance.
-12. Existing plotting scripts, metric scripts, or notebooks used to generate Randy's current reported numbers.
-13. The exact command, Python call, notebook sequence, shell script, or CSF job script used to generate the sample.
-14. Lightweight-environment runtime, SUMO-validation runtime, expected output size, and number of runs per experiment.
-15. Written confirmation of which files can be committed as sanitised fixtures and which must remain private.
-
-## Metric And Rule Readiness Gaps
-
-| Capability | Current real-data readiness | Missing evidence |
+| Capability | Readiness from `TOS Data` | Notes |
 |---|---|---|
-| Existing Phase 3 task metrics | blocked for real data | Real task file schema, units, and valid row examples. |
-| Existing Phase 3 infrastructure metrics | blocked for real data | Real per-RSU queue/utilisation schema and units. |
-| Existing Phase 3 traffic metrics | blocked for real data | Real traffic observation or detector schema and units. |
-| Existing Phase 3 trip metrics | blocked for real data | SUMO tripinfo or equivalent trip schema and units. |
-| R1 under-offloading | insufficient for real data | T1 outcomes, vehicle tier evidence, offload rate, RSU utilisation, action availability and link-quality context where available. |
-| R2 infrastructure bottleneck | insufficient for real data | Per-RSU utilisation and queue history, saturation intervals, task misses, temporal alignment, capacity semantics. |
-| R3 scenario triviality | insufficient for real data | Multiple compatible algorithms/policies, common seeds, always-local baseline if available, cross-algorithm dispersion metrics. |
+| Task completion metrics | partial | Per-task NPZ supports six showcase runs after mapping confirmation. Master CSV has external precomputed completion but not raw task rows. |
+| Decision shares/offload rate | partial | Master CSV and per-step arrays expose action shares/counts; task-level decisions are not directly available in per-task NPZ. |
+| Latency metrics | partial | Per-task latency exists for six runs; master CSV latency is already averaged externally and includes missed/backlog semantics. |
+| Energy metrics | summary only | Energy appears in summary CSV/JSON, but no per-task energy field was found. |
+| Infrastructure queue/utilisation | partial | Per-RSU arrays exist; unit/semantics confirmation is required before canonical mapping. |
+| Capacity-normalised load balance | blocked | Explicit capacity units/config not available in package. |
+| Traffic speed/replay | partial | Trace NPZ includes speed and coordinates; units need confirmation. |
+| Trip metrics | blocked | No trip records found. |
+| R1 | partial/low confidence | T1 outcomes and offload summaries exist, but vehicle-tier and action-availability evidence are missing. |
+| R2 | partial | Per-RSU and per-task showcase runs may support a candidate after conversion; temporal overlap needs adapter/evidence design. |
+| R3 | partial | Master CSV supports multi-campaign/multi-seed comparison, but current R3 consumes EvidencePacks, not external summary rows. |
 
-## Integration Risk
+## Recommended Phase 6B Scope
 
-The most likely integration risks remain:
+Do not start with direct launch. Start with an offline conversion spike:
 
-- multiple incompatible output schemas across training, lightweight validation, and SUMO validation;
-- missing or inconsistent units;
-- output summaries that omit row-level identifiers needed for joins;
-- notebook-only execution with hidden state;
-- checkpoints referenced in metadata but unavailable;
-- existing metric scripts using definitions that differ from TrafficTwin's formulas.
+1. Select one matched showcase run:
+   - per-task NPZ;
+   - per-step NPZ;
+   - trace NPZ;
+   - matching summary JSON.
+2. Confirm ambiguous field meanings with Randy.
+3. Build a sanitised, small fixture if permission is granted.
+4. Implement an adapter-specific converter that writes a standard TrafficTwin bundle.
+5. Validate that generated bundle with the existing Phase 2 validator.
+6. Run existing Phase 3 metrics, Phase 5 diagnostics, and provenance without changing their logic.
 
-These are manageable only after representative artifacts are supplied and documented.
+Possible first run: `baseline_uk2030_wd_am_fs0`, because matching per-task, per-step, trace, and
+summary JSON artifacts are present and its dimensions are smaller than the incident cell.
+
+## Integration Risks
+
+- The evaluation master CSV contains metrics already computed by Randy's engine. Treating it as raw
+  canonical evidence would bypass TrafficTwin's deterministic metrics.
+- Per-step arrays are aggregate/time-series records, while TrafficTwin's current task canonical
+  model is event-level. A converter must preserve this distinction.
+- NPZ files do not have CSV row numbers. Provenance needs array-index references or generated CSV
+  bundle rows with manifest provenance back to the original NPZ file.
+- Large NPZ files should not be committed to TrafficTwin. Sanitised fixtures should be small and
+  representative.
+- Some training records include already interpreted "verdict" statements. TrafficTwin should not
+  import those as diagnostic conclusions; rules must still operate on EvidencePacks only.
+
