@@ -70,7 +70,7 @@ def test_guided_demo_tracks_have_stable_distinct_stages() -> None:
     standalone = steps_for_track(DemoTrack.STANDALONE)
     tos = steps_for_track(DemoTrack.TOS)
 
-    assert standalone[0].target_page is UiPage.BUNDLE_IMPORT
+    assert standalone[0].target_page is UiPage.EXPERIMENT_PLANNER
     assert standalone[-1].target_page is UiPage.REPORTS
     assert tos[0].target_page is UiPage.TOS_DATA
     assert tos[-1].target_page is UiPage.TOS_TRAINING
@@ -79,9 +79,9 @@ def test_guided_demo_tracks_have_stable_distinct_stages() -> None:
 
 
 def test_guided_demo_stage_index_is_bounded() -> None:
-    assert bounded_step(-1, 7) == 0
-    assert bounded_step(3, 7) == 3
-    assert bounded_step(99, 7) == 6
+    assert bounded_step(-1, 8) == 0
+    assert bounded_step(3, 8) == 3
+    assert bounded_step(99, 8) == 7
     assert bounded_step(1, 0) == 0
 
 

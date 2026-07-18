@@ -84,9 +84,12 @@ Important methods:
 
 - `initialize()`
 - `add_seed(seed)` / `get_seed(seed_id)`
+- `list_seeds()`
 - `add_experiment(experiment)` / `get_experiment(experiment_id)`
+- `list_experiments()`
 - `update_experiment_status(experiment_id, new_status)`
 - `add_run(run)` / `get_run(run_id)`
+- `list_runs()`
 - `update_run_status(run_id, new_status)`
 - `register_bundle_import(...)`
 - `store_metric_collection(...)`
@@ -100,6 +103,20 @@ Errors:
 - `RegistryNotFoundError`
 - `InvalidStatusTransitionError`
 - `RegistryConflictError`
+
+## Experiment Planning
+
+```python
+from traffictwin.experiments import summarise_experiment_plan
+```
+
+`summarise_experiment_plan(experiment, registered_seeds, preview_limit=200)` validates registered
+seed references, baseline/variation separation, policy labels, common random seeds, and replicate
+count. It returns an `ExperimentPlanSummary` containing deterministic design counts, a bounded
+`ExperimentPlanCell` preview, seed-parameter differences, and warnings.
+
+The function is side-effect free. It does not create `Run` records, execute a policy, or launch a
+simulator. Persist the validated `Experiment` separately through `Registry.add_experiment`.
 
 ## Bundle Manifest And Ingestion
 

@@ -20,6 +20,7 @@ class UiPage(StrEnum):
 
     HOME = "Home"
     GUIDED_DEMO = "Guided Demo"
+    EXPERIMENT_PLANNER = "Experiment Planner"
     SCENARIO = "Scenario Builder"
     BUNDLE_IMPORT = "Bundle Import & Validation"
     TOS_DATA = "TOS Data Import"
@@ -44,6 +45,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.HOME: "Workspace status, quick actions, and current prototype limits.",
     UiPage.GUIDED_DEMO: (
         "Follow the validated synthetic or imported-simulation evidence workflow stage by stage."
+    ),
+    UiPage.EXPERIMENT_PLANNER: (
+        "Define a reproducible comparison plan from registered seeds, policies, and random seeds."
     ),
     UiPage.SCENARIO: "Author deterministic synthetic scenario configurations and bundles.",
     UiPage.BUNDLE_IMPORT: "Validate and import TrafficTwin run bundles.",

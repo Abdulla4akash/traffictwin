@@ -30,6 +30,15 @@ class GuidedDemoStep:
 
 STANDALONE_STEPS: tuple[GuidedDemoStep, ...] = (
     GuidedDemoStep(
+        key="plan",
+        title="Frame a reproducible experiment",
+        target_page=UiPage.EXPERIMENT_PLANNER,
+        input_label="Registered scenario seeds, policy labels, and common random seeds.",
+        operation_label="Validate the comparison design and build a bounded run-matrix preview.",
+        output_label="A versioned planned Experiment record and downloadable YAML definition.",
+        boundary="Saving a plan does not create runs or launch a simulator.",
+    ),
+    GuidedDemoStep(
         key="validate",
         title="Validate a run bundle",
         target_page=UiPage.BUNDLE_IMPORT,

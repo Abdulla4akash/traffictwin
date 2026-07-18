@@ -33,6 +33,13 @@ def render(config: UiConfig) -> None:
         use_container_width=True,
     )
     action_cols[1].button(
+        "Plan an Experiment",
+        key="home_plan_experiment",
+        on_click=activate_page,
+        args=(UiPage.EXPERIMENT_PLANNER,),
+        use_container_width=True,
+    )
+    st.button(
         "Open Imported TOS Results",
         on_click=activate_page,
         args=(UiPage.TOS_RESULTS,),
@@ -89,9 +96,10 @@ def render(config: UiConfig) -> None:
             use_container_width=True,
         )
         first_actions[1].button(
-            "Browse Experiments",
+            "Plan an Experiment",
+            key="home_quick_plan_experiment",
             on_click=activate_page,
-            args=(UiPage.EXPERIMENT_MANAGER,),
+            args=(UiPage.EXPERIMENT_PLANNER,),
             use_container_width=True,
         )
         second_actions = st.columns(2)

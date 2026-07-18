@@ -89,10 +89,10 @@ uv lock --check
 traffictwin release stage-demo-site .demo --output public
 ```
 
-Current verified snapshot after the guided-workflow UX increment:
+Current verified snapshot after the Experiment Planner increment:
 
-- tests: 210 passed;
-- coverage: 78%.
+- tests: 221 passed;
+- coverage: 79%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 

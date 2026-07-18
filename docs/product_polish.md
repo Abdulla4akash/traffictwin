@@ -10,6 +10,8 @@ Implemented polish areas:
 
 - Guided Demo with separate standalone-synthetic and imported-TOS evidence tracks, routed to the
   existing pages without recomputing results.
+- Experiment Planner for validated baseline/variation, policy-label, and common-random-seed design
+  over registered seeds. Registration stores metadata only and creates no runs.
 - Scenario Builder for editing documented `SyntheticScenarioConfig` fields and generating standard
   run bundles through the existing synthetic generator.
 - Experiment Manager for browsing registered experiments, runs, seeds, policies, bundle
@@ -41,6 +43,7 @@ The polished navigation groups the workflow into:
 
 - Home
 - Guided Demo
+- Experiment Planner
 - Scenario Builder
 - Bundle Import & Validation
 - Experiment Manager

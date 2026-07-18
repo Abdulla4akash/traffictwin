@@ -24,8 +24,8 @@ Implemented:
 - Deterministic diagnostic hypotheses R0-R3 over EvidencePacks.
 - Read-only provenance traces from metrics/rules to source files and rows where available.
 - SQLite metadata registry for seeds, experiments, runs, bundle imports, metrics, and evidence packs.
-- Streamlit UI over the tested library, including Scenario Builder, Experiment Manager, Reports,
-  Guided Demo, Search, Settings, and About pages.
+- Streamlit UI over the tested library, including Experiment Planner, Scenario Builder, Experiment
+  Manager, Reports, Guided Demo, Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
 - Synthetic-only Netlify static dashboard, Streamlit container definition, dependency lock, and
   release-readiness commands.
@@ -90,12 +90,14 @@ Every generated scenario is labelled synthetic. The generator is a controlled so
 
 1. Open Home and select **Start Guided Demo**. This button remains visible when the mobile sidebar
    is collapsed.
-2. Choose **Standalone synthetic** and follow its seven validated pipeline stages.
-3. Open Scenario Builder and duplicate or export a synthetic scenario configuration.
-4. Validate `.demo/bundles/baseline` and `.demo/bundles/stressed_demand`.
-5. Inspect baseline metrics, historical replay, and infrastructure state.
-6. Compare baseline against stressed demand and inspect synthetic journey durations.
-7. Review R0-R3 statuses, trace `task.completion.rate`, and export a deterministic report.
+2. Choose **Standalone synthetic** and follow its eight validated pipeline stages.
+3. Open Experiment Planner and preview a baseline/variation design using registered seeds and a
+   common random seed. Registering the plan creates no runs.
+4. Open Scenario Builder and duplicate or export a synthetic scenario configuration.
+5. Validate `.demo/bundles/baseline` and `.demo/bundles/stressed_demand`.
+6. Inspect baseline metrics, historical replay, and infrastructure state.
+7. Compare baseline against stressed demand and inspect synthetic journey durations.
+8. Review R0-R3 statuses, trace `task.completion.rate`, and export a deterministic report.
 
 When the separately supplied package is available locally, the **Randy/TOS imported simulation**
 track presents four read-only stages. It does not run Randy's environment or SUMO.
@@ -229,6 +231,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Provenance Explorer | Implemented | CLI and Streamlit trace inspection. |
 | Report export | Implemented | Deterministic Markdown and standalone HTML. |
 | Streamlit UI | Implemented | Thin presentation layer. |
+| Experiment planning | Implemented | Validated seed/policy/common-seed matrix; metadata only, with no run creation or launch. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
 | Synthetic static deployment | Implemented | Netlify-compatible; external data is excluded. |
 | Streamlit container | Implemented | Initialised standalone synthetic workspace on port 8501. |

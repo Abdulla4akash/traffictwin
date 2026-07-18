@@ -169,6 +169,14 @@ class Registry:
         payload = self._get_payload("seeds", "seed_id", seed_id)
         return ScenarioSeed.model_validate_json(payload)
 
+    def list_seeds(self) -> list[ScenarioSeed]:
+        """List registered scenario seeds in identifier order."""
+
+        return [
+            ScenarioSeed.model_validate_json(payload)
+            for payload in self._list_payloads("seeds", "seed_id")
+        ]
+
     def add_experiment(self, experiment: Experiment) -> None:
         """Register an experiment."""
 
@@ -187,6 +195,14 @@ class Registry:
 
         payload = self._get_payload("experiments", "experiment_id", experiment_id)
         return Experiment.model_validate_json(payload)
+
+    def list_experiments(self) -> list[Experiment]:
+        """List registered experiments in identifier order."""
+
+        return [
+            Experiment.model_validate_json(payload)
+            for payload in self._list_payloads("experiments", "experiment_id")
+        ]
 
     def update_experiment_status(
         self,
@@ -226,6 +242,13 @@ class Registry:
 
         payload = self._get_payload("runs", "run_id", run_id)
         return Run.model_validate_json(payload)
+
+    def list_runs(self) -> list[Run]:
+        """List registered runs in identifier order."""
+
+        return [
+            Run.model_validate_json(payload) for payload in self._list_payloads("runs", "run_id")
+        ]
 
     def update_run_status(self, run_id: str, new_status: RunStatus) -> Run:
         """Update a run status if the transition is allowed."""
@@ -518,6 +541,19 @@ class Registry:
             msg = f"{table} record not found: {identifier}"
             raise RegistryNotFoundError(msg)
         return cast(str, row["payload"])
+
+    def _list_payloads(self, table: str, id_column: str) -> list[str]:
+        self.initialize()
+        queries = {
+            ("seeds", "seed_id"): "SELECT payload FROM seeds ORDER BY seed_id",
+            ("experiments", "experiment_id"): (
+                "SELECT payload FROM experiments ORDER BY experiment_id"
+            ),
+            ("runs", "run_id"): "SELECT payload FROM runs ORDER BY run_id",
+        }
+        with self._connect() as conn:
+            rows = conn.execute(queries[(table, id_column)]).fetchall()
+        return [cast(str, row["payload"]) for row in rows]
 
     def _update_status_payload(
         self,

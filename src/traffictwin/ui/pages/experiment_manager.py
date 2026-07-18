@@ -6,7 +6,7 @@ import streamlit as st
 
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import render_page_header
+from traffictwin.ui.navigation import activate_page, render_page_header
 from traffictwin.ui.services import load_experiment_manager_view
 from traffictwin.ui.state import UiConfig
 
@@ -16,6 +16,14 @@ def render(config: UiConfig) -> None:
 
     render_page_header(st.session_state.get("_active_ui_page", UiPage.EXPERIMENT_MANAGER))
     view = load_experiment_manager_view(config.registry_path, config.workspace_path)
+
+    st.button(
+        "Create Experiment Plan",
+        type="primary",
+        on_click=activate_page,
+        args=(UiPage.EXPERIMENT_PLANNER,),
+    )
+    st.caption("Planning records metadata only; it does not create runs or launch a simulator.")
 
     cols = st.columns(5)
     cols[0].metric("Experiments", len(view.experiments))

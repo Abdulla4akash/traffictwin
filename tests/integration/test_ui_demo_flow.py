@@ -68,14 +68,15 @@ def test_home_starts_and_advances_guided_demo() -> None:
 
     assert not app.exception
     assert any(title.value == "Guided Demo" for title in app.title)
-    assert any(heading.value == "Stage 1 of 7: Validate a run bundle" for heading in app.subheader)
+    assert any(
+        heading.value == "Stage 1 of 8: Frame a reproducible experiment"
+        for heading in app.subheader
+    )
 
     next(button for button in app.button if button.label == "Next stage").click().run(timeout=10)
 
     assert not app.exception
-    assert any(
-        heading.value == "Stage 2 of 7: Inspect deterministic metrics" for heading in app.subheader
-    )
+    assert any(heading.value == "Stage 2 of 8: Validate a run bundle" for heading in app.subheader)
 
 
 def test_guided_demo_tos_track_has_honest_empty_state() -> None:

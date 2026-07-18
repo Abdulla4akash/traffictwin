@@ -395,6 +395,12 @@ Scenario Builder uses `SyntheticScenarioConfig` and `write_synthetic_bundle`; Ex
 uses registry and workspace metadata; Reports calls `traffictwin.reporting`; Search performs local
 metadata search. None of these pages implement new metrics, rules, adapters, live data, or launchers.
 
+Experiment Planner validates an `Experiment` against typed `ScenarioSeed` objects through
+`experiments.planning.summarise_experiment_plan`. It previews the Cartesian product of conditions,
+policy labels, and common random seeds with a fixed display bound, serialises the plan as YAML, and
+uses the existing transactional SQLite registry to persist status `planned`. Planning never creates
+`Run` rows and has no dependency on a simulator adapter.
+
 ## Release And Deployment Boundary
 
 ```mermaid

@@ -89,6 +89,9 @@ def test_registry_persists_across_instances(tmp_path: Path) -> None:
     assert summary.experiment_count == 1
     assert summary.run_count == 1
     assert second.get_run("run-001").seed_id == "s1-gridlock-x2"
+    assert [seed.seed_id for seed in second.list_seeds()] == ["s1-gridlock-x2"]
+    assert [experiment.experiment_id for experiment in second.list_experiments()] == ["exp-001"]
+    assert [run.run_id for run in second.list_runs()] == ["run-001"]
 
 
 def test_invalid_experiment_status_transition_rejected(tmp_path: Path) -> None:

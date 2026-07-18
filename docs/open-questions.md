@@ -158,6 +158,8 @@ Only the following evidence is still needed:
   Randy-derived results still requires the relevant licence and permission decisions.
 - Product Polish does not resolve external producer/checkpoint/writer, fixture-permission, or
   canonical-evidence blockers.
+- Experiment planning is not blocked by external integration: it records a proposed design only.
+  Executing planned run slots remains adapter-gated and unavailable.
 
 ## Non-Blocking Unknowns
 

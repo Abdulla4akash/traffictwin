@@ -40,16 +40,16 @@ Use Home to check:
 Warning: direct simulator launch, live data, and full Randy/SUMO integration are not implemented.
 The generic adapter and TOS result reader both report direct launch as unsupported.
 
-Home includes visible actions for Guided Demo and imported TOS results. These actions are available
-in the main page content, so the first workflow does not depend on opening Streamlit's sidebar on a
-phone.
+Home includes visible actions for Guided Demo, Experiment Planner, and imported TOS results. These
+actions are available in the main page content, so the first workflow does not depend on opening
+Streamlit's sidebar on a phone.
 
 ## Guided Demo
 
 Guided Demo presents two evidence tracks without introducing a second analysis pipeline:
 
-- **Standalone synthetic** follows bundle validation, metrics, comparison, historical replay,
-  diagnostics, provenance, and report export.
+- **Standalone synthetic** follows experiment planning, bundle validation, metrics, comparison,
+  historical replay, diagnostics, provenance, and report export.
 - **Randy/TOS imported simulation** follows package inspection, evaluation results, historical
   mobility/RSU replay, and training/reproducibility audit.
 
@@ -60,6 +60,26 @@ The guide does not calculate metrics, evaluate rules, launch a simulator, or man
 The standalone context reports workspace scenario, run, and comparison counts. When a local TOS
 package is configured, the imported track reports its validated artifact inventory and package
 fingerprint. An absent package remains an explicit unavailable state.
+
+## Experiment Planner
+
+Experiment Planner records a reproducible research design from seeds already stored in the active
+registry. It does not run an algorithm, generate results, or launch a simulator.
+
+Steps:
+
+1. Select one registered baseline seed.
+2. Select zero or more registered variation seeds.
+3. Choose registered policy/algorithm labels or add explicit planning labels.
+4. Enter the common non-negative random seeds that every condition should use.
+5. Enter the research question and optional working hypothesis.
+6. Select **Validate Plan** and review condition, policy, replicate, and planned-run-slot counts.
+7. Inspect the bounded design matrix and deterministic seed-parameter differences.
+8. Download the plan YAML or select **Register Planned Experiment**.
+
+Registration writes one `Experiment` with status `planned`. It deliberately creates no `Run`
+records. A policy label is planning metadata and does not imply that TrafficTwin can execute that
+policy. Use Experiment Manager to inspect the saved plan.
 
 ## Scenario Builder
 
@@ -189,7 +209,9 @@ Unavailable evidence is not the same as zero. It means the required source table
 
 ## Experiment Manager
 
-Experiment Manager is a read-only organisational page for browsing local project state.
+Experiment Manager is a read-only organisational page for browsing local project state. Its
+**Create Experiment Plan** action navigates to Experiment Planner; the manager itself does not edit
+records.
 
 It shows:
 

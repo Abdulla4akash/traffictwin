@@ -12,6 +12,7 @@ from traffictwin.ui.pages import (
     compare,
     evidence_readiness,
     experiment_manager,
+    experiment_planner,
     guided_demo,
     home,
     infrastructure,
@@ -60,6 +61,8 @@ def main() -> None:
         home.render(config)
     elif page is UiPage.GUIDED_DEMO:
         guided_demo.render(config)
+    elif page is UiPage.EXPERIMENT_PLANNER:
+        experiment_planner.render(config)
     elif page is UiPage.SCENARIO:
         scenario_builder.render(config)
     elif page is UiPage.BUNDLE_IMPORT:

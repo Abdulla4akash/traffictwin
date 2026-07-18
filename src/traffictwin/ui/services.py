@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -23,10 +24,12 @@ from traffictwin.domain.enums import (
     TaskClass,
     WorkloadOrdering,
 )
+from traffictwin.domain.experiment import Experiment
 from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
+from traffictwin.experiments.planning import ExperimentPlanSummary, summarise_experiment_plan
 from traffictwin.ingestion.bundle import BundleValidationResult, import_bundle, validate_bundle
 from traffictwin.integration.tos import (
     TosCampaignComparisonReport,
@@ -106,6 +109,7 @@ from traffictwin.rules.catalogue import rule_catalogue
 from traffictwin.rules.engine import evaluate_rules
 from traffictwin.storage.registry import (
     BundleImportResult,
+    DuplicateIdentifierError,
     Registry,
     RegistryConflictError,
     RegistrySummary,
@@ -183,6 +187,16 @@ class ExperimentManagerView:
     reports: list[ReportEntry]
     metrics_by_run: dict[str, int]
     evidence_by_run: dict[str, int]
+
+
+@dataclass(frozen=True)
+class ExperimentPlannerCatalog:
+    """Typed registry objects available to the experiment planner."""
+
+    registry_path: Path
+    seeds: list[ScenarioSeed]
+    experiments: list[Experiment]
+    algorithms: list[str]
 
 
 @dataclass(frozen=True)
@@ -744,6 +758,105 @@ def load_experiment_manager_view(
     )
 
 
+def load_experiment_planner_catalog(
+    registry_path: str | Path,
+) -> ExperimentPlannerCatalog | ServiceError:
+    """Load typed seeds, experiments, and known policy labels for planning."""
+
+    path = Path(registry_path)
+    try:
+        registry = Registry(path)
+        registry.initialize()
+        seeds = registry.list_seeds()
+        experiments = registry.list_experiments()
+        runs = registry.list_runs()
+    except (OSError, sqlite3.Error, ValueError) as exc:
+        return ServiceError("The experiment-planning catalogue could not be loaded.", str(exc))
+    algorithms = sorted(
+        {
+            *(seed.policy.algorithm for seed in seeds),
+            *(run.algorithm for run in runs),
+        }
+    )
+    return ExperimentPlannerCatalog(
+        registry_path=path,
+        seeds=seeds,
+        experiments=experiments,
+        algorithms=algorithms,
+    )
+
+
+def prepare_experiment_plan_for_ui(
+    *,
+    experiment_id: str,
+    research_question: str,
+    hypothesis: str,
+    baseline_seed_id: str,
+    variation_seed_ids: list[str],
+    algorithms: list[str],
+    additional_algorithm_labels: str,
+    common_random_seeds: str,
+    registered_seeds: list[ScenarioSeed],
+    clock: Callable[[], datetime] | None = None,
+) -> ExperimentPlanSummary | ServiceError:
+    """Build and validate an experiment plan from UI form values."""
+
+    try:
+        random_seeds = _parse_nonnegative_int_csv(common_random_seeds)
+        combined_algorithms = [
+            *(algorithm.strip() for algorithm in algorithms if algorithm.strip()),
+            *_split_csv(additional_algorithm_labels),
+        ]
+        now = clock() if clock is not None else datetime.now(UTC)
+        experiment = Experiment(
+            experiment_id=experiment_id.strip(),
+            research_question=research_question.strip(),
+            hypothesis=hypothesis.strip() or None,
+            baseline_seed_id=baseline_seed_id,
+            variation_seed_ids=variation_seed_ids,
+            algorithms=combined_algorithms,
+            common_random_seed_set=random_seeds,
+            planned_replicates=len(random_seeds),
+            created_at=now,
+            updated_at=now,
+        )
+        return summarise_experiment_plan(
+            experiment,
+            {seed.seed_id: seed for seed in registered_seeds},
+        )
+    except (ValidationError, ValueError) as exc:
+        return ServiceError("The experiment plan is invalid.", str(exc))
+
+
+def register_experiment_plan_for_ui(
+    summary: ExperimentPlanSummary,
+    registry_path: str | Path,
+) -> Experiment | ServiceError:
+    """Register a validated plan without creating or launching runs."""
+
+    try:
+        registry = Registry(registry_path)
+        registry.initialize()
+        summarise_experiment_plan(
+            summary.experiment,
+            {seed.seed_id: seed for seed in registry.list_seeds()},
+        )
+        registry.add_experiment(summary.experiment)
+    except (DuplicateIdentifierError, OSError, sqlite3.Error, ValueError) as exc:
+        return ServiceError("The experiment plan could not be registered.", str(exc))
+    return summary.experiment
+
+
+def experiment_plan_yaml_for_ui(summary: ExperimentPlanSummary) -> str:
+    """Serialise a validated experiment plan to deterministic YAML."""
+
+    return yaml.safe_dump(
+        summary.experiment.model_dump(mode="json"),
+        sort_keys=False,
+        allow_unicode=False,
+    )
+
+
 def list_workspace_reports(workspace_path: str | Path | None) -> list[ReportEntry]:
     """Return report files from a standalone workspace."""
 
@@ -1180,6 +1293,21 @@ def _optional_int(value: object) -> int | None:
 
 def _split_csv(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _parse_nonnegative_int_csv(value: str) -> list[int]:
+    tokens = _split_csv(value)
+    if not tokens:
+        raise ValueError("at least one common random seed is required")
+    try:
+        parsed = [int(token) for token in tokens]
+    except ValueError as exc:
+        raise ValueError("common random seeds must be comma-separated integers") from exc
+    if any(seed < 0 for seed in parsed):
+        raise ValueError("common random seeds must be non-negative")
+    if len(set(parsed)) != len(parsed):
+        raise ValueError("common random seeds must not contain duplicates")
+    return parsed
 
 
 def _as_float(value: object) -> float:

@@ -29,7 +29,9 @@ traffictwin demo launch .demo
 
 - [ ] Home shows prototype notice and capability manifest.
 - [ ] Home exposes **Start Guided Demo** without requiring the sidebar.
-- [ ] Guided Demo shows seven standalone stages and keeps every stage synthetic/import-first.
+- [ ] Guided Demo shows eight standalone stages and keeps every stage synthetic/import-first.
+- [ ] Experiment Planner previews the baseline/variation matrix and seed differences.
+- [ ] Registering an experiment plan creates no run and enables no simulator launch.
 - [ ] Optional imported-TOS track reports the validated package inventory and read-only boundary.
 - [ ] Direct launch is unsupported.
 - [ ] Scenario Builder renders synthetic generator controls and YAML preview.

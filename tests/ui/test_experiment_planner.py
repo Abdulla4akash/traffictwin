@@ -1,0 +1,149 @@
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from importlib import import_module
+from pathlib import Path
+
+import yaml
+from pytest import MonkeyPatch
+from tests.unit.test_registry import make_seed
+
+from traffictwin.storage.registry import Registry
+from traffictwin.ui.services import (
+    ServiceError,
+    experiment_plan_yaml_for_ui,
+    load_experiment_planner_catalog,
+    prepare_experiment_plan_for_ui,
+    register_experiment_plan_for_ui,
+)
+
+
+def _planner_registry(path: Path) -> Registry:
+    registry = Registry(path)
+    baseline = make_seed()
+    variation = baseline.model_copy(
+        update={
+            "seed_id": "s1-gridlock-stressed",
+            "name": "Stressed gridlock",
+            "demand": baseline.demand.model_copy(update={"multiplier": 3.0}),
+        }
+    )
+    registry.add_seed(baseline)
+    registry.add_seed(variation)
+    return registry
+
+
+def test_planner_service_previews_exports_and_registers_without_runs(tmp_path: Path) -> None:
+    registry_path = tmp_path / "registry.sqlite"
+    registry = _planner_registry(registry_path)
+    catalog = load_experiment_planner_catalog(registry_path)
+
+    assert not isinstance(catalog, ServiceError)
+    assert [seed.seed_id for seed in catalog.seeds] == [
+        "s1-gridlock-stressed",
+        "s1-gridlock-x2",
+    ]
+    assert catalog.algorithms == ["MAPPO"]
+
+    fixed = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
+    summary = prepare_experiment_plan_for_ui(
+        experiment_id="exp-ui-plan",
+        research_question="Does demand change outcomes?",
+        hypothesis="The stressed seed may reduce completion.",
+        baseline_seed_id="s1-gridlock-x2",
+        variation_seed_ids=["s1-gridlock-stressed"],
+        algorithms=["MAPPO"],
+        additional_algorithm_labels="synthetic-reference",
+        common_random_seeds="7, 8",
+        registered_seeds=catalog.seeds,
+        clock=lambda: fixed,
+    )
+
+    assert not isinstance(summary, ServiceError)
+    assert summary.planned_run_count == 8
+    document = yaml.safe_load(experiment_plan_yaml_for_ui(summary))
+    assert document["experiment_id"] == "exp-ui-plan"
+    assert document["status"] == "planned"
+    assert document["created_at"] == "2026-07-18T12:00:00Z"
+
+    registered = register_experiment_plan_for_ui(summary, registry_path)
+    assert not isinstance(registered, ServiceError)
+    assert registry.get_experiment("exp-ui-plan") == registered
+    assert registry.inspect().run_count == 0
+
+    duplicate = register_experiment_plan_for_ui(summary, registry_path)
+    assert isinstance(duplicate, ServiceError)
+    assert "already exists" in (duplicate.detail or "")
+
+
+def test_planner_service_rejects_invalid_random_seed_input(tmp_path: Path) -> None:
+    registry_path = tmp_path / "registry.sqlite"
+    _planner_registry(registry_path)
+    catalog = load_experiment_planner_catalog(registry_path)
+    assert not isinstance(catalog, ServiceError)
+
+    result = prepare_experiment_plan_for_ui(
+        experiment_id="exp-invalid",
+        research_question="Is this plan valid?",
+        hypothesis="",
+        baseline_seed_id="s1-gridlock-x2",
+        variation_seed_ids=[],
+        algorithms=["MAPPO"],
+        additional_algorithm_labels="",
+        common_random_seeds="7, seven",
+        registered_seeds=catalog.seeds,
+    )
+
+    assert isinstance(result, ServiceError)
+    assert "comma-separated integers" in (result.detail or "")
+
+
+def test_streamlit_experiment_planner_validates_and_registers(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    registry_path = tmp_path / "registry.sqlite"
+    registry = _planner_registry(registry_path)
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(registry_path))
+
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app.run(timeout=10)
+    app.radio[0].set_value("Experiment Planner").run(timeout=10)
+
+    assert not app.exception
+    assert any(title.value == "Experiment Planner" for title in app.title)
+    next(field for field in app.text_input if field.label == "Experiment ID").set_value(
+        "exp-apptest-plan"
+    )
+    next(button for button in app.button if button.label == "Validate Plan").click().run(timeout=10)
+
+    assert not app.exception
+    assert any(heading.value == "Validated Plan Preview" for heading in app.subheader)
+    next(
+        button for button in app.button if button.label == "Register Planned Experiment"
+    ).click().run(timeout=10)
+
+    assert not app.exception
+    assert registry.get_experiment("exp-apptest-plan").status.value == "planned"
+    assert registry.inspect().run_count == 0
+
+
+def test_streamlit_home_renders_workspace_planner_actions(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "reports").mkdir(parents=True)
+    (workspace / "exports").mkdir()
+    registry_path = workspace / "registry.sqlite"
+    _planner_registry(registry_path)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(registry_path))
+
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app.run(timeout=10)
+
+    assert not app.exception
+    assert len([button for button in app.button if button.label == "Plan an Experiment"]) == 2

@@ -115,6 +115,8 @@ DEFAULT_SESSION_STATE: dict[str, object] = {
     "data_mode_label": "SYNTHETIC",
     "guided_demo_step": 0,
     "guided_demo_track": "Standalone synthetic",
+    "latest_experiment_plan": None,
+    "latest_registered_experiment_id": None,
     "ui_settings": {
         "theme": "Research",
         "default_replay_speed": 1.0,

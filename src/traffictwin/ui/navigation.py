@@ -14,7 +14,13 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.REPORTS,
         UiPage.SEARCH,
     ],
-    "Workflow": [UiPage.SCENARIO, UiPage.BUNDLE_IMPORT, UiPage.TOS_DATA, UiPage.COMPARE],
+    "Workflow": [
+        UiPage.EXPERIMENT_PLANNER,
+        UiPage.SCENARIO,
+        UiPage.BUNDLE_IMPORT,
+        UiPage.TOS_DATA,
+        UiPage.COMPARE,
+    ],
     "Analysis": [
         UiPage.TOS_RESULTS,
         UiPage.TOS_REPLAY,

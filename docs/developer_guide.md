@@ -151,8 +151,9 @@ Do not duplicate metric, validation, comparison, diagnostic, or provenance logic
 
 Product polish pages follow the same rule. `Scenario Builder` may call the synthetic generator,
 `Experiment Manager` may read registry/workspace metadata, `Reports` may call reporting builders,
-and `Search` may scan local metadata. They must not add metrics, diagnostic rules, adapters, live
-data, or launch behavior.
+and `Search` may scan local metadata. `Experiment Planner` may validate and persist the existing
+`Experiment` model, but must not create `Run` records or launch work. These pages must not add
+metrics, diagnostic rules, adapters, live data, or launch behavior.
 
 ## Adding An Adapter Safely
 
