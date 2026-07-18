@@ -21,8 +21,9 @@ reproduction documentation were not present in the cloned data package.
 | Shell script | none | unsupported |
 | Notebook workflow | none | unsupported |
 | CSF/SLURM job script | Training records mention CSF3/SLURM logs and job IDs, but no job scripts or logs are present in this package. | unknown |
-| Standard TrafficTwin output bundle | none | unsupported until a converter is built |
-| Offline data import | Real result files are present and documented. | plausible for Phase 6B after mapping questions are answered |
+| Standard TrafficTwin output bundle | none | unsupported; no converter is implemented |
+| Offline evaluation-summary import | Documented evaluation CSV and engine version | supported by the read-only TOS integration |
+| Instrumented historical replay | Per-step and trace NPZ contracts | supported for bounded inspection |
 
 ## Runtime And Output-Size Evidence
 
@@ -45,15 +46,17 @@ This manifest is based only on inspected evidence. It does not enable UI launch 
 
 ```yaml
 environment:
-  adapter: randy_tos_data_discovery
+  adapter: tos_data_read_only
   evidence_date: "2026-07-18"
   source_package_commit: "d27294ef5213e6a20f55632448bd20f5a76a45ab"
   supports:
     direct_launch: false
     asynchronous_launch: false
     run_bundle_import: false
-    offline_result_conversion: unknown
-    eval_summary_import: unknown
+    offline_result_conversion: false
+    eval_summary_import: true
+    instrumented_historical_replay: true
+    per_task_showcase_inspection: true
     task_arrival_multiplier: unknown
     workload_class_mix: unknown
     workload_ordering: unknown
@@ -75,8 +78,9 @@ Notes:
 - `asynchronous_launch` is `false` for TrafficTwin because no observable queue/job interface is
   available locally, even though training records mention CSF3/SLURM history.
 - `run_bundle_import` is `false` because Randy's files are not TrafficTwin bundles yet.
-- `offline_result_conversion` is `unknown`, not `true`, until the NPZ field ambiguities are resolved
-  and a converter is implemented.
+- `eval_summary_import`, historical replay, and showcase inspection are read-only data features;
+  they do not imply environment execution or canonical conversion.
+- `offline_result_conversion` is `false` because no standard bundle converter is implemented.
 - Scenario controls remain `unknown` because records mention some environment variables/flags but no
   safe invocation contract or config schema is present.
 
@@ -99,3 +103,5 @@ documentation confirms:
 
 Until then, TrafficTwin remains import-first for Randy/VEC data.
 
+The current offline reader and registry importer are documented in
+[tos_data_adapter.md](tos_data_adapter.md). They do not change this launcher decision.

@@ -21,6 +21,7 @@ class UiPage(StrEnum):
     HOME = "Home"
     SCENARIO = "Scenario Builder"
     BUNDLE_IMPORT = "Bundle Import & Validation"
+    TOS_DATA = "TOS Data Import"
     EXPERIMENT_MANAGER = "Experiment Manager"
     OPERATIONS = "Replay"
     RUN_OVERVIEW = "Run Overview"
@@ -39,6 +40,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.HOME: "Workspace status, quick actions, and current prototype limits.",
     UiPage.SCENARIO: "Author deterministic synthetic scenario configurations and bundles.",
     UiPage.BUNDLE_IMPORT: "Validate and import TrafficTwin run bundles.",
+    UiPage.TOS_DATA: (
+        "Inspect and import documented TOS evaluation summaries and historical source arrays."
+    ),
     UiPage.EXPERIMENT_MANAGER: (
         "Browse experiments, runs, seeds, comparisons, and provenance links."
     ),

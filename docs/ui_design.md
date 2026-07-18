@@ -17,6 +17,9 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 - Scenario Builder: synthetic generator configuration, validation, YAML preview, bundle generation,
   and normal bundle validation.
 - Bundle Import & Validation: manifest, files, validation findings, evidence availability, import.
+- TOS Data Import: read-only external result inventory, NPZ contract validation, source-summary
+  registry import, bounded historical replay/task views, and aggregate provenance. Unresolved RSU
+  values remain explicitly raw source fields.
 - Experiment Manager: experiments, runs, seeds, policies, fingerprints, comparisons, reports, metric
   storage, and evidence storage.
 - Replay: historical replay clock, deterministic controls, filters, and time-series views.
@@ -93,7 +96,8 @@ workspace status, scenario count, imported runs, and diagnostic preparation stat
 badge and selector aid only; the normal import-first pages remain the same.
 
 The UI must continue to label all generated data as synthetic and must not enable direct launch,
-Randy/SUMO integration, near-live data, or true-live data from the standalone workspace.
+full Randy/SUMO integration, near-live data, or true-live data from the standalone workspace. The
+optional TOS page labels its content `IMPORTED SIMULATION` and `HISTORICAL REPLAY`.
 
 ## Product Polish
 

@@ -79,7 +79,13 @@ Rules do not mutate the EvidencePack.
 
 - Excluded row counts are zero for accepted synthetic fixtures because Phase 2 rejects bundles with invalid rows rather than computing partial metrics from rejected data.
 - Canonical rows remain in memory; the evidence pack stores metric results and provenance, not raw CSV contents.
-- Real Randy/SUMO evidence remains unavailable until representative bundles and units are supplied.
+- The read-only TOS path builds partial EvidencePacks from source summaries. Tasks are `partial`;
+  infrastructure, vehicles, traffic, trips, and incidents remain `unavailable` because no canonical
+  row evidence or confirmed RSU/trip mapping exists.
+- TOS deadline success uses source-specific keys and does not satisfy TrafficTwin physical-task
+  completion dependencies in R1.
+- Full Randy/SUMO canonical evidence remains unavailable until field semantics, identifiers, units,
+  and an execution contract are supplied.
 - R1 lacks direct T1-by-low-tier cross-tab evidence in current packs.
 - R2 lacks direct task-to-saturation temporal overlap in current packs.
 - R3 experiment-level evidence is available only in synthetic diagnostic fixtures at this stage.
@@ -94,3 +100,4 @@ Rules do not mutate the EvidencePack.
 - [Standalone demo](standalone_demo.md)
 - [Reproducibility guide](reproducibility.md)
 - [Generated Pydantic schemas](reference/generated/pydantic_schemas.json)
+- [TOS Data read-only integration](integration/tos_data_adapter.md)

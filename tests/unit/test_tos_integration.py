@@ -1,0 +1,214 @@
+from __future__ import annotations
+
+import csv
+import zipfile
+from datetime import UTC, datetime
+from pathlib import Path
+
+import pytest
+
+from tests.tos_helpers import write_tos_package
+from traffictwin.config.capabilities import CapabilitySupport
+from traffictwin.domain.enums import TaskClass
+from traffictwin.integration.tos import (
+    build_tos_evidence_pack,
+    build_tos_metric_trace,
+    get_evaluation_source_row,
+    list_instrumented_runs,
+    load_replay_frame,
+    load_replay_series,
+    load_task_sample,
+    metric_collection_from_evaluation,
+    read_evaluation_runs,
+    read_npz_headers,
+    tos_data_capability_manifest,
+    validate_tos_package,
+)
+from traffictwin.integration.tos.models import TOS_SOURCE_METRIC_VERSION
+from traffictwin.integration.tos.readers import TosPackageError, safe_package_path
+from traffictwin.metrics.results import MetricStatus
+from traffictwin.provenance.models import ProvenanceNodeType, ProvenanceStatus
+from traffictwin.rules.engine import evaluate_rules
+
+FIXED_TIME = datetime(2026, 7, 18, 12, 0, tzinfo=UTC)
+
+
+def fixed_clock() -> datetime:
+    return FIXED_TIME
+
+
+def test_tos_models_and_capabilities_are_conservative(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    rows = read_evaluation_runs(package)
+    manifest = tos_data_capability_manifest()
+
+    assert len(rows) == 2
+    assert rows[0].run_id == "tos:baseline:wd_am:uk2030:fs0"
+    assert rows[0].completion == 0.9
+    assert manifest.supports.direct_launch is CapabilitySupport.FALSE
+    assert manifest.supports.run_bundle_import is CapabilitySupport.FALSE
+    assert manifest.supports.rsu_capacity is CapabilitySupport.UNKNOWN
+
+
+def test_tos_package_validation_and_npz_headers(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    report = validate_tos_package(package, deep=True, clock=fixed_clock)
+    headers = read_npz_headers(
+        package / "instrumented/perstep/baseline_uk2030_wd_am_fs0_perstep.npz"
+    )
+
+    assert report.may_import_summaries
+    assert report.inventory.evaluation_rows == 2
+    assert report.inventory.perstep_files == 2
+    assert report.inventory.pertask_files == 1
+    assert report.inspected_at == FIXED_TIME
+    assert "TOS_RSU_SEMANTICS_UNRESOLVED" in {item.code for item in report.findings}
+    assert {header.name for header in headers} >= {"times", "rsu_load", "veh_action"}
+
+
+def test_tos_validation_rejects_unsupported_engine(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    master = package / "evals/eval_results_master.csv"
+    rows = list(csv.DictReader(master.open(encoding="utf-8")))
+    rows[0]["engine_version"] = "superseded"
+    with master.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    report = validate_tos_package(package, deep=False, clock=fixed_clock)
+
+    assert not report.may_import_summaries
+    assert "TOS_ENGINE_VERSION_UNSUPPORTED" in {item.code for item in report.findings}
+
+
+def test_tos_validation_rejects_duplicate_run_identifier(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    master = package / "evals/eval_results_master.csv"
+    rows = list(csv.DictReader(master.open(encoding="utf-8")))
+    rows.append(dict(rows[0]))
+    with master.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+    report = validate_tos_package(package, deep=False, clock=fixed_clock)
+
+    assert not report.may_import_summaries
+    assert "TOS_RUN_ID_DUPLICATE" in {item.code for item in report.findings}
+
+
+def test_tos_path_and_npz_member_safety(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    with pytest.raises(TosPackageError, match="escapes"):
+        safe_package_path(package, "../outside")
+    malicious = tmp_path / "unsafe.npz"
+    with zipfile.ZipFile(malicious, "w") as archive:
+        archive.writestr("../unsafe.npy", b"not-an-array")
+    with pytest.raises(TosPackageError, match="unsafe NPZ member"):
+        read_npz_headers(malicious)
+
+
+def test_invalid_instrumented_archive_disables_replay_capability(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    source = package / "instrumented/perstep/baseline_uk2030_wd_am_fs0_perstep.npz"
+    source.write_bytes(b"not an NPZ archive")
+
+    report = validate_tos_package(package, deep=True, clock=fixed_clock)
+
+    assert report.may_import_summaries
+    assert not report.capabilities.instrumented_historical_replay
+    assert "TOS_PERSTEP_INVALID" in {item.code for item in report.findings}
+
+
+def test_source_summary_metrics_and_partial_diagnostics(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    report = validate_tos_package(package, deep=False, clock=fixed_clock)
+    row = read_evaluation_runs(package)[0]
+    assert report.package_fingerprint is not None
+    collection = metric_collection_from_evaluation(
+        row,
+        report.package_fingerprint,
+        clock=fixed_clock,
+    )
+    by_key = collection.by_key()
+
+    assert collection.metric_version == TOS_SOURCE_METRIC_VERSION
+    assert by_key["tos.task.deadline_success.rate"].value == 0.9
+    assert by_key["task.completion.rate"].status.value == "unavailable"
+    assert by_key["task.offload.rate"].value == 0.5
+    assert by_key["task.incomplete.rate"].status is MetricStatus.UNAVAILABLE
+    assert by_key["infra.utilisation.mean"].status is MetricStatus.UNAVAILABLE
+    assert by_key["task.energy.per_completed_j"].metadata["source_energy_j_per_arrival"] == 0.4
+
+    pack = build_tos_evidence_pack(row, report, collection, clock=fixed_clock)
+    diagnosis = evaluate_rules(pack, clock=fixed_clock)
+    statuses = {item.rule_id: item.status.value for item in diagnosis.results}
+    assert statuses == {
+        "R0": "triggered",
+        "R1": "insufficient_evidence",
+        "R2": "insufficient_evidence",
+        "R3": "insufficient_evidence",
+    }
+
+
+def test_tos_replay_and_task_samples_are_source_views(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    key = "baseline_uk2030_wd_am_fs0"
+    series = load_replay_series(package, key)
+    frame = load_replay_frame(package, key, 0, max_vehicles=1)
+    sample = load_task_sample(package, key, limit=3)
+
+    assert len(series) == 3
+    assert series[1].deadline_met == 0
+    assert frame.total_active_vehicle_slots == 2
+    assert len(frame.vehicles) == 1
+    assert frame.vehicles[0].slot_reference == "slot:0@time-index:0"
+    assert frame.rsus[0].semantics_status == "unresolved"
+    assert sample.total_active_entries == 4
+    assert sample.deadline_consistency_verified
+    assert [item.task_class for item in sample.observations] == [
+        TaskClass.T1,
+        TaskClass.T2,
+        TaskClass.T3,
+    ]
+
+
+def test_tos_metric_trace_and_source_row_are_explicitly_aggregate(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    report = validate_tos_package(package, deep=False, clock=fixed_clock)
+    row = read_evaluation_runs(package)[0]
+    assert report.package_fingerprint is not None
+    collection = metric_collection_from_evaluation(
+        row,
+        report.package_fingerprint,
+        clock=fixed_clock,
+    )
+    trace = build_tos_metric_trace(
+        row,
+        collection,
+        report,
+        "tos.task.deadline_success.rate",
+        clock=fixed_clock,
+    )
+    preview = get_evaluation_source_row(package, 2, report)
+
+    assert trace.completeness.overall.value == "partial"
+    assert any(node.node_type is ProvenanceNodeType.SOURCE_ROW for node in trace.nodes)
+    canonical = next(
+        node for node in trace.nodes if node.node_type is ProvenanceNodeType.CANONICAL_TABLE
+    )
+    assert canonical.status is ProvenanceStatus.UNAVAILABLE
+    assert "/Users/" not in trace.to_json()
+    assert preview.status is ProvenanceStatus.AVAILABLE
+    assert preview.inclusion_status == "included_as_source_summary"
+    assert preview.canonical_record_type is None
+
+
+def test_instrumented_run_listing_is_stable(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+
+    assert list_instrumented_runs(package) == [
+        "baseline_uk2030_wd_am_fs0",
+        "caps_mappo_uk2030_wd_am_fs0",
+    ]

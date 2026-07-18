@@ -346,6 +346,79 @@ Related documents:
 - [Generated CLI help](reference/generated/cli_help.json)
 - [Standalone demo](standalone_demo.md)
 
+## TOS Data Integration Commands
+
+These commands require the optional NumPy dependency:
+
+```bash
+python -m pip install -e ".[dev,tos]"
+```
+
+They read a separately supplied TOS Data package. They do not launch the source environment,
+convert unresolved RSU fields, or create a standard run bundle.
+
+### `traffictwin integration tos inspect PATH [--deep|--shallow] [--format text|json]`
+
+Purpose: inventory the package, compute its fingerprint, check the evaluation master, and report
+the evidenced capability boundary without registry mutation. `--deep` additionally checks NPZ
+contracts and reconciles JSON summaries. The command reports a rejected status in output but use
+`validate` when an exit code is required.
+
+### `traffictwin integration tos validate PATH [--format text|json]`
+
+Purpose: perform deep package validation. Exit code is non-zero when evaluation-summary import is
+unsafe. Warnings about unresolved RSU semantics do not fabricate infrastructure metrics.
+
+### `traffictwin integration tos runs PATH [--limit N]`
+
+Purpose: list source evaluation runs and whether a matching instrumented run is available.
+
+### `traffictwin integration tos import PATH --registry REGISTRY`
+
+Purpose: idempotently register experiments, runs, source-summary metric collections, and partial
+EvidencePacks. It stores no canonical task/infrastructure rows and no absolute source path.
+
+### `traffictwin integration tos metrics PATH RUN_ID [--format text|json]`
+
+Purpose: show source-provided deadline success, class deadline success, mean latency, action shares,
+and offload share for one evaluation row. TrafficTwin physical-completion metrics and other
+unsupported catalogue metrics remain present as unavailable.
+
+### `traffictwin integration tos replay PATH RUN_KEY [--index N] [--max-vehicles N] [--format text|json]`
+
+Purpose: inspect one deterministic historical frame from matched per-step and trace arrays. Vehicle
+references are time-indexed source slots. RSU fields remain raw and semantically unresolved.
+
+### `traffictwin integration tos task-sample PATH RUN_KEY [--limit N] [--format text|json]`
+
+Purpose: inspect a bounded sample from an available per-arrival NPZ. The output preserves source
+indices, task class, latency, and deadline-success status; it does not create canonical task IDs.
+
+### `traffictwin integration tos diagnose PATH RUN_ID [--format text|json]`
+
+Purpose: evaluate the existing R0-R3 engine over the partial source-summary EvidencePack. Missing
+canonical evidence produces insufficient results rather than guessed hypotheses.
+
+### `traffictwin integration tos provenance PATH RUN_ID [--root-type metric|rule] [--root-id ID] [--format text|json|markdown]`
+
+Purpose: export aggregate provenance to the evaluation-master row, package commit/fingerprint, run,
+experiment grouping, actor, and engine version. Canonical/source-row links that cannot be supported
+are explicit unavailable nodes.
+
+Example:
+
+```bash
+traffictwin integration tos validate ../external/tos-data
+traffictwin integration tos runs ../external/tos-data --limit 5
+traffictwin integration tos import ../external/tos-data \
+  --registry /tmp/traffictwin-tos.sqlite
+traffictwin integration tos metrics ../external/tos-data \
+  tos:baseline:wd_am:uk2030:fs0 --format json
+traffictwin integration tos provenance ../external/tos-data \
+  tos:baseline:wd_am:uk2030:fs0 \
+  --root-id tos.task.deadline_success.rate --format markdown
+```
+
 ## Standalone Synthetic Commands
 
 ### `traffictwin synthetic presets`

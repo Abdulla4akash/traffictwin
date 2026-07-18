@@ -20,6 +20,7 @@ class UiConfig(BaseModel):
     registry_path: Path = Path("data/registry/traffictwin.sqlite")
     default_fixture_path: Path = Path("tests/fixtures/bundles")
     workspace_path: Path | None = None
+    tos_data_path: Path | None = None
     debug: bool = False
     page_title: str = "TrafficTwin"
     replay_default_speed: float = Field(default=1.0, gt=0)
@@ -102,6 +103,8 @@ DEFAULT_SESSION_STATE: dict[str, object] = {
     "selected_run_id": None,
     "selected_baseline_run": "tests/fixtures/bundles/baseline_valid",
     "selected_variation_run": "tests/fixtures/bundles/variation_valid",
+    "selected_tos_data_path": "",
+    "latest_tos_package_view": None,
     "active_seed_draft": None,
     "latest_validation_report": None,
     "latest_metric_collection": None,
@@ -131,6 +134,7 @@ def load_ui_config() -> UiConfig:
         workspace_path=(
             Path(value) if (value := os.getenv("TRAFFICTWIN_WORKSPACE_PATH")) else None
         ),
+        tos_data_path=(Path(value) if (value := os.getenv("TRAFFICTWIN_TOS_DATA_PATH")) else None),
         debug=os.getenv("TRAFFICTWIN_DEBUG", "false").lower() in {"1", "true", "yes"},
     )
 

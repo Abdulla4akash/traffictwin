@@ -86,9 +86,18 @@ Paired summaries align baseline and variation conditions by common random seed a
 
 No formal hypothesis tests or confidence intervals are implemented in Phase 3.
 
+## TOS Source-Summary Comparison
+
+TOS evaluation rows can use the same scalar delta service when experiment grouping, fleet seed,
+metric version, and unit are compatible. These comparisons use the distinct collection version
+`tos-source-summary-v2_post_nrsus_fix-1.0`. Source deadline success is compared only under
+`tos.task.deadline_success.rate`; it is not compared as TrafficTwin physical completion. Structured
+class mappings and unavailable canonical metrics remain unavailable comparisons.
+
 ## Related Documents
 
 - [Metrics catalogue](metrics_catalogue.md)
 - [EvidencePack specification](evidence_pack_spec.md)
 - [User guide](user_guide.md)
 - [Reproducibility guide](reproducibility.md)
+- [TOS Data read-only integration](integration/tos_data_adapter.md)

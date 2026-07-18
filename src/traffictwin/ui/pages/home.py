@@ -121,6 +121,10 @@ def render(config: UiConfig) -> None:
             "Direct simulator launch is unavailable for the default generic CSV adapter.",
             "No live, near-live, or true-live Manchester data is connected.",
             "Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.",
-            "SUMO and Randy/VEC adapters remain blocked until real schemas exist.",
+            (
+                "TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
+                "direct Randy/VEC launch, SUMO conversion, and unresolved RSU metric mapping "
+                "remain unavailable."
+            ),
         ]
     )

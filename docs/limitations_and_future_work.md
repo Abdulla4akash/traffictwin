@@ -7,7 +7,7 @@ This document separates deliberate scope boundaries from evidence gaps.
 - The prototype is import-first and synthetic-demo ready.
 - It does not run external simulators.
 - It does not ingest live, near-live, or real Manchester data.
-- It does not include real Randy/VEC or SUMO adapters.
+- It includes only a read-only TOS Data result reader, not a canonical Randy/VEC or SUMO adapter.
 - It stores metadata and JSON payloads in SQLite, not full canonical row datasets.
 - Provenance traces aggregate metrics to eligible record samples; they do not store full per-row
   contribution weights for every aggregate.
@@ -16,7 +16,8 @@ This document separates deliberate scope boundaries from evidence gaps.
 ## Evidence Limitations
 
 - Included bundles are synthetic.
-- Real schemas, units, runtime behavior, and output sizes are unknown.
+- TOS evaluation and array shapes are evidenced, but several field semantics, physical units,
+  runtime behavior, and source-environment invocation remain unknown.
 - R1 lacks direct T1-by-low-tier cross-tab evidence in normal EvidencePacks.
 - R2 lacks direct temporal overlap between saturation windows and task misses.
 - R3 requires experiment-level evidence not present in ordinary single-run bundles.
@@ -31,17 +32,15 @@ Fault-injection precision/recall values are implementation checks over labelled 
 
 ## External Integration Blockers
 
-Phase 6A found no real:
+Phase 6A found evaluation summaries and instrumented arrays, but a full adapter is blocked by:
 
-- Randy/VEC task logs;
-- infrastructure logs;
-- vehicle state files;
-- SUMO configuration or output files;
-- checkpoints;
-- notebooks or launch scripts;
-- job files;
-- metric scripts;
-- unit documentation.
+- unresolved definitions for `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent`;
+- unconfirmed physical units for trace position and speed fields;
+- no persistent per-vehicle identifier or vehicle-tier output in the inspected arrays;
+- no action-target, action-availability, or link-quality output;
+- no trip/journey-time or raw SUMO outputs;
+- no source-environment repository, documented headless command, runtime, or dependency contract;
+- no permission yet to commit sanitised derived fixtures.
 
 See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 
@@ -69,9 +68,9 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 
 ## Sensible Future Work
 
-1. Acquire real or sanitised Randy/SUMO artifacts.
-2. Implement the smallest evidenced adapter.
-3. Generate a standard TrafficTwin run bundle from real samples.
+1. Obtain answers to the remaining TOS field-definition questions and sanitised-fixture permission.
+2. Add only the newly evidenced canonical mappings and validation contracts.
+3. Generate a standard TrafficTwin run bundle only when identifiers and units are unambiguous.
 4. Reconcile Randy's existing metric scripts against TrafficTwin formulas.
 5. Extend EvidencePack only where real evidence requires it.
 6. Run expert review of diagnostic hypotheses.

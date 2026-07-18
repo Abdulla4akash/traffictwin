@@ -22,6 +22,7 @@ from traffictwin.ui.pages import (
     scenario_builder,
     search,
     settings,
+    tos_data_import,
 )
 from traffictwin.ui.state import ensure_session_state, load_ui_config
 from traffictwin.ui.theme import apply_research_theme
@@ -57,6 +58,8 @@ def main() -> None:
         scenario_builder.render(config)
     elif page is UiPage.BUNDLE_IMPORT:
         bundle_import.render(config)
+    elif page is UiPage.TOS_DATA:
+        tos_data_import.render(config)
     elif page is UiPage.EXPERIMENT_MANAGER:
         experiment_manager.render(config)
     elif page is UiPage.OPERATIONS:

@@ -80,10 +80,10 @@ They are not real Manchester, Randy/VEC, or SUMO results.
   --output .demo/reports/stressed_full.html
 ```
 
-Current verified snapshot from the standalone product quality-gate run:
+Current verified snapshot after the read-only TOS integration increment:
 
-- tests: 168 passed;
-- coverage: 77%.
+- tests: 183 passed;
+- coverage: 76%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 
@@ -155,7 +155,24 @@ or UI workflows.
 
 ## External Integration Limitations
 
-Phase 6A found no real Randy/VEC or SUMO artifacts. Real integration cannot be reproduced yet because no real schemas, units, commands, runtimes, or output samples are present.
+Phase 6A inspected Randy's separately supplied TOS Data result package and established reproducible
+contracts for evaluation summaries, JSON reconciliation, NPZ key/shape validation, bounded
+historical replay, and per-arrival samples. The package remains external to this repository.
+
+Install the optional reader and validate a local checkout with:
+
+```bash
+python -m pip install -e ".[dev,tos]"
+traffictwin integration tos validate ../external/tos-data --format json > tos-validation.json
+traffictwin integration tos import ../external/tos-data \
+  --registry /tmp/traffictwin-tos.sqlite
+```
+
+Reproducibility is tied to the source package Git commit, a deterministic package fingerprint, the
+source row number, engine version, actor, fleet seed, and TrafficTwin source-metric version. Exact
+RSU semantics, several source units, source-environment commands, runtime, and raw SUMO outputs are
+still unavailable. Therefore full canonical conversion and direct execution cannot yet be
+reproduced.
 
 Related documents:
 

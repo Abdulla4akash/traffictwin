@@ -12,7 +12,10 @@ Phase 4 status: implemented and quality-gate checked.
 
 Phase 5 status: implemented and quality-gate checked.
 
-Phase 6A status: reopened and updated after Randy granted GitLab access to the external `TOS Data` package. Real Randy/VEC result artifacts are now present under `external/tos-data`, but real adapter implementation remains blocked pending unit/semantic confirmations, fixture permission, and the separate `vec_env` execution contract.
+Phase 6 status: the evidenced read-only TOS Data boundary is implemented. Evaluation summaries can
+be validated and imported; instrumented arrays support bounded historical replay and task
+inspection; source summaries support partial evidence, diagnostics, comparison, and aggregate
+provenance. Full canonical conversion, interpreted RSU metrics, SUMO, and launch remain blocked.
 
 Documentation pass status: completed and quality-gate checked.
 
@@ -85,6 +88,8 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `src/traffictwin/demo/` | Demo workspace | Safe workspace initialisation, reset, status, and Streamlit launch helpers. |
 | `src/traffictwin/reporting/` | Report export | Deterministic Markdown and standalone HTML research reports. |
 | `.github/workflows/ci.yml` | CI workflow | Python 3.11/3.12 quality gates and standalone smoke checks. |
+| `src/traffictwin/integration/tos/` | TOS Data integration | Read-only package validation, source-summary import, replay/task inspection, and provenance. |
+| `docs/integration/tos_data_adapter.md` | Integration guide | Supported TOS boundary, semantics, CLI, security, and limitations. |
 
 ## Relevant Assets Found
 
@@ -92,10 +97,12 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 - The external package includes evaluation summary CSV, training curves, greedy-evaluation JSON, instrumented per-step NPZ files, instrumented per-task NPZ files, Manchester trace NPZ files, and training-record documentation.
 - The external package does not include the runnable `vec_env` repository, SUMO XML/config files, direct launch scripts, job scripts, or checkpoint files.
 - The only CSV/YAML/JSON run artifacts present are TrafficTwin synthetic fixtures under `tests/fixtures/`.
-- No external environment integration is implemented.
+- A read-only external TOS Data results integration is implemented; it cannot execute the source
+  environment.
 - Streamlit UI is implemented for synthetic fixtures and imported historical bundles.
 - Deterministic diagnostic rules R0-R3 are implemented over EvidencePacks.
-- No Randy/VEC adapter, SUMO adapter, direct launcher, or canonical traffic/task data storage for real external runs is implemented.
+- No full Randy/VEC canonical converter, SUMO adapter, direct launcher, or canonical row storage
+  for TOS runs is implemented.
 - Python 3.12 is available locally and was used for validation. The package declares Python 3.11+ support.
 
 ## Design Specification Status
@@ -276,7 +283,7 @@ Known limitation: Phase 3 metrics do not store materialised per-row contribution
 aggregate metric. Provenance therefore reports required tables, eligible record counts, source-row
 samples, and limitations rather than fabricated row-level contribution weights.
 
-## Implemented In Phase 6A
+## Implemented In Phase 6
 
 - Initial repository and workspace discovery for Randy/VEC and SUMO artifacts.
 - Updated discovery after Randy granted GitLab access to the external `TOS Data` package.
@@ -294,7 +301,22 @@ samples, and limitations rather than fabricated row-level contribution weights.
   - `direct_launch=false`
   - `asynchronous_launch=false`
   - unconfirmed scenario and infrastructure controls remain `unknown`
-- Phase 6B adapter implementation remains stopped until remaining schema/unit questions, fixture permissions, and execution-contract evidence are resolved.
+- Read-only `traffictwin.integration.tos` package:
+  - versioned source models and stable run/experiment identifiers;
+  - safe evaluation CSV, JSON, and NPZ header readers;
+  - complete package validation and instrumented-summary reconciliation;
+  - source-summary MetricCollections with a separate implementation version;
+  - partial EvidencePacks consumed by the unchanged R0-R3 engine;
+  - idempotent SQLite registration of experiments, runs, metrics, and evidence;
+  - bounded historical replay joined by timestamp and time-local vehicle slot;
+  - bounded per-task showcase inspection using `deadline_met` semantics;
+  - raw RSU source-state display without utilisation/queue interpretation;
+  - aggregate metric/rule provenance to exact evaluation CSV rows;
+  - `traffictwin integration tos ...` CLI group;
+  - Streamlit `TOS Data Import` page.
+- Runtime tests generate a synthetic-schema package; no Randy artifact is committed.
+- Full canonical conversion remains stopped until RSU/source-unit questions and fixture permissions
+  are resolved.
 
 ## Implemented In Documentation Pass
 
@@ -383,7 +405,9 @@ Results:
 - Diagnostic CLI smoke: baseline, R1 fixture, R2 fixture, R3 fixture, mixed fault, insufficient evidence, saved EvidencePack, and rejected bundle behavior passed.
 - Fault-injection evaluation: precision/recall returned without `NaN` or infinity.
 - Original Phase 6A discovery: no real Randy/VEC or SUMO artifacts were present before Randy's GitLab package was cloned.
-- Updated Phase 6A discovery: `external/tos-data` contains real Randy/VEC result artifacts, including evaluation CSV, training CSV/JSON, instrumented NPZ, and trace NPZ sources. Adapter-specific tests are still not applicable until a confirmed converter design and sanitised fixture permission exist.
+- Updated Phase 6 discovery: `external/tos-data` contains real Randy/VEC result artifacts. The
+  conservative read-only integration is covered by generated synthetic-schema tests; real fixture
+  permission is still required before committing a source-derived sample.
 - Updated Phase 6A documentation validation: Ruff format check passed; Ruff check passed; mypy passed; 168 tests passed; coverage remained 77%.
 - Documentation pass quality gates: Ruff format/check passed; mypy passed; generated reference JSON regenerated and parsed; Markdown links checked; API imports checked; fixture paths checked; Mermaid fences checked; unsupported-claim scan completed; 119 tests passed; coverage remained 76%; synthetic CLI demo flow passed; Streamlit health check returned `200 ok`.
 - Provenance Explorer quality gates: Ruff format/check passed; mypy passed; 147 tests passed; coverage reached 77%; generated reference JSON regenerated; Markdown links checked; provenance CLI metric/rule/source/export smoke checks passed; Streamlit AppTest rendered the Provenance Explorer; Streamlit headless server started; exported provenance JSON contained no absolute local paths; provenance Markdown contained no causal-proof wording.
@@ -395,7 +419,8 @@ Results:
 
 ## Blocked
 
-- Real VEC/SUMO adapters are blocked until the remaining Randy field semantics, units, sanitised fixture permission, and invocation details are supplied.
+- Full canonical VEC/SUMO adapters are blocked until the remaining Randy field semantics, units,
+  sanitised fixture permission, and invocation details are supplied.
 - Direct launch is blocked until a documented CLI, Python API, or script contract exists.
 - Live or near-live modes are blocked until real feed details exist.
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load remain blocked until source fields and units exist.
@@ -408,7 +433,8 @@ Results:
 
 ## Evidence Required Next
 
-- Confirmation of Randy's `task_type`, `task_met`, `rsu_busy_ms`, `rsu_load`, trace coordinate, and trace speed semantics.
+- Definitions for `rsu_busy_ms`, `rsu_load`, and `rsu_max_concurrent`; confirmed trace units; and
+  clarification of eventual completion remain required for canonical conversion.
 - Permission to commit a small sanitised real-schema fixture.
 - Access to the separate `vec_env` reproduction documentation if direct execution or stronger capability mapping is required.
 - Confirmation of supported scenario controls.
@@ -622,6 +648,27 @@ Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or t
 - Synthetic generation is not calibrated simulation.
 - Synthetic policy profiles are not real trained algorithms.
 - Registry-run report shortcuts are not the primary report path; bundle paths are supported first.
-- Real Randy/VEC and SUMO integration remain blocked by unresolved field semantics, source units,
-  sanitised fixture permission, and invocation contracts.
+- Read-only TOS result inspection is available; full Randy/VEC canonical conversion and SUMO
+  integration remain blocked by unresolved field semantics, source units, sanitised fixture
+  permission, and invocation contracts.
 - Direct launch, near-live, and true-live support remain unavailable.
+
+## Implemented In Read-Only TOS Integration Increment
+
+- Optional `tos` dependency extra for bounded NumPy archive inspection.
+- Strict evaluation-master parsing, supported-engine gating, package inventory, Git commit, and
+  deterministic package fingerprint.
+- Deep per-step, per-task, and trace NPZ key/shape validation plus JSON-summary reconciliation.
+- Source-summary MetricCollections with a distinct implementation version and explicit unavailable
+  results for unsupported canonical metrics.
+- Partial EvidencePacks evaluated by the unchanged R0-R3 rules.
+- Idempotent SQLite registration of 10 source experiment groups and 300 source runs in the supplied
+  package, without storing canonical rows or absolute source paths.
+- Bounded historical replay, time-indexed vehicle slots, raw unresolved RSU views, and bounded
+  per-arrival task samples.
+- Aggregate metric/rule provenance to exact evaluation CSV rows, package commit/fingerprint, run,
+  experiment grouping, actor, and engine version.
+- Typer `integration tos` commands and Streamlit `TOS Data Import` page.
+- Quality gates: Ruff format/check passed; mypy passed; 183 tests passed; coverage 76%. External
+  package validation, idempotent import, CLI, replay, task, diagnostics, provenance, and source
+  immutability smoke checks passed.

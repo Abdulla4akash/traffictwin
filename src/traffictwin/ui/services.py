@@ -28,6 +28,27 @@ from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.bundle import BundleValidationResult, import_bundle, validate_bundle
+from traffictwin.integration.tos import (
+    TosEvaluationRun,
+    TosImportSummary,
+    TosReplayFrame,
+    TosTaskSample,
+    TosValidationReport,
+    build_tos_evidence_pack,
+    build_tos_metric_trace,
+    import_evaluation_summaries,
+    list_instrumented_runs,
+    load_replay_frame,
+    load_task_sample,
+    metric_collection_from_evaluation,
+    read_evaluation_runs,
+    validate_tos_package,
+)
+from traffictwin.integration.tos.readers import (
+    TosPackageError,
+    instrumented_key_for_run,
+    list_pertask_runs,
+)
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.comparison import ComparisonReport, compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
@@ -176,6 +197,27 @@ class AboutInfo:
     commit_hash: str | None
 
 
+@dataclass(frozen=True)
+class TosPackageView:
+    """Read-only TOS package view model."""
+
+    report: TosValidationReport
+    evaluation_runs: list[TosEvaluationRun]
+    instrumented_runs: list[str]
+    pertask_runs: list[str]
+
+
+@dataclass(frozen=True)
+class TosRunAnalysis:
+    """Source-summary analysis for one TOS evaluation row."""
+
+    run: TosEvaluationRun
+    metric_collection: MetricCollection
+    evidence_pack: EvidencePack
+    diagnostic_report: DiagnosticReport
+    completion_trace: ProvenanceTrace
+
+
 def load_project_status(registry_path: str | Path) -> ProjectStatus:
     """Load project and registry status for the Home page."""
 
@@ -188,6 +230,119 @@ def load_project_status(registry_path: str | Path) -> ProjectStatus:
         latest_runs=list_registered_runs(path)[:5] if path.exists() else [],
         capability_manifest=default_export_import_manifest(),
     )
+
+
+def inspect_tos_for_ui(
+    path: str | Path,
+    *,
+    deep: bool = False,
+) -> TosPackageView | ServiceError:
+    """Inspect a TOS package through the integration boundary."""
+
+    try:
+        report = validate_tos_package(path, deep=deep)
+        rows = read_evaluation_runs(path) if report.may_import_summaries else []
+        return TosPackageView(
+            report=report,
+            evaluation_runs=rows,
+            instrumented_runs=list_instrumented_runs(path),
+            pertask_runs=list_pertask_runs(path),
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS Data package could not be inspected.", str(exc))
+
+
+def import_tos_for_ui(
+    path: str | Path,
+    registry_path: str | Path,
+    report: TosValidationReport,
+) -> TosImportSummary | ServiceError:
+    """Import accepted TOS summaries through the idempotent registry service."""
+
+    try:
+        return import_evaluation_summaries(path, registry_path, validation_report=report)
+    except (OSError, ValueError, TosPackageError, RegistryConflictError) as exc:
+        return ServiceError("TOS evaluation summaries could not be imported.", str(exc))
+
+
+def analyse_tos_run_for_ui(
+    package_view: TosPackageView,
+    run_identifier: str,
+) -> TosRunAnalysis | ServiceError:
+    """Build metrics, partial evidence, diagnostics, and provenance for one source row."""
+
+    try:
+        run = _find_tos_run(package_view.evaluation_runs, run_identifier)
+        fingerprint = package_view.report.package_fingerprint
+        if fingerprint is None:
+            return ServiceError("TOS package fingerprint is unavailable.")
+        collection = metric_collection_from_evaluation(run, fingerprint)
+        pack = build_tos_evidence_pack(run, package_view.report, collection)
+        diagnosis = evaluate_rules(pack)
+        trace = build_tos_metric_trace(
+            run,
+            collection,
+            package_view.report,
+            "tos.task.deadline_success.rate",
+        )
+        return TosRunAnalysis(
+            run=run,
+            metric_collection=collection,
+            evidence_pack=pack,
+            diagnostic_report=diagnosis,
+            completion_trace=trace,
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS run analysis could not be prepared.", str(exc))
+
+
+def compare_tos_runs_for_ui(
+    package_view: TosPackageView,
+    baseline_identifier: str,
+    variation_identifier: str,
+) -> ComparisonReport | ServiceError:
+    """Compare two compatible source-summary runs through Phase 3 comparison logic."""
+
+    try:
+        baseline = _find_tos_run(package_view.evaluation_runs, baseline_identifier)
+        variation = _find_tos_run(package_view.evaluation_runs, variation_identifier)
+        fingerprint = package_view.report.package_fingerprint
+        if fingerprint is None:
+            return ServiceError("TOS package fingerprint is unavailable.")
+        baseline_metrics = metric_collection_from_evaluation(baseline, fingerprint)
+        variation_metrics = metric_collection_from_evaluation(variation, fingerprint)
+        return compare_metric_collections(baseline_metrics, variation_metrics)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS source-summary comparison could not be prepared.", str(exc))
+
+
+def load_tos_replay_for_ui(
+    path: str | Path,
+    run_key: str,
+    index: int,
+    *,
+    max_vehicles: int = 100,
+) -> TosReplayFrame | ServiceError:
+    """Load one bounded TOS historical replay frame."""
+
+    try:
+        return load_replay_frame(path, run_key, index, max_vehicles=max_vehicles)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS replay frame could not be loaded.", str(exc))
+
+
+def load_tos_task_sample_for_ui(
+    path: str | Path,
+    run_key: str,
+    *,
+    limit: int = 50,
+) -> TosTaskSample | ServiceError:
+    """Load a bounded, read-only TOS per-task sample."""
+
+    try:
+        return load_task_sample(path, run_key, limit=limit)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS per-task sample could not be loaded.", str(exc))
 
 
 def synthetic_preset_names_for_ui() -> list[str]:
@@ -760,6 +915,16 @@ def safe_import_bundle_for_ui(
         return import_bundle_for_ui(path, registry_path)
     except RegistryConflictError as exc:
         return ServiceError("Bundle import conflict.", str(exc))
+
+
+def _find_tos_run(
+    rows: list[TosEvaluationRun],
+    identifier: str,
+) -> TosEvaluationRun:
+    for row in rows:
+        if identifier in {row.run_id, row.source_key, instrumented_key_for_run(row)}:
+            return row
+    raise TosPackageError(f"TOS evaluation run not found: {identifier}")
 
 
 def _optional_int(value: object) -> int | None:

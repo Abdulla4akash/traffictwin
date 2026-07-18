@@ -3640,6 +3640,836 @@
       "title": "TaskRecord",
       "type": "object"
     },
+    "TosEvaluationRun": {
+      "additionalProperties": false,
+      "description": "One row from ``evals/eval_results_master.csv``.",
+      "properties": {
+        "T": {
+          "exclusiveMinimum": 0,
+          "title": "T",
+          "type": "integer"
+        },
+        "actor": {
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "avg_energy_j_per_task": {
+          "minimum": 0,
+          "title": "Avg Energy J Per Task",
+          "type": "number"
+        },
+        "avg_latency_ms_per_task": {
+          "minimum": 0,
+          "title": "Avg Latency Ms Per Task",
+          "type": "number"
+        },
+        "campaign": {
+          "minLength": 1,
+          "title": "Campaign",
+          "type": "string"
+        },
+        "cell": {
+          "minLength": 1,
+          "title": "Cell",
+          "type": "string"
+        },
+        "completion": {
+          "title": "Completion",
+          "type": "number"
+        },
+        "engine_version": {
+          "minLength": 1,
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "eval_fleet": {
+          "minLength": 1,
+          "title": "Eval Fleet",
+          "type": "string"
+        },
+        "fleet_ev_share": {
+          "title": "Fleet Ev Share",
+          "type": "number"
+        },
+        "fleet_seed": {
+          "minimum": 0,
+          "title": "Fleet Seed",
+          "type": "integer"
+        },
+        "maxN": {
+          "exclusiveMinimum": 0,
+          "title": "Maxn",
+          "type": "integer"
+        },
+        "obs_variant": {
+          "minLength": 1,
+          "title": "Obs Variant",
+          "type": "string"
+        },
+        "p_local": {
+          "title": "P Local",
+          "type": "number"
+        },
+        "p_v2i": {
+          "title": "P V2I",
+          "type": "number"
+        },
+        "p_v2v": {
+          "title": "P V2V",
+          "type": "number"
+        },
+        "source_file": {
+          "default": "evals/eval_results_master.csv",
+          "title": "Source File",
+          "type": "string"
+        },
+        "source_row": {
+          "minimum": 2,
+          "title": "Source Row",
+          "type": "integer"
+        },
+        "t1_completion": {
+          "title": "T1 Completion",
+          "type": "number"
+        },
+        "t2_completion": {
+          "title": "T2 Completion",
+          "type": "number"
+        },
+        "t3_completion": {
+          "title": "T3 Completion",
+          "type": "number"
+        },
+        "trace": {
+          "minLength": 1,
+          "title": "Trace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign",
+        "cell",
+        "eval_fleet",
+        "fleet_seed",
+        "actor",
+        "obs_variant",
+        "completion",
+        "t1_completion",
+        "t2_completion",
+        "t3_completion",
+        "avg_energy_j_per_task",
+        "avg_latency_ms_per_task",
+        "p_local",
+        "p_v2i",
+        "p_v2v",
+        "fleet_ev_share",
+        "T",
+        "maxN",
+        "trace",
+        "engine_version",
+        "source_row"
+      ],
+      "title": "TosEvaluationRun",
+      "type": "object"
+    },
+    "TosReplayFrame": {
+      "$defs": {
+        "TosReplayPoint": {
+          "additionalProperties": false,
+          "description": "One documented per-second aggregate replay point.",
+          "properties": {
+            "active_vehicle_slots": {
+              "minimum": 0,
+              "title": "Active Vehicle Slots",
+              "type": "integer"
+            },
+            "arrivals": {
+              "minimum": 0,
+              "title": "Arrivals",
+              "type": "integer"
+            },
+            "deadline_met": {
+              "minimum": 0,
+              "title": "Deadline Met",
+              "type": "integer"
+            },
+            "index": {
+              "minimum": 0,
+              "title": "Index",
+              "type": "integer"
+            },
+            "latency_sum_ms": {
+              "minimum": 0,
+              "title": "Latency Sum Ms",
+              "type": "number"
+            },
+            "local_decisions": {
+              "minimum": 0,
+              "title": "Local Decisions",
+              "type": "integer"
+            },
+            "timestamp_s": {
+              "title": "Timestamp S",
+              "type": "number"
+            },
+            "v2i_decisions": {
+              "minimum": 0,
+              "title": "V2I Decisions",
+              "type": "integer"
+            },
+            "v2v_decisions": {
+              "minimum": 0,
+              "title": "V2V Decisions",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "index",
+            "timestamp_s",
+            "arrivals",
+            "deadline_met",
+            "latency_sum_ms",
+            "active_vehicle_slots",
+            "local_decisions",
+            "v2i_decisions",
+            "v2v_decisions"
+          ],
+          "title": "TosReplayPoint",
+          "type": "object"
+        },
+        "TosRsuSourceState": {
+          "additionalProperties": false,
+          "description": "Raw per-RSU source values with deliberately unresolved semantics.",
+          "properties": {
+            "position_x_source_units": {
+              "title": "Position X Source Units",
+              "type": "number"
+            },
+            "position_y_source_units": {
+              "title": "Position Y Source Units",
+              "type": "number"
+            },
+            "rsu_busy_ms_source_value": {
+              "minimum": 0,
+              "title": "Rsu Busy Ms Source Value",
+              "type": "number"
+            },
+            "rsu_index": {
+              "minimum": 0,
+              "title": "Rsu Index",
+              "type": "integer"
+            },
+            "rsu_load_source_value": {
+              "minimum": 0,
+              "title": "Rsu Load Source Value",
+              "type": "integer"
+            },
+            "rsu_max_concurrent_source_value": {
+              "exclusiveMinimum": 0,
+              "title": "Rsu Max Concurrent Source Value",
+              "type": "integer"
+            },
+            "rsu_reference": {
+              "title": "Rsu Reference",
+              "type": "string"
+            },
+            "semantics_status": {
+              "default": "unresolved",
+              "title": "Semantics Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "rsu_reference",
+            "rsu_index",
+            "position_x_source_units",
+            "position_y_source_units",
+            "rsu_load_source_value",
+            "rsu_busy_ms_source_value",
+            "rsu_max_concurrent_source_value"
+          ],
+          "title": "TosRsuSourceState",
+          "type": "object"
+        },
+        "TosVehicleSlotState": {
+          "additionalProperties": false,
+          "description": "Time-local trace state for one padded vehicle slot.",
+          "properties": {
+            "action": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Action"
+            },
+            "arrivals": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Arrivals"
+            },
+            "deadline_met": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Deadline Met"
+            },
+            "position_x_source_units": {
+              "title": "Position X Source Units",
+              "type": "number"
+            },
+            "position_y_source_units": {
+              "title": "Position Y Source Units",
+              "type": "number"
+            },
+            "queue_delay_ms": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Queue Delay Ms"
+            },
+            "slot_index": {
+              "minimum": 0,
+              "title": "Slot Index",
+              "type": "integer"
+            },
+            "slot_reference": {
+              "title": "Slot Reference",
+              "type": "string"
+            },
+            "speed_source_units": {
+              "minimum": 0,
+              "title": "Speed Source Units",
+              "type": "number"
+            }
+          },
+          "required": [
+            "slot_reference",
+            "slot_index",
+            "position_x_source_units",
+            "position_y_source_units",
+            "speed_source_units"
+          ],
+          "title": "TosVehicleSlotState",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "A bounded replay frame joined by timestamp and vehicle-slot index.",
+      "properties": {
+        "point": {
+          "$ref": "#/$defs/TosReplayPoint"
+        },
+        "rsus": {
+          "items": {
+            "$ref": "#/$defs/TosRsuSourceState"
+          },
+          "title": "Rsus",
+          "type": "array"
+        },
+        "run_key": {
+          "title": "Run Key",
+          "type": "string"
+        },
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "total_active_vehicle_slots": {
+          "minimum": 0,
+          "title": "Total Active Vehicle Slots",
+          "type": "integer"
+        },
+        "trace_file": {
+          "title": "Trace File",
+          "type": "string"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        },
+        "vehicles": {
+          "items": {
+            "$ref": "#/$defs/TosVehicleSlotState"
+          },
+          "title": "Vehicles",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_key",
+        "source_file",
+        "trace_file",
+        "point",
+        "vehicles",
+        "rsus",
+        "total_active_vehicle_slots",
+        "truncated"
+      ],
+      "title": "TosReplayFrame",
+      "type": "object"
+    },
+    "TosTaskSample": {
+      "$defs": {
+        "TaskClass": {
+          "description": "Supported task classes in the Phase 1 seed schema.",
+          "enum": [
+            "T1",
+            "T2",
+            "T3",
+            "unknown"
+          ],
+          "title": "TaskClass",
+          "type": "string"
+        },
+        "TosTaskObservation": {
+          "additionalProperties": false,
+          "description": "One active per-task array entry, kept distinct from canonical TaskRecord.",
+          "properties": {
+            "deadline_met": {
+              "title": "Deadline Met",
+              "type": "boolean"
+            },
+            "deadline_ms": {
+              "exclusiveMinimum": 0,
+              "title": "Deadline Ms",
+              "type": "number"
+            },
+            "latency_ms": {
+              "minimum": 0,
+              "title": "Latency Ms",
+              "type": "number"
+            },
+            "run_key": {
+              "title": "Run Key",
+              "type": "string"
+            },
+            "source_file": {
+              "title": "Source File",
+              "type": "string"
+            },
+            "source_index": {
+              "title": "Source Index",
+              "type": "string"
+            },
+            "task_class": {
+              "$ref": "#/$defs/TaskClass"
+            },
+            "task_reference": {
+              "title": "Task Reference",
+              "type": "string"
+            },
+            "task_slot": {
+              "minimum": 0,
+              "title": "Task Slot",
+              "type": "integer"
+            },
+            "time_index": {
+              "minimum": 0,
+              "title": "Time Index",
+              "type": "integer"
+            },
+            "vehicle_slot": {
+              "minimum": 0,
+              "title": "Vehicle Slot",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "task_reference",
+            "run_key",
+            "time_index",
+            "task_slot",
+            "vehicle_slot",
+            "task_class",
+            "deadline_met",
+            "latency_ms",
+            "deadline_ms",
+            "source_file",
+            "source_index"
+          ],
+          "title": "TosTaskObservation",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded read-only sample from a per-task showcase file.",
+      "properties": {
+        "deadline_consistency_verified": {
+          "title": "Deadline Consistency Verified",
+          "type": "boolean"
+        },
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/TosTaskObservation"
+          },
+          "title": "Observations",
+          "type": "array"
+        },
+        "run_key": {
+          "title": "Run Key",
+          "type": "string"
+        },
+        "sample_limit": {
+          "exclusiveMinimum": 0,
+          "title": "Sample Limit",
+          "type": "integer"
+        },
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "total_active_entries": {
+          "minimum": 0,
+          "title": "Total Active Entries",
+          "type": "integer"
+        },
+        "truncated": {
+          "title": "Truncated",
+          "type": "boolean"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_key",
+        "source_file",
+        "observations",
+        "total_active_entries",
+        "sample_limit",
+        "truncated",
+        "deadline_consistency_verified"
+      ],
+      "title": "TosTaskSample",
+      "type": "object"
+    },
+    "TosValidationReport": {
+      "$defs": {
+        "TosFindingSeverity": {
+          "description": "Severity for package-specific validation findings.",
+          "enum": [
+            "info",
+            "warning",
+            "error"
+          ],
+          "title": "TosFindingSeverity",
+          "type": "string"
+        },
+        "TosIntegrationCapabilities": {
+          "additionalProperties": false,
+          "description": "Evidenced read-only features of this package adapter.",
+          "properties": {
+            "asynchronous_launch": {
+              "default": false,
+              "title": "Asynchronous Launch",
+              "type": "boolean"
+            },
+            "canonical_task_conversion": {
+              "default": false,
+              "title": "Canonical Task Conversion",
+              "type": "boolean"
+            },
+            "direct_launch": {
+              "default": false,
+              "title": "Direct Launch",
+              "type": "boolean"
+            },
+            "evaluation_summary_import": {
+              "default": true,
+              "title": "Evaluation Summary Import",
+              "type": "boolean"
+            },
+            "infrastructure_metric_mapping": {
+              "default": false,
+              "title": "Infrastructure Metric Mapping",
+              "type": "boolean"
+            },
+            "instrumented_historical_replay": {
+              "default": true,
+              "title": "Instrumented Historical Replay",
+              "type": "boolean"
+            },
+            "per_task_showcase_inspection": {
+              "default": true,
+              "title": "Per Task Showcase Inspection",
+              "type": "boolean"
+            },
+            "standard_bundle_conversion": {
+              "default": false,
+              "title": "Standard Bundle Conversion",
+              "type": "boolean"
+            },
+            "trip_metrics": {
+              "default": false,
+              "title": "Trip Metrics",
+              "type": "boolean"
+            }
+          },
+          "title": "TosIntegrationCapabilities",
+          "type": "object"
+        },
+        "TosPackageInventory": {
+          "additionalProperties": false,
+          "description": "Counts of artifact types in a TOS Data package.",
+          "properties": {
+            "evaluation_rows": {
+              "minimum": 0,
+              "title": "Evaluation Rows",
+              "type": "integer"
+            },
+            "instrumented_summary_files": {
+              "minimum": 0,
+              "title": "Instrumented Summary Files",
+              "type": "integer"
+            },
+            "perstep_files": {
+              "minimum": 0,
+              "title": "Perstep Files",
+              "type": "integer"
+            },
+            "pertask_files": {
+              "minimum": 0,
+              "title": "Pertask Files",
+              "type": "integer"
+            },
+            "trace_files": {
+              "minimum": 0,
+              "title": "Trace Files",
+              "type": "integer"
+            },
+            "training_csv_files": {
+              "minimum": 0,
+              "title": "Training Csv Files",
+              "type": "integer"
+            },
+            "training_record_files": {
+              "minimum": 0,
+              "title": "Training Record Files",
+              "type": "integer"
+            },
+            "training_summary_files": {
+              "minimum": 0,
+              "title": "Training Summary Files",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "evaluation_rows",
+            "training_csv_files",
+            "training_summary_files",
+            "perstep_files",
+            "pertask_files",
+            "instrumented_summary_files",
+            "trace_files",
+            "training_record_files"
+          ],
+          "title": "TosPackageInventory",
+          "type": "object"
+        },
+        "TosValidationFinding": {
+          "additionalProperties": false,
+          "description": "Machine-readable TOS package validation finding.",
+          "properties": {
+            "affected_capabilities": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Affected Capabilities",
+              "type": "array"
+            },
+            "blocks_import": {
+              "default": false,
+              "title": "Blocks Import",
+              "type": "boolean"
+            },
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "field": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Field"
+            },
+            "file": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "File"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            },
+            "row": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Row"
+            },
+            "severity": {
+              "$ref": "#/$defs/TosFindingSeverity"
+            }
+          },
+          "required": [
+            "code",
+            "severity",
+            "message"
+          ],
+          "title": "TosValidationFinding",
+          "type": "object"
+        },
+        "TosValidationStatus": {
+          "description": "Overall package validation status.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "TosValidationStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Read-only package inspection and import-readiness report.",
+      "properties": {
+        "adapter_version": {
+          "default": "0.1.0",
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/TosIntegrationCapabilities"
+        },
+        "engine_versions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Engine Versions",
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/TosValidationFinding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "inspected_at": {
+          "format": "date-time",
+          "title": "Inspected At",
+          "type": "string"
+        },
+        "inventory": {
+          "$ref": "#/$defs/TosPackageInventory"
+        },
+        "may_import_summaries": {
+          "title": "May Import Summaries",
+          "type": "boolean"
+        },
+        "package_commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Package Commit"
+        },
+        "package_fingerprint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Package Fingerprint"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TosValidationStatus"
+        }
+      },
+      "required": [
+        "status",
+        "may_import_summaries",
+        "package_fingerprint",
+        "package_commit",
+        "engine_versions",
+        "inventory",
+        "findings",
+        "inspected_at"
+      ],
+      "title": "TosValidationReport",
+      "type": "object"
+    },
     "TrafficObservationRecord": {
       "additionalProperties": false,
       "description": "Canonical traffic observation record.",

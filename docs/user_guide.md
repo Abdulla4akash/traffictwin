@@ -1,6 +1,9 @@
 # User Guide
 
-TrafficTwin is currently an import-first Streamlit prototype. It supports synthetic fixtures and imported historical bundles. It does not run Randy/VEC, SUMO, live Manchester data, or near-live feeds.
+TrafficTwin is an import-first Streamlit prototype. It supports repository-contained synthetic
+fixtures, standard imported historical bundles, and optional read-only inspection of Randy's
+separately supplied TOS Data result package. It does not run Randy/VEC or SUMO and does not provide
+live Manchester or near-live feeds.
 
 ## Launching The UI
 
@@ -34,7 +37,8 @@ Use Home to check:
 - capability manifest;
 - prototype limitations.
 
-Warning: direct simulator launch, live data, and Randy/SUMO integration are not implemented. The capability manifest must show direct launch as unsupported for the default adapter.
+Warning: direct simulator launch, live data, and full Randy/SUMO integration are not implemented.
+The generic adapter and TOS result reader both report direct launch as unsupported.
 
 ## Scenario Builder
 
@@ -70,6 +74,43 @@ Steps:
 Findings include stable code, severity, file, row, field, message, affected capabilities, and whether processing may continue.
 
 Warning: a rejected bundle must not be used in Run Overview, comparison, evidence, or diagnostics as if it were valid.
+
+## TOS Data Import
+
+The `TOS Data Import` page is an optional, read-only workflow for the separately checked-out result
+package supplied by Randy. Install the optional dependency first:
+
+```bash
+python -m pip install -e ".[dev,tos]"
+```
+
+Then:
+
+1. Open `TOS Data Import` and enter the local package directory.
+2. Select **Inspect Package** for a structural inventory or **Deep Validate NPZ Contracts** for
+   archive key/shape checks and JSON-summary reconciliation.
+3. Review the package commit, fingerprint, engine version, findings, and capability boundary.
+4. Optionally import evaluation summaries into a separate SQLite registry. Repeated import is
+   idempotent.
+5. Filter the evaluation table, select a run, and inspect source-provided completion, latency, and
+   action-share metrics.
+6. For matched showcase runs, inspect a historical replay frame or a bounded per-arrival task
+   sample.
+7. Download the partial EvidencePack, DiagnosticReport, or aggregate provenance trace.
+
+Important limitations:
+
+- `completion` is presented as source-defined deadline success per arrival, not eventual physical
+  completion.
+- source mean latency includes deadline-missing arrivals and may include backlog delay.
+- `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent` are shown only as unresolved raw source
+  fields. They are not TrafficTwin queue, utilisation, or capacity metrics.
+- vehicle entries are time-indexed array slots, not persistent canonical vehicle IDs.
+- no trip, SUMO, per-vehicle tier, action-target, or link-quality evidence is invented.
+- this is imported historical simulation output, not live data.
+
+The page does not convert the package to a standard TrafficTwin run bundle. See
+[integration/tos_data_adapter.md](integration/tos_data_adapter.md) for the exact supported boundary.
 
 ## Reading Validation Findings
 

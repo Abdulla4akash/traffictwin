@@ -1,92 +1,102 @@
-# Phase 6 Discovery Decision
+# Phase 6 Integration Decision
 
 Decision date: 2026-07-18
 
 ## Decision
 
-Phase 6A discovery is reopened and updated because Randy's `TOS Data` package is now available in
-`external/tos-data`.
+Implement the evidenced, read-only portion of TOS Data integration without waiting for the
+remaining RSU and execution-contract answers.
 
-Phase 6B real-adapter implementation is not started yet.
+The approved boundary is:
 
-Reason: the data package confirms useful result schemas, but several field semantics, units,
-fixture permissions, and the execution contract remain unresolved. Implementing a converter before
-those points are confirmed would require guessing.
+- validate the external package and documented schemas;
+- import the 300 evaluation summaries as explicitly source-provided metric collections;
+- register source experiments and runs idempotently;
+- expose bounded per-step replay and per-task showcase inspection;
+- build partial EvidencePacks and let the unchanged rules report insufficient evidence;
+- provide aggregate-level source-row provenance;
+- preserve ambiguous RSU arrays as raw source values only.
 
-## What Is Confirmed
+This is not approval for a full Randy/VEC canonical adapter, SUMO adapter, or launcher.
 
-- Randy has provided access to a real VEC task-offloading results data package.
-- The package commit inspected is `d27294ef5213e6a20f55632448bd20f5a76a45ab`.
-- The package documents engine version `v2_post_nrsus_fix`.
-- `evals/eval_results_master.csv` contains 300 evaluation summary rows.
-- Training CSV, greedy-eval JSON, machine-provenance text, and training-record Markdown schemas are
-  inspectable.
-- Instrumented per-step NPZ files expose per-second task aggregates, per-vehicle actions/queues,
-  and per-RSU arrays.
-- Instrumented per-task NPZ files expose full per-arrival logs for 6 showcase runs.
-- Trace NPZ files expose Manchester mobility positions, speeds, masks, RSU coordinates, and trace
-  metadata.
+## Evidence Supporting Implementation
 
-## What Is Not Confirmed
+- Package commit inspected: `d27294ef5213e6a20f55632448bd20f5a76a45ab`.
+- All 300 evaluation rows use engine `v2_post_nrsus_fix`.
+- The package documents evaluation summary meanings and units.
+- All 60 per-step NPZ files share the expected key contract.
+- All 6 per-task NPZ files share the expected key contract.
+- All 5 trace NPZ files share the expected key contract.
+- The 60 instrumented JSON summaries reconcile with matching evaluation rows.
+- Across all active per-task entries, `0/1/2` maps consistently to T1/T2/T3 and `task_met`
+  matches the package deadlines.
 
-- The runnable `vec_env` repository and its `docs/REPRODUCING.md` commands.
-- Direct launch or asynchronous job invocation.
-- Source-code or Randy confirmation of the strongly inferred `task_type` mapping: `0 -> T1`, `1 -> T2`, `2 -> T3`.
-- Source-code or Randy confirmation that `task_met` means deadline-met completion.
-- Utilisation or backlog normalisation for `rsu_busy_ms`.
-- Whether `rsu_load` is active work, backlog, queue length, or another pressure counter.
-- Source-code or Randy confirmation of the strongly inferred trace units.
-- Per-vehicle tier evidence required for higher-confidence R1.
-- Trip/journey-time outputs.
-- Raw SUMO XML/config files.
-- Permission to commit small sanitised real-schema fixtures.
+The last point is strong empirical evidence suitable for read-only inspection. TrafficTwin still
+does not map `task_met` to eventual physical completion.
 
 ## Capability Decision
 
-| Capability | Decision | Evidence |
+| Capability | State | Reason |
 |---|---|---|
-| Direct launch | `false` | Data package has no complete executable command contract. |
-| Asynchronous launch | `false` | Training records mention CSF3/SLURM history, but no runnable job interface is present. |
-| Standard TrafficTwin run-bundle import | `false` | Randy files are not standard TrafficTwin bundles yet. |
-| Offline result conversion | `unknown` | Plausible from NPZ/JSON/CSV schemas, but needs ambiguity resolution and implementation. |
-| Evaluation summary import | `unknown` | CSV schema is confirmed, but using precomputed external metrics requires a carefully labelled summary path. |
-| Task arrival multiplier | `unknown` | Training records mention task-generation settings, but no safe config/invocation contract is present. |
-| Workload class mix | `unknown` | Task mix is documented in summaries; external control is not confirmed. |
-| Workload ordering | `unknown` | Not evidenced. |
-| Vehicle count | `unknown` | Trace sizes and gridlock env variables are documented, but safe external control is not confirmed. |
-| Vehicle tier mix | `unknown` | Training records mention fleet probabilities; safe external control is not confirmed. |
-| RSU count | `unknown` | RSU counts are visible in traces; placement/control is not confirmed. |
-| RSU capacity | `unknown` | `rsu_max_concurrent` appears in JSON; configurable capacity semantics are not confirmed. |
-| RSU placement | `unknown` | `rsu_xy` exists in traces; safe control is not confirmed. |
-| RSU failure | `unknown` | Not evidenced. |
-| Action toggles | `unknown` | Action shares exist; enabling/disabling actions is not evidenced. |
-| Signal timing | `unknown` | No SUMO config/control files present. |
-| Lane closure | `unknown` | No SUMO config/control files present. |
+| Evaluation-summary import | supported | Documented CSV contract and engine version validate. |
+| Instrumented historical replay | supported | Per-step and trace arrays align by time and padded slot. |
+| Per-task showcase inspection | supported | Bounded, read-only inspection with explicit deadline semantics. |
+| Source-summary comparison/aggregation | supported | Uses existing comparison/aggregation with a distinct metric version. |
+| Partial EvidencePack and diagnostics | supported | Existing rules consume the pack unchanged and report evidence gaps. |
+| Aggregate provenance | supported | Exact CSV row, package fingerprint, run, actor, and engine are available. |
+| Standard TrafficTwin bundle import | unsupported | The external package is not a run bundle. |
+| Canonical task conversion | unsupported | Eventual completion and persistent vehicle identity are not established. |
+| Infrastructure metric mapping | unsupported | RSU field semantics and denominator are unresolved. |
+| Trip/journey-time integration | unsupported | No trip output is present. |
+| Direct launch | unsupported | No tested headless execution contract exists. |
+| Asynchronous launch | unsupported | No locally callable job interface exists. |
 
-## Implementation Decision
+Scenario-control capabilities remain `unknown`; data presence does not prove external control.
 
-Do not implement yet:
+## Metric Policy
 
-- direct Randy/VEC launcher;
-- SUMO XML adapters;
-- dashboard claims of live or directly runnable Randy integration;
-- changes to existing metrics or diagnostic rules.
+Source summaries use metric implementation version
+`tos-source-summary-v2_post_nrsus_fix-1.0`. Available values are marked as source-provided and not
+TrafficTwin recomputations. Metrics with incompatible definitions remain unavailable, including:
 
-Recommended next implementation, after Randy confirms the open mapping questions:
+- TrafficTwin task completion rate; source deadline success uses the separate stable key
+  `tos.task.deadline_success.rate`;
+- generated/completed counts;
+- eventual incomplete rate;
+- latency P50/P95;
+- energy per completed task;
+- infrastructure, traffic, and trip metrics.
 
-- `feat(integration): convert randy instrumented showcase runs to standard bundles`
+No Phase 3 formula was changed.
 
-This should be an offline adapter/converter only and should target one small sanitised showcase run
-before attempting broader campaign import.
+## Diagnostic Policy
 
-## Approval Gate For Phase 6B
+The source-summary EvidencePack marks task evidence partial and infrastructure/trip evidence
+unavailable. The unchanged rules therefore produce R0 evidence qualification and
+`insufficient_evidence` for R1-R3 on ordinary source-summary runs. No real-data diagnostic claim is
+enabled by this increment.
 
-Before writing adapter code, obtain:
+## Deferred Until Confirmation
 
-- confirmation of inferred task-type encoding;
-- confirmation of inferred `task_met` semantics;
-- `rsu_busy_ms` and `rsu_load` definitions;
-- coordinate/speed units;
-- confirmation of vehicle-slot ID stability;
-- fixture permission;
-- and preferably access to the `vec_env` reproduction documentation.
+- `rsu_load` definition;
+- `rsu_busy_ms` denominator and interpretation;
+- `rsu_max_concurrent` meaning;
+- trace coordinate and speed units for canonical conversion;
+- per-vehicle tier, link quality, action availability, and target evidence;
+- trip/SUMO artifacts;
+- sanitised real-fixture permission;
+- `vec_env` execution contract.
+
+## Repository Policy
+
+The external package remains outside `diss/`. Tests generate a tiny synthetic-schema package at
+runtime. No Randy data, private path, checkpoint, credential, or claimed research result is added
+to TrafficTwin.
+
+## Related Documents
+
+- [TOS Data integration](tos_data_adapter.md)
+- [Artifact inventory](randy_artifact_inventory.md)
+- [Schema mapping](randy_schema_mapping.md)
+- [Execution contract](randy_execution_contract.md)
+- [Gap analysis](randy_gap_analysis.md)

@@ -14,6 +14,12 @@ source .venv/bin/activate
 python -m pip install -e ".[dev]"
 ```
 
+To develop or inspect the optional external TOS Data result reader:
+
+```bash
+python -m pip install -e ".[dev,tos]"
+```
+
 Runtime dependencies are declared in [pyproject.toml](../pyproject.toml):
 
 - Pydantic v2
@@ -21,6 +27,7 @@ Runtime dependencies are declared in [pyproject.toml](../pyproject.toml):
 - Typer
 - Streamlit
 - Plotly
+- NumPy only in the optional `tos` extra, for bounded NPZ inspection
 
 Development dependencies:
 
@@ -55,6 +62,7 @@ src/traffictwin/
 ├── evidence/      # Evidence availability and EvidencePack builder
 ├── experiments/   # experiment-level grouping placeholders
 ├── ingestion/     # bundle loader, manifest, canonicalisation, fingerprints
+├── integration/   # evidenced source-specific boundaries; read-only TOS results implemented
 ├── metrics/       # metric definitions, calculators, comparison, aggregation
 ├── provenance/    # read-only trace DAG, source-row preview, JSON/Markdown export
 ├── rules/         # deterministic diagnostic rules R0-R3
@@ -149,7 +157,15 @@ data, or launch behavior.
 7. Generate a standard TrafficTwin run bundle or canonical records that pass Phase 2 validation.
 8. Keep unsupported capabilities `false` or `unknown`.
 
-Randy/VEC and SUMO adapters are currently blocked by missing artifacts.
+The read-only `integration.tos` boundary is implemented for the evidenced evaluation-summary and
+instrumented-array contracts. It must remain separate from `generic_csv`. A full canonical
+Randy/VEC or SUMO adapter remains blocked by unresolved RSU semantics, source units, stable entity
+identifiers, trip outputs, and an execution contract.
+
+TOS integration tests use generated schema-compatible NPZ/CSV/JSON samples. Do not copy Randy's raw
+package into this repository without explicit sanitised-fixture permission. Any future mapping from
+`rsu_load`, `rsu_busy_ms`, or `rsu_max_concurrent` requires source-author confirmation and new
+contract tests.
 
 ## Registry Migration Principles
 
@@ -205,6 +221,8 @@ Use clear conventional-style messages, for example:
 | Metric shows unavailable | Required table/field missing | Check evidence availability and reason codes. |
 | R3 insufficient | Single-run EvidencePack lacks experiment-level metrics | Use experiment-level evidence in future work. |
 | Direct launch disabled | No adapter reports support | Keep export/import workflow. |
+| TOS NPZ command says NumPy is required | Optional `tos` extra is absent | Install `.[dev,tos]`; the core generic-bundle workflow remains NumPy-free. |
+| TOS RSU metrics are unavailable | Source field semantics are unresolved | Inspect raw bounded source state; do not relabel it as utilisation or queue length. |
 
 ## Standalone Product Development
 

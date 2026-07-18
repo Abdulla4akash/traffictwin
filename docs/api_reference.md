@@ -299,6 +299,65 @@ Primary imports:
 These interfaces create synthetic bundles, workspaces, reports, and launch plans. They do not add
 new metric formulas or diagnostic rules.
 
+## TOS Data Result Interfaces
+
+The optional read-only integration is exported from `traffictwin.integration.tos`. NPZ operations
+require the `tos` dependency extra.
+
+```python
+from traffictwin.integration.tos import (
+    build_tos_evidence_pack,
+    build_tos_metric_trace,
+    build_tos_rule_trace,
+    import_evaluation_summaries,
+    inspect_tos_package,
+    load_replay_frame,
+    load_task_sample,
+    metric_collection_from_evaluation,
+    read_evaluation_runs,
+    tos_metric_catalogue,
+    validate_tos_package,
+)
+```
+
+Principal models:
+
+- `TosEvaluationRun`: one strictly parsed evaluation-master row with stable TrafficTwin run and
+  experiment references.
+- `TosValidationReport`: package inventory, stable findings, source commit/fingerprint, engine
+  versions, import gate, and explicit capability boundary.
+- `TosReplayFrame`: one bounded, time-indexed historical frame with source vehicle slots and raw RSU
+  fields.
+- `TosTaskSample`: bounded per-arrival observations retaining NPZ indices and deadline-success
+  semantics.
+- `TosImportSummary`: created/existing registry counts for an idempotent summary import.
+
+Key functions:
+
+- `inspect_tos_package(path, deep=False) -> TosValidationReport`
+- `validate_tos_package(path, deep=True) -> TosValidationReport`
+- `read_evaluation_runs(path) -> list[TosEvaluationRun]`
+- `metric_collection_from_evaluation(run, package_fingerprint, clock=...) -> MetricCollection`
+- `tos_metric_catalogue() -> dict[str, MetricDefinition]`
+- `build_tos_evidence_pack(run, report, metrics, clock=...) -> EvidencePack`
+- `import_evaluation_summaries(path, registry_path, validation_report=None, clock=...) -> TosImportSummary`
+- `load_replay_frame(path, run_key, index, max_vehicles=25) -> TosReplayFrame`
+- `load_task_sample(path, run_key, limit=25) -> TosTaskSample`
+- `build_tos_metric_trace(...) -> ProvenanceTrace`
+- `build_tos_rule_trace(...) -> ProvenanceTrace`
+
+The metric builder wraps source-provided aggregates using distinct implementation/version metadata;
+it does not invoke Phase 3 calculators over absent canonical rows. Source deadline success has its
+own definitions, `tos.task.deadline_success.rate` and
+`tos.task.deadline_success.rate_by_class`; it is not relabelled as TrafficTwin physical completion.
+The EvidencePack is intentionally partial, so existing rules cannot treat unavailable completion,
+infrastructure, tier, trip, or temporal evidence as present. Source paths in registry records and
+exported traces are package-relative references.
+
+Limitations: no full canonical conversion, no RSU utilisation/queue mapping, no persistent vehicle
+identity, no SUMO/trip data, and no source-environment execution contract. See
+[integration/tos_data_adapter.md](integration/tos_data_adapter.md).
+
 Related documents:
 
 - [Developer guide](developer_guide.md)

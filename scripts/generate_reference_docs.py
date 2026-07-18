@@ -24,6 +24,13 @@ from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed, SeedDocument
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.integration.tos.metrics import tos_metric_catalogue
+from traffictwin.integration.tos.models import (
+    TosEvaluationRun,
+    TosReplayFrame,
+    TosTaskSample,
+    TosValidationReport,
+)
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricCollection
@@ -64,6 +71,10 @@ MODEL_TYPES = {
     "ProvenanceEdge": ProvenanceEdge,
     "ProvenanceTrace": ProvenanceTrace,
     "SourceRowPreview": SourceRowPreview,
+    "TosEvaluationRun": TosEvaluationRun,
+    "TosReplayFrame": TosReplayFrame,
+    "TosTaskSample": TosTaskSample,
+    "TosValidationReport": TosValidationReport,
     "RuleSetConfig": RuleSetConfig,
 }
 
@@ -114,6 +125,17 @@ CLI_COMMANDS = [
     ["provenance", "run"],
     ["provenance", "source"],
     ["provenance", "export"],
+    ["integration"],
+    ["integration", "tos"],
+    ["integration", "tos", "inspect"],
+    ["integration", "tos", "validate"],
+    ["integration", "tos", "runs"],
+    ["integration", "tos", "import"],
+    ["integration", "tos", "metrics"],
+    ["integration", "tos", "replay"],
+    ["integration", "tos", "task-sample"],
+    ["integration", "tos", "diagnose"],
+    ["integration", "tos", "provenance"],
 ]
 
 
@@ -144,11 +166,14 @@ def _schemas() -> dict[str, Any]:
 
 
 def _metric_catalogue() -> dict[str, Any]:
+    catalogue = {**metric_catalogue(), **tos_metric_catalogue()}
     return {
-        "_meta": _metadata("traffictwin.metrics.catalogue.metric_catalogue"),
+        "_meta": _metadata(
+            "traffictwin.metrics.catalogue.metric_catalogue and "
+            "traffictwin.integration.tos.metrics.tos_metric_catalogue"
+        ),
         "metrics": {
-            key: definition.model_dump(mode="json")
-            for key, definition in metric_catalogue().items()
+            key: definition.model_dump(mode="json") for key, definition in sorted(catalogue.items())
         },
     }
 

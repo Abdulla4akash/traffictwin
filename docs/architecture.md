@@ -1,6 +1,10 @@
 # TrafficTwin Architecture
 
-This document describes the implemented Phase 1-6A plus Provenance Explorer architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume runnable Randy/VEC, SUMO XML, Manchester sensor, near-live, true-live, or external launch support.
+This document describes the implemented standalone architecture, Provenance Explorer, and the
+evidence-gated read-only TOS Data integration. It is grounded in the current repository and the
+canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md).
+It does not assume a runnable Randy/VEC environment, SUMO XML, Manchester sensors, near-live,
+true-live, or external launch support.
 
 ## Architectural Position
 
@@ -34,6 +38,7 @@ flowchart TD
         Diagnostics[diagnostics: DiagnosticReport]
         Provenance[provenance: read-only trace DAG]
         Storage[storage: SQLite metadata registry]
+        TosIntegration[integration.tos: evidenced source-result boundary]
     end
 
     CLI --> CoreLibrary
@@ -53,6 +58,9 @@ flowchart TD
     Ingestion --> Storage
     Metrics --> Storage
     Evidence --> Storage
+    TosIntegration --> Metrics
+    TosIntegration --> Evidence
+    TosIntegration --> Storage
 ```
 
 ## Layer Responsibilities
@@ -73,6 +81,7 @@ flowchart TD
 | Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
 | UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
 | Product UX | `src/traffictwin/ui/pages/` and `src/traffictwin/ui/components/` | Scenario Builder, Experiment Manager, Reports, Search, Settings, About, replay controls, and reusable presentation helpers. |
+| TOS integration | `src/traffictwin/integration/tos/` | Read-only schema validation, source-summary import, bounded replay/task inspection, partial evidence, and aggregate provenance for the separately supplied TOS Data package. |
 
 ## Dependency Direction
 
@@ -118,7 +127,10 @@ Canonical records are Pydantic models in [src/traffictwin/canonical/records.py](
 - `TripRecord`
 - `IncidentRecord`
 
-Every record preserves `source_file` and `source_row`. Missing optional source fields remain absent or null. Phase 6A does not store full canonical rows in SQLite.
+Every record preserves `source_file` and `source_row`. Missing optional source fields remain absent
+or null. Full canonical rows are not stored in SQLite. The TOS source-summary path does not create
+canonical records because source task counts, task identities, RSU semantics, and units are not yet
+sufficiently evidenced; it records that boundary explicitly instead.
 
 ## Validation
 
@@ -242,17 +254,41 @@ All calculations come from library services. UI modules prepare chart/table data
 
 ```mermaid
 flowchart LR
-    External[Randy/VEC, SUMO, sensors] --> Adapter[Future evidenced adapter]
-    Adapter --> StandardBundle[Standard TrafficTwin run bundle]
-    StandardBundle --> ExistingPipeline[Existing validation pipeline]
-    ExistingPipeline --> Metrics[Existing metrics]
-    Metrics --> Evidence[Existing EvidencePack]
-    Evidence --> Diagnostics[Existing diagnostics]
+    TOS[TOS Data result package] --> TOSReader[integration.tos readers and validation]
+    TOSReader --> Summary[Source-summary MetricCollection]
+    TOSReader --> Views[Bounded replay and task views]
+    Summary --> PartialEvidence[Partial EvidencePack]
+    PartialEvidence --> ExistingRules[Existing R0-R3 rules]
+    Summary --> AggregateTrace[Aggregate provenance]
+    Summary --> Registry[(SQLite registry)]
+
+    Other[Future Randy/SUMO/sensor sources] --> FutureAdapter[Future evidenced adapter]
+    FutureAdapter --> StandardBundle[Standard TrafficTwin run bundle]
+    StandardBundle --> ExistingPipeline[Existing validation and canonical pipeline]
 ```
 
-Updated Phase 6A discovery found Randy's external `TOS Data` result package under
-`external/tos-data`. Those files are real result artifacts, but they are not standard TrafficTwin
-run bundles and they do not provide a runnable environment contract. Future adapters must:
+Phase 6A discovery found Randy's external `TOS Data` result package under `external/tos-data`.
+TrafficTwin now has a conservative, package-specific read-only integration for the contracts that
+can be established from those files and repository evidence:
+
+- evaluation-master rows become versioned source-summary metric collections;
+- source JSON summaries are reconciled against matching evaluation rows;
+- NPZ archives are inspected with bounded, non-pickle loading and explicit key/shape checks;
+- matched arrays support historical replay and bounded per-arrival inspection;
+- registry import stores run metadata, source-summary metrics, and partial EvidencePacks
+  idempotently;
+- diagnostics continue to use the existing EvidencePack-only rules and therefore remain
+  insufficient where canonical evidence is absent;
+- provenance reaches the exact evaluation CSV row, package commit, package fingerprint, run,
+  experiment grouping, actor, and engine version.
+
+The package is not a standard TrafficTwin run bundle and does not provide a runnable environment
+contract. `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent` remain source fields with unresolved
+semantics; they are not relabelled as queue length, utilisation, or capacity. Vehicle-array slots
+are time-indexed source slots rather than persistent vehicle identifiers. The integration also does
+not fabricate scenario-seed snapshots, task counts, trip records, action targets, or SUMO data.
+
+Future canonical adapters must:
 
 - declare supported schemas and units;
 - preserve raw sources;
@@ -261,7 +297,9 @@ run bundles and they do not provide a runnable environment contract. Future adap
 - produce standard TrafficTwin bundles or canonical records through existing validation;
 - keep unsupported capabilities `unknown` or `false`.
 
-The generic CSV adapter must not accumulate Randy-specific assumptions.
+The generic CSV adapter does not contain TOS-specific assumptions. The current boundary and
+remaining questions are documented in
+[integration/tos_data_adapter.md](integration/tos_data_adapter.md).
 
 ## Standalone Product Layer
 
@@ -294,6 +332,8 @@ launch support.
 
 - Imported files are read as data, not executed.
 - ZIP loading rejects path traversal, absolute paths, and symlinks.
+- TOS NPZ inspection rejects unsafe archive members, disables pickle loading, limits decompressed
+  content, and loads only documented keys needed for bounded views.
 - Raw source fixtures remain unchanged.
 - SQLite is local metadata storage, not a credential store.
 - Randy's external `TOS Data` package is kept outside `diss/`; raw external files should not be
@@ -312,6 +352,8 @@ See [security_and_privacy.md](security_and_privacy.md).
 | New diagnostic rule | Add EvidencePack inputs, rule config, rule model output, tests, docs. |
 | Provenance trace root | Add builder/query support without recomputing metrics or reading unsafe paths. |
 | New Streamlit page | Add service-backed page; no duplicated formulas. |
+| Full TOS canonical adapter | Confirm RSU semantics, source units, stable vehicle identities, and task identifiers before mapping source arrays to canonical tables. |
+| TOS/SUMO launcher | Require a tested, documented headless execution contract; current capability remains unsupported. |
 
 ## Product Polish Layer
 
@@ -331,7 +373,6 @@ flowchart LR
 Scenario Builder uses `SyntheticScenarioConfig` and `write_synthetic_bundle`; Experiment Manager
 uses registry and workspace metadata; Reports calls `traffictwin.reporting`; Search performs local
 metadata search. None of these pages implement new metrics, rules, adapters, live data, or launchers.
-| Real adapter | Wait for real artifacts, schemas, units, and approval after discovery. |
 
 ## Related Documents
 

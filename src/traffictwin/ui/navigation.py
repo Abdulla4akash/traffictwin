@@ -8,7 +8,7 @@ from traffictwin.ui.labels import PAGE_DESCRIPTIONS, UiPage
 
 PAGE_GROUPS: dict[str, list[UiPage]] = {
     "Workspace": [UiPage.HOME, UiPage.EXPERIMENT_MANAGER, UiPage.REPORTS, UiPage.SEARCH],
-    "Workflow": [UiPage.SCENARIO, UiPage.BUNDLE_IMPORT, UiPage.COMPARE],
+    "Workflow": [UiPage.SCENARIO, UiPage.BUNDLE_IMPORT, UiPage.TOS_DATA, UiPage.COMPARE],
     "Analysis": [
         UiPage.RUN_OVERVIEW,
         UiPage.OPERATIONS,

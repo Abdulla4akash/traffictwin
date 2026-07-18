@@ -65,6 +65,11 @@ metric results, metric definitions, canonical evidence, validation findings, and
 accepted run bundle is available. Recommendations and alternatives are displayed as rule outputs,
 not as source evidence.
 
+For TOS source-summary EvidencePacks, aggregate provenance can reach the exact evaluation CSV row,
+package commit/fingerprint, run, source experiment grouping, actor, and engine version. Canonical
+task and infrastructure links remain explicit unavailable nodes. R0 therefore qualifies the
+evidence and R1-R3 remain `insufficient_evidence`; the integration does not reinterpret rule logic.
+
 ## JSON Policy
 
 Reports serialise with Pydantic JSON. Golden tests use fixed clocks and projections that exclude volatile timestamps.
@@ -81,3 +86,4 @@ No `NaN`, infinity, invented probabilities, or causal-proof language is allowed.
 - [Standalone demo](standalone_demo.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [API reference](api_reference.md)
+- [TOS Data read-only integration](integration/tos_data_adapter.md)

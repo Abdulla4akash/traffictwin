@@ -2,7 +2,10 @@
 
 TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if analysis. It defines versioned scenario seeds, imports standard run bundles, validates and canonicalises source files, computes deterministic metrics, builds EvidencePacks, compares scenarios, evaluates deterministic diagnostic hypotheses, and traces results back to source rows through the Provenance Explorer. OffloadLens is the VEC analysis module inside the platform.
 
-Status: standalone `v0.1.0` research prototype. The repository is usable without Randy's VEC environment, SUMO artifacts, external services, or live feeds. All bundled demonstration data is synthetic.
+Status: standalone `v0.1.0` research prototype. The repository is usable without Randy's VEC
+environment, SUMO artifacts, external services, or live feeds. All bundled demonstration data is
+synthetic. An optional read-only integration can inspect and import Randy's separately supplied TOS
+Data results package when it is available locally.
 
 ## Current Scope
 
@@ -20,10 +23,12 @@ Implemented:
 - Streamlit UI over the tested library, including Scenario Builder, Experiment Manager, Reports,
   Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
+- Read-only TOS Data evaluation-summary import, NPZ contract validation, historical replay,
+  per-task inspection, partial EvidencePacks, and aggregate provenance.
 
 Not implemented:
 
-- Randy/VEC or SUMO adapters.
+- Standard Randy/VEC bundle conversion and SUMO adapters.
 - Direct simulator launch or asynchronous jobs.
 - Real Manchester sensor ingestion.
 - Near-live or true-live operation.
@@ -134,6 +139,22 @@ traffictwin report full .demo/bundles/stressed_demand \
 
 Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 
+Optional offline TOS Data inspection requires NumPy:
+
+```bash
+python -m pip install -e ".[dev,tos]"
+traffictwin integration tos inspect ../external/tos-data
+traffictwin integration tos validate ../external/tos-data
+traffictwin integration tos import ../external/tos-data \
+  --registry data/registry/traffictwin.sqlite
+traffictwin integration tos metrics ../external/tos-data \
+  tos:baseline:wd_am:uk2030:fs0
+```
+
+This path imports documented source summaries; it does not launch Randy's environment or enable
+unconfirmed RSU metrics. See
+[docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md).
+
 ## Architecture Overview
 
 TrafficTwin is deliberately layered. UI and CLI commands call service/library functions; calculations stay in deterministic library modules; external uncertainty stays behind adapters and capability manifests.
@@ -174,8 +195,9 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Report export | Implemented | Deterministic Markdown and standalone HTML. |
 | Streamlit UI | Implemented | Thin presentation layer. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
-| Randy/VEC integration | Blocked | No real artifacts, schemas, units, or commands present. |
-| SUMO integration | Blocked | No SUMO files or output samples present. |
+| TOS Data offline results | Implemented, partial | Source-summary import and replay inspection; no canonical conversion or launch. |
+| Full Randy/VEC integration | Blocked | RSU semantics, source units, execution contract, and fixture permission remain unresolved. |
+| SUMO integration | Blocked | No raw SUMO config/XML or trip output is available. |
 | Direct launch | Unsupported | Capability remains `false`. |
 | Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
 
@@ -219,6 +241,7 @@ The current test count and coverage are documented in [docs/reproducibility.md](
 │   ├── domain/
 │   ├── evidence/
 │   ├── ingestion/
+│   ├── integration/
 │   ├── metrics/
 │   ├── provenance/
 │   ├── reporting/
@@ -232,11 +255,18 @@ The current test count and coverage are documented in [docs/reproducibility.md](
 
 ## Data-Mode Disclaimer
 
-All repository-contained run data is synthetic unless a future imported bundle explicitly says otherwise. The UI supports synthetic fixtures, imported historical bundles, and historical replay over timestamps. It does not support true live data, near-live data, or real Manchester feeds.
+All repository-contained run data is synthetic unless an imported source explicitly says otherwise.
+The optional TOS Data package is an external simulation-results source and is labelled imported
+historical replay, not live Manchester data. The UI does not support true live or near-live data.
 
 ## External Integration Status
 
-Phase 6A discovery found no real Randy/VEC or SUMO artifacts in the repository. There are no real schemas, units, output files, notebooks, checkpoints, job scripts, launch commands, or runtime measurements to build against. Integration documents under [docs/integration/](docs/integration/) list what must be requested before adapter implementation.
+Phase 6A discovery inspected Randy's separately cloned TOS Data package. TrafficTwin now supports a
+conservative offline integration for its documented evaluation summaries and instrumented arrays.
+The source package is not committed here and is not a standard TrafficTwin run bundle. Full
+canonical conversion, RSU infrastructure metrics, SUMO support, and direct execution remain
+blocked. Integration evidence and remaining questions are documented under
+[docs/integration/](docs/integration/).
 
 ## Documentation Index
 
@@ -252,6 +282,7 @@ Start at [docs/index.md](docs/index.md). Key documents:
 - [docs/reproducibility.md](docs/reproducibility.md)
 - [docs/viva_guide.md](docs/viva_guide.md)
 - [docs/limitations_and_future_work.md](docs/limitations_and_future_work.md)
+- [docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md)
 
 ## Citation And Attribution Placeholder
 

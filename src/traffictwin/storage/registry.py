@@ -463,6 +463,20 @@ class Registry:
             )
             return False
 
+    def get_evidence_pack_json(self, pack_id: str) -> str:
+        """Retrieve an evidence-pack JSON payload by pack identifier."""
+
+        self.initialize()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM evidence_packs WHERE pack_id = ?",
+                (pack_id,),
+            ).fetchone()
+        if row is None:
+            msg = f"evidence pack not found: {pack_id}"
+            raise RegistryNotFoundError(msg)
+        return cast(str, row["payload_json"])
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row

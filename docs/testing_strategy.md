@@ -4,10 +4,10 @@ TrafficTwin uses a test pyramid: focused unit tests at the base, integration tes
 
 ## Current Snapshot
 
-Verified during this documentation pass:
+Verified after the read-only TOS integration increment:
 
-- 147 tests passed.
-- Coverage: 77%.
+- 183 tests passed.
+- Coverage: 76%.
 
 Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI
 workflows are partly covered through service tests, AppTest-style tests, and smoke commands rather
@@ -143,14 +143,33 @@ Standalone tests cover:
 - Typer CLI smoke tests for demo, report, and provenance commands;
 - HTML escaping and no absolute path leakage in reports.
 
+## TOS Integration Tests
+
+The optional read-only TOS integration is tested with a tiny package generated at test time. This
+preserves the supplied schema and representative contracts without copying Randy's raw files into
+TrafficTwin. Tests cover:
+
+- evaluation CSV and JSON-summary reconciliation;
+- supported engine/version gating;
+- NPZ member path, symlink, pickle, decompressed-size, key, and shape safety;
+- source-summary metric and partial EvidencePack construction;
+- unchanged R0-R3 behavior over incomplete evidence;
+- bounded replay and per-arrival inspection;
+- aggregate provenance to the source summary row;
+- registry persistence, conflict checks, and idempotent imports;
+- Typer and Streamlit service/AppTest workflows.
+
+An optional local smoke pass validates the separately checked-out package and confirms its Git
+worktree remains unchanged. Raw TOS files are not test fixtures and are not committed.
+
 ## Diagnostic Evaluation Limit
 
 The synthetic fault-injection precision/recall values are implementation checks over labelled synthetic cases. They are not evidence that R0-R3 are externally valid for Manchester, SUMO, or Randy/VEC runs.
 
-Current verified standalone product snapshot:
+Current verified repository snapshot:
 
-- tests: 168 passed;
-- coverage: 77%.
+- tests: 183 passed;
+- coverage: 76%.
 
 Related documents:
 

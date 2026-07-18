@@ -20,7 +20,8 @@ Open:
 4. What evidence is needed before R1 can use a T1-by-low-tier cross-tab rather than the current lower-confidence proxy?
 5. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
 6. Which files from Randy's `TOS Data` package may be committed as small sanitised fixtures?
-7. Should Phase 6B start with an offline converter for one matched instrumented showcase run before broader campaign import?
+7. After Randy answers the remaining field questions, should the next increment convert one matched
+   showcase into a standard bundle?
 8. Should future metric results store full contributing canonical-record references for selected aggregates, or is bounded source-row sampling sufficient for the dissertation demo?
 
 Resolved during Phase 3:
@@ -44,7 +45,11 @@ Resolved during Phase 6A:
 
 - The original repository did not contain real Randy/VEC or SUMO artifacts.
 - Randy has now supplied an external `TOS Data` package with real evaluation summaries, instrumented NPZ outputs, traces, and training records.
-- Phase 6B adapter implementation remains blocked until specific field semantics, units, fixture permissions, and execution contracts are supplied.
+- Evaluation summaries and instrumented NPZ schemas are sufficient for a conservative read-only
+  integration without interpreting RSU fields.
+- Vehicle array slots are time-local padded indices, not safe persistent vehicle IDs.
+- The read-only integration now validates/imports summaries, exposes replay/task samples, and
+  produces partial evidence and aggregate provenance.
 
 Resolved during documentation pass:
 
@@ -82,25 +87,19 @@ Resolved during Standalone Product phase:
 
 ## Questions For Randy
 
-1. Can Randy/source code confirm the inferred `task_type` encoding: `0 -> T1`, `1 -> T2`, `2 -> T3`?
-2. Can Randy/source code confirm that `task_met` means deadline-met completion per task arrival?
-3. Does `task_lat_ms` include backlog values for deadline missers, and should missed tasks be treated as incomplete in TrafficTwin?
-4. What is the intended normalisation for `rsu_busy_ms`, given it can exceed 1,000 ms within a 1-second timestep?
-5. What exactly does `rsu_load` represent: active concurrent work, queue length, backlog, capacity use, or another quantity?
-6. Can Randy/source code confirm the inferred units for trace `pos_x`, `pos_y`, `speed`, and `rsu_xy`?
-7. Is vehicle slot index stable enough to use as a vehicle ID within each trace?
-8. Is per-vehicle tier available in any file, array, or source code output?
-9. Are action availability, link quality, V2I target, or V2V target available anywhere?
-10. Are trip/journey-time outputs available outside the `TOS Data` package?
-11. Are SUMO `.sumocfg`, network, route, detector, queue, FCD XML, summary, or `tripinfo` outputs available if needed?
-12. Can the separate `vec_env` source repository or its `docs/REPRODUCING.md` be shared for execution-contract discovery?
-13. Which exact command or API produced the existing `TOS Data` outputs?
-14. Which scenario controls are genuinely configurable without editing environment code?
-15. Which small files may be committed to TrafficTwin as sanitised real-schema fixtures, and which must remain private?
+1. What exactly do `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent` represent, and what
+   denominator is valid for any pressure/utilisation interpretation?
+2. What are the confirmed units for `pos_x`, `pos_y`, `speed`, and `rsu_xy`?
+3. Is eventual physical completion tracked separately from deadline success?
+4. Are per-vehicle tier, action availability, link quality, V2I target, or V2V target available?
+5. Are trip/journey-time or raw SUMO outputs available outside this package?
+6. Can `vec_env/docs/REPRODUCING.md` or the tested command contract be shared?
+7. Which scenario controls are externally configurable without modifying environment code?
+8. Which small files may be committed as sanitised real-schema fixtures?
 
 ## Implementation Blockers
 
-- Real adapters require sample files and schema evidence.
+- Full canonical adapters require the remaining semantic and unit evidence.
 - Direct launch requires a documented invocation contract.
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load require source columns and units.
 - R1-R3 thresholds require synthetic calibration first and real calibration only after representative data is supplied.
@@ -109,11 +108,13 @@ Resolved during Standalone Product phase:
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility needs an adapter because the supplied lower-level files are NPZ/JSON, not standard bundle CSV.
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on confirmed Randy/SUMO mapping and expert review.
-- Phase 6B adapter implementation is blocked on remaining Randy field semantics, source units, fixture permission, and invocation contracts.
+- The read-only TOS integration is implemented; canonical conversion remains blocked on Randy field
+  semantics, source units, fixture permission, and invocation contracts.
 - Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
 - Exact row-level contribution lists for aggregate metrics remain a future design choice; current
   provenance provides aggregate-level traceability and source-row samples.
-- Real integration remains the next blocker for moving beyond synthetic demonstration.
+- Stronger canonical integration remains the next blocker for externally grounded metric and rule
+  evaluation.
 - A project licence still needs explicit selection before public release.
 - Product Polish improves workflow but does not resolve Randy's remaining field/unit/execution-contract blockers.
 

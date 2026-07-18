@@ -19,6 +19,20 @@ from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.bundle import BundleValidationResult, inspect_bundle, validate_bundle
 from traffictwin.ingestion.bundle import import_bundle as import_run_bundle
+from traffictwin.integration.tos import (
+    TosEvaluationRun,
+    build_tos_evidence_pack,
+    build_tos_metric_trace,
+    build_tos_rule_trace,
+    import_evaluation_summaries,
+    list_instrumented_runs,
+    load_replay_frame,
+    load_task_sample,
+    metric_collection_from_evaluation,
+    read_evaluation_runs,
+    validate_tos_package,
+)
+from traffictwin.integration.tos.readers import TosPackageError, instrumented_key_for_run
 from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
@@ -64,6 +78,8 @@ provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance tr
 synthetic_app = typer.Typer(no_args_is_help=True, help="Standalone synthetic fixture commands.")
 demo_app = typer.Typer(no_args_is_help=True, help="Standalone demo workspace commands.")
 report_app = typer.Typer(no_args_is_help=True, help="Deterministic research-report export.")
+integration_app = typer.Typer(no_args_is_help=True, help="Evidence-gated external data tools.")
+tos_app = typer.Typer(no_args_is_help=True, help="Read-only TOS Data package tools.")
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
@@ -74,6 +90,8 @@ app.add_typer(provenance_app, name="provenance")
 app.add_typer(synthetic_app, name="synthetic")
 app.add_typer(demo_app, name="demo")
 app.add_typer(report_app, name="report")
+app.add_typer(integration_app, name="integration")
+integration_app.add_typer(tos_app, name="tos")
 
 
 @app.command("validate-seed")
@@ -740,6 +758,251 @@ def report_full_command(
     _write_report_payload(report, output)
 
 
+@tos_app.command("inspect")
+def tos_inspect_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    deep: Annotated[bool, typer.Option("--deep/--shallow")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect TOS artifacts without registry mutation."""
+
+    report = validate_tos_package(path, deep=deep)
+    if output_format == "json":
+        typer.echo(report.to_json())
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    inventory = report.inventory
+    typer.echo(f"status: {report.status.value}")
+    typer.echo(f"may_import_summaries: {report.may_import_summaries}")
+    typer.echo(f"package_fingerprint: {report.package_fingerprint or 'unavailable'}")
+    typer.echo(f"package_commit: {report.package_commit or 'unavailable'}")
+    typer.echo(f"evaluation_rows: {inventory.evaluation_rows}")
+    typer.echo(f"perstep_files: {inventory.perstep_files}")
+    typer.echo(f"pertask_files: {inventory.pertask_files}")
+    typer.echo(f"trace_files: {inventory.trace_files}")
+    for finding in report.findings:
+        typer.echo(f"{finding.severity.value}: {finding.code}: {finding.message}")
+
+
+@tos_app.command("validate")
+def tos_validate_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Deep-validate the documented TOS package contracts."""
+
+    report = validate_tos_package(path, deep=True)
+    if output_format == "json":
+        typer.echo(report.to_json())
+    elif output_format == "text":
+        typer.echo(f"status: {report.status.value}")
+        typer.echo(f"may_import_summaries: {report.may_import_summaries}")
+        typer.echo(f"findings: {len(report.findings)}")
+        for finding in report.findings:
+            typer.echo(f"{finding.severity.value}: {finding.code}: {finding.message}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    if not report.may_import_summaries:
+        raise typer.Exit(code=1)
+
+
+@tos_app.command("runs")
+def tos_runs_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    limit: Annotated[int, typer.Option("--limit", min=1, max=1000)] = 25,
+) -> None:
+    """List documented evaluation runs and instrumented run availability."""
+
+    rows = read_evaluation_runs(path)
+    instrumented = set(list_instrumented_runs(path))
+    typer.echo(f"evaluation_runs: {len(rows)}")
+    typer.echo(f"instrumented_runs: {len(instrumented)}")
+    for row in rows[:limit]:
+        typer.echo(
+            f"{row.run_id} completion={row.completion:.6f} "
+            f"instrumented={instrumented_key_for_run(row) in instrumented}"
+        )
+
+
+@tos_app.command("import")
+def tos_import_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False, writable=True)],
+) -> None:
+    """Import validated source summaries into the TrafficTwin registry."""
+
+    try:
+        report = validate_tos_package(path, deep=True)
+        result = import_evaluation_summaries(
+            path,
+            registry,
+            validation_report=report,
+        )
+    except (TosPackageError, RegistryConflictError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"registry: {result.registry_reference}")
+    typer.echo(f"experiments_created: {result.experiments_created}")
+    typer.echo(f"experiments_existing: {result.experiments_existing}")
+    typer.echo(f"runs_created: {result.runs_created}")
+    typer.echo(f"runs_existing: {result.runs_existing}")
+    typer.echo(f"metric_collections_stored: {result.metric_collections_stored}")
+    typer.echo(f"evidence_packs_stored: {result.evidence_packs_stored}")
+
+
+@tos_app.command("metrics")
+def tos_metrics_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_id: Annotated[str, typer.Argument(help="TrafficTwin run ID or source artifact key")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect explicitly source-provided metrics for one evaluation run."""
+
+    report = validate_tos_package(path, deep=False)
+    row = _tos_row(path, run_id)
+    if report.package_fingerprint is None:
+        typer.echo("package fingerprint unavailable", err=True)
+        raise typer.Exit(code=1)
+    collection = metric_collection_from_evaluation(row, report.package_fingerprint)
+    if output_format == "json":
+        typer.echo(collection.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"run: {row.run_id}")
+    typer.echo(f"metric_version: {collection.metric_version}")
+    for key in (
+        "tos.task.deadline_success.rate",
+        "tos.task.deadline_success.rate_by_class",
+        "task.latency.mean_ms",
+        "task.offload.rate",
+    ):
+        metric = collection.by_key()[key]
+        typer.echo(f"{key}: {metric.value}")
+    typer.echo(f"unavailable_metrics: {collection.unavailable_count}")
+
+
+@tos_app.command("replay")
+def tos_replay_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_key: Annotated[str, typer.Argument()],
+    index: Annotated[int, typer.Option("--index", min=0)] = 0,
+    max_vehicles: Annotated[int, typer.Option("--max-vehicles", min=1, max=1000)] = 25,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect one deterministic historical replay frame."""
+
+    try:
+        frame = load_replay_frame(path, run_key, index, max_vehicles=max_vehicles)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(frame.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"run_key: {frame.run_key}")
+    typer.echo(f"time: {frame.point.timestamp_s}")
+    typer.echo(f"arrivals: {frame.point.arrivals}")
+    typer.echo(f"deadline_met: {frame.point.deadline_met}")
+    typer.echo(f"active_vehicle_slots: {frame.total_active_vehicle_slots}")
+    typer.echo(f"displayed_vehicle_slots: {len(frame.vehicles)}")
+    typer.echo(f"rsu_source_rows: {len(frame.rsus)}")
+
+
+@tos_app.command("task-sample")
+def tos_task_sample_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_key: Annotated[str, typer.Argument()],
+    limit: Annotated[int, typer.Option("--limit", min=1, max=10000)] = 25,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect a bounded per-arrival showcase sample."""
+
+    try:
+        sample = load_task_sample(path, run_key, limit=limit)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(sample.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"run_key: {sample.run_key}")
+    typer.echo(f"active_entries: {sample.total_active_entries}")
+    typer.echo(f"sampled_entries: {len(sample.observations)}")
+    typer.echo(f"deadline_consistency_verified: {sample.deadline_consistency_verified}")
+    for observation in sample.observations:
+        typer.echo(
+            f"{observation.source_index} {observation.task_class.value} "
+            f"deadline_met={observation.deadline_met} latency_ms={observation.latency_ms:.3f}"
+        )
+
+
+@tos_app.command("diagnose")
+def tos_diagnose_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_id: Annotated[str, typer.Argument(help="TrafficTwin run ID or source artifact key")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Evaluate existing rules over an explicitly partial TOS EvidencePack."""
+
+    report = validate_tos_package(path, deep=False)
+    row = _tos_row(path, run_id)
+    if report.package_fingerprint is None:
+        typer.echo("package fingerprint unavailable", err=True)
+        raise typer.Exit(code=1)
+    collection = metric_collection_from_evaluation(row, report.package_fingerprint)
+    pack = build_tos_evidence_pack(row, report, collection)
+    diagnosis = evaluate_rules(pack)
+    if output_format == "json":
+        typer.echo(diagnosis.to_json())
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"run: {row.run_id}")
+    typer.echo(f"readiness: {diagnosis.overall_readiness.value}")
+    for result in diagnosis.results:
+        typer.echo(f"{result.rule_id}: {result.status.value}")
+
+
+@tos_app.command("provenance")
+def tos_provenance_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_id: Annotated[str, typer.Argument(help="TrafficTwin run ID or source artifact key")],
+    root_type: Annotated[str, typer.Option("--root-type")] = "metric",
+    root_id: Annotated[str, typer.Option("--root-id")] = "tos.task.deadline_success.rate",
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Export aggregate-level metric or rule provenance for a TOS run."""
+
+    report = validate_tos_package(path, deep=False)
+    row = _tos_row(path, run_id)
+    if report.package_fingerprint is None:
+        typer.echo("package fingerprint unavailable", err=True)
+        raise typer.Exit(code=1)
+    collection = metric_collection_from_evaluation(row, report.package_fingerprint)
+    if root_type == "metric":
+        trace = build_tos_metric_trace(row, collection, report, root_id)
+    elif root_type == "rule":
+        pack = build_tos_evidence_pack(row, report, collection)
+        diagnosis = evaluate_rules(pack)
+        trace = build_tos_rule_trace(row, pack, diagnosis, report, root_id)
+    else:
+        typer.echo("--root-type must be metric or rule", err=True)
+        raise typer.Exit(code=1)
+    _emit_provenance_trace(trace, output_format)
+
+
 def _collection_from_identifier(
     identifier: str,
     registry_path: Path | None,
@@ -758,6 +1021,15 @@ def _collection_from_identifier(
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     return MetricCollection.model_validate_json(payload), None
+
+
+def _tos_row(path: Path, identifier: str) -> TosEvaluationRun:
+    rows = read_evaluation_runs(path)
+    for row in rows:
+        if identifier in {row.run_id, row.source_key, instrumented_key_for_run(row)}:
+            return row
+    typer.echo(f"TOS evaluation run not found: {identifier}", err=True)
+    raise typer.Exit(code=1)
 
 
 def _ensure_metric_context_available(result: BundleValidationResult) -> None:

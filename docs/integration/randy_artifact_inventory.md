@@ -23,8 +23,9 @@ Discovery inspected:
 - JSON summary keys;
 - NPZ array keys, shapes, and dtypes.
 
-No raw data files were copied into `diss/`. No adapter code was implemented. No source files in
-Randy's repository were modified.
+No raw data files were copied into `diss/`. The later read-only TOS integration inspects this
+external package in place and uses generated synthetic-schema tests. No source files in Randy's
+repository were modified.
 
 ## Summary Finding
 
@@ -50,8 +51,8 @@ The package does not contain:
 - direct launch scripts or job scripts that TrafficTwin can execute;
 - model checkpoint files.
 
-Therefore Phase 6B adapter work is now plausible for offline import/conversion, but direct launch
-remains unsupported.
+TrafficTwin now implements offline summary import and instrumented inspection. Standard bundle
+conversion and direct launch remain unsupported.
 
 ## Source Inventory
 
@@ -67,7 +68,7 @@ remains unsupported.
 | `records/DATA_CONVENTIONS.md` | Randy/TOS Data package | Campaign naming and contamination labelling | Markdown | Experiment metadata and interpretation constraints | n/a | Confirms campaign/cell/fleet naming rules | n/a | supports grouping | partial | partial | yes for grouping labels |
 | `instrumented/json/*.json` | Randy instrumented evaluation writer | Summary JSON for instrumented runs | JSON | External summary/provenance | `T`, `actor`, completion fields, action shares, `fleet`, `trace`, `rsu_max_concurrent`, `total_tasks`, `wall_s`, etc. | Completion fractions, action shares, latency ms/task, energy J/task | 60 files | useful summary; not raw canonical rows | partial | partial only with paired NPZ | partial |
 | `instrumented/perstep/*_perstep.npz` | Randy instrumented evaluation writer | Per-second aggregates, per-vehicle action/queue arrays, per-RSU state arrays | NPZ | `InfrastructureRecord`, `VehicleStateRecord` with trace join, aggregate task-time evidence | keys: `times`, `arrivals`, `done`, `lat_sum`, `active`, `n_local`, `n_v2i`, `n_v2v`, `veh_action`, `veh_k`, `veh_done`, `veh_queue_ms`, `rsu_busy_ms`, `rsu_load` | `times` seconds confirmed by dictionary; `veh_queue_ms`/`rsu_busy_ms` imply ms but utilisation conversion must be confirmed | 60 files; T varies by cell, vehicle slots vary 139-2488, RSUs 9-12 | strong for time-series and infrastructure after adapter | partial, no vehicle tier per slot found | promising, needs `rsu_busy_ms` and `rsu_load` semantics | no |
-| `instrumented/pertask/*_pertask.npz` | Randy instrumented evaluation writer | Full per-arrival task logs for showcase runs | NPZ | `TaskRecord` candidate | keys: `task_type`, `task_lat_ms`, `task_met`, `task_active`; arrays `[T, K_MAX=5, N]` | latency ms confirmed by key/dictionary; task type label mapping likely T1/T2/T3 but needs exact code mapping | 6 files | strong for task metrics on 6 showcase runs after adapter | partial, lacks vehicle-tier evidence | partial when joined to perstep | no |
+| `instrumented/pertask/*_pertask.npz` | Randy instrumented evaluation writer | Full per-arrival task logs for showcase runs | NPZ | read-only task observation; not canonical `TaskRecord` | keys: `task_type`, `task_lat_ms`, `task_met`, `task_active`; arrays `[T, K_MAX=5, N]` | latency ms; exhaustive consistency establishes 0/1/2 as T1/T2/T3 and `task_met` as deadline success | 6 files | bounded task inspection; no canonical conversion | partial, lacks vehicle-tier evidence | partial when joined to perstep | no |
 | `traces/trace_*_fullrsu.npz` | Randy/SUMO trace generation | Manchester mobility traces and RSU coordinates | NPZ | `VehicleStateRecord`, environment/scenario provenance | keys: `pos_x`, `pos_y`, `speed`, `mask`, `rsu_xy`, `times`, `dt`, `maxN`, `T`, `window`, `sumo_seed` | Timestamp seconds inferred/confirmed by T and dictionary; position/speed coordinate units need confirmation | 5 files | strong for replay/vehicle state after adapter; not trip metrics | no | no | no |
 
 ## Confirmed Campaign And Scenario Dimensions
@@ -132,12 +133,12 @@ The per-step schema is stable by key set. Shapes vary with the Manchester cell:
 
 | TrafficTwin area | Evidence status | Notes |
 |---|---|---|
-| Task metrics | partially confirmed | Six per-task NPZ files can likely be converted to task records after task-type and completion semantics are confirmed. Other runs only have aggregate task counts unless per-task extraction is provided. |
+| Task metrics | partial source summaries | Compatible evaluation values are imported with a distinct source metric version; six per-task NPZ files support inspection, not canonical conversion. |
 | Infrastructure metrics | partially confirmed | Per-RSU arrays exist in 60 per-step files. `rsu_busy_ms` and `rsu_load` semantics must be confirmed before utilisation/queue mapping. |
 | Traffic observations | partial/unknown | Mobility traces provide vehicle positions and speed, not detector-style traffic observations. Aggregating speeds would be a new adapter decision and needs unit confirmation. |
 | Trip metrics | unsupported | No `tripinfo`, trip table, or journey-time output was found. |
 | R1 under-offloading | partial | T1 outcomes and action shares are available in summaries; per-task detail exists for 6 runs. Vehicle-tier per-task/per-vehicle evidence and action availability are not found. |
-| R2 infrastructure bottleneck | partial | Per-RSU state and task outcomes can potentially be aligned for showcase runs, but units and semantics must be confirmed. |
+| R2 infrastructure bottleneck | blocked for imported summaries | Raw per-RSU values are inspectable, but no utilisation/queue mapping enters EvidencePacks. |
 | R3 scenario triviality | partial | Master CSV provides multiple campaigns, policies, cells, and fleet seeds. A TrafficTwin-compatible experiment-level evidence representation would be needed before R3 can consume it. |
 | Direct launch | unsupported | Data package points to a separate `vec_env` repository; no command contract is present here. |
 | SUMO adapter | unsupported | Trace NPZ files are present, but raw SUMO XML/config outputs are not present. |
@@ -147,3 +148,5 @@ The per-step schema is stable by key set. Shapes vary with the Manchester cell:
 Do not commit Randy's raw files into `diss/` until Randy confirms what can be used as small
 sanitised fixtures. The current discovery docs record schemas and counts only.
 
+Adapter tests create a small synthetic-schema package at runtime; those values are not copied or
+derived research results.

@@ -123,6 +123,23 @@ Phase 5 synthetic diagnostic EvidencePacks may include experiment-level context 
 
 These are stable diagnostic evidence keys used in synthetic fault-injection fixtures. They are not yet produced by the normal single-run metric engine. Ordinary bundle-derived EvidencePacks therefore return R3 as `insufficient_evidence`.
 
+## TOS Source-Summary Definitions
+
+The optional TOS result reader adds two source-specific definitions outside the Phase 3 canonical
+calculator catalogue:
+
+| Key | Definition | Unit |
+|---|---|---|
+| `tos.task.deadline_success.rate` | source-reported arrivals meeting their deadline / source arrivals | ratio |
+| `tos.task.deadline_success.rate_by_class` | the same source outcome grouped by T1/T2/T3 | ratio |
+
+These names prevent source deadline success from being presented as TrafficTwin
+`task.completion.rate`, whose definition is physical completion over valid canonical task records.
+The values carry the distinct implementation version
+`tos-source-summary-v2_post_nrsus_fix-1.0`, source-row metadata, and a warning that they were not
+recomputed from canonical rows. Existing diagnostic rules are unchanged and do not treat these
+source-specific keys as physical-completion evidence.
+
 ## Related Documents
 
 - [Data contract](data_contract.md)
@@ -130,3 +147,4 @@ These are stable diagnostic evidence keys used in synthetic fault-injection fixt
 - [Comparison methodology](comparison_methodology.md)
 - [Diagnostic rules](diagnostic_rules.md)
 - [Generated metric catalogue](reference/generated/metric_catalogue.json)
+- [TOS Data read-only integration](integration/tos_data_adapter.md)

@@ -17,6 +17,20 @@ The bundle loader:
 
 Imported bundle contents are treated as data. TrafficTwin does not execute scripts from bundles.
 
+## TOS NPZ Inspection
+
+The optional TOS result reader treats NumPy archives as untrusted data:
+
+- package-relative paths are validated and cannot escape the selected package root;
+- NPZ members with absolute paths, traversal, backslashes, or symlink metadata are rejected;
+- decompressed archive content is capped;
+- NumPy object deserialisation is disabled with `allow_pickle=False`;
+- replay and task views load only documented keys and return bounded samples;
+- the source package is never modified or copied into the registry.
+
+The reader does not execute repository scripts or the source environment. A package Git commit and
+content fingerprint provide reproducibility references, not cryptographic trust in the producer.
+
 ## Source Immutability
 
 Validation, metrics, diagnostics, and provenance read source files without modifying them. Registry
