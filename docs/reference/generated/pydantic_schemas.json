@@ -3840,8 +3840,34 @@
         },
         "TosRsuSourceState": {
           "additionalProperties": false,
-          "description": "Raw per-RSU source values with deliberately unresolved semantics.",
+          "description": "Source RSU state with code-evidenced semantics.",
           "properties": {
+            "busy_semantics": {
+              "default": "remaining_compute_backlog_ms",
+              "title": "Busy Semantics",
+              "type": "string"
+            },
+            "capacity_semantics": {
+              "default": "maximum_concurrent_in_flight_tasks",
+              "title": "Capacity Semantics",
+              "type": "string"
+            },
+            "load_pressure_fraction": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Load Pressure Fraction",
+              "type": "number"
+            },
+            "load_semantics": {
+              "default": "in_flight_task_count",
+              "title": "Load Semantics",
+              "type": "string"
+            },
+            "position_unit": {
+              "default": "m",
+              "title": "Position Unit",
+              "type": "string"
+            },
             "position_x_source_units": {
               "title": "Position X Source Units",
               "type": "number"
@@ -3849,6 +3875,11 @@
             "position_y_source_units": {
               "title": "Position Y Source Units",
               "type": "number"
+            },
+            "pressure_semantics": {
+              "default": "in_flight_tasks_divided_by_maximum_concurrent_tasks",
+              "title": "Pressure Semantics",
+              "type": "string"
             },
             "rsu_busy_ms_source_value": {
               "minimum": 0,
@@ -3875,7 +3906,7 @@
               "type": "string"
             },
             "semantics_status": {
-              "default": "unresolved",
+              "default": "confirmed_from_vec_env_source",
               "title": "Semantics Status",
               "type": "string"
             }
@@ -3887,7 +3918,8 @@
             "position_y_source_units",
             "rsu_load_source_value",
             "rsu_busy_ms_source_value",
-            "rsu_max_concurrent_source_value"
+            "rsu_max_concurrent_source_value",
+            "load_pressure_fraction"
           ],
           "title": "TosRsuSourceState",
           "type": "object"
@@ -3934,6 +3966,16 @@
               "default": null,
               "title": "Deadline Met"
             },
+            "identity_scope": {
+              "default": "time_local_recycled_slot",
+              "title": "Identity Scope",
+              "type": "string"
+            },
+            "position_unit": {
+              "default": "m",
+              "title": "Position Unit",
+              "type": "string"
+            },
             "position_x_source_units": {
               "title": "Position X Source Units",
               "type": "number"
@@ -3968,6 +4010,11 @@
               "minimum": 0,
               "title": "Speed Source Units",
               "type": "number"
+            },
+            "speed_unit": {
+              "default": "m/s",
+              "title": "Speed Unit",
+              "type": "string"
             }
           },
           "required": [
@@ -3996,6 +4043,11 @@
         },
         "run_key": {
           "title": "Run Key",
+          "type": "string"
+        },
+        "semantics_evidence_commit": {
+          "default": "e98441196270b8fd4cc0eede892df4a0053b2185",
+          "title": "Semantics Evidence Commit",
           "type": "string"
         },
         "source_file": {
@@ -4043,6 +4095,253 @@
       "title": "TosReplayFrame",
       "type": "object"
     },
+    "TosSourceContract": {
+      "$defs": {
+        "CapabilitySupport": {
+          "description": "Three-valued capability support state.",
+          "enum": [
+            "true",
+            "false",
+            "unknown"
+          ],
+          "title": "CapabilitySupport",
+          "type": "string"
+        },
+        "TosContractStatus": {
+          "description": "Evidence status for a source-contract statement.",
+          "enum": [
+            "confirmed",
+            "inferred",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "TosContractStatus",
+          "type": "string"
+        },
+        "TosControlContract": {
+          "additionalProperties": false,
+          "description": "Source-environment and TrafficTwin support for one scenario control.",
+          "properties": {
+            "adapter_support": {
+              "$ref": "#/$defs/CapabilitySupport"
+            },
+            "control": {
+              "title": "Control",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Limitations",
+              "type": "array"
+            },
+            "mechanism": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mechanism"
+            },
+            "source_support": {
+              "$ref": "#/$defs/CapabilitySupport"
+            },
+            "status": {
+              "$ref": "#/$defs/TosContractStatus"
+            }
+          },
+          "required": [
+            "control",
+            "source_support",
+            "adapter_support",
+            "status"
+          ],
+          "title": "TosControlContract",
+          "type": "object"
+        },
+        "TosExecutionContract": {
+          "additionalProperties": false,
+          "description": "Observed evaluator interface and blockers to a TrafficTwin launcher.",
+          "properties": {
+            "asynchronous_launch": {
+              "$ref": "#/$defs/CapabilitySupport"
+            },
+            "blockers": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Blockers",
+              "type": "array"
+            },
+            "command_template": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Command Template",
+              "type": "array"
+            },
+            "direct_launch": {
+              "$ref": "#/$defs/CapabilitySupport"
+            },
+            "interface": {
+              "title": "Interface",
+              "type": "string"
+            },
+            "output_contract": {
+              "title": "Output Contract",
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/$defs/TosContractStatus"
+            }
+          },
+          "required": [
+            "status",
+            "interface",
+            "command_template",
+            "output_contract",
+            "direct_launch",
+            "asynchronous_launch",
+            "blockers"
+          ],
+          "title": "TosExecutionContract",
+          "type": "object"
+        },
+        "TosFieldContract": {
+          "additionalProperties": false,
+          "description": "Meaning and unit of one field evidenced in source code or artifacts.",
+          "properties": {
+            "artifact": {
+              "title": "Artifact",
+              "type": "string"
+            },
+            "evidence": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Evidence",
+              "type": "array"
+            },
+            "field": {
+              "title": "Field",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Limitations",
+              "type": "array"
+            },
+            "meaning": {
+              "title": "Meaning",
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/$defs/TosContractStatus"
+            },
+            "unit": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Unit"
+            }
+          },
+          "required": [
+            "field",
+            "artifact",
+            "meaning",
+            "unit",
+            "status",
+            "evidence"
+          ],
+          "title": "TosFieldContract",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Machine-readable contract for the inspected TOS/vec_env artifacts.",
+      "properties": {
+        "adapter_version": {
+          "default": "0.2.0",
+          "title": "Adapter Version",
+          "type": "string"
+        },
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/TosControlContract"
+          },
+          "title": "Controls",
+          "type": "array"
+        },
+        "evidence_commit": {
+          "default": "e98441196270b8fd4cc0eede892df4a0053b2185",
+          "title": "Evidence Commit",
+          "type": "string"
+        },
+        "evidence_repository": {
+          "default": "vec_env",
+          "title": "Evidence Repository",
+          "type": "string"
+        },
+        "execution": {
+          "$ref": "#/$defs/TosExecutionContract"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/TosFieldContract"
+          },
+          "title": "Fields",
+          "type": "array"
+        },
+        "interpretation_limits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Interpretation Limits",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_versions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Source Versions",
+          "type": "object"
+        },
+        "unavailable_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unavailable Outputs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_versions",
+        "fields",
+        "controls",
+        "execution",
+        "unavailable_outputs",
+        "interpretation_limits"
+      ],
+      "title": "TosSourceContract",
+      "type": "object"
+    },
     "TosTaskSample": {
       "$defs": {
         "TaskClass": {
@@ -4060,6 +4359,10 @@
           "additionalProperties": false,
           "description": "One active per-task array entry, kept distinct from canonical TaskRecord.",
           "properties": {
+            "arrival_time_s": {
+              "title": "Arrival Time S",
+              "type": "number"
+            },
             "deadline_met": {
               "title": "Deadline Met",
               "type": "boolean"
@@ -4069,10 +4372,27 @@
               "title": "Deadline Ms",
               "type": "number"
             },
+            "decision": {
+              "title": "Decision",
+              "type": "string"
+            },
+            "decision_source_file": {
+              "title": "Decision Source File",
+              "type": "string"
+            },
+            "decision_source_index": {
+              "title": "Decision Source Index",
+              "type": "string"
+            },
             "latency_ms": {
               "minimum": 0,
               "title": "Latency Ms",
               "type": "number"
+            },
+            "outcome_semantics": {
+              "default": "modelled_latency_within_class_deadline",
+              "title": "Outcome Semantics",
+              "type": "string"
             },
             "run_key": {
               "title": "Run Key",
@@ -4103,6 +4423,11 @@
               "title": "Time Index",
               "type": "integer"
             },
+            "vehicle_identity_scope": {
+              "default": "time_local_recycled_slot",
+              "title": "Vehicle Identity Scope",
+              "type": "string"
+            },
             "vehicle_slot": {
               "minimum": 0,
               "title": "Vehicle Slot",
@@ -4115,12 +4440,16 @@
             "time_index",
             "task_slot",
             "vehicle_slot",
+            "arrival_time_s",
             "task_class",
+            "decision",
             "deadline_met",
             "latency_ms",
             "deadline_ms",
             "source_file",
-            "source_index"
+            "source_index",
+            "decision_source_file",
+            "decision_source_index"
           ],
           "title": "TosTaskObservation",
           "type": "object"
@@ -4228,14 +4557,44 @@
               "title": "Instrumented Historical Replay",
               "type": "boolean"
             },
+            "instrumented_writer_reproducible": {
+              "default": false,
+              "title": "Instrumented Writer Reproducible",
+              "type": "boolean"
+            },
+            "load_pressure_inspection": {
+              "default": true,
+              "title": "Load Pressure Inspection",
+              "type": "boolean"
+            },
             "per_task_showcase_inspection": {
               "default": true,
               "title": "Per Task Showcase Inspection",
               "type": "boolean"
             },
+            "rsu_state_semantics_confirmed": {
+              "default": true,
+              "title": "Rsu State Semantics Confirmed",
+              "type": "boolean"
+            },
+            "source_evaluation_contract_documented": {
+              "default": true,
+              "title": "Source Evaluation Contract Documented",
+              "type": "boolean"
+            },
             "standard_bundle_conversion": {
               "default": false,
               "title": "Standard Bundle Conversion",
+              "type": "boolean"
+            },
+            "task_decision_join": {
+              "default": true,
+              "title": "Task Decision Join",
+              "type": "boolean"
+            },
+            "trace_units_confirmed": {
+              "default": true,
+              "title": "Trace Units Confirmed",
               "type": "boolean"
             },
             "trip_metrics": {
@@ -4393,7 +4752,7 @@
       "description": "Read-only package inspection and import-readiness report.",
       "properties": {
         "adapter_version": {
-          "default": "0.1.0",
+          "default": "0.2.0",
           "title": "Adapter Version",
           "type": "string"
         },
@@ -4451,6 +4810,11 @@
         "schema_version": {
           "default": "1.0",
           "title": "Schema Version",
+          "type": "string"
+        },
+        "semantics_source_commit": {
+          "default": "e98441196270b8fd4cc0eede892df4a0053b2185",
+          "title": "Semantics Source Commit",
           "type": "string"
         },
         "status": {

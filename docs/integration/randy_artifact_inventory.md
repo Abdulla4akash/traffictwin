@@ -2,151 +2,107 @@
 
 Discovery date: 2026-07-18
 
-TrafficTwin root inspected: `diss/`
+## Repositories Inspected
 
-External data package inspected: `external/tos-data`
+| Repository | Purpose | Inspected commit | TrafficTwin treatment |
+|---|---|---|---|
+| `TOS Data` | Evaluation, training, instrumented, and processed mobility results | `d27294ef5213e6a20f55632448bd20f5a76a45ab` | External, read-only data package |
+| `vec_env` | VEC environment, evaluator, trace builder, training scripts, and reproducibility notes | `e98441196270b8fd4cc0eede892df4a0053b2185` | Source of field and execution semantics |
 
-External data package commit: `d27294ef5213e6a20f55632448bd20f5a76a45ab`
+The two commit identifiers have different meanings. The TOS commit identifies the inspected data
+package. The `vec_env` commit establishes source semantics but is **not** claimed as the producer
+commit for every result row. Neither external repository is vendored into TrafficTwin.
 
 ## Discovery Method
 
-Randy granted GitLab access to the `TOS Data` project. The repository was cloned outside
-TrafficTwin under `external/tos-data` so the TrafficTwin repository remains separate from the
-external data package.
+The audit inspected file trees, documentation, evaluator and environment source, CSV headers and
+row counts, JSON keys, NPZ headers, array shapes/dtypes, SLURM scripts, configuration paths, and
+recorded actor references. Read-only scripts then checked all supplied evaluation, per-step,
+per-task, summary, and trace artifacts. No external source file was changed.
 
-Discovery inspected:
+## Data Package Inventory
 
-- package README and data dictionary;
-- training/evaluation convention records;
-- file tree, extensions, and sizes;
-- CSV headers and row counts;
-- JSON summary keys;
-- NPZ array keys, shapes, and dtypes.
-
-No raw data files were copied into `diss/`. The later read-only TOS integration inspects this
-external package in place and uses generated synthetic-schema tests. No source files in Randy's
-repository were modified.
-
-## Summary Finding
-
-Real Randy/VEC result artifacts are now available for discovery. They are not TrafficTwin run
-bundles yet.
-
-The package contains:
-
-- an evaluation master CSV with 300 evaluation-run summary rows;
-- 66 training-curve CSV files;
-- 65 final greedy-evaluation JSON files;
-- 60 per-step instrumented NPZ files;
-- 6 per-task instrumented NPZ files;
-- 60 instrumented summary JSON files;
-- 5 Manchester mobility trace NPZ files;
-- 8 training-record Markdown files plus data conventions.
-
-The package does not contain:
-
-- the `vec_env` source-code repository;
-- documented reproduction commands from `vec_env/docs/REPRODUCING.md`;
-- SUMO `.sumocfg`, network, route, detector, tripinfo, queue, or summary XML files;
-- direct launch scripts or job scripts that TrafficTwin can execute;
-- model checkpoint files.
-
-TrafficTwin now implements offline summary import and instrumented inspection. Standard bundle
-conversion and direct launch remain unsupported.
-
-## Source Inventory
-
-| Source name | Producer | Purpose | Format | Canonical target | Source schema | Units/status | Row or shape summary | Current metric sufficiency | R1 sufficiency | R2 sufficiency | R3 sufficiency |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| `README.md` | Randy/TOS Data package | Package overview and provenance pointer | Markdown | Documentation/provenance | n/a | Engine version confirmed as `v2_post_nrsus_fix`; older pre-2026-07-16 outputs superseded | n/a | n/a | n/a | n/a | n/a |
-| `DATA_DICTIONARY.md` | Randy/TOS Data package | Schemas, caveats, reference values, suggested views | Markdown | Mapping evidence | n/a | Several meanings confirmed; some array units still need clarification | n/a | supports adapter design | partial | partial | partial |
-| `evals/eval_results_master.csv` | Randy evaluation process | Tidy long evaluation summary, one row per evaluation run | CSV | External summary metrics / experiment overview, not raw canonical records | `campaign`, `cell`, `eval_fleet`, `fleet_seed`, `actor`, `obs_variant`, completion fields, energy, latency, action shares, `T`, `maxN`, `trace`, `engine_version` | Completion fractions, energy J/task, latency ms/task, action shares, trace length seconds; confirmed by dictionary | 300 rows | useful for dashboard/reconciliation; should not be treated as raw task records | partial, lacks per-task low-tier cross-tab | weak, no RSU time series | strong summary evidence for multi-campaign comparison if represented carefully |
-| `training/*.csv` | Randy training process | Per-update training curves | CSV | Training provenance / optional learning-curve view | `update`, `env_step`, `mean_return`, `mean_completion`, action shares, energy, latency, per-type completion, `elapsed_s`, `sps` | Training-distribution metrics; not directly comparable to eval CSV | 66 files, 781 rows each | not a Phase 3 run-metric source without a training-curve adapter | no | no | partial, training stability context only |
-| `training/*_greedy_eval.json` | Randy training process | Final greedy evaluation on training distribution | JSON | Training provenance / optional summary | `mean_completion`, `std_completion`, per-type completion, action shares, energy, latency, elapsed time, episode count | Training distribution only | 65 files, common schema | not comparable 1:1 with eval CSV | no | no | partial, training stability context only |
-| `training/*.machine.txt` | Randy training process | Machine provenance for selected runs | text key-value | Run/training provenance | `machine`, `host`, `gpu`, `end`, `wall_s`, `concurrency` where present | wall-clock seconds | 13 files | provenance only | no | no | no |
-| `records/TRAINING_*.md` | Randy training process | Formal training records per variant | Markdown | Experiment/provenance mapping | free text with checkpoint paths, seeds, machine notes, flags | Confirms some environment variables and flags, not executable command contract | 8 files | supports experiment metadata | partial | partial | partial |
-| `records/DATA_CONVENTIONS.md` | Randy/TOS Data package | Campaign naming and contamination labelling | Markdown | Experiment metadata and interpretation constraints | n/a | Confirms campaign/cell/fleet naming rules | n/a | supports grouping | partial | partial | yes for grouping labels |
-| `instrumented/json/*.json` | Randy instrumented evaluation writer | Summary JSON for instrumented runs | JSON | External summary/provenance | `T`, `actor`, completion fields, action shares, `fleet`, `trace`, `rsu_max_concurrent`, `total_tasks`, `wall_s`, etc. | Completion fractions, action shares, latency ms/task, energy J/task | 60 files | useful summary; not raw canonical rows | partial | partial only with paired NPZ | partial |
-| `instrumented/perstep/*_perstep.npz` | Randy instrumented evaluation writer | Per-second aggregates, per-vehicle action/queue arrays, per-RSU state arrays | NPZ | `InfrastructureRecord`, `VehicleStateRecord` with trace join, aggregate task-time evidence | keys: `times`, `arrivals`, `done`, `lat_sum`, `active`, `n_local`, `n_v2i`, `n_v2v`, `veh_action`, `veh_k`, `veh_done`, `veh_queue_ms`, `rsu_busy_ms`, `rsu_load` | `times` seconds confirmed by dictionary; `veh_queue_ms`/`rsu_busy_ms` imply ms but utilisation conversion must be confirmed | 60 files; T varies by cell, vehicle slots vary 139-2488, RSUs 9-12 | strong for time-series and infrastructure after adapter | partial, no vehicle tier per slot found | promising, needs `rsu_busy_ms` and `rsu_load` semantics | no |
-| `instrumented/pertask/*_pertask.npz` | Randy instrumented evaluation writer | Full per-arrival task logs for showcase runs | NPZ | read-only task observation; not canonical `TaskRecord` | keys: `task_type`, `task_lat_ms`, `task_met`, `task_active`; arrays `[T, K_MAX=5, N]` | latency ms; exhaustive consistency establishes 0/1/2 as T1/T2/T3 and `task_met` as deadline success | 6 files | bounded task inspection; no canonical conversion | partial, lacks vehicle-tier evidence | partial when joined to perstep | no |
-| `traces/trace_*_fullrsu.npz` | Randy/SUMO trace generation | Manchester mobility traces and RSU coordinates | NPZ | `VehicleStateRecord`, environment/scenario provenance | keys: `pos_x`, `pos_y`, `speed`, `mask`, `rsu_xy`, `times`, `dt`, `maxN`, `T`, `window`, `sumo_seed` | Timestamp seconds inferred/confirmed by T and dictionary; position/speed coordinate units need confirmation | 5 files | strong for replay/vehicle state after adapter; not trip metrics | no | no | no |
-
-## Confirmed Campaign And Scenario Dimensions
-
-From `evals/eval_results_master.csv`:
-
-| Dimension | Values |
-|---|---|
-| Campaigns | `baseline`, `capscalar_ippo`, `capscalar_mappo`, `fcdtrain_manwe_mappo`, `fcdtrain_manwe_mappo_s102`, `gridlocktrain_ft_ippo`, `gridlocktrain_ft_mappo`, `gridlocktrain_ippo`, `gridlocktrain_mappo`, `ukfleettrain_ippo`, `ukfleettrain_mappo` |
-| Cells | `wd_am`, `wd_pm`, `we`, `ev`, `inc` |
-| Evaluation fleets | `synthetic`, `uk2030` |
-| Engine version | `v2_post_nrsus_fix` for all 300 rows |
-| Replication unit | `fleet_seed` 0-4 according to the data dictionary |
-
-## Confirmed Per-Step NPZ Schema
-
-The per-step schema is stable by key set. Shapes vary with the Manchester cell:
-
-| Key | Shape pattern | Dtype | Meaning from dictionary | Mapping note |
-|---|---:|---|---|---|
-| `times` | `[T]` | `float32` | per-second timestamps | `timestamp_s` candidate |
-| `arrivals` | `[T]` | `int32` | per-second task arrivals | aggregate task event evidence |
-| `done` | `[T]` | `int32` | per-second completed tasks | aggregate task event evidence |
-| `lat_sum` | `[T]` | `float32` | latency sum | unit likely ms but needs confirmation |
-| `active` | `[T]` | `int32` | active tasks | infrastructure/task pressure evidence |
-| `n_local` | `[T]` | `int32` | local action count | action-share evidence |
-| `n_v2i` | `[T]` | `int32` | V2I action count | action-share evidence |
-| `n_v2v` | `[T]` | `int32` | V2V action count | action-share evidence |
-| `veh_action` | `[T,N]` | `int8` | 0=local, 1=V2I, 2=V2V | vehicle action trace, not task-level decision by itself |
-| `veh_k` | `[T,N]` | `int8` | vehicle arrivals | vehicle-level aggregate |
-| `veh_done` | `[T,N]` | `int16` | vehicle completed tasks | vehicle-level aggregate |
-| `veh_queue_ms` | `[T,N]` | `float32` | vehicle queue backlog in ms | queue evidence, not current canonical queue field |
-| `rsu_busy_ms` | `[T,R]` | `float32` | per-RSU busy time | possible utilisation numerator; conversion needs confirmation |
-| `rsu_load` | `[T,R]` | `int32` | per-RSU load | queue/active-task semantics need confirmation |
-
-## Confirmed Per-Task NPZ Schema
-
-| Key | Shape pattern | Dtype | Meaning from dictionary | Mapping note |
-|---|---:|---|---|---|
-| `task_type` | `[T,5,N]` | `int8` | task type | needs exact integer-to-T1/T2/T3 mapping |
-| `task_lat_ms` | `[T,5,N]` | `float32` | task latency in ms | maps to `latency_ms` where `task_active` true |
-| `task_met` | `[T,5,N]` | `bool` | deadline met | maps to completion/deadline outcome policy after confirmation |
-| `task_active` | `[T,5,N]` | `bool` | valid task arrival mask | rows where false should not become task records |
-
-## Confirmed Trace NPZ Schema
-
-| Key | Shape pattern | Dtype | Mapping note |
+| Artifact | Count | Purpose | Current use |
 |---|---:|---|---|
-| `pos_x` | `[T,N]` | `float32` | vehicle x coordinate; unit needs confirmation |
-| `pos_y` | `[T,N]` | `float32` | vehicle y coordinate; unit needs confirmation |
-| `speed` | `[T,N]` | `float32` | vehicle speed; unit needs confirmation |
-| `mask` | `[T,N]` | `bool` | active/valid vehicle position mask |
-| `rsu_xy` | `[R,2]` | `float32` | RSU coordinates; unit needs confirmation |
-| `times` | `[T]` | `float32` | trace timestamp candidate |
-| `dt` | scalar | `float32` | timestep length |
-| `maxN` | scalar | `int32` | padded vehicle-slot count |
-| `T` | scalar | `int32` | trace length |
-| `window` | scalar string | unicode | source window label |
-| `sumo_seed` | scalar | `int32` | SUMO trace seed |
+| `evals/eval_results_master.csv` rows | 300 | One source-summary row per evaluated campaign/cell/fleet/seed | Validated registry import, source metrics, comparison, aggregate provenance |
+| `training/*.csv` | 66 | Training curves | Inventory and provenance only |
+| `training/*_greedy_eval.json` | 65 | Final greedy training-distribution summaries | Inventory only |
+| `instrumented/perstep/*_perstep.npz` | 60 | Per-second task, vehicle-slot, and RSU state | Historical replay and bounded RSU inspection |
+| `instrumented/pertask/*_pertask.npz` | 6 | Per-arrival showcase arrays | Bounded task inspection |
+| `instrumented/json/*.json` | 60 | Instrumented run summaries | Reconciliation and capacity metadata |
+| `traces/*.npz` | 5 | Processed Manchester SUMO FCD mobility and RSU positions | Historical replay |
+| `records/TRAINING_*.md` | 8 | Training provenance and conventions | Discovery evidence |
 
-## Initial Sufficiency Assessment
+Approximate payload sizes measured during discovery were 85.8 MB of traces, 240.8 MB of per-step
+arrays, and 282.1 MB of per-task arrays. These are package observations, not performance claims.
 
-| TrafficTwin area | Evidence status | Notes |
+## Source Repository Inventory
+
+| Source | Purpose | Discovery result |
 |---|---|---|
-| Task metrics | partial source summaries | Compatible evaluation values are imported with a distinct source metric version; six per-task NPZ files support inspection, not canonical conversion. |
-| Infrastructure metrics | partially confirmed | Per-RSU arrays exist in 60 per-step files. `rsu_busy_ms` and `rsu_load` semantics must be confirmed before utilisation/queue mapping. |
-| Traffic observations | partial/unknown | Mobility traces provide vehicle positions and speed, not detector-style traffic observations. Aggregating speeds would be a new adapter decision and needs unit confirmation. |
-| Trip metrics | unsupported | No `tripinfo`, trip table, or journey-time output was found. |
-| R1 under-offloading | partial | T1 outcomes and action shares are available in summaries; per-task detail exists for 6 runs. Vehicle-tier per-task/per-vehicle evidence and action availability are not found. |
-| R2 infrastructure bottleneck | blocked for imported summaries | Raw per-RSU values are inspectable, but no utilisation/queue mapping enters EvidencePacks. |
-| R3 scenario triviality | partial | Master CSV provides multiple campaigns, policies, cells, and fleet seeds. A TrafficTwin-compatible experiment-level evidence representation would be needed before R3 can consume it. |
-| Direct launch | unsupported | Data package points to a separate `vec_env` repository; no command contract is present here. |
-| SUMO adapter | unsupported | Trace NPZ files are present, but raw SUMO XML/config outputs are not present. |
+| `docs/REPRODUCING.md` | Reproducibility contract | Python 3.11, JAX/JAXlib 0.4.30, SUMO 1.27.0; FCD-to-trace-to-evaluation workflow; at least five fleet seeds per cell/fleet |
+| `jaxmarl/env/vec_jax.py` | VEC environment | Defines task/action codes, deadlines, latency, action availability, RSU state, and capacity semantics |
+| `eval/build_trace.py` | SUMO FCD conversion | Defines processed trace fields, units inherited from FCD, padding, and slot reuse |
+| `eval/eval_sumo_stage1_mc.py` | Headless evaluator | Defines trace, actor, seed, fleet, capacity, duration, and JSON-output arguments |
+| `eval/place_rsus_full.py` and related scripts | RSU preprocessing | Encodes RSU count and placement into trace artifacts |
+| `slurm/eval_array.slurm` | CSF batch wrapper | Shows a source-author-specific SLURM workflow and hard-coded paths |
+| `jaxmarl/scripts/train_*` | Training entry points | Defines stress/task/fleet controls; training is not integrated into TrafficTwin |
+
+## Confirmed Field Semantics
+
+| Field | Meaning | Unit | Canonical status |
+|---|---|---|---|
+| `task_type` | `0=T1`, `1=T2`, `2=T3` | code | Bounded source task view only |
+| `task_met` / source `completion` | Modelled latency is within the class deadline | boolean/ratio | Not mapped to eventual physical completion |
+| `task_lat_ms` | Modelled end-to-end latency including compute backlog; unavailable paths may use capped failure latency | ms | Bounded source task view |
+| `veh_action` | `0=local`, `1=V2I`, `2=V2V` | code | Time-local source decision view |
+| `times` | SUMO simulation time | s | Historical replay |
+| `pos_x`, `pos_y`, `rsu_xy` | SUMO network coordinates | m | Historical replay |
+| `speed` | SUMO vehicle speed | m/s | Historical replay |
+| `rsu_load` | In-flight task count assigned to an RSU | tasks | Source-state inspection, not canonical queue/utilisation |
+| `rsu_busy_ms` | Remaining compute backlog over in-flight tasks | ms | Source-state inspection |
+| `rsu_max_concurrent` | Maximum concurrent in-flight task count per RSU | tasks | Source capacity bound |
+| `rsu_load / rsu_max_concurrent` | Concurrency pressure | ratio | Source inspection only; not CPU utilisation |
+| trace vehicle index | Padded time-local slot reused by the trace builder | none | Never treated as persistent vehicle ID |
+| `fleet_tier_hist` | Aggregate tier counts over padded fleet slots | vehicles | No per-slot tier mapping |
+
+## Complete-Package Checks
+
+The audit checked all available files, not one sample:
+
+- all 300 evaluation rows use engine `v2_post_nrsus_fix`;
+- all 60 per-step array contracts and all 5 trace timelines are structurally valid;
+- every trace timestamp sequence advances by one simulation second;
+- all 60 RSU streams contain non-negative load/backlog and load never exceeds recorded capacity;
+- maximum observed concurrency pressure is approximately `0.990354`;
+- all 6 per-task files reconcile active arrivals and deadline-success counts to per-step arrays;
+- all active per-task records use task codes 0/1/2 and action codes 0/1/2;
+- every active `task_met` equals `task_lat_ms <= deadline` for source deadlines;
+- 60 instrumented summaries record wall times from roughly 266 seconds to 15,306 seconds, with a
+  median near 813 seconds. These are historical source-reported runtimes, not a TrafficTwin
+  benchmark and not evidence that the evaluator runs locally.
+
+## Absent Or Unrecoverable Artifacts
+
+- actor/checkpoint files referenced by evaluation rows;
+- exact producer commit for each result;
+- the source writer that generated the supplied per-step and per-task NPZ files;
+- persistent vehicle IDs in processed traces;
+- per-vehicle tier, V2I target, V2V target, link quality, and action availability exports;
+- trip or journey-time outputs;
+- raw `.sumocfg`, `.net.xml`, `.rou.xml`, FCD XML, detector, queue, summary, or `tripinfo.xml` files;
+- a locally tested, path-independent execution command.
 
 ## Privacy And Repository Policy
 
-Do not commit Randy's raw files into `diss/` until Randy confirms what can be used as small
-sanitised fixtures. The current discovery docs record schemas and counts only.
+TrafficTwin commits no private checkpoint or raw TOS payload. Tests build a tiny
+synthetic-schema package at runtime. Permission is still required before a sanitised real sample
+is committed or reproduced in dissertation figures.
 
-Adapter tests create a small synthetic-schema package at runtime; those values are not copied or
-derived research results.
+## Related Documents
+
+- [Schema mapping](randy_schema_mapping.md)
+- [Execution contract](randy_execution_contract.md)
+- [Gap analysis](randy_gap_analysis.md)
+- [Phase 6 decision](phase6_decision.md)
+- [TOS integration guide](tos_data_adapter.md)

@@ -80,6 +80,28 @@ def test_tos_cli_inspect_replay_and_provenance(tmp_path: Path) -> None:
             "json",
         ],
     )
+    contract_result = runner.invoke(
+        app,
+        ["integration", "tos", "contract", "--format", "json"],
+    )
+    runs_result = runner.invoke(
+        app,
+        ["integration", "tos", "runs", str(package), "--limit", "1"],
+    )
+    rsu_result = runner.invoke(
+        app,
+        [
+            "integration",
+            "tos",
+            "rsu-series",
+            str(package),
+            "baseline_uk2030_wd_am_fs0",
+            "--limit",
+            "2",
+            "--format",
+            "json",
+        ],
+    )
 
     assert inspect_result.exit_code == 0
     assert json.loads(inspect_result.output)["inventory"]["evaluation_rows"] == 2
@@ -87,6 +109,12 @@ def test_tos_cli_inspect_replay_and_provenance(tmp_path: Path) -> None:
     assert json.loads(replay_result.output)["point"]["index"] == 1
     assert provenance_result.exit_code == 0
     assert json.loads(provenance_result.output)["completeness"]["overall"] == "partial"
+    assert contract_result.exit_code == 0
+    assert json.loads(contract_result.output)["execution"]["direct_launch"] == "false"
+    assert runs_result.exit_code == 0
+    assert "instrumented_key=baseline_uk2030_wd_am_fs0" in runs_result.output
+    assert rsu_result.exit_code == 0
+    assert json.loads(rsu_result.output)[0]["concurrency_pressure_fraction"] == 0.2
 
 
 def test_tos_cli_import_is_idempotent(tmp_path: Path) -> None:

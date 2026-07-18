@@ -76,5 +76,7 @@ git status --short tests/fixtures examples/seeds
 - [ ] Historical replay is not live data.
 - [ ] Diagnostic hypotheses are not proven root causes.
 - [ ] Provenance supports traceability and auditability, not proof of correctness or causality.
-- [ ] Randy/SUMO integration is blocked until real artifacts are supplied.
+- [ ] Read-only TOS inspection is available, but canonical Randy/SUMO integration and launch stay
+  blocked by missing producer/checkpoint/writer, identity/outcome/trip evidence, and fixture
+  permission.
 - [ ] Direct launch is intentionally disabled.

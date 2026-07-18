@@ -24,6 +24,7 @@ from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed, SeedDocument
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.integration.tos.contract import TosSourceContract, tos_source_contract
 from traffictwin.integration.tos.metrics import tos_metric_catalogue
 from traffictwin.integration.tos.models import (
     TosEvaluationRun,
@@ -75,6 +76,7 @@ MODEL_TYPES = {
     "TosReplayFrame": TosReplayFrame,
     "TosTaskSample": TosTaskSample,
     "TosValidationReport": TosValidationReport,
+    "TosSourceContract": TosSourceContract,
     "RuleSetConfig": RuleSetConfig,
 }
 
@@ -128,11 +130,13 @@ CLI_COMMANDS = [
     ["integration"],
     ["integration", "tos"],
     ["integration", "tos", "inspect"],
+    ["integration", "tos", "contract"],
     ["integration", "tos", "validate"],
     ["integration", "tos", "runs"],
     ["integration", "tos", "import"],
     ["integration", "tos", "metrics"],
     ["integration", "tos", "replay"],
+    ["integration", "tos", "rsu-series"],
     ["integration", "tos", "task-sample"],
     ["integration", "tos", "diagnose"],
     ["integration", "tos", "provenance"],
@@ -148,6 +152,7 @@ def main() -> None:
     _write_json("validation_codes.json", _validation_codes())
     _write_json("rule_catalogue.json", _rule_catalogue())
     _write_json("cli_help.json", _cli_help())
+    _write_json("tos_source_contract.json", tos_source_contract().model_dump(mode="json"))
 
 
 def _metadata(kind: str) -> dict[str, str]:

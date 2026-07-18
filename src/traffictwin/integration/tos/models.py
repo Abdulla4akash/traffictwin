@@ -12,9 +12,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from traffictwin.domain.enums import TaskClass
 from traffictwin.metrics.results import JsonScalar
 
-TOS_ADAPTER_VERSION = "0.1.0"
+TOS_ADAPTER_VERSION = "0.2.0"
 TOS_EXPECTED_ENGINE_VERSION = "v2_post_nrsus_fix"
 TOS_SOURCE_METRIC_VERSION = "tos-source-summary-v2_post_nrsus_fix-1.0"
+TOS_VEC_ENV_EVIDENCE_COMMIT = "e98441196270b8fd4cc0eede892df4a0053b2185"
+TOS_SUMO_VERSION = "1.27.0"
 
 
 class TosFindingSeverity(StrEnum):
@@ -191,6 +193,12 @@ class TosIntegrationCapabilities(BaseModel):
     evaluation_summary_import: bool = True
     instrumented_historical_replay: bool = True
     per_task_showcase_inspection: bool = True
+    trace_units_confirmed: bool = True
+    rsu_state_semantics_confirmed: bool = True
+    task_decision_join: bool = True
+    load_pressure_inspection: bool = True
+    source_evaluation_contract_documented: bool = True
+    instrumented_writer_reproducible: bool = False
     direct_launch: bool = False
     asynchronous_launch: bool = False
     standard_bundle_conversion: bool = False
@@ -210,6 +218,7 @@ class TosValidationReport(BaseModel):
     may_import_summaries: bool
     package_fingerprint: str | None
     package_commit: str | None
+    semantics_source_commit: str = TOS_VEC_ENV_EVIDENCE_COMMIT
     engine_versions: list[str]
     inventory: TosPackageInventory
     findings: list[TosValidationFinding]
@@ -248,6 +257,9 @@ class TosVehicleSlotState(BaseModel):
     position_x_source_units: float
     position_y_source_units: float
     speed_source_units: float = Field(ge=0)
+    position_unit: str = "m"
+    speed_unit: str = "m/s"
+    identity_scope: str = "time_local_recycled_slot"
     action: str | None = None
     arrivals: int | None = Field(default=None, ge=0)
     deadline_met: int | None = Field(default=None, ge=0)
@@ -255,7 +267,7 @@ class TosVehicleSlotState(BaseModel):
 
 
 class TosRsuSourceState(BaseModel):
-    """Raw per-RSU source values with deliberately unresolved semantics."""
+    """Source RSU state with code-evidenced semantics."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -263,10 +275,33 @@ class TosRsuSourceState(BaseModel):
     rsu_index: int = Field(ge=0)
     position_x_source_units: float
     position_y_source_units: float
+    position_unit: str = "m"
     rsu_load_source_value: int = Field(ge=0)
     rsu_busy_ms_source_value: float = Field(ge=0)
     rsu_max_concurrent_source_value: int = Field(gt=0)
-    semantics_status: str = "unresolved"
+    load_pressure_fraction: float = Field(ge=0, le=1)
+    load_semantics: str = "in_flight_task_count"
+    busy_semantics: str = "remaining_compute_backlog_ms"
+    capacity_semantics: str = "maximum_concurrent_in_flight_tasks"
+    pressure_semantics: str = "in_flight_tasks_divided_by_maximum_concurrent_tasks"
+    semantics_status: str = "confirmed_from_vec_env_source"
+
+
+class TosRsuReplayPoint(BaseModel):
+    """One interpreted per-RSU source point for historical replay."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    index: int = Field(ge=0)
+    timestamp_s: float
+    rsu_reference: str
+    rsu_index: int = Field(ge=0)
+    active_task_count: int = Field(ge=0)
+    remaining_compute_backlog_ms: float = Field(ge=0)
+    max_concurrent_tasks: int = Field(gt=0)
+    concurrency_pressure_fraction: float = Field(ge=0, le=1)
+    source_file: str
+    semantics_evidence_commit: str = TOS_VEC_ENV_EVIDENCE_COMMIT
 
 
 class TosReplayFrame(BaseModel):
@@ -282,6 +317,7 @@ class TosReplayFrame(BaseModel):
     rsus: list[TosRsuSourceState]
     total_active_vehicle_slots: int = Field(ge=0)
     truncated: bool
+    semantics_evidence_commit: str = TOS_VEC_ENV_EVIDENCE_COMMIT
     warnings: list[str] = Field(default_factory=list)
 
 
@@ -295,12 +331,18 @@ class TosTaskObservation(BaseModel):
     time_index: int = Field(ge=0)
     task_slot: int = Field(ge=0)
     vehicle_slot: int = Field(ge=0)
+    arrival_time_s: float
     task_class: TaskClass
+    decision: str
     deadline_met: bool
     latency_ms: float = Field(ge=0)
     deadline_ms: float = Field(gt=0)
     source_file: str
     source_index: str
+    decision_source_file: str
+    decision_source_index: str
+    vehicle_identity_scope: str = "time_local_recycled_slot"
+    outcome_semantics: str = "modelled_latency_within_class_deadline"
 
 
 class TosTaskSample(BaseModel):

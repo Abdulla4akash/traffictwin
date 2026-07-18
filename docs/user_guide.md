@@ -90,23 +90,28 @@ Then:
 2. Select **Inspect Package** for a structural inventory or **Deep Validate NPZ Contracts** for
    archive key/shape checks and JSON-summary reconciliation.
 3. Review the package commit, fingerprint, engine version, findings, and capability boundary.
-4. Optionally import evaluation summaries into a separate SQLite registry. Repeated import is
+4. Expand **vec_env source contract** to see confirmed units, field meanings, the semantics commit,
+   and why direct launch remains disabled.
+5. Optionally import evaluation summaries into a separate SQLite registry. Repeated import is
    idempotent.
-5. Filter the evaluation table, select a run, and inspect source-provided completion, latency, and
+6. Filter the evaluation table, select a run, and inspect source-provided completion, latency, and
    action-share metrics.
-6. For matched showcase runs, inspect a historical replay frame or a bounded per-arrival task
-   sample.
-7. Download the partial EvidencePack, DiagnosticReport, or aggregate provenance trace.
+7. For matched showcase runs, inspect a historical replay frame, load bounded RSU pressure
+   history, or inspect a bounded per-arrival task/action sample.
+8. Download the partial EvidencePack, DiagnosticReport, or aggregate provenance trace.
 
 Important limitations:
 
 - `completion` is presented as source-defined deadline success per arrival, not eventual physical
   completion.
 - source mean latency includes deadline-missing arrivals and may include backlog delay.
-- `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent` are shown only as unresolved raw source
-  fields. They are not TrafficTwin queue, utilisation, or capacity metrics.
+- `rsu_load` is confirmed as in-flight task count, `rsu_busy_ms` as remaining compute backlog, and
+  `rsu_max_concurrent` as the concurrency bound. Their ratio is displayed as source-specific
+  concurrency pressure, not TrafficTwin queue length or CPU utilisation.
 - vehicle entries are time-indexed array slots, not persistent canonical vehicle IDs.
-- no trip, SUMO, per-vehicle tier, action-target, or link-quality evidence is invented.
+- positions are SUMO network metres, speed is metres per second, and time is simulation seconds.
+- no trip, raw SUMO XML/config, per-vehicle tier, action-target, or link-quality evidence is
+  invented.
 - this is imported historical simulation output, not live data.
 
 The page does not convert the package to a standard TrafficTwin run bundle. See

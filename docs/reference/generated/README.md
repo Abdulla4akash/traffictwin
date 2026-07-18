@@ -15,3 +15,4 @@ Current generated files:
 - `metric_catalogue.json`
 - `validation_codes.json`
 - `rule_catalogue.json`
+- `tos_source_contract.json`

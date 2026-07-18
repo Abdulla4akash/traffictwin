@@ -182,7 +182,8 @@ def build_tos_rule_trace(
             {
                 *base.warnings,
                 "Rule lineage reaches source summary rows, not canonical per-task contributors.",
-                "RSU semantics remain unresolved, so infrastructure-dependent rules stay blocked.",
+                "RSU source semantics are known, but they do not provide the canonical "
+                "queue/utilisation and temporal task linkage required by infrastructure rules.",
             }
         ),
     )
@@ -269,6 +270,7 @@ def _add_source_context(
             attributes={
                 "package_commit": report.package_commit,
                 "adapter_version": report.adapter_version,
+                "semantics_source_commit": report.semantics_source_commit,
             },
         ),
         ProvenanceNode(

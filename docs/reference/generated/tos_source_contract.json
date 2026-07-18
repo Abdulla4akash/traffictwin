@@ -1,0 +1,297 @@
+{
+  "adapter_version": "0.2.0",
+  "controls": [
+    {
+      "adapter_support": "false",
+      "control": "task_arrival_rate",
+      "limitations": [
+        "The current SUMO evaluator does not expose this as a CLI argument."
+      ],
+      "mechanism": "Training stress configuration/environment variables.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "task_class_mix",
+      "limitations": [],
+      "mechanism": "VEC_JAX_TASK_DIST preset.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "task_ordering",
+      "limitations": [],
+      "mechanism": "Training stress configuration/environment variables.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "vehicle_count",
+      "limitations": [],
+      "mechanism": "Environment configuration or trace maxN during evaluation.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "vehicle_tier_mix",
+      "limitations": [],
+      "mechanism": "Evaluator --fleet preset and --fleet-seed.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "rsu_count_and_placement",
+      "limitations": [
+        "Not exposed as a direct evaluator override."
+      ],
+      "mechanism": "RSU placement preprocessing encoded into the trace NPZ.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "rsu_capacity",
+      "limitations": [],
+      "mechanism": "Evaluator --rsu-cap-per-veh argument.",
+      "source_support": "true",
+      "status": "confirmed"
+    },
+    {
+      "adapter_support": "false",
+      "control": "action_toggles",
+      "limitations": [
+        "Action masks exist internally, but no scenario-level toggle is exposed."
+      ],
+      "mechanism": null,
+      "source_support": "unknown",
+      "status": "unknown"
+    },
+    {
+      "adapter_support": "false",
+      "control": "signal_timing",
+      "limitations": [],
+      "mechanism": null,
+      "source_support": "unknown",
+      "status": "unknown"
+    },
+    {
+      "adapter_support": "false",
+      "control": "lane_closure",
+      "limitations": [],
+      "mechanism": null,
+      "source_support": "unknown",
+      "status": "unknown"
+    }
+  ],
+  "evidence_commit": "e98441196270b8fd4cc0eede892df4a0053b2185",
+  "evidence_repository": "vec_env",
+  "execution": {
+    "asynchronous_launch": "false",
+    "blockers": [
+      "Actor/checkpoint files referenced by the results package are unavailable.",
+      "The evaluator contains a source-author-specific hard-coded repository path.",
+      "The writer for supplied per-step and per-task arrays is not present.",
+      "The evaluator has not been runtime-tested in the TrafficTwin environment."
+    ],
+    "command_template": [
+      "python",
+      "eval/eval_sumo_stage1_mc.py",
+      "--trace",
+      "TRACE.npz",
+      "--actor",
+      "ACTOR_PARAMS.npz",
+      "--seed",
+      "0",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "0",
+      "--out-json",
+      "OUT.json"
+    ],
+    "direct_launch": "false",
+    "interface": "Python CLI evaluator",
+    "output_contract": "Current evaluator writes one aggregate summary JSON.",
+    "status": "inferred"
+  },
+  "fields": [
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "task_type",
+      "limitations": [],
+      "meaning": "Task class code: 0=T1, 1=T2, 2=T3.",
+      "status": "confirmed",
+      "unit": "code"
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "task_met",
+      "limitations": [
+        "This does not establish eventual physical task completion."
+      ],
+      "meaning": "Whether modelled end-to-end latency was within the class deadline.",
+      "status": "confirmed",
+      "unit": "boolean"
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "task_lat_ms",
+      "limitations": [
+        "Unavailable offload paths can receive the environment's capped failure latency."
+      ],
+      "meaning": "Modelled end-to-end task latency including compute backlog delay.",
+      "status": "confirmed",
+      "unit": "ms"
+    },
+    {
+      "artifact": "traces/*.npz and instrumented/perstep/*_perstep.npz",
+      "evidence": [
+        "eval/build_trace.py"
+      ],
+      "field": "times",
+      "limitations": [],
+      "meaning": "SUMO simulation timestamp.",
+      "status": "confirmed",
+      "unit": "s"
+    },
+    {
+      "artifact": "traces/*.npz",
+      "evidence": [
+        "eval/build_trace.py",
+        "SUMO FCD output contract"
+      ],
+      "field": "pos_x, pos_y, rsu_xy",
+      "limitations": [],
+      "meaning": "SUMO network coordinates.",
+      "status": "confirmed",
+      "unit": "m"
+    },
+    {
+      "artifact": "traces/*.npz",
+      "evidence": [
+        "eval/build_trace.py",
+        "SUMO FCD output contract"
+      ],
+      "field": "speed",
+      "limitations": [],
+      "meaning": "Vehicle speed copied from SUMO FCD output.",
+      "status": "confirmed",
+      "unit": "m/s"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "veh_action",
+      "limitations": [
+        "The chosen RSU or peer target is not exported."
+      ],
+      "meaning": "Decision code at a time-local vehicle slot: 0=local, 1=V2I, 2=V2V.",
+      "status": "confirmed",
+      "unit": "code"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "rsu_load",
+      "limitations": [
+        "This is not queue length and not CPU utilisation."
+      ],
+      "meaning": "Number of in-flight tasks assigned to an RSU.",
+      "status": "confirmed",
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py"
+      ],
+      "field": "rsu_busy_ms",
+      "limitations": [
+        "It has no validated utilisation denominator."
+      ],
+      "meaning": "Total remaining RSU compute backlog across in-flight tasks.",
+      "status": "confirmed",
+      "unit": "ms"
+    },
+    {
+      "artifact": "instrumented/json/*.json",
+      "evidence": [
+        "jaxmarl/env/vec_jax.py",
+        "eval/eval_sumo_stage1_mc.py"
+      ],
+      "field": "rsu_max_concurrent",
+      "limitations": [
+        "The evaluator default is round(2.5 * maxN), but the recorded summary value is authoritative for an imported run."
+      ],
+      "meaning": "Maximum concurrent in-flight task count for each RSU.",
+      "status": "confirmed",
+      "unit": "tasks"
+    },
+    {
+      "artifact": "traces/*.npz",
+      "evidence": [
+        "eval/build_trace.py"
+      ],
+      "field": "vehicle array index",
+      "limitations": [
+        "Slots are reused and cannot be treated as persistent physical vehicle IDs."
+      ],
+      "meaning": "Padded, time-local slot allocated by the FCD trace builder.",
+      "status": "confirmed",
+      "unit": null
+    },
+    {
+      "artifact": "instrumented/json/*.json",
+      "evidence": [
+        "eval/eval_sumo_stage1_mc.py"
+      ],
+      "field": "fleet_tier_hist",
+      "limitations": [
+        "Per-slot vehicle tier is not exported."
+      ],
+      "meaning": "Aggregate count of sampled compute tiers in the padded fleet.",
+      "status": "confirmed",
+      "unit": "vehicles"
+    }
+  ],
+  "interpretation_limits": [
+    "The evidence commit documents semantics; it is not asserted as the producer commit for every data-package row.",
+    "Concurrency pressure rsu_load/rsu_max_concurrent is an inspection signal, not a TrafficTwin infrastructure utilisation metric.",
+    "No source field is promoted to canonical data when its semantics do not match the existing canonical contract."
+  ],
+  "schema_version": "1.0",
+  "source_versions": {
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "python": "3.11",
+    "sumo": "1.27.0"
+  },
+  "unavailable_outputs": [
+    "persistent vehicle identifiers",
+    "per-vehicle compute tier",
+    "V2I RSU target",
+    "V2V peer target",
+    "decision-time action availability",
+    "decision-time link quality",
+    "trip or journey-time records",
+    "raw SUMO FCD/XML/network/route files"
+  ]
+}

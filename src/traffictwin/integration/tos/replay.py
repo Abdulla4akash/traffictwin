@@ -9,6 +9,7 @@ from typing import Any
 from traffictwin.integration.tos.models import (
     TosReplayFrame,
     TosReplayPoint,
+    TosRsuReplayPoint,
     TosRsuSourceState,
     TosVehicleSlotState,
     action_label,
@@ -31,6 +32,8 @@ _SERIES_KEYS = (
     "n_v2i",
     "n_v2v",
 )
+
+_RSU_SERIES_KEYS = ("times", "rsu_load", "rsu_busy_ms")
 
 
 def load_replay_series(
@@ -136,6 +139,9 @@ def load_replay_frame(
             rsu_load_source_value=int(rsu_load[rsu_index]),
             rsu_busy_ms_source_value=float(rsu_busy[rsu_index]),
             rsu_max_concurrent_source_value=summary.rsu_max_concurrent,
+            load_pressure_fraction=_load_pressure(
+                int(rsu_load[rsu_index]), summary.rsu_max_concurrent
+            ),
         )
         for rsu_index in range(len(rsu_load))
     ]
@@ -150,13 +156,65 @@ def load_replay_frame(
         truncated=len(active_indices) > len(selected),
         warnings=[
             "Vehicle slot references are time-local and must not be treated as persistent IDs.",
-            "Position and speed values retain source units pending author confirmation.",
+            "Trace positions use network metres and speeds use metres per second.",
             (
-                "RSU values are raw source fields; no utilisation, queue, or capacity ratio is "
-                "derived."
+                "RSU concurrency pressure is active in-flight tasks divided by the recorded "
+                "maximum concurrent tasks; it is not CPU utilisation."
             ),
         ],
     )
+
+
+def load_rsu_replay_series(
+    root: str | Path,
+    run_key: str,
+    *,
+    stride: int = 1,
+) -> list[TosRsuReplayPoint]:
+    """Load interpreted RSU source values without promoting them to Phase 3 metrics."""
+
+    if stride < 1:
+        raise ValueError("stride must be at least 1")
+    np = _numpy()
+    source = perstep_path(root, run_key)
+    summary = read_summary_for_key(root, run_key)
+    try:
+        with np.load(source, allow_pickle=False) as archive:
+            missing = sorted(set(_RSU_SERIES_KEYS) - set(archive.files))
+            if missing:
+                raise TosPackageError("per-step RSU arrays are missing: " + ", ".join(missing))
+            times = archive["times"]
+            loads = archive["rsu_load"]
+            busy = archive["rsu_busy_ms"]
+    except (OSError, ValueError) as exc:
+        if isinstance(exc, TosPackageError):
+            raise
+        raise TosPackageError(f"cannot load per-step RSU replay: {exc}") from exc
+    if loads.ndim != 2 or busy.ndim != 2:
+        raise TosPackageError("per-step RSU arrays must have [time, rsu] shape")
+    if loads.shape != busy.shape or loads.shape[0] != len(times):
+        raise TosPackageError("per-step RSU arrays do not share one timeline and RSU shape")
+    relative = package_relative(root, source)
+    points: list[TosRsuReplayPoint] = []
+    for index in range(0, len(times), stride):
+        for rsu_index in range(loads.shape[1]):
+            active = int(loads[index, rsu_index])
+            points.append(
+                TosRsuReplayPoint(
+                    index=index,
+                    timestamp_s=float(times[index]),
+                    rsu_reference=f"rsu-index:{rsu_index}",
+                    rsu_index=rsu_index,
+                    active_task_count=active,
+                    remaining_compute_backlog_ms=float(busy[index, rsu_index]),
+                    max_concurrent_tasks=summary.rsu_max_concurrent,
+                    concurrency_pressure_fraction=_load_pressure(
+                        active, summary.rsu_max_concurrent
+                    ),
+                    source_file=relative,
+                )
+            )
+    return points
 
 
 def _point_from_arrays(arrays: dict[str, Any], index: int) -> TosReplayPoint:
@@ -171,6 +229,17 @@ def _point_from_arrays(arrays: dict[str, Any], index: int) -> TosReplayPoint:
         v2i_decisions=int(arrays["n_v2i"][index]),
         v2v_decisions=int(arrays["n_v2v"][index]),
     )
+
+
+def _load_pressure(active_tasks: int, maximum: int) -> float:
+    if maximum <= 0:
+        raise TosPackageError("RSU maximum-concurrent value must be positive")
+    pressure = active_tasks / maximum
+    if pressure > 1:
+        raise TosPackageError(
+            "RSU in-flight task count exceeds the recorded maximum-concurrent value"
+        )
+    return pressure
 
 
 def _numpy() -> Any:  # noqa: ANN401 - optional NumPy module is loaded dynamically

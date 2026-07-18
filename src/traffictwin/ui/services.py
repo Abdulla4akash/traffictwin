@@ -32,6 +32,8 @@ from traffictwin.integration.tos import (
     TosEvaluationRun,
     TosImportSummary,
     TosReplayFrame,
+    TosRsuReplayPoint,
+    TosSourceContract,
     TosTaskSample,
     TosValidationReport,
     build_tos_evidence_pack,
@@ -39,9 +41,11 @@ from traffictwin.integration.tos import (
     import_evaluation_summaries,
     list_instrumented_runs,
     load_replay_frame,
+    load_rsu_replay_series,
     load_task_sample,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    tos_source_contract,
     validate_tos_package,
 )
 from traffictwin.integration.tos.readers import (
@@ -205,6 +209,7 @@ class TosPackageView:
     evaluation_runs: list[TosEvaluationRun]
     instrumented_runs: list[str]
     pertask_runs: list[str]
+    source_contract: TosSourceContract
 
 
 @dataclass(frozen=True)
@@ -247,6 +252,7 @@ def inspect_tos_for_ui(
             evaluation_runs=rows,
             instrumented_runs=list_instrumented_runs(path),
             pertask_runs=list_pertask_runs(path),
+            source_contract=tos_source_contract(),
         )
     except (OSError, ValueError, TosPackageError) as exc:
         return ServiceError("TOS Data package could not be inspected.", str(exc))
@@ -343,6 +349,20 @@ def load_tos_task_sample_for_ui(
         return load_task_sample(path, run_key, limit=limit)
     except (OSError, ValueError, TosPackageError) as exc:
         return ServiceError("TOS per-task sample could not be loaded.", str(exc))
+
+
+def load_tos_rsu_series_for_ui(
+    path: str | Path,
+    run_key: str,
+    *,
+    stride: int = 1,
+) -> list[TosRsuReplayPoint] | ServiceError:
+    """Load interpreted, source-specific RSU history for visual inspection."""
+
+    try:
+        return load_rsu_replay_series(path, run_key, stride=stride)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS RSU replay history could not be loaded.", str(exc))
 
 
 def synthetic_preset_names_for_ui() -> list[str]:

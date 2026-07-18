@@ -130,7 +130,11 @@ traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.jso
 
 Use this exact wording if challenged:
 
-> The current prototype demonstrates the reproducible TrafficTwin workflow using synthetic fixtures and generic imported bundles. It does not yet integrate Randy's environment, SUMO outputs, Manchester sensors, live feeds, direct launch, LLM rendering, or XAI. Phase 6A documented the missing artifacts required before real adapters can be built.
+> The current prototype demonstrates the reproducible TrafficTwin workflow using synthetic
+> fixtures and generic imported bundles. It also has optional read-only TOS result inspection, but
+> it does not execute Randy's environment, parse raw SUMO XML, use Manchester sensors/live feeds,
+> or provide direct launch, LLM rendering, or XAI. The source audit documents the remaining
+> canonical and execution blockers.
 
 ## Fallback If Streamlit Fails
 

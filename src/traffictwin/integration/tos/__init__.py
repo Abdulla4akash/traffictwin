@@ -2,10 +2,14 @@
 
 This integration imports documented evaluation summaries and exposes selected
 instrumented arrays for inspection. It does not launch the source environment
-or assign semantics to the unresolved RSU arrays.
+or promote source-specific RSU fields to incompatible canonical metrics.
 """
 
 from traffictwin.integration.tos.capabilities import tos_data_capability_manifest
+from traffictwin.integration.tos.contract import (
+    TosSourceContract,
+    tos_source_contract,
+)
 from traffictwin.integration.tos.importer import import_evaluation_summaries
 from traffictwin.integration.tos.metrics import (
     build_tos_evidence_pack,
@@ -18,6 +22,7 @@ from traffictwin.integration.tos.models import (
     TosPackageInventory,
     TosReplayFrame,
     TosReplayPoint,
+    TosRsuReplayPoint,
     TosSummary,
     TosTaskObservation,
     TosTaskSample,
@@ -34,7 +39,11 @@ from traffictwin.integration.tos.readers import (
     read_evaluation_runs,
     read_npz_headers,
 )
-from traffictwin.integration.tos.replay import load_replay_frame, load_replay_series
+from traffictwin.integration.tos.replay import (
+    load_replay_frame,
+    load_replay_series,
+    load_rsu_replay_series,
+)
 from traffictwin.integration.tos.tasks import load_task_sample
 from traffictwin.integration.tos.validation import inspect_tos_package, validate_tos_package
 
@@ -44,6 +53,8 @@ __all__ = [
     "TosPackageInventory",
     "TosReplayFrame",
     "TosReplayPoint",
+    "TosRsuReplayPoint",
+    "TosSourceContract",
     "TosSummary",
     "TosTaskObservation",
     "TosTaskSample",
@@ -56,6 +67,7 @@ __all__ = [
     "list_instrumented_runs",
     "load_replay_frame",
     "load_replay_series",
+    "load_rsu_replay_series",
     "load_task_sample",
     "metric_collection_from_evaluation",
     "tos_metric_catalogue",
@@ -64,5 +76,6 @@ __all__ = [
     "read_npz_headers",
     "get_evaluation_source_row",
     "tos_data_capability_manifest",
+    "tos_source_contract",
     "validate_tos_package",
 ]

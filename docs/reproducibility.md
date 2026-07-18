@@ -80,10 +80,10 @@ They are not real Manchester, Randy/VEC, or SUMO results.
   --output .demo/reports/stressed_full.html
 ```
 
-Current verified snapshot after the read-only TOS integration increment:
+Current verified snapshot after the `vec_env` source-contract integration increment:
 
-- tests: 183 passed;
-- coverage: 76%.
+- tests: 185 passed;
+- coverage: 78%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 
@@ -165,14 +165,16 @@ Install the optional reader and validate a local checkout with:
 python -m pip install -e ".[dev,tos]"
 traffictwin integration tos validate ../external/tos-data --format json > tos-validation.json
 traffictwin integration tos import ../external/tos-data \
-  --registry /tmp/traffictwin-tos.sqlite
+  --registry data/registry/traffictwin-tos.sqlite
 ```
 
-Reproducibility is tied to the source package Git commit, a deterministic package fingerprint, the
-source row number, engine version, actor, fleet seed, and TrafficTwin source-metric version. Exact
-RSU semantics, several source units, source-environment commands, runtime, and raw SUMO outputs are
-still unavailable. Therefore full canonical conversion and direct execution cannot yet be
-reproduced.
+Reproducibility is tied to the source package Git commit, deterministic package fingerprint,
+source row, engine version, actor reference, fleet seed, TrafficTwin source-metric version, and a
+separate `vec_env` semantics commit. Source inspection now confirms trace units, task/action
+semantics, RSU active-task/backlog meanings, and the evaluator CLI. Exact producer commits,
+checkpoints, the instrumented writer, local runtime verification, persistent identity, physical
+completion, and raw SUMO/trip outputs remain unavailable. Full canonical conversion and direct
+execution therefore cannot yet be reproduced.
 
 Related documents:
 

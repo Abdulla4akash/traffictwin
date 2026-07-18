@@ -7,6 +7,7 @@ from pathlib import Path
 import plotly.graph_objects as go
 import streamlit as st
 
+from traffictwin.integration.tos import TosRsuReplayPoint
 from traffictwin.integration.tos.readers import instrumented_key_for_run
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.provenance.serialization import trace_to_json
@@ -21,6 +22,7 @@ from traffictwin.ui.services import (
     import_tos_for_ui,
     inspect_tos_for_ui,
     load_tos_replay_for_ui,
+    load_tos_rsu_series_for_ui,
     load_tos_task_sample_for_ui,
 )
 from traffictwin.ui.state import UiConfig
@@ -32,7 +34,8 @@ def render(config: UiConfig) -> None:
     render_page_header(UiPage.TOS_DATA)
     st.info(
         "This page reads an imported simulation-results package. It does not launch Randy's "
-        "environment, provide live data, or interpret unresolved RSU fields."
+        "environment or provide live data. Confirmed source-specific RSU fields remain separate "
+        "from TrafficTwin's canonical infrastructure metrics."
     )
     default_path = str(st.session_state.get("selected_tos_data_path") or config.tos_data_path or "")
     source_text = st.text_input(
@@ -111,6 +114,28 @@ def _render_package_summary(view: TosPackageView) -> None:
             hide_index=True,
             width="stretch",
         )
+    with st.expander("vec_env source contract"):
+        contract = view.source_contract
+        st.caption(
+            f"Semantics evidence commit: {contract.evidence_commit} | "
+            f"SUMO: {contract.source_versions['sumo']} | "
+            f"Direct launch: {contract.execution.direct_launch.value.upper()}"
+        )
+        st.dataframe(
+            [
+                {
+                    "field": item.field,
+                    "meaning": item.meaning,
+                    "unit": item.unit or "not applicable",
+                    "status": item.status.value,
+                    "limitations": "; ".join(item.limitations),
+                }
+                for item in contract.fields
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.warning("Direct launch remains disabled: " + "; ".join(contract.execution.blockers))
 
 
 def _render_import(view: TosPackageView, source: Path, config: UiConfig) -> None:
@@ -270,26 +295,57 @@ def _render_replay(view: TosPackageView, source: Path) -> None:
                 y=[vehicle.position_y_source_units for vehicle in frame.vehicles],
                 mode="markers",
                 text=[vehicle.slot_reference for vehicle in frame.vehicles],
-                hovertemplate="%{text}<br>x=%{x}<br>y=%{y}<extra></extra>",
+                customdata=[vehicle.speed_source_units for vehicle in frame.vehicles],
+                hovertemplate=(
+                    "%{text}<br>x=%{x:.1f} m<br>y=%{y:.1f} m"
+                    "<br>speed=%{customdata:.2f} m/s<extra></extra>"
+                ),
             )
         )
         figure.update_layout(
             title="Vehicle slots at selected source timestamp",
-            xaxis_title="Position x (source units)",
-            yaxis_title="Position y (source units)",
+            xaxis_title="Network position x (m)",
+            yaxis_title="Network position y (m)",
             height=420,
         )
         st.plotly_chart(figure, width="stretch")
-    with st.expander("Raw RSU source fields"):
-        st.warning(
-            "These values are not queue length, utilisation, or capacity metrics. Their exact "
-            "semantics are awaiting source-author confirmation."
+    with st.expander("RSU source state", expanded=True):
+        st.info(
+            "rsu_load is the active in-flight task count; rsu_busy_ms is remaining compute "
+            "backlog. Pressure is active tasks / maximum concurrent tasks. It is not CPU "
+            "utilisation or canonical queue length."
         )
         st.dataframe(
-            [state.model_dump(mode="json") for state in frame.rsus],
+            [
+                {
+                    "RSU": state.rsu_reference,
+                    "active tasks": state.rsu_load_source_value,
+                    "remaining backlog (ms)": state.rsu_busy_ms_source_value,
+                    "maximum concurrent tasks": state.rsu_max_concurrent_source_value,
+                    "concurrency pressure": state.load_pressure_fraction,
+                }
+                for state in frame.rsus
+            ],
             hide_index=True,
             width="stretch",
         )
+    stride = max(1, (maximum + 1) // 600)
+    if st.button("Load RSU Pressure History"):
+        with st.spinner("Loading bounded source-specific RSU history..."):
+            st.session_state["tos_rsu_series"] = load_tos_rsu_series_for_ui(
+                source,
+                run_key,
+                stride=stride,
+            )
+            st.session_state["tos_rsu_series_run"] = run_key
+    rsu_series = st.session_state.get("tos_rsu_series")
+    if (
+        isinstance(rsu_series, ServiceError)
+        and st.session_state.get("tos_rsu_series_run") == run_key
+    ):
+        st.error(rsu_series.message)
+    elif isinstance(rsu_series, list) and st.session_state.get("tos_rsu_series_run") == run_key:
+        _render_rsu_history(rsu_series)
     for warning in frame.warnings:
         st.caption(warning)
     if run_key in view.pertask_runs:
@@ -308,6 +364,54 @@ def _render_replay(view: TosPackageView, source: Path) -> None:
                 hide_index=True,
                 width="stretch",
             )
+
+
+def _render_rsu_history(points: list[TosRsuReplayPoint]) -> None:
+    """Render source-state history already interpreted by the integration service."""
+
+    if not points:
+        st.info("No RSU source history is available for this run.")
+        return
+    by_rsu: dict[str, list[TosRsuReplayPoint]] = {}
+    for point in points:
+        by_rsu.setdefault(point.rsu_reference, []).append(point)
+    pressure = go.Figure()
+    backlog = go.Figure()
+    for reference, values in sorted(by_rsu.items()):
+        pressure.add_trace(
+            go.Scatter(
+                x=[item.timestamp_s for item in values],
+                y=[item.concurrency_pressure_fraction for item in values],
+                mode="lines",
+                name=reference,
+            )
+        )
+        backlog.add_trace(
+            go.Scatter(
+                x=[item.timestamp_s for item in values],
+                y=[item.remaining_compute_backlog_ms for item in values],
+                mode="lines",
+                name=reference,
+            )
+        )
+    pressure.update_layout(
+        title="RSU concurrency pressure (source-specific inspection)",
+        xaxis_title="Simulation time (s)",
+        yaxis_title="Active tasks / maximum concurrent tasks",
+        height=360,
+    )
+    backlog.update_layout(
+        title="RSU remaining compute backlog",
+        xaxis_title="Simulation time (s)",
+        yaxis_title="Remaining compute backlog (ms)",
+        height=360,
+    )
+    st.plotly_chart(pressure, width="stretch")
+    st.plotly_chart(backlog, width="stretch")
+    st.caption(
+        "These source-specific state signals are not Phase 3 infrastructure utilisation or "
+        "queue-length metrics."
+    )
 
 
 def _render_comparison(view: TosPackageView) -> None:

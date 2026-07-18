@@ -1,142 +1,101 @@
 # Randy/VEC Schema Mapping
 
-Discovery date: 2026-07-18
-
-External package: `external/tos-data`
-
-Status: read-only summary/replay integration implemented; full canonical conversion is not
-implemented.
+Status: evidenced read-only integration; no full canonical conversion.
 
 ## Boundary
 
-The TOS package is not a TrafficTwin run bundle. `traffictwin.integration.tos` reads documented
-evaluation summaries and selected NPZ arrays directly. It does not add Randy-specific behavior to
-the generic CSV adapter and does not bypass the standard canonical pipeline for other bundles.
+`traffictwin.integration.tos` is a source-specific adapter around the inspected TOS package. It
+does not add Randy-specific assumptions to the generic CSV adapter. Source summaries become
+explicitly labelled `MetricCollection` values; instrumented arrays remain bounded source views.
+Neither path pretends that the TOS package is a standard TrafficTwin run bundle.
 
-Two outputs are deliberately different:
+The machine-readable contract is returned by:
 
-1. **Source-summary results** use `MetricCollection` for comparison, aggregation, evidence, and
-   provenance. They carry a distinct implementation version and are labelled not recomputed.
-2. **Instrumented source views** expose bounded replay frames and task samples. They are not
-   canonical records and do not feed Phase 3 formulas.
+```bash
+traffictwin integration tos contract --format json
+```
 
-## Source Mapping
+Its semantics source is `vec_env` commit
+`e98441196270b8fd4cc0eede892df4a0053b2185`. This is interpretation evidence, not a per-run
+producer commit.
 
-| Source | Confirmed meaning | Current target | Current policy |
+## Evaluation Summary Mapping
+
+| Source | TrafficTwin target | Policy |
+|---|---|---|
+| campaign/cell/fleet/fleet seed/actor | `Experiment`, `Run`, source scenario reference | Preserve source identity; do not fabricate a seed snapshot |
+| `completion`, `t1_completion`, `t2_completion`, `t3_completion` | `tos.task.deadline_success.rate` and `.rate_by_class` | Source-defined deadline success, not physical completion |
+| `avg_latency_ms_per_task` | `task.latency.mean_ms` | Compatible unit and denominator; marked source-provided |
+| `p_local`, `p_v2i`, `p_v2v` | decision-share and offload metrics | Validate fractions and sum-to-one |
+| `avg_energy_j_per_task` | provenance metadata | Joules per arrival is not energy per completed task |
+| `T`, `maxN`, trace, engine | metric/run provenance | `maxN` is peak padded slots, not unique vehicle count |
+
+The source metric version remains
+`tos-source-summary-v2_post_nrsus_fix-1.0`; the source audit changed interpretation metadata, not
+metric formulae or values.
+
+## Instrumented Task Mapping
+
+| Source | Meaning | Current model | Limitation |
 |---|---|---|---|
-| `evals/eval_results_master.csv` identity columns | campaign, scenario cell, fleet, fleet seed, actor, observation variant, trace, engine | `Experiment`, `Run`, metric provenance | register idempotently; no fabricated seed snapshot |
-| `completion`, `t1/2/3_completion` | fraction of arrivals meeting deadline | `tos.task.deadline_success.rate` and `tos.task.deadline_success.rate_by_class` | source-specific definitions; not mapped to TrafficTwin physical completion |
-| `avg_latency_ms_per_task` | mean ms over all arrivals, including misses/backlog | `task.latency.mean_ms` source summary | available; no P50/P95 inference |
-| `p_local`, `p_v2i`, `p_v2v` | action shares | decision-share/offload source summaries | available after sum-to-one validation |
-| `avg_energy_j_per_task` | joules per arrival | provenance metadata only | not mapped to energy per completed task |
-| `T`, `maxN` | trace duration seconds and padded vehicle-slot count | run/metric metadata | preserve |
-| instrumented JSON | matched run summary, tier histogram, total tasks, wall time, RSU bound | validation/reconciliation | reconcile with master; do not create canonical rows |
-| per-step `times`, arrivals, `done`, latency sum, active, action counts | per-second aggregate source evidence | `TosReplayPoint` | `done` is labelled deadline met |
-| per-step vehicle arrays | action, arrivals, deadline-met count, queue delay per padded slot | `TosVehicleSlotState` | join only at same timestamp and slot |
-| per-step `rsu_load`, `rsu_busy_ms` | exact semantics unresolved | `TosRsuSourceState` | raw display only; excluded from metrics/rules |
-| per-task `task_active` | valid arrival mask | sample inclusion | include true entries only |
-| per-task `task_type` | `0 -> T1`, `1 -> T2`, `2 -> T3` by exhaustive result consistency | `TosTaskObservation.task_class` | bounded inspection only |
-| per-task `task_lat_ms` | task latency in ms | `TosTaskObservation.latency_ms` | preserve |
-| per-task `task_met` | deadline success by exhaustive deadline consistency | `TosTaskObservation.deadline_met` | never call eventual completion |
-| trace positions/speed/mask | time-aligned padded mobility state | replay source view | retain source units; no canonical unit conversion |
-| trace `rsu_xy` | RSU source coordinates | replay source view | retain source units |
+| `task_active[t,k,n]` | Valid arrival at time/task/slot index | sample inclusion | False entries are ignored |
+| `task_type[t,k,n]` | `0=T1`, `1=T2`, `2=T3` | `TosTaskObservation.task_class` | Source-only observation |
+| `task_lat_ms[t,k,n]` | End-to-end modelled latency including backlog | `latency_ms` | Failed/unavailable paths may use capped latency |
+| `task_met[t,k,n]` | latency within source deadline | `deadline_met` | Not eventual completion |
+| `times[t]` | simulation timestamp | `arrival_time_s` | Exact time-index join |
+| `veh_action[t,n]` | local/V2I/V2V decision for the time-local slot | `decision` | Target is not exported |
 
-## Empirical Checks
+TrafficTwin joins per-task and per-step arrays only on exact `(time_index, vehicle_slot)`. It does
+not reconstruct vehicle identity or infer a per-task target.
 
-The complete supplied package was checked, not only a screenshot or one row:
+## Replay And RSU Mapping
 
-- 300 evaluation rows parse under one 20-column contract;
-- all use engine `v2_post_nrsus_fix`;
-- 60 per-step files share the required keys and dimensions;
-- 6 per-task files share the required keys and dimensions;
-- 5 trace files share the required keys and dimensions;
-- instrumented JSON values reconcile with matching evaluation rows;
-- all active per-task entries support `0/1/2` as T1/T2/T3;
-- every active `task_met` equals `task_lat_ms <= deadline` using 100 ms for T1/T3 and 500 ms for
-  T2.
+| Source | Meaning | UI/source view | Canonical mapping |
+|---|---|---|---|
+| trace `times` | simulation seconds | replay timestamp | none |
+| trace `pos_x`, `pos_y` | network metres | vehicle position | none, because persistent ID is absent |
+| trace `speed` | metres per second | vehicle speed | none |
+| trace `mask` | active slot at timestep | frame inclusion | none |
+| trace `rsu_xy` | network-metre RSU position | replay RSU position | none |
+| `rsu_load` | in-flight tasks at RSU | active task count | not queue length or utilisation |
+| `rsu_busy_ms` | remaining compute backlog | backlog in ms | no canonical queue field |
+| `rsu_max_concurrent` | maximum concurrent in-flight tasks | capacity bound | source-specific task-count capacity |
+| load/capacity | concurrency pressure | `TosRsuReplayPoint.concurrency_pressure_fraction` | explicitly not `infra.utilisation.*` |
 
-These checks support deterministic parsing. They do not prove a physical model or replace source
-author confirmation for dissertation interpretation.
+The ratio is useful for inspecting the environment's own concurrency bound. It is not promoted to
+the Phase 3 metric catalogue because that catalogue defines infrastructure utilisation and queue
+evidence differently. R1/R2 therefore remain evidence-limited.
 
-## Source-Summary Metric Availability
+## Vehicle Identity
 
-Available:
+`eval/build_trace.py` maps active SUMO IDs into a fixed-width array and reuses free slots. The
+processed trace discards the source string ID. TrafficTwin consequently uses references such as
+`slot:7@time-index:120`; `veh_7` across the whole trace would be false identity.
 
-- `tos.task.deadline_success.rate`;
-- `tos.task.deadline_success.rate_by_class`;
-- `task.latency.mean_ms`;
-- local/V2I/V2V/unknown decision shares;
-- `task.offload.rate`.
+## Availability By Research Feature
 
-Unavailable:
+| Feature | Status | Reason |
+|---|---|---|
+| Source deadline-success/action/mean-latency summaries | available | Validated evaluation CSV contract |
+| Bounded task/action inspection | available for six showcases | Matched per-task and per-step arrays |
+| Mobility replay | available | Processed traces and per-step timestamps align |
+| RSU active-task pressure/backlog inspection | available | Semantics confirmed in source |
+| Generic completed-task metrics | unavailable | Eventual physical completion is not exported |
+| Vehicle-tier task cross-tab | unavailable | Only aggregate tier histogram exists |
+| Canonical infrastructure utilisation/queue metrics | unavailable | Source fields are active tasks/backlog, not canonical fields |
+| Trip/journey-time metrics | unavailable | No trip output |
+| Decision target/link/action-availability evidence | unavailable | Internal values are not exported |
 
-- generated and completed counts;
-- TrafficTwin `task.completion.rate` and `task.completion.rate_by_class`;
-- eventual incomplete rate;
-- completed-task deadline-miss denominator;
-- latency count/P50/P95;
-- decision counts;
-- energy per completed task;
-- drops;
-- infrastructure, traffic, trip, and comparison-placeholder metrics.
+## No Silent Reconstruction
 
-The imported collection version is `tos-source-summary-v2_post_nrsus_fix-1.0`. Comparisons require
-matching experiments, fleet seeds, versions, and units under existing Phase 3 policies.
-
-## Vehicle Slot Finding
-
-Trace and per-step arrays align by `[T,N]`, but inspection shows padded slots can disappear,
-reappear, and represent different physical vehicles. TrafficTwin therefore uses references such
-as `slot:7@time-index:120`; it does not construct `vehicle_id=veh_7` across the full trace.
-
-## Unresolved RSU Mapping
-
-`rsu_busy_ms` can exceed 1,000 during one one-second observation, so dividing by 1,000 would be
-invalid. `rsu_load` may be zero despite V2I decisions and behaves differently under incident load.
-`rsu_max_concurrent` resembles an internal array/service bound, but physical capacity semantics are
-not evidenced.
-
-Consequently TrafficTwin does not map these fields to:
-
-- queue length;
-- active tasks;
-- utilisation fraction;
-- capacity;
-- saturation episodes;
-- load balance;
-- R2 evidence.
-
-## Unsupported Or Absent Evidence
-
-- per-vehicle tier;
-- link quality and action availability;
-- V2I target RSU and V2V target vehicle;
-- trip or journey-time records;
-- raw SUMO config/XML outputs;
-- checkpoint files;
-- a tested execution command.
-
-## Future Canonical Conversion
-
-A future converter should first target one matched showcase and write a standard run bundle. It
-must preserve source array indices, distinguish deadline success from eventual completion, map
-only confirmed units, and pass the existing Phase 2 validator. It must not retrofit ambiguous RSU
-fields into the generic adapter.
-
-## Remaining Questions
-
-1. What exactly are `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent`?
-2. What are the confirmed coordinate and speed units?
-3. Is late physical completion represented separately?
-4. Are vehicle tier, action availability, link quality, or action targets available elsewhere?
-5. Are trip/SUMO outputs available?
-6. Which sanitised samples may be committed?
-7. What tested command produced the outputs?
+TrafficTwin does not replay JAX random-number generation to guess vehicle tiers, derive physical
+completion from deadline failure, infer targets from proximity, or call concurrency pressure CPU
+utilisation. Missing links stay explicit.
 
 ## Related Documents
 
-- [TOS Data integration](tos_data_adapter.md)
 - [Artifact inventory](randy_artifact_inventory.md)
 - [Execution contract](randy_execution_contract.md)
-- [Gap analysis](randy_gap_analysis.md)
-- [Phase 6 decision](phase6_decision.md)
+- [TOS integration guide](tos_data_adapter.md)
+- [Data contract](../data_contract.md)
+- [Metrics catalogue](../metrics_catalogue.md)

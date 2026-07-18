@@ -72,6 +72,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Randy/SUMO gap analysis](integration/randy_gap_analysis.md)
 - [Phase 6 decision](integration/phase6_decision.md)
 - [TOS Data read-only integration](integration/tos_data_adapter.md)
+- [Generated TOS/vec_env source contract](reference/generated/tos_source_contract.json)
 
 ## Evaluation And Reproducibility
 

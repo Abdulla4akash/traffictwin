@@ -81,7 +81,7 @@ flowchart TD
 | Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
 | UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
 | Product UX | `src/traffictwin/ui/pages/` and `src/traffictwin/ui/components/` | Scenario Builder, Experiment Manager, Reports, Search, Settings, About, replay controls, and reusable presentation helpers. |
-| TOS integration | `src/traffictwin/integration/tos/` | Read-only schema validation, source-summary import, bounded replay/task inspection, partial evidence, and aggregate provenance for the separately supplied TOS Data package. |
+| TOS integration | `src/traffictwin/integration/tos/` | Versioned `vec_env` source contract, read-only package validation/import, unit-aware replay, bounded task/action and RSU-state inspection, partial evidence, and aggregate provenance. |
 
 ## Dependency Direction
 
@@ -255,8 +255,10 @@ All calculations come from library services. UI modules prepare chart/table data
 ```mermaid
 flowchart LR
     TOS[TOS Data result package] --> TOSReader[integration.tos readers and validation]
+    VecSource[vec_env source evidence] --> SourceContract[Versioned source contract]
+    SourceContract --> TOSReader
     TOSReader --> Summary[Source-summary MetricCollection]
-    TOSReader --> Views[Bounded replay and task views]
+    TOSReader --> Views[Bounded replay, task/action, and RSU-state views]
     Summary --> PartialEvidence[Partial EvidencePack]
     PartialEvidence --> ExistingRules[Existing R0-R3 rules]
     Summary --> AggregateTrace[Aggregate provenance]
@@ -267,26 +269,32 @@ flowchart LR
     StandardBundle --> ExistingPipeline[Existing validation and canonical pipeline]
 ```
 
-Phase 6A discovery found Randy's external `TOS Data` result package under `external/tos-data`.
-TrafficTwin now has a conservative, package-specific read-only integration for the contracts that
-can be established from those files and repository evidence:
+Phase 6 discovery inspected Randy's external `TOS Data` and `vec_env` repositories. TrafficTwin
+has a conservative, package-specific read-only integration for contracts established from the
+data and source evidence:
 
 - evaluation-master rows become versioned source-summary metric collections;
 - source JSON summaries are reconciled against matching evaluation rows;
 - NPZ archives are inspected with bounded, non-pickle loading and explicit key/shape checks;
-- matched arrays support historical replay and bounded per-arrival inspection;
+- matched arrays support historical replay, task/action inspection, and RSU active-task/backlog
+  inspection using confirmed source units and meanings;
 - registry import stores run metadata, source-summary metrics, and partial EvidencePacks
   idempotently;
 - diagnostics continue to use the existing EvidencePack-only rules and therefore remain
   insufficient where canonical evidence is absent;
 - provenance reaches the exact evaluation CSV row, package commit, package fingerprint, run,
-  experiment grouping, actor, and engine version.
+  experiment grouping, actor, engine version, and separate semantics evidence commit.
 
-The package is not a standard TrafficTwin run bundle and does not provide a runnable environment
-contract. `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent` remain source fields with unresolved
-semantics; they are not relabelled as queue length, utilisation, or capacity. Vehicle-array slots
-are time-indexed source slots rather than persistent vehicle identifiers. The integration also does
-not fabricate scenario-seed snapshots, task counts, trip records, action targets, or SUMO data.
+The package is not a standard TrafficTwin run bundle. Source code confirms `rsu_load` as in-flight
+task count, `rsu_busy_ms` as remaining compute backlog, and `rsu_max_concurrent` as a concurrency
+bound. Their ratio is exposed only as source-specific concurrency pressure, not relabelled as
+canonical queue length or CPU utilisation. Vehicle-array slots are time-indexed references rather
+than persistent identifiers. The integration does not fabricate seed snapshots, physical
+completion, trip records, action targets, link quality, or raw SUMO data.
+
+The evaluator CLI is documented but not launchable from TrafficTwin: actor files and the
+instrumented writer are missing, paths are source-author-specific, and the runtime has not been
+verified locally. Direct launch therefore remains false.
 
 Future canonical adapters must:
 
@@ -352,8 +360,8 @@ See [security_and_privacy.md](security_and_privacy.md).
 | New diagnostic rule | Add EvidencePack inputs, rule config, rule model output, tests, docs. |
 | Provenance trace root | Add builder/query support without recomputing metrics or reading unsafe paths. |
 | New Streamlit page | Add service-backed page; no duplicated formulas. |
-| Full TOS canonical adapter | Confirm RSU semantics, source units, stable vehicle identities, and task identifiers before mapping source arrays to canonical tables. |
-| TOS/SUMO launcher | Require a tested, documented headless execution contract; current capability remains unsupported. |
+| Full TOS canonical adapter | Obtain eventual-completion semantics, persistent identifiers or an approved time-local model, exact producer provenance, and compatible canonical infrastructure fields. |
+| TOS/SUMO launcher | Supply checkpoint/writer artifacts and verify a path-independent headless command; current capability remains unsupported. |
 
 ## Product Polish Layer
 

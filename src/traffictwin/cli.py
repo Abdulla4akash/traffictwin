@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
@@ -27,9 +28,11 @@ from traffictwin.integration.tos import (
     import_evaluation_summaries,
     list_instrumented_runs,
     load_replay_frame,
+    load_rsu_replay_series,
     load_task_sample,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    tos_source_contract,
     validate_tos_package,
 )
 from traffictwin.integration.tos.readers import TosPackageError, instrumented_key_for_run
@@ -786,6 +789,31 @@ def tos_inspect_command(
         typer.echo(f"{finding.severity.value}: {finding.code}: {finding.message}")
 
 
+@tos_app.command("contract")
+def tos_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the evidence-backed vec_env field, control, and execution contract."""
+
+    contract = tos_source_contract()
+    if output_format == "json":
+        typer.echo(contract.to_json())
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"adapter_version: {contract.adapter_version}")
+    typer.echo(f"semantics_evidence_commit: {contract.evidence_commit}")
+    typer.echo(f"direct_launch: {contract.execution.direct_launch.value}")
+    typer.echo(f"execution_status: {contract.execution.status.value}")
+    typer.echo("confirmed_fields:")
+    for field in contract.fields:
+        typer.echo(f"  {field.field}: {field.meaning} [{field.unit or 'no unit'}]")
+    typer.echo("launch_blockers:")
+    for blocker in contract.execution.blockers:
+        typer.echo(f"  - {blocker}")
+
+
 @tos_app.command("validate")
 def tos_validate_command(
     path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
@@ -821,9 +849,14 @@ def tos_runs_command(
     typer.echo(f"evaluation_runs: {len(rows)}")
     typer.echo(f"instrumented_runs: {len(instrumented)}")
     for row in rows[:limit]:
+        instrumented_key = instrumented_key_for_run(row)
+        instrumented_available = instrumented_key in instrumented
+        instrumented_reference = (
+            f" instrumented_key={instrumented_key}" if instrumented_available else ""
+        )
         typer.echo(
             f"{row.run_id} completion={row.completion:.6f} "
-            f"instrumented={instrumented_key_for_run(row) in instrumented}"
+            f"instrumented={instrumented_available}{instrumented_reference}"
         )
 
 
@@ -914,6 +947,49 @@ def tos_replay_command(
     typer.echo(f"active_vehicle_slots: {frame.total_active_vehicle_slots}")
     typer.echo(f"displayed_vehicle_slots: {len(frame.vehicles)}")
     typer.echo(f"rsu_source_rows: {len(frame.rsus)}")
+
+
+@tos_app.command("rsu-series")
+def tos_rsu_series_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_key: Annotated[str, typer.Argument()],
+    stride: Annotated[int, typer.Option("--stride", min=1)] = 1,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=10000)] = 250,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect bounded RSU active-task pressure and compute backlog history."""
+
+    try:
+        points = load_rsu_replay_series(path, run_key, stride=stride)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    selected = points[:limit]
+    if output_format == "json":
+        typer.echo(
+            json.dumps(
+                [point.model_dump(mode="json") for point in selected],
+                indent=2,
+                sort_keys=True,
+                allow_nan=False,
+            )
+        )
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"run_key: {run_key}")
+    typer.echo(f"total_points: {len(points)}")
+    typer.echo(f"displayed_points: {len(selected)}")
+    typer.echo("pressure_semantics: in_flight_tasks / maximum_concurrent_tasks")
+    typer.echo("warning: concurrency pressure is not CPU utilisation")
+    for point in selected:
+        typer.echo(
+            f"t={point.timestamp_s:g} {point.rsu_reference} "
+            f"active={point.active_task_count} backlog_ms="
+            f"{point.remaining_compute_backlog_ms:g} "
+            f"pressure={point.concurrency_pressure_fraction:.6f}"
+        )
 
 
 @tos_app.command("task-sample")

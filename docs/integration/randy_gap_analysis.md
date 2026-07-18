@@ -2,77 +2,72 @@
 
 Discovery date: 2026-07-18
 
-External package: `external/tos-data`
+## Position After Source Audit
 
-## Current Position
+Access to both `TOS Data` and `vec_env` closes most field-definition questions. TrafficTwin can
+now explain trace units, deadline outcomes, action codes, RSU active-task load/backlog, capacity,
+and the source evaluator interface. It still cannot claim complete canonical integration or
+launch the environment.
 
-The package closes the earlier “no artifacts” gap. TrafficTwin now has an implemented read-only
-path for evaluation summaries, instrumented replay, task samples, partial evidence, diagnostics,
-and aggregate provenance.
-
-It does not close the canonical-integration or execution gaps.
-
-## Implemented From Current Evidence
+## Implemented From Available Evidence
 
 | Area | Status | Boundary |
 |---|---|---|
-| Package inventory/validation | implemented | CSV, JSON, NPZ headers, engine versions, reconciliation |
-| Evaluation summary import | implemented | source-provided metrics, distinct metric version |
-| Registry persistence | implemented | 10 experiments and 300 runs for the supplied package; idempotent |
-| Historical replay | implemented | bounded per-step/trace source views |
-| Per-task showcase inspection | implemented | bounded source-array entries, deadline semantics |
-| Source-summary comparison | implemented | existing Phase 3 comparison logic |
-| EvidencePack | implemented, partial | task summaries partial; other categories unavailable |
-| Diagnostics | implemented, evidence-limited | unchanged R0-R3; infrastructure rules remain insufficient |
-| Provenance | implemented, aggregate | exact CSV row/package/run lineage; no canonical contributors |
-| Streamlit and CLI entry points | implemented | offline inspection only |
+| Package inventory and validation | implemented | CSV, JSON, NPZ headers, versions, and reconciliation |
+| Evaluation summary import | implemented | Source metrics with separate implementation version |
+| Registry persistence | implemented | Idempotent experiments, runs, metrics, and EvidencePacks |
+| Historical mobility/task replay | implemented | Confirmed seconds, metres, m/s, and time-local slot identity |
+| Per-task showcase inspection | implemented | Task class, deadline outcome, latency, and joined action |
+| RSU source-state inspection | implemented | Active in-flight tasks, compute backlog, concurrency pressure |
+| Comparison, partial evidence, diagnostics | implemented | Existing deterministic services; no new formulas/rules |
+| Aggregate provenance | implemented | Exact summary CSV row, package fingerprint/commit, semantics commit |
+| Machine-readable source contract | implemented | Fields, units, controls, evaluator template, blockers |
 
 ## Remaining Gaps
 
-| Gap | Status | Impact | Fallback |
+| Gap | Evidence status | Impact | Current fallback |
 |---|---|---|---|
-| `vec_env` source/reproduction contract | unknown | no launcher or config capability proof | direct/asynchronous launch `false` |
-| RSU field definitions | unknown | no infrastructure canonical records or metrics | preserve raw values only |
-| trace units | inferred, not confirmed | no canonical vehicle speed/position conversion | label source units |
-| persistent vehicle identity | contradicted by slot reuse | cannot join a slot as one vehicle over a trace | time-local slot references |
-| eventual completion distinct from deadline success | unknown | no canonical `completed` mapping | retain `deadline_met` only |
-| per-vehicle tier | absent | no direct low-tier/T1 R1 evidence | R1 insufficient/limited |
-| link/action availability and targets | absent | important alternatives unresolved | mark missing evidence |
-| trip/journey-time records | absent | no real Journey-Time Lens metrics | unavailable |
-| raw SUMO artifacts | absent | no SUMO adapter | unsupported |
-| checkpoint files | absent | no checkpoint execution/inspection | retain actor reference only |
-| fixture permission | unknown | real samples cannot enter Git | runtime synthetic-schema tests |
+| Exact producer commit per run | unknown | Cannot bind each result to an environment commit | Preserve data commit, engine version, actor reference, and semantics commit separately |
+| Actor/checkpoint files | unavailable | Evaluator cannot run | Direct launch false |
+| Instrumented writer | unavailable | Per-step/per-task output cannot be reproduced | Import supplied arrays read-only |
+| Persistent vehicle ID | contradicted | Cannot form longitudinal canonical vehicle records | Time-local slot references |
+| Eventual task completion | unavailable | Cannot populate canonical `TaskRecord.completed` honestly | Source `deadline_met` view only |
+| Per-vehicle tier | unavailable | No T1-by-low-tier R1 evidence | Aggregate fleet histogram only; R1 insufficient |
+| Targets/link/action availability | unavailable | Important policy alternatives remain unresolved | Mark missing evidence |
+| Canonical queue/utilisation fields | incompatible | Source active-task pressure is not Phase 3 utilisation/queue | Keep infrastructure metrics and R2 unavailable |
+| Trip/journey-time output | unavailable | Journey-Time Lens has no real TOS evidence | Unavailable |
+| Raw SUMO XML/config | unavailable | No SUMO XML adapter or trace regeneration | Processed-trace replay only |
+| Sanitised fixture permission | unknown | Cannot commit a real-schema sample | Runtime synthetic-schema tests |
 
-## Metric Reconciliation Policy
+## Why The RSU Discovery Does Not Enable R2
 
-Randy's master CSV already contains calculated summaries. TrafficTwin does not present those as
-canonical Phase 3 recomputation. Compatible values use a separate implementation version and
-source warnings. Incompatible definitions remain unavailable rather than being forced to agree.
-
-No “Randy legacy” metric keys were added because the current source values can be represented with
-metadata under existing display keys. A future dissertation methodology may choose explicit
-separate keys if external and TrafficTwin formulas are compared side by side.
+The source now establishes that `rsu_load` is an in-flight task count and `rsu_busy_ms` is
+remaining compute backlog. This permits honest inspection and the source-specific ratio
+`rsu_load / rsu_max_concurrent`. It does not provide canonical CPU utilisation, queue length, or
+task-to-RSU failure overlap expected by current Phase 3 metrics and R2. Promoting the ratio would
+change metric/rule semantics, which this integration intentionally avoids.
 
 ## Rule Readiness
 
-| Rule | Current TOS summary readiness | Reason |
+| Rule | TOS source-summary status | Missing evidence |
 |---|---|---|
-| R0 | ready | reports partial/unavailable evidence accurately |
-| R1 | insufficient | task count, per-vehicle tier, action availability, and infrastructure utilisation absent |
-| R2 | insufficient | no interpreted queue/utilisation/saturation evidence |
-| R3 | insufficient per run | ordinary EvidencePacks lack experiment-level dispersion inputs |
+| R0 | triggered/ready | Correctly qualifies partial source evidence |
+| R1 | insufficient | Task count denominator, per-vehicle tier, action availability, compatible infrastructure metric |
+| R2 | insufficient | Canonical saturation/queue metrics and temporal task-failure overlap |
+| R3 | insufficient for a single run | Experiment-level rule input representation |
 
-Real data presence does not promote a rule automatically.
+Real artifacts do not automatically validate or activate a diagnostic hypothesis.
 
-## Recommended Next Integration Step
+## Smallest Safe Next Integration
 
-Wait for Randy's answers, then decide whether one matched showcase can be converted honestly to a
-standard bundle. Start only with fields whose semantics and units are confirmed. A launcher should
-remain a separate later decision after `vec_env` execution documentation is available.
+The next implementation should wait for permission and missing artifacts. A sensible first step
+would be a sanitised, matched showcase plus its exact producing commit and writer. It could test a
+source-specific conversion without claiming eventual completion, persistent identity, or trip
+evidence. A launcher is a separate later decision.
 
 ## Related Documents
 
-- [TOS Data integration](tos_data_adapter.md)
+- [Artifact inventory](randy_artifact_inventory.md)
 - [Schema mapping](randy_schema_mapping.md)
 - [Execution contract](randy_execution_contract.md)
-- [Phase 6 decision](phase6_decision.md)
+- [TOS integration guide](tos_data_adapter.md)

@@ -67,7 +67,8 @@ not as source evidence.
 
 For TOS source-summary EvidencePacks, aggregate provenance can reach the exact evaluation CSV row,
 package commit/fingerprint, run, source experiment grouping, actor, and engine version. Canonical
-task and infrastructure links remain explicit unavailable nodes. R0 therefore qualifies the
+task and infrastructure links remain explicit unavailable nodes. The separate `vec_env` semantics
+commit documents interpretation but is not asserted as the run producer. R0 therefore qualifies the
 evidence and R1-R3 remain `insufficient_evidence`; the integration does not reinterpret rule logic.
 
 ## JSON Policy

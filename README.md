@@ -23,8 +23,9 @@ Implemented:
 - Streamlit UI over the tested library, including Scenario Builder, Experiment Manager, Reports,
   Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
-- Read-only TOS Data evaluation-summary import, NPZ contract validation, historical replay,
-  per-task inspection, partial EvidencePacks, and aggregate provenance.
+- Read-only TOS Data evaluation-summary import, versioned `vec_env` source contract, NPZ
+  validation, unit-aware historical replay, task/action inspection, RSU pressure inspection,
+  partial EvidencePacks, and aggregate provenance.
 
 Not implemented:
 
@@ -143,16 +144,20 @@ Optional offline TOS Data inspection requires NumPy:
 
 ```bash
 python -m pip install -e ".[dev,tos]"
+traffictwin integration tos contract
 traffictwin integration tos inspect ../external/tos-data
 traffictwin integration tos validate ../external/tos-data
 traffictwin integration tos import ../external/tos-data \
   --registry data/registry/traffictwin.sqlite
 traffictwin integration tos metrics ../external/tos-data \
   tos:baseline:wd_am:uk2030:fs0
+traffictwin integration tos rsu-series ../external/tos-data \
+  baseline_uk2030_wd_am_fs0 --stride 10 --limit 100
 ```
 
-This path imports documented source summaries; it does not launch Randy's environment or enable
-unconfirmed RSU metrics. See
+This path imports documented source summaries and exposes confirmed source-state semantics; it
+does not launch Randy's environment or relabel RSU concurrency pressure as canonical utilisation.
+See
 [docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md).
 
 ## Architecture Overview
@@ -196,7 +201,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Streamlit UI | Implemented | Thin presentation layer. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
 | TOS Data offline results | Implemented, partial | Source-summary import and replay inspection; no canonical conversion or launch. |
-| Full Randy/VEC integration | Blocked | RSU semantics, source units, execution contract, and fixture permission remain unresolved. |
+| Full Randy/VEC integration | Blocked | Source semantics are documented; checkpoint, producer commit/writer, canonical outcome/identity fields, tested execution, and fixture permission remain unresolved. |
 | SUMO integration | Blocked | No raw SUMO config/XML or trip output is available. |
 | Direct launch | Unsupported | Capability remains `false`. |
 | Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
@@ -261,11 +266,12 @@ historical replay, not live Manchester data. The UI does not support true live o
 
 ## External Integration Status
 
-Phase 6A discovery inspected Randy's separately cloned TOS Data package. TrafficTwin now supports a
-conservative offline integration for its documented evaluation summaries and instrumented arrays.
-The source package is not committed here and is not a standard TrafficTwin run bundle. Full
-canonical conversion, RSU infrastructure metrics, SUMO support, and direct execution remain
-blocked. Integration evidence and remaining questions are documented under
+Phase 6 discovery inspected Randy's separately cloned TOS Data and `vec_env` repositories.
+TrafficTwin now supports a conservative offline integration with source-evidenced field meanings,
+units, evaluation summaries, and instrumented views. Neither external repository is committed
+here, and the result package is not a standard TrafficTwin run bundle. Full canonical conversion,
+canonical RSU infrastructure metrics, SUMO XML support, and direct execution remain blocked.
+Integration evidence and remaining questions are documented under
 [docs/integration/](docs/integration/).
 
 ## Documentation Index

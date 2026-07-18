@@ -18,8 +18,9 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
   and normal bundle validation.
 - Bundle Import & Validation: manifest, files, validation findings, evidence availability, import.
 - TOS Data Import: read-only external result inventory, NPZ contract validation, source-summary
-  registry import, bounded historical replay/task views, and aggregate provenance. Unresolved RSU
-  values remain explicitly raw source fields.
+  registry import, source-contract inspection, unit-aware replay, bounded task/action and RSU
+  pressure/backlog views, and aggregate provenance. RSU pressure stays explicitly separate from
+  canonical utilisation/queue metrics.
 - Experiment Manager: experiments, runs, seeds, policies, fingerprints, comparisons, reports, metric
   storage, and evidence storage.
 - Replay: historical replay clock, deterministic controls, filters, and time-series views.

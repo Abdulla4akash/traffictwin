@@ -12,7 +12,10 @@ The repository implements the TrafficTwin research-software architecture: schema
 
 ## Why import-first?
 
-Because Randy/VEC and SUMO execution contracts are not evidenced locally. Import-first lets the system work with completed run bundles without fabricating launch capability. Direct launch can be added later behind an adapter when real commands and output contracts are known.
+Because completed artifacts can be analysed without coupling the research platform to one
+simulator runtime. Randy's evaluator interface is now documented, but missing checkpoints,
+instrumented writer, portable paths, and local verification still prevent launch. Import-first
+keeps those uncertainties behind an adapter boundary.
 
 ## Why deterministic rules rather than an LLM?
 
@@ -36,7 +39,9 @@ It makes the prototype auditable. A supervisor can select a displayed metric or 
 
 ## What is synthetic and what is real?
 
-All included run data and fault-injection cases are synthetic. No real Randy/VEC, SUMO, Manchester sensor, near-live, or true-live data is included.
+All repository-contained bundles and fault-injection cases are synthetic. A separately checked-out
+TOS package contains real outputs from Randy's simulation workflow and can be inspected read-only;
+it is not committed, canonicalised, live, or claimed as externally validated Manchester data.
 
 ## Is this a digital twin?
 
@@ -52,11 +57,16 @@ They are tested against labelled synthetic fault-injection cases, which verifies
 
 ## What would Randy integration change?
 
-It would add evidenced adapters that map real Randy/VEC and SUMO artifacts into the existing canonical contract. The metrics, EvidencePack, diagnostics, and UI pipeline should remain the same.
+The first read-only result boundary already imports source summaries and inspects instrumented
+arrays. Full integration would add only mappings supported by missing outcome/identity/trip and
+producer evidence, plus an optional tested launcher. The deterministic downstream pipeline should
+remain unchanged.
 
 ## What are the biggest limitations?
 
-No real external artifacts, no launch contract, no live data, synthetic-only diagnostic evaluation, aggregate rather than temporal-overlap evidence for some rules, and no formal user study yet.
+No full canonical external adapter or executable launcher, no live data, synthetic-only diagnostic
+evaluation, missing per-vehicle/target/trip evidence, aggregate rather than temporal-overlap
+evidence for some rules, and no formal user study yet.
 
 ## Why Streamlit?
 
@@ -80,7 +90,9 @@ First integrate real or sanitised Randy/SUMO artifacts. Then run task-based expe
 
 ## What would you do next?
 
-Request one complete real or sanitised Randy/SUMO output set with schemas, units, provenance, and execution contract. Then build the smallest evidenced adapter and run the existing validation, metrics, evidence, diagnostics, and UI pipeline over that sample.
+Request the exact instrumented writer/producer commit, one approved checkpoint and small expected
+output, raw trip/SUMO evidence if available, and sanitised-fixture permission. Then trial the
+smallest honest mapping without changing existing metric or rule semantics.
 
 ## How can the project be demonstrated without Randy?
 

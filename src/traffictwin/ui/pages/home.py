@@ -123,8 +123,8 @@ def render(config: UiConfig) -> None:
             "Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.",
             (
                 "TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
-                "direct Randy/VEC launch, SUMO conversion, and unresolved RSU metric mapping "
-                "remain unavailable."
+                "direct Randy/VEC launch, SUMO conversion, and promotion of source-specific RSU "
+                "pressure to canonical infrastructure metrics remain unavailable."
             ),
         ]
     )

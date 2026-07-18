@@ -17,14 +17,19 @@ from traffictwin.integration.tos import (
     list_instrumented_runs,
     load_replay_frame,
     load_replay_series,
+    load_rsu_replay_series,
     load_task_sample,
     metric_collection_from_evaluation,
     read_evaluation_runs,
     read_npz_headers,
     tos_data_capability_manifest,
+    tos_source_contract,
     validate_tos_package,
 )
-from traffictwin.integration.tos.models import TOS_SOURCE_METRIC_VERSION
+from traffictwin.integration.tos.models import (
+    TOS_SOURCE_METRIC_VERSION,
+    TOS_VEC_ENV_EVIDENCE_COMMIT,
+)
 from traffictwin.integration.tos.readers import TosPackageError, safe_package_path
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.provenance.models import ProvenanceNodeType, ProvenanceStatus
@@ -62,7 +67,11 @@ def test_tos_package_validation_and_npz_headers(tmp_path: Path) -> None:
     assert report.inventory.perstep_files == 2
     assert report.inventory.pertask_files == 1
     assert report.inspected_at == FIXED_TIME
-    assert "TOS_RSU_SEMANTICS_UNRESOLVED" in {item.code for item in report.findings}
+    codes = {item.code for item in report.findings}
+    assert "TOS_RSU_SEMANTICS_CONFIRMED" in codes
+    assert "TOS_TRACE_UNITS_CONFIRMED" in codes
+    assert "TOS_INSTRUMENTED_WRITER_UNAVAILABLE" in codes
+    assert report.semantics_source_commit == TOS_VEC_ENV_EVIDENCE_COMMIT
     assert {header.name for header in headers} >= {"times", "rsu_load", "veh_action"}
 
 
@@ -157,6 +166,7 @@ def test_tos_replay_and_task_samples_are_source_views(tmp_path: Path) -> None:
     key = "baseline_uk2030_wd_am_fs0"
     series = load_replay_series(package, key)
     frame = load_replay_frame(package, key, 0, max_vehicles=1)
+    rsu_series = load_rsu_replay_series(package, key)
     sample = load_task_sample(package, key, limit=3)
 
     assert len(series) == 3
@@ -164,7 +174,14 @@ def test_tos_replay_and_task_samples_are_source_views(tmp_path: Path) -> None:
     assert frame.total_active_vehicle_slots == 2
     assert len(frame.vehicles) == 1
     assert frame.vehicles[0].slot_reference == "slot:0@time-index:0"
-    assert frame.rsus[0].semantics_status == "unresolved"
+    assert frame.vehicles[0].position_unit == "m"
+    assert frame.vehicles[0].speed_unit == "m/s"
+    assert frame.rsus[0].semantics_status == "confirmed_from_vec_env_source"
+    assert frame.rsus[0].load_pressure_fraction == pytest.approx(0.2)
+    assert len(rsu_series) == 3
+    assert rsu_series[1].active_task_count == 2
+    assert rsu_series[1].remaining_compute_backlog_ms == pytest.approx(1200.0)
+    assert rsu_series[1].concurrency_pressure_fraction == pytest.approx(0.4)
     assert sample.total_active_entries == 4
     assert sample.deadline_consistency_verified
     assert [item.task_class for item in sample.observations] == [
@@ -172,6 +189,21 @@ def test_tos_replay_and_task_samples_are_source_views(tmp_path: Path) -> None:
         TaskClass.T2,
         TaskClass.T3,
     ]
+    assert [item.arrival_time_s for item in sample.observations] == [0.0, 0.0, 1.0]
+    assert [item.decision for item in sample.observations] == ["local", "v2i", "local"]
+    assert sample.observations[0].decision_source_index == "[0,0]"
+
+
+def test_tos_source_contract_records_evidence_and_launch_blockers() -> None:
+    contract = tos_source_contract()
+    by_field = {item.field: item for item in contract.fields}
+
+    assert contract.evidence_commit == TOS_VEC_ENV_EVIDENCE_COMMIT
+    assert contract.execution.direct_launch is CapabilitySupport.FALSE
+    assert by_field["rsu_load"].meaning == "Number of in-flight tasks assigned to an RSU."
+    assert by_field["speed"].unit == "m/s"
+    assert any("checkpoint" in blocker.lower() for blocker in contract.execution.blockers)
+    assert "trip or journey-time records" in contract.unavailable_outputs
 
 
 def test_tos_metric_trace_and_source_row_are_explicitly_aggregate(tmp_path: Path) -> None:

@@ -81,11 +81,12 @@ Rules do not mutate the EvidencePack.
 - Canonical rows remain in memory; the evidence pack stores metric results and provenance, not raw CSV contents.
 - The read-only TOS path builds partial EvidencePacks from source summaries. Tasks are `partial`;
   infrastructure, vehicles, traffic, trips, and incidents remain `unavailable` because no canonical
-  row evidence or confirmed RSU/trip mapping exists.
+  row evidence or compatible RSU utilisation/queue and trip mapping exists. Source-specific RSU
+  active-task pressure is inspectable but does not satisfy those dependencies.
 - TOS deadline success uses source-specific keys and does not satisfy TrafficTwin physical-task
   completion dependencies in R1.
-- Full Randy/SUMO canonical evidence remains unavailable until field semantics, identifiers, units,
-  and an execution contract are supplied.
+- Full Randy/SUMO canonical evidence remains unavailable until compatible outcome/identity,
+  infrastructure, target/trip, producer, and fixture evidence is supplied.
 - R1 lacks direct T1-by-low-tier cross-tab evidence in current packs.
 - R2 lacks direct task-to-saturation temporal overlap in current packs.
 - R3 experiment-level evidence is available only in synthetic diagnostic fixtures at this stage.

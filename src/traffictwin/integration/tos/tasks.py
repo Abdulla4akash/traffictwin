@@ -10,12 +10,14 @@ from traffictwin.domain.enums import TaskClass
 from traffictwin.integration.tos.models import (
     TosTaskObservation,
     TosTaskSample,
+    action_label,
     task_class_from_code,
     task_deadline_ms,
 )
 from traffictwin.integration.tos.readers import (
     TosPackageError,
     package_relative,
+    perstep_path,
     pertask_path,
 )
 
@@ -34,27 +36,43 @@ def load_task_sample(
     if limit < 1 or limit > 10_000:
         raise ValueError("task sample limit must be between 1 and 10000")
     source = pertask_path(root, run_key)
+    decision_source = perstep_path(root, run_key)
     if source.stat().st_size > max_source_bytes:
         raise TosPackageError(
             f"per-task source exceeds inspection limit: {source.stat().st_size} bytes"
         )
     np = _numpy()
     try:
-        with np.load(source, allow_pickle=False) as archive:
+        with (
+            np.load(source, allow_pickle=False) as archive,
+            np.load(decision_source, allow_pickle=False) as stream,
+        ):
             missing = sorted(set(_TASK_KEYS) - set(archive.files))
             if missing:
                 raise TosPackageError("per-task arrays are missing: " + ", ".join(missing))
             arrays = {key: archive[key] for key in _TASK_KEYS}
+            stream_missing = sorted({"times", "veh_action"} - set(stream.files))
+            if stream_missing:
+                raise TosPackageError(
+                    "per-step decision arrays are missing: " + ", ".join(stream_missing)
+                )
+            times = stream["times"]
+            actions = stream["veh_action"]
     except (OSError, ValueError) as exc:
         raise TosPackageError(f"cannot load per-task showcase: {exc}") from exc
     shapes = {tuple(array.shape) for array in arrays.values()}
     if len(shapes) != 1:
         raise TosPackageError("per-task arrays do not share one shape")
     active = arrays["task_active"]
+    if actions.ndim != 2 or active.shape[0] != len(times):
+        raise TosPackageError("per-task and per-step arrays do not share one timeline")
+    if active.shape[0] != actions.shape[0] or active.shape[2] != actions.shape[1]:
+        raise TosPackageError("per-task vehicle slots do not align with per-step decisions")
     total = int(active.sum())
     observations: list[TosTaskObservation] = []
     consistency = True
     relative = package_relative(root, source)
+    decision_relative = package_relative(root, decision_source)
     for time_index in range(active.shape[0]):
         if len(observations) >= limit:
             break
@@ -70,6 +88,12 @@ def load_task_sample(
             if not math.isfinite(latency) or latency < 0:
                 raise TosPackageError("per-task latency must be finite and non-negative")
             met = bool(arrays["task_met"][time_index, task_slot, vehicle_slot])
+            decision = action_label(int(actions[time_index, vehicle_slot]))
+            if decision is None:
+                raise TosPackageError(
+                    f"unknown action code {int(actions[time_index, vehicle_slot])} "
+                    f"at [{time_index},{vehicle_slot}]"
+                )
             deadline = task_deadline_ms(task_class)
             consistency = consistency and met == (latency <= deadline)
             source_index = f"[{time_index},{task_slot},{vehicle_slot}]"
@@ -80,12 +104,16 @@ def load_task_sample(
                     time_index=time_index,
                     task_slot=task_slot,
                     vehicle_slot=vehicle_slot,
+                    arrival_time_s=float(times[time_index]),
                     task_class=task_class,
+                    decision=decision,
                     deadline_met=met,
                     latency_ms=latency,
                     deadline_ms=deadline,
                     source_file=relative,
                     source_index=source_index,
+                    decision_source_file=decision_relative,
+                    decision_source_index=f"[{time_index},{vehicle_slot}]",
                 )
             )
             if len(observations) >= limit:
@@ -101,6 +129,7 @@ def load_task_sample(
         warnings=[
             "task_met is displayed as deadline_met and is not mapped to eventual completion.",
             "Vehicle indices are padded source slots, not persistent physical identifiers.",
+            "Decisions are joined by the exact time index and time-local vehicle slot.",
             (
                 "The bounded sample is for inspection; headline values come from the evaluation "
                 "master."

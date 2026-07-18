@@ -215,11 +215,19 @@ def inspect_tos_package(
     findings.extend(
         [
             _finding(
-                "TOS_RSU_SEMANTICS_UNRESOLVED",
-                TosFindingSeverity.WARNING,
-                "rsu_load, rsu_busy_ms, and rsu_max_concurrent are preserved but not mapped to "
-                "queue length, utilisation, or capacity.",
-                capabilities=["infrastructure_metric_mapping", "R2"],
+                "TOS_RSU_SEMANTICS_CONFIRMED",
+                TosFindingSeverity.INFO,
+                "vec_env source defines rsu_load as in-flight task count, rsu_busy_ms as "
+                "remaining compute backlog, and rsu_max_concurrent as the in-flight task limit. "
+                "Their ratio is concurrency pressure, not CPU utilisation.",
+                capabilities=["load_pressure_inspection"],
+            ),
+            _finding(
+                "TOS_TRACE_UNITS_CONFIRMED",
+                TosFindingSeverity.INFO,
+                "Trace timestamps use simulation seconds, network coordinates use metres, and "
+                "vehicle speed uses metres per second.",
+                capabilities=["instrumented_historical_replay"],
             ),
             _finding(
                 "TOS_TASK_OUTCOME_SEMANTICS",
@@ -235,10 +243,18 @@ def inspect_tos_package(
                 capabilities=["trip_metrics", "journey_time"],
             ),
             _finding(
-                "TOS_EXECUTION_CONTRACT_UNAVAILABLE",
+                "TOS_EXECUTION_CONTRACT_PARTIAL",
                 TosFindingSeverity.INFO,
-                "The data package does not provide a tested headless execution contract.",
+                "A headless summary evaluator is documented in vec_env, but TrafficTwin direct "
+                "launch remains disabled until its checkpoint, paths, and runtime are verified.",
                 capabilities=["direct_launch", "asynchronous_launch"],
+            ),
+            _finding(
+                "TOS_INSTRUMENTED_WRITER_UNAVAILABLE",
+                TosFindingSeverity.WARNING,
+                "The supplied vec_env source does not contain the writer that produced the "
+                "per-step and per-task NPZ artifacts; those files remain import-only evidence.",
+                capabilities=["instrumented_writer_reproducible", "direct_launch"],
             ),
         ]
     )
@@ -486,7 +502,8 @@ def _report(
         status = TosValidationStatus.ACCEPTED
     inventory = _inventory(package, rows)
     replay_invalid = any(
-        item.code.startswith(("TOS_PERSTEP", "TOS_TRACE", "TOS_INSTRUMENTED_SUMMARY"))
+        item.severity in {TosFindingSeverity.ERROR, TosFindingSeverity.WARNING}
+        and item.code.startswith(("TOS_PERSTEP", "TOS_TRACE", "TOS_INSTRUMENTED_SUMMARY"))
         for item in ordered
     )
     pertask_invalid = any(item.code.startswith("TOS_PERTASK") for item in ordered)
@@ -496,6 +513,17 @@ def _report(
             inventory.perstep_files > 0 and inventory.trace_files > 0 and not replay_invalid
         ),
         per_task_showcase_inspection=(inventory.pertask_files > 0 and not pertask_invalid),
+        task_decision_join=(
+            inventory.pertask_files > 0
+            and inventory.perstep_files > 0
+            and not pertask_invalid
+            and not replay_invalid
+        ),
+        load_pressure_inspection=(inventory.perstep_files > 0 and not replay_invalid),
+        rsu_state_semantics_confirmed=True,
+        trace_units_confirmed=True,
+        source_evaluation_contract_documented=True,
+        instrumented_writer_reproducible=False,
     )
     return TosValidationReport(
         status=status,

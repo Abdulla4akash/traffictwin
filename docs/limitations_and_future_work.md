@@ -16,8 +16,9 @@ This document separates deliberate scope boundaries from evidence gaps.
 ## Evidence Limitations
 
 - Included bundles are synthetic.
-- TOS evaluation and array shapes are evidenced, but several field semantics, physical units,
-  runtime behavior, and source-environment invocation remain unknown.
+- TOS field meanings and trace units are source-evidenced, but exact producer provenance,
+  checkpoint/writer artifacts, local runtime behavior, persistent identity, physical completion,
+  and several decision-time outputs remain unavailable.
 - R1 lacks direct T1-by-low-tier cross-tab evidence in normal EvidencePacks.
 - R2 lacks direct temporal overlap between saturation windows and task misses.
 - R3 requires experiment-level evidence not present in ordinary single-run bundles.
@@ -32,14 +33,15 @@ Fault-injection precision/recall values are implementation checks over labelled 
 
 ## External Integration Blockers
 
-Phase 6A found evaluation summaries and instrumented arrays, but a full adapter is blocked by:
+Phase 6 found evaluation summaries, instrumented arrays, and source code, but a full adapter is
+blocked by:
 
-- unresolved definitions for `rsu_load`, `rsu_busy_ms`, and `rsu_max_concurrent`;
-- unconfirmed physical units for trace position and speed fields;
 - no persistent per-vehicle identifier or vehicle-tier output in the inspected arrays;
+- no eventual physical-completion field compatible with canonical `TaskRecord.completed`;
 - no action-target, action-availability, or link-quality output;
 - no trip/journey-time or raw SUMO outputs;
-- no source-environment repository, documented headless command, runtime, or dependency contract;
+- no exact producer commit, actor checkpoint, or instrumented-array writer;
+- source-specific evaluator paths and no locally verified runtime;
 - no permission yet to commit sanitised derived fixtures.
 
 See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
@@ -68,8 +70,9 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 
 ## Sensible Future Work
 
-1. Obtain answers to the remaining TOS field-definition questions and sanitised-fixture permission.
-2. Add only the newly evidenced canonical mappings and validation contracts.
+1. Obtain the instrumented writer/producer commit, approved checkpoint, missing output evidence,
+   and sanitised-fixture permission.
+2. Add only mappings compatible with the existing canonical semantics.
 3. Generate a standard TrafficTwin run bundle only when identifiers and units are unambiguous.
 4. Reconcile Randy's existing metric scripts against TrafficTwin formulas.
 5. Extend EvidencePack only where real evidence requires it.

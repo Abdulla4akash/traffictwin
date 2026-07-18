@@ -34,7 +34,12 @@ jobs:
         run: mypy
 
       - name: Tests
-        run: pytest --cov=traffictwin --cov-report=term-missing
+        run: python -m pytest --cov=traffictwin --cov-report=term-missing
+
+      - name: Generated reference consistency
+        run: |
+          python scripts/generate_reference_docs.py
+          git diff --exit-code -- docs/reference/generated
 
       - name: Standalone demo smoke
         run: |

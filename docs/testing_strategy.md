@@ -4,10 +4,10 @@ TrafficTwin uses a test pyramid: focused unit tests at the base, integration tes
 
 ## Current Snapshot
 
-Verified after the read-only TOS integration increment:
+Verified after the `vec_env` source-contract integration increment:
 
-- 183 tests passed.
-- Coverage: 76%.
+- 185 tests passed.
+- Coverage: 78%.
 
 Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI
 workflows are partly covered through service tests, AppTest-style tests, and smoke commands rather
@@ -155,6 +155,8 @@ TrafficTwin. Tests cover:
 - source-summary metric and partial EvidencePack construction;
 - unchanged R0-R3 behavior over incomplete evidence;
 - bounded replay and per-arrival inspection;
+- confirmed-unit labels, time/slot action joins, and RSU concurrency-pressure calculation;
+- versioned source-contract serialization and launch-blocker reporting;
 - aggregate provenance to the source summary row;
 - registry persistence, conflict checks, and idempotent imports;
 - Typer and Streamlit service/AppTest workflows.
@@ -168,8 +170,8 @@ The synthetic fault-injection precision/recall values are implementation checks 
 
 Current verified repository snapshot:
 
-- tests: 183 passed;
-- coverage: 76%.
+- tests: 185 passed;
+- coverage: 78%.
 
 Related documents:
 

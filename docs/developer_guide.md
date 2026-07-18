@@ -159,13 +159,15 @@ data, or launch behavior.
 
 The read-only `integration.tos` boundary is implemented for the evidenced evaluation-summary and
 instrumented-array contracts. It must remain separate from `generic_csv`. A full canonical
-Randy/VEC or SUMO adapter remains blocked by unresolved RSU semantics, source units, stable entity
-identifiers, trip outputs, and an execution contract.
+Randy/VEC or SUMO adapter remains blocked by absent eventual-completion and persistent-identity
+fields, compatible canonical infrastructure evidence, trip/raw SUMO outputs, exact producer
+provenance, fixture permission, and a verified runnable package.
 
 TOS integration tests use generated schema-compatible NPZ/CSV/JSON samples. Do not copy Randy's raw
-package into this repository without explicit sanitised-fixture permission. Any future mapping from
-`rsu_load`, `rsu_busy_ms`, or `rsu_max_concurrent` requires source-author confirmation and new
-contract tests.
+package into this repository without explicit sanitised-fixture permission. Confirmed
+`rsu_load`/`rsu_busy_ms`/`rsu_max_concurrent` meanings are exposed only through source-specific
+models. Any future promotion to canonical metrics requires a deliberate metric/data-contract
+decision and new tests; do not reinterpret them in UI code.
 
 ## Registry Migration Principles
 

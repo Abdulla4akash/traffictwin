@@ -11,6 +11,7 @@ from traffictwin.evidence.availability import EvidenceAvailability, EvidenceStat
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.integration.tos.models import (
     TOS_SOURCE_METRIC_VERSION,
+    TOS_VEC_ENV_EVIDENCE_COMMIT,
     TosEvaluationRun,
     TosValidationReport,
 )
@@ -250,7 +251,8 @@ def build_tos_evidence_pack(
         excluded_record_counts={},
         warnings=[
             "TOS source summaries are partial evidence and are not canonical row-level metrics.",
-            "RSU arrays remain unmapped; R1 and R2 infrastructure evidence is unavailable.",
+            "RSU active-task pressure and backlog are inspectable, but they are not canonical "
+            "queue-length or utilisation metrics; R1 and R2 remain evidence-limited.",
             "No trip evidence is present in the TOS Data package.",
         ],
         provenance={
@@ -258,6 +260,7 @@ def build_tos_evidence_pack(
             "bundle_source": "external TOS Data package",
             "manifest_version": None,
             "metric_version": collection.metric_version,
+            "semantics_source_commit": validation_report.semantics_source_commit,
         },
     )
 
@@ -273,6 +276,7 @@ def _source_metadata(run: TosEvaluationRun) -> dict[str, str | int | float | boo
         "max_vehicle_slots": run.max_vehicle_slots,
         "evaluation_fleet": run.eval_fleet,
         "source_metric": True,
+        "semantics_source_commit": TOS_VEC_ENV_EVIDENCE_COMMIT,
     }
 
 
@@ -302,7 +306,7 @@ def _unavailable_reason(metric_key: str) -> UnavailableReason:
 
 def _missing_evidence(metric_key: str) -> list[str]:
     if metric_key.startswith("infra."):
-        return ["interpretable per-RSU queue/utilisation/capacity evidence"]
+        return ["canonical per-RSU queue length or CPU utilisation evidence"]
     if metric_key.startswith("traffic."):
         return ["canonical traffic observations with confirmed source units"]
     if metric_key.startswith("trip."):
@@ -320,7 +324,10 @@ def _missing_evidence(metric_key: str) -> list[str]:
 
 def _unavailable_warning(metric_key: str) -> str:
     if metric_key.startswith("infra."):
-        return "RSU source arrays are preserved but not assigned unconfirmed semantics."
+        return (
+            "Source RSU fields describe in-flight tasks and compute backlog, not the canonical "
+            "queue or utilisation field required by this metric."
+        )
     if metric_key == "task.incomplete.rate":
         return "Deadline misses are not silently presented as eventual physical incompletion."
     if metric_key == "task.energy.per_completed_j":

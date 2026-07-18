@@ -312,9 +312,11 @@ from traffictwin.integration.tos import (
     import_evaluation_summaries,
     inspect_tos_package,
     load_replay_frame,
+    load_rsu_replay_series,
     load_task_sample,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    tos_source_contract,
     tos_metric_catalogue,
     validate_tos_package,
 )
@@ -327,10 +329,14 @@ Principal models:
 - `TosValidationReport`: package inventory, stable findings, source commit/fingerprint, engine
   versions, import gate, and explicit capability boundary.
 - `TosReplayFrame`: one bounded, time-indexed historical frame with source vehicle slots and raw RSU
-  fields.
-- `TosTaskSample`: bounded per-arrival observations retaining NPZ indices and deadline-success
-  semantics.
+  state carrying confirmed source meanings and units.
+- `TosRsuReplayPoint`: one RSU/time point with active tasks, compute backlog, concurrency bound,
+  and source-specific pressure.
+- `TosTaskSample`: bounded per-arrival observations retaining NPZ indices, joined decision,
+  simulation time, and deadline-success semantics.
 - `TosImportSummary`: created/existing registry counts for an idempotent summary import.
+- `TosSourceContract`: versioned field, unit, control, execution, and limitation evidence derived
+  from the inspected `vec_env` source.
 
 Key functions:
 
@@ -342,7 +348,9 @@ Key functions:
 - `build_tos_evidence_pack(run, report, metrics, clock=...) -> EvidencePack`
 - `import_evaluation_summaries(path, registry_path, validation_report=None, clock=...) -> TosImportSummary`
 - `load_replay_frame(path, run_key, index, max_vehicles=25) -> TosReplayFrame`
+- `load_rsu_replay_series(path, run_key, stride=1) -> list[TosRsuReplayPoint]`
 - `load_task_sample(path, run_key, limit=25) -> TosTaskSample`
+- `tos_source_contract() -> TosSourceContract`
 - `build_tos_metric_trace(...) -> ProvenanceTrace`
 - `build_tos_rule_trace(...) -> ProvenanceTrace`
 
@@ -354,8 +362,9 @@ The EvidencePack is intentionally partial, so existing rules cannot treat unavai
 infrastructure, tier, trip, or temporal evidence as present. Source paths in registry records and
 exported traces are package-relative references.
 
-Limitations: no full canonical conversion, no RSU utilisation/queue mapping, no persistent vehicle
-identity, no SUMO/trip data, and no source-environment execution contract. See
+Limitations: no full canonical conversion, no canonical RSU utilisation/queue mapping, no
+persistent vehicle identity, no SUMO/trip data, and no executable TrafficTwin launcher. The
+source evaluator contract is documented, but checkpoint/path/writer/runtime blockers remain. See
 [integration/tos_data_adapter.md](integration/tos_data_adapter.md).
 
 Related documents:

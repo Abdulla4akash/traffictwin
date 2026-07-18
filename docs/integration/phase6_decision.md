@@ -4,99 +4,80 @@ Decision date: 2026-07-18
 
 ## Decision
 
-Implement the evidenced, read-only portion of TOS Data integration without waiting for the
-remaining RSU and execution-contract answers.
+Retain the import-first TOS adapter and extend it only with interpretations directly evidenced by
+the supplied `vec_env` source. Do not implement canonical conversion, SUMO XML support, or direct
+launch from the current artifacts.
 
-The approved boundary is:
+The approved implementation:
 
-- validate the external package and documented schemas;
-- import the 300 evaluation summaries as explicitly source-provided metric collections;
-- register source experiments and runs idempotently;
-- expose bounded per-step replay and per-task showcase inspection;
-- build partial EvidencePacks and let the unchanged rules report insufficient evidence;
-- provide aggregate-level source-row provenance;
-- preserve ambiguous RSU arrays as raw source values only.
+- validates and imports source-summary runs idempotently;
+- exposes confirmed FCD-derived units in historical replay;
+- joins per-task arrivals to source decisions by exact time/slot indices;
+- displays RSU in-flight task count, compute backlog, and concurrency pressure;
+- records the source-code semantics commit separately from data-package provenance;
+- exposes a versioned machine-readable source contract;
+- leaves existing Phase 3 metric values and Phase 5 rules unchanged.
 
-This is not approval for a full Randy/VEC canonical adapter, SUMO adapter, or launcher.
+## Evidence
 
-## Evidence Supporting Implementation
-
-- Package commit inspected: `d27294ef5213e6a20f55632448bd20f5a76a45ab`.
-- All 300 evaluation rows use engine `v2_post_nrsus_fix`.
-- The package documents evaluation summary meanings and units.
-- All 60 per-step NPZ files share the expected key contract.
-- All 6 per-task NPZ files share the expected key contract.
-- All 5 trace NPZ files share the expected key contract.
-- The 60 instrumented JSON summaries reconcile with matching evaluation rows.
-- Across all active per-task entries, `0/1/2` maps consistently to T1/T2/T3 and `task_met`
-  matches the package deadlines.
-
-The last point is strong empirical evidence suitable for read-only inspection. TrafficTwin still
-does not map `task_met` to eventual physical completion.
+- TOS package commit: `d27294ef5213e6a20f55632448bd20f5a76a45ab`.
+- Semantics source commit: `e98441196270b8fd4cc0eede892df4a0053b2185`.
+- All 300 evaluation rows and supplied NPZ/JSON artifacts were checked.
+- `vec_jax.py` confirms task/action/deadline/RSU semantics.
+- `build_trace.py` confirms FCD parsing and slot reuse.
+- `eval_sumo_stage1_mc.py` confirms the evaluator arguments and capacity calculation.
+- Official SUMO FCD conventions support seconds, network metres, and metres per second for the
+  fields copied by the trace builder.
 
 ## Capability Decision
 
 | Capability | State | Reason |
 |---|---|---|
-| Evaluation-summary import | supported | Documented CSV contract and engine version validate. |
-| Instrumented historical replay | supported | Per-step and trace arrays align by time and padded slot. |
-| Per-task showcase inspection | supported | Bounded, read-only inspection with explicit deadline semantics. |
-| Source-summary comparison/aggregation | supported | Uses existing comparison/aggregation with a distinct metric version. |
-| Partial EvidencePack and diagnostics | supported | Existing rules consume the pack unchanged and report evidence gaps. |
-| Aggregate provenance | supported | Exact CSV row, package fingerprint, run, actor, and engine are available. |
-| Standard TrafficTwin bundle import | unsupported | The external package is not a run bundle. |
-| Canonical task conversion | unsupported | Eventual completion and persistent vehicle identity are not established. |
-| Infrastructure metric mapping | unsupported | RSU field semantics and denominator are unresolved. |
-| Trip/journey-time integration | unsupported | No trip output is present. |
-| Direct launch | unsupported | No tested headless execution contract exists. |
-| Asynchronous launch | unsupported | No locally callable job interface exists. |
+| Summary import/comparison | supported | Stable evaluation contract |
+| Historical replay | supported | Time-aligned per-step and trace arrays with confirmed units |
+| Task/action showcase | supported | Exact indexed join and confirmed codes |
+| RSU source-state inspection | supported | Source meanings confirmed |
+| Standard run-bundle conversion | unsupported | Canonical task completion/vehicle identity remain absent |
+| Canonical infrastructure metrics | unsupported | Active-task pressure is not canonical utilisation/queue length |
+| Journey-time integration | unsupported | No trip records |
+| Direct launch | unsupported | Missing checkpoint, hard-coded paths, untested runtime |
+| Instrumented rerun | unsupported | Writer source absent |
+| Asynchronous launch | unsupported | CSF-specific wrapper is not a local observable job interface |
 
-Scenario-control capabilities remain `unknown`; data presence does not prove external control.
+Scenario controls found in the source are documented but remain disabled in the read-only adapter.
 
-## Metric Policy
+## Metric And Diagnostic Policy
 
-Source summaries use metric implementation version
-`tos-source-summary-v2_post_nrsus_fix-1.0`. Available values are marked as source-provided and not
-TrafficTwin recomputations. Metrics with incompatible definitions remain unavailable, including:
+The source metric version remains
+`tos-source-summary-v2_post_nrsus_fix-1.0`. Concurrency pressure is an inspection field, not a new
+metric. EvidencePacks continue to mark canonical infrastructure evidence unavailable, so R0
+qualifies the run and R1-R3 remain insufficient for ordinary imported source-summary runs.
 
-- TrafficTwin task completion rate; source deadline success uses the separate stable key
-  `tos.task.deadline_success.rate`;
-- generated/completed counts;
-- eventual incomplete rate;
-- latency P50/P95;
-- energy per completed task;
-- infrastructure, traffic, and trip metrics.
+## Provenance Policy
 
-No Phase 3 formula was changed.
+TrafficTwin records:
 
-## Diagnostic Policy
+- TOS package fingerprint and Git commit;
+- engine version and source row;
+- actor/checkpoint reference and fleet seed;
+- `vec_env` semantics evidence commit.
 
-The source-summary EvidencePack marks task evidence partial and infrastructure/trip evidence
-unavailable. The unchanged rules therefore produce R0 evidence qualification and
-`insufficient_evidence` for R1-R3 on ordinary source-summary runs. No real-data diagnostic claim is
-enabled by this increment.
+It does not claim that the semantics commit produced each run. No external file is copied into the
+TrafficTwin repository.
 
-## Deferred Until Confirmation
+## Deferred Evidence
 
-- `rsu_load` definition;
-- `rsu_busy_ms` denominator and interpretation;
-- `rsu_max_concurrent` meaning;
-- trace coordinate and speed units for canonical conversion;
-- per-vehicle tier, link quality, action availability, and target evidence;
-- trip/SUMO artifacts;
-- sanitised real-fixture permission;
-- `vec_env` execution contract.
-
-## Repository Policy
-
-The external package remains outside `diss/`. Tests generate a tiny synthetic-schema package at
-runtime. No Randy data, private path, checkpoint, credential, or claimed research result is added
-to TrafficTwin.
+- exact result-producing source commit;
+- actor/checkpoint and instrumented writer;
+- raw SUMO/trip outputs;
+- per-vehicle tier and decision-time targets/link/action availability;
+- permission for sanitised fixtures;
+- locally tested evaluator runtime.
 
 ## Related Documents
 
-- [TOS Data integration](tos_data_adapter.md)
 - [Artifact inventory](randy_artifact_inventory.md)
 - [Schema mapping](randy_schema_mapping.md)
 - [Execution contract](randy_execution_contract.md)
 - [Gap analysis](randy_gap_analysis.md)
+- [TOS integration guide](tos_data_adapter.md)

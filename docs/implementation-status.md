@@ -12,10 +12,11 @@ Phase 4 status: implemented and quality-gate checked.
 
 Phase 5 status: implemented and quality-gate checked.
 
-Phase 6 status: the evidenced read-only TOS Data boundary is implemented. Evaluation summaries can
-be validated and imported; instrumented arrays support bounded historical replay and task
-inspection; source summaries support partial evidence, diagnostics, comparison, and aggregate
-provenance. Full canonical conversion, interpreted RSU metrics, SUMO, and launch remain blocked.
+Phase 6 status: the evidenced read-only TOS Data boundary and `vec_env` source audit are
+implemented. Evaluation summaries can be imported; instrumented arrays support unit-aware replay,
+task/action inspection, and RSU active-task/backlog inspection; a versioned source contract records
+field semantics, controls, execution evidence, and blockers. Full canonical conversion, canonical
+RSU metrics, SUMO XML/trips, and launch remain blocked.
 
 Documentation pass status: completed and quality-gate checked.
 
@@ -88,14 +89,19 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `src/traffictwin/demo/` | Demo workspace | Safe workspace initialisation, reset, status, and Streamlit launch helpers. |
 | `src/traffictwin/reporting/` | Report export | Deterministic Markdown and standalone HTML research reports. |
 | `.github/workflows/ci.yml` | CI workflow | Python 3.11/3.12 quality gates and standalone smoke checks. |
-| `src/traffictwin/integration/tos/` | TOS Data integration | Read-only package validation, source-summary import, replay/task inspection, and provenance. |
+| `src/traffictwin/integration/tos/` | TOS Data integration | Versioned source contract, read-only validation/import, unit-aware replay, task/action and RSU-state inspection, partial evidence, and provenance. |
 | `docs/integration/tos_data_adapter.md` | Integration guide | Supported TOS boundary, semantics, CLI, security, and limitations. |
 
 ## Relevant Assets Found
 
 - Randy's external `TOS Data` package is present outside `diss/` at `external/tos-data`.
+- Randy's external `vec_env` source is present outside `diss/` at `external/vec_env`; TrafficTwin
+  records inspected source commit `e98441196270b8fd4cc0eede892df4a0053b2185` as semantics evidence,
+  not as the asserted producer of every run.
 - The external package includes evaluation summary CSV, training curves, greedy-evaluation JSON, instrumented per-step NPZ files, instrumented per-task NPZ files, Manchester trace NPZ files, and training-record documentation.
-- The external package does not include the runnable `vec_env` repository, SUMO XML/config files, direct launch scripts, job scripts, or checkpoint files.
+- The source repository includes an evaluator and CSF-specific scripts, but actor checkpoints, the
+  instrumented-array writer, raw SUMO XML/config, and a locally verified path-independent runtime
+  are unavailable.
 - The only CSV/YAML/JSON run artifacts present are TrafficTwin synthetic fixtures under `tests/fixtures/`.
 - A read-only external TOS Data results integration is implemented; it cannot execute the source
   environment.
@@ -288,8 +294,11 @@ samples, and limitations rather than fabricated row-level contribution weights.
 - Initial repository and workspace discovery for Randy/VEC and SUMO artifacts.
 - Updated discovery after Randy granted GitLab access to the external `TOS Data` package.
 - Confirmation that real Randy/VEC result artifacts are now present outside `diss/` in `external/tos-data`.
-- Confirmation that the external package is not a standard TrafficTwin run bundle and does not contain the runnable `vec_env` execution repository.
-- Confirmation that no raw SUMO XML/config files, checkpoint files, direct launch scripts, or job scripts are present in the external package.
+- Inspection of the separately granted `vec_env` repository and its reproducibility, environment,
+  evaluator, trace-builder, configuration, and SLURM source.
+- Confirmation that the external package is not a standard TrafficTwin run bundle.
+- Confirmation that raw SUMO XML/config, checkpoint files, and the instrumented NPZ writer are not
+  supplied; the evaluator/SLURM scripts are not yet safe TrafficTwin launch contracts.
 - Documentation of the distinction between summary metrics, instrumented NPZ source arrays, trace NPZ files, and TrafficTwin canonical records.
 - Integration discovery documents:
   - `docs/integration/randy_artifact_inventory.md`
@@ -300,7 +309,7 @@ samples, and limitations rather than fabricated row-level contribution weights.
 - Capability decision:
   - `direct_launch=false`
   - `asynchronous_launch=false`
-  - unconfirmed scenario and infrastructure controls remain `unknown`
+  - source controls are documented separately, while the read-only adapter keeps them disabled
 - Read-only `traffictwin.integration.tos` package:
   - versioned source models and stable run/experiment identifiers;
   - safe evaluation CSV, JSON, and NPZ header readers;
@@ -309,14 +318,18 @@ samples, and limitations rather than fabricated row-level contribution weights.
   - partial EvidencePacks consumed by the unchanged R0-R3 engine;
   - idempotent SQLite registration of experiments, runs, metrics, and evidence;
   - bounded historical replay joined by timestamp and time-local vehicle slot;
-  - bounded per-task showcase inspection using `deadline_met` semantics;
-  - raw RSU source-state display without utilisation/queue interpretation;
+  - confirmed simulation-second, network-metre, and m/s replay units;
+  - bounded per-task showcase inspection with joined actions and `deadline_met` semantics;
+  - confirmed RSU in-flight task count, compute backlog, concurrency capacity, and pressure
+    inspection without relabelling them as canonical utilisation/queue metrics;
+  - versioned machine-readable `vec_env` source contract and CLI output;
   - aggregate metric/rule provenance to exact evaluation CSV rows;
   - `traffictwin integration tos ...` CLI group;
   - Streamlit `TOS Data Import` page.
 - Runtime tests generate a synthetic-schema package; no Randy artifact is committed.
-- Full canonical conversion remains stopped until RSU/source-unit questions and fixture permissions
-  are resolved.
+- Full canonical conversion remains stopped until physical completion/identity and compatible
+  canonical infrastructure evidence, exact producer provenance, and fixture permissions are
+  resolved.
 
 ## Implemented In Documentation Pass
 
@@ -419,9 +432,10 @@ Results:
 
 ## Blocked
 
-- Full canonical VEC/SUMO adapters are blocked until the remaining Randy field semantics, units,
-  sanitised fixture permission, and invocation details are supplied.
-- Direct launch is blocked until a documented CLI, Python API, or script contract exists.
+- Full canonical VEC/SUMO adapters are blocked by absent physical-completion, persistent-identity,
+  per-vehicle tier/target/link evidence, raw SUMO/trip data, and sanitised fixture permission.
+- Direct launch is blocked by missing checkpoints/instrumented writer, source-specific paths, and
+  an unverified local runtime despite the discovered evaluator CLI.
 - Live or near-live modes are blocked until real feed details exist.
 - Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load remain blocked until source fields and units exist.
 
@@ -598,17 +612,19 @@ Deferred:
 - `pre-commit`: practical later, not required for Phase 1.
 - ORM: avoided; Phase 1 uses standard library `sqlite3`.
 
-## Exact Proposed Phase 6 Scope
+## Phase 6 Outcome And Next Gate
 
-Phase 6 should begin only after real environment evidence is available:
+Phase 6 inspected the supplied TOS results and `vec_env` source, then implemented the safe
+read-only boundary. The next external increment requires:
 
-1. Inspect Randy/VEC and SUMO output samples.
-2. Confirm real schemas, units, supported controls, and invocation contract.
-3. Implement real adapters behind capability manifests.
-4. Keep direct launch unavailable unless a documented headless contract exists.
-5. Add adapter-specific validation and fixture tests.
+1. exact producer commit and instrumented writer;
+2. one approved checkpoint and small expected output;
+3. permission for a sanitised matched fixture;
+4. any additional physical-completion, identity, target/link, and raw trip/SUMO evidence;
+5. a path-independent evaluator smoke run before any launcher decision.
 
-Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or training orchestration unless the real environment contract and vertical-slice evidence justify them.
+Until then, canonical conversion and direct launch remain stopped. LLM rendering, XAI, portfolio
+selection, and training orchestration remain outside this integration boundary.
 
 ## Implemented In Standalone Product Phase
 
@@ -648,9 +664,9 @@ Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or t
 - Synthetic generation is not calibrated simulation.
 - Synthetic policy profiles are not real trained algorithms.
 - Registry-run report shortcuts are not the primary report path; bundle paths are supported first.
-- Read-only TOS result inspection is available; full Randy/VEC canonical conversion and SUMO
-  integration remain blocked by unresolved field semantics, source units, sanitised fixture
-  permission, and invocation contracts.
+- Read-only TOS result inspection is available with source-evidenced units and RSU meanings; full
+  canonical conversion and SUMO integration remain blocked by missing canonical outcome/identity
+  evidence, raw outputs, producer/runtime artifacts, and sanitised fixture permission.
 - Direct launch, near-live, and true-live support remain unavailable.
 
 ## Implemented In Read-Only TOS Integration Increment
@@ -664,11 +680,13 @@ Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or t
 - Partial EvidencePacks evaluated by the unchanged R0-R3 rules.
 - Idempotent SQLite registration of 10 source experiment groups and 300 source runs in the supplied
   package, without storing canonical rows or absolute source paths.
-- Bounded historical replay, time-indexed vehicle slots, raw unresolved RSU views, and bounded
-  per-arrival task samples.
+- Unit-aware historical replay, time-indexed recycled vehicle slots, confirmed source-specific RSU
+  pressure/backlog views, and bounded per-arrival task/action samples.
 - Aggregate metric/rule provenance to exact evaluation CSV rows, package commit/fingerprint, run,
   experiment grouping, actor, and engine version.
-- Typer `integration tos` commands and Streamlit `TOS Data Import` page.
-- Quality gates: Ruff format/check passed; mypy passed; 183 tests passed; coverage 76%. External
-  package validation, idempotent import, CLI, replay, task, diagnostics, provenance, and source
-  immutability smoke checks passed.
+- Versioned `tos_source_contract()`, `contract`/`rsu-series` CLI commands, and updated Streamlit
+  `TOS Data Import` page.
+- Quality gates: Ruff format/check passed; mypy passed; 185 tests passed; coverage 78%. External
+  package validation, idempotent 300-run import, CLI, unit-aware replay, task/action and RSU-state
+  inspection, diagnostics, provenance, AppTest, generated references, and source immutability
+  checks passed.
