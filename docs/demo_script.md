@@ -136,6 +136,23 @@ Use this exact wording if challenged:
 > or provide direct launch, LLM rendering, or XAI. The source audit documents the remaining
 > canonical and execution blockers.
 
+## Optional TOS Results Workbench Demo
+
+Use this only when the separately supplied package is available locally and the audience is
+authorised to see source-derived aggregate values.
+
+1. Open **TOS Data Import**, inspect the package, and show the source contract and disabled launch.
+2. Open **TOS Results**, select deadline success, and show the campaign/cell matrix.
+3. Compare `baseline` with one variation; point out exact fleet-seed pairing and neutral deltas.
+4. Show in-domain, held-out, and unknown labels without interpreting score as domain evidence.
+5. Open **TOS Mobility & RSU Replay**, play the logical timeline, then load one deliberate spatial
+   frame.
+6. Show RSU concurrency pressure and state explicitly that it is not CPU utilisation.
+7. Open **TOS Training & Audit**, show one training curve, audit blockers, and export buttons.
+8. State that the atlas is local and permission-gated; do not deploy it during the demo.
+
+See [integration/tos_results_workbench.md](integration/tos_results_workbench.md).
+
 ## Fallback If Streamlit Fails
 
 Run the CLI demonstration:

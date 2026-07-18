@@ -22,18 +22,30 @@ from traffictwin.ingestion.bundle import BundleValidationResult, inspect_bundle,
 from traffictwin.ingestion.bundle import import_bundle as import_run_bundle
 from traffictwin.integration.tos import (
     TosEvaluationRun,
+    audit_tos_package,
+    build_evaluation_matrix,
+    build_generalisation_matrix,
+    build_static_results_atlas,
     build_tos_evidence_pack,
     build_tos_metric_trace,
+    build_tos_research_report,
     build_tos_rule_trace,
+    compare_campaigns,
     import_evaluation_summaries,
     list_instrumented_runs,
+    list_training_runs,
     load_replay_frame,
     load_rsu_replay_series,
     load_task_sample,
+    load_training_run,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    summarise_rsu_run,
+    summarise_task_outcomes,
+    summarise_trace,
     tos_source_contract,
     validate_tos_package,
+    write_tos_results_pack,
 )
 from traffictwin.integration.tos.readers import TosPackageError, instrumented_key_for_run
 from traffictwin.metrics.aggregation import aggregate_experiment
@@ -1077,6 +1089,292 @@ def tos_provenance_command(
         typer.echo("--root-type must be metric or rule", err=True)
         raise typer.Exit(code=1)
     _emit_provenance_trace(trace, output_format)
+
+
+@tos_app.command("matrix")
+def tos_matrix_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    measure: Annotated[str, typer.Option("--measure")] = "tos.task.deadline_success.rate",
+    fleet: Annotated[str, typer.Option("--fleet")] = "uk2030",
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Build the deterministic source evaluation matrix."""
+
+    try:
+        matrix = build_evaluation_matrix(
+            read_evaluation_runs(path), path, measure_key=measure, evaluation_fleet=fleet
+        )
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(matrix.to_json())
+        return
+    _require_text_format(output_format)
+    typer.echo(f"measure: {matrix.measure.key}")
+    typer.echo(f"evaluation_fleet: {matrix.evaluation_fleet}")
+    typer.echo(f"campaigns: {len(matrix.campaigns)}")
+    typer.echo(f"cells: {len(matrix.cells)}")
+    for entry in matrix.entries:
+        typer.echo(
+            f"{entry.campaign} {entry.cell} n={entry.statistics.n} "
+            f"mean={_optional_number(entry.statistics.mean)} "
+            f"sample_sd={_optional_number(entry.statistics.sample_sd)}"
+        )
+
+
+@tos_app.command("compare-campaigns")
+def tos_compare_campaigns_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    baseline: Annotated[str, typer.Argument()],
+    variation: Annotated[str, typer.Argument()],
+    measure: Annotated[str, typer.Option("--measure")] = "tos.task.deadline_success.rate",
+    fleet: Annotated[str, typer.Option("--fleet")] = "uk2030",
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Compare two campaigns using common fleet seeds within each source cell."""
+
+    try:
+        report = compare_campaigns(
+            read_evaluation_runs(path),
+            path,
+            baseline,
+            variation,
+            evaluation_fleet=fleet,
+            measure_keys=[measure],
+        )
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(report.to_json())
+        return
+    _require_text_format(output_format)
+    typer.echo(f"comparison: {baseline} -> {variation}")
+    typer.echo("delta_definition: variation - baseline")
+    for item in report.comparisons:
+        typer.echo(
+            f"{item.cell} paired_n={item.paired_difference_statistics.n} "
+            f"mean_delta={_optional_number(item.paired_difference_statistics.mean)}"
+        )
+
+
+@tos_app.command("generalisation")
+def tos_generalisation_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show evidenced in-domain, held-out, and unknown source relationships."""
+
+    matrix = build_generalisation_matrix(read_evaluation_runs(path), path)
+    if output_format == "json":
+        typer.echo(matrix.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    for entry in matrix.entries:
+        typer.echo(f"{entry.campaign} {entry.cell}: {entry.evaluation_domain.value}")
+
+
+@tos_app.command("training-runs")
+def tos_training_runs_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    limit: Annotated[int, typer.Option("--limit", min=1, max=1000)] = 100,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """List source training histories and matched greedy summaries."""
+
+    runs = list_training_runs(path)[:limit]
+    if output_format == "json":
+        typer.echo(
+            json.dumps(
+                [run.model_dump(mode="json") for run in runs],
+                indent=2,
+                sort_keys=True,
+                allow_nan=False,
+            )
+        )
+        return
+    _require_text_format(output_format)
+    typer.echo(f"training_runs: {len(runs)}")
+    for run in runs:
+        typer.echo(
+            f"{run.training_id} points={run.point_count} "
+            f"final_completion={_optional_number(run.final_mean_completion)}"
+        )
+
+
+@tos_app.command("training")
+def tos_training_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    training_id: Annotated[str, typer.Argument()],
+    max_points: Annotated[int, typer.Option("--max-points", min=2, max=10000)] = 800,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect one bounded source training curve."""
+
+    try:
+        run = load_training_run(path, training_id, max_points=max_points)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(run.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"training_id: {run.summary.training_id}")
+    typer.echo(f"source_points: {run.summary.point_count}")
+    typer.echo(f"displayed_points: {len(run.points)}")
+    typer.echo(f"warmup_unavailable: {run.summary.warmup_unavailable_count}")
+    typer.echo(f"greedy_summary: {run.greedy_evaluation is not None}")
+
+
+@tos_app.command("trace-summary")
+def tos_trace_summary_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    trace_name: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Summarise a processed FCD mobility trace."""
+
+    try:
+        summary = summarise_trace(path, trace_name)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(summary.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"trace: {summary.trace_file}")
+    typer.echo(f"timeline_points: {summary.timeline_point_count}")
+    typer.echo(f"active_slot_observations: {summary.observation_count}")
+    typer.echo(f"mean_speed_mps: {_optional_number(summary.speed_mps.mean)}")
+    typer.echo("warning: processed SUMO FCD simulation; no trip outputs")
+
+
+@tos_app.command("rsu-summary")
+def tos_rsu_summary_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_key: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Summarise source RSU concurrency pressure and compute backlog."""
+
+    try:
+        summary = summarise_rsu_run(path, run_key)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(summary.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"run_key: {summary.run_key}")
+    typer.echo(f"rsus: {len(summary.rsus)}")
+    typer.echo(f"maximum_concurrent_tasks: {summary.maximum_concurrent_tasks}")
+    for rsu in summary.rsus:
+        typer.echo(
+            f"{rsu.rsu_reference} mean_pressure="
+            f"{_optional_number(rsu.concurrency_pressure_fraction.mean)} "
+            f"max_pressure={_optional_number(rsu.concurrency_pressure_fraction.maximum)}"
+        )
+
+
+@tos_app.command("task-summary")
+def tos_task_summary_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    run_key: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Aggregate one complete per-task showcase array."""
+
+    try:
+        summary = summarise_task_outcomes(path, run_key)
+    except (TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(summary.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"run_key: {summary.run_key}")
+    typer.echo(f"tasks: {summary.task_count}")
+    typer.echo(f"deadline_success_rate: {_optional_number(summary.deadline_success_rate)}")
+    typer.echo(f"latency_p50_ms: {_optional_number(summary.latency_ms.p50)}")
+    typer.echo(f"deadline_consistency_verified: {summary.deadline_consistency_verified}")
+
+
+@tos_app.command("audit")
+def tos_audit_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Audit package reproducibility and artifact coverage."""
+
+    audit = audit_tos_package(path)
+    if output_format == "json":
+        typer.echo(audit.to_json())
+        return
+    _require_text_format(output_format)
+    typer.echo(f"package_fingerprint: {audit.package_fingerprint}")
+    typer.echo(f"evaluation_runs: {audit.evaluation_run_count}")
+    typer.echo(f"training_histories: {audit.training_history_count}")
+    for check in audit.checks:
+        typer.echo(f"{check.status.value}: {check.code}: {check.message}")
+
+
+@tos_app.command("report")
+def tos_report_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    variation: Annotated[str, typer.Option("--variation")] = "ukfleettrain_mappo",
+) -> None:
+    """Write a deterministic imported-simulation research report."""
+
+    report = build_tos_research_report(path, variation_campaign=variation)
+    _write_report_payload(report, output)
+
+
+@tos_app.command("atlas")
+def tos_atlas_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Write a self-contained aggregate-only static results atlas."""
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(build_static_results_atlas(path), encoding="utf-8")
+    typer.echo(f"atlas: {output}")
+    typer.echo("publication_permission_required: true")
+
+
+@tos_app.command("results-pack")
+def tos_results_pack_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    variation: Annotated[str, typer.Option("--variation")] = "ukfleettrain_mappo",
+) -> None:
+    """Write report, matrix, comparison, audit, and static atlas artifacts."""
+
+    try:
+        pack = write_tos_results_pack(path, output, variation_campaign=variation)
+    except (FileExistsError, TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"results_pack: {pack.directory}")
+    typer.echo(f"report: {pack.markdown_report.name}")
+    typer.echo(f"atlas: {pack.atlas_html.name}")
+    typer.echo("publication_permission_required: true")
+
+
+def _require_text_format(output_format: str) -> None:
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+def _optional_number(value: float | None) -> str:
+    return "unavailable" if value is None else f"{value:.6f}"
 
 
 def _collection_from_identifier(

@@ -10,6 +10,9 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
     "Workspace": [UiPage.HOME, UiPage.EXPERIMENT_MANAGER, UiPage.REPORTS, UiPage.SEARCH],
     "Workflow": [UiPage.SCENARIO, UiPage.BUNDLE_IMPORT, UiPage.TOS_DATA, UiPage.COMPARE],
     "Analysis": [
+        UiPage.TOS_RESULTS,
+        UiPage.TOS_REPLAY,
+        UiPage.TOS_TRAINING,
         UiPage.RUN_OVERVIEW,
         UiPage.OPERATIONS,
         UiPage.INFRASTRUCTURE,

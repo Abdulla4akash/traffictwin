@@ -31,6 +31,10 @@ python -m pip install -e ".[dev,tos]"
 | Historical replay | supported | Simulation seconds, network metres, m/s; slots are time-local |
 | Per-task inspection | supported | Class, latency, deadline outcome, and joined local/V2I/V2V action |
 | RSU source history | supported | In-flight tasks, compute backlog, maximum concurrency, pressure ratio |
+| Evaluation matrix and paired campaign comparison | supported | Source measures grouped and paired by fleet seed |
+| Training-history inspection | supported | Warm-up gaps remain unavailable; greedy summaries are separate |
+| Generalisation labels | supported, conservative | Explicit in-domain/held-out evidence; otherwise unknown |
+| Reproducibility audit and aggregate exports | supported | Engineering checks and self-contained report/atlas output |
 | Comparison/evidence/diagnostics | supported but evidence-limited | Uses existing Phase 3/5 code unchanged |
 | Aggregate source provenance | supported | Exact evaluation CSV row and package fingerprint/commit |
 | Standard bundle/canonical conversion | unsupported | Completion identity and canonical infrastructure fields are incomplete |
@@ -52,6 +56,18 @@ traffictwin integration tos task-sample PATH RUN_KEY --limit 25
 traffictwin integration tos diagnose PATH RUN_ID
 traffictwin integration tos provenance PATH RUN_ID \
   --root-type metric --root-id tos.task.deadline_success.rate --format json
+traffictwin integration tos matrix PATH --measure tos.task.deadline_success.rate
+traffictwin integration tos compare-campaigns PATH baseline ukfleettrain_mappo
+traffictwin integration tos generalisation PATH
+traffictwin integration tos training-runs PATH --limit 10
+traffictwin integration tos training PATH TRAINING_ID
+traffictwin integration tos trace-summary PATH trace_wd_am_fullrsu.npz
+traffictwin integration tos rsu-summary PATH RUN_KEY
+traffictwin integration tos task-summary PATH RUN_KEY
+traffictwin integration tos audit PATH
+traffictwin integration tos report PATH --output tos-report.md
+traffictwin integration tos atlas PATH --output tos-atlas.html
+traffictwin integration tos results-pack PATH --output tos-results
 ```
 
 `RUN_ID` resembles `tos:baseline:wd_am:uk2030:fs0`; instrumented `RUN_KEY` resembles
@@ -68,6 +84,8 @@ traffictwin integration tos provenance PATH RUN_ID \
 - direct-launch blockers and unavailable outputs.
 
 The generated copy is [tos_source_contract.json](../reference/generated/tos_source_contract.json).
+The generated source-analysis catalogue is
+[tos_analysis_catalogue.json](../reference/generated/tos_analysis_catalogue.json).
 
 ## Metric Semantics
 
@@ -110,6 +128,19 @@ concurrency_pressure_fraction = rsu_load / rsu_max_concurrent
 
 The ratio is bounded and deterministic but source-specific. It does not feed the Phase 3 metric
 engine or Phase 5 rules.
+
+## Results Workbench
+
+Three focused Streamlit pages sit behind the import gate:
+
+- **TOS Results**: evaluation heatmap, exact fleet-seed paired campaign deltas, and documented
+  generalisation labels;
+- **TOS Mobility & RSU Replay**: logical replay, deliberate spatial snapshots, processed-FCD
+  profiles, RSU pressure/backlog, and showcase task outcomes;
+- **TOS Training & Audit**: training curves, greedy summaries, artifact audit, deterministic
+  Markdown/HTML reports, and a self-contained aggregate atlas.
+
+See [TOS Results Workbench](tos_results_workbench.md) for formulas, output files, and limitations.
 
 ## Evidence, Diagnostics, And Provenance
 
@@ -159,5 +190,6 @@ regenerated from the shared source.
 - [Schema mapping](randy_schema_mapping.md)
 - [Execution contract](randy_execution_contract.md)
 - [Gap analysis](randy_gap_analysis.md)
+- [TOS Results Workbench](tos_results_workbench.md)
 - [Architecture](../architecture.md)
 - [CLI reference](../cli_reference.md)

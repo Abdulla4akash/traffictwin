@@ -4,9 +4,9 @@ TrafficTwin uses a test pyramid: focused unit tests at the base, integration tes
 
 ## Current Snapshot
 
-Verified after the `vec_env` source-contract integration increment:
+Verified after the TOS Results Workbench increment:
 
-- 185 tests passed.
+- 197 tests passed.
 - Coverage: 78%.
 
 Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI
@@ -170,7 +170,7 @@ The synthetic fault-injection precision/recall values are implementation checks 
 
 Current verified repository snapshot:
 
-- tests: 185 passed;
+- tests: 197 passed;
 - coverage: 78%.
 
 Related documents:

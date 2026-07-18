@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from pydantic import BaseModel
+
 from traffictwin.canonical.records import (
     IncidentRecord,
     InfrastructureRecord,
@@ -24,6 +26,17 @@ from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed, SeedDocument
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.integration.tos.analysis import tos_analysis_catalogue
+from traffictwin.integration.tos.analysis_models import (
+    TosCampaignComparisonReport,
+    TosEvaluationMatrix,
+    TosGeneralisationMatrix,
+    TosReproducibilityAudit,
+    TosRsuRunSummary,
+    TosTaskOutcomeSummary,
+    TosTraceSummary,
+    TosTrainingRun,
+)
 from traffictwin.integration.tos.contract import TosSourceContract, tos_source_contract
 from traffictwin.integration.tos.metrics import tos_metric_catalogue
 from traffictwin.integration.tos.models import (
@@ -50,7 +63,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs" / "reference" / "generated"
 
 
-MODEL_TYPES = {
+MODEL_TYPES: dict[str, type[BaseModel]] = {
     "ScenarioSeed": ScenarioSeed,
     "SeedDocument": SeedDocument,
     "Experiment": Experiment,
@@ -77,6 +90,14 @@ MODEL_TYPES = {
     "TosTaskSample": TosTaskSample,
     "TosValidationReport": TosValidationReport,
     "TosSourceContract": TosSourceContract,
+    "TosEvaluationMatrix": TosEvaluationMatrix,
+    "TosCampaignComparisonReport": TosCampaignComparisonReport,
+    "TosGeneralisationMatrix": TosGeneralisationMatrix,
+    "TosTrainingRun": TosTrainingRun,
+    "TosTraceSummary": TosTraceSummary,
+    "TosRsuRunSummary": TosRsuRunSummary,
+    "TosTaskOutcomeSummary": TosTaskOutcomeSummary,
+    "TosReproducibilityAudit": TosReproducibilityAudit,
     "RuleSetConfig": RuleSetConfig,
 }
 
@@ -140,6 +161,18 @@ CLI_COMMANDS = [
     ["integration", "tos", "task-sample"],
     ["integration", "tos", "diagnose"],
     ["integration", "tos", "provenance"],
+    ["integration", "tos", "matrix"],
+    ["integration", "tos", "compare-campaigns"],
+    ["integration", "tos", "generalisation"],
+    ["integration", "tos", "training-runs"],
+    ["integration", "tos", "training"],
+    ["integration", "tos", "trace-summary"],
+    ["integration", "tos", "rsu-summary"],
+    ["integration", "tos", "task-summary"],
+    ["integration", "tos", "audit"],
+    ["integration", "tos", "report"],
+    ["integration", "tos", "atlas"],
+    ["integration", "tos", "results-pack"],
 ]
 
 
@@ -153,6 +186,13 @@ def main() -> None:
     _write_json("rule_catalogue.json", _rule_catalogue())
     _write_json("cli_help.json", _cli_help())
     _write_json("tos_source_contract.json", tos_source_contract().model_dump(mode="json"))
+    _write_json(
+        "tos_analysis_catalogue.json",
+        {
+            "_meta": _metadata("traffictwin.integration.tos.analysis.tos_analysis_catalogue"),
+            "measures": [item.model_dump(mode="json") for item in tos_analysis_catalogue()],
+        },
+    )
 
 
 def _metadata(kind: str) -> dict[str, str]:

@@ -16,3 +16,4 @@ Current generated files:
 - `validation_codes.json`
 - `rule_catalogue.json`
 - `tos_source_contract.json`
+- `tos_analysis_catalogue.json`

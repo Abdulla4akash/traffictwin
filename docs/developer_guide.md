@@ -169,6 +169,21 @@ package into this repository without explicit sanitised-fixture permission. Conf
 models. Any future promotion to canonical metrics requires a deliberate metric/data-contract
 decision and new tests; do not reinterpret them in UI code.
 
+### Extending The TOS Results Workbench
+
+Keep source-specific descriptive analysis in `src/traffictwin/integration/tos/`; do not add it to
+the canonical Phase 3 metric catalogue unless a standard canonical mapping is later evidenced.
+
+- Register source measures once in `analysis.py`.
+- Pair only exact source keys; report compatibility differences and unmatched seeds.
+- Represent non-finite source observations as unavailable rather than JSON NaN.
+- Keep UI pages on `ui.services`; do not repeat calculations in Streamlit.
+- Inject clocks in report and golden tests.
+- Use generated schema-compatible fixtures in `tests/tos_helpers.py`.
+- Never expose machine-record contents or absolute external paths in exports.
+
+Regenerate `docs/reference/generated/` after changing a public model or CLI command.
+
 ## Registry Migration Principles
 
 - Use additive schema changes where possible.
@@ -224,7 +239,7 @@ Use clear conventional-style messages, for example:
 | R3 insufficient | Single-run EvidencePack lacks experiment-level metrics | Use experiment-level evidence in future work. |
 | Direct launch disabled | No adapter reports support | Keep export/import workflow. |
 | TOS NPZ command says NumPy is required | Optional `tos` extra is absent | Install `.[dev,tos]`; the core generic-bundle workflow remains NumPy-free. |
-| TOS RSU metrics are unavailable | Source field semantics are unresolved | Inspect raw bounded source state; do not relabel it as utilisation or queue length. |
+| TOS canonical RSU metrics are unavailable | Source semantics do not match canonical utilisation/queue fields | Inspect bounded pressure/backlog state; do not relabel it as utilisation or queue length. |
 
 ## Standalone Product Development
 

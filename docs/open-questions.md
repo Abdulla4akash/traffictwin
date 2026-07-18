@@ -23,6 +23,8 @@ Open:
 7. After Randy supplies producer/writer/checkpoint evidence and fixture permission, should the next
    increment trial one sanitised source-specific conversion?
 8. Should future metric results store full contributing canonical-record references for selected aggregates, or is bounded source-row sampling sufficient for the dissertation demo?
+9. May aggregate values from Randy's package be included in a publicly hosted static atlas, or
+   only in private supervisor/dissertation materials?
 
 Resolved during Phase 3:
 
@@ -55,6 +57,15 @@ Resolved during Phase 6A:
   CLI.
 - The source evaluator is not yet a TrafficTwin launcher because checkpoints, instrumented writer,
   portable paths, and local runtime verification are absent.
+
+Resolved during TOS Results Workbench productisation:
+
+- All 300 source-summary rows can be explored as a campaign/cell matrix without canonicalising
+  absent task records.
+- Campaign comparison pairs exact common fleet seeds and reports descriptive deltas only.
+- Training warm-up non-finite values are represented as unavailable rather than JSON NaN.
+- Processed FCD supports mobility-state replay but not persistent identity or trip duration.
+- The static atlas can be generated offline, but public deployment remains permission-gated.
 
 Resolved during documentation pass:
 

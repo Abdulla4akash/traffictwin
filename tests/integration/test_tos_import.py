@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from tests.tos_helpers import write_tos_package
 from typer.testing import CliRunner
 
@@ -137,3 +138,86 @@ def test_tos_cli_import_is_idempotent(tmp_path: Path) -> None:
     assert "runs_created: 2" in first.output
     assert second.exit_code == 0
     assert "runs_existing: 2" in second.output
+
+
+def test_tos_workbench_cli_and_exports(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    runner = CliRunner()
+    matrix = runner.invoke(
+        app,
+        ["integration", "tos", "matrix", str(package), "--format", "json"],
+    )
+    comparison = runner.invoke(
+        app,
+        [
+            "integration",
+            "tos",
+            "compare-campaigns",
+            str(package),
+            "baseline",
+            "capscalar_mappo",
+            "--format",
+            "json",
+        ],
+    )
+    training = runner.invoke(
+        app,
+        ["integration", "tos", "training", str(package), "baseline", "--format", "json"],
+    )
+    task = runner.invoke(
+        app,
+        [
+            "integration",
+            "tos",
+            "task-summary",
+            str(package),
+            "baseline_uk2030_wd_am_fs0",
+            "--format",
+            "json",
+        ],
+    )
+    audit = runner.invoke(
+        app,
+        ["integration", "tos", "audit", str(package), "--format", "json"],
+    )
+    atlas_path = tmp_path / "atlas.html"
+    atlas = runner.invoke(
+        app,
+        ["integration", "tos", "atlas", str(package), "--output", str(atlas_path)],
+    )
+    pack_path = tmp_path / "pack"
+    pack = runner.invoke(
+        app,
+        [
+            "integration",
+            "tos",
+            "results-pack",
+            str(package),
+            "--variation",
+            "capscalar_mappo",
+            "--output",
+            str(pack_path),
+        ],
+    )
+
+    assert matrix.exit_code == 0, matrix.output
+    assert len(json.loads(matrix.output)["entries"]) == 2
+    assert comparison.exit_code == 0, comparison.output
+    assert json.loads(comparison.output)["comparisons"][0]["observations"][0][
+        "absolute_delta"
+    ] == pytest.approx(0.03)
+    assert training.exit_code == 0, training.output
+    assert json.loads(training.output)["points"][0]["mean_completion"] is None
+    assert task.exit_code == 0, task.output
+    assert json.loads(task.output)["task_count"] == 4
+    assert audit.exit_code == 0, audit.output
+    assert json.loads(audit.output)["evaluation_run_count"] == 2
+    assert atlas.exit_code == 0, atlas.output
+    assert pack.exit_code == 0, pack.output
+    assert atlas_path.is_file()
+    assert (pack_path / "research-report.md").is_file()
+    exported = atlas_path.read_text(encoding="utf-8") + (
+        pack_path / "research-report.md"
+    ).read_text(encoding="utf-8")
+    assert "/Users/" not in exported
+    assert "NaN" not in exported

@@ -29,25 +29,49 @@ from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.bundle import BundleValidationResult, import_bundle, validate_bundle
 from traffictwin.integration.tos import (
+    TosCampaignComparisonReport,
+    TosEvaluationMatrix,
     TosEvaluationRun,
+    TosGeneralisationMatrix,
     TosImportSummary,
     TosReplayFrame,
+    TosReplayPoint,
+    TosReproducibilityAudit,
     TosRsuReplayPoint,
+    TosRsuRunSummary,
     TosSourceContract,
+    TosTaskOutcomeSummary,
     TosTaskSample,
+    TosTraceSummary,
+    TosTrainingRun,
+    TosTrainingRunSummary,
     TosValidationReport,
+    audit_tos_package,
+    build_evaluation_matrix,
+    build_generalisation_matrix,
+    build_static_results_atlas,
     build_tos_evidence_pack,
     build_tos_metric_trace,
+    build_tos_research_report,
+    compare_campaigns,
     import_evaluation_summaries,
     list_instrumented_runs,
+    list_training_runs,
     load_replay_frame,
+    load_replay_series,
     load_rsu_replay_series,
     load_task_sample,
+    load_training_run,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    summarise_rsu_run,
+    summarise_task_outcomes,
+    summarise_trace,
+    tos_analysis_catalogue,
     tos_source_contract,
     validate_tos_package,
 )
+from traffictwin.integration.tos.analysis_models import TosAnalysisMeasureDefinition
 from traffictwin.integration.tos.readers import (
     TosPackageError,
     instrumented_key_for_run,
@@ -205,11 +229,23 @@ class AboutInfo:
 class TosPackageView:
     """Read-only TOS package view model."""
 
+    source_path: Path
     report: TosValidationReport
     evaluation_runs: list[TosEvaluationRun]
     instrumented_runs: list[str]
     pertask_runs: list[str]
     source_contract: TosSourceContract
+
+
+@dataclass(frozen=True)
+class TosResultsView:
+    """Evaluation matrix and package-evidenced generalisation labels."""
+
+    matrix: TosEvaluationMatrix
+    generalisation: TosGeneralisationMatrix
+    measures: tuple[TosAnalysisMeasureDefinition, ...]
+    campaigns: list[str]
+    fleets: list[str]
 
 
 @dataclass(frozen=True)
@@ -248,6 +284,7 @@ def inspect_tos_for_ui(
         report = validate_tos_package(path, deep=deep)
         rows = read_evaluation_runs(path) if report.may_import_summaries else []
         return TosPackageView(
+            source_path=Path(path).resolve(),
             report=report,
             evaluation_runs=rows,
             instrumented_runs=list_instrumented_runs(path),
@@ -256,6 +293,152 @@ def inspect_tos_for_ui(
         )
     except (OSError, ValueError, TosPackageError) as exc:
         return ServiceError("TOS Data package could not be inspected.", str(exc))
+
+
+def tos_results_for_ui(
+    package_view: TosPackageView,
+    *,
+    measure_key: str = "tos.task.deadline_success.rate",
+    evaluation_fleet: str = "uk2030",
+) -> TosResultsView | ServiceError:
+    """Prepare source matrix and domain labels without UI-side calculations."""
+
+    try:
+        return TosResultsView(
+            matrix=build_evaluation_matrix(
+                package_view.evaluation_runs,
+                package_view.source_path,
+                measure_key=measure_key,
+                evaluation_fleet=evaluation_fleet,
+            ),
+            generalisation=build_generalisation_matrix(
+                package_view.evaluation_runs, package_view.source_path
+            ),
+            measures=tos_analysis_catalogue(),
+            campaigns=sorted(
+                {
+                    run.campaign
+                    for run in package_view.evaluation_runs
+                    if run.eval_fleet == evaluation_fleet
+                }
+            ),
+            fleets=sorted({run.eval_fleet for run in package_view.evaluation_runs}),
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS results matrix could not be prepared.", str(exc))
+
+
+def compare_tos_campaigns_for_ui(
+    package_view: TosPackageView,
+    baseline_campaign: str,
+    variation_campaign: str,
+    *,
+    measure_key: str,
+    evaluation_fleet: str,
+) -> TosCampaignComparisonReport | ServiceError:
+    """Build a paired campaign report over common source fleet seeds."""
+
+    try:
+        return compare_campaigns(
+            package_view.evaluation_runs,
+            package_view.source_path,
+            baseline_campaign,
+            variation_campaign,
+            evaluation_fleet=evaluation_fleet,
+            measure_keys=[measure_key],
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS paired campaign comparison could not be prepared.", str(exc))
+
+
+def tos_training_runs_for_ui(
+    package_view: TosPackageView,
+) -> list[TosTrainingRunSummary] | ServiceError:
+    """Index source training histories."""
+
+    try:
+        return list_training_runs(package_view.source_path)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS training histories could not be indexed.", str(exc))
+
+
+def tos_training_run_for_ui(
+    package_view: TosPackageView,
+    training_id: str,
+) -> TosTrainingRun | ServiceError:
+    """Load one bounded source training history."""
+
+    try:
+        return load_training_run(package_view.source_path, training_id)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS training history could not be loaded.", str(exc))
+
+
+def tos_trace_summary_for_ui(
+    package_view: TosPackageView,
+    trace_name: str,
+) -> TosTraceSummary | ServiceError:
+    """Load a bounded processed-FCD profile."""
+
+    try:
+        return summarise_trace(package_view.source_path, trace_name)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("Processed FCD trace could not be summarised.", str(exc))
+
+
+def tos_rsu_summary_for_ui(
+    package_view: TosPackageView,
+    run_key: str,
+) -> TosRsuRunSummary | ServiceError:
+    """Summarise source RSU state for an instrumented run."""
+
+    try:
+        return summarise_rsu_run(package_view.source_path, run_key)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS RSU source state could not be summarised.", str(exc))
+
+
+def tos_task_summary_for_ui(
+    package_view: TosPackageView,
+    run_key: str,
+) -> TosTaskOutcomeSummary | ServiceError:
+    """Aggregate one complete per-task showcase array."""
+
+    try:
+        return summarise_task_outcomes(package_view.source_path, run_key)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS per-task outcomes could not be summarised.", str(exc))
+
+
+def tos_audit_for_ui(
+    package_view: TosPackageView,
+) -> TosReproducibilityAudit | ServiceError:
+    """Build the read-only reproducibility audit."""
+
+    try:
+        return audit_tos_package(package_view.source_path)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS reproducibility audit could not be prepared.", str(exc))
+
+
+def tos_report_exports_for_ui(
+    package_view: TosPackageView,
+    *,
+    variation_campaign: str,
+) -> tuple[str, str, str] | ServiceError:
+    """Return Markdown report, HTML report, and aggregate-only static atlas."""
+
+    try:
+        report = build_tos_research_report(
+            package_view.source_path, variation_campaign=variation_campaign
+        )
+        return (
+            report_to_markdown(report),
+            report_to_html(report),
+            build_static_results_atlas(package_view.source_path),
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS report exports could not be prepared.", str(exc))
 
 
 def import_tos_for_ui(
@@ -335,6 +518,18 @@ def load_tos_replay_for_ui(
         return load_replay_frame(path, run_key, index, max_vehicles=max_vehicles)
     except (OSError, ValueError, TosPackageError) as exc:
         return ServiceError("TOS replay frame could not be loaded.", str(exc))
+
+
+def load_tos_replay_series_for_ui(
+    path: str | Path,
+    run_key: str,
+) -> list[TosReplayPoint] | ServiceError:
+    """Load the small logical replay series used by deterministic UI controls."""
+
+    try:
+        return list(load_replay_series(path, run_key))
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS logical replay series could not be loaded.", str(exc))
 
 
 def load_tos_task_sample_for_ui(

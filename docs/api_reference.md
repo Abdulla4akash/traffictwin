@@ -307,16 +307,28 @@ require the `tos` dependency extra.
 ```python
 from traffictwin.integration.tos import (
     build_tos_evidence_pack,
+    build_evaluation_matrix,
+    build_generalisation_matrix,
+    build_static_results_atlas,
+    build_tos_research_report,
     build_tos_metric_trace,
     build_tos_rule_trace,
+    compare_campaigns,
+    audit_tos_package,
     import_evaluation_summaries,
     inspect_tos_package,
     load_replay_frame,
     load_rsu_replay_series,
     load_task_sample,
+    load_training_run,
+    list_training_runs,
     metric_collection_from_evaluation,
     read_evaluation_runs,
     tos_source_contract,
+    summarise_rsu_run,
+    summarise_task_outcomes,
+    summarise_trace,
+    write_tos_results_pack,
     tos_metric_catalogue,
     validate_tos_package,
 )
@@ -337,6 +349,14 @@ Principal models:
 - `TosImportSummary`: created/existing registry counts for an idempotent summary import.
 - `TosSourceContract`: versioned field, unit, control, execution, and limitation evidence derived
   from the inspected `vec_env` source.
+- `TosEvaluationMatrix`: source measure definition plus campaign/cell aggregates and fleet-seed
+  values.
+- `TosCampaignComparisonReport`: exact common-fleet-seed observations and descriptive deltas.
+- `TosGeneralisationMatrix`: explicit in-domain, held-out, or unknown provenance labels.
+- `TosTrainingRun`: bounded source training points and optional greedy summary.
+- `TosTraceSummary`, `TosRsuRunSummary`, and `TosTaskOutcomeSummary`: read-only descriptive views
+  over evidenced NPZ arrays.
+- `TosReproducibilityAudit`: artifact coverage and blocked reproducibility checks.
 
 Key functions:
 
@@ -353,6 +373,18 @@ Key functions:
 - `tos_source_contract() -> TosSourceContract`
 - `build_tos_metric_trace(...) -> ProvenanceTrace`
 - `build_tos_rule_trace(...) -> ProvenanceTrace`
+- `build_evaluation_matrix(rows, path, measure_key=..., evaluation_fleet=..., clock=...) -> TosEvaluationMatrix`
+- `compare_campaigns(rows, path, baseline, variation, ...) -> TosCampaignComparisonReport`
+- `build_generalisation_matrix(rows, path) -> TosGeneralisationMatrix`
+- `list_training_runs(path) -> list[TosTrainingRunSummary]`
+- `load_training_run(path, training_id, max_points=800) -> TosTrainingRun`
+- `summarise_trace(path, trace_name, max_profile_points=600) -> TosTraceSummary`
+- `summarise_rsu_run(path, run_key) -> TosRsuRunSummary`
+- `summarise_task_outcomes(path, run_key) -> TosTaskOutcomeSummary`
+- `audit_tos_package(path, clock=...) -> TosReproducibilityAudit`
+- `build_tos_research_report(path, variation_campaign=..., clock=...) -> ResearchReport`
+- `build_static_results_atlas(path, clock=...) -> str`
+- `write_tos_results_pack(path, output, variation_campaign=..., clock=...) -> TosResultsPack`
 
 The metric builder wraps source-provided aggregates using distinct implementation/version metadata;
 it does not invoke Phase 3 calculators over absent canonical rows. Source deadline success has its
@@ -366,6 +398,8 @@ Limitations: no full canonical conversion, no canonical RSU utilisation/queue ma
 persistent vehicle identity, no SUMO/trip data, and no executable TrafficTwin launcher. The
 source evaluator contract is documented, but checkpoint/path/writer/runtime blockers remain. See
 [integration/tos_data_adapter.md](integration/tos_data_adapter.md).
+The focused analysis behavior is documented in
+[integration/tos_results_workbench.md](integration/tos_results_workbench.md).
 
 Related documents:
 

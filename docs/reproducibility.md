@@ -80,9 +80,9 @@ They are not real Manchester, Randy/VEC, or SUMO results.
   --output .demo/reports/stressed_full.html
 ```
 
-Current verified snapshot after the `vec_env` source-contract integration increment:
+Current verified snapshot after the TOS Results Workbench increment:
 
-- tests: 185 passed;
+- tests: 197 passed;
 - coverage: 78%.
 
 ## Reproduce The Baseline-Versus-Variation Demo

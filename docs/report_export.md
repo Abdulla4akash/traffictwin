@@ -48,6 +48,18 @@ Reports include:
 - Reports do not prove correctness or causality.
 - Synthetic reports are demonstration artifacts only.
 
+## TOS Imported-Simulation Exports
+
+The optional TOS workbench exports a deterministic report and aggregate static atlas:
+
+```bash
+traffictwin integration tos results-pack "$TOS_DATA_PATH" --output tos-results
+```
+
+This output uses source-analysis models rather than canonical Phase 3 metrics. It carries a
+publication-permission warning and must not be publicly deployed until source-data permission is
+confirmed. See [TOS Results Workbench](integration/tos_results_workbench.md).
+
 Related documents:
 
 - [Standalone demo](standalone_demo.md)

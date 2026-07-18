@@ -6,6 +6,13 @@ import math
 from pathlib import Path
 from typing import Any
 
+from traffictwin.integration.tos.analysis_models import (
+    TosDescriptiveStatistics,
+    TosRsuRunSummary,
+    TosRsuSourceSummary,
+    TosTraceProfilePoint,
+    TosTraceSummary,
+)
 from traffictwin.integration.tos.models import (
     TosReplayFrame,
     TosReplayPoint,
@@ -217,6 +224,125 @@ def load_rsu_replay_series(
     return points
 
 
+def summarise_trace(
+    root: str | Path,
+    trace_name: str,
+    *,
+    max_profile_points: int = 600,
+) -> TosTraceSummary:
+    """Summarise one processed FCD trace without claiming persistent vehicle identity."""
+
+    if max_profile_points < 2 or max_profile_points > 5000:
+        raise ValueError("max_profile_points must be between 2 and 5000")
+    np = _numpy()
+    source = trace_path(root, trace_name)
+    try:
+        with np.load(source, allow_pickle=False) as trace:
+            required = {"times", "mask", "pos_x", "pos_y", "speed"}
+            missing = sorted(required - set(trace.files))
+            if missing:
+                raise TosPackageError("trace arrays are missing: " + ", ".join(missing))
+            times = trace["times"]
+            mask = trace["mask"].astype(bool, copy=False)
+            positions_x = trace["pos_x"]
+            positions_y = trace["pos_y"]
+            speeds = trace["speed"]
+    except (OSError, ValueError) as exc:
+        if isinstance(exc, TosPackageError):
+            raise
+        raise TosPackageError(f"cannot load processed FCD trace: {exc}") from exc
+    if len(times) == 0:
+        raise TosPackageError("processed FCD trace has no timeline points")
+    if (
+        mask.shape != positions_x.shape
+        or mask.shape != positions_y.shape
+        or mask.shape != speeds.shape
+    ):
+        raise TosPackageError("processed FCD arrays do not share one [time, slot] shape")
+    if mask.shape[0] != len(times):
+        raise TosPackageError("processed FCD arrays do not match the trace timeline")
+    active_counts = mask.sum(axis=1)
+    active_speeds = speeds[mask]
+    active_x = positions_x[mask]
+    active_y = positions_y[mask]
+    indices = _sample_indices(len(times), max_profile_points)
+    profile: list[TosTraceProfilePoint] = []
+    for index in indices:
+        point_speeds = speeds[index][mask[index]]
+        profile.append(
+            TosTraceProfilePoint(
+                index=index,
+                timestamp_s=float(times[index]),
+                active_vehicle_slots=int(active_counts[index]),
+                mean_speed_mps=(float(np.mean(point_speeds)) if len(point_speeds) else None),
+                p50_speed_mps=(float(np.median(point_speeds)) if len(point_speeds) else None),
+            )
+        )
+    return TosTraceSummary(
+        trace_file=package_relative(root, source),
+        observation_count=int(mask.sum()),
+        timeline_point_count=len(times),
+        first_timestamp_s=float(times[0]),
+        last_timestamp_s=float(times[-1]),
+        duration_s=max(0.0, float(times[-1]) - float(times[0])),
+        active_vehicle_slots=_array_statistics(active_counts, np),
+        speed_mps=_array_statistics(active_speeds, np),
+        minimum_x_m=float(np.min(active_x)) if len(active_x) else None,
+        maximum_x_m=float(np.max(active_x)) if len(active_x) else None,
+        minimum_y_m=float(np.min(active_y)) if len(active_y) else None,
+        maximum_y_m=float(np.max(active_y)) if len(active_y) else None,
+        profile=profile,
+        warnings=[
+            "The trace is processed SUMO FCD simulation, not a live Manchester feed.",
+            "Vehicle slots are recycled and are not persistent vehicle identifiers.",
+            "This is a mobility-state profile, not a trip or journey-time output.",
+        ],
+    )
+
+
+def summarise_rsu_run(root: str | Path, run_key: str) -> TosRsuRunSummary:
+    """Summarise evidenced RSU source states without calling pressure utilisation."""
+
+    np = _numpy()
+    source = perstep_path(root, run_key)
+    summary = read_summary_for_key(root, run_key)
+    try:
+        with np.load(source, allow_pickle=False) as archive:
+            times = archive["times"]
+            loads = archive["rsu_load"]
+            backlog = archive["rsu_busy_ms"]
+    except (OSError, ValueError, KeyError) as exc:
+        raise TosPackageError(f"cannot load RSU source-state summary: {exc}") from exc
+    if loads.ndim != 2 or loads.shape != backlog.shape or loads.shape[0] != len(times):
+        raise TosPackageError("RSU source arrays do not share one [time, rsu] shape")
+    pressure = loads / summary.rsu_max_concurrent
+    if bool(np.any(pressure > 1)) or bool(np.any(pressure < 0)):
+        raise TosPackageError("RSU concurrency pressure falls outside [0, 1]")
+    rsus = [
+        TosRsuSourceSummary(
+            rsu_reference=f"rsu-index:{index}",
+            observation_count=len(times),
+            active_task_count=_array_statistics(loads[:, index], np),
+            concurrency_pressure_fraction=_array_statistics(pressure[:, index], np),
+            remaining_compute_backlog_ms=_array_statistics(backlog[:, index], np),
+            peak_pressure_timestamp_s=float(times[int(np.argmax(pressure[:, index]))]),
+            peak_backlog_timestamp_s=float(times[int(np.argmax(backlog[:, index]))]),
+        )
+        for index in range(loads.shape[1])
+    ]
+    return TosRsuRunSummary(
+        run_key=run_key,
+        source_file=package_relative(root, source),
+        maximum_concurrent_tasks=summary.rsu_max_concurrent,
+        rsus=rsus,
+        warnings=[
+            "Concurrency pressure is in-flight tasks divided by maximum concurrent tasks.",
+            "Remaining compute backlog is a source-model quantity in milliseconds.",
+            "Neither source field is promoted to canonical CPU utilisation.",
+        ],
+    )
+
+
 def _point_from_arrays(arrays: dict[str, Any], index: int) -> TosReplayPoint:
     return TosReplayPoint(
         index=index,
@@ -240,6 +366,26 @@ def _load_pressure(active_tasks: int, maximum: int) -> float:
             "RSU in-flight task count exceeds the recorded maximum-concurrent value"
         )
     return pressure
+
+
+def _array_statistics(values: Any, np: Any) -> TosDescriptiveStatistics:  # noqa: ANN401
+    size = int(values.size)
+    if size == 0:
+        return TosDescriptiveStatistics(n=0)
+    return TosDescriptiveStatistics(
+        n=size,
+        mean=float(np.mean(values)),
+        sample_sd=float(np.std(values, ddof=1)) if size > 1 else None,
+        minimum=float(np.min(values)),
+        maximum=float(np.max(values)),
+        p50=float(np.percentile(values, 50, method="linear")),
+    )
+
+
+def _sample_indices(length: int, limit: int) -> list[int]:
+    if length <= limit:
+        return list(range(length))
+    return sorted({round(index * (length - 1) / (limit - 1)) for index in range(limit)})
 
 
 def _numpy() -> Any:  # noqa: ANN401 - optional NumPy module is loaded dynamically

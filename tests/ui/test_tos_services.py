@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from importlib import import_module
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from traffictwin.ui.services import (
     inspect_tos_for_ui,
     load_tos_replay_for_ui,
     load_tos_rsu_series_for_ui,
+    tos_results_for_ui,
 )
 
 
@@ -47,6 +49,21 @@ def test_streamlit_tos_page_renders_without_package() -> None:
     app.radio[0].set_value("TOS Data Import").run(timeout=10)
 
     assert not app.exception
+
+
+def test_tos_result_campaigns_are_scoped_to_selected_fleet(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    view = inspect_tos_for_ui(package)
+    assert not isinstance(view, ServiceError)
+    small_only = view.evaluation_runs[0].model_copy(
+        update={"campaign": "small_only", "eval_fleet": "small"}
+    )
+    mixed_view = replace(view, evaluation_runs=[*view.evaluation_runs, small_only])
+
+    result = tos_results_for_ui(mixed_view, evaluation_fleet="uk2030")
+
+    assert not isinstance(result, ServiceError)
+    assert "small_only" not in result.campaigns
 
 
 def test_streamlit_tos_page_inspects_source_contract(

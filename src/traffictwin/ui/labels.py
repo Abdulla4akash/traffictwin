@@ -22,6 +22,9 @@ class UiPage(StrEnum):
     SCENARIO = "Scenario Builder"
     BUNDLE_IMPORT = "Bundle Import & Validation"
     TOS_DATA = "TOS Data Import"
+    TOS_RESULTS = "TOS Results"
+    TOS_REPLAY = "TOS Mobility & RSU Replay"
+    TOS_TRAINING = "TOS Training & Audit"
     EXPERIMENT_MANAGER = "Experiment Manager"
     OPERATIONS = "Replay"
     RUN_OVERVIEW = "Run Overview"
@@ -42,6 +45,15 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.BUNDLE_IMPORT: "Validate and import TrafficTwin run bundles.",
     UiPage.TOS_DATA: (
         "Inspect and import documented TOS evaluation summaries and historical source arrays."
+    ),
+    UiPage.TOS_RESULTS: (
+        "Explore the imported evaluation matrix, paired campaign deltas, and domain labels."
+    ),
+    UiPage.TOS_REPLAY: (
+        "Replay documented source steps and inspect processed mobility, RSU, and task evidence."
+    ),
+    UiPage.TOS_TRAINING: (
+        "Inspect source training histories, reproducibility checks, and research-safe exports."
     ),
     UiPage.EXPERIMENT_MANAGER: (
         "Browse experiments, runs, seeds, comparisons, and provenance links."

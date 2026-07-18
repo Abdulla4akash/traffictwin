@@ -100,6 +100,42 @@ Then:
    history, or inspect a bounded per-arrival task/action sample.
 8. Download the partial EvidencePack, DiagnosticReport, or aggregate provenance trace.
 
+The import page is the validation gate. After inspection, use the focused pages:
+
+### TOS Results
+
+1. Choose an evaluation fleet and one source-analysis measure.
+2. Read the campaign-by-cell heatmap; each cell is a fleet-seed mean and hover text reports `n`.
+3. Choose a variation campaign for an exact common-fleet-seed comparison against baseline.
+4. Read deltas as `variation - baseline`; the UI does not label them causal improvements.
+5. Inspect the in-domain/held-out/unknown matrix. Unknown means the package does not establish the
+   relationship.
+
+### TOS Mobility & RSU Replay
+
+1. Select an instrumented run.
+2. Use play, pause, restart, step, speed, and jump controls on the logical source timeline.
+3. Load a spatial frame deliberately when a source coordinate snapshot is needed.
+4. Expand the processed mobility profile for active-slot speed over simulation time.
+5. Expand the RSU explorer for in-flight concurrency pressure and remaining compute backlog.
+6. For one of six per-task showcases, build the exact task-class/decision outcome summary or load
+   a bounded source sample.
+
+Warning: processed FCD is simulation mobility state, not a live map or trip output. Vehicle slots
+are recycled, and RSU pressure is not CPU utilisation.
+
+### TOS Training & Audit
+
+1. Filter and select a source training history.
+2. Inspect training-distribution completion and decision-share curves. Warm-up `nan` values appear
+   as unavailable.
+3. Keep the greedy evaluation separate from Manchester evaluation results.
+4. Review reproducibility checks and blocked artifacts.
+5. Deliberately prepare and download the Markdown report, standalone HTML report, or static atlas.
+
+Warning: confirm source-data permission before publicly hosting or sharing Randy-provided aggregate
+results. TrafficTwin does not deploy the atlas automatically.
+
 Important limitations:
 
 - `completion` is presented as source-defined deadline success per arrival, not eventual physical
@@ -116,6 +152,8 @@ Important limitations:
 
 The page does not convert the package to a standard TrafficTwin run bundle. See
 [integration/tos_data_adapter.md](integration/tos_data_adapter.md) for the exact supported boundary.
+The analysis and export workflow is documented in
+[integration/tos_results_workbench.md](integration/tos_results_workbench.md).
 
 ## Reading Validation Findings
 

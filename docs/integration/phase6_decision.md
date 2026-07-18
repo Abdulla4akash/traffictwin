@@ -18,6 +18,11 @@ The approved implementation:
 - exposes a versioned machine-readable source contract;
 - leaves existing Phase 3 metric values and Phase 5 rules unchanged.
 
+A later productisation increment also adds read-only evaluation/training exploration, exact
+fleet-seed paired comparisons, conservative domain labels, reproducibility auditing, and
+aggregate report/atlas export. These features consume the same evidenced source boundary and do
+not alter the canonical pipeline or launch decision.
+
 ## Evidence
 
 - TOS package commit: `d27294ef5213e6a20f55632448bd20f5a76a45ab`.
@@ -35,6 +40,8 @@ The approved implementation:
 |---|---|---|
 | Summary import/comparison | supported | Stable evaluation contract |
 | Historical replay | supported | Time-aligned per-step and trace arrays with confirmed units |
+| Evaluation/training workbench | supported | Deterministic source summaries and bounded curves |
+| Aggregate research report/atlas | supported locally | Public sharing remains permission-gated |
 | Task/action showcase | supported | Exact indexed join and confirmed codes |
 | RSU source-state inspection | supported | Source meanings confirmed |
 | Standard run-bundle conversion | unsupported | Canonical task completion/vehicle identity remain absent |
@@ -81,3 +88,4 @@ TrafficTwin repository.
 - [Execution contract](randy_execution_contract.md)
 - [Gap analysis](randy_gap_analysis.md)
 - [TOS integration guide](tos_data_adapter.md)
+- [TOS Results Workbench](tos_results_workbench.md)

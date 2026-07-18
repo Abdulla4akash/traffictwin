@@ -7,6 +7,11 @@ from pathlib import Path
 from typing import Any
 
 from traffictwin.domain.enums import TaskClass
+from traffictwin.integration.tos.analysis import descriptive_statistics
+from traffictwin.integration.tos.analysis_models import (
+    TosTaskOutcomeBreakdown,
+    TosTaskOutcomeSummary,
+)
 from traffictwin.integration.tos.models import (
     TosTaskObservation,
     TosTaskSample,
@@ -19,6 +24,7 @@ from traffictwin.integration.tos.readers import (
     package_relative,
     perstep_path,
     pertask_path,
+    read_npz_headers,
 )
 
 _TASK_KEYS = ("task_type", "task_lat_ms", "task_met", "task_active")
@@ -134,6 +140,93 @@ def load_task_sample(
                 "The bounded sample is for inspection; headline values come from the evaluation "
                 "master."
             ),
+        ],
+    )
+
+
+def summarise_task_outcomes(
+    root: str | Path,
+    run_key: str,
+    *,
+    max_uncompressed_bytes: int = 400_000_000,
+) -> TosTaskOutcomeSummary:
+    """Aggregate all active showcase tasks while retaining source semantics."""
+
+    source = pertask_path(root, run_key)
+    decision_source = perstep_path(root, run_key)
+    total_bytes = sum(
+        header.uncompressed_bytes
+        for header in read_npz_headers(source, max_uncompressed_bytes=max_uncompressed_bytes)
+    )
+    if total_bytes > max_uncompressed_bytes:
+        raise TosPackageError(
+            f"per-task arrays exceed summary limit: {total_bytes} > {max_uncompressed_bytes}"
+        )
+    np = _numpy()
+    try:
+        with (
+            np.load(source, allow_pickle=False) as archive,
+            np.load(decision_source, allow_pickle=False) as stream,
+        ):
+            missing = sorted(set(_TASK_KEYS) - set(archive.files))
+            if missing:
+                raise TosPackageError("per-task arrays are missing: " + ", ".join(missing))
+            active = archive["task_active"].astype(bool, copy=False)
+            coordinates = np.nonzero(active)
+            task_codes = archive["task_type"][coordinates]
+            latencies = archive["task_lat_ms"][coordinates]
+            deadline_met = archive["task_met"][coordinates].astype(bool, copy=False)
+            actions = stream["veh_action"][coordinates[0], coordinates[2]]
+    except (OSError, ValueError, KeyError) as exc:
+        if isinstance(exc, TosPackageError):
+            raise
+        raise TosPackageError(f"cannot summarise per-task showcase: {exc}") from exc
+    if active.ndim != 3:
+        raise TosPackageError("per-task arrays must use [time, task_slot, vehicle_slot] shape")
+    if not bool(np.all(np.isin(task_codes, [0, 1, 2]))):
+        raise TosPackageError("per-task source contains an unknown task-type code")
+    if not bool(np.all(np.isin(actions, [0, 1, 2]))):
+        raise TosPackageError("per-step source contains an unknown action code for an active task")
+    if not bool(np.all(np.isfinite(latencies))) or bool(np.any(latencies < 0)):
+        raise TosPackageError("active per-task latencies must be finite and non-negative")
+    deadlines = np.where(task_codes == 1, 500.0, 100.0)
+    consistency = bool(np.all(deadline_met == (latencies <= deadlines)))
+    task_count = int(len(latencies))
+    success_count = int(deadline_met.sum())
+
+    def breakdown(group: str, mask: Any) -> TosTaskOutcomeBreakdown:  # noqa: ANN401
+        group_latencies = latencies[mask]
+        count = int(mask.sum())
+        met_count = int(deadline_met[mask].sum())
+        return TosTaskOutcomeBreakdown(
+            group=group,
+            task_count=count,
+            deadline_success_count=met_count,
+            deadline_success_rate=met_count / count if count else None,
+            latency_ms=descriptive_statistics([float(value) for value in group_latencies.tolist()]),
+        )
+
+    by_class = [
+        breakdown(label, task_codes == code) for code, label in ((0, "T1"), (1, "T2"), (2, "T3"))
+    ]
+    by_decision = [
+        breakdown(label, actions == code) for code, label in ((0, "local"), (1, "v2i"), (2, "v2v"))
+    ]
+    return TosTaskOutcomeSummary(
+        run_key=run_key,
+        source_file=package_relative(root, source),
+        decision_source_file=package_relative(root, decision_source),
+        task_count=task_count,
+        deadline_success_count=success_count,
+        deadline_success_rate=success_count / task_count if task_count else None,
+        latency_ms=descriptive_statistics([float(value) for value in latencies.tolist()]),
+        by_task_class=by_class,
+        by_decision=by_decision,
+        deadline_consistency_verified=consistency,
+        warnings=[
+            "task_met is interpreted as modelled latency within the class deadline.",
+            "These arrays represent six showcase runs and are not the full 300-run matrix.",
+            "Vehicle indices are time-local padded slots, not persistent vehicle identities.",
         ],
     )
 

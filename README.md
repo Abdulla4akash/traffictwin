@@ -25,7 +25,9 @@ Implemented:
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
 - Read-only TOS Data evaluation-summary import, versioned `vec_env` source contract, NPZ
   validation, unit-aware historical replay, task/action inspection, RSU pressure inspection,
-  partial EvidencePacks, and aggregate provenance.
+  paired campaign comparison, training-history exploration, generalisation labels,
+  reproducibility auditing, research-safe exports, partial EvidencePacks, and aggregate
+  provenance.
 
 Not implemented:
 
@@ -153,12 +155,20 @@ traffictwin integration tos metrics ../external/tos-data \
   tos:baseline:wd_am:uk2030:fs0
 traffictwin integration tos rsu-series ../external/tos-data \
   baseline_uk2030_wd_am_fs0 --stride 10 --limit 100
+traffictwin integration tos matrix ../external/tos-data
+traffictwin integration tos compare-campaigns ../external/tos-data \
+  baseline ukfleettrain_mappo
+traffictwin integration tos training-runs ../external/tos-data --limit 5
+traffictwin integration tos audit ../external/tos-data
+traffictwin integration tos results-pack ../external/tos-data \
+  --output /tmp/traffictwin-tos-results
 ```
 
 This path imports documented source summaries and exposes confirmed source-state semantics; it
 does not launch Randy's environment or relabel RSU concurrency pressure as canonical utilisation.
 See
-[docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md).
+[docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md) and the
+[TOS Results Workbench](docs/integration/tos_results_workbench.md).
 
 ## Architecture Overview
 
@@ -200,7 +210,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Report export | Implemented | Deterministic Markdown and standalone HTML. |
 | Streamlit UI | Implemented | Thin presentation layer. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
-| TOS Data offline results | Implemented, partial | Source-summary import and replay inspection; no canonical conversion or launch. |
+| TOS Data offline results | Implemented, partial | Matrix, paired comparisons, training/audit, replay/source inspection, and aggregate exports; no canonical conversion or launch. |
 | Full Randy/VEC integration | Blocked | Source semantics are documented; checkpoint, producer commit/writer, canonical outcome/identity fields, tested execution, and fixture permission remain unresolved. |
 | SUMO integration | Blocked | No raw SUMO config/XML or trip output is available. |
 | Direct launch | Unsupported | Capability remains `false`. |

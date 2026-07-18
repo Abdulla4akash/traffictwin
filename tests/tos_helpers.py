@@ -38,9 +38,60 @@ def write_tos_package(root: Path) -> Path:
         writer.writeheader()
         writer.writerows(rows)
     _write_trace(root)
+    _write_training(root, "baseline")
+    _write_training(root, "capscalar_mappo")
+    (root / "records/TRAINING_capscalar_mappo.md").write_text(
+        "Manchester evaluation mobility is held out by construction.\n",
+        encoding="utf-8",
+    )
     _write_instrumented(root, "baseline_uk2030_wd_am_fs0", rows[0], pertask=True)
     _write_instrumented(root, "caps_mappo_uk2030_wd_am_fs0", rows[1], pertask=False)
     return root
+
+
+def _write_training(root: Path, training_id: str) -> None:
+    fields = [
+        "update",
+        "env_step",
+        "mean_return",
+        "mean_completion",
+        "p_local",
+        "p_v2i",
+        "p_v2v",
+        "avg_energy_j",
+        "avg_latency_ms",
+        "type_1_completion",
+        "type_2_completion",
+        "type_3_completion",
+        "elapsed_s",
+        "sps",
+    ]
+    rows: list[list[object]] = [
+        [0, 100, "nan", "nan", "nan", "nan", "nan", "nan", "nan", "nan", "nan", "nan", 1.0, 100],
+        [1, 200, -10.0, 0.8, 0.5, 0.3, 0.2, 0.4, 60.0, 0.7, 0.9, 0.8, 2.0, 100],
+        [2, 300, -8.0, 0.9, 0.4, 0.4, 0.2, 0.35, 50.0, 0.8, 0.95, 0.9, 3.0, 100],
+    ]
+    with (root / f"training/{training_id}.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(fields)
+        writer.writerows(rows)
+    greedy = {
+        "mean_completion": 0.9,
+        "std_completion": 0.02,
+        "type_1_completion": 0.8,
+        "type_2_completion": 0.95,
+        "type_3_completion": 0.9,
+        "p_local": 0.4,
+        "p_v2i": 0.4,
+        "p_v2v": 0.2,
+        "avg_energy_j": 0.35,
+        "avg_latency_ms": 50.0,
+        "n_eval_episodes": 10,
+        "elapsed_s": 1.0,
+    }
+    (root / f"training/{training_id}_greedy_eval.json").write_text(
+        json.dumps(greedy, indent=2), encoding="utf-8"
+    )
 
 
 def _evaluation_row(campaign: str, completion: float) -> dict[str, object]:

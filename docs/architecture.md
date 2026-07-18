@@ -81,7 +81,7 @@ flowchart TD
 | Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
 | UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
 | Product UX | `src/traffictwin/ui/pages/` and `src/traffictwin/ui/components/` | Scenario Builder, Experiment Manager, Reports, Search, Settings, About, replay controls, and reusable presentation helpers. |
-| TOS integration | `src/traffictwin/integration/tos/` | Versioned `vec_env` source contract, read-only package validation/import, unit-aware replay, bounded task/action and RSU-state inspection, partial evidence, and aggregate provenance. |
+| TOS integration | `src/traffictwin/integration/tos/` | Versioned source contract, read-only validation/import, evaluation/training analysis, unit-aware replay, source task/RSU summaries, audit, aggregate exports, partial evidence, and provenance. |
 
 ## Dependency Direction
 
@@ -259,6 +259,10 @@ flowchart LR
     SourceContract --> TOSReader
     TOSReader --> Summary[Source-summary MetricCollection]
     TOSReader --> Views[Bounded replay, task/action, and RSU-state views]
+    TOSReader --> Workbench[Source analysis and reproducibility audit]
+    Workbench --> Matrix[Evaluation/generalisation matrices]
+    Workbench --> Paired[Paired campaign comparison]
+    Workbench --> Exports[Report and static atlas]
     Summary --> PartialEvidence[Partial EvidencePack]
     PartialEvidence --> ExistingRules[Existing R0-R3 rules]
     Summary --> AggregateTrace[Aggregate provenance]
@@ -278,6 +282,13 @@ data and source evidence:
 - NPZ archives are inspected with bounded, non-pickle loading and explicit key/shape checks;
 - matched arrays support historical replay, task/action inspection, and RSU active-task/backlog
   inspection using confirmed source units and meanings;
+- `analysis.py` groups source measures into deterministic campaign/cell matrices and pairs only
+  common fleet seeds for comparison;
+- `training.py` represents non-finite warm-up fields as unavailable and exposes bounded curves;
+- `audit.py` reports artifact coverage and blocked dependencies without reading private machine
+  metadata;
+- `exports.py` reuses analysis objects to produce deterministic reports and a self-contained,
+  aggregate-only static atlas;
 - registry import stores run metadata, source-summary metrics, and partial EvidencePacks
   idempotently;
 - diagnostics continue to use the existing EvidencePack-only rules and therefore remain
@@ -308,6 +319,8 @@ Future canonical adapters must:
 The generic CSV adapter does not contain TOS-specific assumptions. The current boundary and
 remaining questions are documented in
 [integration/tos_data_adapter.md](integration/tos_data_adapter.md).
+The product workbench is documented in
+[integration/tos_results_workbench.md](integration/tos_results_workbench.md).
 
 ## Standalone Product Layer
 
@@ -396,3 +409,4 @@ metadata search. None of these pages implement new metrics, rules, adapters, liv
 - [Synthetic data model](synthetic_data_model.md)
 - [Report export](report_export.md)
 - [Integration decision](integration/phase6_decision.md)
+- [TOS Results Workbench](integration/tos_results_workbench.md)

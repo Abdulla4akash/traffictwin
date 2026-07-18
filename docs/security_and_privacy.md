@@ -105,6 +105,11 @@ Formal user evaluation data should be handled according to ethics approval, anon
 
 ## Current Threat-Model Limitations
 
+The optional TOS static atlas embeds precomputed aggregate values in a self-contained HTML file.
+It excludes machine-record contents, absolute external paths, raw NPZ arrays, and remote assets,
+and it renders source strings with DOM `textContent`. This reduces technical exposure but does not
+grant permission to publish source-derived results. Public hosting remains blocked until permitted.
+
 - The project is not hardened for hostile multi-user deployment.
 - Streamlit is intended for local research demonstration.
 - JSON fingerprints support reproducibility, not adversarial tamper-proofing.

@@ -23,6 +23,9 @@ from traffictwin.ui.pages import (
     search,
     settings,
     tos_data_import,
+    tos_replay,
+    tos_results,
+    tos_training_audit,
 )
 from traffictwin.ui.state import ensure_session_state, load_ui_config
 from traffictwin.ui.theme import apply_research_theme
@@ -60,6 +63,12 @@ def main() -> None:
         bundle_import.render(config)
     elif page is UiPage.TOS_DATA:
         tos_data_import.render(config)
+    elif page is UiPage.TOS_RESULTS:
+        tos_results.render(config)
+    elif page is UiPage.TOS_REPLAY:
+        tos_replay.render(config)
+    elif page is UiPage.TOS_TRAINING:
+        tos_training_audit.render(config)
     elif page is UiPage.EXPERIMENT_MANAGER:
         experiment_manager.render(config)
     elif page is UiPage.OPERATIONS:

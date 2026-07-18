@@ -3640,6 +3640,608 @@
       "title": "TaskRecord",
       "type": "object"
     },
+    "TosCampaignComparisonReport": {
+      "$defs": {
+        "TosAnalysisMeasureDefinition": {
+          "additionalProperties": false,
+          "description": "Definition of one source-specific evaluation measure.",
+          "properties": {
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "higher_is_better": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Higher Is Better"
+            },
+            "human_name": {
+              "title": "Human Name",
+              "type": "string"
+            },
+            "key": {
+              "title": "Key",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Limitations",
+              "type": "array"
+            },
+            "source_fields": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Source Fields",
+              "type": "array"
+            },
+            "unit": {
+              "title": "Unit",
+              "type": "string"
+            }
+          },
+          "required": [
+            "key",
+            "human_name",
+            "description",
+            "unit",
+            "source_fields"
+          ],
+          "title": "TosAnalysisMeasureDefinition",
+          "type": "object"
+        },
+        "TosDescriptiveStatistics": {
+          "additionalProperties": false,
+          "description": "Deterministic descriptive statistics with no implicit NaN values.",
+          "properties": {
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum"
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean"
+            },
+            "minimum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum"
+            },
+            "n": {
+              "minimum": 0,
+              "title": "N",
+              "type": "integer"
+            },
+            "p50": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50"
+            },
+            "sample_sd": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sd"
+            }
+          },
+          "required": [
+            "n"
+          ],
+          "title": "TosDescriptiveStatistics",
+          "type": "object"
+        },
+        "TosPairedMeasureComparison": {
+          "additionalProperties": false,
+          "description": "Paired comparison for one measure and one source scenario cell.",
+          "properties": {
+            "baseline_campaign": {
+              "title": "Baseline Campaign",
+              "type": "string"
+            },
+            "baseline_statistics": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "cell": {
+              "title": "Cell",
+              "type": "string"
+            },
+            "compatibility_findings": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Compatibility Findings",
+              "type": "array"
+            },
+            "evaluation_fleet": {
+              "title": "Evaluation Fleet",
+              "type": "string"
+            },
+            "measure": {
+              "$ref": "#/$defs/TosAnalysisMeasureDefinition"
+            },
+            "observations": {
+              "items": {
+                "$ref": "#/$defs/TosPairedObservation"
+              },
+              "title": "Observations",
+              "type": "array"
+            },
+            "paired_difference_statistics": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "unmatched_baseline_fleet_seeds": {
+              "items": {
+                "type": "integer"
+              },
+              "title": "Unmatched Baseline Fleet Seeds",
+              "type": "array"
+            },
+            "unmatched_variation_fleet_seeds": {
+              "items": {
+                "type": "integer"
+              },
+              "title": "Unmatched Variation Fleet Seeds",
+              "type": "array"
+            },
+            "variation_campaign": {
+              "title": "Variation Campaign",
+              "type": "string"
+            },
+            "variation_statistics": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            }
+          },
+          "required": [
+            "measure",
+            "cell",
+            "evaluation_fleet",
+            "baseline_campaign",
+            "variation_campaign",
+            "baseline_statistics",
+            "variation_statistics",
+            "paired_difference_statistics",
+            "observations"
+          ],
+          "title": "TosPairedMeasureComparison",
+          "type": "object"
+        },
+        "TosPairedObservation": {
+          "additionalProperties": false,
+          "description": "One common-fleet-seed variation-minus-baseline observation.",
+          "properties": {
+            "absolute_delta": {
+              "title": "Absolute Delta",
+              "type": "number"
+            },
+            "baseline": {
+              "title": "Baseline",
+              "type": "number"
+            },
+            "baseline_source_row": {
+              "minimum": 2,
+              "title": "Baseline Source Row",
+              "type": "integer"
+            },
+            "fleet_seed": {
+              "minimum": 0,
+              "title": "Fleet Seed",
+              "type": "integer"
+            },
+            "relative_delta": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Relative Delta"
+            },
+            "relative_delta_reason": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Relative Delta Reason"
+            },
+            "variation": {
+              "title": "Variation",
+              "type": "number"
+            },
+            "variation_source_row": {
+              "minimum": 2,
+              "title": "Variation Source Row",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "fleet_seed",
+            "baseline",
+            "variation",
+            "absolute_delta",
+            "relative_delta",
+            "baseline_source_row",
+            "variation_source_row"
+          ],
+          "title": "TosPairedObservation",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Versioned paired campaign comparison across source scenario cells.",
+      "properties": {
+        "analysis_version": {
+          "default": "1.0",
+          "title": "Analysis Version",
+          "type": "string"
+        },
+        "baseline_campaign": {
+          "title": "Baseline Campaign",
+          "type": "string"
+        },
+        "comparisons": {
+          "items": {
+            "$ref": "#/$defs/TosPairedMeasureComparison"
+          },
+          "title": "Comparisons",
+          "type": "array"
+        },
+        "evaluation_fleet": {
+          "title": "Evaluation Fleet",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "package_fingerprint": {
+          "title": "Package Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "variation_campaign": {
+          "title": "Variation Campaign",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "baseline_campaign",
+        "variation_campaign",
+        "evaluation_fleet",
+        "comparisons",
+        "package_fingerprint",
+        "generated_at"
+      ],
+      "title": "TosCampaignComparisonReport",
+      "type": "object"
+    },
+    "TosEvaluationMatrix": {
+      "$defs": {
+        "TosAggregateCell": {
+          "additionalProperties": false,
+          "description": "One campaign/cell/fleet aggregate over compatible fleet seeds.",
+          "properties": {
+            "campaign": {
+              "title": "Campaign",
+              "type": "string"
+            },
+            "cell": {
+              "title": "Cell",
+              "type": "string"
+            },
+            "engine_versions": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Engine Versions",
+              "type": "array"
+            },
+            "evaluation_fleet": {
+              "title": "Evaluation Fleet",
+              "type": "string"
+            },
+            "measure_key": {
+              "title": "Measure Key",
+              "type": "string"
+            },
+            "source_rows": {
+              "items": {
+                "type": "integer"
+              },
+              "title": "Source Rows",
+              "type": "array"
+            },
+            "statistics": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "values_by_fleet_seed": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "title": "Values By Fleet Seed",
+              "type": "object"
+            }
+          },
+          "required": [
+            "campaign",
+            "cell",
+            "evaluation_fleet",
+            "measure_key",
+            "values_by_fleet_seed",
+            "statistics",
+            "source_rows",
+            "engine_versions"
+          ],
+          "title": "TosAggregateCell",
+          "type": "object"
+        },
+        "TosAnalysisMeasureDefinition": {
+          "additionalProperties": false,
+          "description": "Definition of one source-specific evaluation measure.",
+          "properties": {
+            "description": {
+              "title": "Description",
+              "type": "string"
+            },
+            "higher_is_better": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Higher Is Better"
+            },
+            "human_name": {
+              "title": "Human Name",
+              "type": "string"
+            },
+            "key": {
+              "title": "Key",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Limitations",
+              "type": "array"
+            },
+            "source_fields": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Source Fields",
+              "type": "array"
+            },
+            "unit": {
+              "title": "Unit",
+              "type": "string"
+            }
+          },
+          "required": [
+            "key",
+            "human_name",
+            "description",
+            "unit",
+            "source_fields"
+          ],
+          "title": "TosAnalysisMeasureDefinition",
+          "type": "object"
+        },
+        "TosDescriptiveStatistics": {
+          "additionalProperties": false,
+          "description": "Deterministic descriptive statistics with no implicit NaN values.",
+          "properties": {
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum"
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean"
+            },
+            "minimum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum"
+            },
+            "n": {
+              "minimum": 0,
+              "title": "N",
+              "type": "integer"
+            },
+            "p50": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50"
+            },
+            "sample_sd": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sd"
+            }
+          },
+          "required": [
+            "n"
+          ],
+          "title": "TosDescriptiveStatistics",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Source evaluation matrix used by the UI, reports, and static atlas.",
+      "properties": {
+        "analysis_version": {
+          "default": "1.0",
+          "title": "Analysis Version",
+          "type": "string"
+        },
+        "campaigns": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Campaigns",
+          "type": "array"
+        },
+        "cells": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cells",
+          "type": "array"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/TosAggregateCell"
+          },
+          "title": "Entries",
+          "type": "array"
+        },
+        "evaluation_fleet": {
+          "title": "Evaluation Fleet",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "measure": {
+          "$ref": "#/$defs/TosAnalysisMeasureDefinition"
+        },
+        "package_fingerprint": {
+          "title": "Package Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "measure",
+        "evaluation_fleet",
+        "campaigns",
+        "cells",
+        "entries",
+        "package_fingerprint",
+        "generated_at"
+      ],
+      "title": "TosEvaluationMatrix",
+      "type": "object"
+    },
     "TosEvaluationRun": {
       "additionalProperties": false,
       "description": "One row from ``evals/eval_results_master.csv``.",
@@ -3771,6 +4373,101 @@
         "source_row"
       ],
       "title": "TosEvaluationRun",
+      "type": "object"
+    },
+    "TosGeneralisationMatrix": {
+      "$defs": {
+        "TosEvaluationDomain": {
+          "description": "Source-documented relationship between training and evaluation mobility.",
+          "enum": [
+            "in_domain",
+            "held_out",
+            "unknown"
+          ],
+          "title": "TosEvaluationDomain",
+          "type": "string"
+        },
+        "TosGeneralisationEntry": {
+          "additionalProperties": false,
+          "description": "One source-evidenced campaign/cell domain classification.",
+          "properties": {
+            "campaign": {
+              "title": "Campaign",
+              "type": "string"
+            },
+            "cell": {
+              "title": "Cell",
+              "type": "string"
+            },
+            "evaluation_domain": {
+              "$ref": "#/$defs/TosEvaluationDomain"
+            },
+            "evidence_file": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Evidence File"
+            },
+            "evidence_statement": {
+              "title": "Evidence Statement",
+              "type": "string"
+            },
+            "limitations": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Limitations",
+              "type": "array"
+            }
+          },
+          "required": [
+            "campaign",
+            "cell",
+            "evaluation_domain",
+            "evidence_statement"
+          ],
+          "title": "TosGeneralisationEntry",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Domain labels kept separate from measured performance values.",
+      "properties": {
+        "analysis_version": {
+          "default": "1.0",
+          "title": "Analysis Version",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/TosGeneralisationEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entries"
+      ],
+      "title": "TosGeneralisationMatrix",
       "type": "object"
     },
     "TosReplayFrame": {
@@ -4095,6 +4792,336 @@
       "title": "TosReplayFrame",
       "type": "object"
     },
+    "TosReproducibilityAudit": {
+      "$defs": {
+        "TosAuditCheck": {
+          "additionalProperties": false,
+          "description": "One reproducibility or artifact-coverage check.",
+          "properties": {
+            "affected_capabilities": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Affected Capabilities",
+              "type": "array"
+            },
+            "code": {
+              "title": "Code",
+              "type": "string"
+            },
+            "evidence": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Evidence",
+              "type": "array"
+            },
+            "message": {
+              "title": "Message",
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/$defs/TosAuditStatus"
+            }
+          },
+          "required": [
+            "code",
+            "status",
+            "message"
+          ],
+          "title": "TosAuditCheck",
+          "type": "object"
+        },
+        "TosAuditStatus": {
+          "description": "Status of one reproducibility audit check.",
+          "enum": [
+            "pass",
+            "information",
+            "warning",
+            "blocked"
+          ],
+          "title": "TosAuditStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Read-only audit linking package artifacts and known missing dependencies.",
+      "properties": {
+        "actor_checkpoint_file_count": {
+          "minimum": 0,
+          "title": "Actor Checkpoint File Count",
+          "type": "integer"
+        },
+        "actor_training_history_match_count": {
+          "minimum": 0,
+          "title": "Actor Training History Match Count",
+          "type": "integer"
+        },
+        "analysis_version": {
+          "default": "1.0",
+          "title": "Analysis Version",
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/TosAuditCheck"
+          },
+          "title": "Checks",
+          "type": "array"
+        },
+        "evaluation_run_count": {
+          "minimum": 0,
+          "title": "Evaluation Run Count",
+          "type": "integer"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "instrumented_run_count": {
+          "minimum": 0,
+          "title": "Instrumented Run Count",
+          "type": "integer"
+        },
+        "package_commit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Package Commit"
+        },
+        "package_fingerprint": {
+          "title": "Package Fingerprint",
+          "type": "string"
+        },
+        "per_task_run_count": {
+          "minimum": 0,
+          "title": "Per Task Run Count",
+          "type": "integer"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "semantics_source_commit": {
+          "title": "Semantics Source Commit",
+          "type": "string"
+        },
+        "trace_count": {
+          "minimum": 0,
+          "title": "Trace Count",
+          "type": "integer"
+        },
+        "training_history_count": {
+          "minimum": 0,
+          "title": "Training History Count",
+          "type": "integer"
+        },
+        "training_summary_count": {
+          "minimum": 0,
+          "title": "Training Summary Count",
+          "type": "integer"
+        },
+        "unique_actor_reference_count": {
+          "minimum": 0,
+          "title": "Unique Actor Reference Count",
+          "type": "integer"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "package_fingerprint",
+        "package_commit",
+        "semantics_source_commit",
+        "evaluation_run_count",
+        "unique_actor_reference_count",
+        "actor_checkpoint_file_count",
+        "actor_training_history_match_count",
+        "training_history_count",
+        "training_summary_count",
+        "instrumented_run_count",
+        "per_task_run_count",
+        "trace_count",
+        "checks",
+        "generated_at"
+      ],
+      "title": "TosReproducibilityAudit",
+      "type": "object"
+    },
+    "TosRsuRunSummary": {
+      "$defs": {
+        "TosDescriptiveStatistics": {
+          "additionalProperties": false,
+          "description": "Deterministic descriptive statistics with no implicit NaN values.",
+          "properties": {
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum"
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean"
+            },
+            "minimum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum"
+            },
+            "n": {
+              "minimum": 0,
+              "title": "N",
+              "type": "integer"
+            },
+            "p50": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50"
+            },
+            "sample_sd": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sd"
+            }
+          },
+          "required": [
+            "n"
+          ],
+          "title": "TosDescriptiveStatistics",
+          "type": "object"
+        },
+        "TosRsuSourceSummary": {
+          "additionalProperties": false,
+          "description": "Descriptive source-state summary for one RSU.",
+          "properties": {
+            "active_task_count": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "concurrency_pressure_fraction": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "observation_count": {
+              "minimum": 0,
+              "title": "Observation Count",
+              "type": "integer"
+            },
+            "peak_backlog_timestamp_s": {
+              "title": "Peak Backlog Timestamp S",
+              "type": "number"
+            },
+            "peak_pressure_timestamp_s": {
+              "title": "Peak Pressure Timestamp S",
+              "type": "number"
+            },
+            "remaining_compute_backlog_ms": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "rsu_reference": {
+              "title": "Rsu Reference",
+              "type": "string"
+            }
+          },
+          "required": [
+            "rsu_reference",
+            "observation_count",
+            "active_task_count",
+            "concurrency_pressure_fraction",
+            "remaining_compute_backlog_ms",
+            "peak_pressure_timestamp_s",
+            "peak_backlog_timestamp_s"
+          ],
+          "title": "TosRsuSourceSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "RSU source-state summaries kept outside canonical infrastructure metrics.",
+      "properties": {
+        "maximum_concurrent_tasks": {
+          "exclusiveMinimum": 0,
+          "title": "Maximum Concurrent Tasks",
+          "type": "integer"
+        },
+        "rsus": {
+          "items": {
+            "$ref": "#/$defs/TosRsuSourceSummary"
+          },
+          "title": "Rsus",
+          "type": "array"
+        },
+        "run_key": {
+          "title": "Run Key",
+          "type": "string"
+        },
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_key",
+        "source_file",
+        "maximum_concurrent_tasks",
+        "rsus"
+      ],
+      "title": "TosRsuRunSummary",
+      "type": "object"
+    },
     "TosSourceContract": {
       "$defs": {
         "CapabilitySupport": {
@@ -4342,6 +5369,212 @@
       "title": "TosSourceContract",
       "type": "object"
     },
+    "TosTaskOutcomeSummary": {
+      "$defs": {
+        "TosDescriptiveStatistics": {
+          "additionalProperties": false,
+          "description": "Deterministic descriptive statistics with no implicit NaN values.",
+          "properties": {
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum"
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean"
+            },
+            "minimum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum"
+            },
+            "n": {
+              "minimum": 0,
+              "title": "N",
+              "type": "integer"
+            },
+            "p50": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50"
+            },
+            "sample_sd": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sd"
+            }
+          },
+          "required": [
+            "n"
+          ],
+          "title": "TosDescriptiveStatistics",
+          "type": "object"
+        },
+        "TosTaskOutcomeBreakdown": {
+          "additionalProperties": false,
+          "description": "Task outcome and latency summary for one class or decision group.",
+          "properties": {
+            "deadline_success_count": {
+              "minimum": 0,
+              "title": "Deadline Success Count",
+              "type": "integer"
+            },
+            "deadline_success_rate": {
+              "anyOf": [
+                {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Deadline Success Rate"
+            },
+            "group": {
+              "title": "Group",
+              "type": "string"
+            },
+            "latency_ms": {
+              "$ref": "#/$defs/TosDescriptiveStatistics"
+            },
+            "task_count": {
+              "minimum": 0,
+              "title": "Task Count",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "group",
+            "task_count",
+            "deadline_success_count",
+            "latency_ms"
+          ],
+          "title": "TosTaskOutcomeBreakdown",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact aggregate summary over one per-task showcase array.",
+      "properties": {
+        "by_decision": {
+          "items": {
+            "$ref": "#/$defs/TosTaskOutcomeBreakdown"
+          },
+          "title": "By Decision",
+          "type": "array"
+        },
+        "by_task_class": {
+          "items": {
+            "$ref": "#/$defs/TosTaskOutcomeBreakdown"
+          },
+          "title": "By Task Class",
+          "type": "array"
+        },
+        "deadline_consistency_verified": {
+          "title": "Deadline Consistency Verified",
+          "type": "boolean"
+        },
+        "deadline_success_count": {
+          "minimum": 0,
+          "title": "Deadline Success Count",
+          "type": "integer"
+        },
+        "deadline_success_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Deadline Success Rate"
+        },
+        "decision_source_file": {
+          "title": "Decision Source File",
+          "type": "string"
+        },
+        "latency_ms": {
+          "$ref": "#/$defs/TosDescriptiveStatistics"
+        },
+        "run_key": {
+          "title": "Run Key",
+          "type": "string"
+        },
+        "source_file": {
+          "title": "Source File",
+          "type": "string"
+        },
+        "task_count": {
+          "minimum": 0,
+          "title": "Task Count",
+          "type": "integer"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_key",
+        "source_file",
+        "decision_source_file",
+        "task_count",
+        "deadline_success_count",
+        "latency_ms",
+        "by_task_class",
+        "by_decision",
+        "deadline_consistency_verified"
+      ],
+      "title": "TosTaskOutcomeSummary",
+      "type": "object"
+    },
     "TosTaskSample": {
       "$defs": {
         "TaskClass": {
@@ -4509,6 +5742,657 @@
         "deadline_consistency_verified"
       ],
       "title": "TosTaskSample",
+      "type": "object"
+    },
+    "TosTraceSummary": {
+      "$defs": {
+        "TosDescriptiveStatistics": {
+          "additionalProperties": false,
+          "description": "Deterministic descriptive statistics with no implicit NaN values.",
+          "properties": {
+            "maximum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum"
+            },
+            "mean": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean"
+            },
+            "minimum": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum"
+            },
+            "n": {
+              "minimum": 0,
+              "title": "N",
+              "type": "integer"
+            },
+            "p50": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50"
+            },
+            "sample_sd": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sd"
+            }
+          },
+          "required": [
+            "n"
+          ],
+          "title": "TosDescriptiveStatistics",
+          "type": "object"
+        },
+        "TosTraceProfilePoint": {
+          "additionalProperties": false,
+          "description": "One bounded processed-FCD profile point.",
+          "properties": {
+            "active_vehicle_slots": {
+              "minimum": 0,
+              "title": "Active Vehicle Slots",
+              "type": "integer"
+            },
+            "index": {
+              "minimum": 0,
+              "title": "Index",
+              "type": "integer"
+            },
+            "mean_speed_mps": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean Speed Mps"
+            },
+            "p50_speed_mps": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P50 Speed Mps"
+            },
+            "timestamp_s": {
+              "title": "Timestamp S",
+              "type": "number"
+            }
+          },
+          "required": [
+            "index",
+            "timestamp_s",
+            "active_vehicle_slots"
+          ],
+          "title": "TosTraceProfilePoint",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Descriptive profile of one processed SUMO FCD trace.",
+      "properties": {
+        "active_vehicle_slots": {
+          "$ref": "#/$defs/TosDescriptiveStatistics"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "first_timestamp_s": {
+          "title": "First Timestamp S",
+          "type": "number"
+        },
+        "last_timestamp_s": {
+          "title": "Last Timestamp S",
+          "type": "number"
+        },
+        "maximum_x_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum X M"
+        },
+        "maximum_y_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Y M"
+        },
+        "minimum_x_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum X M"
+        },
+        "minimum_y_m": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Y M"
+        },
+        "observation_count": {
+          "minimum": 0,
+          "title": "Observation Count",
+          "type": "integer"
+        },
+        "profile": {
+          "items": {
+            "$ref": "#/$defs/TosTraceProfilePoint"
+          },
+          "title": "Profile",
+          "type": "array"
+        },
+        "speed_mps": {
+          "$ref": "#/$defs/TosDescriptiveStatistics"
+        },
+        "timeline_point_count": {
+          "minimum": 0,
+          "title": "Timeline Point Count",
+          "type": "integer"
+        },
+        "trace_file": {
+          "title": "Trace File",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "trace_file",
+        "observation_count",
+        "timeline_point_count",
+        "first_timestamp_s",
+        "last_timestamp_s",
+        "duration_s",
+        "active_vehicle_slots",
+        "speed_mps",
+        "profile"
+      ],
+      "title": "TosTraceSummary",
+      "type": "object"
+    },
+    "TosTrainingRun": {
+      "$defs": {
+        "TosGreedyEvaluationSummary": {
+          "additionalProperties": false,
+          "description": "One source greedy-evaluation JSON summary.",
+          "properties": {
+            "avg_energy_j": {
+              "minimum": 0,
+              "title": "Avg Energy J",
+              "type": "number"
+            },
+            "avg_latency_ms": {
+              "minimum": 0,
+              "title": "Avg Latency Ms",
+              "type": "number"
+            },
+            "elapsed_s": {
+              "minimum": 0,
+              "title": "Elapsed S",
+              "type": "number"
+            },
+            "mean_completion": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Mean Completion",
+              "type": "number"
+            },
+            "n_eval_episodes": {
+              "exclusiveMinimum": 0,
+              "title": "N Eval Episodes",
+              "type": "integer"
+            },
+            "p_local": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "P Local",
+              "type": "number"
+            },
+            "p_v2i": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "P V2I",
+              "type": "number"
+            },
+            "p_v2v": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "P V2V",
+              "type": "number"
+            },
+            "source_file": {
+              "title": "Source File",
+              "type": "string"
+            },
+            "std_completion": {
+              "minimum": 0,
+              "title": "Std Completion",
+              "type": "number"
+            },
+            "type_1_completion": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Type 1 Completion",
+              "type": "number"
+            },
+            "type_2_completion": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Type 2 Completion",
+              "type": "number"
+            },
+            "type_3_completion": {
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Type 3 Completion",
+              "type": "number"
+            }
+          },
+          "required": [
+            "mean_completion",
+            "std_completion",
+            "type_1_completion",
+            "type_2_completion",
+            "type_3_completion",
+            "p_local",
+            "p_v2i",
+            "p_v2v",
+            "avg_energy_j",
+            "avg_latency_ms",
+            "n_eval_episodes",
+            "elapsed_s",
+            "source_file"
+          ],
+          "title": "TosGreedyEvaluationSummary",
+          "type": "object"
+        },
+        "TosTrainingPoint": {
+          "additionalProperties": false,
+          "description": "One row from a source training-history CSV.",
+          "properties": {
+            "avg_energy_j": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Avg Energy J"
+            },
+            "avg_latency_ms": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Avg Latency Ms"
+            },
+            "elapsed_s": {
+              "minimum": 0,
+              "title": "Elapsed S",
+              "type": "number"
+            },
+            "env_step": {
+              "minimum": 0,
+              "title": "Env Step",
+              "type": "integer"
+            },
+            "mean_completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean Completion"
+            },
+            "mean_return": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Mean Return"
+            },
+            "p_local": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P Local"
+            },
+            "p_v2i": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P V2I"
+            },
+            "p_v2v": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P V2V"
+            },
+            "source_file": {
+              "title": "Source File",
+              "type": "string"
+            },
+            "source_row": {
+              "minimum": 2,
+              "title": "Source Row",
+              "type": "integer"
+            },
+            "sps": {
+              "minimum": 0,
+              "title": "Sps",
+              "type": "number"
+            },
+            "type_1_completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Type 1 Completion"
+            },
+            "type_2_completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Type 2 Completion"
+            },
+            "type_3_completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Type 3 Completion"
+            },
+            "update": {
+              "minimum": 0,
+              "title": "Update",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "update",
+            "env_step",
+            "elapsed_s",
+            "sps",
+            "source_file",
+            "source_row"
+          ],
+          "title": "TosTrainingPoint",
+          "type": "object"
+        },
+        "TosTrainingRunSummary": {
+          "additionalProperties": false,
+          "description": "Small index entry for one source training history.",
+          "properties": {
+            "final_env_step": {
+              "minimum": 0,
+              "title": "Final Env Step",
+              "type": "integer"
+            },
+            "final_mean_completion": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Final Mean Completion"
+            },
+            "greedy_summary_file": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Greedy Summary File"
+            },
+            "machine_record_file": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Machine Record File"
+            },
+            "measured_point_count": {
+              "minimum": 0,
+              "title": "Measured Point Count",
+              "type": "integer"
+            },
+            "point_count": {
+              "minimum": 0,
+              "title": "Point Count",
+              "type": "integer"
+            },
+            "policy_label": {
+              "title": "Policy Label",
+              "type": "string"
+            },
+            "source_file": {
+              "title": "Source File",
+              "type": "string"
+            },
+            "training_id": {
+              "title": "Training Id",
+              "type": "string"
+            },
+            "training_seed": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Training Seed"
+            },
+            "warmup_unavailable_count": {
+              "minimum": 0,
+              "title": "Warmup Unavailable Count",
+              "type": "integer"
+            },
+            "warnings": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Warnings",
+              "type": "array"
+            }
+          },
+          "required": [
+            "training_id",
+            "policy_label",
+            "source_file",
+            "point_count",
+            "measured_point_count",
+            "warmup_unavailable_count",
+            "final_env_step"
+          ],
+          "title": "TosTrainingRunSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded source training history with optional greedy evaluation.",
+      "properties": {
+        "downsampled": {
+          "default": false,
+          "title": "Downsampled",
+          "type": "boolean"
+        },
+        "greedy_evaluation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TosGreedyEvaluationSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/TosTrainingPoint"
+          },
+          "title": "Points",
+          "type": "array"
+        },
+        "summary": {
+          "$ref": "#/$defs/TosTrainingRunSummary"
+        }
+      },
+      "required": [
+        "summary",
+        "points"
+      ],
+      "title": "TosTrainingRun",
       "type": "object"
     },
     "TosValidationReport": {

@@ -421,6 +421,65 @@ Purpose: export aggregate provenance to the evaluation-master row, package commi
 experiment grouping, actor, and engine version. Canonical/source-row links that cannot be supported
 are explicit unavailable nodes.
 
+### `traffictwin integration tos matrix PATH [--measure KEY] [--fleet FLEET] [--format text|json]`
+
+Purpose: aggregate one registered source-analysis measure by campaign and scenario cell. Output
+includes fleet-seed values, `n`, mean, sample SD, minimum, maximum, and P50.
+
+### `traffictwin integration tos compare-campaigns PATH BASELINE VARIATION [--measure KEY] [--fleet FLEET] [--format text|json]`
+
+Purpose: compute variation-minus-baseline observations paired by common cell and fleet seed. It
+reports unmatched seeds and compatibility findings and never emits infinity for zero baselines.
+
+### `traffictwin integration tos generalisation PATH [--format text|json]`
+
+Purpose: show source-evidenced `in_domain`, `held_out`, and `unknown` campaign/cell labels. The
+command does not infer labels from performance values.
+
+### `traffictwin integration tos training-runs PATH [--limit N] [--format text|json]`
+
+Purpose: list training CSV histories, warm-up unavailable counts, final source completion, and
+available greedy/machine-record references. Machine-record contents are not printed.
+
+### `traffictwin integration tos training PATH TRAINING_ID [--max-points N] [--format text|json]`
+
+Purpose: load one deterministically downsampled training curve and optional greedy summary. Source
+`nan` warm-up fields become JSON `null`.
+
+### `traffictwin integration tos trace-summary PATH TRACE [--format text|json]`
+
+Purpose: summarise processed FCD active-slot counts, speeds, bounds, and a bounded time profile. It
+does not calculate trip or journey-time metrics.
+
+### `traffictwin integration tos rsu-summary PATH RUN_KEY [--format text|json]`
+
+Purpose: calculate exact descriptive summaries of source in-flight count, concurrency pressure,
+and remaining compute backlog by RSU. These remain source inspection values.
+
+### `traffictwin integration tos task-summary PATH RUN_KEY [--format text|json]`
+
+Purpose: aggregate all active entries in one supplied per-task showcase by class and joined
+decision, subject to an uncompressed-size safety limit.
+
+### `traffictwin integration tos audit PATH [--format text|json]`
+
+Purpose: report artifact coverage, actor/training-history matching, package provenance, and blocked
+reproducibility dependencies. This is an engineering audit, not scientific validation.
+
+### `traffictwin integration tos report PATH --output FILE [--variation CAMPAIGN]`
+
+Purpose: write deterministic Markdown or standalone HTML using existing report renderers.
+
+### `traffictwin integration tos atlas PATH --output FILE`
+
+Purpose: write a standalone interactive HTML atlas with precomputed aggregate values, no remote
+assets, no absolute source paths, and an explicit publication-permission notice.
+
+### `traffictwin integration tos results-pack PATH --output DIRECTORY [--variation CAMPAIGN]`
+
+Purpose: write report, matrix, paired comparison, audit, and atlas artifacts. The destination must
+be empty; refusal to overwrite returns exit code `1`.
+
 Example:
 
 ```bash
@@ -436,6 +495,12 @@ traffictwin integration tos rsu-series ../external/tos-data \
 traffictwin integration tos provenance ../external/tos-data \
   tos:baseline:wd_am:uk2030:fs0 \
   --root-id tos.task.deadline_success.rate --format markdown
+traffictwin integration tos matrix ../external/tos-data
+traffictwin integration tos compare-campaigns ../external/tos-data \
+  baseline ukfleettrain_mappo
+traffictwin integration tos audit ../external/tos-data
+traffictwin integration tos results-pack ../external/tos-data \
+  --output /tmp/traffictwin-tos-results
 ```
 
 ## Standalone Synthetic Commands

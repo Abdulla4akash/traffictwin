@@ -27,6 +27,13 @@ Recommended filenames:
 - `14-settings.png`
 - `15-about.png`
 
+Optional TOS workbench screenshots, only when the external package is present and sharing is
+permitted:
+
+- `16-tos-results-matrix.png`
+- `17-tos-mobility-rsu-replay.png`
+- `18-tos-training-audit.png`
+
 Expected source labels:
 
 - `SYNTHETIC`
@@ -37,3 +44,5 @@ Expected source labels:
 - Reports regenerate only on explicit user action.
 
 Before using screenshots in dissertation material, check that no page claims live data, real Manchester data, real Randy integration, proven root causes, or provenance as proof of real-world causality.
+For TOS screenshots, also confirm permission to show source-derived values and hide machine-specific
+paths or metadata.

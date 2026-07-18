@@ -36,6 +36,13 @@ Experiment Manager, Reports, Search, Settings, About, improved Replay controls, 
 and a clearer Home dashboard. This is workflow polish only; it adds no new metrics, diagnostic
 rules, simulator adapters, live data, launchers, ML algorithms, or LLM behavior.
 
+TOS Results Workbench status: implemented. The optional read-only integration now includes an
+evaluation matrix, exact fleet-seed paired campaign comparison, processed-FCD logical replay,
+source-specific RSU pressure/backlog summaries, full showcase task aggregation, bounded training
+histories, conservative generalisation labels, a reproducibility audit, deterministic research
+reports, and a self-contained aggregate atlas. These features do not change canonical metrics,
+diagnostic rules, direct-launch capability, or external-integration blockers.
+
 ## Repository Assessment
 
 Workspace root inspected: repository parent workspace
@@ -690,3 +697,22 @@ selection, and training orchestration remain outside this integration boundary.
   package validation, idempotent 300-run import, CLI, unit-aware replay, task/action and RSU-state
   inspection, diagnostics, provenance, AppTest, generated references, and source immutability
   checks passed.
+
+## Implemented In TOS Results Workbench Increment
+
+- Stable source-analysis catalogue for deadline success by class, all-arrival latency, per-arrival
+  energy, decision shares, and offload share.
+- Campaign/cell/fleet evaluation matrices with deterministic descriptive statistics.
+- Exact baseline/variation pairing by common fleet seed with compatibility and unmatched-seed
+  findings.
+- Conservative in-domain/held-out/unknown matrix sourced from package documentation.
+- Bounded training-history reader with unavailable warm-up handling and separate greedy summaries.
+- Processed-FCD trace profiles, exact source RSU pressure/backlog summaries, and exact full-showcase
+  task outcome aggregation.
+- Reproducibility audit for package coverage, actor/training matching, and blocked producer assets.
+- Deterministic imported-simulation report, JSON research pack, and self-contained aggregate atlas.
+- Focused Streamlit pages: `TOS Results`, `TOS Mobility & RSU Replay`, and `TOS Training & Audit`.
+- Twelve new/extended TOS CLI smoke workflows and generated reference documentation.
+- Quality gates: Ruff format/check passed; strict mypy passed; 197 tests passed; coverage 78%.
+  Real-package matrix, comparison, training, replay, task, RSU, audit, report, atlas, path-safety,
+  JSON-finiteness, UI AppTest, and source immutability checks passed.
