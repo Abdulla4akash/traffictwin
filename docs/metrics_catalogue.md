@@ -122,3 +122,11 @@ Phase 5 synthetic diagnostic EvidencePacks may include experiment-level context 
 - `experiment.pressure.indicator`
 
 These are stable diagnostic evidence keys used in synthetic fault-injection fixtures. They are not yet produced by the normal single-run metric engine. Ordinary bundle-derived EvidencePacks therefore return R3 as `insufficient_evidence`.
+
+## Related Documents
+
+- [Data contract](data_contract.md)
+- [EvidencePack specification](evidence_pack_spec.md)
+- [Comparison methodology](comparison_methodology.md)
+- [Diagnostic rules](diagnostic_rules.md)
+- [Generated metric catalogue](reference/generated/metric_catalogue.json)

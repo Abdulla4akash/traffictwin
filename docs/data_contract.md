@@ -103,6 +103,14 @@ Each `MetricValue` includes:
 
 Rejected validation reports produce `invalid` metric values rather than computed numbers.
 
-## Phase 3 Evidence Pack Contract
+## Evidence Pack Contract
 
-Evidence packs contain validation summaries, evidence availability, metric-engine configuration, metric collections, and provenance. They are the only supported input for future diagnostic rules. They do not include narrative diagnoses, recommendations, LLM-rendered prose, or XAI output.
+Evidence packs contain validation summaries, evidence availability, metric-engine configuration, metric collections, and provenance. They are the only supported input for deterministic diagnostic rules. They do not include LLM-rendered prose or XAI output.
+
+## Related Documents
+
+- [Run bundle specification](run_bundle_spec.md)
+- [Validation codes](validation_codes.md)
+- [Metrics catalogue](metrics_catalogue.md)
+- [EvidencePack specification](evidence_pack_spec.md)
+- [API reference](api_reference.md)

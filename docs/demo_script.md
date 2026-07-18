@@ -1,73 +1,115 @@
 # Demo Script
 
-This demo uses synthetic fixtures only.
+This supervisor-ready demonstration uses repository synthetic fixtures only. It does not require Randy, SUMO, external services, or live data.
+
+## Pre-Demo Setup
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+.venv/bin/python -m pytest
+```
+
+Launch:
+
+```bash
+streamlit run src/traffictwin/ui/app.py
+```
 
 ## Fixture Paths
 
 - Baseline: `tests/fixtures/bundles/baseline_valid`
 - Variation: `tests/fixtures/bundles/variation_valid`
-- Partial evidence example: `tests/fixtures/bundles/partial_valid`
-- Diagnostic synthetic cases: `tests/fixtures/diagnostics/cases.json`
+- Partial evidence: `tests/fixtures/bundles/partial_valid`
+- Invalid manifest: `tests/fixtures/bundles/invalid_manifest`
+- Diagnostic cases: `tests/fixtures/diagnostics/cases.json`
 
-## Steps And Expected States
+## Script
 
 1. Open Home / Project Status.
-   - Current phase is Phase 5 diagnostic prototype.
-   - Capability manifest shows direct launch as Unsupported.
-   - Notice states that direct simulator launch and live data are not implemented.
+   - Say: "This is the Phase 1-6A prototype. It is synthetic/import-first only."
+   - Show direct launch is unsupported and unknown capabilities stay unknown.
 
 2. Open Scenario Studio.
-   - Seed fields render.
-   - Unknown environment controls are disabled.
-   - Run button is disabled with direct-launch unavailable text.
-   - YAML preview validates and can be downloaded.
+   - Show seed fields and YAML preview.
+   - Explain that every scenario serialises to YAML before execution/import.
+   - Point out the disabled Run action.
 
 3. Open Bundle Import & Validation.
-   - Enter `tests/fixtures/bundles/baseline_valid`.
-   - Validation status is Accepted.
-   - Manifest, declared files, findings, and evidence availability are visible.
+   - Validate `tests/fixtures/bundles/baseline_valid`.
+   - Show status accepted, declared files, record counts, and evidence categories.
 
-4. Import the baseline bundle.
-   - Registry import reports created or idempotent.
-   - Metrics and evidence-pack JSON are stored in the registry.
+4. Validate `tests/fixtures/bundles/variation_valid`.
+   - Show it uses the same experiment and random seed but different seed parameters.
 
-5. Repeat validation/import for `tests/fixtures/bundles/variation_valid`.
-   - Validation status is Accepted.
+5. Open Run Overview.
+   - Show task completion, incomplete rate, latency, offload rate, and unavailable optional metrics.
+   - Explain unavailable is not zero.
 
-6. Open Run Overview.
-   - KPI cards show synthetic baseline metrics.
-   - Completion rate is available.
-   - Metric availability summary includes unavailable optional metrics.
+6. Open Operations View.
+   - Show the `HISTORICAL REPLAY` badge.
+   - Move through timestamps.
+   - Explain there is no wall-clock live source.
 
-7. Open Operations View.
-   - `HISTORICAL REPLAY` badge is visible.
-   - Replay clock has first/current/final timestamps.
-   - Traffic, infrastructure, and task timelines render.
+7. Open Infrastructure & Congestion.
+   - Show per-RSU queue/utilisation.
+   - Point out the `0.90` saturation threshold is a configurable demo threshold, not a validated research threshold.
 
-8. Open Infrastructure & Congestion.
-   - Queue and utilisation time series render.
-   - Saturation threshold notice reads `Demo threshold: 0.90`.
-   - Capacity-normalised load balance is unavailable unless capacity evidence exists.
+8. Open What-if Compare.
+   - Select baseline and variation.
+   - Show changed seed parameters.
+   - Show task, infrastructure, traffic, and trip deltas.
+   - Use neutral wording: increased/decreased/unchanged.
 
-9. Open What-if Compare.
-   - Baseline and variation fixture paths are selected.
-   - Compatibility shows same experiment and same random seed.
-   - Changed parameters include demand multiplier, workload birth-rate multiplier, failed RSUs, and RSU capacity mode.
-   - Variation has lower task completion and longer trip duration.
+9. Open Journey-Time Lens.
+   - Show synthetic trip duration metrics.
+   - Say: "These are imported synthetic trip durations, not real Manchester predictions."
 
-10. Open Journey-Time Lens.
-    - Trip metrics are available for the synthetic fixtures.
-    - Trip duration chart renders.
-    - Labels avoid real Manchester prediction claims.
+10. Open Evidence & Diagnostic Hypotheses.
+    - Show EvidencePack ID/fingerprint.
+    - Show R0-R3 status.
+    - Explain hypotheses are candidate explanations, not proven causes.
+    - Download DiagnosticReport JSON if needed.
 
-11. Open Evidence & Diagnostic Hypotheses.
-    - Evidence availability and validation status are visible.
-    - EvidencePack ID and fingerprint are visible.
-    - Baseline has no strong triggered R1/R2/R3 hypothesis.
-    - R3 is insufficient for ordinary single-run evidence.
-    - The page states that hypotheses are not proven root causes.
+11. Run fault-injection evaluation in a terminal:
 
-12. Run the synthetic fault-injection evaluation.
-    - Command: `traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json`.
-    - Expected cases include under-offloading, infrastructure bottleneck, trivial scenario, mixed fault, insufficient evidence, and contradictory evidence.
-    - Precision/recall are implementation checks over synthetic labels, not real-world validation.
+    ```bash
+    traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
+    ```
+
+    Explain that precision/recall here verifies deterministic implementation behavior over labelled synthetic cases only.
+
+## Limitations Statement
+
+Use this exact wording if challenged:
+
+> The current prototype demonstrates the reproducible TrafficTwin workflow using synthetic fixtures and generic imported bundles. It does not yet integrate Randy's environment, SUMO outputs, Manchester sensors, live feeds, direct launch, LLM rendering, or XAI. Phase 6A documented the missing artifacts required before real adapters can be built.
+
+## Fallback If Streamlit Fails
+
+Run the CLI demonstration:
+
+```bash
+traffictwin bundle validate tests/fixtures/bundles/baseline_valid
+traffictwin metrics compute tests/fixtures/bundles/baseline_valid
+traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
+traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+```
+
+## Cleanup
+
+Remove temporary exported JSON or registry files created during the demo:
+
+```bash
+rm -f evidence-baseline.json diagnostic-baseline.json
+rm -f data/registry/demo.sqlite
+```
+
+Do not delete repository fixtures.
+
+Related documents:
+
+- [Demo checklist](demo_checklist.md)
+- [User guide](user_guide.md)
+- [Screenshot checklist](assets/screenshots/README.md)

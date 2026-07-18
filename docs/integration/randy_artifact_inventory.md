@@ -2,9 +2,9 @@
 
 Discovery date: 2026-07-17
 
-TrafficTwin root inspected: `/Users/akashx/AntigravityTest/diss`
+TrafficTwin root inspected: repository root
 
-Workspace inspected: `/Users/akashx/AntigravityTest`
+Workspace inspected: repository parent workspace
 
 ## Discovery Method
 

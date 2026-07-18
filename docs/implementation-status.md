@@ -14,9 +14,11 @@ Phase 5 status: implemented and quality-gate checked.
 
 Phase 6A status: discovery implemented. Real adapter implementation is blocked because no real Randy/VEC or SUMO artifacts are present in the inspected workspace.
 
+Documentation pass status: completed and quality-gate checked.
+
 ## Repository Assessment
 
-Workspace root inspected: `/Users/akashx/AntigravityTest`
+Workspace root inspected: repository parent workspace
 
 TrafficTwin project root: `diss/`
 
@@ -51,6 +53,15 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `docs/ui_design.md` | UI design | Streamlit page structure and presentation policy. |
 | `docs/demo_script.md` | Demo script | Keystone synthetic demonstration steps and expected states. |
 | `docs/integration/` | Integration discovery documentation | Phase 6A artifact inventory, schema mapping, execution contract, gap analysis, and implementation decision. |
+| `docs/index.md` | Documentation index | Organised guide to all current documentation. |
+| `docs/system_overview.md` | System overview | Problem, platform vision, protected vertical slice, workflow, and integration boundary. |
+| `docs/developer_guide.md` | Developer guide | Setup, package structure, extension points, and contribution rules. |
+| `docs/cli_reference.md` | CLI reference | Current Typer commands only, with examples and exit behavior. |
+| `docs/api_reference.md` | API reference | Principal public Python interfaces. |
+| `docs/reproducibility.md` | Reproducibility guide | Deterministic design choices, fingerprints, commands, fixture provenance. |
+| `docs/testing_strategy.md` | Testing strategy | Test pyramid, invariants, fixture policy, and coverage interpretation. |
+| `docs/viva_guide.md` | Viva guide | Concise answers to likely supervisor/examiner questions. |
+| `docs/decisions/` | ADRs | Concise architecture decision records for major project decisions. |
 
 ## Relevant Assets Found
 
@@ -225,6 +236,30 @@ The canonical design file was copied byte-for-byte from the supplied attachment 
   - unconfirmed scenario and infrastructure controls remain `unknown`
 - Phase 6B adapter implementation stopped because the required evidence is absent.
 
+## Implemented In Documentation Pass
+
+- Rewritten root README as the project entry point.
+- Documentation index.
+- System overview.
+- Revised architecture document with Mermaid diagrams.
+- Developer guide.
+- Expanded user guide.
+- CLI reference derived from actual commands.
+- API reference for principal public interfaces.
+- Reproducibility guide.
+- Testing strategy.
+- Revised demo script and executable demo checklist.
+- Viva guide.
+- Dissertation mapping.
+- Traceability matrix.
+- Glossary.
+- Limitations and future work.
+- Security and privacy.
+- ADR index and ten concise ADRs.
+- Screenshot manual-capture checklist.
+- Generated reference artifacts under `docs/reference/generated/`.
+- Cross-links added to data, validation, metrics, evidence, comparison, and diagnostic contract documents.
+
 ## Quality Gates
 
 Commands run successfully:
@@ -235,6 +270,7 @@ Commands run successfully:
 .venv/bin/mypy
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
+.venv/bin/python scripts/generate_reference_docs.py
 .venv/bin/traffictwin validate-seed examples/seeds/arena_gridlock.yaml
 .venv/bin/traffictwin normalise-seed examples/seeds/arena_gridlock.yaml /tmp/traffictwin_arena_gridlock.normalised.yaml
 .venv/bin/traffictwin capabilities
@@ -259,7 +295,8 @@ Commands run successfully:
 .venv/bin/traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
 .venv/bin/traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
 streamlit run src/traffictwin/ui/app.py --server.headless true --server.port <tmp-port>
-find /Users/akashx/AntigravityTest ... <artifact discovery searches>
+http://127.0.0.1:<tmp-port>/_stcore/health
+find <workspace-root> ... <artifact discovery searches>
 ```
 
 Results:
@@ -283,6 +320,7 @@ Results:
 - Fault-injection evaluation: precision/recall returned without `NaN` or infinity.
 - Phase 6A discovery: no real Randy/VEC or SUMO artifacts found; only synthetic TrafficTwin fixtures and historical notes found.
 - Phase 6A quality gates: Ruff format/check passed; mypy passed; 119 tests passed; coverage remained 76%; no real adapter-specific tests or sanitised real-fixture validation were applicable because no real artifacts were present.
+- Documentation pass quality gates: Ruff format/check passed; mypy passed; generated reference JSON regenerated and parsed; Markdown links checked; API imports checked; fixture paths checked; Mermaid fences checked; unsupported-claim scan completed; 119 tests passed; coverage remained 76%; synthetic CLI demo flow passed; Streamlit health check returned `200 ok`.
 - Experiment summary CLI smoke: registry-backed summary over stored metric collections passed.
 - Streamlit smoke: headless server started and health endpoint responded.
 - Streamlit AppTest: Home and all core pages rendered with synthetic defaults without uncaught exceptions.

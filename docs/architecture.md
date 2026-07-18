@@ -1,493 +1,254 @@
-# TrafficTwin Initial Architecture
+# TrafficTwin Architecture
 
-This document proposes the Phase 1-5 architecture for the protected vertical slice. It is based on the canonical v0.4 design text at `docs/traffictwin-design-v0_4.md` and the current repository evidence. No Randy integration, live feed, or real simulator capability is assumed.
+This document describes the implemented Phase 1-6A architecture. It is grounded in the current repository and the canonical design specification at [docs/traffictwin-design-v0_4.md](traffictwin-design-v0_4.md). It does not assume Randy/VEC, SUMO, Manchester sensor, near-live, true-live, or external launch support.
 
-## Architectural Goal
+## Architectural Position
 
-TrafficTwin should be a tested research-software library with a thin Streamlit interface. The guaranteed workflow is import-first:
-
-```text
-Scenario seed YAML
-        |
-        v
-Seed validation and registry
-        |
-        v
-Export or import completed run bundle
-        |
-        v
-Bundle and data validation
-        |
-        v
-Canonical records
-        |
-        v
-Deterministic metrics
-        |
-        v
-Evidence pack
-        |
-        v
-Deterministic diagnostic hypotheses
-        |
-        v
-Streamlit views and documentation
-```
-
-Direct launch is an adapter capability, not a default feature. The UI may show a Run action only when an adapter documents support for direct execution.
-
-## Core Boundaries
-
-### Config
-
-Owns versioned seed schemas, capability manifests, and YAML I/O.
-
-Phase 1 modules:
-
-- `config.capabilities`
-- `config.seed_io`
-
-### Domain
-
-Owns first-class research objects independent of file formats and UI:
-
-- `ScenarioSeed`
-- `Experiment`
-- `Run`
-- canonical record models where lightweight Pydantic validation is useful
-- evidence and diagnostic output structures in later phases
-
-### Adapters
-
-Own uncertainty at the edges. Adapter interfaces should describe what an environment can do and how raw files map to canonical records.
-
-Initial adapter plan:
-
-- `synthetic`: creates deterministic fixture bundles only.
-- `generic_csv`: imports the documented bundle contract only.
-- `sumo`, `vec`, and `sensor`: interface stubs later, with unavailable capabilities until real contracts exist.
-
-### Ingestion And Validation
-
-Ingestion must preserve raw files and produce a validation report before metrics run.
-
-Validation outputs must include:
-
-- errors
-- warnings
-- info findings
-- machine-readable codes
-- affected file and row references
-- `metrics_may_proceed`
-- unavailable metric reasons
-
-### Storage
-
-Phase 1 uses SQLite for metadata and filesystem paths for raw/canonical/derived artifacts. It is simpler and sufficient while there are no data-volume requirements.
-
-Proposed layout:
+TrafficTwin is a tested Python research-software library with a thin Streamlit interface and Typer CLI. The guaranteed workflow is import-first:
 
 ```text
-diss/data/
-    raw/
-    canonical/
-    derived/
-    registry/
+seed YAML -> run bundle -> validation -> canonical records -> metrics -> EvidencePack -> diagnostics/UI
 ```
 
-DuckDB and Parquet can be introduced when run sizes or cross-run analytics justify them.
+Direct launch is an adapter capability, not a default feature.
 
-### Metrics
+## A. High-Level Platform Architecture
 
-Metrics should be registered by stable metadata:
+```mermaid
+flowchart TD
+    subgraph Interfaces
+        CLI[Typer CLI]
+        UI[Streamlit UI]
+    end
 
-- key
-- human name
-- definition
-- required fields
-- units
-- aggregation level
-- implementation version
+    subgraph CoreLibrary[TrafficTwin library]
+        Config[config: seed IO and capabilities]
+        Domain[domain: ScenarioSeed, Experiment, Run]
+        Ingestion[ingestion: bundle loading and manifest parsing]
+        Adapters[adapters: generic CSV boundary]
+        Canonical[canonical: in-memory records]
+        Validation[validation: findings and reports]
+        Metrics[metrics: deterministic metric engine]
+        Evidence[evidence: EvidencePack builder]
+        Rules[rules: deterministic R0-R3]
+        Diagnostics[diagnostics: DiagnosticReport]
+        Storage[storage: SQLite metadata registry]
+    end
 
-Metrics must refuse to run when required canonical fields are absent.
-
-Implemented Phase 3 modules:
-
-- `metrics.catalogue` and `metrics.definitions` register stable metric definitions.
-- `metrics.engine` orchestrates deterministic calculation over canonical records.
-- `metrics.task`, `metrics.infrastructure`, `metrics.traffic`, and `metrics.trips` own domain calculators.
-- `metrics.comparison` compares baseline and variation metric collections.
-- `metrics.aggregation` provides descriptive experiment-level summaries.
-- `evidence.pack` and `evidence.builder` create versioned evidence packs for deterministic rules.
-
-### Rules
-
-Rules consume evidence packs, not raw data. Rule outputs are diagnostic hypotheses with alternatives and missing evidence, never proven causes.
-
-Implemented Phase 5 modules:
-
-- `rules.config` owns versioned provisional thresholds.
-- `rules.models` owns rule statuses, findings, confidence categories, and conditional recommendations.
-- `rules.r0_insufficient_evidence` implements data-readiness qualification.
-- `rules.r1_under_offloading` implements the under-offloading candidate.
-- `rules.r2_infrastructure_bottleneck` implements the infrastructure-bottleneck candidate.
-- `rules.r3_scenario_triviality` implements the scenario-triviality candidate when experiment-level EvidencePack metrics exist.
-- `rules.engine` evaluates rules independently and validates cited evidence keys.
-- `diagnostics.report` owns the versioned DiagnosticReport contract.
-
-R3 returns `insufficient_evidence` for ordinary single-run EvidencePacks because cross-algorithm dispersion is not present there.
-
-### Experiments And Comparison
-
-Experiments group baseline and variation seeds, algorithms, checkpoints, and common random seeds. Comparison should pair runs by random seed where possible and report missing evidence rather than forcing conclusions.
-
-### Launcher
-
-The only guaranteed launcher is `export_only`. A subprocess launcher should remain unavailable until a documented external command exists.
-
-### Replay
-
-Replay uses a logical clock over imported historical or synthetic records. Tests advance the clock directly and do not depend on wall-clock sleeping.
-
-### UI
-
-Streamlit pages should read from services and registries, not compute research logic inline.
-
-First UI pages after the library slice:
-
-- Home / Project Status
-- Scenario Studio
-- Import Run Bundle
-- Operations View
-- Run Overview
-- Infrastructure & Congestion
-- What-if Compare
-- Journey-Time Lens
-- Evidence & Diagnostic Hypotheses
-
-Every replay or fixture view must label the data mode, for example `Historical Replay` or `Synthetic Fixture`.
-
-Implemented Phase 4 UI boundary:
-
-- `ui.services` calls Phase 1-3 library functions.
-- `ui.state` owns reconstructable session defaults and logical replay clock state.
-- `ui.charts` and `ui.tables` prepare display data without metric formulas.
-- `ui.pages` render Streamlit pages and guard rejected bundles from analysis views.
-- Direct launch remains disabled for the default generic CSV adapter.
-
-## Implemented Phase 1 Package Tree
-
-```text
-diss/
-    README.md
-    pyproject.toml
-    .gitignore
-    src/
-        traffictwin/
-            __init__.py
-            cli.py
-            config/
-                __init__.py
-                capabilities.py
-                seed_io.py
-            domain/
-                __init__.py
-                enums.py
-                experiment.py
-                run.py
-                scenario.py
-            storage/
-                __init__.py
-                registry.py
-    tests/
-        fixtures/
-            seeds/
-                invalid_class_mix.yaml
-                invalid_schema_version.yaml
-        unit/
-            test_seed_io.py
-            test_scenario.py
-            test_capabilities.py
-            test_registry.py
+    CLI --> CoreLibrary
+    UI --> CoreLibrary
+    Config --> Domain
+    Ingestion --> Adapters
+    Adapters --> Canonical
+    Ingestion --> Validation
+    Canonical --> Metrics
+    Validation --> Metrics
+    Metrics --> Evidence
+    Evidence --> Rules
+    Rules --> Diagnostics
+    Ingestion --> Storage
+    Metrics --> Storage
+    Evidence --> Storage
 ```
 
-## Current Package Boundary
+## Layer Responsibilities
 
-Implemented:
+| Layer | Modules | Responsibility |
+|---|---|---|
+| Configuration | `src/traffictwin/config/` | Seed YAML loading/dumping and capability manifests. |
+| Domain | `src/traffictwin/domain/` | `ScenarioSeed`, `Experiment`, `Run`, enums, and strict validation. |
+| Ingestion | `src/traffictwin/ingestion/` | Bundle loading, manifest parsing, fingerprints, and validation orchestration. |
+| Adapters | `src/traffictwin/adapters/` | Raw source interpretation at boundaries. Currently generic CSV only. |
+| Canonical | `src/traffictwin/canonical/` | In-memory canonical record models and table container. |
+| Validation | `src/traffictwin/validation/` | Stable codes, findings, reports, and reconciliation helpers. |
+| Metrics | `src/traffictwin/metrics/` | Deterministic metric definitions, calculators, comparison, and aggregation. |
+| Evidence | `src/traffictwin/evidence/` | Versioned EvidencePack construction and data-readiness summaries. |
+| Rules | `src/traffictwin/rules/` | Deterministic R0-R3 rule evaluation over EvidencePack only. |
+| Diagnostics | `src/traffictwin/diagnostics/` | DiagnosticReport schema and serialisation. |
+| Storage | `src/traffictwin/storage/` | SQLite registry for metadata and JSON payload references. |
+| UI | `src/traffictwin/ui/` | Streamlit presentation and UI services over library calls. |
 
-- domain models
-- YAML seed I/O
-- capability manifest
-- SQLite metadata registry
-- CLI
-- unit tests
-- run-bundle manifests
-- directory and ZIP bundle loading
-- generic CSV adapter
-- in-memory canonical records
-- validation reports
-- evidence availability
-- idempotent bundle import
-- deterministic metric catalogue and engine
-- task, infrastructure, traffic, and trip metrics
-- baseline-versus-variation comparison
-- descriptive experiment aggregation
-- versioned evidence packs
-- metric/evidence JSON references in the SQLite registry
-- Streamlit application shell
-- Home, Scenario Studio, Bundle Import, Operations, Run Overview, Infrastructure, Compare, Journey-Time, and Evidence & Diagnostic Hypotheses pages
-- deterministic rules R0-R3
-- versioned diagnostic reports
-- synthetic fault-injection evaluation utility
-- golden and integration tests
+## Dependency Direction
 
-Not implemented:
+Dependencies flow inward from interfaces to library modules. Metrics do not read raw files. Rules do not read raw files or canonical rows. The UI does not implement metrics, validation, comparison, or diagnostic formulas.
 
-- external adapters
-- launchers
-
-## Implemented Phase 2 Package Additions
-
-```text
-diss/
-    src/
-        traffictwin/
-            adapters/
-                __init__.py
-                base.py
-                generic_csv.py
-            canonical/
-                __init__.py
-                records.py
-                tables.py
-            evidence/
-                __init__.py
-                availability.py
-                insufficient.py
-            ingestion/
-                __init__.py
-                bundle.py
-                canonicalise.py
-                hashes.py
-                loader.py
-                manifest.py
-            validation/
-                __init__.py
-                codes.py
-                findings.py
-                files.py
-                manifest.py
-                report.py
-                reconciliation.py
-                rows.py
-    tests/
-        fixtures/
-            bundles/
-                baseline_valid/
-                variation_valid/
-                partial_valid/
-                invalid_manifest/
-                invalid_rows/
-        golden/
-        integration/
+```mermaid
+flowchart LR
+    UI[Streamlit pages] --> Services[ui.services]
+    CLI[Typer commands] --> Library[Core library]
+    Services --> Library
+    Library --> Models[Pydantic models]
+    Library --> Registry[(SQLite)]
 ```
 
-Phase 2 keeps validation orchestration focused in `ingestion.bundle` and row conversion in `adapters.generic_csv`; the empty validation placeholder modules document the intended later split without adding behaviour.
+## B. Import Pipeline
 
-## Implemented Phase 3 Package Additions
-
-```text
-diss/
-    src/
-        traffictwin/
-            metrics/
-                __init__.py
-                aggregation.py
-                availability.py
-                catalogue.py
-                comparison.py
-                definitions.py
-                engine.py
-                engine_config.py
-                infrastructure.py
-                results.py
-                statistics.py
-                task.py
-                traffic.py
-                trips.py
-            evidence/
-                builder.py
-                pack.py
-            experiments/
-                __init__.py
-                aggregation.py
-                comparison.py
-                grouping.py
+```mermaid
+flowchart TD
+    Source[Directory or ZIP bundle] --> Loader[open_bundle]
+    Loader --> Manifest[manifest.yaml parsing]
+    Manifest --> Seed[seed.yaml validation]
+    Manifest --> Files[Declared file checks]
+    Files --> CSV[GenericCsvAdapter]
+    CSV --> Rows[Row parsing and semantic checks]
+    Rows --> Tables[CanonicalTables]
+    Tables --> EvidenceAvailability[EvidenceAvailability]
+    EvidenceAvailability --> Report[ValidationReport]
+    Report --> ImportDecision{may_import?}
+    ImportDecision -->|yes or warnings| Registry[(register bundle metadata)]
+    ImportDecision -->|no| Reject[Reject and preserve report]
 ```
 
-Phase 3 remains library-first. The CLI calls these modules, and future Streamlit pages should do the same rather than recomputing metrics in the UI.
+Bundle loading supports directories and ZIP files. ZIP extraction rejects absolute paths, path traversal, and symlinks, and works in a controlled temporary directory.
 
-## Implemented Phase 4 Package Additions
+## Canonical Records
 
-```text
-diss/
-    src/
-        traffictwin/
-            ui/
-                app.py
-                charts.py
-                formatting.py
-                labels.py
-                navigation.py
-                services.py
-                state.py
-                tables.py
-                components/
-                pages/
+Canonical records are Pydantic models in [src/traffictwin/canonical/records.py](../src/traffictwin/canonical/records.py):
+
+- `TaskRecord`
+- `InfrastructureRecord`
+- `VehicleStateRecord`
+- `TrafficObservationRecord`
+- `TripRecord`
+- `IncidentRecord`
+
+Every record preserves `source_file` and `source_row`. Missing optional source fields remain absent or null. Phase 6A does not store full canonical rows in SQLite.
+
+## Validation
+
+Validation runs before metrics. It produces `ValidationReport`, a serialisable report with:
+
+- status: `accepted`, `accepted_with_warnings`, or `rejected`;
+- `may_import`;
+- stable validation findings;
+- files inspected;
+- canonical record counts;
+- available and unavailable evidence categories.
+
+Validation continues where safe so a user sees a complete report rather than only the first problem.
+
+## Metrics
+
+Metrics are deterministic functions over `CanonicalTables`, `RunMetricContext`, `EvidenceAvailability`, and `MetricEngineConfig`.
+
+Key properties:
+
+- stable metric definitions;
+- no mutation of canonical records;
+- unavailable metrics are explicit;
+- no `NaN` or infinity in JSON;
+- synthetic-demo saturation threshold is configurable and documented.
+
+## C. Evidence And Diagnostics Pipeline
+
+```mermaid
+flowchart TD
+    Canonical[CanonicalTables] --> MetricEngine[compute_metrics]
+    Validation[ValidationReport] --> MetricEngine
+    Availability[EvidenceAvailability] --> MetricEngine
+    MetricEngine --> Collection[MetricCollection]
+    Collection --> EvidencePack[EvidencePack]
+    Validation --> EvidencePack
+    Availability --> EvidencePack
+    EvidencePack --> R0[R0 insufficient evidence]
+    EvidencePack --> R1[R1 under-offloading candidate]
+    EvidencePack --> R2[R2 infrastructure-bottleneck candidate]
+    EvidencePack --> R3[R3 scenario-triviality candidate]
+    R0 --> Report[DiagnosticReport]
+    R1 --> Report
+    R2 --> Report
+    R3 --> Report
 ```
 
-The UI launch command is:
+EvidencePack is the only supported input to diagnostic rules. Rules cite metric keys and return candidate hypotheses with alternatives, missing evidence, and conditional recommendations. They do not prove root causes.
+
+## Metadata Registry
+
+The registry in [src/traffictwin/storage/registry.py](../src/traffictwin/storage/registry.py) uses SQLite and stores:
+
+- seeds;
+- experiments;
+- runs;
+- bundle import metadata;
+- metric collection JSON;
+- evidence pack JSON.
+
+It does not store raw files, canonical rows, or private simulator data. Schema changes must be additive unless an explicit migration is designed.
+
+## D. UI, Service, And Library Flow
+
+```mermaid
+flowchart TD
+    Pages[ui.pages] --> State[ui.state]
+    Pages --> Components[ui.components]
+    Pages --> Services[ui.services]
+    Services --> Bundle[validate_bundle/import_bundle]
+    Services --> Metrics[compute_metrics_for_bundle]
+    Services --> Evidence[build_evidence_pack]
+    Services --> Rules[evaluate_rules]
+    Services --> Compare[compare_metric_collections]
+    Services --> Registry[Registry]
+```
+
+The Streamlit app is launched with:
 
 ```bash
 streamlit run src/traffictwin/ui/app.py
 ```
 
-## Phase 6 Integration Boundary
+All calculations come from library services. UI modules prepare chart/table data and render unavailable states honestly.
 
-Phase 6A discovery searched the inspected workspace for Randy/VEC and SUMO artifacts. No real task logs, infrastructure logs, SUMO XML/configuration files, notebooks, launch scripts, job files, checkpoints, logs, or real output directories were found.
+## E. External-Adapter Boundary
 
-The architecture therefore remains import-first and adapter-gated:
-
-```text
-real Randy/SUMO artifacts
-        |
-        v
-adapter-specific schema and unit validation
-        |
-        v
-standard TrafficTwin run bundle
-        |
-        v
-existing Phase 2 validation and canonicalisation
-        |
-        v
-existing Phase 3 metrics and evidence packs
-        |
-        v
-existing Phase 5 diagnostics
-        |
-        v
-existing Phase 4 UI services and pages
+```mermaid
+flowchart LR
+    External[Randy/VEC, SUMO, sensors] --> Adapter[Future evidenced adapter]
+    Adapter --> StandardBundle[Standard TrafficTwin run bundle]
+    StandardBundle --> ExistingPipeline[Existing validation pipeline]
+    ExistingPipeline --> Metrics[Existing metrics]
+    Metrics --> Evidence[Existing EvidencePack]
+    Evidence --> Diagnostics[Existing diagnostics]
 ```
 
-No real adapter may bypass the existing validation, canonical record, metric, evidence-pack, or diagnostic layers. The generic CSV adapter must remain manifest-driven and free of Randy-specific behavior.
+Phase 6A found no real artifacts. Future adapters must:
 
-Current integration capability decision:
+- declare supported schemas and units;
+- preserve raw sources;
+- map only evidenced fields;
+- emit validation findings for ambiguous data;
+- produce standard TrafficTwin bundles or canonical records through existing validation;
+- keep unsupported capabilities `unknown` or `false`.
 
-```yaml
-environment:
-  adapter: randy_vec_discovery
-  supports:
-    direct_launch: false
-    asynchronous_launch: false
-    task_arrival_multiplier: unknown
-    workload_class_mix: unknown
-    workload_ordering: unknown
-    vehicle_count: unknown
-    vehicle_tier_mix: unknown
-    rsu_count: unknown
-    rsu_capacity: unknown
-    rsu_placement: unknown
-    rsu_failure: unknown
-    action_toggles: unknown
-    signal_timing: unknown
-    lane_closure: unknown
-```
+The generic CSV adapter must not accumulate Randy-specific assumptions.
 
-Phase 6B can begin only after real or sanitised artifacts provide schemas, units, source samples, provenance, and any execution contract.
+## Security Considerations
 
-## Dependency Set
+- Imported files are read as data, not executed.
+- ZIP loading rejects path traversal, absolute paths, and symlinks.
+- Raw source fixtures remain unchanged.
+- SQLite is local metadata storage, not a credential store.
+- No private Randy/SUMO data is present.
+- Future live or user-study data would require a stronger privacy and threat model.
 
-Runtime:
+See [security_and_privacy.md](security_and_privacy.md).
 
-- Python 3.11+
-- Pydantic v2
-- PyYAML
-- Typer
+## Extension Points
 
-Development:
+| Extension | Current gate |
+|---|---|
+| New canonical record | Add model, table field, validation, metrics availability, docs, tests. |
+| New manifest field | Add Pydantic field, validation, bundle spec, fixtures, tests. |
+| New metric | Add definition, calculator, availability behavior, golden tests, metrics docs. |
+| New diagnostic rule | Add EvidencePack inputs, rule config, rule model output, tests, docs. |
+| New Streamlit page | Add service-backed page; no duplicated formulas. |
+| Real adapter | Wait for real artifacts, schemas, units, and approval after discovery. |
 
-- pytest
-- pytest-cov
-- Ruff
-- mypy
-- types-PyYAML
+## Related Documents
 
-Deferred:
-
-- pandas
-- DuckDB
-- Polars
-- PyArrow
-- Streamlit
-- Plotly
-- pre-commit
-
-## Capability Model
-
-Capabilities should use three-valued support:
-
-- `true`: explicitly supported by the selected adapter.
-- `false`: explicitly unsupported.
-- `unknown`: not evidenced.
-
-For `generic_csv`, initial capabilities should be:
-
-```yaml
-environment:
-  adapter: generic_csv
-  supports:
-    seed_import: true
-    seed_export: true
-    run_bundle_import: true
-    direct_launch: false
-    asynchronous_launch: false
-    task_arrival_multiplier: unknown
-    workload_class_mix: unknown
-    workload_ordering: unknown
-    vehicle_count: unknown
-    vehicle_tier_mix: unknown
-    rsu_count: unknown
-    rsu_capacity: unknown
-    rsu_placement: unknown
-    rsu_failure: unknown
-    action_toggles: unknown
-    signal_timing: unknown
-    lane_closure: unknown
-```
-
-Synthetic fixtures may support controlled fixture generation, but must be labelled synthetic and must not imply real Randy execution.
-
-## Smallest Vertical Slice
-
-The smallest complete slice is a deterministic synthetic baseline-versus-variation workflow:
-
-- two seed YAML files
-- two synthetic run bundles
-- manifest validation
-- CSV validation
-- canonical task, infrastructure, traffic, and trip tables
-- deterministic metrics
-- baseline/variation comparison
-- R0-R3 evidence outputs
-- Streamlit display with explicit synthetic/replay labels
-
-This slice demonstrates the research-software contract without fabricating external integration.
-
-## Initial ADR Candidates
-
-- ADR-001: Import-first architecture and export-only fallback.
-- ADR-002: Three-valued capability manifest.
-- ADR-003: SQLite metadata registry before DuckDB/Parquet.
-- ADR-004: Deterministic metrics and rules before UI.
-- ADR-005: Synthetic fixtures as golden integration evidence.
+- [System overview](system_overview.md)
+- [Developer guide](developer_guide.md)
+- [Data contract](data_contract.md)
+- [Run bundle specification](run_bundle_spec.md)
+- [Metrics catalogue](metrics_catalogue.md)
+- [Diagnostic rules](diagnostic_rules.md)
+- [Integration decision](integration/phase6_decision.md)

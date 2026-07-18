@@ -116,3 +116,11 @@ Ordinary single-run EvidencePacks return `insufficient_evidence` for R3.
 Confidence is categorical: `low`, `moderate`, `high`, or `unavailable`.
 
 It is derived from evidence completeness, sample size, supporting conditions, contradictions, validation quality, and directness of evidence. It is not a probability.
+
+## Related Documents
+
+- [EvidencePack specification](evidence_pack_spec.md)
+- [Diagnostic report specification](diagnostic_report_spec.md)
+- [Fault-injection methodology](fault_injection_methodology.md)
+- [Viva guide](viva_guide.md)
+- [Generated rule catalogue](reference/generated/rule_catalogue.json)

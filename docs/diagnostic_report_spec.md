@@ -63,3 +63,10 @@ If a rule cites a missing key, that result is marked `invalid` and a technical w
 Reports serialise with Pydantic JSON. Golden tests use fixed clocks and projections that exclude volatile timestamps.
 
 No `NaN`, infinity, invented probabilities, or causal-proof language is allowed.
+
+## Related Documents
+
+- [Diagnostic rules](diagnostic_rules.md)
+- [EvidencePack specification](evidence_pack_spec.md)
+- [Fault-injection methodology](fault_injection_methodology.md)
+- [API reference](api_reference.md)

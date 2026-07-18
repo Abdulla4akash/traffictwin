@@ -82,7 +82,7 @@ Validation continues where safe so a complete report is produced.
 | `EVIDENCE_INFRA_UNAVAILABLE` | warning | Infrastructure evidence is unavailable. |
 | `EVIDENCE_TRAFFIC_UNAVAILABLE` | warning | Traffic evidence is unavailable. |
 | `EVIDENCE_TRIPS_UNAVAILABLE` | warning | Trip evidence is unavailable. |
-| `EVIDENCE_INSUFFICIENT_FOR_DIAGNOSIS` | warning | Future diagnostic rules must be suppressed. |
+| `EVIDENCE_INSUFFICIENT_FOR_DIAGNOSIS` | warning | Diagnostic rules must treat evidence as insufficient. |
 
 ## Metric Unavailability Reason Codes
 
@@ -109,3 +109,11 @@ Phase 3 metric results use separate reason codes from validation findings:
 | `UNIT_MISMATCH` | Compared metric values have different units. |
 | `EXPERIMENT_MISMATCH` | Compared runs have different experiment IDs where matching is required. |
 | `SEED_RELATIONSHIP_UNKNOWN` | Reserved for seed-relationship checks when seed snapshots are absent. |
+
+## Related Documents
+
+- [Run bundle specification](run_bundle_spec.md)
+- [Data contract](data_contract.md)
+- [Metrics catalogue](metrics_catalogue.md)
+- [Testing strategy](testing_strategy.md)
+- [Generated validation-code catalogue](reference/generated/validation_codes.json)

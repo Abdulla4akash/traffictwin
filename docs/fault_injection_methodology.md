@@ -55,3 +55,10 @@ These numbers are implementation checks over labelled synthetic cases. They are 
 - R1 lacks a direct T1-by-low-tier cross-tab.
 - R2 lacks task-to-saturation temporal overlap.
 - R3 requires experiment-level EvidencePack metrics that normal single-run bundles do not yet produce.
+
+## Related Documents
+
+- [Diagnostic rules](diagnostic_rules.md)
+- [Diagnostic report specification](diagnostic_report_spec.md)
+- [Testing strategy](testing_strategy.md)
+- [Limitations and future work](limitations_and_future_work.md)

@@ -44,6 +44,11 @@ Resolved during Phase 6A:
 - No real Randy/VEC or SUMO artifacts are present in the inspected workspace.
 - Phase 6B adapter implementation is blocked until schemas, units, source samples, and execution contracts are supplied.
 
+Resolved during documentation pass:
+
+- Documentation reference artifacts are generated from code under `docs/reference/generated/`.
+- Automated screenshots are not produced; a manual screenshot checklist is documented instead.
+
 ## Questions For Dr. Sandra Sampaio
 
 1. Confirm the actual dissertation submission date and interim milestone dates.
@@ -90,6 +95,7 @@ Resolved during Phase 6A:
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility remains blocked on sample files.
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on Randy/SUMO evidence.
 - Phase 6B adapter implementation is blocked on real or sanitised Randy/SUMO artifacts, units, schemas, provenance, and invocation contracts.
+- Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
 
 ## Non-Blocking Unknowns
 

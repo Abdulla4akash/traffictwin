@@ -85,3 +85,10 @@ Paired summaries align baseline and variation conditions by common random seed a
 - sample standard deviation of paired differences when `n >= 2`.
 
 No formal hypothesis tests or confidence intervals are implemented in Phase 3.
+
+## Related Documents
+
+- [Metrics catalogue](metrics_catalogue.md)
+- [EvidencePack specification](evidence_pack_spec.md)
+- [User guide](user_guide.md)
+- [Reproducibility guide](reproducibility.md)

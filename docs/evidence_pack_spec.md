@@ -1,6 +1,6 @@
-# Evidence Pack Specification
+# EvidencePack Specification
 
-An evidence pack is the Phase 3 handoff object consumed by Phase 5 deterministic diagnostic rules. It contains structured evidence only. It does not contain narrative diagnoses, causal claims, recommendations, LLM prose, or XAI output.
+An EvidencePack is the Phase 3 handoff object consumed by Phase 5 deterministic diagnostic rules. It contains structured evidence only. It does not contain narrative diagnoses, causal claims, recommendations, LLM prose, or XAI output.
 
 ## Schema
 
@@ -77,3 +77,11 @@ Rules do not mutate the EvidencePack.
 - R1 lacks direct T1-by-low-tier cross-tab evidence in current packs.
 - R2 lacks direct task-to-saturation temporal overlap in current packs.
 - R3 experiment-level evidence is available only in synthetic diagnostic fixtures at this stage.
+
+## Related Documents
+
+- [Metrics catalogue](metrics_catalogue.md)
+- [Diagnostic rules](diagnostic_rules.md)
+- [Diagnostic report specification](diagnostic_report_spec.md)
+- [Reproducibility guide](reproducibility.md)
+- [Generated Pydantic schemas](reference/generated/pydantic_schemas.json)
