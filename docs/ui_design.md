@@ -24,8 +24,8 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 - TOS Mobility & RSU Replay: logical source playback, deliberate processed-FCD spatial snapshots,
   bounded task views, and RSU pressure/backlog. Pressure remains separate from canonical
   utilisation/queue metrics.
-- TOS Training & Audit: bounded training curves, greedy summaries, reproducibility checks, and
-  deliberate research report/static atlas downloads.
+- TOS Training & Audit: bounded training curves, greedy summaries, reproducibility checks,
+  machine-readable integration gates, and deliberate private supervisor/report/atlas downloads.
 - Experiment Manager: experiments, runs, seeds, policies, fingerprints, comparisons, reports, metric
   storage, and evidence storage.
 - Replay: historical replay clock, deterministic controls, filters, and time-series views.

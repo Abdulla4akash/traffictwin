@@ -29,6 +29,13 @@ package:
 - source-provided task metric collections and partial EvidencePacks;
 - safe NPZ key/shape validation, bounded replay, and per-arrival inspection;
 - aggregate metric/rule provenance to the exact source CSV row and package fingerprint;
+- descriptive campaign matrices, common-seed paired comparisons, training/audit views, and
+  research-safe aggregate reports;
+- machine-readable external-integration and publication-permission gates;
+- checksummed private supervisor/viva packs;
+- a synthetic-only static research dashboard deployed at
+  <https://traffictwin-research-demo.netlify.app>;
+- a standalone Streamlit container definition and reproducible dependency lock;
 - Typer commands and a Streamlit `TOS Data Import` workflow.
 
 The integration deliberately does not convert unresolved RSU fields to canonical infrastructure

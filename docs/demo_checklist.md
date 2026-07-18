@@ -80,3 +80,6 @@ git status --short tests/fixtures examples/seeds
   blocked by missing producer/checkpoint/writer, identity/outcome/trip evidence, and fixture
   permission.
 - [ ] Direct launch is intentionally disabled.
+- [ ] Unknown TOS publication permission remains visible as an integration gate.
+- [ ] The supervisor ZIP is labelled private research material.
+- [ ] Any public demonstration uses only the standalone synthetic static site.

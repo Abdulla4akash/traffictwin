@@ -480,6 +480,23 @@ assets, no absolute source paths, and an explicit publication-permission notice.
 Purpose: write report, matrix, paired comparison, audit, and atlas artifacts. The destination must
 be empty; refusal to overwrite returns exit code `1`.
 
+### `traffictwin integration tos readiness PATH [--format text|json]`
+
+Purpose: report the exact evidence and permission gates for canonical conversion, R1/R2 use,
+journey-time integration, direct launch, fixtures, and public TOS publication. Optional
+`--confirm-fixture-permission` and `--confirm-publication-permission` flags are explicit human
+attestations; they do not satisfy unrelated technical gates.
+
+### `traffictwin integration tos supervisor-pack PATH --output DIRECTORY [--variation CAMPAIGN]`
+
+Purpose: create a checksummed private pack containing reports, atlas, matrix, comparison, audit,
+readiness JSON, evaluation plan, viva notes, and screenshot checklist. The destination must be empty.
+
+### `traffictwin integration tos stage-public-atlas PATH --output DIRECTORY --confirm-publication-permission`
+
+Purpose: stage `index.html` for public hosting. Without the confirmation flag the command exits `1`
+and writes nothing. The flag must not be used without actual source-data permission.
+
 Example:
 
 ```bash
@@ -499,8 +516,11 @@ traffictwin integration tos matrix ../external/tos-data
 traffictwin integration tos compare-campaigns ../external/tos-data \
   baseline ukfleettrain_mappo
 traffictwin integration tos audit ../external/tos-data
+traffictwin integration tos readiness ../external/tos-data --format json
 traffictwin integration tos results-pack ../external/tos-data \
   --output /tmp/traffictwin-tos-results
+traffictwin integration tos supervisor-pack ../external/tos-data \
+  --output /tmp/traffictwin-supervisor-pack
 ```
 
 ## Standalone Synthetic Commands
@@ -570,3 +590,23 @@ Purpose: export a deterministic diagnostic report summary for one accepted bundl
 ### `traffictwin report full PATH --output REPORT [--comparison-baseline BASELINE]`
 
 Purpose: export a full Markdown or standalone HTML report, optionally including comparison context.
+
+## Release And Deployment Commands
+
+### `traffictwin release status [--format text|json]`
+
+Purpose: show package version, licence status, production status, and the supported, gated, or
+unsupported deployment modes.
+
+### `traffictwin release stage-demo-site WORKSPACE --output DIRECTORY [--force]`
+
+Purpose: stage a Netlify-compatible static dashboard from an initialised standalone workspace. The
+command accepts synthetic bundles only and reads existing metric and diagnostic outputs. `--force`
+can replace only a directory carrying a valid TrafficTwin static-site marker.
+
+Example:
+
+```bash
+traffictwin demo initialise .netlify-demo
+traffictwin release stage-demo-site .netlify-demo --output public
+```

@@ -105,6 +105,16 @@ Formal user evaluation data should be handled according to ethics approval, anon
 
 ## Current Threat-Model Limitations
 
+The Netlify build consumes only repository-generated synthetic workspace outputs. It does not read
+the external TOS package, copy raw bundles, or publish SQLite state. The staged site embeds escaped,
+finite JSON and receives restrictive response headers through `netlify.toml`.
+
+The Streamlit Docker image contains only the standalone synthetic workspace. No credentials,
+checkpoints, external repositories, or private results are copied into the image.
+
+Public TOS atlas staging requires an explicit permission attestation. This protects against
+accidental publication but is not a substitute for obtaining permission.
+
 The optional TOS static atlas embeds precomputed aggregate values in a self-contained HTML file.
 It excludes machine-record contents, absolute external paths, raw NPZ arrays, and remote assets,
 and it renders source strings with DOM `textContent`. This reduces technical exposure but does not
@@ -122,4 +132,5 @@ Related documents:
 - [Provenance Explorer](provenance_explorer.md)
 - [Standalone demo](standalone_demo.md)
 - [Report export](report_export.md)
+- [Deployment](deployment.md)
 - [Limitations and future work](limitations_and_future_work.md)

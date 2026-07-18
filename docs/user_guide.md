@@ -380,11 +380,34 @@ Warnings:
 - Synthetic policy profiles are not real trained algorithms.
 - The standalone demo does not enable direct launch, Randy/SUMO integration, or live data.
 
+## Public Synthetic Dashboard
+
+Create the static demonstration with:
+
+```bash
+traffictwin release stage-demo-site .demo --output public
+```
+
+Open `public/index.html` or deploy the directory through the included Netlify configuration. The
+scenario selector displays existing precomputed synthetic metrics and diagnostic statuses. It is not
+the Streamlit application and does not run calculations in the browser.
+
+## Private TOS Supervisor Pack
+
+On `TOS Training & Audit`, select a comparison campaign and press `Prepare private research
+exports`. Download the supervisor ZIP to obtain reports, checksums, evaluation notes, and current
+integration gates.
+
+Keep this ZIP private until permission to share Randy-derived aggregate results is recorded. The
+public TOS atlas command is intentionally separate and permission-gated.
+
 Related documents:
 
 - [Standalone demo](standalone_demo.md)
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
 - [CLI reference](cli_reference.md)
+- [Deployment](deployment.md)
+- [Supervisor and viva pack](supervisor_pack.md)
 - [Provenance Explorer](provenance_explorer.md)
 - [Limitations and future work](limitations_and_future_work.md)

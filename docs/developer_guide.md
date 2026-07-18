@@ -20,6 +20,13 @@ To develop or inspect the optional external TOS Data result reader:
 python -m pip install -e ".[dev,tos]"
 ```
 
+For the committed dependency graph:
+
+```bash
+uv sync --extra dev --extra tos
+uv lock --check
+```
+
 Runtime dependencies are declared in [pyproject.toml](../pyproject.toml):
 
 - Pydantic v2
@@ -62,10 +69,11 @@ src/traffictwin/
 ├── evidence/      # Evidence availability and EvidencePack builder
 ├── experiments/   # experiment-level grouping placeholders
 ├── ingestion/     # bundle loader, manifest, canonicalisation, fingerprints
-├── integration/   # evidenced source-specific boundaries; read-only TOS results implemented
+├── integration/   # evidenced source-specific boundaries, readiness gates, private TOS packs
 ├── metrics/       # metric definitions, calculators, comparison, aggregation
 ├── provenance/    # read-only trace DAG, source-row preview, JSON/Markdown export
 ├── rules/         # deterministic diagnostic rules R0-R3
+├── release/       # synthetic static deployment and release metadata
 ├── storage/       # SQLite registry
 ├── ui/            # Streamlit app, services, components, pages
 └── validation/    # validation codes, findings, reports, reconciliation
@@ -248,7 +256,9 @@ Standalone modules are wrappers around the existing pipeline:
 - `src/traffictwin/synthetic/` writes standard bundles.
 - `src/traffictwin/demo/` prepares a marked workspace and imports bundles through the registry.
 - `src/traffictwin/reporting/` renders existing objects into Markdown or HTML.
-- `src/traffictwin/release/` exposes lightweight release metadata.
+- `src/traffictwin/release/` stages synthetic-only static deployments and exposes release metadata.
+- `src/traffictwin/integration/tos/supervisor.py` creates private checksummed review packs.
+- `src/traffictwin/integration/tos/readiness.py` records missing evidence and permissions as gates.
 
 When adding a new synthetic scenario:
 
@@ -267,6 +277,8 @@ Related documents:
 - [Standalone demo](standalone_demo.md)
 - [Synthetic data model](synthetic_data_model.md)
 - [Report export](report_export.md)
+- [Deployment](deployment.md)
+- [Supervisor and viva pack](supervisor_pack.md)
 - [Provenance model](provenance_model.md)
 - [Testing strategy](testing_strategy.md)
 - [Reproducibility guide](reproducibility.md)

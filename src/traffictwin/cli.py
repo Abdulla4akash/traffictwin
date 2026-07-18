@@ -27,6 +27,7 @@ from traffictwin.integration.tos import (
     build_generalisation_matrix,
     build_static_results_atlas,
     build_tos_evidence_pack,
+    build_tos_integration_readiness,
     build_tos_metric_trace,
     build_tos_research_report,
     build_tos_rule_trace,
@@ -40,12 +41,14 @@ from traffictwin.integration.tos import (
     load_training_run,
     metric_collection_from_evaluation,
     read_evaluation_runs,
+    stage_public_tos_atlas,
     summarise_rsu_run,
     summarise_task_outcomes,
     summarise_trace,
     tos_source_contract,
     validate_tos_package,
     write_tos_results_pack,
+    write_tos_supervisor_pack,
 )
 from traffictwin.integration.tos.readers import TosPackageError, instrumented_key_for_run
 from traffictwin.metrics.aggregation import aggregate_experiment
@@ -65,6 +68,7 @@ from traffictwin.provenance.query import (
     node_type_counts,
 )
 from traffictwin.provenance.serialization import trace_to_json
+from traffictwin.release import current_release_metadata, stage_synthetic_demo_site
 from traffictwin.reporting.builder import (
     build_comparison_report,
     build_diagnostics_report,
@@ -93,6 +97,7 @@ provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance tr
 synthetic_app = typer.Typer(no_args_is_help=True, help="Standalone synthetic fixture commands.")
 demo_app = typer.Typer(no_args_is_help=True, help="Standalone demo workspace commands.")
 report_app = typer.Typer(no_args_is_help=True, help="Deterministic research-report export.")
+release_app = typer.Typer(no_args_is_help=True, help="Release and deployment-readiness commands.")
 integration_app = typer.Typer(no_args_is_help=True, help="Evidence-gated external data tools.")
 tos_app = typer.Typer(no_args_is_help=True, help="Read-only TOS Data package tools.")
 app.add_typer(registry_app, name="registry")
@@ -105,6 +110,7 @@ app.add_typer(provenance_app, name="provenance")
 app.add_typer(synthetic_app, name="synthetic")
 app.add_typer(demo_app, name="demo")
 app.add_typer(report_app, name="report")
+app.add_typer(release_app, name="release")
 app.add_typer(integration_app, name="integration")
 integration_app.add_typer(tos_app, name="tos")
 
@@ -773,6 +779,55 @@ def report_full_command(
     _write_report_payload(report, output)
 
 
+@release_app.command("status")
+def release_status_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show release, licence, and supported deployment modes."""
+
+    metadata = current_release_metadata()
+    payload = {
+        **metadata.model_dump(mode="json"),
+        "deployment_modes": {
+            "synthetic_static_site": "supported",
+            "standalone_streamlit_container": "supported",
+            "public_tos_atlas": "permission_gated",
+            "direct_environment_launch": "unsupported",
+            "live_data": "unsupported",
+        },
+    }
+    if output_format == "json":
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True, allow_nan=False))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"version: {metadata.version}")
+    typer.echo(f"release: {metadata.release_label}")
+    typer.echo(f"licence: {metadata.licence_status}")
+    typer.echo(f"status: {metadata.production_status}")
+    for mode, state in payload["deployment_modes"].items():
+        typer.echo(f"{mode}: {state}")
+
+
+@release_app.command("stage-demo-site")
+def release_stage_demo_site_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Stage a Netlify-compatible synthetic-only static demonstration."""
+
+    try:
+        manifest = stage_synthetic_demo_site(workspace, output, overwrite=overwrite)
+    except (FileExistsError, OSError, PermissionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"site: {output}")
+    typer.echo(f"scenarios: {len(manifest.scenarios)}")
+    typer.echo("synthetic: true")
+    typer.echo("live_data: false")
+    typer.echo(f"licence: {manifest.licence_status}")
+
+
 @tos_app.command("inspect")
 def tos_inspect_command(
     path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
@@ -1323,6 +1378,36 @@ def tos_audit_command(
         typer.echo(f"{check.status.value}: {check.code}: {check.message}")
 
 
+@tos_app.command("readiness")
+def tos_readiness_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    fixture_permission_confirmed: Annotated[
+        bool, typer.Option("--confirm-fixture-permission")
+    ] = False,
+    publication_permission_confirmed: Annotated[
+        bool, typer.Option("--confirm-publication-permission")
+    ] = False,
+) -> None:
+    """Report evidence and permission gates for deeper TOS integration."""
+
+    readiness = build_tos_integration_readiness(
+        path,
+        fixture_permission=True if fixture_permission_confirmed else None,
+        publication_permission=True if publication_permission_confirmed else None,
+    )
+    if output_format == "json":
+        typer.echo(readiness.to_json())
+        return
+    _require_text_format(output_format)
+    typer.echo(f"overall_status: {readiness.overall_status.value}")
+    typer.echo(f"package_fingerprint: {readiness.package_fingerprint}")
+    for capability, status in sorted(readiness.capabilities.items()):
+        typer.echo(f"{capability}: {status.value}")
+    for gate in readiness.gates:
+        typer.echo(f"{gate.status.value}: {gate.gate_id}: {gate.title}")
+
+
 @tos_app.command("report")
 def tos_report_command(
     path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
@@ -1365,6 +1450,49 @@ def tos_results_pack_command(
     typer.echo(f"report: {pack.markdown_report.name}")
     typer.echo(f"atlas: {pack.atlas_html.name}")
     typer.echo("publication_permission_required: true")
+
+
+@tos_app.command("supervisor-pack")
+def tos_supervisor_pack_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    variation: Annotated[str, typer.Option("--variation")] = "ukfleettrain_mappo",
+) -> None:
+    """Write a checksummed private supervisor and viva evidence pack."""
+
+    try:
+        pack = write_tos_supervisor_pack(path, output, variation_campaign=variation)
+    except (FileExistsError, OSError, PermissionError, TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"supervisor_pack: {pack.directory}")
+    typer.echo(f"manifest: {pack.manifest.name}")
+    typer.echo(f"checksums: {pack.checksums.name}")
+    typer.echo("classification: private_research_material")
+    typer.echo("publication_permission_required: true")
+
+
+@tos_app.command("stage-public-atlas")
+def tos_stage_public_atlas_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    publication_permission_confirmed: Annotated[
+        bool, typer.Option("--confirm-publication-permission")
+    ] = False,
+) -> None:
+    """Stage the aggregate TOS atlas after explicit publication permission."""
+
+    try:
+        index = stage_public_tos_atlas(
+            path,
+            output,
+            publication_permission_confirmed=publication_permission_confirmed,
+        )
+    except (FileExistsError, OSError, PermissionError, TosPackageError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"public_atlas: {index}")
+    typer.echo("publication_permission_attested: true")
 
 
 def _require_text_format(output_format: str) -> None:

@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 
 from traffictwin.demo.workspace import initialise_workspace, workspace_status
+from traffictwin.release.deployment import stage_synthetic_demo_site
 from traffictwin.reporting.builder import build_run_report
 
 
@@ -19,6 +20,9 @@ def main() -> None:
         if not status.valid_workspace or status.imported_run_count == 0:
             raise SystemExit("demo workspace verification failed")
         build_run_report(workspace / "bundles" / "baseline")
+        site = stage_synthetic_demo_site(workspace, Path(tmp) / "public")
+        if not site.synthetic or site.live_data or site.external_integration:
+            raise SystemExit("synthetic static-site safety verification failed")
     print("release smoke checks passed")
 
 

@@ -12,7 +12,9 @@ from traffictwin.ui.services import (
     ServiceError,
     TosPackageView,
     tos_audit_for_ui,
+    tos_readiness_for_ui,
     tos_report_exports_for_ui,
+    tos_supervisor_pack_for_ui,
     tos_training_run_for_ui,
     tos_training_runs_for_ui,
 )
@@ -34,6 +36,7 @@ def render(config: UiConfig) -> None:
         return
     _render_training(package)
     _render_audit(package)
+    _render_readiness(package)
     _render_exports(package)
 
 
@@ -138,8 +141,34 @@ def _render_audit(package: TosPackageView) -> None:
         st.caption(warning)
 
 
+def _render_readiness(package: TosPackageView) -> None:
+    st.subheader("External Integration Gates")
+    readiness = tos_readiness_for_ui(package)
+    if isinstance(readiness, ServiceError):
+        st.error(readiness.message)
+        return
+    st.dataframe(
+        [
+            {
+                "status": gate.status.value,
+                "gate": gate.gate_id,
+                "title": gate.title,
+                "required for": ", ".join(gate.required_for),
+                "next action": gate.next_action,
+            }
+            for gate in readiness.gates
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        "Unknown permissions are never treated as granted. Blocked capabilities remain disabled "
+        "rather than being simulated."
+    )
+
+
 def _render_exports(package: TosPackageView) -> None:
-    st.subheader("Dissertation Results Pack")
+    st.subheader("Supervisor, Viva & Dissertation Pack")
     campaigns = sorted({run.campaign for run in package.evaluation_runs})
     variations = [campaign for campaign in campaigns if campaign != "baseline"]
     variation = st.selectbox("Comparison campaign for report", variations)
@@ -147,9 +176,12 @@ def _render_exports(package: TosPackageView) -> None:
         "Exports contain aggregate imported simulation results. Confirm permission before public "
         "deployment or sharing Randy-provided outputs outside the research team."
     )
-    if st.button("Prepare report and static atlas", type="primary"):
+    if st.button("Prepare private research exports", type="primary"):
         with st.spinner("Building deterministic exports from the inspected package..."):
             st.session_state["tos_report_exports"] = tos_report_exports_for_ui(
+                package, variation_campaign=variation
+            )
+            st.session_state["tos_supervisor_pack"] = tos_supervisor_pack_for_ui(
                 package, variation_campaign=variation
             )
             st.session_state["tos_report_variation"] = variation
@@ -158,7 +190,8 @@ def _render_exports(package: TosPackageView) -> None:
         st.error(exports.message)
     elif isinstance(exports, tuple) and st.session_state.get("tos_report_variation") == variation:
         markdown, html, atlas = exports
-        columns = st.columns(3)
+        supervisor_pack = st.session_state.get("tos_supervisor_pack")
+        columns = st.columns(4)
         columns[0].download_button(
             "Download research report (Markdown)",
             markdown,
@@ -177,7 +210,17 @@ def _render_exports(package: TosPackageView) -> None:
             file_name="tos-results-atlas.html",
             mime="text/html",
         )
+        if isinstance(supervisor_pack, bytes):
+            columns[3].download_button(
+                "Download private supervisor pack",
+                supervisor_pack,
+                file_name="traffictwin-tos-supervisor-pack.zip",
+                mime="application/zip",
+            )
+        elif isinstance(supervisor_pack, ServiceError):
+            columns[3].error(supervisor_pack.message)
         st.caption(
-            "The atlas is self-contained and interactive offline. It embeds aggregate values "
-            "only and carries a publication-permission notice."
+            "The supervisor ZIP includes checksums, a manifest, evaluation plan, viva notes, "
+            "readiness gates, reports, and the aggregate atlas. Keep it private until publication "
+            "permission is recorded."
         )

@@ -716,3 +716,24 @@ selection, and training orchestration remain outside this integration boundary.
 - Quality gates: Ruff format/check passed; strict mypy passed; 197 tests passed; coverage 78%.
   Real-package matrix, comparison, training, replay, task, RSU, audit, report, atlas, path-safety,
   JSON-finiteness, UI AppTest, and source immutability checks passed.
+
+## Implemented In Release, Supervisor, And Evaluation Increment
+
+- Versioned machine-readable TOS integration gates for producer provenance, checkpoint, writer,
+  canonical outcome/identity, R1/R2 evidence, trip output, permissions, and evaluator smoke.
+- Checksummed private supervisor/viva pack with manifest, reports, atlas, evaluation plan, viva
+  notes, screenshot checklist, audit, and readiness JSON.
+- Permission-gated public TOS atlas staging; unknown permission is never treated as granted.
+- Synthetic-only static dashboard built from existing standalone MetricCollections and
+  DiagnosticReports, with a Netlify build definition and finite embedded JSON.
+- Standalone Streamlit Docker image definition with an initialised synthetic workspace and health
+  check.
+- Complete `uv.lock` dependency graph and release/deployment CLI commands.
+- Dissertation evaluation plan separating software evidence, synthetic verification, imported TOS
+  description, blocked evaluation, and interpretation limits.
+- Quality gates: Ruff format/check passed; strict mypy passed; 206 tests passed; coverage 78%.
+  Readiness, private supervisor-pack, publication-gate, synthetic static-site, CLI, and UI-service
+  tests passed in addition to the complete prior suite.
+
+External canonical conversion, real R1/R2 evaluation, journey-time integration, and direct launch
+remain blocked. This increment records those boundaries; it does not simulate the missing evidence.

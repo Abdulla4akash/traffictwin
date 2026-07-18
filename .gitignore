@@ -25,6 +25,10 @@ data/canonical/
 data/derived/
 data/registry/
 .demo/
+.netlify/
+.netlify-demo/
+public/
+supervisor-pack/
 *.local-report.md
 *.local-report.html
 *.sqlite

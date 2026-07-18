@@ -26,6 +26,13 @@ Open:
 9. May aggregate values from Randy's package be included in a publicly hosted static atlas, or
    only in private supervisor/dissertation materials?
 
+Implemented while these questions remain open:
+
+- a synthetic-only public static dashboard that contains no Randy-derived values;
+- a private checksummed TOS supervisor pack;
+- a public TOS atlas command that refuses to stage without explicit permission attestation;
+- machine-readable readiness gates that keep all unrelated technical blockers intact.
+
 Resolved during Phase 3:
 
 - Saturation threshold is held in `MetricEngineConfig` and documented as synthetic-demo configuration.
@@ -140,6 +147,8 @@ Only the following evidence is still needed:
 - Stronger canonical integration remains the next blocker for externally grounded metric and rule
   evaluation.
 - A project licence still needs explicit selection before public release.
+- A synthetic demonstration can be hosted publicly without TOS data, but publishing source code or
+  Randy-derived results still requires the relevant licence and permission decisions.
 - Product Polish does not resolve external producer/checkpoint/writer, fixture-permission, or
   canonical-evidence blockers.
 

@@ -45,6 +45,8 @@ from traffictwin.integration.tos.models import (
     TosTaskSample,
     TosValidationReport,
 )
+from traffictwin.integration.tos.readiness import TosIntegrationReadinessReport
+from traffictwin.integration.tos.supervisor import TosSupervisorPackManifest
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricCollection
@@ -54,6 +56,7 @@ from traffictwin.provenance.models import (
     ProvenanceTrace,
     SourceRowPreview,
 )
+from traffictwin.release.deployment import SyntheticStaticSiteManifest
 from traffictwin.rules.catalogue import rule_catalogue
 from traffictwin.rules.config import RuleSetConfig
 from traffictwin.validation.codes import ValidationCode
@@ -98,6 +101,9 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "TosRsuRunSummary": TosRsuRunSummary,
     "TosTaskOutcomeSummary": TosTaskOutcomeSummary,
     "TosReproducibilityAudit": TosReproducibilityAudit,
+    "TosIntegrationReadinessReport": TosIntegrationReadinessReport,
+    "TosSupervisorPackManifest": TosSupervisorPackManifest,
+    "SyntheticStaticSiteManifest": SyntheticStaticSiteManifest,
     "RuleSetConfig": RuleSetConfig,
 }
 
@@ -135,6 +141,9 @@ CLI_COMMANDS = [
     ["report", "compare"],
     ["report", "diagnostics"],
     ["report", "full"],
+    ["release"],
+    ["release", "status"],
+    ["release", "stage-demo-site"],
     ["experiment"],
     ["experiment", "summarise"],
     ["diagnose"],
@@ -173,6 +182,9 @@ CLI_COMMANDS = [
     ["integration", "tos", "report"],
     ["integration", "tos", "atlas"],
     ["integration", "tos", "results-pack"],
+    ["integration", "tos", "readiness"],
+    ["integration", "tos", "supervisor-pack"],
+    ["integration", "tos", "stage-public-atlas"],
 ]
 
 

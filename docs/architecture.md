@@ -395,6 +395,26 @@ Scenario Builder uses `SyntheticScenarioConfig` and `write_synthetic_bundle`; Ex
 uses registry and workspace metadata; Reports calls `traffictwin.reporting`; Search performs local
 metadata search. None of these pages implement new metrics, rules, adapters, live data, or launchers.
 
+## Release And Deployment Boundary
+
+```mermaid
+flowchart LR
+    Workspace[Synthetic demo workspace] --> Existing[Existing metrics and diagnostics JSON]
+    Existing --> Static[release.stage_synthetic_demo_site]
+    Static --> Netlify[Static synthetic dashboard]
+    Workspace --> Container[Standalone Streamlit container]
+    TOS[External TOS package] --> Private[Private supervisor pack]
+    TOS --> Permission{Publication permission attested?}
+    Permission -->|No or unknown| Blocked[Public staging blocked]
+    Permission -->|Yes| Atlas[Aggregate TOS atlas staging]
+```
+
+The static dashboard reads existing standalone pipeline outputs and contains no external source
+data. The container initialises the same synthetic workspace and runs the ordinary Streamlit app.
+The TOS supervisor pack is private by default and includes machine-readable integration gates and
+checksums. Neither path changes metric formulas, diagnostic logic, canonical records, or adapter
+capabilities.
+
 ## Related Documents
 
 - [System overview](system_overview.md)
@@ -408,5 +428,7 @@ metadata search. None of these pages implement new metrics, rules, adapters, liv
 - [Standalone demo](standalone_demo.md)
 - [Synthetic data model](synthetic_data_model.md)
 - [Report export](report_export.md)
+- [Deployment](deployment.md)
+- [Supervisor and viva pack](supervisor_pack.md)
 - [Integration decision](integration/phase6_decision.md)
 - [TOS Results Workbench](integration/tos_results_workbench.md)

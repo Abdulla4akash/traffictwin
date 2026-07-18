@@ -14,7 +14,9 @@ from traffictwin.ui.services import (
     inspect_tos_for_ui,
     load_tos_replay_for_ui,
     load_tos_rsu_series_for_ui,
+    tos_readiness_for_ui,
     tos_results_for_ui,
+    tos_supervisor_pack_for_ui,
 )
 
 
@@ -64,6 +66,20 @@ def test_tos_result_campaigns_are_scoped_to_selected_fleet(tmp_path: Path) -> No
 
     assert not isinstance(result, ServiceError)
     assert "small_only" not in result.campaigns
+
+
+def test_tos_ui_exposes_readiness_and_private_supervisor_archive(tmp_path: Path) -> None:
+    package = write_tos_package(tmp_path / "tos")
+    view = inspect_tos_for_ui(package)
+    assert not isinstance(view, ServiceError)
+
+    readiness = tos_readiness_for_ui(view)
+    archive = tos_supervisor_pack_for_ui(view, variation_campaign="capscalar_mappo")
+
+    assert not isinstance(readiness, ServiceError)
+    assert readiness.capabilities["direct_launch"].value == "blocked"
+    assert isinstance(archive, bytes)
+    assert archive.startswith(b"PK")
 
 
 def test_streamlit_tos_page_inspects_source_contract(

@@ -131,6 +131,10 @@ no remote assets, excludes machine-specific absolute paths, and carries an expli
 and permission notice. It is technically suitable for static hosting, but TrafficTwin does not
 publish Randy-provided values until permission is confirmed.
 
+`supervisor-pack` adds a private manifest, checksums, readiness report, evaluation plan, viva notes,
+and screenshot checklist. Public atlas staging is a separate command and refuses to run without an
+explicit publication-permission attestation.
+
 ## Remaining Blocks
 
 - actor checkpoint payloads;
@@ -148,4 +152,6 @@ publish Randy-provided values until permission is confirmed.
 - [Schema mapping](randy_schema_mapping.md)
 - [Execution contract](randy_execution_contract.md)
 - [Phase 6 decision](phase6_decision.md)
+- [Integration readiness gates](readiness_gates.md)
+- [Supervisor and viva pack](../supervisor_pack.md)
 - [Architecture](../architecture.md)

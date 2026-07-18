@@ -7,6 +7,10 @@ environment, SUMO artifacts, external services, or live feeds. All bundled demon
 synthetic. An optional read-only integration can inspect and import Randy's separately supplied TOS
 Data results package when it is available locally.
 
+Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
+shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
+application and contains no Randy/TOS artifacts or live Manchester data.
+
 ## Current Scope
 
 Implemented:
@@ -23,6 +27,8 @@ Implemented:
 - Streamlit UI over the tested library, including Scenario Builder, Experiment Manager, Reports,
   Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
+- Synthetic-only Netlify static dashboard, Streamlit container definition, dependency lock, and
+  release-readiness commands.
 - Read-only TOS Data evaluation-summary import, versioned `vec_env` source contract, NPZ
   validation, unit-aware historical replay, task/action inspection, RSU pressure inspection,
   paired campaign comparison, training-history exploration, generalisation labels,
@@ -160,8 +166,11 @@ traffictwin integration tos compare-campaigns ../external/tos-data \
   baseline ukfleettrain_mappo
 traffictwin integration tos training-runs ../external/tos-data --limit 5
 traffictwin integration tos audit ../external/tos-data
+traffictwin integration tos readiness ../external/tos-data --format json
 traffictwin integration tos results-pack ../external/tos-data \
   --output /tmp/traffictwin-tos-results
+traffictwin integration tos supervisor-pack ../external/tos-data \
+  --output /tmp/traffictwin-supervisor-pack
 ```
 
 This path imports documented source summaries and exposes confirmed source-state semantics; it
@@ -169,6 +178,18 @@ does not launch Randy's environment or relabel RSU concurrency pressure as canon
 See
 [docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md) and the
 [TOS Results Workbench](docs/integration/tos_results_workbench.md).
+
+Stage the public-safe synthetic dashboard without reading external data:
+
+```bash
+traffictwin demo initialise .netlify-demo
+traffictwin release stage-demo-site .netlify-demo --output public
+```
+
+The full Streamlit interface requires a Python runtime and is provided through the root
+`Dockerfile`; the Netlify target is a static, interactive view over precomputed synthetic values.
+The current deployment is <https://traffictwin-research-demo.netlify.app>. See
+[docs/deployment.md](docs/deployment.md).
 
 ## Architecture Overview
 
@@ -210,6 +231,9 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Report export | Implemented | Deterministic Markdown and standalone HTML. |
 | Streamlit UI | Implemented | Thin presentation layer. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
+| Synthetic static deployment | Implemented | Netlify-compatible; external data is excluded. |
+| Streamlit container | Implemented | Initialised standalone synthetic workspace on port 8501. |
+| Private supervisor pack | Implemented | Checksummed TOS reports, readiness gates, viva notes, and evaluation plan. |
 | TOS Data offline results | Implemented, partial | Matrix, paired comparisons, training/audit, replay/source inspection, and aggregate exports; no canonical conversion or launch. |
 | Full Randy/VEC integration | Blocked | Source semantics are documented; checkpoint, producer commit/writer, canonical outcome/identity fields, tested execution, and fixture permission remain unresolved. |
 | SUMO integration | Blocked | No raw SUMO config/XML or trip output is available. |
@@ -225,6 +249,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
 .venv/bin/python -m build
+uv lock --check
 ```
 
 Release smoke:
@@ -242,6 +267,9 @@ The current test count and coverage are documented in [docs/reproducibility.md](
 ├── AGENTS.md
 ├── README.md
 ├── pyproject.toml
+├── uv.lock
+├── Dockerfile
+├── netlify.toml
 ├── .github/workflows/ci.yml
 ├── docs/
 ├── examples/
@@ -292,6 +320,9 @@ Start at [docs/index.md](docs/index.md). Key documents:
 - [docs/synthetic_data_model.md](docs/synthetic_data_model.md)
 - [docs/report_export.md](docs/report_export.md)
 - [docs/release_guide.md](docs/release_guide.md)
+- [docs/deployment.md](docs/deployment.md)
+- [docs/supervisor_pack.md](docs/supervisor_pack.md)
+- [docs/dissertation_evaluation_plan.md](docs/dissertation_evaluation_plan.md)
 - [docs/provenance_explorer.md](docs/provenance_explorer.md)
 - [docs/user_guide.md](docs/user_guide.md)
 - [docs/developer_guide.md](docs/developer_guide.md)

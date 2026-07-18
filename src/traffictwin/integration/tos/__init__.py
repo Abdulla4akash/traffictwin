@@ -63,12 +63,25 @@ from traffictwin.integration.tos.readers import (
     read_evaluation_runs,
     read_npz_headers,
 )
+from traffictwin.integration.tos.readiness import (
+    IntegrationGate,
+    ReadinessStatus,
+    TosIntegrationReadinessReport,
+    build_tos_integration_readiness,
+)
 from traffictwin.integration.tos.replay import (
     load_replay_frame,
     load_replay_series,
     load_rsu_replay_series,
     summarise_rsu_run,
     summarise_trace,
+)
+from traffictwin.integration.tos.supervisor import (
+    TosSupervisorPack,
+    TosSupervisorPackManifest,
+    build_tos_supervisor_pack_zip,
+    stage_public_tos_atlas,
+    write_tos_supervisor_pack,
 )
 from traffictwin.integration.tos.tasks import load_task_sample, summarise_task_outcomes
 from traffictwin.integration.tos.training import list_training_runs, load_training_run
@@ -80,6 +93,7 @@ __all__ = [
     "TosCampaignComparisonReport",
     "TosGeneralisationMatrix",
     "TosImportSummary",
+    "TosIntegrationReadinessReport",
     "TosPackageInventory",
     "TosReplayFrame",
     "TosReplayPoint",
@@ -89,6 +103,8 @@ __all__ = [
     "TosRsuReplayPoint",
     "TosSourceContract",
     "TosSummary",
+    "TosSupervisorPack",
+    "TosSupervisorPackManifest",
     "TosTaskObservation",
     "TosTaskSample",
     "TosTaskOutcomeSummary",
@@ -96,11 +112,15 @@ __all__ = [
     "TosTrainingRun",
     "TosTrainingRunSummary",
     "TosValidationReport",
+    "IntegrationGate",
+    "ReadinessStatus",
     "build_tos_evidence_pack",
     "build_evaluation_matrix",
     "build_generalisation_matrix",
     "build_static_results_atlas",
     "build_tos_research_report",
+    "build_tos_integration_readiness",
+    "build_tos_supervisor_pack_zip",
     "build_tos_metric_trace",
     "build_tos_rule_trace",
     "import_evaluation_summaries",
@@ -122,10 +142,12 @@ __all__ = [
     "summarise_rsu_run",
     "summarise_task_outcomes",
     "summarise_trace",
+    "stage_public_tos_atlas",
     "tos_analysis_catalogue",
     "get_evaluation_source_row",
     "tos_data_capability_manifest",
     "tos_source_contract",
     "validate_tos_package",
     "write_tos_results_pack",
+    "write_tos_supervisor_pack",
 ]

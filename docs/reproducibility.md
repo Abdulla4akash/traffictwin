@@ -12,6 +12,13 @@ python -m pip install -e ".[dev]"
 
 The package supports Python 3.11+. The checked local environment for this documentation pass used Python 3.12.
 
+The complete dependency graph is committed in `uv.lock`:
+
+```bash
+uv sync --extra dev --extra tos
+uv lock --check
+```
+
 ## Deterministic Design Choices
 
 - Scenario seeds are versioned YAML.
@@ -72,17 +79,19 @@ They are not real Manchester, Randy/VEC, or SUMO results.
 .venv/bin/mypy
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
+uv lock --check
 .venv/bin/python scripts/generate_reference_docs.py
 .venv/bin/traffictwin demo initialise .demo --force
 .venv/bin/traffictwin synthetic verify .demo
 .venv/bin/traffictwin report full .demo/bundles/stressed_demand \
   --comparison-baseline .demo/bundles/baseline \
   --output .demo/reports/stressed_full.html
+traffictwin release stage-demo-site .demo --output public
 ```
 
-Current verified snapshot after the TOS Results Workbench increment:
+Current verified snapshot after the release, supervisor, and evaluation increment:
 
-- tests: 197 passed;
+- tests: 206 passed;
 - coverage: 78%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
@@ -113,6 +122,14 @@ streamlit run src/traffictwin/ui/app.py
 ```
 
 Then follow [demo_checklist.md](demo_checklist.md).
+
+The public static demonstration is reproduced from the same workspace:
+
+```bash
+traffictwin release stage-demo-site .demo --output public
+```
+
+`public/site-manifest.json` records synthetic/live/external-integration flags and page hashes.
 
 ## Regenerate Evidence And Diagnostics
 

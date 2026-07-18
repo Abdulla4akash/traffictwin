@@ -23,6 +23,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
+          python -m pip install uv
+
+      - name: Dependency lock consistency
+        run: uv lock --check
 
       - name: Ruff format check
         run: ruff format --check .
@@ -48,9 +52,14 @@ jobs:
           traffictwin provenance export .ci-demo/bundles/baseline --root-type metric --root-id task.completion.rate --format json --output .ci-demo/exports/ci_provenance.json
           traffictwin report run .ci-demo/bundles/baseline --output .ci-demo/reports/ci_run.md
           traffictwin report full .ci-demo/bundles/stressed_demand --comparison-baseline .ci-demo/bundles/baseline --output .ci-demo/reports/ci_full.html
+          traffictwin release stage-demo-site .ci-demo --output .ci-public
 
       - name: Fixture immutability check
         run: git diff --exit-code -- tests/fixtures examples
 
       - name: Build package
         run: python -m build
+
+      - name: Build standalone Streamlit container
+        if: matrix.python-version == '3.12'
+        run: docker build -t traffictwin-ci .

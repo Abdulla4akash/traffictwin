@@ -1,0 +1,16 @@
+[build]
+  command = "python -m pip install . && traffictwin demo initialise .netlify-demo && traffictwin release stage-demo-site .netlify-demo --output public"
+  publish = "public"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+  PIP_DISABLE_PIP_VERSION_CHECK = "1"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'"

@@ -148,8 +148,9 @@ authorised to see source-derived aggregate values.
 5. Open **TOS Mobility & RSU Replay**, play the logical timeline, then load one deliberate spatial
    frame.
 6. Show RSU concurrency pressure and state explicitly that it is not CPU utilisation.
-7. Open **TOS Training & Audit**, show one training curve, audit blockers, and export buttons.
-8. State that the atlas is local and permission-gated; do not deploy it during the demo.
+7. Open **TOS Training & Audit**, show one training curve, audit blockers, and integration gates.
+8. Prepare the private supervisor ZIP and point out its manifest and checksum file.
+9. State that the TOS atlas is local and permission-gated; do not deploy it during the demo.
 
 See [integration/tos_results_workbench.md](integration/tos_results_workbench.md).
 

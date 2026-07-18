@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+build
+dist
+public
+.netlify-demo
+data
+external
+**/__pycache__
+*.pyc
+*.sqlite
+*.sqlite3

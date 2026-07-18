@@ -34,6 +34,7 @@ from traffictwin.integration.tos import (
     TosEvaluationRun,
     TosGeneralisationMatrix,
     TosImportSummary,
+    TosIntegrationReadinessReport,
     TosReplayFrame,
     TosReplayPoint,
     TosReproducibilityAudit,
@@ -51,8 +52,10 @@ from traffictwin.integration.tos import (
     build_generalisation_matrix,
     build_static_results_atlas,
     build_tos_evidence_pack,
+    build_tos_integration_readiness,
     build_tos_metric_trace,
     build_tos_research_report,
+    build_tos_supervisor_pack_zip,
     compare_campaigns,
     import_evaluation_summaries,
     list_instrumented_runs,
@@ -419,6 +422,33 @@ def tos_audit_for_ui(
         return audit_tos_package(package_view.source_path)
     except (OSError, ValueError, TosPackageError) as exc:
         return ServiceError("TOS reproducibility audit could not be prepared.", str(exc))
+
+
+def tos_readiness_for_ui(
+    package_view: TosPackageView,
+) -> TosIntegrationReadinessReport | ServiceError:
+    """Build machine-readable integration and permission gates."""
+
+    try:
+        return build_tos_integration_readiness(package_view.source_path)
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS integration readiness could not be prepared.", str(exc))
+
+
+def tos_supervisor_pack_for_ui(
+    package_view: TosPackageView,
+    *,
+    variation_campaign: str,
+) -> bytes | ServiceError:
+    """Build a private checksummed supervisor pack for deliberate download."""
+
+    try:
+        return build_tos_supervisor_pack_zip(
+            package_view.source_path,
+            variation_campaign=variation_campaign,
+        )
+    except (OSError, ValueError, TosPackageError) as exc:
+        return ServiceError("TOS supervisor pack could not be prepared.", str(exc))
 
 
 def tos_report_exports_for_ui(

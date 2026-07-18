@@ -357,6 +357,9 @@ Principal models:
 - `TosTraceSummary`, `TosRsuRunSummary`, and `TosTaskOutcomeSummary`: read-only descriptive views
   over evidenced NPZ arrays.
 - `TosReproducibilityAudit`: artifact coverage and blocked reproducibility checks.
+- `TosIntegrationReadinessReport`: versioned gates and capability decisions for deeper integration.
+- `TosSupervisorPackManifest`: checksummed private-pack inventory and publication boundary.
+- `SyntheticStaticSiteManifest`: synthetic/live/external flags and page hashes for static staging.
 
 Key functions:
 
@@ -385,6 +388,11 @@ Key functions:
 - `build_tos_research_report(path, variation_campaign=..., clock=...) -> ResearchReport`
 - `build_static_results_atlas(path, clock=...) -> str`
 - `write_tos_results_pack(path, output, variation_campaign=..., clock=...) -> TosResultsPack`
+- `build_tos_integration_readiness(path, ..., clock=...) -> TosIntegrationReadinessReport`
+- `write_tos_supervisor_pack(path, output, ..., clock=...) -> TosSupervisorPack`
+- `build_tos_supervisor_pack_zip(path, ..., clock=...) -> bytes`
+- `stage_public_tos_atlas(path, output, publication_permission_confirmed=...) -> Path`
+- `stage_synthetic_demo_site(workspace, output, overwrite=False, clock=...) -> SyntheticStaticSiteManifest`
 
 The metric builder wraps source-provided aggregates using distinct implementation/version metadata;
 it does not invoke Phase 3 calculators over absent canonical rows. Source deadline success has its
@@ -410,3 +418,5 @@ Related documents:
 - [Diagnostic report specification](diagnostic_report_spec.md)
 - [Standalone demo](standalone_demo.md)
 - [Report export](report_export.md)
+- [Deployment](deployment.md)
+- [Supervisor and viva pack](supervisor_pack.md)
