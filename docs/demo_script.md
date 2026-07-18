@@ -39,45 +39,52 @@ traffictwin demo launch .demo
    - Show the Standalone Demo section.
    - Show direct launch is unsupported and unknown capabilities stay unknown.
 
-2. Open Scenario Builder.
+2. Select **Start Guided Demo**.
+   - Show the seven-stage **Standalone synthetic** track.
+   - Explain the separation between simulation artifacts, TrafficTwin's deterministic pipeline,
+     and researcher interpretation.
+   - If the authorised external package is configured, switch to **Randy/TOS imported simulation**
+     and show its read-only inventory. Do not describe this as a live connection.
+
+3. Open Scenario Builder.
    - Duplicate the baseline synthetic preset.
    - Show documented generator controls for traffic, tasks, infrastructure, policy profile, and
      evidence files.
    - Show the expected bundle/run IDs and configuration YAML.
    - Explain that generation writes a standard bundle and then uses the normal validator.
 
-3. Open Bundle Import & Validation.
+4. Open Bundle Import & Validation.
    - Validate `.demo/bundles/baseline`.
    - Show status accepted, declared files, record counts, and evidence categories.
 
-4. Validate `.demo/bundles/stressed_demand`.
+5. Validate `.demo/bundles/stressed_demand`.
    - Show it uses the same experiment and random seed but different seed parameters.
 
-5. Open Run Overview.
+6. Open Run Overview.
    - Show task completion, incomplete rate, latency, offload rate, and unavailable optional metrics.
    - Explain unavailable is not zero.
 
-6. Open Replay.
+7. Open Replay.
    - Show the `HISTORICAL REPLAY` badge.
    - Use play, pause, restart, speed presets, timestamp jump, scrubber, and step controls.
    - Show filters for vehicle, RSU, task class, and incident where evidence exists.
    - Explain there is no wall-clock live source.
 
-7. Open Infrastructure & Congestion.
+8. Open Infrastructure & Congestion.
    - Show per-RSU queue/utilisation.
    - Point out the `0.90` saturation threshold is a configurable demo threshold, not a validated research threshold.
 
-8. Open Comparison.
+9. Open Comparison.
    - Select baseline and variation.
    - Show changed seed parameters.
    - Show task, infrastructure, traffic, and trip deltas.
    - Use neutral wording: increased/decreased/unchanged.
 
-9. Open Journey-Time Lens.
+10. Open Journey-Time Lens.
    - Show synthetic trip duration metrics.
    - Say: "These are imported synthetic trip durations, not real Manchester predictions."
 
-10. Open Diagnostics & Evidence.
+11. Open Diagnostics & Evidence.
     - Show EvidencePack ID/fingerprint.
     - Show R0-R3 status.
     - Explain hypotheses are candidate explanations, not proven causes.
@@ -91,20 +98,20 @@ traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.jso
 
     - Download DiagnosticReport JSON if needed.
 
-11. Open Experiment Manager.
+12. Open Experiment Manager.
     - Show experiments, runs, policies, bundle fingerprints, comparisons, reports, metrics, and
       evidence counts.
     - Explain that this page organises existing artifacts only.
 
-12. Open Reports.
+13. Open Reports.
     - Show report inventory and download buttons.
     - Explain reports regenerate only when explicitly requested.
 
-13. Open Search.
+14. Open Search.
     - Search for `completion`, `R1`, or `baseline`.
     - Explain that search is local metadata search.
 
-14. Open Provenance Explorer.
+15. Open Provenance Explorer.
     - Select `Metric` and `task.completion.rate`.
     - Show the metric result, metric definition, canonical `tasks` table, `tasks.csv` row samples, manifest, run, seed, environment, and fingerprint.
     - Select `Source file row`, `tasks.csv`, row `2`.
@@ -113,12 +120,12 @@ traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.jso
     - Explain that rule traces separate observed evidence, rule logic, candidate hypotheses, alternatives, and missing evidence.
     - Download trace Markdown if needed.
 
-15. Open Settings and About.
+16. Open Settings and About.
     - Show session-scoped preferences.
     - Show version, schema, metric, diagnostic, provenance, generator, Python, commit, and licence
       metadata.
 
-16. Run fault-injection evaluation in a terminal:
+17. Run fault-injection evaluation in a terminal:
 
     ```bash
     traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json

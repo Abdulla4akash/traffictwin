@@ -113,6 +113,8 @@ DEFAULT_SESSION_STATE: dict[str, object] = {
     "replay_filters": ReplayFilters().model_dump(mode="json"),
     "display_preferences": {"show_metric_keys": False},
     "data_mode_label": "SYNTHETIC",
+    "guided_demo_step": 0,
+    "guided_demo_track": "Standalone synthetic",
     "ui_settings": {
         "theme": "Research",
         "default_replay_speed": 1.0,

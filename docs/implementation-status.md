@@ -33,8 +33,9 @@ services.
 
 Product Polish & Research UX status: implemented. The Streamlit UI now includes Scenario Builder,
 Experiment Manager, Reports, Search, Settings, About, improved Replay controls, shared badges/cards,
-and a clearer Home dashboard. This is workflow polish only; it adds no new metrics, diagnostic
-rules, simulator adapters, live data, launchers, ML algorithms, or LLM behavior.
+Guided Demo, and a clearer mobile-accessible Home dashboard. This is workflow polish only; it adds
+no new metrics, diagnostic rules, simulator adapters, live data, launchers, ML algorithms, or LLM
+behavior.
 
 TOS Results Workbench status: implemented. The optional read-only integration now includes an
 evaluation matrix, exact fleet-seed paired campaign comparison, processed-FCD logical replay,
@@ -650,6 +651,9 @@ selection, and training orchestration remain outside this integration boundary.
 
 ## Implemented In Product Polish & Research UX
 
+- `Guided Demo` page with seven standalone-synthetic stages and four read-only imported-TOS stages.
+- Mobile-visible Home actions that use safe Streamlit navigation callbacks rather than requiring
+  the collapsed sidebar.
 - `Scenario Builder` page over `SyntheticScenarioConfig`.
 - Improved replay controls: play, pause, resume, restart, timestamp jump, scrubber, speed presets,
   step controls, and deterministic filters.
@@ -662,9 +666,12 @@ selection, and training orchestration remain outside this integration boundary.
 - Shared section headers, report cards, metadata cards, status badges, and lightweight UI theme.
 - Homepage dashboard improvements for workspace, reports, comparisons, provenance exports, quick
   actions, and recent artifacts.
-- Quality gates: Ruff format/check passed; mypy passed; 168 tests passed; coverage 77%; demo
-  workspace smoke passed; comparison/report/provenance smoke checks passed; Streamlit health check
-  returned `ok`; package build passed.
+- Original Product Polish quality gates: Ruff format/check passed; mypy passed; 168 tests passed;
+  coverage 77%; demo workspace smoke passed; comparison/report/provenance smoke checks passed;
+  Streamlit health check returned `ok`; package build passed.
+- Guided-workflow quality gates: Ruff format/check and strict mypy passed; 210 tests passed;
+  coverage 78%; standalone and real-package TOS AppTests passed; phone-sized Home, standalone, and
+  imported-TOS interactions were browser-verified.
 
 ## Standalone Product Remaining Limits
 

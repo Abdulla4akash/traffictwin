@@ -4,6 +4,7 @@ from pathlib import Path
 
 from traffictwin.demo.workspace import initialise_workspace
 from traffictwin.ui.components.badges import STATUS_STYLE
+from traffictwin.ui.guided import DemoTrack, bounded_step, steps_for_track
 from traffictwin.ui.labels import PAGE_DESCRIPTIONS, UiPage
 from traffictwin.ui.navigation import page_options
 from traffictwin.ui.services import (
@@ -63,6 +64,25 @@ def test_navigation_descriptions_cover_all_pages() -> None:
     assert set(PAGE_DESCRIPTIONS) == set(UiPage)
     assert STATUS_STYLE["unknown"] == "UNKNOWN"
     assert "baseline" in synthetic_preset_names_for_ui()
+
+
+def test_guided_demo_tracks_have_stable_distinct_stages() -> None:
+    standalone = steps_for_track(DemoTrack.STANDALONE)
+    tos = steps_for_track(DemoTrack.TOS)
+
+    assert standalone[0].target_page is UiPage.BUNDLE_IMPORT
+    assert standalone[-1].target_page is UiPage.REPORTS
+    assert tos[0].target_page is UiPage.TOS_DATA
+    assert tos[-1].target_page is UiPage.TOS_TRAINING
+    assert len({step.key for step in standalone + tos}) == len(standalone + tos)
+    assert all(step.boundary for step in standalone + tos)
+
+
+def test_guided_demo_stage_index_is_bounded() -> None:
+    assert bounded_step(-1, 7) == 0
+    assert bounded_step(3, 7) == 3
+    assert bounded_step(99, 7) == 6
+    assert bounded_step(1, 0) == 0
 
 
 def test_scenario_builder_preview_and_generation(tmp_path: Path) -> None:

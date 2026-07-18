@@ -7,7 +7,13 @@ import streamlit as st
 from traffictwin.ui.labels import PAGE_DESCRIPTIONS, UiPage
 
 PAGE_GROUPS: dict[str, list[UiPage]] = {
-    "Workspace": [UiPage.HOME, UiPage.EXPERIMENT_MANAGER, UiPage.REPORTS, UiPage.SEARCH],
+    "Workspace": [
+        UiPage.HOME,
+        UiPage.GUIDED_DEMO,
+        UiPage.EXPERIMENT_MANAGER,
+        UiPage.REPORTS,
+        UiPage.SEARCH,
+    ],
     "Workflow": [UiPage.SCENARIO, UiPage.BUNDLE_IMPORT, UiPage.TOS_DATA, UiPage.COMPARE],
     "Analysis": [
         UiPage.TOS_RESULTS,
@@ -35,6 +41,12 @@ def select_page() -> UiPage:
 
     label = st.sidebar.radio("Navigation", page_options(), key="active_page")
     return UiPage(label)
+
+
+def activate_page(page: UiPage) -> None:
+    """Select a page from a Streamlit widget callback."""
+
+    st.session_state["active_page"] = page.value
 
 
 def render_sidebar_context(page: UiPage) -> None:

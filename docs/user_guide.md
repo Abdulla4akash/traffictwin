@@ -40,6 +40,27 @@ Use Home to check:
 Warning: direct simulator launch, live data, and full Randy/SUMO integration are not implemented.
 The generic adapter and TOS result reader both report direct launch as unsupported.
 
+Home includes visible actions for Guided Demo and imported TOS results. These actions are available
+in the main page content, so the first workflow does not depend on opening Streamlit's sidebar on a
+phone.
+
+## Guided Demo
+
+Guided Demo presents two evidence tracks without introducing a second analysis pipeline:
+
+- **Standalone synthetic** follows bundle validation, metrics, comparison, historical replay,
+  diagnostics, provenance, and report export.
+- **Randy/TOS imported simulation** follows package inspection, evaluation results, historical
+  mobility/RSU replay, and training/reproducibility audit.
+
+Each stage shows its evidence input, the existing deterministic operation, its output, and the
+interpretation boundary. **Open ...** moves to the real page that performs or presents that stage.
+The guide does not calculate metrics, evaluate rules, launch a simulator, or manufacture evidence.
+
+The standalone context reports workspace scenario, run, and comparison counts. When a local TOS
+package is configured, the imported track reports its validated artifact inventory and package
+fingerprint. An absent package remains an explicit unavailable state.
+
 ## Scenario Builder
 
 Scenario Builder creates deterministic synthetic scenario configurations and can generate standard

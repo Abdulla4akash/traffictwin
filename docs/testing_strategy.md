@@ -4,9 +4,9 @@ TrafficTwin uses a test pyramid: focused unit tests at the base, integration tes
 
 ## Current Snapshot
 
-Verified after the release, supervisor, and evaluation increment:
+Verified after the guided-workflow UX increment:
 
-- 206 tests passed.
+- 210 tests passed.
 - Coverage: 78%.
 
 Coverage is a useful signal, not the only quality measure. Streamlit page rendering and CLI
@@ -170,7 +170,7 @@ The synthetic fault-injection precision/recall values are implementation checks 
 
 Current verified repository snapshot:
 
-- tests: 206 passed;
+- tests: 210 passed;
 - coverage: 78%.
 
 Related documents:

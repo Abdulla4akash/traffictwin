@@ -8,6 +8,8 @@ metrics, new diagnostic rules, predictive models, LLM features, or autonomous de
 
 Implemented polish areas:
 
+- Guided Demo with separate standalone-synthetic and imported-TOS evidence tracks, routed to the
+  existing pages without recomputing results.
 - Scenario Builder for editing documented `SyntheticScenarioConfig` fields and generating standard
   run bundles through the existing synthetic generator.
 - Experiment Manager for browsing registered experiments, runs, seeds, policies, bundle
@@ -38,6 +40,7 @@ Implemented polish areas:
 The polished navigation groups the workflow into:
 
 - Home
+- Guided Demo
 - Scenario Builder
 - Bundle Import & Validation
 - Experiment Manager
@@ -73,6 +76,8 @@ new records.
 - Search is simple substring search over local metadata.
 - Visual polish is intentionally restrained and Streamlit-native.
 - No screenshots are generated automatically by this phase.
+- Guided Demo explains the existing pipeline; it is not a simulator, training interface, or
+  substitute for external validation.
 
 ## Related Documents
 

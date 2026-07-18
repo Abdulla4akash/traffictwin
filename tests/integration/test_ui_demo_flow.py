@@ -56,3 +56,40 @@ def test_streamlit_provenance_page_renders_with_apptest() -> None:
     app.radio[0].set_value("Provenance Explorer").run(timeout=10)
 
     assert not app.exception
+
+
+def test_home_starts_and_advances_guided_demo() -> None:
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app.run(timeout=10)
+    next(button for button in app.button if button.label == "Start Guided Demo").click().run(
+        timeout=10
+    )
+
+    assert not app.exception
+    assert any(title.value == "Guided Demo" for title in app.title)
+    assert any(heading.value == "Stage 1 of 7: Validate a run bundle" for heading in app.subheader)
+
+    next(button for button in app.button if button.label == "Next stage").click().run(timeout=10)
+
+    assert not app.exception
+    assert any(
+        heading.value == "Stage 2 of 7: Inspect deterministic metrics" for heading in app.subheader
+    )
+
+
+def test_guided_demo_tos_track_has_honest_empty_state() -> None:
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app.run(timeout=10)
+    app.radio[0].set_value("Guided Demo").run(timeout=10)
+    next(radio for radio in app.radio if radio.label == "Evidence track").set_value(
+        "Randy/TOS imported simulation"
+    ).run(timeout=10)
+
+    assert not app.exception
+    assert any(
+        heading.value == "Stage 1 of 4: Inspect Randy's artifact package"
+        for heading in app.subheader
+    )
+    assert any(button.label == "Open TOS Data Import" for button in app.button)

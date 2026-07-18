@@ -14,6 +14,8 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 
 - Home: registry counts, workspace status, quick actions, recent reports, capability manifest, and
   limitations.
+- Guided Demo: mobile-visible, stage-based navigation through either the standalone synthetic
+  pipeline or the read-only imported TOS evidence workflow.
 - Scenario Builder: synthetic generator configuration, validation, YAML preview, bundle generation,
   and normal bundle validation.
 - Bundle Import & Validation: manifest, files, validation findings, evidence availability, import.
@@ -54,6 +56,10 @@ The UI uses reusable helpers for:
 
 Pages should call service functions and shared components rather than duplicating formulas, report
 builders, validation logic, or diagnostic interpretation.
+
+Guided Demo is a workflow catalogue and navigation surface. Its stage definitions are
+framework-independent, but every analysis action opens an existing page backed by the established
+services. The guide itself performs no scientific computation.
 
 ## Visual Policy
 
@@ -104,6 +110,10 @@ badge and selector aid only; the normal import-first pages remain the same.
 The UI must continue to label all generated data as synthetic and must not enable direct launch,
 full Randy/SUMO integration, near-live data, or true-live data from the standalone workspace. The
 optional TOS page labels its content `IMPORTED SIMULATION` and `HISTORICAL REPLAY`.
+
+Home exposes primary actions in the page body because Streamlit collapses its sidebar on narrow
+viewports. Guided Demo uses short stage controls and stable dimensions so the workflow remains
+usable on phone-sized screens.
 
 ## Product Polish
 

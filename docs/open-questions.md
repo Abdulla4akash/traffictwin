@@ -74,6 +74,13 @@ Resolved during TOS Results Workbench productisation:
 - Processed FCD supports mobility-state replay but not persistent identity or trip duration.
 - The static atlas can be generated offline, but public deployment remains permission-gated.
 
+Resolved during guided-workflow polish:
+
+- First-time and mobile users can enter the workflow through Home without opening the collapsed
+  Streamlit sidebar.
+- The synthetic and imported-TOS walkthroughs are separate evidence tracks and do not imply direct
+  simulator launch, live data, or canonical TOS conversion.
+
 Resolved during documentation pass:
 
 - Documentation reference artifacts are generated from code under `docs/reference/generated/`.

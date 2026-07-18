@@ -25,7 +25,7 @@ Implemented:
 - Read-only provenance traces from metrics/rules to source files and rows where available.
 - SQLite metadata registry for seeds, experiments, runs, bundle imports, metrics, and evidence packs.
 - Streamlit UI over the tested library, including Scenario Builder, Experiment Manager, Reports,
-  Search, Settings, and About pages.
+  Guided Demo, Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
 - Synthetic-only Netlify static dashboard, Streamlit container definition, dependency lock, and
   release-readiness commands.
@@ -88,18 +88,17 @@ Every generated scenario is labelled synthetic. The generator is a controlled so
 
 ## Synthetic Demo Flow
 
-1. Open Home and confirm the standalone demo badge and capability manifest.
-2. Open Scenario Builder and duplicate or export a synthetic scenario configuration.
-3. Open Bundle Import & Validation and validate `.demo/bundles/baseline`.
-4. Validate `.demo/bundles/stressed_demand`.
-5. Open Run Overview for baseline task and latency metrics.
-6. Open Replay and confirm `HISTORICAL REPLAY`.
-7. Open Infrastructure & Congestion and inspect queue/utilisation.
-8. Open Comparison and compare baseline against stressed demand.
-9. Open Journey-Time Lens and inspect synthetic trip durations.
-10. Open Diagnostics & Evidence for R0-R3 statuses.
-11. Open Provenance Explorer and trace `task.completion.rate`.
-12. Export an EvidencePack, DiagnosticReport, provenance trace, or research report.
+1. Open Home and select **Start Guided Demo**. This button remains visible when the mobile sidebar
+   is collapsed.
+2. Choose **Standalone synthetic** and follow its seven validated pipeline stages.
+3. Open Scenario Builder and duplicate or export a synthetic scenario configuration.
+4. Validate `.demo/bundles/baseline` and `.demo/bundles/stressed_demand`.
+5. Inspect baseline metrics, historical replay, and infrastructure state.
+6. Compare baseline against stressed demand and inspect synthetic journey durations.
+7. Review R0-R3 statuses, trace `task.completion.rate`, and export a deterministic report.
+
+When the separately supplied package is available locally, the **Randy/TOS imported simulation**
+track presents four read-only stages. It does not run Randy's environment or SUMO.
 
 Detailed scripts:
 

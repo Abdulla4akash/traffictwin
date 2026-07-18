@@ -7,7 +7,8 @@ import streamlit as st
 from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
-from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE
+from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
+from traffictwin.ui.navigation import activate_page
 from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tables import capability_rows
@@ -21,6 +22,22 @@ def render(config: UiConfig) -> None:
     st.caption("What-if experimentation and decision-support platform")
     st.info(REQUIRED_PROTOTYPE_NOTICE)
     badge_row(["SYNTHETIC", "IMPORTED", "HISTORICAL REPLAY"])
+
+    section_header("Research Workflow")
+    action_cols = st.columns(2)
+    action_cols[0].button(
+        "Start Guided Demo",
+        type="primary",
+        on_click=activate_page,
+        args=(UiPage.GUIDED_DEMO,),
+        use_container_width=True,
+    )
+    action_cols[1].button(
+        "Open Imported TOS Results",
+        on_click=activate_page,
+        args=(UiPage.TOS_RESULTS,),
+        use_container_width=True,
+    )
 
     cols = st.columns(4)
     cols[0].metric("Implementation phase", status.current_phase)
@@ -64,13 +81,31 @@ def render(config: UiConfig) -> None:
         cols[2].metric("Provenance exports", provenance_count)
 
         section_header("Quick Actions")
-        st.write(
-            [
-                "Open Scenario Builder to duplicate a synthetic preset.",
-                "Open Experiment Manager to browse registered runs and fingerprints.",
-                "Open Reports to download or deliberately regenerate deterministic reports.",
-                "Open Provenance Explorer to trace a metric or hypothesis to source rows.",
-            ]
+        first_actions = st.columns(2)
+        first_actions[0].button(
+            "Build a Scenario",
+            on_click=activate_page,
+            args=(UiPage.SCENARIO,),
+            use_container_width=True,
+        )
+        first_actions[1].button(
+            "Browse Experiments",
+            on_click=activate_page,
+            args=(UiPage.EXPERIMENT_MANAGER,),
+            use_container_width=True,
+        )
+        second_actions = st.columns(2)
+        second_actions[0].button(
+            "Open Reports",
+            on_click=activate_page,
+            args=(UiPage.REPORTS,),
+            use_container_width=True,
+        )
+        second_actions[1].button(
+            "Trace Provenance",
+            on_click=activate_page,
+            args=(UiPage.PROVENANCE,),
+            use_container_width=True,
         )
 
         section_header("Recent Workspace Artifacts")

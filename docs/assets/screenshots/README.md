@@ -12,27 +12,29 @@ traffictwin demo launch .demo
 Recommended filenames:
 
 - `01-home-project-status.png`
-- `02-scenario-builder.png`
-- `03-bundle-import-validation.png`
-- `04-experiment-manager.png`
-- `05-replay.png`
-- `06-run-overview.png`
-- `07-infrastructure-congestion.png`
-- `08-comparison.png`
-- `09-journey-time-lens.png`
-- `10-diagnostics-evidence.png`
-- `11-provenance-explorer.png`
-- `12-reports.png`
-- `13-search.png`
-- `14-settings.png`
-- `15-about.png`
+- `02-guided-demo-standalone.png`
+- `03-scenario-builder.png`
+- `04-bundle-import-validation.png`
+- `05-experiment-manager.png`
+- `06-replay.png`
+- `07-run-overview.png`
+- `08-infrastructure-congestion.png`
+- `09-comparison.png`
+- `10-journey-time-lens.png`
+- `11-diagnostics-evidence.png`
+- `12-provenance-explorer.png`
+- `13-reports.png`
+- `14-search.png`
+- `15-settings.png`
+- `16-about.png`
 
 Optional TOS workbench screenshots, only when the external package is present and sharing is
 permitted:
 
-- `16-tos-results-matrix.png`
-- `17-tos-mobility-rsu-replay.png`
-- `18-tos-training-audit.png`
+- `17-guided-demo-tos.png`
+- `18-tos-results-matrix.png`
+- `19-tos-mobility-rsu-replay.png`
+- `20-tos-training-audit.png`
 
 Expected source labels:
 

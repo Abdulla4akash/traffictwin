@@ -28,6 +28,9 @@ traffictwin demo launch .demo
 ## UI Flow
 
 - [ ] Home shows prototype notice and capability manifest.
+- [ ] Home exposes **Start Guided Demo** without requiring the sidebar.
+- [ ] Guided Demo shows seven standalone stages and keeps every stage synthetic/import-first.
+- [ ] Optional imported-TOS track reports the validated package inventory and read-only boundary.
 - [ ] Direct launch is unsupported.
 - [ ] Scenario Builder renders synthetic generator controls and YAML preview.
 - [ ] Scenario Builder validates before generation and does not imply simulator launch.
