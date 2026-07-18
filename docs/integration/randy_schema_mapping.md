@@ -29,13 +29,13 @@ future adapter-specific module.
 | `instrumented/perstep/*_perstep.npz: n_local/n_v2i/n_v2v` | `n_local[T]`, `n_v2i[T]`, `n_v2v[T]` | per-second action counts | aggregate decision evidence | Can support action-share time series or validate task decision shares | Not individual task decisions | partial |
 | `instrumented/perstep/*_perstep.npz: veh_action` | `veh_action[T,N]`, values 0/1/2 | dictionary maps 0=L, 1=V2I, 2=V2V | vehicle action/state evidence | Map to vehicle-state auxiliary attributes or aggregate action counts | Current `VehicleStateRecord` has no action field; task-level causality not implied | partial |
 | `instrumented/perstep/*_perstep.npz: veh_k/veh_done/veh_queue_ms` | `veh_k[T,N]`, `veh_done[T,N]`, `veh_queue_ms[T,N]` | arrivals/completions/queue backlog per vehicle; ms implied | vehicle/task pressure evidence | Can support replay and queue context | Vehicle ID slot semantics and tier mapping are absent | partial |
-| `instrumented/perstep/*_perstep.npz: rsu_busy_ms` | `rsu_busy_ms[T,R]` | busy milliseconds implied by name | `InfrastructureRecord.utilisation_fraction` candidate | Possibly divide by timestep milliseconds to get fraction | Must confirm denominator and clipping policy before mapping as utilisation | unknown conversion |
-| `instrumented/perstep/*_perstep.npz: rsu_load` | `rsu_load[T,R]` | per-RSU load; exact meaning not defined in discovered docs | `InfrastructureRecord.queue_length` or `active_tasks` candidate | Map only after Randy confirms whether this is queue length, active tasks, workload, or another count | Queue semantics unknown | unknown conversion |
+| `instrumented/perstep/*_perstep.npz: rsu_busy_ms` | `rsu_busy_ms[T,R]` | busy milliseconds implied by name; values can exceed 1,000 in a 1-second timestep | RSU pressure/backlog evidence; not direct utilisation by itself | Do not divide by 1,000 and call it utilisation. In incident runs it is almost perfectly correlated with `rsu_load`, suggesting accumulated busy/backlog work. | Denominator and intended normalisation require source confirmation | strong inferred pressure signal; utilisation conversion unknown |
+| `instrumented/perstep/*_perstep.npz: rsu_load` | `rsu_load[T,R]` | per-RSU load; strongly correlated with `rsu_busy_ms`; max values approach `rsu_max_concurrent` in incident runs | `InfrastructureRecord.active_tasks` or pressure/backlog candidate | Prefer `active_tasks`/load-pressure mapping over `queue_length` unless source confirms queue semantics. Capacity pressure may be approximated as `rsu_load / rsu_max_concurrent`, but this should remain adapter metadata until confirmed. | Whether this is active concurrent work, queue length, or another load counter needs source confirmation | strong inferred load/pressure signal |
 | `instrumented/pertask/*_pertask.npz: task_active` | `task_active[T,5,N]` | active task mask | Task row inclusion | Generate one task row per true element | Need stable task ID construction policy for converted bundles | partial |
-| `instrumented/pertask/*_pertask.npz: task_type` | `task_type[T,5,N]` | task type, deadline classes described in dictionary | `TaskRecord.task_class` | Map integer labels to T1/T2/T3 only after exact encoding confirmed | Whether values are 0/1/2 or 1/2/3 must be confirmed | unknown conversion |
+| `instrumented/pertask/*_pertask.npz: task_type` | `task_type[T,5,N]` | active values are `0`, `1`, `2`; type-wise `task_met` rates exactly match JSON `t1_completion`, `t2_completion`, `t3_completion` in inspected showcase files | `TaskRecord.task_class` | Strong inferred mapping: `0 -> T1`, `1 -> T2`, `2 -> T3` | Source-code or Randy confirmation still preferred before committing an adapter | strongly inferred |
 | `instrumented/pertask/*_pertask.npz: task_lat_ms` | `task_lat_ms[T,5,N]` | latency in ms | `TaskRecord.latency_ms` | Copy for active task rows | Whether latency includes missed/backlog semantics needs preservation in metadata | partial |
-| `instrumented/pertask/*_pertask.npz: task_met` | `task_met[T,5,N]` | deadline-met boolean | `TaskRecord.completed` candidate or separate deadline-met field | TrafficTwin currently models `completed`; mapping `task_met` to completed needs design note because deadline met is not identical to physical completion in all systems | completion semantics need confirmation | partial |
-| `traces/trace_*_fullrsu.npz` | `pos_x`, `pos_y`, `speed`, `mask`, `rsu_xy`, `times`, `dt`, `maxN`, `T`, `window`, `sumo_seed` | trace arrays documented; exact units for position/speed not explicitly confirmed in package docs | `VehicleStateRecord`, RSU placement provenance | Join with per-step vehicle arrays on T,N; use mask to include valid vehicle rows | Coordinate system and speed units need confirmation | partial |
+| `instrumented/pertask/*_pertask.npz: task_met` | `task_met[T,5,N]` | equals `task_lat_ms <= deadline` for inspected files when deadlines are T1/T3=100 ms and T2=500 ms; aggregate rate exactly matches JSON `completion` | `TaskRecord.completed` candidate with explicit "deadline-satisfied completion" semantics | Mapping to `completed` is acceptable only if the adapter documents that Randy's completion is deadline-met per arrival. | Whether physically completed-but-late tasks exist as a separate concept requires source confirmation | strongly inferred deadline-met field |
+| `traces/trace_*_fullrsu.npz` | `pos_x`, `pos_y`, `speed`, `mask`, `rsu_xy`, `times`, `dt`, `maxN`, `T`, `window`, `sumo_seed` | trace arrays documented; raw speed means around 9 for ordinary cells, consistent with m/s (~33 km/h) rather than km/h; coordinate ranges are SUMO-like metres | `VehicleStateRecord`, RSU placement provenance | Join with per-step vehicle arrays on T,N; use mask to include valid vehicle rows. Treat speed as inferred m/s and coordinates as inferred metres until confirmed. | Source confirmation still required before public real-data claims | strongly inferred units |
 
 ## Unsupported Or Not Found
 
@@ -80,14 +80,13 @@ Recommended first target:
 
 Ask Randy to confirm:
 
-1. Integer encoding for `task_type`.
-2. Whether `task_met` means task completed by deadline, physical completion, or both.
-3. Whether `task_lat_ms` includes backlog values for missed tasks and how those should be interpreted.
-4. Exact unit and denominator for `rsu_busy_ms`.
-5. Exact meaning of `rsu_load`.
-6. Position and speed units in trace NPZ files.
+1. Confirm the inferred encoding `task_type`: `0 -> T1`, `1 -> T2`, `2 -> T3`.
+2. Confirm that `task_met` means deadline met per arrival, and whether late physical completion is tracked separately.
+3. Confirm that `task_lat_ms` includes backlog values for deadline missers and how those should be interpreted.
+4. Confirm the intended normalisation for `rsu_busy_ms`.
+5. Confirm whether `rsu_load` is active concurrent work, queue length, backlog count, or another load counter.
+6. Confirm position and speed units in trace NPZ files.
 7. Whether vehicle slot index is a stable vehicle ID within a trace.
 8. Whether per-vehicle tier labels are available anywhere.
 9. Whether any trip/journey-time outputs exist outside this package.
 10. Whether small sanitised NPZ/CSV fixtures from this package may be committed to TrafficTwin tests.
-

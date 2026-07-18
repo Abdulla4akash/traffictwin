@@ -29,11 +29,11 @@ remaining schema/unit/execution gaps below are resolved".
 | Gap | Status | Impact | Required evidence |
 |---|---|---|---|
 | Runnable `vec_env` source/reproduction docs absent | unknown | Cannot implement launchers or confirm command/config controls. | Access to the source repo or copied `docs/REPRODUCING.md`. |
-| `task_type` integer mapping unconfirmed | unknown | Cannot safely map per-task NPZ to T1/T2/T3 canonical classes. | Randy confirmation or source-code enum. |
-| `task_met` semantics need confirmation | unknown | TrafficTwin `completed` may not be identical to "met deadline" if missed tasks still complete later. | Written semantics or source-code definition. |
-| `rsu_busy_ms` utilisation conversion unconfirmed | unknown | Cannot compute canonical utilisation fraction safely. | Denominator, timestep relation, and range policy. |
-| `rsu_load` meaning unconfirmed | unknown | Cannot decide whether it is queue length, active tasks, workload, or another count. | Field definition. |
-| Trace coordinate/speed units unconfirmed | unknown | Vehicle replay could show values but units would be unsafe. | SUMO/export unit documentation. |
+| `task_type` integer mapping source-confirmation absent | strongly inferred | Data consistency supports `0 -> T1`, `1 -> T2`, `2 -> T3`, but source confirmation is still preferable. | Randy confirmation or source-code enum. |
+| `task_met` semantics need final confirmation | strongly inferred | It matches `task_lat_ms <= deadline` and JSON completion exactly, so it appears to mean deadline-met completion. | Written semantics or source-code definition, especially for late physical completion. |
+| `rsu_busy_ms` utilisation conversion unconfirmed | unknown | It can exceed 1,000 ms per 1-second timestep, so it must not be naively mapped to utilisation fraction. | Denominator, timestep relation, and intended normalisation. |
+| `rsu_load` meaning source-confirmation absent | strongly inferred | It is tightly correlated with `rsu_busy_ms` and approaches `rsu_max_concurrent` in incident runs, suggesting active load/backlog pressure. | Field definition confirming whether it is active tasks, queue length, backlog, or another count. |
+| Trace coordinate/speed units source-confirmation absent | strongly inferred | Raw ordinary-cell speed around 9 maps plausibly to m/s (~33 km/h), and coordinates look SUMO metre-like. | SUMO/export unit documentation. |
 | Per-vehicle tier data absent | not found | R1 cannot directly test low-tier T1 miss pattern. | Per-vehicle tier array/table or task-level vehicle-tier field. |
 | Link quality/action availability absent | not found | R1 alternatives remain unresolved. | Any per-decision availability/connectivity evidence. |
 | Trip/journey-time outputs absent | not found | Real Journey-Time Lens remains unavailable. | SUMO `tripinfo` or equivalent trip output. |
@@ -49,7 +49,7 @@ remaining schema/unit/execution gaps below are resolved".
 | Decision shares/offload rate | partial | Master CSV and per-step arrays expose action shares/counts; task-level decisions are not directly available in per-task NPZ. |
 | Latency metrics | partial | Per-task latency exists for six runs; master CSV latency is already averaged externally and includes missed/backlog semantics. |
 | Energy metrics | summary only | Energy appears in summary CSV/JSON, but no per-task energy field was found. |
-| Infrastructure queue/utilisation | partial | Per-RSU arrays exist; unit/semantics confirmation is required before canonical mapping. |
+| Infrastructure queue/utilisation | partial | Per-RSU arrays exist. `rsu_load` is a strong pressure signal, but exact queue/utilisation mapping still needs confirmation. |
 | Capacity-normalised load balance | blocked | Explicit capacity units/config not available in package. |
 | Traffic speed/replay | partial | Trace NPZ includes speed and coordinates; units need confirmation. |
 | Trip metrics | blocked | No trip records found. |
@@ -87,4 +87,3 @@ summary JSON artifacts are present and its dimensions are smaller than the incid
   representative.
 - Some training records include already interpreted "verdict" statements. TrafficTwin should not
   import those as diagnostic conclusions; rules must still operate on EvidencePacks only.
-

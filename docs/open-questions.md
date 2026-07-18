@@ -82,12 +82,12 @@ Resolved during Standalone Product phase:
 
 ## Questions For Randy
 
-1. What is the exact integer encoding for `instrumented/pertask/*: task_type`?
-2. Does `task_met` mean completed by deadline, physically completed, or only deadline success?
+1. Can Randy/source code confirm the inferred `task_type` encoding: `0 -> T1`, `1 -> T2`, `2 -> T3`?
+2. Can Randy/source code confirm that `task_met` means deadline-met completion per task arrival?
 3. Does `task_lat_ms` include backlog values for deadline missers, and should missed tasks be treated as incomplete in TrafficTwin?
-4. What is the denominator and intended range for `rsu_busy_ms`; can it be converted to utilisation fraction as `busy_ms / (dt * 1000)`?
-5. What exactly does `rsu_load` represent: queue length, active tasks, workload, capacity use, or another quantity?
-6. What units are used for trace `pos_x`, `pos_y`, `speed`, and `rsu_xy`?
+4. What is the intended normalisation for `rsu_busy_ms`, given it can exceed 1,000 ms within a 1-second timestep?
+5. What exactly does `rsu_load` represent: active concurrent work, queue length, backlog, capacity use, or another quantity?
+6. Can Randy/source code confirm the inferred units for trace `pos_x`, `pos_y`, `speed`, and `rsu_xy`?
 7. Is vehicle slot index stable enough to use as a vehicle ID within each trace?
 8. Is per-vehicle tier available in any file, array, or source code output?
 9. Are action availability, link quality, V2I target, or V2V target available anywhere?

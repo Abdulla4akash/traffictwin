@@ -31,11 +31,11 @@ those points are confirmed would require guessing.
 
 - The runnable `vec_env` repository and its `docs/REPRODUCING.md` commands.
 - Direct launch or asynchronous job invocation.
-- Exact mapping of `task_type` integer values to T1/T2/T3.
-- Whether `task_met` should map to TrafficTwin `completed` or to a future deadline-met field.
-- Utilisation conversion for `rsu_busy_ms`.
-- Queue/load semantics for `rsu_load`.
-- Position and speed units in trace NPZ files.
+- Source-code or Randy confirmation of the strongly inferred `task_type` mapping: `0 -> T1`, `1 -> T2`, `2 -> T3`.
+- Source-code or Randy confirmation that `task_met` means deadline-met completion.
+- Utilisation or backlog normalisation for `rsu_busy_ms`.
+- Whether `rsu_load` is active work, backlog, queue length, or another pressure counter.
+- Source-code or Randy confirmation of the strongly inferred trace units.
 - Per-vehicle tier evidence required for higher-confidence R1.
 - Trip/journey-time outputs.
 - Raw SUMO XML/config files.
@@ -83,11 +83,10 @@ before attempting broader campaign import.
 
 Before writing adapter code, obtain:
 
-- task-type encoding;
-- `task_met` semantics;
+- confirmation of inferred task-type encoding;
+- confirmation of inferred `task_met` semantics;
 - `rsu_busy_ms` and `rsu_load` definitions;
 - coordinate/speed units;
 - confirmation of vehicle-slot ID stability;
 - fixture permission;
 - and preferably access to the `vec_env` reproduction documentation.
-
