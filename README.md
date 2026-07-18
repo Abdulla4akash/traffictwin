@@ -1,57 +1,157 @@
 # TrafficTwin
 
-TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if experiments. It lets a user define a versioned scenario seed, import a completed run bundle, validate source files, canonicalise records, compute deterministic metrics, build a structured EvidencePack, compare baseline and variation runs, evaluate deterministic diagnostic hypotheses, and inspect provenance from displayed results back to source rows. OffloadLens is the VEC analysis module inside the platform.
+TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if analysis. It defines versioned scenario seeds, imports standard run bundles, validates and canonicalises source files, computes deterministic metrics, builds EvidencePacks, compares scenarios, evaluates deterministic diagnostic hypotheses, and traces results back to source rows through the Provenance Explorer. OffloadLens is the VEC analysis module inside the platform.
 
-Status: Phase 1-6A plus Provenance Explorer prototype. The current repository supports synthetic fixtures, generic run-bundle import, deterministic metrics, deterministic diagnostic hypotheses R0-R3, provenance tracing, a SQLite metadata registry, a Typer CLI, and a Streamlit UI. It does not include Randy's environment, SUMO adapters, Manchester sensor data, live data, near-live polling, external launchers, LLM rendering, XAI, or portfolio selection.
+Status: standalone `v0.1.0` research prototype. The repository is usable without Randy's VEC environment, SUMO artifacts, external services, or live feeds. All bundled demonstration data is synthetic.
 
 ## Current Scope
 
 Implemented:
 
-- Scenario seed schema and deterministic YAML import/export.
-- Capability manifest using `true`, `false`, and `unknown`.
-- SQLite registry for seeds, experiments, runs, bundle imports, metric JSON, and evidence-pack JSON.
-- Directory and safe ZIP run-bundle loading.
-- Manifest-driven generic CSV validation and canonicalisation.
-- In-memory canonical records for tasks, infrastructure, vehicles, traffic observations, trips, and incidents.
-- Validation reports with stable machine-readable codes.
-- Deterministic metrics over canonical records.
+- Scenario seed YAML schema and deterministic import/export.
+- Capability manifest with `true`, `false`, and `unknown`.
+- Directory and ZIP run-bundle loading with validation reports.
+- Manifest-driven generic CSV canonicalisation.
+- Deterministic task, infrastructure, traffic, trip, comparison, and aggregation metrics.
 - EvidencePack generation.
-- Baseline-versus-variation comparison.
 - Deterministic diagnostic hypotheses R0-R3 over EvidencePacks.
-- Read-only provenance tracing for metrics, diagnostic rules, run context, and CSV source rows.
+- Read-only provenance traces from metrics/rules to source files and rows where available.
+- SQLite metadata registry for seeds, experiments, runs, bundle imports, metrics, and evidence packs.
 - Streamlit UI over the tested library.
-- Synthetic baseline, variation, partial, invalid-manifest, invalid-row, and diagnostic fault-injection fixtures.
+- Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
 
 Not implemented:
 
 - Randy/VEC or SUMO adapters.
-- Direct simulator launch.
-- Asynchronous jobs.
+- Direct simulator launch or asynchronous jobs.
 - Real Manchester sensor ingestion.
 - Near-live or true-live operation.
-- LLM prose rendering.
-- XAI or decision-time counterfactual analysis.
-- Portfolio selection or training orchestration.
+- LLM rendering, XAI, portfolio selection, or training orchestration.
+
+## Ten-Minute Standalone Demo
+
+Use Python 3.11 or newer. The examples assume the current directory is this repository root.
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+traffictwin demo initialise .demo
+traffictwin demo status .demo
+traffictwin demo launch .demo
+```
+
+The launch command starts:
+
+```bash
+streamlit run src/traffictwin/ui/app.py
+```
+
+with environment variables pointing the UI at `.demo/registry.sqlite` and `.demo/bundles`.
+
+The demo workspace contains:
+
+```text
+.demo/
+├── registry.sqlite
+├── seeds/
+├── bundles/
+│   ├── baseline/
+│   ├── stressed_demand/
+│   ├── under_offloading/
+│   ├── infrastructure_bottleneck/
+│   ├── mixed_fault/
+│   ├── partial_evidence/
+│   └── trivial_multi_algorithm/
+├── reports/
+├── exports/
+├── logs/
+└── workspace.yaml
+```
+
+Every generated scenario is labelled synthetic. The generator is a controlled software fixture model; it is not a calibrated traffic, radio, VEC, SUMO, or Manchester model.
+
+## Synthetic Demo Flow
+
+1. Open Home and confirm the standalone demo badge and capability manifest.
+2. Open Scenario Studio and export a seed YAML.
+3. Open Bundle Import & Validation and validate `.demo/bundles/baseline`.
+4. Validate `.demo/bundles/stressed_demand`.
+5. Open Run Overview for baseline task and latency metrics.
+6. Open Operations View and confirm `HISTORICAL REPLAY`.
+7. Open Infrastructure & Congestion and inspect queue/utilisation.
+8. Open What-if Compare and compare baseline against stressed demand.
+9. Open Journey-Time Lens and inspect synthetic trip durations.
+10. Open Evidence & Diagnostic Hypotheses for R0-R3 statuses.
+11. Open Provenance Explorer and trace `task.completion.rate`.
+12. Export an EvidencePack, DiagnosticReport, provenance trace, or research report.
+
+Detailed scripts:
+
+- [docs/standalone_demo.md](docs/standalone_demo.md)
+- [docs/demo_script.md](docs/demo_script.md)
+- [docs/demo_checklist.md](docs/demo_checklist.md)
+
+## CLI Examples
+
+Generate and verify standalone synthetic artifacts:
+
+```bash
+traffictwin synthetic presets
+traffictwin synthetic generate-preset baseline --output /tmp/tt-baseline --overwrite
+traffictwin synthetic experiment-generate-preset trivial_multi_algorithm \
+  --seeds 1,2,3 \
+  --output /tmp/tt-trivial \
+  --overwrite
+traffictwin synthetic verify .demo
+```
+
+Run the import-first workflow on any standard bundle:
+
+```bash
+traffictwin bundle validate .demo/bundles/baseline
+traffictwin bundle import .demo/bundles/baseline --registry .demo/registry.sqlite
+traffictwin metrics compute .demo/bundles/baseline
+traffictwin evidence build .demo/bundles/baseline --output .demo/exports/evidence.json
+traffictwin diagnose bundle .demo/bundles/under_offloading
+```
+
+Compare, trace, and report:
+
+```bash
+traffictwin compare .demo/bundles/baseline .demo/bundles/stressed_demand
+traffictwin provenance metric .demo/bundles/baseline task.completion.rate
+traffictwin provenance source .demo/bundles/baseline tasks.csv 2
+traffictwin report run .demo/bundles/baseline --output .demo/reports/run.md
+traffictwin report compare .demo/bundles/baseline .demo/bundles/stressed_demand \
+  --output .demo/reports/comparison.md
+traffictwin report full .demo/bundles/stressed_demand \
+  --comparison-baseline .demo/bundles/baseline \
+  --output .demo/reports/full.html
+```
+
+Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 
 ## Architecture Overview
 
-TrafficTwin is deliberately layered. The UI and CLI call library services; library services call validation, metrics, evidence, and rules modules; external uncertainty stays behind adapters and capability manifests.
+TrafficTwin is deliberately layered. UI and CLI commands call service/library functions; calculations stay in deterministic library modules; external uncertainty stays behind adapters and capability manifests.
 
 ```mermaid
 flowchart TD
     Seed[ScenarioSeed YAML] --> Bundle[Run bundle]
-    Bundle --> Validate[Bundle validation]
+    Synthetic[Synthetic generator] --> Bundle
+    Bundle --> Validate[Validation report]
     Validate --> Canonical[CanonicalTables]
     Canonical --> Metrics[MetricCollection]
     Metrics --> Evidence[EvidencePack]
     Evidence --> Rules[DiagnosticReport]
     Metrics --> Compare[ComparisonReport]
+    Rules --> Provenance[ProvenanceTrace]
+    Metrics --> Provenance
     Validate --> Registry[(SQLite registry)]
-    Metrics --> Registry
     Evidence --> Registry
-    Rules --> UI[Streamlit UI]
-    Compare --> UI
+    Provenance --> Reports[Markdown/HTML reports]
+    Registry --> UI[Streamlit UI]
 ```
 
 For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_overview.md](docs/system_overview.md).
@@ -60,160 +160,22 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 
 | Area | Status | Notes |
 |---|---|---|
-| Seed YAML | Implemented | Version `1.0`; strict Pydantic validation. |
-| Generic CSV bundle import | Implemented | Directory and ZIP bundles. |
-| Synthetic fixtures | Implemented | Demonstration and tests only. |
-| Validation reports | Implemented | Stable codes, severity, affected file/row/field. |
-| Canonical in-memory records | Implemented | No canonical row database yet. |
-| Deterministic metrics | Implemented | Missing evidence yields unavailable results. |
-| EvidencePack | Implemented | Only supported input for diagnostics. |
+| Standalone demo workspace | Implemented | `traffictwin demo initialise PATH`. |
+| Synthetic generator | Implemented | Deterministic for fixed config and seed; synthetic-only. |
+| Generic bundle import | Implemented | Directory and safe ZIP bundles. |
+| Validation reports | Implemented | Stable codes, severity, file/row/field context. |
+| Canonical records | Implemented | In-memory canonical tables; no row database. |
+| Deterministic metrics | Implemented | Unavailable metrics are explicit, never zero-filled. |
+| EvidencePack | Implemented | Only supported input for diagnostic rules. |
 | Diagnostic rules R0-R3 | Implemented | Candidate hypotheses, not proven causes. |
-| Provenance Explorer | Implemented | Read-only trace from metrics/rules to definitions, canonical evidence, validation, source rows, and run context where available. |
-| Streamlit UI | Implemented | Thin presentation layer over library services. |
-| Registry | Implemented | SQLite metadata and JSON payload references. |
-| Randy/VEC integration | Blocked | No real artifacts, schemas, units, or command contract present. |
-| SUMO integration | Blocked | No SUMO files or output formats present. |
+| Provenance Explorer | Implemented | CLI and Streamlit trace inspection. |
+| Report export | Implemented | Deterministic Markdown and standalone HTML. |
+| Streamlit UI | Implemented | Thin presentation layer. |
+| CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
+| Randy/VEC integration | Blocked | No real artifacts, schemas, units, or commands present. |
+| SUMO integration | Blocked | No SUMO files or output samples present. |
 | Direct launch | Unsupported | Capability remains `false`. |
-| Near-live/true-live data | Not implemented | Must not be claimed from file recency. |
-
-## Quick Start
-
-Use Python 3.11 or newer. The examples below assume the current directory is the repository root.
-
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
-```
-
-Validate the example scenario seed:
-
-```bash
-traffictwin validate-seed examples/seeds/arena_gridlock.yaml
-```
-
-Validate the synthetic baseline bundle:
-
-```bash
-traffictwin bundle validate tests/fixtures/bundles/baseline_valid
-```
-
-Compute metrics:
-
-```bash
-traffictwin metrics compute tests/fixtures/bundles/baseline_valid
-```
-
-Compare baseline and variation:
-
-```bash
-traffictwin compare \
-  tests/fixtures/bundles/baseline_valid \
-  tests/fixtures/bundles/variation_valid
-```
-
-Evaluate deterministic diagnostics:
-
-```bash
-traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
-```
-
-Trace a metric back to source evidence:
-
-```bash
-traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
-```
-
-Launch the UI:
-
-```bash
-streamlit run src/traffictwin/ui/app.py
-```
-
-## Synthetic Demo Walkthrough
-
-The demo uses only repository fixtures:
-
-- Baseline bundle: `tests/fixtures/bundles/baseline_valid`
-- Variation bundle: `tests/fixtures/bundles/variation_valid`
-- Partial-evidence bundle: `tests/fixtures/bundles/partial_valid`
-- Diagnostic cases: `tests/fixtures/diagnostics/cases.json`
-
-Recommended flow:
-
-1. Launch Streamlit.
-2. Open Home and confirm the prototype notice and capability manifest.
-3. Open Scenario Studio and export the example seed YAML.
-4. Open Bundle Import & Validation and validate the baseline bundle.
-5. Validate the variation bundle.
-6. Open Run Overview for baseline task and latency metrics.
-7. Open Operations View and check the `HISTORICAL REPLAY` label.
-8. Open Infrastructure & Congestion and inspect queue/utilisation charts.
-9. Open What-if Compare and compare baseline against variation.
-10. Open Journey-Time Lens and inspect synthetic trip-duration metrics.
-11. Open Evidence & Diagnostic Hypotheses and download JSON if needed.
-12. Open Provenance Explorer and trace `task.completion.rate` to `tasks.csv` rows.
-
-Full scripts:
-
-- [docs/demo_script.md](docs/demo_script.md)
-- [docs/demo_checklist.md](docs/demo_checklist.md)
-
-## CLI Examples
-
-```bash
-traffictwin capabilities
-traffictwin registry init data/registry/traffictwin.sqlite
-traffictwin registry inspect data/registry/traffictwin.sqlite
-traffictwin bundle inspect tests/fixtures/bundles/partial_valid
-traffictwin bundle import tests/fixtures/bundles/baseline_valid --registry data/registry/traffictwin.sqlite
-traffictwin bundle report tests/fixtures/bundles/partial_valid --format json
-traffictwin metrics report tests/fixtures/bundles/variation_valid --format json
-traffictwin evidence build tests/fixtures/bundles/baseline_valid --output evidence-baseline.json
-traffictwin diagnose report tests/fixtures/bundles/baseline_valid --format json
-traffictwin diagnose evaluate tests/fixtures/diagnostics/cases.json
-traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
-traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
-traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
-```
-
-Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
-
-## Repository Structure
-
-```text
-.
-├── AGENTS.md
-├── README.md
-├── pyproject.toml
-├── docs/
-├── examples/
-│   └── seeds/
-├── scripts/
-│   └── generate_reference_docs.py
-├── src/
-│   └── traffictwin/
-│       ├── adapters/
-│       ├── canonical/
-│       ├── config/
-│       ├── diagnostics/
-│       ├── domain/
-│       ├── evidence/
-│       ├── experiments/
-│       ├── ingestion/
-│       ├── metrics/
-│       ├── provenance/
-│       ├── rules/
-│       ├── storage/
-│       ├── ui/
-│       └── validation/
-└── tests/
-    ├── fixtures/
-    ├── golden/
-    ├── integration/
-    ├── ui/
-    └── unit/
-```
+| Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
 
 ## Testing And Quality
 
@@ -223,37 +185,69 @@ Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 .venv/bin/mypy
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
-.venv/bin/python scripts/generate_reference_docs.py
+.venv/bin/python -m build
 ```
 
-At the latest provenance productisation pass, the suite reported 147 tests passing and 77% coverage. Treat the exact numbers as a checked snapshot, not a permanent target.
+Release smoke:
+
+```bash
+.venv/bin/python scripts/verify_release.py
+```
+
+The current test count and coverage are documented in [docs/reproducibility.md](docs/reproducibility.md) after the latest full quality-gate run.
+
+## Repository Structure
+
+```text
+.
+├── AGENTS.md
+├── README.md
+├── pyproject.toml
+├── .github/workflows/ci.yml
+├── docs/
+├── examples/
+│   ├── seeds/
+│   └── standalone/
+├── scripts/
+├── src/traffictwin/
+│   ├── canonical/
+│   ├── config/
+│   ├── demo/
+│   ├── diagnostics/
+│   ├── domain/
+│   ├── evidence/
+│   ├── ingestion/
+│   ├── metrics/
+│   ├── provenance/
+│   ├── reporting/
+│   ├── rules/
+│   ├── storage/
+│   ├── synthetic/
+│   ├── ui/
+│   └── validation/
+└── tests/
+```
 
 ## Data-Mode Disclaimer
 
-All included run data is synthetic unless a future document explicitly says otherwise. The current prototype supports:
+All repository-contained run data is synthetic unless a future imported bundle explicitly says otherwise. The UI supports synthetic fixtures, imported historical bundles, and historical replay over timestamps. It does not support true live data, near-live data, or real Manchester feeds.
 
-- `SYNTHETIC` fixtures;
-- imported historical bundles;
-- historical replay over imported timestamps.
+## External Integration Status
 
-It does not support true live data, near-live data, or real Manchester feeds.
-
-## External-Integration Status
-
-Phase 6A discovery found no real Randy/VEC or SUMO artifacts in the repository. There are no real schemas, units, output files, notebooks, checkpoints, job scripts, launch commands, or runtime measurements to build against. Integration documents under [docs/integration/](docs/integration/) list exactly what must be requested before adapter implementation.
+Phase 6A discovery found no real Randy/VEC or SUMO artifacts in the repository. There are no real schemas, units, output files, notebooks, checkpoints, job scripts, launch commands, or runtime measurements to build against. Integration documents under [docs/integration/](docs/integration/) list what must be requested before adapter implementation.
 
 ## Documentation Index
 
 Start at [docs/index.md](docs/index.md). Key documents:
 
-- [docs/system_overview.md](docs/system_overview.md)
-- [docs/architecture.md](docs/architecture.md)
+- [docs/standalone_demo.md](docs/standalone_demo.md)
+- [docs/synthetic_data_model.md](docs/synthetic_data_model.md)
+- [docs/report_export.md](docs/report_export.md)
+- [docs/release_guide.md](docs/release_guide.md)
+- [docs/provenance_explorer.md](docs/provenance_explorer.md)
 - [docs/user_guide.md](docs/user_guide.md)
 - [docs/developer_guide.md](docs/developer_guide.md)
-- [docs/api_reference.md](docs/api_reference.md)
-- [docs/cli_reference.md](docs/cli_reference.md)
 - [docs/reproducibility.md](docs/reproducibility.md)
-- [docs/provenance_explorer.md](docs/provenance_explorer.md)
 - [docs/viva_guide.md](docs/viva_guide.md)
 - [docs/limitations_and_future_work.md](docs/limitations_and_future_work.md)
 
@@ -265,4 +259,4 @@ Dissertation citation details are not final. Suggested placeholder:
 
 ## Licence Status
 
-No project licence file is currently present. Do not assume reuse rights beyond the repository owner's permission until a licence is added.
+Licence not yet specified. No project licence file is currently present; do not assume reuse rights beyond the repository owner's permission until a licence is added.

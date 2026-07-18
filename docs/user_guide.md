@@ -214,8 +214,35 @@ These JSON documents are useful for reproducibility, tests, and dissertation app
 | `NEAR-LIVE` | Future unsupported mode. |
 | `TRUE LIVE` | Future unsupported mode requiring real live source. |
 
+## Standalone Demo Workspace
+
+For a complete offline demonstration:
+
+```bash
+traffictwin demo initialise .demo
+traffictwin demo launch .demo
+```
+
+The Home page will show a `Standalone Demo` section when the UI is launched through
+`traffictwin demo launch`. Use the generated bundles under `.demo/bundles/` in the same pages as
+ordinary imported bundles. The generated reports under `.demo/reports/` can be opened directly or
+regenerated with `traffictwin report ...` commands.
+
+Reset only with explicit confirmation:
+
+```bash
+traffictwin demo reset .demo --yes
+```
+
+Warnings:
+
+- Standalone data is synthetic.
+- Synthetic policy profiles are not real trained algorithms.
+- The standalone demo does not enable direct launch, Randy/SUMO integration, or live data.
+
 Related documents:
 
+- [Standalone demo](standalone_demo.md)
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
 - [CLI reference](cli_reference.md)

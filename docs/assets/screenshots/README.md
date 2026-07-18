@@ -5,7 +5,8 @@ No reliable automated screenshot workflow is currently part of the repository. D
 Use this manual checklist after launching:
 
 ```bash
-streamlit run src/traffictwin/ui/app.py
+traffictwin demo initialise .demo
+traffictwin demo launch .demo
 ```
 
 Recommended filenames:
@@ -26,5 +27,6 @@ Expected source labels:
 - `SYNTHETIC`
 - `IMPORTED` where applicable
 - `HISTORICAL REPLAY`
+- Standalone Demo status on Home
 
 Before using screenshots in dissertation material, check that no page claims live data, real Manchester data, real Randy integration, proven root causes, or provenance as proof of real-world causality.

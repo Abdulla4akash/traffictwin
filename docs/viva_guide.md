@@ -82,6 +82,18 @@ First integrate real or sanitised Randy/SUMO artifacts. Then run task-based expe
 
 Request one complete real or sanitised Randy/SUMO output set with schemas, units, provenance, and execution contract. Then build the smallest evidenced adapter and run the existing validation, metrics, evidence, diagnostics, and UI pipeline over that sample.
 
+## How can the project be demonstrated without Randy?
+
+Use `traffictwin demo initialise .demo` to generate deterministic synthetic run bundles, import them
+through the real bundle pipeline, compute metrics, evaluate diagnostics, inspect provenance, export a
+report, and launch Streamlit. This demonstrates the software architecture and reproducibility
+without claiming external validation or real-world traffic accuracy.
+
+## Are the standalone policy profiles real algorithms?
+
+No. They are labelled `synthetic-*` and represent deterministic fixture behavior only. They exercise
+software paths such as R3 multi-policy evidence; they are not reported as algorithm performance.
+
 Related documents:
 
 - [Dissertation mapping](dissertation_mapping.md)

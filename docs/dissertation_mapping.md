@@ -15,6 +15,7 @@ This document maps repository artifacts to likely dissertation sections. It is n
 | Metrics | `metrics/` | [metrics_catalogue.md](metrics_catalogue.md) | Metric catalogue table | Deterministic metrics and golden outputs | Metrics requiring unavailable real fields |
 | Diagnostics | `rules/`, `diagnostics/` | [diagnostic_rules.md](diagnostic_rules.md), [diagnostic_report_spec.md](diagnostic_report_spec.md) | Rule logic table | Synthetic fault-injection implementation checks | External diagnostic validation |
 | Provenance and auditability | `provenance/`, canonical source references, UI Provenance Explorer | [provenance_explorer.md](provenance_explorer.md), [provenance_model.md](provenance_model.md), [viva_traceability_demo.md](viva_traceability_demo.md) | Trace DAG diagram, metric-to-source example | Metric/rule/source-row trace tests and golden outputs | Full per-row contribution materialisation for all aggregates |
+| Standalone demonstration | `synthetic/`, `demo/`, `reporting/`, `.github/workflows/ci.yml` | [standalone_demo.md](standalone_demo.md), [synthetic_data_model.md](synthetic_data_model.md), [report_export.md](report_export.md), [release_guide.md](release_guide.md) | Demo workspace tree, scenario table, report screenshots/manual captures | Reproducible offline demo and deterministic reports | Real-world experimental claims |
 | Evaluation | `tests/` | [testing_strategy.md](testing_strategy.md), [fault_injection_methodology.md](fault_injection_methodology.md) | Test pyramid, synthetic case results | Current test and coverage snapshot after quality gates | User study, real-run evaluation |
 | Discussion | all | [limitations_and_future_work.md](limitations_and_future_work.md) | Implemented vs blocked matrix | Honest scope boundaries | Real-world operational findings |
 | Limitations | integration docs | [limitations_and_future_work.md](limitations_and_future_work.md) | Limitation categories | Phase 6A discovery result | Mitigations after artifacts |
@@ -25,3 +26,4 @@ Related documents:
 - [Viva guide](viva_guide.md)
 - [Traceability matrix](traceability_matrix.md)
 - [Reproducibility guide](reproducibility.md)
+- [Standalone demo](standalone_demo.md)

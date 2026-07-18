@@ -1,0 +1,24 @@
+schema_version: "1.0"
+scenario_id: baseline
+name: Standalone baseline
+description: Moderate synthetic demand with usable infrastructure capacity.
+experiment_id: exp-standalone-demo
+random_seed: 7
+duration_s: 300
+sampling_interval_s: 30
+vehicle_count: 20
+vehicle_tier_mix:
+  low: 0.3
+  medium: 0.5
+  high: 0.2
+task_arrival_rate: 0.11
+task_class_mix:
+  T1: 0.3
+  T2: 0.4
+  T3: 0.3
+rsu_count: 2
+rsu_capacity: 35
+congestion_multiplier: 1.0
+policy_behavior: synthetic-balanced
+trip_count: 12
+synthetic_faults: []

@@ -6,6 +6,7 @@ This index points only to documentation and repository paths that exist in the c
 
 - [Root README](../README.md)
 - [System overview](system_overview.md)
+- [Standalone demo](standalone_demo.md)
 - [User guide](user_guide.md)
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
@@ -17,6 +18,8 @@ This index points only to documentation and repository paths that exist in the c
 - [CLI reference](cli_reference.md)
 - [UI design](ui_design.md)
 - [Provenance Explorer](provenance_explorer.md)
+- [Standalone demo](standalone_demo.md)
+- [Report export](report_export.md)
 - [Demo script](demo_script.md)
 - [Demo checklist](demo_checklist.md)
 - [Screenshot checklist](assets/screenshots/README.md)
@@ -27,6 +30,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Developer guide](developer_guide.md)
 - [API reference](api_reference.md)
 - [Provenance model](provenance_model.md)
+- [Synthetic data model](synthetic_data_model.md)
 - [Security and privacy](security_and_privacy.md)
 - [ADR index](decisions/index.md)
 
@@ -70,6 +74,8 @@ This index points only to documentation and repository paths that exist in the c
 
 - [Reproducibility guide](reproducibility.md)
 - [Testing strategy](testing_strategy.md)
+- [Release guide](release_guide.md)
+- [Standalone demo](standalone_demo.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [Generated CLI help reference](reference/generated/cli_help.json)
 

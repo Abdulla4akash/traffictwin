@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated
 
@@ -10,6 +11,8 @@ import yaml
 
 from traffictwin.config.capabilities import default_export_import_manifest, manifest_to_plain_dict
 from traffictwin.config.seed_io import SeedIOError, load_seed, normalise_seed_file
+from traffictwin.demo.launcher import launch_workspace
+from traffictwin.demo.workspace import initialise_workspace, reset_workspace, workspace_status
 from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
@@ -33,9 +36,22 @@ from traffictwin.provenance.query import (
     node_type_counts,
 )
 from traffictwin.provenance.serialization import trace_to_json
+from traffictwin.reporting.builder import (
+    build_comparison_report,
+    build_diagnostics_report,
+    build_full_report,
+    build_run_report,
+)
+from traffictwin.reporting.html import report_to_html
+from traffictwin.reporting.markdown import report_to_markdown
+from traffictwin.reporting.models import ReportBuildError, ResearchReport
 from traffictwin.rules.engine import evaluate_rules
 from traffictwin.rules.evaluation import evaluate_fixture_set, load_fixture_set
 from traffictwin.storage.registry import Registry, RegistryConflictError, RegistryNotFoundError
+from traffictwin.synthetic.bundles import write_synthetic_bundle
+from traffictwin.synthetic.experiments import generate_trivial_multi_algorithm_experiment
+from traffictwin.synthetic.scenarios import list_preset_names, preset_config
+from traffictwin.synthetic.validation import verify_synthetic_path
 
 app = typer.Typer(no_args_is_help=True, help="TrafficTwin research-software CLI.")
 registry_app = typer.Typer(no_args_is_help=True, help="Metadata registry commands.")
@@ -45,6 +61,9 @@ evidence_app = typer.Typer(no_args_is_help=True, help="Evidence-pack commands.")
 experiment_app = typer.Typer(no_args_is_help=True, help="Experiment aggregation commands.")
 diagnose_app = typer.Typer(no_args_is_help=True, help="Deterministic diagnostic commands.")
 provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance trace commands.")
+synthetic_app = typer.Typer(no_args_is_help=True, help="Standalone synthetic fixture commands.")
+demo_app = typer.Typer(no_args_is_help=True, help="Standalone demo workspace commands.")
+report_app = typer.Typer(no_args_is_help=True, help="Deterministic research-report export.")
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
@@ -52,6 +71,9 @@ app.add_typer(evidence_app, name="evidence")
 app.add_typer(experiment_app, name="experiment")
 app.add_typer(diagnose_app, name="diagnose")
 app.add_typer(provenance_app, name="provenance")
+app.add_typer(synthetic_app, name="synthetic")
+app.add_typer(demo_app, name="demo")
+app.add_typer(report_app, name="report")
 
 
 @app.command("validate-seed")
@@ -506,6 +528,218 @@ def provenance_export_command(
         typer.echo(payload)
 
 
+@synthetic_app.command("presets")
+def synthetic_presets_command() -> None:
+    """List standalone synthetic scenario presets."""
+
+    for name in list_preset_names():
+        typer.echo(name)
+
+
+@synthetic_app.command("generate-preset")
+def synthetic_generate_preset_command(
+    name: Annotated[str, typer.Argument()],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    random_seed: Annotated[int, typer.Option("--seed", min=0)] = 7,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Generate one deterministic synthetic run bundle."""
+
+    try:
+        config = preset_config(name, random_seed=random_seed)
+        destination = write_synthetic_bundle(config, output, overwrite=overwrite)
+    except (ValueError, FileExistsError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    result = validate_bundle(destination)
+    typer.echo(f"bundle: {destination}")
+    typer.echo(f"status: {result.report.status.value}")
+    synthetic = result.manifest.environment.name == "synthetic" if result.manifest else False
+    typer.echo(f"synthetic: {synthetic}")
+    if not result.report.may_import:
+        raise typer.Exit(code=1)
+
+
+@synthetic_app.command("experiment-generate-preset")
+def synthetic_experiment_generate_preset_command(
+    name: Annotated[str, typer.Argument()],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    seeds: Annotated[str, typer.Option("--seeds")] = "1,2,3",
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Generate a deterministic multi-seed synthetic experiment."""
+
+    if name != "trivial_multi_algorithm":
+        typer.echo("only trivial_multi_algorithm is supported for multi-seed generation", err=True)
+        raise typer.Exit(code=1)
+    try:
+        seed_values = _parse_seed_list(seeds)
+        paths = generate_trivial_multi_algorithm_experiment(
+            output,
+            random_seeds=seed_values,
+            overwrite=overwrite,
+        )
+    except (ValueError, FileExistsError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"experiment: {name}")
+    typer.echo(f"bundles: {len(paths)}")
+    for path in paths:
+        typer.echo(path)
+
+
+@synthetic_app.command("verify")
+def synthetic_verify_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+) -> None:
+    """Verify synthetic bundle labels and validation status."""
+
+    result = verify_synthetic_path(path)
+    typer.echo(f"path: {result.path}")
+    typer.echo(f"checked: {result.checked_bundle_count}")
+    typer.echo(f"accepted: {result.accepted_bundle_count}")
+    typer.echo(f"rejected: {result.rejected_bundle_count}")
+    for message in result.messages:
+        typer.echo(message)
+    if not result.ok:
+        raise typer.Exit(code=1)
+
+
+@demo_app.command("initialise")
+def demo_initialise_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+    force: Annotated[bool, typer.Option("--force")] = False,
+) -> None:
+    """Create a reproducible standalone demo workspace."""
+
+    try:
+        result = initialise_workspace(path, force=force)
+    except (FileExistsError, ValueError, PermissionError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo("TrafficTwin standalone demo workspace initialised.")
+    typer.echo("Synthetic data only; no Randy, SUMO, or live Manchester data is used.")
+    typer.echo(f"workspace: {result.path}")
+    typer.echo(f"registry: {result.registry_path}")
+    typer.echo(f"bundles: {result.bundle_count}")
+    typer.echo(f"imported_runs: {result.imported_run_count}")
+    typer.echo(f"manifest: {result.manifest_path}")
+
+
+@demo_app.command("reset")
+def demo_reset_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+    yes: Annotated[bool, typer.Option("--yes")] = False,
+) -> None:
+    """Reset a marked standalone demo workspace."""
+
+    try:
+        result = reset_workspace(path, yes=yes)
+    except (FileNotFoundError, ValueError, PermissionError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"workspace reset: {result.path}")
+    typer.echo(f"imported_runs: {result.imported_run_count}")
+
+
+@demo_app.command("status")
+def demo_status_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+) -> None:
+    """Inspect a standalone demo workspace."""
+
+    status = workspace_status(path)
+    typer.echo(f"workspace: {status.path}")
+    typer.echo(f"exists: {status.exists}")
+    typer.echo(f"valid_workspace: {status.valid_workspace}")
+    typer.echo(f"registry: {status.registry_path}")
+    typer.echo(f"scenarios: {status.scenario_count}")
+    typer.echo(f"imported_runs: {status.imported_run_count}")
+    typer.echo(f"reports: {status.report_count}")
+    typer.echo(f"comparisons: {status.comparison_count}")
+    typer.echo(f"diagnostics: {status.diagnostics_status}")
+    typer.echo("synthetic: true")
+    for message in status.messages:
+        typer.echo(f"warning: {message}")
+    if not status.valid_workspace:
+        raise typer.Exit(code=1)
+
+
+@demo_app.command("launch")
+def demo_launch_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+    dry_run: Annotated[bool, typer.Option("--dry-run")] = False,
+) -> None:
+    """Initialise if needed and launch the Streamlit demo UI."""
+
+    try:
+        plan = launch_workspace(path, dry_run=dry_run)
+    except (FileExistsError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo("TrafficTwin standalone demo uses synthetic fixture data only.")
+    typer.echo(f"workspace: {plan.workspace}")
+    typer.echo(f"registry: {plan.registry}")
+    typer.echo("command: " + " ".join(plan.command))
+    if dry_run:
+        typer.echo("dry_run: true")
+
+
+@report_app.command("run")
+def report_run_command(
+    path_or_run: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Export a deterministic single-run report."""
+
+    _write_report(build_run_report, path_or_run, output)
+
+
+@report_app.command("compare")
+def report_compare_command(
+    baseline: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    variation: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Export a deterministic baseline-versus-variation report."""
+
+    try:
+        report = build_comparison_report(baseline, variation)
+    except ReportBuildError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _write_report_payload(report, output)
+
+
+@report_app.command("diagnostics")
+def report_diagnostics_command(
+    path_or_run: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Export a deterministic diagnostic report summary."""
+
+    _write_report(build_diagnostics_report, path_or_run, output)
+
+
+@report_app.command("full")
+def report_full_command(
+    path_or_run: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    comparison_baseline: Annotated[
+        Path | None,
+        typer.Option("--comparison-baseline", exists=True, readable=True),
+    ] = None,
+) -> None:
+    """Export a deterministic full report as Markdown or standalone HTML."""
+
+    try:
+        report = build_full_report(path_or_run, comparison_baseline=comparison_baseline)
+    except ReportBuildError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _write_report_payload(report, output)
+
+
 def _collection_from_identifier(
     identifier: str,
     registry_path: Path | None,
@@ -569,3 +803,36 @@ def _emit_provenance_trace(trace: ProvenanceTrace, output_format: str) -> None:
         typer.echo(f"  {key}: {counts[key]}")
     for warning in trace.warnings:
         typer.echo(f"warning: {warning}")
+
+
+def _parse_seed_list(value: str) -> list[int]:
+    seeds = [int(item.strip()) for item in value.split(",") if item.strip()]
+    if not seeds:
+        msg = "at least one seed is required"
+        raise ValueError(msg)
+    if any(seed < 0 for seed in seeds):
+        msg = "seeds must be non-negative integers"
+        raise ValueError(msg)
+    return seeds
+
+
+def _write_report(
+    builder: Callable[[str | Path], ResearchReport],
+    path: Path,
+    output: Path,
+) -> None:
+    try:
+        report = builder(path)
+    except ReportBuildError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _write_report_payload(report, output)
+
+
+def _write_report_payload(report: ResearchReport, output: Path) -> None:
+    payload = (
+        report_to_html(report) if output.suffix.lower() == ".html" else report_to_markdown(report)
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(payload, encoding="utf-8")
+    typer.echo(f"report: {output}")

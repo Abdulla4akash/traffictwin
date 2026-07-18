@@ -23,6 +23,9 @@ data/raw/
 data/canonical/
 data/derived/
 data/registry/
+.demo/
+*.local-report.md
+*.local-report.html
 *.sqlite
 *.sqlite3
 *.db

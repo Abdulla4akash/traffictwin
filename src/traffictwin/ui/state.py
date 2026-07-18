@@ -19,6 +19,7 @@ class UiConfig(BaseModel):
 
     registry_path: Path = Path("data/registry/traffictwin.sqlite")
     default_fixture_path: Path = Path("tests/fixtures/bundles")
+    workspace_path: Path | None = None
     debug: bool = False
     page_title: str = "TrafficTwin"
     replay_default_speed: float = Field(default=1.0, gt=0)
@@ -94,6 +95,9 @@ def load_ui_config() -> UiConfig:
             os.getenv("TRAFFICTWIN_REGISTRY_PATH", "data/registry/traffictwin.sqlite")
         ),
         default_fixture_path=Path(os.getenv("TRAFFICTWIN_FIXTURE_PATH", "tests/fixtures/bundles")),
+        workspace_path=(
+            Path(value) if (value := os.getenv("TRAFFICTWIN_WORKSPACE_PATH")) else None
+        ),
         debug=os.getenv("TRAFFICTWIN_DEBUG", "false").lower() in {"1", "true", "yes"},
     )
 

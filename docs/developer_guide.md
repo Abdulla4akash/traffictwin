@@ -201,10 +201,32 @@ Use clear conventional-style messages, for example:
 | R3 insufficient | Single-run EvidencePack lacks experiment-level metrics | Use experiment-level evidence in future work. |
 | Direct launch disabled | No adapter reports support | Keep export/import workflow. |
 
+## Standalone Product Development
+
+Standalone modules are wrappers around the existing pipeline:
+
+- `src/traffictwin/synthetic/` writes standard bundles.
+- `src/traffictwin/demo/` prepares a marked workspace and imports bundles through the registry.
+- `src/traffictwin/reporting/` renders existing objects into Markdown or HTML.
+- `src/traffictwin/release/` exposes lightweight release metadata.
+
+When adding a new synthetic scenario:
+
+1. Add a preset in `synthetic/scenarios.py`.
+2. Ensure generated files validate through `validate_bundle`.
+3. Add a test proving deterministic generation for a fixed seed.
+4. Document the scenario as synthetic and avoid real-world claims.
+
+Do not add new metrics, rules, or simulator behavior from the standalone layer. If a scenario needs
+new evidence, first extend the canonical contract and metric/rule layers deliberately.
+
 Related documents:
 
 - [Architecture](architecture.md)
 - [API reference](api_reference.md)
+- [Standalone demo](standalone_demo.md)
+- [Synthetic data model](synthetic_data_model.md)
+- [Report export](report_export.md)
 - [Provenance model](provenance_model.md)
 - [Testing strategy](testing_strategy.md)
 - [Reproducibility guide](reproducibility.md)

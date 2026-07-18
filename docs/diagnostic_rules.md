@@ -111,6 +111,10 @@ Trigger pattern:
 
 Ordinary single-run EvidencePacks return `insufficient_evidence` for R3.
 
+The standalone demo generates R3-compatible evidence by creating multiple low-pressure synthetic
+policy-profile bundles, computing ordinary Phase 3 metrics, and summarising them with the Phase 3
+aggregation layer. These profiles are not real trained algorithms.
+
 ## Confidence
 
 Confidence is categorical: `low`, `moderate`, `high`, or `unavailable`.
@@ -122,5 +126,7 @@ It is derived from evidence completeness, sample size, supporting conditions, co
 - [EvidencePack specification](evidence_pack_spec.md)
 - [Diagnostic report specification](diagnostic_report_spec.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
+- [Standalone demo](standalone_demo.md)
+- [Synthetic data model](synthetic_data_model.md)
 - [Viva guide](viva_guide.md)
 - [Generated rule catalogue](reference/generated/rule_catalogue.json)

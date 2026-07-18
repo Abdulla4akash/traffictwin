@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE
 from traffictwin.ui.services import load_project_status
@@ -36,6 +37,20 @@ def render(config: UiConfig) -> None:
     cols[1].metric("Experiments", experiment_count)
     cols[2].metric("Runs", run_count)
     cols[3].metric("Metric collections", metric_count)
+
+    if config.workspace_path is not None:
+        st.subheader("Standalone Demo")
+        demo_status = workspace_status(config.workspace_path)
+        st.info(
+            "Standalone mode uses repository-contained synthetic fixtures only. "
+            "It does not use Randy, SUMO, or live Manchester data."
+        )
+        demo_cols = st.columns(4)
+        demo_cols[0].metric("Workspace", "Ready" if demo_status.valid_workspace else "Missing")
+        demo_cols[1].metric("Synthetic scenarios", demo_status.scenario_count)
+        demo_cols[2].metric("Imported runs", demo_status.imported_run_count)
+        demo_cols[3].metric("Diagnostics", demo_status.diagnostics_status)
+        st.caption(f"Workspace: {demo_status.path}")
 
     st.subheader("Capability Manifest")
     st.dataframe(capability_rows(status.capability_manifest), hide_index=True, width="stretch")

@@ -27,6 +27,17 @@ def main() -> None:
     config = load_ui_config()
     st.set_page_config(page_title=config.page_title, layout="wide")
     ensure_session_state(st.session_state)
+    if config.workspace_path is not None:
+        default_bundle = config.default_fixture_path / "baseline"
+        current_bundle = str(st.session_state.get("selected_bundle_path", ""))
+        if default_bundle.exists() and (
+            not current_bundle or current_bundle.startswith("tests/fixtures")
+        ):
+            st.session_state["selected_bundle_path"] = str(default_bundle)
+            st.session_state["selected_baseline_run"] = str(default_bundle)
+            variation = config.default_fixture_path / "stressed_demand"
+            if variation.exists():
+                st.session_state["selected_variation_run"] = str(variation)
     st.sidebar.title("TrafficTwin")
     st.sidebar.caption("Import-first research UI")
     page = select_page()

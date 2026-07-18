@@ -21,6 +21,12 @@ metrics, diagnostic rule results, source rows, run metadata, metric definitions,
 findings, EvidencePacks, DiagnosticReports, and bundle fingerprints where existing Phase 1-5
 artifacts provide the links.
 
+Standalone Product status: implemented. TrafficTwin can now create a deterministic synthetic demo
+workspace, generate standard run bundles, import them through the existing registry path, compute
+metrics, build EvidencePacks, evaluate diagnostics, prepare provenance traces, export
+Markdown/HTML reports, and launch Streamlit without Randy/VEC, SUMO, live data, or external
+services.
+
 ## Repository Assessment
 
 Workspace root inspected: repository parent workspace
@@ -70,6 +76,10 @@ The historical `../XITS/` notes remain unchanged as research material. They are 
 | `src/traffictwin/provenance/` | Provenance package | Read-only trace graph, query service, source-row previews, and JSON/Markdown export. |
 | `docs/provenance_explorer.md` | Provenance documentation | User and CLI workflow for trace inspection. |
 | `docs/provenance_model.md` | Provenance model documentation | Trace model, current row-level gaps, and aggregate limitations. |
+| `src/traffictwin/synthetic/` | Synthetic generator | Deterministic standalone scenario, bundle, and experiment generation. |
+| `src/traffictwin/demo/` | Demo workspace | Safe workspace initialisation, reset, status, and Streamlit launch helpers. |
+| `src/traffictwin/reporting/` | Report export | Deterministic Markdown and standalone HTML research reports. |
+| `.github/workflows/ci.yml` | CI workflow | Python 3.11/3.12 quality gates and standalone smoke checks. |
 
 ## Relevant Assets Found
 
@@ -562,3 +572,27 @@ Phase 6 should begin only after real environment evidence is available:
 5. Add adapter-specific validation and fixture tests.
 
 Phase 6 should still not implement LLM rendering, XAI, portfolio selection, or training orchestration unless the real environment contract and vertical-slice evidence justify them.
+
+## Implemented In Standalone Product Phase
+
+- `SyntheticScenarioConfig` and documented synthetic policy profiles.
+- Deterministic generated bundles for baseline, stressed demand, under-offloading,
+  infrastructure bottleneck, mixed fault, partial evidence, and trivial multi-algorithm cases.
+- `traffictwin synthetic presets`, `synthetic generate-preset`,
+  `synthetic experiment-generate-preset`, and `synthetic verify`.
+- `traffictwin demo initialise`, `demo reset`, `demo status`, and `demo launch`.
+- Reproducible demo workspace with SQLite registry, generated seeds, bundles, exports, reports,
+  logs, and manifest.
+- Multi-seed low-pressure experiment evidence for the existing R3 rule.
+- Deterministic report export commands for run, comparison, diagnostics, and full reports.
+- Streamlit Home standalone demo status section.
+- Release metadata helper, changelog, release guide, and GitHub Actions CI workflow.
+
+## Standalone Product Remaining Limits
+
+- Synthetic generation is not calibrated simulation.
+- Synthetic policy profiles are not real trained algorithms.
+- Registry-run report shortcuts are not the primary report path; bundle paths are supported first.
+- Real Randy/VEC and SUMO integration remain blocked by missing artifacts, schemas, units, and
+  invocation contracts.
+- Direct launch, near-live, and true-live support remain unavailable.

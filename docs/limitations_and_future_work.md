@@ -50,6 +50,9 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 - No formal expert/user study is present.
 - No real operator validation is present.
 - Diagnostic thresholds are provisional.
+- Standalone synthetic scenarios are deterministic software fixtures, not calibrated simulations.
+- Synthetic policy profiles are not real trained algorithms and should not be used for performance
+  claims.
 - No portfolio selector or winner-map study is implemented.
 - Literature claims are not encoded as repository evidence.
 
@@ -60,6 +63,8 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 - No adapter plugin framework beyond current module boundaries.
 - Limited UI test coverage for full browser interaction.
 - CLI help snapshots are generated references, not hand-written tutorials.
+- Report export supports bundle paths first; richer registry-run reporting can be added later if
+  needed.
 - No licence file is present.
 
 ## Sensible Future Work
@@ -74,6 +79,7 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 8. Add materialised contributing-record references for selected aggregate metrics if supervisor or
    viva feedback requires deeper audit trails.
 9. Consider direct launch only after a safe headless execution contract exists.
+10. Add report themes or PDF export only if dissertation submission workflow needs them.
 
 ## Explicitly Rejected Scope For Now
 
@@ -83,9 +89,13 @@ See [integration/randy_gap_analysis.md](integration/randy_gap_analysis.md).
 - Adding SUMO formats not present in supplied artifacts.
 - Implementing XAI without decision-time state evidence.
 - Adding FastAPI, React, distributed queues, or cloud infrastructure without a demonstrated need.
+- Treating standalone synthetic reports as real-world validation.
 
 Related documents:
 
+- [Standalone demo](standalone_demo.md)
+- [Synthetic data model](synthetic_data_model.md)
+- [Report export](report_export.md)
 - [Integration decision](integration/phase6_decision.md)
 - [Security and privacy](security_and_privacy.md)
 - [Viva guide](viva_guide.md)

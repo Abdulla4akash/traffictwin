@@ -260,6 +260,33 @@ Phase 6A found no real artifacts. Future adapters must:
 
 The generic CSV adapter must not accumulate Randy-specific assumptions.
 
+## Standalone Product Layer
+
+The standalone product layer is intentionally outside the core metric and diagnostic logic:
+
+```mermaid
+flowchart TD
+    Config[SyntheticScenarioConfig] --> Generator[Synthetic generator]
+    Generator --> Bundle[Standard run bundle]
+    Bundle --> Phase2[Existing validation and canonicalisation]
+    Phase2 --> Phase3[Existing metric and evidence pipeline]
+    Phase3 --> Phase5[Existing diagnostic rules]
+    Phase3 --> Provenance[Existing Provenance Explorer]
+    Phase5 --> Reports[Deterministic reports]
+    Provenance --> Reports
+    Workspace[Demo workspace] --> Registry[(SQLite registry)]
+    Phase2 --> Registry
+    Phase3 --> Registry
+```
+
+`src/traffictwin/synthetic/` writes ordinary bundles. `src/traffictwin/demo/` prepares a local
+workspace and imports those bundles through the same registry path as historical imports.
+`src/traffictwin/reporting/` renders existing validation, metric, evidence, diagnostic, comparison,
+and provenance objects into Markdown or standalone HTML.
+
+No standalone module introduces Randy/SUMO behavior, live data, new metrics, new rules, or simulator
+launch support.
+
 ## Security Considerations
 
 - Imported files are read as data, not executed.
@@ -293,4 +320,7 @@ See [security_and_privacy.md](security_and_privacy.md).
 - [Diagnostic rules](diagnostic_rules.md)
 - [Provenance Explorer](provenance_explorer.md)
 - [Provenance model](provenance_model.md)
+- [Standalone demo](standalone_demo.md)
+- [Synthetic data model](synthetic_data_model.md)
+- [Report export](report_export.md)
 - [Integration decision](integration/phase6_decision.md)

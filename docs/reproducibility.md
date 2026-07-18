@@ -73,14 +73,30 @@ They are not real Manchester, Randy/VEC, or SUMO results.
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
 .venv/bin/python scripts/generate_reference_docs.py
+.venv/bin/traffictwin demo initialise .demo --force
+.venv/bin/traffictwin synthetic verify .demo
+.venv/bin/traffictwin report full .demo/bundles/stressed_demand \
+  --comparison-baseline .demo/bundles/baseline \
+  --output .demo/reports/stressed_full.html
 ```
 
-Current verified snapshot from this documentation pass:
+Current verified snapshot from the standalone product quality-gate run:
 
-- tests: 147 passed;
-- coverage: 77%.
+- tests: 163 passed;
+- coverage: 79%.
 
 ## Reproduce The Baseline-Versus-Variation Demo
+
+Standalone workspace:
+
+```bash
+traffictwin demo initialise .demo
+traffictwin compare .demo/bundles/baseline .demo/bundles/stressed_demand
+traffictwin diagnose bundle .demo/bundles/under_offloading
+traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
+```
+
+Repository fixture path:
 
 ```bash
 traffictwin bundle validate tests/fixtures/bundles/baseline_valid

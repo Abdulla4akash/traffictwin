@@ -81,6 +81,14 @@ Near-live or true-live traffic data would require additional security and privac
 
 Formal user evaluation data should be handled according to ethics approval, anonymisation requirements, consent terms, and university data-management rules.
 
+## Standalone Workspace And Reports
+
+- `demo reset` operates only on a marked TrafficTwin standalone workspace and requires `--yes`.
+- The standalone launcher uses a fixed argument-list subprocess command and no shell interpolation.
+- Report HTML escapes text and uses no remote assets or JavaScript.
+- Reports normalise absolute local paths where practical.
+- Generated standalone data remains synthetic and contains no credentials.
+
 ## Current Threat-Model Limitations
 
 - The project is not hardened for hostile multi-user deployment.
@@ -93,4 +101,6 @@ Related documents:
 - [Run bundle specification](run_bundle_spec.md)
 - [Architecture](architecture.md)
 - [Provenance Explorer](provenance_explorer.md)
+- [Standalone demo](standalone_demo.md)
+- [Report export](report_export.md)
 - [Limitations and future work](limitations_and_future_work.md)

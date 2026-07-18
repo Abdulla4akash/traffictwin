@@ -1,0 +1,51 @@
+name: TrafficTwin CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Ruff lint
+        run: ruff check .
+
+      - name: Mypy
+        run: mypy
+
+      - name: Tests
+        run: pytest --cov=traffictwin --cov-report=term-missing
+
+      - name: Standalone demo smoke
+        run: |
+          traffictwin demo initialise .ci-demo
+          traffictwin synthetic verify .ci-demo
+          traffictwin provenance export .ci-demo/bundles/baseline --root-type metric --root-id task.completion.rate --format json --output .ci-demo/exports/ci_provenance.json
+          traffictwin report run .ci-demo/bundles/baseline --output .ci-demo/reports/ci_run.md
+          traffictwin report full .ci-demo/bundles/stressed_demand --comparison-baseline .ci-demo/bundles/baseline --output .ci-demo/reports/ci_full.html
+
+      - name: Fixture immutability check
+        run: git diff --exit-code -- tests/fixtures examples
+
+      - name: Build package
+        run: python -m build

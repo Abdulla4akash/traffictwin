@@ -57,6 +57,17 @@ Resolved during Provenance Explorer productisation:
   contribution weights.
 - EvidencePack-only fault-injection traces mark source-row links unavailable unless a bundle exists.
 
+Resolved during Standalone Product phase:
+
+- TrafficTwin can be demonstrated without Randy/VEC, SUMO, external services, or live data.
+- Standalone scenarios are generated as ordinary run bundles and imported through the Phase 2
+  registry path.
+- Synthetic policy profiles use `synthetic-*` labels and do not impersonate real trained
+  algorithms.
+- Report export is deterministic Markdown/HTML and does not use an LLM.
+- The one-click demo launcher initialises the workspace if absent and starts Streamlit with
+  explicit workspace environment variables.
+
 ## Questions For Dr. Sandra Sampaio
 
 1. Confirm the actual dissertation submission date and interim milestone dates.
@@ -106,6 +117,8 @@ Resolved during Provenance Explorer productisation:
 - Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
 - Exact row-level contribution lists for aggregate metrics remain a future design choice; current
   provenance provides aggregate-level traceability and source-row samples.
+- Real integration remains the next blocker for moving beyond synthetic demonstration.
+- A project licence still needs explicit selection before public release.
 
 ## Non-Blocking Unknowns
 

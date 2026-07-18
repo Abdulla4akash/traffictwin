@@ -91,5 +91,6 @@ Rules do not mutate the EvidencePack.
 - [Diagnostic report specification](diagnostic_report_spec.md)
 - [Provenance model](provenance_model.md)
 - [Provenance Explorer](provenance_explorer.md)
+- [Standalone demo](standalone_demo.md)
 - [Reproducibility guide](reproducibility.md)
 - [Generated Pydantic schemas](reference/generated/pydantic_schemas.json)

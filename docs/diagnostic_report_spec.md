@@ -77,5 +77,7 @@ No `NaN`, infinity, invented probabilities, or causal-proof language is allowed.
 - [EvidencePack specification](evidence_pack_spec.md)
 - [Provenance model](provenance_model.md)
 - [Provenance Explorer](provenance_explorer.md)
+- [Report export](report_export.md)
+- [Standalone demo](standalone_demo.md)
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [API reference](api_reference.md)

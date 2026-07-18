@@ -62,3 +62,12 @@ force-directed graph. It distinguishes:
 
 Aggregate metrics show eligible input rows and bounded samples. The UI must not imply that an
 individual row caused an aggregate result.
+
+## Standalone Demo Presentation
+
+When launched through `traffictwin demo launch`, Home shows a `Standalone Demo` section with
+workspace status, scenario count, imported runs, and diagnostic preparation status. This is a status
+badge and selector aid only; the normal import-first pages remain the same.
+
+The UI must continue to label all generated data as synthetic and must not enable direct launch,
+Randy/SUMO integration, near-live data, or true-live data from the standalone workspace.

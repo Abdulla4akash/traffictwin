@@ -12,10 +12,17 @@ Use this checklist immediately before a supervisor or viva demonstration.
   - [ ] `tests/fixtures/bundles/variation_valid`
   - [ ] `tests/fixtures/bundles/partial_valid`
   - [ ] `tests/fixtures/diagnostics/cases.json`
+- [ ] Or initialise a standalone workspace:
+
+```bash
+traffictwin demo initialise .demo
+traffictwin demo status .demo
+```
+
 - [ ] Start Streamlit:
 
 ```bash
-streamlit run src/traffictwin/ui/app.py
+traffictwin demo launch .demo
 ```
 
 ## UI Flow
@@ -46,6 +53,7 @@ traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
 traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
+traffictwin report full .demo/bundles/stressed_demand --comparison-baseline .demo/bundles/baseline --output .demo/reports/stressed_full.html
 ```
 
 ## Post-Demo Cleanup

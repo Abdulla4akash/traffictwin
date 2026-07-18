@@ -9,26 +9,34 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
 .venv/bin/python -m pytest
+traffictwin demo initialise .demo
 ```
 
 Launch:
 
 ```bash
-streamlit run src/traffictwin/ui/app.py
+traffictwin demo launch .demo
 ```
 
 ## Fixture Paths
 
-- Baseline: `tests/fixtures/bundles/baseline_valid`
-- Variation: `tests/fixtures/bundles/variation_valid`
-- Partial evidence: `tests/fixtures/bundles/partial_valid`
+- Baseline: `.demo/bundles/baseline`
+- Stressed demand: `.demo/bundles/stressed_demand`
+- Under-offloading: `.demo/bundles/under_offloading`
+- Infrastructure bottleneck: `.demo/bundles/infrastructure_bottleneck`
+- Mixed fault: `.demo/bundles/mixed_fault`
+- Partial evidence: `.demo/bundles/partial_evidence`
+- R3 experiment evidence: `.demo/exports/trivial_multi_algorithm_evidence.json`
+- Legacy repository baseline: `tests/fixtures/bundles/baseline_valid`
+- Legacy repository variation: `tests/fixtures/bundles/variation_valid`
 - Invalid manifest: `tests/fixtures/bundles/invalid_manifest`
 - Diagnostic cases: `tests/fixtures/diagnostics/cases.json`
 
 ## Script
 
 1. Open Home / Project Status.
-   - Say: "This is the Phase 1-6A prototype. It is synthetic/import-first only."
+   - Say: "This is the standalone prototype. It is synthetic/import-first only."
+   - Show the Standalone Demo section.
    - Show direct launch is unsupported and unknown capabilities stay unknown.
 
 2. Open Scenario Studio.
@@ -37,10 +45,10 @@ streamlit run src/traffictwin/ui/app.py
    - Point out the disabled Run action.
 
 3. Open Bundle Import & Validation.
-   - Validate `tests/fixtures/bundles/baseline_valid`.
+   - Validate `.demo/bundles/baseline`.
    - Show status accepted, declared files, record counts, and evidence categories.
 
-4. Validate `tests/fixtures/bundles/variation_valid`.
+4. Validate `.demo/bundles/stressed_demand`.
    - Show it uses the same experiment and random seed but different seed parameters.
 
 5. Open Run Overview.
@@ -70,6 +78,14 @@ streamlit run src/traffictwin/ui/app.py
     - Show EvidencePack ID/fingerprint.
     - Show R0-R3 status.
     - Explain hypotheses are candidate explanations, not proven causes.
+    - Use `.demo/bundles/under_offloading` to show R1.
+    - Use `.demo/bundles/infrastructure_bottleneck` to show R2.
+    - Use `.demo/exports/trivial_multi_algorithm_evidence.json` via CLI to show R3:
+
+```bash
+traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
+```
+
     - Download DiagnosticReport JSON if needed.
 
 11. Open Provenance Explorer.

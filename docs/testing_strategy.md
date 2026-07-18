@@ -120,14 +120,37 @@ Tests and code enforce or exercise:
 - source-row preview rejects path traversal;
 - repeated imports are idempotent;
 - directory and ZIP bundles produce equivalent results.
+- generated standalone bundles validate through the existing Phase 2 path;
+- standalone reports contain no unescaped HTML or absolute local paths;
+- demo workspace reset requires explicit confirmation.
 
 ## Fixture Policy
 
 Synthetic fixtures are small and hand-auditable. They live under `tests/fixtures/` and are clearly labelled synthetic. Future real-schema fixtures must be sanitised and documented before committing.
 
+Standalone generated workspaces are created under temporary paths during tests. They are not committed
+as fixtures; the generator configuration and deterministic tests provide reproducibility.
+
+## Standalone Product Tests
+
+Standalone tests cover:
+
+- deterministic synthetic generation for fixed seeds;
+- different seeds changing generated records;
+- generated bundles passing the existing validator;
+- expected R1/R2/R3 diagnostic behavior through EvidencePacks;
+- demo workspace initialise/reset/status safety;
+- Typer CLI smoke tests for demo, report, and provenance commands;
+- HTML escaping and no absolute path leakage in reports.
+
 ## Diagnostic Evaluation Limit
 
 The synthetic fault-injection precision/recall values are implementation checks over labelled synthetic cases. They are not evidence that R0-R3 are externally valid for Manchester, SUMO, or Randy/VEC runs.
+
+Current verified standalone product snapshot:
+
+- tests: 163 passed;
+- coverage: 79%.
 
 Related documents:
 
@@ -135,3 +158,5 @@ Related documents:
 - [Fault-injection methodology](fault_injection_methodology.md)
 - [Developer guide](developer_guide.md)
 - [Provenance model](provenance_model.md)
+- [Standalone demo](standalone_demo.md)
+- [Synthetic data model](synthetic_data_model.md)

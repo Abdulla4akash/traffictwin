@@ -274,6 +274,31 @@ trace = build_metric_trace("task.completion.rate", bundle, metrics, pack, report
 print(trace.root_node_id)
 ```
 
+## Standalone Product Interfaces
+
+Primary imports:
+
+- `traffictwin.synthetic.config.SyntheticScenarioConfig`
+- `traffictwin.synthetic.config.SyntheticPolicyProfile`
+- `traffictwin.synthetic.scenarios.preset_config`
+- `traffictwin.synthetic.bundles.write_synthetic_bundle`
+- `traffictwin.synthetic.experiments.generate_trivial_multi_algorithm_experiment`
+- `traffictwin.synthetic.experiments.build_r3_evidence_pack_from_bundles`
+- `traffictwin.synthetic.validation.verify_synthetic_path`
+- `traffictwin.demo.workspace.initialise_workspace`
+- `traffictwin.demo.workspace.reset_workspace`
+- `traffictwin.demo.workspace.workspace_status`
+- `traffictwin.demo.launcher.launch_workspace`
+- `traffictwin.reporting.builder.build_run_report`
+- `traffictwin.reporting.builder.build_comparison_report`
+- `traffictwin.reporting.builder.build_diagnostics_report`
+- `traffictwin.reporting.builder.build_full_report`
+- `traffictwin.reporting.markdown.report_to_markdown`
+- `traffictwin.reporting.html.report_to_html`
+
+These interfaces create synthetic bundles, workspaces, reports, and launch plans. They do not add
+new metric formulas or diagnostic rules.
+
 Related documents:
 
 - [Developer guide](developer_guide.md)
@@ -281,3 +306,5 @@ Related documents:
 - [EvidencePack specification](evidence_pack_spec.md)
 - [Provenance model](provenance_model.md)
 - [Diagnostic report specification](diagnostic_report_spec.md)
+- [Standalone demo](standalone_demo.md)
+- [Report export](report_export.md)

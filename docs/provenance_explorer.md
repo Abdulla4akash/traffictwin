@@ -104,4 +104,6 @@ Exports avoid machine-specific absolute paths and do not include large raw table
 - [Viva traceability demo](viva_traceability_demo.md)
 - [EvidencePack specification](evidence_pack_spec.md)
 - [Diagnostic report specification](diagnostic_report_spec.md)
+- [Standalone demo](standalone_demo.md)
+- [Report export](report_export.md)
 - [Architecture](architecture.md)

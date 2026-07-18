@@ -344,3 +344,72 @@ Related documents:
 - [Provenance Explorer](provenance_explorer.md)
 - [Reproducibility guide](reproducibility.md)
 - [Generated CLI help](reference/generated/cli_help.json)
+- [Standalone demo](standalone_demo.md)
+
+## Standalone Synthetic Commands
+
+### `traffictwin synthetic presets`
+
+Purpose: list supported standalone synthetic presets.
+
+### `traffictwin synthetic generate-preset NAME --output PATH [--seed N] [--overwrite]`
+
+Purpose: generate one deterministic standard TrafficTwin run bundle.
+
+Example:
+
+```bash
+traffictwin synthetic generate-preset baseline --output /tmp/tt-baseline --overwrite
+```
+
+### `traffictwin synthetic experiment-generate-preset trivial_multi_algorithm --seeds 1,2,3 --output PATH [--overwrite]`
+
+Purpose: generate a low-pressure multi-policy synthetic experiment used to exercise existing R3
+evidence.
+
+### `traffictwin synthetic verify PATH`
+
+Purpose: validate one generated bundle or all generated bundles under a workspace. The command exits
+non-zero if a discovered bundle is rejected or not labelled synthetic.
+
+## Standalone Demo Commands
+
+### `traffictwin demo initialise PATH [--force]`
+
+Purpose: create a reproducible standalone workspace, validate generated bundles, import accepted
+runs, compute metrics, build EvidencePacks, evaluate diagnostics, write provenance exports, and
+prepare deterministic reports.
+
+### `traffictwin demo reset PATH --yes`
+
+Purpose: regenerate a marked standalone demo workspace. The command refuses unconfirmed resets and
+does not operate on unmarked arbitrary directories.
+
+### `traffictwin demo status PATH`
+
+Purpose: show workspace validity, registry path, generated scenarios, imported runs, reports,
+comparisons, diagnostics status, and the synthetic disclaimer.
+
+### `traffictwin demo launch PATH [--dry-run]`
+
+Purpose: initialise the workspace if absent and start Streamlit with explicit workspace environment
+variables. `--dry-run` prints the command without starting the server.
+
+## Report Commands
+
+### `traffictwin report run PATH --output REPORT`
+
+Purpose: export a deterministic single-run report. `.html` outputs are standalone HTML; other
+suffixes are Markdown.
+
+### `traffictwin report compare BASELINE VARIATION --output REPORT`
+
+Purpose: export a deterministic comparison report over two accepted bundles.
+
+### `traffictwin report diagnostics PATH --output REPORT`
+
+Purpose: export a deterministic diagnostic report summary for one accepted bundle.
+
+### `traffictwin report full PATH --output REPORT [--comparison-baseline BASELINE]`
+
+Purpose: export a full Markdown or standalone HTML report, optionally including comparison context.
