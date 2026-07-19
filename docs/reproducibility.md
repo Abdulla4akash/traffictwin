@@ -89,10 +89,14 @@ uv lock --check
 traffictwin release stage-demo-site .demo --output public
 ```
 
-Current verified snapshot after the Experiment Planner increment:
+Current verified snapshot after the Experiment Protocol Exporter increment:
 
-- tests: 221 passed;
+- tests: 229 passed;
 - coverage: 79%.
+
+Pytest configuration explicitly adds the repository root to its import path, so both
+`.venv/bin/python -m pytest` and `.venv/bin/pytest` resolve the repository's test helpers
+consistently.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 

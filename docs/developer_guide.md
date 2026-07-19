@@ -152,8 +152,13 @@ Do not duplicate metric, validation, comparison, diagnostic, or provenance logic
 Product polish pages follow the same rule. `Scenario Builder` may call the synthetic generator,
 `Experiment Manager` may read registry/workspace metadata, `Reports` may call reporting builders,
 and `Search` may scan local metadata. `Experiment Planner` may validate and persist the existing
-`Experiment` model, but must not create `Run` records or launch work. These pages must not add
+`Experiment` model. `experiments.protocol` may derive deterministic run slots, seed fingerprints,
+exports, and manifest matches, but must not create `Run` records or launch work. These pages must not add
 metrics, diagnostic rules, adapters, live data, or launch behavior.
+
+Protocol changes must preserve exhaustive ordering and backward compatibility. Never truncate a
+run sheet silently, infer an external checkpoint, or treat suggested identifiers as execution
+evidence. Add exact, compatible, mismatch, and unmatched tests when changing matching fields.
 
 ## Adding An Adapter Safely
 

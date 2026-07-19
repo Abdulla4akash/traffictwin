@@ -8,6 +8,11 @@ import streamlit as st
 
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.experiments.planning import ExperimentPlanSummary
+from traffictwin.experiments.protocol import (
+    ExperimentProtocol,
+    ExperimentProtocolSlot,
+    ProtocolBundleMatch,
+)
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
@@ -15,8 +20,13 @@ from traffictwin.ui.navigation import activate_page, render_page_header
 from traffictwin.ui.services import (
     ExperimentPlannerCatalog,
     ServiceError,
+    build_experiment_protocol_for_ui,
     experiment_plan_yaml_for_ui,
+    experiment_protocol_csv_for_ui,
+    experiment_protocol_yaml_for_ui,
     load_experiment_planner_catalog,
+    load_registered_experiment_protocol_for_ui,
+    match_bundle_to_protocol_for_ui,
     prepare_experiment_plan_for_ui,
     register_experiment_plan_for_ui,
 )
@@ -58,7 +68,7 @@ def render(config: UiConfig) -> None:
     _render_plan_form(catalog)
     summary = st.session_state.get("latest_experiment_plan")
     if isinstance(summary, ExperimentPlanSummary):
-        _render_plan_preview(summary, config)
+        _render_plan_preview(summary, config, catalog)
     _render_existing_plans(catalog)
 
 
@@ -144,7 +154,11 @@ def _render_plan_form(catalog: ExperimentPlannerCatalog) -> None:
     st.success("The experiment plan is valid. Review the matrix before registering it.")
 
 
-def _render_plan_preview(summary: ExperimentPlanSummary, config: UiConfig) -> None:
+def _render_plan_preview(
+    summary: ExperimentPlanSummary,
+    config: UiConfig,
+    catalog: ExperimentPlannerCatalog,
+) -> None:
     section_header(
         "Validated Plan Preview",
         "Each row is a planned run slot. No Run records or result values are created.",
@@ -176,19 +190,58 @@ def _render_plan_preview(summary: ExperimentPlanSummary, config: UiConfig) -> No
     else:
         st.info("No variation seed is selected, so this plan does not define a comparison.")
 
-    yaml_text = experiment_plan_yaml_for_ui(summary)
-    action_cols = st.columns(2)
+    protocol_result = build_experiment_protocol_for_ui(summary.experiment, catalog.seeds)
+    if isinstance(protocol_result, ServiceError):
+        st.error(protocol_result.message)
+        if protocol_result.detail:
+            st.caption(protocol_result.detail)
+        return
+    protocol = protocol_result
+
+    section_header(
+        "Execution Protocol",
+        "A deterministic coordination checklist only. It does not create Run records or "
+        "launch work.",
+    )
+    st.dataframe(
+        [_slot_row(slot) for slot in protocol.slots[:200]],
+        hide_index=True,
+        width="stretch",
+    )
+    if len(protocol.slots) > 200:
+        st.caption(f"Showing 200 of {len(protocol.slots)} run slots. Exports contain every slot.")
+    for warning in protocol.warnings:
+        st.warning(warning)
+    action_cols = st.columns(3)
     action_cols[0].download_button(
         "Download Plan YAML",
-        data=yaml_text,
+        data=experiment_plan_yaml_for_ui(summary),
         file_name=f"{summary.experiment.experiment_id}.yaml",
         mime="application/yaml",
         use_container_width=True,
+        key="download-current-plan-yaml",
     )
-    if action_cols[1].button(
+    action_cols[1].download_button(
+        "Download Protocol YAML",
+        data=experiment_protocol_yaml_for_ui(protocol),
+        file_name=f"{summary.experiment.experiment_id}-protocol.yaml",
+        mime="application/yaml",
+        use_container_width=True,
+        key="download-current-protocol-yaml",
+    )
+    action_cols[2].download_button(
+        "Download Run Sheet CSV",
+        data=experiment_protocol_csv_for_ui(protocol),
+        file_name=f"{summary.experiment.experiment_id}-run-sheet.csv",
+        mime="text/csv",
+        use_container_width=True,
+        key="download-current-protocol-csv",
+    )
+    if st.button(
         "Register Planned Experiment",
         type="primary",
         use_container_width=True,
+        key="register-current-experiment-plan",
     ):
         registered = register_experiment_plan_for_ui(summary, config.registry_path)
         if isinstance(registered, ServiceError):
@@ -228,6 +281,99 @@ def _render_existing_plans(catalog: ExperimentPlannerCatalog) -> None:
         hide_index=True,
         width="stretch",
     )
+    section_header(
+        "Registered Protocol Export",
+        "Rebuild a stable checklist from a registered experiment and its seed snapshots.",
+    )
+    experiment_ids = [experiment.experiment_id for experiment in catalog.experiments]
+    selected_id = st.selectbox(
+        "Registered experiment",
+        experiment_ids,
+        key="registered-protocol-experiment",
+    )
+    protocol_result = load_registered_experiment_protocol_for_ui(
+        selected_id,
+        catalog.registry_path,
+    )
+    if isinstance(protocol_result, ServiceError):
+        st.error(protocol_result.message)
+        if protocol_result.detail:
+            st.caption(protocol_result.detail)
+        return
+    _render_registered_protocol(protocol_result)
+
+
+def _render_registered_protocol(protocol: ExperimentProtocol) -> None:
+    cols = st.columns(3)
+    cols[0].metric("Run slots", len(protocol.slots))
+    cols[1].metric("Conditions", 1 + len(protocol.experiment.variation_seed_ids))
+    cols[2].metric("Common seeds", len(protocol.experiment.common_random_seed_set))
+    download_cols = st.columns(2)
+    download_cols[0].download_button(
+        "Download Registered Protocol YAML",
+        data=experiment_protocol_yaml_for_ui(protocol),
+        file_name=f"{protocol.experiment.experiment_id}-protocol.yaml",
+        mime="application/yaml",
+        use_container_width=True,
+        key=f"download-registered-protocol-yaml-{protocol.experiment.experiment_id}",
+    )
+    download_cols[1].download_button(
+        "Download Registered Run Sheet CSV",
+        data=experiment_protocol_csv_for_ui(protocol),
+        file_name=f"{protocol.experiment.experiment_id}-run-sheet.csv",
+        mime="text/csv",
+        use_container_width=True,
+        key=f"download-registered-protocol-csv-{protocol.experiment.experiment_id}",
+    )
+
+    with st.expander("Match a completed bundle", expanded=False):
+        st.caption(
+            "The bundle is validated and compared with the protocol. This does not import it or "
+            "change the registry."
+        )
+        bundle_path = st.text_input(
+            "Completed bundle directory or ZIP",
+            placeholder="tests/fixtures/bundles/baseline_valid",
+            key=f"protocol-bundle-path-{protocol.experiment.experiment_id}",
+        )
+        if st.button(
+            "Check Bundle Match",
+            disabled=not bundle_path.strip(),
+            key=f"match-protocol-bundle-{protocol.experiment.experiment_id}",
+        ):
+            match = match_bundle_to_protocol_for_ui(protocol, bundle_path.strip())
+            if isinstance(match, ServiceError):
+                st.error(match.message)
+                if match.detail:
+                    st.caption(match.detail)
+            else:
+                _render_protocol_match(match)
+
+
+def _render_protocol_match(match: ProtocolBundleMatch) -> None:
+    st.markdown(f"**Match status:** `{match.status.value.upper()}`")
+    st.markdown(f"**Protocol slot:** `{match.matched_slot_id or 'Unavailable'}`")
+    for finding in match.findings:
+        st.info(finding)
+    if match.mismatches:
+        st.dataframe(
+            [mismatch.model_dump(mode="json") for mismatch in match.mismatches],
+            hide_index=True,
+            width="stretch",
+        )
+
+
+def _slot_row(slot: ExperimentProtocolSlot) -> dict[str, object]:
+    row = slot.model_dump(mode="json")
+    return {
+        "slot": row["slot_id"],
+        "role": row["role"],
+        "seed": row["seed_id"],
+        "policy": row["algorithm"],
+        "random_seed": row["random_seed"],
+        "expected_run_id": row["expected_run_id"],
+        "expected_bundle_id": row["expected_bundle_id"],
+    }
 
 
 def _seed_label(seed_id: str, seed_by_id: Mapping[str, ScenarioSeed]) -> str:

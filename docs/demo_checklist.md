@@ -31,6 +31,9 @@ traffictwin demo launch .demo
 - [ ] Home exposes **Start Guided Demo** without requiring the sidebar.
 - [ ] Guided Demo shows eight standalone stages and keeps every stage synthetic/import-first.
 - [ ] Experiment Planner previews the baseline/variation matrix and seed differences.
+- [ ] Experiment Planner exports an exhaustive protocol YAML and CSV run sheet.
+- [ ] Completed-bundle matching is read-only and distinguishes exact, compatible, mismatch, and
+  unmatched metadata.
 - [ ] Registering an experiment plan creates no run and enables no simulator launch.
 - [ ] Optional imported-TOS track reports the validated package inventory and read-only boundary.
 - [ ] Direct launch is unsupported.
@@ -64,6 +67,7 @@ traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
 traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
 traffictwin report full .demo/bundles/stressed_demand --comparison-baseline .demo/bundles/baseline --output .demo/reports/stressed_full.html
+traffictwin experiment protocol --registry .demo/registry.sqlite --experiment-id EXPERIMENT_ID --format yaml
 ```
 
 ## Post-Demo Cleanup

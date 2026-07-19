@@ -50,6 +50,8 @@ traffictwin demo launch .demo
    - Select `seed-baseline` as baseline and `seed-stressed_demand` as variation.
    - Use one registered synthetic policy label and common random seed `7`.
    - Validate the plan and show the condition/policy/seed matrix plus changed seed parameters.
+   - Show the exhaustive execution protocol and download its YAML or CSV run sheet.
+   - Explain that suggested run/bundle IDs support coordination but do not prove execution.
    - Explain that registration creates one planned `Experiment` and no `Run` records.
 
 4. Open Scenario Builder.

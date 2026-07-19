@@ -28,6 +28,7 @@ flowchart TD
     subgraph CoreLibrary[TrafficTwin library]
         Config[config: seed IO and capabilities]
         Domain[domain: ScenarioSeed, Experiment, Run]
+        Protocol[experiments: plan and protocol exporter]
         Ingestion[ingestion: bundle loading and manifest parsing]
         Adapters[adapters: generic CSV boundary]
         Canonical[canonical: in-memory records]
@@ -44,6 +45,7 @@ flowchart TD
     CLI --> CoreLibrary
     UI --> CoreLibrary
     Config --> Domain
+    Protocol --> Domain
     Ingestion --> Adapters
     Adapters --> Canonical
     Ingestion --> Validation
@@ -69,6 +71,7 @@ flowchart TD
 |---|---|---|
 | Configuration | `src/traffictwin/config/` | Seed YAML loading/dumping and capability manifests. |
 | Domain | `src/traffictwin/domain/` | `ScenarioSeed`, `Experiment`, `Run`, enums, and strict validation. |
+| Experiment planning | `src/traffictwin/experiments/` | Validated design previews, exhaustive protocol YAML/CSV, seed fingerprints, and read-only bundle matching. |
 | Ingestion | `src/traffictwin/ingestion/` | Bundle loading, manifest parsing, fingerprints, and validation orchestration. |
 | Adapters | `src/traffictwin/adapters/` | Raw source interpretation at boundaries. Currently generic CSV only. |
 | Canonical | `src/traffictwin/canonical/` | In-memory canonical record models and table container. |
@@ -427,6 +430,7 @@ capabilities.
 - [Developer guide](developer_guide.md)
 - [Data contract](data_contract.md)
 - [Run bundle specification](run_bundle_spec.md)
+- [Experiment protocol export](experiment_protocol.md)
 - [Metrics catalogue](metrics_catalogue.md)
 - [Diagnostic rules](diagnostic_rules.md)
 - [Provenance Explorer](provenance_explorer.md)

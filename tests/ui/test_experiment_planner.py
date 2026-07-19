@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import io
 from datetime import UTC, datetime
 from importlib import import_module
 from pathlib import Path
@@ -11,8 +13,12 @@ from tests.unit.test_registry import make_seed
 from traffictwin.storage.registry import Registry
 from traffictwin.ui.services import (
     ServiceError,
+    build_experiment_protocol_for_ui,
     experiment_plan_yaml_for_ui,
+    experiment_protocol_csv_for_ui,
+    experiment_protocol_yaml_for_ui,
     load_experiment_planner_catalog,
+    load_registered_experiment_protocol_for_ui,
     prepare_experiment_plan_for_ui,
     register_experiment_plan_for_ui,
 )
@@ -65,6 +71,12 @@ def test_planner_service_previews_exports_and_registers_without_runs(tmp_path: P
     assert document["experiment_id"] == "exp-ui-plan"
     assert document["status"] == "planned"
     assert document["created_at"] == "2026-07-18T12:00:00Z"
+    protocol = build_experiment_protocol_for_ui(summary.experiment, catalog.seeds)
+    assert not isinstance(protocol, ServiceError)
+    assert len(protocol.slots) == 8
+    assert len(list(csv.DictReader(io.StringIO(experiment_protocol_csv_for_ui(protocol))))) == 8
+    protocol_document = yaml.safe_load(experiment_protocol_yaml_for_ui(protocol))
+    assert protocol_document["direct_launch_supported"] is False
 
     registered = register_experiment_plan_for_ui(summary, registry_path)
     assert not isinstance(registered, ServiceError)
@@ -74,6 +86,9 @@ def test_planner_service_previews_exports_and_registers_without_runs(tmp_path: P
     duplicate = register_experiment_plan_for_ui(summary, registry_path)
     assert isinstance(duplicate, ServiceError)
     assert "already exists" in (duplicate.detail or "")
+    restored = load_registered_experiment_protocol_for_ui("exp-ui-plan", registry_path)
+    assert not isinstance(restored, ServiceError)
+    assert restored == protocol
 
 
 def test_planner_service_rejects_invalid_random_seed_input(tmp_path: Path) -> None:
@@ -120,6 +135,7 @@ def test_streamlit_experiment_planner_validates_and_registers(
 
     assert not app.exception
     assert any(heading.value == "Validated Plan Preview" for heading in app.subheader)
+    assert any(heading.value == "Execution Protocol" for heading in app.subheader)
     next(
         button for button in app.button if button.label == "Register Planned Experiment"
     ).click().run(timeout=10)
@@ -127,6 +143,8 @@ def test_streamlit_experiment_planner_validates_and_registers(
     assert not app.exception
     assert registry.get_experiment("exp-apptest-plan").status.value == "planned"
     assert registry.inspect().run_count == 0
+    app.run(timeout=10)
+    assert any(heading.value == "Registered Protocol Export" for heading in app.subheader)
 
 
 def test_streamlit_home_renders_workspace_planner_actions(

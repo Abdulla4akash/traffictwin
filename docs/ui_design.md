@@ -17,7 +17,8 @@ The current UI is a thin Streamlit layer over the tested TrafficTwin library.
 - Guided Demo: mobile-visible, stage-based navigation through either the standalone synthetic
   pipeline or the read-only imported TOS evidence workflow.
 - Experiment Planner: registered-seed selection, common-random-seed design, bounded run-matrix
-  preview, seed diff, YAML export, and planned-experiment registration without run creation.
+  preview, seed diff, planned-experiment registration, exhaustive protocol YAML/CSV, and read-only
+  completed-bundle matching without run creation.
 - Scenario Builder: synthetic generator configuration, validation, YAML preview, bundle generation,
   and normal bundle validation.
 - Bundle Import & Validation: manifest, files, validation findings, evidence availability, import.
@@ -64,8 +65,9 @@ framework-independent, but every analysis action opens an existing page backed b
 services. The guide itself performs no scientific computation.
 
 Experiment Planner delegates design validation to `traffictwin.experiments.planning` and registry
-operations to `ui.services`. The page does not generate synthetic records, compute metrics, create
-`Run` objects, or expose a launch control.
+operations to `ui.services`. `traffictwin.experiments.protocol` supplies every slot, fingerprint,
+export, and match result. The page does not generate synthetic records, compute metrics, create
+`Run` objects, import matched bundles, or expose a launch control.
 
 ## Visual Policy
 

@@ -118,6 +118,35 @@ count. It returns an `ExperimentPlanSummary` containing deterministic design cou
 The function is side-effect free. It does not create `Run` records, execute a policy, or launch a
 simulator. Persist the validated `Experiment` separately through `Registry.add_experiment`.
 
+### Experiment Protocol
+
+```python
+from traffictwin.experiments import (
+    ExperimentProtocol,
+    ProtocolBundleMatch,
+    build_experiment_protocol,
+    match_bundle_manifest,
+    protocol_to_csv,
+    protocol_to_yaml,
+)
+```
+
+`build_experiment_protocol(experiment, registered_seeds, max_slots=10000, clock=None)` validates
+the plan and returns an exhaustive `ExperimentProtocol`. The protocol embeds seed snapshots,
+fingerprints, deterministic slot identifiers, suggested run/bundle identifiers, checkpoint
+requirements, warnings, and limitations. It raises `ValueError` rather than returning a truncated
+run sheet.
+
+`protocol_to_yaml(protocol)` returns the versioned protocol document. `protocol_to_csv(protocol)`
+returns one row per planned slot in stable order.
+
+`match_bundle_manifest(protocol, manifest) -> ProtocolBundleMatch` compares an already validated
+`BundleManifest` with the protocol. Status is `exact`, `compatible`, `mismatch`, or `unmatched`.
+It does not validate files, import the bundle, create a run, or establish scientific validity; call
+`validate_bundle` first.
+
+See [Experiment protocol export](experiment_protocol.md) for identifier and checkpoint semantics.
+
 ## Bundle Manifest And Ingestion
 
 ### `BundleManifest`

@@ -224,6 +224,38 @@ traffictwin experiment summarise --registry data/registry/traffictwin.sqlite --e
 
 The command summarises metric collections already stored in the registry. It does not import bundles automatically.
 
+### `traffictwin experiment protocol --registry REGISTRY --experiment-id ID [--format yaml|csv] [--output FILE]`
+
+Purpose: export a registered experiment and its referenced seed snapshots as an exhaustive,
+deterministic coordination protocol.
+
+Examples:
+
+```bash
+traffictwin experiment protocol --registry .demo/registry.sqlite \
+  --experiment-id exp-planned-study --format yaml --output protocol.yaml
+traffictwin experiment protocol --registry .demo/registry.sqlite \
+  --experiment-id exp-planned-study --format csv --output run-sheet.csv
+```
+
+When `--output` is omitted, the document is printed to standard output. Only `yaml` and `csv` are
+accepted. Missing experiments, missing referenced seeds, invalid plans, and unsupported formats
+return exit code `1`. The command creates no `Run` records and launches nothing.
+
+### `traffictwin experiment match-bundle PATH --registry REGISTRY --experiment-id ID [--format text|json]`
+
+Purpose: validate a completed directory/ZIP bundle, then compare its manifest metadata with the
+registered experiment protocol.
+
+```bash
+traffictwin experiment match-bundle .demo/bundles/baseline \
+  --registry .demo/registry.sqlite --experiment-id exp-planned-study --format json
+```
+
+The result is `exact`, `compatible`, `mismatch`, or `unmatched`. `exact` and `compatible` return
+exit code `0`; rejected bundles, conflicts, and no match return `1`. The command does not import the
+bundle or mutate the registry.
+
 ## Diagnostic Commands
 
 ### `traffictwin diagnose bundle PATH`

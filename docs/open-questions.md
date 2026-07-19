@@ -160,6 +160,9 @@ Only the following evidence is still needed:
   canonical-evidence blockers.
 - Experiment planning is not blocked by external integration: it records a proposed design only.
   Executing planned run slots remains adapter-gated and unavailable.
+- Deterministic YAML/CSV protocols now support manual coordination and later manifest matching;
+  who or what executes each slot, and the actual environment/checkpoint provenance, remain external
+  responsibilities until an evidenced launcher exists.
 
 ## Non-Blocking Unknowns
 

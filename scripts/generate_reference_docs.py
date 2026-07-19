@@ -25,6 +25,11 @@ from traffictwin.domain.experiment import Experiment
 from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed, SeedDocument
 from traffictwin.evidence.pack import EvidencePack
+from traffictwin.experiments.protocol import (
+    ExperimentProtocol,
+    ExperimentProtocolSlot,
+    ProtocolBundleMatch,
+)
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
 from traffictwin.integration.tos.analysis import tos_analysis_catalogue
 from traffictwin.integration.tos.analysis_models import (
@@ -84,6 +89,9 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "MetricEngineConfig": MetricEngineConfig,
     "MetricCollection": MetricCollection,
     "EvidencePack": EvidencePack,
+    "ExperimentProtocol": ExperimentProtocol,
+    "ExperimentProtocolSlot": ExperimentProtocolSlot,
+    "ProtocolBundleMatch": ProtocolBundleMatch,
     "ProvenanceNode": ProvenanceNode,
     "ProvenanceEdge": ProvenanceEdge,
     "ProvenanceTrace": ProvenanceTrace,
@@ -146,6 +154,8 @@ CLI_COMMANDS = [
     ["release", "stage-demo-site"],
     ["experiment"],
     ["experiment", "summarise"],
+    ["experiment", "protocol"],
+    ["experiment", "match-bundle"],
     ["diagnose"],
     ["diagnose", "bundle"],
     ["diagnose", "evidence"],

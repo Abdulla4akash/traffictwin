@@ -18,6 +18,14 @@ from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
+from traffictwin.experiments.protocol import (
+    ExperimentProtocol,
+    ProtocolMatchStatus,
+    build_experiment_protocol,
+    match_bundle_manifest,
+    protocol_to_csv,
+    protocol_to_yaml,
+)
 from traffictwin.ingestion.bundle import BundleValidationResult, inspect_bundle, validate_bundle
 from traffictwin.ingestion.bundle import import_bundle as import_run_bundle
 from traffictwin.integration.tos import (
@@ -91,7 +99,10 @@ registry_app = typer.Typer(no_args_is_help=True, help="Metadata registry command
 bundle_app = typer.Typer(no_args_is_help=True, help="Run-bundle commands.")
 metrics_app = typer.Typer(no_args_is_help=True, help="Deterministic metric commands.")
 evidence_app = typer.Typer(no_args_is_help=True, help="Evidence-pack commands.")
-experiment_app = typer.Typer(no_args_is_help=True, help="Experiment aggregation commands.")
+experiment_app = typer.Typer(
+    no_args_is_help=True,
+    help="Experiment planning, protocol, and aggregation commands.",
+)
 diagnose_app = typer.Typer(no_args_is_help=True, help="Deterministic diagnostic commands.")
 provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance trace commands.")
 synthetic_app = typer.Typer(no_args_is_help=True, help="Standalone synthetic fixture commands.")
@@ -399,6 +410,94 @@ def summarise_experiment_command(
     typer.echo(f"conditions: {report.condition_count}")
     for condition in report.conditions:
         typer.echo(f"{condition.condition_id}: runs={condition.run_count}")
+
+
+@experiment_app.command("protocol")
+def export_experiment_protocol_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "yaml",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Export a registered experiment as a deterministic YAML or CSV protocol."""
+
+    try:
+        protocol = _registered_experiment_protocol(registry, experiment_id)
+    except (RegistryNotFoundError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "yaml":
+        payload = protocol_to_yaml(protocol)
+    elif output_format == "csv":
+        payload = protocol_to_csv(protocol)
+    else:
+        typer.echo("only --format yaml or --format csv is supported", err=True)
+        raise typer.Exit(code=1)
+    if output is None:
+        typer.echo(payload, nl=False)
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(payload, encoding="utf-8")
+    typer.echo(f"protocol: {protocol.protocol_id}")
+    typer.echo(f"run_slots: {len(protocol.slots)}")
+    typer.echo(f"output: {output}")
+
+
+@experiment_app.command("match-bundle")
+def match_experiment_bundle_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate and match a completed bundle to a registered protocol slot."""
+
+    try:
+        protocol = _registered_experiment_protocol(registry, experiment_id)
+    except (RegistryNotFoundError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    validation = validate_bundle(path)
+    if validation.manifest is None or not validation.report.may_import:
+        typer.echo("bundle rejected; protocol matching was not performed", err=True)
+        for validation_finding in validation.report.findings:
+            typer.echo(f"{validation_finding.code.value}: {validation_finding.message}", err=True)
+        raise typer.Exit(code=1)
+    match = match_bundle_manifest(protocol, validation.manifest)
+    if output_format == "json":
+        typer.echo(match.to_json())
+    elif output_format == "text":
+        typer.echo(f"protocol: {match.protocol_id}")
+        typer.echo(f"bundle: {match.bundle_id}")
+        typer.echo(f"run: {match.run_id}")
+        typer.echo(f"status: {match.status.value}")
+        typer.echo(f"slot: {match.matched_slot_id or 'none'}")
+        for match_finding in match.findings:
+            typer.echo(f"finding: {match_finding}")
+        for mismatch in match.mismatches:
+            typer.echo(
+                f"mismatch: {mismatch.field} expected={mismatch.expected!r} "
+                f"observed={mismatch.observed!r}"
+            )
+    else:
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    if match.status not in {ProtocolMatchStatus.EXACT, ProtocolMatchStatus.COMPATIBLE}:
+        raise typer.Exit(code=1)
+
+
+def _registered_experiment_protocol(
+    registry_path: Path,
+    experiment_id: str,
+) -> ExperimentProtocol:
+    registry = Registry(registry_path)
+    experiment = registry.get_experiment(experiment_id)
+    seeds = {seed.seed_id: seed for seed in registry.list_seeds()}
+    return build_experiment_protocol(experiment, seeds)
 
 
 @diagnose_app.command("bundle")

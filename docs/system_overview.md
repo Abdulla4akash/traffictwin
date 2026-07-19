@@ -62,7 +62,9 @@ Blocked:
 ```mermaid
 flowchart LR
     A[Create or load seed YAML] --> B[Validate/export seed]
-    B --> C[Import completed run bundle]
+    B --> P[Plan experiment]
+    P --> X[Export deterministic protocol]
+    X --> C[Import completed run bundle]
     C --> D[Validate manifest and files]
     D --> E[Canonical in-memory records]
     E --> F[Compute deterministic metrics]
@@ -76,6 +78,10 @@ flowchart LR
     H --> K
     K --> J
 ```
+
+The protocol is a manual coordination artifact while direct launch is unavailable. Suggested slot,
+run, and bundle identifiers make later manifest matching auditable; they do not establish that an
+external environment executed the plan correctly.
 
 ## Why Import-First
 

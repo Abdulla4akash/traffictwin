@@ -658,6 +658,9 @@ selection, and training orchestration remain outside this integration boundary.
 - `Experiment Planner` over registered `ScenarioSeed` records, with research-question metadata,
   baseline/variation selection, policy labels, common random seeds, bounded design preview, seed
   differences, YAML export, and transactional registration as status `planned`.
+- Versioned Experiment Protocol Exporter with exhaustive deterministic run slots, embedded seed
+  snapshots/fingerprints, suggested run/bundle identifiers, YAML/CSV export, and read-only bundle
+  matching (`exact`, `compatible`, `mismatch`, or `unmatched`).
 - Experiment planning creates no `Run` records and exposes no simulator launch control.
 - Improved replay controls: play, pause, resume, restart, timestamp jump, scrubber, speed presets,
   step controls, and deterministic filters.
@@ -680,6 +683,12 @@ selection, and training orchestration remain outside this integration boundary.
   coverage 79%; generated references and fixtures were unchanged; release smoke, synthetic
   workspace verification, package build, Streamlit AppTest, and phone-sized browser validation
   passed.
+
+The protocol exporter preserves the same boundary: it coordinates planned external work but does
+not schedule it, infer environment details, import matched bundles, or change registry state.
+- Experiment Protocol Exporter quality gates: Ruff format/check and strict mypy passed; 229 tests
+  passed; coverage remained 79%; generated schemas/CLI help were refreshed; protocol CLI and
+  Streamlit AppTest workflows passed.
 
 ## Standalone Product Remaining Limits
 

@@ -30,6 +30,14 @@ from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.experiments.planning import ExperimentPlanSummary, summarise_experiment_plan
+from traffictwin.experiments.protocol import (
+    ExperimentProtocol,
+    ProtocolBundleMatch,
+    build_experiment_protocol,
+    match_bundle_manifest,
+    protocol_to_csv,
+    protocol_to_yaml,
+)
 from traffictwin.ingestion.bundle import BundleValidationResult, import_bundle, validate_bundle
 from traffictwin.integration.tos import (
     TosCampaignComparisonReport,
@@ -112,6 +120,7 @@ from traffictwin.storage.registry import (
     DuplicateIdentifierError,
     Registry,
     RegistryConflictError,
+    RegistryNotFoundError,
     RegistrySummary,
 )
 from traffictwin.synthetic.bundles import write_synthetic_bundle
@@ -855,6 +864,65 @@ def experiment_plan_yaml_for_ui(summary: ExperimentPlanSummary) -> str:
         sort_keys=False,
         allow_unicode=False,
     )
+
+
+def build_experiment_protocol_for_ui(
+    experiment: Experiment,
+    registered_seeds: list[ScenarioSeed],
+) -> ExperimentProtocol | ServiceError:
+    """Build a read-only execution protocol from typed planner inputs."""
+
+    try:
+        return build_experiment_protocol(
+            experiment,
+            {seed.seed_id: seed for seed in registered_seeds},
+        )
+    except ValueError as exc:
+        return ServiceError("The experiment protocol could not be built.", str(exc))
+
+
+def load_registered_experiment_protocol_for_ui(
+    experiment_id: str,
+    registry_path: str | Path,
+) -> ExperimentProtocol | ServiceError:
+    """Load a registered experiment and build its deterministic protocol."""
+
+    try:
+        registry = Registry(registry_path)
+        registry.initialize()
+        experiment = registry.get_experiment(experiment_id)
+        seeds = registry.list_seeds()
+    except (OSError, sqlite3.Error, RegistryNotFoundError, ValueError) as exc:
+        return ServiceError("The registered experiment protocol could not be loaded.", str(exc))
+    return build_experiment_protocol_for_ui(experiment, seeds)
+
+
+def experiment_protocol_yaml_for_ui(protocol: ExperimentProtocol) -> str:
+    """Return the versioned protocol as deterministic YAML."""
+
+    return protocol_to_yaml(protocol)
+
+
+def experiment_protocol_csv_for_ui(protocol: ExperimentProtocol) -> str:
+    """Return the protocol slots as a deterministic CSV run sheet."""
+
+    return protocol_to_csv(protocol)
+
+
+def match_bundle_to_protocol_for_ui(
+    protocol: ExperimentProtocol,
+    bundle_path: str | Path,
+) -> ProtocolBundleMatch | ServiceError:
+    """Validate and match one completed bundle without importing it."""
+
+    result = validate_bundle(bundle_path)
+    if result.manifest is None or not result.report.may_import:
+        codes = ", ".join(finding.code.value for finding in result.report.findings)
+        return ServiceError(
+            "The bundle was rejected and cannot be matched to the protocol.",
+            codes or "No valid manifest was available.",
+        )
+    return match_bundle_manifest(protocol, result.manifest)
 
 
 def list_workspace_reports(workspace_path: str | Path | None) -> list[ReportEntry]:

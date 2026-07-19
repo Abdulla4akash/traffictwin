@@ -34,6 +34,8 @@ Implemented:
   paired campaign comparison, training-history exploration, generalisation labels,
   reproducibility auditing, research-safe exports, partial EvidencePacks, and aggregate
   provenance.
+- Deterministic experiment protocol YAML/CSV with exhaustive run slots and read-only completed-
+  bundle matching.
 
 Not implemented:
 
@@ -92,7 +94,8 @@ Every generated scenario is labelled synthetic. The generator is a controlled so
    is collapsed.
 2. Choose **Standalone synthetic** and follow its eight validated pipeline stages.
 3. Open Experiment Planner and preview a baseline/variation design using registered seeds and a
-   common random seed. Registering the plan creates no runs.
+   common random seed. Export its protocol YAML or CSV run sheet. Registering the plan creates no
+   runs.
 4. Open Scenario Builder and duplicate or export a synthetic scenario configuration.
 5. Validate `.demo/bundles/baseline` and `.demo/bundles/stressed_demand`.
 6. Inspect baseline metrics, historical replay, and infrastructure state.
@@ -146,6 +149,20 @@ traffictwin report full .demo/bundles/stressed_demand \
   --comparison-baseline .demo/bundles/baseline \
   --output .demo/reports/full.html
 ```
+
+Export a registered research design for external coordination:
+
+```bash
+traffictwin experiment protocol --registry .demo/registry.sqlite \
+  --experiment-id EXPERIMENT_ID --format yaml --output protocol.yaml
+traffictwin experiment protocol --registry .demo/registry.sqlite \
+  --experiment-id EXPERIMENT_ID --format csv --output run-sheet.csv
+traffictwin experiment match-bundle COMPLETED_BUNDLE --registry .demo/registry.sqlite \
+  --experiment-id EXPERIMENT_ID
+```
+
+These commands do not launch work or create `Run` records. See
+[docs/experiment_protocol.md](docs/experiment_protocol.md).
 
 Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
 
@@ -231,7 +248,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Provenance Explorer | Implemented | CLI and Streamlit trace inspection. |
 | Report export | Implemented | Deterministic Markdown and standalone HTML. |
 | Streamlit UI | Implemented | Thin presentation layer. |
-| Experiment planning | Implemented | Validated seed/policy/common-seed matrix; metadata only, with no run creation or launch. |
+| Experiment planning | Implemented | Validated seed/policy/common-seed matrix plus deterministic protocol YAML/CSV; no run creation or launch. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
 | Synthetic static deployment | Implemented | Netlify-compatible; external data is excluded. |
 | Streamlit container | Implemented | Initialised standalone synthetic workspace on port 8501. |

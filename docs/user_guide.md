@@ -75,11 +75,19 @@ Steps:
 5. Enter the research question and optional working hypothesis.
 6. Select **Validate Plan** and review condition, policy, replicate, and planned-run-slot counts.
 7. Inspect the bounded design matrix and deterministic seed-parameter differences.
-8. Download the plan YAML or select **Register Planned Experiment**.
+8. Review the exhaustive **Execution Protocol** run slots and any checkpoint warnings.
+9. Download the plan YAML, versioned protocol YAML, or CSV run sheet.
+10. Select **Register Planned Experiment** when the design is ready.
 
 Registration writes one `Experiment` with status `planned`. It deliberately creates no `Run`
 records. A policy label is planning metadata and does not imply that TrafficTwin can execute that
 policy. Use Experiment Manager to inspect the saved plan.
+
+For an existing registered plan, use **Registered Protocol Export** to recreate the same protocol
+or run sheet. **Match a completed bundle** first validates the selected directory/ZIP and then
+reports `exact`, `compatible`, `mismatch`, or `unmatched`. This check is read-only: it neither
+imports the bundle nor changes the experiment. Suggested run and bundle IDs are coordination
+metadata, not proof that an external run used the intended configuration.
 
 ## Scenario Builder
 

@@ -1016,6 +1016,776 @@
       "title": "Experiment",
       "type": "object"
     },
+    "ExperimentProtocol": {
+      "$defs": {
+        "Decision": {
+          "description": "Supported offloading decision labels in TrafficTwin's internal contract.",
+          "enum": [
+            "local",
+            "v2i",
+            "v2v",
+            "unknown"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "DemandSettings": {
+          "additionalProperties": false,
+          "description": "Demand multiplier settings.",
+          "properties": {
+            "multiplier": {
+              "default": 1.0,
+              "exclusiveMinimum": 0,
+              "title": "Multiplier",
+              "type": "number"
+            }
+          },
+          "title": "DemandSettings",
+          "type": "object"
+        },
+        "EvaluationSettings": {
+          "additionalProperties": false,
+          "description": "Evaluation reproducibility settings.",
+          "properties": {
+            "random_seed": {
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "random_seed"
+          ],
+          "title": "EvaluationSettings",
+          "type": "object"
+        },
+        "Experiment": {
+          "additionalProperties": false,
+          "description": "A planned or executed research comparison across one baseline and variations.",
+          "properties": {
+            "algorithms": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Algorithms",
+              "type": "array"
+            },
+            "baseline_seed_id": {
+              "title": "Baseline Seed Id",
+              "type": "string"
+            },
+            "common_random_seed_set": {
+              "items": {
+                "type": "integer"
+              },
+              "title": "Common Random Seed Set",
+              "type": "array"
+            },
+            "created_at": {
+              "format": "date-time",
+              "title": "Created At",
+              "type": "string"
+            },
+            "experiment_id": {
+              "title": "Experiment Id",
+              "type": "string"
+            },
+            "hypothesis": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Hypothesis"
+            },
+            "planned_replicates": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Planned Replicates",
+              "type": "integer"
+            },
+            "research_question": {
+              "minLength": 1,
+              "title": "Research Question",
+              "type": "string"
+            },
+            "schema_version": {
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "status": {
+              "$ref": "#/$defs/ExperimentStatus",
+              "default": "planned"
+            },
+            "updated_at": {
+              "format": "date-time",
+              "title": "Updated At",
+              "type": "string"
+            },
+            "variation_seed_ids": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Variation Seed Ids",
+              "type": "array"
+            }
+          },
+          "required": [
+            "experiment_id",
+            "research_question",
+            "baseline_seed_id"
+          ],
+          "title": "Experiment",
+          "type": "object"
+        },
+        "ExperimentProtocolSlot": {
+          "additionalProperties": false,
+          "description": "One exhaustive, deterministic slot in an experiment run sheet.",
+          "properties": {
+            "algorithm": {
+              "title": "Algorithm",
+              "type": "string"
+            },
+            "checkpoint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Checkpoint"
+            },
+            "checkpoint_match_required": {
+              "default": false,
+              "title": "Checkpoint Match Required",
+              "type": "boolean"
+            },
+            "expected_bundle_id": {
+              "title": "Expected Bundle Id",
+              "type": "string"
+            },
+            "expected_run_id": {
+              "title": "Expected Run Id",
+              "type": "string"
+            },
+            "experiment_id": {
+              "title": "Experiment Id",
+              "type": "string"
+            },
+            "random_seed": {
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            },
+            "role": {
+              "enum": [
+                "baseline",
+                "variation"
+              ],
+              "title": "Role",
+              "type": "string"
+            },
+            "seed_fingerprint": {
+              "title": "Seed Fingerprint",
+              "type": "string"
+            },
+            "seed_id": {
+              "title": "Seed Id",
+              "type": "string"
+            },
+            "seed_schema_version": {
+              "title": "Seed Schema Version",
+              "type": "string"
+            },
+            "sequence": {
+              "minimum": 1,
+              "title": "Sequence",
+              "type": "integer"
+            },
+            "slot_id": {
+              "title": "Slot Id",
+              "type": "string"
+            },
+            "status": {
+              "const": "planned",
+              "default": "planned",
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "slot_id",
+            "sequence",
+            "role",
+            "experiment_id",
+            "seed_id",
+            "seed_schema_version",
+            "seed_fingerprint",
+            "algorithm",
+            "random_seed",
+            "expected_run_id",
+            "expected_bundle_id"
+          ],
+          "title": "ExperimentProtocolSlot",
+          "type": "object"
+        },
+        "ExperimentStatus": {
+          "description": "Lifecycle states for an experiment record.",
+          "enum": [
+            "planned",
+            "running",
+            "completed",
+            "failed",
+            "archived"
+          ],
+          "title": "ExperimentStatus",
+          "type": "string"
+        },
+        "FleetSettings": {
+          "additionalProperties": false,
+          "description": "Fleet settings for a scenario seed.",
+          "properties": {
+            "count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Count"
+            },
+            "tier_mix": {
+              "$ref": "#/$defs/FleetTierMix",
+              "default": "mixed"
+            }
+          },
+          "title": "FleetSettings",
+          "type": "object"
+        },
+        "FleetTierMix": {
+          "description": "Coarse fleet capability mix categories for scenario seeds.",
+          "enum": [
+            "weak",
+            "mixed",
+            "high_compute"
+          ],
+          "title": "FleetTierMix",
+          "type": "string"
+        },
+        "InfrastructureSettings": {
+          "additionalProperties": false,
+          "description": "Infrastructure settings for a scenario seed.",
+          "properties": {
+            "failed_rsus": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Failed Rsus",
+              "type": "array"
+            },
+            "rsu_capacity_mode": {
+              "$ref": "#/$defs/RsuCapacityMode",
+              "default": "standard"
+            },
+            "rsu_count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Rsu Count"
+            }
+          },
+          "title": "InfrastructureSettings",
+          "type": "object"
+        },
+        "PolicySettings": {
+          "additionalProperties": false,
+          "description": "Policy/checkpoint settings for scenario evaluation.",
+          "properties": {
+            "algorithm": {
+              "minLength": 1,
+              "title": "Algorithm",
+              "type": "string"
+            },
+            "checkpoint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Checkpoint"
+            }
+          },
+          "required": [
+            "algorithm"
+          ],
+          "title": "PolicySettings",
+          "type": "object"
+        },
+        "Provenance": {
+          "additionalProperties": false,
+          "description": "Seed provenance metadata.",
+          "properties": {
+            "created_by": {
+              "minLength": 1,
+              "title": "Created By",
+              "type": "string"
+            },
+            "source": {
+              "minLength": 1,
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          "required": [
+            "created_by",
+            "source"
+          ],
+          "title": "Provenance",
+          "type": "object"
+        },
+        "RsuCapacityMode": {
+          "description": "Coarse RSU capacity settings for scenario seeds.",
+          "enum": [
+            "reduced",
+            "standard",
+            "expanded"
+          ],
+          "title": "RsuCapacityMode",
+          "type": "string"
+        },
+        "ScenarioSeed": {
+          "additionalProperties": false,
+          "description": "Versioned TrafficTwin what-if scenario seed.",
+          "properties": {
+            "allowed_decisions": {
+              "items": {
+                "$ref": "#/$defs/Decision"
+              },
+              "title": "Allowed Decisions",
+              "type": "array"
+            },
+            "base": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Base"
+            },
+            "compare_against": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Compare Against"
+            },
+            "demand": {
+              "$ref": "#/$defs/DemandSettings"
+            },
+            "description": {
+              "default": "",
+              "title": "Description",
+              "type": "string"
+            },
+            "evaluation": {
+              "$ref": "#/$defs/EvaluationSettings"
+            },
+            "fleet": {
+              "$ref": "#/$defs/FleetSettings"
+            },
+            "id": {
+              "title": "Id",
+              "type": "string"
+            },
+            "infrastructure": {
+              "$ref": "#/$defs/InfrastructureSettings"
+            },
+            "name": {
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "policy": {
+              "$ref": "#/$defs/PolicySettings"
+            },
+            "preset_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Preset Id"
+            },
+            "provenance": {
+              "$ref": "#/$defs/Provenance"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "traffic": {
+              "$ref": "#/$defs/TrafficSettings"
+            },
+            "workload": {
+              "$ref": "#/$defs/WorkloadSettings"
+            }
+          },
+          "required": [
+            "id",
+            "name",
+            "workload",
+            "allowed_decisions",
+            "policy",
+            "evaluation",
+            "provenance"
+          ],
+          "title": "ScenarioSeed",
+          "type": "object"
+        },
+        "TaskClass": {
+          "description": "Supported task classes in the Phase 1 seed schema.",
+          "enum": [
+            "T1",
+            "T2",
+            "T3",
+            "unknown"
+          ],
+          "title": "TaskClass",
+          "type": "string"
+        },
+        "TrafficSettings": {
+          "additionalProperties": false,
+          "description": "Traffic-side scenario settings supported by the seed schema.",
+          "properties": {
+            "demand_profile": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Demand Profile"
+            },
+            "duration_min": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Duration Min"
+            },
+            "event_type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Event Type"
+            },
+            "lanes_closed": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Lanes Closed"
+            },
+            "location": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Location"
+            }
+          },
+          "title": "TrafficSettings",
+          "type": "object"
+        },
+        "WorkloadOrdering": {
+          "description": "Supported workload ordering settings.",
+          "enum": [
+            "easy_first",
+            "mixed",
+            "hard_first"
+          ],
+          "title": "WorkloadOrdering",
+          "type": "string"
+        },
+        "WorkloadSettings": {
+          "additionalProperties": false,
+          "description": "Workload settings for task generation.",
+          "properties": {
+            "birth_rate_multiplier": {
+              "default": 1.0,
+              "exclusiveMinimum": 0,
+              "title": "Birth Rate Multiplier",
+              "type": "number"
+            },
+            "class_mix": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "propertyNames": {
+                "$ref": "#/$defs/TaskClass"
+              },
+              "title": "Class Mix",
+              "type": "object"
+            },
+            "ordering": {
+              "$ref": "#/$defs/WorkloadOrdering",
+              "default": "mixed"
+            }
+          },
+          "title": "WorkloadSettings",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Versioned, read-only execution checklist for a registered experiment.",
+      "properties": {
+        "direct_launch_supported": {
+          "const": false,
+          "default": false,
+          "title": "Direct Launch Supported",
+          "type": "boolean"
+        },
+        "experiment": {
+          "$ref": "#/$defs/Experiment"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "input_fingerprint": {
+          "title": "Input Fingerprint",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "matching_fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Matching Fields",
+          "type": "array"
+        },
+        "protocol_id": {
+          "title": "Protocol Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "seed_fingerprints": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Seed Fingerprints",
+          "type": "object"
+        },
+        "seed_snapshots": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ScenarioSeed"
+          },
+          "title": "Seed Snapshots",
+          "type": "object"
+        },
+        "slots": {
+          "items": {
+            "$ref": "#/$defs/ExperimentProtocolSlot"
+          },
+          "title": "Slots",
+          "type": "array"
+        },
+        "source": {
+          "const": "TrafficTwin Experiment Protocol Exporter",
+          "default": "TrafficTwin Experiment Protocol Exporter",
+          "title": "Source",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "protocol_id",
+        "generated_at",
+        "input_fingerprint",
+        "experiment",
+        "seed_snapshots",
+        "seed_fingerprints",
+        "slots"
+      ],
+      "title": "ExperimentProtocol",
+      "type": "object"
+    },
+    "ExperimentProtocolSlot": {
+      "additionalProperties": false,
+      "description": "One exhaustive, deterministic slot in an experiment run sheet.",
+      "properties": {
+        "algorithm": {
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "checkpoint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checkpoint"
+        },
+        "checkpoint_match_required": {
+          "default": false,
+          "title": "Checkpoint Match Required",
+          "type": "boolean"
+        },
+        "expected_bundle_id": {
+          "title": "Expected Bundle Id",
+          "type": "string"
+        },
+        "expected_run_id": {
+          "title": "Expected Run Id",
+          "type": "string"
+        },
+        "experiment_id": {
+          "title": "Experiment Id",
+          "type": "string"
+        },
+        "random_seed": {
+          "minimum": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "role": {
+          "enum": [
+            "baseline",
+            "variation"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "seed_fingerprint": {
+          "title": "Seed Fingerprint",
+          "type": "string"
+        },
+        "seed_id": {
+          "title": "Seed Id",
+          "type": "string"
+        },
+        "seed_schema_version": {
+          "title": "Seed Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "slot_id": {
+          "title": "Slot Id",
+          "type": "string"
+        },
+        "status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "slot_id",
+        "sequence",
+        "role",
+        "experiment_id",
+        "seed_id",
+        "seed_schema_version",
+        "seed_fingerprint",
+        "algorithm",
+        "random_seed",
+        "expected_run_id",
+        "expected_bundle_id"
+      ],
+      "title": "ExperimentProtocolSlot",
+      "type": "object"
+    },
     "FileDeclaration": {
       "additionalProperties": false,
       "description": "Declared source file and mapping information.",
@@ -1548,6 +2318,119 @@
         }
       },
       "title": "MetricEngineConfig",
+      "type": "object"
+    },
+    "ProtocolBundleMatch": {
+      "$defs": {
+        "ProtocolFieldMismatch": {
+          "additionalProperties": false,
+          "description": "One observed manifest field that differs from a planned slot.",
+          "properties": {
+            "expected": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expected"
+            },
+            "field": {
+              "title": "Field",
+              "type": "string"
+            },
+            "observed": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Observed"
+            }
+          },
+          "required": [
+            "field",
+            "expected",
+            "observed"
+          ],
+          "title": "ProtocolFieldMismatch",
+          "type": "object"
+        },
+        "ProtocolMatchStatus": {
+          "description": "Outcome of matching one completed bundle to a planned slot.",
+          "enum": [
+            "exact",
+            "compatible",
+            "mismatch",
+            "unmatched"
+          ],
+          "title": "ProtocolMatchStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Read-only result of matching a manifest to an experiment protocol.",
+      "properties": {
+        "bundle_id": {
+          "title": "Bundle Id",
+          "type": "string"
+        },
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "matched_slot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Matched Slot Id"
+        },
+        "mismatches": {
+          "items": {
+            "$ref": "#/$defs/ProtocolFieldMismatch"
+          },
+          "title": "Mismatches",
+          "type": "array"
+        },
+        "protocol_id": {
+          "title": "Protocol Id",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ProtocolMatchStatus"
+        }
+      },
+      "required": [
+        "protocol_id",
+        "status",
+        "bundle_id",
+        "run_id"
+      ],
+      "title": "ProtocolBundleMatch",
       "type": "object"
     },
     "ProvenanceEdge": {
