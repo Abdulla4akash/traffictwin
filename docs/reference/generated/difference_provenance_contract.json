@@ -1,0 +1,61 @@
+{
+  "arithmetic_metric_methods": {
+    "infra.queue_length.mean": "eligible queue_length divided by eligible row count",
+    "infra.utilisation.mean": "eligible utilisation_fraction divided by eligible row count",
+    "task.completed.count": "one per included completed task",
+    "task.completion.rate": "completed indicator divided by accepted task count",
+    "task.deadline_miss.completed_observed_rate": "deadline-miss indicator divided by completed observed-latency count",
+    "task.decision_share.local": "local indicator divided by recognised-decision count",
+    "task.decision_share.unknown": "unknown indicator divided by accepted task count",
+    "task.decision_share.v2i": "V2I indicator divided by recognised-decision count",
+    "task.decision_share.v2v": "V2V indicator divided by recognised-decision count",
+    "task.energy.mean_per_observed_task_j": "eligible energy_j divided by eligible row count",
+    "task.energy.per_completed_j": "eligible completed-task energy_j divided by eligible row count",
+    "task.energy_delay_product.mean_j_ms": "eligible completed-task energy_j times latency_ms divided by eligible row count",
+    "task.generated.count": "one per accepted task",
+    "task.incomplete.rate": "incomplete indicator divided by accepted task count",
+    "task.latency.count": "one per included latency observation",
+    "task.latency.mean_ms": "eligible latency_ms divided by eligible row count",
+    "task.offload.rate": "V2I-or-V2V indicator divided by recognised-decision count",
+    "traffic.count.mean": "eligible count divided by eligible row count",
+    "traffic.count.total": "eligible count",
+    "traffic.observation.count": "one per accepted traffic observation",
+    "traffic.speed.mean_mps": "eligible average_speed_mps divided by eligible row count",
+    "trip.completed.count": "one per included completed trip",
+    "trip.completion.rate": "completed indicator divided by accepted trip count",
+    "trip.duration.count": "one per included duration observation",
+    "trip.duration.mean_s": "eligible duration_s divided by eligible row count",
+    "trip.incomplete.count": "one per included incomplete trip",
+    "trip.records.count": "one per accepted trip record"
+  },
+  "capability_id": "PRO-01",
+  "comparison_basis": "variation_minus_baseline",
+  "complete_candidate_row_ledgers": true,
+  "limitations": [
+    "Lineage-only reports intentionally contain no row weights.",
+    "Mapping-valued metrics do not currently have an ordinary scalar difference and therefore remain unavailable rather than being flattened implicitly.",
+    "Rows rejected before canonicalisation remain in validation findings, not in the accepted-row ledger.",
+    "The report is deterministic provenance, not a causal attribution method."
+  ],
+  "lineage_only_classes": [
+    "percentiles",
+    "minimum and maximum extrema",
+    "distinct counts",
+    "episode and duration state-machine metrics",
+    "grouped or mapping-valued metrics",
+    "fairness and spatial aggregates",
+    "trusted plugin metrics without a separately admitted decomposition"
+  ],
+  "non_causality_statement": "This report records deterministic arithmetic and eligible input lineage only; it does not establish that any row, vehicle, RSU, or incident caused the observed difference.",
+  "reconciliation_absolute_tolerance": 1e-12,
+  "reconciliation_relative_tolerance": 1e-12,
+  "required_compatibility": [
+    "ordinary metric-comparison experiment and random-seed policy",
+    "metric implementation version",
+    "metric unit",
+    "available finite scalar metric values",
+    "energy, fairness, or plugin semantic fingerprints where applicable"
+  ],
+  "schema_version": "1.0",
+  "unavailable_is_not_zero": true
+}

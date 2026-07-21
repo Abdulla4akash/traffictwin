@@ -1,0 +1,48 @@
+{
+  "assumptions": [
+    "Pairs are the predeclared common-seed experimental units.",
+    "The bootstrap treats admitted pairs as the empirical paired sample.",
+    "The sign-flip null requires exchangeable signs of paired differences under zero effect.",
+    "A single predeclared comparison is evaluated; no multiplicity adjustment applies."
+  ],
+  "bootstrap_method": "paired_percentile_bootstrap_mean_v1",
+  "compatibility_requirements": [
+    "experiment, algorithm, checkpoint, and common random-seed plan",
+    "metric collection version, metric implementation version, scalar status, and unit",
+    "synthetic label and exact environment identity/version-or-commit",
+    "source input fingerprint for every retained endpoint",
+    "equal energy/fairness/plugin/spatial semantic-contract fingerprints when applicable"
+  ],
+  "estimand": "mean of paired variation-minus-baseline scalar metric differences",
+  "evidence_boundary": "Completed MetricCollection artifacts and an explicit PairedStudyConfig only; the service does not read raw rows, recompute metrics, or mutate registry records.",
+  "exact_sign_flip_max_pairs": 16,
+  "limitations": [
+    "A confidence interval and p-value do not establish practical importance or cause.",
+    "Non-significance is not evidence of equivalence.",
+    "Synthetic studies provide software/method evidence, not external validation.",
+    "Method validity still depends on the declared experimental design and assumptions."
+  ],
+  "method_version": "1.0",
+  "minimum_pairs": 3,
+  "pairing_key": "exact random_seed within one experiment/algorithm/checkpoint",
+  "primary_effect": "original-unit mean paired difference",
+  "randomisation_method": "two_sided_paired_sign_flip_mean_v1",
+  "repetition_bounds": {
+    "maximum": 100000,
+    "minimum": 1000
+  },
+  "schema_version": "1.0",
+  "secondary_effects": [
+    "Cohen's dz when paired-difference sample SD is non-zero",
+    "matched-pairs rank-biserial correlation over non-zero absolute ranks",
+    "Cliff's delta is not automatically calculated for this paired design"
+  ],
+  "unavailable_behavior": "Thin, missing, unavailable, duplicate, unmatched, or incompatible evidence remains explicit and is never replaced by zero or silently selected.",
+  "unsupported": [
+    "N-way comparison or ranking (STA-02)",
+    "equivalence testing (STA-03)",
+    "regression gates (STA-04)",
+    "power analysis (STA-05)",
+    "unpaired primary inference or automatic Cliff's delta"
+  ]
+}

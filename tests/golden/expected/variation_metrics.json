@@ -26,6 +26,12 @@
       "unit": "ms",
       "reason_codes": []
     },
+    "task.latency.p99_ms": {
+      "status": "available",
+      "value": 416.4,
+      "unit": "ms",
+      "reason_codes": []
+    },
     "infra.queue_length.mean": {
       "status": "available",
       "value": 4.75,

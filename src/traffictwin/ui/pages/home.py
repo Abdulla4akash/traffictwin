@@ -119,7 +119,7 @@ def render(config: UiConfig) -> None:
         section_header("Recent Workspace Artifacts")
         reports = list_workspace_reports(config.workspace_path)[:5]
         if reports:
-            st.dataframe(
+            st.table(
                 [
                     {
                         "report": report.name,
@@ -129,18 +129,16 @@ def render(config: UiConfig) -> None:
                     }
                     for report in reports
                 ],
-                hide_index=True,
-                width="stretch",
             )
         else:
             st.info("No report artifacts found in the active workspace.")
 
     section_header("Capability Manifest")
-    st.dataframe(capability_rows(status.capability_manifest), hide_index=True, width="stretch")
+    st.table(capability_rows(status.capability_manifest))
 
     section_header("Latest Imported Runs")
     if status.latest_runs:
-        st.dataframe(
+        st.table(
             [
                 {
                     "run_id": run.run_id,
@@ -152,8 +150,6 @@ def render(config: UiConfig) -> None:
                 }
                 for run in status.latest_runs
             ],
-            hide_index=True,
-            width="stretch",
         )
     else:
         st.info("No registered runs yet. Import a synthetic or historical bundle first.")

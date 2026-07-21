@@ -1,0 +1,111 @@
+{
+  "run_id": "run-baseline-7",
+  "target_metrics": {
+    "spatial.rsu.task.count_by_target": {
+      "status": "available",
+      "value": {
+        "rsu-1": 11,
+        "rsu-2": 7
+      },
+      "unit": "count",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 7
+      },
+      "group_set_fingerprint": "460b7b1575aed50461256827ec4acf8fcc5f51c8b1f90170a8a3538716b4a394"
+    },
+    "spatial.rsu.task.completion_rate_by_target": {
+      "status": "available",
+      "value": {
+        "rsu-1": 1.0,
+        "rsu-2": 1.0
+      },
+      "unit": "ratio",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 7
+      },
+      "group_set_fingerprint": "460b7b1575aed50461256827ec4acf8fcc5f51c8b1f90170a8a3538716b4a394"
+    },
+    "spatial.rsu.task.deadline_miss.completed_observed_rate_by_target": {
+      "status": "available",
+      "value": {
+        "rsu-1": 0.0,
+        "rsu-2": 0.0
+      },
+      "unit": "ratio",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 7
+      },
+      "group_set_fingerprint": "460b7b1575aed50461256827ec4acf8fcc5f51c8b1f90170a8a3538716b4a394"
+    }
+  },
+  "grid_metrics": {
+    "spatial.vehicle.observation_count_by_grid_cell": {
+      "status": "available",
+      "value": {
+        "x0:y0": 19,
+        "x1:y0": 52,
+        "x2:y0": 77,
+        "x3:y0": 52,
+        "x4:y0": 20
+      },
+      "unit": "observations",
+      "coverage_fraction": 1.0,
+      "cell_support_counts": {
+        "x0:y0": 19,
+        "x1:y0": 52,
+        "x2:y0": 77,
+        "x3:y0": 52,
+        "x4:y0": 20
+      },
+      "group_set_fingerprint": "e852ed320cfb1be4ac73b2ad259ef1078a467559f7b51e712f65784a9d7d82ec"
+    },
+    "spatial.vehicle.distinct_count_by_grid_cell": {
+      "status": "available",
+      "value": {
+        "x0:y0": 7,
+        "x1:y0": 15,
+        "x2:y0": 20,
+        "x3:y0": 16,
+        "x4:y0": 8
+      },
+      "unit": "vehicles",
+      "coverage_fraction": 1.0,
+      "cell_support_counts": {
+        "x0:y0": 19,
+        "x1:y0": 52,
+        "x2:y0": 77,
+        "x3:y0": 52,
+        "x4:y0": 20
+      },
+      "group_set_fingerprint": "e852ed320cfb1be4ac73b2ad259ef1078a467559f7b51e712f65784a9d7d82ec"
+    },
+    "spatial.vehicle.speed.mean_mps_by_grid_cell": {
+      "status": "available",
+      "value": {
+        "x0:y0": 12.473684210526315,
+        "x1:y0": 11.826923076923077,
+        "x2:y0": 11.87012987012987,
+        "x3:y0": 11.76923076923077,
+        "x4:y0": 12.0
+      },
+      "unit": "m/s",
+      "coverage_fraction": 1.0,
+      "cell_support_counts": {
+        "x0:y0": 19,
+        "x1:y0": 52,
+        "x2:y0": 77,
+        "x3:y0": 52,
+        "x4:y0": 20
+      },
+      "group_set_fingerprint": "e852ed320cfb1be4ac73b2ad259ef1078a467559f7b51e712f65784a9d7d82ec"
+    }
+  },
+  "task_rsu_target_contract_fingerprint": "f1413d9d1c4b7f379c3caabc3f9f4f4d7be437ee343470fb394ae9b3df01843c",
+  "vehicle_spatial_grid_contract_fingerprint": "cf6453b537425fc2ebe74be52d407a0da5beade215c324fbe3d515a129c42256"
+}

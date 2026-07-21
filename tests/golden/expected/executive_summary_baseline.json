@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "executive-summary-v1",
+  "renderer_version": "executive-summary-renderer-v1",
+  "summary_id": "executive-report-run-run-baseline-001",
+  "title": "Executive Summary: TrafficTwin Run Report: run-baseline-001",
+  "generated_at": "2026-07-21T12:00:00+00:00",
+  "source_mode": "synthetic",
+  "source_report_type": "run",
+  "source_report_id": "report-run-run-baseline-001",
+  "source_report_reference": "baseline.json",
+  "source_reference": "tests/fixtures/bundles/baseline_valid",
+  "source_payload_fingerprint": "677c91754f57f47900386ee18871ea35c2242d7e361f3a658488ce17a2c4ab59",
+  "source_scientific_fingerprint": "78521074fcfa2e2fba94e2ba174f5a9ecab73afdcac0f3d2ba29b6185242955e",
+  "availability": {
+    "total_claims": 33,
+    "available_claims": 13,
+    "unavailable_claims": 20,
+    "by_kind": {
+      "metric_result": 24,
+      "rule_result": 9,
+      "metric_comparison": 0
+    }
+  },
+  "highlights": [
+    {
+      "rank": 1,
+      "claim_id": "report-run-run-baseline-001:metric:fairness.rsu.capacity_normalised_load.max_gap",
+      "scientific_key": "metric_result:fairness.rsu.capacity_normalised_load.max_gap",
+      "claim_kind": "metric_result",
+      "label": "fairness.rsu.capacity_normalised_load.max_gap",
+      "availability": "unavailable",
+      "status": "unavailable",
+      "display_value": "Unavailable",
+      "unit": "fraction",
+      "reason_codes": [
+        "CAPACITY_UNAVAILABLE",
+        "REQUIRED_FIELD_UNAVAILABLE"
+      ],
+      "provenance_reference_id": "P1",
+      "claim_fingerprint": "3720a15be284919a998638b7709c3b15238a0eeca27b3ab69d8e581c04a7a56a"
+    },
+    {
+      "rank": 2,
+      "claim_id": "report-run-run-baseline-001:rule:R0",
+      "scientific_key": "rule_result:R0",
+      "claim_kind": "rule_result",
+      "label": "R0 — Insufficient or inconsistent evidence",
+      "availability": "available",
+      "status": "not_triggered",
+      "display_value": "Structured value (5 entries); follow provenance link",
+      "unit": null,
+      "reason_codes": [],
+      "provenance_reference_id": "P2",
+      "claim_fingerprint": "f52416ec09abe7f6f5377efaa49d354daa1c71a7de7a60f0c4d4674663ba9c58"
+    },
+    {
+      "rank": 3,
+      "claim_id": "report-run-run-baseline-001:metric:infra.queue_length.max",
+      "scientific_key": "metric_result:infra.queue_length.max",
+      "claim_kind": "metric_result",
+      "label": "infra.queue_length.max",
+      "availability": "available",
+      "status": "available",
+      "display_value": "2.0",
+      "unit": "tasks",
+      "reason_codes": [],
+      "provenance_reference_id": "P3",
+      "claim_fingerprint": "9f96e290c223ff8b3da59cadf4cff04622755cc5cef92e29f3489b37fbe89ba9"
+    },
+    {
+      "rank": 4,
+      "claim_id": "report-run-run-baseline-001:metric:infra.utilisation.p95",
+      "scientific_key": "metric_result:infra.utilisation.p95",
+      "claim_kind": "metric_result",
+      "label": "infra.utilisation.p95",
+      "availability": "available",
+      "status": "available",
+      "display_value": "0.5275",
+      "unit": "fraction",
+      "reason_codes": [],
+      "provenance_reference_id": "P4",
+      "claim_fingerprint": "311e2e5cd270e332586bbc39bd9eb2600afa247568b7b853b3dd6950870adf74"
+    },
+    {
+      "rank": 5,
+      "claim_id": "report-run-run-baseline-001:metric:task.completed.count",
+      "scientific_key": "metric_result:task.completed.count",
+      "claim_kind": "metric_result",
+      "label": "task.completed.count",
+      "availability": "available",
+      "status": "available",
+      "display_value": "3",
+      "unit": "count",
+      "reason_codes": [],
+      "provenance_reference_id": "P5",
+      "claim_fingerprint": "e95d9651c85da7122bdc5a3e343390ba39d6eb8ba8396739279ee8727e6bfc82"
+    }
+  ],
+  "omitted_claims": 28,
+  "selection_policy": "Select at most two triggered rule results, two available comparison results with a non-unchanged direction, one unavailable claim, and one remaining rule result; then fill unused positions with available metrics, remaining comparisons, remaining rules, and other claims. Break every tie by scientific claim key.",
+  "mandatory_warning_count": 3,
+  "source_warning_count": 0,
+  "warnings": [
+    "This bounded summary renders existing typed claims only. It does not calculate metrics, infer causes, rank desirability, or replace the complete structured report.",
+    "Synthetic source mode: these results are software-demonstration evidence, not real-world validation or live traffic evidence.",
+    "Only the published bounded highlight selection is shown below; availability counts and the source-report link expose the complete typed claim inventory."
+  ],
+  "limitations": [
+    "Synthetic records are deterministic software fixtures, not real-world validation.",
+    "Diagnostic outputs are candidate hypotheses and do not establish root causes.",
+    "No Randy/VEC, SUMO, live Manchester, near-live, or true-live integration is active."
+  ],
+  "provenance_links": [
+    {
+      "reference_id": "P0",
+      "label": "Complete structured source report",
+      "href": "baseline.json",
+      "target_kind": "research_report",
+      "target_id": "report-run-run-baseline-001",
+      "fingerprint": "677c91754f57f47900386ee18871ea35c2242d7e361f3a658488ce17a2c4ab59"
+    },
+    {
+      "reference_id": "P1",
+      "label": "fairness.rsu.capacity_normalised_load.max_gap",
+      "href": "baseline.json#claim=report-run-run-baseline-001:metric:fairness.rsu.capacity_normalised_load.max_gap",
+      "target_kind": "metric_result",
+      "target_id": "report-run-run-baseline-001:metric:fairness.rsu.capacity_normalised_load.max_gap",
+      "fingerprint": "3720a15be284919a998638b7709c3b15238a0eeca27b3ab69d8e581c04a7a56a"
+    },
+    {
+      "reference_id": "P2",
+      "label": "R0 — Insufficient or inconsistent evidence",
+      "href": "baseline.json#claim=report-run-run-baseline-001:rule:R0",
+      "target_kind": "rule_result",
+      "target_id": "report-run-run-baseline-001:rule:R0",
+      "fingerprint": "f52416ec09abe7f6f5377efaa49d354daa1c71a7de7a60f0c4d4674663ba9c58"
+    },
+    {
+      "reference_id": "P3",
+      "label": "infra.queue_length.max",
+      "href": "baseline.json#claim=report-run-run-baseline-001:metric:infra.queue_length.max",
+      "target_kind": "metric_result",
+      "target_id": "report-run-run-baseline-001:metric:infra.queue_length.max",
+      "fingerprint": "9f96e290c223ff8b3da59cadf4cff04622755cc5cef92e29f3489b37fbe89ba9"
+    },
+    {
+      "reference_id": "P4",
+      "label": "infra.utilisation.p95",
+      "href": "baseline.json#claim=report-run-run-baseline-001:metric:infra.utilisation.p95",
+      "target_kind": "metric_result",
+      "target_id": "report-run-run-baseline-001:metric:infra.utilisation.p95",
+      "fingerprint": "311e2e5cd270e332586bbc39bd9eb2600afa247568b7b853b3dd6950870adf74"
+    },
+    {
+      "reference_id": "P5",
+      "label": "task.completed.count",
+      "href": "baseline.json#claim=report-run-run-baseline-001:metric:task.completed.count",
+      "target_kind": "metric_result",
+      "target_id": "report-run-run-baseline-001:metric:task.completed.count",
+      "fingerprint": "e95d9651c85da7122bdc5a3e343390ba39d6eb8ba8396739279ee8727e6bfc82"
+    }
+  ],
+  "analyst_annotations_included": false,
+  "scientific_recomputation_performed": false
+}

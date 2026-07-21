@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from traffictwin.metrics.results import MetricStatus
+from traffictwin.metrics.results import MetricStatus, MetricValue
 from traffictwin.ui.charts import bar_figure, line_figure, metric_status_counts, task_event_series
 from traffictwin.ui.components.cards import metric_card
 from traffictwin.ui.components.provenance import render_run_provenance
@@ -19,7 +19,14 @@ KPI_KEYS = {
     "Observed deadline-miss rate": "task.deadline_miss.completed_observed_rate",
     "Latency P50": "task.latency.p50_ms",
     "Latency P95": "task.latency.p95_ms",
+    "Latency P99": "task.latency.p99_ms",
     "Offload rate": "task.offload.rate",
+}
+
+ENERGY_KPI_KEYS = {
+    "Observed-task energy": "task.energy.mean_per_observed_task_j",
+    "Completed-task energy": "task.energy.per_completed_j",
+    "Energy-delay product": "task.energy_delay_product.mean_j_ms",
 }
 
 
@@ -43,6 +50,13 @@ def render() -> None:
         ):
             with col:
                 metric_card(title, metrics.get(key))
+
+    st.subheader("Energy Evidence")
+    energy_cols = st.columns(3)
+    for col, (title, key) in zip(energy_cols, ENERGY_KPI_KEYS.items(), strict=True):
+        with col:
+            metric_card(title, metrics.get(key))
+    st.caption(_energy_evidence_caption(metrics))
 
     st.subheader("Task Completion By Class")
     class_metric = metrics.get("task.completion.rate_by_class")
@@ -115,3 +129,32 @@ def render() -> None:
 
     st.subheader("Context And Provenance")
     render_run_provenance(analysis.validation, analysis.metrics)
+
+
+def _energy_evidence_caption(metrics: dict[str, MetricValue]) -> str:
+    fingerprints = {
+        fingerprint
+        for key in ENERGY_KPI_KEYS.values()
+        if (metric := metrics.get(key)) is not None
+        and isinstance(fingerprint := metric.metadata.get("energy_contract_fingerprint"), str)
+    }
+    coverage = []
+    for title, key in ENERGY_KPI_KEYS.items():
+        metric = metrics.get(key)
+        if metric is None:
+            continue
+        eligible = metric.metadata.get("eligible_count")
+        population = metric.metadata.get("population_count")
+        if isinstance(eligible, int) and isinstance(population, int):
+            coverage.append(f"{title}: {eligible}/{population}")
+    if fingerprints:
+        fingerprint_text = ", ".join(sorted(fingerprints))
+        coverage_text = "; ".join(coverage) or "no eligible-row counts"
+        return (
+            f"Contract fingerprint: {fingerprint_text}. Eligibility coverage: {coverage_text}. "
+            "Missing evidence is never treated as zero."
+        )
+    return (
+        "Energy metrics require a declared task-energy contract. Unavailable or partial evidence "
+        "is never treated as zero."
+    )

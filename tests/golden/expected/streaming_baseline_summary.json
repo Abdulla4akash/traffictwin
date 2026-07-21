@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "config": {
+    "schema_version": "1.0",
+    "chunk_rows": 2,
+    "max_chunk_bytes": 1024,
+    "max_table_uncompressed_bytes": 1000000000,
+    "max_bundle_uncompressed_bytes": 2000000000
+  },
+  "chunk_count": 6,
+  "files_processed": [
+    "tasks.csv",
+    "infra_state.csv",
+    "traffic_obs.csv",
+    "trips.csv"
+  ],
+  "source_row_counts": {
+    "tasks": 3,
+    "infra_state": 4,
+    "vehicle_state": 0,
+    "traffic_obs": 2,
+    "trips": 2,
+    "incidents": 0
+  },
+  "canonical_record_counts": {
+    "tasks": 3,
+    "infrastructure": 4,
+    "vehicles": 0,
+    "traffic": 2,
+    "trips": 2,
+    "incidents": 0
+  },
+  "max_observed_chunk_source_rows": 2,
+  "max_observed_chunk_canonical_records": 2,
+  "max_observed_chunk_decoded_bytes": 264,
+  "disk_backed_global_checks": true,
+  "chunks_are_provisional_until_validation_completes": true
+}

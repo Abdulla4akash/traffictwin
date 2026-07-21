@@ -1,0 +1,46 @@
+{
+  "calibrated_sensor_model": false,
+  "clamp_policy": "Counts, queues, and speeds clamp at zero; utilisation clamps to [0,1]; synthetic source-frame coordinates are not clamped.",
+  "direct_launch_supported": false,
+  "distribution": "bounded_uniform",
+  "limitations": [
+    "The bounded-uniform errors are deterministic software robustness fixtures, not a calibrated sensor, network, traffic, or physical-error model.",
+    "Only generated infrastructure, vehicle, and traffic observation measurements are eligible; tasks, trips, incidents, timestamps, decisions, completion, and routing are unchanged.",
+    "Dropout uses exact deterministic generated-row selection and retains at least one row; it is not a learned or empirical missingness process.",
+    "Every output remains labelled synthetic/evaluation evidence and cannot establish external validity or real-world robustness.",
+    "No configuration launches SUMO, Randy VEC/TOS, training, or another external simulator."
+  ],
+  "maximum_bounds": {
+    "infrastructure_queue_max_error": 100.0,
+    "infrastructure_utilisation_max_error": 0.5,
+    "traffic_count_max_error": 100.0,
+    "traffic_speed_max_error_mps": 20.0,
+    "vehicle_position_max_error_m": 100.0,
+    "vehicle_speed_max_error_mps": 20.0
+  },
+  "maximum_dropout_fraction": 0.95,
+  "model_version": "1.0",
+  "schema_version": "1.0",
+  "selection_policy": "For each enabled non-empty table, drop an exact min(rows - 1, max(1, floor(rows * fraction))) stable SHA-256-ranked subset while retaining at least one generated observation row.",
+  "supported_dropout_tables": [
+    "infra_state",
+    "vehicle_state",
+    "traffic_obs"
+  ],
+  "supported_noise_fields": {
+    "infra_state": [
+      "queue_length",
+      "utilisation"
+    ],
+    "traffic_obs": [
+      "count",
+      "average_speed"
+    ],
+    "vehicle_state": [
+      "x",
+      "y",
+      "speed"
+    ]
+  },
+  "synthetic_only": true
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="226" viewBox="0 0 1000 226" role="img">
+  <title>TrafficTwin Metric Results</title>
+  <desc>Deterministic TrafficTwin figure; source mode synthetic; projection abf74dd5718e.</desc>
+  <rect x="0" y="0" width="1000" height="100%" fill="#ffffff"/>
+  <text x="40" y="42" font-family="Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#17324d">TrafficTwin Metric Results</text>
+  <text x="40" y="70" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#526473">Source: run-golden | Mode: synthetic | Projection: abf74dd5718e</text>
+  <line x1="439.23" y1="115" x2="439.23" y2="201" stroke="#526473" stroke-width="1"/>
+  <text x="40" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">task.completion.rate</text>
+  <rect x="439.23" y="122" width="3.35" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">0.875</text>
+  <text x="40" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">task.latency.p95_ms</text>
+  <rect x="439.23" y="160" width="480.77" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">125.5</text>
+  <text x="40" y="100" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">Signed linear scale; direction does not imply favourability.</text>
+</svg>

@@ -8,8 +8,11 @@ from typing import Any, TypeAlias
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from traffictwin.domain.energy import TaskEnergyContract
+from traffictwin.domain.spatial import TaskRsuTargetContract, VehicleSpatialGridContract
+
 JsonScalar: TypeAlias = str | int | float | bool | None
-JsonObject: TypeAlias = dict[str, JsonScalar | dict[str, JsonScalar]]
+JsonObject: TypeAlias = dict[str, Any]
 JsonValue: TypeAlias = Any
 
 
@@ -36,6 +39,15 @@ class UnavailableReason(StrEnum):
     VEHICLE_TIER_UNAVAILABLE = "VEHICLE_TIER_UNAVAILABLE"
     NO_COMPLETED_TRIPS = "NO_COMPLETED_TRIPS"
     NO_LATENCY_VALUES = "NO_LATENCY_VALUES"
+    ENERGY_CONTRACT_UNAVAILABLE = "ENERGY_CONTRACT_UNAVAILABLE"
+    TASK_RSU_TARGET_CONTRACT_UNAVAILABLE = "TASK_RSU_TARGET_CONTRACT_UNAVAILABLE"
+    VEHICLE_SPATIAL_GRID_CONTRACT_UNAVAILABLE = "VEHICLE_SPATIAL_GRID_CONTRACT_UNAVAILABLE"
+    TARGET_COVERAGE_INSUFFICIENT = "TARGET_COVERAGE_INSUFFICIENT"
+    TARGET_JOIN_INCOMPATIBLE = "TARGET_JOIN_INCOMPATIBLE"
+    COORDINATE_COVERAGE_INSUFFICIENT = "COORDINATE_COVERAGE_INSUFFICIENT"
+    GROUP_COVERAGE_INSUFFICIENT = "GROUP_COVERAGE_INSUFFICIENT"
+    INSUFFICIENT_GROUP_COUNT = "INSUFFICIENT_GROUP_COUNT"
+    INSUFFICIENT_GROUP_SUPPORT = "INSUFFICIENT_GROUP_SUPPORT"
     COMPARISON_PAIR_INCOMPATIBLE = "COMPARISON_PAIR_INCOMPATIBLE"
     RANDOM_SEED_MISMATCH = "RANDOM_SEED_MISMATCH"
     BASELINE_ZERO = "BASELINE_ZERO"
@@ -44,6 +56,11 @@ class UnavailableReason(StrEnum):
     UNIT_MISMATCH = "UNIT_MISMATCH"
     EXPERIMENT_MISMATCH = "EXPERIMENT_MISMATCH"
     SEED_RELATIONSHIP_UNKNOWN = "SEED_RELATIONSHIP_UNKNOWN"
+    PLUGIN_AVAILABILITY_REQUIREMENT_UNMET = "PLUGIN_AVAILABILITY_REQUIREMENT_UNMET"
+    PLUGIN_EXECUTION_FAILED = "PLUGIN_EXECUTION_FAILED"
+    PLUGIN_NONDETERMINISTIC = "PLUGIN_NONDETERMINISTIC"
+    PLUGIN_OUTPUT_INVALID = "PLUGIN_OUTPUT_INVALID"
+    PLUGIN_DECLARED_UNAVAILABLE = "PLUGIN_DECLARED_UNAVAILABLE"
 
 
 class RunMetricContext(BaseModel):
@@ -58,7 +75,13 @@ class RunMetricContext(BaseModel):
     checkpoint: str | None = None
     random_seed: int
     synthetic: bool
+    environment: str | None = None
+    environment_version: str | None = None
+    environment_commit: str | None = None
     source_bundle_fingerprint: str | None = None
+    energy_contract: TaskEnergyContract | None = None
+    task_rsu_target_contract: TaskRsuTargetContract | None = None
+    vehicle_spatial_grid_contract: VehicleSpatialGridContract | None = None
     validation_may_import: bool = True
 
 
@@ -85,8 +108,11 @@ class MetricValue(BaseModel):
     checkpoint: str | None = None
     random_seed: int
     synthetic: bool
+    environment: str | None = None
+    environment_version: str | None = None
+    environment_commit: str | None = None
     computed_at: datetime
-    metadata: dict[str, JsonScalar] = Field(default_factory=dict)
+    metadata: JsonObject = Field(default_factory=dict)
 
 
 class MetricCollection(BaseModel):

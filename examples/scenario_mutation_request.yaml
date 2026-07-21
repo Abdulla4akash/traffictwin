@@ -1,0 +1,9 @@
+schema_version: '1.0'
+mutation_id: mutation-task-dropout
+title: Deterministic task-row dropout
+description: Labelled robustness fixture; not real-world or external validation evidence.
+mutation:
+  operator: row_dropout
+  table_kind: tasks
+  drop_fraction: 0.25
+  random_seed: 17

@@ -29,6 +29,8 @@ data/registry/
 .netlify-demo/
 public/
 supervisor-pack/
+output/
+tmp/
 *.local-report.md
 *.local-report.html
 *.sqlite

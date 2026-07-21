@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -19,10 +20,30 @@ from traffictwin.evidence.insufficient import (
     InsufficientEvidenceSummary,
     build_insufficient_evidence_summary,
 )
+from traffictwin.ingestion.cache import (
+    CanonicalCacheError,
+    CanonicalCacheProbe,
+    CanonicalCacheState,
+    CanonicalCacheStatus,
+    canonical_cache_key,
+    probe_canonical_cache,
+    unavailable_cache_status,
+    validate_cache_location,
+    write_canonical_cache,
+    write_failed_cache_status,
+)
 from traffictwin.ingestion.canonicalise import canonicalise_bundle
 from traffictwin.ingestion.hashes import bundle_fingerprint, sha256_file
 from traffictwin.ingestion.loader import BundleLoadError, open_bundle
 from traffictwin.ingestion.manifest import BundleManifest
+from traffictwin.ingestion.streaming import (
+    CanonicalChunk,
+    CanonicalChunkConsumer,
+    StreamingBundleValidationResult,
+    StreamingCanonicalisationConfig,
+    StreamingCanonicalisationSummary,
+    canonicalise_bundle_streaming,
+)
 from traffictwin.storage.registry import BundleImportResult, Registry
 from traffictwin.validation.codes import ValidationCode
 from traffictwin.validation.findings import Severity, ValidationFinding
@@ -37,6 +58,18 @@ EXPECTED_SOURCE_FILES = {
     "traffic_obs.csv",
     "trips.csv",
     "incidents.csv",
+    "tasks.csv.gz",
+    "infra_state.csv.gz",
+    "vehicle_state.csv.gz",
+    "traffic_obs.csv.gz",
+    "trips.csv.gz",
+    "incidents.csv.gz",
+    "tasks.parquet",
+    "infra_state.parquet",
+    "vehicle_state.parquet",
+    "traffic_obs.parquet",
+    "trips.parquet",
+    "incidents.parquet",
 }
 
 
@@ -54,33 +87,48 @@ class BundleValidationResult:
     report: ValidationReport
 
 
+@dataclass(frozen=True)
+class CachedBundleValidationResult:
+    """Ordinary validation semantics plus one explicit OPS-02 cache receipt."""
+
+    validation: BundleValidationResult
+    cache: CanonicalCacheStatus
+
+
+@dataclass(frozen=True)
+class CollectedStreamingBundleResult:
+    """Accepted streaming chunks collected for exact downstream-equivalence checks."""
+
+    validation: BundleValidationResult
+    streaming: StreamingCanonicalisationSummary
+
+
+@dataclass(frozen=True)
+class StreamingBundleImportResult:
+    """Streaming validation plus ordinary registry registration outcome."""
+
+    validation: StreamingBundleValidationResult
+    registry: BundleImportResult
+
+
 def validate_bundle(path: str | Path) -> BundleValidationResult:
     """Validate a directory or ZIP run bundle."""
 
     source = Path(path)
     report = ValidationReport()
-    canonical = CanonicalTables()
-    manifest: BundleManifest | None = None
-    seed: ScenarioSeed | None = None
-    evidence = EvidenceAvailability()
-    fingerprint: str | None = None
 
     try:
         with open_bundle(source) as workspace:
             files = [file for file in workspace.root.rglob("*") if file.is_file()]
             fingerprint = bundle_fingerprint(files, workspace.root)
             manifest = _load_manifest(workspace.root, report)
-            if manifest is not None:
-                report.bundle_id = manifest.bundle.bundle_id
-                report.run_id = manifest.run.run_id
-                _validate_environment(manifest, report)
-                _validate_declared_files(workspace.root, manifest, report)
-                _validate_undeclared_files(workspace.root, manifest, report)
-                seed = _validate_seed(workspace.root, manifest, report)
-                canonical = canonicalise_bundle(workspace.root, manifest, report)
-                report.canonical_record_counts = canonical.record_counts()
-                evidence = _build_evidence_availability(manifest, canonical, report)
-                _add_evidence_findings(evidence, report)
+            return _validate_open_workspace(
+                source,
+                workspace.root,
+                fingerprint,
+                manifest,
+                report,
+            )
     except BundleLoadError as exc:
         report.add(
             ValidationFinding(
@@ -91,7 +139,184 @@ def validate_bundle(path: str | Path) -> BundleValidationResult:
                 affected_capabilities=["bundle_loading"],
             )
         )
+    return _finalise_bundle_validation(
+        source=source,
+        fingerprint=None,
+        manifest=None,
+        seed=None,
+        canonical=CanonicalTables(),
+        evidence=EvidenceAvailability(),
+        report=report,
+    )
 
+
+def validate_bundle_cached(
+    path: str | Path,
+    cache_root: str | Path,
+) -> CachedBundleValidationResult:
+    """Validate with exact raw re-fingerprinting and fail-closed canonical-cache reuse."""
+
+    source = Path(path)
+    resolved_cache = validate_cache_location(source, Path(cache_root))
+    report = ValidationReport()
+    probe: CanonicalCacheProbe | None = None
+
+    try:
+        with open_bundle(source) as workspace:
+            files = [file for file in workspace.root.rglob("*") if file.is_file()]
+            fingerprint = bundle_fingerprint(files, workspace.root)
+            manifest = _load_manifest(workspace.root, report)
+            if manifest is not None:
+                key = canonical_cache_key(fingerprint, manifest)
+                probe = probe_canonical_cache(resolved_cache, key, manifest=manifest)
+                if probe.payload is not None:
+                    metadata = probe.payload.metadata
+                    return CachedBundleValidationResult(
+                        validation=BundleValidationResult(
+                            source=source,
+                            fingerprint=fingerprint,
+                            manifest=metadata.manifest,
+                            seed=metadata.seed,
+                            canonical=probe.payload.canonical,
+                            evidence=metadata.evidence,
+                            insufficient_evidence=metadata.insufficient_evidence,
+                            report=metadata.report,
+                        ),
+                        cache=probe.status,
+                    )
+            result = _validate_open_workspace(
+                source,
+                workspace.root,
+                fingerprint,
+                manifest,
+                report,
+            )
+    except BundleLoadError as exc:
+        report.add(
+            ValidationFinding(
+                code=ValidationCode.FILE_UNREADABLE,
+                severity=Severity.FATAL,
+                message=str(exc),
+                may_continue=False,
+                affected_capabilities=["bundle_loading"],
+            )
+        )
+        result = _finalise_bundle_validation(
+            source=source,
+            fingerprint=None,
+            manifest=None,
+            seed=None,
+            canonical=CanonicalTables(),
+            evidence=EvidenceAvailability(),
+            report=report,
+        )
+
+    if (
+        probe is None
+        or result.manifest is None
+        or result.seed is None
+        or result.fingerprint is None
+    ):
+        return CachedBundleValidationResult(
+            validation=result,
+            cache=unavailable_cache_status(
+                "a complete valid manifest, seed, and raw fingerprint are required"
+            ),
+        )
+    if probe.status.state is not CanonicalCacheState.MISS:
+        return CachedBundleValidationResult(validation=result, cache=probe.status)
+    if not result.report.may_import:
+        return CachedBundleValidationResult(
+            validation=result,
+            cache=unavailable_cache_status(
+                "rejected validation results are not cached",
+                canonical_cache_key(result.fingerprint, result.manifest),
+            ),
+        )
+    key = canonical_cache_key(result.fingerprint, result.manifest)
+    try:
+        written = write_canonical_cache(
+            resolved_cache,
+            key,
+            manifest=result.manifest,
+            seed=result.seed,
+            canonical=result.canonical,
+            evidence=result.evidence,
+            insufficient_evidence=result.insufficient_evidence,
+            report=result.report,
+        )
+    except (CanonicalCacheError, OSError) as exc:
+        return CachedBundleValidationResult(
+            validation=result,
+            cache=write_failed_cache_status(str(exc), resolved_cache, key),
+        )
+    return CachedBundleValidationResult(validation=result, cache=written.status)
+
+
+def inspect_bundle_cache(
+    path: str | Path,
+    cache_root: str | Path,
+) -> CanonicalCacheStatus:
+    """Inspect one expected cache entry without canonicalising or writing anything."""
+
+    source = Path(path)
+    resolved_cache = validate_cache_location(source, Path(cache_root))
+    report = ValidationReport()
+    try:
+        with open_bundle(source) as workspace:
+            files = [file for file in workspace.root.rglob("*") if file.is_file()]
+            fingerprint = bundle_fingerprint(files, workspace.root)
+            manifest = _load_manifest(workspace.root, report)
+            if manifest is None:
+                return unavailable_cache_status("raw manifest is missing or invalid")
+            key = canonical_cache_key(fingerprint, manifest)
+            return probe_canonical_cache(resolved_cache, key, manifest=manifest).status
+    except BundleLoadError as exc:
+        return unavailable_cache_status(str(exc))
+
+
+def _validate_open_workspace(
+    source: Path,
+    root: Path,
+    fingerprint: str,
+    manifest: BundleManifest | None,
+    report: ValidationReport,
+) -> BundleValidationResult:
+    canonical = CanonicalTables()
+    seed: ScenarioSeed | None = None
+    evidence = EvidenceAvailability()
+    if manifest is not None:
+        report.bundle_id = manifest.bundle.bundle_id
+        report.run_id = manifest.run.run_id
+        _validate_environment(manifest, report)
+        _validate_declared_files(root, manifest, report)
+        _validate_undeclared_files(root, manifest, report)
+        seed = _validate_seed(root, manifest, report)
+        canonical = canonicalise_bundle(root, manifest, report)
+        report.canonical_record_counts = canonical.record_counts()
+        evidence = _build_evidence_availability(manifest, canonical, report)
+        _add_evidence_findings(evidence, report)
+    return _finalise_bundle_validation(
+        source=source,
+        fingerprint=fingerprint,
+        manifest=manifest,
+        seed=seed,
+        canonical=canonical,
+        evidence=evidence,
+        report=report,
+    )
+
+
+def _finalise_bundle_validation(
+    *,
+    source: Path,
+    fingerprint: str | None,
+    manifest: BundleManifest | None,
+    seed: ScenarioSeed | None,
+    canonical: CanonicalTables,
+    evidence: EvidenceAvailability,
+    report: ValidationReport,
+) -> BundleValidationResult:
     report.available_evidence_categories = evidence.available_categories()
     report.unavailable_evidence_categories = evidence.unavailable_categories()
     report.finalise()
@@ -114,10 +339,147 @@ def inspect_bundle(path: str | Path) -> BundleValidationResult:
     return validate_bundle(path)
 
 
+def validate_bundle_streaming(
+    path: str | Path,
+    *,
+    config: StreamingCanonicalisationConfig | None = None,
+    consumer: CanonicalChunkConsumer | None = None,
+) -> StreamingBundleValidationResult:
+    """Validate and emit canonical chunks without retaining all canonical rows."""
+
+    active_config = config or StreamingCanonicalisationConfig()
+    source = Path(path)
+    report = ValidationReport()
+    manifest: BundleManifest | None = None
+    seed: ScenarioSeed | None = None
+    evidence = EvidenceAvailability()
+    fingerprint: str | None = None
+    streaming = _empty_streaming_summary(active_config)
+
+    try:
+        with open_bundle(
+            source,
+            max_uncompressed_bytes=active_config.max_bundle_uncompressed_bytes,
+        ) as workspace:
+            files = [file for file in workspace.root.rglob("*") if file.is_file()]
+            fingerprint = bundle_fingerprint(files, workspace.root)
+            manifest = _load_manifest(workspace.root, report)
+            if manifest is not None:
+                report.bundle_id = manifest.bundle.bundle_id
+                report.run_id = manifest.run.run_id
+                _validate_environment(manifest, report)
+                _validate_declared_files(workspace.root, manifest, report)
+                _validate_undeclared_files(workspace.root, manifest, report)
+                seed = _validate_seed(workspace.root, manifest, report)
+                streaming = canonicalise_bundle_streaming(
+                    workspace.root,
+                    manifest,
+                    report,
+                    config=active_config,
+                    consumer=consumer,
+                )
+                report.canonical_record_counts = streaming.canonical_record_counts
+                evidence = _build_evidence_availability_from_counts(
+                    manifest,
+                    streaming.canonical_record_counts,
+                    report,
+                )
+                _add_evidence_findings(evidence, report)
+    except (BundleLoadError, OSError, zipfile.BadZipFile) as exc:
+        report.add(
+            ValidationFinding(
+                code=ValidationCode.FILE_UNREADABLE,
+                severity=Severity.FATAL,
+                message=str(exc),
+                may_continue=False,
+                affected_capabilities=["bundle_loading"],
+            )
+        )
+
+    report.available_evidence_categories = evidence.available_categories()
+    report.unavailable_evidence_categories = evidence.unavailable_categories()
+    report.finalise()
+    insufficient = build_insufficient_evidence_summary(report, evidence)
+    return StreamingBundleValidationResult(
+        source=source,
+        fingerprint=fingerprint,
+        manifest=manifest,
+        seed=seed,
+        streaming=streaming,
+        evidence=evidence,
+        insufficient_evidence=insufficient,
+        report=report,
+    )
+
+
+def collect_bundle_streaming(
+    path: str | Path,
+    *,
+    config: StreamingCanonicalisationConfig | None = None,
+) -> CollectedStreamingBundleResult:
+    """Collect streaming chunks for equivalence testing and ordinary downstream analysis."""
+
+    canonical = CanonicalTables()
+
+    def collect(chunk: CanonicalChunk) -> None:
+        canonical.tasks.extend(chunk.canonical.tasks)
+        canonical.infrastructure.extend(chunk.canonical.infrastructure)
+        canonical.vehicles.extend(chunk.canonical.vehicles)
+        canonical.traffic.extend(chunk.canonical.traffic)
+        canonical.trips.extend(chunk.canonical.trips)
+        canonical.incidents.extend(chunk.canonical.incidents)
+
+    result = validate_bundle_streaming(path, config=config, consumer=collect)
+    validation = BundleValidationResult(
+        source=result.source,
+        fingerprint=result.fingerprint,
+        manifest=result.manifest,
+        seed=result.seed,
+        canonical=canonical,
+        evidence=result.evidence,
+        insufficient_evidence=result.insufficient_evidence,
+        report=result.report,
+    )
+    return CollectedStreamingBundleResult(validation=validation, streaming=result.streaming)
+
+
+def import_bundle_streaming(
+    path: str | Path,
+    registry_path: str | Path,
+    *,
+    config: StreamingCanonicalisationConfig | None = None,
+) -> StreamingBundleImportResult:
+    """Validate through bounded chunks, then apply ordinary registry import semantics."""
+
+    validation = validate_bundle_streaming(path, config=config)
+    registry = import_validated_bundle(
+        BundleValidationResult(
+            source=validation.source,
+            fingerprint=validation.fingerprint,
+            manifest=validation.manifest,
+            seed=validation.seed,
+            canonical=CanonicalTables(),
+            evidence=validation.evidence,
+            insufficient_evidence=validation.insufficient_evidence,
+            report=validation.report,
+        ),
+        registry_path,
+    )
+    return StreamingBundleImportResult(validation=validation, registry=registry)
+
+
 def import_bundle(path: str | Path, registry_path: str | Path) -> BundleImportResult:
     """Validate and register an accepted bundle."""
 
-    result = validate_bundle(path)
+    return import_validated_bundle(validate_bundle(path), registry_path)
+
+
+def import_validated_bundle(
+    result: BundleValidationResult,
+    registry_path: str | Path,
+) -> BundleImportResult:
+    """Register one already validated result without changing import semantics."""
+
     if result.manifest is None or result.fingerprint is None or not result.report.may_import:
         return BundleImportResult(
             bundle_id=result.report.bundle_id,
@@ -142,13 +504,13 @@ def import_bundle(path: str | Path, registry_path: str | Path) -> BundleImportRe
         ended_at=manifest.run.completed_at,
         execution_mode=ExecutionMode.IMPORTED,
         status=RunStatus.IMPORTED,
-        source_bundle=str(Path(path)),
+        source_bundle=str(result.source),
         validation_status=ValidationStatus.VALID,
     )
     return Registry(registry_path).register_bundle_import(
         run=run,
         bundle_id=manifest.bundle.bundle_id,
-        source_reference=str(Path(path)),
+        source_reference=str(result.source),
         fingerprint=result.fingerprint,
         manifest_json=manifest.model_dump_json(),
         validation_report_json=result.report.to_json(),
@@ -355,15 +717,25 @@ def _build_evidence_availability(
     canonical: CanonicalTables,
     report: ValidationReport,
 ) -> EvidenceAvailability:
+    return _build_evidence_availability_from_counts(manifest, canonical.record_counts(), report)
+
+
+def _build_evidence_availability_from_counts(
+    manifest: BundleManifest,
+    canonical_counts: dict[str, int],
+    report: ValidationReport,
+) -> EvidenceAvailability:
     file_errors = {
         finding.file
         for finding in report.findings
         if finding.file and finding.severity in {Severity.ERROR, Severity.FATAL}
     }
 
-    def status(kind: str, table_count: int, filename: str) -> EvidenceStatus:
-        if kind not in manifest.files:
+    def status(kind: str, table_count: int) -> EvidenceStatus:
+        declaration = manifest.files.get(kind)
+        if declaration is None:
             return EvidenceStatus.UNAVAILABLE
+        filename = declaration.path
         if filename in file_errors:
             return EvidenceStatus.INVALID
         if table_count == 0:
@@ -378,12 +750,12 @@ def _build_evidence_availability(
         return EvidenceStatus.AVAILABLE
 
     evidence = EvidenceAvailability(
-        tasks=status("tasks", len(canonical.tasks), "tasks.csv"),
-        infrastructure=status("infra_state", len(canonical.infrastructure), "infra_state.csv"),
-        vehicles=status("vehicle_state", len(canonical.vehicles), "vehicle_state.csv"),
-        traffic=status("traffic_obs", len(canonical.traffic), "traffic_obs.csv"),
-        trips=status("trips", len(canonical.trips), "trips.csv"),
-        incidents=status("incidents", len(canonical.incidents), "incidents.csv"),
+        tasks=status("tasks", canonical_counts.get("tasks", 0)),
+        infrastructure=status("infra_state", canonical_counts.get("infrastructure", 0)),
+        vehicles=status("vehicle_state", canonical_counts.get("vehicles", 0)),
+        traffic=status("traffic_obs", canonical_counts.get("traffic", 0)),
+        trips=status("trips", canonical_counts.get("trips", 0)),
+        incidents=status("incidents", canonical_counts.get("incidents", 0)),
     )
     diagnosis = (
         EvidenceStatus.AVAILABLE
@@ -393,6 +765,27 @@ def _build_evidence_availability(
         else EvidenceStatus.UNAVAILABLE
     )
     return evidence.model_copy(update={"diagnosis": diagnosis})
+
+
+def _empty_streaming_summary(
+    config: StreamingCanonicalisationConfig,
+) -> StreamingCanonicalisationSummary:
+    return StreamingCanonicalisationSummary(
+        config=config,
+        chunk_count=0,
+        files_processed=[],
+        source_row_counts=dict.fromkeys(manifest_source_kinds(), 0),
+        canonical_record_counts=CanonicalTables().record_counts(),
+        max_observed_chunk_source_rows=0,
+        max_observed_chunk_canonical_records=0,
+        max_observed_chunk_decoded_bytes=0,
+    )
+
+
+def manifest_source_kinds() -> tuple[str, ...]:
+    """Return source table kinds in the canonical manifest contract."""
+
+    return ("tasks", "infra_state", "vehicle_state", "traffic_obs", "trips", "incidents")
 
 
 def _add_evidence_findings(evidence: EvidenceAvailability, report: ValidationReport) -> None:

@@ -2,30 +2,42 @@
 
 from __future__ import annotations
 
+import math
 from collections import Counter, defaultdict
 from datetime import datetime
 
 from traffictwin.canonical.records import TaskRecord
 from traffictwin.canonical.tables import CanonicalTables
+from traffictwin.domain.energy import TaskEnergyContract
 from traffictwin.domain.enums import Decision, TaskClass
 from traffictwin.evidence.availability import EvidenceAvailability, EvidenceStatus
 from traffictwin.metrics.availability import available_metric, unavailable_metric
 from traffictwin.metrics.engine_config import MetricEngineConfig
-from traffictwin.metrics.results import MetricValue, RunMetricContext, UnavailableReason
-from traffictwin.metrics.statistics import arithmetic_mean, percentile_linear
+from traffictwin.metrics.results import (
+    JsonObject,
+    MetricStatus,
+    MetricValue,
+    RunMetricContext,
+    UnavailableReason,
+)
+from traffictwin.metrics.statistics import (
+    PERCENTILE_METHOD_VERSION,
+    arithmetic_mean,
+    percentile_linear,
+)
 
 TASK_KEYS = [
     "task.generated.count",
     "task.completed.count",
     "task.completion.rate",
     "task.completion.rate_by_class",
-    "task.completion.rate_by_vehicle_tier",
     "task.deadline_miss.completed_observed_rate",
     "task.incomplete.rate",
     "task.latency.count",
     "task.latency.mean_ms",
     "task.latency.p50_ms",
     "task.latency.p95_ms",
+    "task.latency.p99_ms",
     "task.decision.counts",
     "task.decision_share.local",
     "task.decision_share.v2i",
@@ -33,7 +45,9 @@ TASK_KEYS = [
     "task.decision_share.unknown",
     "task.offload.rate",
     "task.drops.by_cause",
+    "task.energy.mean_per_observed_task_j",
     "task.energy.per_completed_j",
+    "task.energy_delay_product.mean_j_ms",
 ]
 
 
@@ -77,7 +91,9 @@ def task_metrics(
     completed = sum(1 for task in tasks if task.completed)
     incomplete = generated - completed
     latencies = [
-        task.latency_ms for task in tasks if task.latency_ms is not None and task.latency_ms >= 0
+        task.latency_ms
+        for task in tasks
+        if task.latency_ms is not None and math.isfinite(task.latency_ms) and task.latency_ms >= 0
     ]
     decision_counts = Counter(task.decision.value for task in tasks)
     recognised_count = sum(
@@ -147,9 +163,8 @@ def task_metrics(
     ]
     results.extend(_latency_metrics(latencies, context, config, computed_at))
     results.append(_deadline_miss_metric(tasks, context, config, computed_at))
-    results.append(_vehicle_tier_metric(tables, context, config, computed_at))
     results.append(_drops_metric(tasks, context, config, computed_at))
-    results.append(_energy_metric(tasks, context, config, computed_at))
+    results.extend(_energy_metrics(tasks, context, config, computed_at))
     return results
 
 
@@ -170,8 +185,13 @@ def _latency_metrics(
     config: MetricEngineConfig,
     computed_at: datetime,
 ) -> list[MetricValue]:
+    percentile_specs = (
+        ("task.latency.p50_ms", 0.50),
+        ("task.latency.p95_ms", 0.95),
+        ("task.latency.p99_ms", 0.99),
+    )
     if not latencies:
-        return [
+        results = [
             available_metric("task.latency.count", 0, context, config, computed_at),
             unavailable_metric(
                 "task.latency.mean_ms",
@@ -181,35 +201,85 @@ def _latency_metrics(
                 [UnavailableReason.NO_LATENCY_VALUES],
                 ["tasks.latency_ms"],
             ),
-            unavailable_metric(
-                "task.latency.p50_ms",
-                context,
-                config,
-                computed_at,
-                [UnavailableReason.NO_LATENCY_VALUES],
-                ["tasks.latency_ms"],
-            ),
-            unavailable_metric(
-                "task.latency.p95_ms",
-                context,
-                config,
-                computed_at,
-                [UnavailableReason.NO_LATENCY_VALUES],
-                ["tasks.latency_ms"],
-            ),
         ]
-    return [
+        results.extend(
+            unavailable_metric(
+                key,
+                context,
+                config,
+                computed_at,
+                [UnavailableReason.NO_LATENCY_VALUES],
+                ["tasks.latency_ms"],
+                metadata=_percentile_metadata(percentile, 0, config),
+            )
+            for key, percentile in percentile_specs
+        )
+        return results
+    results = [
         available_metric("task.latency.count", len(latencies), context, config, computed_at),
         available_metric(
             "task.latency.mean_ms", arithmetic_mean(latencies), context, config, computed_at
         ),
-        available_metric(
-            "task.latency.p50_ms", percentile_linear(latencies, 0.50), context, config, computed_at
-        ),
-        available_metric(
-            "task.latency.p95_ms", percentile_linear(latencies, 0.95), context, config, computed_at
-        ),
     ]
+    results.extend(
+        _latency_percentile_metric(
+            key,
+            percentile,
+            latencies,
+            context,
+            config,
+            computed_at,
+        )
+        for key, percentile in percentile_specs
+    )
+    return results
+
+
+def _latency_percentile_metric(
+    key: str,
+    percentile: float,
+    latencies: list[float],
+    context: RunMetricContext,
+    config: MetricEngineConfig,
+    computed_at: datetime,
+) -> MetricValue:
+    metadata = _percentile_metadata(percentile, len(latencies), config)
+    if len(latencies) < config.minimum_sample_size:
+        return unavailable_metric(
+            key,
+            context,
+            config,
+            computed_at,
+            [UnavailableReason.INSUFFICIENT_SAMPLE_SIZE],
+            ["tasks.latency_ms"],
+            metadata=metadata,
+        )
+    warnings = []
+    if len(latencies) == 1:
+        warnings.append("Single-observation percentile equals the sole valid latency observation.")
+    return available_metric(
+        key,
+        percentile_linear(latencies, percentile),
+        context,
+        config,
+        computed_at,
+        warnings=warnings,
+        metadata=metadata,
+    )
+
+
+def _percentile_metadata(
+    percentile: float,
+    sample_count: int,
+    config: MetricEngineConfig,
+) -> JsonObject:
+    return {
+        "percentile_fraction": percentile,
+        "percentile_method": config.percentile_method,
+        "percentile_method_version": PERCENTILE_METHOD_VERSION,
+        "sample_count": sample_count,
+        "minimum_sample_size": config.minimum_sample_size,
+    }
 
 
 def _deadline_miss_metric(
@@ -241,33 +311,6 @@ def _deadline_miss_metric(
     )
 
 
-def _vehicle_tier_metric(
-    tables: CanonicalTables,
-    context: RunMetricContext,
-    config: MetricEngineConfig,
-    computed_at: datetime,
-) -> MetricValue:
-    tiers = {vehicle.vehicle_id: vehicle.tier for vehicle in tables.vehicles if vehicle.tier}
-    if not tiers:
-        return unavailable_metric(
-            "task.completion.rate_by_vehicle_tier",
-            context,
-            config,
-            computed_at,
-            [UnavailableReason.VEHICLE_TIER_UNAVAILABLE],
-            ["vehicles.tier"],
-        )
-    grouped: dict[str, list[bool]] = defaultdict(list)
-    for task in tables.tasks:
-        tier = tiers.get(task.vehicle_id)
-        if tier:
-            grouped[tier].append(task.completed)
-    values = {tier: sum(completed) / len(completed) for tier, completed in sorted(grouped.items())}
-    return available_metric(
-        "task.completion.rate_by_vehicle_tier", values, context, config, computed_at
-    )
-
-
 def _drops_metric(
     tasks: list[TaskRecord],
     context: RunMetricContext,
@@ -289,29 +332,169 @@ def _drops_metric(
     )
 
 
-def _energy_metric(
+def _energy_metrics(
     tasks: list[TaskRecord],
     context: RunMetricContext,
     config: MetricEngineConfig,
     computed_at: datetime,
-) -> MetricValue:
-    energies = [task.energy_j for task in tasks if task.completed and task.energy_j is not None]
-    if not energies:
-        return unavailable_metric(
+) -> list[MetricValue]:
+    keys = (
+        "task.energy.mean_per_observed_task_j",
+        "task.energy.per_completed_j",
+        "task.energy_delay_product.mean_j_ms",
+    )
+    contract = context.energy_contract
+    if contract is None:
+        return [
+            unavailable_metric(
+                key,
+                context,
+                config,
+                computed_at,
+                [UnavailableReason.ENERGY_CONTRACT_UNAVAILABLE],
+                ["manifest.energy_contract"],
+                metadata={"energy_family_version": "1.0"},
+            )
+            for key in keys
+        ]
+
+    observed_energy = [
+        energy for task in tasks if (energy := task.energy_j) is not None and _valid_energy(energy)
+    ]
+    completed = [task for task in tasks if task.completed]
+    completed_energy = [
+        energy
+        for task in completed
+        if (energy := task.energy_j) is not None and _valid_energy(energy)
+    ]
+    energy_delay_products = [
+        task.energy_j * task.latency_ms
+        for task in completed
+        if _valid_energy(task.energy_j)
+        and _valid_latency(task.latency_ms)
+        and task.energy_j is not None
+        and task.latency_ms is not None
+    ]
+    return [
+        _energy_mean_metric(
+            "task.energy.mean_per_observed_task_j",
+            observed_energy,
+            len(tasks),
+            contract.per_task_eligibility,
+            contract,
+            context,
+            config,
+            computed_at,
+            missing=["tasks.energy_j"],
+            partial_when_incomplete=False,
+        ),
+        _energy_mean_metric(
             "task.energy.per_completed_j",
+            completed_energy,
+            len(completed),
+            contract.per_completed_eligibility,
+            contract,
+            context,
+            config,
+            computed_at,
+            missing=["tasks.completed", "tasks.energy_j"],
+            partial_when_incomplete=True,
+        ),
+        _energy_mean_metric(
+            "task.energy_delay_product.mean_j_ms",
+            energy_delay_products,
+            len(completed),
+            contract.energy_delay_eligibility,
+            contract,
+            context,
+            config,
+            computed_at,
+            missing=["tasks.completed", "tasks.energy_j", "tasks.latency_ms"],
+            partial_when_incomplete=True,
+        ),
+    ]
+
+
+def _energy_mean_metric(
+    key: str,
+    values: list[float],
+    population_count: int,
+    eligibility_policy: str,
+    contract: TaskEnergyContract,
+    context: RunMetricContext,
+    config: MetricEngineConfig,
+    computed_at: datetime,
+    *,
+    missing: list[str],
+    partial_when_incomplete: bool,
+) -> MetricValue:
+    metadata = _energy_metadata(
+        contract,
+        eligibility_policy,
+        eligible_count=len(values),
+        population_count=population_count,
+    )
+    if not values:
+        return unavailable_metric(
+            key,
             context,
             config,
             computed_at,
             [UnavailableReason.REQUIRED_FIELD_UNAVAILABLE],
-            ["tasks.energy_j"],
+            missing,
+            metadata=metadata,
         )
+    warnings = []
+    incomplete_count = max(0, population_count - len(values))
+    if incomplete_count:
+        warnings.append(
+            f"{incomplete_count} in-scope task record(s) lacked eligible energy evidence and "
+            "were excluded rather than treated as zero."
+        )
+    status = (
+        MetricStatus.PARTIAL
+        if partial_when_incomplete and incomplete_count
+        else MetricStatus.AVAILABLE
+    )
     return available_metric(
-        "task.energy.per_completed_j",
-        arithmetic_mean(energies),
+        key,
+        arithmetic_mean(values),
         context,
         config,
         computed_at,
+        warnings=warnings,
+        metadata=metadata,
+        status=status,
     )
+
+
+def _energy_metadata(
+    contract: TaskEnergyContract,
+    eligibility_policy: str,
+    *,
+    eligible_count: int,
+    population_count: int,
+) -> JsonObject:
+    return {
+        "energy_family_version": "1.0",
+        "energy_contract_fingerprint": contract.fingerprint(),
+        "energy_contract_version": contract.schema_version,
+        "energy_quantity": contract.quantity,
+        "energy_unit": contract.canonical_energy_unit,
+        "delay_unit": contract.canonical_delay_unit,
+        "eligibility_policy": eligibility_policy,
+        "eligible_count": eligible_count,
+        "population_count": population_count,
+        "coverage_fraction": eligible_count / population_count if population_count else None,
+    }
+
+
+def _valid_energy(value: float | None) -> bool:
+    return value is not None and math.isfinite(value) and value >= 0
+
+
+def _valid_latency(value: float | None) -> bool:
+    return value is not None and math.isfinite(value) and value >= 0
 
 
 def _share(numerator: int, denominator: int) -> float | None:

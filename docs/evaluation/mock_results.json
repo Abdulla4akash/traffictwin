@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "dataset_mode": "synthetic_mock",
+  "description": "Labelled software fixture only; these are not participant observations.",
+  "results": [
+    {
+      "schema_version": "1.0",
+      "participant_code": "TT-MOCK001",
+      "role_category": "postgraduate_student",
+      "experience_band": "1_to_3_years",
+      "session_date": "2026-07-01",
+      "tasks": [
+        {"task_id": "T1", "outcome": "completed", "elapsed_seconds": 44, "assistance_count": 0},
+        {"task_id": "T2", "outcome": "completed_with_assistance", "elapsed_seconds": 112, "assistance_count": 1}
+      ],
+      "ratings": {"Q1": 4, "Q2": 3},
+      "coded_comments": ["provenance_useful", "labels_clear"],
+      "withdrawn": false
+    },
+    {
+      "schema_version": "1.0",
+      "participant_code": "TT-MOCK002",
+      "role_category": "researcher",
+      "experience_band": "4_to_7_years",
+      "session_date": "2026-07-02",
+      "tasks": [
+        {"task_id": "T1", "outcome": "completed", "elapsed_seconds": 36, "assistance_count": 0},
+        {"task_id": "T2", "outcome": "not_completed", "elapsed_seconds": 180, "assistance_count": 2}
+      ],
+      "ratings": {"Q1": 5, "Q2": 2},
+      "coded_comments": ["provenance_useful", "comparison_needs_guidance"],
+      "withdrawn": false
+    },
+    {
+      "schema_version": "1.0",
+      "participant_code": "TT-MOCK003",
+      "role_category": "traffic_professional",
+      "experience_band": "8_plus_years",
+      "session_date": "2026-07-03",
+      "tasks": [
+        {"task_id": "T1", "outcome": "completed_with_assistance", "elapsed_seconds": 69, "assistance_count": 1},
+        {"task_id": "T2", "outcome": "completed", "elapsed_seconds": 91, "assistance_count": 0}
+      ],
+      "ratings": {"Q1": 4, "Q2": 4},
+      "coded_comments": ["labels_clear"],
+      "withdrawn": false
+    },
+    {
+      "schema_version": "1.0",
+      "participant_code": "TT-MOCK004",
+      "role_category": "other",
+      "experience_band": "under_1_year",
+      "session_date": "2026-07-04",
+      "tasks": [
+        {"task_id": "T1", "outcome": "not_completed", "elapsed_seconds": 200, "assistance_count": 3}
+      ],
+      "ratings": {"Q1": 1},
+      "coded_comments": ["excluded_mock_code"],
+      "withdrawn": true
+    }
+  ]
+}

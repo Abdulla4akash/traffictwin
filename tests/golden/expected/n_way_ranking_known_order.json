@@ -1,0 +1,152 @@
+{
+  "bootstrap": {
+    "assumptions": [
+      "Every admitted random-seed row contains one compatible endpoint for every policy.",
+      "Complete common-seed rows are resampled jointly with replacement.",
+      "The admitted seeds represent the empirical paired sample for the predeclared plan.",
+      "Mean and rank intervals are descriptive bootstrap uncertainty, not external guarantees.",
+      "No hypothesis test is performed and no multiplicity-adjusted claim is inferred."
+    ],
+    "confidence_level": 0.95,
+    "method": "joint_paired_seed_percentile_bootstrap_v1",
+    "reason": null,
+    "repetitions": 1000,
+    "seed": 3463596773331287898,
+    "status": "available"
+  },
+  "compatibility_signature_fingerprint": "bc755f79361f1fb10c30b3be1476b8a6ffca4119fec2f74a7247d5fcb21c4186",
+  "complete_random_seeds": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "config_fingerprint": "a6f2cb1b1ee37bca6bcdc2e47619aff23437ebc2d84ed9858233bdb9026b6a27",
+  "exclusion_count": 0,
+  "family_status": "available",
+  "fingerprint": "c4971a1dc7975e89ec2c558188e14910a85b29c6157b1f8836573c871b753558",
+  "missing_expected_random_seeds": [],
+  "policy_ranks": [
+    {
+      "algorithm": "policy-a",
+      "maximum": 0.9400000000000001,
+      "mean": 0.925,
+      "mean_interval_lower": 0.915,
+      "mean_interval_upper": 0.935,
+      "minimum": 0.91,
+      "observation_count": 4,
+      "rank": 1,
+      "rank_frequencies": {
+        "1": 1.0
+      },
+      "rank_interval_lower": 1,
+      "rank_interval_upper": 1,
+      "regret": 0.0,
+      "standard_deviation": 0.011180339887498959,
+      "top_rank_frequency": 1.0,
+      "uncertainty_reason": null,
+      "winner": true
+    },
+    {
+      "algorithm": "policy-b",
+      "maximum": 0.79,
+      "mean": 0.775,
+      "mean_interval_lower": 0.765,
+      "mean_interval_upper": 0.785,
+      "minimum": 0.76,
+      "observation_count": 4,
+      "rank": 2,
+      "rank_frequencies": {
+        "2": 1.0
+      },
+      "rank_interval_lower": 2,
+      "rank_interval_upper": 2,
+      "regret": 0.15000000000000002,
+      "standard_deviation": 0.011180339887498959,
+      "top_rank_frequency": 0.0,
+      "uncertainty_reason": null,
+      "winner": false
+    },
+    {
+      "algorithm": "policy-c",
+      "maximum": 0.64,
+      "mean": 0.625,
+      "mean_interval_lower": 0.615,
+      "mean_interval_upper": 0.635,
+      "minimum": 0.61,
+      "observation_count": 4,
+      "rank": 3,
+      "rank_frequencies": {
+        "3": 1.0
+      },
+      "rank_interval_lower": 3,
+      "rank_interval_upper": 3,
+      "regret": 0.30000000000000004,
+      "standard_deviation": 0.011180339887498959,
+      "top_rank_frequency": 0.0,
+      "uncertainty_reason": null,
+      "winner": false
+    }
+  ],
+  "provenance": {
+    "admitted_complete_collection_count": 12,
+    "available_family_count": 1,
+    "input_collection_count": 12,
+    "method_contract_fingerprint": "1e0b28449169ea535bfd354f672614ed7799d86eccac6d18ee5d4fecbd2ae097",
+    "source_collection_sequence_fingerprint": "b2c25b306550b02872c254f64c7731fbd96b4701da99d793444b697f7c2ea85c"
+  },
+  "status": "available",
+  "study_id": "nway-e52addd135112548",
+  "warnings": [
+    "The rankings use labelled synthetic policy profiles and are not external validation.",
+    "Winner-map results use synthetic policy profiles and do not compare trained algorithms."
+  ],
+  "winner_algorithms": [
+    "policy-a"
+  ],
+  "winner_map_entry": {
+    "metric_key": "task.completion.rate",
+    "objective": "maximise",
+    "policy_scores": [
+      {
+        "algorithm": "policy-a",
+        "maximum": 0.9400000000000001,
+        "mean": 0.925,
+        "minimum": 0.91,
+        "observation_count": 4,
+        "rank": 1,
+        "regret": 0.0,
+        "standard_deviation": 0.011180339887498959,
+        "winner": true
+      },
+      {
+        "algorithm": "policy-b",
+        "maximum": 0.79,
+        "mean": 0.775,
+        "minimum": 0.76,
+        "observation_count": 4,
+        "rank": 2,
+        "regret": 0.15000000000000002,
+        "standard_deviation": 0.011180339887498959,
+        "winner": false
+      },
+      {
+        "algorithm": "policy-c",
+        "maximum": 0.64,
+        "mean": 0.625,
+        "minimum": 0.61,
+        "observation_count": 4,
+        "rank": 3,
+        "regret": 0.30000000000000004,
+        "standard_deviation": 0.011180339887498959,
+        "winner": false
+      }
+    ],
+    "random_seed_count": 4,
+    "seed_id": "seed-family",
+    "unit": "fraction",
+    "winner_algorithms": [
+      "policy-a"
+    ]
+  }
+}

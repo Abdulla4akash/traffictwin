@@ -1,0 +1,77 @@
+{
+  "metric": {
+    "implementation_version": "1.0.0",
+    "metric_key": "plugin.research.latency_observation_count",
+    "missing_evidence": [],
+    "plugin_contract_fingerprint": "cee6c65870127fd942f8015464824d0b9dc497cbc3fdcaf22091b1a978e2454b",
+    "plugin_determinism_verified": true,
+    "plugin_eligible_record_counts": {
+      "tasks": 1
+    },
+    "plugin_input_record_counts": {
+      "tasks": 2
+    },
+    "reason_codes": [],
+    "scope": "run",
+    "status": "available",
+    "unit": "count",
+    "value": 1
+  },
+  "registry": {
+    "contracts": [
+      {
+        "definition": {
+          "aggregation_scope": "run",
+          "description": "Count rows admitted by the declared latency input contract.",
+          "domain": "custom",
+          "higher_is_better": null,
+          "human_name": "Latency observation count",
+          "implementation_version": "1.0.0",
+          "key": "plugin.research.latency_observation_count",
+          "limitations": [
+            "Example trusted local extension used only in deterministic tests."
+          ],
+          "optional_fields": {},
+          "required_fields": {
+            "tasks": [
+              "latency_ms"
+            ]
+          },
+          "required_tables": [
+            "tasks"
+          ],
+          "time_anchor": "tasks.arrival_time_s",
+          "time_window_applicable": true,
+          "unit": "count"
+        },
+        "determinism_contract": "repeatable_pure_function_v1",
+        "inputs": [
+          {
+            "minimum_eligible_rows": 1,
+            "required_evidence_status": "available",
+            "required_fields": [
+              "latency_ms"
+            ],
+            "row_policy": "drop_incomplete",
+            "table": "tasks"
+          }
+        ],
+        "output_schema": {
+          "allow_null_group_values": false,
+          "kind": "scalar",
+          "minimum_group_count": 1,
+          "scalar_type": "integer"
+        },
+        "plugin_id": "research",
+        "plugin_version": "1.0.0",
+        "provenance_mapping": "declared_input_rows_v1",
+        "schema_version": "1.0",
+        "trust_boundary": "trusted_local_code",
+        "unavailable_behavior": "explicit_null_reason_v1"
+      }
+    ],
+    "metric_count": 1,
+    "registry_fingerprint": "a1baa4db035c1b7517b5f9676a6daeac47a3c37597d48d7599d376af4c9c7154",
+    "schema_version": "1.0"
+  }
+}

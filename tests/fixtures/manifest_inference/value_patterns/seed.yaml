@@ -1,0 +1,29 @@
+schema_version: "1.0"
+seed:
+  id: "s1-gridlock-baseline"
+  name: "Synthetic manifest inference fixture"
+  description: "Synthetic data for deterministic manifest inference acceptance."
+  base: null
+  preset_id: "S1"
+  demand:
+    multiplier: 1.0
+  workload:
+    birth_rate_multiplier: 1.0
+    class_mix: {T1: 0.30, T2: 0.30, T3: 0.40}
+    ordering: "mixed"
+  fleet:
+    count: null
+    tier_mix: "mixed"
+  infrastructure:
+    rsu_count: 2
+    rsu_capacity_mode: "standard"
+    failed_rsus: []
+  allowed_decisions: ["local", "v2i", "v2v"]
+  policy:
+    algorithm: "MAPPO"
+    checkpoint: null
+  evaluation:
+    random_seed: 7
+  provenance:
+    created_by: "TrafficTwin tests"
+    source: "Synthetic manifest inference fixture"

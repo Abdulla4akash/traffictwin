@@ -2,9 +2,13 @@
 
 Repository root: `diss/`
 
-Canonical product specification: `docs/traffictwin-design-v0_4.md`
+Canonical product specification: `docs/traffictwin-design-v0_5.md`
 
 Before architectural work or implementation decisions, read the canonical specification completely. Treat it as the product and research specification, while keeping unconfirmed external integrations behind explicit capability interfaces.
+
+The v0.5 specification is a design target, not an implementation claim. The historical
+`docs/traffictwin-design-v0_4.md` remains the rationale and supervisor-meeting traceability record.
+Use `docs/implementation-status.md` to determine what is actually implemented.
 
 ## Non-Negotiable Constraints
 

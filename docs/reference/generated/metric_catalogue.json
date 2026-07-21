@@ -17,6 +17,8 @@
       "optional_fields": {},
       "required_fields": {},
       "required_tables": [],
+      "time_anchor": null,
+      "time_window_applicable": false,
       "unit": "metric_unit"
     },
     "comparison.relative_delta": {
@@ -31,6 +33,8 @@
       "optional_fields": {},
       "required_fields": {},
       "required_tables": [],
+      "time_anchor": null,
+      "time_window_applicable": false,
       "unit": "ratio"
     },
     "comparison.seed_aligned_difference": {
@@ -45,22 +49,146 @@
       "optional_fields": {},
       "required_fields": {},
       "required_tables": [],
+      "time_anchor": null,
+      "time_window_applicable": false,
       "unit": "metric_unit"
     },
-    "infra.load_balance.jain_capacity_normalised": {
-      "aggregation_scope": "run",
-      "description": "Jain index over capacity-normalised load when capacity and load numerator exist.",
-      "domain": "infrastructure",
+    "fairness.rsu.capacity_normalised_load.by_group": {
+      "aggregation_scope": "RSU",
+      "description": "Mean non-negative active_tasks / positive capacity for each admitted canonical RSU.",
+      "domain": "fairness",
       "higher_is_better": null,
-      "human_name": "Jain capacity-normalised load balance",
+      "human_name": "Capacity-normalised load by RSU",
       "implementation_version": "1.0",
-      "key": "infra.load_balance.jain_capacity_normalised",
-      "limitations": [],
+      "key": "fairness.rsu.capacity_normalised_load.by_group",
+      "limitations": [
+        "RSU identifiers are operational groups, not spatial attribution."
+      ],
       "optional_fields": {},
-      "required_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id",
+          "active_tasks",
+          "capacity"
+        ]
+      },
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
+      "unit": "fraction"
+    },
+    "fairness.rsu.capacity_normalised_load.max_gap": {
+      "aggregation_scope": "RSU",
+      "description": "Maximum minus minimum admitted per-RSU mean active-tasks-to-capacity load.",
+      "domain": "fairness",
+      "higher_is_better": false,
+      "human_name": "RSU capacity-normalised load maximum gap",
+      "implementation_version": "1.0",
+      "key": "fairness.rsu.capacity_normalised_load.max_gap",
+      "limitations": [
+        "This is infrastructure load disparity, not per-task RSU outcome attribution."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id",
+          "active_tasks",
+          "capacity"
+        ]
+      },
+      "required_tables": [
+        "infrastructure"
+      ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
+      "unit": "fraction"
+    },
+    "fairness.vehicle_tier.completion_rate.jain": {
+      "aggregation_scope": "vehicle_tier",
+      "description": "Jain index over admitted operational vehicle-tier completion rates.",
+      "domain": "fairness",
+      "higher_is_better": true,
+      "human_name": "Vehicle-tier completion-rate Jain index",
+      "implementation_version": "1.0",
+      "key": "fairness.vehicle_tier.completion_rate.jain",
+      "limitations": [
+        "A high index can coexist with uniformly poor completion outcomes.",
+        "Undefined when every admitted group completion rate is zero."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "tasks": [
+          "vehicle_id",
+          "completed"
+        ],
+        "vehicles": [
+          "tier"
+        ]
+      },
+      "required_tables": [
+        "tasks",
+        "vehicles"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "index"
+    },
+    "fairness.vehicle_tier.completion_rate.max_gap": {
+      "aggregation_scope": "vehicle_tier",
+      "description": "Maximum minus minimum completion rate across admitted operational vehicle tiers.",
+      "domain": "fairness",
+      "higher_is_better": false,
+      "human_name": "Vehicle-tier completion-rate maximum gap",
+      "implementation_version": "1.0",
+      "key": "fairness.vehicle_tier.completion_rate.max_gap",
+      "limitations": [
+        "A small gap can coexist with uniformly poor completion outcomes.",
+        "No protected or demographic attribute is inferred."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "tasks": [
+          "vehicle_id",
+          "completed"
+        ],
+        "vehicles": [
+          "tier"
+        ]
+      },
+      "required_tables": [
+        "tasks",
+        "vehicles"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "ratio"
+    },
+    "infra.load_balance.jain_capacity_normalised": {
+      "aggregation_scope": "RSU",
+      "description": "Jain index over per-RSU mean active-tasks-to-capacity load under the fairness policy.",
+      "domain": "fairness",
+      "higher_is_better": true,
+      "human_name": "Jain capacity-normalised load balance",
+      "implementation_version": "1.0",
+      "key": "infra.load_balance.jain_capacity_normalised",
+      "limitations": [
+        "Load balance does not establish task-outcome equality or causal attribution."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id",
+          "active_tasks",
+          "capacity"
+        ]
+      },
+      "required_tables": [
+        "infrastructure"
+      ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "index"
     },
     "infra.observed_rsu.count": {
@@ -77,6 +205,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "infra.queue_length.max": {
@@ -93,6 +223,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "tasks"
     },
     "infra.queue_length.mean": {
@@ -109,6 +241,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "tasks"
     },
     "infra.rsu.summary": {
@@ -125,6 +259,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "mixed"
     },
     "infra.saturation.duration_s": {
@@ -143,6 +279,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "infra.saturation.episode_count": {
@@ -159,6 +297,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "infra.utilisation.mean": {
@@ -175,6 +315,8 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "fraction"
     },
     "infra.utilisation.p95": {
@@ -191,7 +333,181 @@
       "required_tables": [
         "infrastructure"
       ],
+      "time_anchor": "infrastructure.timestamp_s",
+      "time_window_applicable": true,
       "unit": "fraction"
+    },
+    "spatial.rsu.task.completion_rate_by_target": {
+      "aggregation_scope": "RSU",
+      "description": "Completion rate of canonical V2I tasks grouped by exact evidenced target RSU.",
+      "domain": "spatial",
+      "higher_is_better": true,
+      "human_name": "V2I task completion rate by execution-target RSU",
+      "implementation_version": "1.0",
+      "key": "spatial.rsu.task.completion_rate_by_target",
+      "limitations": [
+        "Unknown or unmatched targets make the family unavailable rather than being dropped or assigned to a nearest RSU."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id"
+        ],
+        "tasks": [
+          "decision",
+          "target_id",
+          "completed"
+        ]
+      },
+      "required_tables": [
+        "tasks",
+        "infrastructure"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "ratio"
+    },
+    "spatial.rsu.task.count_by_target": {
+      "aggregation_scope": "RSU",
+      "description": "Count of canonical V2I tasks grouped by exact evidenced execution-target RSU.",
+      "domain": "spatial",
+      "higher_is_better": null,
+      "human_name": "V2I task count by execution-target RSU",
+      "implementation_version": "1.0",
+      "key": "spatial.rsu.task.count_by_target",
+      "limitations": [
+        "Requires a versioned task-to-RSU target contract and complete exact joins.",
+        "Target lineage is descriptive and is not causal assignment evidence."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id"
+        ],
+        "tasks": [
+          "decision",
+          "target_id"
+        ]
+      },
+      "required_tables": [
+        "tasks",
+        "infrastructure"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "count"
+    },
+    "spatial.rsu.task.deadline_miss.completed_observed_rate_by_target": {
+      "aggregation_scope": "RSU",
+      "description": "Deadline misses divided by completed V2I tasks with observed latency, grouped by exact target RSU.",
+      "domain": "spatial",
+      "higher_is_better": false,
+      "human_name": "Completed-observed deadline miss rate by execution-target RSU",
+      "implementation_version": "1.0",
+      "key": "spatial.rsu.task.deadline_miss.completed_observed_rate_by_target",
+      "limitations": [
+        "Groups without completed observed latency remain null/partial, not zero.",
+        "This denominator excludes incomplete tasks, matching the ordinary miss metric."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "infrastructure": [
+          "rsu_id"
+        ],
+        "tasks": [
+          "decision",
+          "target_id",
+          "completed",
+          "latency_ms",
+          "deadline_ms"
+        ]
+      },
+      "required_tables": [
+        "tasks",
+        "infrastructure"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "ratio"
+    },
+    "spatial.vehicle.distinct_count_by_grid_cell": {
+      "aggregation_scope": "spatial_cell",
+      "description": "Distinct canonical vehicle IDs observed in each declared source-frame cell.",
+      "domain": "spatial",
+      "higher_is_better": null,
+      "human_name": "Distinct vehicle count by spatial grid cell",
+      "implementation_version": "1.0",
+      "key": "spatial.vehicle.distinct_count_by_grid_cell",
+      "limitations": [
+        "A vehicle observed in multiple cells contributes once to each relevant cell."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "vehicles": [
+          "vehicle_id",
+          "x",
+          "y"
+        ]
+      },
+      "required_tables": [
+        "vehicles"
+      ],
+      "time_anchor": "vehicles.timestamp_s",
+      "time_window_applicable": true,
+      "unit": "vehicles"
+    },
+    "spatial.vehicle.observation_count_by_grid_cell": {
+      "aggregation_scope": "spatial_cell",
+      "description": "Count of vehicle-state observations assigned to each declared source-frame cell.",
+      "domain": "spatial",
+      "higher_is_better": null,
+      "human_name": "Vehicle observation count by spatial grid cell",
+      "implementation_version": "1.0",
+      "key": "spatial.vehicle.observation_count_by_grid_cell",
+      "limitations": [
+        "Requires a versioned coordinate-frame/grid contract and complete x/y coverage.",
+        "Cells are not geographic areas without separate CRS evidence."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "vehicles": [
+          "x",
+          "y"
+        ]
+      },
+      "required_tables": [
+        "vehicles"
+      ],
+      "time_anchor": "vehicles.timestamp_s",
+      "time_window_applicable": true,
+      "unit": "observations"
+    },
+    "spatial.vehicle.speed.mean_mps_by_grid_cell": {
+      "aggregation_scope": "spatial_cell",
+      "description": "Arithmetic mean of eligible canonical vehicle speeds in each source-frame cell.",
+      "domain": "spatial",
+      "higher_is_better": null,
+      "human_name": "Mean vehicle speed by spatial grid cell",
+      "implementation_version": "1.0",
+      "key": "spatial.vehicle.speed.mean_mps_by_grid_cell",
+      "limitations": [
+        "Missing speed support remains partial/null and is never replaced with zero.",
+        "This is a descriptive source-frame summary, not a congestion cause or map."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "vehicles": [
+          "x",
+          "y",
+          "speed_mps"
+        ]
+      },
+      "required_tables": [
+        "vehicles"
+      ],
+      "time_anchor": "vehicles.timestamp_s",
+      "time_window_applicable": true,
+      "unit": "m/s"
     },
     "task.completed.count": {
       "aggregation_scope": "run",
@@ -207,6 +523,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "task.completion.rate": {
@@ -223,6 +541,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.completion.rate_by_class": {
@@ -239,23 +559,29 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.completion.rate_by_vehicle_tier": {
       "aggregation_scope": "vehicle_tier",
-      "description": "Completion rate grouped by vehicle tier when vehicle evidence exists.",
+      "description": "Completion rate grouped by stable operational vehicle tier under the fairness evidence policy.",
       "domain": "task",
       "higher_is_better": true,
       "human_name": "Completion rate by vehicle tier",
       "implementation_version": "1.0",
       "key": "task.completion.rate_by_vehicle_tier",
-      "limitations": [],
+      "limitations": [
+        "Vehicle tier is an operational resource group, not a protected or demographic attribute."
+      ],
       "optional_fields": {},
       "required_fields": {},
       "required_tables": [
         "tasks",
         "vehicles"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.deadline_miss.completed_observed_rate": {
@@ -272,6 +598,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.decision.counts": {
@@ -288,6 +616,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "task.decision_share.local": {
@@ -304,6 +634,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.decision_share.unknown": {
@@ -320,6 +652,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.decision_share.v2i": {
@@ -336,6 +670,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.decision_share.v2v": {
@@ -352,6 +688,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.drops.by_cause": {
@@ -368,23 +706,84 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "count"
+    },
+    "task.energy.mean_per_observed_task_j": {
+      "aggregation_scope": "run",
+      "description": "Mean per-task total energy over task records with eligible energy evidence.",
+      "domain": "task",
+      "higher_is_better": false,
+      "human_name": "Mean energy per observed task",
+      "implementation_version": "1.0",
+      "key": "task.energy.mean_per_observed_task_j",
+      "limitations": [
+        "Missing task energy is excluded and reported as coverage, never treated as zero."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "tasks": [
+          "energy_j"
+        ]
+      },
+      "required_tables": [
+        "tasks"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "J/task"
     },
     "task.energy.per_completed_j": {
       "aggregation_scope": "run",
-      "description": "Mean energy per completed task when energy evidence exists.",
+      "description": "Mean per-task total energy over completed tasks with eligible energy evidence.",
       "domain": "task",
       "higher_is_better": false,
       "human_name": "Energy per completed task",
       "implementation_version": "1.0",
       "key": "task.energy.per_completed_j",
-      "limitations": [],
+      "limitations": [
+        "Partial completed-task energy coverage is explicit and is not compared."
+      ],
       "optional_fields": {},
-      "required_fields": {},
+      "required_fields": {
+        "tasks": [
+          "completed",
+          "energy_j"
+        ]
+      },
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "J/task"
+    },
+    "task.energy_delay_product.mean_j_ms": {
+      "aggregation_scope": "run",
+      "description": "Mean per-task product of total energy in joules and latency in milliseconds over eligible completed tasks.",
+      "domain": "task",
+      "higher_is_better": false,
+      "human_name": "Mean energy-delay product",
+      "implementation_version": "1.0",
+      "key": "task.energy_delay_product.mean_j_ms",
+      "limitations": [
+        "Available only under an explicit compatible task-energy evidence contract."
+      ],
+      "optional_fields": {},
+      "required_fields": {
+        "tasks": [
+          "completed",
+          "energy_j",
+          "latency_ms"
+        ]
+      },
+      "required_tables": [
+        "tasks"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "J*ms/task"
     },
     "task.generated.count": {
       "aggregation_scope": "run",
@@ -400,6 +799,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "task.incomplete.rate": {
@@ -416,6 +817,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "task.latency.count": {
@@ -432,6 +835,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "task.latency.mean_ms": {
@@ -448,6 +853,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ms"
     },
     "task.latency.p50_ms": {
@@ -464,6 +871,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ms"
     },
     "task.latency.p95_ms": {
@@ -480,6 +889,28 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
+      "unit": "ms"
+    },
+    "task.latency.p99_ms": {
+      "aggregation_scope": "run",
+      "description": "99th percentile of valid latency observations.",
+      "domain": "task",
+      "higher_is_better": false,
+      "human_name": "P99 latency",
+      "implementation_version": "1.0",
+      "key": "task.latency.p99_ms",
+      "limitations": [
+        "A sample percentile is descriptive and is not a worst-case or confidence bound."
+      ],
+      "optional_fields": {},
+      "required_fields": {},
+      "required_tables": [
+        "tasks"
+      ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ms"
     },
     "task.offload.rate": {
@@ -496,6 +927,8 @@
       "required_tables": [
         "tasks"
       ],
+      "time_anchor": "tasks.arrival_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "tos.task.deadline_success.rate": {
@@ -517,6 +950,8 @@
         ]
       },
       "required_tables": [],
+      "time_anchor": null,
+      "time_window_applicable": false,
       "unit": "ratio"
     },
     "tos.task.deadline_success.rate_by_class": {
@@ -540,6 +975,8 @@
         ]
       },
       "required_tables": [],
+      "time_anchor": null,
+      "time_window_applicable": false,
       "unit": "ratio"
     },
     "traffic.count.mean": {
@@ -556,6 +993,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "vehicles"
     },
     "traffic.count.total": {
@@ -572,6 +1011,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "vehicles"
     },
     "traffic.observation.count": {
@@ -588,6 +1029,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "traffic.sensor.count": {
@@ -604,6 +1047,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "traffic.speed.mean_mps": {
@@ -620,6 +1065,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "m/s"
     },
     "traffic.speed.min_mps": {
@@ -636,6 +1083,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "m/s"
     },
     "traffic.speed.p50_mps": {
@@ -652,6 +1101,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "m/s"
     },
     "traffic.speed.p95_mps": {
@@ -668,6 +1119,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "m/s"
     },
     "traffic.time_coverage": {
@@ -684,6 +1137,8 @@
       "required_tables": [
         "traffic"
       ],
+      "time_anchor": "traffic.timestamp_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.completed.count": {
@@ -700,6 +1155,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "trip.completion.rate": {
@@ -716,6 +1173,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "ratio"
     },
     "trip.duration.count": {
@@ -732,6 +1191,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "trip.duration.max_s": {
@@ -748,6 +1209,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.duration.mean_s": {
@@ -764,6 +1227,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.duration.min_s": {
@@ -780,6 +1245,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.duration.p50_s": {
@@ -796,6 +1263,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.duration.p95_s": {
@@ -812,6 +1281,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "s"
     },
     "trip.incomplete.count": {
@@ -828,6 +1299,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     },
     "trip.records.count": {
@@ -844,6 +1317,8 @@
       "required_tables": [
         "trips"
       ],
+      "time_anchor": "trips.departure_time_s",
+      "time_window_applicable": true,
       "unit": "count"
     }
   }

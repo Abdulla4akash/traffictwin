@@ -1,0 +1,81 @@
+{
+  "capability_id": "OPS-03",
+  "capability_sources": [
+    "generic_csv",
+    "sumo_results_v1",
+    "tos_data_read_only"
+  ],
+  "check_categories": [
+    "runtime",
+    "dependency",
+    "integration",
+    "workspace",
+    "registry",
+    "permission",
+    "cache",
+    "capability",
+    "configuration"
+  ],
+  "command": "traffictwin doctor",
+  "contract_version": "traffictwin-doctor-v1",
+  "exclusions": [
+    "No package installation, registry migration, cache repair, permission change, or cleanup.",
+    "No simulator, evaluator, browser, LaTeX compiler, Graphviz process, or network call.",
+    "No scientific validation, metric computation, diagnosis, or external-validity claim."
+  ],
+  "exit_policy": "Exit zero for healthy or degraded reports; exit one only when a requested required check is blocked or unavailable.",
+  "limitations": [
+    "Dependency presence does not prove every platform-specific runtime path works.",
+    "Filesystem access checks are point-in-time advisory observations.",
+    "Workspace inspection is structural and does not revalidate every contained bundle.",
+    "SUMO executable presence never implies TrafficTwin launch support."
+  ],
+  "optional_commands": [
+    "sumo",
+    "tectonic",
+    "dot"
+  ],
+  "optional_distributions": [
+    "numpy",
+    "playwright",
+    "pypdf"
+  ],
+  "overall_status_policy": {
+    "blocked": "At least one requested required check is blocked or unavailable.",
+    "degraded": "No requested required check is blocked, but at least one required warning exists.",
+    "healthy": "Every requested required check passed."
+  },
+  "permission_policy": [
+    "Local access is probed with os.access and does not prove future access or ACL policy.",
+    "Write access is reported but never exercised.",
+    "Unknown TOS fixture/publication permission is never treated as granted."
+  ],
+  "read_only_policy": [
+    "No directory, registry, cache entry, manifest, or raw bundle is created or modified.",
+    "Registry inspection reuses the immutable read-only OPS-01 connection.",
+    "Cache inspection reuses the read-only OPS-02 raw re-fingerprint and entry verifier.",
+    "Workspace checks parse only the bounded marker and inspect declared paths."
+  ],
+  "required_distributions": [
+    "pydantic",
+    "plotly",
+    "pyarrow",
+    "PyYAML",
+    "reportlab",
+    "streamlit",
+    "typer"
+  ],
+  "required_python": ">=3.11",
+  "schema_version": "1.0",
+  "status_semantics": {
+    "blocked": "The requested workflow cannot safely proceed under the observed state.",
+    "pass": "The observed evidence satisfies this exact check.",
+    "unavailable": "The optional component or evidence was absent; it is never treated as zero or pass.",
+    "warning": "The requested workflow remains inspectable, but operator attention is needed."
+  },
+  "target_options": [
+    "workspace",
+    "registry",
+    "bundle + cache_root"
+  ]
+}

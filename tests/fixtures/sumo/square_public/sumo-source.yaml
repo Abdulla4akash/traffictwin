@@ -1,0 +1,29 @@
+schema_version: "1.0"
+adapter: sumo_results
+bundle:
+  bundle_id: sumo-square-public-seed-42
+  created_at: "2026-07-19T23:45:19.907219+00:00"
+source:
+  scenario_id: eclipse-sumo-square-game
+  scenario_url: https://github.com/eclipse-sumo/sumo/tree/v1_27_1/tools/game
+  sumo_version: 1.27.1
+  source_commit: 7717f2379d9e314a0c81c5cec748444de06a2a91
+  licence_spdx: EPL-2.0 OR GPL-2.0-or-later
+  retrieval_date: 2026-07-19
+  redistribution_allowed: true
+  restrictions:
+    - Preserve the Eclipse SUMO licence and attribution notices embedded in the XML.
+  synthetic: true
+run:
+  run_id: sumo-square-public-seed-42
+  experiment_id: sumo-square-public-validation
+  seed_id: sumo-square-seed-42
+  algorithm: sumo-default-traffic-models
+  random_seed: 42
+files:
+  tripinfo:
+    path: tripinfo.xml
+    checksum_sha256: d648c403ec75099628401b23533188f4f92119e5e6ed4d390054ee5701c791eb
+  summary:
+    path: summary.xml
+    checksum_sha256: 5ce8c9e1020a71bb082cd6a57b40e12903d014d92191f83da130487120620a91

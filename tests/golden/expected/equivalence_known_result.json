@@ -1,0 +1,116 @@
+{
+  "compatibility_signature_fingerprint": "bc755f79361f1fb10c30b3be1476b8a6ffca4119fec2f74a7247d5fcb21c4186",
+  "config": {
+    "algorithm": "policy-a",
+    "alpha": 0.05,
+    "baseline_seed_id": "seed-baseline",
+    "checkpoint": null,
+    "equivalence_margin": 0.2,
+    "estimand": "mean_paired_difference_variation_minus_baseline",
+    "expected_random_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "experiment_id": "exp-paired",
+    "margin_basis": "provisional_design",
+    "margin_justification": "Synthetic golden method-test margin only",
+    "margin_reference": null,
+    "method": "paired_mean_tost_v1",
+    "metric_key": "task.completion.rate",
+    "minimum_pairs": 3,
+    "multiple_comparison_policy": "not_applicable_single_predeclared_equivalence_test",
+    "objective": "maximise",
+    "pairing_key": "random_seed",
+    "schema_version": "1.0",
+    "variation_seed_id": "seed-variation"
+  },
+  "config_fingerprint": "c8a943d4d1d9a73242fcd2a1409ad99887468425540927c49cdd46d2397fa5f7",
+  "eligible_random_seeds": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "fingerprint": "5b5dae997c61ca28fa5da8a11a6cb472c3869d87934343f4e6d7aa732faad55a",
+  "metric_unit": "fraction",
+  "paired_differences": [
+    -0.05000000000000071,
+    0.0,
+    0.05000000000000071,
+    0.019999999999999574,
+    -0.019999999999999574
+  ],
+  "provenance": {
+    "eligible_pair_count": 5,
+    "input_collection_count": 10,
+    "method_contract_fingerprint": "1ba6c9fa7b383a22363a9550c9d156f87ba52a8398a610e43cdcbf1de1d430a2",
+    "source_collection_sequence_fingerprint": "21b0750e1bc83f1b147e8dc75b1253bac3c6a9526d20af2412cae472e8604307",
+    "source_paired_method_contract_fingerprint": "fca3c77b122fe8a8061ed0c05b7947666f7a7434c8054c0732da36fc1d80b0cb",
+    "source_paired_study_fingerprint": "58b264968288765b614080d6aad7eb3cf6e3788245224c37fc1d2e2d08646595",
+    "synthetic": true
+  },
+  "source_paired_study_fingerprint": "58b264968288765b614080d6aad7eb3cf6e3788245224c37fc1d2e2d08646595",
+  "status": "available",
+  "study_id": "equivalence-38d167d130aaa583",
+  "synthetic": true,
+  "tost": {
+    "alpha": 0.05,
+    "assumptions": [
+      "The exact common random-seed pairs admitted by STA-01 are the experimental units.",
+      "Paired differences are independent across random seeds and approximately normal.",
+      "The symmetric absolute margin was chosen before inspecting this study result.",
+      "The margin is expressed in the metric's unchanged original unit.",
+      "Both one-sided null hypotheses must reject at the predeclared alpha.",
+      "One predeclared equivalence claim is evaluated; no multiplicity adjustment applies."
+    ],
+    "conclusion": "equivalence_demonstrated",
+    "degrees_of_freedom": 4,
+    "interval": {
+      "confidence_level": 0.9,
+      "critical_value": 2.131846786326647,
+      "lower": -0.03630404259731535,
+      "reason": null,
+      "status": "available",
+      "strictly_inside_margin": true,
+      "upper": 0.03630404259731535
+    },
+    "lower_test": {
+      "alpha": 0.05,
+      "alternative_hypothesis": "mean_paired_difference > -0.2",
+      "degrees_of_freedom": 4,
+      "null_hypothesis": "mean_paired_difference <= -0.2",
+      "p_value": 0.00015034626284426977,
+      "rejected": true,
+      "side": "lower",
+      "t_statistic": 11.74440439029396
+    },
+    "margin_lower": -0.2,
+    "margin_upper": 0.2,
+    "mean_paired_difference": 0.0,
+    "method": "paired_mean_tost_v1",
+    "n": 5,
+    "reason": null,
+    "sample_sd_paired_difference": 0.0380788655293199,
+    "standard_error": 0.01702938636592656,
+    "status": "available",
+    "unit": "fraction",
+    "upper_test": {
+      "alpha": 0.05,
+      "alternative_hypothesis": "mean_paired_difference < 0.2",
+      "degrees_of_freedom": 4,
+      "null_hypothesis": "mean_paired_difference >= 0.2",
+      "p_value": 0.00015034626284421884,
+      "rejected": true,
+      "side": "upper",
+      "t_statistic": -11.74440439029396
+    }
+  },
+  "warnings": [
+    "The equivalence margin is caller-declared in the metric's original unit; TrafficTwin does not validate its practical or literature basis.",
+    "The equivalence margin is explicitly provisional design evidence and must not be presented as literature- or stakeholder-validated."
+  ]
+}

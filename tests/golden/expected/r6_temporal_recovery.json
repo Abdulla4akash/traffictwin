@@ -1,0 +1,63 @@
+{
+  "r6": {
+    "confidence": "high",
+    "evidence_keys": [
+      "task.deadline_miss.completed_observed_rate"
+    ],
+    "finding_support": {
+      "R6-F1": "supports",
+      "R6-F2": "neutral",
+      "R6-F3": "supports",
+      "R6-F4": "neutral"
+    },
+    "metadata": {
+      "baseline_mean": 0.1,
+      "baseline_ordinals": "0,1",
+      "episode_end_ordinal": 3,
+      "episode_start_ordinal": 2,
+      "event_horizon_complete": true,
+      "event_window_ordinal": 2,
+      "higher_is_better": false,
+      "metric_key": "task.deadline_miss.completed_observed_rate",
+      "metric_unit": "ratio",
+      "minimum_deterioration_delta": 0.1,
+      "missing_observation_ordinals": "",
+      "observation_ordinals": "2,3,4,5",
+      "peak_adverse_delta": 0.3,
+      "recovery_assessment": "recovered",
+      "recovery_horizon_windows": 4,
+      "recovery_tolerance": 0.05,
+      "recovery_window_ordinal": 4,
+      "sustained_window_count": 2,
+      "temporal_evidence_fingerprint": "825bb3e0c0057efe7fbf0c979720e0bbfb26de5bfa4afa2855727a169006f093",
+      "window_series_fingerprint": "6dfd4a7b8a18e781bdf184375975126dd6ed54751c4a704ce75be1b2c9b08082"
+    },
+    "status": "triggered"
+  },
+  "temporal": {
+    "eligible_window_count": 6,
+    "event_window_ordinal": 2,
+    "evidence_fingerprint": "825bb3e0c0057efe7fbf0c979720e0bbfb26de5bfa4afa2855727a169006f093",
+    "higher_is_better": false,
+    "metric_key": "task.deadline_miss.completed_observed_rate",
+    "point_eligibility": [
+      "eligible",
+      "eligible",
+      "eligible",
+      "eligible",
+      "eligible",
+      "eligible"
+    ],
+    "point_values": [
+      0.1,
+      0.1,
+      0.3,
+      0.4,
+      0.1,
+      0.1
+    ],
+    "series_fingerprint": "6dfd4a7b8a18e781bdf184375975126dd6ed54751c4a704ce75be1b2c9b08082",
+    "status": "available",
+    "unit": "ratio"
+  }
+}

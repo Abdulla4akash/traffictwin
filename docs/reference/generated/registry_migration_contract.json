@@ -1,0 +1,85 @@
+{
+  "capability_id": "OPS-01",
+  "contract_version": "registry-migrations-v1",
+  "current_registry_schema_version": 5,
+  "exclusions": [
+    "No destructive downgrade or automatic backup is performed.",
+    "No stored scientific payload is rewritten or reinterpreted.",
+    "No external database migration framework or network service is required."
+  ],
+  "integrity_policy": [
+    "Required objects and columns are validated at every version boundary.",
+    "SQLite quick_check must return ok before commit and during read-only status inspection.",
+    "Future versions, gaps, checksum drift, and downgrades are rejected."
+  ],
+  "ledger_policy": [
+    "PRAGMA user_version is the authoritative integer schema version.",
+    "Every applied version has one immutable name/checksum/timestamp ledger row.",
+    "Existing ledger names and checksums must match the embedded ordered plan."
+  ],
+  "legacy_policy": [
+    "Empty SQLite databases and known unversioned TrafficTwin additive schemas are supported.",
+    "Known legacy rows and payload bytes are retained; migrations add schema objects only.",
+    "Unknown SQLite schema objects or non-SQLite files fail closed before schema changes."
+  ],
+  "limitations": [
+    "Version 1 supports the known repository-era additive SQLite shapes only.",
+    "Operators remain responsible for independent backups before migrating valuable registries.",
+    "A successful schema migration does not validate the scientific meaning of stored JSON."
+  ],
+  "ordered_migrations": [
+    {
+      "checksum": "84cdb100cc06dc5ea06f5283f0d2d6694a1ada9e098c71f6d210f0b7110ab776",
+      "creates": [
+        "table:registry_schema_migrations",
+        "table:seeds",
+        "table:experiments",
+        "table:runs",
+        "trigger:registry_schema_migrations_no_update",
+        "trigger:registry_schema_migrations_no_delete"
+      ],
+      "name": "core_registry",
+      "version": 1
+    },
+    {
+      "checksum": "da82321f4d2cef4524fc8465b4f247d47d15217146f8550c3d206d2aba5829d1",
+      "creates": [
+        "table:bundle_imports",
+        "table:metric_collections",
+        "table:evidence_packs"
+      ],
+      "name": "import_and_analysis_artifacts",
+      "version": 2
+    },
+    {
+      "checksum": "9460717a448e6ebaab5c26440b484ccb33ff4ebbc3ecf5deef74c3303c63f417",
+      "creates": [
+        "table:experiment_protocols",
+        "table:experiment_protocol_slots"
+      ],
+      "name": "experiment_protocol_tracking",
+      "version": 3
+    },
+    {
+      "checksum": "9e4769b82af3560c78f00ac9f8a86fa2c15e77cdb24802670aae7658d60b69f9",
+      "creates": [
+        "table:experiment_evidence_packs"
+      ],
+      "name": "experiment_evidence",
+      "version": 4
+    },
+    {
+      "checksum": "2365f8153aeab1dd46e7ae1817ba4ca9b8a0d54b76d24732fa4ffec964d95449",
+      "creates": [
+        "table:analyst_annotations",
+        "index:analyst_annotations_target_idx",
+        "trigger:analyst_annotations_no_update",
+        "trigger:analyst_annotations_no_delete"
+      ],
+      "name": "analyst_annotations",
+      "version": 5
+    }
+  ],
+  "schema_version": "1.0",
+  "transaction_policy": "All pending ordered migrations and ledger entries run inside one SQLite BEGIN IMMEDIATE transaction; any failure rolls back the complete upgrade plan."
+}

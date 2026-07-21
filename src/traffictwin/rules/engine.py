@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from datetime import UTC, datetime
 
+from traffictwin.diagnostics.cross_rule import evaluate_cross_rule_reasoning
 from traffictwin.diagnostics.report import (
     DiagnosticReport,
     OverallReadiness,
@@ -86,6 +87,16 @@ def evaluate_rules(
     readiness = readiness_from_results(results)
     if evidence_pack.validation_summary.get("may_import") is False:
         readiness = OverallReadiness.INVALID
+    evidence_fingerprint = evidence_pack.fingerprint()
+    cross_rule_analysis = evaluate_cross_rule_reasoning(
+        results,
+        diagnostic_report_id=report_id,
+        evidence_pack_id=evidence_pack.pack_id,
+        ruleset_version=config.ruleset_version,
+        source_evidence_fingerprint=evidence_fingerprint,
+        synthetic=evidence_pack.synthetic,
+        generated_at=generated_at,
+    )
     return DiagnosticReport(
         report_id=report_id,
         evidence_pack_id=evidence_pack.pack_id,
@@ -101,16 +112,43 @@ def evaluate_rules(
         evidence_summary={
             "validation": evidence_pack.validation_summary,
             "availability": evidence_pack.evidence_availability.model_dump(mode="json"),
+            "temporal": (
+                {
+                    "status": evidence_pack.temporal_evidence.status.value,
+                    "metric_key": evidence_pack.temporal_evidence.metric_key,
+                    "eligible_window_count": (
+                        evidence_pack.temporal_evidence.eligible_window_count
+                    ),
+                    "ineligible_window_count": (
+                        evidence_pack.temporal_evidence.ineligible_window_count
+                    ),
+                    "fingerprint": evidence_pack.temporal_evidence.fingerprint(),
+                }
+                if evidence_pack.temporal_evidence is not None
+                else {"status": "unavailable"}
+            ),
         },
         overall_readiness=readiness,
         synthetic=evidence_pack.synthetic,
         provenance={
-            "source_evidence_fingerprint": evidence_pack.fingerprint(),
+            "source_evidence_fingerprint": evidence_fingerprint,
             "source_bundle_fingerprint": evidence_pack.source_bundle_fingerprint,
             "metric_version": evidence_pack.metric_collection.metric_version,
+            "temporal_evidence_fingerprint": (
+                evidence_pack.temporal_evidence.fingerprint()
+                if evidence_pack.temporal_evidence is not None
+                else None
+            ),
+            "window_series_fingerprint": (
+                evidence_pack.temporal_evidence.series_fingerprint
+                if evidence_pack.temporal_evidence is not None
+                else None
+            ),
+            "cross_rule_analysis_fingerprint": cross_rule_analysis.fingerprint(),
         },
         warnings=sorted(set(warnings)),
-        conflict_observations=analyse_conflicts(results, evidence_pack),
+        conflict_observations=analyse_conflicts(results, evidence_pack, cross_rule_analysis),
+        cross_rule_analysis=cross_rule_analysis,
     )
 
 

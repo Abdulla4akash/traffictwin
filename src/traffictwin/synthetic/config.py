@@ -3,13 +3,20 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from pathlib import Path
 from typing import Literal, TypeVar
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+import yaml
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
 
 from traffictwin.domain.enums import TaskClass
+from traffictwin.domain.measurement import (
+    MeasurementTableKind,
+    SyntheticMeasurementImpairmentConfig,
+)
 
 SYNTHETIC_GENERATOR_VERSION = "1.0"
+MAX_SYNTHETIC_CONFIG_BYTES = 1_000_000
 MixKey = TypeVar("MixKey", str, TaskClass)
 
 
@@ -37,6 +44,10 @@ class IncidentSpec(BaseModel):
     incident_type: str = Field(min_length=1)
     location: str | None = None
     severity: str | None = None
+    duration_s: float = Field(default=60.0, gt=0)
+    lanes_closed: int | None = Field(default=None, ge=0)
+    demand_multiplier: float = Field(default=1.0, gt=0)
+    vehicles_involved: list[str] = Field(default_factory=list)
 
 
 class SyntheticScenarioConfig(BaseModel):
@@ -77,6 +88,10 @@ class SyntheticScenarioConfig(BaseModel):
     include_traffic: bool = True
     include_trips: bool = True
     include_incidents: bool = True
+    measurement_imperfections: SyntheticMeasurementImpairmentConfig | None = Field(
+        default=None,
+        exclude_if=lambda value: value is None,
+    )
     provenance: dict[str, str] = Field(
         default_factory=lambda: {
             "producer": "TrafficTwin standalone synthetic generator",
@@ -97,6 +112,70 @@ class SyntheticScenarioConfig(BaseModel):
         """Validate task-class shares."""
 
         return _validate_mix(value, "task_class_mix")
+
+    @model_validator(mode="after")
+    def validate_measurement_stream_availability(self) -> SyntheticScenarioConfig:
+        """Reject impairment settings whose generated observation stream is disabled."""
+
+        impairment = self.measurement_imperfections
+        if impairment is None:
+            return self
+        required: set[MeasurementTableKind] = set(impairment.row_dropout_fraction_by_table)
+        if (
+            impairment.vehicle_position_max_error_m > 0
+            or impairment.vehicle_speed_max_error_mps > 0
+        ):
+            required.add(MeasurementTableKind.VEHICLE_STATE)
+        if impairment.traffic_speed_max_error_mps > 0 or impairment.traffic_count_max_error > 0:
+            required.add(MeasurementTableKind.TRAFFIC_OBS)
+        if (
+            impairment.infrastructure_utilisation_max_error > 0
+            or impairment.infrastructure_queue_max_error > 0
+        ):
+            required.add(MeasurementTableKind.INFRA_STATE)
+        enabled = {
+            MeasurementTableKind.INFRA_STATE: self.include_infrastructure,
+            MeasurementTableKind.VEHICLE_STATE: self.include_vehicles,
+            MeasurementTableKind.TRAFFIC_OBS: self.include_traffic,
+        }
+        missing = sorted(table.value for table in required if not enabled[table])
+        if missing:
+            raise ValueError(
+                "measurement impairments require enabled generated streams: " + ", ".join(missing)
+            )
+        return self
+
+
+def load_synthetic_scenario_config(path: str | Path) -> SyntheticScenarioConfig:
+    """Load one strict bounded YAML/JSON generator configuration."""
+
+    source = Path(path)
+    try:
+        if source.stat().st_size > MAX_SYNTHETIC_CONFIG_BYTES:
+            raise ValueError(
+                f"synthetic configuration exceeds {MAX_SYNTHETIC_CONFIG_BYTES:,} bytes"
+            )
+        payload = yaml.safe_load(source.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise ValueError(f"could not read synthetic configuration: {exc}") from exc
+    except yaml.YAMLError as exc:
+        raise ValueError(f"invalid synthetic configuration YAML: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("synthetic configuration must be a mapping")
+    try:
+        return SyntheticScenarioConfig.model_validate(payload)
+    except ValidationError as exc:
+        raise ValueError(f"invalid synthetic configuration: {exc}") from exc
+
+
+def synthetic_scenario_config_to_yaml(config: SyntheticScenarioConfig) -> str:
+    """Serialise a complete explicit generator configuration."""
+
+    return yaml.safe_dump(
+        config.model_dump(mode="json", exclude_none=True),
+        sort_keys=False,
+        allow_unicode=False,
+    )
 
 
 def _validate_mix(

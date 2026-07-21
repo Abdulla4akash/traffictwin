@@ -1,0 +1,192 @@
+{
+  "audit_fingerprint": "de5ef7bedd32b4e8ac90a66a96f9a6ce1320820db7e85e570b62caed33c5b6a9",
+  "bundle_id": "bundle-measurement-robustness-7-imp-2eb9afa32193",
+  "calibrated_sensor_model": false,
+  "capability_id": "EXP-03",
+  "configuration_fingerprint": "2eb9afa32193fa4369ba55c98440a9a8a985aececee99e8f6933d641c3420080",
+  "dropout_audits": [
+    {
+      "requested_fraction": 0.2,
+      "rows_before": 22,
+      "rows_dropped": 4,
+      "rows_retained": 18,
+      "selection_fingerprint": "c3be95c040764386bd61b321a3e7795e33a702a7ba25704762d47ae39d7b5f91",
+      "table_kind": "infra_state"
+    },
+    {
+      "requested_fraction": 0.1,
+      "rows_before": 220,
+      "rows_dropped": 22,
+      "rows_retained": 198,
+      "selection_fingerprint": "4e5e325ca81b5faff1b27c432a7c4ac61d18c9609d812bc76bfb058fe3215a32",
+      "table_kind": "vehicle_state"
+    },
+    {
+      "requested_fraction": 0.2,
+      "rows_before": 11,
+      "rows_dropped": 2,
+      "rows_retained": 9,
+      "selection_fingerprint": "b2bfe5cee37d594553e3dbd713d74eca8e1d2b4cdb97068e5819dbc5f190dcb1",
+      "table_kind": "traffic_obs"
+    }
+  ],
+  "field_audits": [
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": null,
+      "eligible_rows": 198,
+      "field": "x",
+      "maximum_absolute_error": 3.0,
+      "maximum_applied_error": 2.991848,
+      "minimum_applied_error": -2.99228,
+      "perturbed_rows": 198,
+      "table_kind": "vehicle_state",
+      "unit": "m"
+    },
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": null,
+      "eligible_rows": 198,
+      "field": "y",
+      "maximum_absolute_error": 3.0,
+      "maximum_applied_error": 2.99922,
+      "minimum_applied_error": -2.976637,
+      "perturbed_rows": 198,
+      "table_kind": "vehicle_state",
+      "unit": "m"
+    },
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": 0.0,
+      "eligible_rows": 198,
+      "field": "speed",
+      "maximum_absolute_error": 1.5,
+      "maximum_applied_error": 1.494539,
+      "minimum_applied_error": -1.49058,
+      "perturbed_rows": 198,
+      "table_kind": "vehicle_state",
+      "unit": "m/s"
+    },
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": 0.0,
+      "eligible_rows": 9,
+      "field": "average_speed",
+      "maximum_absolute_error": 2.0,
+      "maximum_applied_error": 1.21747,
+      "minimum_applied_error": -1.935981,
+      "perturbed_rows": 9,
+      "table_kind": "traffic_obs",
+      "unit": "m/s"
+    },
+    {
+      "clamp_maximum": 1.0,
+      "clamp_minimum": 0.0,
+      "eligible_rows": 18,
+      "field": "utilisation",
+      "maximum_absolute_error": 0.1,
+      "maximum_applied_error": 0.081247,
+      "minimum_applied_error": -0.099956,
+      "perturbed_rows": 18,
+      "table_kind": "infra_state",
+      "unit": "fraction"
+    },
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": 0.0,
+      "eligible_rows": 9,
+      "field": "count",
+      "maximum_absolute_error": 4.0,
+      "maximum_applied_error": 3.0,
+      "minimum_applied_error": -4.0,
+      "perturbed_rows": 9,
+      "table_kind": "traffic_obs",
+      "unit": "count"
+    },
+    {
+      "clamp_maximum": null,
+      "clamp_minimum": 0.0,
+      "eligible_rows": 18,
+      "field": "queue_length",
+      "maximum_absolute_error": 3.0,
+      "maximum_applied_error": 3.0,
+      "minimum_applied_error": -3.0,
+      "perturbed_rows": 13,
+      "table_kind": "infra_state",
+      "unit": "count"
+    }
+  ],
+  "model_version": "1.0",
+  "observation_sample": {
+    "infra_state": [
+      {
+        "active_tasks": 18,
+        "arrivals": 2,
+        "capacity": 35.0,
+        "drops": 0,
+        "queue_length": 3,
+        "rsu_id": "rsu-1",
+        "timestamp": 0.0,
+        "utilisation": 0.410469
+      },
+      {
+        "active_tasks": 19,
+        "arrivals": 2,
+        "capacity": 35.0,
+        "drops": 0,
+        "queue_length": 2,
+        "rsu_id": "rsu-1",
+        "timestamp": 30.0,
+        "utilisation": 0.498866
+      }
+    ],
+    "traffic_obs": [
+      {
+        "average_speed": 12.416776,
+        "count": 12,
+        "location": "synthetic-corridor-a",
+        "sensor_id": "sensor-corridor-a",
+        "timestamp": 0.0
+      },
+      {
+        "average_speed": 12.657135,
+        "count": 12,
+        "location": "synthetic-corridor-a",
+        "sensor_id": "sensor-corridor-a",
+        "timestamp": 60.0
+      }
+    ],
+    "vehicle_state": [
+      {
+        "lane": "lane-2",
+        "speed": 14.091875,
+        "tier": "high",
+        "timestamp": 0.0,
+        "vehicle_id": "veh-001",
+        "x": 15.03536,
+        "y": 3.039275
+      },
+      {
+        "lane": "lane-2",
+        "speed": 13.071377,
+        "tier": "high",
+        "timestamp": 30.0,
+        "vehicle_id": "veh-001",
+        "x": 34.713703,
+        "y": 1.78345
+      }
+    ]
+  },
+  "outcome_tables_fingerprint": "772cae3a8cc6d3169de9de8393310d398593125780941aa5622ba0816c3eddd4",
+  "raw_source_mutated": false,
+  "row_counts": {
+    "infra_state": 18,
+    "tasks": 33,
+    "traffic_obs": 9,
+    "trips": 12,
+    "vehicle_state": 198
+  },
+  "run_id": "run-measurement-robustness-7-imp-2eb9afa32193",
+  "schema_version": "1.0",
+  "synthetic_evaluation": true
+}

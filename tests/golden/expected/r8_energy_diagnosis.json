@@ -1,0 +1,89 @@
+{
+  "contract": {
+    "admission_requirements": [
+      "energy metric and completed-count denominator are available",
+      "energy metric unit is J/task and denominator unit is count",
+      "canonical task-energy contract version and fingerprint match exactly",
+      "completed-task energy coverage is complete",
+      "eligible, population, and completed-task counts are consistent"
+    ],
+    "capability": "DIA-03",
+    "default_r8_config": {
+      "enabled": true,
+      "minimum_completed_tasks": 10,
+      "minimum_energy_per_completed_task_j": 1.5
+    },
+    "denominator_metric_key": "task.completed.count",
+    "evidence_boundary": "EvidencePack.metric_collection",
+    "limitations": [
+      "The default is a provisional synthetic-development threshold.",
+      "R8 is a single-run diagnostic candidate, not a statistical anomaly test.",
+      "R8 does not establish hardware efficiency, root cause, or external validity."
+    ],
+    "metric_key": "task.energy.per_completed_j",
+    "required_energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+    "rule_id": "R8",
+    "rule_version": "1.0",
+    "ruleset_version": "1.3",
+    "schema_version": "1.0"
+  },
+  "result": {
+    "confidence": "moderate",
+    "evidence_keys": [
+      "task.completed.count",
+      "task.energy.per_completed_j"
+    ],
+    "findings": [
+      {
+        "expected_condition": "energy per completed task >= 1.5 J/task",
+        "finding_id": "R8-F1",
+        "observed_values": {
+          "energy_per_completed_task_j": 1.6199999999999999
+        },
+        "support": "supports"
+      },
+      {
+        "expected_condition": "completed task count >= 10",
+        "finding_id": "R8-F2",
+        "observed_values": {
+          "completed_task_count": 10,
+          "energy_eligible_count": 10,
+          "energy_population_count": 10
+        },
+        "support": "supports"
+      },
+      {
+        "expected_condition": "exact canonical v1.0 contract and complete coverage",
+        "finding_id": "R8-F3",
+        "observed_values": {
+          "coverage_fraction": 1.0,
+          "energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa"
+        },
+        "support": "supports"
+      }
+    ],
+    "hypothesis": "Completed work has high mean energy cost under the configured provisional boundary.",
+    "limitations": [
+      "The 1.50 J/task default is a provisional synthetic-development value, not a hardware or operational efficiency standard.",
+      "R8 is a single-run threshold candidate, not a statistical outlier test.",
+      "R8 does not establish root cause, hardware efficiency, external validity, or an energy-saving recommendation.",
+      "Calculation lineage identifies eligible contributors and does not attribute causal energy use."
+    ],
+    "metadata": {
+      "r8_boundary": "greater_than_or_equal",
+      "r8_completed_task_count": 10,
+      "r8_coverage_fraction": 1.0,
+      "r8_denominator_policy": "exact_completed_task_population",
+      "r8_energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+      "r8_energy_eligible_count": 10,
+      "r8_energy_population_count": 10,
+      "r8_minimum_completed_tasks": 10,
+      "r8_minimum_energy_per_completed_task_j": 1.5,
+      "r8_observed_energy_per_completed_task_j": 1.6199999999999999
+    },
+    "rule_id": "R8",
+    "rule_version": "1.0",
+    "status": "triggered",
+    "title": "Completed-task energy anomaly candidate"
+  }
+}

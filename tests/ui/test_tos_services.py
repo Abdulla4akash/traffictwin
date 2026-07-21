@@ -38,7 +38,16 @@ def test_tos_ui_services_use_integration_pipeline(tmp_path: Path) -> None:
     assert not isinstance(rsu_series, ServiceError)
     by_key = {item.metric_key: item for item in comparison.comparable_metrics}
     assert by_key["tos.task.deadline_success.rate"].absolute_delta == pytest.approx(0.03)
-    assert analysis.diagnostic_report.insufficient_rule_ids == ["R1", "R2", "R3"]
+    assert analysis.diagnostic_report.insufficient_rule_ids == [
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5",
+        "R6",
+        "R7",
+        "R8",
+    ]
     assert frame.rsus[0].semantics_status == "confirmed_from_vec_env_source"
     assert rsu_series[0].concurrency_pressure_fraction == pytest.approx(0.2)
     assert view.source_contract.execution.direct_launch.value == "false"

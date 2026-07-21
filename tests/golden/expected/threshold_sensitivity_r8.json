@@ -1,0 +1,234 @@
+{
+  "contract": {
+    "analysis_version": "1.0",
+    "capability": "DIA-06",
+    "evidence_boundary": "EvidencePack",
+    "exact_boundary_source": "DIA-05_when_admissible",
+    "flip_boundary_semantics": "adjacent_sampled_trigger_membership_interval",
+    "grid_method": "inclusive_linear_v1",
+    "grid_precision_decimal_places": 12,
+    "limitations": [
+      "Threshold sweeps are descriptive sensitivity, not threshold calibration or a recommendation.",
+      "v1.0 sweeps only one contracted continuous severity boundary for R5, R7, or R8.",
+      "Discrete evidence-support and selected-dimension settings remain fixed at every point.",
+      "A sampled transition interval is not an exact boundary; DIA-05 supplies exact verification when admissible.",
+      "The service does not persist configuration, establish significance, optimise outcomes, prove causality, or validate provisional defaults externally."
+    ],
+    "maximum_point_count": 101,
+    "minimum_point_count": 2,
+    "persistence_policy": "session_only_until_explicit_complete_config_export_import",
+    "point_evaluation": "ordinary_rule_engine_same_evidence_and_timestamp",
+    "result_retention": "retain_every_evaluated_status",
+    "schema_version": "1.0",
+    "source_threshold_policy": "insert_when_inside_declared_range",
+    "supported_threshold_parameters": {
+      "R5": "r5.maximum_absolute_gap",
+      "R7": "r7.minimum_outcome_gap",
+      "R8": "r8.minimum_energy_per_completed_task_j"
+    },
+    "unsupported_rule_ids": [
+      "R0",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R6",
+      "declarative"
+    ]
+  },
+  "report": {
+    "analysis_id": "threshold-sweep-35e9ae3f7d63",
+    "analysis_version": "1.0",
+    "capability": "DIA-06",
+    "evaluated_point_count": 5,
+    "evidence_pack_fingerprint": "aa91465881bf06eecc99db57e6b361184a51e3bf4db2284d596958e630023722",
+    "fixed_rule_config": {
+      "enabled": true,
+      "minimum_completed_tasks": 10
+    },
+    "flip_boundaries": [
+      {
+        "interpretation": "sampled_interval_not_exact_boundary",
+        "lower_ordinal": 1,
+        "lower_status": "triggered",
+        "lower_threshold": 0.666666666667,
+        "transition": "triggered_to_not_triggered",
+        "upper_ordinal": 2,
+        "upper_status": "not_triggered",
+        "upper_threshold": 1.333333333333
+      }
+    ],
+    "nearest_flip": {
+      "candidates": [
+        {
+          "absolute_delta": 0.5,
+          "candidate_rule_config": {
+            "enabled": true,
+            "minimum_completed_tasks": 10,
+            "minimum_energy_per_completed_task_j": 1.0
+          },
+          "current_value": 1.5,
+          "direction": "decrease",
+          "flip_value": 1.0,
+          "inclusive_boundary": true,
+          "parameter_path": "r8.minimum_energy_per_completed_task_j",
+          "source_operator": "greater_than_or_equal",
+          "unit": "J/task",
+          "verified_status": "triggered"
+        }
+      ],
+      "constraints": [
+        {
+          "constraint_kind": "discrete_support",
+          "detail": "completed tasks in the exact energy population: observed 20, required at least 10",
+          "mutable_by_analysis": false,
+          "observed_value": 20,
+          "parameter_path": "r8.minimum_completed_tasks",
+          "required_minimum": 10,
+          "satisfied": true,
+          "unit": "count"
+        }
+      ],
+      "fingerprint": "75879b631d9cf968d8a0dc624ddde5da7c92e30d74ae092ec1eed2928d216f23",
+      "reason_code": "AVAILABLE",
+      "status": "available"
+    },
+    "parameter_path": "r8.minimum_energy_per_completed_task_j",
+    "points": [
+      {
+        "evidence_keys": [
+          "task.completed.count",
+          "task.energy.per_completed_j"
+        ],
+        "finding_count": 3,
+        "is_source_threshold": false,
+        "missing_evidence_count": 2,
+        "ordinal": 0,
+        "result_fingerprint": "f03239b1afbd146bd2d177a1adaf41b60c1b4fd398f7ed20dd7ad0940888b500",
+        "rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 0.0
+        },
+        "status": "triggered",
+        "threshold": 0.0,
+        "triggered": true
+      },
+      {
+        "evidence_keys": [
+          "task.completed.count",
+          "task.energy.per_completed_j"
+        ],
+        "finding_count": 3,
+        "is_source_threshold": false,
+        "missing_evidence_count": 2,
+        "ordinal": 1,
+        "result_fingerprint": "d0eb265f4d9fdd23b8d42e3c916a03f6149b9a03be9902295235d09fb4c998c9",
+        "rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 0.666666666667
+        },
+        "status": "triggered",
+        "threshold": 0.666666666667,
+        "triggered": true
+      },
+      {
+        "evidence_keys": [
+          "task.completed.count",
+          "task.energy.per_completed_j"
+        ],
+        "finding_count": 3,
+        "is_source_threshold": false,
+        "missing_evidence_count": 2,
+        "ordinal": 2,
+        "result_fingerprint": "aa426b64e67822a8ba013dcf9a56d44131e71132a6b438e5e3c7b2e5159bb570",
+        "rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 1.333333333333
+        },
+        "status": "not_triggered",
+        "threshold": 1.333333333333,
+        "triggered": false
+      },
+      {
+        "evidence_keys": [
+          "task.completed.count",
+          "task.energy.per_completed_j"
+        ],
+        "finding_count": 3,
+        "is_source_threshold": true,
+        "missing_evidence_count": 2,
+        "ordinal": 3,
+        "result_fingerprint": "9bcb4ba2716e795471cfc2d9ecad401dab96fbbdde0ab7d9fbfe6627a4ea9883",
+        "rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 1.5
+        },
+        "status": "not_triggered",
+        "threshold": 1.5,
+        "triggered": false
+      },
+      {
+        "evidence_keys": [
+          "task.completed.count",
+          "task.energy.per_completed_j"
+        ],
+        "finding_count": 3,
+        "is_source_threshold": false,
+        "missing_evidence_count": 2,
+        "ordinal": 4,
+        "result_fingerprint": "b9f2bd300ea2467767028f875e76e1807facf4a044ad904ed6a8609d9b06964f",
+        "rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 2.0
+        },
+        "status": "not_triggered",
+        "threshold": 2.0,
+        "triggered": false
+      }
+    ],
+    "reason_code": "AVAILABLE",
+    "report_fingerprint": "ac28f77d4da90380e8eaa1b8f022bbcb73e4de3189ceb62b2b06a10c71be2de2",
+    "request": {
+      "maximum_threshold": 2.0,
+      "minimum_threshold": 0.0,
+      "point_count": 4,
+      "rule_id": "R8",
+      "schema_version": "1.0"
+    },
+    "requested_point_count": 4,
+    "rule_id": "R8",
+    "rule_version": "1.0",
+    "ruleset_version": "1.3",
+    "schema_version": "1.0",
+    "source_result_fingerprint": "9bcb4ba2716e795471cfc2d9ecad401dab96fbbdde0ab7d9fbfe6627a4ea9883",
+    "source_rule_config": {
+      "enabled": true,
+      "minimum_completed_tasks": 10,
+      "minimum_energy_per_completed_task_j": 1.5
+    },
+    "source_status": "not_triggered",
+    "source_threshold": 1.5,
+    "source_threshold_injected": true,
+    "stability": {
+      "all_statuses_identical": false,
+      "evaluated_point_count": 5,
+      "status_counts": {
+        "not_triggered": 3,
+        "triggered": 2
+      },
+      "status_sequence_fingerprint": "6692ad9d206451db891ead4e89eb5014c108e9eccd072a3f15eb8a4a8938dece",
+      "status_transition_count": 1,
+      "trigger_transition_count": 1,
+      "triggered_fraction": 0.4,
+      "triggered_membership_monotonic_prefix": true,
+      "triggered_point_count": 2
+    },
+    "status": "available",
+    "threshold_unit": "J/task"
+  }
+}

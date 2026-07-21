@@ -13,9 +13,10 @@ from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.ingestion.bundle import BundleValidationResult
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
-from traffictwin.metrics.catalogue import metric_catalogue
+from traffictwin.metrics.catalogue import metric_catalogue, metric_definition_for_result
 from traffictwin.metrics.definitions import MetricDefinition
 from traffictwin.metrics.results import JsonValue, MetricCollection, MetricStatus, MetricValue
+from traffictwin.metrics.windowed import WindowedMetricSeries, bundle_result_for_window
 from traffictwin.provenance.graph import TraceGraph
 from traffictwin.provenance.models import (
     ProvenanceNode,
@@ -127,7 +128,8 @@ def build_metric_trace(
         sample_limit=sample_limit,
         warnings=warnings,
     )
-    definition = metric_catalogue().get(metric_key)
+    metric = metric_collection.by_key().get(metric_key)
+    definition = metric_definition_for_result(metric) if metric is not None else None
     required_tables = definition.required_tables if definition is not None else []
     completeness = _completeness_for_trace(
         bundle_result=bundle_result,
@@ -143,6 +145,30 @@ def build_metric_trace(
         synthetic=_is_synthetic(bundle_result),
         completeness=completeness,
         warnings=warnings,
+    )
+
+
+def build_window_metric_trace(
+    metric_key: str,
+    bundle_result: BundleValidationResult,
+    series: WindowedMetricSeries,
+    window_ordinal: int,
+    *,
+    clock: Clock = utc_now,
+    sample_limit: int = DEFAULT_SAMPLE_LIMIT,
+) -> ProvenanceTrace:
+    """Build ordinary metric lineage over one explicitly filtered window slice."""
+
+    window_slice = series.slice_at(window_ordinal)
+    if window_slice.metrics is None:
+        raise ValueError(f"window {window_ordinal} was excluded and has no metric collection")
+    filtered_bundle = bundle_result_for_window(bundle_result, window_slice.window)
+    return build_metric_trace(
+        metric_key,
+        filtered_bundle,
+        window_slice.metrics,
+        clock=clock,
+        sample_limit=sample_limit,
     )
 
 
@@ -554,7 +580,7 @@ def _add_metric_lineage(
 ) -> str:
     by_key = metric_collection.by_key()
     metric = by_key.get(metric_key)
-    definition = metric_catalogue().get(metric_key)
+    definition = metric_definition_for_result(metric) if metric is not None else None
     synthetic = _is_synthetic(bundle_result)
     run_id = metric_collection.run_id
     metric_node_id = f"metric_result:{run_id}:{metric_key}"
@@ -635,25 +661,26 @@ def _add_table_lineage(
     synthetic = _is_synthetic(bundle_result)
     table_node_id = f"canonical_table:{table_name}"
     status = ProvenanceStatus.AVAILABLE if records else ProvenanceStatus.UNAVAILABLE
-    graph.add_node(
-        _node(
-            table_node_id,
-            ProvenanceNodeType.CANONICAL_TABLE,
-            f"Canonical {table_name}",
-            status=status,
-            description="Canonical table eligible as metric input.",
-            attributes={
-                "table": table_name,
-                "record_count": len(records),
-                "required_fields": definition.required_fields.get(table_name, []),
-                "aggregate_trace_policy": (
-                    "Rows are eligible inputs to aggregate computation; no per-row causal "
-                    "contribution weights are assigned."
-                ),
-            },
-            synthetic=synthetic,
+    if not graph.has_node(table_node_id):
+        graph.add_node(
+            _node(
+                table_node_id,
+                ProvenanceNodeType.CANONICAL_TABLE,
+                f"Canonical {table_name}",
+                status=status,
+                description="Canonical table eligible as metric input.",
+                attributes={
+                    "table": table_name,
+                    "record_count": len(records),
+                    "required_fields": definition.required_fields.get(table_name, []),
+                    "aggregate_trace_policy": (
+                        "Rows are eligible inputs to aggregate computation; no per-row causal "
+                        "contribution weights are assigned."
+                    ),
+                },
+                synthetic=synthetic,
+            )
         )
-    )
     confidence = ReferenceConfidence.EXACT if records else ReferenceConfidence.UNAVAILABLE
     graph.add_edge(
         metric_node_id,
@@ -772,6 +799,7 @@ def _add_rule_result_lineage(
                     for recommendation in result.recommendations
                 ],
                 "limitations": list(result.limitations),
+                "result_metadata": dict(result.metadata),
                 "rule_config": _rule_config_for_result(diagnostic_report, result.rule_id),
             },
             synthetic=result.synthetic,
@@ -844,6 +872,7 @@ def _add_evidence_rule_result_lineage(
                     for recommendation in result.recommendations
                 ],
                 "limitations": list(result.limitations),
+                "result_metadata": dict(result.metadata),
                 "rule_config": _rule_config_for_result(diagnostic_report, result.rule_id),
             },
             synthetic=result.synthetic,
@@ -981,7 +1010,7 @@ def _add_evidence_metric_lineage(
     evidence_pack: EvidencePack,
 ) -> str:
     metric = evidence_pack.metric_collection.by_key().get(metric_key)
-    definition = metric_catalogue().get(metric_key)
+    definition = metric_definition_for_result(metric) if metric is not None else None
     metric_node_id = f"metric_result:{evidence_pack.metric_collection.run_id}:{metric_key}"
     graph.add_node(
         _node(
@@ -1020,21 +1049,22 @@ def _add_evidence_metric_lineage(
     graph.add_edge(metric_node_id, definition_node_id, ProvenanceRelation.DEFINED_BY)
     for table_name in definition.required_tables:
         table_node_id = f"canonical_table:{table_name}"
-        graph.add_node(
-            _node(
-                table_node_id,
-                ProvenanceNodeType.CANONICAL_TABLE,
-                f"Canonical {table_name}",
-                status=ProvenanceStatus.UNAVAILABLE,
-                description="Canonical records are unavailable in an EvidencePack-only trace.",
-                attributes={
-                    "table": table_name,
-                    "record_count": None,
-                    "required_fields": definition.required_fields.get(table_name, []),
-                },
-                synthetic=evidence_pack.synthetic,
+        if not graph.has_node(table_node_id):
+            graph.add_node(
+                _node(
+                    table_node_id,
+                    ProvenanceNodeType.CANONICAL_TABLE,
+                    f"Canonical {table_name}",
+                    status=ProvenanceStatus.UNAVAILABLE,
+                    description="Canonical records are unavailable in an EvidencePack-only trace.",
+                    attributes={
+                        "table": table_name,
+                        "record_count": None,
+                        "required_fields": definition.required_fields.get(table_name, []),
+                    },
+                    synthetic=evidence_pack.synthetic,
+                )
             )
-        )
         graph.add_edge(
             metric_node_id,
             table_node_id,

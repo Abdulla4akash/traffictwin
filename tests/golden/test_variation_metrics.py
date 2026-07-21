@@ -11,6 +11,7 @@ VARIATION_KEYS = [
     "task.completed.count",
     "task.completion.rate",
     "task.latency.p95_ms",
+    "task.latency.p99_ms",
     "infra.queue_length.mean",
     "infra.utilisation.mean",
     "traffic.speed.mean_mps",

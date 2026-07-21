@@ -1,0 +1,46 @@
+{
+  "assumptions": [
+    "Every admitted random-seed row contains one compatible endpoint for every policy.",
+    "Complete common-seed rows are resampled jointly with replacement.",
+    "The admitted seeds represent the empirical paired sample for the predeclared plan.",
+    "Mean and rank intervals are descriptive bootstrap uncertainty, not external guarantees.",
+    "No hypothesis test is performed and no multiplicity-adjusted claim is inferred."
+  ],
+  "bootstrap_method": "joint_paired_seed_percentile_bootstrap_v1",
+  "comparison_scope": "Policies are ranked independently within each declared scenario-seed family; scenario and policy effects are not conflated.",
+  "compatibility_requirements": [
+    "experiment, declared scenario family, selected policy, checkpoint, and common seed",
+    "metric collection and implementation versions, finite scalar status, and unit",
+    "synthetic label and exact environment identity/version-or-commit",
+    "immutable source fingerprint for every admitted endpoint",
+    "equal energy/fairness/plugin/spatial semantic fingerprints when applicable"
+  ],
+  "estimand": "per-policy mean over the identical complete common-random-seed cohort",
+  "evidence_boundary": "Completed MetricCollection artifacts, a registered full-factorial experiment plan, and an explicit NWayRankingConfig only; no raw rows are read or metrics recomputed.",
+  "limitations": [
+    "A numerical tie within tolerance is not statistical or practical equivalence.",
+    "Overlapping or non-overlapping intervals are not an automatic decision rule.",
+    "Top-rank frequency is resampling stability, not a universal probability of superiority.",
+    "Rankings do not establish causality, practical importance, or external validity.",
+    "Synthetic studies provide software and method evidence, not real-world validation."
+  ],
+  "method_version": "1.0",
+  "minimum_complete_seeds": 3,
+  "multiple_comparison_policy": "not_applicable_joint_descriptive_ranking_no_hypothesis_tests",
+  "pairing_key": "exact random_seed with one endpoint for every selected policy",
+  "ranking_extension": "The admitted cohort is delegated to WinnerMapReport for objective-aware rank, ties, winners, and regret.",
+  "repetition_bounds": {
+    "maximum": 100000,
+    "minimum": 1000
+  },
+  "schema_version": "1.0",
+  "tie_policy": "Absolute difference between policy means no greater than the predeclared tolerance; a numerical tie is not equivalence.",
+  "unavailable_behavior": "Incomplete common seeds are excluded from every policy denominator; incompatible contracts receive no rank; support below three receives no uncertainty.",
+  "unsupported": [
+    "equivalence claims or ties inferred from confidence-interval overlap",
+    "post-hoc pairwise hypothesis tests or multiplicity adjustment",
+    "ranking scenario-policy combinations in one undifferentiated table",
+    "imputation, automatic subgroup selection, or unpaired resampling",
+    "equivalence (STA-03), regression gates (STA-04), and power analysis (STA-05)"
+  ]
+}

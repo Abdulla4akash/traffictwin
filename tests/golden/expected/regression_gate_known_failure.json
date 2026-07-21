@@ -1,0 +1,40 @@
+{
+  "blocking_findings": [],
+  "checks": [
+    {
+      "absolute_error": 0.019999999999999907,
+      "absolute_tolerance": 0.01,
+      "actual_value": 0.82,
+      "allowed_error": 0.01,
+      "boundary_inclusive": true,
+      "detail": "The absolute error exceeds the declared allowed boundary.",
+      "expected_value": 0.8,
+      "reason_code": "TOLERANCE_EXCEEDED",
+      "relative_error": 0.024999999999999883,
+      "relative_tolerance": 0.0,
+      "selector": "task.completion.rate",
+      "status": "failed",
+      "unit": "fraction"
+    }
+  ],
+  "contract_fingerprint": "7b920604bb5b01f44d8e0e0f6ac34cf268302b2ca6acfe566ddf748a5cebe0f3",
+  "counts": {
+    "checks": 1,
+    "failed": 1,
+    "ignored": 0,
+    "passed": 0,
+    "unavailable": 0
+  },
+  "gate_id": "gate-3ae763afdc13db0e",
+  "limitations": [
+    "A pass applies only to the selected scalar assertions and declared compatibility policy.",
+    "A numerical regression gate does not establish scientific validity, equivalence, cause, or deployment safety.",
+    "Compatible-context gates may compare different source inputs and are not exact fixture reproducibility checks.",
+    "Tolerance selection and golden approval remain researcher or project-owner decisions.",
+    "Synthetic golden results provide software evidence only, not external validation."
+  ],
+  "source_identity_fingerprint": "40be793ea9ce7f282c294cc85d4a04ccc162b5d1491a9b6915c5b5e35a7269f5",
+  "status": "failed",
+  "subject_fingerprint": "c5d9d68de6efc2cb9f66864974598cfb0ed2620c6f820469eb515efe6a8f9e05",
+  "warnings": []
+}

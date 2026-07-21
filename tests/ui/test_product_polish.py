@@ -7,6 +7,7 @@ from traffictwin.ui.components.badges import STATUS_STYLE
 from traffictwin.ui.guided import DemoTrack, bounded_step, steps_for_track
 from traffictwin.ui.labels import PAGE_DESCRIPTIONS, UiPage
 from traffictwin.ui.navigation import page_options
+from traffictwin.ui.pages.run_overview import ENERGY_KPI_KEYS, KPI_KEYS
 from traffictwin.ui.services import (
     ServiceError,
     about_info_for_ui,
@@ -14,6 +15,7 @@ from traffictwin.ui.services import (
     generate_synthetic_bundle_for_ui,
     list_workspace_reports,
     load_experiment_manager_view,
+    load_research_analysis_view,
     preview_synthetic_scenario,
     regenerate_report_for_ui,
     search_for_ui,
@@ -64,6 +66,14 @@ def test_navigation_descriptions_cover_all_pages() -> None:
     assert set(PAGE_DESCRIPTIONS) == set(UiPage)
     assert STATUS_STYLE["unknown"] == "UNKNOWN"
     assert "baseline" in synthetic_preset_names_for_ui()
+    assert "s5_stadium_event_siting" in synthetic_preset_names_for_ui()
+    assert UiPage.TRIVIALITY.value in options
+    assert KPI_KEYS["Latency P99"] == "task.latency.p99_ms"
+    assert set(ENERGY_KPI_KEYS.values()) == {
+        "task.energy.mean_per_observed_task_j",
+        "task.energy.per_completed_j",
+        "task.energy_delay_product.mean_j_ms",
+    }
 
 
 def test_guided_demo_tracks_have_stable_distinct_stages() -> None:
@@ -135,8 +145,12 @@ def test_experiment_manager_reports_search_and_about(tmp_path: Path) -> None:
 
     view = load_experiment_manager_view(registry, workspace)
     assert len(view.experiments) >= 2
-    assert len(view.runs) == 15
+    assert len(view.runs) == 62
     assert view.bundle_imports
+    research = load_research_analysis_view(registry, "exp-standalone-trivial")
+    assert not isinstance(research, ServiceError)
+    assert "R3" in research.diagnostic_report.triggered_rule_ids
+    assert len(research.winner_map.entries) == 1
     assert list_workspace_reports(workspace)
     assert search_for_ui("completion", registry, workspace)
 

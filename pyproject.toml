@@ -12,7 +12,10 @@ authors = [{ name = "Abdulla Al Mamun Akash" }]
 dependencies = [
     "pydantic>=2",
     "plotly>=5",
+    "pyarrow>=18",
+    "pypdf>=5",
     "PyYAML>=6",
+    "reportlab>=4",
     "streamlit>=1.36",
     "typer>=0.12",
 ]
@@ -24,6 +27,7 @@ tos = [
 dev = [
     "build>=1",
     "numpy>=1.26",
+    "playwright>=1.48",
     "pytest>=8",
     "pytest-cov>=5",
     "ruff>=0.5",
@@ -70,6 +74,10 @@ module = [
     "numpy",
     "numpy.*",
     "plotly.*",
+    "pyarrow",
+    "pyarrow.*",
+    "reportlab",
+    "reportlab.*",
     "streamlit",
 ]
 ignore_missing_imports = true

@@ -101,13 +101,25 @@ Unavailable examples remain present with reason codes:
 
 - TrafficTwin task completion/generated/completed/incomplete metrics;
 - latency count/P50/P95;
-- energy per completed task;
+- canonical mean energy per observed task, mean energy per completed task, and energy-delay product;
+- canonical operational vehicle-tier and RSU fairness metrics;
+- canonical per-RSU execution-target outcomes and vehicle source-grid spatial metrics;
 - infrastructure utilisation/queue/saturation/load-balance metrics;
 - traffic and trip metrics.
 
-The adapter does not equate deadline success with eventual completion. The source reports joules
-per arrival rather than per completed task. RSU concurrency pressure is not silently inserted as
-CPU utilisation.
+The adapter does not equate deadline success with eventual completion. The source reports an
+aggregate joules-per-arrival value rather than one per-task total-energy row satisfying
+`TaskEnergyContract`; it remains available only under its distinct
+`tos.task.energy.mean_per_arrival_j` key. RSU concurrency pressure is not silently inserted as CPU
+utilisation or capacity-normalised load. Source task-class summaries are not vehicle-tier groups,
+and padded mobility slots are not persistent vehicle identities. The canonical fairness family
+therefore remains unavailable instead of being relabelled from these source-specific summaries.
+
+The processed FCD coordinates and task arrays also do not satisfy `MET-05`: padded vehicle slots
+are time-local, task execution-target RSU IDs are absent, and no compatible TrafficTwin manifest
+declares persistent identities plus the required target/grid contracts. Source replay remains
+available under its own documented semantics; canonical spatial/per-RSU metrics remain explicitly
+unavailable.
 
 ## Replay And Task Inspection
 
@@ -145,7 +157,7 @@ See [TOS Results Workbench](tos_results_workbench.md) for formulas, output files
 ## Evidence, Diagnostics, And Provenance
 
 Source-summary EvidencePacks intentionally keep task evidence partial and canonical
-infrastructure/trip evidence unavailable. R0 reports this qualification and R1-R3 remain
+infrastructure/trip evidence unavailable. R0 reports this qualification and R1-R5 remain
 `insufficient_evidence` for ordinary source runs.
 
 Aggregate provenance reaches the exact evaluation CSV row, package fingerprint and commit, run,
@@ -193,3 +205,4 @@ regenerated from the shared source.
 - [TOS Results Workbench](tos_results_workbench.md)
 - [Architecture](../architecture.md)
 - [CLI reference](../cli_reference.md)
+- [General external-source contract](external_source_contract.md)

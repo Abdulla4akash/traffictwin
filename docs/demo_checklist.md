@@ -42,6 +42,10 @@ traffictwin demo launch .demo
 - [ ] Bundle Import validates baseline.
 - [ ] Bundle Import validates variation.
 - [ ] Experiment Manager lists experiments, runs, seeds, fingerprints, reports, and comparisons.
+- [ ] What-if Compare shows arithmetic completion-rate difference provenance and downloadable
+  JSON/CSV with the non-causality statement.
+- [ ] What-if Compare shows PRO-03 comparison completeness with all selected typed claims,
+  including unavailable claims, and JSON/CSV downloads.
 - [ ] Run Overview shows task metrics and unavailable optional metrics honestly.
 - [ ] Replay shows `HISTORICAL REPLAY`, speed presets, scrubber, timestamp jump, and filters.
 - [ ] Infrastructure page shows queue/utilisation and threshold notice.
@@ -50,8 +54,13 @@ traffictwin demo launch .demo
 - [ ] Diagnostics & Evidence shows rule statuses and JSON download.
 - [ ] Provenance Explorer traces `task.completion.rate` to metric definition and `tasks.csv` rows.
 - [ ] Provenance Explorer source-row preview shows `tasks.csv` row `2` read-only.
-- [ ] Provenance Explorer exports JSON or Markdown.
-- [ ] Reports lists Markdown/HTML exports and requires explicit regeneration.
+- [ ] Provenance Explorer Graph tab shows bounded retained/omitted counts and a selectable node.
+- [ ] Provenance Explorer exports JSON, Markdown, DOT, and GraphML; structure-only removes details.
+- [ ] Provenance Explorer shows the PRO-03 run/diagnostics denominator, class counts, exclusions,
+  full static claim table, and JSON/CSV downloads.
+- [ ] Reports lists Markdown/HTML/PDF exports and requires explicit regeneration.
+- [ ] Replay shows the non-geographic corridor plane when vehicle x/y evidence exists.
+- [ ] Mock Evaluation Analysis clearly labels its fixture as mock and excludes withdrawn records.
 - [ ] Search finds local metadata without external services.
 - [ ] Settings stores only session-scoped UI preferences.
 - [ ] About shows version/schema/build/licence metadata.
@@ -66,6 +75,8 @@ traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
 traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
+traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format graphml --redaction structure_only --max-nodes 80 --max-edges 160
+traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid task.completion.rate --format json
 traffictwin report full .demo/bundles/stressed_demand --comparison-baseline .demo/bundles/baseline --output .demo/reports/stressed_full.html
 traffictwin experiment protocol --registry .demo/registry.sqlite --experiment-id EXPERIMENT_ID --format yaml
 ```
@@ -85,9 +96,9 @@ git status --short tests/fixtures examples/seeds
 - [ ] Historical replay is not live data.
 - [ ] Diagnostic hypotheses are not proven root causes.
 - [ ] Provenance supports traceability and auditability, not proof of correctness or causality.
-- [ ] Read-only TOS inspection is available, but canonical Randy/SUMO integration and launch stay
-  blocked by missing producer/checkpoint/writer, identity/outcome/trip evidence, and fixture
-  permission.
+- [ ] Read-only TOS inspection and bounded SUMO tripinfo/summary import are available, but full
+  Randy/VEC conversion and launch stay blocked by missing producer/checkpoint/writer,
+  identity/outcome/trip evidence, and fixture permission; SUMO FCD also remains unavailable.
 - [ ] Direct launch is intentionally disabled.
 - [ ] Unknown TOS publication permission remains visible as an integration gate.
 - [ ] The supervisor ZIP is labelled private research material.

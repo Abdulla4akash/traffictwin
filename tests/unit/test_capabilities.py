@@ -33,6 +33,41 @@ def test_default_manifest_is_export_import_only() -> None:
     assert manifest.adapter == "generic_csv"
     assert manifest.supports.seed_export is CapabilitySupport.TRUE
     assert manifest.supports.run_bundle_import is CapabilitySupport.TRUE
+    assert manifest.supports.streaming_canonicalisation is CapabilitySupport.TRUE
+    assert manifest.supports.time_windowed_metrics is CapabilitySupport.TRUE
+    assert manifest.supports.latency_percentile_family is CapabilitySupport.TRUE
+    assert manifest.supports.energy_metric_family is CapabilitySupport.TRUE
+    assert manifest.supports.fairness_metric_family is CapabilitySupport.TRUE
+    assert manifest.supports.spatial_rsu_metric_family is CapabilitySupport.TRUE
+    assert manifest.supports.custom_metric_plugin_api is CapabilitySupport.TRUE
+    assert manifest.supports.temporal_degradation_diagnosis is CapabilitySupport.TRUE
+    assert manifest.supports.declarative_rule_authoring is CapabilitySupport.TRUE
+    assert manifest.supports.fairness_disparity_diagnosis is CapabilitySupport.TRUE
+    assert manifest.supports.energy_anomaly_diagnosis is CapabilitySupport.TRUE
+    assert manifest.supports.nearest_flip_analysis is CapabilitySupport.TRUE
+    assert manifest.supports.threshold_sensitivity_sweep is CapabilitySupport.TRUE
+    assert manifest.supports.cross_rule_reasoning is CapabilitySupport.TRUE
+    assert manifest.supports.paired_statistical_study is CapabilitySupport.TRUE
+    assert manifest.supports.n_way_policy_ranking is CapabilitySupport.TRUE
+    assert manifest.supports.equivalence_testing is CapabilitySupport.TRUE
+    assert manifest.supports.regression_gate is CapabilitySupport.TRUE
+    assert manifest.supports.power_analysis is CapabilitySupport.TRUE
+    assert manifest.supports.difference_provenance is CapabilitySupport.TRUE
+    assert manifest.supports.provenance_graph_export is CapabilitySupport.TRUE
+    assert manifest.supports.provenance_completeness_score is CapabilitySupport.TRUE
+    assert manifest.supports.parameter_sweep_composer is CapabilitySupport.TRUE
+    assert manifest.supports.scenario_mutation_operators is CapabilitySupport.TRUE
+    assert manifest.supports.measurement_noise_dropout_models is CapabilitySupport.TRUE
+    assert manifest.supports.latex_research_export is CapabilitySupport.TRUE
+    assert manifest.supports.analyst_annotations is CapabilitySupport.TRUE
+    assert manifest.supports.structured_report_diffing is CapabilitySupport.TRUE
+    assert manifest.supports.one_page_executive_summary is CapabilitySupport.TRUE
+    assert manifest.supports.full_text_registry_search is CapabilitySupport.TRUE
+    assert manifest.supports.registry_schema_migrations is CapabilitySupport.TRUE
+    assert manifest.supports.canonical_table_caching is CapabilitySupport.TRUE
+    assert manifest.supports.environment_doctor is CapabilitySupport.TRUE
+    assert manifest.supports.ro_crate_archival_export is CapabilitySupport.TRUE
+    assert manifest.supports.generalised_external_source_contract is CapabilitySupport.TRUE
     assert manifest.supports.direct_launch is CapabilitySupport.FALSE
     assert manifest.supports.asynchronous_launch is CapabilitySupport.FALSE
 

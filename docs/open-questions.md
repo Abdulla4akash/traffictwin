@@ -7,24 +7,296 @@ This register separates questions that block implementation from questions that 
 Answered before Phase 1:
 
 - `diss/` is the permanent TrafficTwin project root.
-- The v0.4 design document is canonical at `diss/docs/traffictwin-design-v0_4.md`.
+- The v0.4 design document was canonical at `diss/docs/traffictwin-design-v0_4.md`; it is now the
+  preserved historical rationale and meeting-traceability record.
+- The no-timeline v0.5 design document is canonical at
+  `diss/docs/traffictwin-design-v0_5.md`; design inclusion does not imply implementation.
 - Git should be initialised inside `diss/`.
 - Phase 1 should proceed with package and CLI name `traffictwin`.
 - Streamlit and other UI work remain out of scope until the later UI phase.
 
 Open:
 
-1. Which exact thresholds should R1-R3 use for dissertation evaluation, and should they remain synthetic-demo defaults until real evidence exists?
+1. Which exact thresholds should R1-R5 use for dissertation evaluation, and should they remain synthetic-demo defaults until real evidence exists?
 2. Which rule outputs should be included in dissertation screenshots?
-3. Should R3 experiment-level evidence be represented as a first-class aggregation EvidencePack in Phase 6?
-4. What evidence is needed before R1 can use a T1-by-low-tier cross-tab rather than the current lower-confidence proxy?
-5. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
-6. Which files from Randy's `TOS Data` package may be committed as small sanitised fixtures?
-7. After Randy supplies producer/writer/checkpoint evidence and fixture permission, should the next
+3. What evidence is needed before R1 can use a T1-by-low-tier cross-tab rather than the current lower-confidence proxy?
+4. What evidence is needed before R2 can evaluate temporal overlap between saturation windows and task misses?
+5. What matched capacity, routing, and spatial evidence is required to calibrate R4?
+6. What matched training/validation protocol and threshold should be used to calibrate R5?
+7. Which files from Randy's `TOS Data` package may be committed as small sanitised fixtures?
+8. After Randy supplies producer/writer/checkpoint evidence and fixture permission, should the next
    increment trial one sanitised source-specific conversion?
-8. Should future metric results store full contributing canonical-record references for selected aggregates, or is bounded source-row sampling sufficient for the dissertation demo?
-9. May aggregate values from Randy's package be included in a publicly hosted static atlas, or
+9. Should future persisted metric results materialise contribution-ledger references, or is the
+   implemented on-demand complete accepted-row ledger sufficient?
+10. May aggregate values from Randy's package be included in a publicly hosted static atlas, or
    only in private supervisor/dissertation materials?
+
+### v0.5 design decisions
+
+The complete decision list is maintained in
+[TrafficTwin v0.5 §14](traffictwin-design-v0_5.md#14-open-design-decisions). The most immediate
+cross-cutting questions are:
+
+1. Resolved for `MET-01` by `ADR-016` and `DIA-01` by `ADR-022`: aligned half-open `[start,end)`
+   windows, versioned table anchors, explicit/inferred ranges, visible empty/partial windows, and a
+   typed R6 projection that preserves gaps. An optional declared event maps to its containing
+   effective window; future event-aligned window recomputation remains separate.
+2. Resolved for `STA-01` by `ADR-028`: the estimand is the original-unit mean variation-minus-
+   baseline paired difference; uncertainty uses a deterministic paired percentile bootstrap; the
+   two-sided test uses exact/seeded-Monte-Carlo sign flips; paired secondary effects are Cohen's dz
+   and matched-pairs rank-biserial. Cliff's delta is not automatic, and its difference-test
+   non-significance is never interpreted as equivalence.
+3. Resolved for `STA-02` by `ADR-029`: policies are ranked independently inside each scenario
+   family over identical complete common-seed rows; objective-aware ties/ranks/regret reuse the
+   winner map, and joint paired-seed bootstrap reports mean/rank uncertainty without tests or
+   equivalence claims.
+4. Resolved for the `STA-03` method boundary by `ADR-030`: paired-mean TOST reuses the STA-01
+   cohort and demonstrates equivalence only when both one-sided tests reject against a
+   predeclared positive symmetric absolute margin. Margin basis and justification are mandatory;
+   literature claims require a reference. The defensible numeric margin for each primary
+   dissertation metric remains a study-specific research decision, not a software default.
+5. Resolved for `STA-04` v1.0 by `ADR-031`: candidate goldens cannot pass; approved versioned
+   contracts target completed MetricCollection or STA-01 artifacts; each scalar uses the inclusive
+   maximum of declared absolute and relative tolerance. Exact-source and compatible-context source
+   policies are separate, and invalid comparisons remain unavailable.
+6. Resolved for `STA-05` v1.0 by `ADR-032`: use prospective two-sided paired-mean normal-
+   approximation planning over an explicitly declared target effect and paired-difference
+   variance; return the smallest bounded common-seed count meeting target power; label small,
+   synthetic, and provisional inputs; and make no retrospective-power or guarantee claim. The
+   defensible numeric effect and variance remain study-specific researcher decisions.
+7. Which future external sources can satisfy the implemented task-energy, task-to-RSU target, and
+   vehicle coordinate-frame contracts without relabelling incompatible evidence?
+8. Resolved for `DIA-04` and reference R7 by `ADR-023`: flat `all`/`any`, finite scalar thresholds,
+   mapping maximum gaps, exact booleans, exact unit/scalar metadata, and explicit group support.
+   Arbitrary code/imports/formulas/templates/dynamic keys/nested rules and unsafe YAML are rejected.
+9. Resolved for `PRO-01` by `ADR-033`: the closed v1.0 registry admits direct scalar counts, sums,
+   means, and rates only after exact accepted-row reconciliation. Percentiles, extrema, distinct/
+   episode metrics, grouped/fairness/spatial aggregates, and plugins without a separate formula
+   expose eligible lineage without weights; mapping-valued comparisons are not flattened.
+10. Resolved for `PRO-02` by `ADR-034`: use root-centred deterministic breadth-first selection,
+    explicit default/hard bounds, stable path-safe node/edge identities, timestamp-independent
+    graph identity, safe and structure-only disclosure profiles, and DOT/GraphML parser/golden
+    evidence. Layout remains renderer-dependent presentation, not lineage evidence.
+11. Resolved for `PRO-03` by `ADR-035`: use the selected report template's explicit typed
+    metric/rule/comparison references as the denominator, retain unavailable claims, publish named
+    non-claim exclusions, award no partial credit, require complete non-empty accepted-row ledgers
+    for the numerator, and publish null for a zero-claim report.
+12. Resolved for `EXP-01` by `ADR-036`: accept one strict synthetic-config or seed base, a closed
+    scalar parameter catalogue, no more than four axes/16 values each/256 points, and at most 16
+    local core response metrics, with published value ranges and a 2,000,000 declared-row local
+    admission limit. Only labelled local synthetic generation plus ordinary
+    validation/metrics may execute; external requests stay explicitly `not_executed` with no
+    launcher or command.
+13. Resolved for `EXP-02` by `ADR-037`: admit only ordinarily valid, explicitly labelled
+    synthetic/evaluation bundles; apply exactly one closed row-dropout, timestamp-jitter, or
+    RSU-removal operator to a copied uncompressed CSV target; derive row choices from SHA-256 and
+    a declared seed; retain an exact bounded row/file ledger; validate the derived bundle before
+    transactional publication; and never infer rerouting or external execution.
+14. Resolved for `EXP-03` by `ADR-038`: use only independently hash-derived bounded-uniform noise
+    over the closed generated-observation field set and exact hash-ranked dropout over observation
+    streams; retain one row; keep outcome/time/routing evidence unchanged; require a strict typed
+    manifest audit and explicit synthetic/not-calibrated/raw-unchanged labels.
+15. Resolved for `REP-01` by `ADR-039`: render only four existing typed artifact families through
+    one bounded fingerprinted projection; preserve source/availability/warning/status semantics;
+    use escaped package-free LaTeX2e plus self-contained SVG or invariant PDF; redact absolute
+    paths; and publish explicit exact files without adding scientific calculations.
+16. Resolved for `REP-02` by `ADR-040`: store bounded author/note/decision records against a closed
+    typed target reference; verify registry-resident targets, admit explicit detached generated
+    references, assign monotonic sequence/content identity, reject update/delete, and render only
+    in a non-computed report section outside scientific claims.
+17. Resolved for `REP-03` by `ADR-041`: compare only compatible structured report payloads through
+    prose-free typed claim snapshots; classify exact section/claim changes through canonical JSON
+    paths; exclude rendering, timestamps, warnings, labels, commands, and annotations; and retain
+    typed unavailable outcomes for incompatible or non-claim content.
+18. Resolved for `REP-04` by `ADR-042`: project one compatible typed report through a closed
+    five-highlight quota policy; retain complete availability counts, all warnings, all exact
+    limitations, and relative fingerprinted provenance links; exclude annotations and scientific
+    recomputation; and fail closed when complete A4 content needs more than one page.
+19. Resolved for `REP-05` by `ADR-043`: rebuild an on-demand six-category local projection; open
+    SQLite read-only; inspect only bounded direct report files; redact absolute paths before
+    matching; use published Unicode lexical AND ranking and stable ties; expose complete counts,
+    skips, category labels, snippets, and fingerprints; and treat score as relevance only.
+20. Resolved for registry history by `ADR-044`: support formal migration versions 1–4, empty
+    databases, and recognised unversioned repository-era additive shapes. Representative future
+    workload sizes remain open; cache, doctor, and RO-Crate private-artifact policies are now
+    resolved by ADR-045, ADR-046, and ADR-047 respectively.
+21. Resolved for `OPS-04` by `ADR-047`: one accepted ordinary generic bundle may embed exact raw
+    bytes, privately reference relative names/sizes/hashes, or exclude all raw identifiers. Public
+    imported embed/reference needs confirmed permission, written basis, and a raw licence; unknown
+    or denied public evidence must be excluded. Citation/licence/identifier claims are not inferred.
+22. Resolved for `OPS-05` by `ADR-048`: use a closed runtime-checkable four-operation interface;
+    discover exact direct markers only; refuse no-match, ambiguity, and symbolic links; delegate to
+    existing source validators; and publish path-free semantics, capabilities, provenance,
+    non-ordinal conversion profiles, blockers, and required evidence. SUMO stays partial canonical
+    for trips; TOS stays aggregate/source-specific with unknown publication rights and no canonical
+    task/RSU conversion. New adapters require reviewed code, fixtures, and acceptance evidence.
+
+Resolved for `EXP-02`: `ADR-037` fixes immutable-parent admission, the three v1.0 operators,
+hash-derived determinism, target-table restrictions, exact provenance ledgers, validation, and
+transactional publication. Multi-operator composition is represented only by an explicit chain of
+individually materialised derived bundles. Encoding-preserving gzip-CSV/Parquet mutation and any
+scientifically justified dissertation severity/seed matrix remain future, researcher-owned work.
+
+Resolved for `EXP-03`: `ADR-038` fixes the supported fields, bounded-uniform/integer error
+semantics, clamps, separate seed, exact retain-one dropout, ordering, independent hash inputs,
+strict embedded audit, synthetic-only labels, and transactional generated-bundle publication.
+Empirical distributions, correlated errors, drift/bias/occlusion, calibrated missingness, real
+sensor validation, and externally defensible dissertation bounds remain future research choices.
+
+Resolved for `REP-01`: `ADR-039` fixes the four supported artifact families, shared projection
+fingerprint, row/column/cell/figure bounds, escaping and path-redaction policy, source-mode labels,
+signed-linear and categorical figure semantics, deterministic SVG/PDF methods, exact-file
+publication, and checksum receipts. Dissertation-specific table styling, wide-table pagination,
+interactive charts, and additional artifact families remain future renderer choices; they cannot
+move metric, statistical, or diagnostic logic into reporting.
+
+Resolved for `REP-02`: `ADR-040` fixes the closed target/decision catalogues, stored-versus-
+detached target policy, exact/unbound fingerprint matching, author/note/ID/time bounds, monotonic
+sequence, database update/delete guards, bounded pagination, complete-or-refuse report inclusion,
+and structural separation from computed claims. Authentication, access control, rich text,
+attachments, external identity providers, and collaborative conflict resolution remain future
+operational choices.
+
+Resolved for `REP-03`: `ADR-041` fixes supported report types, compatibility codes, typed claim
+snapshots, scientific/excluded fields, the five classifications, canonical JSON Pointer changes,
+fingerprints, bounds, and JSON/Markdown/CLI/UI surfaces. Rendering diffs, statistical
+interpretation, causal attribution, automatic merging, rich review workflows, and new scientific
+calculations remain outside this capability.
+
+Resolved for `REP-04`: `ADR-042` fixes compatible typed-report admission, the five-slot quota
+selection order, complete availability/omission disclosure, retain-all-or-refuse caveat policy,
+relative source/claim links, path redaction, four output formats, invariant PDF rendering, and
+exactly-one-page overflow refusal. Importance ranking, recommendation, causal interpretation,
+free-text summarisation, hosted provenance routing, annotation inclusion, and scientific
+recalculation remain outside this capability.
+
+Resolved for `REP-05`: `ADR-043` fixes the six categories, registry/report source inventory,
+read-only SQLite mode, direct non-symlink report policy, Unicode AND matching, integer field/
+phrase/token weights, tie order, path redaction before matching, query/result/candidate/report/text
+bounds, exact counts/fingerprint, CLI/UI surfaces, and interpretation limits. Persistent FTS,
+fuzzy/semantic search, PDF extraction, raw-row search, permissions, remote services, and scientific
+importance ranking remain outside this capability.
+
+Resolved for `OPS-01`: `ADR-044` fixes five contiguous schema versions, `PRAGMA user_version`, an
+immutable checksummed ledger, whole-plan `BEGIN IMMEDIATE` rollback, object/type/column and
+`quick_check` validation, formal v1-v4 plus known unversioned adoption, payload preservation,
+read-only status, and CLI/library surfaces. Downgrades, arbitrary third-party objects, automatic
+backups, scientific-payload reinterpretation, and recovery of manually corrupted ledgers remain
+outside the automatic migration boundary.
+
+Resolved for `OPS-02`: `ADR-045` fixes exact raw re-fingerprinting, a complete raw/adapter/
+validator/mapping/canonical-schema/cache-format key, six strict Parquet tables, checksummed typed
+metadata, accepted-result-only admission, atomic publish-after-reread, byte/row/decoded-size bounds,
+and visible miss/stale/incompatible/corrupt states. Raw evidence stays separate and bad entries are
+never automatically deleted or overwritten. Streaming, SUMO/TOS, retention/eviction, remote/shared
+caches, signatures/encryption, and representative future workload sizes remain outside v1.
+
+Resolved for `OPS-03`: `ADR-046` fixes the four check states, required-check-only overall health,
+Python/core/optional inventories, path-only external command discovery, complete generic/SUMO/TOS
+capability summaries, bounded standalone-workspace inspection, immutable OPS-01 registry status,
+OPS-02 read-only cache status, advisory access probes, text/JSON output, and blocked-only non-zero
+exit. Package installation, external command execution, registry/cache/workspace repair, persisted
+permission attestation, scientific validation, and a `--fix` mode remain outside v1.
+
+Resolved for `ING-01`: the legally reusable acceptance fixture is the official Eclipse SUMO 1.27.1
+`tools/game/square` scenario at tag `v1_27_1`. `ADR-011` records the pinned commit, licence,
+generation command, and conservative mapping.
+
+Resolved for `ING-02`: `ADR-012` defines the closed header-alias catalogue, three distinctive task
+value patterns, published sampling bounds, unit-evidence rule, explicit confirmation/edit artifact,
+stale-source rejection, and ambiguity behavior. Adding aliases or vocabularies later is a versioned
+contract change, not an automatic learning process.
+
+Resolved for `ING-03`: `ADR-013` makes format/compression explicit, admits only flat supported
+Parquet scalar types, applies a 10,000,000-byte decoded-table limit, keeps a stable logical record
+locator, and retains exact raw-byte bundle identity. Larger memory-bounded input is handled by the
+separate `ING-05` decision below.
+
+Resolved for `ING-04`: `ADR-014` defines explicit path/glob resolution, deterministic
+deduplication/order, 64-reference and 256-candidate preflight bounds, typed consolidated and
+per-bundle outcomes, one existing registry transaction per accepted candidate, unchanged
+idempotency/conflict semantics, and non-zero partial/failed CLI behavior. Larger single-table
+memory handling is resolved separately by `ING-05` below.
+
+Resolved for `ING-05`: `ADR-015` keeps ordinary ingestion unchanged and defines opt-in row/byte-
+bounded CSV, gzip-CSV, and Parquet decoding; a structural pre-pass; provisional synchronous chunk
+consumption; exact temporary SQLite reconciliation; stable logical row locators; nested table/ZIP
+bounds; metadata-only streaming import; and a generated-fixture equivalence/memory benchmark.
+Question 6 remains open for representative deployment benchmark sizes and full-process RSS/Randy
+workloads; the current measurement is a labelled 75,000-task synthetic implementation fixture.
+
+Resolved for `MET-01`: `ADR-016` assigns task outcomes to arrival cohorts, trip outcomes to
+departure cohorts, and observed-state tables to their timestamps; uses aligned half-open windows;
+keeps empty and excluded partial windows visible; defines coverage only as requested-range overlap;
+and declares all then-current task/infrastructure/traffic/trip metrics window-applicable. MET-03
+through MET-05 extend the current core window-applicable total to 60. Multi-table metrics use only
+independently in-window support. True observation-completeness evidence remains unavailable;
+`DIA-01` now projects the complete artifact into typed temporal evidence without pretending that
+geometric coverage proves observation completeness.
+
+Resolved for `MET-02`: `ADR-017` retains deterministic linear rank-`n-1` interpolation for task
+latency P50/P95 and adds P99. The default minimum sample is one; a singleton returns its sole value
+with a warning, zero latency observations use `NO_LATENCY_VALUES`, and a configured unmet minimum
+uses `INSUFFICIENT_SAMPLE_SIZE`. Sample P99 is descriptive, not a worst-case or confidence bound.
+
+Resolved for `MET-03`: `ADR-018` admits per-task total energy in joules only through the strict
+manifest `TaskEnergyContract` v1.0. It fixes row level and eligibility for observed-task energy,
+completed-task energy, and completed-task energy-delay product; missing values are excluded and
+negative values rejected. Pairwise comparison requires equal semantic fingerprints. Generated
+synthetic bundles satisfy this contract; current SUMO and TOS sources do not. Which future external
+sources can truthfully declare the contract remains open.
+
+Resolved for `MET-04`: `ADR-019` limits fairness outputs to exact operational vehicle-tier and RSU
+groups, requires two groups, support of two eligible observations in every observed group, and
+complete in-scope coverage, and versions/fingerprints the policy and exact group set. Vehicle tier
+is not a protected attribute. Current SUMO/TOS contracts remain unavailable.
+
+Resolved for generic/synthetic `MET-05`: `ADR-020` admits per-RSU task outcomes only under an
+explicit contract declaring V2I `target_id` as the observed executing RSU, complete non-empty
+target coverage, and exact canonical RSU joins. Vehicle spatial summaries require a separate named
+metre-based source frame, fixed grid geometry, required x/y columns, and complete finite
+coordinates. Nearest-RSU assignment, task-position interpolation, CRS/geographic inference, and
+causal attribution are excluded. Whether a future external source satisfies either contract
+remains an adapter evidence question.
+
+Resolved for `MET-06`: `ADR-021` uses explicit trusted in-process registration with no uploaded
+code, arbitrary module path, or automatic environment discovery. Contracts declare canonical
+inputs, availability, units, scope, version, output schema, optional window anchor, unavailable
+behavior, and row provenance. The engine uses deep-copied bounded inputs, verifies two canonical
+outputs, rejects duplicate/core keys before evaluation, isolates each failure, and requires equal
+contract fingerprints for scalar comparison. Process isolation, signed packages, timeouts, and
+ambient plugin discovery remain optional future engineering questions rather than blockers.
+
+Resolved for `DIA-01`: `ADR-022` retains the `EvidencePack` as the sole rule boundary, projects one
+direction-declared scalar series without dropping window states, maps only an optional declared
+event, and defines exact consecutive baseline/degradation/recovery semantics. R6 thresholds remain
+provisional until representative per-metric evidence and domain review establish defensible
+values; event-aligned recomputation and statistical change detection are separate future methods.
+
+Resolved for `DIA-02` and `DIA-04`: `ADR-023` defines the bounded trusted-local static YAML
+grammar, three-valued evaluation, exact unit/metadata/group admission, local/core identifier
+boundary, and definition fingerprint. R7 selects either stable operational vehicle-tier completion
+or exact execution-target RSU completion; it never merges dimensions or infers protected
+attributes, geography, significance, or cause. Its `0.20` default remains provisional pending a
+predeclared study-specific basis and representative domain review.
+
+Resolved for `DIA-05`: `ADR-025` admits exact nearest flips only for the inclusive single-boundary
+R5, R7, and R8 severity thresholds after unchanged discrete support requirements pass. A candidate
+must be verified by the ordinary rule engine over the same EvidencePack. R0-R4, R6, and arbitrary
+declarative rules remain explicitly unsupported until a defensible monotonicity, distance, and
+constraint contract exists.
+
+Resolved for `DIA-06`: `ADR-026` evaluates only those contracted R5/R7/R8 axes over a bounded
+inclusive linear grid, retains every ordinary rule status, separates sampled transition intervals
+from exact DIA-05 output, and keeps all non-swept support/dimension settings fixed. The Streamlit
+surface uses session-only configuration and requires explicit complete-config import/download;
+multi-parameter, R6, compound-core, and arbitrary declarative sweeps remain open future design.
+
+Resolved for `DIA-07`: `ADR-027` gives R0 readiness presentation precedence 100 over ordinary
+rules at equal precedence 50. R1/R2 conflict and R1/R4 corroboration activate only when both rules
+trigger and cite the declared exact shared evidence key. R0 suppression activates only for an
+explicit `blocked_rules` target and changes actionability/presentation only. Every original result
+and reason is retained; confidence is unchanged; undeclared pairs remain unclassified.
 
 Implemented while these questions remain open:
 
@@ -49,6 +321,22 @@ Resolved during Phase 5:
 - The UI page is now `Evidence & Diagnostic Hypotheses`.
 - Diagnostic rules are deterministic code over EvidencePacks only.
 - R3 returns `insufficient_evidence` for ordinary single-run bundles.
+
+Resolved during the Independent Research Tools increment:
+
+- R3 experiment evidence is now a first-class reusable EvidencePack built from stored metrics.
+- R4/R5 are deterministic candidates with explicit evidence requirements and unavailable states;
+  R5 pair sets now reject mixed policy, checkpoint, metric, environment-role, or repeated-seed
+  provenance.
+- Winner maps exclude incompatible seed-family observations instead of ranking mixed units or
+  versions.
+- A fixed synthetic portfolio study now covers five families, three policy profiles, three random
+  seeds, and a disjoint S5/S6 held-out partition; real policy calibration and statistical/external
+  evaluation remain open.
+- S5/S6 and full incident/event round-trip plus linked what-if authoring are available as synthetic
+  workflow fixtures.
+- Protocol execution can be tracked manually without implying simulator launch.
+- Participant-evaluation documents exist as unapproved drafts; formal approval remains open.
 
 Resolved during Phase 6A:
 
@@ -84,13 +372,15 @@ Resolved during guided-workflow polish:
 Resolved during documentation pass:
 
 - Documentation reference artifacts are generated from code under `docs/reference/generated/`.
-- Automated screenshots are not produced; a manual screenshot checklist is documented instead.
+- A manual screenshot checklist was documented; the later advanced-tools increment added
+  executable browser screenshot and bounded semantic accessibility regression checks.
 
 Resolved during Provenance Explorer productisation:
 
 - Provenance is read-only and does not recompute metrics or reinterpret rules.
-- Aggregate metric traces show eligible rows and bounded samples rather than fabricated per-row
-  contribution weights.
+- Aggregate metric traces show eligible rows and bounded samples. The later additive contribution
+  query exports every accepted candidate row and its deterministic eligibility state without
+  fabricated per-row causal weights.
 - EvidencePack-only fault-injection traces mark source-row links unavailable unless a bundle exists.
 
 Resolved during Standalone Product phase:
@@ -100,9 +390,21 @@ Resolved during Standalone Product phase:
   registry path.
 - Synthetic policy profiles use `synthetic-*` labels and do not impersonate real trained
   algorithms.
-- Report export is deterministic Markdown/HTML and does not use an LLM.
+- Report export is deterministic Markdown/HTML/PDF and does not use an LLM.
 - The one-click demo launcher initialises the workspace if absent and starts Streamlit with
   explicit workspace environment variables.
+
+Resolved during the Advanced Research Tools increment:
+
+- Fault evaluation now spans severity and random-seed variants and reports false positives,
+  specificity, robustness, split summaries, and failure IDs.
+- Portfolio studies now report variability, failure cases, pairwise dominance, and CSV/Markdown.
+- Synthetic baseline/incident/infrastructure case-study packs are generated automatically.
+- Full accepted-canonical-row metric contribution ledgers are available on demand.
+- Deterministic A4 PDF reports, constrained findings prose, a non-geographic corridor replay,
+  automated desktop/mobile screenshots, and basic semantic accessibility checks are implemented.
+- Labelled mock participant results can be analysed descriptively, but formal data collection
+  remains ethics-gated and unimplemented.
 
 ## Questions For Dr. Sandra Sampaio
 
@@ -138,8 +440,10 @@ Only the following evidence is still needed:
   longer blockers.
 - Direct launch requires the checkpoint, instrumented writer or agreed output contract, portable
   paths, and a tested local invocation.
-- Metrics using energy, drop causes, queue-clearance time, or capacity-normalised load require source columns and units.
-- R1-R3 thresholds require synthetic calibration first and real calibration only after representative data is supplied.
+- External canonical energy metrics require per-task source rows and a compatible semantic
+  contract; drop-cause, queue-clearance, and capacity-normalised metrics still require confirmed
+  source fields and units.
+- R1-R8 thresholds require synthetic calibration first and real calibration only after representative data is supplied; R6/R7/R8 defaults are explicitly provisional.
 - R1 direct low-tier/T1 evidence requires vehicle-tier and task-class cross-tab evidence.
 - R2 temporal-overlap evidence requires windowed or event-level task and infrastructure evidence in the EvidencePack.
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
@@ -149,8 +453,8 @@ Only the following evidence is still needed:
   conversion remains blocked on absent outcome/identity/target/trip evidence, producer artifacts,
   and fixture permission.
 - Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
-- Exact row-level contribution lists for aggregate metrics remain a future design choice; current
-  provenance provides aggregate-level traceability and source-row samples.
+- Persisting contribution-ledger references inside each `MetricValue` remains a future storage
+  choice; complete accepted-row ledgers are already available on demand.
 - Stronger canonical integration remains the next blocker for externally grounded metric and rule
   evaluation.
 - A project licence still needs explicit selection before public release.
@@ -163,13 +467,22 @@ Only the following evidence is still needed:
 - Deterministic YAML/CSV protocols now support manual coordination and later manifest matching;
   who or what executes each slot, and the actual environment/checkpoint provenance, remain external
   responsibilities until an evidenced launcher exists.
+- R4 needs comparable multi-RSU capacity, active-task, utilisation, placement/routing, and spatial
+  demand evidence before real interpretation.
+- R5 needs explicitly paired training-validation results with compatible policy, checkpoint,
+  metric, environment, and common-seed provenance before real interpretation.
+- Formal participant recruitment and data collection remain blocked until the relevant ethics and
+  supervisory approvals are recorded.
 
 ## Non-Blocking Unknowns
 
-- Exact design of later portfolio selection.
+- Real portfolio rules, calibration, and statistical evaluation.
 - Later use of DuckDB or Polars.
-- Optional language rendering.
 - Optional XAI instrumentation.
 - Near-live or true-live data sources.
+- Encoding-preserving mutation writers for gzip-CSV/Parquet and evidence-backed severity/seed
+  matrices beyond the closed EXP-02 v1.0 contract.
+- Empirically calibrated measurement-error distributions, correlation/drift models, and
+  evidence-backed dropout mechanisms beyond the closed EXP-03 synthetic fixture contract.
 - Persistent multi-user settings or authentication.
-- Richer UI screenshot automation.
+- Formal accessibility and assistive-technology evaluation beyond the bounded automated audit.

@@ -1,8 +1,8 @@
-"""Manifest-driven generic CSV adapter."""
+"""Manifest-driven generic CSV, gzip-CSV, and Parquet adapter."""
 
 from __future__ import annotations
 
-import csv
+import math
 from collections.abc import Callable, Sequence
 from pathlib import Path
 
@@ -19,6 +19,12 @@ from traffictwin.canonical.records import (
 from traffictwin.canonical.tables import CanonicalTables
 from traffictwin.domain.enums import Decision, TaskClass
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.ingestion.tabular import (
+    TabularReadError,
+    TabularRow,
+    iter_declared_table_chunks,
+    read_declared_table,
+)
 from traffictwin.validation.codes import ValidationCode
 from traffictwin.validation.findings import Severity, ValidationFinding
 from traffictwin.validation.report import ValidationReport
@@ -60,7 +66,17 @@ SUPPORTED_FIELDS: dict[str, set[str]] = {
         "duration",
         "route_id",
     },
-    "incidents": {"incident_id", "timestamp", "incident_type", "location", "severity"},
+    "incidents": {
+        "incident_id",
+        "timestamp",
+        "incident_type",
+        "location",
+        "severity",
+        "duration",
+        "lanes_closed",
+        "demand_multiplier",
+        "vehicles_involved",
+    },
 }
 
 UNIT_DIMENSIONS: dict[str, str] = {
@@ -88,9 +104,24 @@ FIELD_CAPABILITIES: dict[str, list[str]] = {
     "incidents": ["incident_context"],
 }
 
+GENERIC_TABULAR_ADAPTER_ID = "generic_tabular"
+GENERIC_TABULAR_ADAPTER_VERSION = "generic-tabular-v1"
 
-class GenericCsvAdapter:
-    """CSV adapter driven entirely by manifest declarations."""
+
+def supported_units_for_field(field: str) -> tuple[str, ...]:
+    """Return the units accepted by the deterministic CSV converter for one field."""
+
+    dimension = UNIT_DIMENSIONS.get(field)
+    if dimension is None:
+        return ()
+    return tuple(_CONVERTERS.get(dimension, {}))
+
+
+class GenericTabularAdapter:
+    """Tabular adapter driven entirely by explicit manifest declarations."""
+
+    adapter_id = GENERIC_TABULAR_ADAPTER_ID
+    adapter_version = GENERIC_TABULAR_ADAPTER_VERSION
 
     def canonicalise(
         self,
@@ -98,7 +129,7 @@ class GenericCsvAdapter:
         manifest: BundleManifest,
         report: ValidationReport,
     ) -> CanonicalTables:
-        """Read declared CSV files and return canonical records."""
+        """Read declared tabular files and return canonical records."""
 
         tables = CanonicalTables()
         for kind, declaration in manifest.files.items():
@@ -124,29 +155,167 @@ class GenericCsvAdapter:
         self._validate_duplicate_task_ids(tables.tasks, report)
         return tables
 
+    def canonicalise_streaming(
+        self,
+        root: Path,
+        manifest: BundleManifest,
+        report: ValidationReport,
+        emit: Callable[[str, str, int, int, int, int, CanonicalTables], None],
+        *,
+        chunk_rows: int,
+        max_table_uncompressed_bytes: int,
+        max_chunk_bytes: int,
+    ) -> None:
+        """Decode and canonicalise declared tables through bounded ordered chunks."""
+
+        for kind, declaration in manifest.files.items():
+            path = root / declaration.path
+            if not path.exists():
+                continue
+            report.files_inspected.append(declaration.path)
+            try:
+                columns_valid: bool | None = None
+                for chunk in iter_declared_table_chunks(
+                    path,
+                    declaration,
+                    chunk_rows=chunk_rows,
+                    max_uncompressed_bytes=max_table_uncompressed_bytes,
+                    max_chunk_bytes=max_chunk_bytes,
+                ):
+                    if columns_valid is None:
+                        columns_valid = self._validate_columns(
+                            kind,
+                            declaration.path,
+                            declaration,
+                            chunk.headers,
+                            report,
+                        )
+                if columns_valid is not True:
+                    continue
+
+                for chunk_index, chunk in enumerate(
+                    iter_declared_table_chunks(
+                        path,
+                        declaration,
+                        chunk_rows=chunk_rows,
+                        max_uncompressed_bytes=max_table_uncompressed_bytes,
+                        max_chunk_bytes=max_chunk_bytes,
+                    ),
+                    start=1,
+                ):
+                    tables = self._canonical_chunk(
+                        kind,
+                        chunk.rows,
+                        declaration,
+                        report,
+                        source_row_start=chunk.start_source_row,
+                    )
+                    emit(
+                        kind,
+                        declaration.path,
+                        chunk_index,
+                        chunk.start_source_row,
+                        len(chunk.rows),
+                        chunk.estimated_decoded_bytes,
+                        tables,
+                    )
+            except TabularReadError as exc:
+                report.add(
+                    self._finding(
+                        exc.code,
+                        Severity.FATAL,
+                        str(exc),
+                        file=declaration.path,
+                        may_continue=False,
+                    )
+                )
+
+    def _canonical_chunk(
+        self,
+        kind: str,
+        rows: list[TabularRow],
+        declaration: FileDeclaration,
+        report: ValidationReport,
+        *,
+        source_row_start: int,
+    ) -> CanonicalTables:
+        if kind == "tasks":
+            return CanonicalTables(
+                tasks=self._tasks(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        if kind == "infra_state":
+            return CanonicalTables(
+                infrastructure=self._infrastructure(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        if kind == "vehicle_state":
+            return CanonicalTables(
+                vehicles=self._vehicles(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        if kind == "traffic_obs":
+            return CanonicalTables(
+                traffic=self._traffic(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        if kind == "trips":
+            return CanonicalTables(
+                trips=self._trips(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        if kind == "incidents":
+            return CanonicalTables(
+                incidents=self._incidents(
+                    rows,
+                    declaration,
+                    report,
+                    source_row_start=source_row_start,
+                )
+            )
+        return CanonicalTables()
+
     def _read_rows(
         self,
         kind: str,
         path: Path,
         declaration: FileDeclaration,
         report: ValidationReport,
-    ) -> list[dict[str, str]] | None:
+    ) -> list[TabularRow] | None:
         try:
-            with path.open(newline="", encoding="utf-8-sig") as handle:
-                reader = csv.DictReader(handle)
-                fieldnames = reader.fieldnames or []
-                if not self._validate_columns(
-                    kind, declaration.path, declaration, fieldnames, report
-                ):
-                    return None
-                return [dict(row) for row in reader]
-        except OSError as exc:
+            table = read_declared_table(path, declaration)
+            if not self._validate_columns(
+                kind, declaration.path, declaration, table.headers, report
+            ):
+                return None
+            return table.rows
+        except TabularReadError as exc:
             report.add(
                 self._finding(
-                    ValidationCode.FILE_UNREADABLE,
+                    exc.code,
                     Severity.FATAL,
-                    f"could not read CSV file: {exc}",
-                    file=path.name,
+                    str(exc),
+                    file=declaration.path,
                     may_continue=False,
                 )
             )
@@ -195,12 +364,14 @@ class GenericCsvAdapter:
 
     def _tasks(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[TaskRecord]:
         records: list[TaskRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             task_id = self._text(row, declaration, "task_id")
             vehicle_id = self._text(row, declaration, "vehicle_id")
@@ -245,6 +416,7 @@ class GenericCsvAdapter:
                 continue
             completion = self._number(row, declaration, "completion_time", file, index, report)
             latency = self._number(row, declaration, "latency_ms", file, index, report)
+            energy = self._number(row, declaration, "energy_j", file, index, report)
             if deadline < 0:
                 report.add(
                     self._finding(
@@ -268,6 +440,19 @@ class GenericCsvAdapter:
                         row=index,
                         field="latency_ms",
                         value=latency,
+                        may_continue=False,
+                    )
+                )
+            if energy is not None and energy < 0:
+                report.add(
+                    self._finding(
+                        ValidationCode.TASK_ENERGY_NEGATIVE,
+                        Severity.ERROR,
+                        "energy_j must be non-negative",
+                        file=file,
+                        row=index,
+                        field="energy_j",
+                        value=energy,
                         may_continue=False,
                     )
                 )
@@ -303,7 +488,7 @@ class GenericCsvAdapter:
                         data_size_bytes=self._number(
                             row, declaration, "data_size_bytes", file, index, report
                         ),
-                        energy_j=self._number(row, declaration, "energy_j", file, index, report),
+                        energy_j=energy,
                         drop_reason=self._text(row, declaration, "drop_reason"),
                         source_file=file,
                         source_row=index,
@@ -315,12 +500,14 @@ class GenericCsvAdapter:
 
     def _infrastructure(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[InfrastructureRecord]:
         records: list[InfrastructureRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             timestamp = self._number(
                 row, declaration, "timestamp", file, index, report, required=True
@@ -402,12 +589,14 @@ class GenericCsvAdapter:
 
     def _vehicles(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[VehicleStateRecord]:
         records: list[VehicleStateRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             timestamp = self._number(
                 row, declaration, "timestamp", file, index, report, required=True
@@ -457,12 +646,14 @@ class GenericCsvAdapter:
 
     def _traffic(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[TrafficObservationRecord]:
         records: list[TrafficObservationRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             timestamp = self._number(
                 row, declaration, "timestamp", file, index, report, required=True
@@ -515,12 +706,14 @@ class GenericCsvAdapter:
 
     def _trips(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[TripRecord]:
         records: list[TripRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             trip_id = self._text(row, declaration, "trip_id")
             departure = self._number(
@@ -589,12 +782,14 @@ class GenericCsvAdapter:
 
     def _incidents(
         self,
-        rows: list[dict[str, str]],
+        rows: list[TabularRow],
         declaration: FileDeclaration,
         report: ValidationReport,
+        *,
+        source_row_start: int = 2,
     ) -> list[IncidentRecord]:
         records: list[IncidentRecord] = []
-        for index, row in enumerate(rows, start=2):
+        for index, row in enumerate(rows, start=source_row_start):
             file = declaration.path
             incident_id = self._text(row, declaration, "incident_id")
             timestamp = self._number(
@@ -610,6 +805,35 @@ class GenericCsvAdapter:
                     incident_type=incident_type,
                     location=self._text(row, declaration, "location"),
                     severity=self._text(row, declaration, "severity"),
+                    duration_s=self._number(
+                        row,
+                        declaration,
+                        "duration",
+                        file,
+                        index,
+                        report,
+                        required=False,
+                    ),
+                    lanes_closed=self._integer(
+                        row,
+                        declaration,
+                        "lanes_closed",
+                        file,
+                        index,
+                        report,
+                    ),
+                    demand_multiplier=self._number(
+                        row,
+                        declaration,
+                        "demand_multiplier",
+                        file,
+                        index,
+                        report,
+                        required=False,
+                    ),
+                    vehicles_involved=_split_pipe_list(
+                        self._text(row, declaration, "vehicles_involved")
+                    ),
                     source_file=file,
                     source_row=index,
                 )
@@ -638,7 +862,7 @@ class GenericCsvAdapter:
                 )
             seen.add(record.task_id)
 
-    def _text(self, row: dict[str, str], declaration: FileDeclaration, field: str) -> str | None:
+    def _text(self, row: TabularRow, declaration: FileDeclaration, field: str) -> str | None:
         value = row.get(declaration.source_column_for(field))
         if value is None or value == "":
             return None
@@ -646,7 +870,7 @@ class GenericCsvAdapter:
 
     def _number(
         self,
-        row: dict[str, str],
+        row: TabularRow,
         declaration: FileDeclaration,
         field: str,
         file: str,
@@ -686,11 +910,25 @@ class GenericCsvAdapter:
                 )
             )
             return None
+        if not math.isfinite(value):
+            report.add(
+                self._finding(
+                    ValidationCode.TYPE_PARSE_FAILED,
+                    Severity.ERROR,
+                    f"{field} must be finite",
+                    file=file,
+                    row=source_row,
+                    field=field,
+                    value=raw,
+                    may_continue=not required,
+                )
+            )
+            return None
         return self._convert_unit(value, declaration, field, file, source_row, report)
 
     def _integer(
         self,
-        row: dict[str, str],
+        row: TabularRow,
         declaration: FileDeclaration,
         field: str,
         file: str,
@@ -704,7 +942,7 @@ class GenericCsvAdapter:
 
     def _bool(
         self,
-        row: dict[str, str],
+        row: TabularRow,
         declaration: FileDeclaration,
         field: str,
         file: str,
@@ -749,7 +987,7 @@ class GenericCsvAdapter:
 
     def _task_class(
         self,
-        row: dict[str, str],
+        row: TabularRow,
         declaration: FileDeclaration,
         file: str,
         source_row: int,
@@ -774,7 +1012,7 @@ class GenericCsvAdapter:
 
     def _decision(
         self,
-        row: dict[str, str],
+        row: TabularRow,
         declaration: FileDeclaration,
         file: str,
         source_row: int,
@@ -870,6 +1108,12 @@ def _identity(value: float) -> float:
     return value
 
 
+def _split_pipe_list(value: str | None) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split("|") if item.strip()]
+
+
 _CONVERTERS: dict[str, dict[str, Callable[[float], float]]] = {
     "time_s": {
         "s": _identity,
@@ -883,3 +1127,6 @@ _CONVERTERS: dict[str, dict[str, Callable[[float], float]]] = {
     "cycles": {"cycles": _identity},
     "fraction": {"fraction": _identity},
 }
+
+# Backward-compatible public name retained for existing callers.
+GenericCsvAdapter = GenericTabularAdapter

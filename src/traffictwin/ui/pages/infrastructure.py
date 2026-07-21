@@ -70,11 +70,22 @@ def render(config: MetricEngineConfig) -> None:
         metric_card("Saturation duration", metrics.get("infra.saturation.duration_s"))
 
     st.subheader("Load Balance")
+    balance_columns = st.columns(2)
     metric = metrics.get("infra.load_balance.jain_capacity_normalised")
-    if metric is not None and metric.value is not None:
-        metric_card("Capacity-normalised load balance", metric)
-    else:
-        render_metric_unavailable(metric, "infra_state.csv with capacity and active_tasks")
+    with balance_columns[0]:
+        if metric is not None and metric.value is not None:
+            metric_card("Capacity-normalised load Jain index", metric)
+        else:
+            render_metric_unavailable(metric, "infra_state.csv with capacity and active_tasks")
+    with balance_columns[1]:
+        metric_card(
+            "Capacity-normalised load maximum gap",
+            metrics.get("fairness.rsu.capacity_normalised_load.max_gap"),
+        )
+    st.caption(
+        "Operational RSU balance requires complete coverage, two RSUs, and two eligible "
+        "observations per RSU. It does not establish task-outcome fairness."
+    )
 
     st.subheader("Per-RSU Summary")
     summary = metrics.get("infra.rsu.summary")

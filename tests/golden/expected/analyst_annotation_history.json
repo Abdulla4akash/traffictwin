@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "target": {
+    "kind": "research_report",
+    "artifact_id": "report-run-run-baseline-001",
+    "artifact_fingerprint": null
+  },
+  "after_sequence": 0,
+  "limit": 100,
+  "annotations": [
+    {
+      "schema_version": "1.0",
+      "sequence": 1,
+      "annotation_id": "annotation-e8cf2fc67c69d0624eabfc50",
+      "target": {
+        "kind": "research_report",
+        "artifact_id": "report-run-run-baseline-001",
+        "artifact_fingerprint": null
+      },
+      "author_label": "Analyst A",
+      "note": "Synthetic fixture accepted for software demonstration only.",
+      "decision_label": "accepted",
+      "created_at": "2026-07-21T10:00:00Z"
+    },
+    {
+      "schema_version": "1.0",
+      "sequence": 2,
+      "annotation_id": "annotation-b8262b5ea2866179fe3019cc",
+      "target": {
+        "kind": "research_report",
+        "artifact_id": "report-run-run-baseline-001",
+        "artifact_fingerprint": null
+      },
+      "author_label": "Analyst B",
+      "note": "Follow up with external evidence before making effectiveness claims.",
+      "decision_label": "follow_up",
+      "created_at": "2026-07-21T10:05:00Z"
+    }
+  ],
+  "has_more": false
+}

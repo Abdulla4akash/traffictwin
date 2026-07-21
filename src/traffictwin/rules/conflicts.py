@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+from traffictwin.diagnostics.cross_rule import (
+    CrossRuleReasoningReport,
+    CrossRuleRelationType,
+)
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.rules.models import RuleResult, RuleStatus
 
 
-def analyse_conflicts(results: list[RuleResult], evidence_pack: EvidencePack) -> list[str]:
+def analyse_conflicts(
+    results: list[RuleResult],
+    evidence_pack: EvidencePack,
+    cross_rule_analysis: CrossRuleReasoningReport,
+) -> list[str]:
     """Return deterministic report-level conflict observations."""
 
-    statuses = {result.rule_id: result.status for result in results}
-    observations: list[str] = []
-    if statuses.get("R1") is RuleStatus.TRIGGERED and statuses.get("R2") is RuleStatus.TRIGGERED:
-        observations.append(
-            "Evidence supports both policy under-use and infrastructure saturation candidates; "
-            "the current report does not choose between them."
-        )
+    observations = [
+        relationship.statement
+        for relationship in cross_rule_analysis.relationships
+        if relationship.relation_type is CrossRuleRelationType.CONFLICT
+    ]
     metrics = evidence_pack.metric_collection.by_key()
     mean_util = metrics.get("infra.utilisation.mean")
     p95_util = metrics.get("infra.utilisation.p95")

@@ -1,0 +1,246 @@
+{
+  "aggregate_only_count": 1,
+  "aggregate_or_better_fraction": 0.3939393939393939,
+  "capability_id": "PRO-03",
+  "classifications": {
+    "R0": {
+      "candidate_rows": 7,
+      "classification": "source_row_complete",
+      "included_rows": 7,
+      "status": "not_triggered",
+      "trace_depth": "source_row"
+    },
+    "R1": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "aggregate"
+    },
+    "R2": {
+      "candidate_rows": 28,
+      "classification": "aggregate_only",
+      "included_rows": 28,
+      "status": "not_triggered",
+      "trace_depth": "source_row"
+    },
+    "R3": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "aggregate"
+    },
+    "R4": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "aggregate"
+    },
+    "R5": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "aggregate"
+    },
+    "R6": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "aggregate"
+    },
+    "R7": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "insufficient_evidence",
+      "trace_depth": "source_row"
+    },
+    "R8": {
+      "candidate_rows": 6,
+      "classification": "unavailable",
+      "included_rows": 3,
+      "status": "insufficient_evidence",
+      "trace_depth": "source_row"
+    },
+    "fairness.rsu.capacity_normalised_load.max_gap": {
+      "candidate_rows": 4,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "fairness.vehicle_tier.completion_rate.jain": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "fairness.vehicle_tier.completion_rate.max_gap": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "infra.load_balance.jain_capacity_normalised": {
+      "candidate_rows": 4,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "infra.queue_length.max": {
+      "candidate_rows": 4,
+      "classification": "source_row_complete",
+      "included_rows": 4,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "infra.utilisation.p95": {
+      "candidate_rows": 4,
+      "classification": "source_row_complete",
+      "included_rows": 4,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "spatial.rsu.task.completion_rate_by_target": {
+      "candidate_rows": 7,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "spatial.rsu.task.count_by_target": {
+      "candidate_rows": 7,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "spatial.rsu.task.deadline_miss.completed_observed_rate_by_target": {
+      "candidate_rows": 7,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "spatial.vehicle.distinct_count_by_grid_cell": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "spatial.vehicle.observation_count_by_grid_cell": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "spatial.vehicle.speed.mean_mps_by_grid_cell": {
+      "candidate_rows": 0,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "task.completed.count": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.completion.rate": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.energy.mean_per_observed_task_j": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "task.energy.per_completed_j": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "task.energy_delay_product.mean_j_ms": {
+      "candidate_rows": 3,
+      "classification": "unavailable",
+      "included_rows": 0,
+      "status": "unavailable",
+      "trace_depth": "unavailable"
+    },
+    "task.generated.count": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.incomplete.rate": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.latency.p95_ms": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.latency.p99_ms": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "task.offload.rate": {
+      "candidate_rows": 3,
+      "classification": "source_row_complete",
+      "included_rows": 3,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "traffic.speed.mean_mps": {
+      "candidate_rows": 2,
+      "classification": "source_row_complete",
+      "included_rows": 2,
+      "status": "available",
+      "trace_depth": "source_row"
+    },
+    "trip.duration.p95_s": {
+      "candidate_rows": 2,
+      "classification": "source_row_complete",
+      "included_rows": 2,
+      "status": "available",
+      "trace_depth": "source_row"
+    }
+  },
+  "denominator_count": 33,
+  "overall_status": "partial",
+  "report_id": "report-run-run-baseline-001",
+  "report_type": "run",
+  "schema_version": "1.0",
+  "score": 0.36363636363636365,
+  "source_row_complete_count": 12,
+  "unavailable_count": 20
+}

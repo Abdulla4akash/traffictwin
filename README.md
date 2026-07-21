@@ -3,13 +3,30 @@
 TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if analysis. It defines versioned scenario seeds, imports standard run bundles, validates and canonicalises source files, computes deterministic metrics, builds EvidencePacks, compares scenarios, evaluates deterministic diagnostic hypotheses, and traces results back to source rows through the Provenance Explorer. OffloadLens is the VEC analysis module inside the platform.
 
 Status: standalone `v0.1.0` research prototype. The repository is usable without Randy's VEC
-environment, SUMO artifacts, external services, or live feeds. All bundled demonstration data is
-synthetic. An optional read-only integration can inspect and import Randy's separately supplied TOS
-Data results package when it is available locally.
+environment, external services, or live feeds. All bundled demonstration and SUMO acceptance data
+is synthetic. The import-only SUMO adapter accepts checksummed 1.27 tripinfo/summary outputs, and
+the confirmation-gated manifest wizard can suggest generic CSV mappings without making them
+analysis inputs. Standard bundles may also declare gzip-CSV and flat scalar Parquet through the
+same validation, unit, metric, and provenance path. Explicit bundle paths/globs can be validated or
+imported as a deterministic failure-isolated batch. Large generic tables can use opt-in row/byte-
+bounded streaming canonicalisation with exact cross-chunk validation. Accepted ordinary generic
+bundles can use a separate content-addressed, checksummed Parquet canonical cache that re-hashes raw
+evidence before every hit. Accepted ordinary generic bundles can also be published as
+permission-aware deterministic RO-Crate 1.3 archives with CFF citation and offline checksum
+verification. A closed general external-source interface now exposes exact discovery, validation,
+semantics, capabilities, provenance, conversion, and blockers for the distinct public SUMO and
+private TOS reference adapters without treating them as equivalent. Validated generic bundles can
+also produce deterministic aligned fixed-window metrics with explicit gaps, edge coverage, and
+per-window provenance. An optional read-only integration can inspect and import Randy's separately
+supplied TOS Data results package when it is available locally.
 
 Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
 application and contains no Randy/TOS artifacts or live Manchester data.
+
+For installation, end-to-end workflows, 38 concrete use cases, UI and CLI instructions, output
+interpretation, reporting, deployment, and troubleshooting, start with the
+[complete product and usage guide](docs/full_product_guide.md).
 
 ## Current Scope
 
@@ -18,12 +35,67 @@ Implemented:
 - Scenario seed YAML schema and deterministic import/export.
 - Capability manifest with `true`, `false`, and `unknown`.
 - Directory and ZIP run-bundle loading with validation reports.
-- Manifest-driven generic CSV canonicalisation.
+- Deterministic batch validation/import with per-bundle outcomes and isolated registry transactions.
+- Manifest-driven plain CSV, gzip-CSV, and flat scalar Parquet canonicalisation.
+- Opt-in memory-bounded streaming validation and metadata import with chunk-size equivalence.
+- Content-addressed six-table Parquet canonical caching with exact cold/warm equivalence and
+  fail-closed invalidation outside raw bundles.
+- Permission-aware deterministic RO-Crate 1.3 ZIP export with CFF 1.2 citation, explicit raw
+  embed/reference/exclude policy, checksums, offline verification, and atomic publication.
+- Runtime-checkable read-only external-source discovery/contract/inspection with distinct SUMO
+  partial-canonical and TOS aggregate-summary profiles, explicit unknowns, and no dynamic adapters.
 - Deterministic task, infrastructure, traffic, trip, comparison, and aggregation metrics.
+- Contract-gated task energy per observed task, energy per completed task, and energy-delay
+  product with explicit coverage and compatible-comparison semantics.
+- Deterministic fixed-window task, infrastructure, traffic, and trip metrics with half-open
+  boundaries, explicit partial/empty states, and per-window source lineage.
 - EvidencePack generation.
-- Deterministic diagnostic hypotheses R0-R3 over EvidencePacks.
+- Deterministic diagnostic hypotheses R0-R8 over run-, experiment-, typed temporal, exact
+  operational-group, and contract-gated energy EvidencePacks, including sustained degradation,
+  declared-event recovery, operational disparity, and completed-task energy candidates.
+- Closed trusted-local declarative YAML rule definitions over already-computed EvidencePack
+  metrics, with bounded threshold/boolean grammar and no arbitrary code or UI-side evaluation.
+- Verified single-boundary nearest-flip analysis for eligible non-triggered R5/R7/R8 results,
+  with unchanged support constraints, ordinary-engine verification, and no threshold persistence.
+- Interactive deterministic threshold sensitivity for R5/R7/R8, retaining every grid status,
+  sampled/exact boundary separation, provisional-default labels, and explicit session-only
+  complete-config import/download without silent persistence.
+- Typed deterministic cross-rule conflict, corroboration, and R0 readiness suppression over
+  retained RuleResults, with exact evidence overlap, explicit precedence, no confidence changes,
+  and no inferred undeclared pairs.
+- Predeclared common-seed paired statistical studies with complete compatibility/exclusion audit,
+  original-unit effect, deterministic bootstrap interval, two-sided sign-flip test, paired effect
+  sizes, versioned provenance, CLI exports, and a thin Streamlit workflow.
+- Predeclared N-way common-seed policy rankings that extend the winner map with identical
+  complete-seed denominators, explicit ties/missingness/incompatibility, deterministic joint
+  bootstrap mean/rank uncertainty, typed exports, CLI, and the same thin Statistical Study page.
+- Predeclared paired TOST equivalence studies over the unchanged STA-01 cohort, requiring an
+  original-unit margin, basis, justification, and explicit alpha; ordinary non-significance is
+  never relabelled as equivalence.
+- Versioned STA-04 regression gates over completed metric collections or paired-study artifacts,
+  with explicit golden approval, absolute/relative tolerances, exact or compatible-context source
+  policies, complete assertion audits, and distinct CI pass/fail/unavailable exit codes.
+- Prospective STA-05 paired common-seed power planning from a declared target effect,
+  paired-difference variance, alpha, and target power, with smallest-integer verification and
+  explicit small-sample, synthetic, provisional, assumption, and planning-only labels.
+- PRO-01 accepted-row difference provenance with reconciled terms for admitted direct scalar
+  formulas and weight-free eligible lineage for percentiles and other non-additive aggregates.
+- PRO-02 deterministic bounded provenance graphs with stable IDs, exact omission counts,
+  path-safe/structure-only disclosure, Graphviz DOT, GraphML, CLI exports, and an explorer view.
+- PRO-03 explicit typed report-claim provenance completeness with unavailable claims retained,
+  reconciled accepted-row rules, named exclusions, null empty-denominator handling, and CLI/UI
+  JSON/CSV inventories.
+- EXP-01 bounded parameter sweeps over closed seed/synthetic scalar fields, producing parent-linked
+  seeds, labelled local synthetic bundles plus ordinary metric response rows, or external requests
+  that remain explicitly `not_executed` with no launch command.
+- EXP-02 deterministic row-dropout, timestamp-jitter, and RSU-removal mutations over copied,
+  validated, explicitly labelled synthetic/evaluation CSV bundles, with exact change ledgers and
+  no inferred rerouting or external launch.
 - Read-only provenance traces from metrics/rules to source files and rows where available.
-- SQLite metadata registry for seeds, experiments, runs, bundle imports, metrics, and evidence packs.
+- SQLite metadata registry for seeds, experiments, runs, bundle imports, metrics, evidence packs,
+  and database-guarded append-only analyst annotations.
+- Five-version ordered transactional SQLite migrations with immutable checksummed history,
+  historical payload preservation, read-only status inspection, and full-plan rollback.
 - Streamlit UI over the tested library, including Experiment Planner, Scenario Builder, Experiment
   Manager, Reports, Guided Demo, Search, Settings, and About pages.
 - Standalone synthetic generator, demo workspace, one-click launch, and deterministic reports.
@@ -36,14 +108,39 @@ Implemented:
   provenance.
 - Deterministic experiment protocol YAML/CSV with exhaustive run slots and read-only completed-
   bundle matching.
+- Dedicated Triviality/R5 pair analysis, compatibility-filtered per-seed winner maps, a transparent
+  synthetic portfolio with a fixed multi-family held-out study, and manual protocol-slot tracking.
+- Synthetic S5 stadium-event/RSU-siting and S6 road-clearing/lane-closure presets with
+  round-trippable incident/event authoring and incident-seeded what-if export.
+- Draft, explicitly unapproved participant-evaluation and ethics materials.
+- Expanded synthetic fault-injection evaluation, portfolio variability/dominance reports, and a
+  checksummed three-scenario synthetic case-study pack.
+- Complete accepted-canonical-row metric contribution ledgers with JSON/CSV export.
+- Deterministic Markdown, standalone HTML, and A4 PDF research reports.
+- Escaped LaTeX metric/comparison/statistical/rule tables with deterministic SVG/PDF figures,
+  shared projection fingerprints, explicit source modes, and no reporting-layer calculations.
+- Typed append-only analyst notes/decisions with stored-target checks, immutable ordered history,
+  and visibly separate non-computed Markdown/HTML/PDF report sections.
+- Compatibility-gated structured report diffs over prose-free typed metric/rule/comparison claim
+  snapshots, with exact JSON Pointer changes and no rendered-text or annotation comparison.
+- Deterministic one-page executive summaries over saved typed reports, with complete availability
+  and omission counts, all warnings/limitations, fingerprinted provenance links, and fail-closed
+  A4 overflow.
+- Deterministic read-only full-text registry/report search over six labelled categories, with
+  bounded lexical ranking, stable fingerprints, and local-path redaction before matching.
+- A constrained non-LLM diagnostic findings renderer that only restates computed findings.
+- A non-geographic vehicle coordinate replay, automated desktop/mobile screenshots, and basic
+  accessibility regression checks.
+- Descriptive analysis for explicitly labelled synthetic mock participant results only.
 
 Not implemented:
 
-- Standard Randy/VEC bundle conversion and SUMO adapters.
+- Standard Randy/VEC bundle conversion, SUMO FCD/other-output adapters, and simulator launch.
 - Direct simulator launch or asynchronous jobs.
 - Real Manchester sensor ingestion.
 - Near-live or true-live operation.
-- LLM rendering, XAI, portfolio selection, or training orchestration.
+- LLM rendering, XAI, trained/calibrated portfolio selection, or training orchestration. The
+  deterministic findings renderer is not an LLM and adds no claims.
 
 ## Ten-Minute Standalone Demo
 
@@ -79,6 +176,8 @@ The demo workspace contains:
 │   ├── infrastructure_bottleneck/
 │   ├── mixed_fault/
 │   ├── partial_evidence/
+│   ├── s5_stadium_event_siting/
+│   ├── s6_road_clearing_corridor/
 │   └── trivial_multi_algorithm/
 ├── reports/
 ├── exports/
@@ -100,7 +199,21 @@ Every generated scenario is labelled synthetic. The generator is a controlled so
 5. Validate `.demo/bundles/baseline` and `.demo/bundles/stressed_demand`.
 6. Inspect baseline metrics, historical replay, and infrastructure state.
 7. Compare baseline against stressed demand and inspect synthetic journey durations.
-8. Review R0-R3 statuses, trace `task.completion.rate`, and export a deterministic report.
+8. Review R0-R8 statuses, trace `task.completion.rate`, and export a deterministic report.
+9. Open Triviality to inspect experiment EvidencePacks, R3/R5, the winner map, and the transparent
+   synthetic portfolio's fixed development/held-out evaluation.
+10. Open Reports to export a `.tex` research table and optional SVG/PDF figure from an existing
+    typed artifact.
+11. Add a typed analyst annotation and deliberately regenerate a report with its append-only
+    history shown in the non-computed annotations section.
+12. Save two same-type reports as `.json`, then use `traffictwin report diff` or the Reports page
+    to inspect typed changed/added/removed/unavailable sections without diffing prose.
+13. Use `traffictwin report executive` or the Reports page to render the saved typed report as a
+    bounded supervisor PDF/HTML/Markdown/JSON summary without hiding caveats.
+14. Open Search or run `traffictwin registry search` to locate findings, annotations, reports,
+    runs, experiments, and evidence references without changing the registry.
+15. Run `traffictwin registry migration-status .demo/registry.sqlite` to inspect the current
+    schema and immutable migration ledger without changing it.
 
 When the separately supplied package is available locally, the **Randy/TOS imported simulation**
 track presents four read-only stages. It does not run Randy's environment or SUMO.
@@ -111,6 +224,7 @@ Detailed scripts:
 - [docs/product_polish.md](docs/product_polish.md)
 - [docs/demo_script.md](docs/demo_script.md)
 - [docs/demo_checklist.md](docs/demo_checklist.md)
+- [docs/registry_migrations.md](docs/registry_migrations.md)
 
 ## CLI Examples
 
@@ -119,11 +233,25 @@ Generate and verify standalone synthetic artifacts:
 ```bash
 traffictwin synthetic presets
 traffictwin synthetic generate-preset baseline --output /tmp/tt-baseline --overwrite
+traffictwin synthetic measurement-contract
+traffictwin synthetic generate-config \
+  --config examples/synthetic_measurement_imperfections.yaml \
+  --output /tmp/tt-measurement-robustness
 traffictwin synthetic experiment-generate-preset trivial_multi_algorithm \
   --seeds 1,2,3 \
   --output /tmp/tt-trivial \
   --overwrite
 traffictwin synthetic verify .demo
+traffictwin synthetic case-study-pack --output /tmp/tt-case-study --overwrite
+traffictwin experiment parameter-sweep-contract
+traffictwin experiment parameter-sweep \
+  --request examples/parameter_sweep_request.yaml \
+  --output /tmp/tt-demand-capacity-sweep
+traffictwin experiment mutation-contract
+traffictwin experiment mutate-scenario \
+  --bundle .demo/bundles/baseline \
+  --request examples/scenario_mutation_request.yaml \
+  --output /tmp/tt-mutated-baseline
 ```
 
 Run the import-first workflow on any standard bundle:
@@ -131,9 +259,15 @@ Run the import-first workflow on any standard bundle:
 ```bash
 traffictwin bundle validate .demo/bundles/baseline
 traffictwin bundle import .demo/bundles/baseline --registry .demo/registry.sqlite
+traffictwin bundle batch-validate '.demo/bundles/*' --format json
+traffictwin bundle stream-validate .demo/bundles/baseline --format json
 traffictwin metrics compute .demo/bundles/baseline
+traffictwin metrics windows .demo/bundles/baseline --width-s 60 --format json
 traffictwin evidence build .demo/bundles/baseline --output .demo/exports/evidence.json
 traffictwin diagnose bundle .demo/bundles/under_offloading
+traffictwin diagnose temporal .demo/bundles/stressed_demand \
+  --width-s 60 --metric-key task.completion.rate --format json
+traffictwin diagnose render .demo/bundles/under_offloading --format markdown
 ```
 
 Compare, trace, and report:
@@ -142,12 +276,22 @@ Compare, trace, and report:
 traffictwin compare .demo/bundles/baseline .demo/bundles/stressed_demand
 traffictwin provenance metric .demo/bundles/baseline task.completion.rate
 traffictwin provenance source .demo/bundles/baseline tasks.csv 2
+traffictwin provenance contributors .demo/bundles/baseline task.latency.mean_ms --format csv
+traffictwin provenance difference-contributors .demo/bundles/baseline \
+  .demo/bundles/stressed_demand task.completion.rate --format json
+traffictwin provenance export .demo/bundles/baseline \
+  --root-type metric --root-id task.completion.rate \
+  --format graphml --redaction safe --output completion-provenance.graphml
+traffictwin provenance window-metric .demo/bundles/baseline task.completion.rate \
+  --width-s 60 --window-ordinal 0 --format json
 traffictwin report run .demo/bundles/baseline --output .demo/reports/run.md
 traffictwin report compare .demo/bundles/baseline .demo/bundles/stressed_demand \
   --output .demo/reports/comparison.md
 traffictwin report full .demo/bundles/stressed_demand \
   --comparison-baseline .demo/bundles/baseline \
   --output .demo/reports/full.html
+traffictwin report run .demo/bundles/baseline --output .demo/reports/run.pdf
+traffictwin participant-evaluation analyse-mock docs/evaluation/mock_results.json
 ```
 
 Export a registered research design for external coordination:
@@ -165,6 +309,64 @@ These commands do not launch work or create `Run` records. See
 [docs/experiment_protocol.md](docs/experiment_protocol.md).
 
 Complete CLI reference: [docs/cli_reference.md](docs/cli_reference.md).
+
+Infer and explicitly confirm mappings for externally named CSV columns:
+
+```bash
+traffictwin manifest contract --format json
+traffictwin manifest infer raw-csv-directory \
+  --format yaml --output mapping-draft.yaml
+traffictwin manifest confirm mapping-draft.yaml raw-csv-directory \
+  --accept-suggestions --confirmed-by "analyst-role" \
+  --output canonicalisation.yaml
+traffictwin manifest apply canonicalisation.yaml manifest-template.yaml \
+  --output manifest.yaml
+traffictwin bundle validate path/to/completed-bundle
+```
+
+The draft is always non-executable. Ambiguous file kinds, mappings, and units require an explicit
+edit; the wizard never invents bundle/run metadata. See the
+[Manifest Inference Wizard](docs/integration/manifest_inference_wizard.md).
+
+Reuse canonical tables for an unchanged accepted generic bundle:
+
+```bash
+traffictwin bundle cache-status path/to/completed-bundle \
+  --cache-root .traffictwin-cache
+traffictwin bundle cache-validate path/to/completed-bundle \
+  --cache-root .traffictwin-cache
+```
+
+The cache directory must be outside the raw bundle. The first validation writes a verified entry;
+the next exact run reports `hit`. See
+[canonical-table caching](docs/canonical_table_caching.md).
+
+Diagnose the runtime and selected local artifacts without changing them:
+
+```bash
+traffictwin doctor
+traffictwin doctor --workspace .demo
+traffictwin doctor --registry .demo/registry.sqlite --format json
+traffictwin doctor --bundle path/to/completed-bundle \
+  --cache-root .traffictwin-cache
+```
+
+The doctor never installs, creates, migrates, repairs, launches, or changes permissions. Missing
+optional tools and unsupported launch capabilities remain visible without breaking a healthy core
+import-first installation. See [TrafficTwin doctor](docs/doctor.md).
+
+Import existing SUMO 1.27 tripinfo and summary outputs:
+
+```bash
+traffictwin integration sumo contract
+traffictwin integration sumo validate tests/fixtures/sumo/square_public
+traffictwin integration sumo metrics tests/fixtures/sumo/square_public
+traffictwin integration sumo import tests/fixtures/sumo/square_public \
+  --registry data/registry/traffictwin.sqlite
+```
+
+This is output ingestion only: FCD and direct/asynchronous SUMO launch remain unavailable. See the
+[SUMO Output Adapter](docs/integration/sumo_output_adapter.md).
 
 Optional offline TOS Data inspection requires NumPy:
 
@@ -219,15 +421,17 @@ flowchart TD
     Synthetic[Synthetic generator] --> Bundle
     Bundle --> Validate[Validation report]
     Validate --> Canonical[CanonicalTables]
-    Canonical --> Metrics[MetricCollection]
+    Canonical --> Metrics[Whole-run MetricCollection]
+    Canonical --> Windows[WindowedMetricSeries]
     Metrics --> Evidence[EvidencePack]
     Evidence --> Rules[DiagnosticReport]
     Metrics --> Compare[ComparisonReport]
     Rules --> Provenance[ProvenanceTrace]
     Metrics --> Provenance
+    Windows --> Provenance
     Validate --> Registry[(SQLite registry)]
     Evidence --> Registry
-    Provenance --> Reports[Markdown/HTML reports]
+    Provenance --> Reports[Markdown/HTML/PDF reports]
     Registry --> UI[Streamlit UI]
 ```
 
@@ -242,20 +446,47 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Generic bundle import | Implemented | Directory and safe ZIP bundles. |
 | Validation reports | Implemented | Stable codes, severity, file/row/field context. |
 | Canonical records | Implemented | In-memory canonical tables; no row database. |
+| Canonical-table cache | Implemented for accepted ordinary generic bundles | Six typed Parquet tables keyed by raw/adapter/validator/mapping/schema/format identity; every hit re-hashes raw evidence and bad entries are never used or overwritten. |
+| Read-only environment doctor | Implemented | Python/core/optional dependencies, adapter capabilities, bounded workspace, immutable registry, advisory permissions, and cache state with explicit health/exit semantics and no repair mode. |
+| RO-Crate archival export | Implemented for accepted ordinary generic bundles | Deterministic attached RO-Crate 1.3/CFF 1.2 ZIP with typed derived artifacts, explicit permission-aware raw embed/reference/exclude modes, checksums, offline verification, and no inferred rights. |
+| General external-source contract | Implemented for reviewed SUMO and TOS adapters | Exact fail-closed marker discovery, source-validator projection, field semantics, complete capability/provenance truth, non-ordinal conversion profiles, blockers, and deterministic path-free inspection; no launch or false source equivalence. |
 | Deterministic metrics | Implemented | Unavailable metrics are explicit, never zero-filled. |
+| Time-windowed metrics | Implemented | 60 applicable metrics; aligned `[start,end)` windows, explicit gaps/partial edges, JSON/UI/provenance. |
+| Task latency percentiles | Implemented | Deterministic P50/P95/P99, explicit sample-size policy, whole-run/window/report/UI/provenance support. |
+| Task energy metrics | Implemented when contracted | Per-observed-task energy, completed-task energy, and energy-delay product require explicit v1.0 joule/eligibility semantics; TOS/SUMO remain unsupported. |
+| Operational fairness metrics | Implemented when evidence-complete | Vehicle-tier completion and per-RSU normalised-load groups/gaps/Jain require exact groups, complete coverage, and minimum support; no protected attributes are inferred. |
+| Spatial and per-RSU metrics | Implemented when contracted | Exact V2I target-RSU outcomes and named source-frame vehicle grids require complete target/coordinate evidence; SUMO/TOS remain unsupported. |
+| Custom metric plugin API | Implemented for trusted local code | Explicit typed registration, bounded canonical inputs, two-run repeatability verification, closed outputs, failure isolation, comparison fingerprints, and row provenance; no uploaded/dynamic code or sandbox claim. |
+| Difference provenance | Implemented for compatible generic/synthetic scalar comparisons | Complete two-side accepted-row ledgers; arithmetic terms only for admitted direct formulas; non-decomposable metrics retain lineage without weights; JSON/CSV warn that lineage is not causality. |
+| Provenance graph export/view | Implemented | Deterministic root-centred bounded DOT/GraphML with stable IDs, exact omissions, local-path redaction, structure-only disclosure, CLI/demo exports, and Streamlit inspection. |
+| Provenance completeness | Implemented for typed generic/import-first reports | Run, diagnostics, comparison, and full report claims use an explicit denominator; unavailable stays included, only reconciled non-empty accepted-row lineage enters the unweighted numerator, and empty reports score null. |
+| Registry/report search | Implemented, read-only | Six labelled local categories, bounded Unicode lexical AND ranking, stable ties/fingerprints, direct-report safety, and pre-match absolute-path redaction; no raw-row/web/semantic search or scientific importance score. |
+| Parameter sweep composer | Implemented for strict seed/synthetic bases | Closed grids are capped at four axes/256 points; local mode creates labelled synthetic bundles and ordinary numeric metric rows, while external requests stay `not_executed` with no launcher/command. |
+| Scenario mutation operators | Implemented for valid labelled synthetic/evaluation CSV bundles | One deterministic row-dropout, timestamp-jitter, or RSU-removal operator creates a separately validated copy with an exact ledger; imported/raw evidence, rerouting inference, and external launch are rejected. |
+| Synthetic measurement noise/dropout | Implemented for generated observation streams | Separately seeded bounded-uniform errors and exact retain-one dropout over selected vehicle/traffic/infrastructure observations, with a strict manifest audit; not calibrated sensor evidence. |
 | EvidencePack | Implemented | Only supported input for diagnostic rules. |
-| Diagnostic rules R0-R3 | Implemented | Candidate hypotheses, not proven causes. |
+| Diagnostic rules R0-R8 | Implemented | Candidate hypotheses, not proven causes; R4–R8 thresholds are provisional, R6 needs temporal evidence, R7 exact groups, and R8 exact completed-task energy. |
+| Verified nearest flip | Implemented for R5/R7/R8 | Exact one-axis sensitivity with unchanged discrete support and ordinary-engine verification; not calibration or a recommended threshold. |
+| Cross-rule reasoning | Implemented for bounded R0/R1/R2/R4 policy | Additive typed relationships with exact activation/overlap and retained original results; no probability, ranking, or causal conclusion. |
+| Declarative YAML rules | Implemented for trusted local definitions | Closed bounded threshold/boolean grammar over EvidencePack metrics; no imports, arbitrary formulas/code, uploaded-rule UI, or sandbox claim. |
 | Provenance Explorer | Implemented | CLI and Streamlit trace inspection. |
-| Report export | Implemented | Deterministic Markdown and standalone HTML. |
+| Report export | Implemented | Deterministic Markdown, standalone HTML, and A4 PDF. |
 | Streamlit UI | Implemented | Thin presentation layer. |
 | Experiment planning | Implemented | Validated seed/policy/common-seed matrix plus deterministic protocol YAML/CSV; no run creation or launch. |
+| Experiment research tools | Implemented | Strict explicit R5 pairs, Triviality view, compatibility-filtered winner maps, fixed synthetic held-out portfolio study, and manual tracking. |
+| N-way policy ranking | Implemented for compatible registered experiments | Per-scenario-family complete common-seed ranking, explicit numerical ties/missingness/incompatibility, and joint-bootstrap mean/rank uncertainty; not equivalence or causal superiority. |
+| Paired equivalence testing | Implemented for compatible registered experiments | Symmetric original-unit margin with declared basis/justification, paired Student-t TOST, both one-sided p-values, 90% interval at alpha 0.05, and inherited STA-01 audit; failed TOST is not proof of difference. |
+| Versioned regression gates | Implemented for completed MetricCollection and STA-01 artifacts | Approved golden contracts, explicit `max(absolute, relative)` tolerance semantics, exact/compatible-context source policies, typed pass/fail/unavailable checks, CLI/UI, and deterministic JSON/Markdown/CSV audits. |
+| S5/S6 event scenarios | Implemented, synthetic | Workflow fixtures only; not calibrated Manchester/SUMO output. |
+| Participant-evaluation materials | Draft | Not submitted or approved; no recruitment is authorised. |
 | CI workflow | Implemented | GitHub Actions example for Python 3.11 and 3.12. |
 | Synthetic static deployment | Implemented | Netlify-compatible; external data is excluded. |
 | Streamlit container | Implemented | Initialised standalone synthetic workspace on port 8501. |
 | Private supervisor pack | Implemented | Checksummed TOS reports, readiness gates, viva notes, and evaluation plan. |
 | TOS Data offline results | Implemented, partial | Matrix, paired comparisons, training/audit, replay/source inspection, and aggregate exports; no canonical conversion or launch. |
 | Full Randy/VEC integration | Blocked | Source semantics are documented; checkpoint, producer commit/writer, canonical outcome/identity fields, tested execution, and fixture permission remain unresolved. |
-| SUMO integration | Blocked | No raw SUMO config/XML or trip output is available. |
+| CSV manifest inference wizard | Implemented, confirmation-gated | Bounded deterministic suggestions only; explicit file/field/unit confirmation required before ordinary bundle validation. |
+| SUMO tripinfo/summary output import | Implemented, bounded | SUMO 1.27.x only; public synthetic acceptance fixture; FCD and launch unavailable. |
 | Direct launch | Unsupported | Capability remains `false`. |
 | Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
 
@@ -327,7 +558,9 @@ Phase 6 discovery inspected Randy's separately cloned TOS Data and `vec_env` rep
 TrafficTwin now supports a conservative offline integration with source-evidenced field meanings,
 units, evaluation summaries, and instrumented views. Neither external repository is committed
 here, and the result package is not a standard TrafficTwin run bundle. Full canonical conversion,
-canonical RSU infrastructure metrics, SUMO XML support, and direct execution remain blocked.
+canonical RSU infrastructure metrics, source-package SUMO XML, and direct execution remain blocked.
+Public SUMO 1.27 tripinfo/summary ingestion is independently implemented and does not establish
+compatibility with Randy's private package.
 Integration evidence and remaining questions are documented under
 [docs/integration/](docs/integration/).
 
@@ -335,6 +568,8 @@ Integration evidence and remaining questions are documented under
 
 Start at [docs/index.md](docs/index.md). Key documents:
 
+- [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md)
+- [docs/full_product_guide.md](docs/full_product_guide.md)
 - [docs/standalone_demo.md](docs/standalone_demo.md)
 - [docs/synthetic_data_model.md](docs/synthetic_data_model.md)
 - [docs/report_export.md](docs/report_export.md)
@@ -343,16 +578,24 @@ Start at [docs/index.md](docs/index.md). Key documents:
 - [docs/supervisor_pack.md](docs/supervisor_pack.md)
 - [docs/dissertation_evaluation_plan.md](docs/dissertation_evaluation_plan.md)
 - [docs/provenance_explorer.md](docs/provenance_explorer.md)
+- [docs/difference_provenance.md](docs/difference_provenance.md)
+- [docs/provenance_graph_exports.md](docs/provenance_graph_exports.md)
 - [docs/user_guide.md](docs/user_guide.md)
 - [docs/developer_guide.md](docs/developer_guide.md)
 - [docs/reproducibility.md](docs/reproducibility.md)
 - [docs/viva_guide.md](docs/viva_guide.md)
 - [docs/limitations_and_future_work.md](docs/limitations_and_future_work.md)
 - [docs/integration/tos_data_adapter.md](docs/integration/tos_data_adapter.md)
+- [docs/integration/sumo_output_adapter.md](docs/integration/sumo_output_adapter.md)
+- [docs/integration/external_source_contract.md](docs/integration/external_source_contract.md)
 
-## Citation And Attribution Placeholder
+## Citation And Attribution
 
-Dissertation citation details are not final. Suggested placeholder:
+Machine-readable software citation metadata is provided in [CITATION.cff](CITATION.cff). Each
+OPS-04 research object contains a separate archive-specific `CITATION.cff`; see
+[RO-Crate research objects and citation](docs/research_objects.md).
+
+Dissertation citation details are not final. Suggested text remains:
 
 > Abdulla Al Mamun Akash. TrafficTwin: an import-first research software prototype for traffic and vehicular edge-computing what-if analysis. MSc dissertation project, 2026.
 

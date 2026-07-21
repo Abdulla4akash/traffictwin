@@ -2,13 +2,25 @@
 
 from __future__ import annotations
 
+import re
+
 import streamlit as st
 
-from traffictwin.metrics.catalogue import metric_catalogue
+from traffictwin.metrics.catalogue import metric_definition_for_result
+from traffictwin.provenance.completeness import provenance_completeness_report_to_csv
+from traffictwin.provenance.contributions import contribution_report_to_csv
+from traffictwin.provenance.graph_export import (
+    MAX_GRAPH_EDGE_LIMIT,
+    MAX_GRAPH_NODE_LIMIT,
+    GraphRedactionMode,
+    provenance_graph_to_dot,
+    provenance_graph_to_graphml,
+)
 from traffictwin.provenance.markdown import trace_to_markdown
 from traffictwin.provenance.models import ProvenanceTrace
 from traffictwin.provenance.query import dependent_rules_for_metric
 from traffictwin.provenance.serialization import trace_to_json
+from traffictwin.reporting.models import ResearchReportType
 from traffictwin.ui.components.source_preview import render_source_row_preview
 from traffictwin.ui.components.trace_tree import (
     render_trace_completeness,
@@ -19,7 +31,11 @@ from traffictwin.ui.components.trace_tree import (
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
 from traffictwin.ui.services import (
     BundleAnalysis,
+    ServiceError,
+    metric_contributions_for_ui,
     metric_provenance_for_ui,
+    provenance_graph_for_ui,
+    report_provenance_completeness_for_ui,
     rule_provenance_for_ui,
     run_provenance_for_ui,
     source_preview_for_ui,
@@ -40,6 +56,7 @@ def render() -> None:
     if analysis is None:
         return
     render_source_caption(analysis)
+    _render_report_completeness(analysis)
 
     root_type = st.radio(
         "Trace root",
@@ -56,6 +73,72 @@ def render() -> None:
         _render_trace(run_provenance_for_ui(analysis), root_label="run")
 
 
+def _render_report_completeness(analysis: BundleAnalysis) -> None:
+    with st.expander("Report claim provenance completeness (PRO-03)", expanded=True):
+        st.caption(
+            "Every typed result claim stays in the denominator. The score gives no partial "
+            "credit to aggregate-only or unavailable claims and does not measure truth or "
+            "causality."
+        )
+        report_type = st.selectbox(
+            "Completeness report template",
+            [ResearchReportType.RUN.value, ResearchReportType.DIAGNOSTICS.value],
+            format_func=lambda value: str(value).title(),
+        )
+        completeness = report_provenance_completeness_for_ui(analysis, str(report_type))
+        if isinstance(completeness, ServiceError):
+            st.error(completeness.message)
+            if completeness.detail:
+                st.caption(completeness.detail)
+            return
+        score = f"{completeness.score * 100:.1f}%" if completeness.score is not None else "N/A"
+        columns = st.columns(5)
+        columns[0].metric("Source-row score", score)
+        columns[1].metric("Denominator", completeness.denominator_count)
+        columns[2].metric("Source-row complete", completeness.source_row_complete_count)
+        columns[3].metric("Aggregate only", completeness.aggregate_only_count)
+        columns[4].metric("Unavailable", completeness.unavailable_count)
+        st.table(
+            [
+                {
+                    "claim": claim.artifact_key,
+                    "kind": claim.claim_kind.value,
+                    "status": claim.artifact_status,
+                    "classification": claim.classification.value,
+                    "depth": claim.trace_depth.value,
+                    "candidate rows": claim.candidate_source_row_count,
+                    "reasons": "; ".join(claim.reason_codes),
+                }
+                for claim in completeness.claims
+            ],
+            hide_index=True,
+        )
+        st.caption(completeness.denominator_definition)
+        with st.expander("Denominator exclusions and trace-depth rules"):
+            st.write(
+                {
+                    "exclusions": [
+                        item.model_dump(mode="json") for item in completeness.exclusions
+                    ],
+                    "trace_depth_rules": completeness.trace_depth_rules,
+                    "score_numerator": completeness.score_numerator_definition,
+                }
+            )
+        downloads = st.columns(2)
+        downloads[0].download_button(
+            "Download completeness JSON",
+            data=completeness.to_json(),
+            file_name=f"{completeness.report_id}-provenance-completeness.json",
+            mime="application/json",
+        )
+        downloads[1].download_button(
+            "Download completeness CSV",
+            data=provenance_completeness_report_to_csv(completeness),
+            file_name=f"{completeness.report_id}-provenance-completeness.csv",
+            mime="text/csv",
+        )
+
+
 def _render_metric_trace(analysis: BundleAnalysis) -> None:
     metrics = analysis.metrics
     if metrics is None:
@@ -68,8 +151,8 @@ def _render_metric_trace(analysis: BundleAnalysis) -> None:
     metric_key = st.selectbox("Metric key", metric_keys, index=default_index)
     if not isinstance(metric_key, str):
         return
-    definition = metric_catalogue().get(metric_key)
     metric = metrics.by_key().get(metric_key)
+    definition = metric_definition_for_result(metric) if metric is not None else None
     with st.expander("Metric dependency view", expanded=True):
         st.write(
             {
@@ -79,6 +162,43 @@ def _render_metric_trace(analysis: BundleAnalysis) -> None:
                 "current_value": metric.value if metric else None,
                 "dependent_rules": dependent_rules_for_metric(metric_key),
             }
+        )
+    with st.expander("Complete canonical-row contribution ledger"):
+        contributions = metric_contributions_for_ui(analysis, metric_key)
+        st.write(
+            {
+                "candidate_rows": contributions.candidate_row_count,
+                "included_rows": contributions.included_row_count,
+                "excluded_rows": contributions.excluded_row_count,
+                "complete_row_ledger": contributions.complete_row_ledger,
+            }
+        )
+        st.dataframe(
+            [
+                {
+                    "table": row.canonical_table,
+                    "record_id": row.record_id,
+                    "source": f"{row.source_file}:{row.source_row}",
+                    "included": row.included,
+                    "reason": row.inclusion_reason,
+                }
+                for row in contributions.rows
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        cols = st.columns(2)
+        cols[0].download_button(
+            "Download contribution JSON",
+            data=contributions.to_json(),
+            file_name=f"{metric_key.replace('.', '_')}-contributions.json",
+            mime="application/json",
+        )
+        cols[1].download_button(
+            "Download contribution CSV",
+            data=contribution_report_to_csv(contributions),
+            file_name=f"{metric_key.replace('.', '_')}-contributions.csv",
+            mime="text/csv",
         )
     _render_trace(metric_provenance_for_ui(analysis, metric_key), root_label=metric_key)
 
@@ -121,7 +241,7 @@ def _render_source_preview(analysis: BundleAnalysis) -> None:
         return
     files = [declaration.path for declaration in manifest.files.values()]
     source_file = st.selectbox("Source file", files)
-    source_row = st.number_input("CSV line number", min_value=2, value=2, step=1)
+    source_row = st.number_input("Source record number", min_value=2, value=2, step=1)
     context_rows = st.slider("Context rows", min_value=0, max_value=5, value=2)
     if not isinstance(source_file, str):
         return
@@ -142,11 +262,69 @@ def _render_source_preview(analysis: BundleAnalysis) -> None:
 
 def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
     render_trace_summary(trace)
-    tab_summary, tab_lineage, tab_nodes, tab_export = st.tabs(
-        ["Completeness", "Lineage", "Nodes", "Export"]
+    tab_summary, tab_graph, tab_lineage, tab_nodes, tab_export = st.tabs(
+        ["Completeness", "Graph", "Lineage", "Nodes", "Export"]
     )
     with tab_summary:
         render_trace_completeness(trace)
+    with tab_graph:
+        st.caption(
+            "The view is a bounded projection of the existing trace. Layout is visual only; "
+            "the exported node and edge data remain deterministic."
+        )
+        controls = st.columns(3)
+        node_limit = controls[0].slider(
+            "Maximum graph nodes",
+            min_value=1,
+            max_value=min(250, MAX_GRAPH_NODE_LIMIT),
+            value=min(max(1, len(trace.nodes)), 120),
+        )
+        edge_limit = controls[1].slider(
+            "Maximum graph edges",
+            min_value=0,
+            max_value=min(1_000, MAX_GRAPH_EDGE_LIMIT),
+            value=min(len(trace.edges), 240),
+        )
+        redaction = controls[2].selectbox(
+            "Graph disclosure profile",
+            [mode.value for mode in GraphRedactionMode],
+            format_func=lambda value: str(value).replace("_", " ").title(),
+        )
+        graph_view = provenance_graph_for_ui(
+            trace,
+            node_limit=int(node_limit),
+            edge_limit=int(edge_limit),
+            redaction_mode=str(redaction),
+        )
+        if isinstance(graph_view, ServiceError):
+            st.error(graph_view.message)
+            if graph_view.detail:
+                st.caption(graph_view.detail)
+        else:
+            summary_cols = st.columns(4)
+            summary_cols[0].metric("Shown nodes", f"{len(graph_view.nodes)}/{len(trace.nodes)}")
+            summary_cols[1].metric("Shown edges", f"{len(graph_view.edges)}/{len(trace.edges)}")
+            summary_cols[2].metric("Redactions", graph_view.redaction_count)
+            summary_cols[3].metric("Truncated", "Yes" if graph_view.truncated else "No")
+            if graph_view.truncated:
+                st.warning(
+                    f"Bounded view omitted {graph_view.omitted_node_count} nodes and "
+                    f"{graph_view.omitted_edge_count} edges. Increase the limits to inspect more."
+                )
+            st.graphviz_chart(provenance_graph_to_dot(graph_view), width="stretch")
+            selected_node_id = st.selectbox(
+                "Inspect graph node",
+                [node.node_id for node in graph_view.nodes],
+                format_func=lambda node_id: next(
+                    f"{node.label} — {node.node_type.value}"
+                    for node in graph_view.nodes
+                    if node.node_id == node_id
+                ),
+            )
+            selected_node = next(
+                node for node in graph_view.nodes if node.node_id == selected_node_id
+            )
+            st.json(selected_node.model_dump(mode="json"))
     with tab_lineage:
         render_trace_lineage(trace)
     with tab_nodes:
@@ -154,7 +332,7 @@ def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
     with tab_export:
         json_payload = trace_to_json(trace)
         markdown_payload = trace_to_markdown(trace)
-        safe_label = root_label.replace("/", "_").replace(":", "_")
+        safe_label = _safe_download_stem(root_label)
         st.download_button(
             "Download trace JSON",
             data=json_payload,
@@ -167,3 +345,21 @@ def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
             file_name=f"provenance-{safe_label}.md",
             mime="text/markdown",
         )
+        if not isinstance(graph_view, ServiceError):
+            st.download_button(
+                "Download bounded graph DOT",
+                data=provenance_graph_to_dot(graph_view),
+                file_name=f"provenance-{safe_label}.dot",
+                mime="text/vnd.graphviz",
+            )
+            st.download_button(
+                "Download bounded graph GraphML",
+                data=provenance_graph_to_graphml(graph_view),
+                file_name=f"provenance-{safe_label}.graphml",
+                mime="application/graphml+xml",
+            )
+
+
+def _safe_download_stem(value: str) -> str:
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", value).strip("._")
+    return safe[:100] or "trace"

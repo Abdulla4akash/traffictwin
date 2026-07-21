@@ -1,0 +1,60 @@
+{
+  "capability_id": "OPS-04",
+  "cff_version": "1.2.0",
+  "checksum_policy": "checksums.sha256 covers every payload member and research-object-manifest.json; ro-crate-metadata.json is structurally verified and the receipt fingerprints the complete ZIP bytes.",
+  "contract_version": "traffictwin-ro-crate-v1",
+  "deterministic_publication": [
+    "Caller supplies publication_date; all derived artifact timestamps use midnight UTC on that date.",
+    "Archive members are sorted, uncompressed, and carry one fixed ZIP timestamp and permission mode.",
+    "The complete crate is built and verified in memory before an atomic destination replacement."
+  ],
+  "embedded_artifact_roles": [
+    "source_manifest",
+    "validation",
+    "canonical_contract",
+    "metrics",
+    "evidence_pack",
+    "diagnostics",
+    "provenance",
+    "structured_report",
+    "markdown_report",
+    "html_report",
+    "software_metadata",
+    "inclusion_policy",
+    "citation"
+  ],
+  "exclusions": [
+    "No registry, cache, credentials, external package, simulator, or network resource is discovered or copied.",
+    "No DOI, repository URL, licence, publication permission, or scientific validity is inferred.",
+    "No metric, diagnostic, or provenance logic is implemented in the archive renderer."
+  ],
+  "limits": {
+    "max_archive_file_count": 128,
+    "max_archive_member_bytes": 20000000,
+    "max_archive_total_bytes": 50000000,
+    "max_raw_file_bytes": 10000000,
+    "max_raw_file_count": 64,
+    "max_raw_total_bytes": 10000000
+  },
+  "public_permission_policy": [
+    "Unknown or denied external raw evidence must be excluded from a public crate.",
+    "Embedding external raw evidence requires confirmed permission, a written basis, and a licence statement.",
+    "TrafficTwin-labelled synthetic evidence resolves to permission not_required but remains visibly synthetic."
+  ],
+  "raw_evidence_modes": {
+    "embed": "Copy bounded raw files only for synthetic or explicitly permitted evidence.",
+    "exclude": "Retain only an aggregate exclusion count/reason; no raw names or hashes.",
+    "reference": "Retain relative names, sizes, and SHA-256 identities without copying raw bytes."
+  },
+  "redaction_policy": "Absolute POSIX, Windows, home-relative, and file-URI paths are redacted from derived JSON and report artifacts; archive inventory paths are crate- or bundle-relative.",
+  "required_members": [
+    "CITATION.cff",
+    "checksums.sha256",
+    "research-object-manifest.json",
+    "ro-crate-metadata.json"
+  ],
+  "ro_crate_context": "https://w3id.org/ro/crate/1.3/context",
+  "ro_crate_specification": "https://w3id.org/ro/crate/1.3",
+  "schema_version": "1.0",
+  "source_boundary": "One accepted ordinary generic directory or ZIP bundle. SUMO and TOS remain explicit unsupported source-specific boundaries for OPS-04 v1."
+}

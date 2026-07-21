@@ -1,0 +1,404 @@
+{
+  "aliases": {
+    "incidents": {
+      "demand_multiplier": [
+        "demand_factor"
+      ],
+      "duration": [
+        "duration_s",
+        "duration_seconds"
+      ],
+      "incident_id": [
+        "event_id",
+        "incident"
+      ],
+      "incident_type": [
+        "event_type",
+        "incident_category"
+      ],
+      "lanes_closed": [
+        "closed_lanes",
+        "lane_closures"
+      ],
+      "location": [
+        "incident_location",
+        "site"
+      ],
+      "severity": [
+        "level",
+        "severity_level"
+      ],
+      "timestamp": [
+        "time",
+        "time_s",
+        "time_seconds",
+        "timestamp_s"
+      ],
+      "vehicles_involved": [
+        "involved_vehicles",
+        "vehicle_ids"
+      ]
+    },
+    "infra_state": {
+      "active_tasks": [
+        "active",
+        "running_tasks"
+      ],
+      "arrivals": [
+        "arrival_count"
+      ],
+      "capacity": [
+        "service_capacity"
+      ],
+      "drops": [
+        "drop_count",
+        "dropped"
+      ],
+      "queue_length": [
+        "backlog",
+        "queue",
+        "queue_size"
+      ],
+      "rsu_id": [
+        "entity_id",
+        "roadside_unit_id",
+        "rsu"
+      ],
+      "timestamp": [
+        "time",
+        "time_s",
+        "time_seconds",
+        "timestamp_s"
+      ],
+      "utilisation": [
+        "utilisation_fraction",
+        "utilization",
+        "utilization_fraction"
+      ]
+    },
+    "tasks": {
+      "arrival_time": [
+        "arrival",
+        "arrival_time_s",
+        "arrival_time_seconds",
+        "arrival_ts",
+        "generated_at",
+        "generation_time",
+        "release_time"
+      ],
+      "completed": [
+        "completion_status",
+        "is_completed",
+        "success"
+      ],
+      "completion_time": [
+        "completion_time_s",
+        "finish_time",
+        "finish_time_s",
+        "finish_time_seconds",
+        "finished_at"
+      ],
+      "data_size_bytes": [
+        "data_bytes",
+        "input_bytes",
+        "payload_bytes"
+      ],
+      "deadline_ms": [
+        "deadline",
+        "deadline_milliseconds",
+        "latency_budget_ms"
+      ],
+      "decision": [
+        "action",
+        "offload_action",
+        "offload_decision",
+        "placement"
+      ],
+      "drop_reason": [
+        "failure_reason",
+        "reason"
+      ],
+      "energy_j": [
+        "energy",
+        "energy_joules"
+      ],
+      "latency_ms": [
+        "delay_ms",
+        "latency_milliseconds",
+        "response_time_ms"
+      ],
+      "target_id": [
+        "destination_id",
+        "server_id",
+        "target"
+      ],
+      "task_class": [
+        "class",
+        "job_class",
+        "service_class",
+        "workload_class"
+      ],
+      "task_id": [
+        "job_id",
+        "request_id",
+        "taskid"
+      ],
+      "vehicle_id": [
+        "car_id",
+        "veh_id",
+        "vehicleid"
+      ],
+      "workload_cycles": [
+        "cpu_cycles",
+        "cycles"
+      ]
+    },
+    "traffic_obs": {
+      "average_speed": [
+        "avg_speed",
+        "mean_speed",
+        "mean_speed_kmh",
+        "mean_speed_mps"
+      ],
+      "count": [
+        "flow_count",
+        "vehicle_count",
+        "volume"
+      ],
+      "location": [
+        "sensor_location",
+        "site"
+      ],
+      "sensor_id": [
+        "counter_id",
+        "detector_id",
+        "entity_id",
+        "sensor"
+      ],
+      "timestamp": [
+        "time",
+        "time_s",
+        "time_seconds",
+        "timestamp_s"
+      ]
+    },
+    "trips": {
+      "arrival_time": [
+        "arrival",
+        "arrival_time_s",
+        "arrival_time_seconds",
+        "arrive"
+      ],
+      "departure_time": [
+        "depart",
+        "depart_time",
+        "departure",
+        "departure_time_s",
+        "departure_time_seconds"
+      ],
+      "duration": [
+        "duration_s",
+        "duration_seconds",
+        "travel_time"
+      ],
+      "route_id": [
+        "path_id",
+        "route"
+      ],
+      "trip_id": [
+        "journey_id",
+        "trip"
+      ],
+      "vehicle_id": [
+        "car_id",
+        "veh_id",
+        "vehicle"
+      ]
+    },
+    "vehicle_state": {
+      "lane": [
+        "lane_id"
+      ],
+      "speed": [
+        "speed_kmh",
+        "speed_mps",
+        "velocity"
+      ],
+      "tier": [
+        "class_tier",
+        "vehicle_tier"
+      ],
+      "timestamp": [
+        "time",
+        "time_s",
+        "time_seconds",
+        "timestamp_s"
+      ],
+      "vehicle_id": [
+        "car_id",
+        "entity_id",
+        "veh_id",
+        "vehicle"
+      ],
+      "x": [
+        "position_x",
+        "x_position"
+      ],
+      "y": [
+        "position_y",
+        "y_position"
+      ]
+    }
+  },
+  "confirmation_policy": "drafts are analysis_ready=false; source fingerprint recheck and explicit acceptance or edit are required",
+  "distinctive_value_patterns": {
+    "completed": [
+      "true",
+      "false",
+      "yes",
+      "no",
+      "1",
+      "0"
+    ],
+    "decision": [
+      "local",
+      "v2i",
+      "v2v"
+    ],
+    "task_class": [
+      "t1",
+      "t2",
+      "t3"
+    ]
+  },
+  "inference_version": "1.0",
+  "limits": {
+    "max_columns_per_file": 128,
+    "max_files": 32,
+    "max_sample_rows_per_file": 100,
+    "max_value_characters": 256
+  },
+  "methods": [
+    {
+      "meaning": "normalised source header equals the canonical field",
+      "method": "exact_header",
+      "precedence": 30
+    },
+    {
+      "meaning": "normalised source header is in the documented field alias catalogue",
+      "method": "header_alias",
+      "precedence": 20
+    },
+    {
+      "meaning": "all sampled non-empty values fit one distinctive closed vocabulary",
+      "method": "value_pattern",
+      "precedence": 10
+    }
+  ],
+  "required_fields": {
+    "incidents": [
+      "incident_id",
+      "timestamp",
+      "incident_type"
+    ],
+    "infra_state": [
+      "timestamp",
+      "rsu_id"
+    ],
+    "tasks": [
+      "task_id",
+      "vehicle_id",
+      "task_class",
+      "arrival_time",
+      "deadline_ms",
+      "decision",
+      "completed"
+    ],
+    "traffic_obs": [
+      "timestamp",
+      "sensor_id"
+    ],
+    "trips": [
+      "trip_id",
+      "departure_time"
+    ],
+    "vehicle_state": [
+      "timestamp",
+      "vehicle_id"
+    ]
+  },
+  "schema_version": "1.0",
+  "score_semantics": "sum of selected field-method precedences used only for deterministic ordering; not a probability or confidence",
+  "supported_fields": {
+    "incidents": [
+      "demand_multiplier",
+      "duration",
+      "incident_id",
+      "incident_type",
+      "lanes_closed",
+      "location",
+      "severity",
+      "timestamp",
+      "vehicles_involved"
+    ],
+    "infra_state": [
+      "active_tasks",
+      "arrivals",
+      "capacity",
+      "drops",
+      "queue_length",
+      "rsu_id",
+      "timestamp",
+      "utilisation"
+    ],
+    "tasks": [
+      "arrival_time",
+      "completed",
+      "completion_time",
+      "data_size_bytes",
+      "deadline_ms",
+      "decision",
+      "drop_reason",
+      "energy_j",
+      "latency_ms",
+      "target_id",
+      "task_class",
+      "task_id",
+      "vehicle_id",
+      "workload_cycles"
+    ],
+    "traffic_obs": [
+      "average_speed",
+      "count",
+      "location",
+      "sensor_id",
+      "timestamp"
+    ],
+    "trips": [
+      "arrival_time",
+      "departure_time",
+      "duration",
+      "route_id",
+      "trip_id",
+      "vehicle_id"
+    ],
+    "vehicle_state": [
+      "lane",
+      "speed",
+      "tier",
+      "timestamp",
+      "vehicle_id",
+      "x",
+      "y"
+    ]
+  },
+  "unit_policy": "suggest only from a supported explicit header suffix/word; otherwise require user selection",
+  "unsupported": [
+    "unit inference from numeric magnitude",
+    "bundle/run/environment/provenance metadata inference",
+    "automatic resolution of tied file kinds or fields",
+    "analysis or import of an inference draft",
+    "more than one CSV per current canonical file kind",
+    "Parquet, gzip, batch, and streaming admission"
+  ]
+}

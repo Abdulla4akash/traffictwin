@@ -45,6 +45,10 @@ def test_experiment_aggregation_groups_by_seed_and_algorithm() -> None:
     assert report.experiment_id == "exp-gridlock-001"
     assert report.condition_count == 2
     assert [condition.run_count for condition in report.conditions] == [1, 1]
+    assert all(
+        "task.latency.p99_ms" in {metric.metric_key for metric in condition.metrics}
+        for condition in report.conditions
+    )
 
 
 def test_paired_difference_uses_common_random_seeds() -> None:

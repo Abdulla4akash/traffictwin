@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "contract_version": "structured-report-diff-v1",
+  "status": "available",
+  "report_type": "run",
+  "baseline_report_id": "report-baseline",
+  "variation_report_id": "report-variation",
+  "baseline_fingerprint": "bfdbd99051560f526437b313dd852c3a6c983778914053133064ee6ad34e1b73",
+  "variation_fingerprint": "2284eef5250b1170fe47cad42b4ad6f4044eb371a15621bd747307bef491294a",
+  "compatibility_codes": [],
+  "sections": [
+    {
+      "section": "Metrics",
+      "classification": "changed",
+      "baseline_present": true,
+      "variation_present": true,
+      "baseline_fingerprint": "dc88c59322f4ae5a824474c06ad95f1944562bfe70f587e721668cd9cf0a1fd4",
+      "variation_fingerprint": "17546c1bfac59cd6de1335829a896220d7fced02667668b9cd933a0f9f8a6599",
+      "unavailable_reasons": [],
+      "claims": [
+        {
+          "scientific_key": "metric_result:task.completion.rate",
+          "classification": "changed",
+          "baseline_claim_id": "report-baseline:metric:task.completion.rate",
+          "variation_claim_id": "report-variation:metric:task.completion.rate",
+          "baseline_fingerprint": "d512ffd7c87900c0b7b1e593a65c6eade8194aee4d0b52bdd39dbffe0e232dcb",
+          "variation_fingerprint": "309491ea9f63853e9e9199bc2e1354b1ff68451e099953c60d1b6946b8cb5251",
+          "field_changes": [
+            {
+              "path": "/value",
+              "baseline_present": true,
+              "variation_present": true,
+              "baseline": 0.8,
+              "variation": 0.7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section": "Notes",
+      "classification": "unavailable",
+      "baseline_present": true,
+      "variation_present": true,
+      "baseline_fingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "variation_fingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "unavailable_reasons": [
+        "NO_TYPED_CLAIMS"
+      ],
+      "claims": []
+    }
+  ],
+  "classification_counts": {
+    "unchanged": 0,
+    "added": 0,
+    "removed": 0,
+    "changed": 1,
+    "unavailable": 1
+  },
+  "excluded_fields": [
+    "title",
+    "generated_at",
+    "source_reference",
+    "warnings",
+    "sections[*].body",
+    "claim_references[*].label",
+    "claim_exclusions",
+    "annotation_targets",
+    "analyst_annotations"
+  ],
+  "warnings": [
+    "Structured differences are descriptive and non-causal. Only typed claim snapshots are scientific comparison inputs; rendered prose and analyst annotations are excluded."
+  ]
+}

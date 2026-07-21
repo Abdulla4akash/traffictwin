@@ -17,6 +17,7 @@ TrafficTwin `0.1.0` is a standalone research prototype release candidate.
 .venv/bin/mypy
 .venv/bin/python -m pytest
 .venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
+.venv/bin/traffictwin doctor --format text
 .venv/bin/traffictwin demo initialise .release-demo --force
 .venv/bin/traffictwin synthetic verify .release-demo
 .venv/bin/traffictwin report full .release-demo/bundles/stressed_demand \
@@ -67,6 +68,7 @@ git push origin v0.1.0
 
 - [ ] Working tree clean.
 - [ ] Quality gates pass.
+- [ ] `traffictwin doctor` reports no blocked required checks for the release environment.
 - [ ] Standalone workspace initialises.
 - [ ] Streamlit dry-run command prints expected command.
 - [ ] Reports contain no real-data claims.
@@ -75,6 +77,9 @@ git push origin v0.1.0
 - [ ] Synthetic Netlify site manifest reports `synthetic: true` and `live_data: false`.
 - [ ] Private TOS supervisor pack checksums pass, when the external package is available.
 - [ ] No public TOS atlas is staged without recorded publication permission.
+- [ ] Repository `CITATION.cff` and any archive-specific authors/identifier/date are reviewed.
+- [ ] Every release research object passes `traffictwin archive verify`; imported public raw
+      embed/reference has recorded permission basis and licence, otherwise use `exclude`.
 
 Related documents:
 
@@ -84,3 +89,4 @@ Related documents:
 - [Limitations and future work](limitations_and_future_work.md)
 - [Deployment](deployment.md)
 - [Supervisor and viva pack](supervisor_pack.md)
+- [RO-Crate research objects and citation](research_objects.md)

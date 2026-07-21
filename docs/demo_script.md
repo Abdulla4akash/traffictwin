@@ -94,7 +94,7 @@ traffictwin demo launch .demo
 
 12. Open Diagnostics & Evidence.
     - Show EvidencePack ID/fingerprint.
-    - Show R0-R3 status.
+    - Show R0-R8 status; R6, R7, and R8 remain insufficient without their typed evidence contracts.
     - Explain hypotheses are candidate explanations, not proven causes.
     - Use `.demo/bundles/under_offloading` to show R1.
     - Use `.demo/bundles/infrastructure_bottleneck` to show R2.
@@ -120,6 +120,10 @@ traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.jso
     - Explain that search is local metadata search.
 
 16. Open Provenance Explorer.
+    - Expand `Report claim provenance completeness (PRO-03)` and show that the denominator includes
+      unavailable metric/rule claims rather than dropping them.
+    - Show the source-row-complete, aggregate-only, and unavailable counts, exclusions, and CSV
+      download; explain that the score is lineage depth for this report template, not correctness.
     - Select `Metric` and `task.completion.rate`.
     - Show the metric result, metric definition, canonical `tasks` table, `tasks.csv` row samples, manifest, run, seed, environment, and fingerprint.
     - Select `Source file row`, `tasks.csv`, row `2`.
@@ -180,6 +184,12 @@ traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles
 traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
 traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
 traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid \
+  tests/fixtures/bundles/variation_valid task.completion.rate --format json
+traffictwin provenance export tests/fixtures/bundles/baseline_valid \
+  --root-type metric --root-id task.completion.rate \
+  --format graphml --redaction structure_only \
+  --max-nodes 80 --max-edges 160 --output completion-provenance.graphml
 ```
 
 ## Cleanup

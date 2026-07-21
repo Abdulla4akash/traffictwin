@@ -2,19 +2,29 @@
   "case_id": "mixed_fault",
   "overall_readiness": "partially_ready",
   "triggered_rule_ids": ["R1", "R2"],
-  "insufficient_rule_ids": ["R3"],
+  "insufficient_rule_ids": ["R3", "R4", "R5", "R6", "R7", "R8"],
   "conflicting_rule_ids": [],
   "result_statuses": {
     "R0": "not_triggered",
     "R1": "triggered",
     "R2": "triggered",
-    "R3": "insufficient_evidence"
+    "R3": "insufficient_evidence",
+    "R4": "insufficient_evidence",
+    "R5": "insufficient_evidence",
+    "R6": "insufficient_evidence",
+    "R7": "insufficient_evidence",
+    "R8": "insufficient_evidence"
   },
   "confidences": {
     "R0": "unavailable",
     "R1": "moderate",
     "R2": "moderate",
-    "R3": "unavailable"
+    "R3": "unavailable",
+    "R4": "unavailable",
+    "R5": "unavailable",
+    "R6": "unavailable",
+    "R7": "unavailable",
+    "R8": "unavailable"
   },
   "active_evidence_keys": {
     "R1": [

@@ -1,0 +1,107 @@
+{
+  "confidence_semantics": "Relationships do not calculate probability, strength, rank, or confidence and do not change a RuleResult confidence category.",
+  "evidence_boundary": "The service consumes completed RuleResult objects only. It does not read raw files, recompute metrics, or change rule statuses.",
+  "limitations": [
+    "R1/R2 conflict records competing candidate interpretations and does not select one.",
+    "R1/R4 corroboration records compatible context only and does not increase confidence.",
+    "R0 suppression is activated only by its explicit blocked_rules metadata.",
+    "Exact evidence-key overlap is shared lineage context, not statistical independence or causality.",
+    "The v1 policy is intentionally incomplete rather than inferring uncalibrated relationships."
+  ],
+  "policies": [
+    {
+      "limitations": [
+        "Shared task-count lineage does not establish which candidate explains an outcome."
+      ],
+      "overlap_basis": "exact_shared_evidence",
+      "policy_id": "XR1_R1_R2_COMPETING_CANDIDATES",
+      "policy_version": "1.0",
+      "presentation_effect": "retain both candidates with no winner",
+      "relation_type": "conflict",
+      "required_shared_evidence_keys": [
+        "task.generated.count"
+      ],
+      "source_precedence": 50,
+      "source_rule_id": "R1",
+      "source_statuses": [
+        "triggered"
+      ],
+      "statement": "Evidence supports both policy under-use and infrastructure saturation candidates; the current report does not choose between them.",
+      "symmetric": true,
+      "target_precedence": 50,
+      "target_rule_id": "R2",
+      "target_selector": "fixed_rule_id",
+      "target_statuses": [
+        "triggered"
+      ]
+    },
+    {
+      "limitations": [
+        "Corroboration does not increase confidence or prove policy, routing, or placement cause."
+      ],
+      "overlap_basis": "exact_shared_evidence",
+      "policy_id": "XR2_R1_R4_SHARED_CAPACITY_CONTEXT",
+      "policy_version": "1.0",
+      "presentation_effect": "retain both candidates as contextual corroboration",
+      "relation_type": "corroboration",
+      "required_shared_evidence_keys": [
+        "infra.utilisation.mean"
+      ],
+      "source_precedence": 50,
+      "source_rule_id": "R1",
+      "source_statuses": [
+        "triggered"
+      ],
+      "statement": "R1 and R4 provide compatible candidate context around remaining aggregate capacity and uneven work distribution.",
+      "symmetric": true,
+      "target_precedence": 50,
+      "target_rule_id": "R4",
+      "target_selector": "fixed_rule_id",
+      "target_statuses": [
+        "triggered"
+      ]
+    },
+    {
+      "limitations": [
+        "Suppression is a presentation/actionability state and never changes the target status."
+      ],
+      "overlap_basis": "explicit_blocked_rule",
+      "policy_id": "XR3_R0_EXPLICIT_READINESS_BLOCKER",
+      "policy_version": "1.0",
+      "presentation_effect": "retain target and mark it non-actionable while blocked",
+      "relation_type": "suppression",
+      "required_shared_evidence_keys": [],
+      "source_precedence": 100,
+      "source_rule_id": "R0",
+      "source_statuses": [
+        "triggered"
+      ],
+      "statement": "R0 explicitly blocks interpretation of this ordinary rule until its evidence readiness requirement is repaired.",
+      "symmetric": false,
+      "target_precedence": 50,
+      "target_rule_id": null,
+      "target_selector": "source_metadata_blocked_rules",
+      "target_statuses": [
+        "triggered",
+        "not_triggered",
+        "insufficient_evidence",
+        "conflicting_evidence",
+        "invalid"
+      ]
+    }
+  ],
+  "policy_version": "1.0",
+  "precedence_tiers": {
+    "data_readiness": 100,
+    "ordinary_diagnostic": 50
+  },
+  "retention_guarantee": "Every input RuleResult remains in DiagnosticReport.results. Suppression changes only presentation/actionability metadata and never deletes, rewrites, or changes a status.",
+  "schema_version": "1.0",
+  "supported_rule_ids": [
+    "R0",
+    "R1",
+    "R2",
+    "R4"
+  ],
+  "undeclared_pair_semantics": "No relationship is inferred for an undeclared pair, including R3 and R5-R8 or arbitrary declarative rules."
+}

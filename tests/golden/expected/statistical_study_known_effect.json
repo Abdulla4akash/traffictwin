@@ -1,0 +1,60 @@
+{
+  "bootstrap_interval": {
+    "lower": 1.0,
+    "method": "paired_percentile_bootstrap_mean_v1",
+    "repetitions": 1000,
+    "seed": 77,
+    "upper": 3.0
+  },
+  "compatibility_signature_fingerprint": "bc755f79361f1fb10c30b3be1476b8a6ffca4119fec2f74a7247d5fcb21c4186",
+  "config_fingerprint": "5b53e2e5cc9f293135bd59ba53da3c8220124281b0a9e97b72a92d1e8793e77c",
+  "effect_sizes": {
+    "baseline_favourable_count": 0,
+    "cliffs_delta": "not_calculated_for_paired_primary_design",
+    "cohen_dz": 2.0,
+    "matched_pairs_rank_biserial": 1.0,
+    "mean_paired_difference": 2.0,
+    "tie_count": 0,
+    "variation_favourable_count": 3
+  },
+  "eligible_random_seeds": [
+    1,
+    2,
+    3
+  ],
+  "estimate": {
+    "interpretation": "favours_variation",
+    "maximum_paired_difference": 3.0,
+    "mean_paired_difference": 2.0,
+    "minimum_paired_difference": 1.0,
+    "n": 3,
+    "reason": null,
+    "sample_sd_paired_difference": 1.0,
+    "standard_error": 0.5773502691896258,
+    "status": "available",
+    "unit": "fraction"
+  },
+  "fingerprint": "09f66a4324f30a3cfeafc0bdd22ebae3a6a241ff1d41d0c7ae944b080a5acabd",
+  "metric_unit": "fraction",
+  "paired_differences": [
+    1.0,
+    2.0,
+    3.0
+  ],
+  "provenance": {
+    "eligible_pair_count": 3,
+    "input_collection_count": 6,
+    "method_contract_fingerprint": "fca3c77b122fe8a8061ed0c05b7947666f7a7434c8054c0732da36fc1d80b0cb",
+    "source_collection_sequence_fingerprint": "9f649d7ec02916b3483cc99771c5ecdc5de580c8ed02713079db6451800f6175",
+    "synthetic": true
+  },
+  "randomisation_test": {
+    "evaluated_assignments": 8,
+    "mode": "exact_enumeration",
+    "observed_statistic": 2.0,
+    "p_value": 0.25
+  },
+  "status": "available",
+  "study_id": "study-ef25fa9d628b1433",
+  "synthetic": true
+}

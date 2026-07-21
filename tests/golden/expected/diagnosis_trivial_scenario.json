@@ -1,20 +1,30 @@
 {
   "case_id": "trivial_scenario",
-  "overall_readiness": "ready",
+  "overall_readiness": "partially_ready",
   "triggered_rule_ids": ["R3"],
-  "insufficient_rule_ids": [],
+  "insufficient_rule_ids": ["R4", "R5", "R6", "R7", "R8"],
   "conflicting_rule_ids": [],
   "result_statuses": {
     "R0": "not_triggered",
     "R1": "not_triggered",
     "R2": "not_triggered",
-    "R3": "triggered"
+    "R3": "triggered",
+    "R4": "insufficient_evidence",
+    "R5": "insufficient_evidence",
+    "R6": "insufficient_evidence",
+    "R7": "insufficient_evidence",
+    "R8": "insufficient_evidence"
   },
   "confidences": {
     "R0": "unavailable",
     "R1": "unavailable",
     "R2": "unavailable",
-    "R3": "moderate"
+    "R3": "moderate",
+    "R4": "unavailable",
+    "R5": "unavailable",
+    "R6": "unavailable",
+    "R7": "unavailable",
+    "R8": "unavailable"
   },
   "active_evidence_keys": {
     "R3": [

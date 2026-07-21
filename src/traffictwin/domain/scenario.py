@@ -45,6 +45,8 @@ class TrafficSettings(StrictModel):
     lanes_closed: int | None = Field(default=None, ge=0)
     duration_min: float | None = Field(default=None, ge=0)
     demand_profile: str | None = None
+    event_demand_multiplier: float | None = Field(default=None, gt=0)
+    vehicles_involved: list[str] = Field(default_factory=list)
 
 
 class DemandSettings(StrictModel):

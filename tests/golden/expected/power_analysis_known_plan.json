@@ -1,0 +1,85 @@
+{
+  "analysis_id": "power-f3945db2bf70dd6d",
+  "assumptions": [
+    "Common random seeds define independent paired experimental units.",
+    "The declared variance is the prospective variance of variation-minus-baseline paired differences in the stated unit squared.",
+    "The paired-mean sampling distribution is approximated by a normal distribution and the planning variance is treated as fixed and known.",
+    "The target effect, alpha, target power, and bases are declared before confirmatory results are inspected.",
+    "Every planned common seed yields one compatible baseline and one compatible variation run; no attrition or exclusions are built into the estimate.",
+    "The calculation concerns one two-sided predeclared comparison without multiplicity adjustment."
+  ],
+  "calculation": {
+    "achieved_power": 0.8074304194325573,
+    "alpha": 0.05,
+    "method": "two_sided_paired_mean_normal_approximation_v1",
+    "paired_difference_standard_deviation": 0.05,
+    "paired_difference_variance": 0.0025,
+    "preceding_power": 0.7535784406023496,
+    "preceding_replicate_count": 7,
+    "reason": null,
+    "reason_code": "NONE",
+    "required_common_seed_replicates": 8,
+    "required_total_policy_runs": 16,
+    "standardised_effect_magnitude": 1.0,
+    "status": "available",
+    "target_effect": 0.05,
+    "target_effect_magnitude": 0.05,
+    "target_power": 0.8,
+    "two_sided_critical_value": 1.9599639845400534
+  },
+  "config": {
+    "alpha": 0.05,
+    "alternative": "two_sided",
+    "estimand": "mean_paired_difference_variation_minus_baseline",
+    "maximum_replicates": 100000,
+    "method": "two_sided_paired_mean_normal_approximation_v1",
+    "metric_key": "task.completion.rate",
+    "minimum_replicates": 3,
+    "multiple_comparison_policy": "not_applicable_single_predeclared_comparison",
+    "paired_difference_variance": 0.0025,
+    "pairing_key": "random_seed",
+    "pilot_sample_size": null,
+    "schema_version": "1.0",
+    "synthetic": true,
+    "target_effect": 0.05,
+    "target_effect_basis": "synthetic",
+    "target_effect_justification": "Explicit synthetic target for deterministic golden verification",
+    "target_effect_reference": null,
+    "target_power": 0.8,
+    "unit": "ratio",
+    "variance_basis": "synthetic",
+    "variance_justification": "Explicit synthetic variance for deterministic golden verification",
+    "variance_reference": null
+  },
+  "config_fingerprint": "f3945db2bf70dd6d7ee71b3fce4c01ec9aab43ae84c4762393d7fccf2a1bdfaf",
+  "fingerprint": "c5f52a79f876431ba403efc36abc458c46ef4a63f39ae1c590a538051771ee0a",
+  "labels": [
+    "planning_aid_not_a_guarantee",
+    "small_planned_sample",
+    "synthetic_input"
+  ],
+  "limitations": [
+    "The result is a planning estimate, not guaranteed achieved power and not evidence that a completed study was adequately powered.",
+    "The normal approximation can be optimistic for small, skewed, heavy-tailed, or variance-uncertain paired samples.",
+    "TrafficTwin does not derive a target effect or variance from observed results, validate their practical basis, or inflate for missing/incompatible pairs.",
+    "This method does not calculate power for STA-01 sign-flip inference, STA-03 paired TOST, N-way ranking, multiple comparisons, sequential designs, or external simulator costs.",
+    "Synthetic or provisional inputs provide software and design evidence only, not real-world or externally validated sample-size evidence.",
+    "Power planning does not establish causality, practical importance, policy superiority, equivalence, or deployment suitability."
+  ],
+  "provenance": {
+    "maximum_replicates": 100000,
+    "method_contract_fingerprint": "0928967b08676a90dced54e376c511090e0eb594ad2494ac88a99a1f40171e69",
+    "minimum_replicates": 3,
+    "pilot_sample_size": null,
+    "planning_input_fingerprint": "f3945db2bf70dd6d7ee71b3fce4c01ec9aab43ae84c4762393d7fccf2a1bdfaf",
+    "synthetic": true,
+    "target_effect_basis": "synthetic",
+    "variance_basis": "synthetic"
+  },
+  "status": "available",
+  "warnings": [
+    "This is a prospective planning aid under declared assumptions, not a guarantee of achieved power, significance, effect size, or external validity.",
+    "The planned sample has fewer than 30 pairs; the normal approximation may be poor when paired differences are skewed or heavy-tailed.",
+    "At least one planning input is synthetic; this estimate is method/software evidence and must not be presented as real-world calibration."
+  ]
+}

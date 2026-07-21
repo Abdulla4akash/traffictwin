@@ -1,12 +1,87 @@
 """Bundle ingestion helpers."""
 
+from traffictwin.ingestion.batch import (
+    BatchBundleResult,
+    BatchBundleSummary,
+    BatchImportState,
+    BatchInputIssue,
+    BatchIssueCode,
+    BatchOperation,
+    BatchOverallStatus,
+    batch_summary_to_csv,
+    batch_summary_to_text,
+    import_bundle_batch,
+    validate_bundle_batch,
+)
+from traffictwin.ingestion.bundle import (
+    CollectedStreamingBundleResult,
+    StreamingBundleImportResult,
+    collect_bundle_streaming,
+    import_bundle_streaming,
+    validate_bundle_streaming,
+)
 from traffictwin.ingestion.loader import BundleLoadError, BundleWorkspace, open_bundle
-from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.ingestion.manifest import (
+    BundleManifest,
+    FileDeclaration,
+    SourceCompression,
+    SourceFileFormat,
+)
+from traffictwin.ingestion.manifest_inference import (
+    CanonicalisationManifest,
+    ManifestInferenceContract,
+    ManifestInferenceDraft,
+    ManifestInferenceError,
+    ManifestInferenceSelections,
+    apply_canonicalisation_to_template,
+    confirm_manifest_inference,
+    infer_manifest,
+    manifest_inference_contract,
+)
+from traffictwin.ingestion.streaming import (
+    CanonicalChunk,
+    StreamingBundleValidationResult,
+    StreamingCanonicalisationConfig,
+    StreamingCanonicalisationSummary,
+    StreamingConsumerError,
+)
 
 __all__ = [
     "BundleLoadError",
     "BundleManifest",
     "BundleWorkspace",
+    "BatchBundleResult",
+    "BatchBundleSummary",
+    "BatchImportState",
+    "BatchInputIssue",
+    "BatchIssueCode",
+    "BatchOperation",
+    "BatchOverallStatus",
+    "CanonicalisationManifest",
+    "CanonicalChunk",
+    "CollectedStreamingBundleResult",
     "FileDeclaration",
+    "ManifestInferenceContract",
+    "ManifestInferenceDraft",
+    "ManifestInferenceError",
+    "ManifestInferenceSelections",
+    "SourceCompression",
+    "SourceFileFormat",
+    "StreamingBundleImportResult",
+    "StreamingBundleValidationResult",
+    "StreamingCanonicalisationConfig",
+    "StreamingCanonicalisationSummary",
+    "StreamingConsumerError",
+    "apply_canonicalisation_to_template",
+    "batch_summary_to_csv",
+    "batch_summary_to_text",
+    "confirm_manifest_inference",
+    "collect_bundle_streaming",
+    "infer_manifest",
+    "import_bundle_batch",
+    "import_bundle_streaming",
+    "manifest_inference_contract",
     "open_bundle",
+    "validate_bundle_batch",
+    "validate_bundle_streaming",
 ]

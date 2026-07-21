@@ -1,0 +1,47 @@
+{
+  "causal_interpretation_supported": false,
+  "classifications": [
+    "unchanged",
+    "added",
+    "removed",
+    "changed",
+    "unavailable"
+  ],
+  "compares_analyst_annotations": false,
+  "compares_rendered_prose": false,
+  "compatibility_codes": [
+    "PAYLOAD_SCHEMA_VERSION_MISMATCH",
+    "UNSUPPORTED_PAYLOAD_SCHEMA_VERSION",
+    "REPORT_TYPE_MISMATCH",
+    "SOURCE_MODE_MISMATCH",
+    "CLAIM_DENOMINATOR_MISMATCH",
+    "UNSUPPORTED_REPORT_TYPE",
+    "INCOMPLETE_CLAIM_INVENTORY"
+  ],
+  "contract_version": "structured-report-diff-v1",
+  "excluded_fields": [
+    "title",
+    "generated_at",
+    "source_reference",
+    "warnings",
+    "sections[*].body",
+    "claim_references[*].label",
+    "claim_exclusions",
+    "annotation_targets",
+    "analyst_annotations"
+  ],
+  "maximum_claims": 500,
+  "maximum_field_changes": 2000,
+  "maximum_input_bytes": 2000000,
+  "maximum_sections": 100,
+  "schema_version": "1.0",
+  "supported_payload_schema_versions": [
+    "1.0"
+  ],
+  "supported_report_types": [
+    "run",
+    "diagnostics",
+    "comparison",
+    "full"
+  ]
+}

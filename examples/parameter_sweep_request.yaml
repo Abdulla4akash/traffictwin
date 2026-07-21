@@ -1,0 +1,44 @@
+schema_version: '1.0'
+sweep_id: sweep-demand-capacity
+title: Synthetic demand and RSU-capacity response
+description: Controlled software demonstration; not calibrated or real-world evidence.
+mode: local_synthetic_bundles
+base_synthetic_config:
+  schema_version: '1.0'
+  scenario_id: baseline
+  name: Standalone baseline
+  description: Moderate synthetic demand with usable infrastructure capacity.
+  experiment_id: exp-standalone-demo
+  baseline_seed_id: null
+  random_seed: 7
+  duration_s: 300.0
+  sampling_interval_s: 30.0
+  vehicle_count: 20
+  vehicle_tier_mix: {low: 0.3, medium: 0.5, high: 0.2}
+  task_arrival_rate: 0.11
+  task_class_mix: {T1: 0.3, T2: 0.4, T3: 0.3}
+  local_capacity_by_tier: {low: 0.55, medium: 0.75, high: 0.9}
+  rsu_count: 2
+  rsu_capacity: 35.0
+  baseline_network_delay_ms: 45.0
+  congestion_multiplier: 1.0
+  policy_behavior: synthetic-balanced
+  trip_count: 12
+  incident_schedule: []
+  synthetic_faults: []
+  include_infrastructure: true
+  include_vehicles: true
+  include_traffic: true
+  include_trips: true
+  include_incidents: true
+  provenance:
+    producer: TrafficTwin standalone synthetic generator
+    notes: Synthetic workload for software demonstration; not a calibrated simulator.
+axes:
+  - parameter_path: synthetic.task_arrival_rate
+    values: [0.08, 0.12, 0.16]
+  - parameter_path: synthetic.rsu_capacity
+    values: [20.0, 35.0]
+metric_keys:
+  - task.completion.rate
+  - infra.utilisation.mean

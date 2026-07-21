@@ -4,20 +4,94 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 from typing import Annotated
 
 import typer
 import yaml
 
+from traffictwin.annotations import (
+    AnalystAnnotationRequest,
+    AnalystAnnotationTargetKind,
+    AnalystArtifactReference,
+    AnalystDecisionLabel,
+    analyst_annotation_contract,
+)
+from traffictwin.case_studies import build_synthetic_case_study_pack
 from traffictwin.config.capabilities import default_export_import_manifest, manifest_to_plain_dict
 from traffictwin.config.seed_io import SeedIOError, load_seed, normalise_seed_file
 from traffictwin.demo.launcher import launch_workspace
 from traffictwin.demo.workspace import initialise_workspace, reset_workspace, workspace_status
+from traffictwin.diagnostics.cross_rule import cross_rule_reasoning_contract
 from traffictwin.diagnostics.report import DiagnosticReport
+from traffictwin.diagnostics.sensitivity import analyse_nearest_flip
+from traffictwin.diagnostics.temporal import evaluate_temporal_bundle
+from traffictwin.doctor import (
+    DoctorOverallStatus,
+    doctor_contract,
+    doctor_contract_to_text,
+    doctor_report_to_text,
+    run_doctor,
+)
+from traffictwin.domain.experiment import Experiment
+from traffictwin.domain.measurement import measurement_impairment_contract
 from traffictwin.domain.scenario import ScenarioSeed
+from traffictwin.evaluation.participants import (
+    analyse_participant_results,
+    load_mock_participant_dataset,
+    participant_analysis_to_csv,
+)
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
+from traffictwin.evidence.temporal import TemporalEvidenceConfig
+from traffictwin.experiments.equivalence_testing import (
+    EquivalenceMarginBasis,
+    EquivalenceStudyConfig,
+    EquivalenceStudyStatus,
+    equivalence_study_to_csv,
+    equivalence_study_to_markdown,
+    equivalence_testing_contract,
+    evaluate_equivalence_study,
+)
+from traffictwin.experiments.evidence import (
+    ExperimentEvidenceOptions,
+    ObjectiveDirection,
+    TrainingValidationObservation,
+    build_experiment_evidence_pack,
+    training_validation_observation_from_collections,
+)
+from traffictwin.experiments.n_way_ranking import (
+    NWayRankingConfig,
+    NWayRankingStatus,
+    evaluate_n_way_ranking,
+    n_way_ranking_contract,
+    n_way_ranking_to_csv,
+    n_way_ranking_to_markdown,
+)
+from traffictwin.experiments.parameter_sweep import (
+    ParameterSweepError,
+    execute_parameter_sweep,
+    load_parameter_sweep_request,
+    parameter_sweep_contract,
+)
+from traffictwin.experiments.portfolio import (
+    default_synthetic_portfolio_rules,
+    evaluate_portfolio,
+    evaluate_portfolio_study,
+    portfolio_study_to_csv,
+    portfolio_study_to_markdown,
+)
+from traffictwin.experiments.power_analysis import (
+    PairedVarianceBasis,
+    PowerAnalysisConfig,
+    PowerAnalysisStatus,
+    TargetEffectBasis,
+    evaluate_power_analysis,
+    power_analysis_method_contract,
+    power_analysis_to_csv,
+    power_analysis_to_markdown,
+)
 from traffictwin.experiments.protocol import (
     ExperimentProtocol,
     ProtocolMatchStatus,
@@ -26,8 +100,102 @@ from traffictwin.experiments.protocol import (
     protocol_to_csv,
     protocol_to_yaml,
 )
-from traffictwin.ingestion.bundle import BundleValidationResult, inspect_bundle, validate_bundle
-from traffictwin.ingestion.bundle import import_bundle as import_run_bundle
+from traffictwin.experiments.regression_gate import (
+    GoldenApprovalStatus,
+    RegressionGateStatus,
+    RegressionSubject,
+    RegressionSubjectKind,
+    RegressionToleranceSpec,
+    SourceIdentityPolicy,
+    build_regression_golden_contract,
+    evaluate_regression_gate,
+    parse_regression_golden_contract_json,
+    parse_statistical_study_json,
+    regression_gate_method_contract,
+    regression_gate_to_csv,
+    regression_gate_to_markdown,
+)
+from traffictwin.experiments.scenario_mutation import (
+    ScenarioMutationError,
+    execute_scenario_mutation,
+    load_scenario_mutation_request,
+    scenario_mutation_contract,
+)
+from traffictwin.experiments.statistical_study import (
+    PairedStudyConfig,
+    StatisticalStudyStatus,
+    evaluate_paired_statistical_study,
+    statistical_study_contract,
+    statistical_study_pairs_to_csv,
+    statistical_study_to_markdown,
+)
+from traffictwin.experiments.tracking import (
+    InvalidProtocolSlotTransitionError,
+    ProtocolSlotStatus,
+    ProtocolTracker,
+    ProtocolTrackingError,
+)
+from traffictwin.experiments.winner_map import build_winner_map
+from traffictwin.ingestion.batch import (
+    BatchBundleSummary,
+    batch_summary_to_csv,
+    batch_summary_to_text,
+    import_bundle_batch,
+    validate_bundle_batch,
+)
+from traffictwin.ingestion.bundle import (
+    BundleValidationResult,
+    import_bundle_streaming,
+    inspect_bundle,
+    inspect_bundle_cache,
+    validate_bundle,
+    validate_bundle_cached,
+    validate_bundle_streaming,
+)
+from traffictwin.ingestion.bundle import (
+    import_bundle as import_run_bundle,
+)
+from traffictwin.ingestion.cache import (
+    CanonicalCacheConfigurationError,
+    CanonicalCacheState,
+    CanonicalCacheStatus,
+    canonical_cache_contract,
+)
+from traffictwin.ingestion.manifest_inference import (
+    CanonicalisationManifest,
+    FileSelection,
+    ManifestInferenceError,
+    ManifestInferenceSelections,
+    apply_canonicalisation_to_template,
+    bundle_manifest_to_yaml,
+    confirm_manifest_inference,
+    infer_manifest,
+    load_canonicalisation_manifest,
+    load_inference_draft,
+    manifest_inference_contract,
+)
+from traffictwin.ingestion.streaming import (
+    DEFAULT_STREAM_CHUNK_ROWS,
+    DEFAULT_STREAM_MAX_BUNDLE_BYTES,
+    DEFAULT_STREAM_MAX_CHUNK_BYTES,
+    DEFAULT_STREAM_MAX_TABLE_BYTES,
+    StreamingBundleValidationResult,
+    StreamingCanonicalisationConfig,
+)
+from traffictwin.integration.external import (
+    DiscoveryReportStatus,
+    ExternalSourceError,
+    ValidationOutcome,
+    discover_external_sources,
+    external_source_catalogue,
+    inspect_external_source,
+)
+from traffictwin.integration.sumo import (
+    compute_metrics_for_sumo,
+    import_sumo_results,
+    sumo_source_contract,
+    validate_sumo_results,
+)
 from traffictwin.integration.tos import (
     TosEvaluationRun,
     audit_tos_package,
@@ -62,35 +230,151 @@ from traffictwin.integration.tos.readers import TosPackageError, instrumented_ke
 from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
+from traffictwin.metrics.plugins import metric_plugin_api_contract
 from traffictwin.metrics.results import MetricCollection, MetricStatus
+from traffictwin.metrics.windowed import (
+    PartialWindowPolicy,
+    WindowedMetricConfig,
+    WindowedMetricSeries,
+    WindowLimitExceededError,
+    compute_windowed_metrics_for_bundle,
+)
+from traffictwin.provenance.builder import build_window_metric_trace
+from traffictwin.provenance.completeness import (
+    ProvenanceCompletenessReport,
+    provenance_completeness_contract,
+    provenance_completeness_report_to_csv,
+)
+from traffictwin.provenance.contributions import (
+    build_window_metric_contribution_report,
+    contribution_report_to_csv,
+)
+from traffictwin.provenance.differences import (
+    difference_contribution_report_to_csv,
+    difference_provenance_contract,
+)
+from traffictwin.provenance.graph_export import (
+    DEFAULT_GRAPH_EDGE_LIMIT,
+    DEFAULT_GRAPH_NODE_LIMIT,
+    MAX_GRAPH_EDGE_LIMIT,
+    MAX_GRAPH_NODE_LIMIT,
+    GraphRedactionMode,
+    provenance_graph_export_contract,
+)
 from traffictwin.provenance.markdown import trace_to_markdown
 from traffictwin.provenance.models import ProvenanceTrace
 from traffictwin.provenance.query import (
     ProvenanceQueryError,
     build_provenance_context,
     export_provenance,
+    get_comparison_provenance_completeness,
+    get_difference_contributions,
+    get_metric_contributions,
     get_metric_provenance,
+    get_report_provenance_completeness,
     get_rule_provenance,
     get_run_provenance,
     get_source_provenance,
     node_type_counts,
 )
 from traffictwin.provenance.serialization import trace_to_json
+from traffictwin.registry_search import (
+    MAX_SEARCH_LIMIT,
+    RegistrySearchError,
+    SearchCategory,
+    registry_search_contract,
+    search_registry,
+)
 from traffictwin.release import current_release_metadata, stage_synthetic_demo_site
+from traffictwin.rendering.findings import (
+    diagnostic_narrative_to_markdown,
+    render_diagnostic_findings,
+)
+from traffictwin.reporting.annotation_rendering import (
+    ReportAnnotationError,
+    attach_registry_annotations,
+)
 from traffictwin.reporting.builder import (
     build_comparison_report,
     build_diagnostics_report,
     build_full_report,
     build_run_report,
 )
+from traffictwin.reporting.diffing import (
+    ReportDiffError,
+    compare_structured_reports,
+    parse_research_report_json,
+    report_diff_contract,
+    report_diff_to_markdown,
+)
+from traffictwin.reporting.executive import (
+    ExecutiveSummaryError,
+    executive_summary_contract,
+    executive_summary_to_html,
+    executive_summary_to_markdown,
+    project_executive_summary,
+)
+from traffictwin.reporting.executive_pdf import (
+    ExecutiveSummaryLayoutError,
+    executive_summary_to_pdf_bytes,
+)
 from traffictwin.reporting.html import report_to_html
+from traffictwin.reporting.latex import (
+    ResearchExportProjection,
+    latex_export_contract,
+    project_comparison_report,
+    project_diagnostic_report,
+    project_metric_collection,
+    project_statistical_study,
+    write_projection_exports,
+)
 from traffictwin.reporting.markdown import report_to_markdown
-from traffictwin.reporting.models import ReportBuildError, ResearchReport
+from traffictwin.reporting.models import ReportBuildError, ResearchReport, ResearchReportType
+from traffictwin.reporting.pdf import report_to_pdf_bytes
+from traffictwin.research_object import (
+    PermissionStatus,
+    PublicationScope,
+    RawEvidenceDisposition,
+    ResearchObjectError,
+    ResearchObjectRequest,
+    create_research_object_archive,
+    research_object_contract,
+    verify_research_object,
+)
+from traffictwin.rules.config import R6Config, R7Config, R8Config, RuleSetConfig
+from traffictwin.rules.declarative import (
+    DeclarativeRuleError,
+    declarative_rule_contract,
+    evaluate_declarative_rule,
+    load_declarative_rule,
+)
 from traffictwin.rules.engine import evaluate_rules
-from traffictwin.rules.evaluation import evaluate_fixture_set, load_fixture_set
-from traffictwin.storage.registry import Registry, RegistryConflictError, RegistryNotFoundError
+from traffictwin.rules.evaluation import (
+    build_extended_fixture_set,
+    evaluate_fixture_set,
+    load_fixture_set,
+)
+from traffictwin.storage.migrations import (
+    CURRENT_REGISTRY_SCHEMA_VERSION,
+    RegistryMigrationError,
+    inspect_registry_migrations,
+    migrate_registry,
+    registry_migration_contract,
+)
+from traffictwin.storage.registry import (
+    Registry,
+    RegistryConflictError,
+    RegistryError,
+    RegistryNotFoundError,
+)
 from traffictwin.synthetic.bundles import write_synthetic_bundle
-from traffictwin.synthetic.experiments import generate_trivial_multi_algorithm_experiment
+from traffictwin.synthetic.config import load_synthetic_scenario_config
+from traffictwin.synthetic.experiments import (
+    PORTFOLIO_DEVELOPMENT_PRESETS,
+    PORTFOLIO_HELD_OUT_PRESETS,
+    PORTFOLIO_STUDY_EXPERIMENT_ID,
+    generate_trivial_multi_algorithm_experiment,
+)
 from traffictwin.synthetic.scenarios import list_preset_names, preset_config
 from traffictwin.synthetic.validation import verify_synthetic_path
 
@@ -108,9 +392,26 @@ provenance_app = typer.Typer(no_args_is_help=True, help="Read-only provenance tr
 synthetic_app = typer.Typer(no_args_is_help=True, help="Standalone synthetic fixture commands.")
 demo_app = typer.Typer(no_args_is_help=True, help="Standalone demo workspace commands.")
 report_app = typer.Typer(no_args_is_help=True, help="Deterministic research-report export.")
+archive_app = typer.Typer(
+    no_args_is_help=True,
+    help="Permission-aware deterministic RO-Crate archival export.",
+)
 release_app = typer.Typer(no_args_is_help=True, help="Release and deployment-readiness commands.")
 integration_app = typer.Typer(no_args_is_help=True, help="Evidence-gated external data tools.")
+external_app = typer.Typer(
+    no_args_is_help=True,
+    help="General read-only external-source discovery and contract tools.",
+)
 tos_app = typer.Typer(no_args_is_help=True, help="Read-only TOS Data package tools.")
+sumo_app = typer.Typer(no_args_is_help=True, help="Import-only Eclipse SUMO result tools.")
+manifest_app = typer.Typer(
+    no_args_is_help=True,
+    help="Deterministic, confirmation-gated CSV manifest inference.",
+)
+participant_app = typer.Typer(
+    no_args_is_help=True,
+    help="Analyse explicitly labelled synthetic mock participant results.",
+)
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
@@ -121,9 +422,14 @@ app.add_typer(provenance_app, name="provenance")
 app.add_typer(synthetic_app, name="synthetic")
 app.add_typer(demo_app, name="demo")
 app.add_typer(report_app, name="report")
+app.add_typer(archive_app, name="archive")
 app.add_typer(release_app, name="release")
 app.add_typer(integration_app, name="integration")
+app.add_typer(participant_app, name="participant-evaluation")
+app.add_typer(manifest_app, name="manifest")
 integration_app.add_typer(tos_app, name="tos")
+integration_app.add_typer(sumo_app, name="sumo")
+integration_app.add_typer(external_app, name="external")
 
 
 @app.command("validate-seed")
@@ -163,6 +469,163 @@ def capabilities() -> None:
     typer.echo(yaml.safe_dump(manifest_to_plain_dict(manifest), sort_keys=False))
 
 
+@archive_app.command("contract")
+def archive_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the versioned OPS-04 archival method and safety contract."""
+
+    contract = research_object_contract()
+    if output_format == "json":
+        payload = contract.model_dump(mode="json")
+        payload["fingerprint"] = contract.fingerprint()
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"capability: {contract.capability_id}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo(f"contract_fingerprint: {contract.fingerprint()}")
+    typer.echo(f"ro_crate: {contract.ro_crate_specification}")
+    typer.echo(f"cff_version: {contract.cff_version}")
+    typer.echo(f"source_boundary: {contract.source_boundary}")
+    typer.echo("raw_evidence_modes: " + ", ".join(sorted(contract.raw_evidence_modes)))
+
+
+@archive_app.command("create")
+def archive_create_command(
+    bundle: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    destination: Annotated[Path, typer.Argument(dir_okay=False)],
+    publication_date: Annotated[
+        str,
+        typer.Option("--publication-date", help="Publication date in YYYY-MM-DD form."),
+    ],
+    title: Annotated[str | None, typer.Option("--title")] = None,
+    description: Annotated[str | None, typer.Option("--description")] = None,
+    publication_scope: Annotated[str, typer.Option("--publication-scope")] = "private",
+    raw_evidence: Annotated[str, typer.Option("--raw-evidence")] = "reference",
+    permission_status: Annotated[str, typer.Option("--permission-status")] = "unknown",
+    permission_basis: Annotated[str | None, typer.Option("--permission-basis")] = None,
+    licence_statement: Annotated[
+        str,
+        typer.Option("--licence-statement"),
+    ] = (
+        "TrafficTwin repository licence is not specified; this crate grants no additional "
+        "reuse rights."
+    ),
+    raw_evidence_licence: Annotated[
+        str | None,
+        typer.Option("--raw-evidence-licence"),
+    ] = None,
+    persistent_identifier: Annotated[
+        str | None,
+        typer.Option("--persistent-identifier"),
+    ] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Create a verified, deterministic attached RO-Crate ZIP from one accepted bundle."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    try:
+        request = ResearchObjectRequest(
+            publication_date=date.fromisoformat(publication_date),
+            title=title,
+            description=description,
+            publication_scope=PublicationScope(publication_scope),
+            raw_evidence=RawEvidenceDisposition(raw_evidence),
+            permission_status=PermissionStatus(permission_status),
+            permission_basis=permission_basis,
+            licence_statement=licence_statement,
+            raw_evidence_licence=raw_evidence_licence,
+            persistent_identifier=persistent_identifier,
+        )
+        receipt = create_research_object_archive(
+            bundle,
+            destination,
+            request,
+            overwrite=overwrite,
+        )
+    except (OSError, ResearchObjectError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(receipt.model_dump_json(indent=2))
+        return
+    typer.echo(f"archive: {destination}")
+    typer.echo(f"object_id: {receipt.object_id}")
+    typer.echo(f"archive_sha256: {receipt.archive_sha256}")
+    typer.echo(f"archive_size: {receipt.archive_size}")
+    typer.echo(f"members: {receipt.member_count}")
+    typer.echo(f"raw_evidence: {receipt.raw_evidence.value}")
+    typer.echo("verified: true")
+
+
+@archive_app.command("verify")
+def archive_verify_command(
+    archive: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Verify an OPS-04 archive offline without extraction or mutation."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    verification = verify_research_object(archive)
+    if output_format == "json":
+        typer.echo(verification.model_dump_json(indent=2))
+    else:
+        typer.echo(f"valid: {str(verification.valid).lower()}")
+        typer.echo(f"archive_sha256: {verification.archive_sha256 or 'unavailable'}")
+        typer.echo(f"object_id: {verification.object_id or 'unavailable'}")
+        typer.echo(f"members: {verification.member_count}")
+        typer.echo(f"checksums: {verification.checksum_count}")
+        for error in verification.errors:
+            typer.echo(f"error: {error}")
+    if not verification.valid:
+        raise typer.Exit(code=1)
+
+
+@app.command("doctor")
+def doctor_command(
+    workspace: Annotated[Path | None, typer.Option("--workspace", file_okay=False)] = None,
+    registry: Annotated[Path | None, typer.Option("--registry", dir_okay=False)] = None,
+    bundle: Annotated[Path | None, typer.Option("--bundle")] = None,
+    cache_root: Annotated[Path | None, typer.Option("--cache-root", file_okay=False)] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    show_contract: Annotated[bool, typer.Option("--contract")] = False,
+) -> None:
+    """Diagnose runtime and selected local targets without changing them."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    if show_contract:
+        contract = doctor_contract()
+        if output_format == "json":
+            payload = contract.model_dump(mode="json")
+            payload["fingerprint"] = contract.fingerprint()
+            typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        else:
+            typer.echo(doctor_contract_to_text(contract), nl=False)
+        return
+    report = run_doctor(
+        workspace=workspace,
+        registry=registry,
+        bundle=bundle,
+        cache_root=cache_root,
+    )
+    if output_format == "json":
+        payload = report.model_dump(mode="json")
+        payload["report_fingerprint"] = report.fingerprint()
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    else:
+        typer.echo(doctor_report_to_text(report), nl=False)
+    if report.overall_status is DoctorOverallStatus.BLOCKED:
+        raise typer.Exit(code=1)
+
+
 @registry_app.command("init")
 def init_registry(
     path: Annotated[Path, typer.Argument(dir_okay=False, writable=True)],
@@ -170,8 +633,17 @@ def init_registry(
     """Initialise a SQLite metadata registry."""
 
     registry = Registry(path)
-    registry.initialize()
+    try:
+        result = registry.initialize()
+    except RegistryMigrationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
     typer.echo(f"registry initialised: {path}")
+    typer.echo(f"schema_version: {result.final_version}")
+    typer.echo(
+        "applied_migrations: "
+        + (", ".join(str(item.version) for item in result.applied_migrations) or "none")
+    )
 
 
 @registry_app.command("inspect")
@@ -180,14 +652,312 @@ def inspect_registry(
 ) -> None:
     """Inspect a SQLite metadata registry."""
 
-    summary = Registry(path).inspect()
+    try:
+        summary = Registry(path).inspect()
+    except RegistryMigrationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
     typer.echo(f"registry: {summary.path}")
+    typer.echo(f"schema_version: {summary.schema_version}")
     typer.echo(f"seeds: {summary.seed_count}")
     typer.echo(f"experiments: {summary.experiment_count}")
     typer.echo(f"runs: {summary.run_count}")
     typer.echo(f"bundle_imports: {summary.bundle_import_count}")
     typer.echo(f"metric_collections: {summary.metric_collection_count}")
     typer.echo(f"evidence_packs: {summary.evidence_pack_count}")
+    typer.echo(f"experiment_evidence_packs: {summary.experiment_evidence_pack_count}")
+    typer.echo(f"experiment_protocols: {summary.experiment_protocol_count}")
+    typer.echo(f"protocol_slots: {summary.protocol_slot_count}")
+    typer.echo(f"analyst_annotations: {summary.analyst_annotation_count}")
+
+
+@registry_app.command("migration-contract")
+def registry_migration_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the ordered transactional OPS-01 migration boundary."""
+
+    contract = registry_migration_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"capability_id: {contract.capability_id}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo(f"current_registry_schema_version: {contract.current_registry_schema_version}")
+    for migration in contract.ordered_migrations:
+        typer.echo(f"migration: {migration.version} {migration.name} checksum={migration.checksum}")
+    typer.echo(f"transaction_policy: {contract.transaction_policy}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@registry_app.command("migration-status")
+def registry_migration_status_command(
+    path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect schema version and pending migrations without changing the registry."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("format must be text or json", err=True)
+        raise typer.Exit(code=1)
+    try:
+        status = inspect_registry_migrations(path)
+    except RegistryMigrationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(status.model_dump_json(indent=2))
+        return
+    typer.echo(f"registry: {path}")
+    typer.echo(f"state: {status.state.value}")
+    typer.echo(f"current_version: {status.current_version}")
+    typer.echo(f"latest_version: {status.latest_version}")
+    typer.echo(
+        "applied_versions: "
+        + (", ".join(str(version) for version in status.applied_versions) or "none")
+    )
+    typer.echo(
+        "pending_versions: "
+        + (", ".join(str(version) for version in status.pending_versions) or "none")
+    )
+    typer.echo(f"ledger_valid: {str(status.ledger_valid).lower()}")
+    typer.echo(f"integrity_check: {status.integrity_check}")
+    typer.echo(f"schema_fingerprint: {status.schema_fingerprint}")
+    typer.echo(f"fingerprint: {status.fingerprint()}")
+
+
+@registry_app.command("migrate")
+def migrate_registry_command(
+    path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, writable=True)],
+    target_version: Annotated[
+        int,
+        typer.Option("--target-version", min=1, max=CURRENT_REGISTRY_SCHEMA_VERSION),
+    ] = CURRENT_REGISTRY_SCHEMA_VERSION,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Atomically migrate an existing supported registry to a target version."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("format must be text or json", err=True)
+        raise typer.Exit(code=1)
+    try:
+        result = migrate_registry(path, target_version=target_version)
+    except RegistryMigrationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(result.model_dump_json(indent=2))
+        return
+    typer.echo(f"registry: {path}")
+    typer.echo(f"initial_version: {result.initial_version}")
+    typer.echo(f"final_version: {result.final_version}")
+    typer.echo(
+        "applied_migrations: "
+        + (", ".join(str(item.version) for item in result.applied_migrations) or "none")
+    )
+    typer.echo(f"already_at_target: {str(result.already_at_target).lower()}")
+    typer.echo(f"legacy_schema_detected: {str(result.legacy_schema_detected).lower()}")
+    typer.echo(f"integrity_check: {result.integrity_check}")
+    typer.echo(f"schema_fingerprint: {result.schema_fingerprint}")
+    typer.echo(f"fingerprint: {result.fingerprint()}")
+
+
+@registry_app.command("search-contract")
+def registry_search_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic read-only REP-05 search boundary."""
+
+    contract = registry_search_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"capability_id: {contract.capability_id}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo("categories: " + ", ".join(item.value for item in contract.categories))
+    typer.echo(f"default_result_limit: {contract.default_result_limit}")
+    typer.echo(f"maximum_result_limit: {contract.maximum_result_limit}")
+    typer.echo(f"maximum_query_characters: {contract.maximum_query_characters}")
+    typer.echo(f"maximum_query_tokens: {contract.maximum_query_tokens}")
+    typer.echo(f"maximum_candidate_documents: {contract.maximum_candidate_documents}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@registry_app.command("search")
+def registry_search_command(
+    query: Annotated[str, typer.Argument(help="Lexical AND query.")],
+    registry: Annotated[
+        Path,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ],
+    workspace: Annotated[
+        Path | None,
+        typer.Option("--workspace", exists=True, file_okay=False, readable=True),
+    ] = None,
+    categories: Annotated[
+        list[SearchCategory] | None,
+        typer.Option("--category", help="Repeat to restrict result categories."),
+    ] = None,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=MAX_SEARCH_LIMIT)] = 50,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Search local registry records and bounded report text without writing an index."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("format must be text or json", err=True)
+        raise typer.Exit(code=1)
+    try:
+        result = search_registry(
+            registry,
+            query,
+            workspace_path=workspace,
+            categories=categories,
+            limit=limit,
+        )
+    except (OSError, RegistrySearchError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(result.model_dump_json(indent=2))
+        return
+    typer.echo(f"query: {result.query}")
+    typer.echo("terms: " + ", ".join(result.normalised_terms))
+    typer.echo(f"candidates: {result.candidate_count}")
+    typer.echo(f"matches: {result.matching_count}")
+    typer.echo(f"returned: {result.returned_count}")
+    typer.echo(f"omitted_matches: {result.omitted_match_count}")
+    typer.echo(f"skipped_reports: {result.skipped_report_count}")
+    typer.echo(f"redactions: {result.redaction_count}")
+    typer.echo(f"fingerprint: {result.fingerprint()}")
+    for hit in result.hits:
+        typer.echo(
+            f"{hit.rank}. [{hit.category.value}] {hit.title} "
+            f"(score={hit.score}, reference={hit.reference})"
+        )
+        typer.echo(f"   {hit.snippet}")
+
+
+@registry_app.command("annotation-contract")
+def registry_annotation_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the append-only REP-02 analyst-annotation boundary."""
+
+    contract = analyst_annotation_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo("target_kinds: " + ", ".join(item.value for item in contract.supported_target_kinds))
+    typer.echo("decision_labels: " + ", ".join(item.value for item in contract.decision_labels))
+    typer.echo(f"maximum_note_characters: {contract.maximum_note_characters}")
+    typer.echo(f"maximum_page_records: {contract.maximum_page_records}")
+    typer.echo(f"maximum_report_records: {contract.maximum_report_records}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@registry_app.command("annotation-add")
+def registry_annotation_add_command(
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False)],
+    target_kind: Annotated[AnalystAnnotationTargetKind, typer.Option("--target-kind")],
+    target_id: Annotated[str, typer.Option("--target-id")],
+    author: Annotated[str, typer.Option("--author")],
+    note: Annotated[str, typer.Option("--note")],
+    decision_label: Annotated[
+        AnalystDecisionLabel,
+        typer.Option("--decision-label"),
+    ] = AnalystDecisionLabel.OBSERVATION,
+    target_fingerprint: Annotated[
+        str | None,
+        typer.Option("--target-fingerprint"),
+    ] = None,
+) -> None:
+    """Append one analyst-authored note or decision to a typed artifact reference."""
+
+    try:
+        request = AnalystAnnotationRequest(
+            target=AnalystArtifactReference(
+                kind=target_kind,
+                artifact_id=target_id,
+                artifact_fingerprint=target_fingerprint,
+            ),
+            author_label=author,
+            note=note,
+            decision_label=decision_label,
+        )
+        annotation = Registry(registry).append_analyst_annotation(request)
+    except (RegistryError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"annotation: {annotation.annotation_id}")
+    typer.echo(f"sequence: {annotation.sequence}")
+    typer.echo(f"target: {annotation.target.key}")
+    typer.echo(f"decision_label: {annotation.decision_label.value}")
+    typer.echo(f"created_at: {annotation.created_at.isoformat()}")
+
+
+@registry_app.command("annotation-list")
+def registry_annotation_list_command(
+    registry: Annotated[
+        Path,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ],
+    target_kind: Annotated[
+        AnalystAnnotationTargetKind | None,
+        typer.Option("--target-kind"),
+    ] = None,
+    target_id: Annotated[str | None, typer.Option("--target-id")] = None,
+    target_fingerprint: Annotated[
+        str | None,
+        typer.Option("--target-fingerprint"),
+    ] = None,
+    after_sequence: Annotated[int, typer.Option("--after-sequence", min=0)] = 0,
+    limit: Annotated[int, typer.Option("--limit", min=1, max=500)] = 100,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Read a bounded ordered page from the append-only annotation history."""
+
+    try:
+        if (target_kind is None) != (target_id is None):
+            raise ValueError("--target-kind and --target-id must be provided together")
+        if target_fingerprint is not None and target_kind is None:
+            raise ValueError("--target-fingerprint requires a target kind and identifier")
+        target = (
+            AnalystArtifactReference(
+                kind=target_kind,
+                artifact_id=target_id,
+                artifact_fingerprint=target_fingerprint,
+            )
+            if target_kind is not None and target_id is not None
+            else None
+        )
+        page = Registry(registry).list_analyst_annotations(
+            target=target,
+            after_sequence=after_sequence,
+            limit=limit,
+        )
+    except (RegistryError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(page.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"annotations: {len(page.annotations)}")
+    typer.echo(f"has_more: {str(page.has_more).lower()}")
+    typer.echo(f"history_fingerprint: {page.fingerprint()}")
+    for annotation in page.annotations:
+        typer.echo(
+            f"{annotation.sequence}\t{annotation.annotation_id}\t"
+            f"{annotation.target.key}\t{annotation.decision_label.value}\t"
+            f"{annotation.author_label}\t{annotation.created_at.isoformat()}"
+        )
 
 
 @bundle_app.command("validate")
@@ -225,6 +995,106 @@ def inspect_run_bundle(
     )
 
 
+@bundle_app.command("cache-contract")
+def canonical_cache_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the content-addressed, fail-closed OPS-02 cache boundary."""
+
+    contract = canonical_cache_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"capability_id: {contract.capability_id}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo(f"adapter: {contract.adapter_id} {contract.adapter_version}")
+    typer.echo(f"validator_version: {contract.validator_version}")
+    typer.echo(f"cache_format: {contract.cache_format}")
+    typer.echo("key_components: " + ", ".join(contract.key_components))
+    typer.echo("canonical_tables: " + ", ".join(contract.canonical_tables))
+    typer.echo(f"canonical_schema_fingerprint: {contract.canonical_schema_fingerprint}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@bundle_app.command("cache-status")
+def canonical_cache_status_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    cache_root: Annotated[Path, typer.Option("--cache-root", file_okay=False)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Re-fingerprint raw evidence and inspect its expected cache entry without writes."""
+
+    try:
+        status = inspect_bundle_cache(path, cache_root)
+    except CanonicalCacheConfigurationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(status.model_dump_json(indent=2))
+    else:
+        _require_text_format(output_format)
+        _emit_cache_status(status)
+    if status.state in {
+        CanonicalCacheState.STALE,
+        CanonicalCacheState.INCOMPATIBLE,
+        CanonicalCacheState.CORRUPT,
+        CanonicalCacheState.UNAVAILABLE,
+        CanonicalCacheState.WRITE_FAILED,
+    }:
+        raise typer.Exit(code=1)
+
+
+@bundle_app.command("cache-validate")
+def canonical_cache_validate_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    cache_root: Annotated[Path, typer.Option("--cache-root", file_okay=False)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate cold or reuse a fully verified canonical Parquet cache entry."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    try:
+        result = validate_bundle_cached(path, cache_root)
+    except CanonicalCacheConfigurationError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    report = result.validation.report
+    if output_format == "json":
+        typer.echo(
+            json.dumps(
+                {
+                    "validation": {
+                        "bundle_id": report.bundle_id,
+                        "run_id": report.run_id,
+                        "fingerprint": result.validation.fingerprint,
+                        "status": report.status.value,
+                        "may_import": report.may_import,
+                        "finding_count": len(report.findings),
+                        "canonical_record_counts": report.canonical_record_counts,
+                    },
+                    "cache": result.cache.model_dump(mode="json"),
+                },
+                indent=2,
+            )
+        )
+    else:
+        _require_text_format(output_format)
+        typer.echo(f"bundle: {report.bundle_id or 'unknown'}")
+        typer.echo(f"run: {report.run_id or 'unknown'}")
+        typer.echo(f"validation_status: {report.status.value}")
+        typer.echo(f"may_import: {str(report.may_import).lower()}")
+        _emit_cache_status(result.cache)
+    if not report.may_import or result.cache.state not in {
+        CanonicalCacheState.HIT,
+        CanonicalCacheState.WRITTEN,
+    }:
+        raise typer.Exit(code=1)
+
+
 @bundle_app.command("import")
 def import_run_bundle_command(
     path: Annotated[Path, typer.Argument(exists=True, readable=True)],
@@ -243,6 +1113,130 @@ def import_run_bundle_command(
     typer.echo(f"idempotent: {result.idempotent}")
     typer.echo(result.message)
     if result.status == "rejected":
+        raise typer.Exit(code=1)
+
+
+@bundle_app.command("batch-validate")
+def validate_run_bundle_batch_command(
+    inputs: Annotated[
+        list[str],
+        typer.Argument(help="One or more explicit bundle paths or quoted glob patterns."),
+    ],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Validate a deterministic bundle path/glob set without registry mutation."""
+
+    summary = validate_bundle_batch(inputs)
+    _emit_batch_summary(summary, output_format, output)
+    if not summary.successful:
+        raise typer.Exit(code=1)
+
+
+@bundle_app.command("batch-import")
+def import_run_bundle_batch_command(
+    inputs: Annotated[
+        list[str],
+        typer.Argument(help="One or more explicit bundle paths or quoted glob patterns."),
+    ],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False, writable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Validate and independently import a deterministic bundle path/glob set."""
+
+    summary = import_bundle_batch(inputs, registry)
+    _emit_batch_summary(summary, output_format, output)
+    if not summary.successful:
+        raise typer.Exit(code=1)
+
+
+@bundle_app.command("stream-validate")
+def validate_run_bundle_streaming_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    chunk_rows: Annotated[int, typer.Option("--chunk-rows")] = DEFAULT_STREAM_CHUNK_ROWS,
+    max_chunk_bytes: Annotated[
+        int, typer.Option("--max-chunk-bytes")
+    ] = DEFAULT_STREAM_MAX_CHUNK_BYTES,
+    max_table_bytes: Annotated[
+        int, typer.Option("--max-table-bytes")
+    ] = DEFAULT_STREAM_MAX_TABLE_BYTES,
+    max_bundle_bytes: Annotated[
+        int, typer.Option("--max-bundle-bytes")
+    ] = DEFAULT_STREAM_MAX_BUNDLE_BYTES,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Validate through bounded canonical chunks without retaining all records."""
+
+    config = _streaming_config(
+        chunk_rows,
+        max_chunk_bytes,
+        max_table_bytes,
+        max_bundle_bytes,
+    )
+    result = validate_bundle_streaming(path, config=config)
+    _emit_streaming_validation(result, output_format, output)
+    if not result.report.may_import:
+        raise typer.Exit(code=1)
+
+
+@bundle_app.command("stream-import")
+def import_run_bundle_streaming_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False, writable=True)],
+    chunk_rows: Annotated[int, typer.Option("--chunk-rows")] = DEFAULT_STREAM_CHUNK_ROWS,
+    max_chunk_bytes: Annotated[
+        int, typer.Option("--max-chunk-bytes")
+    ] = DEFAULT_STREAM_MAX_CHUNK_BYTES,
+    max_table_bytes: Annotated[
+        int, typer.Option("--max-table-bytes")
+    ] = DEFAULT_STREAM_MAX_TABLE_BYTES,
+    max_bundle_bytes: Annotated[
+        int, typer.Option("--max-bundle-bytes")
+    ] = DEFAULT_STREAM_MAX_BUNDLE_BYTES,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Stream-validate and register metadata through ordinary import semantics."""
+
+    config = _streaming_config(
+        chunk_rows,
+        max_chunk_bytes,
+        max_table_bytes,
+        max_bundle_bytes,
+    )
+    try:
+        result = import_bundle_streaming(path, registry, config=config)
+    except RegistryConflictError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = json.dumps(
+            {
+                "validation": result.validation.model_dump(mode="json"),
+                "registry": {
+                    "bundle_id": result.registry.bundle_id,
+                    "run_id": result.registry.run_id,
+                    "created": result.registry.created,
+                    "idempotent": result.registry.idempotent,
+                    "status": result.registry.status,
+                    "message": result.registry.message,
+                },
+            },
+            indent=2,
+        )
+    elif output_format == "text":
+        payload = _streaming_validation_to_text(result.validation) + (
+            f"registry_created: {result.registry.created}\n"
+            f"registry_idempotent: {result.registry.idempotent}\n"
+            f"registry_message: {result.registry.message}\n"
+        )
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="streaming import summary written")
+    if not result.validation.report.may_import:
         raise typer.Exit(code=1)
 
 
@@ -276,6 +1270,19 @@ def compute_metrics_command(
     key_values = collection.by_key()
     for key in (
         "task.completion.rate",
+        "task.energy.mean_per_observed_task_j",
+        "task.energy.per_completed_j",
+        "task.energy_delay_product.mean_j_ms",
+        "fairness.vehicle_tier.completion_rate.max_gap",
+        "fairness.vehicle_tier.completion_rate.jain",
+        "fairness.rsu.capacity_normalised_load.max_gap",
+        "infra.load_balance.jain_capacity_normalised",
+        "spatial.rsu.task.count_by_target",
+        "spatial.rsu.task.completion_rate_by_target",
+        "spatial.rsu.task.deadline_miss.completed_observed_rate_by_target",
+        "spatial.vehicle.observation_count_by_grid_cell",
+        "spatial.vehicle.distinct_count_by_grid_cell",
+        "spatial.vehicle.speed.mean_mps_by_grid_cell",
         "infra.utilisation.mean",
         "traffic.speed.mean_mps",
         "trip.duration.mean_s",
@@ -286,6 +1293,28 @@ def compute_metrics_command(
         value = metric.value if metric.status is MetricStatus.AVAILABLE else "unavailable"
         typer.echo(f"{key}: {value}")
     if not result.report.may_import:
+        raise typer.Exit(code=1)
+
+
+@metrics_app.command("plugin-api")
+def metric_plugin_api_command(
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Describe the trusted local custom-metric registration boundary."""
+
+    contract = metric_plugin_api_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"schema_version: {contract.schema_version}")
+        typer.echo(f"registration_mode: {contract.registration_mode}")
+        typer.echo(f"determinism_verification_runs: {contract.determinism_verification_runs}")
+        typer.echo(f"execution_failure_policy: {contract.execution_failure_policy}")
+        typer.echo(f"supported_tables: {', '.join(contract.supported_tables)}")
+        typer.echo("dynamic_file_import: false")
+        typer.echo("uploaded_code_execution: false")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
         raise typer.Exit(code=1)
 
 
@@ -311,6 +1340,47 @@ def report_metrics_command(
             payload_json=collection.model_dump_json(),
         )
     typer.echo(collection.model_dump_json(indent=2))
+    if not result.report.may_import:
+        raise typer.Exit(code=1)
+
+
+@metrics_app.command("windows")
+def compute_windowed_metrics_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    width_s: Annotated[float, typer.Option("--width-s", min=0.000001)],
+    alignment_origin_s: Annotated[float, typer.Option("--origin-s")] = 0.0,
+    analysis_start_s: Annotated[float | None, typer.Option("--start-s")] = None,
+    analysis_end_s: Annotated[float | None, typer.Option("--end-s")] = None,
+    partial_windows: Annotated[str, typer.Option("--partial-windows")] = "include",
+    max_windows: Annotated[int, typer.Option("--max-windows", min=1)] = 10_000,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Compute declared metrics over aligned half-open fixed windows."""
+
+    config = _windowed_metric_config(
+        width_s,
+        alignment_origin_s,
+        analysis_start_s,
+        analysis_end_s,
+        partial_windows,
+        max_windows,
+    )
+    result = validate_bundle(path)
+    _ensure_metric_context_available(result)
+    try:
+        series = compute_windowed_metrics_for_bundle(result, config)
+    except WindowLimitExceededError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = series.to_json()
+    elif output_format == "text":
+        payload = _windowed_metric_series_to_text(series)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="windowed metric series written")
     if not result.report.may_import:
         raise typer.Exit(code=1)
 
@@ -412,6 +1482,467 @@ def summarise_experiment_command(
         typer.echo(f"{condition.condition_id}: runs={condition.run_count}")
 
 
+@experiment_app.command("study-contract")
+def experiment_study_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Publish the bounded STA-01 paired statistical method contract."""
+
+    contract = statistical_study_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"method_version: {contract.method_version}")
+    typer.echo(f"pairing_key: {contract.pairing_key}")
+    typer.echo(f"estimand: {contract.estimand}")
+    typer.echo(f"bootstrap_method: {contract.bootstrap_method}")
+    typer.echo(f"randomisation_method: {contract.randomisation_method}")
+    typer.echo(f"minimum_pairs: {contract.minimum_pairs}")
+
+
+@experiment_app.command("equivalence-contract")
+def experiment_equivalence_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Publish the bounded STA-03 paired TOST method contract."""
+
+    contract = equivalence_testing_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"method_version: {contract.method_version}")
+    typer.echo(f"pairing_contract: {contract.pairing_contract}")
+    typer.echo(f"estimand: {contract.estimand}")
+    typer.echo(f"method: {contract.method}")
+    typer.echo(f"minimum_pairs: {contract.minimum_pairs}")
+    typer.echo(f"decision_rule: {contract.decision_rule}")
+
+
+@experiment_app.command("regression-contract")
+def experiment_regression_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Publish the bounded STA-04 regression-gate method contract."""
+
+    contract = regression_gate_method_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"method_version: {contract.method_version}")
+    typer.echo(f"tolerance_method: {contract.tolerance_method}")
+    typer.echo(f"tolerance_formula: {contract.tolerance_formula}")
+    typer.echo(f"subject_kinds: {', '.join(item.value for item in contract.subject_kinds)}")
+    typer.echo(
+        "ci_exit_codes: "
+        + ", ".join(f"{status}={code}" for status, code in contract.ci_exit_codes.items())
+    )
+
+
+@experiment_app.command("power-contract")
+def experiment_power_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Publish the bounded STA-05 paired power-planning method contract."""
+
+    contract = power_analysis_method_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"method_version: {contract.method_version}")
+    typer.echo(f"pairing_key: {contract.pairing_key}")
+    typer.echo(f"estimand: {contract.estimand}")
+    typer.echo(f"method: {contract.method}")
+    typer.echo(f"alternative: {contract.alternative}")
+    typer.echo(f"minimum_replicates: {contract.replicate_bounds['minimum']}")
+    typer.echo(f"maximum_replicates: {contract.replicate_bounds['maximum']}")
+
+
+@experiment_app.command("n-way-contract")
+def experiment_n_way_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Publish the bounded STA-02 N-way ranking method contract."""
+
+    contract = n_way_ranking_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"method_version: {contract.method_version}")
+    typer.echo(f"comparison_scope: {contract.comparison_scope}")
+    typer.echo(f"pairing_key: {contract.pairing_key}")
+    typer.echo(f"estimand: {contract.estimand}")
+    typer.echo(f"bootstrap_method: {contract.bootstrap_method}")
+    typer.echo(f"minimum_complete_seeds: {contract.minimum_complete_seeds}")
+
+
+@experiment_app.command("statistical-study")
+def experiment_statistical_study_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    baseline_seed_id: Annotated[str, typer.Option("--baseline-seed")],
+    variation_seed_id: Annotated[str, typer.Option("--variation-seed")],
+    algorithm: Annotated[str, typer.Option("--algorithm")],
+    checkpoint: Annotated[str | None, typer.Option("--checkpoint")] = None,
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    confidence_level: Annotated[float, typer.Option("--confidence-level")] = 0.95,
+    bootstrap_repetitions: Annotated[int, typer.Option("--bootstrap-repetitions")] = 10_000,
+    randomisation_repetitions: Annotated[int, typer.Option("--randomisation-repetitions")] = 10_000,
+    resampling_seed: Annotated[int, typer.Option("--resampling-seed")] = 20_260_720,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate one predeclared common-seed paired statistical study."""
+
+    try:
+        registered = Registry(registry).get_experiment(experiment_id)
+        _validate_statistical_study_selection(
+            registered,
+            baseline_seed_id,
+            variation_seed_id,
+            algorithm,
+        )
+        config = PairedStudyConfig(
+            experiment_id=experiment_id,
+            baseline_seed_id=baseline_seed_id,
+            variation_seed_id=variation_seed_id,
+            algorithm=algorithm,
+            checkpoint=checkpoint,
+            metric_key=metric_key,
+            objective=objective,
+            confidence_level=confidence_level,
+            bootstrap_repetitions=bootstrap_repetitions,
+            randomisation_repetitions=randomisation_repetitions,
+            resampling_seed=resampling_seed,
+            expected_random_seeds=registered.common_random_seed_set,
+        )
+        study = evaluate_paired_statistical_study(
+            _experiment_collections(registry, experiment_id),
+            config,
+        )
+    except (RegistryNotFoundError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = study.to_json()
+    elif output_format == "markdown":
+        payload = statistical_study_to_markdown(study)
+    elif output_format == "csv":
+        payload = statistical_study_pairs_to_csv(study)
+    else:
+        typer.echo("only --format json, markdown, or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label=f"statistical study: {study.study_id}")
+    if study.status is not StatisticalStudyStatus.AVAILABLE:
+        raise typer.Exit(code=1)
+
+
+@experiment_app.command("n-way-ranking")
+def experiment_n_way_ranking_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    algorithms: Annotated[list[str] | None, typer.Option("--algorithm")] = None,
+    checkpoint: Annotated[str | None, typer.Option("--checkpoint")] = None,
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    confidence_level: Annotated[float, typer.Option("--confidence-level")] = 0.95,
+    bootstrap_repetitions: Annotated[int, typer.Option("--bootstrap-repetitions")] = 10_000,
+    resampling_seed: Annotated[int, typer.Option("--resampling-seed")] = 20_260_720,
+    tie_tolerance: Annotated[float, typer.Option("--tie-tolerance")] = 1e-12,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Rank compatible policies within each scenario family over common seeds."""
+
+    try:
+        registry_store = Registry(registry)
+        registered = registry_store.get_experiment(experiment_id)
+        selected_algorithms = algorithms or registered.algorithms
+        unplanned = sorted(set(selected_algorithms) - set(registered.algorithms))
+        if unplanned:
+            raise ValueError("unregistered policies: " + ", ".join(unplanned))
+        seed_ids = [registered.baseline_seed_id, *registered.variation_seed_ids]
+        config = NWayRankingConfig(
+            experiment_id=experiment_id,
+            seed_ids=seed_ids,
+            algorithms=selected_algorithms,
+            checkpoint=checkpoint,
+            metric_key=metric_key,
+            objective=objective,
+            confidence_level=confidence_level,
+            bootstrap_repetitions=bootstrap_repetitions,
+            resampling_seed=resampling_seed,
+            tie_tolerance=tie_tolerance,
+            expected_random_seeds=registered.common_random_seed_set,
+        )
+        aliases = {
+            seed.seed_id: seed.parent_seed_id or seed.seed_id
+            for seed in registry_store.list_seeds()
+        }
+        study = evaluate_n_way_ranking(
+            _experiment_collections(registry, experiment_id),
+            config,
+            seed_aliases=aliases,
+        )
+    except (RegistryNotFoundError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = study.to_json()
+    elif output_format == "markdown":
+        payload = n_way_ranking_to_markdown(study)
+    elif output_format == "csv":
+        payload = n_way_ranking_to_csv(study)
+    else:
+        typer.echo("only --format json, markdown, or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label=f"N-way ranking: {study.study_id}")
+    if study.status not in {NWayRankingStatus.AVAILABLE, NWayRankingStatus.PARTIAL}:
+        raise typer.Exit(code=1)
+
+
+@experiment_app.command("equivalence-study")
+def experiment_equivalence_study_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    baseline_seed_id: Annotated[str, typer.Option("--baseline-seed")],
+    variation_seed_id: Annotated[str, typer.Option("--variation-seed")],
+    algorithm: Annotated[str, typer.Option("--algorithm")],
+    equivalence_margin: Annotated[float, typer.Option("--equivalence-margin")],
+    margin_basis: Annotated[EquivalenceMarginBasis, typer.Option("--margin-basis")],
+    margin_justification: Annotated[str, typer.Option("--margin-justification")],
+    checkpoint: Annotated[str | None, typer.Option("--checkpoint")] = None,
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    margin_reference: Annotated[str | None, typer.Option("--margin-reference")] = None,
+    alpha: Annotated[float, typer.Option("--alpha")] = 0.05,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate one predeclared common-seed paired TOST equivalence study."""
+
+    try:
+        registered = Registry(registry).get_experiment(experiment_id)
+        _validate_statistical_study_selection(
+            registered,
+            baseline_seed_id,
+            variation_seed_id,
+            algorithm,
+        )
+        config = EquivalenceStudyConfig(
+            experiment_id=experiment_id,
+            baseline_seed_id=baseline_seed_id,
+            variation_seed_id=variation_seed_id,
+            algorithm=algorithm,
+            checkpoint=checkpoint,
+            metric_key=metric_key,
+            objective=objective,
+            equivalence_margin=equivalence_margin,
+            margin_basis=margin_basis,
+            margin_justification=margin_justification,
+            margin_reference=margin_reference,
+            alpha=alpha,
+            expected_random_seeds=registered.common_random_seed_set,
+        )
+        study = evaluate_equivalence_study(
+            _experiment_collections(registry, experiment_id),
+            config,
+        )
+    except (RegistryNotFoundError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = study.to_json()
+    elif output_format == "markdown":
+        payload = equivalence_study_to_markdown(study)
+    elif output_format == "csv":
+        payload = equivalence_study_to_csv(study)
+    else:
+        typer.echo("only --format json, markdown, or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label=f"equivalence study: {study.study_id}")
+    if study.status is not EquivalenceStudyStatus.AVAILABLE:
+        raise typer.Exit(code=1)
+
+
+@experiment_app.command("power-analysis")
+def experiment_power_analysis_command(
+    metric_key: Annotated[str, typer.Option("--metric")],
+    unit: Annotated[str, typer.Option("--unit")],
+    target_effect: Annotated[float, typer.Option("--target-effect")],
+    paired_difference_variance: Annotated[float, typer.Option("--paired-difference-variance")],
+    target_effect_basis: Annotated[TargetEffectBasis, typer.Option("--effect-basis")],
+    target_effect_justification: Annotated[str, typer.Option("--effect-justification")],
+    variance_basis: Annotated[PairedVarianceBasis, typer.Option("--variance-basis")],
+    variance_justification: Annotated[str, typer.Option("--variance-justification")],
+    target_effect_reference: Annotated[str | None, typer.Option("--effect-reference")] = None,
+    variance_reference: Annotated[str | None, typer.Option("--variance-reference")] = None,
+    pilot_sample_size: Annotated[int | None, typer.Option("--pilot-sample-size")] = None,
+    synthetic: Annotated[bool, typer.Option("--synthetic")] = False,
+    alpha: Annotated[float, typer.Option("--alpha")] = 0.05,
+    target_power: Annotated[float, typer.Option("--target-power")] = 0.80,
+    maximum_replicates: Annotated[int, typer.Option("--maximum-replicates")] = 100_000,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Estimate required common-seed pairs under a declared planning model."""
+
+    try:
+        config = PowerAnalysisConfig(
+            metric_key=metric_key,
+            unit=unit,
+            target_effect=target_effect,
+            paired_difference_variance=paired_difference_variance,
+            alpha=alpha,
+            target_power=target_power,
+            target_effect_basis=target_effect_basis,
+            target_effect_justification=target_effect_justification,
+            target_effect_reference=target_effect_reference,
+            variance_basis=variance_basis,
+            variance_justification=variance_justification,
+            variance_reference=variance_reference,
+            pilot_sample_size=pilot_sample_size,
+            synthetic=synthetic,
+            maximum_replicates=maximum_replicates,
+        )
+        analysis = evaluate_power_analysis(config)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
+    if output_format == "json":
+        payload = analysis.to_json()
+    elif output_format == "markdown":
+        payload = power_analysis_to_markdown(analysis)
+    elif output_format == "csv":
+        payload = power_analysis_to_csv(analysis)
+    else:
+        typer.echo("only --format json, markdown, or csv is supported", err=True)
+        raise typer.Exit(code=2)
+    _emit_or_write_json(payload, output, label=f"power analysis: {analysis.analysis_id}")
+    if analysis.status is PowerAnalysisStatus.UNAVAILABLE:
+        raise typer.Exit(code=2)
+
+
+@experiment_app.command("regression-golden")
+def experiment_regression_golden_command(
+    subject: Annotated[str, typer.Argument()],
+    contract_id: Annotated[str, typer.Option("--contract-id")],
+    contract_version: Annotated[str, typer.Option("--contract-version")],
+    tolerances: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--tolerance",
+            help="Repeat SELECTOR=ABSOLUTE,RELATIVE for every asserted scalar.",
+        ),
+    ] = None,
+    subject_kind: Annotated[RegressionSubjectKind, typer.Option("--subject-kind")] = (
+        RegressionSubjectKind.METRIC_COLLECTION
+    ),
+    registry: Annotated[Path | None, typer.Option("--registry", dir_okay=False)] = None,
+    description: Annotated[str, typer.Option("--description")] = (
+        "TrafficTwin versioned regression golden contract"
+    ),
+    source_identity_policy: Annotated[
+        SourceIdentityPolicy, typer.Option("--source-identity-policy")
+    ] = SourceIdentityPolicy.EXACT,
+    approval_status: Annotated[GoldenApprovalStatus, typer.Option("--approval-status")] = (
+        GoldenApprovalStatus.CANDIDATE
+    ),
+    approved_by: Annotated[str | None, typer.Option("--approved-by")] = None,
+    approval_note: Annotated[str | None, typer.Option("--approval-note")] = None,
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Generate a reviewable golden contract from one completed typed artifact."""
+
+    try:
+        loaded = _load_regression_subject(subject, subject_kind, registry)
+        specs = [_parse_regression_tolerance(value) for value in tolerances or []]
+        contract = build_regression_golden_contract(
+            loaded,
+            contract_id=contract_id,
+            contract_version=contract_version,
+            description=description,
+            tolerances=specs,
+            source_identity_policy=source_identity_policy,
+            approval_status=approval_status,
+            approved_by=approved_by,
+            approval_note=approval_note,
+        )
+    except (OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_or_write_json(
+        contract.to_json(),
+        output,
+        label=f"regression golden: {contract.contract_id} {contract.contract_version}",
+    )
+
+
+@experiment_app.command("regression-gate")
+def experiment_regression_gate_command(
+    subject: Annotated[str, typer.Argument()],
+    golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False, readable=True)],
+    registry: Annotated[Path | None, typer.Option("--registry", dir_okay=False)] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate one CI-ready pass/fail/unavailable regression gate."""
+
+    try:
+        contract = parse_regression_golden_contract_json(golden.read_bytes())
+        loaded = _load_regression_subject(subject, contract.subject_kind, registry)
+        report = evaluate_regression_gate(loaded, contract)
+    except (OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
+    if output_format == "json":
+        payload = report.to_json()
+    elif output_format == "markdown":
+        payload = regression_gate_to_markdown(report)
+    elif output_format == "csv":
+        payload = regression_gate_to_csv(report)
+    else:
+        typer.echo("only --format json, markdown, or csv is supported", err=True)
+        raise typer.Exit(code=2)
+    _emit_or_write_json(payload, output, label=f"regression gate: {report.gate_id}")
+    if report.status is RegressionGateStatus.FAILED:
+        raise typer.Exit(code=1)
+    if report.status is RegressionGateStatus.UNAVAILABLE:
+        raise typer.Exit(code=2)
+
+
 @experiment_app.command("protocol")
 def export_experiment_protocol_command(
     registry: Annotated[
@@ -442,6 +1973,95 @@ def export_experiment_protocol_command(
     output.write_text(payload, encoding="utf-8")
     typer.echo(f"protocol: {protocol.protocol_id}")
     typer.echo(f"run_slots: {len(protocol.slots)}")
+
+
+@experiment_app.command("parameter-sweep-contract")
+def parameter_sweep_contract_command(
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Print the bounded EXP-01 method and safety contract."""
+
+    payload = parameter_sweep_contract().model_dump_json(indent=2) + "\n"
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(payload, encoding="utf-8")
+        typer.echo(f"contract: {output}")
+    else:
+        typer.echo(payload, nl=False)
+
+
+@experiment_app.command("parameter-sweep")
+def parameter_sweep_command(
+    request_path: Annotated[
+        Path,
+        typer.Option("--request", exists=True, readable=True, dir_okay=False),
+    ],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Expand a bounded sweep and materialise only its declared safe mode."""
+
+    try:
+        request = load_parameter_sweep_request(request_path)
+        result = execute_parameter_sweep(request, output, overwrite=overwrite)
+    except (FileExistsError, OSError, ParameterSweepError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"sweep: {result.sweep_id}")
+    typer.echo(f"mode: {result.mode.value}")
+    typer.echo(f"status: {result.status}")
+    typer.echo(f"points: {result.point_count}")
+    typer.echo(f"response_rows: {result.response_row_count}")
+    typer.echo(f"synthetic_evaluation: {str(result.synthetic_evaluation).lower()}")
+    typer.echo(f"direct_launch_supported: {str(result.direct_launch_supported).lower()}")
+    typer.echo(f"result: {output / 'sweep_result.json'}")
+    typer.echo(f"response_surface: {output / 'response_surface.csv'}")
+    typer.echo(f"output: {output}")
+
+
+@experiment_app.command("mutation-contract")
+def scenario_mutation_contract_command(
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Print the bounded EXP-02 method and safety contract."""
+
+    payload = scenario_mutation_contract().model_dump_json(indent=2) + "\n"
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(payload, encoding="utf-8")
+        typer.echo(f"contract: {output}")
+    else:
+        typer.echo(payload, nl=False)
+
+
+@experiment_app.command("mutate-scenario")
+def scenario_mutation_command(
+    bundle: Annotated[Path, typer.Option("--bundle", exists=True, readable=True)],
+    request_path: Annotated[
+        Path,
+        typer.Option("--request", exists=True, readable=True, dir_okay=False),
+    ],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Create one validated copied mutation of a synthetic/evaluation bundle."""
+
+    try:
+        request = load_scenario_mutation_request(request_path)
+        result = execute_scenario_mutation(bundle, request, output, overwrite=overwrite)
+    except (FileExistsError, OSError, ScenarioMutationError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"mutation: {result.mutation_id}")
+    typer.echo(f"operator: {result.mutation.operator.value}")
+    typer.echo(f"status: {result.status}")
+    typer.echo(f"changed_rows: {result.changed_row_count}")
+    typer.echo(f"validation_status: {result.validation_status}")
+    typer.echo(f"synthetic_evaluation: {str(result.synthetic_evaluation).lower()}")
+    typer.echo(f"raw_source_mutated: {str(result.raw_source_mutated).lower()}")
+    typer.echo(f"direct_launch_supported: {str(result.direct_launch_supported).lower()}")
+    typer.echo(f"bundle: {output / 'bundle'}")
+    typer.echo(f"manifest: {output / 'mutation_manifest.json'}")
     typer.echo(f"output: {output}")
 
 
@@ -500,6 +2120,297 @@ def _registered_experiment_protocol(
     return build_experiment_protocol(experiment, seeds)
 
 
+@experiment_app.command("evidence")
+def experiment_evidence_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    training_run: Annotated[list[str] | None, typer.Option("--training-run")] = None,
+    validation_run: Annotated[list[str] | None, typer.Option("--validation-run")] = None,
+    store: Annotated[bool, typer.Option("--store/--no-store")] = False,
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Build a reusable experiment-level EvidencePack from stored metrics."""
+
+    collections = _experiment_collections(registry, experiment_id)
+    if not collections:
+        typer.echo(f"no stored metric collections for experiment: {experiment_id}", err=True)
+        raise typer.Exit(code=1)
+    training_ids = training_run or []
+    validation_ids = validation_run or []
+    pairs: list[TrainingValidationObservation] = []
+    if len(training_ids) != len(validation_ids):
+        typer.echo(
+            "repeat --training-run and --validation-run the same number of times",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if len(set(training_ids)) != len(training_ids) or len(set(validation_ids)) != len(
+        validation_ids
+    ):
+        typer.echo("training and validation run IDs must not be duplicated", err=True)
+        raise typer.Exit(code=1)
+    for training_run_id, validation_run_id in zip(training_ids, validation_ids, strict=True):
+        try:
+            training = MetricCollection.model_validate_json(
+                Registry(registry).get_metric_collection_json(training_run_id)
+            )
+            validation = MetricCollection.model_validate_json(
+                Registry(registry).get_metric_collection_json(validation_run_id)
+            )
+            pairs.append(
+                training_validation_observation_from_collections(
+                    training,
+                    validation,
+                    metric_key,
+                )
+            )
+        except (RegistryNotFoundError, ValueError) as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(code=1) from exc
+    try:
+        pack = build_experiment_evidence_pack(
+            collections,
+            ExperimentEvidenceOptions(
+                experiment_id=experiment_id,
+                primary_metric_key=metric_key,
+                objective=objective,
+            ),
+            training_validation=pairs,
+        )
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if store:
+        Registry(registry).store_experiment_evidence_pack(
+            pack_id=pack.pack_id,
+            experiment_id=experiment_id,
+            source_fingerprint=pack.source_bundle_fingerprint,
+            payload_json=pack.to_json(),
+        )
+    _emit_or_write_json(pack.to_json(), output, label=f"evidence: {pack.pack_id}")
+
+
+@experiment_app.command("winner-map")
+def experiment_winner_map_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Build a descriptive per-seed policy winner map."""
+
+    collections = _experiment_collections(registry, experiment_id)
+    registry_store = Registry(registry)
+    aliases = {
+        seed.seed_id: seed.parent_seed_id or seed.seed_id for seed in registry_store.list_seeds()
+    }
+    report = build_winner_map(
+        collections,
+        metric_key=metric_key,
+        objective=objective,
+        seed_aliases=aliases,
+    )
+    _emit_or_write_json(report.to_json(), output, label="winner map written")
+
+
+@experiment_app.command("portfolio")
+def experiment_portfolio_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate the transparent synthetic portfolio prototype against a winner map."""
+
+    registry_store = Registry(registry)
+    collections = _experiment_collections(registry, experiment_id)
+    registered_seeds = registry_store.list_seeds()
+    aliases = {seed.seed_id: seed.parent_seed_id or seed.seed_id for seed in registered_seeds}
+    seeds_by_family: dict[str, ScenarioSeed] = {}
+    for seed in registered_seeds:
+        family = aliases[seed.seed_id]
+        if seed.seed_id == family:
+            seeds_by_family[family] = seed
+        else:
+            seeds_by_family.setdefault(family, seed)
+    winner_map = build_winner_map(
+        collections,
+        metric_key=metric_key,
+        objective=objective,
+        seed_aliases=aliases,
+    )
+    report = evaluate_portfolio(
+        winner_map,
+        seeds_by_family,
+        default_synthetic_portfolio_rules(),
+    )
+    _emit_or_write_json(report.to_json(), output, label="portfolio evaluation written")
+
+
+@experiment_app.command("portfolio-study")
+def experiment_portfolio_study_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+    metric_key: Annotated[str, typer.Option("--metric")] = "task.completion.rate",
+    objective: Annotated[ObjectiveDirection, typer.Option("--objective")] = (
+        ObjectiveDirection.MAXIMISE
+    ),
+    development_seed: Annotated[list[str] | None, typer.Option("--development-seed")] = None,
+    held_out_seed: Annotated[list[str] | None, typer.Option("--held-out-seed")] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate a fixed transparent selector on an explicit held-out seed set."""
+
+    registry_store = Registry(registry)
+    collections = _experiment_collections(registry, experiment_id)
+    registered_seeds = registry_store.list_seeds()
+    aliases = {seed.seed_id: seed.parent_seed_id or seed.seed_id for seed in registered_seeds}
+    seeds_by_family: dict[str, ScenarioSeed] = {}
+    for seed in registered_seeds:
+        family = aliases[seed.seed_id]
+        if seed.seed_id == family:
+            seeds_by_family[family] = seed
+        else:
+            seeds_by_family.setdefault(family, seed)
+    development = development_seed or []
+    held_out = held_out_seed or []
+    if experiment_id == PORTFOLIO_STUDY_EXPERIMENT_ID and not development and not held_out:
+        development = [f"seed-{name}" for name in PORTFOLIO_DEVELOPMENT_PRESETS]
+        held_out = [f"seed-{name}" for name in PORTFOLIO_HELD_OUT_PRESETS]
+    try:
+        report = evaluate_portfolio_study(
+            build_winner_map(
+                collections,
+                metric_key=metric_key,
+                objective=objective,
+                seed_aliases=aliases,
+            ),
+            seeds_by_family,
+            default_synthetic_portfolio_rules(),
+            development_seed_ids=development,
+            held_out_seed_ids=held_out,
+        )
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = report.to_json()
+    elif output_format == "csv":
+        payload = portfolio_study_to_csv(report)
+    elif output_format == "markdown":
+        payload = portfolio_study_to_markdown(report)
+    else:
+        typer.echo("only --format json, csv, or markdown is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="portfolio study written")
+
+
+@experiment_app.command("track-init")
+def experiment_track_init_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    experiment_id: Annotated[str, typer.Option("--experiment-id")],
+) -> None:
+    """Initialise manual tracking for every slot in a registered protocol."""
+
+    try:
+        protocol = _registered_experiment_protocol(registry, experiment_id)
+        created = ProtocolTracker(registry).register_protocol(protocol)
+    except (RegistryNotFoundError, ValueError, ProtocolTrackingError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"protocol: {protocol.protocol_id}")
+    typer.echo(f"slots: {len(protocol.slots)}")
+    typer.echo(f"created: {created}")
+
+
+@experiment_app.command("track-list")
+def experiment_track_list_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    protocol_id: Annotated[str, typer.Option("--protocol-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """List manually tracked protocol slots."""
+
+    tracker = ProtocolTracker(registry)
+    try:
+        summary = tracker.summary(protocol_id)
+        slots = tracker.list_slots(protocol_id)
+    except ProtocolTrackingError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(
+            json.dumps(
+                {
+                    "summary": summary.model_dump(mode="json"),
+                    "slots": [slot.model_dump(mode="json") for slot in slots],
+                },
+                indent=2,
+            )
+        )
+        return
+    if output_format != "text":
+        typer.echo("only --format text or --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"protocol: {protocol_id}")
+    typer.echo(f"counts: {summary.counts_by_status}")
+    for slot in slots:
+        typer.echo(f"{slot.slot_id}: {slot.status.value}")
+
+
+@experiment_app.command("track-update")
+def experiment_track_update_command(
+    registry: Annotated[
+        Path, typer.Option("--registry", exists=True, dir_okay=False, readable=True)
+    ],
+    protocol_id: Annotated[str, typer.Option("--protocol-id")],
+    slot_id: Annotated[str, typer.Option("--slot-id")],
+    status: Annotated[ProtocolSlotStatus, typer.Option("--status")],
+    run_id: Annotated[str | None, typer.Option("--run-id")] = None,
+    bundle_id: Annotated[str | None, typer.Option("--bundle-id")] = None,
+    note: Annotated[str | None, typer.Option("--note")] = None,
+) -> None:
+    """Apply one explicit manual slot-status transition."""
+
+    try:
+        record = ProtocolTracker(registry).update_slot(
+            protocol_id,
+            slot_id,
+            status,
+            observed_run_id=run_id,
+            observed_bundle_id=bundle_id,
+            note=note,
+        )
+    except (ProtocolTrackingError, InvalidProtocolSlotTransitionError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"slot: {record.slot_id}")
+    typer.echo(f"status: {record.status.value}")
+
+
 @diagnose_app.command("bundle")
 def diagnose_bundle_command(
     path: Annotated[Path, typer.Argument(exists=True, readable=True)],
@@ -535,6 +2446,361 @@ def diagnose_evidence_command(
     typer.echo(f"triggered: {', '.join(report.triggered_rule_ids) or 'none'}")
 
 
+@diagnose_app.command("rule-contract")
+def diagnose_rule_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the closed trusted-local declarative-rule grammar boundary."""
+
+    contract = declarative_rule_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"grammar_version: {contract.grammar_version}")
+    typer.echo(f"trust_boundary: {contract.trust_boundary}")
+    typer.echo(f"evidence_boundary: {contract.evidence_boundary}")
+    typer.echo(f"maximum_yaml_bytes: {contract.maximum_yaml_bytes}")
+    typer.echo(f"maximum_predicates: {contract.maximum_predicates}")
+    typer.echo(f"reference_rule: {contract.reference_rule_id}")
+    typer.echo("arbitrary_code: unsupported")
+
+
+@diagnose_app.command("cross-rule-contract")
+def diagnose_cross_rule_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the closed deterministic DIA-07 relationship policy."""
+
+    contract = cross_rule_reasoning_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"policy_version: {contract.policy_version}")
+    typer.echo(f"policies: {len(contract.policies)}")
+    typer.echo(f"precedence_tiers: {contract.precedence_tiers}")
+    typer.echo(f"retention: {contract.retention_guarantee}")
+    typer.echo(f"confidence: {contract.confidence_semantics}")
+
+
+@diagnose_app.command("cross-rule")
+def diagnose_cross_rule_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate rules and emit the additive typed DIA-07 relationship report."""
+
+    report = _diagnostic_report_from_path(path)
+    analysis = report.cross_rule_analysis
+    if analysis is None:  # pragma: no cover - current engine always produces the artifact
+        typer.echo("cross-rule analysis is unavailable for this report", err=True)
+        raise typer.Exit(code=1)
+    if output_format == "json":
+        payload = analysis.to_json()
+    elif output_format == "text":
+        relationship_lines = [
+            f"{item.relation_type.value}: {item.source_rule_id} -> {item.target_rule_id} "
+            f"({item.presentation_effect})"
+            for item in analysis.relationships
+        ]
+        payload = "\n".join(
+            [
+                f"analysis_id: {analysis.analysis_id}",
+                f"status: {analysis.status.value}",
+                f"policy_version: {analysis.policy_version}",
+                f"counts: {analysis.counts_by_type}",
+                f"retained_rules: {', '.join(analysis.retained_rule_ids) or 'none'}",
+                f"suppressed_rules: {', '.join(analysis.suppressed_rule_ids) or 'none'}",
+                *relationship_lines,
+            ]
+        )
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="cross-rule reasoning report written")
+
+
+@diagnose_app.command("rule-validate")
+def diagnose_rule_validate_command(
+    rule_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate and fingerprint one trusted local declarative YAML rule."""
+
+    try:
+        definition = load_declarative_rule(rule_path)
+    except DeclarativeRuleError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(
+            json.dumps(
+                {
+                    "definition": definition.model_dump(mode="json"),
+                    "definition_fingerprint": definition.fingerprint(),
+                    "valid": True,
+                },
+                indent=2,
+                sort_keys=True,
+                allow_nan=False,
+            )
+        )
+        return
+    _require_text_format(output_format)
+    typer.echo(f"rule_id: {definition.rule_id}")
+    typer.echo(f"rule_version: {definition.rule_version}")
+    typer.echo(f"grammar_version: {definition.grammar_version}")
+    typer.echo(f"predicates: {len(definition.predicates)}")
+    typer.echo(f"fingerprint: {definition.fingerprint()}")
+    typer.echo("valid: true")
+
+
+@diagnose_app.command("rule-evaluate")
+def diagnose_rule_evaluate_command(
+    rule_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    evidence_or_bundle: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Compile one trusted local YAML rule and evaluate an EvidencePack or bundle."""
+
+    try:
+        definition = load_declarative_rule(rule_path)
+        pack = _evidence_pack_from_path(evidence_or_bundle)
+        result = evaluate_declarative_rule(definition, pack)
+    except (DeclarativeRuleError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = result.model_dump_json(indent=2)
+    elif output_format == "text":
+        payload = _rule_result_to_text(result)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="declarative rule result written")
+
+
+@diagnose_app.command("fairness")
+def diagnose_fairness_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    dimension: Annotated[str, typer.Option("--dimension")] = "vehicle_tier_completion",
+    minimum_outcome_gap: Annotated[
+        float,
+        typer.Option("--minimum-outcome-gap", min=0.0, max=1.0),
+    ] = 0.20,
+    minimum_group_support: Annotated[
+        int,
+        typer.Option("--minimum-group-support", min=1),
+    ] = 2,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate only R7 over one explicit operational outcome-disparity dimension."""
+
+    try:
+        r7 = R7Config.model_validate(
+            {
+                "dimension": dimension,
+                "minimum_outcome_gap": minimum_outcome_gap,
+                "minimum_group_support": minimum_group_support,
+            }
+        )
+        pack = _evidence_pack_from_path(path)
+        report = evaluate_rules(pack, _r7_only_config(r7))
+    except (OSError, ValueError) as exc:
+        typer.echo(f"fairness diagnosis could not be evaluated: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    result = report.results[0]
+    if output_format == "json":
+        payload = result.model_dump_json(indent=2)
+    elif output_format == "text":
+        payload = _rule_result_to_text(result)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="R7 fairness diagnosis written")
+
+
+@diagnose_app.command("energy")
+def diagnose_energy_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    minimum_energy_per_completed_task_j: Annotated[
+        float,
+        typer.Option("--minimum-energy-per-completed-task-j", min=0.0),
+    ] = 1.50,
+    minimum_completed_tasks: Annotated[
+        int,
+        typer.Option("--minimum-completed-tasks", min=1),
+    ] = 10,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Evaluate only R8 over exact completed-task energy evidence."""
+
+    try:
+        r8 = R8Config(
+            minimum_energy_per_completed_task_j=minimum_energy_per_completed_task_j,
+            minimum_completed_tasks=minimum_completed_tasks,
+        )
+        pack = _evidence_pack_from_path(path)
+        report = evaluate_rules(pack, _r8_only_config(r8))
+    except (OSError, ValueError) as exc:
+        typer.echo(f"energy diagnosis could not be evaluated: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    result = report.results[0]
+    if output_format == "json":
+        payload = result.model_dump_json(indent=2)
+    elif output_format == "text":
+        payload = _rule_result_to_text(result)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="R8 energy diagnosis written")
+
+
+@diagnose_app.command("nearest-flip")
+def diagnose_nearest_flip_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    rule_id: Annotated[str, typer.Argument()],
+    rule_config_path: Annotated[
+        Path | None,
+        typer.Option("--rule-config", dir_okay=False, readable=True),
+    ] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Find one exact verified R5/R7/R8 single-boundary configuration flip."""
+
+    try:
+        pack = _evidence_pack_from_path(path)
+        config = (
+            RuleSetConfig()
+            if rule_config_path is None
+            else RuleSetConfig.model_validate_json(rule_config_path.read_text(encoding="utf-8"))
+        )
+        analysis = analyse_nearest_flip(pack, rule_id, config)
+    except (OSError, ValueError) as exc:
+        typer.echo(f"nearest-flip analysis could not be evaluated: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = analysis.to_json()
+    elif output_format == "text":
+        payload = _nearest_flip_to_text(analysis)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="nearest-flip analysis written")
+
+
+@diagnose_app.command("temporal")
+def diagnose_temporal_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    width_s: Annotated[float, typer.Option("--width-s", min=0.000001)],
+    metric_key: Annotated[str, typer.Option("--metric-key")] = (
+        "task.deadline_miss.completed_observed_rate"
+    ),
+    alignment_origin_s: Annotated[float, typer.Option("--origin-s")] = 0.0,
+    analysis_start_s: Annotated[float | None, typer.Option("--start-s")] = None,
+    analysis_end_s: Annotated[float | None, typer.Option("--end-s")] = None,
+    partial_windows: Annotated[str, typer.Option("--partial-windows")] = "include",
+    minimum_window_coverage: Annotated[
+        float,
+        typer.Option("--minimum-window-coverage", min=0.0, max=1.0),
+    ] = 1.0,
+    event_time_s: Annotated[float | None, typer.Option("--event-time-s")] = None,
+    event_label: Annotated[str | None, typer.Option("--event-label")] = None,
+    baseline_windows: Annotated[int, typer.Option("--baseline-windows", min=1)] = 2,
+    minimum_evaluable_windows: Annotated[
+        int,
+        typer.Option("--minimum-evaluable-windows", min=2),
+    ] = 4,
+    deterioration_delta: Annotated[
+        float,
+        typer.Option("--deterioration-delta", min=0.000000001),
+    ] = 0.10,
+    sustained_windows: Annotated[int, typer.Option("--sustained-windows", min=1)] = 2,
+    recovery_tolerance: Annotated[
+        float,
+        typer.Option("--recovery-tolerance", min=0.0),
+    ] = 0.05,
+    recovery_horizon_windows: Annotated[
+        int,
+        typer.Option("--recovery-horizon-windows", min=1),
+    ] = 4,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Build temporal EvidencePack evidence and evaluate deterministic R6."""
+
+    window_config = _windowed_metric_config(
+        width_s,
+        alignment_origin_s,
+        analysis_start_s,
+        analysis_end_s,
+        partial_windows,
+        10_000,
+    )
+    try:
+        temporal_config = TemporalEvidenceConfig(
+            metric_key=metric_key,
+            minimum_window_coverage=minimum_window_coverage,
+            event_time_s=event_time_s,
+            event_label=event_label,
+        )
+        rules = RuleSetConfig(
+            r6=R6Config(
+                baseline_window_count=baseline_windows,
+                minimum_evaluable_windows=minimum_evaluable_windows,
+                minimum_deterioration_delta=deterioration_delta,
+                sustained_window_count=sustained_windows,
+                recovery_tolerance=recovery_tolerance,
+                recovery_horizon_windows=recovery_horizon_windows,
+            )
+        )
+    except ValueError as exc:
+        typer.echo(f"invalid temporal diagnostic configuration: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    result = validate_bundle(path)
+    _ensure_metric_context_available(result)
+    try:
+        analysis = evaluate_temporal_bundle(
+            result,
+            window_config,
+            temporal_config,
+            rule_config=rules,
+        )
+    except WindowLimitExceededError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = analysis.to_json()
+    elif output_format == "text":
+        event_ordinal = (
+            analysis.temporal_evidence.event.event_window_ordinal
+            if analysis.temporal_evidence.event is not None
+            else "none"
+        )
+        payload = (
+            f"run: {analysis.temporal_evidence.run_id}\n"
+            f"temporal_status: {analysis.temporal_evidence.status.value}\n"
+            f"metric_key: {analysis.temporal_evidence.metric_key}\n"
+            f"eligible_windows: {analysis.temporal_evidence.eligible_window_count}\n"
+            f"ineligible_windows: {analysis.temporal_evidence.ineligible_window_count}\n"
+            f"event_window_ordinal: {event_ordinal}\n"
+            f"r6_status: {analysis.r6_result.status.value}\n"
+            f"recovery: {analysis.r6_result.metadata.get('recovery_assessment', 'unavailable')}\n"
+        )
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="temporal diagnostic analysis written")
+
+
 @diagnose_app.command("report")
 def diagnose_report_command(
     path: Annotated[Path, typer.Argument(exists=True, readable=True)],
@@ -552,11 +2818,34 @@ def diagnose_report_command(
 @diagnose_app.command("evaluate")
 def diagnose_evaluate_command(
     fixture_set: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    extended: Annotated[bool, typer.Option("--extended/--declared")] = False,
 ) -> None:
-    """Evaluate labelled synthetic diagnostic fixtures."""
+    """Evaluate declared or expanded severity/seed synthetic diagnostic fixtures."""
 
-    report = evaluate_fixture_set(load_fixture_set(fixture_set))
+    fixtures = load_fixture_set(fixture_set)
+    if extended:
+        fixtures = build_extended_fixture_set(fixtures)
+    report = evaluate_fixture_set(fixtures)
     typer.echo(report.to_json())
+
+
+@diagnose_app.command("render")
+def diagnose_render_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "markdown",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Render only already-computed deterministic diagnostic findings into prose."""
+
+    narrative = render_diagnostic_findings(_diagnostic_report_from_path(path))
+    if output_format == "markdown":
+        payload = diagnostic_narrative_to_markdown(narrative)
+    elif output_format == "json":
+        payload = narrative.to_json()
+    else:
+        typer.echo("only --format markdown or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="diagnostic narrative written")
 
 
 @provenance_app.command("metric")
@@ -574,6 +2863,255 @@ def provenance_metric_command(
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     _emit_provenance_trace(trace, output_format)
+
+
+@provenance_app.command("window-metric")
+def provenance_window_metric_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    metric_key: Annotated[str, typer.Argument()],
+    width_s: Annotated[float, typer.Option("--width-s", min=0.000001)],
+    window_ordinal: Annotated[int, typer.Option("--window-ordinal", min=0)] = 0,
+    alignment_origin_s: Annotated[float, typer.Option("--origin-s")] = 0.0,
+    analysis_start_s: Annotated[float | None, typer.Option("--start-s")] = None,
+    analysis_end_s: Annotated[float | None, typer.Option("--end-s")] = None,
+    partial_windows: Annotated[str, typer.Option("--partial-windows")] = "include",
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Trace one fixed-window metric to its accepted in-window source rows."""
+
+    config = _windowed_metric_config(
+        width_s,
+        alignment_origin_s,
+        analysis_start_s,
+        analysis_end_s,
+        partial_windows,
+        10_000,
+    )
+    bundle = validate_bundle(path)
+    _ensure_metric_context_available(bundle)
+    try:
+        series = compute_windowed_metrics_for_bundle(bundle, config)
+        trace = build_window_metric_trace(metric_key, bundle, series, window_ordinal)
+    except (ValueError, WindowLimitExceededError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_provenance_trace(trace, output_format)
+
+
+@provenance_app.command("contributors")
+def provenance_contributors_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    metric_key: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Export every canonical candidate row and its metric-inclusion state."""
+
+    try:
+        report = get_metric_contributions(build_provenance_context(path), metric_key)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = report.to_json()
+    elif output_format == "csv":
+        payload = contribution_report_to_csv(report)
+    else:
+        typer.echo("only --format json or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="contribution ledger written")
+
+
+@provenance_app.command("difference-contract")
+def provenance_difference_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Publish the bounded PRO-01 difference-lineage contract."""
+
+    contract = difference_provenance_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"schema_version: {contract.schema_version}")
+        typer.echo(f"capability_id: {contract.capability_id}")
+        typer.echo(f"comparison_basis: {contract.comparison_basis}")
+        typer.echo(f"arithmetic_metrics: {len(contract.arithmetic_metric_methods)}")
+        typer.echo("complete_candidate_row_ledgers: true")
+        typer.echo("unavailable_is_not_zero: true")
+        typer.echo(f"non_causality_statement: {contract.non_causality_statement}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+@provenance_app.command("graph-contract")
+def provenance_graph_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Publish the deterministic bounded PRO-02 graph export contract."""
+
+    contract = provenance_graph_export_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"schema_version: {contract.schema_version}")
+        typer.echo(f"capability_id: {contract.capability_id}")
+        typer.echo(f"formats: {', '.join(contract.formats)}")
+        typer.echo(f"default_node_limit: {contract.default_node_limit}")
+        typer.echo(f"default_edge_limit: {contract.default_edge_limit}")
+        typer.echo(f"maximum_node_limit: {contract.maximum_node_limit}")
+        typer.echo(f"maximum_edge_limit: {contract.maximum_edge_limit}")
+        typer.echo(f"default_redaction_mode: {contract.default_redaction_mode.value}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+@provenance_app.command("completeness-contract")
+def provenance_completeness_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Publish the explicit PRO-03 report-claim denominator and score contract."""
+
+    contract = provenance_completeness_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"schema_version: {contract.schema_version}")
+        typer.echo(f"capability_id: {contract.capability_id}")
+        typer.echo(
+            "supported_report_types: "
+            + ", ".join(item.value for item in contract.supported_report_types)
+        )
+        typer.echo(f"denominator: {contract.denominator_definition}")
+        typer.echo(f"numerator: {contract.score_numerator_definition}")
+        typer.echo(f"zero_denominator: {contract.zero_denominator_policy}")
+        typer.echo("unavailable_is_not_zero: true")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+@provenance_app.command("completeness")
+def provenance_completeness_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    report_type: Annotated[str, typer.Option("--report-type")] = ResearchReportType.RUN.value,
+    comparison_baseline: Annotated[
+        Path | None,
+        typer.Option("--comparison-baseline", exists=True, readable=True),
+    ] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Inventory and score the typed claims in one run-like report."""
+
+    try:
+        report = get_report_provenance_completeness(
+            build_provenance_context(path),
+            report_type,
+            comparison_baseline=(
+                build_provenance_context(comparison_baseline)
+                if comparison_baseline is not None
+                else None
+            ),
+        )
+        payload = _provenance_completeness_payload(report, output_format)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_or_write_json(payload, output, label="provenance completeness written")
+
+
+@provenance_app.command("comparison-completeness")
+def provenance_comparison_completeness_command(
+    baseline_path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    variation_path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Inventory and score every typed claim in one comparison report."""
+
+    try:
+        report = get_comparison_provenance_completeness(
+            build_provenance_context(baseline_path),
+            build_provenance_context(variation_path),
+        )
+        payload = _provenance_completeness_payload(report, output_format)
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_or_write_json(payload, output, label="comparison provenance completeness written")
+
+
+@provenance_app.command("difference-contributors")
+def provenance_difference_contributors_command(
+    baseline_path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    variation_path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    metric_key: Annotated[str, typer.Argument()],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Export compatible variation-minus-baseline contributor lineage."""
+
+    try:
+        report = get_difference_contributions(
+            build_provenance_context(baseline_path),
+            build_provenance_context(variation_path),
+            metric_key,
+        )
+    except ProvenanceQueryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = report.to_json()
+    elif output_format == "csv":
+        payload = difference_contribution_report_to_csv(report)
+    else:
+        typer.echo("only --format json or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="difference contribution ledger written")
+
+
+@provenance_app.command("window-contributors")
+def provenance_window_contributors_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    metric_key: Annotated[str, typer.Argument()],
+    width_s: Annotated[float, typer.Option("--width-s", min=0.000001)],
+    window_ordinal: Annotated[int, typer.Option("--window-ordinal", min=0)] = 0,
+    alignment_origin_s: Annotated[float, typer.Option("--origin-s")] = 0.0,
+    analysis_start_s: Annotated[float | None, typer.Option("--start-s")] = None,
+    analysis_end_s: Annotated[float | None, typer.Option("--end-s")] = None,
+    partial_windows: Annotated[str, typer.Option("--partial-windows")] = "include",
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Export every accepted candidate row for one fixed-window metric."""
+
+    if output_format != "json":
+        typer.echo("only --format json is supported", err=True)
+        raise typer.Exit(code=1)
+    config = _windowed_metric_config(
+        width_s,
+        alignment_origin_s,
+        analysis_start_s,
+        analysis_end_s,
+        partial_windows,
+        10_000,
+    )
+    bundle = validate_bundle(path)
+    _ensure_metric_context_available(bundle)
+    try:
+        series = compute_windowed_metrics_for_bundle(bundle, config)
+        report = build_window_metric_contribution_report(
+            bundle,
+            series,
+            window_ordinal,
+            metric_key,
+        )
+    except (ValueError, WindowLimitExceededError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    _emit_or_write_json(report.to_json(), output, label="window contribution ledger written")
 
 
 @provenance_app.command("rule")
@@ -613,7 +3151,7 @@ def provenance_source_command(
     context_rows: Annotated[int, typer.Option("--context-rows", min=0)] = 2,
     output_format: Annotated[str, typer.Option("--format")] = "text",
 ) -> None:
-    """Inspect one read-only CSV source row inside a bundle."""
+    """Inspect one read-only declared tabular source row inside a bundle."""
 
     context = build_provenance_context(path)
     preview = get_source_provenance(context, source_file, row, context_rows=context_rows)
@@ -641,8 +3179,17 @@ def provenance_export_command(
     root_id: Annotated[str, typer.Option("--root-id")] = "",
     output_format: Annotated[str, typer.Option("--format")] = "json",
     output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+    max_nodes: Annotated[
+        int,
+        typer.Option("--max-nodes", min=1, max=MAX_GRAPH_NODE_LIMIT),
+    ] = DEFAULT_GRAPH_NODE_LIMIT,
+    max_edges: Annotated[
+        int,
+        typer.Option("--max-edges", min=0, max=MAX_GRAPH_EDGE_LIMIT),
+    ] = DEFAULT_GRAPH_EDGE_LIMIT,
+    redaction: Annotated[str, typer.Option("--redaction")] = GraphRedactionMode.SAFE.value,
 ) -> None:
-    """Export a provenance trace as JSON or Markdown."""
+    """Export a provenance trace as JSON, Markdown, bounded DOT, or bounded GraphML."""
 
     try:
         context = build_provenance_context(path)
@@ -655,7 +3202,13 @@ def provenance_export_command(
         else:
             msg = "root-type must be one of: metric, rule, run"
             raise ProvenanceQueryError(msg)
-        payload = export_provenance(trace, output_format)
+        payload = export_provenance(
+            trace,
+            output_format,
+            node_limit=max_nodes,
+            edge_limit=max_edges,
+            redaction_mode=redaction,
+        )
     except ProvenanceQueryError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
@@ -672,6 +3225,50 @@ def synthetic_presets_command() -> None:
 
     for name in list_preset_names():
         typer.echo(name)
+
+
+@synthetic_app.command("measurement-contract")
+def synthetic_measurement_contract_command(
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Publish the closed EXP-03 measurement-noise and dropout contract."""
+
+    payload = measurement_impairment_contract().model_dump_json(indent=2) + "\n"
+    if output is None:
+        typer.echo(payload, nl=False)
+    else:
+        output.write_text(payload, encoding="utf-8")
+        typer.echo(f"measurement_contract: {output}")
+
+
+@synthetic_app.command("generate-config")
+def synthetic_generate_config_command(
+    config: Annotated[Path, typer.Option("--config", exists=True, readable=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Generate one synthetic bundle from a complete strict YAML configuration."""
+
+    try:
+        scenario = load_synthetic_scenario_config(config)
+        destination = write_synthetic_bundle(scenario, output, overwrite=overwrite)
+        result = validate_bundle(destination)
+    except (OSError, ValueError, FileExistsError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"bundle: {destination}")
+    typer.echo(f"status: {result.report.status.value}")
+    typer.echo("synthetic: true")
+    manifest = result.manifest
+    audit = manifest.synthetic_measurement_impairment if manifest is not None else None
+    typer.echo(f"measurement_imperfections: {str(audit is not None).lower()}")
+    if audit is not None:
+        typer.echo(f"measurement_audit: {audit.audit_fingerprint}")
+        typer.echo(
+            f"measurement_rows_dropped: {sum(item.rows_dropped for item in audit.dropout_audits)}"
+        )
+    if not result.report.may_import:
+        raise typer.Exit(code=1)
 
 
 @synthetic_app.command("generate-preset")
@@ -743,6 +3340,24 @@ def synthetic_verify_command(
         raise typer.Exit(code=1)
 
 
+@synthetic_app.command("case-study-pack")
+def synthetic_case_study_pack_command(
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Build baseline, incident, and infrastructure synthetic case-study artifacts."""
+
+    try:
+        manifest = build_synthetic_case_study_pack(output, overwrite=overwrite)
+    except (FileExistsError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"case_study_pack: {manifest.pack_id}")
+    typer.echo(f"scenarios: {len(manifest.scenario_ids)}")
+    typer.echo(f"artifacts: {len(manifest.artifacts)}")
+    typer.echo(f"manifest: {output / 'manifest.json'}")
+
+
 @demo_app.command("initialise")
 def demo_initialise_command(
     path: Annotated[Path, typer.Argument(file_okay=False)],
@@ -803,6 +3418,29 @@ def demo_status_command(
         raise typer.Exit(code=1)
 
 
+@participant_app.command("analyse-mock")
+def participant_evaluation_analyse_mock_command(
+    path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Analyse only a dataset carrying the required synthetic_mock label."""
+
+    try:
+        report = analyse_participant_results(load_mock_participant_dataset(path))
+    except (OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = report.to_json()
+    elif output_format == "csv":
+        payload = participant_analysis_to_csv(report)
+    else:
+        typer.echo("only --format json or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="mock participant analysis written")
+
+
 @demo_app.command("launch")
 def demo_launch_command(
     path: Annotated[Path, typer.Argument(file_okay=False)],
@@ -827,10 +3465,14 @@ def demo_launch_command(
 def report_run_command(
     path_or_run: Annotated[Path, typer.Argument(exists=True, readable=True)],
     output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    registry: Annotated[
+        Path | None,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ] = None,
 ) -> None:
     """Export a deterministic single-run report."""
 
-    _write_report(build_run_report, path_or_run, output)
+    _write_report(build_run_report, path_or_run, output, registry=registry)
 
 
 @report_app.command("compare")
@@ -838,6 +3480,10 @@ def report_compare_command(
     baseline: Annotated[Path, typer.Argument(exists=True, readable=True)],
     variation: Annotated[Path, typer.Argument(exists=True, readable=True)],
     output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    registry: Annotated[
+        Path | None,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ] = None,
 ) -> None:
     """Export a deterministic baseline-versus-variation report."""
 
@@ -846,17 +3492,21 @@ def report_compare_command(
     except ReportBuildError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
-    _write_report_payload(report, output)
+    _write_report_payload(_report_with_registry_annotations(report, registry), output)
 
 
 @report_app.command("diagnostics")
 def report_diagnostics_command(
     path_or_run: Annotated[Path, typer.Argument(exists=True, readable=True)],
     output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    registry: Annotated[
+        Path | None,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ] = None,
 ) -> None:
     """Export a deterministic diagnostic report summary."""
 
-    _write_report(build_diagnostics_report, path_or_run, output)
+    _write_report(build_diagnostics_report, path_or_run, output, registry=registry)
 
 
 @report_app.command("full")
@@ -867,6 +3517,10 @@ def report_full_command(
         Path | None,
         typer.Option("--comparison-baseline", exists=True, readable=True),
     ] = None,
+    registry: Annotated[
+        Path | None,
+        typer.Option("--registry", exists=True, dir_okay=False, readable=True),
+    ] = None,
 ) -> None:
     """Export a deterministic full report as Markdown or standalone HTML."""
 
@@ -875,7 +3529,217 @@ def report_full_command(
     except ReportBuildError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
-    _write_report_payload(report, output)
+    _write_report_payload(_report_with_registry_annotations(report, registry), output)
+
+
+@report_app.command("diff-contract")
+def report_diff_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic REP-03 structured report comparison boundary."""
+
+    contract = report_diff_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo("report_types: " + ", ".join(item.value for item in contract.supported_report_types))
+    typer.echo("classifications: " + ", ".join(item.value for item in contract.classifications))
+    typer.echo("compares_rendered_prose: false")
+    typer.echo("compares_analyst_annotations: false")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@report_app.command("executive-contract")
+def report_executive_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic REP-04 one-page summary boundary."""
+
+    contract = executive_summary_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo(f"renderer_version: {contract.renderer_version}")
+    typer.echo("report_types: " + ", ".join(item.value for item in contract.supported_report_types))
+    typer.echo("formats: " + ", ".join(item.value for item in contract.supported_formats))
+    typer.echo(f"maximum_highlights: {contract.maximum_highlights}")
+    typer.echo("source_warning_policy: retain_all_or_refuse")
+    typer.echo("pdf_overflow_policy: fail_closed")
+    typer.echo("scientific_recomputation: false")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@report_app.command("executive")
+def report_executive_command(
+    source_report: Annotated[
+        Path,
+        typer.Argument(exists=True, dir_okay=False, readable=True),
+    ],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Render a bounded supervisor summary from an existing structured report JSON."""
+
+    try:
+        report = parse_research_report_json(source_report.read_bytes())
+        summary = project_executive_summary(
+            report,
+            source_report_reference=source_report.name,
+        )
+        suffix = output.suffix.lower()
+        if suffix not in {".json", ".md", ".markdown", ".html", ".pdf"}:
+            typer.echo(
+                "executive summary output must use .json, .md, .markdown, .html, or .pdf",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        if suffix == ".json":
+            output.write_text(summary.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        elif suffix in {".md", ".markdown"}:
+            output.write_text(executive_summary_to_markdown(summary), encoding="utf-8")
+        elif suffix == ".html":
+            output.write_text(executive_summary_to_html(summary), encoding="utf-8")
+        else:
+            output.write_bytes(executive_summary_to_pdf_bytes(summary))
+    except typer.Exit:
+        raise
+    except (
+        OSError,
+        ReportDiffError,
+        ExecutiveSummaryError,
+        ExecutiveSummaryLayoutError,
+    ) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"executive_summary: {output}")
+    typer.echo(f"source_mode: {summary.source_mode.value}")
+    typer.echo(f"claims: {summary.availability.total_claims}")
+    typer.echo(f"warnings_retained: {len(summary.warnings)}")
+    typer.echo(f"fingerprint: {summary.fingerprint()}")
+
+
+@report_app.command("diff")
+def report_diff_command(
+    baseline: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    variation: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Compare two saved structured report JSON payloads without diffing prose."""
+
+    try:
+        baseline_report = parse_research_report_json(baseline.read_bytes())
+        variation_report = parse_research_report_json(variation.read_bytes())
+        report = compare_structured_reports(baseline_report, variation_report)
+    except (OSError, ReportDiffError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    suffix = output.suffix.lower()
+    if suffix not in {".json", ".md", ".markdown"}:
+        typer.echo("structured report diff output must use .json, .md, or .markdown", err=True)
+        raise typer.Exit(code=1)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    payload = (
+        report.model_dump_json(indent=2) if suffix == ".json" else report_diff_to_markdown(report)
+    )
+    output.write_text(payload + ("\n" if suffix == ".json" else ""), encoding="utf-8")
+    typer.echo(f"report_diff: {output}")
+    typer.echo(f"status: {report.status.value}")
+    typer.echo(f"fingerprint: {report.fingerprint()}")
+
+
+@report_app.command("latex-contract")
+def report_latex_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic REP-01 table and figure boundary."""
+
+    contract = latex_export_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"latex_renderer: {contract.latex_renderer_version}")
+    typer.echo(f"figure_renderer: {contract.figure_renderer_version}")
+    typer.echo("artifacts: " + ", ".join(item.value for item in contract.supported_artifacts))
+    typer.echo("figures: " + ", ".join(item.value for item in contract.figure_formats))
+    typer.echo(f"maximum_table_rows: {contract.maximum_table_rows}")
+    typer.echo(f"maximum_figure_entries: {contract.maximum_figure_entries}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@report_app.command("latex-metrics")
+def report_latex_metrics_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    figure: Annotated[Path | None, typer.Option("--figure", dir_okay=False)] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Export metric results as an escaped LaTeX table and optional static figure."""
+
+    result = validate_bundle(path)
+    _ensure_metric_context_available(result)
+    projection = project_metric_collection(compute_metrics_for_bundle(result))
+    _write_research_projection(projection, output, figure, overwrite=overwrite)
+
+
+@report_app.command("latex-comparison")
+def report_latex_comparison_command(
+    baseline: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    variation: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    figure: Annotated[Path | None, typer.Option("--figure", dir_okay=False)] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Export an existing pairwise metric comparison as LaTeX and an optional figure."""
+
+    baseline_result = validate_bundle(baseline)
+    variation_result = validate_bundle(variation)
+    _ensure_metric_context_available(baseline_result)
+    _ensure_metric_context_available(variation_result)
+    comparison = compare_metric_collections(
+        compute_metrics_for_bundle(baseline_result),
+        compute_metrics_for_bundle(variation_result),
+    )
+    projection = project_comparison_report(comparison)
+    _write_research_projection(projection, output, figure, overwrite=overwrite)
+
+
+@report_app.command("latex-study")
+def report_latex_study_command(
+    study_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    figure: Annotated[Path | None, typer.Option("--figure", dir_okay=False)] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Export a strict saved STA-01 study as LaTeX and an optional static figure."""
+
+    try:
+        study = parse_statistical_study_json(study_path.read_bytes())
+    except (OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    projection = project_statistical_study(study)
+    _write_research_projection(projection, output, figure, overwrite=overwrite)
+
+
+@report_app.command("latex-rules")
+def report_latex_rules_command(
+    path: Annotated[Path, typer.Argument(exists=True, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    figure: Annotated[Path | None, typer.Option("--figure", dir_okay=False)] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Export deterministic bundle diagnostics as LaTeX and an optional status figure."""
+
+    projection = project_diagnostic_report(_diagnostic_report_from_path(path))
+    _write_research_projection(projection, output, figure, overwrite=overwrite)
 
 
 @release_app.command("status")
@@ -925,6 +3789,392 @@ def release_stage_demo_site_command(
     typer.echo("synthetic: true")
     typer.echo("live_data: false")
     typer.echo(f"licence: {manifest.licence_status}")
+
+
+@external_app.command("contract")
+def external_contract_command(
+    adapter: Annotated[str | None, typer.Option("--adapter")] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show OPS-05 interface policy and the versioned reference-adapter contracts."""
+
+    catalogue = external_source_catalogue()
+    selected = None
+    if adapter is not None:
+        selected = next(
+            (item for item in catalogue.adapters if item.adapter_id == adapter),
+            None,
+        )
+        if selected is None:
+            supported = ", ".join(item.adapter_id for item in catalogue.adapters)
+            typer.echo(
+                f"unknown external-source adapter {adapter!r}; supported: {supported}", err=True
+            )
+            raise typer.Exit(code=1)
+    if output_format == "json":
+        payload = (
+            selected.model_dump_json(indent=2) if selected else catalogue.model_dump_json(indent=2)
+        )
+        typer.echo(payload)
+        return
+    _require_text_format(output_format)
+    if selected is not None:
+        typer.echo(f"adapter: {selected.adapter_id}")
+        typer.echo(f"adapter_version: {selected.adapter_version}")
+        typer.echo(f"source_family: {selected.source_family}")
+        typer.echo(f"conversion_level: {selected.conversion.level.value}")
+        typer.echo(f"contract_fingerprint: {selected.fingerprint()}")
+        typer.echo("required_markers:")
+        for marker in selected.discovery_markers:
+            if marker.required:
+                typer.echo(f"  - {marker.relative_path} ({marker.kind.value})")
+        typer.echo("blockers:")
+        for blocker in selected.blockers:
+            typer.echo(f"  - {blocker.code}: {blocker.reason}")
+        return
+    typer.echo(f"capability: {catalogue.capability_id}")
+    typer.echo(f"contract_version: {catalogue.contract_version}")
+    typer.echo(f"adapters: {len(catalogue.adapters)}")
+    for item in catalogue.adapters:
+        typer.echo(f"  {item.adapter_id}: {item.source_family} [{item.conversion.level.value}]")
+    typer.echo(f"catalogue_fingerprint: {catalogue.fingerprint()}")
+
+
+@external_app.command("discover")
+def external_discover_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Shallow-discover registered external sources without parsing or mutation."""
+
+    report = discover_external_sources(path)
+    if output_format == "json":
+        typer.echo(report.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"source_label: {report.source_label}")
+        typer.echo(f"status: {report.status.value}")
+        typer.echo("candidate_adapters: " + (", ".join(report.candidate_adapter_ids) or "none"))
+        for result in report.results:
+            typer.echo(f"{result.adapter_id}: {result.status.value} - {result.detail}")
+        typer.echo(f"fingerprint: {report.fingerprint()}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    if report.status is not DiscoveryReportStatus.ONE_MATCH:
+        raise typer.Exit(code=1)
+
+
+@external_app.command("inspect")
+def external_inspect_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    adapter: Annotated[str | None, typer.Option("--adapter")] = None,
+    deep: Annotated[bool, typer.Option("--deep/--shallow")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate one selected source through the portable read-only OPS-05 interface."""
+
+    try:
+        inspection = inspect_external_source(path, adapter_id=adapter, deep=deep)
+    except (ExternalSourceError, OSError, TosPackageError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(inspection.model_dump_json(indent=2))
+    elif output_format == "text":
+        typer.echo(f"source_label: {inspection.source_label}")
+        typer.echo(f"adapter: {inspection.adapter_id}")
+        typer.echo(f"validation: {inspection.validation.outcome.value}")
+        typer.echo(
+            f"accepted_for_declared_import: {inspection.validation.accepted_for_declared_import}"
+        )
+        typer.echo(
+            f"source_fingerprint: {inspection.validation.source_fingerprint or 'unavailable'}"
+        )
+        typer.echo(f"conversion_level: {inspection.conversion.level.value}")
+        typer.echo("provenance:")
+        for item in inspection.observed_provenance:
+            typer.echo(f"  {item.key}: {item.status.value}")
+        typer.echo("blockers:")
+        for blocker in inspection.blockers:
+            typer.echo(f"  - {blocker.code}")
+        typer.echo(f"inspection_fingerprint: {inspection.fingerprint()}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    if inspection.validation.outcome in {
+        ValidationOutcome.REJECTED,
+        ValidationOutcome.UNAVAILABLE,
+    }:
+        raise typer.Exit(code=1)
+
+
+@sumo_app.command("contract")
+def sumo_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the explicit SUMO XML mapping and unsupported capabilities."""
+
+    contract = sumo_source_contract()
+    if output_format == "json":
+        typer.echo(contract.to_json())
+        return
+    _require_text_format(output_format)
+    typer.echo(f"adapter_version: {contract.adapter_version}")
+    typer.echo(f"supported_sumo_versions: {', '.join(contract.supported_sumo_versions)}")
+    typer.echo(f"direct_launch: {contract.capabilities.supports.direct_launch.value}")
+    typer.echo("mappings:")
+    for mapping in contract.mappings:
+        typer.echo(
+            f"  {mapping.source} -> {mapping.destination or 'source-only'} [{mapping.status}]"
+        )
+    typer.echo("unsupported:")
+    for item in contract.unsupported:
+        typer.echo(f"  - {item}")
+
+
+@manifest_app.command("infer")
+def manifest_infer_command(
+    source: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Create a non-executable mapping draft from bounded CSV evidence."""
+
+    draft = infer_manifest(source)
+    if output_format == "json":
+        payload = draft.to_json()
+    elif output_format == "yaml":
+        payload = draft.to_yaml()
+    elif output_format == "text":
+        if output is not None:
+            typer.echo("--output requires --format json or yaml", err=True)
+            raise typer.Exit(code=1)
+        typer.echo(f"source_label: {draft.source_label}")
+        typer.echo(f"source_fingerprint: {draft.source_fingerprint or 'unavailable'}")
+        typer.echo(f"draft_fingerprint: {draft.draft_fingerprint or 'unavailable'}")
+        typer.echo("analysis_ready: false")
+        typer.echo("confirmation_required: true")
+        for file in draft.files:
+            typer.echo(
+                f"{file.path}: {file.status.value}; "
+                f"suggested_kind={file.suggested_kind or 'unresolved'}"
+            )
+        for finding in draft.findings:
+            typer.echo(f"{finding.severity.value}: {finding.code.value}: {finding.message}")
+        return
+    else:
+        typer.echo("only --format text, json, or yaml is supported", err=True)
+        raise typer.Exit(code=1)
+    if output is None:
+        typer.echo(payload)
+    else:
+        _write_manifest_inference_output(output, payload, overwrite=False)
+        typer.echo(f"draft: {output}")
+
+
+@manifest_app.command("contract")
+def manifest_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic inference catalogue, bounds, and unsupported behavior."""
+
+    contract = manifest_inference_contract()
+    if output_format == "json":
+        typer.echo(contract.to_json())
+    elif output_format == "yaml":
+        typer.echo(contract.to_yaml())
+    elif output_format == "text":
+        typer.echo(f"inference_version: {contract.inference_version}")
+        typer.echo(f"max_files: {contract.limits.max_files}")
+        typer.echo(f"max_columns_per_file: {contract.limits.max_columns_per_file}")
+        typer.echo(f"max_sample_rows_per_file: {contract.limits.max_sample_rows_per_file}")
+        typer.echo("methods:")
+        for method in contract.methods:
+            typer.echo(f"  {method.method.value}: {method.precedence} - {method.meaning}")
+        typer.echo(f"score_semantics: {contract.score_semantics}")
+        typer.echo("confirmation_required: true")
+    else:
+        typer.echo("only --format text, json, or yaml is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+@manifest_app.command("confirm")
+def manifest_confirm_command(
+    draft_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    source: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    confirmed_by: Annotated[str, typer.Option("--confirmed-by")],
+    accept_suggestions: Annotated[bool, typer.Option("--accept-suggestions")] = False,
+    kinds: Annotated[list[str] | None, typer.Option("--kind")] = None,
+    mappings: Annotated[list[str] | None, typer.Option("--map")] = None,
+    unmap: Annotated[list[str] | None, typer.Option("--unmap")] = None,
+    units: Annotated[list[str] | None, typer.Option("--unit")] = None,
+    exclude: Annotated[list[str] | None, typer.Option("--exclude")] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Explicitly accept/edit a draft and emit a confirmed mapping artifact."""
+
+    try:
+        draft = load_inference_draft(draft_path)
+        selections = _manifest_inference_selections(
+            kinds or [], mappings or [], unmap or [], units or [], exclude or []
+        )
+        confirmed = confirm_manifest_inference(
+            draft,
+            source,
+            confirmed_by=confirmed_by,
+            accept_suggestions=accept_suggestions,
+            selections=selections,
+        )
+        _ensure_not_confirmed_source_csv(output, source, confirmed)
+        _write_manifest_inference_output(output, confirmed.to_yaml(), overwrite=overwrite)
+    except (ManifestInferenceError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"canonicalisation: {output}")
+    typer.echo(f"confirmation_state: {confirmed.confirmation_state.value}")
+    typer.echo(f"confirmation_fingerprint: {confirmed.confirmation_fingerprint}")
+    typer.echo("analysis_ready: true")
+
+
+@manifest_app.command("files")
+def manifest_files_command(
+    canonicalisation_path: Annotated[
+        Path, typer.Argument(exists=True, dir_okay=False, readable=True)
+    ],
+    output_format: Annotated[str, typer.Option("--format")] = "yaml",
+) -> None:
+    """Render confirmed file declarations for inspection or manual manifest editing."""
+
+    try:
+        canonicalisation = load_canonicalisation_manifest(canonicalisation_path)
+    except ManifestInferenceError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    payload = {
+        "files": {
+            kind: declaration.model_dump(mode="json", exclude_none=True)
+            for kind, declaration in canonicalisation.file_declarations().items()
+        }
+    }
+    if output_format == "yaml":
+        typer.echo(yaml.safe_dump(payload, sort_keys=False))
+    elif output_format == "json":
+        typer.echo(json.dumps(payload, indent=2))
+    else:
+        typer.echo("only --format json or yaml is supported", err=True)
+        raise typer.Exit(code=1)
+
+
+@manifest_app.command("apply")
+def manifest_apply_command(
+    canonicalisation_path: Annotated[
+        Path, typer.Argument(exists=True, dir_okay=False, readable=True)
+    ],
+    template_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+) -> None:
+    """Apply confirmed mappings to a complete bundle-manifest metadata template."""
+
+    try:
+        canonicalisation = load_canonicalisation_manifest(canonicalisation_path)
+        raw = yaml.safe_load(template_path.read_text(encoding="utf-8"))
+        if not isinstance(raw, dict):
+            raise ManifestInferenceError("bundle manifest template must contain a mapping")
+        manifest = apply_canonicalisation_to_template(canonicalisation, raw)
+        _write_manifest_inference_output(
+            output,
+            bundle_manifest_to_yaml(manifest),
+            overwrite=overwrite,
+        )
+    except (ManifestInferenceError, OSError, yaml.YAMLError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"manifest: {output}")
+    typer.echo(f"bundle: {manifest.bundle.bundle_id}")
+    typer.echo(f"confirmed_by: {canonicalisation.confirmed_by}")
+
+
+@sumo_app.command("validate")
+def sumo_validate_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate and canonicalise immutable tripinfo and summary XML outputs."""
+
+    result = validate_sumo_results(path)
+    if output_format == "json":
+        typer.echo(result.to_json())
+    elif output_format == "text":
+        typer.echo(f"bundle: {result.report.bundle_id or 'unknown'}")
+        typer.echo(f"run: {result.report.run_id or 'unknown'}")
+        typer.echo(f"status: {result.report.status.value}")
+        typer.echo(f"may_import: {result.report.may_import}")
+        typer.echo(f"fingerprint: {result.fingerprint or 'unavailable'}")
+        typer.echo(f"tripinfo_records: {len(result.trip_observations)}")
+        typer.echo(f"canonical_trips: {len(result.canonical.trips)}")
+        typer.echo(f"summary_steps: {len(result.summary_steps)}")
+        for finding in result.report.findings:
+            typer.echo(f"{finding.severity.value}: {finding.code.value}: {finding.message}")
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    if not result.report.may_import:
+        raise typer.Exit(code=1)
+
+
+@sumo_app.command("metrics")
+def sumo_metrics_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Compute deterministic canonical trip metrics from accepted SUMO outputs."""
+
+    result = validate_sumo_results(path)
+    if result.manifest is None or not result.report.may_import:
+        typer.echo("SUMO result package rejected; metrics were not computed", err=True)
+        raise typer.Exit(code=1)
+    collection = compute_metrics_for_sumo(result)
+    if output_format == "json":
+        typer.echo(collection.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"run: {collection.run_id}")
+    typer.echo(f"metric_version: {collection.metric_version}")
+    for key in (
+        "trip.records.count",
+        "trip.completed.count",
+        "trip.incomplete.count",
+        "trip.completion.rate",
+        "trip.duration.mean_s",
+        "trip.duration.p95_s",
+    ):
+        metric = collection.by_key()[key]
+        typer.echo(f"{key}: {metric.value if metric.value is not None else metric.status.value}")
+
+
+@sumo_app.command("import")
+def sumo_import_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False, writable=True)],
+) -> None:
+    """Register accepted SUMO results and their deterministic canonical metrics."""
+
+    try:
+        result = import_sumo_results(path, registry)
+    except RegistryConflictError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"bundle: {result.bundle_id or 'unknown'}")
+    typer.echo(f"run: {result.run_id or 'unknown'}")
+    typer.echo(f"status: {result.status}")
+    typer.echo(f"created: {result.created}")
+    typer.echo(f"idempotent: {result.idempotent}")
+    typer.echo(f"metrics_stored: {result.metrics_stored}")
+    typer.echo(result.message)
+    if result.status == "rejected":
+        raise typer.Exit(code=1)
 
 
 @tos_app.command("inspect")
@@ -1600,6 +4850,90 @@ def _require_text_format(output_format: str) -> None:
         raise typer.Exit(code=1)
 
 
+def _emit_cache_status(status: CanonicalCacheStatus) -> None:
+    typer.echo(f"cache_state: {status.state.value}")
+    typer.echo(f"cache_key: {status.cache_key or 'unavailable'}")
+    typer.echo(f"cache_entry: {status.cache_entry or 'unavailable'}")
+    typer.echo(f"verified_files: {status.verified_files}")
+    typer.echo(
+        "canonical_record_counts: "
+        + (json.dumps(status.record_counts, sort_keys=True) if status.record_counts else "none")
+    )
+    typer.echo(f"cache_detail: {status.detail}")
+
+
+def _manifest_inference_selections(
+    kinds: list[str],
+    mappings: list[str],
+    unmapped: list[str],
+    units: list[str],
+    excluded: list[str],
+) -> ManifestInferenceSelections:
+    files: dict[str, FileSelection] = {path: FileSelection(include=False) for path in excluded}
+    try:
+        for item in kinds:
+            path, kind = _split_simple_assignment(item, "--kind")
+            selection = files.setdefault(path, FileSelection())
+            selection.kind = kind
+        for item in mappings:
+            path, canonical_field, source_column = _split_field_assignment(item, "--map")
+            selection = files.setdefault(path, FileSelection())
+            selection.column_map[canonical_field] = source_column
+        for item in unmapped:
+            path, canonical_field = _split_qualified_field(item, "--unmap")
+            selection = files.setdefault(path, FileSelection())
+            selection.unmapped_fields.append(canonical_field)
+        for item in units:
+            path, canonical_field, unit = _split_field_assignment(item, "--unit")
+            selection = files.setdefault(path, FileSelection())
+            selection.units[canonical_field] = unit
+    except ValueError as exc:
+        raise ManifestInferenceError(str(exc)) from exc
+    return ManifestInferenceSelections(files=files)
+
+
+def _split_simple_assignment(value: str, option: str) -> tuple[str, str]:
+    if "=" not in value:
+        raise ValueError(f"{option} expects KEY=VALUE")
+    key, selected = value.split("=", maxsplit=1)
+    if not key or not selected:
+        raise ValueError(f"{option} expects non-empty KEY=VALUE")
+    return key, selected
+
+
+def _split_field_assignment(value: str, option: str) -> tuple[str, str, str]:
+    key, selected = _split_simple_assignment(value, option)
+    path, field = _split_qualified_field(key, option)
+    return path, field, selected
+
+
+def _split_qualified_field(value: str, option: str) -> tuple[str, str]:
+    key = value
+    if ":" not in key:
+        raise ValueError(f"{option} expects FILE:FIELD")
+    path, field = key.rsplit(":", maxsplit=1)
+    if not path or not field:
+        raise ValueError(f"{option} expects FILE:FIELD")
+    return path, field
+
+
+def _write_manifest_inference_output(output: Path, payload: str, *, overwrite: bool) -> None:
+    if output.exists() and not overwrite:
+        raise ManifestInferenceError(f"output already exists: {output}; use --overwrite")
+    output.write_text(payload, encoding="utf-8")
+
+
+def _ensure_not_confirmed_source_csv(
+    output: Path,
+    source: Path,
+    canonicalisation: CanonicalisationManifest,
+) -> None:
+    output_resolved = output.resolve()
+    source_files = {(source / mapping.path).resolve() for mapping in canonicalisation.mappings}
+    if output_resolved in source_files:
+        raise ManifestInferenceError("output cannot overwrite a confirmed immutable source CSV")
+
+
 def _optional_number(value: float | None) -> str:
     return "unavailable" if value is None else f"{value:.6f}"
 
@@ -1624,6 +4958,216 @@ def _collection_from_identifier(
     return MetricCollection.model_validate_json(payload), None
 
 
+def _experiment_collections(registry_path: Path, experiment_id: str) -> list[MetricCollection]:
+    """Load stored metric collections explicitly belonging to an experiment."""
+
+    return [
+        collection
+        for payload in Registry(registry_path).list_metric_collection_json()
+        if (collection := MetricCollection.model_validate_json(payload)).results
+        and collection.results[0].experiment_id == experiment_id
+    ]
+
+
+def _validate_statistical_study_selection(
+    experiment: Experiment,
+    baseline_seed_id: str,
+    variation_seed_id: str,
+    algorithm: str,
+) -> None:
+    """Require the CLI analysis selection to match the registered plan."""
+
+    findings: list[str] = []
+    if baseline_seed_id != experiment.baseline_seed_id:
+        findings.append(
+            f"baseline seed must match registered baseline {experiment.baseline_seed_id!r}"
+        )
+    if variation_seed_id not in experiment.variation_seed_ids:
+        findings.append("variation seed is not declared by the registered experiment")
+    if algorithm not in experiment.algorithms:
+        findings.append("algorithm is not declared by the registered experiment")
+    if not experiment.common_random_seed_set:
+        findings.append("registered experiment has no common random-seed set")
+    if findings:
+        raise ValueError("; ".join(findings))
+
+
+def _load_regression_subject(
+    identifier: str,
+    subject_kind: RegressionSubjectKind,
+    registry_path: Path | None,
+) -> RegressionSubject:
+    """Load only the typed artifact family declared by the golden contract."""
+
+    if subject_kind is RegressionSubjectKind.METRIC_COLLECTION:
+        return _collection_from_identifier(identifier, registry_path)[0]
+    path = Path(identifier)
+    if not path.is_file():
+        raise ValueError("a paired statistical-study regression subject must be a JSON file")
+    return parse_statistical_study_json(path.read_bytes())
+
+
+def _parse_regression_tolerance(value: str) -> RegressionToleranceSpec:
+    """Parse one explicit SELECTOR=ABSOLUTE,RELATIVE CLI declaration."""
+
+    selector, separator, raw_tolerances = value.partition("=")
+    if not separator or not selector.strip():
+        raise ValueError("--tolerance expects SELECTOR=ABSOLUTE,RELATIVE")
+    fields = [field.strip() for field in raw_tolerances.split(",")]
+    if len(fields) != 2 or any(not field for field in fields):
+        raise ValueError("--tolerance expects SELECTOR=ABSOLUTE,RELATIVE")
+    try:
+        absolute, relative = (float(field) for field in fields)
+    except ValueError as exc:
+        raise ValueError("regression tolerances must be finite numbers") from exc
+    return RegressionToleranceSpec(
+        selector=selector,
+        absolute_tolerance=absolute,
+        relative_tolerance=relative,
+    )
+
+
+def _emit_or_write_json(payload: str, output: Path | None, *, label: str) -> None:
+    """Emit JSON or write it to an explicitly requested file."""
+
+    if output is None:
+        typer.echo(payload)
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(payload, encoding="utf-8")
+    typer.echo(label)
+    typer.echo(f"output: {output}")
+
+
+def _provenance_completeness_payload(
+    report: ProvenanceCompletenessReport,
+    output_format: str,
+) -> str:
+    if output_format == "json":
+        return report.to_json()
+    if output_format == "csv":
+        return provenance_completeness_report_to_csv(report)
+    if output_format == "text":
+        score = f"{report.score:.6f}" if report.score is not None else "unavailable"
+        return (
+            f"report_id: {report.report_id}\n"
+            f"report_type: {report.report_type.value}\n"
+            f"status: {report.overall_status.value}\n"
+            f"score: {score}\n"
+            f"denominator: {report.denominator_count}\n"
+            f"source_row_complete: {report.source_row_complete_count}\n"
+            f"aggregate_only: {report.aggregate_only_count}\n"
+            f"unavailable: {report.unavailable_count}\n"
+        )
+    raise ProvenanceQueryError("output format must be one of: json, csv, text")
+
+
+def _emit_batch_summary(
+    summary: BatchBundleSummary,
+    output_format: str,
+    output: Path | None,
+) -> None:
+    """Render a batch summary in one of the documented deterministic formats."""
+
+    if output_format == "text":
+        payload = batch_summary_to_text(summary)
+    elif output_format == "json":
+        payload = summary.to_json()
+    elif output_format == "csv":
+        payload = batch_summary_to_csv(summary)
+    else:
+        typer.echo("only --format text, json, or csv is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="batch summary written")
+
+
+def _streaming_config(
+    chunk_rows: int,
+    max_chunk_bytes: int,
+    max_table_bytes: int,
+    max_bundle_bytes: int,
+) -> StreamingCanonicalisationConfig:
+    try:
+        return StreamingCanonicalisationConfig(
+            chunk_rows=chunk_rows,
+            max_chunk_bytes=max_chunk_bytes,
+            max_table_uncompressed_bytes=max_table_bytes,
+            max_bundle_uncompressed_bytes=max_bundle_bytes,
+        )
+    except ValueError as exc:
+        typer.echo(f"invalid streaming configuration: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+
+def _emit_streaming_validation(
+    result: StreamingBundleValidationResult,
+    output_format: str,
+    output: Path | None,
+) -> None:
+    if output_format == "json":
+        payload = result.to_json()
+    elif output_format == "text":
+        payload = _streaming_validation_to_text(result)
+    else:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    _emit_or_write_json(payload, output, label="streaming validation summary written")
+
+
+def _streaming_validation_to_text(result: StreamingBundleValidationResult) -> str:
+    summary = result.streaming
+    counts = ", ".join(f"{name}={count}" for name, count in summary.canonical_record_counts.items())
+    return (
+        f"bundle: {result.report.bundle_id or 'unknown'}\n"
+        f"run: {result.report.run_id or 'unknown'}\n"
+        f"status: {result.report.status.value}\n"
+        f"may_import: {result.report.may_import}\n"
+        f"chunks: {summary.chunk_count}\n"
+        f"chunk_rows_limit: {summary.config.chunk_rows}\n"
+        f"max_observed_chunk_rows: {summary.max_observed_chunk_source_rows}\n"
+        f"max_observed_chunk_bytes: {summary.max_observed_chunk_decoded_bytes}\n"
+        f"canonical_records: {counts}\n"
+    )
+
+
+def _windowed_metric_config(
+    width_s: float,
+    alignment_origin_s: float,
+    analysis_start_s: float | None,
+    analysis_end_s: float | None,
+    partial_windows: str,
+    max_windows: int,
+) -> WindowedMetricConfig:
+    try:
+        return WindowedMetricConfig(
+            width_s=width_s,
+            alignment_origin_s=alignment_origin_s,
+            analysis_start_s=analysis_start_s,
+            analysis_end_s=analysis_end_s,
+            partial_window_policy=PartialWindowPolicy(partial_windows),
+            max_windows=max_windows,
+        )
+    except ValueError as exc:
+        typer.echo(f"invalid window configuration: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+
+def _windowed_metric_series_to_text(series: WindowedMetricSeries) -> str:
+    return (
+        f"run: {series.run_id}\n"
+        f"status: {series.status.value}\n"
+        f"boundary: {series.boundary}\n"
+        f"width_s: {series.config.width_s}\n"
+        f"alignment_origin_s: {series.config.alignment_origin_s}\n"
+        f"range_source: {series.range_source.value}\n"
+        f"analysis_range_s: {series.analysis_start_s} to {series.analysis_end_s}\n"
+        f"included_windows: {series.included_window_count}\n"
+        f"excluded_partial_windows: {series.excluded_partial_window_count}\n"
+        f"included_empty_windows: {series.included_empty_window_count}\n"
+        f"applicable_metrics: {len(series.applicable_metric_keys)}\n"
+    )
+
+
 def _tos_row(path: Path, identifier: str) -> TosEvaluationRun:
     rows = read_evaluation_runs(path)
     for row in rows:
@@ -1644,14 +5188,111 @@ def _ensure_metric_context_available(result: BundleValidationResult) -> None:
 
 
 def _diagnostic_report_from_path(path: Path) -> DiagnosticReport:
+    return evaluate_rules(_evidence_pack_from_path(path))
+
+
+def _evidence_pack_from_path(path: Path) -> EvidencePack:
+    """Build or load the exact EvidencePack boundary consumed by diagnostic rules."""
+
     if path.is_file() and path.suffix.lower() == ".json":
-        pack = EvidencePack.model_validate_json(path.read_text(encoding="utf-8"))
-        return evaluate_rules(pack)
+        return EvidencePack.model_validate_json(path.read_text(encoding="utf-8"))
     result = validate_bundle(path)
     _ensure_metric_context_available(result)
     collection = compute_metrics_for_bundle(result)
-    pack = build_evidence_pack(result, collection)
-    return evaluate_rules(pack)
+    return build_evidence_pack(result, collection)
+
+
+def _r7_only_config(r7: R7Config) -> RuleSetConfig:
+    return RuleSetConfig.model_validate(
+        {
+            "r0": {"enabled": False},
+            "r1": {"enabled": False},
+            "r2": {"enabled": False},
+            "r3": {"enabled": False},
+            "r4": {"enabled": False},
+            "r5": {"enabled": False},
+            "r6": {"enabled": False},
+            "r7": r7.model_dump(mode="json"),
+            "r8": {"enabled": False},
+        }
+    )
+
+
+def _r8_only_config(r8: R8Config) -> RuleSetConfig:
+    return RuleSetConfig.model_validate(
+        {
+            "r0": {"enabled": False},
+            "r1": {"enabled": False},
+            "r2": {"enabled": False},
+            "r3": {"enabled": False},
+            "r4": {"enabled": False},
+            "r5": {"enabled": False},
+            "r6": {"enabled": False},
+            "r7": {"enabled": False},
+            "r8": r8.model_dump(mode="json"),
+        }
+    )
+
+
+def _rule_result_to_text(result: object) -> str:
+    """Return a compact stable text projection for any typed RuleResult."""
+
+    from traffictwin.rules.models import RuleResult
+
+    if not isinstance(result, RuleResult):  # pragma: no cover - internal type guard
+        raise TypeError("expected RuleResult")
+    lines = [
+        f"rule_id: {result.rule_id}",
+        f"rule_version: {result.rule_version}",
+        f"status: {result.status.value}",
+        f"confidence: {result.confidence.value}",
+        f"evidence_keys: {', '.join(result.evidence_keys) or 'none'}",
+    ]
+    if result.hypothesis:
+        lines.append(f"hypothesis: {result.hypothesis}")
+    lines.extend(f"missing_evidence: {item}" for item in result.missing_evidence)
+    fingerprint = result.metadata.get("declarative_definition_fingerprint")
+    if fingerprint is not None:
+        lines.append(f"definition_fingerprint: {fingerprint}")
+    return "\n".join(lines) + "\n"
+
+
+def _nearest_flip_to_text(analysis: object) -> str:
+    """Return a compact stable text projection for a typed nearest-flip artifact."""
+
+    from traffictwin.diagnostics.sensitivity import NearestFlipAnalysis
+
+    if not isinstance(analysis, NearestFlipAnalysis):  # pragma: no cover - internal type guard
+        raise TypeError("expected NearestFlipAnalysis")
+    lines = [
+        f"analysis_id: {analysis.analysis_id}",
+        f"rule_id: {analysis.rule_id}",
+        f"status: {analysis.status.value}",
+        f"reason_code: {analysis.reason_code.value}",
+        f"source_status: {analysis.source_status.value if analysis.source_status else 'none'}",
+        "candidate_status: "
+        f"{analysis.candidate_status.value if analysis.candidate_status else 'none'}",
+        f"tie_count: {analysis.tie_count}",
+    ]
+    for constraint in analysis.constraints:
+        lines.append(
+            "constraint: "
+            f"{constraint.parameter_path} observed={constraint.observed_value} "
+            f"required={constraint.required_minimum} satisfied={str(constraint.satisfied).lower()}"
+        )
+    for candidate in analysis.candidates:
+        lines.append(
+            "candidate: "
+            f"{candidate.parameter_path} {candidate.current_value} -> {candidate.flip_value} "
+            f"delta={candidate.absolute_delta} {candidate.unit}"
+        )
+    lines.extend(
+        [
+            f"fingerprint: {analysis.fingerprint()}",
+            f"reason: {analysis.reason}",
+        ]
+    )
+    return "\n".join(lines) + "\n"
 
 
 def _emit_provenance_trace(trace: ProvenanceTrace, output_format: str) -> None:
@@ -1661,8 +5302,14 @@ def _emit_provenance_trace(trace: ProvenanceTrace, output_format: str) -> None:
     if output_format == "markdown":
         typer.echo(trace_to_markdown(trace))
         return
+    if output_format in {"dot", "graphml"}:
+        typer.echo(export_provenance(trace, output_format))
+        return
     if output_format != "text":
-        typer.echo("only --format text, json, or markdown is supported", err=True)
+        typer.echo(
+            "only --format text, json, markdown, dot, or graphml is supported",
+            err=True,
+        )
         raise typer.Exit(code=1)
     counts = node_type_counts(trace)
     typer.echo(f"trace: {trace.trace_id}")
@@ -1693,19 +5340,81 @@ def _write_report(
     builder: Callable[[str | Path], ResearchReport],
     path: Path,
     output: Path,
+    *,
+    registry: Path | None = None,
 ) -> None:
     try:
         report = builder(path)
     except ReportBuildError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
-    _write_report_payload(report, output)
+    _write_report_payload(_report_with_registry_annotations(report, registry), output)
+
+
+def _report_with_registry_annotations(
+    report: ResearchReport,
+    registry: Path | None,
+) -> ResearchReport:
+    if registry is None:
+        return report
+    try:
+        return attach_registry_annotations(report, Registry(registry))
+    except (RegistryError, ReportAnnotationError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
 
 
 def _write_report_payload(report: ResearchReport, output: Path) -> None:
-    payload = (
-        report_to_html(report) if output.suffix.lower() == ".html" else report_to_markdown(report)
-    )
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(payload, encoding="utf-8")
+    if output.suffix.lower() == ".json":
+        output.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    elif output.suffix.lower() == ".pdf":
+        output.write_bytes(report_to_pdf_bytes(report))
+    else:
+        payload = (
+            report_to_html(report)
+            if output.suffix.lower() == ".html"
+            else report_to_markdown(report)
+        )
+        output.write_text(payload, encoding="utf-8")
     typer.echo(f"report: {output}")
+
+
+def _write_research_projection(
+    projection: ResearchExportProjection,
+    output: Path,
+    figure: Path | None,
+    *,
+    overwrite: bool,
+) -> None:
+    try:
+        receipt = write_projection_exports(
+            projection,
+            output,
+            figure_path=figure,
+            overwrite=overwrite,
+        )
+    except (FileExistsError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"table: {output}")
+    if figure is not None:
+        typer.echo(f"figure: {figure}")
+    typer.echo(f"projection: {receipt.projection_fingerprint}")
+    typer.echo(f"source_mode: {_projection_source_mode(projection)}")
+    for published_file in receipt.files:
+        typer.echo(
+            "file: "
+            f"{published_file.name} "
+            f"format={published_file.format} "
+            f"sha256={published_file.checksum_sha256} "
+            f"bytes={published_file.size_bytes}"
+        )
+
+
+def _projection_source_mode(projection: ResearchExportProjection) -> str:
+    if projection.synthetic is True:
+        return "synthetic"
+    if projection.synthetic is False:
+        return "imported_or_non_synthetic"
+    return "unresolved"

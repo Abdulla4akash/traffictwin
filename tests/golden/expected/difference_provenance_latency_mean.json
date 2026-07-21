@@ -1,0 +1,84 @@
+{
+  "absolute_delta": 140.0,
+  "arithmetic_contribution_sum": 140.0,
+  "baseline": {
+    "candidate_row_count": 3,
+    "excluded_row_count": 0,
+    "included_row_count": 3,
+    "input_fingerprint": "b778c4c3f27cefda66f452432fdf920ac577345ab5ed889d3b1e77a09cabf75a",
+    "run_id": "run-baseline-001",
+    "side": "baseline",
+    "synthetic": true
+  },
+  "baseline_value": 126.66666666666667,
+  "capability_id": "PRO-01",
+  "comparison_basis": "variation_minus_baseline",
+  "decomposition_method": "eligible latency_ms divided by eligible row count",
+  "metric_key": "task.latency.mean_ms",
+  "non_causality_statement": "This report records deterministic arithmetic and eligible input lineage only; it does not establish that any row, vehicle, RSU, or incident caused the observed difference.",
+  "reconciles_to_absolute_delta": true,
+  "rows": [
+    {
+      "included": true,
+      "record_id": "t1",
+      "run_metric_contribution": 26.666666666666668,
+      "side": "baseline",
+      "signed_difference_contribution": -26.666666666666668
+    },
+    {
+      "included": true,
+      "record_id": "t2",
+      "run_metric_contribution": 40.0,
+      "side": "baseline",
+      "signed_difference_contribution": -40.0
+    },
+    {
+      "included": true,
+      "record_id": "t3",
+      "run_metric_contribution": 60.0,
+      "side": "baseline",
+      "signed_difference_contribution": -60.0
+    },
+    {
+      "included": true,
+      "record_id": "v1",
+      "run_metric_contribution": 46.666666666666664,
+      "side": "variation",
+      "signed_difference_contribution": 46.666666666666664
+    },
+    {
+      "included": true,
+      "record_id": "v2",
+      "run_metric_contribution": 80.0,
+      "side": "variation",
+      "signed_difference_contribution": 80.0
+    },
+    {
+      "included": true,
+      "record_id": "v3",
+      "run_metric_contribution": 140.0,
+      "side": "variation",
+      "signed_difference_contribution": 140.0
+    },
+    {
+      "included": false,
+      "record_id": "v4",
+      "run_metric_contribution": null,
+      "side": "variation",
+      "signed_difference_contribution": null
+    }
+  ],
+  "schema_version": "1.0",
+  "status": "arithmetic",
+  "unit": "ms",
+  "variation": {
+    "candidate_row_count": 4,
+    "excluded_row_count": 1,
+    "included_row_count": 3,
+    "input_fingerprint": "3fc08c756bc911923bed1342ceacf8ae9ddb820ebc3bd709b026dd9ab10e02ab",
+    "run_id": "run-variation-001",
+    "side": "variation",
+    "synthetic": true
+  },
+  "variation_value": 266.6666666666667
+}

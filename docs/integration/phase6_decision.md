@@ -58,7 +58,7 @@ Scenario controls found in the source are documented but remain disabled in the 
 The source metric version remains
 `tos-source-summary-v2_post_nrsus_fix-1.0`. Concurrency pressure is an inspection field, not a new
 metric. EvidencePacks continue to mark canonical infrastructure evidence unavailable, so R0
-qualifies the run and R1-R3 remain insufficient for ordinary imported source-summary runs.
+qualifies the run and R1-R5 remain insufficient for ordinary imported source-summary runs.
 
 ## Provenance Policy
 

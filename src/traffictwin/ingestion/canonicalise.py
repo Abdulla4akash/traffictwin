@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from traffictwin.adapters.generic_csv import GenericCsvAdapter
+from traffictwin.adapters.generic_csv import GenericTabularAdapter
 from traffictwin.canonical.tables import CanonicalTables
 from traffictwin.ingestion.manifest import BundleManifest
 from traffictwin.validation.reconciliation import reconcile_tables
@@ -16,8 +16,8 @@ def canonicalise_bundle(
     manifest: BundleManifest,
     report: ValidationReport,
 ) -> CanonicalTables:
-    """Canonicalise a bundle using the generic CSV adapter."""
+    """Canonicalise a bundle using the generic declared-tabular adapter."""
 
-    tables = GenericCsvAdapter().canonicalise(root, manifest, report)
+    tables = GenericTabularAdapter().canonicalise(root, manifest, report)
     reconcile_tables(tables, report)
     return tables

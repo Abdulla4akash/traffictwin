@@ -1,0 +1,800 @@
+{
+  "adapters": [
+    {
+      "adapter_id": "sumo_results_v1",
+      "adapter_version": "1.0",
+      "blockers": [
+        {
+          "affected_capabilities": [
+            "direct_launch",
+            "asynchronous_launch"
+          ],
+          "code": "SUMO_DIRECT_LAUNCH_UNSUPPORTED",
+          "evidence": [
+            "sumo source contract",
+            "adapter implementation"
+          ],
+          "reason": "The adapter accepts completed results and contains no launcher.",
+          "required_evidence": [
+            "separately approved versioned launcher and execution-output contract"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "canonical_vehicle_state",
+            "spatial_metrics"
+          ],
+          "code": "SUMO_FCD_MAPPING_REQUIRED",
+          "evidence": [
+            "sumo source contract"
+          ],
+          "reason": "FCD has no approved TrafficTwin canonical mapping in this adapter.",
+          "required_evidence": [
+            "field, identity, coordinate-frame, unit, and coverage mapping contract"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "canonical_traffic_counts",
+            "windowed_traffic_metrics"
+          ],
+          "code": "SUMO_SUMMARY_SOURCE_SPECIFIC",
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/Summary.html"
+          ],
+          "reason": "The running field is an occupancy snapshot, not interval traffic flow.",
+          "required_evidence": [
+            "a distinct compatible canonical occupancy model or approved mapping"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "additional_sumo_versions"
+          ],
+          "code": "SUMO_VERSION_SCOPE_LIMITED",
+          "evidence": [
+            "1.27.x"
+          ],
+          "reason": "Acceptance evidence currently covers SUMO 1.27.x only.",
+          "required_evidence": [
+            "version-pinned public fixtures and compatibility tests for each version"
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "capabilities": {
+        "adapter": "sumo_results_v1",
+        "supports": {
+          "action_toggles": "false",
+          "analyst_annotations": "false",
+          "asynchronous_launch": "false",
+          "canonical_table_caching": "false",
+          "cross_rule_reasoning": "false",
+          "custom_metric_plugin_api": "true",
+          "declarative_rule_authoring": "true",
+          "difference_provenance": "false",
+          "direct_launch": "false",
+          "energy_anomaly_diagnosis": "false",
+          "energy_metric_family": "false",
+          "environment_doctor": "false",
+          "equivalence_testing": "false",
+          "fairness_disparity_diagnosis": "false",
+          "fairness_metric_family": "false",
+          "full_text_registry_search": "false",
+          "generalised_external_source_contract": "true",
+          "lane_closure": "false",
+          "latency_percentile_family": "false",
+          "latex_research_export": "false",
+          "measurement_noise_dropout_models": "false",
+          "n_way_policy_ranking": "false",
+          "nearest_flip_analysis": "false",
+          "one_page_executive_summary": "false",
+          "paired_statistical_study": "false",
+          "parameter_sweep_composer": "false",
+          "power_analysis": "false",
+          "provenance_completeness_score": "false",
+          "provenance_graph_export": "false",
+          "registry_schema_migrations": "false",
+          "regression_gate": "false",
+          "ro_crate_archival_export": "false",
+          "rsu_capacity": "false",
+          "rsu_count": "false",
+          "rsu_failure": "false",
+          "rsu_placement": "false",
+          "run_bundle_import": "true",
+          "scenario_mutation_operators": "false",
+          "seed_export": "false",
+          "seed_import": "false",
+          "signal_timing": "false",
+          "spatial_rsu_metric_family": "false",
+          "streaming_canonicalisation": "false",
+          "structured_report_diffing": "false",
+          "task_arrival_multiplier": "false",
+          "temporal_degradation_diagnosis": "false",
+          "threshold_sensitivity_sweep": "false",
+          "time_windowed_metrics": "false",
+          "vehicle_count": "false",
+          "vehicle_tier_mix": "false",
+          "workload_class_mix": "false",
+          "workload_ordering": "false"
+        }
+      },
+      "capability_id": "OPS-05",
+      "contract_version": "traffictwin-external-source-v1",
+      "conversion": {
+        "canonical_outputs": [
+          "TripRecord for departed valid tripinfo records"
+        ],
+        "level": "partial_canonical",
+        "registry_outputs": [
+          "imported Run metadata",
+          "canonical trip MetricCollection"
+        ],
+        "rules": [
+          "Only fields with documented compatible semantics enter canonical tables.",
+          "Summary occupancy snapshots remain source-specific rather than interval flow.",
+          "Partial canonical conversion does not imply a complete generic run bundle."
+        ],
+        "source_specific_outputs": [
+          "SumoTripObservation",
+          "SumoSummaryStep"
+        ],
+        "unavailable_outputs": [
+          "canonical traffic counts from summary snapshots",
+          "canonical FCD vehicle observations",
+          "task, RSU, energy, fairness, and spatial VEC evidence",
+          "source launch or rerun"
+        ]
+      },
+      "direct_launch_is_out_of_scope": true,
+      "discovery_markers": [
+        {
+          "kind": "file",
+          "meaning": "TrafficTwin SUMO provenance and immutable-file manifest.",
+          "relative_path": "sumo-source.yaml",
+          "required": true
+        }
+      ],
+      "field_semantics": [
+        {
+          "artifact": "declared tripinfo XML",
+          "canonical_target": "TripRecord.trip_id and TripRecord.vehicle_id",
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/TripInfo.html"
+          ],
+          "limitations": [],
+          "meaning": "The SUMO vehicle identifier is retained unchanged.",
+          "source_field": "tripinfo.tripinfo@id",
+          "status": "confirmed",
+          "unit": null
+        },
+        {
+          "artifact": "declared tripinfo XML",
+          "canonical_target": "TripRecord.departure_time_s",
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/TripInfo.html"
+          ],
+          "limitations": [],
+          "meaning": "Undeparted records use SUMO's negative sentinel and remain source-only.",
+          "source_field": "tripinfo.tripinfo@depart",
+          "status": "confirmed",
+          "unit": "s"
+        },
+        {
+          "artifact": "declared tripinfo XML",
+          "canonical_target": "TripRecord.arrival_time_s",
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/TripInfo.html"
+          ],
+          "limitations": [],
+          "meaning": "Negative arrival or a vaporized reason becomes an incomplete canonical trip.",
+          "source_field": "tripinfo.tripinfo@arrival",
+          "status": "confirmed",
+          "unit": "s"
+        },
+        {
+          "artifact": "declared tripinfo XML",
+          "canonical_target": "TripRecord.duration_s",
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/TripInfo.html"
+          ],
+          "limitations": [],
+          "meaning": "Elapsed time for unfinished/vaporized records is not relabelled as trip duration.",
+          "source_field": "tripinfo.tripinfo@duration",
+          "status": "confirmed",
+          "unit": "s"
+        },
+        {
+          "artifact": "declared summary XML",
+          "canonical_target": null,
+          "evidence": [
+            "https://sumo.dlr.de/docs/Simulation/Output/Summary.html"
+          ],
+          "limitations": [
+            "The source field remains preserved but is not canonicalised."
+          ],
+          "meaning": "Summary running counts are occupancy snapshots, not interval flow counts; all documented fields remain typed SumoSummaryStep evidence.",
+          "source_field": "summary.step",
+          "status": "confirmed",
+          "unit": null
+        },
+        {
+          "artifact": "SUMO FCD output",
+          "canonical_target": null,
+          "evidence": [
+            "separate explicit mapping required"
+          ],
+          "limitations": [
+            "The source field remains preserved but is not canonicalised."
+          ],
+          "meaning": "FCD requires a separately approved explicit mapping contract.",
+          "source_field": "fcd-export",
+          "status": "unsupported",
+          "unit": null
+        }
+      ],
+      "inspection_is_read_only": true,
+      "interface_operations": [
+        "discover",
+        "contract",
+        "validate",
+        "inspect"
+      ],
+      "interpretation_limits": [
+        "A validated output package proves file compatibility, not scenario realism.",
+        "SUMO summary ended may include vehicles removed without reaching their destination.",
+        "Raw XML remains authoritative and is never rewritten by this adapter.",
+        "The conversion level is a description of outputs, not a quality score.",
+        "SUMO and TOS contracts are not interchangeable merely because both implement this interface."
+      ],
+      "provenance_requirements": [
+        {
+          "description": "Declared scenario identity.",
+          "evidence_rule": "Read only from sumo-source.yaml.",
+          "key": "scenario_id",
+          "required": true
+        },
+        {
+          "description": "Retrievable source-scenario reference.",
+          "evidence_rule": "Read only from sumo-source.yaml.",
+          "key": "scenario_url",
+          "required": true
+        },
+        {
+          "description": "Exact declared SUMO version.",
+          "evidence_rule": "Must match the adapter's supported version prefix.",
+          "key": "source_version",
+          "required": true
+        },
+        {
+          "description": "Optional source/scenario revision.",
+          "evidence_rule": "Record only when explicitly declared.",
+          "key": "source_commit",
+          "required": false
+        },
+        {
+          "description": "Declared reuse licence identifier.",
+          "evidence_rule": "Must be non-empty in sumo-source.yaml.",
+          "key": "licence_spdx",
+          "required": true
+        },
+        {
+          "description": "Declared source retrieval date.",
+          "evidence_rule": "Must be present in sumo-source.yaml.",
+          "key": "retrieval_date",
+          "required": true
+        },
+        {
+          "description": "Explicit redistribution permission state.",
+          "evidence_rule": "Never inferred from public accessibility.",
+          "key": "redistribution_allowed",
+          "required": true
+        },
+        {
+          "description": "Exact hashes of the declared raw XML files.",
+          "evidence_rule": "Recomputed and matched before parsing.",
+          "key": "raw_file_sha256",
+          "required": true
+        }
+      ],
+      "schema_version": "1.0",
+      "source_family": "Eclipse SUMO completed result package"
+    },
+    {
+      "adapter_id": "tos_data_read_only",
+      "adapter_version": "0.2.0",
+      "blockers": [
+        {
+          "affected_capabilities": [
+            "direct_launch",
+            "asynchronous_launch"
+          ],
+          "code": "TOS_DIRECT_LAUNCH_BLOCKED",
+          "evidence": [
+            "Actor/checkpoint files referenced by the results package are unavailable.",
+            "The evaluator contains a source-author-specific hard-coded repository path.",
+            "The writer for supplied per-step and per-task arrays is not present.",
+            "The evaluator has not been runtime-tested in the TrafficTwin environment."
+          ],
+          "reason": "Required checkpoints, writer evidence, and a tested portable runtime are unavailable.",
+          "required_evidence": [
+            "checkpoint permission and payloads",
+            "portable evaluator contract and runtime acceptance evidence",
+            "instrumentation writer and output reconciliation"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "canonical_task_conversion",
+            "canonical_vehicle_conversion",
+            "fairness_metrics"
+          ],
+          "code": "TOS_CANONICAL_TASK_CONVERSION_BLOCKED",
+          "evidence": [
+            "persistent vehicle identifiers",
+            "per-vehicle compute tier",
+            "V2I RSU target",
+            "V2V peer target",
+            "decision-time action availability",
+            "decision-time link quality",
+            "trip or journey-time records",
+            "raw SUMO FCD/XML/network/route files"
+          ],
+          "reason": "Persistent task/vehicle identities, per-vehicle tiers, and target joins are not exported.",
+          "required_evidence": [
+            "producer/writer schema with stable row identity and complete join semantics"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "canonical_infrastructure",
+            "spatial_rsu_metrics"
+          ],
+          "code": "TOS_INFRASTRUCTURE_MAPPING_BLOCKED",
+          "evidence": [
+            "vec_env field contract for rsu_load and rsu_busy_ms"
+          ],
+          "reason": "rsu_load and rsu_busy_ms do not satisfy canonical utilisation or queue semantics.",
+          "required_evidence": [
+            "compatible denominator, queue, target, coverage, and unit semantics"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "trip_metrics",
+            "journey_time_analysis"
+          ],
+          "code": "TOS_TRIP_OUTPUTS_UNAVAILABLE",
+          "evidence": [
+            "TOS package inventory",
+            "TOS source contract"
+          ],
+          "reason": "The package contains processed traces but no compatible trip output.",
+          "required_evidence": [
+            "immutable trip records with identity and timestamp semantics"
+          ],
+          "status": "confirmed"
+        },
+        {
+          "affected_capabilities": [
+            "public_redistribution",
+            "public_research_object"
+          ],
+          "code": "TOS_PUBLICATION_PERMISSION_UNKNOWN",
+          "evidence": [],
+          "reason": "A package licence and owner redistribution permission are not established.",
+          "required_evidence": [
+            "written owner permission and an applicable data licence statement"
+          ],
+          "status": "unknown"
+        }
+      ],
+      "capabilities": {
+        "adapter": "tos_data_read_only",
+        "supports": {
+          "action_toggles": "unknown",
+          "analyst_annotations": "false",
+          "asynchronous_launch": "false",
+          "canonical_table_caching": "false",
+          "cross_rule_reasoning": "false",
+          "custom_metric_plugin_api": "false",
+          "declarative_rule_authoring": "true",
+          "difference_provenance": "false",
+          "direct_launch": "false",
+          "energy_anomaly_diagnosis": "false",
+          "energy_metric_family": "false",
+          "environment_doctor": "false",
+          "equivalence_testing": "false",
+          "fairness_disparity_diagnosis": "false",
+          "fairness_metric_family": "false",
+          "full_text_registry_search": "false",
+          "generalised_external_source_contract": "true",
+          "lane_closure": "unknown",
+          "latency_percentile_family": "false",
+          "latex_research_export": "false",
+          "measurement_noise_dropout_models": "false",
+          "n_way_policy_ranking": "false",
+          "nearest_flip_analysis": "false",
+          "one_page_executive_summary": "false",
+          "paired_statistical_study": "false",
+          "parameter_sweep_composer": "false",
+          "power_analysis": "false",
+          "provenance_completeness_score": "false",
+          "provenance_graph_export": "true",
+          "registry_schema_migrations": "false",
+          "regression_gate": "false",
+          "ro_crate_archival_export": "false",
+          "rsu_capacity": "unknown",
+          "rsu_count": "unknown",
+          "rsu_failure": "unknown",
+          "rsu_placement": "unknown",
+          "run_bundle_import": "false",
+          "scenario_mutation_operators": "false",
+          "seed_export": "false",
+          "seed_import": "false",
+          "signal_timing": "unknown",
+          "spatial_rsu_metric_family": "false",
+          "streaming_canonicalisation": "false",
+          "structured_report_diffing": "false",
+          "task_arrival_multiplier": "unknown",
+          "temporal_degradation_diagnosis": "false",
+          "threshold_sensitivity_sweep": "false",
+          "time_windowed_metrics": "false",
+          "vehicle_count": "unknown",
+          "vehicle_tier_mix": "unknown",
+          "workload_class_mix": "unknown",
+          "workload_ordering": "unknown"
+        }
+      },
+      "capability_id": "OPS-05",
+      "contract_version": "traffictwin-external-source-v1",
+      "conversion": {
+        "canonical_outputs": [],
+        "level": "aggregate_summary",
+        "registry_outputs": [
+          "imported Run and Experiment metadata",
+          "source-summary MetricCollection",
+          "partial EvidencePack"
+        ],
+        "rules": [
+          "Source summaries stay labelled as producer-provided aggregate evidence.",
+          "Time-local slots are never promoted to persistent vehicle identities.",
+          "RSU active-task and backlog fields are not relabelled as CPU utilisation.",
+          "No source field enters canonical tables without a compatible mapping contract."
+        ],
+        "source_specific_outputs": [
+          "TosEvaluationRun source rows",
+          "TOS source-summary metrics",
+          "time-local vehicle-slot replay",
+          "source-specific RSU active-task/backlog views",
+          "bounded per-task showcase samples"
+        ],
+        "unavailable_outputs": [
+          "persistent vehicle identifiers",
+          "per-vehicle compute tier",
+          "V2I RSU target",
+          "V2V peer target",
+          "decision-time action availability",
+          "decision-time link quality",
+          "trip or journey-time records",
+          "raw SUMO FCD/XML/network/route files",
+          "canonical TaskRecord conversion",
+          "canonical InfrastructureRecord conversion",
+          "ordinary generic run-bundle conversion"
+        ]
+      },
+      "direct_launch_is_out_of_scope": true,
+      "discovery_markers": [
+        {
+          "kind": "file",
+          "meaning": "Documented source evaluation matrix.",
+          "relative_path": "evals/eval_results_master.csv",
+          "required": true
+        },
+        {
+          "kind": "file",
+          "meaning": "Package-authored field documentation.",
+          "relative_path": "DATA_DICTIONARY.md",
+          "required": false
+        },
+        {
+          "kind": "directory",
+          "meaning": "Optional source-specific per-step and per-task arrays.",
+          "relative_path": "instrumented",
+          "required": false
+        },
+        {
+          "kind": "directory",
+          "meaning": "Optional processed FCD NPZ traces.",
+          "relative_path": "traces",
+          "required": false
+        },
+        {
+          "kind": "directory",
+          "meaning": "Optional source training histories and summaries.",
+          "relative_path": "training",
+          "required": false
+        }
+      ],
+      "field_semantics": [
+        {
+          "artifact": "instrumented/pertask/*_pertask.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [],
+          "meaning": "Task class code: 0=T1, 1=T2, 2=T3.",
+          "source_field": "task_type",
+          "status": "confirmed",
+          "unit": "code"
+        },
+        {
+          "artifact": "instrumented/pertask/*_pertask.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [
+            "This does not establish eventual physical task completion."
+          ],
+          "meaning": "Whether modelled end-to-end latency was within the class deadline.",
+          "source_field": "task_met",
+          "status": "confirmed",
+          "unit": "boolean"
+        },
+        {
+          "artifact": "instrumented/pertask/*_pertask.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [
+            "Unavailable offload paths can receive the environment's capped failure latency."
+          ],
+          "meaning": "Modelled end-to-end task latency including compute backlog delay.",
+          "source_field": "task_lat_ms",
+          "status": "confirmed",
+          "unit": "ms"
+        },
+        {
+          "artifact": "traces/*.npz and instrumented/perstep/*_perstep.npz",
+          "canonical_target": null,
+          "evidence": [
+            "eval/build_trace.py"
+          ],
+          "limitations": [],
+          "meaning": "SUMO simulation timestamp.",
+          "source_field": "times",
+          "status": "confirmed",
+          "unit": "s"
+        },
+        {
+          "artifact": "traces/*.npz",
+          "canonical_target": null,
+          "evidence": [
+            "eval/build_trace.py",
+            "SUMO FCD output contract"
+          ],
+          "limitations": [],
+          "meaning": "SUMO network coordinates.",
+          "source_field": "pos_x, pos_y, rsu_xy",
+          "status": "confirmed",
+          "unit": "m"
+        },
+        {
+          "artifact": "traces/*.npz",
+          "canonical_target": null,
+          "evidence": [
+            "eval/build_trace.py",
+            "SUMO FCD output contract"
+          ],
+          "limitations": [],
+          "meaning": "Vehicle speed copied from SUMO FCD output.",
+          "source_field": "speed",
+          "status": "confirmed",
+          "unit": "m/s"
+        },
+        {
+          "artifact": "instrumented/perstep/*_perstep.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [
+            "The chosen RSU or peer target is not exported."
+          ],
+          "meaning": "Decision code at a time-local vehicle slot: 0=local, 1=V2I, 2=V2V.",
+          "source_field": "veh_action",
+          "status": "confirmed",
+          "unit": "code"
+        },
+        {
+          "artifact": "instrumented/perstep/*_perstep.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [
+            "This is not queue length and not CPU utilisation."
+          ],
+          "meaning": "Number of in-flight tasks assigned to an RSU.",
+          "source_field": "rsu_load",
+          "status": "confirmed",
+          "unit": "tasks"
+        },
+        {
+          "artifact": "instrumented/perstep/*_perstep.npz",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py"
+          ],
+          "limitations": [
+            "It has no validated utilisation denominator."
+          ],
+          "meaning": "Total remaining RSU compute backlog across in-flight tasks.",
+          "source_field": "rsu_busy_ms",
+          "status": "confirmed",
+          "unit": "ms"
+        },
+        {
+          "artifact": "instrumented/json/*.json",
+          "canonical_target": null,
+          "evidence": [
+            "jaxmarl/env/vec_jax.py",
+            "eval/eval_sumo_stage1_mc.py"
+          ],
+          "limitations": [
+            "The evaluator default is round(2.5 * maxN), but the recorded summary value is authoritative for an imported run."
+          ],
+          "meaning": "Maximum concurrent in-flight task count for each RSU.",
+          "source_field": "rsu_max_concurrent",
+          "status": "confirmed",
+          "unit": "tasks"
+        },
+        {
+          "artifact": "traces/*.npz",
+          "canonical_target": null,
+          "evidence": [
+            "eval/build_trace.py"
+          ],
+          "limitations": [
+            "Slots are reused and cannot be treated as persistent physical vehicle IDs."
+          ],
+          "meaning": "Padded, time-local slot allocated by the FCD trace builder.",
+          "source_field": "vehicle array index",
+          "status": "confirmed",
+          "unit": null
+        },
+        {
+          "artifact": "instrumented/json/*.json",
+          "canonical_target": null,
+          "evidence": [
+            "eval/eval_sumo_stage1_mc.py"
+          ],
+          "limitations": [
+            "Per-slot vehicle tier is not exported."
+          ],
+          "meaning": "Aggregate count of sampled compute tiers in the padded fleet.",
+          "source_field": "fleet_tier_hist",
+          "status": "confirmed",
+          "unit": "vehicles"
+        }
+      ],
+      "inspection_is_read_only": true,
+      "interface_operations": [
+        "discover",
+        "contract",
+        "validate",
+        "inspect"
+      ],
+      "interpretation_limits": [
+        "The evidence commit documents semantics; it is not asserted as the producer commit for every data-package row.",
+        "Concurrency pressure rsu_load/rsu_max_concurrent is an inspection signal, not a TrafficTwin infrastructure utilisation metric.",
+        "No source field is promoted to canonical data when its semantics do not match the existing canonical contract.",
+        "Aggregate-summary conversion and partial-canonical conversion are different boundaries, not quality ranks.",
+        "Implementing the shared interface does not make TOS equivalent to SUMO or a generic TrafficTwin bundle."
+      ],
+      "provenance_requirements": [
+        {
+          "description": "Fingerprint of the inspected package evidence.",
+          "evidence_rule": "Recomputed from the bounded package inventory.",
+          "key": "package_fingerprint",
+          "required": true
+        },
+        {
+          "description": "Package repository commit when present.",
+          "evidence_rule": "Record only from the inspected package repository.",
+          "key": "package_commit",
+          "required": false
+        },
+        {
+          "description": "vec_env commit used as field-semantics evidence.",
+          "evidence_rule": "Pinned in the versioned TOS source contract.",
+          "key": "semantics_source_commit",
+          "required": true
+        },
+        {
+          "description": "Observed evaluation engine versions.",
+          "evidence_rule": "Read from every evaluation row and validate compatibility.",
+          "key": "source_versions",
+          "required": true
+        },
+        {
+          "description": "Licence covering package reuse and redistribution.",
+          "evidence_rule": "Must be supplied by the owner; never inferred.",
+          "key": "licence_statement",
+          "required": true
+        },
+        {
+          "description": "Explicit permission for public redistribution.",
+          "evidence_rule": "Must be supplied by the owner; private access is not consent.",
+          "key": "redistribution_permission",
+          "required": true
+        },
+        {
+          "description": "Package-level source field documentation.",
+          "evidence_rule": "Confirmed only when the declared document is present directly.",
+          "key": "data_dictionary",
+          "required": false
+        }
+      ],
+      "schema_version": "1.0",
+      "source_family": "Randy TOS/vec_env completed evaluation package"
+    }
+  ],
+  "capability_id": "OPS-05",
+  "contract_version": "traffictwin-external-source-v1",
+  "conversion_level_semantics": {
+    "aggregate_summary": "Producer aggregate summaries may enter source-labelled artifacts; no canonical row conversion is implied.",
+    "canonical_bundle": "An adapter satisfies a complete declared canonical-bundle contract; this level is not claimed by either v1 external reference adapter.",
+    "none": "No typed TrafficTwin output is produced.",
+    "partial_canonical": "Only explicitly listed compatible fields enter listed canonical records; all other evidence stays source-specific or unavailable.",
+    "source_specific": "Typed inspection output is retained only in source-native semantics."
+  },
+  "exclusions": [
+    "dynamic plugin discovery or uploaded adapter code",
+    "automatic source conversion or manifest inference",
+    "direct or asynchronous simulator launch",
+    "registry mutation, package repair, or source rewriting",
+    "cross-source metric compatibility or scientific equivalence",
+    "licence, permission, unit, identity, join, or producer-version inference"
+  ],
+  "limitations": [
+    "v1 contains only the evidenced public SUMO and private TOS reference adapters.",
+    "Generic TrafficTwin run bundles retain their existing first-party validation path.",
+    "A new source requires a reviewed adapter, contract, fixtures, and acceptance evidence."
+  ],
+  "protocol_methods": [
+    "discover",
+    "contract",
+    "validate",
+    "inspect"
+  ],
+  "schema_version": "1.0",
+  "selection_policy": [
+    "Discovery uses exact safe relative markers and performs no deep parsing.",
+    "Zero matches remain unknown; TrafficTwin does not guess from extensions or names.",
+    "Multiple matches are ambiguous until the caller explicitly selects an adapter.",
+    "A symlinked source root or marker blocks selection before source validation.",
+    "The v1 registry is closed to the two evidenced reference adapters."
+  ],
+  "semantics_policy": [
+    "Every field meaning carries confirmed, inferred, unknown, or unsupported status.",
+    "Units, identity scope, joins, coverage, and canonical targets are never inferred.",
+    "Unknown and unsupported evidence remains visible instead of becoming zero.",
+    "Implementing this protocol does not make different source families equivalent."
+  ],
+  "validation_policy": [
+    "The selected adapter calls its existing source-specific read-only validator.",
+    "The portable summary retains the source report type, validator version, findings, fingerprint, import decision, and exact produced-record counts.",
+    "A portable accepted state applies only to the adapter's declared import boundary.",
+    "Validation never launches a simulator, repairs a source, or mutates a registry."
+  ]
+}

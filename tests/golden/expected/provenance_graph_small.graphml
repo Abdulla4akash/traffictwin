@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="g_schema" for="graph" attr.name="schema_version" attr.type="string" />
+  <key id="g_capability" for="graph" attr.name="capability_id" attr.type="string" />
+  <key id="g_root" for="graph" attr.name="root_node_id" attr.type="string" />
+  <key id="g_redaction" for="graph" attr.name="redaction_mode" attr.type="string" />
+  <key id="g_total_nodes" for="graph" attr.name="total_node_count" attr.type="int" />
+  <key id="g_total_edges" for="graph" attr.name="total_edge_count" attr.type="int" />
+  <key id="g_omitted_nodes" for="graph" attr.name="omitted_node_count" attr.type="int" />
+  <key id="g_omitted_edges" for="graph" attr.name="omitted_edge_count" attr.type="int" />
+  <key id="g_redactions" for="graph" attr.name="redaction_count" attr.type="int" />
+  <key id="n_type" for="node" attr.name="node_type" attr.type="string" />
+  <key id="n_label" for="node" attr.name="label" attr.type="string" />
+  <key id="n_description" for="node" attr.name="description" attr.type="string" />
+  <key id="n_status" for="node" attr.name="status" attr.type="string" />
+  <key id="n_synthetic" for="node" attr.name="synthetic" attr.type="boolean" />
+  <key id="n_root" for="node" attr.name="is_root" attr.type="boolean" />
+  <key id="n_attributes" for="node" attr.name="attributes_json" attr.type="string" />
+  <key id="n_source" for="node" attr.name="source_reference_json" attr.type="string" />
+  <key id="e_relation" for="edge" attr.name="relation" attr.type="string" />
+  <key id="e_description" for="edge" attr.name="description" attr.type="string" />
+  <key id="e_confidence" for="edge" attr.name="confidence" attr.type="string" />
+  <graph id="provenance-graph:74abb97d9aa64d0a54ba" edgedefault="directed">
+    <data key="g_schema">1.0</data>
+    <data key="g_capability">PRO-02</data>
+    <data key="g_root">metric_result:run-1:task.completion.rate</data>
+    <data key="g_redaction">safe</data>
+    <data key="g_total_nodes">3</data>
+    <data key="g_total_edges">2</data>
+    <data key="g_omitted_nodes">0</data>
+    <data key="g_omitted_edges">0</data>
+    <data key="g_redactions">0</data>
+    <node id="metric_result:run-1:task.completion.rate">
+      <data key="n_type">metric_result</data>
+      <data key="n_label">task.completion.rate</data>
+      <data key="n_description" />
+      <data key="n_status">available</data>
+      <data key="n_synthetic">true</data>
+      <data key="n_root">true</data>
+      <data key="n_attributes">{"unit":"ratio","value":0.75}</data>
+      <data key="n_source" />
+    </node>
+    <node id="canonical_table:tasks">
+      <data key="n_type">canonical_table</data>
+      <data key="n_label">Canonical tasks</data>
+      <data key="n_description" />
+      <data key="n_status">available</data>
+      <data key="n_synthetic">true</data>
+      <data key="n_root">false</data>
+      <data key="n_attributes">{"record_count":4}</data>
+      <data key="n_source" />
+    </node>
+    <node id="source_file:tasks.csv">
+      <data key="n_type">source_file</data>
+      <data key="n_label">tasks.csv</data>
+      <data key="n_description" />
+      <data key="n_status">available</data>
+      <data key="n_synthetic">true</data>
+      <data key="n_root">false</data>
+      <data key="n_attributes">{}</data>
+      <data key="n_source">{"bundle_reference":"bundle-1","field":null,"file":"tasks.csv","row":null}</data>
+    </node>
+    <edge id="edge:e833036e1003e06d03c4" source="canonical_table:tasks" target="source_file:tasks.csv">
+      <data key="e_relation">generated_from</data>
+      <data key="e_description" />
+      <data key="e_confidence">exact</data>
+    </edge>
+    <edge id="edge:e16a368e0f7c7da2ff92" source="metric_result:run-1:task.completion.rate" target="canonical_table:tasks">
+      <data key="e_relation">computed_from</data>
+      <data key="e_description" />
+      <data key="e_confidence">exact</data>
+    </edge>
+  </graph>
+</graphml>

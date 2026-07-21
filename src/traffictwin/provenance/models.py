@@ -141,7 +141,7 @@ class TraceCompletenessSummary(BaseModel):
 
 
 class SourceRow(BaseModel):
-    """One raw CSV row in a source preview."""
+    """One decoded raw tabular row in a source preview."""
 
     model_config = ConfigDict(extra="forbid")
 

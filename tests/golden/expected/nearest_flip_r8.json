@@ -1,0 +1,109 @@
+{
+  "analysis": {
+    "analysed_at": "2026-07-17T12:00:00Z",
+    "analysis_id": "nearest-flip-2230ccdbe147",
+    "analysis_version": "1.0",
+    "candidate_result_fingerprint": "07f5a601063323b2b2ffbfd94d0c25dfcc7859afb99e63978a7c3afaa9708a25",
+    "candidate_status": "triggered",
+    "candidates": [
+      {
+        "absolute_delta": 0.5,
+        "candidate_rule_config": {
+          "enabled": true,
+          "minimum_completed_tasks": 10,
+          "minimum_energy_per_completed_task_j": 1.0
+        },
+        "current_value": 1.5,
+        "direction": "decrease",
+        "flip_value": 1.0,
+        "inclusive_boundary": true,
+        "parameter_path": "r8.minimum_energy_per_completed_task_j",
+        "source_operator": "greater_than_or_equal",
+        "unit": "J/task",
+        "verified_status": "triggered"
+      }
+    ],
+    "capability": "DIA-05",
+    "constraints": [
+      {
+        "constraint_kind": "discrete_support",
+        "detail": "completed tasks in the exact energy population: observed 20, required at least 10",
+        "mutable_by_analysis": false,
+        "observed_value": 20,
+        "parameter_path": "r8.minimum_completed_tasks",
+        "required_minimum": 10,
+        "satisfied": true,
+        "unit": "count"
+      }
+    ],
+    "current_result_fingerprint": "9bcb4ba2716e795471cfc2d9ecad401dab96fbbdde0ab7d9fbfe6627a4ea9883",
+    "evidence_keys": [
+      "task.completed.count",
+      "task.energy.per_completed_j"
+    ],
+    "evidence_pack_fingerprint": "0a83e249c1412d40d3b5607574ecbb5f42936591a6315340fb7f58074fd1e4a4",
+    "evidence_pack_id": "pack-nearest-golden",
+    "limitations": [
+      "A nearest flip is a mathematical sensitivity boundary, not a recommended threshold.",
+      "v1.0 changes one continuous severity threshold and never lowers discrete evidence support.",
+      "The analysis does not persist, export as a default, or mutate the supplied configuration.",
+      "R5, R7, and R8 defaults remain provisional and require predeclared external calibration.",
+      "The result does not establish statistical significance, causality, optimisation, or external validity."
+    ],
+    "provenance": {
+      "metric_version": "test",
+      "source_bundle_fingerprint": "source-nearest-golden",
+      "source_evidence_fingerprint": "0a83e249c1412d40d3b5607574ecbb5f42936591a6315340fb7f58074fd1e4a4"
+    },
+    "reason": "The ordinary rule engine verified the exact inclusive single-boundary candidate.",
+    "reason_code": "AVAILABLE",
+    "rule_id": "R8",
+    "rule_version": "1.0",
+    "ruleset_version": "1.3",
+    "schema_version": "1.0",
+    "source_bundle_fingerprint": "source-nearest-golden",
+    "source_rule_config": {
+      "enabled": true,
+      "minimum_completed_tasks": 10,
+      "minimum_energy_per_completed_task_j": 1.5
+    },
+    "source_status": "not_triggered",
+    "status": "available",
+    "synthetic": true,
+    "tie_count": 1
+  },
+  "analysis_fingerprint": "757ad8d4a1946b3fe0e26c0083b4e9c1be1a45d26dcd927c6a01460c0abb67cb",
+  "contract": {
+    "analysis_version": "1.0",
+    "candidate_verification": "ordinary_rule_engine_re_evaluation",
+    "capability": "DIA-05",
+    "configuration_distance": "absolute_one_axis_delta_in_parameter_unit",
+    "discrete_constraint_policy": "report_but_never_change",
+    "evidence_boundary": "EvidencePack",
+    "limitations": [
+      "A nearest flip is a mathematical sensitivity boundary, not a recommended threshold.",
+      "v1.0 changes one continuous severity threshold and never lowers discrete evidence support.",
+      "The analysis does not persist, export as a default, or mutate the supplied configuration.",
+      "R5, R7, and R8 defaults remain provisional and require predeclared external calibration.",
+      "The result does not establish statistical significance, causality, optimisation, or external validity."
+    ],
+    "persistence_policy": "analysis_does_not_persist_configuration",
+    "schema_version": "1.0",
+    "source_status_required": "not_triggered",
+    "supported_threshold_parameters": {
+      "R5": "r5.maximum_absolute_gap",
+      "R7": "r7.minimum_outcome_gap",
+      "R8": "r8.minimum_energy_per_completed_task_j"
+    },
+    "tie_policy": "retain_all_equal_minimum_verified_candidates",
+    "unsupported_rule_ids": [
+      "R0",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R6",
+      "declarative"
+    ]
+  }
+}

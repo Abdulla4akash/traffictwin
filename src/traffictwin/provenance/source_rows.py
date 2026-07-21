@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import csv
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -10,6 +9,7 @@ from traffictwin.canonical.records import CanonicalRecord
 from traffictwin.canonical.tables import CanonicalTables
 from traffictwin.ingestion.loader import BundleLoadError, open_bundle
 from traffictwin.ingestion.manifest import BundleManifest, FileDeclaration
+from traffictwin.ingestion.tabular import TabularReadError, read_declared_table
 from traffictwin.metrics.results import JsonValue
 from traffictwin.provenance.models import ProvenanceStatus, SourceRow, SourceRowPreview
 from traffictwin.validation.findings import ValidationFinding
@@ -26,7 +26,7 @@ def get_source_row(
     validation_report: ValidationReport | None = None,
     manifest: BundleManifest | None = None,
 ) -> SourceRowPreview:
-    """Return a bounded, read-only preview of a CSV source row."""
+    """Return a bounded, read-only preview of a declared tabular source row."""
 
     if context_rows < 0:
         msg = "context_rows must be non-negative"
@@ -47,19 +47,32 @@ def get_source_row(
                 return _unavailable_preview(source_file, source_row, "source path escapes bundle")
             if not path.exists() or not path.is_file():
                 return _unavailable_preview(source_file, source_row, "source file is unavailable")
-            return _read_csv_preview(
+            declaration = _declaration_for_file(manifest, source_file)
+            if declaration is None:
+                return _unavailable_preview(
+                    source_file,
+                    source_row,
+                    "source file is not declared in the bundle manifest",
+                )
+            return _read_tabular_preview(
                 path,
                 source_file,
                 source_row,
                 context_rows=context_rows,
                 canonical_tables=canonical_tables,
                 validation_report=validation_report,
-                declaration=_declaration_for_file(manifest, source_file),
+                declaration=declaration,
             )
     except BundleLoadError as exc:
         return _unavailable_preview(source_file, source_row, str(exc))
     except OSError as exc:
         return _unavailable_preview(source_file, source_row, f"source row could not be read: {exc}")
+    except TabularReadError as exc:
+        return _unavailable_preview(
+            source_file,
+            source_row,
+            f"source row could not be decoded ({exc.code.value}): {exc}",
+        )
 
 
 def source_preview_for_record(
@@ -84,7 +97,7 @@ def source_preview_for_record(
     )
 
 
-def _read_csv_preview(
+def _read_tabular_preview(
     path: Path,
     source_file: str,
     source_row: int,
@@ -92,37 +105,34 @@ def _read_csv_preview(
     context_rows: int,
     canonical_tables: CanonicalTables | None,
     validation_report: ValidationReport | None,
-    declaration: FileDeclaration | None,
+    declaration: FileDeclaration,
 ) -> SourceRowPreview:
     start = max(2, source_row - context_rows)
     end = source_row + context_rows
-    with path.open(newline="", encoding="utf-8-sig") as handle:
-        reader = csv.reader(handle)
-        try:
-            headers = next(reader)
-        except StopIteration:
-            return _unavailable_preview(source_file, source_row, "source CSV is empty")
-        surrounding: list[SourceRow] = []
-        raw_values: dict[str, str | None] = {}
-        for line_number, values in enumerate(reader, start=2):
-            if line_number > end:
-                break
-            if line_number < start:
-                continue
-            row = _row_dict(headers, values)
-            surrounding.append(SourceRow(row_number=line_number, values=row))
-            if line_number == source_row:
-                raw_values = row
-        if not raw_values:
-            return SourceRowPreview(
-                file=source_file,
-                row_number=source_row,
-                status=ProvenanceStatus.UNAVAILABLE,
-                headers=headers,
-                surrounding_rows=surrounding,
-                inclusion_status="not_found",
-                warnings=["requested source row was not found"],
-            )
+    table = read_declared_table(path, declaration)
+    headers = table.headers
+    if not headers:
+        return _unavailable_preview(source_file, source_row, "source table has no columns")
+    surrounding: list[SourceRow] = []
+    raw_values: dict[str, str | None] = {}
+    for line_number, row in enumerate(table.rows, start=2):
+        if line_number > end:
+            break
+        if line_number < start:
+            continue
+        surrounding.append(SourceRow(row_number=line_number, values=row))
+        if line_number == source_row:
+            raw_values = row
+    if not raw_values:
+        return SourceRowPreview(
+            file=source_file,
+            row_number=source_row,
+            status=ProvenanceStatus.UNAVAILABLE,
+            headers=headers,
+            surrounding_rows=surrounding,
+            inclusion_status="not_found",
+            warnings=["requested source row was not found"],
+        )
     canonical_type, canonical_values = _canonical_record_values(
         canonical_tables,
         source_file,
@@ -141,13 +151,6 @@ def _read_csv_preview(
         validation_findings=_finding_summaries(validation_report, source_file, source_row),
         inclusion_status="included" if canonical_type is not None else "not_canonicalised",
     )
-
-
-def _row_dict(headers: list[str], values: list[str]) -> dict[str, str | None]:
-    return {
-        header: values[index] if index < len(values) else None
-        for index, header in enumerate(headers)
-    }
 
 
 def _canonical_record_values(
@@ -212,11 +215,11 @@ def _declaration_for_file(
     return None
 
 
-def _declaration_summary(declaration: FileDeclaration | None) -> dict[str, JsonValue]:
-    if declaration is None:
-        return {}
+def _declaration_summary(declaration: FileDeclaration) -> dict[str, JsonValue]:
     return {
         "schema_version": declaration.schema_version,
+        "format": declaration.format.value,
+        "compression": declaration.compression.value if declaration.compression else None,
         "column_map": dict(sorted(declaration.column_map.items())),
         "units": dict(sorted(declaration.units.items())),
         "required_columns": list(declaration.required_columns),

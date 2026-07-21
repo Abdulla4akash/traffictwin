@@ -1,0 +1,29 @@
+{
+  "determinism_verification_runs": 2,
+  "duplicate_key_policy": "reject_before_evaluation",
+  "dynamic_file_import": false,
+  "execution_failure_policy": "isolate_as_unavailable",
+  "limitations": [
+    "Plugin code is trusted local Python and is not sandboxed.",
+    "TrafficTwin does not load uploaded files or arbitrary module paths as metric code.",
+    "Two equal results establish repeatability for the evaluated input, not a proof of global purity or scientific validity.",
+    "Plugins receive only declared canonical input rows; they cannot read raw bundle files through this API."
+  ],
+  "provenance_policy": "complete_declared_input_row_ledger",
+  "registration_mode": "explicit_trusted_in_process",
+  "sandboxed_execution": false,
+  "schema_version": "1.0",
+  "supported_output_kinds": [
+    "scalar",
+    "grouped"
+  ],
+  "supported_tables": [
+    "tasks",
+    "infrastructure",
+    "vehicles",
+    "traffic",
+    "trips",
+    "incidents"
+  ],
+  "uploaded_code_execution": false
+}

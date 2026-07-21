@@ -1,0 +1,32 @@
+{
+  "deterministic_policy": "Tables and figures render one fingerprinted projection with fixed ordering, formatting, geometry, colours, fonts, and timestamp-free metadata.",
+  "escaping_policy": "Escape every LaTeX control character and XML metacharacter after collapsing whitespace and redacting absolute local path tokens.",
+  "figure_formats": [
+    "svg",
+    "pdf"
+  ],
+  "figure_renderer_version": "static-figure-v1",
+  "latex_environment": "self-contained table fragment using only LaTeX2e tabular and hline",
+  "latex_renderer_version": "latex-fragment-v1",
+  "limitations": [
+    "Figures are compact deterministic publication aids, not interactive charts.",
+    "Numeric figures use a shared signed linear scale and do not imply favourability.",
+    "Rule figures show categorical statuses and do not convert confidence into probability.",
+    "Long cells and non-scalar values are bounded for dissertation table readability.",
+    "Final dissertation layout and captions still require researcher review."
+  ],
+  "maximum_cell_characters": 160,
+  "maximum_figure_entries": 64,
+  "maximum_table_columns": 8,
+  "maximum_table_rows": 200,
+  "path_policy": "Rendered content and receipts contain artifact identifiers and basenames only; absolute local input/output paths are never embedded.",
+  "schema_version": "1.0",
+  "scientific_boundary": "REP-01 renders already-computed typed artifacts and performs no metric, comparison, statistical, diagnostic, ranking, or causal calculation.",
+  "source_mode_policy": "Every table and figure states synthetic, imported/non-synthetic, or unresolved.",
+  "supported_artifacts": [
+    "metrics",
+    "comparison",
+    "statistical_study",
+    "rules"
+  ]
+}

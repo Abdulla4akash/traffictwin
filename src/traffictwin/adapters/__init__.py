@@ -1,6 +1,6 @@
 """Input adapters."""
 
 from traffictwin.adapters.base import BundleAdapter
-from traffictwin.adapters.generic_csv import GenericCsvAdapter
+from traffictwin.adapters.generic_csv import GenericCsvAdapter, GenericTabularAdapter
 
-__all__ = ["BundleAdapter", "GenericCsvAdapter"]
+__all__ = ["BundleAdapter", "GenericCsvAdapter", "GenericTabularAdapter"]

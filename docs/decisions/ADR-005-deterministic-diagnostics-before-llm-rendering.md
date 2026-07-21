@@ -8,7 +8,7 @@ The design allows optional prose rendering later but forbids LLM-calculated metr
 
 ## Decision
 
-Diagnostic hypotheses R0-R3 are deterministic rules over EvidencePacks. No LLM dependency is included.
+Diagnostic hypotheses R0-R5 are deterministic rules over EvidencePacks. No LLM dependency is included.
 
 ## Consequences
 

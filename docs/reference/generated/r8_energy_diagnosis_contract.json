@@ -1,0 +1,28 @@
+{
+  "admission_requirements": [
+    "energy metric and completed-count denominator are available",
+    "energy metric unit is J/task and denominator unit is count",
+    "canonical task-energy contract version and fingerprint match exactly",
+    "completed-task energy coverage is complete",
+    "eligible, population, and completed-task counts are consistent"
+  ],
+  "capability": "DIA-03",
+  "default_r8_config": {
+    "enabled": true,
+    "minimum_completed_tasks": 10,
+    "minimum_energy_per_completed_task_j": 1.5
+  },
+  "denominator_metric_key": "task.completed.count",
+  "evidence_boundary": "EvidencePack.metric_collection",
+  "limitations": [
+    "The default is a provisional synthetic-development threshold.",
+    "R8 is a single-run diagnostic candidate, not a statistical anomaly test.",
+    "R8 does not establish hardware efficiency, root cause, or external validity."
+  ],
+  "metric_key": "task.energy.per_completed_j",
+  "required_energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+  "rule_id": "R8",
+  "rule_version": "1.0",
+  "ruleset_version": "1.3",
+  "schema_version": "1.0"
+}

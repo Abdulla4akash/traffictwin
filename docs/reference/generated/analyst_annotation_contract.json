@@ -1,0 +1,44 @@
+{
+  "contract_version": "analyst-annotations-v1",
+  "decision_labels": [
+    "observation",
+    "accepted",
+    "rejected",
+    "deferred",
+    "follow_up"
+  ],
+  "identity_policy": "annotation_id binds the exact target, author label, note, decision label, and UTC creation timestamp.",
+  "immutability_policy": "The public API exposes append/read only; SQLite triggers reject UPDATE and DELETE.",
+  "maximum_author_characters": 120,
+  "maximum_note_characters": 4000,
+  "maximum_page_records": 500,
+  "maximum_report_records": 500,
+  "maximum_target_id_characters": 256,
+  "ordering_policy": "SQLite-assigned monotonic sequence; reads are ascending and bounded with explicit pagination.",
+  "registry_verified_target_kinds": [
+    "experiment",
+    "run",
+    "bundle_import",
+    "metric_collection",
+    "evidence_pack",
+    "experiment_evidence_pack",
+    "experiment_protocol"
+  ],
+  "report_policy": "Matching history is rendered in a dedicated analyst-authored non-computed section; it never enters computed sections or the scientific claim denominator.",
+  "schema_version": "1.0",
+  "scientific_boundary": "Annotations cannot change metrics, rules, statistics, fingerprints, provenance, availability, or computed findings and are not recommendations from TrafficTwin.",
+  "supported_target_kinds": [
+    "experiment",
+    "run",
+    "bundle_import",
+    "metric_collection",
+    "evidence_pack",
+    "experiment_evidence_pack",
+    "experiment_protocol",
+    "diagnostic_report",
+    "comparison_report",
+    "statistical_study",
+    "research_report"
+  ],
+  "target_policy": "Registry-resident target kinds must exist before append. Generated report/study references are explicit detached typed references and do not prove artifact storage."
+}

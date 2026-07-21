@@ -76,7 +76,9 @@ new records.
 
 - Scenario Builder exposes only the current synthetic generator model.
 - Settings are session-scoped; there is no user account or persistent profile system.
-- Search is simple substring search over local metadata.
+- Search is deterministic lexical AND search over six bounded local registry/report categories; it
+  does not provide fuzzy/semantic expansion, PDF-body/raw-row discovery, or scientific importance
+  ranking.
 - Visual polish is intentionally restrained and Streamlit-native.
 - No screenshots are generated automatically by this phase.
 - Guided Demo explains the existing pipeline; it is not a simulator, training interface, or

@@ -1,0 +1,50 @@
+{
+  "approval_policy": "Candidate goldens are review artifacts and evaluate as unavailable. Approved goldens require an approver label and approval note.",
+  "ci_exit_codes": {
+    "failed": 1,
+    "passed": 0,
+    "unavailable": 2
+  },
+  "limitations": [
+    "A pass applies only to the selected scalar assertions and declared compatibility policy.",
+    "A numerical regression gate does not establish scientific validity, equivalence, cause, or deployment safety.",
+    "Compatible-context gates may compare different source inputs and are not exact fixture reproducibility checks.",
+    "Tolerance selection and golden approval remain researcher or project-owner decisions.",
+    "Synthetic golden results provide software evidence only, not external validation."
+  ],
+  "method_version": "1.0",
+  "overall_precedence": [
+    "unavailable",
+    "failed",
+    "passed"
+  ],
+  "schema_version": "1.0",
+  "source_identity_policies": [
+    "exact",
+    "compatible_context"
+  ],
+  "study_fields": [
+    "pairing_audit.eligible_pair_count",
+    "estimate.mean_paired_difference",
+    "estimate.sample_sd_paired_difference",
+    "estimate.standard_error",
+    "bootstrap_interval.lower",
+    "bootstrap_interval.upper",
+    "randomisation_test.p_value",
+    "effect_sizes.cohen_dz",
+    "effect_sizes.matched_pairs_rank_biserial"
+  ],
+  "subject_kinds": [
+    "metric_collection",
+    "paired_statistical_study"
+  ],
+  "tolerance_formula": "abs(actual - expected) <= max(absolute_tolerance, relative_tolerance * abs(expected)); equality passes",
+  "tolerance_method": "max_absolute_or_relative_v1",
+  "unavailable_behavior": "Missing, partial, unavailable, invalid, non-finite, non-scalar, unit/version/context, or source-incompatible evidence is unavailable and never replaced by zero.",
+  "unsupported": [
+    "STA-02 N-way ranking and STA-03 equivalence artifacts",
+    "diagnostic, report, grouped, array, arbitrary JSONPath, or rendered-prose gates",
+    "automatic tolerance estimation or automatic golden approval",
+    "raw-row comparison or metric/study recomputation inside the gate"
+  ]
+}

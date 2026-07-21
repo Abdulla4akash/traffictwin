@@ -1,0 +1,51 @@
+{
+  "alpha_bounds": {
+    "maximum": 0.1,
+    "minimum": 0.005
+  },
+  "assumptions": [
+    "The exact common random-seed pairs admitted by STA-01 are the experimental units.",
+    "Paired differences are independent across random seeds and approximately normal.",
+    "The symmetric absolute margin was chosen before inspecting this study result.",
+    "The margin is expressed in the metric's unchanged original unit.",
+    "Both one-sided null hypotheses must reject at the predeclared alpha.",
+    "One predeclared equivalence claim is evaluated; no multiplicity adjustment applies."
+  ],
+  "confidence_interval_rule": "the 100*(1-2*alpha)% paired Student-t interval must lie strictly inside (-margin, +margin)",
+  "decision_rule": "equivalence is demonstrated only when both one-sided p-values are strictly below the predeclared alpha",
+  "estimand": "mean paired difference in original units (variation minus baseline)",
+  "evidence_boundary": "Completed MetricCollection artifacts admitted by the unchanged STA-01 common-seed pairing contract plus an explicit EquivalenceStudyConfig.",
+  "hypotheses": [
+    "lower: H0 mean <= -margin; H1 mean > -margin",
+    "upper: H0 mean >= +margin; H1 mean < +margin"
+  ],
+  "limitations": [
+    "A failed TOST means equivalence was not demonstrated; it does not prove difference.",
+    "An ordinary non-significant difference test is not evidence of equivalence.",
+    "Student-t inference assumes approximately normal paired differences and independent random-seed experimental units.",
+    "The caller, not TrafficTwin, supplies and defends the practical margin.",
+    "Synthetic studies provide software/method evidence, not external validation.",
+    "Equivalence does not establish causality, universal policy similarity, or deployment suitability."
+  ],
+  "margin_contract": [
+    "finite positive symmetric absolute margin in the metric's original unit",
+    "declared before evaluation with practical_threshold, literature, or provisional_design basis",
+    "written justification is mandatory; literature basis also requires a reference",
+    "no repository-wide default margin and no post-hoc margin selection"
+  ],
+  "method": "paired_mean_tost_v1",
+  "method_version": "1.0",
+  "minimum_pairs": 3,
+  "pairing_contract": "Exact random_seed pairs from one experiment, baseline/variation family, policy, checkpoint, metric, environment, unit, and semantic compatibility signature",
+  "schema_version": "1.0",
+  "unavailable_behavior": "Insufficient, incompatible, missing, duplicate, non-finite, provenance-incomplete, semantic-contract-incomplete, or zero-variance evidence yields an explicit typed unavailable result and is never imputed.",
+  "unsupported": [
+    "asymmetric or relative equivalence margins",
+    "unpaired equivalence testing",
+    "post-hoc margin selection",
+    "multiple simultaneous equivalence claims",
+    "non-inferiority or superiority conclusions",
+    "regression gates (STA-04)",
+    "power analysis (STA-05)"
+  ]
+}

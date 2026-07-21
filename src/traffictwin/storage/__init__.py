@@ -1,5 +1,22 @@
 """Storage helpers for TrafficTwin."""
 
+from traffictwin.storage.migrations import (
+    CURRENT_REGISTRY_SCHEMA_VERSION,
+    RegistryFutureSchemaError,
+    RegistryMigrationContract,
+    RegistryMigrationDescriptor,
+    RegistryMigrationError,
+    RegistryMigrationExecutionError,
+    RegistryMigrationRequiredError,
+    RegistryMigrationResult,
+    RegistryMigrationState,
+    RegistryMigrationStatus,
+    RegistrySchemaIntegrityError,
+    inspect_registry_migrations,
+    migrate_registry,
+    registry_migration_contract,
+    require_current_registry_schema,
+)
 from traffictwin.storage.registry import (
     BundleImportResult,
     DuplicateIdentifierError,
@@ -12,6 +29,7 @@ from traffictwin.storage.registry import (
 )
 
 __all__ = [
+    "CURRENT_REGISTRY_SCHEMA_VERSION",
     "DuplicateIdentifierError",
     "BundleImportResult",
     "InvalidStatusTransitionError",
@@ -20,4 +38,18 @@ __all__ = [
     "RegistryError",
     "RegistryNotFoundError",
     "RegistrySummary",
+    "RegistryFutureSchemaError",
+    "RegistryMigrationContract",
+    "RegistryMigrationDescriptor",
+    "RegistryMigrationError",
+    "RegistryMigrationExecutionError",
+    "RegistryMigrationRequiredError",
+    "RegistryMigrationResult",
+    "RegistryMigrationState",
+    "RegistryMigrationStatus",
+    "RegistrySchemaIntegrityError",
+    "inspect_registry_migrations",
+    "migrate_registry",
+    "registry_migration_contract",
+    "require_current_registry_schema",
 ]

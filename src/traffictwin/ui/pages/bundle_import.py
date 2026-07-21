@@ -6,14 +6,21 @@ from pathlib import Path
 
 import streamlit as st
 
+from traffictwin.ingestion.batch import BatchBundleSummary, BatchOperation
+from traffictwin.ingestion.bundle import StreamingBundleImportResult
+from traffictwin.ingestion.streaming import StreamingBundleValidationResult
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.validation import render_validation_report
 from traffictwin.ui.services import (
     ServiceError,
+    import_bundle_batch_for_ui,
+    import_bundle_streaming_for_ui,
     safe_import_bundle_for_ui,
     store_evidence_for_ui,
     store_metrics_for_ui,
+    validate_bundle_batch_for_ui,
     validate_bundle_for_ui,
+    validate_bundle_streaming_for_ui,
 )
 from traffictwin.ui.state import UiConfig
 
@@ -41,6 +48,19 @@ def render(config: UiConfig) -> None:
         )
     )
     st.session_state["active_registry_path"] = str(registry_path)
+
+    _render_batch_import(registry_path)
+
+    use_streaming = st.toggle(
+        "Use chunked canonicalisation for a large bundle",
+        help=(
+            "Uses bounded row/byte chunks and a disk-backed validation index. "
+            "It does not retain all canonical rows or automatically compute metrics."
+        ),
+    )
+    if use_streaming:
+        _render_streaming_import(bundle_path, registry_path)
+        return
 
     if st.button("Validate Bundle", type="primary"):
         st.session_state["selected_bundle_path"] = str(bundle_path)
@@ -74,6 +94,10 @@ def render(config: UiConfig) -> None:
                 {
                     "kind": kind,
                     "path": declaration.path,
+                    "format": declaration.format.value,
+                    "compression": (
+                        declaration.compression.value if declaration.compression else "none"
+                    ),
                     "schema_version": declaration.schema_version,
                     "required": declaration.required,
                     "required_columns": ", ".join(declaration.required_columns),
@@ -105,3 +129,156 @@ def render(config: UiConfig) -> None:
                 st.success(f"{result.message}; run={result.run_id}; idempotent={result.idempotent}")
     else:
         st.error("Rejected bundles cannot be imported or used in analysis pages.")
+
+
+def _render_batch_import(registry_path: Path) -> None:
+    """Render thin controls over the deterministic batch ingestion service."""
+
+    with st.expander("Batch validate or import"):
+        st.caption(
+            "Enter one explicit bundle path or glob per line. Paths are expanded, "
+            "deduplicated, and processed in deterministic order."
+        )
+        raw_inputs = st.text_area(
+            "Bundle paths or glob patterns",
+            value=str(st.session_state.get("bundle_batch_inputs", "")),
+            placeholder="/data/runs/run-001\n/data/runs/run-*.zip",
+            key="bundle_batch_inputs",
+        )
+        inputs = [line.strip() for line in raw_inputs.splitlines() if line.strip()]
+        validate_column, import_column = st.columns(2)
+        with validate_column:
+            if st.button("Validate Batch", use_container_width=True):
+                st.session_state["bundle_batch_summary"] = validate_bundle_batch_for_ui(inputs)
+        with import_column:
+            if st.button("Import Accepted Batch", use_container_width=True):
+                st.session_state["bundle_batch_summary"] = import_bundle_batch_for_ui(
+                    inputs,
+                    registry_path,
+                )
+
+        summary = st.session_state.get("bundle_batch_summary")
+        if isinstance(summary, BatchBundleSummary):
+            _render_batch_summary(summary)
+
+
+def _render_batch_summary(summary: BatchBundleSummary) -> None:
+    """Render consolidated and per-candidate batch outcomes."""
+
+    status = summary.overall_status.value.upper()
+    if summary.successful:
+        st.success(f"Batch {summary.operation.value} completed.")
+    elif summary.processed_bundle_count:
+        st.warning(f"Batch {summary.operation.value} finished with status {status}.")
+    else:
+        st.error(f"Batch {summary.operation.value} failed before processing a bundle.")
+
+    columns = st.columns(4)
+    columns[0].metric("Matched", summary.matched_bundle_count)
+    columns[1].metric("Accepted", summary.accepted_count)
+    columns[2].metric("Rejected", summary.rejected_count)
+    columns[3].metric("Input issues", len(summary.input_issues))
+    if summary.operation is BatchOperation.IMPORT:
+        import_columns = st.columns(4)
+        import_columns[0].metric("Created", summary.created_count)
+        import_columns[1].metric("Idempotent", summary.idempotent_count)
+        import_columns[2].metric("Conflicts", summary.conflict_count)
+        import_columns[3].metric("Failed", summary.failed_count)
+
+    if summary.input_issues:
+        st.subheader("Input issues")
+        st.dataframe(
+            [issue.model_dump(mode="json") for issue in summary.input_issues],
+            hide_index=True,
+            width="stretch",
+        )
+    if summary.results:
+        st.subheader("Per-bundle outcomes")
+        st.dataframe(
+            [result.model_dump(mode="json") for result in summary.results],
+            hide_index=True,
+            width="stretch",
+        )
+    st.download_button(
+        "Download batch summary (JSON)",
+        data=summary.to_json(),
+        file_name=f"bundle-batch-{summary.operation.value}.json",
+        mime="application/json",
+    )
+
+
+def _render_streaming_import(bundle_path: Path, registry_path: Path) -> None:
+    """Render controls over memory-bounded canonicalisation and metadata import."""
+
+    st.subheader("Chunked canonicalisation")
+    st.caption(
+        "Chunks are provisional until complete validation succeeds. Global duplicate and "
+        "reference checks use temporary disk-backed state."
+    )
+    chunk_rows = int(
+        st.number_input(
+            "Maximum rows per chunk",
+            min_value=1,
+            max_value=100_000,
+            value=1_000,
+            step=100,
+        )
+    )
+    if not bundle_path.exists():
+        st.error(f"Bundle path does not exist: {bundle_path}")
+        return
+
+    validate_column, import_column = st.columns(2)
+    with validate_column:
+        if st.button("Stream Validate", type="primary", use_container_width=True):
+            st.session_state["streaming_bundle_result"] = validate_bundle_streaming_for_ui(
+                bundle_path,
+                chunk_rows=chunk_rows,
+            )
+    with import_column:
+        if st.button("Stream Validate & Import", use_container_width=True):
+            imported = import_bundle_streaming_for_ui(
+                bundle_path,
+                registry_path,
+                chunk_rows=chunk_rows,
+            )
+            st.session_state["streaming_bundle_result"] = imported
+
+    result = st.session_state.get("streaming_bundle_result")
+    if isinstance(result, ServiceError):
+        st.error(result.message)
+        with st.expander("Technical detail"):
+            st.write(result.detail)
+        return
+    registry_result = None
+    if isinstance(result, StreamingBundleImportResult):
+        registry_result = result.registry
+        validation = result.validation
+    elif isinstance(result, StreamingBundleValidationResult):
+        validation = result
+    else:
+        return
+
+    if registry_result is not None:
+        if registry_result.created or registry_result.idempotent:
+            st.success(f"{registry_result.message}; idempotent={registry_result.idempotent}")
+        else:
+            st.error(registry_result.message)
+    summary = validation.streaming
+    metrics = st.columns(4)
+    metrics[0].metric("Chunks", summary.chunk_count)
+    metrics[1].metric("Canonical records", sum(summary.canonical_record_counts.values()))
+    metrics[2].metric("Largest chunk rows", summary.max_observed_chunk_source_rows)
+    metrics[3].metric("Largest chunk bytes", summary.max_observed_chunk_decoded_bytes)
+    st.json(summary.model_dump(mode="json"))
+    render_validation_report(validation.report)
+    st.download_button(
+        "Download streaming validation (JSON)",
+        data=validation.to_json(),
+        file_name="streaming-bundle-validation.json",
+        mime="application/json",
+    )
+    st.info(
+        "Streaming import registers validated bundle/run metadata only. Use collected mode only "
+        "when the complete canonical result fits memory and downstream metrics are required."
+    )

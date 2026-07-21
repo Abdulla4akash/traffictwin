@@ -1,0 +1,10 @@
+digraph TrafficTwinProvenance {
+  graph [id="provenance-graph:74abb97d9aa64d0a54ba", rankdir="LR", labelloc="t", label="TrafficTwin provenance (3 nodes, 2 edges)"];
+  node [shape="box", style="rounded,filled", fontname="Helvetica"];
+  edge [fontname="Helvetica", fontsize="9"];
+  "metric_result:run-1:task.completion.rate" [label="task.completion.rate\n[metric_result]", fillcolor="#DCFCE7", color="#2563EB", penwidth="2"];
+  "canonical_table:tasks" [label="Canonical tasks\n[canonical_table]", fillcolor="#DCFCE7", color="#475569", penwidth="1"];
+  "source_file:tasks.csv" [label="tasks.csv\n[source_file]", fillcolor="#DCFCE7", color="#475569", penwidth="1"];
+  "canonical_table:tasks" -> "source_file:tasks.csv" [id="edge:e833036e1003e06d03c4", label="generated_from", style="solid"];
+  "metric_result:run-1:task.completion.rate" -> "canonical_table:tasks" [id="edge:e16a368e0f7c7da2ff92", label="computed_from", style="solid"];
+}

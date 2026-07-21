@@ -22,7 +22,6 @@ INFRASTRUCTURE_KEYS = [
     "infra.utilisation.p95",
     "infra.saturation.episode_count",
     "infra.saturation.duration_s",
-    "infra.load_balance.jain_capacity_normalised",
 ]
 
 
@@ -78,7 +77,6 @@ def infrastructure_metrics(
         *_queue_metrics(queue_values, context, config, computed_at),
         *_utilisation_metrics(utilisation_values, context, config, computed_at),
         *_saturation_metrics(records, context, config, computed_at),
-        _load_balance_metric(records, context, config, computed_at),
     ]
     return results
 
@@ -257,62 +255,3 @@ def _saturation_metrics(
             metadata=metadata,
         ),
     ]
-
-
-def _load_balance_metric(
-    records: list[InfrastructureRecord],
-    context: RunMetricContext,
-    config: MetricEngineConfig,
-    computed_at: datetime,
-) -> MetricValue:
-    loads_by_rsu: dict[str, list[float]] = defaultdict(list)
-    for record in records:
-        if record.capacity is None or record.active_tasks is None:
-            continue
-        if record.capacity <= 0:
-            continue
-        loads_by_rsu[record.rsu_id].append(record.active_tasks / record.capacity)
-
-    if not loads_by_rsu:
-        return unavailable_metric(
-            "infra.load_balance.jain_capacity_normalised",
-            context,
-            config,
-            computed_at,
-            [UnavailableReason.CAPACITY_UNAVAILABLE, UnavailableReason.REQUIRED_FIELD_UNAVAILABLE],
-            ["infrastructure.capacity", "infrastructure.active_tasks"],
-        )
-
-    loads: list[float] = []
-    for values in loads_by_rsu.values():
-        mean_load = arithmetic_mean(values)
-        if mean_load is not None:
-            loads.append(mean_load)
-    if not loads:
-        return unavailable_metric(
-            "infra.load_balance.jain_capacity_normalised",
-            context,
-            config,
-            computed_at,
-            [UnavailableReason.NO_VALID_ROWS],
-            ["infrastructure.capacity_normalised_load"],
-        )
-    numerator = sum(loads) ** 2
-    denominator = len(loads) * sum(value * value for value in loads)
-    if denominator == 0:
-        return unavailable_metric(
-            "infra.load_balance.jain_capacity_normalised",
-            context,
-            config,
-            computed_at,
-            [UnavailableReason.NO_VALID_ROWS],
-            ["infrastructure.capacity_normalised_load"],
-        )
-    return available_metric(
-        "infra.load_balance.jain_capacity_normalised",
-        numerator / denominator,
-        context,
-        config,
-        computed_at,
-        metadata={"rsu_count": len(loads)},
-    )

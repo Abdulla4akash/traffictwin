@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://traffictwin.local/schemas/expert-evaluation-result-1.0.json",
+  "title": "TrafficTwin anonymised expert-evaluation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "participant_code",
+    "role_category",
+    "experience_band",
+    "session_date",
+    "tasks"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "participant_code": {"type": "string", "pattern": "^TT-[A-Z0-9]{6,12}$"},
+    "role_category": {
+      "enum": ["researcher", "postgraduate_student", "traffic_professional", "other"]
+    },
+    "experience_band": {"enum": ["under_1_year", "1_to_3_years", "4_to_7_years", "8_plus_years"]},
+    "session_date": {"type": "string", "format": "date"},
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["task_id", "outcome", "elapsed_seconds", "assistance_count"],
+        "properties": {
+          "task_id": {"type": "string"},
+          "outcome": {"enum": ["completed", "completed_with_assistance", "not_completed"]},
+          "elapsed_seconds": {"type": "number", "minimum": 0},
+          "assistance_count": {"type": "integer", "minimum": 0},
+          "note": {"type": ["string", "null"], "maxLength": 500}
+        }
+      }
+    },
+    "ratings": {
+      "type": "object",
+      "propertyNames": {"pattern": "^Q[0-9]{1,2}$"},
+      "additionalProperties": {"type": "integer", "minimum": 1, "maximum": 5}
+    },
+    "coded_comments": {
+      "type": "array",
+      "items": {"type": "string", "maxLength": 1000}
+    },
+    "withdrawn": {"type": "boolean", "default": false}
+  }
+}

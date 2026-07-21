@@ -1,0 +1,73 @@
+{
+  "direct_launch_supported": false,
+  "external_execution_status": "not_executed",
+  "limitations": [
+    "Mix-valued, incident-list, placement, failure-list, and arbitrary nested fields are outside the v1 closed parameter catalogue.",
+    "The composer does not launch SUMO, Randy VEC/TOS, training, or another simulator.",
+    "Sweep outputs are synthetic/evaluation evidence and are not real-world validation.",
+    "Only core numeric metrics are admitted to the v1 response-surface table.",
+    "Local requests whose deterministic declared-row estimate exceeds 2,000,000 are rejected before output is written.",
+    "Empty, symbolic-link, current/home/root, and current/home ancestor destinations are rejected before expansion."
+  ],
+  "local_execution_boundary": "Only TrafficTwin's labelled deterministic synthetic bundle generator, validator, and ordinary core metric engine may execute locally.",
+  "max_axes": 4,
+  "max_local_estimated_rows": 2000000,
+  "max_points": 256,
+  "max_response_metrics": 16,
+  "max_values_per_axis": 16,
+  "method_version": "1.0",
+  "parameter_value_constraints": {
+    "seed.demand.multiplier": "finite number in [0.01, 100.0]",
+    "seed.evaluation.random_seed": "integer in [0, 2147483647]",
+    "seed.fleet.count": "integer in [0, 100000]",
+    "seed.infrastructure.rsu_count": "integer in [0, 10000]",
+    "seed.policy.algorithm": "non-blank string with at most 128 characters",
+    "seed.traffic.duration_min": "finite number in [0.0, 10080.0]",
+    "seed.traffic.event_demand_multiplier": "finite number in [0.01, 100.0]",
+    "seed.traffic.lanes_closed": "integer in [0, 1000]",
+    "seed.workload.birth_rate_multiplier": "finite number in [0.01, 100.0]",
+    "synthetic.baseline_network_delay_ms": "finite number in [0.0, 10000.0]",
+    "synthetic.congestion_multiplier": "finite number in [0.01, 100.0]",
+    "synthetic.duration_s": "finite number in [0.1, 3600.0]",
+    "synthetic.policy_behavior": "one documented SyntheticPolicyProfile value",
+    "synthetic.random_seed": "integer in [0, 2147483647]",
+    "synthetic.rsu_capacity": "finite number in [0.001, 10000.0]",
+    "synthetic.rsu_count": "integer in [1, 100]",
+    "synthetic.sampling_interval_s": "finite number in [0.1, 3600.0]",
+    "synthetic.task_arrival_rate": "finite number in [1e-06, 2.0]",
+    "synthetic.trip_count": "integer in [0, 5000]",
+    "synthetic.vehicle_count": "integer in [1, 500]"
+  },
+  "provenance_policy": "Every point records its ordered assignments, parent/request/point/seed fingerprints, and bundle fingerprint when locally materialised.",
+  "response_surface_policy": "Rows contain only finite numeric core-metric values; unavailable, partial, invalid, or non-numeric results retain their explicit status and reason codes.",
+  "schema_version": "1.0",
+  "seed_parameter_paths": [
+    "seed.demand.multiplier",
+    "seed.workload.birth_rate_multiplier",
+    "seed.fleet.count",
+    "seed.infrastructure.rsu_count",
+    "seed.policy.algorithm",
+    "seed.evaluation.random_seed",
+    "seed.traffic.lanes_closed",
+    "seed.traffic.duration_min",
+    "seed.traffic.event_demand_multiplier"
+  ],
+  "supported_modes": [
+    "seed_snapshots",
+    "local_synthetic_bundles",
+    "external_run_requests"
+  ],
+  "synthetic_parameter_paths": [
+    "synthetic.duration_s",
+    "synthetic.sampling_interval_s",
+    "synthetic.vehicle_count",
+    "synthetic.task_arrival_rate",
+    "synthetic.rsu_count",
+    "synthetic.rsu_capacity",
+    "synthetic.baseline_network_delay_ms",
+    "synthetic.congestion_multiplier",
+    "synthetic.policy_behavior",
+    "synthetic.trip_count",
+    "synthetic.random_seed"
+  ]
+}

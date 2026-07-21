@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import cast
 
 from traffictwin.metrics.catalogue import get_metric_definition
 from traffictwin.metrics.engine_config import MetricEngineConfig
@@ -28,6 +27,7 @@ def unavailable_metric(
     warnings: list[str] | None = None,
     *,
     status: MetricStatus = MetricStatus.UNAVAILABLE,
+    metadata: JsonObject | None = None,
 ) -> MetricValue:
     """Build an unavailable metric value from its definition."""
 
@@ -50,7 +50,11 @@ def unavailable_metric(
         checkpoint=context.checkpoint,
         random_seed=context.random_seed,
         synthetic=context.synthetic,
+        environment=context.environment,
+        environment_version=context.environment_version,
+        environment_commit=context.environment_commit,
         computed_at=computed_at,
+        metadata=metadata or {},
     )
 
 
@@ -86,6 +90,9 @@ def available_metric(
         checkpoint=context.checkpoint,
         random_seed=context.random_seed,
         synthetic=context.synthetic,
+        environment=context.environment,
+        environment_version=context.environment_version,
+        environment_commit=context.environment_commit,
         computed_at=computed_at,
-        metadata=cast(dict[str, JsonScalar], metadata or {}),
+        metadata=metadata or {},
     )

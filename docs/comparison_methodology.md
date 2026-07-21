@@ -84,7 +84,42 @@ Paired summaries align baseline and variation conditions by common random seed a
 - mean paired difference;
 - sample standard deviation of paired differences when `n >= 2`.
 
-No formal hypothesis tests or confidence intervals are implemented in Phase 3.
+These Phase 3 summaries remain descriptive. Formal paired inference is implemented separately by
+`STA-01` and never inferred automatically from a descriptive comparison. A `PairedStudyConfig`
+must predeclare the experiment, exact common-seed contrast, metric, objective, and method settings;
+only compatible complete `MetricCollection` endpoints are admitted. See
+[common-seed paired statistical studies](statistical_studies.md).
+
+For two or more policies, `STA-02` forms identical complete common-seed rows independently inside
+each selected scenario family, excludes incompatible evidence, delegates objective/tie/rank/regret
+to the existing winner map, and jointly bootstraps rows for mean/rank uncertainty. Numerical ties
+and interval overlap are not equivalence. See [N-way policy ranking](n_way_ranking.md).
+
+For one positive practical-equivalence claim, `STA-03` reuses the exact STA-01 pairing cohort and
+requires a predeclared symmetric absolute original-unit margin, basis, justification, and alpha.
+Paired-mean TOST demonstrates equivalence only when both one-sided nulls reject; ordinary
+difference-test non-significance is irrelevant to that decision. See
+[paired equivalence testing](equivalence_testing.md).
+
+For deterministic CI, `STA-04` compares a completed metric collection or STA-01 artifact with an
+approved versioned golden contract. It first enforces typed context and exact/compatible source
+policy, then checks only declared finite scalars against the inclusive maximum of absolute and
+relative tolerance. Missing or incompatible evidence is unavailable; a complete out-of-tolerance
+scalar fails. Regression pass is not statistical equivalence. See
+[versioned regression gates](regression_gates.md).
+
+For prospective sample-size planning, `STA-05` takes a researcher-declared target paired effect,
+prospective paired-difference variance, two-sided alpha, and target power. It returns the smallest
+bounded common-seed count meeting the versioned normal-approximation rule and records power at the
+preceding count. It does not inspect completed results, calculate retrospective power, or claim
+exact power for STA-01 sign flips. See [paired common-seed power analysis](power_analysis.md).
+
+For source-row audit, `PRO-01` reuses this ordinary pairwise compatibility and absolute delta. A
+closed direct count/sum/mean/rate registry decomposes each run independently, signs baseline terms
+negative and variation terms positive, and requires their sum to reconcile to the ordinary delta.
+Compatible percentiles and other non-decomposable scalar metrics expose both complete eligible-row
+ledgers with null weights. This is arithmetic lineage, not a statistical test, effect attribution,
+or causal claim. See [difference provenance](difference_provenance.md).
 
 ## TOS Source-Summary Comparison
 
@@ -101,3 +136,9 @@ class mappings and unavailable canonical metrics remain unavailable comparisons.
 - [User guide](user_guide.md)
 - [Reproducibility guide](reproducibility.md)
 - [TOS Data read-only integration](integration/tos_data_adapter.md)
+- [Common-seed paired statistical studies](statistical_studies.md)
+- [N-way common-seed policy ranking](n_way_ranking.md)
+- [Paired equivalence testing](equivalence_testing.md)
+- [Versioned regression gates](regression_gates.md)
+- [Paired common-seed power analysis](power_analysis.md)
+- [Accepted-row difference provenance](difference_provenance.md)

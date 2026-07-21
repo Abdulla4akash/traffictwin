@@ -7,7 +7,13 @@ import streamlit as st
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import activate_page, render_page_header
-from traffictwin.ui.services import load_experiment_manager_view
+from traffictwin.ui.services import (
+    ServiceError,
+    initialise_protocol_tracking_for_ui,
+    load_experiment_manager_view,
+    protocol_tracking_rows_for_ui,
+    update_protocol_slot_for_ui,
+)
 from traffictwin.ui.state import UiConfig
 
 
@@ -54,6 +60,61 @@ def render(config: UiConfig) -> None:
         )
     else:
         st.info("No experiments match the current filter.")
+
+    section_header("Manual Protocol Tracking")
+    experiment_ids = [str(row.get("experiment_id")) for row in view.experiments]
+    if experiment_ids:
+        selected_experiment = st.selectbox(
+            "Experiment protocol",
+            experiment_ids,
+            key="tracking_experiment_id",
+        )
+        if st.button("Initialise Manual Slot Tracking"):
+            result = initialise_protocol_tracking_for_ui(
+                config.registry_path,
+                selected_experiment,
+            )
+            if isinstance(result, ServiceError):
+                st.error(result.message)
+                st.caption(result.detail or "")
+            else:
+                st.success(
+                    f"Tracking ready for {result['slot_count']} slots ({result['protocol_id']})."
+                )
+    tracking = protocol_tracking_rows_for_ui(config.registry_path)
+    if isinstance(tracking, ServiceError):
+        st.warning(tracking.message)
+    elif tracking:
+        st.dataframe(tracking, hide_index=True, width="stretch")
+        slot_labels = [f"{row['protocol_id']} / {row['slot_id']}" for row in tracking]
+        selected_slot = st.selectbox("Tracked slot", slot_labels)
+        selected_index = slot_labels.index(selected_slot)
+        selected_row = tracking[selected_index]
+        cols = st.columns(2)
+        next_status = cols[0].selectbox(
+            "New status",
+            ["received", "validated", "matched", "rejected", "complete"],
+        )
+        observed_run_id = cols[1].text_input("Observed run ID", value="")
+        observed_bundle_id = st.text_input("Observed bundle ID", value="")
+        tracking_note = st.text_input("Tracking note", value="")
+        if st.button("Update Tracked Slot"):
+            result = update_protocol_slot_for_ui(
+                config.registry_path,
+                str(selected_row["protocol_id"]),
+                str(selected_row["slot_id"]),
+                next_status,
+                run_id=observed_run_id,
+                bundle_id=observed_bundle_id,
+                note=tracking_note,
+            )
+            if isinstance(result, ServiceError):
+                st.error(result.message)
+                st.caption(result.detail or "")
+            else:
+                st.success(f"{result['slot_id']} is now {result['status']}.")
+    else:
+        st.info("No protocol slots are tracked yet. Initialise one from a registered experiment.")
 
     section_header("Runs")
     runs = _filter_rows(view.runs, query)

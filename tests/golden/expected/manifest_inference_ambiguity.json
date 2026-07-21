@@ -1,0 +1,44 @@
+{
+  "source_fingerprint": "51fb7d339ddde23a9dd0e463e03eace77f860bc56a15c7dbabda83802d2b78c7",
+  "draft_fingerprint": "e720aac386fffec2dfb03b8c72411d561bc4d58b6740d660034debf2cf41d81f",
+  "analysis_ready": false,
+  "confirmation_required": true,
+  "files": [
+    {
+      "path": "entity.csv",
+      "status": "ambiguous",
+      "suggested_kind": null,
+      "sampled_rows": 2,
+      "eligible_candidates": [
+        {
+          "kind": "infra_state",
+          "score": 40,
+          "required": {
+            "rsu_id": {"status": "suggested", "source": "EntityID", "methods": ["header_alias"], "unit": null},
+            "timestamp": {"status": "suggested", "source": "TimeSeconds", "methods": ["header_alias"], "unit": "s"}
+          }
+        },
+        {
+          "kind": "vehicle_state",
+          "score": 40,
+          "required": {
+            "timestamp": {"status": "suggested", "source": "TimeSeconds", "methods": ["header_alias"], "unit": "s"},
+            "vehicle_id": {"status": "suggested", "source": "EntityID", "methods": ["header_alias"], "unit": null}
+          }
+        },
+        {
+          "kind": "traffic_obs",
+          "score": 40,
+          "required": {
+            "sensor_id": {"status": "suggested", "source": "EntityID", "methods": ["header_alias"], "unit": null},
+            "timestamp": {"status": "suggested", "source": "TimeSeconds", "methods": ["header_alias"], "unit": "s"}
+          }
+        }
+      ]
+    }
+  ],
+  "finding_codes": [
+    "MANIFEST_INFERENCE_FILE_AMBIGUOUS",
+    "MANIFEST_INFERENCE_CONFIRMATION_REQUIRED"
+  ]
+}

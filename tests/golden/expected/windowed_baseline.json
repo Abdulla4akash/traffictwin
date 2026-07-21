@@ -1,0 +1,223 @@
+{
+  "schema_version": "1.0",
+  "anchor_policy_version": "1.0",
+  "run_id": "run-baseline-001",
+  "metric_version": "1.0",
+  "status": "available",
+  "range_source": "inferred_aligned_envelope",
+  "analysis_range_s": [
+    0.0,
+    360.0
+  ],
+  "source_time_range_s": [
+    0.0,
+    300.0
+  ],
+  "boundary": "[start,end)",
+  "coverage_semantics": "requested_interval_overlap_divided_by_grid_width",
+  "empty_window_semantics": "visible_with_metric_unavailability",
+  "anchor_fields": {
+    "tasks": "arrival_time_s",
+    "infrastructure": "timestamp_s",
+    "vehicles": "timestamp_s",
+    "traffic": "timestamp_s",
+    "trips": "departure_time_s",
+    "incidents": "timestamp_s"
+  },
+  "applicable_metric_count": 60,
+  "included_window_count": 6,
+  "excluded_partial_window_count": 0,
+  "included_empty_window_count": 4,
+  "windows": [
+    {
+      "ordinal": 0,
+      "bounds_s": [
+        0.0,
+        60.0
+      ],
+      "effective_bounds_s": [
+        0.0,
+        60.0
+      ],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 3,
+        "infrastructure": 4,
+        "vehicles": 0,
+        "traffic": 1,
+        "trips": 2,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {
+          "status": "available",
+          "value": 3,
+          "reason_codes": []
+        },
+        "task.completion.rate": {
+          "status": "available",
+          "value": 1.0,
+          "reason_codes": []
+        },
+        "infra.utilisation.mean": {
+          "status": "available",
+          "value": 0.3875,
+          "reason_codes": []
+        },
+        "traffic.speed.mean_mps": {
+          "status": "available",
+          "value": 12.0,
+          "reason_codes": []
+        },
+        "trip.duration.mean_s": {
+          "status": "available",
+          "value": 630.0,
+          "reason_codes": []
+        }
+      }
+    },
+    {
+      "ordinal": 1,
+      "bounds_s": [
+        60.0,
+        120.0
+      ],
+      "effective_bounds_s": [
+        60.0,
+        120.0
+      ],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 0,
+        "infrastructure": 0,
+        "vehicles": 0,
+        "traffic": 0,
+        "trips": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {
+          "status": "unavailable",
+          "value": null,
+          "reason_codes": ["NO_VALID_ROWS"]
+        },
+        "task.completion.rate": {
+          "status": "unavailable",
+          "value": null,
+          "reason_codes": ["NO_VALID_ROWS"]
+        },
+        "infra.utilisation.mean": {
+          "status": "unavailable",
+          "value": null,
+          "reason_codes": ["NO_VALID_ROWS"]
+        },
+        "traffic.speed.mean_mps": {
+          "status": "unavailable",
+          "value": null,
+          "reason_codes": ["NO_VALID_ROWS"]
+        },
+        "trip.duration.mean_s": {
+          "status": "unavailable",
+          "value": null,
+          "reason_codes": ["NO_VALID_ROWS"]
+        }
+      }
+    },
+    {
+      "ordinal": 2,
+      "bounds_s": [120.0, 180.0],
+      "effective_bounds_s": [120.0, 180.0],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 0,
+        "infrastructure": 0,
+        "vehicles": 0,
+        "traffic": 0,
+        "trips": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "task.completion.rate": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "infra.utilisation.mean": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "traffic.speed.mean_mps": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "trip.duration.mean_s": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]}
+      }
+    },
+    {
+      "ordinal": 3,
+      "bounds_s": [180.0, 240.0],
+      "effective_bounds_s": [180.0, 240.0],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 0,
+        "infrastructure": 0,
+        "vehicles": 0,
+        "traffic": 0,
+        "trips": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "task.completion.rate": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "infra.utilisation.mean": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "traffic.speed.mean_mps": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "trip.duration.mean_s": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]}
+      }
+    },
+    {
+      "ordinal": 4,
+      "bounds_s": [240.0, 300.0],
+      "effective_bounds_s": [240.0, 300.0],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 0,
+        "infrastructure": 0,
+        "vehicles": 0,
+        "traffic": 0,
+        "trips": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "task.completion.rate": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "infra.utilisation.mean": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "traffic.speed.mean_mps": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "trip.duration.mean_s": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]}
+      }
+    },
+    {
+      "ordinal": 5,
+      "bounds_s": [300.0, 360.0],
+      "effective_bounds_s": [300.0, 360.0],
+      "coverage": 1.0,
+      "partial": false,
+      "disposition": "included",
+      "source_record_counts": {
+        "tasks": 0,
+        "infrastructure": 0,
+        "vehicles": 0,
+        "traffic": 1,
+        "trips": 0,
+        "incidents": 0
+      },
+      "metrics": {
+        "task.generated.count": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "task.completion.rate": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "infra.utilisation.mean": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]},
+        "traffic.speed.mean_mps": {"status": "available", "value": 11.5, "reason_codes": []},
+        "trip.duration.mean_s": {"status": "unavailable", "value": null, "reason_codes": ["NO_VALID_ROWS"]}
+      }
+    }
+  ]
+}

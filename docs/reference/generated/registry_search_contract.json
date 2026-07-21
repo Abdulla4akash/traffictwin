@@ -1,0 +1,58 @@
+{
+  "capability_id": "REP-05",
+  "categories": [
+    "finding",
+    "annotation",
+    "report",
+    "run",
+    "experiment",
+    "evidence_reference"
+  ],
+  "contract_version": "registry-search-v1",
+  "default_result_limit": 50,
+  "exclusions": [
+    "raw bundle tables and source rows",
+    "binary PDF body text; PDF metadata remains searchable",
+    "report files outside workspace/reports, nested files, and symbolic links",
+    "external services, web content, semantic embeddings, and LLM-generated terms"
+  ],
+  "indexed_sources": {
+    "annotation": "append-only analyst annotation records",
+    "evidence_reference": "run/experiment EvidencePack metadata and structured report claim references",
+    "experiment": "registered experiment identifiers, status, question, hypothesis, and design",
+    "finding": "stored bundle validation findings and structured report rule/finding records",
+    "report": "report basename, format, metadata, and bounded UTF-8 text where supported",
+    "run": "registered run identifiers, status, and metadata"
+  },
+  "limitations": [
+    "Ranking is deterministic lexical relevance, not scientific importance.",
+    "A match does not validate, endorse, or establish causality for its content.",
+    "The search is rebuilt from current local records on each request; no mutable index is created."
+  ],
+  "matching_policy": "Unicode NFKC case-folded AND matching over unique alphanumeric query terms; every term must occur in at least one sanitised field",
+  "maximum_candidate_documents": 20000,
+  "maximum_query_characters": 256,
+  "maximum_query_tokens": 16,
+  "maximum_report_bytes": 2000000,
+  "maximum_report_files": 500,
+  "maximum_result_limit": 200,
+  "ranking_policy": [
+    "fields are weighted reference=12, title=10, metadata=6, text=3",
+    "exact whole-field phrase, field-prefix phrase, and contained phrase receive 80x, 40x, and 20x the field weight",
+    "each term receives its best exact-token, token-prefix, or substring score of 8x, 4x, or 2x the field weight",
+    "scores are integer-only and category-neutral"
+  ],
+  "read_only_guarantees": [
+    "open an existing SQLite registry in mode=ro immutable mode and set PRAGMA query_only=ON",
+    "never initialise, migrate, index, update, or delete registry state",
+    "read only direct, non-symlink files under a non-symlink workspace/reports directory"
+  ],
+  "redaction_policy": [
+    "redact POSIX, Windows, home-relative, and file-URI absolute paths before matching",
+    "show report basenames and typed local references, never workspace or registry paths",
+    "preserve ordinary domain identifiers and bundle-relative evidence references",
+    "publish redaction counts without exposing removed text"
+  ],
+  "schema_version": "1.0",
+  "tie_break_policy": "descending score, then category declaration order, normalised title, and reference"
+}

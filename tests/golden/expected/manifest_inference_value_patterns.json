@@ -1,0 +1,30 @@
+{
+  "source_fingerprint": "e2f3f1a0d0ebd65a4950bb6bcd9674b075cbdb4acbd4582b56553cca7b3d7402",
+  "draft_fingerprint": "a4ac3302cb83472df01598c918d040807ba0c39511dc8af17fadc83e8ad74cf1",
+  "analysis_ready": false,
+  "confirmation_required": true,
+  "files": [
+    {
+      "path": "external_tasks.csv",
+      "status": "suggested",
+      "suggested_kind": "tasks",
+      "sampled_rows": 3,
+      "eligible_candidates": [
+        {
+          "kind": "tasks",
+          "score": 210,
+          "required": {
+            "arrival_time": {"status": "suggested", "source": "ArrivalTimeSeconds", "methods": ["header_alias"], "unit": "s"},
+            "completed": {"status": "suggested", "source": "FlagCode", "methods": ["value_pattern"], "unit": null},
+            "deadline_ms": {"status": "suggested", "source": "DeadlineMs", "methods": ["exact_header"], "unit": "ms"},
+            "decision": {"status": "suggested", "source": "PlacementCode", "methods": ["value_pattern"], "unit": null},
+            "task_class": {"status": "suggested", "source": "KindCode", "methods": ["value_pattern"], "unit": null},
+            "task_id": {"status": "suggested", "source": "TaskID", "methods": ["exact_header"], "unit": null},
+            "vehicle_id": {"status": "suggested", "source": "VehicleID", "methods": ["exact_header"], "unit": null}
+          }
+        }
+      ]
+    }
+  ],
+  "finding_codes": ["MANIFEST_INFERENCE_CONFIRMATION_REQUIRED"]
+}

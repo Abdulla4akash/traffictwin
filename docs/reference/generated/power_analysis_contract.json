@@ -1,0 +1,63 @@
+{
+  "alpha_bounds": {
+    "maximum": 0.2,
+    "minimum": 0.001
+  },
+  "alternative": "two_sided",
+  "assumptions": [
+    "Common random seeds define independent paired experimental units.",
+    "The declared variance is the prospective variance of variation-minus-baseline paired differences in the stated unit squared.",
+    "The paired-mean sampling distribution is approximated by a normal distribution and the planning variance is treated as fixed and known.",
+    "The target effect, alpha, target power, and bases are declared before confirmatory results are inspected.",
+    "Every planned common seed yields one compatible baseline and one compatible variation run; no attrition or exclusions are built into the estimate.",
+    "The calculation concerns one two-sided predeclared comparison without multiplicity adjustment."
+  ],
+  "decision_rule": "Return the smallest integer n within the declared bounds whose two-sided normal-approximation power is greater than or equal to target_power; verify n-1 remains below target when n exceeds the minimum.",
+  "estimand": "mean_paired_difference_variation_minus_baseline",
+  "labels": [
+    "planning_aid_not_a_guarantee",
+    "small_pilot_sample",
+    "small_planned_sample",
+    "synthetic_input",
+    "provisional_input"
+  ],
+  "limitations": [
+    "The result is a planning estimate, not guaranteed achieved power and not evidence that a completed study was adequately powered.",
+    "The normal approximation can be optimistic for small, skewed, heavy-tailed, or variance-uncertain paired samples.",
+    "TrafficTwin does not derive a target effect or variance from observed results, validate their practical basis, or inflate for missing/incompatible pairs.",
+    "This method does not calculate power for STA-01 sign-flip inference, STA-03 paired TOST, N-way ranking, multiple comparisons, sequential designs, or external simulator costs.",
+    "Synthetic or provisional inputs provide software and design evidence only, not real-world or externally validated sample-size evidence.",
+    "Power planning does not establish causality, practical importance, policy superiority, equivalence, or deployment suitability."
+  ],
+  "method": "two_sided_paired_mean_normal_approximation_v1",
+  "method_version": "1.0",
+  "pairing_key": "random_seed",
+  "replicate_bounds": {
+    "maximum": 1000000,
+    "minimum": 3
+  },
+  "required_inputs": [
+    "finite signed target effect in the metric's original unit",
+    "finite non-negative variance of paired variation-minus-baseline differences",
+    "two-sided alpha",
+    "target power",
+    "effect and variance bases with written justifications",
+    "pilot sample size when either input is pilot-derived",
+    "explicit synthetic label when either input is synthetic"
+  ],
+  "schema_version": "1.0",
+  "target_power_bounds": {
+    "maximum": 0.999,
+    "minimum": 0.5
+  },
+  "unavailable_behavior": "A zero target effect, non-positive paired-difference variance, or target not reached within the declared maximum yields a typed unavailable calculation; no value is imputed and unavailable is never represented as zero.",
+  "unsupported": [
+    "retrospective or observed post-hoc power claims",
+    "power for STA-01 sign-flip randomisation inference",
+    "paired TOST equivalence power",
+    "N-way or multiple-comparison power",
+    "attrition, incompatible-run, or missing-pair inflation",
+    "automatic extraction of a target effect or variance from observed results",
+    "simulation-based, sequential, adaptive, cluster, or unpaired designs"
+  ]
+}

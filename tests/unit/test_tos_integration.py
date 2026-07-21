@@ -31,7 +31,11 @@ from traffictwin.integration.tos.models import (
     TOS_VEC_ENV_EVIDENCE_COMMIT,
 )
 from traffictwin.integration.tos.readers import TosPackageError, safe_package_path
-from traffictwin.metrics.results import MetricStatus
+from traffictwin.metrics.results import MetricStatus, UnavailableReason
+from traffictwin.provenance.graph_export import (
+    build_provenance_graph_view,
+    provenance_graph_to_graphml,
+)
 from traffictwin.provenance.models import ProvenanceNodeType, ProvenanceStatus
 from traffictwin.rules.engine import evaluate_rules
 
@@ -52,6 +56,29 @@ def test_tos_models_and_capabilities_are_conservative(tmp_path: Path) -> None:
     assert rows[0].completion == 0.9
     assert manifest.supports.direct_launch is CapabilitySupport.FALSE
     assert manifest.supports.run_bundle_import is CapabilitySupport.FALSE
+    assert manifest.supports.streaming_canonicalisation is CapabilitySupport.FALSE
+    assert manifest.supports.canonical_table_caching is CapabilitySupport.FALSE
+    assert manifest.supports.environment_doctor is CapabilitySupport.FALSE
+    assert manifest.supports.ro_crate_archival_export is CapabilitySupport.FALSE
+    assert manifest.supports.generalised_external_source_contract is CapabilitySupport.TRUE
+    assert manifest.supports.time_windowed_metrics is CapabilitySupport.FALSE
+    assert manifest.supports.latency_percentile_family is CapabilitySupport.FALSE
+    assert manifest.supports.energy_metric_family is CapabilitySupport.FALSE
+    assert manifest.supports.fairness_metric_family is CapabilitySupport.FALSE
+    assert manifest.supports.spatial_rsu_metric_family is CapabilitySupport.FALSE
+    assert manifest.supports.custom_metric_plugin_api is CapabilitySupport.FALSE
+    assert manifest.supports.declarative_rule_authoring is CapabilitySupport.TRUE
+    assert manifest.supports.fairness_disparity_diagnosis is CapabilitySupport.FALSE
+    assert manifest.supports.energy_anomaly_diagnosis is CapabilitySupport.FALSE
+    assert manifest.supports.nearest_flip_analysis is CapabilitySupport.FALSE
+    assert manifest.supports.threshold_sensitivity_sweep is CapabilitySupport.FALSE
+    assert manifest.supports.cross_rule_reasoning is CapabilitySupport.FALSE
+    assert manifest.supports.paired_statistical_study is CapabilitySupport.FALSE
+    assert manifest.supports.n_way_policy_ranking is CapabilitySupport.FALSE
+    assert manifest.supports.equivalence_testing is CapabilitySupport.FALSE
+    assert manifest.supports.difference_provenance is CapabilitySupport.FALSE
+    assert manifest.supports.provenance_graph_export is CapabilitySupport.TRUE
+    assert manifest.supports.provenance_completeness_score is CapabilitySupport.FALSE
     assert manifest.supports.rsu_capacity is CapabilitySupport.UNKNOWN
 
 
@@ -149,6 +176,12 @@ def test_source_summary_metrics_and_partial_diagnostics(tmp_path: Path) -> None:
     assert by_key["task.incomplete.rate"].status is MetricStatus.UNAVAILABLE
     assert by_key["infra.utilisation.mean"].status is MetricStatus.UNAVAILABLE
     assert by_key["task.energy.per_completed_j"].metadata["source_energy_j_per_arrival"] == 0.4
+    assert by_key["spatial.rsu.task.count_by_target"].reason_codes == [
+        UnavailableReason.TASK_RSU_TARGET_CONTRACT_UNAVAILABLE
+    ]
+    assert by_key["spatial.vehicle.observation_count_by_grid_cell"].reason_codes == [
+        UnavailableReason.VEHICLE_SPATIAL_GRID_CONTRACT_UNAVAILABLE
+    ]
 
     pack = build_tos_evidence_pack(row, report, collection, clock=fixed_clock)
     diagnosis = evaluate_rules(pack, clock=fixed_clock)
@@ -158,6 +191,11 @@ def test_source_summary_metrics_and_partial_diagnostics(tmp_path: Path) -> None:
         "R1": "insufficient_evidence",
         "R2": "insufficient_evidence",
         "R3": "insufficient_evidence",
+        "R4": "insufficient_evidence",
+        "R5": "insufficient_evidence",
+        "R6": "insufficient_evidence",
+        "R7": "insufficient_evidence",
+        "R8": "insufficient_evidence",
     }
 
 
@@ -223,6 +261,7 @@ def test_tos_metric_trace_and_source_row_are_explicitly_aggregate(tmp_path: Path
         "tos.task.deadline_success.rate",
         clock=fixed_clock,
     )
+    graph_view = build_provenance_graph_view(trace)
     preview = get_evaluation_source_row(package, 2, report)
 
     assert trace.completeness.overall.value == "partial"
@@ -232,6 +271,9 @@ def test_tos_metric_trace_and_source_row_are_explicitly_aggregate(tmp_path: Path
     )
     assert canonical.status is ProvenanceStatus.UNAVAILABLE
     assert "/Users/" not in trace.to_json()
+    assert graph_view.root_node_id == trace.root_node_id
+    assert graph_view.omitted_node_count == 0
+    assert "<graphml" in provenance_graph_to_graphml(graph_view)
     assert preview.status is ProvenanceStatus.AVAILABLE
     assert preview.inclusion_status == "included_as_source_summary"
     assert preview.canonical_record_type is None

@@ -1,0 +1,82 @@
+{
+  "run_id": "run-baseline-7",
+  "metrics": {
+    "task.completion.rate_by_vehicle_tier": {
+      "status": "available",
+      "value": {
+        "high": 1.0,
+        "low": 0.8333333333333334,
+        "medium": 1.0
+      },
+      "unit": "ratio",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "high": 8,
+        "low": 12,
+        "medium": 13
+      },
+      "group_set_fingerprint": "03912ecbe5f879fef928cb5433891bf20ffa59e62ced03e20908a42b96fdb91e"
+    },
+    "fairness.vehicle_tier.completion_rate.max_gap": {
+      "status": "available",
+      "value": 0.16666666666666663,
+      "unit": "ratio",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "high": 8,
+        "low": 12,
+        "medium": 13
+      },
+      "group_set_fingerprint": "03912ecbe5f879fef928cb5433891bf20ffa59e62ced03e20908a42b96fdb91e"
+    },
+    "fairness.vehicle_tier.completion_rate.jain": {
+      "status": "available",
+      "value": 0.993127147766323,
+      "unit": "index",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "high": 8,
+        "low": 12,
+        "medium": 13
+      },
+      "group_set_fingerprint": "03912ecbe5f879fef928cb5433891bf20ffa59e62ced03e20908a42b96fdb91e"
+    },
+    "fairness.rsu.capacity_normalised_load.by_group": {
+      "status": "available",
+      "value": {
+        "rsu-1": 0.5714285714285714,
+        "rsu-2": 0.5714285714285714
+      },
+      "unit": "fraction",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 11
+      },
+      "group_set_fingerprint": "3e880ea15b5e1685fef405797b1ca1d1bacf5000d3ef29fee433576989ff33e4"
+    },
+    "fairness.rsu.capacity_normalised_load.max_gap": {
+      "status": "available",
+      "value": 0.0,
+      "unit": "fraction",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 11
+      },
+      "group_set_fingerprint": "3e880ea15b5e1685fef405797b1ca1d1bacf5000d3ef29fee433576989ff33e4"
+    },
+    "infra.load_balance.jain_capacity_normalised": {
+      "status": "available",
+      "value": 1.0,
+      "unit": "index",
+      "coverage_fraction": 1.0,
+      "group_support_counts": {
+        "rsu-1": 11,
+        "rsu-2": 11
+      },
+      "group_set_fingerprint": "3e880ea15b5e1685fef405797b1ca1d1bacf5000d3ef29fee433576989ff33e4"
+    }
+  },
+  "fairness_policy_fingerprint": "7518652f882ea2928b4fcc6c500af9fa81e2bf6d88fcb0ed655d7be46ede0e6e"
+}

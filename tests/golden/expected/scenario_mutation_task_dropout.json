@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "capability_id": "EXP-02",
+  "method_version": "1.0",
+  "mutation_id": "mutation-golden",
+  "operator": "row_dropout",
+  "request_fingerprint": "2ba638749d8267d4313bdf95f0ba574b9d5a5d55b043905da16c4384b2e2e91a",
+  "plan_fingerprint": "ba953d67f4c2f3c947160282054e0b779d78ed45afe91fa838d8e819e6e1f139",
+  "mutation_fingerprint": "e291736350063b5ba93b417e43a96718c0c7614e717b1e8d678de7e0c46e5fc6",
+  "parent_bundle_fingerprint": "b778c4c3f27cefda66f452432fdf920ac577345ab5ed889d3b1e77a09cabf75a",
+  "derived_bundle_fingerprint": "6dd113a4be25b8e57959761d728060b8763a6e882723651259ac6087cca5f620",
+  "parent_ids": {
+    "bundle": "bundle-baseline-001",
+    "run": "run-baseline-001",
+    "seed": "s1-gridlock-baseline"
+  },
+  "derived_ids": {
+    "bundle": "bundle-baseline-001-mut-f7f3a3cd3bbd",
+    "run": "run-baseline-001-mut-f7f3a3cd3bbd",
+    "seed": "s1-gridlock-baseline-mut-f7f3a3cd3bbd"
+  },
+  "changed_row_count": 1,
+  "row_changes": [
+    {
+      "table_kind": "tasks",
+      "source_file": "tasks.csv",
+      "parent_source_row": 4,
+      "action": "dropped",
+      "row_fingerprint_before": "05cef695c11e7e2fe742f1f613a4cd8254e9c2f45dd4ffdde69a3dd3a503c3c6",
+      "row_fingerprint_after": null,
+      "field_changes": []
+    }
+  ],
+  "file_changes": [
+    {
+      "path": "tasks.csv",
+      "table_kind": "tasks",
+      "change_kind": "tabular_rows",
+      "checksum_before": "30637ce4ff915be3b5dac6c051da42274dd436b5c0b829df58fdc9d0a79df792",
+      "checksum_after": "d36d35849441c24304e66c8a3465f723772da5c552046c838b75763273119341",
+      "rows_before": 3,
+      "rows_after": 2,
+      "changed_rows": 1
+    },
+    {
+      "path": "seed.yaml",
+      "table_kind": null,
+      "change_kind": "derived_seed",
+      "checksum_before": "0bf70bec82c0f77b4c6d0f79008b427c3ca7474c31594d6369d382b4c4996065",
+      "checksum_after": "96d53426c8802f43734f43f16bd65567e5800d6ef5e9cb1a957f904d25449623",
+      "rows_before": null,
+      "rows_after": null,
+      "changed_rows": null
+    },
+    {
+      "path": "manifest.yaml",
+      "table_kind": null,
+      "change_kind": "derived_manifest",
+      "checksum_before": "cd7e757b323b65bccf00ab4562e7b8b91dae77c7430aa598fb877ee2998a34a6",
+      "checksum_after": "2857a9686942ac9192ae21314cc3a05df97596bfc2a19ae5755ecf8b1d136764",
+      "rows_before": null,
+      "rows_after": null,
+      "changed_rows": null
+    }
+  ],
+  "validation_status": "accepted",
+  "validation_may_import": true,
+  "synthetic_evaluation": true,
+  "raw_source_mutated": false,
+  "direct_launch_supported": false
+}

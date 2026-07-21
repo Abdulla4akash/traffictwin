@@ -6,6 +6,10 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
+from traffictwin.annotations import (
+    AnalystAnnotationTargetKind,
+    AnalystArtifactReference,
+)
 from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.ingestion.bundle import BundleValidationResult, validate_bundle
@@ -13,7 +17,19 @@ from traffictwin.metrics.comparison import ComparisonReport, compare_metric_coll
 from traffictwin.metrics.engine import compute_metrics_for_bundle
 from traffictwin.metrics.results import MetricCollection, MetricStatus
 from traffictwin.provenance.query import build_provenance_context, get_run_provenance
-from traffictwin.reporting.models import ReportBuildError, ResearchReport
+from traffictwin.reporting.claims import (
+    COMPARISON_REPORT_METRIC_KEYS,
+    REPORT_CLAIM_DENOMINATOR,
+    RUN_REPORT_METRIC_KEYS,
+    analysis_claim_references,
+    analysis_claim_snapshots,
+    comparison_claim_references,
+    comparison_claim_snapshots,
+    full_report_claim_references,
+    full_report_claim_snapshots,
+    standard_claim_exclusions,
+)
+from traffictwin.reporting.models import ReportBuildError, ResearchReport, ResearchReportType
 from traffictwin.rules.engine import evaluate_rules
 
 Clock = Callable[[], datetime]
@@ -28,6 +44,7 @@ def build_run_report(path: str | Path, *, clock: Clock | None = None) -> Researc
     manifest = result.manifest
     if manifest is None:
         raise ReportBuildError("run report requires a valid manifest")
+    report_id = f"report-run-{manifest.run.run_id}"
     sections = [
         (
             "Report Summary",
@@ -48,13 +65,35 @@ def build_run_report(path: str | Path, *, clock: Clock | None = None) -> Researc
         ("Reproduction Commands", _reproduction_lines(path)),
     ]
     return ResearchReport(
-        report_id=f"report-run-{manifest.run.run_id}",
+        report_id=report_id,
         title=f"TrafficTwin Run Report: {manifest.run.run_id}",
         generated_at=now,
         source_reference=_safe_reference(path),
         synthetic=manifest.environment.name == "synthetic",
         sections=sections,
         warnings=[],
+        report_type=ResearchReportType.RUN,
+        claim_denominator_definition=REPORT_CLAIM_DENOMINATOR,
+        claim_references=analysis_claim_references(
+            report_id,
+            metrics,
+            diagnostics,
+            metric_section="Metrics",
+        ),
+        claim_snapshots=analysis_claim_snapshots(
+            report_id,
+            metrics,
+            diagnostics,
+            metric_section="Metrics",
+        ),
+        claim_exclusions=standard_claim_exclusions(ResearchReportType.RUN),
+        annotation_targets=_run_annotation_targets(
+            report_id,
+            manifest.run.run_id,
+            result.fingerprint,
+            metrics,
+            diagnostics,
+        ),
     )
 
 
@@ -66,8 +105,9 @@ def build_diagnostics_report(path: str | Path, *, clock: Clock | None = None) ->
     manifest = result.manifest
     if manifest is None:
         raise ReportBuildError("diagnostic report requires a valid manifest")
+    report_id = f"report-diagnostics-{manifest.run.run_id}"
     return ResearchReport(
-        report_id=f"report-diagnostics-{manifest.run.run_id}",
+        report_id=report_id,
         title=f"TrafficTwin Diagnostic Report: {manifest.run.run_id}",
         generated_at=now,
         source_reference=_safe_reference(path),
@@ -81,6 +121,28 @@ def build_diagnostics_report(path: str | Path, *, clock: Clock | None = None) ->
             ("Limitations", _limitations()),
             ("Reproduction Commands", _reproduction_lines(path)),
         ],
+        report_type=ResearchReportType.DIAGNOSTICS,
+        claim_denominator_definition=REPORT_CLAIM_DENOMINATOR,
+        claim_references=analysis_claim_references(
+            report_id,
+            metrics,
+            diagnostics,
+            metric_section="Metric Evidence Used",
+        ),
+        claim_snapshots=analysis_claim_snapshots(
+            report_id,
+            metrics,
+            diagnostics,
+            metric_section="Metric Evidence Used",
+        ),
+        claim_exclusions=standard_claim_exclusions(ResearchReportType.DIAGNOSTICS),
+        annotation_targets=_run_annotation_targets(
+            report_id,
+            manifest.run.run_id,
+            result.fingerprint,
+            metrics,
+            diagnostics,
+        ),
     )
 
 
@@ -102,8 +164,9 @@ def build_comparison_report(
         variation_seed=variation_result.seed,
         clock=lambda: now,
     )
+    report_id = f"report-compare-{baseline_metrics.run_id}-vs-{variation_metrics.run_id}"
     return ResearchReport(
-        report_id=f"report-compare-{baseline_metrics.run_id}-vs-{variation_metrics.run_id}",
+        report_id=report_id,
         title=f"TrafficTwin Comparison: {baseline_metrics.run_id} vs {variation_metrics.run_id}",
         generated_at=now,
         source_reference=f"{_safe_reference(baseline)} vs {_safe_reference(variation)}",
@@ -125,6 +188,31 @@ def build_comparison_report(
             ("Limitations", _limitations()),
             ("Reproduction Commands", _comparison_reproduction_lines(baseline, variation)),
         ],
+        report_type=ResearchReportType.COMPARISON,
+        claim_denominator_definition=REPORT_CLAIM_DENOMINATOR,
+        claim_references=comparison_claim_references(report_id, comparison),
+        claim_snapshots=comparison_claim_snapshots(report_id, comparison),
+        claim_exclusions=standard_claim_exclusions(ResearchReportType.COMPARISON),
+        annotation_targets=[
+            AnalystArtifactReference(
+                kind=AnalystAnnotationTargetKind.RUN,
+                artifact_id=baseline_metrics.run_id,
+                artifact_fingerprint=baseline_result.fingerprint,
+            ),
+            AnalystArtifactReference(
+                kind=AnalystAnnotationTargetKind.RUN,
+                artifact_id=variation_metrics.run_id,
+                artifact_fingerprint=variation_result.fingerprint,
+            ),
+            AnalystArtifactReference(
+                kind=AnalystAnnotationTargetKind.COMPARISON_REPORT,
+                artifact_id=report_id,
+            ),
+            AnalystArtifactReference(
+                kind=AnalystAnnotationTargetKind.RESEARCH_REPORT,
+                artifact_id=report_id,
+            ),
+        ],
     )
 
 
@@ -138,16 +226,84 @@ def build_full_report(
 
     report = build_run_report(path, clock=clock)
     sections = list(report.sections)
+    claims = list(report.claim_references)
+    snapshots = list(report.claim_snapshots)
+    annotation_targets = [
+        target
+        for target in report.annotation_targets
+        if target.kind is not AnalystAnnotationTargetKind.RESEARCH_REPORT
+    ]
     if comparison_baseline is not None:
         comparison_report = build_comparison_report(comparison_baseline, path, clock=clock)
         sections.append(("Comparison Context", _flatten_sections(comparison_report.sections)))
+        claims.extend(comparison_report.claim_references)
+        snapshots.extend(comparison_report.claim_snapshots)
+        annotation_targets.extend(
+            target
+            for target in comparison_report.annotation_targets
+            if target.kind
+            not in {
+                AnalystAnnotationTargetKind.RESEARCH_REPORT,
+                AnalystAnnotationTargetKind.COMPARISON_REPORT,
+            }
+        )
+    full_report_id = report.report_id.replace("report-run", "report-full", 1)
+    claims = full_report_claim_references(full_report_id, claims)
+    snapshots = full_report_claim_snapshots(full_report_id, snapshots)
+    annotation_targets.append(
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.RESEARCH_REPORT,
+            artifact_id=full_report_id,
+        )
+    )
+    annotation_targets = list({target.key: target for target in annotation_targets}.values())
     return report.model_copy(
         update={
-            "report_id": report.report_id.replace("report-run", "report-full", 1),
+            "report_id": full_report_id,
             "title": report.title.replace("Run Report", "Full Report"),
             "sections": sections,
+            "report_type": ResearchReportType.FULL,
+            "claim_references": claims,
+            "claim_snapshots": snapshots,
+            "claim_exclusions": standard_claim_exclusions(ResearchReportType.FULL),
+            "annotation_targets": annotation_targets,
         }
     )
+
+
+def _run_annotation_targets(
+    report_id: str,
+    run_id: str,
+    bundle_fingerprint: str | None,
+    metrics: MetricCollection,
+    diagnostics: DiagnosticReport,
+) -> list[AnalystArtifactReference]:
+    targets = [
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.RUN,
+            artifact_id=run_id,
+            artifact_fingerprint=bundle_fingerprint,
+        ),
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.METRIC_COLLECTION,
+            artifact_id=run_id,
+            artifact_fingerprint=metrics.input_fingerprint,
+        ),
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.EVIDENCE_PACK,
+            artifact_id=diagnostics.evidence_pack_id,
+        ),
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.DIAGNOSTIC_REPORT,
+            artifact_id=diagnostics.report_id,
+            artifact_fingerprint=diagnostics.fingerprint(),
+        ),
+        AnalystArtifactReference(
+            kind=AnalystAnnotationTargetKind.RESEARCH_REPORT,
+            artifact_id=report_id,
+        ),
+    ]
+    return targets
 
 
 def _analysis(
@@ -205,21 +361,9 @@ def _evidence_lines(result: BundleValidationResult) -> list[str]:
 
 
 def _metric_lines(metrics: MetricCollection) -> list[str]:
-    interesting = [
-        "task.generated.count",
-        "task.completed.count",
-        "task.completion.rate",
-        "task.incomplete.rate",
-        "task.latency.p95_ms",
-        "task.offload.rate",
-        "infra.utilisation.p95",
-        "infra.queue_length.max",
-        "trip.duration.p95_s",
-        "traffic.speed.mean_mps",
-    ]
     by_key = metrics.by_key()
     lines = [f"Metric version: `{metrics.metric_version}`"]
-    for key in interesting:
+    for key in RUN_REPORT_METRIC_KEYS:
         metric = by_key.get(key)
         if metric is None:
             continue
@@ -245,6 +389,25 @@ def _diagnostic_lines(report: DiagnosticReport) -> list[str]:
         f"Triggered rules: {', '.join(report.triggered_rule_ids) or 'none'}",
         f"Insufficient rules: {', '.join(report.insufficient_rule_ids) or 'none'}",
     ]
+    cross_rule = report.cross_rule_analysis
+    if cross_rule is not None:
+        lines.extend(
+            [
+                f"Cross-rule policy: `{cross_rule.policy_version}`",
+                f"Cross-rule relationships: conflict={cross_rule.counts_by_type['conflict']}, "
+                f"corroboration={cross_rule.counts_by_type['corroboration']}, "
+                f"suppression={cross_rule.counts_by_type['suppression']}",
+                "Suppressed-for-action rules: "
+                f"{', '.join(cross_rule.suppressed_rule_ids) or 'none'} "
+                "(all original results retained)",
+            ]
+        )
+        lines.extend(
+            f"Cross-rule `{relationship.relation_type.value}` "
+            f"{relationship.source_rule_id}/{relationship.target_rule_id}: "
+            f"{relationship.statement}"
+            for relationship in cross_rule.relationships
+        )
     for result in report.results:
         hypothesis = result.hypothesis or "no candidate hypothesis"
         lines.append(
@@ -267,16 +430,8 @@ def _provenance_lines(path: str | Path, now: datetime) -> list[str]:
 
 def _comparison_metric_lines(report: ComparisonReport) -> list[str]:
     lines: list[str] = []
-    interesting = {
-        "task.completion.rate",
-        "task.incomplete.rate",
-        "infra.queue_length.max",
-        "infra.utilisation.p95",
-        "trip.duration.p95_s",
-        "traffic.speed.mean_mps",
-    }
     for item in report.comparable_metrics:
-        if item.metric_key not in interesting:
+        if item.metric_key not in COMPARISON_REPORT_METRIC_KEYS:
             continue
         lines.append(
             f"`{item.metric_key}`: baseline={_format_value(item.baseline)}, "

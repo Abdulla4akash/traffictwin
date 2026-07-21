@@ -1,0 +1,45 @@
+{
+  "admitted_parent_labels": [
+    "synthetic_fixture",
+    "synthetic_mutation",
+    "synthetic_evaluation"
+  ],
+  "direct_launch_supported": false,
+  "dropout_policy": "Drop max(1, floor(row_count * fraction)) rows selected by stable seeded SHA-256 ordering; never sample from mutable process state.",
+  "exact_change_ledger": true,
+  "limitations": [
+    "Only explicitly labelled synthetic/evaluation parent bundles are admitted.",
+    "The parent bundle is read-only; the derived output is a separate copied bundle.",
+    "Only one closed mutation operator is applied per request.",
+    "Target mutation supports declared uncompressed CSV only; gzip and Parquet targets are unsupported in v1.",
+    "Mutation behavior is deterministic software robustness evidence, not a physical sensor, traffic, network, failure, or simulator model.",
+    "RSU removal does not infer rerouting, rescheduling, retraining, or policy response.",
+    "No mode launches SUMO, Randy VEC/TOS, training, or another external simulator.",
+    "Empty, symbolic-link, current/home/root, and current/home ancestor destinations are rejected before materialisation.",
+    "A destination must not equal, contain, or sit inside its parent bundle; failed overwrite publication restores the previous destination."
+  ],
+  "max_absolute_jitter_s": 3600.0,
+  "max_changed_rows": 20000,
+  "max_source_bytes": 25000000,
+  "max_source_files": 64,
+  "max_source_rows_per_table": 100000,
+  "method_version": "1.0",
+  "output_format_boundary": "Only a targeted declared uncompressed CSV table is rewritten. Other parent bundle files are copied byte-for-byte; compressed CSV and Parquet targets are unsupported.",
+  "raw_source_mutation_supported": false,
+  "rsu_removal_policy": "Remove exact matching infrastructure rows and mark the derived seed; retain task targets unchanged because TrafficTwin cannot invent rerouting behavior.",
+  "schema_version": "1.0",
+  "supported_operators": [
+    "row_dropout",
+    "timestamp_jitter",
+    "rsu_removal"
+  ],
+  "supported_tables": [
+    "tasks",
+    "infra_state",
+    "vehicle_state",
+    "traffic_obs",
+    "trips",
+    "incidents"
+  ],
+  "timestamp_policy": "Apply one deterministic delta per row to every present absolute timestamp field, clamped only to keep the earliest timestamp non-negative."
+}

@@ -50,6 +50,41 @@ class CapabilitySet(BaseModel):
     seed_import: CapabilitySupport = CapabilitySupport.TRUE
     seed_export: CapabilitySupport = CapabilitySupport.TRUE
     run_bundle_import: CapabilitySupport = CapabilitySupport.TRUE
+    streaming_canonicalisation: CapabilitySupport = CapabilitySupport.UNKNOWN
+    time_windowed_metrics: CapabilitySupport = CapabilitySupport.UNKNOWN
+    latency_percentile_family: CapabilitySupport = CapabilitySupport.UNKNOWN
+    energy_metric_family: CapabilitySupport = CapabilitySupport.UNKNOWN
+    fairness_metric_family: CapabilitySupport = CapabilitySupport.UNKNOWN
+    spatial_rsu_metric_family: CapabilitySupport = CapabilitySupport.UNKNOWN
+    custom_metric_plugin_api: CapabilitySupport = CapabilitySupport.UNKNOWN
+    temporal_degradation_diagnosis: CapabilitySupport = CapabilitySupport.UNKNOWN
+    declarative_rule_authoring: CapabilitySupport = CapabilitySupport.UNKNOWN
+    fairness_disparity_diagnosis: CapabilitySupport = CapabilitySupport.UNKNOWN
+    energy_anomaly_diagnosis: CapabilitySupport = CapabilitySupport.UNKNOWN
+    nearest_flip_analysis: CapabilitySupport = CapabilitySupport.UNKNOWN
+    threshold_sensitivity_sweep: CapabilitySupport = CapabilitySupport.UNKNOWN
+    cross_rule_reasoning: CapabilitySupport = CapabilitySupport.UNKNOWN
+    paired_statistical_study: CapabilitySupport = CapabilitySupport.UNKNOWN
+    n_way_policy_ranking: CapabilitySupport = CapabilitySupport.UNKNOWN
+    equivalence_testing: CapabilitySupport = CapabilitySupport.UNKNOWN
+    regression_gate: CapabilitySupport = CapabilitySupport.UNKNOWN
+    power_analysis: CapabilitySupport = CapabilitySupport.UNKNOWN
+    difference_provenance: CapabilitySupport = CapabilitySupport.UNKNOWN
+    provenance_graph_export: CapabilitySupport = CapabilitySupport.UNKNOWN
+    provenance_completeness_score: CapabilitySupport = CapabilitySupport.UNKNOWN
+    parameter_sweep_composer: CapabilitySupport = CapabilitySupport.UNKNOWN
+    scenario_mutation_operators: CapabilitySupport = CapabilitySupport.UNKNOWN
+    measurement_noise_dropout_models: CapabilitySupport = CapabilitySupport.UNKNOWN
+    latex_research_export: CapabilitySupport = CapabilitySupport.UNKNOWN
+    analyst_annotations: CapabilitySupport = CapabilitySupport.UNKNOWN
+    structured_report_diffing: CapabilitySupport = CapabilitySupport.UNKNOWN
+    one_page_executive_summary: CapabilitySupport = CapabilitySupport.UNKNOWN
+    full_text_registry_search: CapabilitySupport = CapabilitySupport.UNKNOWN
+    registry_schema_migrations: CapabilitySupport = CapabilitySupport.UNKNOWN
+    canonical_table_caching: CapabilitySupport = CapabilitySupport.UNKNOWN
+    environment_doctor: CapabilitySupport = CapabilitySupport.UNKNOWN
+    ro_crate_archival_export: CapabilitySupport = CapabilitySupport.UNKNOWN
+    generalised_external_source_contract: CapabilitySupport = CapabilitySupport.UNKNOWN
     direct_launch: CapabilitySupport = CapabilitySupport.FALSE
     asynchronous_launch: CapabilitySupport = CapabilitySupport.FALSE
     task_arrival_multiplier: CapabilitySupport = CapabilitySupport.UNKNOWN
@@ -116,7 +151,46 @@ RANDY_ENVIRONMENT_CAPABILITIES = (
 def default_export_import_manifest() -> CapabilityManifest:
     """Return the safe default manifest for import/export-only work."""
 
-    return CapabilityManifest(adapter="generic_csv")
+    return CapabilityManifest(
+        adapter="generic_csv",
+        supports=CapabilitySet(
+            streaming_canonicalisation=CapabilitySupport.TRUE,
+            time_windowed_metrics=CapabilitySupport.TRUE,
+            latency_percentile_family=CapabilitySupport.TRUE,
+            energy_metric_family=CapabilitySupport.TRUE,
+            fairness_metric_family=CapabilitySupport.TRUE,
+            spatial_rsu_metric_family=CapabilitySupport.TRUE,
+            custom_metric_plugin_api=CapabilitySupport.TRUE,
+            temporal_degradation_diagnosis=CapabilitySupport.TRUE,
+            declarative_rule_authoring=CapabilitySupport.TRUE,
+            fairness_disparity_diagnosis=CapabilitySupport.TRUE,
+            energy_anomaly_diagnosis=CapabilitySupport.TRUE,
+            nearest_flip_analysis=CapabilitySupport.TRUE,
+            threshold_sensitivity_sweep=CapabilitySupport.TRUE,
+            cross_rule_reasoning=CapabilitySupport.TRUE,
+            paired_statistical_study=CapabilitySupport.TRUE,
+            n_way_policy_ranking=CapabilitySupport.TRUE,
+            equivalence_testing=CapabilitySupport.TRUE,
+            regression_gate=CapabilitySupport.TRUE,
+            power_analysis=CapabilitySupport.TRUE,
+            difference_provenance=CapabilitySupport.TRUE,
+            provenance_graph_export=CapabilitySupport.TRUE,
+            provenance_completeness_score=CapabilitySupport.TRUE,
+            parameter_sweep_composer=CapabilitySupport.TRUE,
+            scenario_mutation_operators=CapabilitySupport.TRUE,
+            measurement_noise_dropout_models=CapabilitySupport.TRUE,
+            latex_research_export=CapabilitySupport.TRUE,
+            analyst_annotations=CapabilitySupport.TRUE,
+            structured_report_diffing=CapabilitySupport.TRUE,
+            one_page_executive_summary=CapabilitySupport.TRUE,
+            full_text_registry_search=CapabilitySupport.TRUE,
+            registry_schema_migrations=CapabilitySupport.TRUE,
+            canonical_table_caching=CapabilitySupport.TRUE,
+            environment_doctor=CapabilitySupport.TRUE,
+            ro_crate_archival_export=CapabilitySupport.TRUE,
+            generalised_external_source_contract=CapabilitySupport.TRUE,
+        ),
+    )
 
 
 def manifest_to_plain_dict(manifest: CapabilityManifest) -> dict[str, Any]:

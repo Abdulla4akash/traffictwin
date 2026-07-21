@@ -1,0 +1,41 @@
+{
+  "counts_by_type": {
+    "conflict": 1,
+    "corroboration": 0,
+    "suppression": 0
+  },
+  "policy_version": "1.0",
+  "relationships": [
+    {
+      "overlap_basis": "exact_shared_evidence",
+      "policy_id": "XR1_R1_R2_COMPETING_CANDIDATES",
+      "presentation_effect": "retain both candidates with no winner",
+      "relation_type": "conflict",
+      "shared_evidence_keys": [
+        "task.generated.count"
+      ],
+      "source_precedence": 50,
+      "source_rule_id": "R1",
+      "source_status": "triggered",
+      "symmetric": true,
+      "target_precedence": 50,
+      "target_rule_id": "R2",
+      "target_status": "triggered"
+    }
+  ],
+  "retained_rule_ids": [
+    "R0",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8"
+  ],
+  "schema_version": "1.0",
+  "status": "relationships_recorded",
+  "suppressed_rule_ids": [],
+  "unclassified_triggered_rule_ids": []
+}

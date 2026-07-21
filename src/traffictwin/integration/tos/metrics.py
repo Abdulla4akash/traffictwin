@@ -113,7 +113,7 @@ def metric_collection_from_evaluation(
             continue
         reason = _unavailable_reason(key)
         metadata = _source_metadata(run)
-        if key == "task.energy.per_completed_j":
+        if key.startswith(("task.energy.", "task.energy_delay_product.")):
             metadata["source_energy_j_per_arrival"] = run.avg_energy_j_per_task
         results.append(
             MetricValue(
@@ -139,6 +139,9 @@ def metric_collection_from_evaluation(
                 checkpoint=run.actor,
                 random_seed=run.fleet_seed,
                 synthetic=False,
+                environment="randy-tos-evaluation",
+                environment_version=run.engine_version,
+                environment_commit=None,
                 computed_at=computed_at,
                 metadata=metadata,
             )
@@ -186,6 +189,9 @@ def _available_metric(
         checkpoint=run.actor,
         random_seed=run.fleet_seed,
         synthetic=False,
+        environment="randy-tos-evaluation",
+        environment_version=run.engine_version,
+        environment_commit=None,
         computed_at=computed_at,
         metadata=_source_metadata(run),
     )
@@ -289,9 +295,15 @@ def _semantics_warning(metric_key: str) -> str:
 
 
 def _unavailable_reason(metric_key: str) -> UnavailableReason:
-    if metric_key == "task.completion.rate_by_vehicle_tier":
+    if metric_key.startswith("spatial.rsu."):
+        return UnavailableReason.TASK_RSU_TARGET_CONTRACT_UNAVAILABLE
+    if metric_key.startswith("spatial.vehicle."):
+        return UnavailableReason.VEHICLE_SPATIAL_GRID_CONTRACT_UNAVAILABLE
+    if metric_key == "task.completion.rate_by_vehicle_tier" or metric_key.startswith(
+        "fairness.vehicle_tier."
+    ):
         return UnavailableReason.VEHICLE_TIER_UNAVAILABLE
-    if metric_key.startswith("infra.load_balance"):
+    if metric_key.startswith(("infra.load_balance", "fairness.rsu.")):
         return UnavailableReason.CAPACITY_UNAVAILABLE
     if metric_key.startswith("trip.duration"):
         return UnavailableReason.NO_COMPLETED_TRIPS
@@ -305,16 +317,29 @@ def _unavailable_reason(metric_key: str) -> UnavailableReason:
 
 
 def _missing_evidence(metric_key: str) -> list[str]:
+    if metric_key.startswith("spatial.rsu."):
+        return [
+            "persistent canonical V2I task identity and exact execution-target RSU joins under "
+            "a compatible contract"
+        ]
+    if metric_key.startswith("spatial.vehicle."):
+        return [
+            "persistent canonical vehicle identities and a declared coordinate-frame/grid contract"
+        ]
     if metric_key.startswith("infra."):
         return ["canonical per-RSU queue length or CPU utilisation evidence"]
     if metric_key.startswith("traffic."):
         return ["canonical traffic observations with confirmed source units"]
     if metric_key.startswith("trip."):
         return ["trip or journey-time records"]
-    if metric_key == "task.completion.rate_by_vehicle_tier":
-        return ["per-vehicle tier mapping"]
-    if metric_key == "task.energy.per_completed_j":
-        return ["per-completed-task energy denominator"]
+    if metric_key == "task.completion.rate_by_vehicle_tier" or metric_key.startswith(
+        "fairness.vehicle_tier."
+    ):
+        return ["stable per-vehicle tier mapping with complete supported task groups"]
+    if metric_key.startswith("fairness.rsu."):
+        return ["canonical per-RSU active_tasks and positive capacity with complete group support"]
+    if metric_key.startswith(("task.energy.", "task.energy_delay_product.")):
+        return ["canonical row-level task energy and a compatible versioned energy contract"]
     if metric_key == "task.incomplete.rate":
         return ["physical completion status distinct from deadline success"]
     if metric_key == "task.deadline_miss.completed_observed_rate":
@@ -323,15 +348,31 @@ def _missing_evidence(metric_key: str) -> list[str]:
 
 
 def _unavailable_warning(metric_key: str) -> str:
+    if metric_key.startswith("spatial."):
+        return (
+            "Time-local padded slots and source coordinate arrays are not relabelled as persistent "
+            "canonical identities, execution targets, or contracted spatial cells."
+        )
     if metric_key.startswith("infra."):
         return (
             "Source RSU fields describe in-flight tasks and compute backlog, not the canonical "
             "queue or utilisation field required by this metric."
         )
+    if metric_key.startswith("fairness.") or metric_key in {
+        "task.completion.rate_by_vehicle_tier",
+        "infra.load_balance.jain_capacity_normalised",
+    }:
+        return (
+            "The source summary does not provide the canonical operational-group rows, complete "
+            "coverage, and minimum support required by the fairness policy."
+        )
     if metric_key == "task.incomplete.rate":
         return "Deadline misses are not silently presented as eventual physical incompletion."
-    if metric_key == "task.energy.per_completed_j":
-        return "The source reports joules per arrival, not TrafficTwin joules per completed task."
+    if metric_key.startswith(("task.energy.", "task.energy_delay_product.")):
+        return (
+            "The source reports aggregate joules per arrival, not canonical row-level task "
+            "energy under TrafficTwin's eligibility contract."
+        )
     return "The evaluation master does not contain the required compatible evidence."
 
 

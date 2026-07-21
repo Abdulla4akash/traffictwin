@@ -28,7 +28,7 @@ Provenance shows how TrafficTwin derived a result from available records and con
 - Canonical tasks contains tasks record 0 (`exact`)
 - Canonical tasks contains tasks record 1 (`exact`)
 - Canonical tasks contains tasks record 2 (`exact`)
-- DiagnosticReport diagnostic-7463589f8833 generated from Run run-baseline-001 (`exact`)
+- DiagnosticReport diagnostic-997eb4d8032d generated from Run run-baseline-001 (`exact`)
 - task.completion.rate cites task.completion.rate (`exact`)
 - EvidencePack evidence-run-baseline-001-b778c4c3f27c generated from Run run-baseline-001 (`exact`)
 - manifest.yaml contains Run run-baseline-001 (`exact`)

@@ -1,0 +1,38 @@
+{
+  "capability_id": "PRO-02",
+  "default_edge_limit": 240,
+  "default_node_limit": 120,
+  "default_redaction_mode": "safe",
+  "deterministic_output_rules": [
+    "volatile trace and node timestamps are not exported",
+    "nodes and edges use stable deterministic ordering",
+    "DOT escaping and GraphML key order are fixed",
+    "graph identity is derived from the complete sanitised graph, not the selected limits"
+  ],
+  "edge_id_policy": "edge:<first 20 hexadecimal SHA-256 characters of the sanitised typed edge>; deterministic numeric suffixes distinguish otherwise identical retained relations",
+  "formats": [
+    "dot",
+    "graphml"
+  ],
+  "limitations": [
+    "The graph records calculation lineage, not real-world causality.",
+    "A bounded view may omit nodes or edges and reports exact omitted counts.",
+    "Safe mode does not anonymise ordinary domain identifiers or canonical scalar values.",
+    "Graph layout is renderer-dependent and is not part of the deterministic artifact."
+  ],
+  "maximum_edge_limit": 2000,
+  "maximum_node_limit": 500,
+  "node_id_policy": "existing stable trace node IDs are retained unless they contain a local absolute path; unsafe IDs receive deterministic redacted aliases",
+  "path_safety_rules": [
+    "POSIX, Windows, home-relative, and file-URI local paths are redacted from all text.",
+    "Bundle-relative source references may remain in safe exports.",
+    "Invalid XML control characters are replaced before DOT or GraphML serialization.",
+    "No exporter opens a node path, follows a link, or reads source evidence."
+  ],
+  "redaction_modes": {
+    "safe": "retain typed descriptions, attributes, and bundle-relative source references after recursive local-path redaction",
+    "structure_only": "retain IDs, types, labels, statuses, synthetic flags, and relations only"
+  },
+  "schema_version": "1.0",
+  "traversal_policy": "root-centred undirected breadth-first, ordered by stable edge fields, followed by lexically ordered disconnected nodes when capacity remains"
+}

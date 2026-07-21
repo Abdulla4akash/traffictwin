@@ -1,0 +1,44 @@
+{
+  "boolean_operators": [
+    "equals"
+  ],
+  "capability": "DIA-04",
+  "condition_modes": [
+    "all",
+    "any"
+  ],
+  "custom_rule_id_pattern": "^LOCAL_[A-Z0-9_]{1,25}$",
+  "evidence_boundary": "EvidencePack.metric_collection",
+  "excluded_language_features": [
+    "imports",
+    "function calls",
+    "eval or exec",
+    "templates",
+    "nested rule references",
+    "arbitrary expressions or reducers",
+    "dynamic metric-key construction"
+  ],
+  "grammar_version": "1.0",
+  "maximum_predicates": 16,
+  "maximum_yaml_bytes": 65536,
+  "numeric_operators": [
+    "lt",
+    "lte",
+    "gt",
+    "gte"
+  ],
+  "numeric_reducers": [
+    "scalar",
+    "mapping_max_gap"
+  ],
+  "reference_rule_id": "R7",
+  "rejected_yaml_features": [
+    "custom tags",
+    "anchors and aliases",
+    "duplicate keys",
+    "multiple documents",
+    "documents larger than the published byte bound"
+  ],
+  "schema_version": "1.0",
+  "trust_boundary": "trusted_local_static_yaml_not_a_sandbox"
+}

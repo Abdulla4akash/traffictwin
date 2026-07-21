@@ -242,6 +242,43 @@ def _compare_metric(
     if baseline.unit != variation.unit:
         reasons.append(UnavailableReason.UNIT_MISMATCH)
         compatibility.append("metric units differ")
+    if _is_energy_metric_key(key):
+        baseline_contract = baseline.metadata.get("energy_contract_fingerprint")
+        variation_contract = variation.metadata.get("energy_contract_fingerprint")
+        if (
+            not isinstance(baseline_contract, str)
+            or not isinstance(variation_contract, str)
+            or baseline_contract != variation_contract
+        ):
+            reasons.append(UnavailableReason.COMPARISON_PAIR_INCOMPATIBLE)
+            compatibility.append("task-energy evidence contracts are absent or incompatible")
+    if _is_fairness_metric_key(key):
+        baseline_policy = baseline.metadata.get("fairness_policy_fingerprint")
+        variation_policy = variation.metadata.get("fairness_policy_fingerprint")
+        baseline_groups = baseline.metadata.get("group_set_fingerprint")
+        variation_groups = variation.metadata.get("group_set_fingerprint")
+        if (
+            not isinstance(baseline_policy, str)
+            or not isinstance(variation_policy, str)
+            or baseline_policy != variation_policy
+            or not isinstance(baseline_groups, str)
+            or not isinstance(variation_groups, str)
+            or baseline_groups != variation_groups
+        ):
+            reasons.append(UnavailableReason.COMPARISON_PAIR_INCOMPATIBLE)
+            compatibility.append(
+                "operational fairness policies or admitted group sets are absent or incompatible"
+            )
+    if key.startswith("plugin."):
+        baseline_contract = baseline.metadata.get("plugin_contract_fingerprint")
+        variation_contract = variation.metadata.get("plugin_contract_fingerprint")
+        if (
+            not isinstance(baseline_contract, str)
+            or not isinstance(variation_contract, str)
+            or baseline_contract != variation_contract
+        ):
+            reasons.append(UnavailableReason.COMPARISON_PAIR_INCOMPATIBLE)
+            compatibility.append("custom metric plugin contracts are absent or incompatible")
     if (
         baseline.status is not MetricStatus.AVAILABLE
         or variation.status is not MetricStatus.AVAILABLE
@@ -290,6 +327,18 @@ def _compare_metric(
             "variation_checkpoint": variation.checkpoint,
             "baseline_random_seed": baseline.random_seed,
             "variation_random_seed": variation.random_seed,
+            "energy_contract_fingerprint": _metadata_scalar(baseline, "energy_contract_fingerprint")
+            if _is_energy_metric_key(key)
+            else None,
+            "fairness_policy_fingerprint": _metadata_scalar(baseline, "fairness_policy_fingerprint")
+            if _is_fairness_metric_key(key)
+            else None,
+            "group_set_fingerprint": _metadata_scalar(baseline, "group_set_fingerprint")
+            if _is_fairness_metric_key(key)
+            else None,
+            "plugin_contract_fingerprint": _metadata_scalar(baseline, "plugin_contract_fingerprint")
+            if key.startswith("plugin.")
+            else None,
         },
     )
 
@@ -369,6 +418,24 @@ def _is_numeric(value: object) -> bool:
         and not isinstance(value, bool)
         and math.isfinite(float(value))
     )
+
+
+def _is_energy_metric_key(metric_key: str) -> bool:
+    return metric_key.startswith(("task.energy.", "task.energy_delay_product."))
+
+
+def _is_fairness_metric_key(metric_key: str) -> bool:
+    return metric_key.startswith("fairness.") or metric_key in {
+        "task.completion.rate_by_vehicle_tier",
+        "infra.load_balance.jain_capacity_normalised",
+    }
+
+
+def _metadata_scalar(metric: MetricValue, key: str) -> JsonScalar:
+    value = metric.metadata.get(key)
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    return str(value)
 
 
 def _as_scalar(value: object) -> JsonScalar:

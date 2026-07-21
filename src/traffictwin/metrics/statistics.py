@@ -6,6 +6,8 @@ import math
 import statistics
 from collections.abc import Sequence
 
+PERCENTILE_METHOD_VERSION = "linear-rank-n-minus-1-v1"
+
 
 def arithmetic_mean(values: Sequence[float]) -> float | None:
     """Return arithmetic mean, or None for n=0."""
@@ -30,6 +32,8 @@ def percentile_linear(values: Sequence[float], percentile: float) -> float | Non
     sorted values. `percentile` is expressed as a fraction in [0, 1].
     """
 
+    if not 0 <= percentile <= 1:
+        raise ValueError("percentile must be between 0 and 1 inclusive")
     if not values:
         return None
     if len(values) == 1:

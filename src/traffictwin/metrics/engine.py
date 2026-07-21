@@ -12,13 +12,20 @@ from traffictwin.metrics.availability import unavailable_metric
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.comparison import comparison_placeholder_metrics
 from traffictwin.metrics.engine_config import MetricEngineConfig
+from traffictwin.metrics.fairness import fairness_metrics
 from traffictwin.metrics.infrastructure import infrastructure_metrics
+from traffictwin.metrics.plugins import (
+    MetricPluginRegistry,
+    compute_plugin_metrics,
+    invalid_plugin_metrics,
+)
 from traffictwin.metrics.results import (
     MetricCollection,
     MetricStatus,
     RunMetricContext,
     UnavailableReason,
 )
+from traffictwin.metrics.spatial import spatial_metrics
 from traffictwin.metrics.task import task_metrics
 from traffictwin.metrics.traffic import traffic_metrics
 from traffictwin.metrics.trips import trip_metrics
@@ -36,6 +43,7 @@ def compute_metrics(
     evidence_availability: EvidenceAvailability,
     config: MetricEngineConfig | None = None,
     *,
+    plugin_registry: MetricPluginRegistry | None = None,
     clock: Callable[[], datetime] = utc_now,
 ) -> MetricCollection:
     """Compute deterministic metrics over canonical records."""
@@ -55,6 +63,8 @@ def compute_metrics(
             )
             for key in metric_catalogue()
         ]
+        if plugin_registry is not None:
+            results.extend(invalid_plugin_metrics(plugin_registry, run_context, generated_at))
     else:
         results = [
             *task_metrics(
@@ -67,11 +77,37 @@ def compute_metrics(
                 engine_config,
                 generated_at,
             ),
+            *fairness_metrics(
+                canonical_tables,
+                run_context,
+                evidence_availability,
+                engine_config,
+                generated_at,
+            ),
+            *spatial_metrics(
+                canonical_tables,
+                run_context,
+                evidence_availability,
+                engine_config,
+                generated_at,
+            ),
             *traffic_metrics(
                 canonical_tables, run_context, evidence_availability, engine_config, generated_at
             ),
             *trip_metrics(
                 canonical_tables, run_context, evidence_availability, engine_config, generated_at
+            ),
+            *(
+                compute_plugin_metrics(
+                    plugin_registry,
+                    canonical_tables,
+                    run_context,
+                    evidence_availability,
+                    engine_config,
+                    generated_at,
+                )
+                if plugin_registry is not None
+                else []
             ),
             *comparison_placeholder_metrics(run_context, engine_config, generated_at),
         ]
@@ -101,7 +137,13 @@ def run_context_from_bundle(result: BundleValidationResult) -> RunMetricContext:
         checkpoint=manifest.run.checkpoint,
         random_seed=manifest.run.random_seed,
         synthetic=manifest.environment.name == "synthetic",
+        environment=manifest.environment.name,
+        environment_version=manifest.environment.version,
+        environment_commit=manifest.environment.commit,
         source_bundle_fingerprint=result.fingerprint,
+        energy_contract=manifest.energy_contract,
+        task_rsu_target_contract=manifest.task_rsu_target_contract,
+        vehicle_spatial_grid_contract=manifest.vehicle_spatial_grid_contract,
         validation_may_import=result.report.may_import,
     )
 
@@ -110,6 +152,7 @@ def compute_metrics_for_bundle(
     result: BundleValidationResult,
     config: MetricEngineConfig | None = None,
     *,
+    plugin_registry: MetricPluginRegistry | None = None,
     clock: Callable[[], datetime] = utc_now,
 ) -> MetricCollection:
     """Compute metrics from a Phase 2 bundle validation result."""
@@ -119,5 +162,6 @@ def compute_metrics_for_bundle(
         run_context_from_bundle(result),
         result.evidence,
         config,
+        plugin_registry=plugin_registry,
         clock=clock,
     )

@@ -183,9 +183,9 @@ def _blocked_rules(evidence_pack: EvidencePack) -> list[str]:
     evidence = evidence_pack.evidence_availability
     blocked: list[str] = []
     if evidence.tasks not in {EvidenceStatus.AVAILABLE, EvidenceStatus.PARTIAL}:
-        blocked.extend(["R1", "R2"])
+        blocked.extend(["R1", "R2", "R8"])
     if evidence.infrastructure not in {EvidenceStatus.AVAILABLE, EvidenceStatus.PARTIAL}:
-        blocked.extend(["R1", "R2"])
+        blocked.extend(["R1", "R2", "R4"])
     return sorted(set(blocked))
 
 
@@ -210,6 +210,16 @@ def _blocked_rule_evidence_keys(lookup: MetricLookup, blocked_rules: list[str]) 
         )
     if "R3" in blocked_rules:
         candidates.extend(["experiment.algorithm.count", "experiment.cross_algorithm_dispersion"])
+    if "R4" in blocked_rules:
+        candidates.extend(
+            [
+                "infra.load_balance.jain_capacity_normalised",
+                "infra.utilisation.mean",
+                "infra.observed_rsu.count",
+            ]
+        )
+    if "R8" in blocked_rules:
+        candidates.extend(["task.energy.per_completed_j", "task.completed.count"])
     return _first_existing_keys(lookup, candidates)
 
 

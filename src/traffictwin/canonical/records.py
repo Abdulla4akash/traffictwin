@@ -89,3 +89,7 @@ class IncidentRecord(CanonicalRecord):
     incident_type: str
     location: str | None = None
     severity: str | None = None
+    duration_s: float | None = Field(default=None, gt=0)
+    lanes_closed: int | None = Field(default=None, ge=0)
+    demand_multiplier: float | None = Field(default=None, gt=0)
+    vehicles_involved: list[str] = Field(default_factory=list)

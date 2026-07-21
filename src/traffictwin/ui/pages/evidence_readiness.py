@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import streamlit as st
 
+from traffictwin.diagnostics.report import DiagnosticReport
+from traffictwin.rendering.findings import (
+    diagnostic_narrative_to_markdown,
+    render_diagnostic_findings,
+)
 from traffictwin.rules.models import RuleStatus
 from traffictwin.ui.labels import DIAGNOSTIC_NOTICE
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
@@ -68,7 +73,7 @@ def render() -> None:
             mime="application/json",
         )
 
-    st.subheader("Rule Results")
+    st.subheader("Diagnostic Report")
     if analysis.diagnostic_report is None:
         st.info("Diagnostic report is unavailable because the bundle was not accepted.")
         return
@@ -88,6 +93,10 @@ def render() -> None:
         st.warning("\n".join(diagnostic_report.conflict_observations))
     with st.expander("Rule configuration thresholds"):
         st.json(diagnostic_report.rule_config.model_dump(mode="json"))
+
+    _render_cross_rule_analysis(diagnostic_report)
+
+    st.subheader("Original Rule Results")
 
     for result in diagnostic_report.results:
         label = f"{result.rule_id} - {result.title}"
@@ -136,5 +145,93 @@ def render() -> None:
         "Download DiagnosticReport JSON",
         data=diagnostic_report.to_json(),
         file_name=f"{diagnostic_report.report_id}.json",
+        mime="application/json",
+    )
+    with st.expander("Constrained deterministic narrative", expanded=False):
+        narrative = render_diagnostic_findings(diagnostic_report)
+        narrative_markdown = diagnostic_narrative_to_markdown(narrative)
+        st.caption(
+            "This renderer restates structured findings; it does not calculate metrics or add "
+            "diagnostic claims."
+        )
+        display_markdown = narrative_markdown.replace(
+            "# Deterministic Diagnostic Narrative",
+            "### Deterministic Diagnostic Narrative",
+            1,
+        )
+        st.markdown(display_markdown)
+        st.download_button(
+            "Download narrative Markdown",
+            data=narrative_markdown,
+            file_name=f"{diagnostic_report.report_id}-narrative.md",
+        )
+
+
+def _render_cross_rule_analysis(diagnostic_report: DiagnosticReport) -> None:
+    """Render the typed additive relationship report without deriving relationships in the UI."""
+
+    st.subheader("Cross-Rule Relationships")
+    analysis = diagnostic_report.cross_rule_analysis
+    if analysis is None:
+        st.info("Typed DIA-07 cross-rule analysis is unavailable for this historical report.")
+        return
+    st.caption(
+        "Relationships are deterministic context records, not probabilities or root-cause "
+        "rankings. Every original RuleResult remains visible below."
+    )
+    summary = st.columns(4)
+    summary[0].metric("Conflicts", analysis.counts_by_type["conflict"])
+    summary[1].metric("Corroborations", analysis.counts_by_type["corroboration"])
+    summary[2].metric("Suppressed for action", analysis.counts_by_type["suppression"])
+    summary[3].metric("Retained results", len(analysis.retained_rule_ids))
+
+    if analysis.suppressed_rule_ids:
+        st.warning(
+            "Presentation suppression applies to "
+            f"{', '.join(analysis.suppressed_rule_ids)}. These results are retained below with "
+            "their original status and reason."
+        )
+    if analysis.relationships:
+        st.dataframe(
+            [
+                {
+                    "type": relationship.relation_type.value,
+                    "source": relationship.source_rule_id,
+                    "target": relationship.target_rule_id,
+                    "shared_evidence": ", ".join(relationship.shared_evidence_keys) or "—",
+                    "source_precedence": relationship.source_precedence,
+                    "target_precedence": relationship.target_precedence,
+                    "presentation_effect": relationship.presentation_effect,
+                    "statement": relationship.statement,
+                }
+                for relationship in analysis.relationships
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+    else:
+        st.info("No relationship was activated by the declared DIA-07 v1 policy.")
+    if analysis.unclassified_triggered_rule_ids:
+        st.caption(
+            "Triggered rules with no declared relationship: "
+            + ", ".join(analysis.unclassified_triggered_rule_ids)
+            + ". No relationship is inferred."
+        )
+    with st.expander("Cross-rule policy, provenance, and limitations"):
+        st.json(
+            {
+                "analysis_id": analysis.analysis_id,
+                "policy_version": analysis.policy_version,
+                "status": analysis.status.value,
+                "provenance": analysis.provenance,
+                "warnings": analysis.warnings,
+                "limitations": analysis.limitations,
+                "fingerprint": analysis.fingerprint(),
+            }
+        )
+    st.download_button(
+        "Download CrossRuleReasoningReport JSON",
+        data=analysis.to_json(),
+        file_name=f"{analysis.analysis_id}.json",
         mime="application/json",
     )

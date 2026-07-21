@@ -76,7 +76,7 @@ traffictwin provenance export tests/fixtures/bundles/baseline_valid \
 - It traces software derivation, not real-world causality.
 - Aggregate metric traces show eligible input rows and exact counts, not per-row causal weights.
 - EvidencePack-only diagnostic fixtures cannot recover source rows unless the bundle is available.
-- Future Randy/SUMO adapters only need to preserve canonical source provenance for the explorer to
+- Future Randy and additional SUMO adapters only need to preserve canonical source provenance for the explorer to
   work.
 
 ## Related Documents

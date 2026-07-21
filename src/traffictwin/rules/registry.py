@@ -7,6 +7,11 @@ from traffictwin.rules.r0_insufficient_evidence import R0InsufficientEvidenceRul
 from traffictwin.rules.r1_under_offloading import R1UnderOffloadingRule
 from traffictwin.rules.r2_infrastructure_bottleneck import R2InfrastructureBottleneckRule
 from traffictwin.rules.r3_scenario_triviality import R3ScenarioTrivialityRule
+from traffictwin.rules.r4_load_imbalance import R4LoadImbalanceRule
+from traffictwin.rules.r5_validation_drift import R5ValidationDriftRule
+from traffictwin.rules.r6_temporal_degradation import R6TemporalDegradationRule
+from traffictwin.rules.r7_fairness import R7FairnessRule
+from traffictwin.rules.r8_energy_anomaly import R8EnergyAnomalyRule
 
 
 def default_rule_registry() -> dict[str, DiagnosticRule]:
@@ -17,6 +22,11 @@ def default_rule_registry() -> dict[str, DiagnosticRule]:
         R1UnderOffloadingRule(),
         R2InfrastructureBottleneckRule(),
         R3ScenarioTrivialityRule(),
+        R4LoadImbalanceRule(),
+        R5ValidationDriftRule(),
+        R6TemporalDegradationRule(),
+        R7FairnessRule(),
+        R8EnergyAnomalyRule(),
     ]
     registry = {rule.rule_id: rule for rule in rules}
     if len(registry) != len(rules):

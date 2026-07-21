@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "capability_id": "EXP-01",
+  "method_version": "1.0",
+  "sweep_id": "sweep-golden",
+  "mode": "local_synthetic_bundles",
+  "status": "completed_local_analysis",
+  "request_fingerprint": "672b4fd19ba72c73851f7fff46f74a6232daa210ee06124a6320de99d1a244db",
+  "base_fingerprint": "3ba2f94e79e8253bfd70031664c166f54e954eb23d53cb7a140c7419befa27b2",
+  "result_fingerprint": "7890a0fa726428ffb97bf6df682df7ca9966f1fcd4c2d16aa365f7cd92871ef3",
+  "point_count": 2,
+  "response_row_count": 4,
+  "synthetic_evaluation": true,
+  "direct_launch_supported": false,
+  "points": [
+    {
+      "point_id": "point-0001-b20bc8e97b26",
+      "point_fingerprint": "b20bc8e97b26e71fae0226157bccc35826b8132780d6b40b783e02342019af37",
+      "assignments": [
+        {
+          "parameter_path": "synthetic.task_arrival_rate",
+          "value": 0.08
+        }
+      ],
+      "seed_id": "seed-baseline-sw-b20bc8e97b",
+      "seed_fingerprint": "7ccc1cc2e02c4c7d65159ce00cb631534512a3cfda076c8092dc3687d39931e3",
+      "bundle_fingerprint": "f3c8abc6b37ff9b151363321c49a7e69b02b2e8dc4a62bb7e019f6fd2690be9d"
+    },
+    {
+      "point_id": "point-0002-f20de16d0f66",
+      "point_fingerprint": "f20de16d0f66c22ef373e29b3862fa071dd3bea98270a3e423dc5b9244791a9d",
+      "assignments": [
+        {
+          "parameter_path": "synthetic.task_arrival_rate",
+          "value": 0.12
+        }
+      ],
+      "seed_id": "seed-baseline-sw-f20de16d0f",
+      "seed_fingerprint": "3b7ae240e812278dc13ba981f8731ad115eb5670af7ccaa97de40b7f49b43ccf",
+      "bundle_fingerprint": "ee4dbfb6b3a575cb35a649bf6143fb136bcb9273fa34b640c070c45f52f5fe63"
+    }
+  ],
+  "responses": [
+    {
+      "point_id": "point-0001-b20bc8e97b26",
+      "metric_key": "task.completion.rate",
+      "metric_status": "available",
+      "response_value": 0.9583333333333334,
+      "unit": "ratio",
+      "reason_codes": [],
+      "bundle_fingerprint": "f3c8abc6b37ff9b151363321c49a7e69b02b2e8dc4a62bb7e019f6fd2690be9d"
+    },
+    {
+      "point_id": "point-0001-b20bc8e97b26",
+      "metric_key": "infra.utilisation.mean",
+      "metric_status": "available",
+      "response_value": 0.4557272727272727,
+      "unit": "fraction",
+      "reason_codes": [],
+      "bundle_fingerprint": "f3c8abc6b37ff9b151363321c49a7e69b02b2e8dc4a62bb7e019f6fd2690be9d"
+    },
+    {
+      "point_id": "point-0002-f20de16d0f66",
+      "metric_key": "task.completion.rate",
+      "metric_status": "available",
+      "response_value": 0.9444444444444444,
+      "unit": "ratio",
+      "reason_codes": [],
+      "bundle_fingerprint": "ee4dbfb6b3a575cb35a649bf6143fb136bcb9273fa34b640c070c45f52f5fe63"
+    },
+    {
+      "point_id": "point-0002-f20de16d0f66",
+      "metric_key": "infra.utilisation.mean",
+      "metric_status": "available",
+      "response_value": 0.5197272727272727,
+      "unit": "fraction",
+      "reason_codes": [],
+      "bundle_fingerprint": "ee4dbfb6b3a575cb35a649bf6143fb136bcb9273fa34b640c070c45f52f5fe63"
+    }
+  ]
+}

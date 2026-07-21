@@ -9,6 +9,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 from traffictwin.evidence.availability import EvidenceAvailability
+from traffictwin.evidence.temporal import TemporalEvidence
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import JsonScalar, MetricCollection
 
@@ -28,6 +29,7 @@ class EvidencePack(BaseModel):
     evidence_availability: EvidenceAvailability
     metric_engine_config: MetricEngineConfig
     metric_collection: MetricCollection
+    temporal_evidence: TemporalEvidence | None = None
     excluded_record_counts: dict[str, int] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
     provenance: dict[str, JsonScalar] = Field(default_factory=dict)

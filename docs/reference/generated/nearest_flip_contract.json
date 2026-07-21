@@ -1,0 +1,33 @@
+{
+  "analysis_version": "1.0",
+  "candidate_verification": "ordinary_rule_engine_re_evaluation",
+  "capability": "DIA-05",
+  "configuration_distance": "absolute_one_axis_delta_in_parameter_unit",
+  "discrete_constraint_policy": "report_but_never_change",
+  "evidence_boundary": "EvidencePack",
+  "limitations": [
+    "A nearest flip is a mathematical sensitivity boundary, not a recommended threshold.",
+    "v1.0 changes one continuous severity threshold and never lowers discrete evidence support.",
+    "The analysis does not persist, export as a default, or mutate the supplied configuration.",
+    "R5, R7, and R8 defaults remain provisional and require predeclared external calibration.",
+    "The result does not establish statistical significance, causality, optimisation, or external validity."
+  ],
+  "persistence_policy": "analysis_does_not_persist_configuration",
+  "schema_version": "1.0",
+  "source_status_required": "not_triggered",
+  "supported_threshold_parameters": {
+    "R5": "r5.maximum_absolute_gap",
+    "R7": "r7.minimum_outcome_gap",
+    "R8": "r8.minimum_energy_per_completed_task_j"
+  },
+  "tie_policy": "retain_all_equal_minimum_verified_candidates",
+  "unsupported_rule_ids": [
+    "R0",
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R6",
+    "declarative"
+  ]
+}

@@ -9,6 +9,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from traffictwin.diagnostics.cross_rule import CrossRuleReasoningReport
 from traffictwin.metrics.results import JsonScalar, JsonValue
 from traffictwin.rules.config import RuleSetConfig
 from traffictwin.rules.models import RuleResult, RuleStatus
@@ -46,6 +47,7 @@ class DiagnosticReport(BaseModel):
     provenance: dict[str, JsonScalar] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
     conflict_observations: list[str] = Field(default_factory=list)
+    cross_rule_analysis: CrossRuleReasoningReport | None = None
 
     def to_json(self) -> str:
         """Return JSON output."""
@@ -59,6 +61,8 @@ class DiagnosticReport(BaseModel):
         data["generated_at"] = "<normalised>"
         for result in data["results"]:
             result["evaluated_at"] = "<normalised>"
+        if data["cross_rule_analysis"] is not None:
+            data["cross_rule_analysis"]["generated_at"] = "<normalised>"
         return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
     def fingerprint(self) -> str:

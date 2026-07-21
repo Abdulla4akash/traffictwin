@@ -7,6 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 from traffictwin.domain.enums import TaskClass
+from traffictwin.domain.measurement import MeasurementTableKind
 from traffictwin.synthetic.config import SyntheticPolicyProfile
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
@@ -16,6 +17,7 @@ from traffictwin.ui.services import (
     ServiceError,
     build_synthetic_config_from_form,
     generate_synthetic_bundle_for_ui,
+    incident_variant_for_ui,
     preset_config_for_ui,
     preview_synthetic_scenario,
     scenario_config_to_yaml,
@@ -33,7 +35,7 @@ def render(config: UiConfig) -> None:
         "Scenario Builder writes deterministic synthetic TrafficTwin bundles. "
         "It does not launch Randy, SUMO, or live data sources."
     )
-    badge_row(["SYNTHETIC", "IMPORT-FIRST", "DETERMINISTIC"])
+    badge_row(["SYNTHETIC", "IMPORT-FIRST", "DETERMINISTIC", "BOUNDED EXP-03"])
 
     presets = synthetic_preset_names_for_ui()
     preset_name = st.selectbox("Duplicate preset", presets, index=0)
@@ -81,6 +83,59 @@ def render(config: UiConfig) -> None:
             max_value=3.0,
             value=float(preset.congestion_multiplier),
             step=0.05,
+        )
+
+        section_header("Incident Or Event")
+        default_incident = preset.incident_schedule[0] if preset.incident_schedule else None
+        incident_enabled = st.checkbox(
+            "Add a synthetic incident/event",
+            value=default_incident is not None,
+            help=(
+                "The authored event is preserved in configuration and canonical incident evidence."
+            ),
+        )
+        cols = st.columns(4)
+        incident_type = cols[0].text_input(
+            "Event type",
+            value=default_incident.incident_type if default_incident else "synthetic_incident",
+        )
+        incident_location = cols[1].text_input(
+            "Location",
+            value=default_incident.location or "synthetic-corridor-a"
+            if default_incident
+            else "synthetic-corridor-a",
+        )
+        incident_severity = cols[2].text_input(
+            "Severity",
+            value=default_incident.severity or "moderate" if default_incident else "moderate",
+        )
+        incident_timestamp_s = cols[3].number_input(
+            "Start time (s)",
+            min_value=0.0,
+            value=default_incident.timestamp_s if default_incident else 60.0,
+        )
+        cols = st.columns(3)
+        incident_duration_s = cols[0].number_input(
+            "Duration (s)",
+            min_value=1.0,
+            value=default_incident.duration_s if default_incident else 60.0,
+        )
+        incident_lanes_closed = cols[1].number_input(
+            "Lanes closed",
+            min_value=0,
+            value=default_incident.lanes_closed or 0 if default_incident else 0,
+            step=1,
+        )
+        incident_demand_multiplier = cols[2].number_input(
+            "Event demand multiplier",
+            min_value=0.1,
+            value=default_incident.demand_multiplier if default_incident else 1.0,
+            step=0.1,
+        )
+        incident_vehicles_involved = st.text_input(
+            "Vehicles involved",
+            value=(", ".join(default_incident.vehicles_involved) if default_incident else ""),
+            help="Optional comma-separated synthetic vehicle references.",
         )
 
         section_header("Vehicle Tier Mix")
@@ -146,6 +201,92 @@ def render(config: UiConfig) -> None:
             value=preset.baseline_network_delay_ms,
         )
 
+        section_header("Measurement Noise And Dropout (EXP-03)")
+        st.caption(
+            "Optional deterministic bounded-uniform measurement imperfections. These are "
+            "synthetic robustness inputs, not calibrated sensor behavior."
+        )
+        default_measurement = preset.measurement_imperfections
+        measurement_imperfections_enabled = st.checkbox(
+            "Enable synthetic measurement imperfections",
+            value=default_measurement is not None,
+        )
+        cols = st.columns(3)
+        measurement_random_seed = cols[0].number_input(
+            "Measurement model seed",
+            min_value=0,
+            max_value=2_147_483_647,
+            value=default_measurement.random_seed if default_measurement else 17,
+            step=1,
+        )
+        vehicle_position_max_error_m = cols[1].number_input(
+            "Vehicle position max error (m)",
+            min_value=0.0,
+            max_value=100.0,
+            value=default_measurement.vehicle_position_max_error_m if default_measurement else 0.0,
+        )
+        vehicle_speed_max_error_mps = cols[2].number_input(
+            "Vehicle speed max error (m/s)",
+            min_value=0.0,
+            max_value=20.0,
+            value=default_measurement.vehicle_speed_max_error_mps if default_measurement else 0.0,
+        )
+        cols = st.columns(4)
+        traffic_speed_max_error_mps = cols[0].number_input(
+            "Traffic speed max error (m/s)",
+            min_value=0.0,
+            max_value=20.0,
+            value=default_measurement.traffic_speed_max_error_mps if default_measurement else 0.0,
+        )
+        traffic_count_max_error = cols[1].number_input(
+            "Traffic count max error",
+            min_value=0,
+            max_value=100,
+            value=default_measurement.traffic_count_max_error if default_measurement else 0,
+            step=1,
+        )
+        infrastructure_utilisation_max_error = cols[2].number_input(
+            "RSU utilisation max error",
+            min_value=0.0,
+            max_value=0.5,
+            value=default_measurement.infrastructure_utilisation_max_error
+            if default_measurement
+            else 0.0,
+            step=0.01,
+        )
+        infrastructure_queue_max_error = cols[3].number_input(
+            "RSU queue max error",
+            min_value=0,
+            max_value=100,
+            value=default_measurement.infrastructure_queue_max_error if default_measurement else 0,
+            step=1,
+        )
+        dropout_defaults = (
+            default_measurement.row_dropout_fraction_by_table if default_measurement else {}
+        )
+        cols = st.columns(3)
+        infrastructure_dropout_fraction = cols[0].number_input(
+            "Infrastructure row dropout fraction",
+            min_value=0.0,
+            max_value=0.95,
+            value=float(dropout_defaults.get(MeasurementTableKind.INFRA_STATE, 0.0)),
+            step=0.05,
+        )
+        vehicle_dropout_fraction = cols[1].number_input(
+            "Vehicle row dropout fraction",
+            min_value=0.0,
+            max_value=0.95,
+            value=float(dropout_defaults.get(MeasurementTableKind.VEHICLE_STATE, 0.0)),
+            step=0.05,
+        )
+        traffic_dropout_fraction = cols[2].number_input(
+            "Traffic row dropout fraction",
+            min_value=0.0,
+            max_value=0.95,
+            value=float(dropout_defaults.get(MeasurementTableKind.TRAFFIC_OBS, 0.0)),
+            step=0.05,
+        )
+
         section_header("Policy And Evidence Files")
         policy_behavior = st.selectbox(
             "Synthetic policy profile",
@@ -198,12 +339,32 @@ def render(config: UiConfig) -> None:
         "congestion_multiplier": congestion_multiplier,
         "policy_behavior": policy_behavior,
         "trip_count": trip_count,
+        "incident_enabled": incident_enabled,
+        "incident_type": incident_type,
+        "incident_location": incident_location,
+        "incident_severity": incident_severity,
+        "incident_timestamp_s": incident_timestamp_s,
+        "incident_duration_s": incident_duration_s,
+        "incident_lanes_closed": incident_lanes_closed,
+        "incident_demand_multiplier": incident_demand_multiplier,
+        "incident_vehicles_involved": incident_vehicles_involved,
         "synthetic_faults": synthetic_faults,
         "include_infrastructure": include_infrastructure,
         "include_vehicles": include_vehicles,
         "include_traffic": include_traffic,
         "include_trips": include_trips,
         "include_incidents": include_incidents,
+        "measurement_imperfections_enabled": measurement_imperfections_enabled,
+        "measurement_random_seed": measurement_random_seed,
+        "vehicle_position_max_error_m": vehicle_position_max_error_m,
+        "vehicle_speed_max_error_mps": vehicle_speed_max_error_mps,
+        "traffic_speed_max_error_mps": traffic_speed_max_error_mps,
+        "traffic_count_max_error": traffic_count_max_error,
+        "infrastructure_utilisation_max_error": infrastructure_utilisation_max_error,
+        "infrastructure_queue_max_error": infrastructure_queue_max_error,
+        "infrastructure_dropout_fraction": infrastructure_dropout_fraction,
+        "vehicle_dropout_fraction": vehicle_dropout_fraction,
+        "traffic_dropout_fraction": traffic_dropout_fraction,
     }
     scenario = build_synthetic_config_from_form(form_data)
     if isinstance(scenario, ServiceError):
@@ -229,6 +390,23 @@ def render(config: UiConfig) -> None:
             data=yaml_text,
             file_name=f"{scenario.scenario_id}.yaml",
         )
+    if scenario.incident_schedule:
+        variant = incident_variant_for_ui(scenario)
+        if isinstance(variant, ServiceError):
+            st.warning(variant.message)
+        else:
+            with st.expander("Incident-Seeded What-if Variant"):
+                st.caption(
+                    "This creates a new seed configuration linked to the current scenario as its "
+                    "baseline. It remains synthetic and launches nothing."
+                )
+                variant_yaml = scenario_config_to_yaml(variant)
+                st.code(variant_yaml, language="yaml")
+                st.download_button(
+                    "Download Incident What-if Variant",
+                    data=variant_yaml,
+                    file_name=f"{variant.scenario_id}.yaml",
+                )
 
     default_output = (
         config.workspace_path / "bundles" / scenario.scenario_id
@@ -249,4 +427,13 @@ def render(config: UiConfig) -> None:
         else:
             status = generated.analysis.validation.report.status.value
             st.success(f"Generated {generated.bundle_path} ({status})")
+            manifest = generated.analysis.validation.manifest
+            audit = manifest.synthetic_measurement_impairment if manifest is not None else None
+            if audit is not None:
+                st.caption(
+                    "EXP-03 audit "
+                    f"{audit.audit_fingerprint[:12]} · "
+                    f"{len(audit.field_audits)} noisy fields · "
+                    f"{sum(item.rows_dropped for item in audit.dropout_audits)} dropped rows"
+                )
             st.session_state["selected_bundle_path"] = str(generated.bundle_path)

@@ -1,0 +1,71 @@
+{
+  "synthetic": true,
+  "energy_contract": {
+    "schema_version": "1.0",
+    "quantity": "per_task_total_energy",
+    "canonical_energy_unit": "J",
+    "observation_level": "one_value_per_task_record",
+    "per_task_eligibility": "finite_non_negative_energy",
+    "per_completed_eligibility": "completed_and_finite_non_negative_energy",
+    "energy_delay_eligibility": "completed_with_finite_non_negative_energy_and_latency",
+    "canonical_delay_unit": "ms"
+  },
+  "metrics": {
+    "task.energy.mean_per_observed_task_j": {
+      "status": "available",
+      "value": 0.9941935483870968,
+      "unit": "J/task",
+      "metadata": {
+        "energy_family_version": "1.0",
+        "energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+        "energy_contract_version": "1.0",
+        "energy_quantity": "per_task_total_energy",
+        "energy_unit": "J",
+        "delay_unit": "ms",
+        "eligibility_policy": "finite_non_negative_energy",
+        "eligible_count": 31,
+        "population_count": 33,
+        "coverage_fraction": 0.9393939393939394
+      },
+      "warnings": [
+        "2 in-scope task record(s) lacked eligible energy evidence and were excluded rather than treated as zero."
+      ]
+    },
+    "task.energy.per_completed_j": {
+      "status": "available",
+      "value": 0.9941935483870968,
+      "unit": "J/task",
+      "metadata": {
+        "energy_family_version": "1.0",
+        "energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+        "energy_contract_version": "1.0",
+        "energy_quantity": "per_task_total_energy",
+        "energy_unit": "J",
+        "delay_unit": "ms",
+        "eligibility_policy": "completed_and_finite_non_negative_energy",
+        "eligible_count": 31,
+        "population_count": 31,
+        "coverage_fraction": 1.0
+      },
+      "warnings": []
+    },
+    "task.energy_delay_product.mean_j_ms": {
+      "status": "available",
+      "value": 215.2725101612903,
+      "unit": "J*ms/task",
+      "metadata": {
+        "energy_family_version": "1.0",
+        "energy_contract_fingerprint": "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa",
+        "energy_contract_version": "1.0",
+        "energy_quantity": "per_task_total_energy",
+        "energy_unit": "J",
+        "delay_unit": "ms",
+        "eligibility_policy": "completed_with_finite_non_negative_energy_and_latency",
+        "eligible_count": 31,
+        "population_count": 31,
+        "coverage_fraction": 1.0
+      },
+      "warnings": []
+    }
+  }
+}

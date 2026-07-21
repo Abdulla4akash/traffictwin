@@ -3,14 +3,32 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import cast
 
+from traffictwin.annotations import (
+    MAX_ANNOTATIONS_PER_PAGE,
+    REGISTRY_VERIFIED_ANNOTATION_TARGETS,
+    AnalystAnnotation,
+    AnalystAnnotationHistory,
+    AnalystAnnotationRequest,
+    AnalystAnnotationTargetKind,
+    AnalystArtifactReference,
+    analyst_annotation_id,
+    build_analyst_annotation,
+)
 from traffictwin.domain.enums import ExperimentStatus, RunStatus
 from traffictwin.domain.experiment import Experiment, utc_now
 from traffictwin.domain.run import Run
 from traffictwin.domain.scenario import ScenarioSeed
+from traffictwin.storage.migrations import (
+    CURRENT_REGISTRY_SCHEMA_VERSION,
+    RegistryMigrationResult,
+    migrate_registry,
+)
 
 
 class RegistryError(RuntimeError):
@@ -38,12 +56,17 @@ class RegistrySummary:
     """Simple registry inspection result."""
 
     path: Path
+    schema_version: int
     seed_count: int
     experiment_count: int
     run_count: int
     bundle_import_count: int
     metric_collection_count: int = 0
     evidence_pack_count: int = 0
+    experiment_evidence_pack_count: int = 0
+    experiment_protocol_count: int = 0
+    protocol_slot_count: int = 0
+    analyst_annotation_count: int = 0
 
 
 @dataclass(frozen=True)
@@ -88,67 +111,10 @@ class Registry:
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
 
-    def initialize(self) -> None:
-        """Create registry tables if they do not already exist."""
+    def initialize(self) -> RegistryMigrationResult:
+        """Create or atomically migrate the registry to the current schema."""
 
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self._connect() as conn:
-            conn.executescript(
-                """
-                CREATE TABLE IF NOT EXISTS seeds (
-                    seed_id TEXT PRIMARY KEY,
-                    payload TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS experiments (
-                    experiment_id TEXT PRIMARY KEY,
-                    status TEXT NOT NULL,
-                    payload TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS runs (
-                    run_id TEXT PRIMARY KEY,
-                    status TEXT NOT NULL,
-                    payload TEXT NOT NULL,
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-
-                CREATE TABLE IF NOT EXISTS bundle_imports (
-                    bundle_id TEXT PRIMARY KEY,
-                    run_id TEXT NOT NULL,
-                    source_reference TEXT NOT NULL,
-                    fingerprint TEXT NOT NULL,
-                    manifest_json TEXT NOT NULL,
-                    validation_report_json TEXT NOT NULL,
-                    imported_at TEXT NOT NULL,
-                    UNIQUE(run_id),
-                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
-                );
-
-                CREATE TABLE IF NOT EXISTS metric_collections (
-                    run_id TEXT PRIMARY KEY,
-                    metric_version TEXT NOT NULL,
-                    source_fingerprint TEXT,
-                    payload_json TEXT NOT NULL,
-                    stored_at TEXT NOT NULL,
-                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
-                );
-
-                CREATE TABLE IF NOT EXISTS evidence_packs (
-                    pack_id TEXT PRIMARY KEY,
-                    run_id TEXT NOT NULL,
-                    source_fingerprint TEXT,
-                    payload_json TEXT NOT NULL,
-                    stored_at TEXT NOT NULL,
-                    FOREIGN KEY(run_id) REFERENCES runs(run_id)
-                );
-                """
-            )
+        return migrate_registry(self.path)
 
     def add_seed(self, seed: ScenarioSeed) -> None:
         """Register a scenario seed."""
@@ -269,16 +235,138 @@ class Registry:
     def inspect(self) -> RegistrySummary:
         """Return record counts for the registry."""
 
+        # All upgrades are delegated to the ordered transactional migration plan.
+        self.initialize()
         with self._connect() as conn:
             return RegistrySummary(
                 path=self.path,
+                schema_version=CURRENT_REGISTRY_SCHEMA_VERSION,
                 seed_count=self._count(conn, "seeds"),
                 experiment_count=self._count(conn, "experiments"),
                 run_count=self._count(conn, "runs"),
                 bundle_import_count=self._count(conn, "bundle_imports"),
                 metric_collection_count=self._count(conn, "metric_collections"),
                 evidence_pack_count=self._count(conn, "evidence_packs"),
+                experiment_evidence_pack_count=self._count(conn, "experiment_evidence_packs"),
+                experiment_protocol_count=self._count(conn, "experiment_protocols"),
+                protocol_slot_count=self._count(conn, "experiment_protocol_slots"),
+                analyst_annotation_count=self._count(conn, "analyst_annotations"),
             )
+
+    def append_analyst_annotation(
+        self,
+        request: AnalystAnnotationRequest,
+        *,
+        clock: Callable[[], datetime] | None = None,
+    ) -> AnalystAnnotation:
+        """Append one immutable analyst annotation and return its registry sequence."""
+
+        self.initialize()
+        created_at = clock() if clock is not None else utc_now()
+        annotation_id = analyst_annotation_id(
+            target=request.target,
+            author_label=request.author_label,
+            note=request.note,
+            decision_label=request.decision_label,
+            created_at=created_at,
+        )
+        try:
+            with self._connect() as conn:
+                self._ensure_annotation_target_exists(conn, request.target)
+                cursor = conn.execute(
+                    """
+                    INSERT INTO analyst_annotations (
+                        annotation_id,
+                        target_kind,
+                        target_id,
+                        target_fingerprint,
+                        author_label,
+                        note,
+                        decision_label,
+                        created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        annotation_id,
+                        request.target.kind.value,
+                        request.target.artifact_id,
+                        request.target.artifact_fingerprint,
+                        request.author_label,
+                        request.note,
+                        request.decision_label.value,
+                        created_at.isoformat(),
+                    ),
+                )
+                sequence = cursor.lastrowid
+        except sqlite3.IntegrityError as exc:
+            raise DuplicateIdentifierError(
+                f"analyst annotation already exists: {annotation_id}"
+            ) from exc
+        if sequence is None:
+            raise RegistryError("analyst annotation sequence allocation failed")
+        return build_analyst_annotation(
+            request,
+            sequence=sequence,
+            created_at=created_at,
+        )
+
+    def get_analyst_annotation(self, annotation_id: str) -> AnalystAnnotation:
+        """Retrieve one immutable analyst annotation by identifier."""
+
+        self.initialize()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM analyst_annotations WHERE annotation_id = ?",
+                (annotation_id,),
+            ).fetchone()
+        if row is None:
+            raise RegistryNotFoundError(f"analyst annotation not found: {annotation_id}")
+        return self._annotation_from_row(row)
+
+    def list_analyst_annotations(
+        self,
+        *,
+        target: AnalystArtifactReference | None = None,
+        after_sequence: int = 0,
+        limit: int = 100,
+    ) -> AnalystAnnotationHistory:
+        """Read one bounded ascending page from the append-only annotation stream."""
+
+        if after_sequence < 0:
+            raise ValueError("after_sequence must be non-negative")
+        if not 1 <= limit <= MAX_ANNOTATIONS_PER_PAGE:
+            raise ValueError(f"limit must be between 1 and {MAX_ANNOTATIONS_PER_PAGE}")
+        self.initialize()
+        parameters: list[object] = [after_sequence]
+        where = "sequence > ?"
+        if target is not None:
+            where += " AND target_kind = ? AND target_id = ?"
+            parameters.extend([target.kind.value, target.artifact_id])
+            if target.artifact_fingerprint is None:
+                where += " AND target_fingerprint IS NULL"
+            else:
+                where += " AND (target_fingerprint IS NULL OR target_fingerprint = ?)"
+                parameters.append(target.artifact_fingerprint)
+        parameters.append(limit + 1)
+        with self._connect() as conn:
+            rows = conn.execute(
+                f"""
+                SELECT * FROM analyst_annotations
+                WHERE {where}
+                ORDER BY sequence ASC
+                LIMIT ?
+                """,  # noqa: S608 - the clause is assembled only from fixed literals above.
+                parameters,
+            ).fetchall()
+        has_more = len(rows) > limit
+        selected = rows[:limit]
+        return AnalystAnnotationHistory(
+            target=target,
+            after_sequence=after_sequence,
+            limit=limit,
+            annotations=[self._annotation_from_row(row) for row in selected],
+            has_more=has_more,
+        )
 
     def register_bundle_import(
         self,
@@ -500,10 +588,127 @@ class Registry:
             raise RegistryNotFoundError(msg)
         return cast(str, row["payload_json"])
 
+    def store_experiment_evidence_pack(
+        self,
+        *,
+        pack_id: str,
+        experiment_id: str,
+        source_fingerprint: str | None,
+        payload_json: str,
+    ) -> bool:
+        """Store or refresh one experiment-level EvidencePack JSON payload."""
+
+        self.initialize()
+        now = utc_now().isoformat()
+        with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT pack_id FROM experiment_evidence_packs WHERE pack_id = ?",
+                (pack_id,),
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    """
+                    INSERT INTO experiment_evidence_packs (
+                        pack_id, experiment_id, source_fingerprint, payload_json, stored_at
+                    ) VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (pack_id, experiment_id, source_fingerprint, payload_json, now),
+                )
+                return True
+            conn.execute(
+                """
+                UPDATE experiment_evidence_packs
+                SET experiment_id = ?, source_fingerprint = ?, payload_json = ?, stored_at = ?
+                WHERE pack_id = ?
+                """,
+                (experiment_id, source_fingerprint, payload_json, now, pack_id),
+            )
+            return False
+
+    def get_experiment_evidence_pack_json(self, pack_id: str) -> str:
+        """Retrieve experiment-level EvidencePack JSON by identifier."""
+
+        self.initialize()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT payload_json FROM experiment_evidence_packs WHERE pack_id = ?",
+                (pack_id,),
+            ).fetchone()
+        if row is None:
+            raise RegistryNotFoundError(f"experiment evidence pack not found: {pack_id}")
+        return cast(str, row["payload_json"])
+
+    def list_experiment_evidence_pack_json(self) -> list[str]:
+        """List stored experiment-level EvidencePack JSON payloads."""
+
+        self.initialize()
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT payload_json FROM experiment_evidence_packs ORDER BY pack_id"
+            ).fetchall()
+        return [cast(str, row["payload_json"]) for row in rows]
+
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.path)
         conn.row_factory = sqlite3.Row
         return conn
+
+    @staticmethod
+    def _annotation_from_row(row: sqlite3.Row) -> AnalystAnnotation:
+        request = AnalystAnnotationRequest(
+            target=AnalystArtifactReference(
+                kind=cast(str, row["target_kind"]),
+                artifact_id=cast(str, row["target_id"]),
+                artifact_fingerprint=cast(str | None, row["target_fingerprint"]),
+            ),
+            author_label=cast(str, row["author_label"]),
+            note=cast(str, row["note"]),
+            decision_label=cast(str, row["decision_label"]),
+        )
+        return AnalystAnnotation(
+            sequence=cast(int, row["sequence"]),
+            annotation_id=cast(str, row["annotation_id"]),
+            target=request.target,
+            author_label=request.author_label,
+            note=request.note,
+            decision_label=request.decision_label,
+            created_at=datetime.fromisoformat(cast(str, row["created_at"])),
+        )
+
+    @staticmethod
+    def _ensure_annotation_target_exists(
+        conn: sqlite3.Connection,
+        target: AnalystArtifactReference,
+    ) -> None:
+        if target.kind not in REGISTRY_VERIFIED_ANNOTATION_TARGETS:
+            return
+        locations = {
+            AnalystAnnotationTargetKind.EXPERIMENT: ("experiments", "experiment_id"),
+            AnalystAnnotationTargetKind.RUN: ("runs", "run_id"),
+            AnalystAnnotationTargetKind.BUNDLE_IMPORT: ("bundle_imports", "bundle_id"),
+            AnalystAnnotationTargetKind.METRIC_COLLECTION: (
+                "metric_collections",
+                "run_id",
+            ),
+            AnalystAnnotationTargetKind.EVIDENCE_PACK: ("evidence_packs", "pack_id"),
+            AnalystAnnotationTargetKind.EXPERIMENT_EVIDENCE_PACK: (
+                "experiment_evidence_packs",
+                "pack_id",
+            ),
+            AnalystAnnotationTargetKind.EXPERIMENT_PROTOCOL: (
+                "experiment_protocols",
+                "protocol_id",
+            ),
+        }
+        table, identifier_column = locations[target.kind]
+        row = conn.execute(
+            f"SELECT 1 FROM {table} WHERE {identifier_column} = ?",  # noqa: S608
+            (target.artifact_id,),
+        ).fetchone()
+        if row is None:
+            raise RegistryNotFoundError(
+                f"annotation target not found: {target.kind.value}:{target.artifact_id}"
+            )
 
     def _insert(
         self,
@@ -594,6 +799,14 @@ class Registry:
             "bundle_imports": "SELECT COUNT(*) AS count FROM bundle_imports",
             "metric_collections": "SELECT COUNT(*) AS count FROM metric_collections",
             "evidence_packs": "SELECT COUNT(*) AS count FROM evidence_packs",
+            "experiment_evidence_packs": (
+                "SELECT COUNT(*) AS count FROM experiment_evidence_packs"
+            ),
+            "experiment_protocols": "SELECT COUNT(*) AS count FROM experiment_protocols",
+            "experiment_protocol_slots": (
+                "SELECT COUNT(*) AS count FROM experiment_protocol_slots"
+            ),
+            "analyst_annotations": "SELECT COUNT(*) AS count FROM analyst_annotations",
         }
         row = conn.execute(queries[table]).fetchone()
         return cast(int, row["count"])

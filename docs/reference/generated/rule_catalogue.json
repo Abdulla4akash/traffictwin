@@ -63,6 +63,75 @@
       "rule_id": "R3",
       "rule_version": "1.0",
       "title": "Scenario-triviality candidate"
+    },
+    "R4": {
+      "limitations": [
+        "Routing and location context are required before interpreting the candidate cause."
+      ],
+      "purpose": "Identify uneven capacity-normalised RSU load at moderate total utilisation.",
+      "required_evidence": [
+        "infra.load_balance.jain_capacity_normalised",
+        "infra.utilisation.mean",
+        "infra.observed_rsu.count"
+      ],
+      "rule_id": "R4",
+      "rule_version": "1.0",
+      "title": "Load-imbalance candidate"
+    },
+    "R5": {
+      "limitations": [
+        "R5 does not infer pairings, overfitting, or causal mechanisms from labels."
+      ],
+      "purpose": "Identify descriptive gaps between explicitly paired training and validation metrics.",
+      "required_evidence": [
+        "experiment.training_validation.pair_count",
+        "experiment.training_validation.max_absolute_gap"
+      ],
+      "rule_id": "R5",
+      "rule_version": "1.0",
+      "title": "Training-to-validation drift candidate"
+    },
+    "R6": {
+      "limitations": [
+        "R6 thresholds are provisional and results are descriptive candidates, not causal incident or drift proof."
+      ],
+      "purpose": "Identify sustained adverse within-run metric movement and classify declared-event recovery without treating gaps as values.",
+      "required_evidence": [
+        "temporal_evidence",
+        "windowed_metric_series",
+        "window-applicable scalar metric with objective direction"
+      ],
+      "rule_id": "R6",
+      "rule_version": "1.0",
+      "title": "Temporal degradation and recovery candidate"
+    },
+    "R7": {
+      "limitations": [
+        "R7 is compiled through the closed declarative grammar and does not establish protected-attribute fairness, geography, significance, or causality."
+      ],
+      "purpose": "Identify supported operational completion-outcome disparity across one explicitly selected vehicle-tier or exact target-RSU dimension.",
+      "required_evidence": [
+        "fairness.vehicle_tier.completion_rate.max_gap or spatial.rsu.task.completion_rate_by_target",
+        "complete compatible operational group contract",
+        "at least two groups with declared minimum support"
+      ],
+      "rule_id": "R7",
+      "rule_version": "1.0",
+      "title": "Operational outcome-disparity candidate"
+    },
+    "R8": {
+      "limitations": [
+        "R8 uses a provisional synthetic-development threshold and is not a statistical anomaly test, hardware benchmark, causal diagnosis, or external standard."
+      ],
+      "purpose": "Identify high mean energy cost per completed task under one exact canonical energy contract and a minimum completed-task support requirement.",
+      "required_evidence": [
+        "task.energy.per_completed_j",
+        "task.completed.count",
+        "exact canonical v1.0 task-energy contract and complete completed-task coverage"
+      ],
+      "rule_id": "R8",
+      "rule_version": "1.0",
+      "title": "Completed-task energy anomaly candidate"
     }
   }
 }

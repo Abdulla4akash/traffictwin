@@ -1,0 +1,28 @@
+{
+  "contract_version": "executive-summary-v1",
+  "includes_analyst_annotations": false,
+  "limitation_policy": "retain_all_or_refuse",
+  "maximum_highlights": 5,
+  "maximum_limitations": 100,
+  "maximum_source_warnings": 100,
+  "pdf_overflow_policy": "fail_closed",
+  "performs_scientific_recomputation": false,
+  "renderer_version": "executive-summary-renderer-v1",
+  "requires_complete_typed_claim_inventory": true,
+  "schema_version": "1.0",
+  "selection_policy": "Select at most two triggered rule results, two available comparison results with a non-unchanged direction, one unavailable claim, and one remaining rule result; then fill unused positions with available metrics, remaining comparisons, remaining rules, and other claims. Break every tie by scientific claim key.",
+  "source_warning_policy": "retain_all_or_refuse",
+  "supported_formats": [
+    "json",
+    "markdown",
+    "html",
+    "pdf"
+  ],
+  "supported_report_types": [
+    "run",
+    "diagnostics",
+    "comparison",
+    "full"
+  ],
+  "supports_causal_interpretation": false
+}

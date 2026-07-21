@@ -23,6 +23,14 @@ def test_chart_data_from_baseline_bundle() -> None:
     }
     assert [row["duration_s"] for row in trip_duration_rows(tables)] == [600.0, 660.0]
 
+    assert infrastructure_series(tables, rsu_id="rsu-2") == [
+        row for row in infrastructure_series(tables) if row["rsu_id"] == "rsu-2"
+    ]
+    assert task_event_series(tables, vehicle_id="veh-1", task_class="T1") == [
+        {"timestamp_s": 0.0, "arrivals": 1, "completions": 0},
+        {"timestamp_s": 0.08, "arrivals": 0, "completions": 1},
+    ]
+
 
 def test_metric_status_counts_for_partial_bundle() -> None:
     counts = metric_status_counts(metric_collection("partial_valid"))

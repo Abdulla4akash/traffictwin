@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "capability_id": "OPS-02",
+  "contract_version": "canonical-parquet-cache-v1",
+  "adapter_id": "generic_tabular",
+  "adapter_version": "generic-tabular-v1",
+  "validator_version": "phase2.1",
+  "cache_format": "Apache Parquet 2.6 with strict Pydantic revalidation",
+  "cache_format_version": "parquet-v1",
+  "canonical_schema_fingerprint": "5f67b1360a5f6336a23b53bde357f0118b53b5886f7e88d6f334242556293376",
+  "key_components": [
+    "raw_bundle_fingerprint",
+    "adapter_id",
+    "adapter_version",
+    "validator_version",
+    "manifest_mapping_fingerprint",
+    "canonical_schema_fingerprint",
+    "cache_format_version"
+  ],
+  "canonical_tables": [
+    "tasks",
+    "infrastructure",
+    "vehicles",
+    "traffic",
+    "trips",
+    "incidents"
+  ],
+  "maximum_entry_bytes": 512000000,
+  "maximum_decoded_bytes_per_table": 1000000000,
+  "maximum_rows_per_table": 5000000,
+  "raw_evidence_policy": "Cache roots must remain outside directory bundles. Every lookup reopens and fingerprints raw evidence; cached files never replace or modify it.",
+  "invalidation_policy": "Any raw, adapter, validator, confirmed mapping, canonical schema, or cache-format identity change produces a miss; stale, incompatible, corrupt, or symlinked entries are never used.",
+  "publication_policy": "Only accepted validation results are written to a private temporary directory, checksummed, verified, and atomically renamed. Existing entries are not rewritten."
+}

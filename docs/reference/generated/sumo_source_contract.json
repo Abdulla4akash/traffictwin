@@ -1,0 +1,134 @@
+{
+  "adapter_version": "1.0",
+  "capabilities": {
+    "adapter": "sumo_results_v1",
+    "supports": {
+      "action_toggles": "false",
+      "analyst_annotations": "false",
+      "asynchronous_launch": "false",
+      "canonical_table_caching": "false",
+      "cross_rule_reasoning": "false",
+      "custom_metric_plugin_api": "true",
+      "declarative_rule_authoring": "true",
+      "difference_provenance": "false",
+      "direct_launch": "false",
+      "energy_anomaly_diagnosis": "false",
+      "energy_metric_family": "false",
+      "environment_doctor": "false",
+      "equivalence_testing": "false",
+      "fairness_disparity_diagnosis": "false",
+      "fairness_metric_family": "false",
+      "full_text_registry_search": "false",
+      "generalised_external_source_contract": "true",
+      "lane_closure": "false",
+      "latency_percentile_family": "false",
+      "latex_research_export": "false",
+      "measurement_noise_dropout_models": "false",
+      "n_way_policy_ranking": "false",
+      "nearest_flip_analysis": "false",
+      "one_page_executive_summary": "false",
+      "paired_statistical_study": "false",
+      "parameter_sweep_composer": "false",
+      "power_analysis": "false",
+      "provenance_completeness_score": "false",
+      "provenance_graph_export": "false",
+      "registry_schema_migrations": "false",
+      "regression_gate": "false",
+      "ro_crate_archival_export": "false",
+      "rsu_capacity": "false",
+      "rsu_count": "false",
+      "rsu_failure": "false",
+      "rsu_placement": "false",
+      "run_bundle_import": "true",
+      "scenario_mutation_operators": "false",
+      "seed_export": "false",
+      "seed_import": "false",
+      "signal_timing": "false",
+      "spatial_rsu_metric_family": "false",
+      "streaming_canonicalisation": "false",
+      "structured_report_diffing": "false",
+      "task_arrival_multiplier": "false",
+      "temporal_degradation_diagnosis": "false",
+      "threshold_sensitivity_sweep": "false",
+      "time_windowed_metrics": "false",
+      "vehicle_count": "false",
+      "vehicle_tier_mix": "false",
+      "workload_class_mix": "false",
+      "workload_ordering": "false"
+    }
+  },
+  "documentation": {
+    "licence": "https://github.com/eclipse-sumo/sumo/blob/main/LICENSE",
+    "summary": "https://sumo.dlr.de/docs/Simulation/Output/Summary.html",
+    "tripinfo": "https://sumo.dlr.de/docs/Simulation/Output/TripInfo.html"
+  },
+  "interpretation_limits": [
+    "A validated output package proves file compatibility, not scenario realism.",
+    "SUMO summary ended may include vehicles removed without reaching their destination.",
+    "Raw XML remains authoritative and is never rewritten by this adapter."
+  ],
+  "mappings": [
+    {
+      "destination": "TripRecord.trip_id and TripRecord.vehicle_id",
+      "rule": "The SUMO vehicle identifier is retained unchanged.",
+      "source": "tripinfo.tripinfo@id",
+      "status": "supported",
+      "unit": null
+    },
+    {
+      "destination": "TripRecord.departure_time_s",
+      "rule": "Undeparted records use SUMO's negative sentinel and remain source-only.",
+      "source": "tripinfo.tripinfo@depart",
+      "status": "supported_when_non_negative",
+      "unit": "s"
+    },
+    {
+      "destination": "TripRecord.arrival_time_s",
+      "rule": "Negative arrival or a vaporized reason becomes an incomplete canonical trip.",
+      "source": "tripinfo.tripinfo@arrival",
+      "status": "supported_for_completed_trips",
+      "unit": "s"
+    },
+    {
+      "destination": "TripRecord.duration_s",
+      "rule": "Elapsed time for unfinished/vaporized records is not relabelled as trip duration.",
+      "source": "tripinfo.tripinfo@duration",
+      "status": "supported_for_completed_trips",
+      "unit": "s"
+    },
+    {
+      "destination": null,
+      "rule": "Summary running counts are occupancy snapshots, not interval flow counts; all documented fields remain typed SumoSummaryStep evidence.",
+      "source": "summary.step",
+      "status": "source_specific_only",
+      "unit": null
+    },
+    {
+      "destination": null,
+      "rule": "FCD requires a separately approved explicit mapping contract.",
+      "source": "fcd-export",
+      "status": "unsupported",
+      "unit": null
+    }
+  ],
+  "required_provenance": [
+    "scenario_id",
+    "scenario_url",
+    "sumo_version",
+    "licence_spdx",
+    "retrieval_date",
+    "redistribution_allowed",
+    "raw XML SHA-256 checksums"
+  ],
+  "schema_version": "1.0",
+  "supported_sumo_versions": [
+    "1.27.x"
+  ],
+  "unsupported": [
+    "SUMO launch or rerun",
+    "FCD canonicalisation",
+    "personinfo and containerinfo canonicalisation",
+    "summary-to-canonical traffic count mapping",
+    "route identity not present in tripinfo output"
+  ]
+}

@@ -7,7 +7,11 @@ from traffictwin.provenance.query import (
     ProvenanceQueryError,
     build_provenance_context,
     dependent_rules_for_metric,
+    export_provenance,
+    get_comparison_provenance_completeness,
     get_metric_provenance,
+    get_provenance_graph_view,
+    get_report_provenance_completeness,
     get_rule_provenance,
     get_run_provenance,
     get_source_provenance,
@@ -48,3 +52,47 @@ def test_metric_query_rejects_rejected_bundle() -> None:
 
     with pytest.raises(ProvenanceQueryError):
         get_metric_provenance(context, "task.completion.rate")
+
+
+def test_query_builds_and_exports_bounded_graph_views() -> None:
+    context = build_provenance_context(
+        "tests/fixtures/bundles/baseline_valid",
+        clock=fixed_clock,
+    )
+    trace = get_metric_provenance(
+        context,
+        "task.completion.rate",
+        clock=fixed_clock,
+    )
+
+    view = get_provenance_graph_view(trace, node_limit=8, edge_limit=10)
+
+    assert view.capability_id == "PRO-02"
+    assert len(view.nodes) == 8
+    assert export_provenance(trace, "dot", node_limit=8).startswith("digraph")
+    assert "<graphml" in export_provenance(trace, "graphml", node_limit=8)
+    with pytest.raises(ProvenanceQueryError, match="output_format"):
+        export_provenance(trace, "png")
+
+
+def test_query_builds_typed_run_and_comparison_completeness_reports() -> None:
+    baseline = build_provenance_context(
+        "tests/fixtures/bundles/baseline_valid",
+        clock=fixed_clock,
+    )
+    variation = build_provenance_context(
+        "tests/fixtures/bundles/variation_valid",
+        clock=fixed_clock,
+    )
+
+    run_report = get_report_provenance_completeness(baseline, clock=fixed_clock)
+    comparison = get_comparison_provenance_completeness(
+        baseline,
+        variation,
+        clock=fixed_clock,
+    )
+
+    assert run_report.capability_id == "PRO-03"
+    assert run_report.denominator_count == 33
+    assert comparison.capability_id == "PRO-03"
+    assert comparison.denominator_count == 14

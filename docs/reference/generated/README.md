@@ -10,10 +10,41 @@ Do not hand-edit generated JSON files. Regenerate them after changing public Pyd
 
 Current generated files:
 
-- `pydantic_schemas.json`
+- `analyst_annotation_contract.json`
+- `canonical_cache_contract.json`
 - `cli_help.json`
+- `cross_rule_reasoning_contract.json`
+- `declarative_rule_contract.json`
+- `difference_provenance_contract.json`
+- `doctor_contract.json`
+- `equivalence_testing_contract.json`
+- `external_source_contract.json`
+- `latex_export_contract.json`
+- `manifest_inference_contract.json`
+- `measurement_impairment_contract.json`
 - `metric_catalogue.json`
-- `validation_codes.json`
+- `metric_plugin_api_contract.json`
+- `n_way_ranking_contract.json`
+- `nearest_flip_contract.json`
+- `power_analysis_contract.json`
+- `parameter_sweep_contract.json`
+- `scenario_mutation_contract.json`
+- `provenance_completeness_contract.json`
+- `provenance_graph_export_contract.json`
+- `pydantic_schemas.json`
+- `r7_rule_definitions.json`
+- `r8_energy_diagnosis_contract.json`
+- `regression_gate_contract.json`
+- `registry_search_contract.json`
+- `registry_migration_contract.json`
+- `research_object_contract.json`
+- `report_diff_contract.json`
+- `executive_summary_contract.json`
 - `rule_catalogue.json`
-- `tos_source_contract.json`
+- `statistical_study_contract.json`
+- `sumo_source_contract.json`
+- `temporal_diagnosis_contract.json`
+- `threshold_sensitivity_contract.json`
 - `tos_analysis_catalogue.json`
+- `tos_source_contract.json`
+- `validation_codes.json`

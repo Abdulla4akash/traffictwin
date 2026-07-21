@@ -10,18 +10,66 @@ from pathlib import Path
 
 import yaml
 
+from traffictwin.config.seed_io import dump_seed
 from traffictwin.diagnostics.report import DiagnosticReport
 from traffictwin.domain.enums import ExperimentStatus
 from traffictwin.domain.experiment import Experiment
 from traffictwin.evidence.builder import build_evidence_pack
 from traffictwin.evidence.pack import EvidencePack
+from traffictwin.experiments.equivalence_testing import (
+    EquivalenceMarginBasis,
+    EquivalenceStudyConfig,
+    equivalence_study_to_csv,
+    equivalence_study_to_markdown,
+    evaluate_equivalence_study,
+)
+from traffictwin.experiments.n_way_ranking import (
+    NWayRankingConfig,
+    evaluate_n_way_ranking,
+    n_way_ranking_to_csv,
+    n_way_ranking_to_markdown,
+)
+from traffictwin.experiments.portfolio import (
+    default_synthetic_portfolio_rules,
+    evaluate_portfolio,
+    evaluate_portfolio_study,
+)
+from traffictwin.experiments.power_analysis import (
+    PairedVarianceBasis,
+    PowerAnalysisConfig,
+    TargetEffectBasis,
+    evaluate_power_analysis,
+    power_analysis_to_csv,
+    power_analysis_to_markdown,
+)
+from traffictwin.experiments.regression_gate import (
+    GoldenApprovalStatus,
+    RegressionToleranceSpec,
+    build_regression_golden_contract,
+    evaluate_regression_gate,
+    regression_gate_to_csv,
+    regression_gate_to_markdown,
+)
+from traffictwin.experiments.winner_map import build_winner_map
 from traffictwin.ingestion.bundle import import_bundle, validate_bundle
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
-from traffictwin.metrics.results import MetricCollection
+from traffictwin.metrics.results import MetricCollection, MetricStatus, MetricValue
+from traffictwin.provenance.completeness import provenance_completeness_report_to_csv
+from traffictwin.provenance.differences import (
+    build_difference_contribution_report,
+    difference_contribution_report_to_csv,
+)
+from traffictwin.provenance.graph_export import (
+    build_provenance_graph_view,
+    provenance_graph_to_dot,
+    provenance_graph_to_graphml,
+)
 from traffictwin.provenance.query import (
     build_provenance_context,
+    get_comparison_provenance_completeness,
     get_metric_provenance,
+    get_report_provenance_completeness,
     get_rule_provenance,
 )
 from traffictwin.provenance.serialization import trace_to_json
@@ -37,10 +85,15 @@ from traffictwin.rules.engine import evaluate_rules
 from traffictwin.storage.registry import DuplicateIdentifierError, Registry, RegistryConflictError
 from traffictwin.synthetic.bundles import DETERMINISTIC_CREATED_AT, write_synthetic_bundle
 from traffictwin.synthetic.experiments import (
+    PORTFOLIO_DEVELOPMENT_PRESETS,
+    PORTFOLIO_HELD_OUT_PRESETS,
+    PORTFOLIO_STUDY_EXPERIMENT_ID,
     build_r3_evidence_pack_from_bundles,
+    generate_synthetic_portfolio_study,
     generate_trivial_multi_algorithm_experiment,
 )
-from traffictwin.synthetic.scenarios import default_workspace_configs
+from traffictwin.synthetic.generator import generate_run_data
+from traffictwin.synthetic.scenarios import default_workspace_configs, preset_config
 
 WORKSPACE_SCHEMA_VERSION = "1.0"
 WORKSPACE_KIND = "traffictwin_standalone_demo"
@@ -109,6 +162,26 @@ def initialise_workspace(path: str | Path, *, force: bool = False) -> WorkspaceI
         overwrite=True,
     )
     bundle_paths.extend(r3_paths)
+    r3_base_seed = generate_run_data(preset_config("trivial_multi_algorithm")).seed
+    with suppress(DuplicateIdentifierError):
+        registry.add_seed(r3_base_seed)
+    (workspace / "seeds" / "trivial_multi_algorithm.yaml").write_text(
+        dump_seed(r3_base_seed),
+        encoding="utf-8",
+    )
+
+    portfolio_fixture = generate_synthetic_portfolio_study(
+        workspace / "bundles" / "portfolio_study",
+        overwrite=True,
+    )
+    bundle_paths.extend(portfolio_fixture.bundle_paths)
+    for seed in portfolio_fixture.base_seeds.values():
+        with suppress(DuplicateIdentifierError):
+            registry.add_seed(seed)
+        (workspace / "seeds" / f"{seed.seed_id}.yaml").write_text(
+            dump_seed(seed),
+            encoding="utf-8",
+        )
 
     imported_count = 0
     report_count = 0
@@ -139,6 +212,12 @@ def initialise_workspace(path: str | Path, *, force: bool = False) -> WorkspaceI
 
     r3_pack = build_r3_evidence_pack_from_bundles(r3_paths, clock=_fixed_clock)
     r3_report = evaluate_rules(r3_pack, clock=_fixed_clock)
+    registry.store_experiment_evidence_pack(
+        pack_id=r3_pack.pack_id,
+        experiment_id="exp-standalone-trivial",
+        source_fingerprint=r3_pack.source_bundle_fingerprint,
+        payload_json=r3_pack.to_json(),
+    )
     (workspace / "exports" / "trivial_multi_algorithm_evidence.json").write_text(
         r3_pack.to_json(),
         encoding="utf-8",
@@ -147,7 +226,96 @@ def initialise_workspace(path: str | Path, *, force: bool = False) -> WorkspaceI
         r3_report.to_json(),
         encoding="utf-8",
     )
-    report_count += 2
+    trivial_collections = [
+        collection
+        for payload in registry.list_metric_collection_json()
+        if (collection := MetricCollection.model_validate_json(payload)).results
+        and collection.results[0].experiment_id == "exp-standalone-trivial"
+    ]
+    trivial_seeds = registry.list_seeds()
+    aliases = {seed.seed_id: seed.parent_seed_id or seed.seed_id for seed in trivial_seeds}
+    winner_map = build_winner_map(
+        trivial_collections,
+        seed_aliases=aliases,
+        clock=_fixed_clock,
+    )
+    portfolio = evaluate_portfolio(
+        winner_map,
+        {r3_base_seed.seed_id: r3_base_seed},
+        default_synthetic_portfolio_rules(),
+        clock=_fixed_clock,
+    )
+    (workspace / "exports" / "trivial_multi_algorithm_winner_map.json").write_text(
+        winner_map.to_json(),
+        encoding="utf-8",
+    )
+    n_way_ranking = evaluate_n_way_ranking(
+        trivial_collections,
+        NWayRankingConfig(
+            experiment_id="exp-standalone-trivial",
+            seed_ids=[r3_base_seed.seed_id],
+            algorithms=[
+                "synthetic-always-local",
+                "synthetic-selective",
+                "synthetic-balanced",
+            ],
+            metric_key="task.completion.rate",
+            expected_random_seeds=[1, 2, 3],
+        ),
+        seed_aliases=aliases,
+        clock=_fixed_clock,
+    )
+    (workspace / "exports" / "trivial_n_way_ranking.json").write_text(
+        n_way_ranking.to_json(),
+        encoding="utf-8",
+    )
+    (workspace / "exports" / "trivial_n_way_ranking.md").write_text(
+        n_way_ranking_to_markdown(n_way_ranking),
+        encoding="utf-8",
+    )
+    (workspace / "exports" / "trivial_n_way_ranking_audit.csv").write_text(
+        n_way_ranking_to_csv(n_way_ranking),
+        encoding="utf-8",
+    )
+    _write_synthetic_equivalence_demo(workspace)
+    _write_synthetic_regression_demo(workspace, trivial_collections[0])
+    _write_synthetic_power_demo(workspace)
+    (workspace / "exports" / "synthetic_portfolio_evaluation.json").write_text(
+        portfolio.to_json(),
+        encoding="utf-8",
+    )
+    portfolio_collections = [
+        collection
+        for payload in registry.list_metric_collection_json()
+        if (collection := MetricCollection.model_validate_json(payload)).results
+        and collection.results[0].experiment_id == PORTFOLIO_STUDY_EXPERIMENT_ID
+    ]
+    portfolio_seeds = registry.list_seeds()
+    portfolio_aliases = {
+        seed.seed_id: seed.parent_seed_id or seed.seed_id for seed in portfolio_seeds
+    }
+    portfolio_winner_map = build_winner_map(
+        portfolio_collections,
+        seed_aliases=portfolio_aliases,
+        clock=_fixed_clock,
+    )
+    portfolio_study = evaluate_portfolio_study(
+        portfolio_winner_map,
+        portfolio_fixture.base_seeds,
+        default_synthetic_portfolio_rules(),
+        development_seed_ids=portfolio_fixture.development_seed_ids,
+        held_out_seed_ids=portfolio_fixture.held_out_seed_ids,
+        clock=_fixed_clock,
+    )
+    (workspace / "exports" / "synthetic_portfolio_study_winner_map.json").write_text(
+        portfolio_winner_map.to_json(),
+        encoding="utf-8",
+    )
+    (workspace / "exports" / "synthetic_portfolio_held_out_study.json").write_text(
+        portfolio_study.to_json(),
+        encoding="utf-8",
+    )
+    report_count += 4
 
     _write_comparison_outputs(workspace)
     report_count += _write_report_outputs(workspace)
@@ -225,6 +393,154 @@ def _create_workspace_dirs(workspace: Path) -> None:
         (workspace / name).mkdir(parents=True, exist_ok=True)
 
 
+def _write_synthetic_equivalence_demo(workspace: Path) -> None:
+    """Write an explicitly synthetic STA-03 method fixture and its reconciled exports."""
+
+    differences = [-0.01, 0.0, 0.01, 0.005, -0.005]
+    collections: list[MetricCollection] = []
+    for random_seed, difference in enumerate(differences, start=1):
+        for seed_id, value in (
+            ("seed-equivalence-baseline", 0.8),
+            ("seed-equivalence-variation", 0.8 + difference),
+        ):
+            run_id = f"run-equivalence-{seed_id}-{random_seed}"
+            metric = MetricValue(
+                metric_key="task.completion.rate",
+                status=MetricStatus.AVAILABLE,
+                value=value,
+                unit="fraction",
+                scope="run",
+                implementation_version="1.0",
+                run_id=run_id,
+                experiment_id="exp-synthetic-equivalence-method-demo",
+                seed_id=seed_id,
+                algorithm="synthetic-equivalence-fixture",
+                checkpoint=None,
+                random_seed=random_seed,
+                synthetic=True,
+                environment="traffictwin-synthetic-equivalence-fixture",
+                environment_version="1.0",
+                computed_at=_fixed_clock(),
+            )
+            collections.append(
+                MetricCollection(
+                    run_id=run_id,
+                    metric_version="1.0",
+                    results=[metric],
+                    unavailable_count=0,
+                    partial_count=0,
+                    generated_at=_fixed_clock(),
+                    input_fingerprint=f"synthetic-equivalence-input-{seed_id}-{random_seed}",
+                )
+            )
+    study = evaluate_equivalence_study(
+        collections,
+        EquivalenceStudyConfig(
+            experiment_id="exp-synthetic-equivalence-method-demo",
+            baseline_seed_id="seed-equivalence-baseline",
+            variation_seed_id="seed-equivalence-variation",
+            algorithm="synthetic-equivalence-fixture",
+            metric_key="task.completion.rate",
+            equivalence_margin=0.05,
+            margin_basis=EquivalenceMarginBasis.PROVISIONAL_DESIGN,
+            margin_justification="Explicit synthetic method-demo margin; not externally validated",
+            expected_random_seeds=[1, 2, 3, 4, 5],
+        ),
+        clock=_fixed_clock,
+    )
+    export_dir = workspace / "exports"
+    (export_dir / "synthetic_equivalence_study.json").write_text(
+        study.to_json(),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_equivalence_study.md").write_text(
+        equivalence_study_to_markdown(study),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_equivalence_study_audit.csv").write_text(
+        equivalence_study_to_csv(study),
+        encoding="utf-8",
+    )
+
+
+def _write_synthetic_regression_demo(
+    workspace: Path,
+    subject: MetricCollection,
+) -> None:
+    """Write an explicitly synthetic approved golden and passing STA-04 gate."""
+
+    golden = build_regression_golden_contract(
+        subject,
+        contract_id="synthetic-demo-completion-regression",
+        contract_version="1.0.0",
+        description="Approved exact-source synthetic demo completion regression",
+        tolerances=[
+            RegressionToleranceSpec(
+                selector="task.completion.rate",
+                absolute_tolerance=0.0,
+                relative_tolerance=0.0,
+            )
+        ],
+        approval_status=GoldenApprovalStatus.APPROVED,
+        approved_by="traffictwin-synthetic-demo-owner",
+        approval_note="Approved only for the labelled deterministic synthetic demo fixture",
+    )
+    report = evaluate_regression_gate(subject, golden, clock=_fixed_clock)
+    export_dir = workspace / "exports"
+    (export_dir / "synthetic_regression_golden.json").write_text(
+        golden.to_json(),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_regression_gate.json").write_text(
+        report.to_json(),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_regression_gate.md").write_text(
+        regression_gate_to_markdown(report),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_regression_gate.csv").write_text(
+        regression_gate_to_csv(report),
+        encoding="utf-8",
+    )
+
+
+def _write_synthetic_power_demo(workspace: Path) -> None:
+    """Write an explicitly synthetic prospective STA-05 planning artifact."""
+
+    analysis = evaluate_power_analysis(
+        PowerAnalysisConfig(
+            metric_key="task.completion.rate",
+            unit="ratio",
+            target_effect=0.05,
+            paired_difference_variance=0.0025,
+            target_effect_basis=TargetEffectBasis.SYNTHETIC,
+            target_effect_justification=(
+                "Explicit synthetic target for prospective method demonstration"
+            ),
+            variance_basis=PairedVarianceBasis.SYNTHETIC,
+            variance_justification=(
+                "Explicit synthetic variance for prospective method demonstration"
+            ),
+            synthetic=True,
+        ),
+        clock=_fixed_clock,
+    )
+    export_dir = workspace / "exports"
+    (export_dir / "synthetic_power_analysis.json").write_text(
+        analysis.to_json(),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_power_analysis.md").write_text(
+        power_analysis_to_markdown(analysis),
+        encoding="utf-8",
+    )
+    (export_dir / "synthetic_power_analysis.csv").write_text(
+        power_analysis_to_csv(analysis),
+        encoding="utf-8",
+    )
+
+
 def _register_experiments(registry: Registry) -> None:
     for experiment in (
         Experiment(
@@ -240,6 +556,8 @@ def _register_experiments(registry: Registry) -> None:
                 "seed-infrastructure_bottleneck",
                 "seed-mixed_fault",
                 "seed-partial_evidence",
+                "seed-s5_stadium_event_siting",
+                "seed-s6_road_clearing_corridor",
             ],
             algorithms=[
                 "synthetic-balanced",
@@ -265,6 +583,34 @@ def _register_experiments(registry: Registry) -> None:
             ],
             common_random_seed_set=[1, 2, 3],
             planned_replicates=3,
+            status=ExperimentStatus.COMPLETED,
+            created_at=_fixed_clock(),
+            updated_at=_fixed_clock(),
+        ),
+        Experiment(
+            experiment_id=PORTFOLIO_STUDY_EXPERIMENT_ID,
+            research_question=(
+                "How does a fixed transparent synthetic selector compare on held-out seed families?"
+            ),
+            hypothesis=(
+                "The fixed selector may reduce descriptive regret relative to at least one "
+                "fixed constituent."
+            ),
+            baseline_seed_id=f"seed-{PORTFOLIO_DEVELOPMENT_PRESETS[0]}",
+            variation_seed_ids=[
+                f"seed-{name}"
+                for name in [
+                    *PORTFOLIO_DEVELOPMENT_PRESETS[1:],
+                    *PORTFOLIO_HELD_OUT_PRESETS,
+                ]
+            ],
+            algorithms=[
+                "synthetic-always-local",
+                "synthetic-selective",
+                "synthetic-balanced",
+            ],
+            common_random_seed_set=[1],
+            planned_replicates=1,
             status=ExperimentStatus.COMPLETED,
             created_at=_fixed_clock(),
             updated_at=_fixed_clock(),
@@ -306,16 +652,38 @@ def _store_pipeline_outputs(
         payload_json=evidence_json,
     )
     if stem in {"baseline", "under_offloading", "infrastructure_bottleneck"}:
-        context = build_provenance_context(bundle_path)
-        metric_trace = get_metric_provenance(context, "task.completion.rate")
+        context = build_provenance_context(bundle_path, clock=_fixed_clock)
+        metric_trace = get_metric_provenance(
+            context,
+            "task.completion.rate",
+            clock=_fixed_clock,
+        )
         (workspace / "exports" / f"{stem}_completion_provenance.json").write_text(
             trace_to_json(metric_trace),
             encoding="utf-8",
         )
+        graph_view = build_provenance_graph_view(metric_trace)
+        (workspace / "exports" / f"{stem}_completion_provenance.dot").write_text(
+            provenance_graph_to_dot(graph_view),
+            encoding="utf-8",
+        )
+        (workspace / "exports" / f"{stem}_completion_provenance.graphml").write_text(
+            provenance_graph_to_graphml(graph_view),
+            encoding="utf-8",
+        )
+        completeness = get_report_provenance_completeness(context, clock=_fixed_clock)
+        (workspace / "exports" / f"{stem}_provenance_completeness.json").write_text(
+            completeness.to_json(),
+            encoding="utf-8",
+        )
+        (workspace / "exports" / f"{stem}_provenance_completeness.csv").write_text(
+            provenance_completeness_report_to_csv(completeness),
+            encoding="utf-8",
+        )
     if stem in {"under_offloading", "infrastructure_bottleneck"}:
-        context = build_provenance_context(bundle_path)
+        context = build_provenance_context(bundle_path, clock=_fixed_clock)
         rule_id = "R1" if stem == "under_offloading" else "R2"
-        rule_trace = get_rule_provenance(context, rule_id)
+        rule_trace = get_rule_provenance(context, rule_id, clock=_fixed_clock)
         (workspace / "exports" / f"{stem}_{rule_id}_provenance.json").write_text(
             trace_to_json(rule_trace),
             encoding="utf-8",
@@ -334,16 +702,56 @@ def _write_comparison_outputs(workspace: Path) -> None:
         variation_result = validate_bundle(workspace / "bundles" / variation)
         if not base_result.report.may_import or not variation_result.report.may_import:
             continue
+        baseline_metrics = compute_metrics_for_bundle(base_result, clock=_fixed_clock)
+        variation_metrics = compute_metrics_for_bundle(variation_result, clock=_fixed_clock)
         report = compare_metric_collections(
-            compute_metrics_for_bundle(base_result, clock=_fixed_clock),
-            compute_metrics_for_bundle(variation_result, clock=_fixed_clock),
+            baseline_metrics,
+            variation_metrics,
             baseline_seed=base_result.seed,
             variation_seed=variation_result.seed,
             clock=_fixed_clock,
         )
         filename = f"compare_{baseline}_vs_{variation}.json"
         (workspace / "exports" / filename).write_text(report.to_json(), encoding="utf-8")
-        comparisons.append({"baseline": baseline, "variation": variation, "file": filename})
+        entry = {"baseline": baseline, "variation": variation, "file": filename}
+        if baseline == "baseline" and variation == "stressed_demand":
+            difference = build_difference_contribution_report(
+                base_result,
+                baseline_metrics,
+                variation_result,
+                variation_metrics,
+                "task.completion.rate",
+            )
+            difference_json = "compare_baseline_vs_stressed_demand_difference_provenance.json"
+            difference_csv = "compare_baseline_vs_stressed_demand_difference_provenance.csv"
+            (workspace / "exports" / difference_json).write_text(
+                difference.to_json(),
+                encoding="utf-8",
+            )
+            (workspace / "exports" / difference_csv).write_text(
+                difference_contribution_report_to_csv(difference),
+                encoding="utf-8",
+            )
+            entry["difference_provenance_json"] = difference_json
+            entry["difference_provenance_csv"] = difference_csv
+            completeness = get_comparison_provenance_completeness(
+                build_provenance_context(workspace / "bundles" / baseline, clock=_fixed_clock),
+                build_provenance_context(workspace / "bundles" / variation, clock=_fixed_clock),
+                clock=_fixed_clock,
+            )
+            completeness_json = "compare_baseline_vs_stressed_demand_provenance_completeness.json"
+            completeness_csv = "compare_baseline_vs_stressed_demand_provenance_completeness.csv"
+            (workspace / "exports" / completeness_json).write_text(
+                completeness.to_json(),
+                encoding="utf-8",
+            )
+            (workspace / "exports" / completeness_csv).write_text(
+                provenance_completeness_report_to_csv(completeness),
+                encoding="utf-8",
+            )
+            entry["provenance_completeness_json"] = completeness_json
+            entry["provenance_completeness_csv"] = completeness_csv
+        comparisons.append(entry)
     (workspace / "exports" / "comparisons.yaml").write_text(
         yaml.safe_dump({"comparisons": comparisons}, sort_keys=False),
         encoding="utf-8",
@@ -448,7 +856,11 @@ def _ensure_safe_workspace_path(workspace: Path) -> None:
 
 
 def _workspace_relative(workspace: Path, path: Path) -> str:
-    return path.relative_to(workspace).as_posix()
+    # Resolve both operands before comparing them. macOS exposes its temporary
+    # directory through both ``/var`` and ``/private/var``; generated bundle
+    # paths may therefore be canonical while the caller's workspace path is
+    # not, even though they refer to the same directory.
+    return path.resolve().relative_to(workspace.resolve()).as_posix()
 
 
 def _expected_behavior(name: str) -> str:
