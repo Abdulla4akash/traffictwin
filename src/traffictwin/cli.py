@@ -227,6 +227,35 @@ from traffictwin.integration.tos import (
     write_tos_supervisor_pack,
 )
 from traffictwin.integration.tos.readers import TosPackageError, instrumented_key_for_run
+from traffictwin.integration.vec_interface import (
+    VecInterfaceError,
+    compare_vec_admissions,
+    export_vec_admission,
+    inspect_vec_artifact,
+    inspect_vec_interface,
+    load_preprocess_request,
+    load_run_request,
+    load_scientific_admission,
+    vec_interface_contract,
+)
+from traffictwin.integration.vec_preprocessing import (
+    VecFcdPreflightReport,
+    VecFcdPreprocessingError,
+    preflight_vec_fcd,
+    preprocess_vec_fcd,
+)
+from traffictwin.integration.vec_research import (
+    VecEndToEndResearchError,
+    create_vec_end_to_end_archive,
+    vec_end_to_end_contract,
+    verify_vec_end_to_end_archive,
+)
+from traffictwin.integration.vec_runner import (
+    VecRunnerError,
+    VecRunnerPreflightReport,
+    preflight_vec_run,
+    run_vec_evaluator,
+)
 from traffictwin.metrics.aggregation import aggregate_experiment
 from traffictwin.metrics.comparison import compare_metric_collections
 from traffictwin.metrics.engine import compute_metrics_for_bundle
@@ -404,6 +433,7 @@ external_app = typer.Typer(
 )
 tos_app = typer.Typer(no_args_is_help=True, help="Read-only TOS Data package tools.")
 sumo_app = typer.Typer(no_args_is_help=True, help="Import-only Eclipse SUMO result tools.")
+vec_app = typer.Typer(no_args_is_help=True, help="Capability-gated Randy/VEC workflows.")
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -430,6 +460,292 @@ app.add_typer(manifest_app, name="manifest")
 integration_app.add_typer(tos_app, name="tos")
 integration_app.add_typer(sumo_app, name="sumo")
 integration_app.add_typer(external_app, name="external")
+integration_app.add_typer(vec_app, name="vec")
+
+
+@vec_app.command("contract")
+def vec_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the VEC-10 thin-interface and safety boundary."""
+
+    contract = vec_interface_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"capability_id: {contract.capability_id}")
+    typer.echo(f"execution_mode: {contract.execution_mode}")
+    typer.echo("operations: " + ", ".join(contract.operations))
+    typer.echo("prohibited: " + "; ".join(contract.prohibited_controls))
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@vec_app.command("snapshot")
+def vec_snapshot_command(
+    vec_repo: Annotated[Path, typer.Option("--vec-repo", exists=True, file_okay=False)],
+    tos_data_repo: Annotated[Path, typer.Option("--tos-data-repo", exists=True, file_okay=False)],
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Inspect both pinned external repositories without modifying them."""
+
+    try:
+        snapshot = inspect_vec_interface(vec_repo, tos_data_repo)
+        payload = snapshot.model_dump_json(indent=2) + "\n"
+        if output is None:
+            typer.echo(payload, nl=False)
+        else:
+            _vec_write_new(output, payload)
+            typer.echo(f"snapshot: {output}")
+    except (OSError, VecInterfaceError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("validate")
+def vec_validate_command(
+    kind: Annotated[str, typer.Option("--kind", help="preprocess or run")],
+    request: Annotated[Path, typer.Option("--request", exists=True, dir_okay=False)],
+    input_root: Annotated[Path, typer.Option("--input-root", exists=True, file_okay=False)],
+    vec_repo: Annotated[Path, typer.Option("--vec-repo", exists=True, file_okay=False)],
+    tos_data_repo: Annotated[
+        Path | None, typer.Option("--tos-data-repo", exists=True, file_okay=False)
+    ] = None,
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+) -> None:
+    """Run a request-specific VEC-06 or VEC-07 read-only preflight."""
+
+    try:
+        report: VecFcdPreflightReport | VecRunnerPreflightReport
+        if kind == "preprocess":
+            report = preflight_vec_fcd(input_root, vec_repo, load_preprocess_request(request))
+        elif kind == "run":
+            if tos_data_repo is None:
+                raise VecInterfaceError("--tos-data-repo is required for --kind run")
+            report = preflight_vec_run(
+                input_root,
+                vec_repo,
+                tos_data_repo,
+                load_run_request(request),
+            )
+        else:
+            raise VecInterfaceError("--kind must be preprocess or run")
+        payload = report.model_dump_json(indent=2) + "\n"
+        if output is None:
+            typer.echo(payload, nl=False)
+        else:
+            _vec_write_new(output, payload)
+            typer.echo(f"preflight: {output}")
+            typer.echo(f"status: {report.status.value}")
+        if report.status.value != "accepted":
+            raise typer.Exit(code=1)
+    except typer.Exit:
+        raise
+    except (OSError, VecInterfaceError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("preprocess")
+def vec_preprocess_command(
+    request: Annotated[Path, typer.Option("--request", exists=True, dir_okay=False)],
+    input_root: Annotated[Path, typer.Option("--input-root", exists=True, file_okay=False)],
+    vec_repo: Annotated[Path, typer.Option("--vec-repo", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+) -> None:
+    """Execute one accepted VEC-06 request in the foreground."""
+
+    try:
+        parsed = load_preprocess_request(request)
+        typer.echo("state: validating")
+        preflight = preflight_vec_fcd(input_root, vec_repo, parsed)
+        typer.echo(f"preflight: {preflight.status.value}")
+        if preflight.status.value != "accepted":
+            raise typer.Exit(code=1)
+        typer.echo("state: running_foreground")
+        receipt = preprocess_vec_fcd(input_root, vec_repo, output, parsed)
+        typer.echo(f"state: {receipt.status}")
+        typer.echo(f"receipt: {output / 'preprocessing_receipt.json'}")
+        typer.echo(f"fingerprint: {receipt.fingerprint()}")
+    except typer.Exit:
+        raise
+    except (OSError, VecInterfaceError, VecFcdPreprocessingError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("run")
+def vec_run_command(
+    request: Annotated[Path, typer.Option("--request", exists=True, dir_okay=False)],
+    input_root: Annotated[Path, typer.Option("--input-root", exists=True, file_okay=False)],
+    vec_repo: Annotated[Path, typer.Option("--vec-repo", exists=True, file_okay=False)],
+    tos_data_repo: Annotated[Path, typer.Option("--tos-data-repo", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+) -> None:
+    """Validate, monitor, and execute one VEC-07 request in this foreground process."""
+
+    try:
+        parsed = load_run_request(request)
+        typer.echo("state: validating")
+        preflight = preflight_vec_run(input_root, vec_repo, tos_data_repo, parsed)
+        typer.echo(f"preflight: {preflight.status.value}")
+        if preflight.status.value != "accepted":
+            raise typer.Exit(code=1)
+        typer.echo("state: running_foreground")
+        receipt = run_vec_evaluator(
+            input_root,
+            vec_repo,
+            tos_data_repo,
+            output,
+            parsed,
+        )
+        typer.echo(f"state: {receipt.status.value}")
+        typer.echo(f"receipt: {output / 'execution_receipt.json'}")
+        typer.echo(f"elapsed_seconds: {receipt.elapsed_seconds:.6f}")
+        typer.echo(f"fingerprint: {receipt.fingerprint()}")
+    except typer.Exit:
+        raise
+    except (OSError, VecInterfaceError, VecRunnerError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("monitor-current")
+def vec_monitor_current_command() -> None:
+    """Explain the deliberately process-local foreground monitoring boundary."""
+
+    typer.echo("state: idle")
+    typer.echo("monitor_scope: current_foreground_process_only")
+    typer.echo("start a monitored operation with `integration vec preprocess` or `run`")
+    typer.echo("persistent_async_queue: false")
+
+
+@vec_app.command("inspect")
+def vec_inspect_command(
+    artifact: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+) -> None:
+    """Inspect one strict portable VEC receipt or report."""
+
+    try:
+        typer.echo(inspect_vec_artifact(artifact).model_dump_json(indent=2))
+    except VecInterfaceError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("compare")
+def vec_compare_command(
+    baseline: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    variation: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Compare compatible scalar metrics from two accepted VEC-09 reports."""
+
+    try:
+        comparison = compare_vec_admissions(
+            load_scientific_admission(baseline),
+            load_scientific_admission(variation),
+        )
+        _vec_write_new(output, comparison.model_dump_json(indent=2) + "\n")
+        typer.echo(f"comparison: {output}")
+        typer.echo(f"comparable_metrics: {len(comparison.comparable_metrics)}")
+        typer.echo(f"fingerprint: {comparison.fingerprint()}")
+    except (OSError, VecInterfaceError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("export")
+def vec_export_command(
+    report: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)] = Path("vec-export.json"),
+) -> None:
+    """Export an accepted VEC-09 report without scientific recomputation."""
+
+    try:
+        if output_format not in {"json", "csv", "markdown"}:
+            raise VecInterfaceError("--format must be json, csv, or markdown")
+        payload = export_vec_admission(
+            load_scientific_admission(report),
+            output_format,  # type: ignore[arg-type]
+        )
+        _vec_write_new(output, payload)
+        typer.echo(f"export: {output}")
+        typer.echo(f"format: {output_format}")
+    except (OSError, VecInterfaceError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("research-contract")
+def vec_research_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the deterministic, permission-bounded VEC-12 archive contract."""
+
+    contract = vec_end_to_end_contract()
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"capability: {contract.capability}")
+    typer.echo(f"status: {contract.status}")
+    typer.echo(f"artifact_version: {contract.artifact_version}")
+    typer.echo(f"permitted_members: {len(contract.permitted_members)}")
+    typer.echo(f"fingerprint: {contract.fingerprint()}")
+
+
+@vec_app.command("research-create")
+def vec_research_create_command(
+    generated_root: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)] = Path(
+        "vec_end_to_end_research_artifact.zip"
+    ),
+) -> None:
+    """Create one new deterministic VEC-12 archive from accepted generated evidence."""
+
+    try:
+        receipt = create_vec_end_to_end_archive(generated_root, output)
+        typer.echo(f"archive: {output}")
+        typer.echo(f"artifact_id: {receipt.artifact_id}")
+        typer.echo(f"archive_sha256: {receipt.archive_sha256}")
+        typer.echo(f"member_count: {receipt.member_count}")
+    except (OSError, VecEndToEndResearchError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("research-verify")
+def vec_research_verify_command(
+    archive: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Verify one VEC-12 archive offline without extracting it."""
+
+    result = verify_vec_end_to_end_archive(archive)
+    if output_format == "json":
+        typer.echo(result.model_dump_json(indent=2))
+    else:
+        _require_text_format(output_format)
+        typer.echo(f"valid: {str(result.valid).lower()}")
+        if result.valid:
+            typer.echo(f"artifact_id: {result.artifact_id}")
+            typer.echo(f"archive_sha256: {result.archive_sha256}")
+            typer.echo(f"member_count: {result.member_count}")
+        else:
+            typer.echo("errors: " + "; ".join(result.errors))
+    if not result.valid:
+        raise typer.Exit(code=1)
+
+
+def _vec_write_new(path: Path, payload: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open("x", encoding="utf-8") as handle:
+            handle.write(payload)
+    except FileExistsError as exc:
+        raise VecInterfaceError(f"refusing to overwrite VEC output: {path}") from exc
 
 
 @app.command("validate-seed")

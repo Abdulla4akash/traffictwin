@@ -1,0 +1,315 @@
+{
+  "capability": "VEC-04",
+  "external_source_unchanged": true,
+  "limitations": [
+    "no eligible target is not classified as failure",
+    "actions do not confirm transfer",
+    "eventual completion, link quality, and per-task energy remain unavailable"
+  ],
+  "matched_run_count": 6,
+  "reports": [
+    {
+      "action_counts": {
+        "local": 6995374,
+        "v2i": 2652389,
+        "v2v": 3428471
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 8747692,
+      "deadline_met_tasks": 9528093,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "fe60739ce99138de7d19c8698ebed23ae761c82fd07c4af7452728c3378999b0",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "462ba868e5486fac76b2e02a73daf3881dbd68808e5921d0541ee42a72cf76ca",
+      "pertask_fingerprint": "6c7aa9e6c16af39e2216e5ebdb9d181f05a438b3fe9811d4e525e17f9f3dbe92",
+      "run_label": "baseline_uk2030_inc_fs0",
+      "scenario": "inc",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 6080722,
+        "no_eligible_target": 138,
+        "not_applicable_local": 6995374
+      },
+      "task_class_counts": {
+        "T1": 2615568,
+        "T2": 3924226,
+        "T3": 6536440
+      },
+      "total_tasks": 13076234,
+      "trace_fingerprint": "d357cec490c1d76d0beb120a05978e8d3c5eab1d59c89245ac88f50fba65513a"
+    },
+    {
+      "action_counts": {
+        "local": 982909,
+        "v2i": 378001,
+        "v2v": 382519
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 1166439,
+      "deadline_met_tasks": 1598159,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "c33ad5f883fc47c997774371a8584b5e44229ef148146ebf9557fd54a8e4ec24",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "cc72369ce960fd3f89883f8878cca3c994455378331cf38e10f09689a1f52e1a",
+      "pertask_fingerprint": "10732636397dd00e3e5b5ec821a79cdccbb3637a3f526e0afc2ba6dbaa19f9a9",
+      "run_label": "baseline_uk2030_wd_am_fs0",
+      "scenario": "wd_am",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 760458,
+        "no_eligible_target": 62,
+        "not_applicable_local": 982909
+      },
+      "task_class_counts": {
+        "T1": 348945,
+        "T2": 522917,
+        "T3": 871567
+      },
+      "total_tasks": 1743429,
+      "trace_fingerprint": "a3c2f915466d91b44bea76c1b81e7d29c3dc322a1ff076b936df93584ad765c6"
+    },
+    {
+      "action_counts": {
+        "local": 2508237,
+        "v2i": 1067915,
+        "v2v": 569704
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 2776283,
+      "deadline_met_tasks": 3800474,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "7788ee7a228f730f9b601ec0167f7de855c50e20a21de7e264eb1dfb73a6f015",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "49f06f880de03a007dc34b8174b58c098bbfbec62d80f26ad7ce833be6877bbd",
+      "pertask_fingerprint": "9c6b28b0f3908c26cb1f291a161ebdcc0ce1ff7c47db26061f9950d0a2538a2a",
+      "run_label": "fcd_s102_uk2030_we_fs0",
+      "scenario": "we",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 1636467,
+        "no_eligible_target": 1152,
+        "not_applicable_local": 2508237
+      },
+      "task_class_counts": {
+        "T1": 829128,
+        "T2": 1244342,
+        "T3": 2072386
+      },
+      "total_tasks": 4145856,
+      "trace_fingerprint": "f5de65fe599fc0e092d866baf1a0403c8f070759236596cdc259132e19642c48"
+    },
+    {
+      "action_counts": {
+        "local": 4369420,
+        "v2i": 7459136,
+        "v2v": 1247678
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 8747692,
+      "deadline_met_tasks": 5422740,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "fe60739ce99138de7d19c8698ebed23ae761c82fd07c4af7452728c3378999b0",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "7e8999c2da3220ac5d9cc7d33a4aa2e706d4139f7844db9dc698ef5a7707ee66",
+      "pertask_fingerprint": "194c01a3cfb1b19699cd8670f8d61b90ca37f3fe457b10e814b4a68601a8172c",
+      "run_label": "glk_mappo_uk2030_inc_fs0",
+      "scenario": "inc",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 8706439,
+        "no_eligible_target": 375,
+        "not_applicable_local": 4369420
+      },
+      "task_class_counts": {
+        "T1": 2615568,
+        "T2": 3924226,
+        "T3": 6536440
+      },
+      "total_tasks": 13076234,
+      "trace_fingerprint": "d357cec490c1d76d0beb120a05978e8d3c5eab1d59c89245ac88f50fba65513a"
+    },
+    {
+      "action_counts": {
+        "local": 7811641,
+        "v2i": 2009992,
+        "v2v": 3254601
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 8747692,
+      "deadline_met_tasks": 10362714,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "fe60739ce99138de7d19c8698ebed23ae761c82fd07c4af7452728c3378999b0",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "50d29e35b47c7cbff64331ee848f93718e9baa992b5b7a6c9d0595aef69904f6",
+      "pertask_fingerprint": "bbd3505ca462247d89f196b9e9d9df2b279c7bea7254701c74993d8a3fc3a42c",
+      "run_label": "ukft_mappo_uk2030_inc_fs0",
+      "scenario": "inc",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 5264486,
+        "no_eligible_target": 107,
+        "not_applicable_local": 7811641
+      },
+      "task_class_counts": {
+        "T1": 2615568,
+        "T2": 3924226,
+        "T3": 6536440
+      },
+      "total_tasks": 13076234,
+      "trace_fingerprint": "d357cec490c1d76d0beb120a05978e8d3c5eab1d59c89245ac88f50fba65513a"
+    },
+    {
+      "action_counts": {
+        "local": 1059398,
+        "v2i": 348165,
+        "v2v": 335866
+      },
+      "action_is_transfer_confirmation": false,
+      "active_vehicle_seconds": 1166439,
+      "deadline_met_tasks": 1610343,
+      "eventual_completion_available": false,
+      "identity_snapshot_fingerprint": "c33ad5f883fc47c997774371a8584b5e44229ef148146ebf9557fd54a8e4ec24",
+      "link_quality_available": false,
+      "no_target_is_failure": false,
+      "per_task_energy_available": false,
+      "perstep_fingerprint": "af1eab4e44280ce4d9ef4823c06129e3232fc431b6049eb8d85667bbfbb74070",
+      "pertask_fingerprint": "a9fb0e304858f434ea3575be2aabcfbcd5db57d2da74e7215af29fd48288a3db",
+      "run_label": "ukft_mappo_uk2030_wd_am_fs0",
+      "scenario": "wd_am",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "status": "accepted",
+      "target_availability_counts": {
+        "eligible_target": 683958,
+        "no_eligible_target": 73,
+        "not_applicable_local": 1059398
+      },
+      "task_class_counts": {
+        "T1": 348945,
+        "T2": 522917,
+        "T3": 871567
+      },
+      "total_tasks": 1743429,
+      "trace_fingerprint": "a3c2f915466d91b44bea76c1b81e7d29c3dc322a1ff076b936df93584ad765c6"
+    }
+  ],
+  "scenario_count": 3,
+  "schema_version": "1.0",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "instrumented/perstep/baseline_uk2030_inc_fs0_perstep.npz",
+      "sha256": "c02733a8d980c79a0c9d17463745461cc10fa44b41eba5240821651c0c7e677f",
+      "size_bytes": 20135507
+    },
+    {
+      "path": "instrumented/perstep/baseline_uk2030_wd_am_fs0_perstep.npz",
+      "sha256": "e7e0eded7622bd223e991550c43c4289ca9be66e712520e014f44be1760c174b",
+      "size_bytes": 3221395
+    },
+    {
+      "path": "instrumented/perstep/fcd_s102_uk2030_we_fs0_perstep.npz",
+      "sha256": "bfc8a77282838d6947cacf566aaa36f094bdada30d5393044ee13fdd71d36291",
+      "size_bytes": 7160498
+    },
+    {
+      "path": "instrumented/perstep/glk_mappo_uk2030_inc_fs0_perstep.npz",
+      "sha256": "75a49a48eff51c53e401e2fcfdfca1249a9675dc82a716e6ae98fd2d88c3630d",
+      "size_bytes": 19421326
+    },
+    {
+      "path": "instrumented/perstep/ukft_mappo_uk2030_inc_fs0_perstep.npz",
+      "sha256": "c17337f25c4f48c0ef0adc20f8e3531aeafc3ae4a0a3a7334cd804daadbfd93c",
+      "size_bytes": 19752645
+    },
+    {
+      "path": "instrumented/perstep/ukft_mappo_uk2030_wd_am_fs0_perstep.npz",
+      "sha256": "9f42e9b814febc9d037efab3c705b3e3d9aff011589750a92f9afefd2d0dcc75",
+      "size_bytes": 3143707
+    },
+    {
+      "path": "instrumented/pertask/baseline_uk2030_inc_fs0_pertask.npz",
+      "sha256": "2f738fa20e4173753942136b2e5d39a031ee7ba40a24f0d446f44e58b3541929",
+      "size_bytes": 77140910
+    },
+    {
+      "path": "instrumented/pertask/baseline_uk2030_wd_am_fs0_pertask.npz",
+      "sha256": "de6536741c5816d33e2a7c22635353ef6c77ccebe17d3b61c828c91c3382ad5a",
+      "size_bytes": 13184042
+    },
+    {
+      "path": "instrumented/pertask/fcd_s102_uk2030_we_fs0_pertask.npz",
+      "sha256": "c29e2e77d7bdac0ed421b9d2c8a07e267c79847ca11631c55cbe88ed825b274c",
+      "size_bytes": 29576306
+    },
+    {
+      "path": "instrumented/pertask/glk_mappo_uk2030_inc_fs0_pertask.npz",
+      "sha256": "df4a7b73f3f172144f15c1979ba734a90b0863e14558e0f2154cf5ec2868760c",
+      "size_bytes": 71299823
+    },
+    {
+      "path": "instrumented/pertask/ukft_mappo_uk2030_inc_fs0_pertask.npz",
+      "sha256": "dc242708f98e6302bfab6c327c95a66604448dc615144dd743c8c3938d1d6389",
+      "size_bytes": 77724634
+    },
+    {
+      "path": "instrumented/pertask/ukft_mappo_uk2030_wd_am_fs0_pertask.npz",
+      "sha256": "48447ad7ee8ec3abfdea72d7a6838213f54ab7ac66594857db281cf9992649e9",
+      "size_bytes": 13183787
+    },
+    {
+      "path": "occupancy/occupancy_inc.csv",
+      "sha256": "c4e59a7e43e51075a5951d94f5b992ef77535464cd420881bdbc2048b20729be",
+      "size_bytes": 122076
+    },
+    {
+      "path": "occupancy/occupancy_wd_am.csv",
+      "sha256": "203172baab0785a5a9e863a0843f73fa720b818d3ac77cb21cb81aba3e471cb5",
+      "size_bytes": 126812
+    },
+    {
+      "path": "occupancy/occupancy_we.csv",
+      "sha256": "258cc3f39e3d8789af70016d01278a426450d6aa0b6ce2db55c606923e9b7600",
+      "size_bytes": 323522
+    },
+    {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "size_bytes": 5964044
+    },
+    {
+      "path": "traces/trace_wd_am_fullrsu.npz",
+      "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+      "size_bytes": 10965874
+    },
+    {
+      "path": "traces/trace_we_fullrsu.npz",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "size_bytes": 25976187
+    }
+  ],
+  "status": "accepted",
+  "total_deadline_met_tasks": 32322523,
+  "total_no_eligible_target_tasks": 1907,
+  "total_tasks": 46861416
+}

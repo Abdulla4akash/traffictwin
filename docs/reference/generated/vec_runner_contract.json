@@ -1,0 +1,64 @@
+{
+  "actors": {
+    "baseline_model_c_17": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+    },
+    "ukfleettrain_mappo_model_c_17": {
+      "path": "checkpoints/mappo_modelc_17dim_ukfleet2030__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "b3eca1685245c59d1a3e86bd11ede887300bda1b00ba211a1913e467ad3f5183"
+    }
+  },
+  "allowed_flags": [
+    "--trace",
+    "--actor",
+    "--rsu-cap-per-veh",
+    "--max-steps",
+    "--seed",
+    "--fleet",
+    "--fleet-seed",
+    "--per-step-out",
+    "--per-task-out",
+    "--out-json"
+  ],
+  "audited_commits": {
+    "tos-data": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+    "vec_env": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4"
+  },
+  "capability_id": "VEC-07",
+  "interpretation_limits": [
+    "VEC-07 proves safe local execution, not scientific reproduction",
+    "VEC-08 must reconcile numerical outputs before direct launch can become available",
+    "selected actions and eligible targets are not proof of completed data transfer"
+  ],
+  "method_version": "vec-evaluator-runner-1.0",
+  "operations": [
+    "preflight_vec_run",
+    "run_vec_evaluator"
+  ],
+  "outputs": [
+    "run.json",
+    "per-step.npz",
+    "per-task.npz",
+    "logs/stdout.txt",
+    "logs/stderr.txt",
+    "execution_receipt.json"
+  ],
+  "required_dependencies": {
+    "jax": "==0.4.30",
+    "jaxlib": "==0.4.30",
+    "numpy": ">=1.26"
+  },
+  "schema_version": "1.0",
+  "security_controls": [
+    "exact Git blobs only; external repositories remain read-only",
+    "fixed argv without a shell, controlled environment, and CPU-only JAX",
+    "regular non-symlink inputs, bounded controls, private staging, and new-only publish",
+    "timeout and process-group cancellation never publish partial outputs",
+    "source and input identities are rechecked after execution"
+  ],
+  "source_files": {
+    "eval/eval_sumo_stage1_mc.py": "52490949e9d35cfaed2f9ba03ac92b08b475de503715a1967bc74950b689bf7c",
+    "jaxmarl/env/vec_jax.py": "4eed6b61f157b9a1ba203d0095acdecb0741f2da8d7fc4f411b6ee16a0bdd4f9"
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "capability": "VEC-05",
+  "external_source_unchanged": true,
+  "raw_vehicle_ids_published": false,
+  "reports": [
+    {
+      "compressed_sha256": "1783652cfac7d92758c17046f228a3ae78dd0369f60ee425ce0737bd519a7fb7",
+      "compressed_size_bytes": 1491129,
+      "duration_summary": {
+        "cohort_semantics": "exact_id_matched_complete_occupancy_vehicles",
+        "compatible_existing_metric_ids": [
+          "trip.duration.count",
+          "trip.duration.mean_s",
+          "trip.duration.p50_s",
+          "trip.duration.p95_s",
+          "trip.duration.min_s",
+          "trip.duration.max_s"
+        ],
+        "eligible_count": 3020,
+        "incompatible_existing_metric_ids": [
+          "trip.records.count",
+          "trip.completed.count",
+          "trip.incomplete.count",
+          "trip.completion.rate"
+        ],
+        "max_s": 27028.0,
+        "mean_s": 9375.338410596027,
+        "min_s": 622.0,
+        "p50_s": 8482.0,
+        "p95_s": 20087.399999999987
+      },
+      "full_day_clock_preserved": true,
+      "identity_snapshot_fingerprint": "fe60739ce99138de7d19c8698ebed23ae761c82fd07c4af7452728c3378999b0",
+      "matched_vehicle_count": 3020,
+      "missing_before_boundary_count": 14,
+      "occupancy_vehicle_count": 3780,
+      "raw_source_unchanged": true,
+      "right_censored_count": 746,
+      "scenario": "inc",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "source_noncohort_trip_count": 22001,
+      "source_path": "tripinfo/tripinfo_2024-03-15_incident_reactive.xml.gz",
+      "source_trip_count": 25021,
+      "status": "accepted",
+      "uncompressed_sha256": "24d5eb7eaeb78dc81328a4be35d2faaa7ff6316a8bb6fd17d56e01b2e6ec8e5f",
+      "uncompressed_size_bytes": 10982678
+    },
+    {
+      "compressed_sha256": "31d388c69c2a4899467e1f4733c1a5f041a6487356e63ee45fadfb8a59b667e5",
+      "compressed_size_bytes": 1073296,
+      "duration_summary": {
+        "cohort_semantics": "exact_id_matched_complete_occupancy_vehicles",
+        "compatible_existing_metric_ids": [
+          "trip.duration.count",
+          "trip.duration.mean_s",
+          "trip.duration.p50_s",
+          "trip.duration.p95_s",
+          "trip.duration.min_s",
+          "trip.duration.max_s"
+        ],
+        "eligible_count": 13210,
+        "incompatible_existing_metric_ids": [
+          "trip.records.count",
+          "trip.completed.count",
+          "trip.incomplete.count",
+          "trip.completion.rate"
+        ],
+        "max_s": 574.0,
+        "mean_s": 210.52990158970476,
+        "min_s": 17.0,
+        "p50_s": 210.0,
+        "p95_s": 322.0
+      },
+      "full_day_clock_preserved": true,
+      "identity_snapshot_fingerprint": "7788ee7a228f730f9b601ec0167f7de855c50e20a21de7e264eb1dfb73a6f015",
+      "matched_vehicle_count": 13210,
+      "missing_before_boundary_count": 0,
+      "occupancy_vehicle_count": 13249,
+      "raw_source_unchanged": true,
+      "right_censored_count": 39,
+      "scenario": "we",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "source_noncohort_trip_count": 6908,
+      "source_path": "tripinfo/tripinfo_2024-09-15_weekend.xml.gz",
+      "source_trip_count": 20118,
+      "status": "accepted",
+      "uncompressed_sha256": "8af9109104f18434248e7be187f33b48ea957a2d25986cdc3c1c46eb2c103933",
+      "uncompressed_size_bytes": 8517463
+    },
+    {
+      "compressed_sha256": "7b41036f7655289bd79c24185754eb911032f026af27adf92ac96d574c33bdad",
+      "compressed_size_bytes": 1569441,
+      "duration_summary": {
+        "cohort_semantics": "exact_id_matched_complete_occupancy_vehicles",
+        "compatible_existing_metric_ids": [
+          "trip.duration.count",
+          "trip.duration.mean_s",
+          "trip.duration.p50_s",
+          "trip.duration.p95_s",
+          "trip.duration.min_s",
+          "trip.duration.max_s"
+        ],
+        "eligible_count": 9094,
+        "incompatible_existing_metric_ids": [
+          "trip.records.count",
+          "trip.completed.count",
+          "trip.incomplete.count",
+          "trip.completion.rate"
+        ],
+        "max_s": 600.0,
+        "mean_s": 209.9688805806026,
+        "min_s": 30.0,
+        "p50_s": 209.0,
+        "p95_s": 327.0
+      },
+      "full_day_clock_preserved": true,
+      "identity_snapshot_fingerprint": "2221bfac986aef04349efc7d3a28c3090e2768edcfcd61ed65db8862ca596a72",
+      "matched_vehicle_count": 9094,
+      "missing_before_boundary_count": 0,
+      "occupancy_vehicle_count": 9129,
+      "raw_source_unchanged": true,
+      "right_censored_count": 35,
+      "scenario": "ev",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "source_noncohort_trip_count": 20325,
+      "source_path": "tripinfo/tripinfo_2024-09-18_ucl_event.xml.gz",
+      "source_trip_count": 29419,
+      "status": "accepted",
+      "uncompressed_sha256": "454fbfbab2b83b21b6f0a4d3238c49e750609ec145eb0c23701f16367e91ee2c",
+      "uncompressed_size_bytes": 12467076
+    },
+    {
+      "compressed_sha256": "05d5a7cdfa705cdb046d6f92caf56104d03ce54e15543f5cf0d8c5ce44f170c9",
+      "compressed_size_bytes": 1399968,
+      "duration_summary": {
+        "cohort_semantics": "exact_id_matched_complete_occupancy_vehicles",
+        "compatible_existing_metric_ids": [
+          "trip.duration.count",
+          "trip.duration.mean_s",
+          "trip.duration.p50_s",
+          "trip.duration.p95_s",
+          "trip.duration.min_s",
+          "trip.duration.max_s"
+        ],
+        "eligible_count": 5377,
+        "incompatible_existing_metric_ids": [
+          "trip.records.count",
+          "trip.completed.count",
+          "trip.incomplete.count",
+          "trip.completion.rate"
+        ],
+        "max_s": 868.0,
+        "mean_s": 221.300725311512,
+        "min_s": 33.0,
+        "p50_s": 215.0,
+        "p95_s": 351.0
+      },
+      "full_day_clock_preserved": true,
+      "identity_snapshot_fingerprint": "c33ad5f883fc47c997774371a8584b5e44229ef148146ebf9557fd54a8e4ec24",
+      "matched_vehicle_count": 5377,
+      "missing_before_boundary_count": 0,
+      "occupancy_vehicle_count": 5377,
+      "raw_source_unchanged": true,
+      "right_censored_count": 0,
+      "scenario": "wd_am",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "source_noncohort_trip_count": 20830,
+      "source_path": "tripinfo/tripinfo_2024-10-15_workingday.xml.gz",
+      "source_trip_count": 26207,
+      "status": "accepted",
+      "uncompressed_sha256": "4c6e619145853a695e08e4528f15c133a9585102e767502153d815b58d390d3d",
+      "uncompressed_size_bytes": 11109858
+    },
+    {
+      "compressed_sha256": "05d5a7cdfa705cdb046d6f92caf56104d03ce54e15543f5cf0d8c5ce44f170c9",
+      "compressed_size_bytes": 1399968,
+      "duration_summary": {
+        "cohort_semantics": "exact_id_matched_complete_occupancy_vehicles",
+        "compatible_existing_metric_ids": [
+          "trip.duration.count",
+          "trip.duration.mean_s",
+          "trip.duration.p50_s",
+          "trip.duration.p95_s",
+          "trip.duration.min_s",
+          "trip.duration.max_s"
+        ],
+        "eligible_count": 12180,
+        "incompatible_existing_metric_ids": [
+          "trip.records.count",
+          "trip.completed.count",
+          "trip.incomplete.count",
+          "trip.completion.rate"
+        ],
+        "max_s": 558.0,
+        "mean_s": 215.72430213464696,
+        "min_s": 22.0,
+        "p50_s": 215.0,
+        "p95_s": 336.0
+      },
+      "full_day_clock_preserved": true,
+      "identity_snapshot_fingerprint": "b9b8c8b9736220c2528fc4e97999abfdd70a986c2151bfb145422f5c1004d983",
+      "matched_vehicle_count": 12180,
+      "missing_before_boundary_count": 0,
+      "occupancy_vehicle_count": 12232,
+      "raw_source_unchanged": true,
+      "right_censored_count": 52,
+      "scenario": "wd_pm",
+      "schema_version": "1.0",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "source_noncohort_trip_count": 14027,
+      "source_path": "tripinfo/tripinfo_2024-10-15_workingday.xml.gz",
+      "source_trip_count": 26207,
+      "status": "accepted",
+      "uncompressed_sha256": "4c6e619145853a695e08e4528f15c133a9585102e767502153d815b58d390d3d",
+      "uncompressed_size_bytes": 11109858
+    }
+  ],
+  "scenario_join_count": 5,
+  "schema_version": "1.0",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "occupancy/occupancy_ev.csv",
+      "sha256": "88a2ff15dd0612fe00ea71d4537d44b85e2e00feed4905fba4aaa4bb3e6c8d2f",
+      "size_bytes": 221257
+    },
+    {
+      "path": "occupancy/occupancy_inc.csv",
+      "sha256": "c4e59a7e43e51075a5951d94f5b992ef77535464cd420881bdbc2048b20729be",
+      "size_bytes": 122076
+    },
+    {
+      "path": "occupancy/occupancy_wd_am.csv",
+      "sha256": "203172baab0785a5a9e863a0843f73fa720b818d3ac77cb21cb81aba3e471cb5",
+      "size_bytes": 126812
+    },
+    {
+      "path": "occupancy/occupancy_wd_pm.csv",
+      "sha256": "7f45a3e924a5f1491af93980ccc02a7ecd1147bfb47917cd3f198d9a3ca80512",
+      "size_bytes": 300290
+    },
+    {
+      "path": "occupancy/occupancy_we.csv",
+      "sha256": "258cc3f39e3d8789af70016d01278a426450d6aa0b6ce2db55c606923e9b7600",
+      "size_bytes": 323522
+    },
+    {
+      "path": "traces/trace_ev_fullrsu.npz",
+      "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+      "size_bytes": 19000923
+    },
+    {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "size_bytes": 5964044
+    },
+    {
+      "path": "traces/trace_wd_am_fullrsu.npz",
+      "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+      "size_bytes": 10965874
+    },
+    {
+      "path": "traces/trace_wd_pm_fullrsu.npz",
+      "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "size_bytes": 23900327
+    },
+    {
+      "path": "traces/trace_we_fullrsu.npz",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "size_bytes": 25976187
+    },
+    {
+      "path": "tripinfo/tripinfo_2024-03-15_incident_reactive.xml.gz",
+      "sha256": "1783652cfac7d92758c17046f228a3ae78dd0369f60ee425ce0737bd519a7fb7",
+      "size_bytes": 1491129
+    },
+    {
+      "path": "tripinfo/tripinfo_2024-09-15_weekend.xml.gz",
+      "sha256": "31d388c69c2a4899467e1f4733c1a5f041a6487356e63ee45fadfb8a59b667e5",
+      "size_bytes": 1073296
+    },
+    {
+      "path": "tripinfo/tripinfo_2024-09-18_ucl_event.xml.gz",
+      "sha256": "7b41036f7655289bd79c24185754eb911032f026af27adf92ac96d574c33bdad",
+      "size_bytes": 1569441
+    },
+    {
+      "path": "tripinfo/tripinfo_2024-10-15_workingday.xml.gz",
+      "sha256": "05d5a7cdfa705cdb046d6f92caf56104d03ce54e15543f5cf0d8c5ce44f170c9",
+      "size_bytes": 1399968
+    }
+  ],
+  "status": "accepted",
+  "total_matched_vehicles": 42881,
+  "total_missing_before_boundary": 14,
+  "total_occupancy_vehicles": 43767,
+  "total_right_censored": 872,
+  "tripinfo_file_count": 4
+}

@@ -1,0 +1,46 @@
+{
+  "acceptance_rule": "numerically_equivalent requires zero mismatches, exact schemas/counts/discrete and state arrays, and every admitted float difference inside its predeclared inclusive absolute-or-relative and optional ULP bounds",
+  "capability_id": "VEC-08",
+  "case_id": "ukfleettrain-mappo_we_uk2030_fs0",
+  "exact_fields": [
+    "expected/master row equals expected instrumented JSON",
+    "run schema and all scientific fields except avg_energy_j_per_task",
+    "per-step schema, dtype, shape, and every array except lat_sum",
+    "VEC-07 request identity, output hashes, source/input immutability, and engine labels"
+  ],
+  "excluded_fields": {
+    "run.actor basename": "the isolated runner stages the exact actor blob as actor.npz; semantic identity is verified from the receipt and hash",
+    "run.wall_s": "machine-dependent performance metadata, never a scientific endpoint"
+  },
+  "expected_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "expected_files": {
+    "evals/eval_results_master.csv": "71643348c724afb0bdc4d279813dba0bfd61dda78529d6417f73791f8d9ce7a6",
+    "instrumented/json/ukft_mappo_uk2030_we_fs0.json": "8b2a91881fb2040abb04c441b335e445074b94cf04d854456bad7e31828d5546",
+    "instrumented/perstep/ukft_mappo_uk2030_we_fs0_perstep.npz": "c23c683e0589da0e78f193ceabed418636dc4e93be4f9ee7b4cefaa1aa602775"
+  },
+  "interpretation_limits": [
+    "one protocol-seed weekend case does not establish cross-platform or scenario-wide equivalence",
+    "wall-clock performance is excluded and no speed claim is admitted",
+    "per-task expected values are unavailable for this case",
+    "VEC-08 reproduction does not itself expose a product direct-launch control"
+  ],
+  "method_version": "vec-instrumented-reproduction-1.0",
+  "numeric_tolerances": {
+    "per-step.lat_sum": {
+      "absolute": 0.00390625,
+      "max_ulp": 3,
+      "rationale": "Frozen after the first controlled Apple-arm64 CPU calibration: 9,536 of 32,400 float32 per-step latency sums differed by at most 0.00390625 ms and three ULPs while every discrete/state stream and the final latency aggregate matched exactly.",
+      "relative": 3e-07
+    },
+    "run.avg_energy_j_per_task": {
+      "absolute": 1e-07,
+      "max_ulp": null,
+      "rationale": "Frozen after the first controlled Apple-arm64 CPU calibration: the only scalar drift was a 6.04e-8 energy reduction difference; the bound covers float32 reduction order without covering any task, action, deadline, latency, or fleet-count change.",
+      "relative": 3e-07
+    }
+  },
+  "schema_version": "1.0",
+  "unavailable_comparisons": {
+    "per-task expected artifact": "the source package has no per-task file for this approved weekend case; the observed file is schema-validated by VEC-07 but not compared numerically"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "accepted_pack": "vec_dissertation_pack/manifest.json",
+  "blocker": null,
+  "capability_implemented": true,
+  "mandatory_excluded_inventory": [
+    {
+      "detail": "The written permission covers sanitised samples and aggregates only; complete raw datasets are not redistributed.",
+      "identifier": "full raw TOS result datasets",
+      "kind": "raw_dataset",
+      "reason": "outside_written_permission"
+    },
+    {
+      "detail": "Repository redistribution is not granted; the sources are cited by reviewed commit instead.",
+      "identifier": "complete vec_env and tos-data repositories",
+      "kind": "full_repository",
+      "reason": "outside_written_permission"
+    },
+    {
+      "detail": "Actor and checkpoint binaries are not redistributed without a separate written basis.",
+      "identifier": "frozen actor checkpoints",
+      "kind": "actor_checkpoint",
+      "reason": "outside_written_permission"
+    },
+    {
+      "detail": "Hostnames, usernames, local absolute paths, and machine records are removed from every published artifact.",
+      "identifier": "private machine and environment records",
+      "kind": "private_machine_information",
+      "reason": "private_information"
+    },
+    {
+      "detail": "Third-party SUMO assets carry their own rights and are not republished under the owner permission.",
+      "identifier": "third-party SUMO network and FCD assets",
+      "kind": "third_party_sumo_asset",
+      "reason": "third_party_rights"
+    }
+  ],
+  "permitted_artifact_kinds": [
+    "aggregate",
+    "sanitised_sample"
+  ],
+  "policy_version": "tos-publication-policy-1.0",
+  "required_engine_version": "v2_post_nrsus_fix",
+  "status": "accepted"
+}

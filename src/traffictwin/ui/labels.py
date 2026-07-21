@@ -28,6 +28,7 @@ class UiPage(StrEnum):
     MANIFEST_WIZARD = "Manifest Inference Wizard"
     SUMO_IMPORT = "SUMO Output Import"
     TOS_DATA = "TOS Data Import"
+    VEC_WORKBENCH = "VEC Reproduction Workbench"
     TOS_RESULTS = "TOS Results"
     TOS_REPLAY = "TOS Mobility & RSU Replay"
     TOS_TRAINING = "TOS Training & Audit"
@@ -80,6 +81,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     ),
     UiPage.TOS_DATA: (
         "Inspect and import documented TOS evaluation summaries and historical source arrays."
+    ),
+    UiPage.VEC_WORKBENCH: (
+        "Inspect pinned VEC sources and run typed validation, preprocessing, execution, "
+        "inspection, comparison, and export workflows."
     ),
     UiPage.TOS_RESULTS: (
         "Explore the imported evaluation matrix, paired campaign deltas, and domain labels."
@@ -137,8 +142,8 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
 
 REQUIRED_PROTOTYPE_NOTICE = (
     "Current prototype supports synthetic fixtures, imported run bundles, historical replay, and "
-    "deterministic diagnostic hypotheses. Direct simulator launch and live data are not yet "
-    "implemented."
+    "deterministic diagnostic hypotheses. Exact VEC execution is request-preflight-gated in its "
+    "dedicated workbench; generic/SUMO launch and live data remain unavailable."
 )
 
 DIAGNOSTIC_NOTICE = (

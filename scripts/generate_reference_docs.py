@@ -241,6 +241,20 @@ from traffictwin.integration.tos.analysis_models import (
     TosTrainingRun,
 )
 from traffictwin.integration.tos.contract import TosSourceContract, tos_source_contract
+from traffictwin.integration.tos.contract_v2 import (
+    ArtifactValidationReport,
+    AuditedSourceFile,
+    ObservedArraySchema,
+    OccupancyReconciliationReport,
+    OccupancySpan,
+    TosSourceContractV2,
+    UnavailableField,
+    V2Finding,
+    VecTaskActionObservation,
+    VecTripJoin,
+    VecVehicleAttributeObservation,
+    tos_source_contract_v2,
+)
 from traffictwin.integration.tos.metrics import tos_metric_catalogue
 from traffictwin.integration.tos.models import (
     TosEvaluationRun,
@@ -248,8 +262,108 @@ from traffictwin.integration.tos.models import (
     TosTaskSample,
     TosValidationReport,
 )
+from traffictwin.integration.tos.publication import (
+    ExcludedArtifact,
+    IncludedArtifact,
+    PublicationPermissionBasis,
+    PublicationSourceLabels,
+    RepositoryCitation,
+    SanitisationDeclaration,
+    TosPublicationManifest,
+    default_excluded_inventory,
+    permitted_artifact_kinds,
+)
 from traffictwin.integration.tos.readiness import TosIntegrationReadinessReport
 from traffictwin.integration.tos.supervisor import TosSupervisorPackManifest
+from traffictwin.integration.vec_identity.models import (
+    VecIdentityContract,
+    VecIdentityCoverageReport,
+    VecIdentityFinding,
+    VecIdentitySnapshot,
+    VecVehicleMobilityObservation,
+    vec_identity_contract,
+)
+from traffictwin.integration.vec_interface.models import (
+    VecAdmissionComparison,
+    VecArtifactInspection,
+    VecInterfaceContract,
+    VecInterfaceSnapshot,
+    VecMetricDelta,
+    VecOperationStatus,
+    VecRepositorySnapshot,
+    vec_interface_contract,
+)
+from traffictwin.integration.vec_preprocessing.models import (
+    VecFcdMetadata,
+    VecFcdPreflightReport,
+    VecFcdPreprocessingContract,
+    VecFcdPreprocessReceipt,
+    VecFcdPreprocessRequest,
+    VecFileEvidence,
+    VecGreedyUrbanPlacement,
+    VecNetworkMetadata,
+    VecPreflightFinding,
+    VecPreprocessCommand,
+    VecSourceScriptEvidence,
+    vec_fcd_preprocessing_contract,
+)
+from traffictwin.integration.vec_publication.models import (
+    VecDissertationPackContract,
+    VecDissertationPackManifest,
+    VecSanitisedMatchedSample,
+    vec_dissertation_pack_contract,
+)
+from traffictwin.integration.vec_reproduction.models import (
+    VecNumericTolerance,
+    VecRepeatRunEvidence,
+    VecReproductionCheck,
+    VecReproductionContract,
+    VecReproductionReport,
+    VecReproductionRequest,
+    VecReproductionSource,
+    VecReproductionSummary,
+    vec_reproduction_contract,
+)
+from traffictwin.integration.vec_research.models import (
+    VecEndToEndContract,
+    VecEndToEndManifest,
+    VecEndToEndReceipt,
+    VecEndToEndVerification,
+    vec_end_to_end_contract,
+)
+from traffictwin.integration.vec_runner.models import (
+    VecExecutionReceipt,
+    VecRepositoryEvidence,
+    VecRunnerContract,
+    VecRunnerFileEvidence,
+    VecRunnerFinding,
+    VecRunnerPreflightReport,
+    VecRunRequest,
+    VecRuntimeEvidence,
+    vec_runner_contract,
+)
+from traffictwin.integration.vec_science.models import (
+    VecMetricAdmissionDecision,
+    VecRuleReadiness,
+    VecScientificAdmissionContract,
+    VecScientificAdmissionReport,
+    vec_scientific_admission_contract,
+)
+from traffictwin.integration.vec_task_join.models import (
+    VecJoinedTaskObservation,
+    VecTaskJoinContract,
+    VecTaskJoinReport,
+    vec_task_join_contract,
+)
+from traffictwin.integration.vec_trip_join.models import (
+    VecJourneyDurationSummary,
+    VecMatchedTrip,
+    VecTripExclusion,
+    VecTripJoinContract,
+    VecTripJoinDataset,
+    VecTripJoinReport,
+    vec_trip_join_contract,
+)
 from traffictwin.metrics.catalogue import metric_catalogue
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.plugins import (
@@ -486,6 +600,58 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "SumoValidationResult": SumoValidationResult,
     "SumoImportResult": SumoImportResult,
     "SumoSourceContract": SumoSourceContract,
+    "VecGreedyUrbanPlacement": VecGreedyUrbanPlacement,
+    "VecFcdPreprocessRequest": VecFcdPreprocessRequest,
+    "VecFileEvidence": VecFileEvidence,
+    "VecSourceScriptEvidence": VecSourceScriptEvidence,
+    "VecNetworkMetadata": VecNetworkMetadata,
+    "VecFcdMetadata": VecFcdMetadata,
+    "VecPreflightFinding": VecPreflightFinding,
+    "VecFcdPreflightReport": VecFcdPreflightReport,
+    "VecPreprocessCommand": VecPreprocessCommand,
+    "VecFcdPreprocessReceipt": VecFcdPreprocessReceipt,
+    "VecFcdPreprocessingContract": VecFcdPreprocessingContract,
+    "VecIdentityFinding": VecIdentityFinding,
+    "VecIdentityCoverageReport": VecIdentityCoverageReport,
+    "VecIdentitySnapshot": VecIdentitySnapshot,
+    "VecVehicleMobilityObservation": VecVehicleMobilityObservation,
+    "VecIdentityContract": VecIdentityContract,
+    "VecRepositorySnapshot": VecRepositorySnapshot,
+    "VecOperationStatus": VecOperationStatus,
+    "VecInterfaceSnapshot": VecInterfaceSnapshot,
+    "VecMetricDelta": VecMetricDelta,
+    "VecAdmissionComparison": VecAdmissionComparison,
+    "VecArtifactInspection": VecArtifactInspection,
+    "VecInterfaceContract": VecInterfaceContract,
+    "VecNumericTolerance": VecNumericTolerance,
+    "VecReproductionRequest": VecReproductionRequest,
+    "VecReproductionCheck": VecReproductionCheck,
+    "VecReproductionSource": VecReproductionSource,
+    "VecReproductionSummary": VecReproductionSummary,
+    "VecRepeatRunEvidence": VecRepeatRunEvidence,
+    "VecReproductionReport": VecReproductionReport,
+    "VecReproductionContract": VecReproductionContract,
+    "VecJoinedTaskObservation": VecJoinedTaskObservation,
+    "VecTaskJoinReport": VecTaskJoinReport,
+    "VecTaskJoinContract": VecTaskJoinContract,
+    "VecMatchedTrip": VecMatchedTrip,
+    "VecTripExclusion": VecTripExclusion,
+    "VecJourneyDurationSummary": VecJourneyDurationSummary,
+    "VecTripJoinReport": VecTripJoinReport,
+    "VecTripJoinDataset": VecTripJoinDataset,
+    "VecTripJoinContract": VecTripJoinContract,
+    "VecRunRequest": VecRunRequest,
+    "VecRunnerFinding": VecRunnerFinding,
+    "VecRunnerFileEvidence": VecRunnerFileEvidence,
+    "VecRepositoryEvidence": VecRepositoryEvidence,
+    "VecRuntimeEvidence": VecRuntimeEvidence,
+    "VecRunnerPreflightReport": VecRunnerPreflightReport,
+    "VecExecutionReceipt": VecExecutionReceipt,
+    "VecRunnerContract": VecRunnerContract,
+    "VecMetricAdmissionDecision": VecMetricAdmissionDecision,
+    "VecRuleReadiness": VecRuleReadiness,
+    "VecScientificAdmissionReport": VecScientificAdmissionReport,
+    "VecScientificAdmissionContract": VecScientificAdmissionContract,
     "MetricEngineConfig": MetricEngineConfig,
     "PluginTableRequirement": PluginTableRequirement,
     "PluginOutputSchema": PluginOutputSchema,
@@ -617,6 +783,31 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "TosTaskSample": TosTaskSample,
     "TosValidationReport": TosValidationReport,
     "TosSourceContract": TosSourceContract,
+    "AuditedSourceFile": AuditedSourceFile,
+    "ObservedArraySchema": ObservedArraySchema,
+    "UnavailableField": UnavailableField,
+    "TosSourceContractV2": TosSourceContractV2,
+    "OccupancySpan": OccupancySpan,
+    "VecVehicleAttributeObservation": VecVehicleAttributeObservation,
+    "VecTaskActionObservation": VecTaskActionObservation,
+    "VecTripJoin": VecTripJoin,
+    "V2Finding": V2Finding,
+    "ArtifactValidationReport": ArtifactValidationReport,
+    "OccupancyReconciliationReport": OccupancyReconciliationReport,
+    "RepositoryCitation": RepositoryCitation,
+    "PublicationPermissionBasis": PublicationPermissionBasis,
+    "SanitisationDeclaration": SanitisationDeclaration,
+    "PublicationSourceLabels": PublicationSourceLabels,
+    "IncludedArtifact": IncludedArtifact,
+    "ExcludedArtifact": ExcludedArtifact,
+    "TosPublicationManifest": TosPublicationManifest,
+    "VecSanitisedMatchedSample": VecSanitisedMatchedSample,
+    "VecDissertationPackManifest": VecDissertationPackManifest,
+    "VecDissertationPackContract": VecDissertationPackContract,
+    "VecEndToEndManifest": VecEndToEndManifest,
+    "VecEndToEndContract": VecEndToEndContract,
+    "VecEndToEndReceipt": VecEndToEndReceipt,
+    "VecEndToEndVerification": VecEndToEndVerification,
     "TosEvaluationMatrix": TosEvaluationMatrix,
     "TosCampaignComparisonReport": TosCampaignComparisonReport,
     "TosGeneralisationMatrix": TosGeneralisationMatrix,
@@ -783,6 +974,19 @@ CLI_COMMANDS = [
     ["integration", "sumo", "validate"],
     ["integration", "sumo", "metrics"],
     ["integration", "sumo", "import"],
+    ["integration", "vec"],
+    ["integration", "vec", "contract"],
+    ["integration", "vec", "snapshot"],
+    ["integration", "vec", "validate"],
+    ["integration", "vec", "preprocess"],
+    ["integration", "vec", "run"],
+    ["integration", "vec", "monitor-current"],
+    ["integration", "vec", "inspect"],
+    ["integration", "vec", "compare"],
+    ["integration", "vec", "export"],
+    ["integration", "vec", "research-contract"],
+    ["integration", "vec", "research-create"],
+    ["integration", "vec", "research-verify"],
     ["integration", "tos"],
     ["integration", "tos", "inspect"],
     ["integration", "tos", "contract"],
@@ -824,6 +1028,46 @@ def main() -> None:
     _write_json("cli_help.json", _cli_help())
     _write_json("sumo_source_contract.json", sumo_source_contract().model_dump(mode="json"))
     _write_json(
+        "vec_fcd_preprocessing_contract.json",
+        vec_fcd_preprocessing_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_identity_contract.json",
+        vec_identity_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_runner_contract.json",
+        vec_runner_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_reproduction_contract.json",
+        vec_reproduction_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_task_join_contract.json",
+        vec_task_join_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_trip_join_contract.json",
+        vec_trip_join_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_scientific_admission_contract.json",
+        vec_scientific_admission_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_dissertation_pack_contract.json",
+        vec_dissertation_pack_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_interface_contract.json",
+        vec_interface_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_end_to_end_contract.json",
+        vec_end_to_end_contract().model_dump(mode="json"),
+    )
+    _write_json(
         "measurement_impairment_contract.json",
         measurement_impairment_contract().model_dump(mode="json"),
     )
@@ -832,6 +1076,25 @@ def main() -> None:
         manifest_inference_contract().model_dump(mode="json"),
     )
     _write_json("tos_source_contract.json", tos_source_contract().model_dump(mode="json"))
+    _write_json(
+        "tos_source_contract_v2.json",
+        tos_source_contract_v2().model_dump(mode="json"),
+    )
+    _write_json(
+        "tos_publication_policy.json",
+        {
+            "policy_version": "tos-publication-policy-1.0",
+            "status": "accepted",
+            "required_engine_version": "v2_post_nrsus_fix",
+            "permitted_artifact_kinds": [item.value for item in permitted_artifact_kinds()],
+            "mandatory_excluded_inventory": [
+                item.model_dump(mode="json") for item in default_excluded_inventory()
+            ],
+            "capability_implemented": True,
+            "blocker": None,
+            "accepted_pack": "vec_dissertation_pack/manifest.json",
+        },
+    )
     _write_json(
         "external_source_contract.json",
         external_source_catalogue().model_dump(mode="json"),

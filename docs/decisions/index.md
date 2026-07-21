@@ -50,6 +50,9 @@
 | [ADR-046](ADR-046-read-only-environment-doctor.md) | Read-only environment doctor | accepted |
 | [ADR-047](ADR-047-permission-aware-deterministic-ro-crate.md) | Permission-aware deterministic RO-Crate export | accepted |
 | [ADR-048](ADR-048-generalised-external-source-contract.md) | Generalised external-source contract | accepted |
+| [ADR-049](ADR-049-audited-vec-contract-and-join-semantics.md) | Audited VEC contract and join semantics | accepted |
+| [ADR-050](ADR-050-isolated-allowlisted-vec-evaluator-runner.md) | Isolated allowlisted VEC evaluator runner | accepted |
+| [ADR-051](ADR-051-deterministic-vec-end-to-end-research-artifact.md) | Deterministic VEC end-to-end research artifact | accepted |
 
 Related documents:
 

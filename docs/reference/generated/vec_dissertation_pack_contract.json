@@ -1,0 +1,31 @@
+{
+  "capability": "VEC-11",
+  "excluded_material": [
+    "raw datasets and source identifiers",
+    "complete repositories",
+    "actor checkpoints",
+    "private paths and machine information",
+    "third-party SUMO assets"
+  ],
+  "mandatory_disclosures": [
+    "both source repositories and reviewed commits",
+    "engine v2_post_nrsus_fix",
+    "_s102 best-of-seeds selection",
+    "pseudonymisation is not anonymity",
+    "owner permission is not a formal licence"
+  ],
+  "pack_version": "vec-dissertation-pack-1.0",
+  "permission_scope": [
+    "sanitised samples",
+    "aggregate outputs"
+  ],
+  "permitted_files": [
+    "aggregate_metrics_s102.csv",
+    "manifest.json",
+    "sanitised_matched_sample_s102.csv"
+  ],
+  "publication_rule": "Create a new directory atomically; refuse existing destinations, extra files, hash mismatches, raw identifiers, local paths, or missing disclosures.",
+  "sample_rows": 3,
+  "schema_version": "1.0",
+  "status": "implemented"
+}

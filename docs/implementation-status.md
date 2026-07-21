@@ -1,10 +1,16 @@
 # TrafficTwin Implementation Status
 
-Canonical design status: v0.5 is the approved repository design target. It incorporates the full
-39-capability expansion covering import formats and SUMO outputs, temporal/grouped metrics,
-statistics, R6-R8 and declarative rules, sensitivity, difference provenance, robustness tooling,
-research exports, migrations, caching, doctor, and external-source contracts. All 39 catalogue
-capabilities are implemented within their documented evidence-bounded v1 scope: `ING-01` through
+Canonical design status: v0.6 is the approved future design target for evidence-gated Randy/VEC
+reproduction, occupancy-bounded identity, task/action/trip joins, arbitrary FCD preprocessing,
+safe local evaluation, and permission-bounded dissertation artifacts. `VEC-01`–`VEC-12` are now
+accepted with scoped scientific and publication blockers after their pinned-source, contract,
+join, preprocessing, safe-runner, reproduction, scientific, interface, publication, and
+end-to-end artifact acceptance tests. Gate G is complete. The v0.5 design is
+the fully implemented baseline. It incorporates the 39-capability expansion covering import
+formats and SUMO outputs, temporal/grouped metrics, statistics, R6-R8 and declarative rules,
+sensitivity, difference provenance, robustness tooling, research exports, migrations, caching,
+doctor, and external-source contracts. All 39 v0.5 catalogue capabilities are implemented within
+their documented evidence-bounded v1 scope: `ING-01` through
 `ING-05`, `MET-01` through `MET-06`, `DIA-01` through `DIA-07`, `STA-01` through `STA-05`,
 `PRO-01` through `PRO-03`, `EXP-01` through `EXP-03`, `REP-01` through `REP-05`, and `OPS-01`
 through `OPS-05`. Evidence-blocked source-specific extensions remain visibly unavailable. The
@@ -29,12 +35,344 @@ Phase 4 status: implemented and quality-gate checked.
 
 Phase 5 status: implemented and quality-gate checked.
 
-Phase 6 status: the evidenced read-only TOS Data boundary and `vec_env` source audit are
+Phase 6 status: the evidenced read-only TOS Data boundary and earlier `vec_env` source audit are
 implemented. Evaluation summaries can be imported; instrumented arrays support unit-aware replay,
 task/action inspection, and RSU active-task/backlog inspection; a versioned source contract records
-field semantics, controls, execution evidence, and blockers. Full canonical conversion, canonical
-RSU metrics, and launch remain blocked for the TOS/VEC package. A separate public SUMO 1.27 output
-adapter now supports bounded tripinfo canonicalisation and source-specific summary inspection.
+field semantics, controls, execution evidence, and blockers. The v0.6 `VEC-01` audit now verifies
+Randy's 21 July 2026 response against the exact new remote commits without changing the preserved
+older worktrees. It hashes 154 admitted evidence files and validates all five trace/occupancy pairs,
+all 60 enriched per-step files, six per-task files, both checkpoints, and all four tripinfo files.
+VEC-07 now wraps the exact source/environment/actor/trace Git blobs in a typed, allowlisted,
+CPU-only evaluator runner with atomic receipts; its real two-step acceptance run passed without
+modifying either external repository. This is safe-execution evidence, not VEC-08 numerical
+reproduction evidence. VEC-06 separately executes the two pinned preprocessing scripts
+against a bounded synthetic FCD/network fixture. Full canonical conversion, canonical RSU metrics,
+and launch therefore remain unavailable until their v0.6 gates pass. A
+separate public SUMO 1.27 output adapter supports bounded tripinfo canonicalisation and
+source-specific summary inspection. Generic/SUMO launch and full canonical VEC conversion remain
+unavailable; the exact VEC evaluator is conditional through VEC-10's accepted request-specific
+preflight and foreground boundary.
+
+## v0.6 `VEC-01` Source-snapshot Audit Status
+
+Accepted with scoped downstream blockers. `vec_env` commit
+`068b4ea33e640f206ce6a7d04f3d6fae2ac831f4` and `tos-data` commit
+`f6c67acbed3360dba3a0d5c8d1fd557caa99ecff` match their fetched `origin/main` refs. Both external
+worktrees remain clean at their pre-audit heads; the audit reads pinned Git blobs directly.
+
+The deterministic machine record hashes 154 files (seven source files, 145 data/evidence files,
+and two private permission screenshots) totalling 889,261,811 bytes. Occupancy spans reproduce all
+five trace masks exactly with no overlaps. All 60 per-step files pass schema, shape, time, target,
+range, trace-count, internal-count, and JSON reconciliation checks. Both checkpoints safely expose
+the expected `17 -> 64 -> 64 -> 3` float32 actor structure, although their observed sizes are about
+22 KB rather than the reported 74 KB.
+
+The audit also makes the limits executable and visible: completion is deadline success, no
+per-task energy or eventual physical-completion field exists, selected V2I/V2V actions can have no
+eligible target, tripinfo coverage is incomplete outside an explicit matched cohort, the FCD
+builder does not independently enforce one-second resolution and uses Manchester-specific default
+RSU positions, the evaluator contains a fixed source import path, and neither external repository
+contains a licence/CITATION file. Randy's written permission is therefore treated only as approval
+for sanitized samples and aggregates with the required repository, engine, and `_s102` labels.
+
+Acceptance evidence:
+
+- `docs/integration/randy-source-snapshot-audit-v0_6.md`
+- `docs/reference/generated/vec_source_snapshot_audit.json`
+- `scripts/audit_vec_source_snapshot.py`
+- `tests/unit/test_vec_source_snapshot_audit.py`
+
+## v0.6 `VEC-02` Source Contract v2 Status
+
+Implemented and accepted with the VEC-11 permission-manifested real sample. The frozen machine
+contract pins both audited
+commits, five exact producer/evaluator source hashes, and every observed trace, per-step, per-task,
+and occupancy key with its exact dtype, shape family, unit, and meaning. Deadline success, eligible-
+target semantics, inclusive occupancy identity, operational slot attributes, trip exclusions,
+absent eventual completion, absent per-task energy, and absent transfer confirmation are enforced
+in types and deterministic validation findings.
+
+Synthetic golden and negative fixtures cover disk round trips, exact schemas/dtypes/shapes, values,
+targets, self-V2V refusal, one-second time grids, task/count/aggregate reconciliation, occupancy
+overlap/reuse/bounds, trip censoring, strict fields, deterministic fingerprints, and fail-closed
+upstream validation. ADR-049 records the join semantics, and the generated contract is public.
+
+Gate B is satisfied by the three-row pseudonymised/rounded matched `_s102` sample, admitted VEC-09
+aggregate states, hashes, citations, engine label, selected-seed disclosure, and mandatory excluded
+inventory in `docs/reference/generated/vec_dissertation_pack/`. The sample adds no canonical
+meaning beyond the observed contract, and no actor/checkpoint or raw third-party asset is included.
+
+## v0.6 `VEC-03` Occupancy-Bounded Vehicle Identity Status
+
+Implemented and accepted for all five audited trace/occupancy pairs. The strict identity service
+validates the VEC-02 trace, exact occupancy header, inclusive bounds, span uniqueness, slot and
+vehicle non-overlap, trace ranges, and complete active-mask reconstruction before returning any
+usable snapshot. Accepted snapshots are bound to a fingerprint of every trace array, and mobility
+joins refuse a changed trace, inactive cell, missing span, or out-of-range coordinate. Slot reuse
+therefore changes identity at the exact inclusive boundary and never becomes a persistent vehicle
+claim.
+
+The read-only exact-blob verifier admitted 45,299 spans and reconciled all 17,210,508 active trace
+cells across `ev`, `inc`, `wd_am`, `wd_pm`, and `we`, with zero missing identities and zero identity
+assignments on inactive cells. It confirmed the external `tos-data` worktree stayed unchanged and
+published only hashes and aggregate counts, not raw vehicle identifiers.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_identity/`
+- `tests/unit/test_vec_identity.py`
+- `scripts/verify_vec_identity.py`
+- `docs/integration/vec_identity.md`
+- `docs/reference/generated/vec_identity_contract.json`
+- `docs/reference/generated/vec_identity_verification.json`
+
+VEC-03 does not perform the VEC-04 tier/EV/task/action/target semantics, the VEC-05 trip join,
+canonical conversion, metrics, rules, launch, or CLI/UI wiring.
+
+## v0.6 `VEC-04` Task/Action/Target Join Status
+
+Implemented and accepted for all six audited matched per-step/per-task runs. Exact identity,
+vehicle/task counts, deadline-success counts, latency streams, tier/EV assignments, action codes,
+and target states reconcile across 46,861,416 tasks. The 1,907 tasks whose selected V2I/V2V action
+has target `-1` remain `no_eligible_target`; this is not called failure or transfer evidence.
+Eventual completion, link quality, per-task energy, and protected-attribute claims stay unavailable.
+
+## v0.6 `VEC-05` Trip and Journey-Time Status
+
+Implemented and accepted for four audited tripinfo files and five scenario joins. Exact-ID matching
+reconciles 42,881 of 43,767 occupancy vehicles; 872 are boundary-censored and 14 incident vehicles
+are missing before the boundary with no invented cause or values. Raw gzip/XML hashes and the
+full-day SUMO clock are preserved. Deterministic duration statistics use only the matched cohort;
+existing completion/count metrics remain cohort-incompatible. Evidence is in
+`integration.vec_trip_join`, its unit/integration tests, verifier, guide, contract, and report.
+
+## v0.6 `VEC-11` Publication Policy Status
+
+Implemented and accepted. The frozen manifest schema permits only
+sanitised samples and aggregates under the written owner response, requires both repository
+citations, exact engine `v2_post_nrsus_fix`, `_s102` disclosure, hashes, bounded portable paths,
+complete sanitisation declarations, and visible exclusions for raw datasets, repositories,
+checkpoints, private machine information, and third-party SUMO assets.
+
+The accepted pack contains exactly three action-diverse matched sample rows and 26 VEC-09 aggregate
+metric states. Source IDs, mappings, slots, task/time/target indices, clocks, coordinates, private
+paths, and raw files are removed; numeric values are rounded at declared increments. The manifest
+binds the exact VEC-04/VEC-05/VEC-09 report fingerprints and both audited commits. Unit and
+integration tests cover deterministic derivation, atomic new-only publication, exact inventory,
+hashes, symlinks, mutation, unsafe paths, and strengthened-claim refusal. Pseudonymisation is not
+anonymity, owner permission is not a formal licence, and public hosting remains blocked.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_publication/`
+- `scripts/build_vec_dissertation_pack.py`
+- `tests/unit/test_vec_publication.py`
+- `tests/integration/test_vec_publication.py`
+- `docs/integration/vec_dissertation_pack.md`
+- `docs/reference/generated/vec_dissertation_pack_contract.json`
+- `docs/reference/generated/vec_dissertation_pack/`
+
+## v0.6 `VEC-12` End-to-End Research Artifact Status
+
+Implemented and accepted. A closed deterministic ZIP reconciles the accepted VEC-01 through
+VEC-11 contracts and evidence into one offline-verifiable artifact. Its manifest binds both audited
+source commits, the VEC-08 request/runner/output hashes and recorded environment, VEC-03–VEC-05
+joins, VEC-09 metric/diagnostic readiness, VEC-10 interface evidence, VEC-11 publication
+permission, and the complete capability lineage, exclusions, and limitations.
+
+The artifact preserves the critical run distinction: VEC-08 verifies
+`ukfleettrain-mappo_we_uk2030_fs0` as `protocol_seed_not_best_of_seeds`, while VEC-09/VEC-11 use
+`fcd_s102_uk2030_we_fs0` with `_s102_best_of_seeds`. It records 18 available and eight unavailable
+metrics; R1/R2/R7 remain blocked and R6 conditional, with no threshold or finding emitted.
+
+The archive has exactly 27 sorted, stored members, fixed timestamps/modes, per-member and total
+size bounds, a complete checksum file, a content-derived artifact ID, and a separate whole-ZIP
+receipt. The verifier reads without extraction. It rejects member/order drift, duplicates,
+traversal, symlinks, compression/timestamp drift, unsafe sizes, checksum/inventory mismatch,
+private paths, stale evidence, and strengthened permission/anonymity claims. Fresh accepted builds
+are byte-identical and publication is atomic/new-only.
+
+No raw NPZ/XML, execution-output bytes, checkpoint, repository, source identity mapping, private
+path, or third-party SUMO asset is embedded. Checksums prove byte identity rather than scientific
+truth; pseudonymisation is not anonymity; permission is not a formal licence; public hosting
+remains unauthorised.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_research/`
+- `scripts/build_vec_end_to_end_artifact.py`
+- `tests/unit/test_vec_research.py`
+- `tests/integration/test_vec_research.py`
+- `docs/integration/vec_end_to_end_research_artifact.md`
+- `docs/reference/generated/vec_end_to_end_contract.json`
+- `docs/reference/generated/vec_end_to_end_research_artifact.zip`
+- `docs/reference/generated/vec_end_to_end_research_artifact_receipt.json`
+
+VEC-01 through VEC-12 and Gates A through G are complete within the documented evidence boundary.
+Residual work is scientific/administrative rather than an unbuilt v0.6 capability: formal project
+licensing/public-hosting authority, unavailable physical-completion/per-task-energy/confirmed-
+transfer evidence, new scenario/platform reproduction claims, and separately predeclared rule
+studies.
+
+Final Gate-G quality evidence: all 1,110 tests passed; Ruff format/check passed across 546 files;
+strict mypy passed across 530 source files; the dependency lock and `git diff --check` passed; all
+1,420 local Markdown links across 169 files resolved; source and wheel builds succeeded with the
+VEC-12 package included; a fresh archive rebuild matched the checked-in ZIP byte-for-byte; offline
+verification accepted all 27 members and 26 checksum entries; the headless browser/accessibility
+audit passed with zero issues; and both external repositories remained clean at their preserved
+local heads with the audited commits still available at `origin/main`.
+
+## v0.6 `VEC-06` FCD/Network Preprocessing Status
+
+Implemented and accepted at the bounded library boundary. A strict request identifies a
+caller-selected uncompressed FCD/network XML pair by relative paths and SHA-256, records day,
+window, seed, placement, resource, coordinate, and timeout controls, and pins the reviewed
+`vec_env` commit and source-script hashes. Read-only preflight distinguishes rejected evidence from
+an unavailable optional runtime.
+
+The executor stages exact Git blobs in an isolated temporary workspace and invokes them with fixed
+argument vectors and a controlled environment. It validates the generated trace schema, types,
+shapes, one-second times, seed/window/count reconciliation, exact occupancy reconstruction,
+placement-only mutation, and full observed-point coverage. It then rechecks the external source
+and raw-input identities and atomically publishes a new output directory containing read-only
+trace, occupancy, placement, bounded path-redacted logs, and deterministic receipt artifacts.
+Existing destinations and partial publication are refused.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_preprocessing/`
+- `tests/fixtures/vec_fcd/synthetic_micro/`
+- `tests/unit/test_vec_fcd_preprocessing.py`
+- `tests/integration/test_vec_fcd_preprocessing.py`
+- `docs/integration/vec_fcd_preprocessing.md`
+- `docs/reference/generated/vec_fcd_preprocessing_contract.json`
+
+The accepted result is preprocessing software evidence only. It does not prove that a caller's FCD
+and network originated together, treat generated grid sites as real RSUs, launch SUMO/the evaluator,
+create canonical records or metrics, establish traffic realism, or broaden redistribution rights.
+
+## v0.6 `VEC-07` Safe Evaluator Runner Status
+
+Implemented and accepted at the bounded library boundary. `VecRunRequest` closes the evaluator,
+actor, trace provenance, fleets, flags, seeds, capacity, step, timeout, and destination controls.
+Read-only preflight verifies both clean audited repositories, every executable Git blob, the exact
+`17 -> 64 -> 64 -> 3` float32 actor architecture, VEC-02 trace validity, optional VEC-06 receipt,
+and the JAX/JAXLIB 0.4.30 CPU runtime.
+
+Execution stages exact blobs in a private namespace-only import tree, uses one fixed argv without a
+shell, captures bounded path-redacted logs, validates run/per-step/per-task outputs, rechecks all
+source and input identities, and publishes only a new read-only directory by atomic rename.
+Failure, malformed output, timeout, cancellation, drift, symlinks, overlap, and overwrite publish
+nothing and retain typed terminal evidence through `VecRunnerError.receipt`.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_runner/`
+- `tests/unit/test_vec_runner.py`
+- `tests/integration/test_vec_runner.py`
+- `docs/integration/vec_evaluator_runner.md`
+- `docs/reference/generated/vec_runner_contract.json`
+
+The real integration case completed two CPU steps from the exact audited evaluator, environment,
+UK-fleet actor, and weekend trace, then proved both repositories and the trace unchanged. VEC-07
+alone does not establish numerical reproduction or scientific admission; VEC-08 now supplies the
+separate pinned-case reproduction evidence. VEC-10 exposes this runner only conditionally after
+the complete request-specific preflight passes.
+
+## v0.6 `VEC-08` Instrumented Reproduction Status
+
+Implemented and accepted for the fixed full `ukfleettrain_mappo / we / uk2030 / fleet_seed 0`
+protocol-seed case. Expected evidence is loaded from three exact `tos-data` Git blobs at the audited
+commit: the 300-row master CSV, matching instrumented JSON, and enriched per-step NPZ. The verifier
+rejects caller-selected cases or tolerances and validates the completed VEC-07 request, receipt,
+output hashes, immutable inputs/sources, engine, seed, actor, fleet, trace, capacity, and all 32,400
+steps before comparison.
+
+The first controlled full CPU run froze two narrow float32-reduction bounds. A second independent
+full run then passed that unchanged policy: 61 checks exact, two within tolerance, zero mismatches,
+one machine-wall-time exclusion, and one unavailable source per-task comparison. Both local runs
+were exactly identical for every scientific JSON field, every per-step array, and every per-task
+array. Against source evidence, only average energy (`6.0301178e-8 J`) and 9,536 per-step latency
+sums (maximum `0.00390625 ms`, three ULPs) required tolerance; every task/action/deadline/count,
+queue, target, fleet, RSU, time, and final latency output was exact.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_reproduction/`
+- `scripts/verify_vec_reproduction.py`
+- `tests/unit/test_vec_reproduction.py`
+- `tests/integration/test_vec_reproduction.py`
+- `docs/integration/vec_reproduction_verification.md`
+- `docs/reference/generated/vec_reproduction_contract.json`
+- `docs/reference/generated/vec_reproduction_report.json`
+
+The portable report contains only permitted aggregates, hashes, runtime versions, checks, and
+limitations. The source has no expected per-task artifact for this case, and the result does not
+claim cross-platform/scenario equivalence. VEC-10 now exposes conditional request-gated execution.
+
+## v0.6 `VEC-09` Scientific Admission Status
+
+Implemented and accepted for deterministic metric admission and rule-readiness analysis over the
+audited `fcd_s102_uk2030_we_fs0` evidence. The service rebuilds the VEC-04 task report, binds the
+matching VEC-05 identity/trip report, and requires the accepted VEC-08 report fingerprint before
+publishing an ordinary `EvidencePack`. The permission-safe real record admits 18 metrics and keeps
+eight unsupported definitions explicitly unavailable.
+
+Existing task-count, latency, decision-share, offload-rate, and exact matched-cohort trip-duration
+definitions are reused. Deadline success, operational slot-tier gaps, and no-eligible-target rates
+remain separately versioned `tos.*` metrics. Physical completion, per-task energy, canonical CPU
+utilisation/queue, confirmed execution-target metrics, protected-attribute fairness, and
+occupancy-cohort trip completion are not inferred.
+
+R1, R2, and R7 are blocked. R6 is conditional on a separately predeclared window design,
+threshold, and development/held-out split. VEC-09 calibrated no threshold, evaluated no rule, and
+emitted no finding.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_science/`
+- `scripts/verify_vec_scientific_admission.py`
+- `tests/unit/test_vec_science.py`
+- `tests/integration/test_vec_scientific_admission.py`
+- `docs/integration/vec_scientific_admission.md`
+- `docs/reference/generated/vec_scientific_admission_contract.json`
+- `docs/reference/generated/vec_scientific_admission_report.json`
+
+VEC-09 itself does not enable direct launch, CLI/UI controls, or final research-object publication.
+
+## v0.6 `VEC-10` Thin CLI/UI Status
+
+Implemented and accepted. `traffictwin integration vec` and the **VEC Reproduction Workbench**
+delegate snapshot, validate, preprocess, run, monitor-current-process, inspect, compare, and export
+operations to the accepted VEC library services. The UI constructs no request or command: it loads
+strict VEC-06/VEC-07 JSON requests and enables the matching execution control only after the exact
+request-specific preflight is accepted.
+
+Execution is foreground-only in the current CLI or Streamlit process. VEC-10 provides no arbitrary
+flags, background/detached execution, persistent queue, remote/SLURM path, training, dependency
+installation, source mutation, or general SUMO launcher. The generic and SUMO capability manifests
+retain `direct_launch=false`; only the exact VEC evaluator path is conditional on pinned sources,
+inputs, actor, runtime, and request.
+
+Typed inspection admits only VEC-06 receipts, VEC-07 receipts, VEC-08 reports, and VEC-09 reports.
+Comparison retains 16 compatible available scalar metrics in the real acceptance case, lists ten
+grouped/unavailable/incompatible definitions separately, and labels every delta descriptive and
+non-causal. JSON/CSV/Markdown export renders accepted VEC-09 evidence without recomputation.
+
+Acceptance evidence:
+
+- `src/traffictwin/integration/vec_interface/`
+- `src/traffictwin/ui/pages/vec_workbench.py`
+- `scripts/verify_vec_interface.py`
+- `tests/unit/test_vec_interface.py`
+- `tests/integration/test_vec_interface.py`
+- `docs/integration/vec_interface.md`
+- `docs/reference/generated/vec_interface_contract.json`
+- `docs/reference/generated/vec_interface_verification.json`
+
+VEC-11 permission packaging and VEC-12 end-to-end research-artifact reconciliation are accepted.
+The final archive remains a verification/publication artifact, not a broader launch or scientific
+capability.
 
 Documentation pass status: completed and quality-gate checked.
 
@@ -1078,17 +1416,18 @@ TrafficTwin project root: `diss/`
 
 Git repository: initialised inside `diss/` on branch `main`.
 
-Canonical product specification: `docs/traffictwin-design-v0_5.md`
+Canonical product specification: `docs/traffictwin-design-v0_6.md`
 
 The historical v0.4 design and `../XITS/` notes remain unchanged as research material. They are
-not active implementation blockers for the current implementation or approved v0.5 design target.
+not active implementation blockers for the current implementation or approved design target.
 
 ## Existing Contents
 
 | Path | Type | Assessment |
 |---|---|---|
 | `AGENTS.md` | Agent instruction document | Concise active implementation guidance. Points agents to the canonical product specification. |
-| `docs/traffictwin-design-v0_5.md` | Canonical design specification | No-timeline design target containing all 39 approved capability additions, their boundaries, dependencies, acceptance gates, and open decisions. |
+| `docs/traffictwin-design-v0_6.md` | Canonical future design specification | No-timeline Randy/VEC integration target containing twelve planned, evidence-gated capabilities and their boundaries, dependencies, acceptance gates, and residual questions. |
+| `docs/traffictwin-design-v0_5.md` | Implemented baseline design | Complete 39-capability import-first baseline and its documented evidence boundaries. |
 | `docs/traffictwin-design-v0_4.md` | Historical design proposal | Complete attached TrafficTwin v0.4 design copy, preserved exactly for rationale and meeting traceability. |
 | `pyproject.toml` | Packaging and tool configuration | Python 3.11+ package metadata, runtime dependencies, dev extras, pytest, Ruff, mypy. |
 | `README.md` | Quick start | Minimal install and CLI examples with current-scope disclaimer. |
@@ -1152,12 +1491,14 @@ not active implementation blockers for the current implementation or approved v0
 
 - Randy's external `TOS Data` package is present outside `diss/` at `external/tos-data`.
 - Randy's external `vec_env` source is present outside `diss/` at `external/vec_env`; TrafficTwin
-  records inspected source commit `e98441196270b8fd4cc0eede892df4a0053b2185` as semantics evidence,
-  not as the asserted producer of every run.
+  retains earlier worktree commit `e98441196270b8fd4cc0eede892df4a0053b2185` and audits remote
+  commit `068b4ea33e640f206ce6a7d04f3d6fae2ac831f4` as the pinned v0.6 producer evidence, without
+  asserting it produced every historical run.
 - The external package includes evaluation summary CSV, training curves, greedy-evaluation JSON, instrumented per-step NPZ files, instrumented per-task NPZ files, Manchester trace NPZ files, and training-record documentation.
-- The source repository includes an evaluator and CSF-specific scripts, but actor checkpoints, the
-  instrumented-array writer, raw SUMO XML/config, and a locally verified path-independent runtime
-  are unavailable.
+- The audited remote source contains the evaluator, instrumented-array writer, trace/occupancy
+  builders, and two actor checkpoints in the matching `tos-data` commit. The prepared package does
+  not supply the original raw FCD/network inputs, and no path-independent runtime has completed a
+  TrafficTwin acceptance run.
 - TrafficTwin synthetic run artifacts and the public licensed SUMO acceptance fixture are present
   under `tests/fixtures/`; Randy's private package remains outside the repository.
 - A read-only external TOS Data results integration is implemented; it cannot execute the source
@@ -1174,13 +1515,14 @@ not active implementation blockers for the current implementation or approved v0
 
 Current and historical design paths:
 
-- `./docs/traffictwin-design-v0_5.md`: canonical future design target.
+- `./docs/traffictwin-design-v0_6.md`: canonical future Randy/VEC integration design target.
+- `./docs/traffictwin-design-v0_5.md`: fully implemented import-first baseline.
 - `./docs/traffictwin-design-v0_4.md`: preserved historical proposal and traceability source.
 - `./traffictwin-design-v0_4.md`: not used.
 
 The v0.4 design file was copied byte-for-byte from the supplied attachment before `AGENTS.md` was
-replaced with concise instructions. The v0.5 design was subsequently approved as the canonical
-repository target without changing the implementation status of its planned capabilities.
+replaced with concise instructions. The v0.5 catalogue was subsequently implemented. The v0.6
+design is now the canonical future target without changing any v0.6 capability to implemented.
 
 ## Implemented In Phase 0
 
@@ -1533,6 +1875,7 @@ diss/
     pyproject.toml
     .gitignore
     docs/
+        traffictwin-design-v0_6.md
         traffictwin-design-v0_5.md
         traffictwin-design-v0_4.md
         implementation-status.md

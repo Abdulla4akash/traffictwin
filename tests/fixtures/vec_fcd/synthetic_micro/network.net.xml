@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<net version="1.20" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="https://sumo.dlr.de/xsd/net_file.xsd">
+    <location netOffset="-552000.00,-5926000.00" convBoundary="0.00,0.00,2000.00,1000.00"
+              origBoundary="-2.30,53.40,-2.10,53.60"
+              projParameter="+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"/>
+</net>

@@ -23,6 +23,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.BUNDLE_IMPORT,
         UiPage.SUMO_IMPORT,
         UiPage.TOS_DATA,
+        UiPage.VEC_WORKBENCH,
         UiPage.COMPARE,
     ],
     "Analysis": [

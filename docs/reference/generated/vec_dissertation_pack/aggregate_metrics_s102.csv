@@ -1,0 +1,27 @@
+metric_key,status,value_json,unit,scope,missing_evidence_json
+fairness.vehicle_tier.completion_rate.max_gap,unavailable,null,ratio,run,"[""slot-tier deadline success is not stable-vehicle physical completion""]"
+infra.queue.mean_tasks,unavailable,null,tasks,run,"[""canonical queue-length evidence is absent""]"
+infra.utilisation.mean,unavailable,null,ratio,run,"[""canonical CPU utilisation evidence is absent""]"
+spatial.rsu.task.completion_rate_by_target,unavailable,null,ratio,run,"[""eligible targets are not confirmed execution targets""]"
+task.completed.count,unavailable,null,count,run,"[""physical completion evidence is absent""]"
+task.completion.rate,unavailable,null,ratio,run,"[""physical completion evidence is absent""]"
+task.decision_share.local,available,0.604998581716297,ratio,run,[]
+task.decision_share.unknown,available,0.0,ratio,run,[]
+task.decision_share.v2i,available,0.2575861293783479,ratio,run,[]
+task.decision_share.v2v,available,0.13741528890535512,ratio,run,[]
+task.energy.per_completed_j,unavailable,null,J/task,run,"[""per-task energy evidence is absent""]"
+task.generated.count,available,4145856,count,run,[]
+task.latency.mean_ms,available,56.52545977593398,ms,run,[]
+task.offload.rate,available,0.39500141828370305,ratio,run,[]
+tos.operational.slot_tier.deadline_success.max_gap,available,0.15250548753199644,ratio,run,[]
+tos.task.deadline_success.rate,available,0.9166922343660754,ratio,run,[]
+tos.task.deadline_success.rate_by_class,available,"{""T1"":0.8036660202043593,""T2"":0.991360895959471,""T3"":0.9170781891018372}",ratio,task_class,[]
+tos.task.deadline_success.rate_by_slot_tier,available,"{""0"":0.8249082673619978,""1"":0.9604958474818966,""2"":0.9774137548939943}",ratio,slot_tier,[]
+tos.task.no_eligible_target.rate_among_offload,available,0.0007034603286845109,ratio,run,[]
+trip.completion.rate,unavailable,null,ratio,run,"[""the exact matched duration cohort excludes censored occupancy vehicles""]"
+trip.duration.count,available,13210,count,run,[]
+trip.duration.max_s,available,574.0,s,run,[]
+trip.duration.mean_s,available,210.52990158970476,s,run,[]
+trip.duration.min_s,available,17.0,s,run,[]
+trip.duration.p50_s,available,210.0,s,run,[]
+trip.duration.p95_s,available,322.0,s,run,[]

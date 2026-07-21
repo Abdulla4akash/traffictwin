@@ -484,7 +484,7 @@ def projection_to_latex_fragment(projection: ResearchExportProjection) -> str:
             r"\hline",
             r"\end{tabular}",
             r"\par\footnotesize",
-            f"Source mode: {escape_latex(_source_mode(projection.synthetic))}. ",
+            f"Source mode: {escape_latex(_source_mode(projection.synthetic))}.",
             "Rendered from projection " + escape_latex(fingerprint[:12]) + ".",
         ]
     )

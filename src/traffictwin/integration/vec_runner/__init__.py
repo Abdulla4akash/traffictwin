@@ -1,0 +1,51 @@
+"""Public VEC-07 allowlisted evaluator-runner API."""
+
+from traffictwin.integration.vec_runner.models import (
+    PINNED_ACTORS,
+    PINNED_EVALUATOR_FILES,
+    PINNED_REVIEWED_TRACES,
+    PINNED_TOS_DATA_COMMIT,
+    PINNED_VEC_ENV_COMMIT,
+    VecExecutionReceipt,
+    VecFleet,
+    VecRepositoryEvidence,
+    VecRunnerContract,
+    VecRunnerFileEvidence,
+    VecRunnerFinding,
+    VecRunnerPreflightReport,
+    VecRunnerPreflightStatus,
+    VecRunnerSeverity,
+    VecRunRequest,
+    VecRuntimeEvidence,
+    VecTerminalStatus,
+    vec_runner_contract,
+)
+from traffictwin.integration.vec_runner.service import (
+    VecRunnerError,
+    preflight_vec_run,
+    run_vec_evaluator,
+)
+
+__all__ = [
+    "PINNED_ACTORS",
+    "PINNED_EVALUATOR_FILES",
+    "PINNED_REVIEWED_TRACES",
+    "PINNED_TOS_DATA_COMMIT",
+    "PINNED_VEC_ENV_COMMIT",
+    "VecExecutionReceipt",
+    "VecFleet",
+    "VecRepositoryEvidence",
+    "VecRunRequest",
+    "VecRunnerContract",
+    "VecRunnerError",
+    "VecRunnerFileEvidence",
+    "VecRunnerFinding",
+    "VecRunnerPreflightReport",
+    "VecRunnerPreflightStatus",
+    "VecRunnerSeverity",
+    "VecRuntimeEvidence",
+    "VecTerminalStatus",
+    "preflight_vec_run",
+    "run_vec_evaluator",
+    "vec_runner_contract",
+]

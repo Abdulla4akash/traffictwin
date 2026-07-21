@@ -1,0 +1,41 @@
+{
+  "admitted_existing_metrics": [
+    "task.decision_share.local",
+    "task.decision_share.unknown",
+    "task.decision_share.v2i",
+    "task.decision_share.v2v",
+    "task.generated.count",
+    "task.latency.mean_ms",
+    "task.offload.rate",
+    "trip.duration.count",
+    "trip.duration.max_s",
+    "trip.duration.mean_s",
+    "trip.duration.min_s",
+    "trip.duration.p50_s",
+    "trip.duration.p95_s"
+  ],
+  "admitted_source_specific_metrics": [
+    "tos.operational.slot_tier.deadline_success.max_gap",
+    "tos.task.deadline_success.rate",
+    "tos.task.deadline_success.rate_by_class",
+    "tos.task.deadline_success.rate_by_slot_tier",
+    "tos.task.no_eligible_target.rate_among_offload"
+  ],
+  "evaluation_policy": "No diagnostic threshold is calibrated or evaluated on the run used for admission.",
+  "mandatory_unavailable_families": [
+    "physical task completion",
+    "per-task energy and energy-delay product",
+    "canonical CPU utilisation and queue length",
+    "execution-target or transfer-confirmed RSU metrics",
+    "protected-attribute fairness",
+    "trip completion metrics over the occupancy cohort"
+  ],
+  "rule_scope": [
+    "R1",
+    "R2",
+    "R6",
+    "R7"
+  ],
+  "schema_version": "1.0",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff"
+}

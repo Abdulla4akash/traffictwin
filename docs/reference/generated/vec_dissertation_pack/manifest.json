@@ -1,0 +1,146 @@
+{
+  "aggregate_metric_count": 26,
+  "anonymity_claimed": false,
+  "available_metric_count": 18,
+  "capability": "VEC-11",
+  "engine_version": "v2_post_nrsus_fix",
+  "identifier_treatment": "sequential_pseudonyms_no_mapping_retained",
+  "pack_version": "vec-dissertation-pack-1.0",
+  "pseudonym_mapping_retained": false,
+  "public_hosting_authorized": false,
+  "publication_policy": {
+    "citations": [
+      {
+        "citation_text": "Randy Putra, tos-data evidence repository, reviewed commit f6c67acbed33, 2026.",
+        "commit_verification": "caller_supplied",
+        "repository": "tos-data",
+        "reviewed_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+        "url": "https://gitlab.cs.man.ac.uk/e62992rp/tos-data"
+      },
+      {
+        "citation_text": "Randy Putra, vec_env source repository, reviewed commit 068b4ea33e64, 2026.",
+        "commit_verification": "caller_supplied",
+        "repository": "vec_env",
+        "reviewed_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+        "url": "https://gitlab.cs.man.ac.uk/e62992rp/vec_env"
+      }
+    ],
+    "engine_version": "v2_post_nrsus_fix",
+    "excluded": [
+      {
+        "detail": "Actor and checkpoint binaries are not redistributed without a separate written basis.",
+        "identifier": "frozen actor checkpoints",
+        "kind": "actor_checkpoint",
+        "reason": "outside_written_permission"
+      },
+      {
+        "detail": "Repository redistribution is not granted; the sources are cited by reviewed commit instead.",
+        "identifier": "complete vec_env and tos-data repositories",
+        "kind": "full_repository",
+        "reason": "outside_written_permission"
+      },
+      {
+        "detail": "Hostnames, usernames, local absolute paths, and machine records are removed from every published artifact.",
+        "identifier": "private machine and environment records",
+        "kind": "private_machine_information",
+        "reason": "private_information"
+      },
+      {
+        "detail": "The written permission covers sanitised samples and aggregates only; complete raw datasets are not redistributed.",
+        "identifier": "full raw TOS result datasets",
+        "kind": "raw_dataset",
+        "reason": "outside_written_permission"
+      },
+      {
+        "detail": "Third-party SUMO assets carry their own rights and are not republished under the owner permission.",
+        "identifier": "third-party SUMO network and FCD assets",
+        "kind": "third_party_sumo_asset",
+        "reason": "third_party_rights"
+      }
+    ],
+    "included": [
+      {
+        "description": "Accepted and unavailable VEC-09 _s102 aggregate metric states.",
+        "kind": "aggregate",
+        "labels": {
+          "actor": null,
+          "campaign": "fcd_s102",
+          "evaluator_seed": null,
+          "fleet": "uk2030",
+          "fleet_seed": 0,
+          "scenario": "we",
+          "source_mode": "instrumented",
+          "trace_day": null,
+          "trace_window": null
+        },
+        "permission_state": "written_owner_permission",
+        "relative_path": "aggregate_metrics_s102.csv",
+        "sha256": "30aa306d5709df2dad229b8672416008d488b007826aa722ca786c1462773c09",
+        "size_bytes": 2238,
+        "uses_selected_seed": true
+      },
+      {
+        "description": "Three-row pseudonymised and rounded matched task-trip _s102 sample.",
+        "kind": "sanitised_sample",
+        "labels": {
+          "actor": null,
+          "campaign": "fcd_s102",
+          "evaluator_seed": null,
+          "fleet": "uk2030",
+          "fleet_seed": 0,
+          "scenario": "we",
+          "source_mode": "instrumented",
+          "trace_day": null,
+          "trace_window": null
+        },
+        "permission_state": "written_owner_permission",
+        "relative_path": "sanitised_matched_sample_s102.csv",
+        "sha256": "6639ea6b5c091269625376a85501bf34861e7d93c385b0342abb87047f82f0ee",
+        "size_bytes": 439,
+        "uses_selected_seed": true
+      }
+    ],
+    "limitations": [
+      "Pseudonymisation reduces direct identification but is not anonymity.",
+      "Rounded sample rows are illustrative and must not be used to reproduce exact values.",
+      "Deadline success is not eventual physical task completion.",
+      "Eligible targets are not transfer confirmation or execution targets.",
+      "Owner permission is not a formal software or data licence; public hosting is not authorised."
+    ],
+    "permission": {
+      "basis": "Written source-owner response received for the TrafficTwin dissertation.",
+      "granted_on": "2026-07-21",
+      "licence_statement": "Owner permission covers sanitised samples and aggregate outputs only and is not a formal software or data licence.",
+      "scope": "Sanitised samples and aggregate outputs in this repository and dissertation."
+    },
+    "policy_version": "tos-publication-policy-1.0",
+    "sanitisation": {
+      "actor_checkpoints_excluded": true,
+      "private_paths_and_machine_information_removed": true,
+      "raw_datasets_reduced_to_sanitised_sample": true,
+      "schema_and_units_preserved": true,
+      "secrets_removed": true,
+      "statement": "Three source-matched rows use sequential pseudonyms, remove source identity and clock fields, round numeric values, and retain only declared schema and units.",
+      "third_party_sumo_assets_excluded": true
+    },
+    "schema_version": "1.0",
+    "selected_seed_disclosure": "The _s102 rows and aggregates are a disclosed best-of-seeds selection, not an average over evaluator seeds."
+  },
+  "sample_count": 3,
+  "schema_version": "1.0",
+  "scientific_admission_fingerprint": "1d3a084a000256c4c2654a15fd63c5bbbaf76e47e7c967c5850bece877282686",
+  "selected_run_label": "fcd_s102_uk2030_we_fs0",
+  "selection_label": "_s102_best_of_seeds",
+  "status": "accepted",
+  "task_join_report_fingerprint": "cee4f3546f7ecd9e8090970a7f4631a72673ce11a597608e390af3df5981d6ee",
+  "tos_data_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "trip_join_report_fingerprint": "2058c89845c8243f7538cf0cdaed0c65a1a5b4a716d20745e8c977dee36d5acd",
+  "unavailable_metric_count": 8,
+  "value_minimisation": [
+    "source vehicle IDs, slots, task indices, trace times, full-day times, and targets removed",
+    "latency rounded to 10 ms",
+    "trip duration rounded to 10 s",
+    "route length rounded to 100 m"
+  ],
+  "vec_env_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4"
+}

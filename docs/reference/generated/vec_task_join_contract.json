@@ -1,0 +1,29 @@
+{
+  "action_codes": {
+    "0": "local",
+    "1": "v2i",
+    "2": "v2v"
+  },
+  "latency_reconciliation_abs_tolerance_ms": 0.00390625,
+  "latency_reconciliation_rel_tolerance": 3e-07,
+  "schema_version": "1.0",
+  "semantics": [
+    "one vehicle action applies to every task arriving for that vehicle-second",
+    "-1 means no eligible target and does not establish transfer failure",
+    "task_met is deadline success, not eventual physical completion",
+    "tier and EV are fixed per-slot operational assignments for one run"
+  ],
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "task_type_codes": {
+    "0": "T1",
+    "1": "T2",
+    "2": "T3"
+  },
+  "unavailable_claims": [
+    "transfer confirmation",
+    "eventual physical completion",
+    "link quality",
+    "per-task energy",
+    "protected or demographic attribute status"
+  ]
+}

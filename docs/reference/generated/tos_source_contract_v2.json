@@ -1,0 +1,429 @@
+{
+  "arrays": [
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Active trace slots in each second.",
+      "name": "active",
+      "shape": [
+        "T"
+      ],
+      "unit": "slots"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Task arrivals in each second.",
+      "name": "arrivals",
+      "shape": [
+        "T"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Deadline-successful task arrivals in each second.",
+      "name": "done",
+      "shape": [
+        "T"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "float32",
+      "meaning": "Sum of modelled task latency in each second.",
+      "name": "lat_sum",
+      "shape": [
+        "T"
+      ],
+      "unit": "ms"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Task arrivals assigned the local action in each second.",
+      "name": "n_local",
+      "shape": [
+        "T"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Task arrivals assigned the V2I action in each second.",
+      "name": "n_v2i",
+      "shape": [
+        "T"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "Task arrivals assigned the V2V action in each second.",
+      "name": "n_v2v",
+      "shape": [
+        "T"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "float32",
+      "meaning": "Remaining compute backlog; no utilisation denominator.",
+      "name": "rsu_busy_ms",
+      "shape": [
+        "T",
+        "n_rsu"
+      ],
+      "unit": "ms"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int32",
+      "meaning": "In-flight task count; not CPU utilisation or queue length.",
+      "name": "rsu_load",
+      "shape": [
+        "T",
+        "n_rsu"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "bool",
+      "meaning": "Fixed per-slot EV assignment for the run; operational only.",
+      "name": "slot_is_ev",
+      "shape": [
+        "maxN"
+      ],
+      "unit": null
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int8",
+      "meaning": "Fixed per-slot compute-tier assignment in 0..2 for the run; recycled vehicles inherit it.",
+      "name": "slot_tier",
+      "shape": [
+        "maxN"
+      ],
+      "unit": "code"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "float32",
+      "meaning": "Exact copy of the trace time grid.",
+      "name": "times",
+      "shape": [
+        "T"
+      ],
+      "unit": "s"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int8",
+      "meaning": "Selected decision: 0=local, 1=V2I, 2=V2V.",
+      "name": "veh_action",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "code"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int16",
+      "meaning": "Eligible best RSU at decision time; -1 means no eligible target and is never a completed offload.",
+      "name": "veh_best_rsu",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "index"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int16",
+      "meaning": "Eligible best V2V peer at decision time; -1 means no eligible target; an eligible peer is never the source slot.",
+      "name": "veh_best_v2v",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "index"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int16",
+      "meaning": "Deadline-successful tasks at the slot this second.",
+      "name": "veh_done",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "int8",
+      "meaning": "Tasks arriving at the slot this second, at most 5.",
+      "name": "veh_k",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "tasks"
+    },
+    {
+      "artifact": "instrumented/perstep/*_perstep.npz",
+      "dtype": "float32",
+      "meaning": "Vehicle-local queue signal; finite and non-negative.",
+      "name": "veh_queue_ms",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "ms"
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "dtype": "bool",
+      "meaning": "Whether the task cell holds a real task.",
+      "name": "task_active",
+      "shape": [
+        "T",
+        "K",
+        "maxN"
+      ],
+      "unit": null
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "dtype": "float32",
+      "meaning": "Modelled end-to-end latency for active task cells.",
+      "name": "task_lat_ms",
+      "shape": [
+        "T",
+        "K",
+        "maxN"
+      ],
+      "unit": "ms"
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "dtype": "bool",
+      "meaning": "Deadline success; never eventual physical completion.",
+      "name": "task_met",
+      "shape": [
+        "T",
+        "K",
+        "maxN"
+      ],
+      "unit": null
+    },
+    {
+      "artifact": "instrumented/pertask/*_pertask.npz",
+      "dtype": "int8",
+      "meaning": "Task class code 0=T1, 1=T2, 2=T3 for active task cells.",
+      "name": "task_type",
+      "shape": [
+        "T",
+        "K",
+        "maxN"
+      ],
+      "unit": "code"
+    },
+    {
+      "artifact": "occupancy/occupancy_*.csv",
+      "dtype": "str",
+      "meaning": "CSV row sumo_vehicle_id,slot,t_enter,t_exit with inclusive integer time-index bounds.",
+      "name": "occupancy_row",
+      "shape": [
+        4
+      ],
+      "unit": null
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "int32",
+      "meaning": "Trace timestep count.",
+      "name": "T",
+      "shape": [],
+      "unit": "timesteps"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "Declared trace timestep resolution; exactly 1.0.",
+      "name": "dt",
+      "shape": [],
+      "unit": "s"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "bool",
+      "meaning": "Slot occupancy mask; matches inclusive occupancy spans exactly.",
+      "name": "mask",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": null
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "int32",
+      "meaning": "Dense vehicle-slot dimension.",
+      "name": "maxN",
+      "shape": [],
+      "unit": "slots"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "SUMO network x coordinate per occupied slot second.",
+      "name": "pos_x",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "m"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "SUMO network y coordinate per occupied slot second.",
+      "name": "pos_y",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "m"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "RSU positions encoded by the placement step.",
+      "name": "rsu_xy",
+      "shape": [
+        "n_rsu",
+        2
+      ],
+      "unit": "m"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "SUMO speed per occupied slot second.",
+      "name": "speed",
+      "shape": [
+        "T",
+        "maxN"
+      ],
+      "unit": "m/s"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "int32",
+      "meaning": "SUMO seed declared by the trace builder.",
+      "name": "sumo_seed",
+      "shape": [],
+      "unit": "seed"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "float32",
+      "meaning": "Contiguous one-second SUMO timestamps.",
+      "name": "times",
+      "shape": [
+        "T"
+      ],
+      "unit": "s"
+    },
+    {
+      "artifact": "traces/trace_*.npz",
+      "dtype": "unicode",
+      "meaning": "Source FCD filename label recorded by the trace builder.",
+      "name": "window",
+      "shape": [],
+      "unit": null
+    }
+  ],
+  "audit_document": "docs/integration/randy-source-snapshot-audit-v0_6.md",
+  "audit_record": "docs/reference/generated/vec_source_snapshot_audit.json",
+  "blockers": [
+    "eventual_physical_completion_absent: model completion fields as deadline success and keep eventual completion unavailable.",
+    "action_is_not_transfer_proof: join targets only with eligibility-aware semantics and expose -1.",
+    "per_task_energy_absent: do not publish per-task or denominator-sensitive energy metrics from these rows."
+  ],
+  "capabilities": {
+    "direct_launch": false,
+    "fcd_preprocessing": false,
+    "occupancy_identity_join": false,
+    "trip_join": false
+  },
+  "evidence_state": "audited",
+  "schema_version": "2.0",
+  "semantics": [
+    "Occupancy t_enter/t_exit bounds are inclusive; visit seconds equal t_exit - t_enter + 1 and reconcile exactly with the trace mask.",
+    "task_met, done, and completion are per-arrival deadline success only.",
+    "A selected V2I/V2V action with target -1 has no eligible target and is not a completed offload.",
+    "slot_tier and slot_is_ev are fixed operational per-slot assignments for a run and are never protected attributes.",
+    "Trace time grids are contiguous one-second steps with dt exactly 1.0.",
+    "_s102 rows keep the best-of-seeds label and reused evidence carries the v2_post_nrsus_fix engine label with both repositories cited."
+  ],
+  "source_files": [
+    {
+      "path": "eval/build_trace.py",
+      "purpose": "FCD/network-to-trace builder; writes dt=1.0 without deriving it and starts with Manchester sensor RSU positions.",
+      "sha256": "5af3aa9b284dd06a9e25989fbb7e9060227c7906a2754e9c5436ddd925090387",
+      "size_bytes": 6030
+    },
+    {
+      "path": "eval/eval_sumo_stage1_mc.py",
+      "purpose": "Headless evaluator and instrumented writer; contains a non-portable hard-coded import path.",
+      "sha256": "52490949e9d35cfaed2f9ba03ac92b08b475de503715a1967bc74950b689bf7c",
+      "size_bytes": 21359
+    },
+    {
+      "path": "eval/place_rsus_cover.py",
+      "purpose": "Deterministic greedy grid set-cover placement helper; reads only a freshly produced trace in the accepted wrapper.",
+      "sha256": "33928f4113988ee39f75ff06d99f2c01061182f9d0f17092e051a159a42840a0",
+      "size_bytes": 3043
+    },
+    {
+      "path": "eval/reconstruct_occupancy.py",
+      "purpose": "Occupancy-span reconstruction source for the audited tables.",
+      "sha256": "019e75397d4889955b3b4608318297cd112e00e698281a06468dd8d683d5a6ad",
+      "size_bytes": 3665
+    },
+    {
+      "path": "jaxmarl/env/vec_jax.py",
+      "purpose": "Pure-JAX Model-C environment imported by the evaluator; an executable VEC-07 source dependency.",
+      "sha256": "4eed6b61f157b9a1ba203d0095acdecb0741f2da8d7fc4f411b6ee16a0bdd4f9",
+      "size_bytes": 79253
+    }
+  ],
+  "tos_data_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "unavailable_fields": [
+    {
+      "audit_blocker_id": "eventual_physical_completion_absent",
+      "name": "eventual_physical_completion",
+      "reason": "task_met/done/completion represent deadline success; no eventual physical-completion field was observed."
+    },
+    {
+      "audit_blocker_id": "per_task_energy_absent",
+      "name": "per_task_energy_j",
+      "reason": "The six audited per-task NPZ files contain no per-task energy field."
+    },
+    {
+      "audit_blocker_id": "action_is_not_transfer_proof",
+      "name": "transfer_confirmation",
+      "reason": "Targets are eligible decision-time values; 4,368 V2I and 55,658 V2V decision rows have no eligible target."
+    }
+  ],
+  "vec_env_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4"
+}

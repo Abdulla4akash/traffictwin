@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "capability": "VEC-12",
+  "status": "accepted",
+  "archive_name": "vec_end_to_end_research_artifact.zip",
+  "archive_sha256": "d4f1cecaaceaea6e3969511738d59ff89aacbeee28bd5da3184c96c352081068",
+  "archive_size_bytes": 346961,
+  "artifact_id": "urn:traffictwin:vec-research:1ff3b3b3c64be52e4a7c6dd8b9537762e273bd027ce73505698ccae9a8c9ff1f",
+  "manifest_fingerprint": "5964a6bd637564ea64129838d156567053967352659f61a44b99537bc5f80afb",
+  "member_count": 27,
+  "deterministic_zip": true,
+  "offline_verified_before_publication": true,
+  "external_repositories_modified": false
+}

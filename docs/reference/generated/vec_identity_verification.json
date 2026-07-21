@@ -1,0 +1,183 @@
+{
+  "blob_access": "git show <audited-commit>:<repo-relative-path>",
+  "capability": "VEC-03",
+  "external_source_unchanged": true,
+  "interval_semantics": "inclusive",
+  "reports": [
+    {
+      "active_trace_cells": 1898428,
+      "distinct_vehicle_count": 9129,
+      "findings": [],
+      "identity_cells": 1898428,
+      "inactive_identity_cells": 0,
+      "interval_semantics": "inclusive",
+      "max_slots": 175,
+      "missing_identity_cells": 0,
+      "occupancy_fingerprint": "15ad1e9aef4429e5434729e616c21371f12444f280b4fc16e57ba3ffd35997de",
+      "scenario": "ev",
+      "schema_version": "1.0",
+      "slot_semantics": "reusable_not_vehicle_identity",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "span_count": 9130,
+      "status": "accepted",
+      "trace_fingerprint": "c3db431660a53618242b59470276731b1667bd1ab2cf931b1526d3d9d294fc28",
+      "trace_steps": 23400
+    },
+    {
+      "active_trace_cells": 8747692,
+      "distinct_vehicle_count": 3780,
+      "findings": [],
+      "identity_cells": 8747692,
+      "inactive_identity_cells": 0,
+      "interval_semantics": "inclusive",
+      "max_slots": 2488,
+      "missing_identity_cells": 0,
+      "occupancy_fingerprint": "0ec184a93d16cd0c8f992a36fcccd82e0b7d92f081530750dd8dc1307f302e12",
+      "scenario": "inc",
+      "schema_version": "1.0",
+      "slot_semantics": "reusable_not_vehicle_identity",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "span_count": 5307,
+      "status": "accepted",
+      "trace_fingerprint": "d357cec490c1d76d0beb120a05978e8d3c5eab1d59c89245ac88f50fba65513a",
+      "trace_steps": 3600
+    },
+    {
+      "active_trace_cells": 1166439,
+      "distinct_vehicle_count": 5377,
+      "findings": [],
+      "identity_cells": 1166439,
+      "inactive_identity_cells": 0,
+      "interval_semantics": "inclusive",
+      "max_slots": 215,
+      "missing_identity_cells": 0,
+      "occupancy_fingerprint": "235a4c621b5c882844bf462b1f23f33661e86df6bbf291b04ad8a1ed5e9434da",
+      "scenario": "wd_am",
+      "schema_version": "1.0",
+      "slot_semantics": "reusable_not_vehicle_identity",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "span_count": 5381,
+      "status": "accepted",
+      "trace_fingerprint": "a3c2f915466d91b44bea76c1b81e7d29c3dc322a1ff076b936df93584ad765c6",
+      "trace_steps": 10800
+    },
+    {
+      "active_trace_cells": 2621666,
+      "distinct_vehicle_count": 12232,
+      "findings": [],
+      "identity_cells": 2621666,
+      "inactive_identity_cells": 0,
+      "interval_semantics": "inclusive",
+      "max_slots": 163,
+      "missing_identity_cells": 0,
+      "occupancy_fingerprint": "0af0f1efa4703f89f428c064e68f5435a334a0e9063b1013445930e6aa3f5411",
+      "scenario": "wd_pm",
+      "schema_version": "1.0",
+      "slot_semantics": "reusable_not_vehicle_identity",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "span_count": 12232,
+      "status": "accepted",
+      "trace_fingerprint": "b97a4fe1a3c12d8187de42c7d009a794ae1e8604321b4f74a0ad85bbec236044",
+      "trace_steps": 25200
+    },
+    {
+      "active_trace_cells": 2776283,
+      "distinct_vehicle_count": 13249,
+      "findings": [],
+      "identity_cells": 2776283,
+      "inactive_identity_cells": 0,
+      "interval_semantics": "inclusive",
+      "max_slots": 139,
+      "missing_identity_cells": 0,
+      "occupancy_fingerprint": "722c7f5e8db5abd71c0cc143227a3bb3d278eddf32894965f12b3419d664cdfd",
+      "scenario": "we",
+      "schema_version": "1.0",
+      "slot_semantics": "reusable_not_vehicle_identity",
+      "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "span_count": 13249,
+      "status": "accepted",
+      "trace_fingerprint": "f5de65fe599fc0e092d866baf1a0403c8f070759236596cdc259132e19642c48",
+      "trace_steps": 32400
+    }
+  ],
+  "scenario_count": 5,
+  "schema_version": "1.0",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "traces/trace_ev_fullrsu.npz",
+      "role": "trace",
+      "scenario": "ev",
+      "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+      "size_bytes": 19000923
+    },
+    {
+      "path": "occupancy/occupancy_ev.csv",
+      "role": "occupancy",
+      "scenario": "ev",
+      "sha256": "88a2ff15dd0612fe00ea71d4537d44b85e2e00feed4905fba4aaa4bb3e6c8d2f",
+      "size_bytes": 221257
+    },
+    {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "role": "trace",
+      "scenario": "inc",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "size_bytes": 5964044
+    },
+    {
+      "path": "occupancy/occupancy_inc.csv",
+      "role": "occupancy",
+      "scenario": "inc",
+      "sha256": "c4e59a7e43e51075a5951d94f5b992ef77535464cd420881bdbc2048b20729be",
+      "size_bytes": 122076
+    },
+    {
+      "path": "traces/trace_wd_am_fullrsu.npz",
+      "role": "trace",
+      "scenario": "wd_am",
+      "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+      "size_bytes": 10965874
+    },
+    {
+      "path": "occupancy/occupancy_wd_am.csv",
+      "role": "occupancy",
+      "scenario": "wd_am",
+      "sha256": "203172baab0785a5a9e863a0843f73fa720b818d3ac77cb21cb81aba3e471cb5",
+      "size_bytes": 126812
+    },
+    {
+      "path": "traces/trace_wd_pm_fullrsu.npz",
+      "role": "trace",
+      "scenario": "wd_pm",
+      "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "size_bytes": 23900327
+    },
+    {
+      "path": "occupancy/occupancy_wd_pm.csv",
+      "role": "occupancy",
+      "scenario": "wd_pm",
+      "sha256": "7f45a3e924a5f1491af93980ccc02a7ecd1147bfb47917cd3f198d9a3ca80512",
+      "size_bytes": 300290
+    },
+    {
+      "path": "traces/trace_we_fullrsu.npz",
+      "role": "trace",
+      "scenario": "we",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "size_bytes": 25976187
+    },
+    {
+      "path": "occupancy/occupancy_we.csv",
+      "role": "occupancy",
+      "scenario": "we",
+      "sha256": "258cc3f39e3d8789af70016d01278a426450d6aa0b6ce2db55c606923e9b7600",
+      "size_bytes": 323522
+    }
+  ],
+  "status": "accepted",
+  "total_active_trace_cells": 17210508,
+  "total_distinct_vehicle_visits_by_scenario": 43767,
+  "total_identity_cells": 17210508,
+  "total_spans": 45299
+}

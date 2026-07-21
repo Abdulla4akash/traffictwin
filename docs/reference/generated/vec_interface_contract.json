@@ -1,0 +1,48 @@
+{
+  "audited_commits": {
+    "tos-data": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+    "vec_env": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4"
+  },
+  "capability_id": "VEC-10",
+  "conditional_controls": [
+    "preprocess requires an accepted VEC-06 preflight",
+    "run requires an accepted VEC-07 preflight and exact pinned runtime",
+    "monitoring is limited to the foreground operation in the current process",
+    "comparison requires two accepted VEC-09 reports with compatible scalar metrics"
+  ],
+  "execution_mode": "foreground_current_process_only",
+  "export_formats": [
+    "json",
+    "csv",
+    "markdown"
+  ],
+  "operations": [
+    "snapshot",
+    "validate_preprocess_request",
+    "validate_run_request",
+    "preprocess",
+    "run_foreground",
+    "monitor_current_process",
+    "inspect",
+    "compare_admissions",
+    "export_admission"
+  ],
+  "prohibited_controls": [
+    "arbitrary command or flags",
+    "background or persistent asynchronous queue",
+    "SLURM, remote execution, training, or dependency installation",
+    "source repository mutation or overwrite",
+    "public publication before VEC-11/VEC-12"
+  ],
+  "request_formats": [
+    "VecFcdPreprocessRequest JSON",
+    "VecRunRequest JSON"
+  ],
+  "schema_version": "1.0",
+  "scientific_limits": [
+    "the interface performs no scientific calculations outside tested library services",
+    "metric differences are descriptive and non-causal",
+    "unavailable VEC-09 metrics remain unavailable",
+    "no diagnostic threshold is calibrated or evaluated"
+  ]
+}

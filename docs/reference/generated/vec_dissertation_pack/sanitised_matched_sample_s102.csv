@@ -1,0 +1,4 @@
+sample_id,scenario,selection_label,task_class,deadline_met,latency_ms_rounded_10,slot_tier,slot_is_ev,action,target_availability,trip_duration_s_rounded_10,trip_route_length_m_rounded_100
+sample-001,we,_s102_best_of_seeds,T3,True,0,0,False,v2v,eligible_target,170,1200
+sample-002,we,_s102_best_of_seeds,T2,True,30,2,False,v2i,eligible_target,270,1800
+sample-003,we,_s102_best_of_seeds,T3,True,0,1,False,local,not_applicable_local,240,2500

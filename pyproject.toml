@@ -24,13 +24,25 @@ dependencies = [
 tos = [
     "numpy>=1.26",
 ]
+vec = [
+    "numpy>=1.26",
+    "pyproj>=3.6,<4",
+    "sumolib==1.27.0",
+]
+vec-runner = [
+    "jax==0.4.30",
+    "jaxlib==0.4.30",
+    "numpy>=1.26",
+]
 dev = [
     "build>=1",
     "numpy>=1.26",
     "playwright>=1.48",
     "pytest>=8",
     "pytest-cov>=5",
+    "pyproj>=3.6,<4",
     "ruff>=0.5",
+    "sumolib==1.27.0",
     "mypy>=1.10",
     "types-PyYAML>=6",
 ]

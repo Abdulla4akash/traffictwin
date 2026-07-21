@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fcd-export xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="https://sumo.dlr.de/xsd/fcd_file.xsd">
+    <timestep time="100.00">
+        <vehicle id="synthetic-vehicle-0" x="100.00" y="100.00" speed="10.00"/>
+    </timestep>
+    <timestep time="101.00">
+        <vehicle id="synthetic-vehicle-0" x="110.00" y="100.00" speed="10.00"/>
+        <vehicle id="synthetic-vehicle-1" x="200.00" y="200.00" speed="5.00"/>
+    </timestep>
+    <timestep time="102.00">
+        <vehicle id="synthetic-vehicle-1" x="205.00" y="200.00" speed="5.00"/>
+    </timestep>
+    <timestep time="103.00">
+        <vehicle id="synthetic-vehicle-1" x="210.00" y="200.00" speed="5.00"/>
+        <vehicle id="synthetic-vehicle-2" x="300.00" y="300.00" speed="7.00"/>
+    </timestep>
+</fcd-export>

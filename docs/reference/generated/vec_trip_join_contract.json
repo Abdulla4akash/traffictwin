@@ -1,0 +1,15 @@
+{
+  "join_key": "exact_sumo_vehicle_id",
+  "maximum_compressed_bytes": 20000000,
+  "maximum_uncompressed_bytes": 32000000,
+  "metric_boundary": "Only duration statistics over exact-ID matched complete trips are compatible with the existing trip.duration.* definitions; completion metrics are cohort-incompatible.",
+  "schema_version": "1.0",
+  "source_clock": "full_day_sumo_seconds_preserved",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "unavailable_claims": [
+    "filled trip values for excluded vehicles",
+    "cause of a missing trip record",
+    "completion rate over the full occupancy cohort",
+    "clock alignment inferred between tripinfo and trace-relative indices"
+  ]
+}

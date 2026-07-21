@@ -1,0 +1,1278 @@
+{
+  "admission": {
+    "canonical_rsu_utilisation_available": false,
+    "evidence_pack": {
+      "evidence_availability": {
+        "diagnosis": "partial",
+        "incidents": "unavailable",
+        "infrastructure": "partial",
+        "tasks": "available",
+        "traffic": "partial",
+        "trips": "available",
+        "vehicles": "available"
+      },
+      "excluded_record_counts": {
+        "trip_missing_before_boundary": 0,
+        "trip_right_censored": 39
+      },
+      "generated_at": "2026-07-21T12:00:00Z",
+      "metric_collection": {
+        "generated_at": "2026-07-21T12:00:00Z",
+        "input_fingerprint": "cee4f3546f7ecd9e8090970a7f4631a72673ce11a597608e390af3df5981d6ee",
+        "metric_version": "vec-scientific-admission-1.0",
+        "partial_count": 0,
+        "results": [
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "fairness.vehicle_tier.completion_rate.max_gap",
+            "missing_evidence": [
+              "slot-tier deadline success is not stable-vehicle physical completion"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "infra.queue.mean_tasks",
+            "missing_evidence": [
+              "canonical queue-length evidence is absent"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "tasks",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "infra.utilisation.mean",
+            "missing_evidence": [
+              "canonical CPU utilisation evidence is absent"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "spatial.rsu.task.completion_rate_by_target",
+            "missing_evidence": [
+              "eligible targets are not confirmed execution targets"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.completed.count",
+            "missing_evidence": [
+              "physical completion evidence is absent"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "count",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.completion.rate",
+            "missing_evidence": [
+              "physical completion evidence is absent"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.decision_share.local",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.604998581716297,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.decision_share.unknown",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.0,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.decision_share.v2i",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.2575861293783479,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.decision_share.v2v",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.13741528890535512,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.energy.per_completed_j",
+            "missing_evidence": [
+              "per-task energy evidence is absent"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "J/task",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.generated.count",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "count",
+            "value": 4145856,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.latency.mean_ms",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ms",
+            "value": 56.52545977593398,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "task.offload.rate",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.39500141828370305,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "group_count": 3,
+              "group_support_counts": {
+                "0": 1488020,
+                "1": 1466580,
+                "2": 1191256
+              }
+            },
+            "metric_key": "tos.operational.slot_tier.deadline_success.max_gap",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.15250548753199644,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "outcome_semantics": "deadline_met_per_arrival"
+            },
+            "metric_key": "tos.task.deadline_success.rate",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.9166922343660754,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "group_support_counts": {
+                "T1": 829128,
+                "T2": 1244342,
+                "T3": 2072386
+              },
+              "task_type_codes": "0=T1,1=T2,2=T3",
+              "unsupported_groups_omitted": true
+            },
+            "metric_key": "tos.task.deadline_success.rate_by_class",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "task_class",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": {
+              "T1": 0.8036660202043593,
+              "T2": 0.991360895959471,
+              "T3": 0.9170781891018372
+            },
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "attribute_interpretation": "operational_slot_assignment_not_protected_attribute",
+              "group_support_counts": {
+                "0": 1488020,
+                "1": 1466580,
+                "2": 1191256
+              }
+            },
+            "metric_key": "tos.task.deadline_success.rate_by_slot_tier",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "slot_tier",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": {
+              "0": 0.8249082673619978,
+              "1": 0.9604958474818966,
+              "2": 0.9774137548939943
+            },
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "failure_inferred": false,
+              "no_eligible_target_count": 1152,
+              "offload_task_count": 1637619
+            },
+            "metric_key": "tos.task.no_eligible_target.rate_among_offload",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": 0.0007034603286845109,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {},
+            "metric_key": "trip.completion.rate",
+            "missing_evidence": [
+              "the exact matched duration cohort excludes censored occupancy vehicles"
+            ],
+            "random_seed": 0,
+            "reason_codes": [
+              "REQUIRED_FIELD_UNAVAILABLE"
+            ],
+            "required_evidence": [],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "unavailable",
+            "synthetic": false,
+            "unit": "ratio",
+            "value": null,
+            "warnings": [
+              "VEC-09 refuses to infer or relabel the missing evidence."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.count",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "count",
+            "value": 13210,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.max_s",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "s",
+            "value": 574.0,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.mean_s",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "s",
+            "value": 210.52990158970476,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.min_s",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "s",
+            "value": 17.0,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.p50_s",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "s",
+            "value": 210.0,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          },
+          {
+            "algorithm": "audited-vec-source",
+            "checkpoint": null,
+            "computed_at": "2026-07-21T12:00:00Z",
+            "dimensions": {},
+            "environment": "randy-vec",
+            "environment_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+            "environment_version": "v2_post_nrsus_fix",
+            "experiment_id": null,
+            "implementation_version": "vec-scientific-admission-1.0",
+            "metadata": {
+              "cohort": "exact_id_matched_complete_occupancy_vehicles"
+            },
+            "metric_key": "trip.duration.p95_s",
+            "missing_evidence": [],
+            "random_seed": 0,
+            "reason_codes": [],
+            "required_evidence": [
+              "VEC-03 identity",
+              "VEC-04 reconciled task evidence"
+            ],
+            "run_id": "fcd_s102_uk2030_we_fs0",
+            "scope": "run",
+            "seed_id": "fcd_s102_uk2030_we_fs0",
+            "status": "available",
+            "synthetic": false,
+            "unit": "s",
+            "value": 322.0,
+            "warnings": [
+              "Audited VEC source evidence; deadline success is not physical completion.",
+              "No threshold was calibrated or evaluated by VEC-09."
+            ]
+          }
+        ],
+        "run_id": "fcd_s102_uk2030_we_fs0",
+        "unavailable_count": 8
+      },
+      "metric_engine_config": {
+        "metric_version": "vec-scientific-admission-1.0",
+        "minimum_sample_size": 1,
+        "percentile_method": "linear",
+        "relative_delta_zero_policy": "zero_if_both_zero_else_unavailable",
+        "saturation_max_gap_s": null,
+        "saturation_threshold": 0.9
+      },
+      "pack_id": "vec-science-cee4f3546f7e",
+      "provenance": {
+        "reproduction_report_fingerprint": "e062b7381e71e2f853324e6ca6299c1a7e577466aab76050a19a3b2cfe25e57e",
+        "task_join_report_fingerprint": "cee4f3546f7ecd9e8090970a7f4631a72673ce11a597608e390af3df5981d6ee"
+      },
+      "run_context": {
+        "environment": "randy-vec",
+        "environment_version": "v2_post_nrsus_fix",
+        "run_id": "fcd_s102_uk2030_we_fs0"
+      },
+      "schema_version": "1.0",
+      "source_bundle_fingerprint": "cee4f3546f7ecd9e8090970a7f4631a72673ce11a597608e390af3df5981d6ee",
+      "synthetic": false,
+      "temporal_evidence": null,
+      "validation_summary": {
+        "finding_count": 0,
+        "may_import": false,
+        "status": "accepted"
+      },
+      "warnings": [
+        "VEC evidence remains source-specific; no canonical task completion is claimed.",
+        "Diagnostic thresholds were not evaluated or calibrated by this admission step."
+      ]
+    },
+    "metric_decisions": [
+      {
+        "blocker": "slot-tier deadline success is not stable-vehicle physical completion",
+        "evidence": [
+          "slot-tier deadline success is not stable-vehicle physical completion"
+        ],
+        "metric_key": "fairness.vehicle_tier.completion_rate.max_gap",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": "canonical queue-length evidence is absent",
+        "evidence": [
+          "canonical queue-length evidence is absent"
+        ],
+        "metric_key": "infra.queue.mean_tasks",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": "canonical CPU utilisation evidence is absent",
+        "evidence": [
+          "canonical CPU utilisation evidence is absent"
+        ],
+        "metric_key": "infra.utilisation.mean",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": "eligible targets are not confirmed execution targets",
+        "evidence": [
+          "eligible targets are not confirmed execution targets"
+        ],
+        "metric_key": "spatial.rsu.task.completion_rate_by_target",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": "physical completion evidence is absent",
+        "evidence": [
+          "physical completion evidence is absent"
+        ],
+        "metric_key": "task.completed.count",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": "physical completion evidence is absent",
+        "evidence": [
+          "physical completion evidence is absent"
+        ],
+        "metric_key": "task.completion.rate",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.decision_share.local",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.decision_share.unknown",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.decision_share.v2i",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.decision_share.v2v",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": "per-task energy evidence is absent",
+        "evidence": [
+          "per-task energy evidence is absent"
+        ],
+        "metric_key": "task.energy.per_completed_j",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.generated.count",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.latency.mean_ms",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "task.offload.rate",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "tos.operational.slot_tier.deadline_success.max_gap",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_source_specific"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "tos.task.deadline_success.rate",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_source_specific"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "tos.task.deadline_success.rate_by_class",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_source_specific"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "tos.task.deadline_success.rate_by_slot_tier",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_source_specific"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "tos.task.no_eligible_target.rate_among_offload",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_source_specific"
+      },
+      {
+        "blocker": "the exact matched duration cohort excludes censored occupancy vehicles",
+        "evidence": [
+          "the exact matched duration cohort excludes censored occupancy vehicles"
+        ],
+        "metric_key": "trip.completion.rate",
+        "semantics": "VEC-09 refuses to infer or relabel the missing evidence.",
+        "status": "unavailable"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.count",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.max_s",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.mean_s",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.min_s",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.p50_s",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      },
+      {
+        "blocker": null,
+        "evidence": [
+          "VEC-03 identity",
+          "VEC-04 reconciled task evidence"
+        ],
+        "metric_key": "trip.duration.p95_s",
+        "semantics": "Audited VEC source evidence; deadline success is not physical completion.",
+        "status": "admitted_existing"
+      }
+    ],
+    "per_task_energy_available": false,
+    "physical_completion_available": false,
+    "reproduction_grade": "numerically_equivalent",
+    "reproduction_report_fingerprint": "e062b7381e71e2f853324e6ca6299c1a7e577466aab76050a19a3b2cfe25e57e",
+    "rule_readiness": [
+      {
+        "admitted_evidence": [
+          "task.generated.count",
+          "task.offload.rate"
+        ],
+        "finding_emitted": false,
+        "missing_evidence": [
+          "physical T1 completion",
+          "canonical infra.utilisation.mean"
+        ],
+        "rationale": "Deadline success and no-target evidence cannot satisfy R1's completion/utilisation contract.",
+        "rule_id": "R1",
+        "status": "blocked",
+        "threshold_evaluated": false
+      },
+      {
+        "admitted_evidence": [],
+        "finding_emitted": false,
+        "missing_evidence": [
+          "canonical utilisation",
+          "canonical queue trend",
+          "confirmed execution targets"
+        ],
+        "rationale": "RSU load/backlog and eligible targets do not satisfy the R2 infrastructure contract.",
+        "rule_id": "R2",
+        "status": "blocked",
+        "threshold_evaluated": false
+      },
+      {
+        "admitted_evidence": [
+          "tos.task.deadline_success.rate",
+          "task.latency.mean_ms"
+        ],
+        "finding_emitted": false,
+        "missing_evidence": [
+          "predeclared window design",
+          "predeclared threshold",
+          "development/held-out label"
+        ],
+        "rationale": "Temporal source evidence is constructible, but evaluation would require a separate predeclared design.",
+        "rule_id": "R6",
+        "status": "conditional",
+        "threshold_evaluated": false
+      },
+      {
+        "admitted_evidence": [
+          "tos.operational.slot_tier.deadline_success.max_gap"
+        ],
+        "finding_emitted": false,
+        "missing_evidence": [
+          "stable vehicle-tier physical completion under the R7 fairness policy"
+        ],
+        "rationale": "Operational slot-tier deadline success must not be relabelled as R7 completion fairness.",
+        "rule_id": "R7",
+        "status": "blocked",
+        "threshold_evaluated": false
+      }
+    ],
+    "run_label": "fcd_s102_uk2030_we_fs0",
+    "scenario": "we",
+    "schema_version": "1.0",
+    "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+    "status": "accepted",
+    "task_join_report_fingerprint": "cee4f3546f7ecd9e8090970a7f4631a72673ce11a597608e390af3df5981d6ee",
+    "thresholds_calibrated_on_evaluation": false,
+    "transfer_confirmation_available": false,
+    "trip_join_report_fingerprint": "2058c89845c8243f7538cf0cdaed0c65a1a5b4a716d20745e8c977dee36d5acd"
+  },
+  "capability": "VEC-09",
+  "external_source_unchanged": true,
+  "raw_vehicle_ids_published": false,
+  "reproduction_scope": "VEC-08 establishes the pinned engine path separately; VEC-09 computes metrics from the selected audited VEC-04/VEC-05 evidence run.",
+  "schema_version": "1.0",
+  "selected_run_label": "fcd_s102_uk2030_we_fs0",
+  "selection_label_preserved": "_s102_best_of_seeds",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "instrumented/perstep/fcd_s102_uk2030_we_fs0_perstep.npz",
+      "sha256": "bfc8a77282838d6947cacf566aaa36f094bdada30d5393044ee13fdd71d36291",
+      "size_bytes": 7160498
+    },
+    {
+      "path": "instrumented/pertask/fcd_s102_uk2030_we_fs0_pertask.npz",
+      "sha256": "c29e2e77d7bdac0ed421b9d2c8a07e267c79847ca11631c55cbe88ed825b274c",
+      "size_bytes": 29576306
+    },
+    {
+      "path": "occupancy/occupancy_we.csv",
+      "sha256": "258cc3f39e3d8789af70016d01278a426450d6aa0b6ce2db55c606923e9b7600",
+      "size_bytes": 323522
+    },
+    {
+      "path": "traces/trace_we_fullrsu.npz",
+      "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+      "size_bytes": 25976187
+    },
+    {
+      "path": "tripinfo/tripinfo_2024-09-15_weekend.xml.gz",
+      "sha256": "31d388c69c2a4899467e1f4733c1a5f041a6487356e63ee45fadfb8a59b667e5",
+      "size_bytes": 1073296
+    }
+  ],
+  "status": "accepted"
+}

@@ -1,0 +1,4298 @@
+{
+  "audit_method": {
+    "blob_access": "git show <commit>:<path>",
+    "external_repositories_modified": false,
+    "npz_loading": "numpy.load(..., allow_pickle=False)",
+    "occupancy_interval_interpretation": "inclusive t_enter/t_exit as documented by producer"
+  },
+  "audit_outcome": "accepted_with_scoped_blockers",
+  "capability_id": "VEC-01",
+  "claims_reconciliation": [
+    {
+      "claim": "The named trace/evaluator writers are present at the reviewed vec_env commit.",
+      "evidence": [
+        "docs/REPRODUCING.md",
+        "eval/build_trace.py",
+        "eval/eval_sumo_stage1_mc.py",
+        "eval/place_rsus_cover.py",
+        "eval/reconstruct_occupancy.py",
+        "jaxmarl/env/vec_jax.py",
+        "validation/fidelity_trace_replay.py"
+      ],
+      "status": "confirmed"
+    },
+    {
+      "claim": "Two frozen actor checkpoints are present and structurally loadable.",
+      "observed_bytes": [
+        21880,
+        21869
+      ],
+      "reported_approximate_bytes_each": 74000,
+      "status": "confirmed_with_size_mismatch"
+    },
+    {
+      "claim": "Occupancy tables exactly identify SUMO vehicle visits for all five traces.",
+      "status": "confirmed"
+    },
+    {
+      "claim": "The supplied scenario-day tripinfo files support exact-ID occupancy joins.",
+      "limit": "Some occupancy vehicles have no tripinfo record; most unmatched vehicles persist to the trace boundary, while the incident trace also has unmatched earlier exits.",
+      "status": "confirmed_with_incomplete_coverage"
+    },
+    {
+      "claim": "veh_best_rsu/veh_best_v2v identify an eligible decision-time target, with -1 for none.",
+      "limit": "The selected action can be V2I/V2V while its target is -1; action counts are decisions/attempts, not proof that a transfer occurred.",
+      "status": "confirmed_with_semantic_limit"
+    },
+    {
+      "claim": "Per-task evidence supports exact per-task energy and eventual physical completion.",
+      "eventual_physical_completion_absent": true,
+      "per_task_energy_absent": true,
+      "status": "not_supported"
+    },
+    {
+      "claim": "Any one-second SUMO FCD plus its network can pass through the same builder.",
+      "limits": [
+        "The builder emits dt=1.0 rather than deriving and rejecting non-one-second input.",
+        "The default RSU placement is tied to hard-coded Drakewell sensor coordinates."
+      ],
+      "status": "partially_confirmed"
+    },
+    {
+      "claim": "Sanitized samples and aggregates may be reused for the dissertation.",
+      "limit": "No repository licence or CITATION file was observed; permission does not admit raw/private artifacts for redistribution.",
+      "status": "confirmed_as_scoped_written_permission"
+    }
+  ],
+  "dependent_blockers": [
+    {
+      "blocks": [
+        "VEC-09"
+      ],
+      "detail": "The six per-task NPZ files contain no per-task energy field.",
+      "id": "per_task_energy_absent"
+    },
+    {
+      "blocks": [
+        "VEC-02",
+        "VEC-09"
+      ],
+      "detail": "task_met/done and JSON completion represent deadline success, not an eventual physical-completion event.",
+      "id": "eventual_physical_completion_absent"
+    },
+    {
+      "blocks": [
+        "VEC-04",
+        "VEC-09"
+      ],
+      "detail": "V2I/V2V action selections can have no eligible target; transfer claims require eligibility-aware treatment.",
+      "id": "action_is_not_transfer_proof"
+    },
+    {
+      "blocks": [
+        "VEC-06"
+      ],
+      "detail": "build_trace.py writes dt=1.0 and TrafficTwin must independently reject non-one-second input.",
+      "id": "fcd_resolution_not_enforced"
+    },
+    {
+      "blocks": [
+        "VEC-06"
+      ],
+      "detail": "The reviewed builder contains fixed Drakewell sensor locations; arbitrary networks need explicit placement inputs or a validated separate step.",
+      "id": "rsu_placement_is_manchester_specific"
+    },
+    {
+      "blocks": [
+        "VEC-07",
+        "VEC-08"
+      ],
+      "detail": "The evaluator prepends a fixed ~/scratch source path; a safe runner must control and verify import resolution.",
+      "id": "evaluator_repo_path_hard_coded"
+    },
+    {
+      "blocks": [
+        "VEC-12"
+      ],
+      "detail": "No licence/CITATION file was found; publication must remain within Randy's written sanitized-sample/aggregate permission.",
+      "id": "no_repository_licence"
+    }
+  ],
+  "evidence_inventory": {
+    "file_count": 154,
+    "files": [
+      {
+        "bytes": 8127,
+        "path": "DATA_DICTIONARY.md",
+        "repository": "tos-data",
+        "sha256": "3deee8db6a1436e8303b5f9b46f5fa6413941e609588334a85fa046d15c8e2eb"
+      },
+      {
+        "bytes": 2279,
+        "path": "README.md",
+        "repository": "tos-data",
+        "sha256": "4e713e1ec573e16674aed6376f8c379d7f0f9f7e1662468cc7a9610eb16bc26f"
+      },
+      {
+        "bytes": 21880,
+        "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+        "repository": "tos-data",
+        "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+      },
+      {
+        "bytes": 21869,
+        "path": "checkpoints/mappo_modelc_17dim_ukfleet2030__envs128__lr3e-3__seed100_actor_params.npz",
+        "repository": "tos-data",
+        "sha256": "b3eca1685245c59d1a3e86bd11ede887300bda1b00ba211a1913e467ad3f5183"
+      },
+      {
+        "bytes": 108933,
+        "path": "evals/eval_results_master.csv",
+        "repository": "tos-data",
+        "sha256": "71643348c724afb0bdc4d279813dba0bfd61dda78529d6417f73791f8d9ce7a6"
+      },
+      {
+        "bytes": 844,
+        "path": "instrumented/json/baseline_synthetic_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "519419f2d884235492e8852941420b99efbc24b7520521cf6720c8ab11eafdba"
+      },
+      {
+        "bytes": 858,
+        "path": "instrumented/json/baseline_synthetic_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "602018a363277a06bd7a88b8ea604987176ca21574d4b28fd5811954511d99df"
+      },
+      {
+        "bytes": 852,
+        "path": "instrumented/json/baseline_synthetic_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "e820e80707f24eaf8c617cf9efe8e425ee110a6cd5e1183406512274f60fef3e"
+      },
+      {
+        "bytes": 851,
+        "path": "instrumented/json/baseline_synthetic_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "1abba07fa0243516c09092d3f5efeb6771f7100fad8ff380e5dc458087b069fe"
+      },
+      {
+        "bytes": 844,
+        "path": "instrumented/json/baseline_synthetic_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "515a018b4216adafb7e6489b784bf7646fadf198c683815546b229fd191aac58"
+      },
+      {
+        "bytes": 843,
+        "path": "instrumented/json/baseline_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "df65b73062606acb7b1c728137c9cadae46ea3e1c1fe84a3fc354b9b4e504060"
+      },
+      {
+        "bytes": 851,
+        "path": "instrumented/json/baseline_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "69e9774338c4650a5465a516dd076553da37507e2a9b9d0fef18bc319d058404"
+      },
+      {
+        "bytes": 851,
+        "path": "instrumented/json/baseline_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "28113e2926815771bc49f5306779d1879fd796d58e10165a9a6d8bb64fa5b2a3"
+      },
+      {
+        "bytes": 848,
+        "path": "instrumented/json/baseline_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "f0cecd6db6eb6956fb52b7b5f9623119978560de8a2352d71d04bff486e78b32"
+      },
+      {
+        "bytes": 843,
+        "path": "instrumented/json/baseline_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "c3e3e6f4dc42e3e32f672393e54655eedff6f35af2f682350173f39489f0ae29"
+      },
+      {
+        "bytes": 864,
+        "path": "instrumented/json/caps_ippo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "b7eda6978eed194cb6f0d8dff45b98c5a5d097b7c1e6d8c8f3418cba33ef6859"
+      },
+      {
+        "bytes": 872,
+        "path": "instrumented/json/caps_ippo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "d3357919eb9ed323dd21e867cadec2657fefbefb7c5210742d3b4c393999cbee"
+      },
+      {
+        "bytes": 868,
+        "path": "instrumented/json/caps_ippo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "732bbd967a74e0e1a9aef06ecb092cb41a90b16138153839b046725e6916b792"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/caps_ippo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "6887db9d92c093dede1e16d04d0787b4ddd4f8fa4f9dfc2ebba563956b99b7eb"
+      },
+      {
+        "bytes": 863,
+        "path": "instrumented/json/caps_ippo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "27a208572dea745c3122bab273d9aa526354a73346a2f4c24636628a067fa32b"
+      },
+      {
+        "bytes": 864,
+        "path": "instrumented/json/caps_mappo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "ab5ab3b890dc04adb86c0c49cdf6264154d51aacc239607fb6a06b48278f89e9"
+      },
+      {
+        "bytes": 871,
+        "path": "instrumented/json/caps_mappo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "d0c128c4ba66f105d3295ad2eaf1db4ba87699991bcd68cce2b1060547bbf1fd"
+      },
+      {
+        "bytes": 869,
+        "path": "instrumented/json/caps_mappo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "499957af3f9917f4ece5c0c887c146e4138086406d6a18cb4a78c9a9d6530558"
+      },
+      {
+        "bytes": 868,
+        "path": "instrumented/json/caps_mappo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9aa5a3d1f2598f5a60cbfbeefdcfb3733939d1056fa00c68dcad57da09e5e4cb"
+      },
+      {
+        "bytes": 860,
+        "path": "instrumented/json/caps_mappo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "5ebe0a2a7f050040ff88a3b815ae02b23bbc1d30070c147aa5b2d84e04b4aae9"
+      },
+      {
+        "bytes": 866,
+        "path": "instrumented/json/fcd_s100_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "bcd5af506ee16a91b3f9254d88f95b52e3f6bc1af45613605a124789961b53db"
+      },
+      {
+        "bytes": 869,
+        "path": "instrumented/json/fcd_s100_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "8e94ad7081edfcd75839f25456a3e8e7815f590048b9efdb0ace46c841f7406e"
+      },
+      {
+        "bytes": 870,
+        "path": "instrumented/json/fcd_s100_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "c50655aa0610e3a47db568bc930794dc96ad42d8372f2e8bc1f6bef4e558a327"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/fcd_s100_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "541bef2166811642167c8777e49d5e60e0b7367ad209b560496fdd38c172f951"
+      },
+      {
+        "bytes": 864,
+        "path": "instrumented/json/fcd_s100_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "ed0f3f9ce417df77da9c25a87c1fdaf779d8febf07a6834658a8c073298af8dc"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/fcd_s102_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9f3d63e76fba4896951ecfea6218163e2ee1324ab3d177ff5d60db5aeac19b72"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/fcd_s102_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "1c55ffc430d46d9c6b8c49786eb03d925aa62290288887a620b943d01f92b203"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/fcd_s102_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "e43550926ccc7e49a8fc8624a146698e1c74ad9b7177146c7911fd6bd8cee824"
+      },
+      {
+        "bytes": 867,
+        "path": "instrumented/json/fcd_s102_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "99e73ae7dd02b516f4e4b3bba91c1209224829378b1aef9f7d553493234f79c7"
+      },
+      {
+        "bytes": 863,
+        "path": "instrumented/json/fcd_s102_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "626e07744a95c6baf49eba4b3c1b3412d5efbb401265a463e19ba5be0ebdca03"
+      },
+      {
+        "bytes": 866,
+        "path": "instrumented/json/glk_ippo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "0340d15c297b32325d350d2b2ca752f8633761434154a5db9dacc04e60d4100e"
+      },
+      {
+        "bytes": 875,
+        "path": "instrumented/json/glk_ippo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "4345c253383529c0a1ee7d2c8ec3953eba0f0c4dbebb5741b988f07e0a178a63"
+      },
+      {
+        "bytes": 872,
+        "path": "instrumented/json/glk_ippo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "ef5967c363d60d43ee775d347e73b45f0f3d4b05d02e691828aa89a07a75c750"
+      },
+      {
+        "bytes": 871,
+        "path": "instrumented/json/glk_ippo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "94361a8e0f31aa1f3aa20fdf166a06609228678e7757ad08605e8cd4eb0754ed"
+      },
+      {
+        "bytes": 868,
+        "path": "instrumented/json/glk_ippo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9f9dffbf424d0b41da0d7ff28dc06a81eb7a12cb8680b3aef66528c7ac808086"
+      },
+      {
+        "bytes": 868,
+        "path": "instrumented/json/glk_mappo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "198e4c65039595efa5d5393fed0d510da8b48872983bfbaab5ae15bcf27b7760"
+      },
+      {
+        "bytes": 880,
+        "path": "instrumented/json/glk_mappo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "18309eb3f4eac5be1ad091b99b3d5da9274250b83415cbf9fbc2a156374c13c1"
+      },
+      {
+        "bytes": 875,
+        "path": "instrumented/json/glk_mappo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "5fa7ac7325b249875925f6e6a9176b9e67ea83b93316dee2367a1e2c8fda7b54"
+      },
+      {
+        "bytes": 872,
+        "path": "instrumented/json/glk_mappo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "c1113b8e94c5f01ddfaa53843fa56a2d29fc7c8e4559f58cc5e5f6fec0182261"
+      },
+      {
+        "bytes": 869,
+        "path": "instrumented/json/glk_mappo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "463ddf625e91646e79a2dc219e333c6930e63f5030d7f116638686d3747b2627"
+      },
+      {
+        "bytes": 871,
+        "path": "instrumented/json/glkft_ippo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "a377310638b28119161854a7d3a24bac66cb7d0d96fa9be78cc5ce6f90a56e7d"
+      },
+      {
+        "bytes": 877,
+        "path": "instrumented/json/glkft_ippo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "84fad3cfe6ec2e30aa37de2717ca2afcca489d9584d1c161c9d87ec54fec5df2"
+      },
+      {
+        "bytes": 877,
+        "path": "instrumented/json/glkft_ippo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "4c1b662e0f7e3d1ab9e7f02228534d59140a0178985766e3c4aad63c02d82edf"
+      },
+      {
+        "bytes": 873,
+        "path": "instrumented/json/glkft_ippo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "25e678e4b574d55be8f67f6289c5b6e36d97cf096260c3c91466ab3f25747197"
+      },
+      {
+        "bytes": 871,
+        "path": "instrumented/json/glkft_ippo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "60299a52e02a82f6b6d0a3fb6f564529c41296d570fc5d952f163bffe29bb968"
+      },
+      {
+        "bytes": 873,
+        "path": "instrumented/json/glkft_mappo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "25f3314cdb0128c8f20eeaa4feb418ada6586c991946c4328cc71f3e0f4433f4"
+      },
+      {
+        "bytes": 877,
+        "path": "instrumented/json/glkft_mappo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "2e5e0b5c100658dd12b4e5fdd1b50a48f7760e8f13990e9c6890c83ee40b6468"
+      },
+      {
+        "bytes": 876,
+        "path": "instrumented/json/glkft_mappo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "0b52940db7c2bd43e5ee2b5390d081172b9f952e48c0d20568fe49eccf4bbad3"
+      },
+      {
+        "bytes": 874,
+        "path": "instrumented/json/glkft_mappo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9cea2fb114426c46849aef7c3cef6925d674e3f4b1c98586f4afe16972a1ca1b"
+      },
+      {
+        "bytes": 869,
+        "path": "instrumented/json/glkft_mappo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "d06bd4ff5e0fdaf3ca168177a32c7e93c52c3bbd60bce9240e9380c6513a34cc"
+      },
+      {
+        "bytes": 851,
+        "path": "instrumented/json/ukft_ippo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "c83b24cc31f9b64cc138d971ecca2c23762494402867e2f1fd9d01a6cd8370fc"
+      },
+      {
+        "bytes": 860,
+        "path": "instrumented/json/ukft_ippo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "0bc57d1ac5009e9315ea41d0af669896ed8b9848b77300cb740f336ab06efbb2"
+      },
+      {
+        "bytes": 861,
+        "path": "instrumented/json/ukft_ippo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "7a7e6d17df97ca69c25f9fd16aa34fd82d51b650ce012ced88baf6e2a9f01174"
+      },
+      {
+        "bytes": 859,
+        "path": "instrumented/json/ukft_ippo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "f00b63a60b8ff639edd5767ef7b1dedbc77685182244d8c24023c9eba9b67e44"
+      },
+      {
+        "bytes": 854,
+        "path": "instrumented/json/ukft_ippo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "c3c2f323813579467f30e5c32d2148702150306df1d7ca498ec20eb1e85905a1"
+      },
+      {
+        "bytes": 853,
+        "path": "instrumented/json/ukft_mappo_uk2030_ev_fs0.json",
+        "repository": "tos-data",
+        "sha256": "f98a0f390af781c52d15dd96e049b7171b71f2ea6ce33bdd790da773f7cc8fa0"
+      },
+      {
+        "bytes": 862,
+        "path": "instrumented/json/ukft_mappo_uk2030_inc_fs0.json",
+        "repository": "tos-data",
+        "sha256": "78a3b4121fee97e4178bb61db124b197cfdb352fb4f278479b1478f36db84c17"
+      },
+      {
+        "bytes": 861,
+        "path": "instrumented/json/ukft_mappo_uk2030_wd_am_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9e23ffb3951ad3ebb03d8fa05bcabf49997054a342b29d64cc0ff074b1d295b0"
+      },
+      {
+        "bytes": 856,
+        "path": "instrumented/json/ukft_mappo_uk2030_wd_pm_fs0.json",
+        "repository": "tos-data",
+        "sha256": "9f0a8347d014685ed7cd85b55cd6e9dd01e0fc5868427fab05137c0baafa74ae"
+      },
+      {
+        "bytes": 856,
+        "path": "instrumented/json/ukft_mappo_uk2030_we_fs0.json",
+        "repository": "tos-data",
+        "sha256": "8b2a91881fb2040abb04c441b335e445074b94cf04d854456bad7e31828d5546"
+      },
+      {
+        "bytes": 5583061,
+        "path": "instrumented/perstep/baseline_synthetic_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "341667e6a8b6804be6f25328ac3b6caa714192b7f3959ba744097ff5db7c999b"
+      },
+      {
+        "bytes": 20048804,
+        "path": "instrumented/perstep/baseline_synthetic_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "909d88d3a7fea96ea014db76aa9ed3ce16212db64630d2ede2c35aa3b6deb83e"
+      },
+      {
+        "bytes": 3192913,
+        "path": "instrumented/perstep/baseline_synthetic_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "e91f8fba6f5e84da37f5027d7ed3360d0f8a659438cc5f54869d5fb2c1d25633"
+      },
+      {
+        "bytes": 6687119,
+        "path": "instrumented/perstep/baseline_synthetic_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "37dbed48cceb6e19933215fc27b366b0c127ad3bec250f92e060fcf05b49b8db"
+      },
+      {
+        "bytes": 7227394,
+        "path": "instrumented/perstep/baseline_synthetic_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "fb095447be5a352a354af3abc1d2593ef4ce82d4f51c9ea1fcfac410aeff19b7"
+      },
+      {
+        "bytes": 5605799,
+        "path": "instrumented/perstep/baseline_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4f960276b0bf8094817ff5a5e03c8257299c8d88248c565b9f8cc2bd81132c40"
+      },
+      {
+        "bytes": 20135507,
+        "path": "instrumented/perstep/baseline_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "c02733a8d980c79a0c9d17463745461cc10fa44b41eba5240821651c0c7e677f"
+      },
+      {
+        "bytes": 3221395,
+        "path": "instrumented/perstep/baseline_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "e7e0eded7622bd223e991550c43c4289ca9be66e712520e014f44be1760c174b"
+      },
+      {
+        "bytes": 6731786,
+        "path": "instrumented/perstep/baseline_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "dc125cb0d5b702bc15796bc596abc1b27796387ad401f9d4fd6ec235718cfc51"
+      },
+      {
+        "bytes": 7250979,
+        "path": "instrumented/perstep/baseline_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "0e472520394bb5cc155cb0b18cb5707b728c49b4b83508ae8782ea4271202001"
+      },
+      {
+        "bytes": 5502052,
+        "path": "instrumented/perstep/caps_ippo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4a2bed0b91e8f7a3d7fcbed746e0b49356c3f0266891ecd9aceeec0177faa31a"
+      },
+      {
+        "bytes": 19949421,
+        "path": "instrumented/perstep/caps_ippo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "1f7af898f0c9940f949eae94bad2d77ec397e72a04bbfa78abc5dc7355cea826"
+      },
+      {
+        "bytes": 3173883,
+        "path": "instrumented/perstep/caps_ippo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "d01e77df797ef97341f7e2e4a3e2d217b1f32766afd4a6a449a09eb56931e133"
+      },
+      {
+        "bytes": 6642015,
+        "path": "instrumented/perstep/caps_ippo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "f921f0ec3139d23bbe3aaa0eb4978273c125d674eb8bc183257a25131d4ecd46"
+      },
+      {
+        "bytes": 7147524,
+        "path": "instrumented/perstep/caps_ippo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "25d17939f092582e2355dd856193143f9fdee37915a031391e4530f2176b16b1"
+      },
+      {
+        "bytes": 5520197,
+        "path": "instrumented/perstep/caps_mappo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "a260f7c5f30dcc176cad2b3c9d1e76575af69d23978aabb88bff973a075bc2e9"
+      },
+      {
+        "bytes": 19879487,
+        "path": "instrumented/perstep/caps_mappo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "daee4e5b0be0482add0d68dbcf78dd284d6b0dd98790f76b2c31a793cc5b6c83"
+      },
+      {
+        "bytes": 3157424,
+        "path": "instrumented/perstep/caps_mappo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "5a43d645d6401fcf18506c2eadae1dbd9abe7ff760795672612e5338eb0b54ed"
+      },
+      {
+        "bytes": 6606384,
+        "path": "instrumented/perstep/caps_mappo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "37718d103d52885617f44e9d50d2a6d7e91521af9526c8b2ccbfd59c77dbc729"
+      },
+      {
+        "bytes": 7129388,
+        "path": "instrumented/perstep/caps_mappo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "d45c553839388d9a91d413deab2ee91167c820387982857d9b29306724887e80"
+      },
+      {
+        "bytes": 5845793,
+        "path": "instrumented/perstep/fcd_s100_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "5a28a0d803793bd40efad5fe166c36758fc53f018ce508f334d05b53707991c5"
+      },
+      {
+        "bytes": 20589079,
+        "path": "instrumented/perstep/fcd_s100_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "5ce37ce64410c16a964195a7f9d3ecadf26e94dc4aa641628ae1ca0be4f7e8cb"
+      },
+      {
+        "bytes": 3352734,
+        "path": "instrumented/perstep/fcd_s100_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "72d2b2461f1d8eddfea172f3f1488197e2f9e064a69116c3d972fa342890f9c7"
+      },
+      {
+        "bytes": 7034286,
+        "path": "instrumented/perstep/fcd_s100_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "af934a29ff2d1c4dee75b7fb1488886687920f99db1ece3400a852c1513f3ea1"
+      },
+      {
+        "bytes": 7575793,
+        "path": "instrumented/perstep/fcd_s100_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "8c4bb7b331ad2b472e1655c687285d6614b512c6d9e9efabd2c0a76c8bd95dee"
+      },
+      {
+        "bytes": 5546577,
+        "path": "instrumented/perstep/fcd_s102_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "dc03d7e37f2099cd63053774b0d4f045c531403468ac57a3140b6285540bf0e0"
+      },
+      {
+        "bytes": 19933266,
+        "path": "instrumented/perstep/fcd_s102_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "0094bf67c07be5b34570a6164b71dd90eac1b6698133be9a5677aea13628c9bb"
+      },
+      {
+        "bytes": 3171248,
+        "path": "instrumented/perstep/fcd_s102_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "c1b2bf9690f6be69edb4e16fad9ea0aa59f5b2fcd12133e2abfee9b1d5163694"
+      },
+      {
+        "bytes": 6649366,
+        "path": "instrumented/perstep/fcd_s102_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "f6e991d2c772fbf6504b018d1fde19cf04791b4f6505157fd1c95df1cd8b2f50"
+      },
+      {
+        "bytes": 7160498,
+        "path": "instrumented/perstep/fcd_s102_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "bfc8a77282838d6947cacf566aaa36f094bdada30d5393044ee13fdd71d36291"
+      },
+      {
+        "bytes": 5800974,
+        "path": "instrumented/perstep/glk_ippo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "a6004dc38de4c96ebe94e21d183a69f387f784acce7372c2f4a1a59781c08152"
+      },
+      {
+        "bytes": 20028144,
+        "path": "instrumented/perstep/glk_ippo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "b853d2ba5708e3b0329e11ad632b1e23c04ed75f240aa51f02cefec8a2f3d28f"
+      },
+      {
+        "bytes": 3271004,
+        "path": "instrumented/perstep/glk_ippo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "fec1a0ff22a8ae9c723c3bd08769fe99fa5f8d562c6558b018e94cf60c2d77ca"
+      },
+      {
+        "bytes": 6809014,
+        "path": "instrumented/perstep/glk_ippo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4eebfcb850e6d50e046977bd79137d46563c7ac1799cc80f5205ba5af5a60d41"
+      },
+      {
+        "bytes": 7439582,
+        "path": "instrumented/perstep/glk_ippo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "7122db521b506f4aa97c33ce643ced34a67e1889b7afadd89051220d26df8daa"
+      },
+      {
+        "bytes": 5794563,
+        "path": "instrumented/perstep/glk_mappo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "959272435ac67b94d04730b004cbd8a86116056a8e95a578beea2e11605ad901"
+      },
+      {
+        "bytes": 19421326,
+        "path": "instrumented/perstep/glk_mappo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "75a49a48eff51c53e401e2fcfdfca1249a9675dc82a716e6ae98fd2d88c3630d"
+      },
+      {
+        "bytes": 3258679,
+        "path": "instrumented/perstep/glk_mappo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "89eb70433c4dc4cfeb2279aa87b7153995e6e419b898267abab796c48985ddea"
+      },
+      {
+        "bytes": 6761324,
+        "path": "instrumented/perstep/glk_mappo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4f498f16cf1f739a098532bc1453d8e673601becf1cc131303553a9c43967bee"
+      },
+      {
+        "bytes": 7390325,
+        "path": "instrumented/perstep/glk_mappo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "2035b9a5e9ef512bbfd33241ab9a35eabdee6454a923c2d1216400b8fb5593c9"
+      },
+      {
+        "bytes": 5777300,
+        "path": "instrumented/perstep/glkft_ippo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "6ea4cffe3d58e9c474e3228a982bc6449f6288c0e89002c1f3a565e303cd6264"
+      },
+      {
+        "bytes": 19786578,
+        "path": "instrumented/perstep/glkft_ippo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "8a3dc3bba915199cb73e3c5abaffc56eac096fbeb5448a819f31c4b47cec69a9"
+      },
+      {
+        "bytes": 3259106,
+        "path": "instrumented/perstep/glkft_ippo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "cd0144b5bd185e6a4bd8433b589eeec5ef30475741264d6fd417290566e67506"
+      },
+      {
+        "bytes": 6809871,
+        "path": "instrumented/perstep/glkft_ippo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "bed41be4c94219d77803eb12d32fced295bc4be81daa6ceeed598e5600ae9cf1"
+      },
+      {
+        "bytes": 7401201,
+        "path": "instrumented/perstep/glkft_ippo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "b2df1c822c08417d8302e0341e0609e39e6ec4fe9a36dc3b39007565b6651742"
+      },
+      {
+        "bytes": 5756674,
+        "path": "instrumented/perstep/glkft_mappo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "8248f3ea1add8ed6a6c082f2951103ab275a8746935c6e6f9437e4a3d48efa22"
+      },
+      {
+        "bytes": 19834211,
+        "path": "instrumented/perstep/glkft_mappo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "f4e5d4a90b9e26ab98b236aa255f4e8c5e0c56418b619c4aa77a35b9997141e2"
+      },
+      {
+        "bytes": 3256905,
+        "path": "instrumented/perstep/glkft_mappo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4622e84cb888707e124a398aa4a6a50785aff6ac85b254cd08d1b7a38ba4da28"
+      },
+      {
+        "bytes": 6824983,
+        "path": "instrumented/perstep/glkft_mappo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "0451ed8272062a6f3cc5ad64cf80069ca9400eff7bb92c58ef1e8610b4e3e7e3"
+      },
+      {
+        "bytes": 7400954,
+        "path": "instrumented/perstep/glkft_mappo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "5a9c2a25b6d4f3f781161b5aae644b64d6e48d6221af5d9df1bb06f6f08d42ef"
+      },
+      {
+        "bytes": 5555706,
+        "path": "instrumented/perstep/ukft_ippo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "1ad00c099989a4f0293f923adb14ecace7f20af7aaf3ee13df4a757aad462a58"
+      },
+      {
+        "bytes": 20057129,
+        "path": "instrumented/perstep/ukft_ippo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "331987d7caaacb2f497530db4510909aaddbff58ee6ea3e0bfa3233e7589ebf9"
+      },
+      {
+        "bytes": 3200272,
+        "path": "instrumented/perstep/ukft_ippo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "88d7403beae6891ec1ec4925e10feb91d2e73151218ee5f2a647ccf63200a326"
+      },
+      {
+        "bytes": 6688680,
+        "path": "instrumented/perstep/ukft_ippo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "4a08326fa2a0b24993e74aff2a0a09fee3132fabaf7767514082435a4b5ee999"
+      },
+      {
+        "bytes": 7214958,
+        "path": "instrumented/perstep/ukft_ippo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "d6f16f7cfd544d28d0a7bc6a0270081f6264e10d6c115ac5a7ed46c965aa8d50"
+      },
+      {
+        "bytes": 5436147,
+        "path": "instrumented/perstep/ukft_mappo_uk2030_ev_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "82a8428a94517fcea0e0cf3f39a8b3147283890b08b26900b1da089c10891b3b"
+      },
+      {
+        "bytes": 19752645,
+        "path": "instrumented/perstep/ukft_mappo_uk2030_inc_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "c17337f25c4f48c0ef0adc20f8e3531aeafc3ae4a0a3a7334cd804daadbfd93c"
+      },
+      {
+        "bytes": 3143707,
+        "path": "instrumented/perstep/ukft_mappo_uk2030_wd_am_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "9f42e9b814febc9d037efab3c705b3e3d9aff011589750a92f9afefd2d0dcc75"
+      },
+      {
+        "bytes": 6593271,
+        "path": "instrumented/perstep/ukft_mappo_uk2030_wd_pm_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "69fa67c9464f1422be5bc2ec06779f3fc3c430bb2cf0e7cb3147f6becfea5cc5"
+      },
+      {
+        "bytes": 7066663,
+        "path": "instrumented/perstep/ukft_mappo_uk2030_we_fs0_perstep.npz",
+        "repository": "tos-data",
+        "sha256": "c23c683e0589da0e78f193ceabed418636dc4e93be4f9ee7b4cefaa1aa602775"
+      },
+      {
+        "bytes": 77140910,
+        "path": "instrumented/pertask/baseline_uk2030_inc_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "2f738fa20e4173753942136b2e5d39a031ee7ba40a24f0d446f44e58b3541929"
+      },
+      {
+        "bytes": 13184042,
+        "path": "instrumented/pertask/baseline_uk2030_wd_am_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "de6536741c5816d33e2a7c22635353ef6c77ccebe17d3b61c828c91c3382ad5a"
+      },
+      {
+        "bytes": 29576306,
+        "path": "instrumented/pertask/fcd_s102_uk2030_we_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "c29e2e77d7bdac0ed421b9d2c8a07e267c79847ca11631c55cbe88ed825b274c"
+      },
+      {
+        "bytes": 71299823,
+        "path": "instrumented/pertask/glk_mappo_uk2030_inc_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "df4a7b73f3f172144f15c1979ba734a90b0863e14558e0f2154cf5ec2868760c"
+      },
+      {
+        "bytes": 77724634,
+        "path": "instrumented/pertask/ukft_mappo_uk2030_inc_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "dc242708f98e6302bfab6c327c95a66604448dc615144dd743c8c3938d1d6389"
+      },
+      {
+        "bytes": 13183787,
+        "path": "instrumented/pertask/ukft_mappo_uk2030_wd_am_fs0_pertask.npz",
+        "repository": "tos-data",
+        "sha256": "48447ad7ee8ec3abfdea72d7a6838213f54ab7ac66594857db281cf9992649e9"
+      },
+      {
+        "bytes": 221257,
+        "path": "occupancy/occupancy_ev.csv",
+        "repository": "tos-data",
+        "sha256": "88a2ff15dd0612fe00ea71d4537d44b85e2e00feed4905fba4aaa4bb3e6c8d2f"
+      },
+      {
+        "bytes": 122076,
+        "path": "occupancy/occupancy_inc.csv",
+        "repository": "tos-data",
+        "sha256": "c4e59a7e43e51075a5951d94f5b992ef77535464cd420881bdbc2048b20729be"
+      },
+      {
+        "bytes": 126812,
+        "path": "occupancy/occupancy_wd_am.csv",
+        "repository": "tos-data",
+        "sha256": "203172baab0785a5a9e863a0843f73fa720b818d3ac77cb21cb81aba3e471cb5"
+      },
+      {
+        "bytes": 300290,
+        "path": "occupancy/occupancy_wd_pm.csv",
+        "repository": "tos-data",
+        "sha256": "7f45a3e924a5f1491af93980ccc02a7ecd1147bfb47917cd3f198d9a3ca80512"
+      },
+      {
+        "bytes": 323522,
+        "path": "occupancy/occupancy_we.csv",
+        "repository": "tos-data",
+        "sha256": "258cc3f39e3d8789af70016d01278a426450d6aa0b6ce2db55c606923e9b7600"
+      },
+      {
+        "bytes": 19000923,
+        "path": "traces/trace_ev_fullrsu.npz",
+        "repository": "tos-data",
+        "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208"
+      },
+      {
+        "bytes": 5964044,
+        "path": "traces/trace_inc_fullrsu.npz",
+        "repository": "tos-data",
+        "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+      },
+      {
+        "bytes": 10965874,
+        "path": "traces/trace_wd_am_fullrsu.npz",
+        "repository": "tos-data",
+        "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee"
+      },
+      {
+        "bytes": 23900327,
+        "path": "traces/trace_wd_pm_fullrsu.npz",
+        "repository": "tos-data",
+        "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f"
+      },
+      {
+        "bytes": 25976187,
+        "path": "traces/trace_we_fullrsu.npz",
+        "repository": "tos-data",
+        "sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be"
+      },
+      {
+        "bytes": 1491129,
+        "path": "tripinfo/tripinfo_2024-03-15_incident_reactive.xml.gz",
+        "repository": "tos-data",
+        "sha256": "1783652cfac7d92758c17046f228a3ae78dd0369f60ee425ce0737bd519a7fb7"
+      },
+      {
+        "bytes": 1073296,
+        "path": "tripinfo/tripinfo_2024-09-15_weekend.xml.gz",
+        "repository": "tos-data",
+        "sha256": "31d388c69c2a4899467e1f4733c1a5f041a6487356e63ee45fadfb8a59b667e5"
+      },
+      {
+        "bytes": 1569441,
+        "path": "tripinfo/tripinfo_2024-09-18_ucl_event.xml.gz",
+        "repository": "tos-data",
+        "sha256": "7b41036f7655289bd79c24185754eb911032f026af27adf92ac96d574c33bdad"
+      },
+      {
+        "bytes": 1399968,
+        "path": "tripinfo/tripinfo_2024-10-15_workingday.xml.gz",
+        "repository": "tos-data",
+        "sha256": "05d5a7cdfa705cdb046d6f92caf56104d03ce54e15543f5cf0d8c5ce44f170c9"
+      },
+      {
+        "bytes": 183743,
+        "path": "randy-email-page-1.jpg",
+        "repository": "user-supplied-randy-email",
+        "sha256": "a0760aeb993708a570ffb409891d3e9401eb74307e6323a0e29bce924ea51297"
+      },
+      {
+        "bytes": 153855,
+        "path": "randy-email-page-2.jpg",
+        "repository": "user-supplied-randy-email",
+        "sha256": "40169fa54346c1a4c5ddfd5130b24c2c4ad523587ad2b959058111ba6b1c9029"
+      },
+      {
+        "bytes": 5039,
+        "path": "docs/REPRODUCING.md",
+        "repository": "vec_env",
+        "sha256": "a1ace4a668736bab7477d6e42a2625bf345171903a23a149fc5a343a8486bf36"
+      },
+      {
+        "bytes": 6030,
+        "path": "eval/build_trace.py",
+        "repository": "vec_env",
+        "sha256": "5af3aa9b284dd06a9e25989fbb7e9060227c7906a2754e9c5436ddd925090387"
+      },
+      {
+        "bytes": 21359,
+        "path": "eval/eval_sumo_stage1_mc.py",
+        "repository": "vec_env",
+        "sha256": "52490949e9d35cfaed2f9ba03ac92b08b475de503715a1967bc74950b689bf7c"
+      },
+      {
+        "bytes": 3043,
+        "path": "eval/place_rsus_cover.py",
+        "repository": "vec_env",
+        "sha256": "33928f4113988ee39f75ff06d99f2c01061182f9d0f17092e051a159a42840a0"
+      },
+      {
+        "bytes": 3665,
+        "path": "eval/reconstruct_occupancy.py",
+        "repository": "vec_env",
+        "sha256": "019e75397d4889955b3b4608318297cd112e00e698281a06468dd8d683d5a6ad"
+      },
+      {
+        "bytes": 79253,
+        "path": "jaxmarl/env/vec_jax.py",
+        "repository": "vec_env",
+        "sha256": "4eed6b61f157b9a1ba203d0095acdecb0741f2da8d7fc4f411b6ee16a0bdd4f9"
+      },
+      {
+        "bytes": 3175,
+        "path": "validation/fidelity_trace_replay.py",
+        "repository": "vec_env",
+        "sha256": "5b45dab73217db21b2d9f31c20ff8134f9250d4e1874e0d4e887d32373b8e5b5"
+      }
+    ],
+    "total_bytes": 889261811
+  },
+  "observations": {
+    "checkpoints": {
+      "file_count": 2,
+      "files": [
+        {
+          "all_parameters_float32": true,
+          "bytes": 21880,
+          "exact_parameter_names": true,
+          "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+          "schema": {
+            "Dense_0.bias": {
+              "dtype": "float32",
+              "shape": [
+                64
+              ]
+            },
+            "Dense_0.kernel": {
+              "dtype": "float32",
+              "shape": [
+                17,
+                64
+              ]
+            },
+            "Dense_1.bias": {
+              "dtype": "float32",
+              "shape": [
+                64
+              ]
+            },
+            "Dense_1.kernel": {
+              "dtype": "float32",
+              "shape": [
+                64,
+                64
+              ]
+            },
+            "Dense_2.bias": {
+              "dtype": "float32",
+              "shape": [
+                3
+              ]
+            },
+            "Dense_2.kernel": {
+              "dtype": "float32",
+              "shape": [
+                64,
+                3
+              ]
+            }
+          },
+          "shapes_match_17x64x64x3_actor": true
+        },
+        {
+          "all_parameters_float32": true,
+          "bytes": 21869,
+          "exact_parameter_names": true,
+          "path": "checkpoints/mappo_modelc_17dim_ukfleet2030__envs128__lr3e-3__seed100_actor_params.npz",
+          "schema": {
+            "Dense_0.bias": {
+              "dtype": "float32",
+              "shape": [
+                64
+              ]
+            },
+            "Dense_0.kernel": {
+              "dtype": "float32",
+              "shape": [
+                17,
+                64
+              ]
+            },
+            "Dense_1.bias": {
+              "dtype": "float32",
+              "shape": [
+                64
+              ]
+            },
+            "Dense_1.kernel": {
+              "dtype": "float32",
+              "shape": [
+                64,
+                64
+              ]
+            },
+            "Dense_2.bias": {
+              "dtype": "float32",
+              "shape": [
+                3
+              ]
+            },
+            "Dense_2.kernel": {
+              "dtype": "float32",
+              "shape": [
+                64,
+                3
+              ]
+            }
+          },
+          "shapes_match_17x64x64x3_actor": true
+        }
+      ]
+    },
+    "evaluation_master": {
+      "cell_values": [
+        "ev",
+        "inc",
+        "wd_am",
+        "wd_pm",
+        "we"
+      ],
+      "columns": [
+        "campaign",
+        "cell",
+        "eval_fleet",
+        "fleet_seed",
+        "actor",
+        "obs_variant",
+        "completion",
+        "t1_completion",
+        "t2_completion",
+        "t3_completion",
+        "avg_energy_j_per_task",
+        "avg_latency_ms_per_task",
+        "p_local",
+        "p_v2i",
+        "p_v2v",
+        "fleet_ev_share",
+        "T",
+        "maxN",
+        "trace",
+        "engine_version"
+      ],
+      "engine_values": [
+        "v2_post_nrsus_fix"
+      ],
+      "path": "evals/eval_results_master.csv",
+      "row_count": 300
+    },
+    "licence_files": {
+      "tos-data": [],
+      "vec_env": []
+    },
+    "perstep": {
+      "action_target_counts": {
+        "v2i_decision_rows_with_tasks": 48693467,
+        "v2i_decision_rows_without_eligible_target": 4368,
+        "v2v_decision_rows_with_tasks": 39956365,
+        "v2v_decision_rows_without_eligible_target": 55658
+      },
+      "expected_key_schema": [
+        "active",
+        "arrivals",
+        "done",
+        "lat_sum",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "rsu_busy_ms",
+        "rsu_load",
+        "slot_is_ev",
+        "slot_tier",
+        "times",
+        "veh_action",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_k",
+        "veh_queue_ms"
+      ],
+      "failed_check_counts": {},
+      "file_count": 60,
+      "files": [
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 369889,
+            "v2i_decision_rows_without_eligible_target": 38,
+            "v2v_decision_rows_with_tasks": 227783,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00015907042826768247,
+            "completion": 0.0,
+            "fleet_ev_share": 5.108969358680326e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_synthetic_ev_fs0.json",
+          "path": "instrumented/perstep/baseline_synthetic_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 2078207,
+            "v2i_decision_rows_without_eligible_target": 107,
+            "v2v_decision_rows_with_tasks": 1439479,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.05271496747445781,
+            "completion": 0.0,
+            "fleet_ev_share": -2.0123754884693312e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_synthetic_inc_fs0.json",
+          "path": "instrumented/perstep/baseline_synthetic_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 292935,
+            "v2i_decision_rows_without_eligible_target": 41,
+            "v2v_decision_rows_with_tasks": 155360,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0001565508562322293,
+            "completion": 0.0,
+            "fleet_ev_share": -6.376310812683528e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_synthetic_wd_am_fs0.json",
+          "path": "instrumented/perstep/baseline_synthetic_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 825760,
+            "v2i_decision_rows_without_eligible_target": 101,
+            "v2v_decision_rows_with_tasks": 337129,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00043049189065413884,
+            "completion": 0.0,
+            "fleet_ev_share": 1.3164216022820696e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_synthetic_wd_pm_fs0.json",
+          "path": "instrumented/perstep/baseline_synthetic_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 731308,
+            "v2i_decision_rows_without_eligible_target": 84,
+            "v2v_decision_rows_with_tasks": 373360,
+            "v2v_decision_rows_without_eligible_target": 4
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00024158967612208926,
+            "completion": 0.0,
+            "fleet_ev_share": -5.360129951004211e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_synthetic_we_fs0.json",
+          "path": "instrumented/perstep/baseline_synthetic_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 191811,
+            "v2i_decision_rows_without_eligible_target": 21,
+            "v2v_decision_rows_with_tasks": 289833,
+            "v2v_decision_rows_without_eligible_target": 3
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00021579518526237962,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/baseline_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1378779,
+            "v2i_decision_rows_without_eligible_target": 66,
+            "v2v_decision_rows_with_tasks": 1781690,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.012523249239166034,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/baseline_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 196592,
+            "v2i_decision_rows_without_eligible_target": 28,
+            "v2v_decision_rows_with_tasks": 198553,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 6.019771350196379e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/baseline_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 542854,
+            "v2i_decision_rows_without_eligible_target": 56,
+            "v2v_decision_rows_with_tasks": 415734,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00016279723461565254,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/baseline_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 438123,
+            "v2i_decision_rows_without_eligible_target": 44,
+            "v2v_decision_rows_with_tasks": 448784,
+            "v2v_decision_rows_without_eligible_target": 5
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00010911561436444117,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/baseline_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/baseline_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 176735,
+            "v2i_decision_rows_without_eligible_target": 21,
+            "v2v_decision_rows_with_tasks": 235171,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00011359216073003608,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_ippo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/caps_ippo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1206193,
+            "v2i_decision_rows_without_eligible_target": 61,
+            "v2v_decision_rows_with_tasks": 1639979,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.013590442973509198,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_ippo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/caps_ippo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 185840,
+            "v2i_decision_rows_without_eligible_target": 33,
+            "v2v_decision_rows_with_tasks": 180600,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -6.903320535656121e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_ippo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/caps_ippo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 520073,
+            "v2i_decision_rows_without_eligible_target": 63,
+            "v2v_decision_rows_with_tasks": 377954,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00019768662166796958,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_ippo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/caps_ippo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 420102,
+            "v2i_decision_rows_without_eligible_target": 42,
+            "v2v_decision_rows_with_tasks": 384283,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 9.210117182334443e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_ippo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/caps_ippo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 258360,
+            "v2i_decision_rows_without_eligible_target": 24,
+            "v2v_decision_rows_with_tasks": 157220,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 8.974487612078974e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_mappo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/caps_mappo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1795488,
+            "v2i_decision_rows_without_eligible_target": 94,
+            "v2v_decision_rows_with_tasks": 1025063,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.03711629625104251,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_mappo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/caps_mappo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 259083,
+            "v2i_decision_rows_without_eligible_target": 40,
+            "v2v_decision_rows_with_tasks": 103831,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00017463634277703477,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_mappo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/caps_mappo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 665601,
+            "v2i_decision_rows_without_eligible_target": 70,
+            "v2v_decision_rows_with_tasks": 235961,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -6.365326120771897e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_mappo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/caps_mappo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 546860,
+            "v2i_decision_rows_without_eligible_target": 57,
+            "v2v_decision_rows_with_tasks": 259074,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -4.537438387330894e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/caps_mappo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/caps_mappo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 242991,
+            "v2i_decision_rows_without_eligible_target": 45,
+            "v2v_decision_rows_with_tasks": 988017,
+            "v2v_decision_rows_without_eligible_target": 9455
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00035695671954272257,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s100_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/fcd_s100_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1201256,
+            "v2i_decision_rows_without_eligible_target": 79,
+            "v2v_decision_rows_with_tasks": 4494821,
+            "v2v_decision_rows_without_eligible_target": 25
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0009183263318846002,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s100_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/fcd_s100_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 211069,
+            "v2i_decision_rows_without_eligible_target": 35,
+            "v2v_decision_rows_with_tasks": 542142,
+            "v2v_decision_rows_without_eligible_target": 3158
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -3.503053017084312e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s100_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/fcd_s100_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 464884,
+            "v2i_decision_rows_without_eligible_target": 72,
+            "v2v_decision_rows_with_tasks": 1261831,
+            "v2v_decision_rows_without_eligible_target": 8422
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -8.38227424537763e-06,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s100_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/fcd_s100_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 461851,
+            "v2i_decision_rows_without_eligible_target": 84,
+            "v2v_decision_rows_with_tasks": 1346418,
+            "v2v_decision_rows_without_eligible_target": 12625
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00019553119187776247,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s100_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/fcd_s100_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 261848,
+            "v2i_decision_rows_without_eligible_target": 20,
+            "v2v_decision_rows_with_tasks": 189771,
+            "v2v_decision_rows_without_eligible_target": 395
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -5.9651874103394675e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s102_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/fcd_s102_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1717597,
+            "v2i_decision_rows_without_eligible_target": 69,
+            "v2v_decision_rows_with_tasks": 1186255,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0029521066608140245,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s102_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/fcd_s102_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 214071,
+            "v2i_decision_rows_without_eligible_target": 36,
+            "v2v_decision_rows_with_tasks": 158422,
+            "v2v_decision_rows_without_eligible_target": 165
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 5.216238014327246e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s102_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/fcd_s102_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 568674,
+            "v2i_decision_rows_without_eligible_target": 60,
+            "v2v_decision_rows_with_tasks": 355314,
+            "v2v_decision_rows_without_eligible_target": 815
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -4.840658030502709e-05,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s102_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/fcd_s102_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 555448,
+            "v2i_decision_rows_without_eligible_target": 50,
+            "v2v_decision_rows_with_tasks": 295850,
+            "v2v_decision_rows_without_eligible_target": 533
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00016993596239700537,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/fcd_s102_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/fcd_s102_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 404474,
+            "v2i_decision_rows_without_eligible_target": 50,
+            "v2v_decision_rows_with_tasks": 436649,
+            "v2v_decision_rows_without_eligible_target": 6516
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0001709014447754953,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_ippo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/glk_ippo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 2506446,
+            "v2i_decision_rows_without_eligible_target": 129,
+            "v2v_decision_rows_with_tasks": 1641922,
+            "v2v_decision_rows_without_eligible_target": 19
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.055035599318216555,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_ippo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/glk_ippo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 334910,
+            "v2i_decision_rows_without_eligible_target": 52,
+            "v2v_decision_rows_with_tasks": 200333,
+            "v2v_decision_rows_without_eligible_target": 1823
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00016795976648609212,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_ippo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/glk_ippo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 812335,
+            "v2i_decision_rows_without_eligible_target": 103,
+            "v2v_decision_rows_with_tasks": 428282,
+            "v2v_decision_rows_without_eligible_target": 3842
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00027798780656951294,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_ippo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/glk_ippo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 698358,
+            "v2i_decision_rows_without_eligible_target": 92,
+            "v2v_decision_rows_with_tasks": 609223,
+            "v2v_decision_rows_without_eligible_target": 7809
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0001372882039305523,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_ippo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/glk_ippo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 811240,
+            "v2i_decision_rows_without_eligible_target": 79,
+            "v2v_decision_rows_with_tasks": 180378,
+            "v2v_decision_rows_without_eligible_target": 4
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.0002399578361149679,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_mappo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/glk_mappo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 3876955,
+            "v2i_decision_rows_without_eligible_target": 191,
+            "v2v_decision_rows_with_tasks": 648753,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.08117302734171972,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_mappo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/glk_mappo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 512730,
+            "v2i_decision_rows_without_eligible_target": 80,
+            "v2v_decision_rows_with_tasks": 76542,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00018547097056398343,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_mappo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/glk_mappo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1196929,
+            "v2i_decision_rows_without_eligible_target": 140,
+            "v2v_decision_rows_with_tasks": 148221,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -2.227776576546603e-07,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_mappo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/glk_mappo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1188106,
+            "v2i_decision_rows_without_eligible_target": 153,
+            "v2v_decision_rows_with_tasks": 237904,
+            "v2v_decision_rows_without_eligible_target": 7
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -3.738861468605137e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glk_mappo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/glk_mappo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 677787,
+            "v2i_decision_rows_without_eligible_target": 78,
+            "v2v_decision_rows_with_tasks": 411957,
+            "v2v_decision_rows_without_eligible_target": 2
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00029411464011275257,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_ippo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/glkft_ippo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 3303345,
+            "v2i_decision_rows_without_eligible_target": 178,
+            "v2v_decision_rows_with_tasks": 1899948,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.013322528488060925,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_ippo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/glkft_ippo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 472454,
+            "v2i_decision_rows_without_eligible_target": 73,
+            "v2v_decision_rows_with_tasks": 191976,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.0001085951196557744,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_ippo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/glkft_ippo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1086361,
+            "v2i_decision_rows_without_eligible_target": 137,
+            "v2v_decision_rows_with_tasks": 403077,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00035045730341209946,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_ippo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/glkft_ippo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1058301,
+            "v2i_decision_rows_without_eligible_target": 143,
+            "v2v_decision_rows_with_tasks": 547426,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -9.27663544700863e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_ippo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/glkft_ippo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 604443,
+            "v2i_decision_rows_without_eligible_target": 94,
+            "v2v_decision_rows_with_tasks": 626988,
+            "v2v_decision_rows_without_eligible_target": 5
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00041531166051811397,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_mappo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/glkft_mappo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 3099616,
+            "v2i_decision_rows_without_eligible_target": 173,
+            "v2v_decision_rows_with_tasks": 2316377,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.03951336447062204,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_mappo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/glkft_mappo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 455244,
+            "v2i_decision_rows_without_eligible_target": 74,
+            "v2v_decision_rows_with_tasks": 275782,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00018396293646105732,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_mappo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/glkft_mappo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 990124,
+            "v2i_decision_rows_without_eligible_target": 146,
+            "v2v_decision_rows_with_tasks": 601780,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00030005987375147924,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_mappo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/glkft_mappo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 987373,
+            "v2i_decision_rows_without_eligible_target": 164,
+            "v2v_decision_rows_with_tasks": 746334,
+            "v2v_decision_rows_without_eligible_target": 8
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 5.519960399169577e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/glkft_mappo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/glkft_mappo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 165973,
+            "v2i_decision_rows_without_eligible_target": 20,
+            "v2v_decision_rows_with_tasks": 284289,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 8.986828403578784e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_ippo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/ukft_ippo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1090282,
+            "v2i_decision_rows_without_eligible_target": 51,
+            "v2v_decision_rows_with_tasks": 2014002,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.000323979938912089,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_ippo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/ukft_ippo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 176177,
+            "v2i_decision_rows_without_eligible_target": 29,
+            "v2v_decision_rows_with_tasks": 210591,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.0002113692752701013,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_ippo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/ukft_ippo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 490242,
+            "v2i_decision_rows_without_eligible_target": 55,
+            "v2v_decision_rows_with_tasks": 440667,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -0.00010186997654670904,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_ippo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/ukft_ippo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 405080,
+            "v2i_decision_rows_without_eligible_target": 40,
+            "v2v_decision_rows_with_tasks": 458675,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 7.324062402602749e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_ippo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/ukft_ippo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 169384,
+            "v2i_decision_rows_without_eligible_target": 20,
+            "v2v_decision_rows_with_tasks": 221408,
+            "v2v_decision_rows_without_eligible_target": 1
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 8.440934852416149e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -1.2772423951812328e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_mappo_uk2030_ev_fs0.json",
+          "path": "instrumented/perstep/ukft_mappo_uk2030_ev_fs0_perstep.npz",
+          "scenario": "ev",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 1044697,
+            "v2i_decision_rows_without_eligible_target": 51,
+            "v2v_decision_rows_with_tasks": 1692083,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.006189277240991942,
+            "completion": 0.0,
+            "fleet_ev_share": 1.1115978776343738e-08,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_mappo_uk2030_inc_fs0.json",
+          "path": "instrumented/perstep/ukft_mappo_uk2030_inc_fs0_perstep.npz",
+          "scenario": "inc",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 1,
+            "files_with_positive_rsu_load": 1,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 181082,
+            "v2i_decision_rows_without_eligible_target": 35,
+            "v2v_decision_rows_with_tasks": 174295,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -2.347682396930395e-06,
+            "completion": 0.0,
+            "fleet_ev_share": 9.010004409226724e-10,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_mappo_uk2030_wd_am_fs0.json",
+          "path": "instrumented/perstep/ukft_mappo_uk2030_wd_am_fs0_perstep.npz",
+          "scenario": "wd_am",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 496493,
+            "v2i_decision_rows_without_eligible_target": 56,
+            "v2v_decision_rows_with_tasks": 383172,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": 0.00034893700485127965,
+            "completion": 0.0,
+            "fleet_ev_share": 9.873162010176628e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_mappo_uk2030_wd_pm_fs0.json",
+          "path": "instrumented/perstep/ukft_mappo_uk2030_wd_pm_fs0_perstep.npz",
+          "scenario": "wd_pm",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        },
+        {
+          "action_target_counts": {
+            "v2i_decision_rows_with_tasks": 416244,
+            "v2i_decision_rows_without_eligible_target": 41,
+            "v2v_decision_rows_with_tasks": 361649,
+            "v2v_decision_rows_without_eligible_target": 0
+          },
+          "aggregate_deltas": {
+            "avg_latency_ms_per_task": -1.564404822573806e-05,
+            "completion": 0.0,
+            "fleet_ev_share": -7.718587102800711e-09,
+            "p_local": 0.0,
+            "p_v2i": 0.0,
+            "p_v2v": 0.0
+          },
+          "checks": {
+            "active_count_matches_trace_mask": true,
+            "aggregates_match_run_json": true,
+            "eligible_v2v_targets_are_not_self": true,
+            "exact_keys": true,
+            "internal_task_counts_reconcile": true,
+            "shapes_match_trace": true,
+            "target_ranges_valid": true,
+            "tier_range_valid": true,
+            "times_match_trace": true,
+            "value_ranges_valid": true
+          },
+          "json_path": "instrumented/json/ukft_mappo_uk2030_we_fs0.json",
+          "path": "instrumented/perstep/ukft_mappo_uk2030_we_fs0_perstep.npz",
+          "scenario": "we",
+          "signal_counts": {
+            "files_with_positive_rsu_busy": 0,
+            "files_with_positive_rsu_load": 0,
+            "files_with_positive_vehicle_queue": 1
+          }
+        }
+      ],
+      "signal_file_counts": {
+        "files_with_positive_rsu_busy": 28,
+        "files_with_positive_rsu_load": 28,
+        "files_with_positive_vehicle_queue": 60
+      }
+    },
+    "pertask": {
+      "expected_key_schema": [
+        "task_active",
+        "task_lat_ms",
+        "task_met",
+        "task_type"
+      ],
+      "file_count": 6,
+      "files": [
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/baseline_uk2030_inc_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            }
+          }
+        },
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/baseline_uk2030_wd_am_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            }
+          }
+        },
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/fcd_s102_uk2030_we_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                32400,
+                5,
+                139
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                32400,
+                5,
+                139
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                32400,
+                5,
+                139
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                32400,
+                5,
+                139
+              ]
+            }
+          }
+        },
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/glk_mappo_uk2030_inc_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            }
+          }
+        },
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/ukft_mappo_uk2030_inc_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                3600,
+                5,
+                2488
+              ]
+            }
+          }
+        },
+        {
+          "all_arrays_share_shape": true,
+          "contains_eventual_physical_completion": false,
+          "contains_per_task_energy": false,
+          "exact_keys": true,
+          "path": "instrumented/pertask/ukft_mappo_uk2030_wd_am_fs0_pertask.npz",
+          "schema": {
+            "task_active": {
+              "dtype": "bool",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_lat_ms": {
+              "dtype": "float32",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_met": {
+              "dtype": "bool",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            },
+            "task_type": {
+              "dtype": "int8",
+              "shape": [
+                10800,
+                5,
+                215
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "trace_and_occupancy": {
+      "ev": {
+        "occupancy": {
+          "exact_mask_match": true,
+          "header": [
+            "sumo_vehicle_id",
+            "slot",
+            "t_enter",
+            "t_exit"
+          ],
+          "header_matches_contract": true,
+          "inclusive_visit_seconds": 1898428,
+          "invalid_span_count": 0,
+          "path": "occupancy/occupancy_ev.csv",
+          "row_count": 9130,
+          "same_vehicle_overlap_count": 0,
+          "slot_out_of_range_count": 0,
+          "slot_overlap_count": 0,
+          "time_out_of_range_count": 0,
+          "unique_slot_count": 175,
+          "unique_vehicle_id_count": 9129,
+          "vehicle_ids_ending_at_trace_boundary": 35,
+          "visit_seconds_match_mask": true
+        },
+        "trace": {
+          "T": 23400,
+          "dt_seconds": 1.0,
+          "first_time": 63000.0,
+          "last_time": 86399.0,
+          "mask_true_count": 1898428,
+          "maxN": 175,
+          "path": "traces/trace_ev_fullrsu.npz",
+          "rsu_count": 12,
+          "schema": {
+            "T": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "dt": {
+              "dtype": "float32",
+              "shape": []
+            },
+            "mask": {
+              "dtype": "bool",
+              "shape": [
+                23400,
+                175
+              ]
+            },
+            "maxN": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "pos_x": {
+              "dtype": "float32",
+              "shape": [
+                23400,
+                175
+              ]
+            },
+            "pos_y": {
+              "dtype": "float32",
+              "shape": [
+                23400,
+                175
+              ]
+            },
+            "rsu_xy": {
+              "dtype": "float32",
+              "shape": [
+                12,
+                2
+              ]
+            },
+            "speed": {
+              "dtype": "float32",
+              "shape": [
+                23400,
+                175
+              ]
+            },
+            "sumo_seed": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "times": {
+              "dtype": "float32",
+              "shape": [
+                23400
+              ]
+            },
+            "window": {
+              "dtype": "<U20",
+              "shape": []
+            }
+          },
+          "sumo_seed": 42,
+          "times_are_one_second_contiguous": true,
+          "window": "fcd_ev_1730_2400.xml"
+        }
+      },
+      "inc": {
+        "occupancy": {
+          "exact_mask_match": true,
+          "header": [
+            "sumo_vehicle_id",
+            "slot",
+            "t_enter",
+            "t_exit"
+          ],
+          "header_matches_contract": true,
+          "inclusive_visit_seconds": 8747692,
+          "invalid_span_count": 0,
+          "path": "occupancy/occupancy_inc.csv",
+          "row_count": 5307,
+          "same_vehicle_overlap_count": 0,
+          "slot_out_of_range_count": 0,
+          "slot_overlap_count": 0,
+          "time_out_of_range_count": 0,
+          "unique_slot_count": 2488,
+          "unique_vehicle_id_count": 3780,
+          "vehicle_ids_ending_at_trace_boundary": 2405,
+          "visit_seconds_match_mask": true
+        },
+        "trace": {
+          "T": 3600,
+          "dt_seconds": 1.0,
+          "first_time": 72000.0,
+          "last_time": 75599.0,
+          "mask_true_count": 8747692,
+          "maxN": 2488,
+          "path": "traces/trace_inc_fullrsu.npz",
+          "rsu_count": 10,
+          "schema": {
+            "T": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "dt": {
+              "dtype": "float32",
+              "shape": []
+            },
+            "mask": {
+              "dtype": "bool",
+              "shape": [
+                3600,
+                2488
+              ]
+            },
+            "maxN": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "pos_x": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                2488
+              ]
+            },
+            "pos_y": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                2488
+              ]
+            },
+            "rsu_xy": {
+              "dtype": "float32",
+              "shape": [
+                10,
+                2
+              ]
+            },
+            "speed": {
+              "dtype": "float32",
+              "shape": [
+                3600,
+                2488
+              ]
+            },
+            "sumo_seed": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "times": {
+              "dtype": "float32",
+              "shape": [
+                3600
+              ]
+            },
+            "window": {
+              "dtype": "<U26",
+              "shape": []
+            }
+          },
+          "sumo_seed": 43,
+          "times_are_one_second_contiguous": true,
+          "window": "fcd_incident_2000_2100.xml"
+        }
+      },
+      "wd_am": {
+        "occupancy": {
+          "exact_mask_match": true,
+          "header": [
+            "sumo_vehicle_id",
+            "slot",
+            "t_enter",
+            "t_exit"
+          ],
+          "header_matches_contract": true,
+          "inclusive_visit_seconds": 1166439,
+          "invalid_span_count": 0,
+          "path": "occupancy/occupancy_wd_am.csv",
+          "row_count": 5381,
+          "same_vehicle_overlap_count": 0,
+          "slot_out_of_range_count": 0,
+          "slot_overlap_count": 0,
+          "time_out_of_range_count": 0,
+          "unique_slot_count": 215,
+          "unique_vehicle_id_count": 5377,
+          "vehicle_ids_ending_at_trace_boundary": 95,
+          "visit_seconds_match_mask": true
+        },
+        "trace": {
+          "T": 10800,
+          "dt_seconds": 1.0,
+          "first_time": 28800.0,
+          "last_time": 39599.0,
+          "mask_true_count": 1166439,
+          "maxN": 215,
+          "path": "traces/trace_wd_am_fullrsu.npz",
+          "rsu_count": 9,
+          "schema": {
+            "T": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "dt": {
+              "dtype": "float32",
+              "shape": []
+            },
+            "mask": {
+              "dtype": "bool",
+              "shape": [
+                10800,
+                215
+              ]
+            },
+            "maxN": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "pos_x": {
+              "dtype": "float32",
+              "shape": [
+                10800,
+                215
+              ]
+            },
+            "pos_y": {
+              "dtype": "float32",
+              "shape": [
+                10800,
+                215
+              ]
+            },
+            "rsu_xy": {
+              "dtype": "float32",
+              "shape": [
+                9,
+                2
+              ]
+            },
+            "speed": {
+              "dtype": "float32",
+              "shape": [
+                10800,
+                215
+              ]
+            },
+            "sumo_seed": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "times": {
+              "dtype": "float32",
+              "shape": [
+                10800
+              ]
+            },
+            "window": {
+              "dtype": "<U23",
+              "shape": []
+            }
+          },
+          "sumo_seed": 42,
+          "times_are_one_second_contiguous": true,
+          "window": "fcd_wd_am_0800_1100.xml"
+        }
+      },
+      "wd_pm": {
+        "occupancy": {
+          "exact_mask_match": true,
+          "header": [
+            "sumo_vehicle_id",
+            "slot",
+            "t_enter",
+            "t_exit"
+          ],
+          "header_matches_contract": true,
+          "inclusive_visit_seconds": 2621666,
+          "invalid_span_count": 0,
+          "path": "occupancy/occupancy_wd_pm.csv",
+          "row_count": 12232,
+          "same_vehicle_overlap_count": 0,
+          "slot_out_of_range_count": 0,
+          "slot_overlap_count": 0,
+          "time_out_of_range_count": 0,
+          "unique_slot_count": 163,
+          "unique_vehicle_id_count": 12232,
+          "vehicle_ids_ending_at_trace_boundary": 52,
+          "visit_seconds_match_mask": true
+        },
+        "trace": {
+          "T": 25200,
+          "dt_seconds": 1.0,
+          "first_time": 50400.0,
+          "last_time": 75599.0,
+          "mask_true_count": 2621666,
+          "maxN": 163,
+          "path": "traces/trace_wd_pm_fullrsu.npz",
+          "rsu_count": 10,
+          "schema": {
+            "T": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "dt": {
+              "dtype": "float32",
+              "shape": []
+            },
+            "mask": {
+              "dtype": "bool",
+              "shape": [
+                25200,
+                163
+              ]
+            },
+            "maxN": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "pos_x": {
+              "dtype": "float32",
+              "shape": [
+                25200,
+                163
+              ]
+            },
+            "pos_y": {
+              "dtype": "float32",
+              "shape": [
+                25200,
+                163
+              ]
+            },
+            "rsu_xy": {
+              "dtype": "float32",
+              "shape": [
+                10,
+                2
+              ]
+            },
+            "speed": {
+              "dtype": "float32",
+              "shape": [
+                25200,
+                163
+              ]
+            },
+            "sumo_seed": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "times": {
+              "dtype": "float32",
+              "shape": [
+                25200
+              ]
+            },
+            "window": {
+              "dtype": "<U23",
+              "shape": []
+            }
+          },
+          "sumo_seed": 42,
+          "times_are_one_second_contiguous": true,
+          "window": "fcd_wd_pm_1400_2100.xml"
+        }
+      },
+      "we": {
+        "occupancy": {
+          "exact_mask_match": true,
+          "header": [
+            "sumo_vehicle_id",
+            "slot",
+            "t_enter",
+            "t_exit"
+          ],
+          "header_matches_contract": true,
+          "inclusive_visit_seconds": 2776283,
+          "invalid_span_count": 0,
+          "path": "occupancy/occupancy_we.csv",
+          "row_count": 13249,
+          "same_vehicle_overlap_count": 0,
+          "slot_out_of_range_count": 0,
+          "slot_overlap_count": 0,
+          "time_out_of_range_count": 0,
+          "unique_slot_count": 139,
+          "unique_vehicle_id_count": 13249,
+          "vehicle_ids_ending_at_trace_boundary": 39,
+          "visit_seconds_match_mask": true
+        },
+        "trace": {
+          "T": 32400,
+          "dt_seconds": 1.0,
+          "first_time": 43200.0,
+          "last_time": 75599.0,
+          "mask_true_count": 2776283,
+          "maxN": 139,
+          "path": "traces/trace_we_fullrsu.npz",
+          "rsu_count": 10,
+          "schema": {
+            "T": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "dt": {
+              "dtype": "float32",
+              "shape": []
+            },
+            "mask": {
+              "dtype": "bool",
+              "shape": [
+                32400,
+                139
+              ]
+            },
+            "maxN": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "pos_x": {
+              "dtype": "float32",
+              "shape": [
+                32400,
+                139
+              ]
+            },
+            "pos_y": {
+              "dtype": "float32",
+              "shape": [
+                32400,
+                139
+              ]
+            },
+            "rsu_xy": {
+              "dtype": "float32",
+              "shape": [
+                10,
+                2
+              ]
+            },
+            "speed": {
+              "dtype": "float32",
+              "shape": [
+                32400,
+                139
+              ]
+            },
+            "sumo_seed": {
+              "dtype": "int32",
+              "shape": []
+            },
+            "times": {
+              "dtype": "float32",
+              "shape": [
+                32400
+              ]
+            },
+            "window": {
+              "dtype": "<U20",
+              "shape": []
+            }
+          },
+          "sumo_seed": 42,
+          "times_are_one_second_contiguous": true,
+          "window": "fcd_we_1200_2100.xml"
+        }
+      }
+    },
+    "tripinfo": {
+      "file_count": 4,
+      "files": [
+        {
+          "duplicate_vehicle_id_count": 0,
+          "invalid_time_count": 0,
+          "maximum_arrival_seconds": 86394.0,
+          "minimum_depart_seconds": 2.0,
+          "occupancy_joins": {
+            "inc": {
+              "complete_occupancy_join": false,
+              "matched_vehicle_count": 3020,
+              "missing_vehicle_before_trace_boundary_count": 14,
+              "missing_vehicle_count": 760,
+              "missing_vehicle_ending_at_trace_boundary_count": 746,
+              "occupancy_vehicle_count": 3780
+            }
+          },
+          "path": "tripinfo/tripinfo_2024-03-15_incident_reactive.xml.gz",
+          "trip_count": 25021,
+          "uncompressed_bytes": 10982678,
+          "unique_vehicle_id_count": 25021
+        },
+        {
+          "duplicate_vehicle_id_count": 0,
+          "invalid_time_count": 0,
+          "maximum_arrival_seconds": 75590.0,
+          "minimum_depart_seconds": 3.0,
+          "occupancy_joins": {
+            "we": {
+              "complete_occupancy_join": false,
+              "matched_vehicle_count": 13210,
+              "missing_vehicle_before_trace_boundary_count": 0,
+              "missing_vehicle_count": 39,
+              "missing_vehicle_ending_at_trace_boundary_count": 39,
+              "occupancy_vehicle_count": 13249
+            }
+          },
+          "path": "tripinfo/tripinfo_2024-09-15_weekend.xml.gz",
+          "trip_count": 20118,
+          "uncompressed_bytes": 8517463,
+          "unique_vehicle_id_count": 20118
+        },
+        {
+          "duplicate_vehicle_id_count": 0,
+          "invalid_time_count": 0,
+          "maximum_arrival_seconds": 86399.0,
+          "minimum_depart_seconds": 2.0,
+          "occupancy_joins": {
+            "ev": {
+              "complete_occupancy_join": false,
+              "matched_vehicle_count": 9094,
+              "missing_vehicle_before_trace_boundary_count": 0,
+              "missing_vehicle_count": 35,
+              "missing_vehicle_ending_at_trace_boundary_count": 35,
+              "occupancy_vehicle_count": 9129
+            }
+          },
+          "path": "tripinfo/tripinfo_2024-09-18_ucl_event.xml.gz",
+          "trip_count": 29419,
+          "uncompressed_bytes": 12467076,
+          "unique_vehicle_id_count": 29419
+        },
+        {
+          "duplicate_vehicle_id_count": 0,
+          "invalid_time_count": 0,
+          "maximum_arrival_seconds": 75598.0,
+          "minimum_depart_seconds": 11.0,
+          "occupancy_joins": {
+            "wd_am": {
+              "complete_occupancy_join": true,
+              "matched_vehicle_count": 5377,
+              "missing_vehicle_before_trace_boundary_count": 0,
+              "missing_vehicle_count": 0,
+              "missing_vehicle_ending_at_trace_boundary_count": 0,
+              "occupancy_vehicle_count": 5377
+            },
+            "wd_pm": {
+              "complete_occupancy_join": false,
+              "matched_vehicle_count": 12180,
+              "missing_vehicle_before_trace_boundary_count": 0,
+              "missing_vehicle_count": 52,
+              "missing_vehicle_ending_at_trace_boundary_count": 52,
+              "occupancy_vehicle_count": 12232
+            }
+          },
+          "path": "tripinfo/tripinfo_2024-10-15_workingday.xml.gz",
+          "trip_count": 26207,
+          "uncompressed_bytes": 11109858,
+          "unique_vehicle_id_count": 26207
+        }
+      ]
+    }
+  },
+  "rights_boundary": {
+    "authority": "Randy Putra written response supplied by the dissertation owner",
+    "not_inferred": [
+      "open-source licence",
+      "raw data redistribution",
+      "checkpoint redistribution",
+      "blanket publication permission"
+    ],
+    "permitted": [
+      "sanitized samples",
+      "aggregates",
+      "dissertation use with both repositories cited"
+    ],
+    "required_labels": [
+      "engine v2_post_nrsus_fix",
+      "_s102 best-of-seeds when those rows are used"
+    ]
+  },
+  "schema_version": "traffictwin.vec-source-snapshot-audit.v1",
+  "sources": {
+    "tos-data": {
+      "audited_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "audited_commit_parents": [
+        "cff96d81f94096ba6430794a95c51a0f13bfad97"
+      ],
+      "author_name": "Randy Putra",
+      "authored_at": "2026-07-19T20:07:19+01:00",
+      "committed_at": "2026-07-19T20:07:19+01:00",
+      "origin_main": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+      "origin_main_matches_audited_commit": true,
+      "remote_url": "https://gitlab.cs.man.ac.uk/e62992rp/tos-data.git",
+      "subject": "README: document occupancy/, tripinfo/, checkpoints/ and enriched per-step keys",
+      "worktree_at_audited_commit": false,
+      "worktree_branch": "main",
+      "worktree_clean": true,
+      "worktree_head": "d27294ef5213e6a20f55632448bd20f5a76a45ab"
+    },
+    "vec_env": {
+      "audited_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+      "audited_commit_parents": [
+        "bb91d0bbd5ae831139f6d89f24e314d0a9a17a5c"
+      ],
+      "author_name": "Randy Putra",
+      "authored_at": "2026-07-19T15:43:36+01:00",
+      "committed_at": "2026-07-19T15:43:36+01:00",
+      "origin_main": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+      "origin_main_matches_audited_commit": true,
+      "remote_url": "https://gitlab.cs.man.ac.uk/e62992rp/vec_env.git",
+      "subject": "eval: occupancy tables, per-slot fleet + action-target instrumentation",
+      "worktree_at_audited_commit": false,
+      "worktree_branch": "akash-traffictwin-discovery",
+      "worktree_clean": true,
+      "worktree_head": "e98441196270b8fd4cc0eede892df4a0053b2185"
+    }
+  }
+}

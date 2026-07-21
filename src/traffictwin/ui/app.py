@@ -40,6 +40,7 @@ from traffictwin.ui.pages import (
     tos_results,
     tos_training_audit,
     triviality,
+    vec_workbench,
 )
 from traffictwin.ui.state import ensure_session_state, load_ui_config
 from traffictwin.ui.theme import apply_research_theme
@@ -89,6 +90,8 @@ def main() -> None:
         sumo_import.render(config)
     elif page is UiPage.TOS_DATA:
         tos_data_import.render(config)
+    elif page is UiPage.VEC_WORKBENCH:
+        vec_workbench.render()
     elif page is UiPage.TOS_RESULTS:
         tos_results.render(config)
     elif page is UiPage.TOS_REPLAY:

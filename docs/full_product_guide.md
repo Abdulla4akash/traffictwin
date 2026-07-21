@@ -10,9 +10,10 @@ to canonical records, calculates deterministic metrics, compares scenarios, eval
 evidence-linked diagnostic hypotheses, and traces outputs back to their source rows. It also
 provides deterministic synthetic scenarios when external data or simulators are unavailable.
 
-TrafficTwin does not currently launch Randy/VEC or SUMO, consume live Manchester data, or claim
-that synthetic outputs are real-world predictions. Unsupported functions remain visibly
-unavailable.
+TrafficTwin exposes one exact Randy/VEC evaluator through conditional request-preflight-gated
+foreground execution. It does not provide a general Randy/SUMO launcher, background job service,
+live Manchester data, or any claim that synthetic outputs are real-world predictions. Unsupported
+functions remain visibly unavailable.
 
 ## Contents
 
@@ -117,9 +118,10 @@ not be used to make safety-critical or public-infrastructure decisions.
 | Read-only environment doctor | Implemented | Runtime/dependency versions, optional integrations, capability blockers, workspace/registry/cache integrity, and advisory permissions; no repair or launcher path |
 | RO-Crate research object | Implemented for accepted ordinary generic bundles | Permission-aware deterministic attached archive with CFF citation, checksums, typed evidence, and offline verification; SUMO/TOS unsupported in v1 |
 | General external-source contract | Implemented for reviewed SUMO/TOS references | Exact fail-closed discovery and deterministic inspection expose different semantics, provenance, conversion, and blockers without false equivalence or dynamic adapter code |
+| VEC snapshot/preprocess/evaluate workbench | Implemented, conditional | Exact pinned sources and typed requests only; foreground execution requires accepted request-specific preflight |
 | Public synthetic static site | Implemented | Precomputed synthetic values only |
-| Full Randy/VEC canonical conversion | Blocked | Missing producer, identity, outcome, checkpoint, and permission evidence |
-| Direct Randy/VEC or SUMO launch | Unsupported | Never simulated or implied by the interface |
+| Full Randy/VEC canonical conversion | Partial | Occupancy/task/trip source joins and admitted metrics exist, but unsupported canonical completion/energy/infrastructure/fairness fields stay unavailable |
+| Direct Randy/VEC or SUMO launch | Adapter-specific | Exact VEC foreground evaluation is conditional; generic/SUMO launch remains unsupported |
 | Near-live or true-live traffic | Unsupported | Imported file recency is not live operation |
 | Real participant evaluation | Not performed | Requires ethics and supervisory approval first |
 | LLM diagnosis or recommendations | Not implemented | The available prose renderer only restates computed findings |
@@ -253,7 +255,53 @@ traffictwin integration tos validate ../external/tos-data
 traffictwin integration tos readiness ../external/tos-data --format json
 ```
 
-### Option E: inspect and import existing SUMO outputs
+### Option E: use the typed VEC workbench
+
+```bash
+traffictwin integration vec snapshot \
+  --vec-repo ../external/vec_env --tos-data-repo ../external/tos-data
+traffictwin integration vec contract
+```
+
+Open **VEC Reproduction Workbench** for request validation, foreground preprocessing/evaluation,
+receipt inspection, VEC-09 comparison, and export. Execution requires a complete typed request and
+accepted request-specific preflight; there is no command field or persistent queue. See the
+[VEC-10 guide](integration/vec_interface.md).
+
+### Option F: verify or rebuild the sanitised VEC dissertation pack
+
+```bash
+uv run pytest -q tests/integration/test_vec_publication.py
+uv run python scripts/build_vec_dissertation_pack.py \
+  --tos-data-repo ../external/tos-data \
+  --vec-env-repo ../external/vec_env \
+  --scientific-report docs/reference/generated/vec_scientific_admission_report.json \
+  --output /tmp/vec-dissertation-pack
+```
+
+The destination must not exist. This publishes only three rounded pseudonymous sample rows,
+VEC-09 aggregate states, and their permission manifest. It does not publish raw identities,
+checkpoints, or SUMO assets. See the [VEC-11 guide](integration/vec_dissertation_pack.md).
+
+### Option G: verify or rebuild the complete VEC research artifact
+
+```bash
+traffictwin integration vec research-verify \
+  docs/reference/generated/vec_end_to_end_research_artifact.zip
+
+uv run python scripts/build_vec_end_to_end_artifact.py \
+  --generated-root docs/reference/generated \
+  --output /tmp/vec_end_to_end_research_artifact.zip \
+  --receipt /tmp/vec_end_to_end_research_artifact_receipt.json
+```
+
+Verification is offline and does not extract the archive. The destination ZIP and receipt must not
+exist before a rebuild. An accepted rebuild is byte-identical to the checked-in VEC-12 archive and
+binds VEC-01–VEC-11 evidence without including raw NPZ/XML, checkpoints, source repositories,
+identity mappings, private paths, or third-party SUMO assets. See the
+[VEC-12 guide](integration/vec_end_to_end_research_artifact.md).
+
+### Option H: inspect and import existing SUMO outputs
 
 ```bash
 traffictwin integration sumo contract
@@ -269,7 +317,7 @@ SUMO, and summary occupancy is not relabelled as canonical traffic count.
 This is read-only historical-result inspection. Do not describe it as direct execution, a standard
 TrafficTwin bundle, or live data.
 
-### Option F: infer and confirm external CSV mappings
+### Option G: infer and confirm external CSV mappings
 
 ```bash
 traffictwin manifest infer raw-csv-directory \
@@ -761,6 +809,13 @@ In the UI use **TOS Data Import**, **TOS Results**, **TOS Mobility & RSU Replay*
 Source-specific meanings remain separate from canonical metrics. For example, `rsu_load` is an
 in-flight task count and its capacity ratio is concurrency pressure, not CPU utilisation. Vehicle
 array slots are time-local, not persistent identities.
+
+### UC16A: Run one predeclared VEC request conditionally
+
+First run `integration vec validate --kind run` with the request, input root, and both pinned
+repositories. Only an accepted report permits the matching `integration vec run` command or UI
+button. The operation runs in the current foreground process and publishes through VEC-07 atomic
+new-only output handling. It does not support extra flags, detachment, training, or remote jobs.
 
 ### UC17: Prepare a private TOS supervisor pack
 
@@ -1492,13 +1547,14 @@ the calculated values. Report content and calculation remain separate.
 
 ## Known Limitations
 
-- No full canonical Randy/VEC converter, SUMO FCD/other-output adapter, or simulator launcher.
+- No complete canonical Randy/VEC converter or general SUMO launcher. The exact VEC evaluator is
+  available only through typed, request-preflight-gated foreground execution.
 - Manifest inference is limited to the six current generic CSV kinds and does not learn arbitrary
   schemas or prove external semantics.
 - Ordinary generic tables remain capped at 10,000,000 decoded bytes. Opt-in streaming
   canonicalisation supports larger explicitly bounded generic tables without retaining all
   canonical rows; streaming metadata import does not automatically compute metrics.
-- No direct simulator or training launcher.
+- No arbitrary simulator, detached job, remote execution, or training launcher.
 - No live or near-live Manchester feed.
 - No persistent canonical analytical row store.
 - The OPS-02 Parquet cache is disposable derived reuse, not a primary evidence store or queryable

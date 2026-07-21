@@ -1,0 +1,23 @@
+{
+  "interval_semantics": "inclusive",
+  "occupancy_header": [
+    "sumo_vehicle_id",
+    "slot",
+    "t_enter",
+    "t_exit"
+  ],
+  "required_reconciliation": [
+    "one identity for every active trace cell",
+    "no identity for an inactive trace cell",
+    "no overlapping slot spans",
+    "no simultaneous multi-slot vehicle identity",
+    "exact trace fingerprint before every join"
+  ],
+  "schema_version": "1.0",
+  "source_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "unavailable_claims": [
+    "slot as persistent vehicle identity",
+    "identity outside an admitted occupancy span",
+    "filled or inferred vehicle identity"
+  ]
+}

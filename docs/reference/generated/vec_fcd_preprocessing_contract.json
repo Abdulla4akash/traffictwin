@@ -1,0 +1,61 @@
+{
+  "admission_checks": [
+    "source repository is clean and origin/main identifies the reviewed commit",
+    "source scripts match their reviewed Git-blob SHA-256 identities",
+    "runtime dependencies satisfy the published versions",
+    "raw inputs are regular non-symlink files with matching caller hashes",
+    "XML contains no DTD or entity declaration and remains within size limits",
+    "FCD timesteps are finite, strictly increasing, and exactly one second apart",
+    "vehicle identifiers are unique per timestep and coordinates are finite",
+    "FCD coordinates remain inside the declared network boundary plus tolerance",
+    "observation, concurrency, dense-trace, and placement-cell limits are met"
+  ],
+  "capability_id": "VEC-06",
+  "interpretation_limits": [
+    "preprocessing does not prove that the supplied FCD and network were generated together",
+    "greedy_urban_cover produces analysis sites, not evidence of real deployed RSUs",
+    "a completed receipt is software-execution evidence, not an experimental result",
+    "the wrapper does not launch SUMO, train a policy, or claim Randy data provenance"
+  ],
+  "method_version": "vec-fcd-preprocessing-1.0",
+  "operations": [
+    "preflight_vec_fcd",
+    "preprocess_vec_fcd"
+  ],
+  "published_outputs": [
+    "trace.npz",
+    "occupancy.csv",
+    "rsu_placement.csv",
+    "logs/build_trace.stdout.txt",
+    "logs/build_trace.stderr.txt",
+    "logs/place_rsus.stdout.txt",
+    "logs/place_rsus.stderr.txt",
+    "preprocessing_receipt.json"
+  ],
+  "required_dependencies": {
+    "numpy": ">=1.26",
+    "pyproj": ">=3.6,<4",
+    "sumolib": "==1.27.0"
+  },
+  "required_inputs": [
+    "uncompressed SUMO FCD XML with exact one-second timesteps",
+    "matching SUMO network XML with projection and converted boundary metadata",
+    "caller-declared SHA-256 identities for both raw inputs",
+    "explicit scenario day, window label, SUMO seed, and placement controls"
+  ],
+  "schema_version": "1.0",
+  "security_controls": [
+    "preflight is read-only and creates no destination",
+    "only exact source blobs loaded from the pinned Git commit are executed",
+    "subprocesses use allowlisted argv without a shell and a controlled environment",
+    "source access, raw inputs, logs, and outputs are rehashed and validated",
+    "publication uses a private staging directory and atomic new-only rename",
+    "published artifacts are made read-only and never overwrite prior evidence",
+    "allow_pickle=True is isolated inside the reviewed placement script; TrafficTwin reads NPZ with allow_pickle=False"
+  ],
+  "source_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+  "source_scripts": {
+    "eval/build_trace.py": "5af3aa9b284dd06a9e25989fbb7e9060227c7906a2754e9c5436ddd925090387",
+    "eval/place_rsus_cover.py": "33928f4113988ee39f75ff06d99f2c01061182f9d0f17092e051a159a42840a0"
+  }
+}

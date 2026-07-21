@@ -18,7 +18,11 @@ semantics, capabilities, provenance, conversion, and blockers for the distinct p
 private TOS reference adapters without treating them as equivalent. Validated generic bundles can
 also produce deterministic aligned fixed-window metrics with explicit gaps, edge coverage, and
 per-window provenance. An optional read-only integration can inspect and import Randy's separately
-supplied TOS Data results package when it is available locally.
+supplied TOS Data results package when it is available locally. A separate optional VEC-06 library
+can validate and preprocess a caller-supplied one-second SUMO FCD/network pair with the exact
+audited source scripts, immutable outputs, and a deterministic receipt. The VEC-07 library can run
+the exact audited Randy evaluator locally through a closed typed request and immutable receipt; it
+does not launch SUMO, expose a product Run control, or establish VEC-08 numerical reproduction.
 
 Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
@@ -106,6 +110,55 @@ Implemented:
   paired campaign comparison, training-history exploration, generalisation labels,
   reproducibility auditing, research-safe exports, partial EvidencePacks, and aggregate
   provenance.
+- v0.6 `VEC-01` deterministic audit of Randy's exact updated Git snapshots, covering 154 hashed
+  source/data/permission evidence files, exact trace-to-occupancy reconstruction, enriched
+  per-step/per-task schemas, actor checkpoints, tripinfo coverage, claim reconciliation, and
+  permission-scoped blockers without modifying either external worktree. See the
+  [source-snapshot audit](docs/integration/randy-source-snapshot-audit-v0_6.md).
+- v0.6 `VEC-02` accepted audited contract with complete exact trace/per-step/per-task/occupancy
+  schemas, deterministic validators, typed semantic refusals, synthetic golden/negative fixtures,
+  and the VEC-11 permission-manifested real sanitised Gate-B sample.
+- v0.6 `VEC-03` occupancy-bounded identity with exact inclusive span reconciliation, full
+  active-mask coverage, trace-bound mobility joins, synthetic refusal tests, and read-only
+  acceptance across all five audited trace/occupancy pairs (17,210,508 identity cells with no
+  gaps or inactive assignments). See the [VEC-03 guide](docs/integration/vec_identity.md).
+- v0.6 `VEC-04` tier/EV/task/action/target joins with exact cross-stream reconciliation and typed
+  no-target semantics, accepted over 46,861,416 tasks in all six matched instrumented runs. See the
+  [VEC-04 guide](docs/integration/vec_task_join.md).
+- v0.6 `VEC-05` exact-ID tripinfo integration for all four audited files and five scenario joins,
+  preserving the full-day clock and reporting 42,881 matches, 872 boundary-censored vehicles, and
+  14 missing-before-boundary exclusions. See the [VEC-05 guide](docs/integration/vec_trip_join.md).
+- v0.6 `VEC-11` accepted permission-bounded dissertation pack: three pseudonymised/rounded matched
+  `_s102` rows, all 26 VEC-09 metric states, exact citations/hashes/report bindings, and explicit
+  raw/checkpoint/source exclusions. See the
+  [VEC-11 guide](docs/integration/vec_dissertation_pack.md).
+- v0.6 `VEC-06` bounded FCD/network preprocessing using exact pinned Git blobs, read-only
+  preflight, safe subprocess execution, atomic new-only publication, immutable trace/occupancy/site
+  artifacts, and a deterministic receipt. See the
+  [VEC-06 usage guide](docs/integration/vec_fcd_preprocessing.md).
+- v0.6 `VEC-07` safe local Model-C evaluator runner with exact source/actor allowlists, typed
+  requests and receipts, VEC-02/VEC-06 trace admission, CPU-only JAX isolation, bounded logs,
+  timeout/cancellation, atomic new-only publication, and a real non-mutating two-step acceptance
+  run. The exact evaluator is now available conditionally through VEC-10 preflight-gated
+  foreground execution. See the
+  [VEC-07 usage guide](docs/integration/vec_evaluator_runner.md).
+- v0.6 `VEC-08` full weekend protocol-seed reproduction verification against exact pinned master,
+  JSON, and enriched per-step Git blobs. Two independent full CPU runs were repeat-exact for all
+  scientific arrays and passed 61 exact plus two predeclared float-reduction checks with zero
+  mismatches. See the
+  [VEC-08 verification guide](docs/integration/vec_reproduction_verification.md).
+- v0.6 `VEC-09` deterministic scientific admission over audited task/trip evidence: 18 compatible
+  existing or separately named TOS metrics admitted, eight unsupported metric definitions kept
+  unavailable, R1/R2/R7 blocked, and R6 conditional without threshold evaluation or findings. See
+  the [VEC-09 guide](docs/integration/vec_scientific_admission.md).
+- v0.6 `VEC-10` thin CLI/UI integration for snapshot, validate, preprocess, foreground run/monitor,
+  inspect, compare, and export workflows. Execution is conditional on exact typed preflight; there
+  is no arbitrary command input or persistent job queue. See the
+  [VEC-10 guide](docs/integration/vec_interface.md).
+- v0.6 `VEC-12` accepted deterministic end-to-end research artifact: one offline-verifiable
+  27-member ZIP binding VEC-01–VEC-11 source, execution, join, scientific, interface, permission,
+  provenance, environment, exclusion, and limitation evidence without raw external bytes. See the
+  [VEC-12 guide](docs/integration/vec_end_to_end_research_artifact.md).
 - Deterministic experiment protocol YAML/CSV with exhaustive run slots and read-only completed-
   bundle matching.
 - Dedicated Triviality/R5 pair analysis, compatibility-filtered per-seed winner maps, a transparent
@@ -484,10 +537,10 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | Streamlit container | Implemented | Initialised standalone synthetic workspace on port 8501. |
 | Private supervisor pack | Implemented | Checksummed TOS reports, readiness gates, viva notes, and evaluation plan. |
 | TOS Data offline results | Implemented, partial | Matrix, paired comparisons, training/audit, replay/source inspection, and aggregate exports; no canonical conversion or launch. |
-| Full Randy/VEC integration | Blocked | Source semantics are documented; checkpoint, producer commit/writer, canonical outcome/identity fields, tested execution, and fixture permission remain unresolved. |
+| Full Randy/VEC integration | Implemented, evidence-bounded | VEC-01–VEC-12 and Gates A–G are accepted; generic/SUMO launch, full canonical conversion, unavailable source semantics, new platform/scenario equivalence, formal licensing, and public hosting remain outside that boundary. |
 | CSV manifest inference wizard | Implemented, confirmation-gated | Bounded deterministic suggestions only; explicit file/field/unit confirmation required before ordinary bundle validation. |
 | SUMO tripinfo/summary output import | Implemented, bounded | SUMO 1.27.x only; public synthetic acceptance fixture; FCD and launch unavailable. |
-| Direct launch | Unsupported | Capability remains `false`. |
+| Direct launch | Adapter-specific | Generic/SUMO launch remains `false`; exact VEC foreground execution is conditional on a complete accepted VEC-07 preflight. |
 | Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
 
 ## Testing And Quality
@@ -568,7 +621,9 @@ Integration evidence and remaining questions are documented under
 
 Start at [docs/index.md](docs/index.md). Key documents:
 
-- [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md)
+- [docs/traffictwin-design-v0_6.md](docs/traffictwin-design-v0_6.md) — accepted evidence-gated Randy/VEC integration design
+- [docs/integration/vec_end_to_end_research_artifact.md](docs/integration/vec_end_to_end_research_artifact.md) — VEC-12 archive use, rebuild, verification, and limits
+- [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md) — implemented baseline
 - [docs/full_product_guide.md](docs/full_product_guide.md)
 - [docs/standalone_demo.md](docs/standalone_demo.md)
 - [docs/synthetic_data_model.md](docs/synthetic_data_model.md)

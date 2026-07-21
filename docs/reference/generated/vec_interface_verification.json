@@ -1,0 +1,116 @@
+{
+  "artifact_inspection": {
+    "artifact_fingerprint": "1d3a084a000256c4c2654a15fd63c5bbbaf76e47e7c967c5850bece877282686",
+    "artifact_type": "scientific_admission_report",
+    "capability_id": "VEC-09",
+    "schema_version": "1.0",
+    "status": "accepted",
+    "summary": {
+      "metric_count": 26,
+      "rule_count": 4,
+      "run_label": "fcd_s102_uk2030_we_fs0",
+      "scenario": "we"
+    }
+  },
+  "capability": "VEC-10",
+  "contract_fingerprint": "82cbc589e25f1b75dd874c5eb1269b295cfdc7b94574839188d99cb7dfc88b7f",
+  "direct_launch": "conditional_on_request_specific_preflight",
+  "exports": {
+    "csv": {
+      "sha256": "7f7874125422535bcab6045c2bbc21c6b6ec5f60bdaee26a05d7eb485719e1b6",
+      "size_bytes": 1928
+    },
+    "json": {
+      "sha256": "ced8ad0482e13f1c47c762ed13acd5245f28a277b5940bd49489831167d718bc",
+      "size_bytes": 44653
+    },
+    "markdown": {
+      "sha256": "1195c78b96ebf9dcd063a59f48feed2fe01b898c776f5c2fd270d01b89b7d584",
+      "size_bytes": 2432
+    }
+  },
+  "external_source_unchanged": true,
+  "foreground_execution_delegates_to_accepted_vec07": true,
+  "persistent_async_queue": false,
+  "private_paths_published": false,
+  "schema_version": "1.0",
+  "scientific_report_fingerprint": "1d3a084a000256c4c2654a15fd63c5bbbaf76e47e7c967c5850bece877282686",
+  "self_comparison": {
+    "all_scalar_differences_zero": true,
+    "causal_interpretation": false,
+    "comparable_metric_count": 16,
+    "fingerprint": "06b37cb439ebb8cbe890507cf060f17384a523e4d711c2b3b74f555ab930c4e8",
+    "unavailable_or_incompatible_count": 10
+  },
+  "snapshot": {
+    "arbitrary_command_execution": false,
+    "capability_id": "VEC-10",
+    "import_first_available": true,
+    "operations": [
+      {
+        "availability": "ready",
+        "operation": "snapshot",
+        "reason": "read-only repository state inspection is available"
+      },
+      {
+        "availability": "ready",
+        "operation": "validate",
+        "reason": "typed request preflight is available"
+      },
+      {
+        "availability": "ready",
+        "operation": "preprocess",
+        "reason": "requires clean vec_env with the audited commit available"
+      },
+      {
+        "availability": "conditional",
+        "operation": "run",
+        "reason": "requires an accepted request-specific VEC-07 runtime preflight"
+      },
+      {
+        "availability": "conditional",
+        "operation": "monitor_current_process",
+        "reason": "available only while this process owns a foreground preprocess or run"
+      },
+      {
+        "availability": "ready",
+        "operation": "inspect",
+        "reason": "typed portable receipts and reports can be inspected"
+      },
+      {
+        "availability": "ready",
+        "operation": "compare",
+        "reason": "accepted VEC-09 scalar metrics can be compared"
+      },
+      {
+        "availability": "ready",
+        "operation": "export",
+        "reason": "accepted VEC-09 reports export to JSON, CSV, or Markdown"
+      }
+    ],
+    "persistent_async_queue": false,
+    "public_publication_available": false,
+    "repositories": [
+      {
+        "audited_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+        "audited_commit_available": true,
+        "clean": true,
+        "origin_main": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+        "ready_for_exact_blob_access": true,
+        "repository": "vec_env",
+        "worktree_head": "e98441196270b8fd4cc0eede892df4a0053b2185"
+      },
+      {
+        "audited_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+        "audited_commit_available": true,
+        "clean": true,
+        "origin_main": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+        "ready_for_exact_blob_access": true,
+        "repository": "tos-data",
+        "worktree_head": "d27294ef5213e6a20f55632448bd20f5a76a45ab"
+      }
+    ],
+    "schema_version": "1.0"
+  },
+  "status": "accepted"
+}

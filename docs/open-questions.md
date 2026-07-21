@@ -419,49 +419,78 @@ Resolved during the Advanced Research Tools increment:
 
 ## Questions For Randy
 
-Source inspection answered the earlier field, unit, control, and evaluator-interface questions.
-Only the following evidence is still needed:
+Randy answered the five source-integration questions on 21 July 2026:
 
-1. Which exact source commit/script produced the supplied per-step and per-task NPZ files, and can
-   that instrumented writer be shared?
-2. Can one small approved actor checkpoint and its exact producing environment commit be shared
-   for a reproducibility smoke run?
-3. Are eventual physical completion, per-vehicle tier, action targets/availability/link quality,
-   or raw SUMO/trip outputs exported anywhere outside the supplied package?
-4. Which small matched files may be committed as sanitised fixtures and shown in dissertation
-   screenshots/tables?
-5. Is TrafficTwin permitted to propose a separate instrumentation branch later if a required field
-   exists internally but is not exported?
+1. `vec_env` commit `068b4ea…` contains the trace and instrumented-output writers.
+2. Updated `tos-data` contains frozen baseline and `ukfleettrain-MAPPO` actors plus an exact
+   dictionary command intended to run from clones of both repositories.
+3. The updated artifacts are reported to include completion summaries, exact occupancy-based
+   `sumo_vehicle_id` spans, tier/EV fields, chosen RSU/V2V targets, and four scenario-day
+   `tripinfo` sets.
+4. Arbitrary one-second SUMO FCD plus its network file is reported to use the same pipeline and can
+   emit exact occupancy tables.
+5. Sanitised samples and aggregates may be used in the repository/dissertation when both
+   repositories, engine `v2_post_nrsus_fix`, and any `_s102` best-of-seeds selection are disclosed.
+
+The `VEC-01` audit now confirms both remote refs and inspects the pinned files without changing the
+older clean worktrees. It resolves the first three source questions:
+
+1. Per-task rows expose deadline success only; no eventual physical-completion field exists.
+2. Target fields are best eligible decision-time targets and `-1` means none eligible. A policy can
+   still select V2I/V2V with `-1`, so an action is not unconditional proof of transfer.
+3. No compatible per-task energy field exists; only aggregate run energy is available.
+
+Two scoped questions remain for later publication/reproduction decisions, not for Gate A:
+
+1. What exact redistribution basis applies to full checkpoints, raw occupancy/trip files, and
+   third-party SUMO assets beyond the written sanitized-sample/aggregate permission?
+2. VEC-08 now freezes and accepts a narrow JAX/JAXLIB 0.4.30 CPU tolerance for one full weekend
+   protocol-seed case. What additional tolerance, if any, is justified on other CPU/GPU hardware?
+
+The complete source evidence is in
+[the VEC-01 audit](integration/randy-source-snapshot-audit-v0_6.md); the implementation plan is in
+[the v0.6 design](traffictwin-design-v0_6.md).
 
 ## Implementation Blockers
 
-- Full canonical adapters require physical-completion/identity fields, compatible infrastructure
-  evidence, exact producer provenance, and fixture permission; basic source semantics/units are no
-  longer blockers.
-- Direct launch requires the checkpoint, instrumented writer or agreed output contract, portable
-  paths, and a tested local invocation.
+- The updated source snapshot, completion meaning, target semantics, and identity/trip coverage are
+  verified by `VEC-01`; VEC-02 is accepted with its exact contract, synthetic suite, and VEC-11
+  permission-manifested real sanitised pack. VEC-03–VEC-05 joins are separately accepted.
+- Direct launch now has accepted VEC-07 typed-runner evidence and VEC-08 full weekend protocol-seed
+  reproduction evidence against exact supplied Git blobs. VEC-10 exposes it only as conditional,
+  foreground, request-preflight-gated execution; VEC-08 still does not establish cross-platform or
+  scenario-wide equivalence.
+- Arbitrary one-second FCD/network preprocessing is implemented by VEC-06, but input pairing remains
+  caller-declared because FCD XML has no authenticated network-file identity. Its generated coverage
+  sites are analysis locations, not evidence of deployed RSUs.
 - External canonical energy metrics require per-task source rows and a compatible semantic
   contract; drop-cause, queue-clearance, and capacity-normalised metrics still require confirmed
   source fields and units.
 - R1-R8 thresholds require synthetic calibration first and real calibration only after representative data is supplied; R6/R7/R8 defaults are explicitly provisional.
-- R1 direct low-tier/T1 evidence requires vehicle-tier and task-class cross-tab evidence.
-- R2 temporal-overlap evidence requires windowed or event-level task and infrastructure evidence in the EvidencePack.
+- R1 direct low-tier/T1 evidence is now a candidate occupancy/task/tier join and must pass complete
+  reconciliation before EvidencePack admission.
+- R2 temporal-overlap evidence is now a candidate task/target/RSU join, but `rsu_load` and
+  `rsu_busy_ms` remain active-task count and compute backlog rather than canonical utilisation or
+  queue length.
 - UI controls must remain unavailable or unknown until adapter capabilities are evidenced.
 - Phase 2 generic CSV validation can proceed with synthetic fixtures, but real Randy compatibility needs an adapter because the supplied lower-level files are NPZ/JSON, not standard bundle CSV.
 - Phase 3 can compute deterministic metrics on synthetic fixtures, but real-world interpretation remains blocked on confirmed Randy/SUMO mapping and expert review.
-- The read-only TOS integration is implemented with source-evidenced semantics; canonical
-  conversion remains blocked on absent outcome/identity/target/trip evidence, producer artifacts,
-  and fixture permission.
+- The read-only TOS integration remains the imported-results baseline. VEC-01–VEC-12 and Gates
+  A–G are accepted. Remaining VEC questions concern new scientific evidence, formal licensing and
+  public-hosting authority, or broader platform/scenario claims—not an unbuilt catalogue item.
 - Documentation is now broad enough for supervisor review, but dissertation claims still require real integration, literature verification, and any formal evaluation evidence.
 - Persisting contribution-ledger references inside each `MetricValue` remains a future storage
   choice; complete accepted-row ledgers are already available on demand.
-- Stronger canonical integration remains the next blocker for externally grounded metric and rule
-  evaluation.
+- VEC-03 now resolves source vehicle identity for every active cell in the five audited traces.
+  VEC-04 now resolves the six matched task/action/target streams and VEC-05 resolves all audited
+  tripinfo joins. VEC-09 admits the compatible source metrics but leaves R1/R2/R7 blocked and R6
+  conditional; a predeclared temporal threshold study remains open before any real rule finding.
 - A project licence still needs explicit selection before public release.
 - A synthetic demonstration can be hosted publicly without TOS data, but publishing source code or
   Randy-derived results still requires the relevant licence and permission decisions.
-- Product Polish does not resolve external producer/checkpoint/writer, fixture-permission, or
-  canonical-evidence blockers.
+- Randy's response plus `VEC-01` resolve producer/checkpoint/writer presence and the narrow
+  sanitized-fixture/aggregate permission boundary. A local evaluator reproduction and broader
+  redistribution basis remain open.
 - Experiment planning is not blocked by external integration: it records a proposed design only.
   Executing planned run slots remains adapter-gated and unavailable.
 - Deterministic YAML/CSV protocols now support manual coordination and later manifest matching;

@@ -20,7 +20,8 @@ def render() -> None:
     render_page_header(st.session_state.get("_active_ui_page", UiPage.ABOUT))
     st.info(
         "TrafficTwin is a standalone research prototype. Licence is not yet specified. "
-        "No Randy, SUMO, or live Manchester integration is active."
+        "Audited Randy/VEC import and conditional foreground evaluation are available through "
+        "the dedicated workbench; general SUMO launch and live Manchester data are unavailable."
     )
     info = about_info_for_ui()
     metadata_card(
