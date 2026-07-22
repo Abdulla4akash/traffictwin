@@ -20,7 +20,7 @@ Notes:
 - Licence not yet specified.
 - Full Randy/VEC, SUMO, live data, LLM, XAI, and simulator launch support remain out of scope.
 
-## Unreleased
+## v0.6.0 - Randy/VEC Integration and Controlled Execution
 
 Added controlled one-click SUMO execution with automatic validated import (ADR-053):
 

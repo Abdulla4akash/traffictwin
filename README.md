@@ -2,7 +2,7 @@
 
 TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if analysis. It defines versioned scenario seeds, imports standard run bundles, validates and canonicalises source files, computes deterministic metrics, builds EvidencePacks, compares scenarios, evaluates deterministic diagnostic hypotheses, and traces results back to source rows through the Provenance Explorer. OffloadLens is the VEC analysis module inside the platform.
 
-Status: standalone `v0.1.0` research prototype. The repository is usable without Randy's VEC
+Status: `v0.6.0` research prototype. The repository is usable without Randy's VEC
 environment, external services, or live feeds. All bundled demonstration and SUMO acceptance data
 is synthetic. The import-only SUMO adapter accepts checksummed 1.27 tripinfo/summary outputs, and
 the confirmation-gated manifest wizard can suggest generic CSV mappings without making them

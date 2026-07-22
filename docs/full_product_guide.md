@@ -211,8 +211,8 @@ python -m playwright install chromium
 ### Container build
 
 ```bash
-docker build -t traffictwin:0.1.0 .
-docker run --rm -p 8501:8501 traffictwin:0.1.0
+docker build -t traffictwin:0.6.0 .
+docker run --rm -p 8501:8501 traffictwin:0.6.0
 ```
 
 Open `http://localhost:8501`. The container contains a synthetic workspace only.
@@ -1418,8 +1418,8 @@ Use the root Dockerfile for the full standalone UI. The container initializes a 
 workspace and exposes port 8501.
 
 ```bash
-docker build -t traffictwin:0.1.0 .
-docker run --rm -p 8501:8501 traffictwin:0.1.0
+docker build -t traffictwin:0.6.0 .
+docker run --rm -p 8501:8501 traffictwin:0.6.0
 ```
 
 ### TOS-derived output

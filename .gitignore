@@ -20,6 +20,7 @@ dist/
 *.egg-info/
 
 # Local data and generated outputs
+data/
 data/raw/
 data/canonical/
 data/derived/
@@ -36,6 +37,11 @@ tmp/
 *.sqlite
 *.sqlite3
 *.db
+
+# Local agent settings
+.agents/
+.claude/settings.local.json
+.claude/skills/
 
 # OS and editor files
 .DS_Store

@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use TrafficTwin, please cite it using this metadata."
 type: software
 title: "TrafficTwin"
-version: 0.1.0
+version: 0.6.0
 authors:
   - given-names: "Abdulla Al Mamun"
     family-names: "Akash"

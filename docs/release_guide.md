@@ -1,11 +1,12 @@
 # Release Guide
 
-TrafficTwin `0.1.0` is a standalone research prototype release candidate.
+TrafficTwin `0.6.0` is a research prototype release candidate with import-first analysis,
+audited Randy/VEC integration, and controlled source-specific VEC and SUMO execution.
 
 ## Release Status
 
-- Package version: `0.1.0`
-- Release label: `v0.1.0 standalone prototype`
+- Package version: `0.6.0`
+- Release label: `v0.6.0 research prototype`
 - Licence: not yet specified
 - Production status: research prototype, not production-ready
 
@@ -51,7 +52,7 @@ Use a temporary virtual environment:
 
 ```bash
 python3.12 -m venv /tmp/tt-wheel-test
-/tmp/tt-wheel-test/bin/python -m pip install dist/traffictwin-0.1.0-py3-none-any.whl
+/tmp/tt-wheel-test/bin/python -m pip install dist/traffictwin-0.6.0-py3-none-any.whl
 /tmp/tt-wheel-test/bin/traffictwin synthetic presets
 ```
 
@@ -60,8 +61,8 @@ python3.12 -m venv /tmp/tt-wheel-test
 Only tag after quality gates pass:
 
 ```bash
-git tag -a v0.1.0 -m "TrafficTwin v0.1.0 standalone prototype"
-git push origin v0.1.0
+git tag -a v0.6.0 -m "TrafficTwin v0.6.0 research prototype"
+git push origin v0.6.0
 ```
 
 ## Release Checklist
