@@ -229,6 +229,19 @@ from traffictwin.integration.sumo.models import (
     SumoTripObservation,
     SumoValidationResult,
 )
+from traffictwin.integration.sumo_execution.models import (
+    SumoExecutionImportRecord,
+    SumoExecutionReceipt,
+    SumoImportOutcome,
+    SumoPreflightReport,
+    SumoRunnerContract,
+    SumoRunPreset,
+    SumoRunRequest,
+    SumoRuntimeStatus,
+    SumoWorkflowReceipt,
+    SumoWorkflowRequest,
+)
+from traffictwin.integration.sumo_execution.service import sumo_execution_contract
 from traffictwin.integration.tos.analysis import tos_analysis_catalogue
 from traffictwin.integration.tos.analysis_models import (
     TosCampaignComparisonReport,
@@ -665,6 +678,16 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "VecImportOutcome": VecImportOutcome,
     "VecWorkflowReceipt": VecWorkflowReceipt,
     "VecOrchestrationContract": VecOrchestrationContract,
+    "SumoRunPreset": SumoRunPreset,
+    "SumoRuntimeStatus": SumoRuntimeStatus,
+    "SumoRunRequest": SumoRunRequest,
+    "SumoPreflightReport": SumoPreflightReport,
+    "SumoExecutionReceipt": SumoExecutionReceipt,
+    "SumoImportOutcome": SumoImportOutcome,
+    "SumoExecutionImportRecord": SumoExecutionImportRecord,
+    "SumoWorkflowRequest": SumoWorkflowRequest,
+    "SumoWorkflowReceipt": SumoWorkflowReceipt,
+    "SumoRunnerContract": SumoRunnerContract,
     "VecMetricAdmissionDecision": VecMetricAdmissionDecision,
     "VecRuleReadiness": VecRuleReadiness,
     "VecScientificAdmissionReport": VecScientificAdmissionReport,
@@ -1083,6 +1106,10 @@ def main() -> None:
     _write_json(
         "vec_orchestration_contract.json",
         vec_orchestration_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "sumo_execution_contract.json",
+        sumo_execution_contract().model_dump(mode="json"),
     )
     _write_json(
         "vec_end_to_end_contract.json",

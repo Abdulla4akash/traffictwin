@@ -83,6 +83,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Generated VEC-09 acceptance report](reference/generated/vec_scientific_admission_report.json)
 - [VEC-10 CLI and UI interface](integration/vec_interface.md)
 - [One-click VEC execution and automatic import](integration/vec_one_click_execution.md)
+- [Controlled one-click SUMO execution](integration/sumo_controlled_execution.md)
+- [Generated controlled SUMO execution contract](reference/generated/sumo_execution_contract.json)
 - [Generated one-click workflow contract](reference/generated/vec_orchestration_contract.json)
 - [Generated VEC-10 contract](reference/generated/vec_interface_contract.json)
 - [Generated VEC-10 acceptance report](reference/generated/vec_interface_verification.json)

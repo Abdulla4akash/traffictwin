@@ -5,7 +5,13 @@ TrafficTwin implements v0.5 capability `ING-01` as an import-only adapter for Ec
 trip records, computes existing deterministic trip metrics, offers a source-specific summary
 view, and imports accepted run metadata and metrics idempotently into SQLite.
 
-It does **not** launch SUMO. FCD is not mapped. A successful import establishes compatibility with
+The adapter itself does **not** launch SUMO. FCD is not mapped.
+
+A separate bounded extension, the
+[controlled one-click SUMO execution workflow](sumo_controlled_execution.md) (ADR-053), can
+run one closed repository-owned synthetic preset in the foreground and feed its outputs back
+through this adapter unchanged; generic `direct_launch` remains false and the capability is
+conditional on request-specific preflight and a locally installed SUMO 1.27.x binary. A successful import establishes compatibility with
 the declared XML contract, not scenario realism, Manchester validity, or compatibility with
 Randy's private VEC pipeline.
 

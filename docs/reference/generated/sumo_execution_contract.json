@@ -1,0 +1,86 @@
+{
+  "allowed_arguments": [
+    "-c",
+    "--seed",
+    "--begin",
+    "--end",
+    "--tripinfo-output",
+    "--summary-output",
+    "--no-step-log",
+    "--tripinfo-output.write-undeparted"
+  ],
+  "capability": "controlled_sumo_execution",
+  "capability_state": "conditional_on_request_specific_preflight",
+  "generic_direct_launch": false,
+  "interpretation_limits": [
+    "Synthetic TrafficTwin-authored smoke scenario: not Manchester traffic, not Randy/VEC evidence, and not real-world validation.",
+    "SUMO summary occupancy is never mapped to canonical traffic counts; no FCD, task, RSU, offloading, energy, or VEC quantity is invented.",
+    "A completed run proves controlled local software execution only; scenario realism and scientific claims are out of scope.",
+    "generic direct_launch remains false; controlled_sumo_execution is conditional on request-specific preflight"
+  ],
+  "method_version": "sumo-execute-and-import-1.0",
+  "operations": [
+    "sumo_runtime_status",
+    "preflight_sumo_run",
+    "run_sumo",
+    "import_sumo_execution",
+    "execute_and_import_sumo",
+    "list_imported_sumo_executions"
+  ],
+  "presets": [
+    {
+      "begin_s": 0,
+      "config_file": "square.sumocfg",
+      "config_sha256": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+      "description": "Two-minute synthetic smoke run proving controlled local SUMO execution only; never Manchester traffic, Randy/VEC evidence, or real-world validation.",
+      "end_s": 120,
+      "expected_outputs": [
+        "summary.xml",
+        "tripinfo.xml"
+      ],
+      "inputs": [
+        {
+          "name": "square.net.xml",
+          "sha256": "9dba208715f894606119533ab3c6d3d95133cabe32a910eecc96fd1a47d52126",
+          "size_bytes": 1048
+        },
+        {
+          "name": "square.rou.xml",
+          "sha256": "377e955571566c625c82ee43b5c2e63e55a595960a46491dfbb14d540b6ec4a1",
+          "size_bytes": 1048
+        },
+        {
+          "name": "square.sumocfg",
+          "sha256": "f63508af4ac0aa9c83baaab4670cb46e6ea2f7757f523d6378f87cdf465c8a1d",
+          "size_bytes": 538
+        }
+      ],
+      "licence_statement": "TrafficTwin repository licence is unspecified; generated results are not redistributable beyond the repository boundary.",
+      "manchester_traffic": false,
+      "preset": "synthetic_square_smoke",
+      "provenance": "Original TrafficTwin-authored synthetic scenario: one edge tracing a 100 m square perimeter with six deterministic vehicles. Not derived from Eclipse SUMO scenario files.",
+      "random_seed": 42,
+      "randy_vec_evidence": false,
+      "real_world_validation": false,
+      "scenario_directory": "scenario_synthetic_square",
+      "supported_sumo_version_prefix": "1.27.",
+      "synthetic": true,
+      "vehicle_count": 6
+    }
+  ],
+  "refusals": [
+    "arbitrary executables, shell text, sumo-gui, scripts, flags, environment variables, URLs, or dynamic modules",
+    "remote execution, background queues, SLURM, package installation, Git operations, live feeds, or Randy/VEC controls",
+    "non-preset scenarios, symlinked or mutated inputs, unsafe destinations, and existing output directories",
+    "failed, timed-out, cancelled, malformed, or input-mutating executions never import"
+  ],
+  "schema_version": "1.0",
+  "security_controls": [
+    "controlled PATH discovery resolved to a regular sumo binary with a supported 1.27.x version, with identity rechecked immediately before execution",
+    "read-only preflight with streaming SHA-256 verification of the pinned scenario inventory and configuration references",
+    "fixed allowlisted argv with shell=False, a private staged workspace, a controlled environment, bounded logs, timeout, and process-group cancellation",
+    "byte-identical input verification after execution and atomic read-only publication to a new destination only",
+    "validation and import exclusively through the existing import-only SUMO adapter and registry conventions"
+  ],
+  "supported_sumo_version_prefix": "1.27."
+}

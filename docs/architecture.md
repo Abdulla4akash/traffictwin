@@ -1307,6 +1307,17 @@ immutable, fingerprint-bound, and literal about unavailable scientific admission
 [ADR-052](decisions/ADR-052-one-click-vec-execute-and-import.md) and the
 [one-click guide](integration/vec_one_click_execution.md).
 
+The sibling layer under `integration.sumo_execution` applies the same pattern to SUMO:
+controlled PATH discovery resolving normal package-manager links to a regular supported 1.27.x
+binary, runtime name/version/digest re-verification immediately before execution, read-only
+preflight over one pinned synthetic preset, a fixed-argv foreground run in a private staged
+workspace, byte-identical input verification, atomic read-only publication, then validation and
+idempotent import exclusively through the existing `ING-01` adapter. It adds no second parser or
+metric engine, keeps generic `direct_launch` false, and reports the exact missing-runtime reason
+when no SUMO binary exists. See
+[ADR-053](decisions/ADR-053-controlled-one-click-sumo-execution.md) and the
+[controlled SUMO guide](integration/sumo_controlled_execution.md).
+
 VEC-12 under `integration.vec_research` is the final reconciliation boundary. It copies no raw
 external or execution payloads: it admits only audit/software metadata, generated contracts,
 accepted reports, citations, limitations, and the VEC-11 sanitised sample/aggregates. The manifest

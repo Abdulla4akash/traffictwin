@@ -22,6 +22,25 @@ Notes:
 
 ## Unreleased
 
+Added controlled one-click SUMO execution with automatic validated import (ADR-053):
+
+- typed `sumo_execution` workflow: controlled PATH discovery of a supported SUMO 1.27.x
+  binary, read-only preflight over the pinned `synthetic_square_smoke` preset, a fixed-argv
+  shell-free foreground run in a private staged workspace, byte-identical input
+  verification, atomic read-only publication, and validation plus idempotent import
+  exclusively through the existing import-only SUMO adapter;
+- one original repository-owned synthetic scenario with pinned SHA-256 inventory,
+  explicitly labelled non-Manchester, non-Randy, and not real-world validation;
+- `integration sumo execute-and-import` and `integration sumo import-result` CLI commands
+  plus a controlled-run section and persistent registry-backed record inspector on the
+  SUMO Output Import page;
+- failed, timed-out, cancelled, malformed, partial, or input-mutating executions publish
+  and import nothing; generic direct launch remains false and the source-specific
+  `controlled_sumo_execution` capability is conditional on request-specific preflight; and
+- stub-based unit/CLI/UI tests for every refusal path plus a passing real acceptance test
+  against the official Eclipse SUMO 1.27.1 arm64 macOS package, including genuine execution,
+  adapter validation, and idempotent import.
+
 Added one-click controlled VEC execution and automatic result import (ADR-052):
 
 - typed `vec_orchestration` workflow composing registry admission, VEC-07 preflight,

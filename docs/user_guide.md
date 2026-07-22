@@ -257,6 +257,18 @@ See the [general external-source contract](integration/external_source_contract.
 
 ## SUMO Output Import
 
+The page now begins with **Controlled one-click SUMO run**: pick the closed
+`synthetic_square_smoke` preset, review the discovered SUMO readiness and factual workload,
+enter a new output directory, confirm the synthetic run, and press **Validate, Run and
+Import**. TrafficTwin preflights, runs SUMO in the foreground with a fixed argv, verifies
+the pinned inputs stayed byte-identical, and validates plus imports the outputs through the
+ordinary adapter below. If no supported SUMO 1.27.x binary is installed the exact reason is
+shown and the button stays disabled (install with `brew install sumo` yourself; TrafficTwin
+never installs software or substitutes a fake process). **Imported controlled SUMO execution
+records** lists registered runs from the registry and survives restarts. Results are
+synthetic evidence only. See the
+[controlled SUMO guide](integration/sumo_controlled_execution.md).
+
 Use this page for an existing SUMO 1.27 result directory containing `sumo-source.yaml`,
 `tripinfo.xml`, and `summary.xml`.
 

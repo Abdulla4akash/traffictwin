@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TrafficTwin original synthetic smoke-test network. One edge traces a 100 m
+     square perimeter between two dead-end junctions. Synthetic test geometry:
+     not Manchester, not Randy/VEC evidence, not derived from Eclipse SUMO
+     scenario files. -->
+<net version="1.20" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+    <location netOffset="0.00,0.00" convBoundary="0.00,0.00,100.00,100.00" origBoundary="0.00,0.00,100.00,100.00" projParameter="!"/>
+    <edge id="E0" from="J0" to="J1" priority="1">
+        <lane id="E0_0" index="0" speed="13.89" length="396.00" shape="0.00,0.00 100.00,0.00 100.00,100.00 0.00,100.00 0.00,4.00"/>
+    </edge>
+    <junction id="J0" type="dead_end" x="0.00" y="0.00" incLanes="" intLanes="" shape="0.00,1.60 0.00,-1.60"/>
+    <junction id="J1" type="dead_end" x="0.00" y="4.00" incLanes="E0_0" intLanes="" shape="0.00,2.40 0.00,5.60"/>
+</net>

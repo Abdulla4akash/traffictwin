@@ -474,6 +474,23 @@ scenario with embedded licence notices and pinned provenance.
 tests passed; coverage reached 80%; the generated Pydantic schemas, CLI help, validation-code
 catalogue, and SUMO source contract were regenerated; the dependency lock remained current.
 
+Post-v0.6 `controlled_sumo_execution` (ADR-053): implemented and **real-runtime accepted**
+against the official Eclipse SUMO 1.27.1 arm64 macOS package. The one-click workflow
+(`traffictwin.integration.sumo_execution`) composes controlled runtime discovery, read-only
+preflight over the pinned original synthetic `synthetic_square_smoke` scenario, runtime
+name/version/digest re-verification immediately before execution, a fixed-argv shell-free
+foreground run, byte-identical input verification, atomic read-only
+publication, and validation plus idempotent import exclusively through the existing
+`ING-01` adapter. Failed, timed-out, cancelled, malformed, partial, or input-mutating
+executions never import. Generic `direct_launch` remains false; the source-specific
+capability is conditional on request-specific preflight and reports the exact runtime status.
+Evidence: `src/traffictwin/integration/sumo_execution/`,
+`tests/unit/test_sumo_execution.py` (synthetic-stub orchestration and refusal matrix),
+`tests/integration/test_sumo_execute_and_import.py` (passing real execution, validation, and
+idempotent-import acceptance), `docs/integration/sumo_controlled_execution.md`, and
+`docs/reference/generated/sumo_execution_contract.json`. Stub executables are labelled
+synthetic test infrastructure and cannot satisfy the real acceptance gate.
+
 v0.5 `ING-02` manifest inference status: implemented. A versioned bounded engine suggests generic
 CSV file kinds, canonical fields, and header-evidenced units through exact headers, documented
 aliases, and limited task vocabularies. Drafts are structurally non-executable. Explicit acceptance

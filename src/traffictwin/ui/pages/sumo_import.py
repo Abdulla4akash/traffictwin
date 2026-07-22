@@ -6,6 +6,15 @@ from pathlib import Path
 
 import streamlit as st
 
+from traffictwin.integration.sumo_execution import (
+    SumoExecutionPreset,
+    SumoWorkflowRequest,
+    SumoWorkflowStatus,
+    execute_and_import_sumo,
+    list_imported_sumo_executions,
+    preset_definition,
+    sumo_runtime_status,
+)
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.validation import render_validation_report
@@ -17,6 +26,145 @@ from traffictwin.ui.services import (
     validate_sumo_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+
+
+def one_click_sumo_ready(output_dir: str, registry_path: str, confirmed: bool) -> bool:
+    """Return whether the one-click action may be enabled; runtime gating is separate."""
+
+    return bool(output_dir.strip()) and bool(registry_path.strip()) and confirmed
+
+
+def _controlled_run_section(registry: Path) -> None:
+    st.subheader("Controlled one-click SUMO run")
+    st.caption(
+        "One explicit action preflights, executes the closed synthetic preset in the "
+        "foreground with a fixed argv, validates the generated XML through the existing "
+        "import-only adapter, and imports it idempotently. No command box, background "
+        "queue, sumo-gui, or arbitrary flags exist; generic direct launch remains false."
+    )
+    preset_value = st.selectbox(
+        "Closed execution preset",
+        [item.value for item in SumoExecutionPreset],
+        key="sumo_oneclick_preset",
+    )
+    preset = SumoExecutionPreset(preset_value)
+    definition = preset_definition(preset)
+    runtime = sumo_runtime_status()
+    st.write(
+        {
+            "simulated window (s)": f"{definition.begin_s}..{definition.end_s}",
+            "vehicles (request property)": definition.vehicle_count,
+            "seed": definition.random_seed,
+            "SUMO available": runtime.available,
+            "SUMO version": runtime.version or "unavailable",
+            "supported": runtime.supported,
+        }
+    )
+    st.caption(definition.description)
+    if not runtime.supported:
+        st.error(f"Controlled execution is unavailable: {runtime.reason}")
+        st.caption(
+            "Install Eclipse SUMO 1.27.x (for example `brew install sumo`) and reload. "
+            "TrafficTwin never installs software itself and never substitutes a fake "
+            "process."
+        )
+    output_dir = st.text_input(
+        "New output directory (must not exist)",
+        key="sumo_oneclick_output_dir",
+    )
+    confirmed = st.checkbox(
+        "I understand this runs the synthetic smoke scenario locally in the foreground "
+        "and that results are synthetic evidence only.",
+        key="sumo_oneclick_confirm",
+    )
+    ready = runtime.supported and one_click_sumo_ready(output_dir, str(registry), confirmed)
+    if st.button(
+        "Validate, Run and Import",
+        type="primary",
+        disabled=not ready,
+        key="sumo_oneclick_execute",
+    ):
+        try:
+            workflow = SumoWorkflowRequest(
+                preset=preset,
+                output_dir=output_dir,
+                registry_path=str(registry),
+            )
+        except ValueError as exc:
+            st.error(str(exc))
+            return
+        monitor = st.status("Current process: preflight, execution, validation, import")
+        receipt = execute_and_import_sumo(workflow)
+        st.session_state["sumo_oneclick_receipt"] = receipt
+        if receipt.status is SumoWorkflowStatus.COMPLETED_IMPORTED:
+            monitor.update(label="Current process: completed and imported", state="complete")
+        else:
+            monitor.update(label=f"Current process: {receipt.status.value}", state="error")
+    receipt = st.session_state.get("sumo_oneclick_receipt")
+    if receipt is None:
+        return
+    st.write(f"Workflow: **{receipt.status.value}**")
+    st.dataframe(
+        [
+            {"stage": item.stage.value, "state": item.state.value, "detail": item.detail}
+            for item in receipt.stages
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    if receipt.status is SumoWorkflowStatus.COMPLETED_IMPORTED and receipt.import_outcome:
+        outcome = receipt.import_outcome
+        st.success(
+            ("Idempotent re-import of " if outcome.idempotent else "Imported ")
+            + f"registry run `{outcome.run_id}`."
+        )
+        st.write(
+            {
+                "receipt fingerprint": receipt.receipt_fingerprint,
+                "output fingerprint": receipt.output_fingerprint,
+                "import record fingerprint": receipt.import_record_stable_fingerprint,
+                "inputs unchanged": receipt.inputs_verified_unchanged,
+                "metrics stored": outcome.metrics_stored,
+            }
+        )
+        st.dataframe(
+            [item.model_dump(mode="json") for item in receipt.outputs],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "Synthetic evidence only: not Manchester traffic, not Randy/VEC evidence, and "
+            "not real-world validation. Inspect the imported run below or through this "
+            "page's import view and Run Overview using the registry run id."
+        )
+    else:
+        for finding in receipt.findings:
+            st.error(finding)
+        st.caption(
+            "Nothing was imported. Failed, timed-out, cancelled, malformed, or "
+            "input-mutating executions never create registry records."
+        )
+
+
+def _imported_records_section(registry: Path) -> None:
+    with st.expander("Imported controlled SUMO execution records"):
+        summaries = list_imported_sumo_executions(registry)
+        if not summaries:
+            st.caption(
+                "No controlled SUMO executions are registered in this registry yet. "
+                "Records persist here across Streamlit restarts."
+            )
+            return
+        st.dataframe(
+            [item.model_dump(mode="json") for item in summaries],
+            hide_index=True,
+            width="stretch",
+        )
+        st.caption(
+            "Each record is a synthetic controlled execution imported through the existing "
+            "SUMO adapter; open its result directory in the import view above for the full "
+            "typed receipt and import record."
+        )
 
 
 def render(config: UiConfig) -> None:
@@ -43,6 +191,9 @@ def render(config: UiConfig) -> None:
         )
     )
     st.session_state["active_registry_path"] = str(registry)
+    _controlled_run_section(registry)
+    _imported_records_section(registry)
+    st.subheader("Import completed SUMO XML outputs")
     if not source.is_dir():
         st.error(f"SUMO result directory does not exist: {source}")
         return

@@ -196,6 +196,16 @@ from traffictwin.integration.sumo import (
     sumo_source_contract,
     validate_sumo_results,
 )
+from traffictwin.integration.sumo_execution import (
+    SumoExecutionError,
+    SumoExecutionPreset,
+    SumoWorkflowRequest,
+    SumoWorkflowStatus,
+    execute_and_import_sumo,
+    import_sumo_execution,
+    preset_definition,
+    sumo_runtime_status,
+)
 from traffictwin.integration.tos import (
     TosEvaluationRun,
     audit_tos_package,
@@ -4582,6 +4592,76 @@ def sumo_import_command(
     typer.echo(result.message)
     if result.status == "rejected":
         raise typer.Exit(code=1)
+
+
+@sumo_app.command("execute-and-import")
+def sumo_execute_and_import_command(
+    preset: Annotated[SumoExecutionPreset, typer.Option("--preset")],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False)],
+    timeout_seconds: Annotated[int, typer.Option("--timeout-seconds", min=1, max=600)] = 120,
+) -> None:
+    """Preflight, execute, validate, and import one closed SUMO preset in the foreground."""
+
+    try:
+        workflow = SumoWorkflowRequest(
+            preset=preset,
+            output_dir=str(output),
+            registry_path=str(registry),
+            timeout_seconds=timeout_seconds,
+        )
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    definition = preset_definition(preset)
+    runtime = sumo_runtime_status()
+    typer.echo(f"preset: {preset.value}")
+    typer.echo(f"simulated_window_s: {definition.begin_s}..{definition.end_s}")
+    typer.echo(f"vehicles: {definition.vehicle_count}")
+    typer.echo(f"sumo_available: {runtime.available}")
+    typer.echo(f"sumo_supported: {runtime.supported}")
+    typer.echo(f"sumo_version: {runtime.version or 'unavailable'}")
+    typer.echo(f"runtime: {runtime.reason}")
+    typer.echo("state: validating")
+    receipt = execute_and_import_sumo(workflow)
+    for stage in receipt.stages:
+        typer.echo(f"{stage.stage.value}: {stage.state.value} - {stage.detail}")
+    typer.echo(f"workflow: {receipt.status.value}")
+    if receipt.receipt_fingerprint is not None:
+        typer.echo(f"receipt_fingerprint: {receipt.receipt_fingerprint}")
+    if receipt.import_outcome is not None:
+        outcome = receipt.import_outcome
+        typer.echo(f"registry_run_id: {outcome.run_id}")
+        typer.echo(f"import_created: {outcome.created}")
+        typer.echo(f"import_idempotent: {outcome.idempotent}")
+        typer.echo(f"metrics_stored: {outcome.metrics_stored}")
+    if receipt.import_record_stable_fingerprint is not None:
+        typer.echo(f"import_stable_fingerprint: {receipt.import_record_stable_fingerprint}")
+    if receipt.status is not SumoWorkflowStatus.COMPLETED_IMPORTED:
+        for finding in receipt.findings:
+            typer.echo(f"finding: {finding}", err=True)
+        raise typer.Exit(code=1)
+
+
+@sumo_app.command("import-result")
+def sumo_import_result_command(
+    result_dir: Annotated[Path, typer.Option("--result-dir", exists=True, file_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False)],
+) -> None:
+    """Re-validate one published controlled SUMO result and import it idempotently."""
+
+    try:
+        record, outcome, validation = import_sumo_execution(result_dir, registry)
+    except (OSError, SumoExecutionError, RegistryConflictError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"preset: {record.preset.value}")
+    typer.echo(f"adapter_validation: {validation.report.status.value}")
+    typer.echo(f"registry_run_id: {outcome.run_id}")
+    typer.echo(f"import_created: {outcome.created}")
+    typer.echo(f"import_idempotent: {outcome.idempotent}")
+    typer.echo(f"import_stable_fingerprint: {record.stable_fingerprint()}")
+    typer.echo(f"synthetic: {record.synthetic}")
 
 
 @tos_app.command("inspect")

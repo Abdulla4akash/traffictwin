@@ -44967,6 +44967,671 @@
       "title": "StructuredReportDiff",
       "type": "object"
     },
+    "SumoExecutionImportRecord": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoRunRequest": {
+          "additionalProperties": false,
+          "description": "One resolved, bounded execution request for a closed preset.",
+          "properties": {
+            "begin_s": {
+              "minimum": 0,
+              "title": "Begin S",
+              "type": "integer"
+            },
+            "config_file": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Config File",
+              "type": "string"
+            },
+            "config_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Config Sha256",
+              "type": "string"
+            },
+            "end_s": {
+              "exclusiveMinimum": 0,
+              "title": "End S",
+              "type": "integer"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/SumoScenarioInput"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "title": "Inputs",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "sumo-execute-and-import-1.0",
+              "default": "sumo-execute-and-import-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "preset": {
+              "$ref": "#/$defs/SumoExecutionPreset"
+            },
+            "random_seed": {
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "sumo_executable_name": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Sumo Executable Name",
+              "type": "string"
+            },
+            "sumo_executable_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sumo Executable Sha256",
+              "type": "string"
+            },
+            "sumo_version": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Sumo Version",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "maximum": 600,
+              "minimum": 1,
+              "title": "Timeout Seconds",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "preset",
+            "config_file",
+            "config_sha256",
+            "inputs",
+            "sumo_executable_name",
+            "sumo_executable_sha256",
+            "sumo_version",
+            "random_seed",
+            "begin_s",
+            "end_s",
+            "timeout_seconds"
+          ],
+          "title": "SumoRunRequest",
+          "type": "object"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable typed evidence binding one execution to its accepted import.",
+      "properties": {
+        "bundle_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Bundle Id",
+          "type": "string"
+        },
+        "capability": {
+          "const": "controlled_sumo_execution",
+          "default": "controlled_sumo_execution",
+          "title": "Capability",
+          "type": "string"
+        },
+        "imported_at_utc": {
+          "title": "Imported At Utc",
+          "type": "string"
+        },
+        "importer_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Importer Version",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "manchester_traffic": {
+          "const": false,
+          "default": false,
+          "title": "Manchester Traffic",
+          "type": "boolean"
+        },
+        "output_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Output Fingerprint",
+          "type": "string"
+        },
+        "preflight_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Preflight Fingerprint",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "randy_vec_evidence": {
+          "const": false,
+          "default": false,
+          "title": "Randy Vec Evidence",
+          "type": "boolean"
+        },
+        "real_world_validation": {
+          "const": false,
+          "default": false,
+          "title": "Real World Validation",
+          "type": "boolean"
+        },
+        "receipt_file_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt File Sha256",
+          "type": "string"
+        },
+        "receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt Fingerprint",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/SumoRunRequest"
+        },
+        "request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Fingerprint",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sumo_version": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Sumo Version",
+          "type": "string"
+        },
+        "synthetic": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "validation_bundle_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Validation Bundle Fingerprint",
+          "type": "string"
+        },
+        "validation_report_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Validation Report Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preset",
+        "request",
+        "request_fingerprint",
+        "preflight_fingerprint",
+        "receipt_file_sha256",
+        "receipt_fingerprint",
+        "output_fingerprint",
+        "sumo_version",
+        "validation_bundle_fingerprint",
+        "validation_report_sha256",
+        "bundle_id",
+        "run_id",
+        "imported_at_utc",
+        "limitations"
+      ],
+      "title": "SumoExecutionImportRecord",
+      "type": "object"
+    },
+    "SumoExecutionReceipt": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoFileEvidence": {
+          "additionalProperties": false,
+          "description": "Portable identity for one input, log, or output file.",
+          "properties": {
+            "path": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Path",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 0,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoFileEvidence",
+          "type": "object"
+        },
+        "SumoRunRequest": {
+          "additionalProperties": false,
+          "description": "One resolved, bounded execution request for a closed preset.",
+          "properties": {
+            "begin_s": {
+              "minimum": 0,
+              "title": "Begin S",
+              "type": "integer"
+            },
+            "config_file": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Config File",
+              "type": "string"
+            },
+            "config_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Config Sha256",
+              "type": "string"
+            },
+            "end_s": {
+              "exclusiveMinimum": 0,
+              "title": "End S",
+              "type": "integer"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/SumoScenarioInput"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "title": "Inputs",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "sumo-execute-and-import-1.0",
+              "default": "sumo-execute-and-import-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "preset": {
+              "$ref": "#/$defs/SumoExecutionPreset"
+            },
+            "random_seed": {
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "sumo_executable_name": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Sumo Executable Name",
+              "type": "string"
+            },
+            "sumo_executable_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sumo Executable Sha256",
+              "type": "string"
+            },
+            "sumo_version": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Sumo Version",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "maximum": 600,
+              "minimum": 1,
+              "title": "Timeout Seconds",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "preset",
+            "config_file",
+            "config_sha256",
+            "inputs",
+            "sumo_executable_name",
+            "sumo_executable_sha256",
+            "sumo_version",
+            "random_seed",
+            "begin_s",
+            "end_s",
+            "timeout_seconds"
+          ],
+          "title": "SumoRunRequest",
+          "type": "object"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        },
+        "SumoTerminalStatus": {
+          "description": "Terminal runner states; only completed results are published.",
+          "enum": [
+            "completed",
+            "rejected",
+            "failed",
+            "timed_out",
+            "cancelled"
+          ],
+          "title": "SumoTerminalStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Typed terminal evidence for one controlled SUMO invocation.",
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 2,
+          "title": "Argv",
+          "type": "array"
+        },
+        "cancellation_requested": {
+          "title": "Cancellation Requested",
+          "type": "boolean"
+        },
+        "elapsed_seconds": {
+          "minimum": 0,
+          "title": "Elapsed Seconds",
+          "type": "number"
+        },
+        "exit_code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Exit Code"
+        },
+        "finished_at_utc": {
+          "title": "Finished At Utc",
+          "type": "string"
+        },
+        "inputs_after": {
+          "items": {
+            "$ref": "#/$defs/SumoFileEvidence"
+          },
+          "title": "Inputs After",
+          "type": "array"
+        },
+        "inputs_before": {
+          "items": {
+            "$ref": "#/$defs/SumoFileEvidence"
+          },
+          "title": "Inputs Before",
+          "type": "array"
+        },
+        "inputs_modified": {
+          "title": "Inputs Modified",
+          "type": "boolean"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "output_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Fingerprint"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/SumoFileEvidence"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "preflight_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Preflight Fingerprint",
+          "type": "string"
+        },
+        "published": {
+          "title": "Published",
+          "type": "boolean"
+        },
+        "request": {
+          "$ref": "#/$defs/SumoRunRequest"
+        },
+        "request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "started_at_utc": {
+          "title": "Started At Utc",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/SumoTerminalStatus"
+        },
+        "stderr_excerpt": {
+          "maxLength": 64000,
+          "title": "Stderr Excerpt",
+          "type": "string"
+        },
+        "stdout_excerpt": {
+          "maxLength": 64000,
+          "title": "Stdout Excerpt",
+          "type": "string"
+        },
+        "timed_out": {
+          "title": "Timed Out",
+          "type": "boolean"
+        },
+        "working_directory": {
+          "const": "{PRIVATE_WORKSPACE}",
+          "default": "{PRIVATE_WORKSPACE}",
+          "title": "Working Directory",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "request",
+        "request_fingerprint",
+        "preflight_fingerprint",
+        "argv",
+        "started_at_utc",
+        "finished_at_utc",
+        "elapsed_seconds",
+        "exit_code",
+        "timed_out",
+        "cancellation_requested",
+        "inputs_before",
+        "inputs_after",
+        "stdout_excerpt",
+        "stderr_excerpt",
+        "outputs",
+        "inputs_modified",
+        "published",
+        "limitations"
+      ],
+      "title": "SumoExecutionReceipt",
+      "type": "object"
+    },
+    "SumoImportOutcome": {
+      "additionalProperties": false,
+      "description": "Registry outcome for one import attempt through the existing adapter.",
+      "properties": {
+        "adapter_status": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Adapter Status",
+          "type": "string"
+        },
+        "bundle_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Bundle Id",
+          "type": "string"
+        },
+        "created": {
+          "title": "Created",
+          "type": "boolean"
+        },
+        "idempotent": {
+          "title": "Idempotent",
+          "type": "boolean"
+        },
+        "metrics_stored": {
+          "title": "Metrics Stored",
+          "type": "boolean"
+        },
+        "registry_reference": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Registry Reference",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created",
+        "idempotent",
+        "bundle_id",
+        "run_id",
+        "adapter_status",
+        "metrics_stored",
+        "registry_reference"
+      ],
+      "title": "SumoImportOutcome",
+      "type": "object"
+    },
     "SumoImportResult": {
       "additionalProperties": false,
       "description": "Registry outcome for one validated SUMO result package.",
@@ -45024,6 +45689,328 @@
         "message"
       ],
       "title": "SumoImportResult",
+      "type": "object"
+    },
+    "SumoPreflightReport": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoFinding": {
+          "additionalProperties": false,
+          "description": "One deterministic preflight or workflow finding.",
+          "properties": {
+            "code": {
+              "pattern": "^[A-Z0-9_]+$",
+              "title": "Code",
+              "type": "string"
+            },
+            "message": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Message",
+              "type": "string"
+            },
+            "severity": {
+              "enum": [
+                "info",
+                "error"
+              ],
+              "title": "Severity",
+              "type": "string"
+            }
+          },
+          "required": [
+            "code",
+            "severity",
+            "message"
+          ],
+          "title": "SumoFinding",
+          "type": "object"
+        },
+        "SumoPreflightStatus": {
+          "description": "Read-only preflight outcome.",
+          "enum": [
+            "accepted",
+            "rejected",
+            "unavailable"
+          ],
+          "title": "SumoPreflightStatus",
+          "type": "string"
+        },
+        "SumoRunRequest": {
+          "additionalProperties": false,
+          "description": "One resolved, bounded execution request for a closed preset.",
+          "properties": {
+            "begin_s": {
+              "minimum": 0,
+              "title": "Begin S",
+              "type": "integer"
+            },
+            "config_file": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Config File",
+              "type": "string"
+            },
+            "config_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Config Sha256",
+              "type": "string"
+            },
+            "end_s": {
+              "exclusiveMinimum": 0,
+              "title": "End S",
+              "type": "integer"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/SumoScenarioInput"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "title": "Inputs",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "sumo-execute-and-import-1.0",
+              "default": "sumo-execute-and-import-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "preset": {
+              "$ref": "#/$defs/SumoExecutionPreset"
+            },
+            "random_seed": {
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "sumo_executable_name": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Sumo Executable Name",
+              "type": "string"
+            },
+            "sumo_executable_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sumo Executable Sha256",
+              "type": "string"
+            },
+            "sumo_version": {
+              "maxLength": 50,
+              "minLength": 1,
+              "title": "Sumo Version",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "maximum": 600,
+              "minimum": 1,
+              "title": "Timeout Seconds",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "preset",
+            "config_file",
+            "config_sha256",
+            "inputs",
+            "sumo_executable_name",
+            "sumo_executable_sha256",
+            "sumo_version",
+            "random_seed",
+            "begin_s",
+            "end_s",
+            "timeout_seconds"
+          ],
+          "title": "SumoRunRequest",
+          "type": "object"
+        },
+        "SumoRuntimeStatus": {
+          "additionalProperties": false,
+          "description": "Discovered SUMO runtime readiness; portable and path-free.",
+          "properties": {
+            "available": {
+              "title": "Available",
+              "type": "boolean"
+            },
+            "executable_name": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Executable Name"
+            },
+            "executable_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Executable Sha256"
+            },
+            "reason": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Reason",
+              "type": "string"
+            },
+            "supported": {
+              "title": "Supported",
+              "type": "boolean"
+            },
+            "version": {
+              "anyOf": [
+                {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Version"
+            }
+          },
+          "required": [
+            "available",
+            "supported",
+            "reason"
+          ],
+          "title": "SumoRuntimeStatus",
+          "type": "object"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete read-only admission decision for one request.",
+      "properties": {
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/SumoFinding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "mutations_performed": {
+          "const": false,
+          "default": false,
+          "title": "Mutations Performed",
+          "type": "boolean"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "read_only": {
+          "const": true,
+          "default": true,
+          "title": "Read Only",
+          "type": "boolean"
+        },
+        "request": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SumoRunRequest"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "request_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Fingerprint"
+        },
+        "runtime": {
+          "$ref": "#/$defs/SumoRuntimeStatus"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/SumoPreflightStatus"
+        }
+      },
+      "required": [
+        "status",
+        "preset",
+        "runtime",
+        "request",
+        "findings"
+      ],
+      "title": "SumoPreflightReport",
       "type": "object"
     },
     "SumoResultManifest": {
@@ -45236,6 +46223,639 @@
         "files"
       ],
       "title": "SumoResultManifest",
+      "type": "object"
+    },
+    "SumoRunPreset": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete immutable definition of one closed preset.",
+      "properties": {
+        "begin_s": {
+          "minimum": 0,
+          "title": "Begin S",
+          "type": "integer"
+        },
+        "config_file": {
+          "const": "square.sumocfg",
+          "default": "square.sumocfg",
+          "title": "Config File",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "description": {
+          "maxLength": 1000,
+          "minLength": 10,
+          "title": "Description",
+          "type": "string"
+        },
+        "end_s": {
+          "exclusiveMinimum": 0,
+          "title": "End S",
+          "type": "integer"
+        },
+        "expected_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Expected Outputs",
+          "type": "array"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/SumoScenarioInput"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "licence_statement": {
+          "maxLength": 1000,
+          "minLength": 10,
+          "title": "Licence Statement",
+          "type": "string"
+        },
+        "manchester_traffic": {
+          "const": false,
+          "default": false,
+          "title": "Manchester Traffic",
+          "type": "boolean"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "provenance": {
+          "maxLength": 1000,
+          "minLength": 10,
+          "title": "Provenance",
+          "type": "string"
+        },
+        "random_seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "randy_vec_evidence": {
+          "const": false,
+          "default": false,
+          "title": "Randy Vec Evidence",
+          "type": "boolean"
+        },
+        "real_world_validation": {
+          "const": false,
+          "default": false,
+          "title": "Real World Validation",
+          "type": "boolean"
+        },
+        "scenario_directory": {
+          "const": "scenario_synthetic_square",
+          "default": "scenario_synthetic_square",
+          "title": "Scenario Directory",
+          "type": "string"
+        },
+        "supported_sumo_version_prefix": {
+          "const": "1.27.",
+          "default": "1.27.",
+          "title": "Supported Sumo Version Prefix",
+          "type": "string"
+        },
+        "synthetic": {
+          "const": true,
+          "default": true,
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "vehicle_count": {
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Vehicle Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "preset",
+        "config_sha256",
+        "inputs",
+        "random_seed",
+        "begin_s",
+        "end_s",
+        "vehicle_count",
+        "expected_outputs",
+        "provenance",
+        "licence_statement",
+        "description"
+      ],
+      "title": "SumoRunPreset",
+      "type": "object"
+    },
+    "SumoRunRequest": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One resolved, bounded execution request for a closed preset.",
+      "properties": {
+        "begin_s": {
+          "minimum": 0,
+          "title": "Begin S",
+          "type": "integer"
+        },
+        "config_file": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Config File",
+          "type": "string"
+        },
+        "config_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Config Sha256",
+          "type": "string"
+        },
+        "end_s": {
+          "exclusiveMinimum": 0,
+          "title": "End S",
+          "type": "integer"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/SumoScenarioInput"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "random_seed": {
+          "maximum": 2147483647,
+          "minimum": 0,
+          "title": "Random Seed",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sumo_executable_name": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Sumo Executable Name",
+          "type": "string"
+        },
+        "sumo_executable_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sumo Executable Sha256",
+          "type": "string"
+        },
+        "sumo_version": {
+          "maxLength": 50,
+          "minLength": 1,
+          "title": "Sumo Version",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "preset",
+        "config_file",
+        "config_sha256",
+        "inputs",
+        "sumo_executable_name",
+        "sumo_executable_sha256",
+        "sumo_version",
+        "random_seed",
+        "begin_s",
+        "end_s",
+        "timeout_seconds"
+      ],
+      "title": "SumoRunRequest",
+      "type": "object"
+    },
+    "SumoRunnerContract": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoRunPreset": {
+          "additionalProperties": false,
+          "description": "Complete immutable definition of one closed preset.",
+          "properties": {
+            "begin_s": {
+              "minimum": 0,
+              "title": "Begin S",
+              "type": "integer"
+            },
+            "config_file": {
+              "const": "square.sumocfg",
+              "default": "square.sumocfg",
+              "title": "Config File",
+              "type": "string"
+            },
+            "config_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Config Sha256",
+              "type": "string"
+            },
+            "description": {
+              "maxLength": 1000,
+              "minLength": 10,
+              "title": "Description",
+              "type": "string"
+            },
+            "end_s": {
+              "exclusiveMinimum": 0,
+              "title": "End S",
+              "type": "integer"
+            },
+            "expected_outputs": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 8,
+              "minItems": 1,
+              "title": "Expected Outputs",
+              "type": "array"
+            },
+            "inputs": {
+              "items": {
+                "$ref": "#/$defs/SumoScenarioInput"
+              },
+              "maxItems": 16,
+              "minItems": 1,
+              "title": "Inputs",
+              "type": "array"
+            },
+            "licence_statement": {
+              "maxLength": 1000,
+              "minLength": 10,
+              "title": "Licence Statement",
+              "type": "string"
+            },
+            "manchester_traffic": {
+              "const": false,
+              "default": false,
+              "title": "Manchester Traffic",
+              "type": "boolean"
+            },
+            "preset": {
+              "$ref": "#/$defs/SumoExecutionPreset"
+            },
+            "provenance": {
+              "maxLength": 1000,
+              "minLength": 10,
+              "title": "Provenance",
+              "type": "string"
+            },
+            "random_seed": {
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Random Seed",
+              "type": "integer"
+            },
+            "randy_vec_evidence": {
+              "const": false,
+              "default": false,
+              "title": "Randy Vec Evidence",
+              "type": "boolean"
+            },
+            "real_world_validation": {
+              "const": false,
+              "default": false,
+              "title": "Real World Validation",
+              "type": "boolean"
+            },
+            "scenario_directory": {
+              "const": "scenario_synthetic_square",
+              "default": "scenario_synthetic_square",
+              "title": "Scenario Directory",
+              "type": "string"
+            },
+            "supported_sumo_version_prefix": {
+              "const": "1.27.",
+              "default": "1.27.",
+              "title": "Supported Sumo Version Prefix",
+              "type": "string"
+            },
+            "synthetic": {
+              "const": true,
+              "default": true,
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "vehicle_count": {
+              "maximum": 1000,
+              "minimum": 1,
+              "title": "Vehicle Count",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "preset",
+            "config_sha256",
+            "inputs",
+            "random_seed",
+            "begin_s",
+            "end_s",
+            "vehicle_count",
+            "expected_outputs",
+            "provenance",
+            "licence_statement",
+            "description"
+          ],
+          "title": "SumoRunPreset",
+          "type": "object"
+        },
+        "SumoScenarioInput": {
+          "additionalProperties": false,
+          "description": "One admitted scenario input with its pinned identity.",
+          "properties": {
+            "name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Name",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 1,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "name",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoScenarioInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Machine-readable public boundary for the controlled SUMO workflow.",
+      "properties": {
+        "allowed_arguments": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Arguments",
+          "type": "array"
+        },
+        "capability": {
+          "const": "controlled_sumo_execution",
+          "default": "controlled_sumo_execution",
+          "title": "Capability",
+          "type": "string"
+        },
+        "capability_state": {
+          "const": "conditional_on_request_specific_preflight",
+          "default": "conditional_on_request_specific_preflight",
+          "title": "Capability State",
+          "type": "string"
+        },
+        "generic_direct_launch": {
+          "const": false,
+          "default": false,
+          "title": "Generic Direct Launch",
+          "type": "boolean"
+        },
+        "interpretation_limits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Interpretation Limits",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "operations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Operations",
+          "type": "array"
+        },
+        "presets": {
+          "items": {
+            "$ref": "#/$defs/SumoRunPreset"
+          },
+          "minItems": 1,
+          "title": "Presets",
+          "type": "array"
+        },
+        "refusals": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Refusals",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "security_controls": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Security Controls",
+          "type": "array"
+        },
+        "supported_sumo_version_prefix": {
+          "const": "1.27.",
+          "default": "1.27.",
+          "title": "Supported Sumo Version Prefix",
+          "type": "string"
+        }
+      },
+      "required": [
+        "presets",
+        "operations",
+        "allowed_arguments",
+        "refusals",
+        "security_controls",
+        "interpretation_limits"
+      ],
+      "title": "SumoRunnerContract",
+      "type": "object"
+    },
+    "SumoRuntimeStatus": {
+      "additionalProperties": false,
+      "description": "Discovered SUMO runtime readiness; portable and path-free.",
+      "properties": {
+        "available": {
+          "title": "Available",
+          "type": "boolean"
+        },
+        "executable_name": {
+          "anyOf": [
+            {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Executable Name"
+        },
+        "executable_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Executable Sha256"
+        },
+        "reason": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "supported": {
+          "title": "Supported",
+          "type": "boolean"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "maxLength": 50,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "available",
+        "supported",
+        "reason"
+      ],
+      "title": "SumoRuntimeStatus",
       "type": "object"
     },
     "SumoSourceContract": {
@@ -47519,6 +49139,427 @@
         "source"
       ],
       "title": "SumoValidationResult",
+      "type": "object"
+    },
+    "SumoWorkflowReceipt": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        },
+        "SumoFileEvidence": {
+          "additionalProperties": false,
+          "description": "Portable identity for one input, log, or output file.",
+          "properties": {
+            "path": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Path",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 0,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "size_bytes"
+          ],
+          "title": "SumoFileEvidence",
+          "type": "object"
+        },
+        "SumoImportOutcome": {
+          "additionalProperties": false,
+          "description": "Registry outcome for one import attempt through the existing adapter.",
+          "properties": {
+            "adapter_status": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Adapter Status",
+              "type": "string"
+            },
+            "bundle_id": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Bundle Id",
+              "type": "string"
+            },
+            "created": {
+              "title": "Created",
+              "type": "boolean"
+            },
+            "idempotent": {
+              "title": "Idempotent",
+              "type": "boolean"
+            },
+            "metrics_stored": {
+              "title": "Metrics Stored",
+              "type": "boolean"
+            },
+            "registry_reference": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Registry Reference",
+              "type": "string"
+            },
+            "run_id": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "created",
+            "idempotent",
+            "bundle_id",
+            "run_id",
+            "adapter_status",
+            "metrics_stored",
+            "registry_reference"
+          ],
+          "title": "SumoImportOutcome",
+          "type": "object"
+        },
+        "SumoRuntimeStatus": {
+          "additionalProperties": false,
+          "description": "Discovered SUMO runtime readiness; portable and path-free.",
+          "properties": {
+            "available": {
+              "title": "Available",
+              "type": "boolean"
+            },
+            "executable_name": {
+              "anyOf": [
+                {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Executable Name"
+            },
+            "executable_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Executable Sha256"
+            },
+            "reason": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Reason",
+              "type": "string"
+            },
+            "supported": {
+              "title": "Supported",
+              "type": "boolean"
+            },
+            "version": {
+              "anyOf": [
+                {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Version"
+            }
+          },
+          "required": [
+            "available",
+            "supported",
+            "reason"
+          ],
+          "title": "SumoRuntimeStatus",
+          "type": "object"
+        },
+        "SumoWorkflowStage": {
+          "additionalProperties": false,
+          "description": "One deterministic stage outcome shown to the user.",
+          "properties": {
+            "detail": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Detail",
+              "type": "string"
+            },
+            "stage": {
+              "$ref": "#/$defs/SumoWorkflowStageName"
+            },
+            "state": {
+              "$ref": "#/$defs/SumoWorkflowStageState"
+            }
+          },
+          "required": [
+            "stage",
+            "state",
+            "detail"
+          ],
+          "title": "SumoWorkflowStage",
+          "type": "object"
+        },
+        "SumoWorkflowStageName": {
+          "description": "Ordered orchestration stages.",
+          "enum": [
+            "preflight",
+            "execution",
+            "validation",
+            "import"
+          ],
+          "title": "SumoWorkflowStageName",
+          "type": "string"
+        },
+        "SumoWorkflowStageState": {
+          "description": "Outcome of one orchestration stage.",
+          "enum": [
+            "accepted",
+            "rejected",
+            "failed",
+            "skipped",
+            "completed"
+          ],
+          "title": "SumoWorkflowStageState",
+          "type": "string"
+        },
+        "SumoWorkflowStatus": {
+          "description": "Terminal one-click states; only completed_imported registers evidence.",
+          "enum": [
+            "completed_imported",
+            "preflight_rejected",
+            "preflight_unavailable",
+            "execution_failed",
+            "execution_timed_out",
+            "execution_cancelled",
+            "execution_rejected",
+            "validation_rejected",
+            "import_rejected",
+            "import_conflict"
+          ],
+          "title": "SumoWorkflowStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete typed evidence for one one-click workflow invocation.",
+      "properties": {
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Findings",
+          "type": "array"
+        },
+        "import_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SumoImportOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "import_record_stable_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Import Record Stable Fingerprint"
+        },
+        "inputs_verified_unchanged": {
+          "title": "Inputs Verified Unchanged",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "output_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Fingerprint"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/SumoFileEvidence"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "preflight_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preflight Fingerprint"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "receipt_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receipt Fingerprint"
+        },
+        "request_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Fingerprint"
+        },
+        "runtime": {
+          "$ref": "#/$defs/SumoRuntimeStatus"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/SumoWorkflowStage"
+          },
+          "minItems": 1,
+          "title": "Stages",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/SumoWorkflowStatus"
+        }
+      },
+      "required": [
+        "status",
+        "preset",
+        "stages",
+        "runtime",
+        "inputs_verified_unchanged"
+      ],
+      "title": "SumoWorkflowReceipt",
+      "type": "object"
+    },
+    "SumoWorkflowRequest": {
+      "$defs": {
+        "SumoExecutionPreset": {
+          "description": "Closed repository-owned execution presets; no free-form scenarios.",
+          "enum": [
+            "synthetic_square_smoke"
+          ],
+          "title": "SumoExecutionPreset",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "User-facing one-click request; paths are explicit and bounded.",
+      "properties": {
+        "method_version": {
+          "const": "sumo-execute-and-import-1.0",
+          "default": "sumo-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "output_dir": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Output Dir",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/SumoExecutionPreset"
+        },
+        "registry_path": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Registry Path",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "timeout_seconds": {
+          "default": 120,
+          "maximum": 600,
+          "minimum": 1,
+          "title": "Timeout Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "preset",
+        "output_dir",
+        "registry_path"
+      ],
+      "title": "SumoWorkflowRequest",
       "type": "object"
     },
     "SweepAxis": {

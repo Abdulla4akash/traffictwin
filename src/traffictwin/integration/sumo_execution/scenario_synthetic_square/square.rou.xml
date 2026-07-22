@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TrafficTwin original synthetic smoke-test demand: six deterministic
+     vehicles on the single square-perimeter edge. Synthetic test traffic. -->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="synthetic_car" accel="2.6" decel="4.5" length="5.0" maxSpeed="13.89" sigma="0.5"/>
+    <route id="square_loop" edges="E0"/>
+    <vehicle id="synthetic_vehicle_0" type="synthetic_car" route="square_loop" depart="0.00"/>
+    <vehicle id="synthetic_vehicle_1" type="synthetic_car" route="square_loop" depart="5.00"/>
+    <vehicle id="synthetic_vehicle_2" type="synthetic_car" route="square_loop" depart="10.00"/>
+    <vehicle id="synthetic_vehicle_3" type="synthetic_car" route="square_loop" depart="15.00"/>
+    <vehicle id="synthetic_vehicle_4" type="synthetic_car" route="square_loop" depart="20.00"/>
+    <vehicle id="synthetic_vehicle_5" type="synthetic_car" route="square_loop" depart="25.00"/>
+</routes>

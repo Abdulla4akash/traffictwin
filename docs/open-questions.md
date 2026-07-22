@@ -460,6 +460,9 @@ The complete source evidence is in
   reproduction evidence against exact supplied Git blobs. VEC-10 exposes it only as conditional,
   foreground, request-preflight-gated execution; VEC-08 still does not establish cross-platform or
   scenario-wide equivalence.
+- The controlled SUMO workflow (ADR-053) has passed real runtime acceptance with the official
+  Eclipse SUMO 1.27.1 arm64 macOS package. Whether additional closed presets (or a reviewed
+  re-generation of the Eclipse square scenario inputs) are worth adding remains open.
 - The one-click execute-and-import workflow (ADR-052) registers completed preset executions as
   structural evidence only. Whether a locally executed full protocol-seed run should later gain
   a graded reproduction reference automatically remains open: it would require an accepted

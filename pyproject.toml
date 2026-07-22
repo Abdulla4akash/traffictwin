@@ -53,6 +53,13 @@ traffictwin = "traffictwin.cli:app"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"traffictwin.integration.sumo_execution" = [
+    "scenario_synthetic_square/*.xml",
+    "scenario_synthetic_square/*.sumocfg",
+    "scenario_synthetic_square/*.md",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TrafficTwin original synthetic smoke-test configuration. Referenced files
+     are the two admitted local scenario files only. -->
+<sumoConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
+    <input>
+        <net-file value="square.net.xml"/>
+        <route-files value="square.rou.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="120"/>
+    </time>
+</sumoConfiguration>

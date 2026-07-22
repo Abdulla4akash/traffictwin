@@ -54,6 +54,7 @@
 | [ADR-050](ADR-050-isolated-allowlisted-vec-evaluator-runner.md) | Isolated allowlisted VEC evaluator runner | accepted |
 | [ADR-051](ADR-051-deterministic-vec-end-to-end-research-artifact.md) | Deterministic VEC end-to-end research artifact | accepted |
 | [ADR-052](ADR-052-one-click-vec-execute-and-import.md) | One-click VEC execute-and-import orchestration | accepted |
+| [ADR-053](ADR-053-controlled-one-click-sumo-execution.md) | Controlled one-click SUMO execution and automatic import | accepted |
 
 Related documents:
 

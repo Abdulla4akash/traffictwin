@@ -161,6 +161,12 @@ Implemented:
   explicit action. Imported records stay structural evidence with scientific admission
   explicitly unavailable. See the
   [one-click guide](docs/integration/vec_one_click_execution.md).
+- Controlled one-click SUMO execution (post-v0.6, ADR-053): one closed synthetic preset runs
+  the discovered SUMO 1.27.x binary in the foreground with a fixed argv, then validates and
+  imports the outputs through the existing import-only adapter idempotently. Real runtime
+  acceptance stays visibly unavailable until SUMO is installed locally; generic direct launch
+  remains false. See the
+  [controlled SUMO guide](docs/integration/sumo_controlled_execution.md).
 - v0.6 `VEC-12` accepted deterministic end-to-end research artifact: one offline-verifiable
   27-member ZIP binding VEC-01–VEC-11 source, execution, join, scientific, interface, permission,
   provenance, environment, exclusion, and limitation evidence without raw external bytes. See the
