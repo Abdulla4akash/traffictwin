@@ -1283,6 +1283,8 @@ def _cli_help() -> dict[str, Any]:
         "COLUMNS": "100",
         "NO_COLOR": "1",
         "TERM": "dumb",
+        "TERMINAL_WIDTH": "100",
+        "_TYPER_FORCE_DISABLE_TERMINAL": "1",
     }
     entries: list[dict[str, Any]] = []
     for command in CLI_COMMANDS:
