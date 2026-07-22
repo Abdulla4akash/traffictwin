@@ -21,7 +21,7 @@ from traffictwin.experiments.evidence import ObjectiveDirection
 from traffictwin.experiments.statistical_study import metric_collection_fingerprint
 from traffictwin.experiments.winner_map import PolicyScore, WinnerMapReport, build_winner_map
 from traffictwin.metrics.results import JsonScalar, MetricCollection, MetricStatus, MetricValue
-from traffictwin.metrics.statistics import percentile_linear
+from traffictwin.metrics.statistics import percentile_linear, stable_float
 
 N_WAY_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 N_WAY_METHOD_VERSION: Literal["1.0"] = "1.0"
@@ -949,8 +949,8 @@ def _joint_bootstrap(
         assert rank_lower is not None and rank_upper is not None
         rank_counts = _counts(str(rank) for rank in ranks[algorithm])
         output[algorithm] = (
-            lower,
-            upper,
+            stable_float(lower),
+            stable_float(upper),
             ranks[algorithm].count(1) / config.bootstrap_repetitions,
             max(1, math.floor(rank_lower)),
             min(len(config.algorithms), math.ceil(rank_upper)),

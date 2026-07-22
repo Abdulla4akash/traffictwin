@@ -16,6 +16,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from traffictwin.metrics.results import JsonScalar
+from traffictwin.metrics.statistics import stable_float
 
 POWER_ANALYSIS_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 POWER_ANALYSIS_METHOD_VERSION: Literal["1.0"] = "1.0"
@@ -328,10 +329,11 @@ def evaluate_power_analysis(
     config_snapshot = config.model_dump(mode="json")
     generated_at = clock()
     normal = NormalDist()
-    critical_value = normal.inv_cdf(1.0 - config.alpha / 2.0)
+    raw_critical_value = normal.inv_cdf(1.0 - config.alpha / 2.0)
+    critical_value = stable_float(raw_critical_value)
     effect_magnitude = abs(config.target_effect)
     variance = config.paired_difference_variance
-    standard_deviation = math.sqrt(variance) if variance > 0.0 else None
+    standard_deviation = stable_float(math.sqrt(variance)) if variance > 0.0 else None
 
     if effect_magnitude == 0.0:
         calculation = _unavailable_calculation(
@@ -350,11 +352,11 @@ def evaluate_power_analysis(
             None,
         )
     else:
-        standardised_effect = effect_magnitude / standard_deviation
+        standardised_effect = stable_float(effect_magnitude / standard_deviation)
         maximum_power = _two_sided_normal_power(
             config.maximum_replicates,
             standardised_effect,
-            critical_value,
+            raw_critical_value,
             normal,
         )
         if maximum_power < config.target_power:
@@ -371,11 +373,15 @@ def evaluate_power_analysis(
                 standardised_effect=standardised_effect,
             )
         else:
-            required = _minimum_required_replicates(config, standardised_effect, critical_value)
+            required = _minimum_required_replicates(
+                config,
+                standardised_effect,
+                raw_critical_value,
+            )
             achieved = _two_sided_normal_power(
                 required,
                 standardised_effect,
-                critical_value,
+                raw_critical_value,
                 normal,
             )
             preceding_count = required - 1 if required > config.minimum_replicates else None
@@ -383,7 +389,7 @@ def evaluate_power_analysis(
                 _two_sided_normal_power(
                     preceding_count,
                     standardised_effect,
-                    critical_value,
+                    raw_critical_value,
                     normal,
                 )
                 if preceding_count is not None
@@ -597,7 +603,7 @@ def _two_sided_normal_power(
     noncentrality = math.sqrt(replicate_count) * standardised_effect
     left_tail = normal.cdf(-critical_value - noncentrality)
     right_tail = normal.cdf(noncentrality - critical_value)
-    return min(1.0, max(0.0, left_tail + right_tail))
+    return stable_float(min(1.0, max(0.0, left_tail + right_tail)))
 
 
 def _unavailable_calculation(

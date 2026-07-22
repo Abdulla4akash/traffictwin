@@ -9,12 +9,12 @@
     "The calculation concerns one two-sided predeclared comparison without multiplicity adjustment."
   ],
   "calculation": {
-    "achieved_power": 0.8074304194325573,
+    "achieved_power": 0.80743041943256,
     "alpha": 0.05,
     "method": "two_sided_paired_mean_normal_approximation_v1",
     "paired_difference_standard_deviation": 0.05,
     "paired_difference_variance": 0.0025,
-    "preceding_power": 0.7535784406023496,
+    "preceding_power": 0.75357844060235,
     "preceding_replicate_count": 7,
     "reason": null,
     "reason_code": "NONE",
@@ -25,7 +25,7 @@
     "target_effect": 0.05,
     "target_effect_magnitude": 0.05,
     "target_power": 0.8,
-    "two_sided_critical_value": 1.9599639845400534
+    "two_sided_critical_value": 1.9599639845401
   },
   "config": {
     "alpha": 0.05,
@@ -52,7 +52,7 @@
     "variance_reference": null
   },
   "config_fingerprint": "f3945db2bf70dd6d7ee71b3fce4c01ec9aab43ae84c4762393d7fccf2a1bdfaf",
-  "fingerprint": "c5f52a79f876431ba403efc36abc458c46ef4a63f39ae1c590a538051771ee0a",
+  "fingerprint": "64af574bded3cde04a21d8b22c881898c8239b6da459ca540814ff0ed4e244b9",
   "labels": [
     "planning_aid_not_a_guarantee",
     "small_planned_sample",

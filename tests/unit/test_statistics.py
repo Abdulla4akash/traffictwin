@@ -2,7 +2,19 @@ from __future__ import annotations
 
 import pytest
 
-from traffictwin.metrics.statistics import percentile_linear
+from traffictwin.metrics.statistics import percentile_linear, stable_float
+
+
+def test_stable_float_removes_non_semantic_platform_tails() -> None:
+    assert stable_float(1.9599639845400534) == stable_float(1.9599639845400536)
+    assert stable_float(0.7535784406023495) == stable_float(0.7535784406023496)
+    assert stable_float(0.7649999999999999) == 0.765
+
+
+def test_stable_float_rejects_non_finite_values() -> None:
+    for value in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError, match="finite"):
+            stable_float(value)
 
 
 def test_linear_percentile_has_explicit_empty_and_singleton_semantics() -> None:

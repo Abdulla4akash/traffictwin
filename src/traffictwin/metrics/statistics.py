@@ -7,6 +7,20 @@ import statistics
 from collections.abc import Sequence
 
 PERCENTILE_METHOD_VERSION = "linear-rank-n-minus-1-v1"
+STABLE_FLOAT_SIGNIFICANT_DIGITS = 14
+
+
+def stable_float(value: float) -> float:
+    """Return a finite float normalised for cross-version serialization.
+
+    CPython and platform math implementations can differ in the final binary
+    floating-point bits. Scientific report values enter fingerprints, so retain
+    fourteen significant decimal digits and discard those non-semantic tails.
+    """
+
+    if not math.isfinite(value):
+        raise ValueError("stable_float requires a finite value")
+    return float(format(value, f".{STABLE_FLOAT_SIGNIFICANT_DIGITS}g"))
 
 
 def arithmetic_mean(values: Sequence[float]) -> float | None:
