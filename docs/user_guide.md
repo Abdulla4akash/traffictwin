@@ -349,6 +349,24 @@ The page does not convert the package to a standard TrafficTwin run bundle. See
 The analysis and export workflow is documented in
 [integration/tos_results_workbench.md](integration/tos_results_workbench.md).
 
+## VEC Reproduction Workbench
+
+The Workflow section's **VEC Reproduction Workbench** drives the capability-gated Randy/VEC
+services. Section 1 inspects both pinned external repositories. Section 2 is the one-click
+controlled execution: pick one closed preset (`smoke_two_step` or `full_reproduction`), keep the
+audited input root, enter a new output directory and the active registry path (pre-filled from
+the configured registry), confirm the long run when required, and press **Validate, Run and
+Import**. TrafficTwin then preflights, executes the exact audited evaluator in the foreground,
+revalidates every published byte, verifies both external repositories and the raw trace are
+unchanged, and imports one immutable structural record idempotently. Failed or mutated runs
+import nothing. Sections 3-5 keep the typed request/receipt, inspection, comparison, and export
+workflows. Expand **Imported VEC execution records** in section 2 to inspect persisted imports;
+Experiment Manager also lists their `vec:exec:...` run rows. Run Overview remains limited to
+canonical bundles and therefore does not invent metric cards for these structural records.
+Scientific admission remains explicitly unavailable for local executions. See the
+[one-click guide](integration/vec_one_click_execution.md) for click-by-click detail, CLI
+equivalents, idempotency, and limitations.
+
 ## Reading Validation Findings
 
 Severity meanings:

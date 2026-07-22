@@ -370,6 +370,27 @@ Acceptance evidence:
 - `docs/reference/generated/vec_interface_contract.json`
 - `docs/reference/generated/vec_interface_verification.json`
 
+The one-click execute-and-import extension (`vec-execute-and-import-1.0`, ADR-052) composes
+the accepted services behind a single explicit action: registry-destination admission, VEC-07
+preflight, foreground execution, byte-exact receipt/output revalidation, external-repository
+and raw-trace immutability verification, and one idempotent registry import through
+`register_bundle_import`. Only the two closed presets (two-step smoke; exact VEC-08
+protocol-seed full run) are executable or importable. Imported records are immutable,
+fingerprint-bound structural evidence: scientific admission stays unavailable with standing
+reason codes, and no completion/transfer/energy relabelling is representable. Failed,
+timed-out, cancelled, rejected, malformed, or source-mutating executions never import.
+Evidence: `src/traffictwin/integration/vec_orchestration/`,
+`tests/unit/test_vec_orchestration.py`, `tests/ui/test_vec_oneclick_ui.py`,
+`tests/integration/test_vec_execute_and_import.py` (real two-step audited run),
+`docs/integration/vec_one_click_execution.md`, and
+`docs/reference/generated/vec_orchestration_contract.json`. The configured-registry
+session-state defect (Bundle Import retaining `data/registry/traffictwin.sqlite` instead of
+the launcher's `TRAFFICTWIN_REGISTRY_PATH`) is fixed with regression tests. The workbench also
+revalidates and displays persisted VEC execution records directly from the active registry;
+Experiment Manager lists their basic run/import rows, while Run Overview correctly remains
+canonical-bundle-only. Import revalidation rejects symlink substitution and streams file hashes
+rather than reading potentially large NPZ/trace evidence into memory.
+
 VEC-11 permission packaging and VEC-12 end-to-end research-artifact reconciliation are accepted.
 The final archive remains a verification/publication artifact, not a broader launch or scientific
 capability.

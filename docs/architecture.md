@@ -1298,6 +1298,15 @@ preflight. Artifact inspection is closed to VEC-06–VEC-09 types, comparison ad
 available scalars, and exports perform no recomputation. See the
 [VEC-10 guide](integration/vec_interface.md).
 
+The one-click layer under `integration.vec_orchestration` composes those accepted services in
+a fixed order — registry admission, VEC-07 preflight, VEC-07 execution, byte-exact
+receipt/output revalidation, external-repository and raw-input immutability verification, and
+one idempotent `register_bundle_import` registration — without duplicating any calculation or
+adding SQLite schema. Requests come only from two closed presets; imported records are
+immutable, fingerprint-bound, and literal about unavailable scientific admission. See
+[ADR-052](decisions/ADR-052-one-click-vec-execute-and-import.md) and the
+[one-click guide](integration/vec_one_click_execution.md).
+
 VEC-12 under `integration.vec_research` is the final reconciliation boundary. It copies no raw
 external or execution payloads: it admits only audit/software metadata, generated contracts,
 accepted reports, citations, limitations, and the VEC-11 sanitised sample/aggregates. The manifest

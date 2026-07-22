@@ -1,0 +1,51 @@
+"""Public one-click VEC execute-and-import orchestration API."""
+
+from traffictwin.integration.vec_orchestration.models import (
+    VecEvidenceGrade,
+    VecExecutionImportRecord,
+    VecExecutionPreset,
+    VecImportOutcome,
+    VecOrchestrationContract,
+    VecPresetWorkload,
+    VecWorkflowReceipt,
+    VecWorkflowRequest,
+    VecWorkflowStage,
+    VecWorkflowStageName,
+    VecWorkflowStageState,
+    VecWorkflowStatus,
+)
+from traffictwin.integration.vec_orchestration.service import (
+    VecOrchestrationError,
+    build_preset_request,
+    execute_and_import,
+    import_vec_execution,
+    list_imported_vec_executions,
+    match_preset,
+    preset_evidence_grade,
+    preset_workload,
+    vec_orchestration_contract,
+)
+
+__all__ = [
+    "VecEvidenceGrade",
+    "VecExecutionImportRecord",
+    "VecExecutionPreset",
+    "VecImportOutcome",
+    "VecOrchestrationContract",
+    "VecOrchestrationError",
+    "VecPresetWorkload",
+    "VecWorkflowReceipt",
+    "VecWorkflowRequest",
+    "VecWorkflowStage",
+    "VecWorkflowStageName",
+    "VecWorkflowStageState",
+    "VecWorkflowStatus",
+    "build_preset_request",
+    "execute_and_import",
+    "import_vec_execution",
+    "list_imported_vec_executions",
+    "match_preset",
+    "preset_evidence_grade",
+    "preset_workload",
+    "vec_orchestration_contract",
+]

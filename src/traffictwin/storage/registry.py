@@ -81,6 +81,19 @@ class BundleImportResult:
     message: str
 
 
+@dataclass(frozen=True)
+class BundleImportRecord:
+    """Read-only persisted metadata for one registered bundle import."""
+
+    bundle_id: str
+    run_id: str
+    source_reference: str
+    fingerprint: str
+    manifest_json: str
+    validation_report_json: str
+    imported_at: str
+
+
 EXPERIMENT_TRANSITIONS: dict[ExperimentStatus, set[ExperimentStatus]] = {
     ExperimentStatus.PLANNED: {ExperimentStatus.RUNNING, ExperimentStatus.ARCHIVED},
     ExperimentStatus.RUNNING: {ExperimentStatus.COMPLETED, ExperimentStatus.FAILED},
@@ -455,6 +468,32 @@ class Registry:
             status=import_status,
             message="bundle imported",
         )
+
+    def list_bundle_import_records(self) -> list[BundleImportRecord]:
+        """List complete bundle-import records without changing registry state."""
+
+        self.initialize()
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT bundle_id, run_id, source_reference, fingerprint,
+                       manifest_json, validation_report_json, imported_at
+                FROM bundle_imports
+                ORDER BY imported_at DESC, bundle_id
+                """
+            ).fetchall()
+        return [
+            BundleImportRecord(
+                bundle_id=cast(str, row["bundle_id"]),
+                run_id=cast(str, row["run_id"]),
+                source_reference=cast(str, row["source_reference"]),
+                fingerprint=cast(str, row["fingerprint"]),
+                manifest_json=cast(str, row["manifest_json"]),
+                validation_report_json=cast(str, row["validation_report_json"]),
+                imported_at=cast(str, row["imported_at"]),
+            )
+            for row in rows
+        ]
 
     def store_metric_collection(
         self,

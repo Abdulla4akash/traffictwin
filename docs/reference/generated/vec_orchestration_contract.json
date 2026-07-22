@@ -1,0 +1,58 @@
+{
+  "capability_id": "VEC-10",
+  "import_bindings": [
+    "typed request and request fingerprint",
+    "preflight fingerprint",
+    "execution-receipt fingerprint and receipt file SHA-256",
+    "output fingerprint plus per-file hashes and sizes",
+    "exact audited vec_env and tos-data commits",
+    "runtime evidence",
+    "execution preset and evidence grade",
+    "import timestamp and importer version"
+  ],
+  "interpretation_limits": [
+    "imported executions are structural evidence; VEC-09 scientific admission remains unavailable because it binds the audited source run only",
+    "deadline success is never physical completion",
+    "action selection and eligible targets are never confirmed transfer",
+    "aggregate energy is never per-task energy",
+    "smoke output is never a scientific finding",
+    "the protocol-seed run is distinct from the _s102 best-of-seeds evidence",
+    "import grants no publication permission"
+  ],
+  "method_version": "vec-execute-and-import-1.0",
+  "operations": [
+    "build_preset_request",
+    "preset_workload",
+    "execute_and_import",
+    "import_vec_execution",
+    "list_imported_vec_executions"
+  ],
+  "presets": [
+    {
+      "background_execution": false,
+      "description": "Two evaluator steps over the reviewed weekend trace with the audited UK-2030 Model-C actor. Structural execution evidence only; never scientific reproduction or dissertation performance evidence.",
+      "evaluator_steps": 2,
+      "foreground_only": true,
+      "preset": "smoke_two_step",
+      "timeout_seconds_bound": 600,
+      "trace_file": "traces/trace_we_fullrsu.npz"
+    },
+    {
+      "background_execution": false,
+      "description": "The exact accepted VEC-08 protocol-seed run over all 32400 weekend trace steps. A long foreground operation; reproduction remains unverified until VEC-08 grading, and the protocol seed is distinct from the _s102 best-of-seeds evidence.",
+      "evaluator_steps": 32400,
+      "foreground_only": true,
+      "preset": "full_reproduction",
+      "timeout_seconds_bound": 7200,
+      "trace_file": "traces/trace_we_fullrsu.npz"
+    }
+  ],
+  "refusals": [
+    "non-preset requests, arbitrary executables, flags, or command text",
+    "failed, cancelled, timed-out, rejected, partial, or malformed executions",
+    "mutated external repositories or raw inputs",
+    "unsafe result, registry, or symlinked paths",
+    "registry identity conflicts (visible RegistryConflictError)"
+  ],
+  "schema_version": "1.0"
+}

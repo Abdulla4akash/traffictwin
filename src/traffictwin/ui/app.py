@@ -52,7 +52,7 @@ def main() -> None:
     config = load_ui_config()
     st.set_page_config(page_title=config.page_title, layout="wide")
     apply_research_theme()
-    ensure_session_state(st.session_state)
+    ensure_session_state(st.session_state, config)
     if config.workspace_path is not None:
         default_bundle = config.default_fixture_path / "baseline"
         current_bundle = str(st.session_state.get("selected_bundle_path", ""))

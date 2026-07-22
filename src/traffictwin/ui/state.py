@@ -146,10 +146,30 @@ def load_ui_config() -> UiConfig:
     )
 
 
-def ensure_session_state(state: MutableMapping[str, object]) -> None:
-    """Populate missing Streamlit session-state keys."""
+def default_session_state(config: UiConfig | None = None) -> dict[str, object]:
+    """Return session defaults, honouring configured registry and data paths.
 
-    for key, value in DEFAULT_SESSION_STATE.items():
+    The static fallbacks apply only when no configuration is supplied; a
+    configured registry (for example the demo launcher's
+    ``TRAFFICTWIN_REGISTRY_PATH``) must seed ``active_registry_path`` so pages
+    never silently fall back to ``data/registry/traffictwin.sqlite``.
+    """
+
+    defaults = dict(DEFAULT_SESSION_STATE)
+    if config is not None:
+        defaults["active_registry_path"] = str(config.registry_path)
+        if config.tos_data_path is not None:
+            defaults["selected_tos_data_path"] = str(config.tos_data_path)
+    return defaults
+
+
+def ensure_session_state(
+    state: MutableMapping[str, object],
+    config: UiConfig | None = None,
+) -> None:
+    """Populate missing Streamlit session-state keys without overwriting user choices."""
+
+    for key, value in default_session_state(config).items():
         state.setdefault(key, value)
 
 

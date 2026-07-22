@@ -55,6 +55,12 @@ uv run traffictwin integration vec run \
   --output ./vec-output/new-run
 ```
 
+`execute-and-import` runs the complete one-click preset workflow (preflight, execution,
+revalidation, immutability verification, idempotent registry import) and `import-result`
+re-validates and re-imports one published preset result; both are closed to the two
+repository-defined presets and documented in the
+[one-click guide](vec_one_click_execution.md).
+
 `preprocess` has the parallel VEC-06 shape with `--request`, `--input-root`, `--vec-repo`, and a
 new `--output` directory. Both commands print validating, foreground-running, and terminal states.
 They cannot attach to a different process or recover a detached job.
@@ -78,7 +84,8 @@ variation-minus-baseline values and are never causal or diagnostic.
 
 ## UI
 
-Open **VEC Reproduction Workbench** in the Workflow section. The page uses four stages:
+Open **VEC Reproduction Workbench** in the Workflow section. Section 2 provides the
+one-click controlled execution over closed presets (ADR-052); the remaining stages are:
 
 1. inspect both pinned repositories and their operation availability;
 2. select a preprocess or run request JSON, input root, and new output directory;

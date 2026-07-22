@@ -82,6 +82,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Generated VEC-09 contract](reference/generated/vec_scientific_admission_contract.json)
 - [Generated VEC-09 acceptance report](reference/generated/vec_scientific_admission_report.json)
 - [VEC-10 CLI and UI interface](integration/vec_interface.md)
+- [One-click VEC execution and automatic import](integration/vec_one_click_execution.md)
+- [Generated one-click workflow contract](reference/generated/vec_orchestration_contract.json)
 - [Generated VEC-10 contract](reference/generated/vec_interface_contract.json)
 - [Generated VEC-10 acceptance report](reference/generated/vec_interface_verification.json)
 - [VEC-11 sanitised dissertation pack](integration/vec_dissertation_pack.md)

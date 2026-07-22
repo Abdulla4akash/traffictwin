@@ -238,6 +238,15 @@ from traffictwin.integration.vec_interface import (
     load_scientific_admission,
     vec_interface_contract,
 )
+from traffictwin.integration.vec_orchestration import (
+    VecExecutionPreset,
+    VecOrchestrationError,
+    VecWorkflowRequest,
+    VecWorkflowStatus,
+    execute_and_import,
+    import_vec_execution,
+    preset_workload,
+)
 from traffictwin.integration.vec_preprocessing import (
     VecFcdPreflightReport,
     VecFcdPreprocessingError,
@@ -608,6 +617,88 @@ def vec_run_command(
     except (OSError, VecInterfaceError, VecRunnerError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
+
+
+@vec_app.command("execute-and-import")
+def vec_execute_and_import_command(
+    preset: Annotated[VecExecutionPreset, typer.Option("--preset")],
+    input_root: Annotated[Path, typer.Option("--input-root", exists=True, file_okay=False)],
+    vec_repo: Annotated[Path, typer.Option("--vec-repo", exists=True, file_okay=False)],
+    tos_data_repo: Annotated[Path, typer.Option("--tos-data-repo", exists=True, file_okay=False)],
+    output: Annotated[Path, typer.Option("--output", file_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False)],
+    confirm_full_run: Annotated[bool, typer.Option("--confirm-full-run")] = False,
+) -> None:
+    """Preflight, execute, validate, and import one closed preset in this foreground process."""
+
+    try:
+        workflow = VecWorkflowRequest(
+            preset=preset,
+            input_root=str(input_root),
+            vec_repo=str(vec_repo),
+            tos_data_repo=str(tos_data_repo),
+            output_dir=str(output),
+            registry_path=str(registry),
+            confirm_full_run=confirm_full_run,
+        )
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    workload = preset_workload(preset)
+    typer.echo(f"preset: {preset.value}")
+    typer.echo(f"evaluator_steps: {workload.evaluator_steps}")
+    typer.echo(f"timeout_bound_seconds: {workload.timeout_seconds_bound}")
+    typer.echo("state: validating")
+    receipt = execute_and_import(workflow)
+    for stage in receipt.stages:
+        typer.echo(f"{stage.stage.value}: {stage.state.value} - {stage.detail}")
+    typer.echo(f"workflow: {receipt.status.value}")
+    if receipt.receipt_fingerprint is not None:
+        typer.echo(f"receipt_fingerprint: {receipt.receipt_fingerprint}")
+    if receipt.import_outcome is not None:
+        outcome = receipt.import_outcome
+        typer.echo(f"registry_run_id: {outcome.registry_run_id}")
+        typer.echo(f"import_created: {outcome.created}")
+        typer.echo(f"import_idempotent: {outcome.idempotent}")
+        typer.echo(f"import_stable_fingerprint: {outcome.stable_fingerprint}")
+    if receipt.status is not VecWorkflowStatus.COMPLETED_IMPORTED:
+        for finding in receipt.findings:
+            typer.echo(f"finding: {finding}", err=True)
+        raise typer.Exit(code=1)
+
+
+@vec_app.command("import-result")
+def vec_import_result_command(
+    result_dir: Annotated[Path, typer.Option("--result-dir", exists=True, file_okay=False)],
+    registry: Annotated[Path, typer.Option("--registry", dir_okay=False)],
+    vec_repo: Annotated[
+        Path | None,
+        typer.Option("--vec-repo", exists=True, file_okay=False),
+    ] = None,
+    tos_data_repo: Annotated[
+        Path | None,
+        typer.Option("--tos-data-repo", exists=True, file_okay=False),
+    ] = None,
+) -> None:
+    """Re-validate one published preset execution and import it idempotently."""
+
+    try:
+        record, outcome = import_vec_execution(
+            result_dir,
+            registry,
+            vec_repo=vec_repo,
+            tos_data_repo=tos_data_repo,
+        )
+    except (OSError, VecOrchestrationError, RegistryConflictError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"preset: {record.preset.value}")
+    typer.echo(f"evidence_grade: {record.evidence_grade.value}")
+    typer.echo(f"registry_run_id: {outcome.registry_run_id}")
+    typer.echo(f"import_created: {outcome.created}")
+    typer.echo(f"import_idempotent: {outcome.idempotent}")
+    typer.echo(f"import_stable_fingerprint: {outcome.stable_fingerprint}")
+    typer.echo(f"scientific_admission: {record.scientific_admission_status}")
 
 
 @vec_app.command("monitor-current")

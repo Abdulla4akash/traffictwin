@@ -22,6 +22,25 @@ Notes:
 
 ## Unreleased
 
+Added one-click controlled VEC execution and automatic result import (ADR-052):
+
+- typed `vec_orchestration` workflow composing registry admission, VEC-07 preflight,
+  allowlisted execution, byte-exact receipt/output revalidation, source-immutability
+  verification, and one idempotent `register_bundle_import` registration;
+- two closed presets only (two-step smoke; exact VEC-08 protocol-seed full run) with factual
+  workload display and explicit long-run confirmation; non-preset receipts are refused;
+- immutable fingerprint-bound import records that keep scientific admission explicitly
+  unavailable, deadline success distinct from physical completion, action selection distinct
+  from confirmed transfer, and smoke output distinct from scientific findings;
+- `integration vec execute-and-import` and `integration vec import-result` CLI commands plus
+  a one-click workbench section with stages, fingerprints, inventory, and limitations;
+- configured-registry session-state fix: `TRAFFICTWIN_REGISTRY_PATH` (and configured
+  TOS/fixture paths) now seed Streamlit session state without overwriting an intentional
+  in-session selection; and
+- unit, UI, CLI, and real two-step integration acceptance tests proving no-import on any
+  unsuccessful path, idempotent re-import, visible conflicts, and unchanged external
+  repositories.
+
 Designed TrafficTwin v0.6 Randy/VEC reproducible integration:
 
 - twelve planned, evidence-gated capabilities covering pinned source snapshots, contract v2,

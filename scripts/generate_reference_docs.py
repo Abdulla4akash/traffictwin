@@ -293,6 +293,16 @@ from traffictwin.integration.vec_interface.models import (
     VecRepositorySnapshot,
     vec_interface_contract,
 )
+from traffictwin.integration.vec_orchestration.models import (
+    VecExecutionImportRecord,
+    VecImportOutcome,
+    VecOrchestrationContract,
+    VecPresetWorkload,
+    VecWorkflowReceipt,
+    VecWorkflowRequest,
+    VecWorkflowStage,
+)
+from traffictwin.integration.vec_orchestration.service import vec_orchestration_contract
 from traffictwin.integration.vec_preprocessing.models import (
     VecFcdMetadata,
     VecFcdPreflightReport,
@@ -648,6 +658,13 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "VecRunnerPreflightReport": VecRunnerPreflightReport,
     "VecExecutionReceipt": VecExecutionReceipt,
     "VecRunnerContract": VecRunnerContract,
+    "VecPresetWorkload": VecPresetWorkload,
+    "VecWorkflowRequest": VecWorkflowRequest,
+    "VecWorkflowStage": VecWorkflowStage,
+    "VecExecutionImportRecord": VecExecutionImportRecord,
+    "VecImportOutcome": VecImportOutcome,
+    "VecWorkflowReceipt": VecWorkflowReceipt,
+    "VecOrchestrationContract": VecOrchestrationContract,
     "VecMetricAdmissionDecision": VecMetricAdmissionDecision,
     "VecRuleReadiness": VecRuleReadiness,
     "VecScientificAdmissionReport": VecScientificAdmissionReport,
@@ -1062,6 +1079,10 @@ def main() -> None:
     _write_json(
         "vec_interface_contract.json",
         vec_interface_contract().model_dump(mode="json"),
+    )
+    _write_json(
+        "vec_orchestration_contract.json",
+        vec_orchestration_contract().model_dump(mode="json"),
     )
     _write_json(
         "vec_end_to_end_contract.json",

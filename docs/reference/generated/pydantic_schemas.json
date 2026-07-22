@@ -60173,6 +60173,436 @@
       "title": "VecEndToEndVerification",
       "type": "object"
     },
+    "VecExecutionImportRecord": {
+      "$defs": {
+        "VecEvidenceGrade": {
+          "description": "What a completed preset execution is allowed to claim.",
+          "enum": [
+            "structural_smoke_execution",
+            "full_protocol_execution_unverified_reproduction"
+          ],
+          "title": "VecEvidenceGrade",
+          "type": "string"
+        },
+        "VecExecutionPreset": {
+          "description": "Closed repository-defined execution presets; no free-form requests.",
+          "enum": [
+            "smoke_two_step",
+            "full_reproduction"
+          ],
+          "title": "VecExecutionPreset",
+          "type": "string"
+        },
+        "VecFleet": {
+          "description": "Closed fleet presets implemented by the pinned evaluator.",
+          "enum": [
+            "synthetic",
+            "uk2030",
+            "de2030",
+            "id2030",
+            "uk",
+            "de",
+            "id"
+          ],
+          "title": "VecFleet",
+          "type": "string"
+        },
+        "VecRunRequest": {
+          "additionalProperties": false,
+          "description": "One bounded request for the exact audited Model-C evaluator.",
+          "properties": {
+            "actor_id": {
+              "enum": [
+                "baseline_model_c_17",
+                "ukfleettrain_mappo_model_c_17"
+              ],
+              "title": "Actor Id",
+              "type": "string"
+            },
+            "capability_id": {
+              "const": "VEC-07",
+              "default": "VEC-07",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "evaluator_seed": {
+              "default": 0,
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Evaluator Seed",
+              "type": "integer"
+            },
+            "fleet": {
+              "$ref": "#/$defs/VecFleet",
+              "default": "uk2030"
+            },
+            "fleet_seed": {
+              "default": 0,
+              "maximum": 2147483647,
+              "minimum": 0,
+              "title": "Fleet Seed",
+              "type": "integer"
+            },
+            "max_steps": {
+              "default": 2,
+              "maximum": 100000,
+              "minimum": 1,
+              "title": "Max Steps",
+              "type": "integer"
+            },
+            "preprocessing_receipt_file": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Preprocessing Receipt File"
+            },
+            "preprocessing_receipt_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Preprocessing Receipt Sha256"
+            },
+            "rsu_capacity_per_vehicle": {
+              "default": 2.5,
+              "exclusiveMinimum": 0.0,
+              "maximum": 1000.0,
+              "title": "Rsu Capacity Per Vehicle",
+              "type": "number"
+            },
+            "run_id": {
+              "title": "Run Id",
+              "type": "string"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "timeout_seconds": {
+              "default": 300,
+              "maximum": 7200,
+              "minimum": 1,
+              "title": "Timeout Seconds",
+              "type": "integer"
+            },
+            "trace_file": {
+              "title": "Trace File",
+              "type": "string"
+            },
+            "trace_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Trace Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "run_id",
+            "trace_file",
+            "trace_sha256",
+            "actor_id"
+          ],
+          "title": "VecRunRequest",
+          "type": "object"
+        },
+        "VecRunnerFileEvidence": {
+          "additionalProperties": false,
+          "description": "Portable identity for one source, input, log, or output file.",
+          "properties": {
+            "media_type": {
+              "title": "Media Type",
+              "type": "string"
+            },
+            "path": {
+              "title": "Path",
+              "type": "string"
+            },
+            "read_only": {
+              "title": "Read Only",
+              "type": "boolean"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 0,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "size_bytes",
+            "media_type",
+            "read_only"
+          ],
+          "title": "VecRunnerFileEvidence",
+          "type": "object"
+        },
+        "VecRuntimeEvidence": {
+          "additionalProperties": false,
+          "description": "Relevant controlled runtime and hardware evidence.",
+          "properties": {
+            "environment_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Environment Sha256",
+              "type": "string"
+            },
+            "jax": {
+              "title": "Jax",
+              "type": "string"
+            },
+            "jax_backend": {
+              "title": "Jax Backend",
+              "type": "string"
+            },
+            "jax_device_count": {
+              "minimum": 1,
+              "title": "Jax Device Count",
+              "type": "integer"
+            },
+            "jaxlib": {
+              "title": "Jaxlib",
+              "type": "string"
+            },
+            "machine": {
+              "title": "Machine",
+              "type": "string"
+            },
+            "numpy": {
+              "title": "Numpy",
+              "type": "string"
+            },
+            "platform": {
+              "title": "Platform",
+              "type": "string"
+            },
+            "processor": {
+              "title": "Processor",
+              "type": "string"
+            },
+            "python": {
+              "title": "Python",
+              "type": "string"
+            }
+          },
+          "required": [
+            "python",
+            "numpy",
+            "jax",
+            "jaxlib",
+            "jax_backend",
+            "jax_device_count",
+            "platform",
+            "machine",
+            "processor",
+            "environment_sha256"
+          ],
+          "title": "VecRuntimeEvidence",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable, source-specific registry evidence for one completed execution.\n\nSemantic guards are literal: deadline success is never physical completion,\na selected action is never a confirmed transfer, aggregate energy is never\nper-task energy, and smoke output is never a scientific finding.",
+      "properties": {
+        "action_selection_is_confirmed_transfer": {
+          "const": false,
+          "default": false,
+          "title": "Action Selection Is Confirmed Transfer",
+          "type": "boolean"
+        },
+        "aggregate_energy_is_per_task_energy": {
+          "const": false,
+          "default": false,
+          "title": "Aggregate Energy Is Per Task Energy",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "VEC-10",
+          "default": "VEC-10",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "deadline_success_is_physical_completion": {
+          "const": false,
+          "default": false,
+          "title": "Deadline Success Is Physical Completion",
+          "type": "boolean"
+        },
+        "elapsed_seconds": {
+          "minimum": 0,
+          "title": "Elapsed Seconds",
+          "type": "number"
+        },
+        "evidence_grade": {
+          "$ref": "#/$defs/VecEvidenceGrade"
+        },
+        "finished_at_utc": {
+          "title": "Finished At Utc",
+          "type": "string"
+        },
+        "imported_at_utc": {
+          "title": "Imported At Utc",
+          "type": "string"
+        },
+        "importer_version": {
+          "const": "vec-execute-and-import-1.0",
+          "default": "vec-execute-and-import-1.0",
+          "title": "Importer Version",
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Limitations",
+          "type": "array"
+        },
+        "output_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Output Fingerprint",
+          "type": "string"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/VecRunnerFileEvidence"
+          },
+          "minItems": 1,
+          "title": "Outputs",
+          "type": "array"
+        },
+        "preflight_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Preflight Fingerprint",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/VecExecutionPreset"
+        },
+        "publication_status": {
+          "const": "not_authorised_by_execution",
+          "default": "not_authorised_by_execution",
+          "title": "Publication Status",
+          "type": "string"
+        },
+        "receipt_file_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt File Sha256",
+          "type": "string"
+        },
+        "receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Receipt Fingerprint",
+          "type": "string"
+        },
+        "registry_bundle_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Registry Bundle Id",
+          "type": "string"
+        },
+        "registry_run_id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Registry Run Id",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/VecRunRequest"
+        },
+        "request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Fingerprint",
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/VecRuntimeEvidence"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scientific_admission_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Scientific Admission Reasons",
+          "type": "array"
+        },
+        "scientific_admission_status": {
+          "const": "unavailable",
+          "default": "unavailable",
+          "title": "Scientific Admission Status",
+          "type": "string"
+        },
+        "smoke_output_is_scientific_finding": {
+          "const": false,
+          "default": false,
+          "title": "Smoke Output Is Scientific Finding",
+          "type": "boolean"
+        },
+        "started_at_utc": {
+          "title": "Started At Utc",
+          "type": "string"
+        },
+        "tos_data_commit": {
+          "const": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+          "default": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+          "title": "Tos Data Commit",
+          "type": "string"
+        },
+        "vec_env_commit": {
+          "const": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+          "default": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+          "title": "Vec Env Commit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preset",
+        "evidence_grade",
+        "request",
+        "request_fingerprint",
+        "preflight_fingerprint",
+        "receipt_file_sha256",
+        "receipt_fingerprint",
+        "output_fingerprint",
+        "runtime",
+        "outputs",
+        "started_at_utc",
+        "finished_at_utc",
+        "elapsed_seconds",
+        "imported_at_utc",
+        "registry_run_id",
+        "registry_bundle_id",
+        "scientific_admission_reasons",
+        "limitations"
+      ],
+      "title": "VecExecutionImportRecord",
+      "type": "object"
+    },
     "VecExecutionReceipt": {
       "$defs": {
         "VecFleet": {
@@ -62727,6 +63157,49 @@
       "title": "VecIdentitySnapshot",
       "type": "object"
     },
+    "VecImportOutcome": {
+      "additionalProperties": false,
+      "description": "Registry outcome for one import attempt.",
+      "properties": {
+        "created": {
+          "title": "Created",
+          "type": "boolean"
+        },
+        "idempotent": {
+          "title": "Idempotent",
+          "type": "boolean"
+        },
+        "registry_bundle_id": {
+          "title": "Registry Bundle Id",
+          "type": "string"
+        },
+        "registry_reference": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Registry Reference",
+          "type": "string"
+        },
+        "registry_run_id": {
+          "title": "Registry Run Id",
+          "type": "string"
+        },
+        "stable_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Stable Fingerprint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "created",
+        "idempotent",
+        "registry_run_id",
+        "registry_bundle_id",
+        "stable_fingerprint",
+        "registry_reference"
+      ],
+      "title": "VecImportOutcome",
+      "type": "object"
+    },
     "VecInterfaceContract": {
       "additionalProperties": false,
       "properties": {
@@ -63606,6 +64079,135 @@
       "title": "VecOperationStatus",
       "type": "object"
     },
+    "VecOrchestrationContract": {
+      "$defs": {
+        "VecExecutionPreset": {
+          "description": "Closed repository-defined execution presets; no free-form requests.",
+          "enum": [
+            "smoke_two_step",
+            "full_reproduction"
+          ],
+          "title": "VecExecutionPreset",
+          "type": "string"
+        },
+        "VecPresetWorkload": {
+          "additionalProperties": false,
+          "description": "Factual request properties; never a runtime promise.",
+          "properties": {
+            "background_execution": {
+              "const": false,
+              "default": false,
+              "title": "Background Execution",
+              "type": "boolean"
+            },
+            "description": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Description",
+              "type": "string"
+            },
+            "evaluator_steps": {
+              "minimum": 1,
+              "title": "Evaluator Steps",
+              "type": "integer"
+            },
+            "foreground_only": {
+              "const": true,
+              "default": true,
+              "title": "Foreground Only",
+              "type": "boolean"
+            },
+            "preset": {
+              "$ref": "#/$defs/VecExecutionPreset"
+            },
+            "timeout_seconds_bound": {
+              "minimum": 1,
+              "title": "Timeout Seconds Bound",
+              "type": "integer"
+            },
+            "trace_file": {
+              "title": "Trace File",
+              "type": "string"
+            }
+          },
+          "required": [
+            "preset",
+            "evaluator_steps",
+            "trace_file",
+            "timeout_seconds_bound",
+            "description"
+          ],
+          "title": "VecPresetWorkload",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Machine-readable public boundary for the one-click workflow.",
+      "properties": {
+        "capability_id": {
+          "const": "VEC-10",
+          "default": "VEC-10",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "import_bindings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Import Bindings",
+          "type": "array"
+        },
+        "interpretation_limits": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Interpretation Limits",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "vec-execute-and-import-1.0",
+          "default": "vec-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "operations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Operations",
+          "type": "array"
+        },
+        "presets": {
+          "items": {
+            "$ref": "#/$defs/VecPresetWorkload"
+          },
+          "title": "Presets",
+          "type": "array"
+        },
+        "refusals": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Refusals",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "presets",
+        "operations",
+        "import_bindings",
+        "refusals",
+        "interpretation_limits"
+      ],
+      "title": "VecOrchestrationContract",
+      "type": "object"
+    },
     "VecPreflightFinding": {
       "$defs": {
         "VecFindingSeverity": {
@@ -63698,6 +64300,67 @@
         "stderr_file"
       ],
       "title": "VecPreprocessCommand",
+      "type": "object"
+    },
+    "VecPresetWorkload": {
+      "$defs": {
+        "VecExecutionPreset": {
+          "description": "Closed repository-defined execution presets; no free-form requests.",
+          "enum": [
+            "smoke_two_step",
+            "full_reproduction"
+          ],
+          "title": "VecExecutionPreset",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Factual request properties; never a runtime promise.",
+      "properties": {
+        "background_execution": {
+          "const": false,
+          "default": false,
+          "title": "Background Execution",
+          "type": "boolean"
+        },
+        "description": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "evaluator_steps": {
+          "minimum": 1,
+          "title": "Evaluator Steps",
+          "type": "integer"
+        },
+        "foreground_only": {
+          "const": true,
+          "default": true,
+          "title": "Foreground Only",
+          "type": "boolean"
+        },
+        "preset": {
+          "$ref": "#/$defs/VecExecutionPreset"
+        },
+        "timeout_seconds_bound": {
+          "minimum": 1,
+          "title": "Timeout Seconds Bound",
+          "type": "integer"
+        },
+        "trace_file": {
+          "title": "Trace File",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preset",
+        "evaluator_steps",
+        "trace_file",
+        "timeout_seconds_bound",
+        "description"
+      ],
+      "title": "VecPresetWorkload",
       "type": "object"
     },
     "VecRepeatRunEvidence": {
@@ -68777,6 +69440,427 @@
         "speed_mps"
       ],
       "title": "VecVehicleMobilityObservation",
+      "type": "object"
+    },
+    "VecWorkflowReceipt": {
+      "$defs": {
+        "VecExecutionPreset": {
+          "description": "Closed repository-defined execution presets; no free-form requests.",
+          "enum": [
+            "smoke_two_step",
+            "full_reproduction"
+          ],
+          "title": "VecExecutionPreset",
+          "type": "string"
+        },
+        "VecImportOutcome": {
+          "additionalProperties": false,
+          "description": "Registry outcome for one import attempt.",
+          "properties": {
+            "created": {
+              "title": "Created",
+              "type": "boolean"
+            },
+            "idempotent": {
+              "title": "Idempotent",
+              "type": "boolean"
+            },
+            "registry_bundle_id": {
+              "title": "Registry Bundle Id",
+              "type": "string"
+            },
+            "registry_reference": {
+              "maxLength": 300,
+              "minLength": 1,
+              "title": "Registry Reference",
+              "type": "string"
+            },
+            "registry_run_id": {
+              "title": "Registry Run Id",
+              "type": "string"
+            },
+            "stable_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Stable Fingerprint",
+              "type": "string"
+            }
+          },
+          "required": [
+            "created",
+            "idempotent",
+            "registry_run_id",
+            "registry_bundle_id",
+            "stable_fingerprint",
+            "registry_reference"
+          ],
+          "title": "VecImportOutcome",
+          "type": "object"
+        },
+        "VecRunnerFileEvidence": {
+          "additionalProperties": false,
+          "description": "Portable identity for one source, input, log, or output file.",
+          "properties": {
+            "media_type": {
+              "title": "Media Type",
+              "type": "string"
+            },
+            "path": {
+              "title": "Path",
+              "type": "string"
+            },
+            "read_only": {
+              "title": "Read Only",
+              "type": "boolean"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            },
+            "size_bytes": {
+              "minimum": 0,
+              "title": "Size Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "path",
+            "sha256",
+            "size_bytes",
+            "media_type",
+            "read_only"
+          ],
+          "title": "VecRunnerFileEvidence",
+          "type": "object"
+        },
+        "VecWorkflowStage": {
+          "additionalProperties": false,
+          "description": "One deterministic stage outcome shown to the user.",
+          "properties": {
+            "detail": {
+              "maxLength": 2000,
+              "minLength": 1,
+              "title": "Detail",
+              "type": "string"
+            },
+            "stage": {
+              "$ref": "#/$defs/VecWorkflowStageName"
+            },
+            "state": {
+              "$ref": "#/$defs/VecWorkflowStageState"
+            }
+          },
+          "required": [
+            "stage",
+            "state",
+            "detail"
+          ],
+          "title": "VecWorkflowStage",
+          "type": "object"
+        },
+        "VecWorkflowStageName": {
+          "description": "Ordered orchestration stages.",
+          "enum": [
+            "preflight",
+            "execution",
+            "validation",
+            "import"
+          ],
+          "title": "VecWorkflowStageName",
+          "type": "string"
+        },
+        "VecWorkflowStageState": {
+          "description": "Outcome of one orchestration stage.",
+          "enum": [
+            "accepted",
+            "rejected",
+            "failed",
+            "skipped",
+            "completed"
+          ],
+          "title": "VecWorkflowStageState",
+          "type": "string"
+        },
+        "VecWorkflowStatus": {
+          "description": "Terminal one-click workflow states; only completed_imported registers evidence.",
+          "enum": [
+            "completed_imported",
+            "preflight_rejected",
+            "preflight_unavailable",
+            "execution_failed",
+            "execution_timed_out",
+            "execution_cancelled",
+            "execution_rejected",
+            "import_rejected",
+            "import_conflict"
+          ],
+          "title": "VecWorkflowStatus",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Complete typed evidence for one one-click workflow invocation.",
+      "properties": {
+        "capability_id": {
+          "const": "VEC-10",
+          "default": "VEC-10",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "external_repositories_verified_unchanged": {
+          "title": "External Repositories Verified Unchanged",
+          "type": "boolean"
+        },
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Findings",
+          "type": "array"
+        },
+        "import_outcome": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VecImportOutcome"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "import_record_stable_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Import Record Stable Fingerprint"
+        },
+        "method_version": {
+          "const": "vec-execute-and-import-1.0",
+          "default": "vec-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "output_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Fingerprint"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/VecRunnerFileEvidence"
+          },
+          "title": "Outputs",
+          "type": "array"
+        },
+        "preflight_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Preflight Fingerprint"
+        },
+        "preset": {
+          "$ref": "#/$defs/VecExecutionPreset"
+        },
+        "raw_inputs_verified_unchanged": {
+          "title": "Raw Inputs Verified Unchanged",
+          "type": "boolean"
+        },
+        "receipt_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Receipt Fingerprint"
+        },
+        "request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/VecWorkflowStage"
+          },
+          "minItems": 1,
+          "title": "Stages",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/VecWorkflowStatus"
+        }
+      },
+      "required": [
+        "status",
+        "preset",
+        "request_fingerprint",
+        "stages",
+        "external_repositories_verified_unchanged",
+        "raw_inputs_verified_unchanged"
+      ],
+      "title": "VecWorkflowReceipt",
+      "type": "object"
+    },
+    "VecWorkflowRequest": {
+      "$defs": {
+        "VecExecutionPreset": {
+          "description": "Closed repository-defined execution presets; no free-form requests.",
+          "enum": [
+            "smoke_two_step",
+            "full_reproduction"
+          ],
+          "title": "VecExecutionPreset",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One complete, closed one-click request; paths are explicit and bounded.",
+      "properties": {
+        "confirm_full_run": {
+          "default": false,
+          "title": "Confirm Full Run",
+          "type": "boolean"
+        },
+        "input_root": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Input Root",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "vec-execute-and-import-1.0",
+          "default": "vec-execute-and-import-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "output_dir": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Output Dir",
+          "type": "string"
+        },
+        "preset": {
+          "$ref": "#/$defs/VecExecutionPreset"
+        },
+        "registry_path": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Registry Path",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tos_data_repo": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Tos Data Repo",
+          "type": "string"
+        },
+        "vec_repo": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Vec Repo",
+          "type": "string"
+        }
+      },
+      "required": [
+        "preset",
+        "input_root",
+        "vec_repo",
+        "tos_data_repo",
+        "output_dir",
+        "registry_path"
+      ],
+      "title": "VecWorkflowRequest",
+      "type": "object"
+    },
+    "VecWorkflowStage": {
+      "$defs": {
+        "VecWorkflowStageName": {
+          "description": "Ordered orchestration stages.",
+          "enum": [
+            "preflight",
+            "execution",
+            "validation",
+            "import"
+          ],
+          "title": "VecWorkflowStageName",
+          "type": "string"
+        },
+        "VecWorkflowStageState": {
+          "description": "Outcome of one orchestration stage.",
+          "enum": [
+            "accepted",
+            "rejected",
+            "failed",
+            "skipped",
+            "completed"
+          ],
+          "title": "VecWorkflowStageState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One deterministic stage outcome shown to the user.",
+      "properties": {
+        "detail": {
+          "maxLength": 2000,
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/VecWorkflowStageName"
+        },
+        "state": {
+          "$ref": "#/$defs/VecWorkflowStageState"
+        }
+      },
+      "required": [
+        "stage",
+        "state",
+        "detail"
+      ],
+      "title": "VecWorkflowStage",
       "type": "object"
     },
     "VehicleSpatialGridContract": {

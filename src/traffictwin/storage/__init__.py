@@ -18,6 +18,7 @@ from traffictwin.storage.migrations import (
     require_current_registry_schema,
 )
 from traffictwin.storage.registry import (
+    BundleImportRecord,
     BundleImportResult,
     DuplicateIdentifierError,
     InvalidStatusTransitionError,
@@ -31,6 +32,7 @@ from traffictwin.storage.registry import (
 __all__ = [
     "CURRENT_REGISTRY_SCHEMA_VERSION",
     "DuplicateIdentifierError",
+    "BundleImportRecord",
     "BundleImportResult",
     "InvalidStatusTransitionError",
     "Registry",

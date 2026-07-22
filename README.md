@@ -155,6 +155,12 @@ Implemented:
   inspect, compare, and export workflows. Execution is conditional on exact typed preflight; there
   is no arbitrary command input or persistent job queue. See the
   [VEC-10 guide](docs/integration/vec_interface.md).
+- One-click controlled VEC execution and automatic result import: two closed presets (two-step
+  smoke, exact VEC-08 protocol-seed full run) run preflight, the allowlisted evaluator, output
+  revalidation, source-immutability checks, and one idempotent registry import from a single
+  explicit action. Imported records stay structural evidence with scientific admission
+  explicitly unavailable. See the
+  [one-click guide](docs/integration/vec_one_click_execution.md).
 - v0.6 `VEC-12` accepted deterministic end-to-end research artifact: one offline-verifiable
   27-member ZIP binding VEC-01–VEC-11 source, execution, join, scientific, interface, permission,
   provenance, environment, exclusion, and limitation evidence without raw external bytes. See the

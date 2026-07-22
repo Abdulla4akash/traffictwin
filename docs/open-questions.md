@@ -460,6 +460,11 @@ The complete source evidence is in
   reproduction evidence against exact supplied Git blobs. VEC-10 exposes it only as conditional,
   foreground, request-preflight-gated execution; VEC-08 still does not establish cross-platform or
   scenario-wide equivalence.
+- The one-click execute-and-import workflow (ADR-052) registers completed preset executions as
+  structural evidence only. Whether a locally executed full protocol-seed run should later gain
+  a graded reproduction reference automatically remains open: it would require an accepted
+  calibration pair, VEC-08 verification, and a reviewed linkage policy, none of which the
+  one-click flow performs.
 - Arbitrary one-second FCD/network preprocessing is implemented by VEC-06, but input pairing remains
   caller-declared because FCD XML has no authenticated network-file identity. Its generated coverage
   sites are analysis locations, not evidence of deployed RSUs.
