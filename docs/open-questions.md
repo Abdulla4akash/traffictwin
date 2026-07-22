@@ -31,6 +31,51 @@ Open:
 10. May aggregate values from Randy's package be included in a publicly hosted static atlas, or
    only in private supervisor/dissertation materials?
 
+### v0.7 Manchester source and product decisions
+
+1. Is the primary study boundary Manchester local authority or all ten Greater Manchester
+   boroughs?
+2. Is an authorised TfGM or Randy live city-road count/speed feed available, and what credentials,
+   retention, attribution, and publication conditions apply?
+3. Which exact DfT, WebTRIS, TfGM, and BODS endpoint/schema versions and rate limits should v0.7
+   Gate A freeze?
+4. What source-specific thresholds justify `near_live`, `live_vehicle`, `stale`, and offline
+   fallback states?
+5. Which Manchester SUMO network, projection, date, construction method, and licence should be
+   used for map matching and calibration?
+6. Which map-matching distance, direction, road-class, and confidence rules are scientifically
+   acceptable, and which cases require manual confirmation?
+7. Which deterministic calibration objective, parameter bounds, uncertainty treatment, and
+   development/held-out evaluation design should be used?
+8. Which BODS identifiers may be retained, rendered, exported, and published, and for how long?
+9. Where, if anywhere, should recurring source sync run outside the Streamlit process?
+10. Which map tiles, administrative boundaries, and road/network assets have an acceptable licence
+    and attribution path?
+11. Is a formal v0.6-versus-v0.7 usability study required, and what supervisor/ethics gate applies?
+12. Which v0.7 Manchester artifacts should be central dissertation evidence rather than supporting
+    software evidence?
+13. Which exact HTTP transport, hardened XML/SIRI parser, compression/archive tools, and bounded
+    versions should the v0.7 Gate-A dependency ADR approve?
+14. Which accepted operator/NOC/service identifiers define Bee Network membership, what BODS
+    authentication is required, and how should unmatched or incomplete feed coverage be reported?
+15. Which immutable workspace marker, release manifest, or clean-checkout evidence proves that a
+    registry was produced by the exact `v0.6.0` release before compatibility migration is allowed?
+
+Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questions:
+
+- Questions 3 and 13 are resolved for Gate B by the accepted source audit and ADR-054–ADR-056:
+  exact endpoint families, audited field contracts, bounded dependency ranges, hardened parser
+  flags, offline map posture, and remaining source-specific rate/schema blockers are frozen.
+- Question 4 has a versioned v1 answer: BODS alone can be `live_vehicle` under its UTC validity
+  window and 60-second engineering ceiling; DfT and WebTRIS remain historical; TfGM signals are
+  dated reference data. Later scientific thresholds require a new policy version.
+- Question 10 is resolved for the default map: pydeck without a basemap, with an exact accepted
+  ONS boundary edition selected at Gate B. Carto remains blocked by `GA-MAP-1`.
+- Question 14 is partially resolved: identifier-only NOC matching and the candidate BN allowlist
+  are accepted, while live-feed confirmation (`GA-BEE-1`) and NOC/schedule publication rights
+  remain Gate B blockers.
+- Questions 1, 2, 5–9, 11, 12, and 15 remain open at their stated gates.
+
 ### v0.5 design decisions
 
 The complete decision list is maintained in
@@ -440,7 +485,7 @@ older clean worktrees. It resolves the first three source questions:
    still select V2I/V2V with `-1`, so an action is not unconditional proof of transfer.
 3. No compatible per-task energy field exists; only aggregate run energy is available.
 
-Two scoped questions remain for later publication/reproduction decisions, not for Gate A:
+Two scoped questions remain for later publication/reproduction decisions, not for v0.6 Gate A:
 
 1. What exact redistribution basis applies to full checkpoints, raw occupancy/trip files, and
    third-party SUMO assets beyond the written sanitized-sample/aggregate permission?
@@ -453,6 +498,11 @@ The complete source evidence is in
 
 ## Implementation Blockers
 
+- All v0.7 `MAN-*`, `UX-*`, and `REL-01` capabilities are planned. Official source documentation,
+  public endpoints, a live internet connection, and the local SUMO runtime do not establish an
+  accepted source adapter, map layer, calibration, comparison, redesign, or migration. v0.7 Gate A
+  now freezes source/schema/time/licence/privacy/dependency contracts in its accepted audit and
+  ADRs; `MAN-01` remains planned until its Gate-B snapshot service also passes.
 - The updated source snapshot, completion meaning, target semantics, and identity/trip coverage are
   verified by `VEC-01`; VEC-02 is accepted with its exact contract, synthetic suite, and VEC-11
   permission-manifested real sanitised pack. VEC-03–VEC-05 joins are separately accepted.
@@ -516,7 +566,8 @@ The complete source evidence is in
 - Real portfolio rules, calibration, and statistical evaluation.
 - Later use of DuckDB or Polars.
 - Optional XAI instrumentation.
-- Near-live or true-live data sources.
+- An authorised true-live Manchester city-road count/speed source beyond historical DfT evidence,
+  strategic-road WebTRIS observations, TfGM infrastructure, and live BODS bus positions.
 - Encoding-preserving mutation writers for gzip-CSV/Parquet and evidence-backed severity/seed
   matrices beyond the closed EXP-02 v1.0 contract.
 - Empirically calibrated measurement-error distributions, correlation/drift models, and

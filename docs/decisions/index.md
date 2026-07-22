@@ -55,6 +55,10 @@
 | [ADR-051](ADR-051-deterministic-vec-end-to-end-research-artifact.md) | Deterministic VEC end-to-end research artifact | accepted |
 | [ADR-052](ADR-052-one-click-vec-execute-and-import.md) | One-click VEC execute-and-import orchestration | accepted |
 | [ADR-053](ADR-053-controlled-one-click-sumo-execution.md) | Controlled one-click SUMO execution and automatic import | accepted |
+| [ADR-054](ADR-054-bounded-manchester-acquisition-transport-and-parsing.md) | Bounded Manchester acquisition transport and hardened parsing | accepted |
+| [ADR-055](ADR-055-manchester-time-basis.md) | Manchester time basis | accepted |
+| [ADR-056](ADR-056-manchester-map-rendering-and-attribution.md) | Manchester map rendering, offline behaviour, and attribution | accepted |
+| [ADR-057](ADR-057-bee-network-membership-identifiers.md) | Bee Network membership by identifier | accepted |
 
 Related documents:
 

@@ -1,0 +1,44 @@
+{
+  "active_registry": "registry/traffictwin.sqlite",
+  "cache_namespace": "traffictwin-cache-v0.7",
+  "capability_id": "REL-01",
+  "capability_status": "planned",
+  "copy_policy": [
+    "A v0.7 workspace is created new-only under a distinct marker and cache namespace.",
+    "Compatibility copies are byte-exact and published under compatibility/v0.6.",
+    "The active v0.7 registry is never replaced, migrated, or activated by a copy.",
+    "Source, copied, and active-registry hashes reconcile in the receipt."
+  ],
+  "exclusions": [
+    "No in-place cross-release migration or downgrade is implemented.",
+    "No copied registry is automatically activated.",
+    "No bundle, raw input, accepted output, export, or private source artifact is copied."
+  ],
+  "limitations": [
+    "A registry does not encode enough evidence to prove its producing package version.",
+    "Full workspace migration, backup, rollback, CLI wiring, and side-by-side release acceptance remain pending REL-01 work.",
+    "A structural copy does not revalidate stored scientific payloads."
+  ],
+  "required_directories": [
+    "registry",
+    "manchester/raw",
+    "manchester/accepted",
+    "manchester/projections",
+    "manchester/mappings",
+    "manchester/calibrations",
+    "manchester/comparisons",
+    "runs",
+    "exports",
+    "cache/v0.7",
+    "compatibility/v0.6",
+    "quarantine"
+  ],
+  "schema_version": "traffictwin.workspace.v0.7.v1",
+  "source_policy": [
+    "The v0.6.0 tag and every source workspace/registry are read-only inputs.",
+    "A registry file must be regular, non-symlinked, closed, and free of WAL/journal files.",
+    "Registry structure is inspected through SQLite immutable read-only mode before copy."
+  ],
+  "workspace_kind": "traffictwin_v0_7",
+  "workspace_namespace": "workspace-v0.7"
+}

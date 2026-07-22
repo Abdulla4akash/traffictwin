@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import streamlit as st
 
 from traffictwin.ui.labels import PAGE_DESCRIPTIONS, UiPage
@@ -47,6 +49,8 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
     "Project": [UiPage.PARTICIPANT_EVALUATION, UiPage.SETTINGS, UiPage.ABOUT],
 }
 
+V07_PENDING_PAGE_KEY = "_v07_pending_page"
+
 
 def page_options() -> list[str]:
     """Return page labels in sidebar order."""
@@ -64,7 +68,59 @@ def select_page() -> UiPage:
 def activate_page(page: UiPage) -> None:
     """Select a page from a Streamlit widget callback."""
 
+    if st.session_state.get("_v07_navigation_active") is True:
+        # ``st.switch_page`` triggers a rerun and is therefore a no-op when invoked
+        # from inside a widget callback.  Persist the exact target and consume it at
+        # the start of the next top-level page execution instead.
+        st.session_state[V07_PENDING_PAGE_KEY] = page.value
+        return
     st.session_state["active_page"] = page.value
+
+
+def redirect_pending_v07_page(current_page: UiPage) -> None:
+    """Consume one callback-requested candidate route at top-level execution."""
+
+    if st.session_state.get("_v07_navigation_active") is not True:
+        return
+    pending = st.session_state.pop(V07_PENDING_PAGE_KEY, None)
+    if pending is None:
+        return
+    try:
+        target = UiPage(pending)
+    except ValueError as exc:
+        raise ValueError(f"unknown pending v0.7 page: {pending!r}") from exc
+    if target is current_page:
+        return
+
+    from traffictwin.ui.navigation_v07 import page_script_for
+
+    st.switch_page(page_script_for(target))
+
+
+def navigation_button(
+    button: Callable[..., bool],
+    label: str,
+    page: UiPage,
+    *,
+    key: str | None = None,
+    kind: str | None = None,
+    use_container_width: bool = False,
+) -> None:
+    """Render one router-aware page action without callback rerun traps."""
+
+    kwargs: dict[str, object] = {"use_container_width": use_container_width}
+    if key is not None:
+        kwargs["key"] = key
+    if kind is not None:
+        kwargs["type"] = kind
+
+    if st.session_state.get("_v07_navigation_active") is True:
+        if button(label, **kwargs):
+            from traffictwin.ui.navigation_v07 import page_script_for
+
+            st.switch_page(page_script_for(page))
+        return
+    button(label, on_click=activate_page, args=(page,), **kwargs)
 
 
 def render_sidebar_context(page: UiPage) -> None:

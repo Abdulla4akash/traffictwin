@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
+  <ServiceDelivery>
+    <ResponseTimestamp>2026-07-22T12:00:20Z</ResponseTimestamp>
+    <ProducerRef>TrafficTwinSyntheticFixture</ProducerRef>
+    <VehicleMonitoringDelivery>
+      <VehicleActivity>
+        <RecordedAtTime>2026-07-22T12:00:00Z</RecordedAtTime>
+        <ValidUntilTime>2026-07-22T12:01:30Z</ValidUntilTime>
+        <MonitoredVehicleJourney>
+          <OperatorRef>BNSM</OperatorRef>
+          <LineRef>synthetic-line-50</LineRef>
+          <PublishedLineName>Bee Network 50</PublishedLineName>
+          <DirectionRef>outbound</DirectionRef>
+          <OriginRef>synthetic-origin-a</OriginRef>
+          <OriginName>Synthetic Origin A</OriginName>
+          <DestinationRef>synthetic-destination-a</DestinationRef>
+          <DestinationName>Synthetic Destination A</DestinationName>
+          <VehicleLocation>
+            <Longitude>-2.2400</Longitude>
+            <Latitude>53.4800</Latitude>
+          </VehicleLocation>
+          <Bearing>90</Bearing>
+          <Velocity>8.5</Velocity>
+          <Occupancy>seatsAvailable</Occupancy>
+          <BlockRef>synthetic-block-a</BlockRef>
+          <VehicleJourneyRef>synthetic-journey-a</VehicleJourneyRef>
+          <VehicleRef>synthetic-vehicle-alpha</VehicleRef>
+        </MonitoredVehicleJourney>
+      </VehicleActivity>
+      <VehicleActivity>
+        <RecordedAtTime>2026-07-22T11:59:50Z</RecordedAtTime>
+        <ValidUntilTime>2026-07-22T12:01:10Z</ValidUntilTime>
+        <MonitoredVehicleJourney>
+          <OperatorRef>SYN1</OperatorRef>
+          <LineRef>synthetic-line-99</LineRef>
+          <PublishedLineName>Synthetic 99</PublishedLineName>
+          <DirectionRef>inbound</DirectionRef>
+          <OriginRef>synthetic-origin-b</OriginRef>
+          <OriginName>Synthetic Origin B</OriginName>
+          <DestinationRef>synthetic-destination-b</DestinationRef>
+          <VehicleLocation>
+            <Longitude>-2.2500</Longitude>
+            <Latitude>53.4900</Latitude>
+          </VehicleLocation>
+          <Bearing>270</Bearing>
+          <BlockRef>synthetic-block-b</BlockRef>
+          <VehicleJourneyRef>synthetic-journey-b</VehicleJourneyRef>
+          <VehicleRef>synthetic-vehicle-beta</VehicleRef>
+        </MonitoredVehicleJourney>
+      </VehicleActivity>
+    </VehicleMonitoringDelivery>
+  </ServiceDelivery>
+</Siri>

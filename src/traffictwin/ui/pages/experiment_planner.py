@@ -16,7 +16,7 @@ from traffictwin.experiments.protocol import (
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import activate_page, render_page_header
+from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.services import (
     ExperimentPlannerCatalog,
     ServiceError,
@@ -57,11 +57,11 @@ def render(config: UiConfig) -> None:
             "No scenario seeds are registered. Create or import a seed before defining an "
             "experiment plan."
         )
-        st.button(
+        navigation_button(
+            st.button,
             "Open Scenario Builder",
-            type="primary",
-            on_click=activate_page,
-            args=(UiPage.SCENARIO,),
+            UiPage.SCENARIO,
+            kind="primary",
         )
         return
 
@@ -254,10 +254,10 @@ def _render_plan_preview(
                 f"Registered {registered.experiment_id} with status {registered.status.value}. "
                 "No runs were created."
             )
-    st.button(
+    navigation_button(
+        st.button,
         "Open Experiment Manager",
-        on_click=activate_page,
-        args=(UiPage.EXPERIMENT_MANAGER,),
+        UiPage.EXPERIMENT_MANAGER,
     )
 
 

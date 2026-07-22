@@ -1,13 +1,15 @@
 # TrafficTwin Architecture
 
-This document describes the implemented standalone architecture, Provenance Explorer, and the
-evidence-gated read-only TOS Data integration. It is grounded in the current repository and the
-canonical future design at [docs/traffictwin-design-v0_6.md](traffictwin-design-v0_6.md), with the
-[v0.5 specification](traffictwin-design-v0_5.md) as the implemented baseline. It does not claim a
-verified runnable Randy/VEC environment, Randy-provided SUMO XML mapping, Manchester sensors,
-near-live, true-live, or external launch support. A separate public SUMO 1.27 output adapter is
-implemented as an import-only boundary. The generic bundle adapter admits explicitly declared
-CSV, gzip-CSV, and flat scalar Parquet inputs.
+This document describes the architecture implemented through the immutable v0.6 release, including
+the standalone platform, Provenance Explorer, evidence-gated TOS/VEC integration, request-specific
+foreground VEC execution, and controlled synthetic SUMO execution. It is grounded in the current
+repository and the canonical future design at
+[docs/traffictwin-design-v0_7.md](traffictwin-design-v0_7.md). The
+[v0.6 specification](traffictwin-design-v0_6.md) records the implemented release boundary and the
+[v0.5 specification](traffictwin-design-v0_5.md) records its import-first expansion baseline. The
+implemented system does not yet claim Manchester source adapters, a live city-road feed,
+observation-to-SUMO calibration, or the v0.7 product redesign. The generic bundle adapter admits
+explicitly declared CSV, gzip-CSV, and flat scalar Parquet inputs.
 
 The full v0.5 comparison/statistics group is implemented: STA-01 paired study, STA-02 N-way policy
 ranking, STA-03 paired equivalence, STA-04 regression gates, and STA-05 prospective paired power
@@ -1557,6 +1559,94 @@ an inspectable synthetic prototype, not a learned model; the held-out split veri
 does not establish performance. Protocol tracking records manual external progress and never
 launches, schedules, validates, or imports a simulator run by itself.
 
+## Planned v0.7 Manchester Evidence And Product Shell
+
+This section records the approved future dependency direction. It is not implementation truth;
+every `MAN-*`, `UX-*`, and `REL-01` capability remains planned until its acceptance gate passes.
+
+```mermaid
+flowchart TD
+    Sources["Allowlisted DfT / WebTRIS / TfGM / BODS / optional Randy sources"] --> Sync["Bounded source sync"]
+    Sync --> Raw["Immutable raw source snapshot"]
+    Raw --> SourceValidation["Source-specific validation"]
+    SourceValidation --> Normalised["Source-specific typed artifact"]
+    Normalised --> Projection["Evidence-compatible projection"]
+    Normalised --> Manchester["Manchester map and replay service"]
+    Projection --> Mapping["Network binding and edge-map candidates"]
+    Mapping --> Calibration["Reviewed deterministic calibration candidate"]
+    Calibration --> ExistingSumo["Existing controlled SUMO service"]
+    ExistingSumo --> Compare["Observed-versus-simulated comparison"]
+    ExistingSumo --> ExistingVec["Existing VEC-06 to VEC-12 gates"]
+    Manchester --> Pages["Task-oriented Streamlit pages"]
+    Compare --> Pages
+    ExistingVec --> Pages
+```
+
+The acquisition boundary preserves response bytes, request/retrieval metadata, hashes, licence,
+source time, and freshness before parsing. `MAN-01` is intentionally split across two gates. Gate A
+is accepted in the
+[Manchester source audit](integration/manchester-source-gate-a-audit-v0_7.md) and ADR-054 through
+ADR-057; it freezes source, authentication, dependency, threat, time-basis, freshness, fixture,
+publication, and licence decisions. Gate B implements and accepts the immutable acquisition
+service against those frozen decisions. The current candidate foundation supplies the common
+exact-host/path bounded transport, hardened XML/gzip/zip boundaries, a single secret-free
+transport-to-snapshot mapping, and an atomic quarantine-before-parse service. Promotion to the
+separate accepted area rechecks hashes, receipts, stored policy, exact inventory, and every common
+provenance field after source validation. These source-neutral services and their synthetic tests do not
+accept `MAN-01` or any source adapter. DfT counts remain historical surveys, WebTRIS remains
+strategic-road evidence, TfGM signals remain
+infrastructure, BODS remains live transit-vehicle evidence, and Randy artifacts retain the v0.6
+permission and science limits. The canonical `TrafficObservationRecord` remains unchanged;
+source-specific records carry absolute observation time and `ManchesterTimeBasis` deterministically
+projects them onto `timestamp_s` from an explicit UTC analysis-window anchor.
+
+Every geographic source and generated layer has a versioned spatial-admission record containing
+its source CRS, target CRS, transformation, bounds, coordinate meaning, uncertainty, and admission
+status. Unknown or source-local coordinates may support non-geographic replay but cannot appear on
+the Manchester map. Gate A freezes the bounded HTTP client, explicitly hardened XML/archive
+parser, PyDeck, base-tile,
+offline, attribution, and licence choices. Streamlit pages read accepted local snapshots through
+services; external network sync, parsing, projection, map matching, calibration, metrics, and
+execution stay in tested library boundaries.
+
+The planned product shell uses `st.navigation`/`st.Page` with Overview, Build & run, Analyse,
+Evidence, and Advanced groups. The entry point remains `src/traffictwin/ui/app.py`; direct page
+scripts live under `src/traffictwin/ui/app_pages/`, avoiding Streamlit's reserved `pages/`
+auto-discovery directory. The normative 34-page migration inventory in the v0.7 design must be
+complete before one atomic navigation cutover; until then the complete v0.6 navigation remains
+available. v0.7 requires `streamlit>=1.58,<2` with the reviewed `streamlit==1.59.2` development
+lock, tests the minimum and locked versions, and removes every deprecated `use_container_width`
+call during the migration.
+Cached loaders read accepted artifacts, independently refreshing `st.fragment(parallel=True)`
+regions poll disjoint local snapshot state, forms batch expensive requests, and native
+Streamlit/Altair/PyDeck components provide the responsive map-led experience. No UI state decides
+source truth, scientific availability, licence, or capability status.
+
+The candidate `UX-01` implementation preserves the complete legacy router as the default and
+enables the new router only through `TRAFFICTWIN_V07_NAVIGATION=1`. A normative typed inventory maps
+all 34 `UiPage` values to unique direct scripts and URL paths. A shared page runtime serves both
+routers, while candidate page-to-page callbacks use registered `st.switch_page` targets. The
+feature flag cannot become the default until direct-URL/browser, cross-page state, accessibility,
+screenshot, package-requirement, and final reconciliation gates pass. Minimum/locked Streamlit
+tests, isolated installed-wheel execution, all 34 live direct paths, direct refresh, a cross-page
+action, and browser history now pass for the candidate foundation. Candidate page actions invoke
+`st.switch_page` only from normal top-level script execution, because rerun-triggering navigation
+inside a widget callback is a no-op in Streamlit.
+
+`REL-01` isolation applies from the first v0.7 change: v0.7 uses a separate workspace,
+registry/cache version, and release identity. Compatibility with `v0.6.0` is read-only and
+copy-on-write; the source workspace and release tag remain immutable. The final release gate
+verifies this boundary rather than introducing it late.
+
+The candidate `REL-01` foundation in `src/traffictwin/release/compatibility.py` creates only a
+new, separately marked v0.7 workspace. It can inspect one closed registry at the frozen v0.6
+schema and atomically publish a byte-exact copy under a non-active compatibility directory. The
+receipt reconciles source-before, source-after, copied-registry, and active-v0.7-registry hashes;
+symlinks, SQLite sidecars, incompatible schemas, existing destinations, and verification failures
+fail closed. This is implementation evidence for isolation, not full migration or `REL-01`
+acceptance: producer-release attestation, bundle/workspace migration, backup, activation,
+interruption quarantine, rollback, downgrade refusal, and side-by-side release tests remain.
+
 ## Release And Deployment Boundary
 
 ```mermaid
@@ -1579,6 +1669,8 @@ capabilities.
 
 ## Related Documents
 
+- [Canonical v0.7 Manchester evidence and product design](traffictwin-design-v0_7.md)
+- [Implemented v0.6 Randy/VEC integration design](traffictwin-design-v0_6.md)
 - [System overview](system_overview.md)
 - [Developer guide](developer_guide.md)
 - [Data contract](data_contract.md)

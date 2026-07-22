@@ -15,6 +15,14 @@ This index points only to documentation and repository paths that exist in the c
 
 ## User Documentation
 
+- [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
+- [Accepted v0.7 Manchester source Gate A audit](integration/manchester-source-gate-a-audit-v0_7.md)
+- [Manchester acquisition and hardened-parsing decision](decisions/ADR-054-bounded-manchester-acquisition-transport-and-parsing.md)
+- [Manchester time-basis decision](decisions/ADR-055-manchester-time-basis.md)
+- [Manchester map and attribution decision](decisions/ADR-056-manchester-map-rendering-and-attribution.md)
+- [Bee Network membership decision](decisions/ADR-057-bee-network-membership-identifiers.md)
+- [v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md)
+- [v0.7 task-oriented navigation candidate](v07_navigation.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [User guide](user_guide.md)
 - [CLI reference](cli_reference.md)
@@ -56,6 +64,13 @@ This index points only to documentation and repository paths that exist in the c
 - [TrafficTwin doctor](doctor.md)
 - [RO-Crate research objects and citation](research_objects.md)
 - [General external-source contract](integration/external_source_contract.md)
+- [Manchester bounded transport, XML, and archive boundary](integration/manchester_transport_boundary.md)
+- [Manchester immutable snapshot service](integration/manchester_snapshot_service.md)
+- [DfT Manchester historical road-count adapter](integration/manchester_dft_adapter.md)
+- [Controlled DfT acquisition and offline replay](integration/manchester_dft_acquisition.md)
+- [Manchester source freshness and truth-state service](integration/manchester_freshness_service.md)
+- [Manchester evidence-compatible road projection](integration/manchester_projection_service.md)
+- [Controlled WebTRIS acquisition and offline replay](integration/manchester_webtris_acquisition.md)
 - [Randy/VEC v0.6 pinned source-snapshot audit](integration/randy-source-snapshot-audit-v0_6.md)
 - [Generated VEC-01 machine audit](reference/generated/vec_source_snapshot_audit.json)
 - [TOS/VEC source contract v2](integration/tos_contract_v2_scaffolding.md)
@@ -166,6 +181,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Generated VEC-08 acceptance report](reference/generated/vec_reproduction_report.json)
 - [Registry-migration decision](decisions/ADR-044-versioned-transactional-registry-migrations.md)
 - [Generated registry-migration contract](reference/generated/registry_migration_contract.json)
+- [Generated v0.7 workspace-isolation contract](reference/generated/v07_workspace_contract.json)
 - [Canonical-table caching](canonical_table_caching.md)
 - [Canonical-cache decision](decisions/ADR-045-content-addressed-canonical-table-cache.md)
 - [Generated canonical-cache contract](reference/generated/canonical_cache_contract.json)
@@ -321,7 +337,8 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Dissertation Support
 
-- [Canonical Randy/VEC integration design v0.6](traffictwin-design-v0_6.md)
+- [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
+- [Implemented Randy/VEC integration design v0.6](traffictwin-design-v0_6.md)
 - [Implemented baseline design v0.5](traffictwin-design-v0_5.md)
 - [Historical design proposal v0.4](traffictwin-design-v0_4.md)
 - [Implementation status](implementation-status.md)

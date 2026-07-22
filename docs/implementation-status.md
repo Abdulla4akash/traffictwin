@@ -1,13 +1,17 @@
 # TrafficTwin Implementation Status
 
-Canonical design status: v0.6 is the approved future design target for evidence-gated Randy/VEC
-reproduction, occupancy-bounded identity, task/action/trip joins, arbitrary FCD preprocessing,
-safe local evaluation, and permission-bounded dissertation artifacts. `VEC-01`–`VEC-12` are now
-accepted with scoped scientific and publication blockers after their pinned-source, contract,
-join, preprocessing, safe-runner, reproduction, scientific, interface, publication, and
-end-to-end artifact acceptance tests. Gate G is complete. The v0.5 design is
-the fully implemented baseline. It incorporates the 39-capability expansion covering import
-formats and SUMO outputs, temporal/grouped metrics, statistics, R6-R8 and declarative rules,
+Canonical design status: v0.7 is the approved future design target for Manchester historical and
+latest-available road evidence, live transit positions, infrastructure overlays,
+observed-to-SUMO calibration, SUMO-to-VEC lineage, and a task-oriented product interface. Every
+`MAN-01`–`MAN-11`, `UX-01`–`UX-03`, and `REL-01` capability is planned; none is implemented merely
+because the design, public documentation, an API, or a local SUMO runtime exists.
+
+Implemented release baseline: v0.6 is frozen by tag `v0.6.0` at commit
+`1c50a25246426128ac6e8530240eff362d16be02`. `VEC-01`–`VEC-12` are accepted with scoped scientific
+and publication blockers after their pinned-source, contract, join, preprocessing, safe-runner,
+reproduction, scientific, interface, publication, and end-to-end artifact acceptance tests. Gate G
+is complete. v0.5 contributes the fully implemented 39-capability import-first catalogue covering
+import formats and SUMO outputs, temporal/grouped metrics, statistics, R6-R8 and declarative rules,
 sensitivity, difference provenance, robustness tooling, research exports, migrations, caching,
 doctor, and external-source contracts. All 39 v0.5 catalogue capabilities are implemented within
 their documented evidence-bounded v1 scope: `ING-01` through
@@ -20,7 +24,8 @@ completeness are implemented. The inference wizard has
 confirmation-gated code, golden tests, CLI/UI workflows, and synthetic ambiguity evidence.
 Inclusion in the design alone does not mark any other capability implemented.
 
-Historical design status: v0.4 remains preserved as the original rationale and
+Historical design status: v0.6 records the implemented Randy/VEC increment, v0.5 records the
+implemented expansion baseline, and v0.4 remains preserved as the original rationale and
 supervisor-meeting traceability record.
 
 Phase 0 status: approved and committed.
@@ -52,6 +57,96 @@ separate public SUMO 1.27 output adapter supports bounded tripinfo canonicalisat
 source-specific summary inspection. Generic/SUMO launch and full canonical VEC conversion remain
 unavailable; the exact VEC evaluator is conditional through VEC-10's accepted request-specific
 preflight and foreground boundary.
+
+## v0.7 Manchester and Product Experience Design Status
+
+Design approved and post-review contracts clarified. The source/legal/schema/security half of
+Gate A is accepted in `docs/integration/manchester-source-gate-a-audit-v0_7.md` and ADR-054 through
+ADR-057. It freezes corrected WebTRIS quality semantics, the official BODS SIRI-VM field contract,
+source-specific freshness, minimal real-fixture/publication classes, dependency bounds, map/time
+decisions, and scoped blockers. No Manchester source capability is accepted: `MAN-01` remains
+planned until Gate B proves the common immutable snapshot service and source-specific acquisition
+acceptance. Candidate Gate B foundations now provide atomic new-only pre-parse quarantine and
+post-validation promotion with exact raw-byte hashing, stored-policy verification, receipt and
+provenance reconciliation, and a secret-free transport mapping,
+alongside exact-host/path HTTPS admission, bounded explicit retries/redirects/time and
+wire/decompressed bytes,
+sensitive-query redaction, hardened
+DTD/entity/external-reference-free XML, and bounded in-memory gzip/zip processing under the
+accepted dependency ranges. Their synthetic tests are software-safety evidence only; no source
+adapter or snapshot is accepted. The candidate `MAN-02` offline adapter now strictly parses DfT
+raw-count, count-point, and AADF
+snapshot members. Official documentation and three minimal OGL-attributed exact fixtures fix
+Manchester's DfT authority ID at `85`, require AADF row IDs, and confirm the API's decimal-string
+coordinate/link representation and vehicle-total identities. A controlled DfT acquisition
+candidate now composes the bounded transport, quarantine, exact parser, and atomic promotion
+boundaries; its offline replay is bound to the exact source ID, endpoint, anonymous Manchester
+query, licence, and sequential page inventory. Mixed snapshots/evidence classes,
+non-standard JSON, schema drift, broken hashes, out-of-scope rows, and inconsistent totals fail
+closed. This remains candidate Gate-B evidence only: no real-network acceptance run has passed,
+the raw-count hour timezone remains unresolved, and MAN-02 therefore remains planned.
+
+A controlled WebTRIS acquisition candidate now composes the same bounded transport, immutable
+quarantine, exact MAN-03 parser, warning-code admission, and atomic promotion boundaries for site,
+daily-report, and daily-quality products. Daily pagination and aggregate bytes are bounded; replay
+is offline and binds product, site, date, page size, source contract, licence, endpoint, member
+inventory, and evidence class before parsing. Promoted and replay receipts validate their own
+product/request/source identity and the promoted receipt binds its exact JSON member inventory and
+raw fingerprint. WebTRIS remains historical strategic-road evidence; retrieval time cannot become
+observation time, source-empty intervals remain missing, and quality remains data availability
+rather than accuracy. The official daily fixture closes `GA-WT-2` for that exact parser surface;
+`GA-WT-1`, `GA-WT-3`, and `GA-WT-5` retain their audited scopes. No real-network acquisition
+acceptance run has passed, so `MAN-03` remains planned.
+
+The candidate `MAN-07` foundation now includes an explicit UTC analysis-window/time-projection
+contract, a unified source freshness/truth-state service, and a source-specific road-observation
+projection report with complete admitted/excluded reconciliation. The service reads no wall clock,
+never uses retrieval time as observation time, preserves DfT and WebTRIS as historical evidence,
+limits `live_vehicle` to valid BODS SIRI-VM source timestamps within the frozen 60-second window,
+and treats TfGM reference data and Randy simulation time as outside wall-clock freshness. Service
+outages, rejected evidence, missing snapshots, missing BODS timestamps, and cached fallbacks have
+stable fail-closed outcomes. `near_live` road evidence and general road-traffic live claims remain
+unavailable. DfT survey-hour and WebTRIS source-string rows are preserved as typed exclusions while
+their timezone blockers remain open; they cannot receive a fabricated canonical timestamp. Only a
+clearly labelled UTC synthetic fixture currently demonstrates canonical admission. Real-source
+projection acceptance and the remaining MAN-07 gates have not passed, so `MAN-07` remains planned.
+
+A candidate `REL-01` foundation now provides a separately marked
+v0.7 workspace, distinct registry/cache namespaces, immutable source inspection, and a byte-exact
+non-active v0.6
+registry copy with hash-reconciled receipt and negative tests. It does not perform migration,
+activation, backup, rollback, or release acceptance, so `REL-01` remains planned. The canonical
+v0.7 specification defines these planned groups without changing current capability truth:
+
+- `MAN-01`–`MAN-07`: audited and immutable source snapshots, DfT historical road counts, WebTRIS
+  strategic-road observations, TfGM signal locations, BODS live transit vehicles with an explicit
+  Bee Network service scope, the optional Randy bridge, and evidence-compatible projection,
+  UTC-anchor time-basis, freshness, and spatial-admission services;
+- `MAN-08`–`MAN-11`: Manchester Operations, observation-to-SUMO mapping/calibration,
+  observed-versus-simulated comparison, and the accepted SUMO-to-VEC chain;
+- `UX-01`–`UX-03`: one atomic migration of the complete 34-page inventory to grouped Streamlit
+  navigation, a map-led home/research workflow, and a native, responsive, accessible visual
+  system on the reviewed `streamlit>=1.58,<2` dependency floor and `streamlit==1.59.2`
+  development lock; and
+- `REL-01`: immutable v0.6 release compatibility, separate workspaces, copy-on-write migration,
+  side-by-side execution, and rollback.
+
+A candidate `UX-01` router now maps all 34 current pages to the five approved groups, unique direct
+scripts, stable URL paths, Material icons, and the existing tested renderers. All direct scripts
+pass AppTest smoke rendering and the candidate is available only through
+`TRAFFICTWIN_V07_NAVIGATION=1`; the complete legacy router remains the default. Cross-page state,
+accessibility, screenshot, package-requirement, and final cutover evidence remain, so `UX-01` is
+not implemented. The candidate's 45-test suite passes on both the minimum
+`streamlit==1.58.0` and locked `streamlit==1.59.2` environments; a built wheel contains all 34
+direct scripts and its installed candidate root passes AppTest from `site-packages`. Live-browser
+checks render all 34 direct paths without a Streamlit exception and pass direct refresh,
+Home-to-Guided navigation, and back/forward history after correcting callback-based page switching
+to run at normal top-level script execution.
+
+No current page may call a Manchester source live, no source adapter is accepted, and no
+observation may be used as a SUMO baseline until its v0.7 gate passes. BODS remains bus evidence,
+DfT remains historical survey/statistical evidence, WebTRIS remains strategic-road evidence, TfGM
+signals remain infrastructure reference data, and Randy artifacts retain every v0.6 limit.
 
 ## v0.6 `VEC-01` Source-snapshot Audit Status
 
@@ -1454,7 +1549,7 @@ TrafficTwin project root: `diss/`
 
 Git repository: initialised inside `diss/` on branch `main`.
 
-Canonical product specification: `docs/traffictwin-design-v0_6.md`
+Canonical product specification: `docs/traffictwin-design-v0_7.md`
 
 The historical v0.4 design and `../XITS/` notes remain unchanged as research material. They are
 not active implementation blockers for the current implementation or approved design target.
@@ -1464,8 +1559,9 @@ not active implementation blockers for the current implementation or approved de
 | Path | Type | Assessment |
 |---|---|---|
 | `AGENTS.md` | Agent instruction document | Concise active implementation guidance. Points agents to the canonical product specification. |
-| `docs/traffictwin-design-v0_6.md` | Canonical future design specification | No-timeline Randy/VEC integration target containing twelve planned, evidence-gated capabilities and their boundaries, dependencies, acceptance gates, and residual questions. |
-| `docs/traffictwin-design-v0_5.md` | Implemented baseline design | Complete 39-capability import-first baseline and its documented evidence boundaries. |
+| `docs/traffictwin-design-v0_7.md` | Canonical future design specification | No-timeline Manchester evidence, observed-to-SUMO, SUMO-to-VEC, product-interface, and release-compatibility target with explicit source and acceptance gates. |
+| `docs/traffictwin-design-v0_6.md` | Implemented release design | Accepted evidence-gated Randy/VEC integration, controlled execution, and permission-bounded research-artifact design frozen by `v0.6.0`. |
+| `docs/traffictwin-design-v0_5.md` | Implemented expansion design | Complete 39-capability import-first catalogue and its documented evidence boundaries. |
 | `docs/traffictwin-design-v0_4.md` | Historical design proposal | Complete attached TrafficTwin v0.4 design copy, preserved exactly for rationale and meeting traceability. |
 | `pyproject.toml` | Packaging and tool configuration | Python 3.11+ package metadata, runtime dependencies, dev extras, pytest, Ruff, mypy. |
 | `README.md` | Quick start | Minimal install and CLI examples with current-scope disclaimer. |
@@ -1553,14 +1649,16 @@ not active implementation blockers for the current implementation or approved de
 
 Current and historical design paths:
 
-- `./docs/traffictwin-design-v0_6.md`: canonical future Randy/VEC integration design target.
-- `./docs/traffictwin-design-v0_5.md`: fully implemented import-first baseline.
+- `./docs/traffictwin-design-v0_7.md`: canonical future Manchester evidence and product design.
+- `./docs/traffictwin-design-v0_6.md`: implemented `v0.6.0` Randy/VEC release design.
+- `./docs/traffictwin-design-v0_5.md`: implemented import-first expansion design.
 - `./docs/traffictwin-design-v0_4.md`: preserved historical proposal and traceability source.
 - `./traffictwin-design-v0_4.md`: not used.
 
 The v0.4 design file was copied byte-for-byte from the supplied attachment before `AGENTS.md` was
-replaced with concise instructions. The v0.5 catalogue was subsequently implemented. The v0.6
-design is now the canonical future target without changing any v0.6 capability to implemented.
+replaced with concise instructions. The v0.5 catalogue and v0.6 increment were subsequently
+implemented. The v0.7 design is now the canonical future target without changing any `MAN-*`,
+`UX-*`, or `REL-01` capability to implemented.
 
 ## Implemented In Phase 0
 
@@ -1913,6 +2011,7 @@ diss/
     pyproject.toml
     .gitignore
     docs/
+        traffictwin-design-v0_7.md
         traffictwin-design-v0_6.md
         traffictwin-design-v0_5.md
         traffictwin-design-v0_4.md

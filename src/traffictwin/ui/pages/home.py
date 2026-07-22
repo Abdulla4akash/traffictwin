@@ -8,7 +8,7 @@ from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
-from traffictwin.ui.navigation import activate_page
+from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tables import capability_rows
@@ -25,24 +25,24 @@ def render(config: UiConfig) -> None:
 
     section_header("Research Workflow")
     action_cols = st.columns(2)
-    action_cols[0].button(
+    navigation_button(
+        action_cols[0].button,
         "Start Guided Demo",
-        type="primary",
-        on_click=activate_page,
-        args=(UiPage.GUIDED_DEMO,),
+        UiPage.GUIDED_DEMO,
+        kind="primary",
         use_container_width=True,
     )
-    action_cols[1].button(
+    navigation_button(
+        action_cols[1].button,
         "Plan an Experiment",
+        UiPage.EXPERIMENT_PLANNER,
         key="home_plan_experiment",
-        on_click=activate_page,
-        args=(UiPage.EXPERIMENT_PLANNER,),
         use_container_width=True,
     )
-    st.button(
+    navigation_button(
+        st.button,
         "Open Imported TOS Results",
-        on_click=activate_page,
-        args=(UiPage.TOS_RESULTS,),
+        UiPage.TOS_RESULTS,
         use_container_width=True,
     )
 
@@ -89,30 +89,30 @@ def render(config: UiConfig) -> None:
 
         section_header("Quick Actions")
         first_actions = st.columns(2)
-        first_actions[0].button(
+        navigation_button(
+            first_actions[0].button,
             "Build a Scenario",
-            on_click=activate_page,
-            args=(UiPage.SCENARIO,),
+            UiPage.SCENARIO,
             use_container_width=True,
         )
-        first_actions[1].button(
+        navigation_button(
+            first_actions[1].button,
             "Plan an Experiment",
+            UiPage.EXPERIMENT_PLANNER,
             key="home_quick_plan_experiment",
-            on_click=activate_page,
-            args=(UiPage.EXPERIMENT_PLANNER,),
             use_container_width=True,
         )
         second_actions = st.columns(2)
-        second_actions[0].button(
+        navigation_button(
+            second_actions[0].button,
             "Open Reports",
-            on_click=activate_page,
-            args=(UiPage.REPORTS,),
+            UiPage.REPORTS,
             use_container_width=True,
         )
-        second_actions[1].button(
+        navigation_button(
+            second_actions[1].button,
             "Trace Provenance",
-            on_click=activate_page,
-            args=(UiPage.PROVENANCE,),
+            UiPage.PROVENANCE,
             use_container_width=True,
         )
 

@@ -2,15 +2,17 @@
 
 Repository root: `diss/`
 
-Canonical product specification: `docs/traffictwin-design-v0_6.md`
+Canonical product specification: `docs/traffictwin-design-v0_7.md`
 
 Before architectural work or implementation decisions, read the canonical specification completely. Treat it as the product and research specification, while keeping unconfirmed external integrations behind explicit capability interfaces.
 
-The v0.6 specification is the accepted product design. VEC-01 through VEC-12 have passed their
-recorded evidence gates, but this does not broaden any residual scientific, licensing, hosting,
-canonicalisation, or generic-launch boundary. The fully implemented v0.5 catalogue remains the
-import-first baseline, and the historical v0.4 specification remains the rationale and
-supervisor-meeting traceability record. Use `docs/implementation-status.md` for current truth.
+The v0.7 specification is the approved future product design for Manchester historical/live
+evidence, observed-to-SUMO calibration, SUMO-to-VEC research flow, and the task-oriented product
+interface. Every `MAN-*`, `UX-*`, and `REL-01` capability begins planned; design inclusion does not
+make it implemented. The immutable `v0.6.0` release remains the implemented reproducible baseline.
+VEC-01 through VEC-12 have passed their recorded evidence gates, but this does not broaden any
+residual scientific, licensing, hosting, canonicalisation, or generic-launch boundary. Use
+`docs/implementation-status.md` for current truth.
 
 ## Non-Negotiable Constraints
 
@@ -35,15 +37,38 @@ As the project evolves, update:
 - `docs/open-questions.md`
 - `docs/architecture.md` when architecture decisions change
 
-## Parallel v0.6 Work
+## v0.7 Work Coordination
+
+- Use `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, `REL-01`, and Gates A–F from the v0.7 design as units of
+  ownership. Record the capability and files owned before editing; agents sharing one checkout
+  must use disjoint file sets.
+- v0.7 Gate A is accepted in
+  `docs/integration/manchester-source-gate-a-audit-v0_7.md` and ADR-054 through ADR-057. It is the
+  serial prerequisite for source-specific schema, time/freshness, licence, publication, transport,
+  and parser work. Agents may implement Gate B only against those frozen decisions and scoped
+  blockers; documentation or a successful API response alone still does not accept an adapter or
+  complete `MAN-01`.
+- Acquisition, parsing, normalisation, map matching, calibration, comparison, and UI work must
+  remain separate tested boundaries. Streamlit pages read accepted local snapshots through
+  services and must not fetch external APIs or implement scientific formulas.
+- Treat the v0.6 tag and valuable v0.6 workspaces as immutable. v0.7 compatibility is read-only and
+  copy-on-write until `REL-01` passes migration, rollback, and side-by-side acceptance.
+- Shared integration surfaces—CLI, capability manifests, generated references, navigation,
+  changelog, documentation indexes, and project records—remain lead-owned merge files unless
+  ownership is explicitly transferred.
+- No agent may independently mark a v0.7 capability implemented. The integrating agent reconciles
+  code, tests, real-source acceptance evidence, security/licence checks, UI acceptance, generated
+  contracts, documentation, and capability truth.
+
+## Preserved v0.6 Evidence Boundaries
 
 - Use the v0.6 capability IDs and Gates A–G as the unit of ownership. Record the capability and
   files owned before editing; agents sharing one checkout must use disjoint file sets.
-- Gate A (`VEC-01`) is the serial prerequisite and is now accepted in
+- v0.6 Gate A (`VEC-01`) is the serial prerequisite and is now accepted in
   `docs/integration/randy-source-snapshot-audit-v0_6.md` plus its generated machine record. No
   agent may implement a schema, mapping, join, or launcher from the email alone; use the pinned
   observed contract, limits, hashes, and blockers from that audit.
-- After Gate A, contract/fixture work (`VEC-02`), read-only identity/trip joins (`VEC-03`–`VEC-05`),
+- After v0.6 Gate A, contract/fixture work (`VEC-02`), read-only identity/trip joins (`VEC-03`–`VEC-05`),
   and preprocessing/runner work (`VEC-06`–`VEC-08`) may proceed in separate worktrees or explicitly
   disjoint modules. `VEC-09` and `VEC-10` consume only accepted upstream artifacts; `VEC-11` is
   accepted through its permission-manifested pack, and `VEC-12` closes the final reconciliation

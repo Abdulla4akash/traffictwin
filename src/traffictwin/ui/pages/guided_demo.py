@@ -9,7 +9,7 @@ from traffictwin.ui.components.badges import badge_row, status_badge
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.guided import DemoTrack, bounded_step, steps_for_track
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import activate_page, render_page_header
+from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tos_context import active_tos_package
 
@@ -72,11 +72,11 @@ def render(config: UiConfig) -> None:
         args=(-1, len(steps)),
         use_container_width=True,
     )
-    open_col.button(
+    navigation_button(
+        open_col.button,
         f"Open {step.target_page.value}",
-        type="primary",
-        on_click=activate_page,
-        args=(step.target_page,),
+        step.target_page,
+        kind="primary",
         use_container_width=True,
     )
     next_col.button(

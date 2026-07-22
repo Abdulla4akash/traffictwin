@@ -1,0 +1,330 @@
+"""Candidate task-oriented Streamlit navigation for UX-01."""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+import streamlit as st
+
+from traffictwin.ui.labels import UiPage
+
+V07_NAVIGATION_ENV = "TRAFFICTWIN_V07_NAVIGATION"
+V07_NAVIGATION_GROUPS: tuple[str, ...] = (
+    "Overview",
+    "Build & run",
+    "Analyse",
+    "Evidence",
+    "Advanced",
+)
+
+
+@dataclass(frozen=True)
+class V07PageSpec:
+    """One normative visible-page route in the candidate navigation."""
+
+    page: UiPage
+    group: str
+    script: str
+    url_path: str
+    icon: str
+
+
+V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
+    V07PageSpec(UiPage.HOME, "Overview", "app_pages/home.py", "home", ":material/home:"),
+    V07PageSpec(
+        UiPage.GUIDED_DEMO,
+        "Overview",
+        "app_pages/guided_demo.py",
+        "guided-workflow",
+        ":material/route:",
+    ),
+    V07PageSpec(
+        UiPage.EXPERIMENT_PLANNER,
+        "Build & run",
+        "app_pages/experiment_planner.py",
+        "experiment-planner",
+        ":material/science:",
+    ),
+    V07PageSpec(
+        UiPage.PARAMETER_SWEEP,
+        "Build & run",
+        "app_pages/parameter_sweep.py",
+        "parameter-sweep",
+        ":material/tune:",
+    ),
+    V07PageSpec(
+        UiPage.SCENARIO_MUTATION,
+        "Build & run",
+        "app_pages/scenario_mutations.py",
+        "scenario-mutations",
+        ":material/experiment:",
+    ),
+    V07PageSpec(
+        UiPage.SCENARIO,
+        "Build & run",
+        "app_pages/scenario_builder.py",
+        "scenario-builder",
+        ":material/edit_road:",
+    ),
+    V07PageSpec(
+        UiPage.BUNDLE_IMPORT,
+        "Build & run",
+        "app_pages/bundle_import.py",
+        "bundle-import",
+        ":material/upload_file:",
+    ),
+    V07PageSpec(
+        UiPage.SUMO_IMPORT,
+        "Build & run",
+        "app_pages/sumo.py",
+        "sumo",
+        ":material/traffic:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_DATA,
+        "Build & run",
+        "app_pages/tos_import.py",
+        "tos-import",
+        ":material/database:",
+    ),
+    V07PageSpec(
+        UiPage.VEC_WORKBENCH,
+        "Build & run",
+        "app_pages/vec.py",
+        "vec",
+        ":material/memory:",
+    ),
+    V07PageSpec(
+        UiPage.EXPERIMENT_MANAGER,
+        "Build & run",
+        "app_pages/experiments.py",
+        "experiments",
+        ":material/folder_managed:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_RESULTS,
+        "Analyse",
+        "app_pages/tos_results.py",
+        "tos-results",
+        ":material/analytics:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_REPLAY,
+        "Analyse",
+        "app_pages/tos_replay.py",
+        "tos-replay",
+        ":material/play_circle:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_TRAINING,
+        "Analyse",
+        "app_pages/tos_training.py",
+        "tos-training",
+        ":material/model_training:",
+    ),
+    V07PageSpec(
+        UiPage.TRIVIALITY,
+        "Analyse",
+        "app_pages/triviality.py",
+        "triviality",
+        ":material/emoji_events:",
+    ),
+    V07PageSpec(
+        UiPage.OPERATIONS,
+        "Analyse",
+        "app_pages/replay.py",
+        "replay",
+        ":material/replay:",
+    ),
+    V07PageSpec(
+        UiPage.RUN_OVERVIEW,
+        "Analyse",
+        "app_pages/run_overview.py",
+        "run-overview",
+        ":material/dashboard:",
+    ),
+    V07PageSpec(
+        UiPage.TEMPORAL_METRICS,
+        "Analyse",
+        "app_pages/temporal_metrics.py",
+        "temporal-metrics",
+        ":material/timeline:",
+    ),
+    V07PageSpec(
+        UiPage.ENERGY,
+        "Analyse",
+        "app_pages/energy.py",
+        "energy",
+        ":material/bolt:",
+    ),
+    V07PageSpec(
+        UiPage.FAIRNESS,
+        "Analyse",
+        "app_pages/fairness.py",
+        "fairness",
+        ":material/balance:",
+    ),
+    V07PageSpec(
+        UiPage.THRESHOLD_SENSITIVITY,
+        "Analyse",
+        "app_pages/threshold_sensitivity.py",
+        "threshold-sensitivity",
+        ":material/linear_scale:",
+    ),
+    V07PageSpec(
+        UiPage.SPATIAL_RSU,
+        "Analyse",
+        "app_pages/spatial_rsu.py",
+        "spatial-rsu",
+        ":material/map:",
+    ),
+    V07PageSpec(
+        UiPage.INFRASTRUCTURE,
+        "Analyse",
+        "app_pages/infrastructure.py",
+        "infrastructure",
+        ":material/cell_tower:",
+    ),
+    V07PageSpec(
+        UiPage.COMPARE,
+        "Analyse",
+        "app_pages/compare.py",
+        "compare",
+        ":material/compare_arrows:",
+    ),
+    V07PageSpec(
+        UiPage.JOURNEY_TIME,
+        "Analyse",
+        "app_pages/journey_time.py",
+        "journey-time",
+        ":material/schedule:",
+    ),
+    V07PageSpec(
+        UiPage.STATISTICAL_STUDY,
+        "Evidence",
+        "app_pages/statistics.py",
+        "statistics",
+        ":material/query_stats:",
+    ),
+    V07PageSpec(
+        UiPage.EVIDENCE,
+        "Evidence",
+        "app_pages/diagnostics.py",
+        "diagnostics",
+        ":material/fact_check:",
+    ),
+    V07PageSpec(
+        UiPage.PROVENANCE,
+        "Evidence",
+        "app_pages/provenance.py",
+        "provenance",
+        ":material/account_tree:",
+    ),
+    V07PageSpec(
+        UiPage.REPORTS,
+        "Evidence",
+        "app_pages/reports.py",
+        "reports",
+        ":material/article:",
+    ),
+    V07PageSpec(
+        UiPage.PARTICIPANT_EVALUATION,
+        "Evidence",
+        "app_pages/mock_evaluation.py",
+        "mock-evaluation",
+        ":material/assignment_ind:",
+    ),
+    V07PageSpec(
+        UiPage.MANIFEST_WIZARD,
+        "Advanced",
+        "app_pages/manifest_inference.py",
+        "manifest-inference",
+        ":material/schema:",
+    ),
+    V07PageSpec(
+        UiPage.SEARCH,
+        "Advanced",
+        "app_pages/search.py",
+        "search",
+        ":material/search:",
+    ),
+    V07PageSpec(
+        UiPage.SETTINGS,
+        "Advanced",
+        "app_pages/settings.py",
+        "settings",
+        ":material/settings:",
+    ),
+    V07PageSpec(
+        UiPage.ABOUT,
+        "Advanced",
+        "app_pages/about.py",
+        "about",
+        ":material/info:",
+    ),
+)
+
+_SPEC_BY_PAGE = {spec.page: spec for spec in V07_PAGE_SPECS}
+
+
+def v07_navigation_requested() -> bool:
+    """Return whether the candidate router was explicitly requested."""
+
+    return os.getenv(V07_NAVIGATION_ENV, "").strip().lower() in {"1", "true", "yes"}
+
+
+def page_script_for(page: UiPage) -> str:
+    """Return the direct script path registered for one page."""
+
+    return _SPEC_BY_PAGE[page].script
+
+
+def validate_v07_page_specs(base: Path | None = None) -> None:
+    """Fail when the candidate inventory is incomplete, duplicated, or missing files."""
+
+    if len(V07_PAGE_SPECS) != len(UiPage):
+        raise ValueError("v0.7 navigation must contain exactly one row for every UiPage")
+    pages = [spec.page for spec in V07_PAGE_SPECS]
+    paths = [spec.url_path for spec in V07_PAGE_SPECS]
+    scripts = [spec.script for spec in V07_PAGE_SPECS]
+    if set(pages) != set(UiPage) or len(set(pages)) != len(pages):
+        raise ValueError("v0.7 navigation page membership is incomplete or duplicated")
+    if len(set(paths)) != len(paths) or len(set(scripts)) != len(scripts):
+        raise ValueError("v0.7 navigation paths and scripts must be unique")
+    if tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) != V07_NAVIGATION_GROUPS:
+        raise ValueError("v0.7 navigation groups or ordering do not match the design")
+    source_root = base or Path(__file__).parent
+    missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
+    if missing:
+        raise ValueError(f"v0.7 navigation page scripts are missing: {sorted(missing)}")
+
+
+def _render_root_home() -> None:
+    """Render Home at the root URL while preserving the explicit ``/home`` route."""
+
+    from traffictwin.ui.page_runtime import run_page_script
+
+    run_page_script(UiPage.HOME)
+
+
+def v07_navigation_pages() -> dict[str, list[object]]:
+    """Build the hidden root plus five visible task-oriented navigation groups."""
+
+    validate_v07_page_specs()
+    pages: dict[str, list[object]] = {
+        "": [st.Page(_render_root_home, title="Home", default=True, visibility="hidden")]
+    }
+    for group in V07_NAVIGATION_GROUPS:
+        pages[group] = [
+            st.Page(
+                spec.script,
+                title=spec.page.value,
+                icon=spec.icon,
+                url_path=spec.url_path,
+            )
+            for spec in V07_PAGE_SPECS
+            if spec.group == group
+        ]
+    return pages

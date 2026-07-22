@@ -633,7 +633,8 @@ Integration evidence and remaining questions are documented under
 
 Start at [docs/index.md](docs/index.md). Key documents:
 
-- [docs/traffictwin-design-v0_6.md](docs/traffictwin-design-v0_6.md) — accepted evidence-gated Randy/VEC integration design
+- [docs/traffictwin-design-v0_7.md](docs/traffictwin-design-v0_7.md) — canonical planned Manchester evidence and product-experience design
+- [docs/traffictwin-design-v0_6.md](docs/traffictwin-design-v0_6.md) — implemented evidence-gated Randy/VEC release design
 - [docs/integration/vec_end_to_end_research_artifact.md](docs/integration/vec_end_to_end_research_artifact.md) — VEC-12 archive use, rebuild, verification, and limits
 - [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md) — implemented baseline
 - [docs/full_product_guide.md](docs/full_product_guide.md)
