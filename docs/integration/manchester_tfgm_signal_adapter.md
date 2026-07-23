@@ -101,10 +101,11 @@ performs no network calls and does not extract arbitrary archive members.
 
 ## Remaining acceptance work
 
-1. Connect the exact ZIP download and allowlisted CSV extraction through MAN-01 quarantine and
-   atomic promotion.
-2. Publish a machine-verifiable full-release acceptance receipt without committing the archive.
-3. Add MAN-07 spatial admission and MAN-08 map rendering with required attribution.
-4. Reconcile exports, generated schemas, project records, and capability truth after lead review.
+1. Run the controlled acquisition candidate against the exact real ZIP and retain its private
+   acceptance receipt without committing the archive.
+2. Reconcile that real receipt with the pinned full-release identity and spatial/map manifests.
+3. Pass accepted records through the candidate MAN-07 spatial gate and MAN-08 offline layer
+   manifest; both services exist, but no real-source map layer or UI is accepted yet.
+4. Reconcile the complete acquisition-to-map chain and capability truth after lead review.
 
 `MAN-04` remains planned until those integration gates pass.

@@ -1622,12 +1622,58 @@ regions poll disjoint local snapshot state, forms batch expensive requests, and 
 Streamlit/Altair/PyDeck components provide the responsive map-led experience. No UI state decides
 source truth, scientific availability, licence, or capability status.
 
+The candidate MAN-08 page adds one deliberately narrow UI boundary. The opt-in `/manchester`
+route reads only mode-specific `ManchesterMapScene` JSON below
+`workspace/manchester/scenes/` during ordinary rendering. Only an explicit, prerequisite-gated
+Live vehicles form invokes one controlled BODS acquisition; there is no background polling or
+network access on ordinary reruns. The loader resolves the fixed path
+inside the configured workspace, refuses symlinks/escapes, applies an 8 MiB bound, validates the
+complete scene contract, and caches at most 12 entries for 30 seconds. A renderer adapter removes
+point identities from the browser payload and creates symbol-based PyDeck `TextLayer` objects with
+no map provider or map style, so page rendering requires no third-party tile request. Layer
+selection changes display only: it cannot change spatial admission, freshness, publication, or
+scientific truth. The additive route remains outside the 34-row v0.6 migration inventory.
+
+Historical and latest scene files are produced by one deterministic MAN-08 publication boundary,
+not by the page. It accepts only sorted, unique, same-mode `MapLayerRequest` values, rebuilds each
+layer and the complete scene, enforces the fixed mode path and 8 MiB ceiling, refuses symlink/path
+escape, and atomically replaces a mode-`0600` local file. The explicit BODS workflow delegates its
+live-scene write to the same file boundary. Publication performs no acquisition, source fusion,
+cross-scope totals, scientific computation, or public export, and a failed replacement preserves
+the previous scene.
+
+The first accepted-source-to-scene candidate is the TfGM static-reference bridge. It re-verifies
+the stored acquisition receipt and raw ZIP, repeats bounded archive selection and the exact MAN-04
+parse, reconciles the parser fingerprint and counts, applies MAN-07 dual-coordinate admission, and
+emits a private attributed layer request. It can populate only `latest_available`; it cannot create
+traffic observations, live state, phase/timing data, source joins, or public output. The bridge has
+offline synthetic acceptance tests, while a real-network Gate B run remains outstanding.
+
+The candidate MAN-09 calibration library is a pure post-execution evaluator, not a SUMO launcher
+or raw-count conversion service. A versioned contract fixes source/scope/time/measure/unit,
+objective, exact parameter grid, missingness, duplicates, coverage, precision, and interpretation;
+typed observed and simulated intervals retain source/projection/mapping/network/run fingerprints.
+Every report re-derives screening, pairs, exclusions, denominators, exact-threshold coverage,
+residuals, objective availability, and deterministic ranking. The production registry is empty,
+and automatic baseline acceptance is unrepresentable; temporal-profile construction, analyst
+ambiguity review, uncertainty, and the accepted baseline artifact remain separate Gate D work.
+
+The candidate MAN-10 library is a pure boundary after accepted mapping and SUMO evidence. One
+versioned comparison contract binds one observed source, source/scope/time-basis fingerprints,
+exact interval duration, measure/unit, weighting, missingness, duplicate handling, per-side
+denominators and coverage thresholds, precision, and descriptive interpretation; source fusion and
+resampling are fixed unavailable. Each result embeds canonical content/provenance-bound input
+inventories and re-derives every pair, exclusion, denominator, coverage value, admission decision,
+and metric during reload. Production goodness-of-fit is unavailable because the reviewed contract
+registry is empty. This candidate evidence does not accept MAN-10 or establish model quality.
+
 The candidate `UX-01` implementation preserves the complete legacy router as the default and
 enables the new router only through `TRAFFICTWIN_V07_NAVIGATION=1`. A normative typed inventory maps
 all 34 `UiPage` values to unique direct scripts and URL paths. A shared page runtime serves both
 routers, while candidate page-to-page callbacks use registered `st.switch_page` targets. The
 feature flag cannot become the default until direct-URL/browser, cross-page state, accessibility,
-screenshot, package-requirement, and final reconciliation gates pass. Minimum/locked Streamlit
+screenshot, new-page minimum-version, package-version, and final reconciliation gates pass. Packaging now
+declares the reviewed Streamlit floor and PyDeck directly. Minimum/locked Streamlit
 tests, isolated installed-wheel execution, all 34 live direct paths, direct refresh, a cross-page
 action, and browser history now pass for the candidate foundation. Candidate page actions invoke
 `st.switch_page` only from normal top-level script execution, because rerun-triggering navigation

@@ -31,6 +31,26 @@ class V07PageSpec:
     icon: str
 
 
+@dataclass(frozen=True)
+class V07AdditivePageSpec:
+    """One v0.7-only route outside the normative 34-page migration inventory."""
+
+    title: str
+    group: str
+    script: str
+    url_path: str
+    icon: str
+
+
+MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
+    title="Manchester Operations",
+    group="Overview",
+    script="app_pages/manchester.py",
+    url_path="manchester",
+    icon=":material/map:",
+)
+
+
 V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
     V07PageSpec(UiPage.HOME, "Overview", "app_pages/home.py", "home", ":material/home:"),
     V07PageSpec(
@@ -297,6 +317,12 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         raise ValueError("v0.7 navigation groups or ordering do not match the design")
     source_root = base or Path(__file__).parent
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
+    if MANCHESTER_PAGE_SPEC.group not in V07_NAVIGATION_GROUPS:
+        raise ValueError("the additive Manchester page must use a registered navigation group")
+    if MANCHESTER_PAGE_SPEC.url_path in paths or MANCHESTER_PAGE_SPEC.script in scripts:
+        raise ValueError("the additive Manchester route must not replace a v0.6 destination")
+    if not (source_root / MANCHESTER_PAGE_SPEC.script).is_file():
+        missing.append(MANCHESTER_PAGE_SPEC.script)
     if missing:
         raise ValueError(f"v0.7 navigation page scripts are missing: {sorted(missing)}")
 
@@ -317,14 +343,26 @@ def v07_navigation_pages() -> dict[str, list[object]]:
         "": [st.Page(_render_root_home, title="Home", default=True, visibility="hidden")]
     }
     for group in V07_NAVIGATION_GROUPS:
-        pages[group] = [
-            st.Page(
-                spec.script,
-                title=spec.page.value,
-                icon=spec.icon,
-                url_path=spec.url_path,
+        group_pages: list[object] = []
+        for spec in V07_PAGE_SPECS:
+            if spec.group != group:
+                continue
+            group_pages.append(
+                st.Page(
+                    spec.script,
+                    title=spec.page.value,
+                    icon=spec.icon,
+                    url_path=spec.url_path,
+                )
             )
-            for spec in V07_PAGE_SPECS
-            if spec.group == group
-        ]
+            if spec.page is UiPage.HOME and group == MANCHESTER_PAGE_SPEC.group:
+                group_pages.append(
+                    st.Page(
+                        MANCHESTER_PAGE_SPEC.script,
+                        title=MANCHESTER_PAGE_SPEC.title,
+                        icon=MANCHESTER_PAGE_SPEC.icon,
+                        url_path=MANCHESTER_PAGE_SPEC.url_path,
+                    )
+                )
+        pages[group] = group_pages
     return pages

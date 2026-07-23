@@ -98,9 +98,24 @@ rather than accuracy. The official daily fixture closes `GA-WT-2` for that exact
 `GA-WT-1`, `GA-WT-3`, and `GA-WT-5` retain their audited scopes. No real-network acquisition
 acceptance run has passed, so `MAN-03` remains planned.
 
+A controlled TfGM signal acquisition candidate now binds the audited static ZIP endpoint to the
+shared bounded transport, immutable quarantine-before-decompression boundary, bounded archive
+inspection, exact MAN-04 CSV parser, warning-code admission, and atomic promotion. The full archive
+remains private; the shipped attribution, selected-member hashes/sizes, complete archive inventory,
+parser reconciliation, and embedded generic snapshot receipts are retained and internally bound.
+Offline replay performs no network access and reports parser rejection through a typed error. No
+real-network acceptance run has passed and future overwritten releases deliberately fail their
+pinned identity checks, so `MAN-01` and `MAN-04` remain planned.
+
 The candidate `MAN-07` foundation now includes an explicit UTC analysis-window/time-projection
 contract, a unified source freshness/truth-state service, and a source-specific road-observation
-projection report with complete admitted/excluded reconciliation. The service reads no wall clock,
+projection report with complete admitted/excluded reconciliation. It also includes a deterministic
+geographic spatial-admission gate recording source/target CRS, projection runtime, exact point
+bounds, source-specific scope, point meaning, uncertainty, and one typed result for every input.
+DfT and TfGM require their published EPSG:27700/WGS84 values to agree within 2.5 m; WebTRIS and
+BODS require explicit selected-site/request-scope artifacts. Randy/TOS, SUMO/VEC, and analysis-RSU
+coordinates remain off the geographic map without a reviewed projection binding, and visual
+proximity never creates identity. The service reads no wall clock,
 never uses retrieval time as observation time, preserves DfT and WebTRIS as historical evidence,
 limits `live_vehicle` to valid BODS SIRI-VM source timestamps within the frozen 60-second window,
 and treats TfGM reference data and Randy simulation time as outside wall-clock freshness. Service
@@ -109,7 +124,63 @@ stable fail-closed outcomes. `near_live` road evidence and general road-traffic 
 unavailable. DfT survey-hour and WebTRIS source-string rows are preserved as typed exclusions while
 their timezone blockers remain open; they cannot receive a fabricated canonical timestamp. Only a
 clearly labelled UTC synthetic fixture currently demonstrates canonical admission. Real-source
-projection acceptance and the remaining MAN-07 gates have not passed, so `MAN-07` remains planned.
+acquisition acceptance, a versioned boundary artifact, and the remaining MAN-07 gates have not
+passed, so `MAN-07` remains planned.
+
+The candidate `MAN-08` foundation now includes a renderer-neutral, offline map-layer service above
+MAN-07 spatial admission. It emits only admitted WGS84 points, reconciles every exclusion, binds
+snapshot/freshness/publication/licence/attribution evidence, keeps private layers local-only, and
+composes non-equivalent scopes without fusion or cross-scope totals. The basemap provider is fixed
+to `None`; stale cached evidence remains visibly stale; and symbol/legend/accessibility text means
+colour is never the only layer distinction. A bounded publication service now deterministically
+builds historical/latest scenes from explicit same-mode layer requests and atomically writes only
+their fixed local v0.7 paths. It rejects arbitrary destinations, unsorted/duplicate/cross-mode
+layers, unsafe directories and targets, oversized output, and interrupted replacement while
+retaining the prior scene. The BODS live workflow reuses the same file boundary, so all three UI
+scene modes share one path/size/symlink/atomicity implementation. A local TfGM vertical bridge now
+re-verifies an accepted signal acquisition and immutable ZIP, reproduces the MAN-04 parser report,
+spatially admits its static locations, retains private/OGL/attribution semantics, and can populate
+the latest scene without network access or any phase/timing/count/live claim. An additive, opt-in
+Manchester
+Operations page now
+loads only a fixed, bounded `ManchesterMapScene` below the configured v0.7 workspace, rejects
+escaped/symlinked/oversized/invalid/cross-mode artifacts, caches only local validated scenes, and
+renders admitted points through a no-basemap PyDeck `TextLayer`. It provides the three required
+mode labels, layer pills, source-specific reconciliation cards, visible scope/attribution, and
+disabled MAN-09/MAN-10 actions with exact prerequisite wording. In Live vehicles mode, an explicit
+form can now perform one controlled BODS request using an environment-only credential and an
+operator-declared bounding box, re-verify the accepted private XML, admit privacy-safe bus
+positions through MAN-07, and atomically publish the fixed local live-vehicle scene. Ordinary
+reruns perform no acquisition, failures preserve the prior scene, stale positions remain separate,
+and the UI structurally declares road-traffic live state and public export unavailable. The package
+now directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. No real-key Gate B
+acceptance, general live-road evidence, accepted Bee Network membership, boundary
+artifact, accepted real-source historical/latest publication, interval/site/direction/vehicle-class
+filter service, compatible traffic chart,
+minimum-version rerun of this new page, or complete browser/mobile/accessibility acceptance exists,
+so `MAN-05` and `MAN-08` remain planned.
+
+The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
+evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.
+It binds source, projection, mapping, network, run, and row fingerprints; refuses source fusion,
+resampling, unit conversion, missing-as-zero, conflicting duplicates, DfT raw-count speed, and
+off-grid/out-of-bounds parameters; and publishes complete pairs, exclusions, denominators,
+coverage, residuals, and typed objective unavailability. Exact unrounded coverage controls
+admission even when the displayed value rounds to a threshold. Its production-contract registry
+is empty, candidate selection is for analyst review only, and both automatic acceptance and
+baseline availability are structurally false. No real calibration, uncertainty/ambiguity review,
+temporal-profile builder, baseline acceptance artifact, or SUMO launch exists, so `MAN-09` remains
+planned.
+
+The candidate `MAN-10` comparison foundation now binds one observed source, geographic scope,
+time basis, exact interval duration, measure/unit, weighting, missingness, duplicate policy,
+per-side denominator and minimum coverage, precision, and interpretation in a versioned contract.
+It embeds canonical content/provenance-bound observed and simulated inputs, re-derives screening,
+pairs, exclusions, both coverage values, admission, and metrics on every reload, and refuses
+cross-source/scope/time-basis/duration aggregation. Ambient Decimal context cannot change its
+canonical output; numerically equal Decimal duplicates collapse; DfT raw-count speed is
+structurally unavailable; and missing rows never become zero. The reviewed production-contract
+registry remains empty, so all real MAE/RMSE values stay unavailable and `MAN-10` remains planned.
 
 A candidate `REL-01` foundation now provides a separately marked
 v0.7 workspace, distinct registry/cache namespaces, immutable source inspection, and a byte-exact
@@ -135,8 +206,8 @@ A candidate `UX-01` router now maps all 34 current pages to the five approved gr
 scripts, stable URL paths, Material icons, and the existing tested renderers. All direct scripts
 pass AppTest smoke rendering and the candidate is available only through
 `TRAFFICTWIN_V07_NAVIGATION=1`; the complete legacy router remains the default. Cross-page state,
-accessibility, screenshot, package-requirement, and final cutover evidence remain, so `UX-01` is
-not implemented. The candidate's 45-test suite passes on both the minimum
+accessibility, screenshot, new-page minimum-version, package-version, and final cutover evidence
+remain, so `UX-01` is not implemented. The original candidate's 45-test suite passes on both the minimum
 `streamlit==1.58.0` and locked `streamlit==1.59.2` environments; a built wheel contains all 34
 direct scripts and its installed candidate root passes AppTest from `site-packages`. Live-browser
 checks render all 34 direct paths without a Streamlit exception and pass direct refresh,

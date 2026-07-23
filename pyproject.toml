@@ -15,10 +15,11 @@ dependencies = [
     "pydantic>=2",
     "plotly>=5",
     "pyarrow>=18",
+    "pydeck>=0.9.1,<1",
     "pypdf>=5",
     "PyYAML>=6",
     "reportlab>=4",
-    "streamlit>=1.36",
+    "streamlit>=1.58,<2",
     "typer>=0.12",
 ]
 
@@ -97,6 +98,7 @@ module = [
     "numpy",
     "numpy.*",
     "plotly.*",
+    "pydeck",
     "pyarrow",
     "pyarrow.*",
     "reportlab",

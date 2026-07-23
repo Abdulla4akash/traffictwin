@@ -21,6 +21,7 @@ from traffictwin.ui.pages import (
     home,
     infrastructure,
     journey_time,
+    manchester_operations,
     manifest_inference,
     operations,
     parameter_sweep,
@@ -100,3 +101,13 @@ def run_page_script(page: UiPage) -> None:
     st.session_state["_active_ui_page"] = page
     render_sidebar_context(page)
     render_registered_page(page, load_ui_config())
+
+
+def run_manchester_page_script() -> None:
+    """Execute the additive Manchester page without changing the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "manchester"
+    st.sidebar.caption(
+        "Explore validated local Manchester evidence without hidden external source access."
+    )
+    manchester_operations.render(load_ui_config())

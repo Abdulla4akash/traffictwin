@@ -90,8 +90,8 @@ reconciliation are now implemented as candidate evidence. The daily official fix
 Remaining work:
 
 1. Run and record the controlled real-network Gate-B acquisition acceptance case.
-2. Bind the accepted site through MAN-07 spatial admission; an M56 label alone makes no Greater
-   Manchester boundary or network-scope claim.
+2. Publish the explicit selected-site scope artifact used by the candidate MAN-07 spatial gate;
+   an M56 label alone makes no Greater Manchester boundary or network-scope claim.
 3. Wire service-notice/cache freshness decisions into the Manchester Operations source card while
    preserving unavailable/stale labels.
 4. Keep UTC/sub-day cross-source alignment blocked until `GA-WT-1` is resolved.

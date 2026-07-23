@@ -17,7 +17,9 @@ TRAFFICTWIN_V07_NAVIGATION=1 uv run streamlit run src/traffictwin/ui/app.py
 
 The candidate uses `st.navigation(..., position="sidebar")` and `st.Page`. Its five visible groups
 are **Overview**, **Build & run**, **Analyse**, **Evidence**, and **Advanced**. A hidden root route
-renders Home while the visible Home page retains the stable `/home` route.
+renders Home while the visible Home page retains the stable `/home` route. The additive
+Manchester Operations candidate appears under Overview at `/manchester`; it is outside the
+normative 34-page migration inventory and cannot replace any v0.6 destination.
 
 ## Page preservation
 
@@ -39,6 +41,7 @@ Automated checks currently prove:
 - exact group and URL mapping against Appendix D of the v0.7 design;
 - unique script and URL paths;
 - existence of every direct page script;
+- the additive Manchester route is unique and its direct script exists;
 - complete renderer coverage;
 - Material icons and navigation construction accepted by the locked Streamlit runtime;
 - candidate hidden-root Home rendering without the legacy radio;
@@ -61,8 +64,8 @@ The feature flag must not become the default until the project also passes:
 - cross-page state tests for representative research workflows;
 - desktop/mobile screenshots, keyboard order, labels, contrast, and truncation checks;
 - final removal of deprecated `use_container_width` calls under `UX-03`; and
-- shared capability, documentation, package-requirement (`streamlit>=1.58,<2`), version, and
-  release reconciliation.
+- minimum-version acceptance for each new page, shared capability/documentation, package version,
+  and release reconciliation. Packaging now declares the reviewed `streamlit>=1.58,<2` floor.
 
 Until those gates pass, this candidate is development evidence only and the complete v0.6 router
 remains the guaranteed default.
