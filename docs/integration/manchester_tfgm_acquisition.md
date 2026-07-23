@@ -156,18 +156,22 @@ fingerprint, ZIP-member metadata, selected-member evidence, and post-hoc admitte
 shrinkage); the documented replay-detected `parser_report_fingerprint` reference; and structural
 infrastructure-only semantics.
 
-Validation commands (run 2026-07-22): the focused pytest file, the full
+The controlled 23 July 2026 real download matched the pinned archive and CSV hashes and accepted
+all 2,529 signal rows. It also verified that `TFGM_OGL.txt` contains two spaces between the two
+attribution sentences; the receipt literal now retains that exact shipped wording.
+
+Validation commands (updated 2026-07-23): the focused pytest file, the full
 `tests/unit/test_manchester_*.py` suite (335 passing), `ruff check`/`ruff format --check`, and
 `mypy --strict` over the two owned Python files, plus `git diff --check` — all passing at
 handoff.
 
 ## Residual blockers
 
-- No real-network acceptance run was performed; the lead's Gate B acceptance must run the real
-  download and reconcile the pinned release hashes.
+- The narrow real-network pinned-release run passed; a future overwritten release still requires
+  re-audit and full Gate-B integration acceptance remains open.
 - The in-place-overwritten TfGM URL means any future release fails closed until re-audited; the
   twice-yearly update aim makes this an expected operational event.
 - `GA-LIC-1` (exact OGL clause text) remains an open audit blocker; the recorded attribution is
   the artifact-shipped wording.
-- `MAN-01` and `MAN-04` remain `planned`; lead reconciliation (exports, generated schemas, docs
-  index, capability truth) still gates any claim.
+- `MAN-01` and `MAN-04` remain `planned`; this source-specific vertical does not independently
+  complete common snapshot, browser, licensing, or full Gate-B reconciliation.

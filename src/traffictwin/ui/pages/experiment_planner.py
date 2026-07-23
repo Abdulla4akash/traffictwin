@@ -218,7 +218,7 @@ def _render_plan_preview(
         data=experiment_plan_yaml_for_ui(summary),
         file_name=f"{summary.experiment.experiment_id}.yaml",
         mime="application/yaml",
-        use_container_width=True,
+        width="stretch",
         key="download-current-plan-yaml",
     )
     action_cols[1].download_button(
@@ -226,7 +226,7 @@ def _render_plan_preview(
         data=experiment_protocol_yaml_for_ui(protocol),
         file_name=f"{summary.experiment.experiment_id}-protocol.yaml",
         mime="application/yaml",
-        use_container_width=True,
+        width="stretch",
         key="download-current-protocol-yaml",
     )
     action_cols[2].download_button(
@@ -234,13 +234,13 @@ def _render_plan_preview(
         data=experiment_protocol_csv_for_ui(protocol),
         file_name=f"{summary.experiment.experiment_id}-run-sheet.csv",
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
         key="download-current-protocol-csv",
     )
     if st.button(
         "Register Planned Experiment",
         type="primary",
-        use_container_width=True,
+        width="stretch",
         key="register-current-experiment-plan",
     ):
         registered = register_experiment_plan_for_ui(summary, config.registry_path)
@@ -314,7 +314,7 @@ def _render_registered_protocol(protocol: ExperimentProtocol) -> None:
         data=experiment_protocol_yaml_for_ui(protocol),
         file_name=f"{protocol.experiment.experiment_id}-protocol.yaml",
         mime="application/yaml",
-        use_container_width=True,
+        width="stretch",
         key=f"download-registered-protocol-yaml-{protocol.experiment.experiment_id}",
     )
     download_cols[1].download_button(
@@ -322,7 +322,7 @@ def _render_registered_protocol(protocol: ExperimentProtocol) -> None:
         data=experiment_protocol_csv_for_ui(protocol),
         file_name=f"{protocol.experiment.experiment_id}-run-sheet.csv",
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
         key=f"download-registered-protocol-csv-{protocol.experiment.experiment_id}",
     )
 

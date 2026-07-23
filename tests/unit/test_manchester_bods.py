@@ -23,9 +23,7 @@ from traffictwin.integration.manchester.bods import (
 )
 from traffictwin.integration.manchester.models import ManchesterValidationState, sha256_hex
 
-FIXTURE = (
-    Path(__file__).parents[1] / "fixtures" / "manchester" / "bods" / "siri-vm-synthetic.xml"
-)
+FIXTURE = Path(__file__).parents[1] / "fixtures" / "manchester" / "bods" / "siri-vm-synthetic.xml"
 FIXTURE_SHA256 = "e59331ed0abf13d6ba0b09da2ede55ad041eb7d92e799deb98d5706938c2d9b8"
 SNAPSHOT_ID = "bods-20260722T120020Z-abcdef012345"
 EVALUATED_AT = datetime(2026, 7, 22, 12, 0, 30, tzinfo=UTC)
@@ -117,6 +115,42 @@ def test_schema_faithful_synthetic_fixture_is_privacy_safe() -> None:
     assert all("vehicle" not in finding.message.lower() for finding in report.findings)
 
 
+def test_parser_accepts_both_documented_utc_serialisations() -> None:
+    offset_form = fixture().replace(b"Z<", b"+00:00<")
+    report = parse(offset_form)
+    assert report.status is ManchesterValidationState.ACCEPTED
+    assert report.counts.records_accepted == 2
+
+
+def test_observed_central_feed_profile_gaps_are_visible_without_losing_positions() -> None:
+    body = replace_once(fixture(), "          <Bearing>90</Bearing>\n", "")
+    body = replace_once(body, "          <BlockRef>synthetic-block-a</BlockRef>\n", "")
+    body = replace_once(
+        body,
+        "          <VehicleJourneyRef>synthetic-journey-a</VehicleJourneyRef>",
+        "          <FramedVehicleJourneyRef>"
+        "<DatedVehicleJourneyRef>synthetic-journey-a</DatedVehicleJourneyRef>"
+        "</FramedVehicleJourneyRef>",
+    )
+
+    report = parse(body)
+    assert report.status is ManchesterValidationState.ACCEPTED_WITH_WARNINGS
+    assert report.counts.records_accepted == 2
+    assert report.counts.profile_missing_bearing == 1
+    assert report.counts.profile_missing_block_ref == 1
+    assert report.counts.profile_alternate_vehicle_journey_ref == 1
+    assert finding_codes(report) == {
+        "PROFILE_ALTERNATE_VEHICLE_JOURNEY_REF",
+        "PROFILE_MISSING_BEARING",
+        "PROFILE_MISSING_BLOCK_REF",
+    }
+    record = next(item for item in report.records if item.operator_ref == "BNSM")
+    assert record.bearing_degrees is None
+    assert record.block_ref is None
+    assert record.vehicle_journey_ref == "synthetic-journey-a"
+    assert record.vehicle_journey_ref_source == "FramedVehicleJourneyRef"
+
+
 def test_operator_and_display_name_cannot_activate_bee_membership() -> None:
     record = next(record for record in parse().records if record.operator_ref == "BNSM")
     assert record.operator_ref == "BNSM"
@@ -147,48 +181,66 @@ def test_freshness_policy_is_source_time_based_and_deterministic() -> None:
     recorded = datetime(2026, 7, 22, 12, 0, tzinfo=UTC)
     valid_until = recorded + timedelta(seconds=90)
 
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=valid_until,
-        evaluated_at_utc=recorded + timedelta(seconds=60),
-        mode="live",
-        synthetic=False,
-    ) == "live_vehicle"
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=valid_until,
-        evaluated_at_utc=recorded + timedelta(seconds=61),
-        mode="live",
-        synthetic=False,
-    ) == "stale"
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=recorded + timedelta(seconds=30),
-        evaluated_at_utc=recorded + timedelta(seconds=31),
-        mode="live",
-        synthetic=False,
-    ) == "stale"
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=valid_until,
-        evaluated_at_utc=recorded - timedelta(seconds=1),
-        mode="live",
-        synthetic=False,
-    ) == "stale"
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=valid_until,
-        evaluated_at_utc=recorded + timedelta(seconds=10),
-        mode="offline_replay",
-        synthetic=False,
-    ) == "historical"
-    assert bods_freshness_state(
-        recorded_at_utc=recorded,
-        valid_until_utc=valid_until,
-        evaluated_at_utc=recorded + timedelta(seconds=10),
-        mode="live",
-        synthetic=True,
-    ) == "synthetic"
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=valid_until,
+            evaluated_at_utc=recorded + timedelta(seconds=60),
+            mode="live",
+            synthetic=False,
+        )
+        == "live_vehicle"
+    )
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=valid_until,
+            evaluated_at_utc=recorded + timedelta(seconds=61),
+            mode="live",
+            synthetic=False,
+        )
+        == "stale"
+    )
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=recorded + timedelta(seconds=30),
+            evaluated_at_utc=recorded + timedelta(seconds=31),
+            mode="live",
+            synthetic=False,
+        )
+        == "stale"
+    )
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=valid_until,
+            evaluated_at_utc=recorded - timedelta(seconds=1),
+            mode="live",
+            synthetic=False,
+        )
+        == "stale"
+    )
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=valid_until,
+            evaluated_at_utc=recorded + timedelta(seconds=10),
+            mode="offline_replay",
+            synthetic=False,
+        )
+        == "historical"
+    )
+    assert (
+        bods_freshness_state(
+            recorded_at_utc=recorded,
+            valid_until_utc=valid_until,
+            evaluated_at_utc=recorded + timedelta(seconds=10),
+            mode="live",
+            synthetic=True,
+        )
+        == "synthetic"
+    )
 
 
 def test_freshness_refuses_non_utc_and_invalid_windows() -> None:
@@ -331,4 +383,9 @@ def test_model_contract_cannot_enable_retention_or_public_export() -> None:
     rendered = json.loads(parse().canonical_json())
     rendered["public_export_available"] = True
     with pytest.raises(ValidationError):
+        BodsParseReport.model_validate(rendered)
+
+    rendered = parse().model_dump(mode="python")
+    rendered["counts"]["profile_missing_bearing"] = 1
+    with pytest.raises(ValidationError, match="profile-gap counts"):
         BodsParseReport.model_validate(rendered)

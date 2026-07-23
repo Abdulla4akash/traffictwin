@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Literal
 
 import streamlit as st
 
@@ -104,11 +105,11 @@ def navigation_button(
     *,
     key: str | None = None,
     kind: str | None = None,
-    use_container_width: bool = False,
+    width: Literal["content", "stretch"] = "content",
 ) -> None:
     """Render one router-aware page action without callback rerun traps."""
 
-    kwargs: dict[str, object] = {"use_container_width": use_container_width}
+    kwargs: dict[str, object] = {"width": width}
     if key is not None:
         kwargs["key"] = key
     if kind is not None:

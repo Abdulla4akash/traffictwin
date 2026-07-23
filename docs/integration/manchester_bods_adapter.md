@@ -29,17 +29,24 @@ The parser accepts an exact `(BodsMemberRef, bytes)` pair plus `BodsParseScope`:
 - DTDs, entities, external references, oversized input, excessive elements/depth/attributes,
   and excessive text are refused by the shared hardened XML boundary;
 - the audited mandatory SIRI-VM fields must occur exactly once; and
-- all timestamps must use explicit `Z` UTC syntax.
+- all timestamps must carry an explicit UTC designator; both XML Schema UTC forms observed in the
+  source contract (`Z` and `+00:00`) are accepted, while non-zero or absent offsets are refused.
 
-`Velocity`, `Occupancy`, and `DestinationName` are optional and remain `None` when absent. The
-parser never fills or interpolates a position, timestamp, speed, destination, or identifier.
+`Velocity`, `Occupancy`, and `DestinationName` are optional and remain `None` when absent. A real
+23 July 2026 central-feed probe also observed profile-mandatory `Bearing` and `BlockRef` missing
+from subsets of otherwise usable position records, and observed
+`FramedVehicleJourneyRef/DatedVehicleJourneyRef` in place of direct `VehicleJourneyRef` for most
+records. TrafficTwin preserves those facts: missing bearing/block values remain `None`; an
+alternate framed journey reference carries an explicit source label; aggregate profile-gap counts
+and warnings are emitted. It never fills or interpolates a position, timestamp, bearing, speed,
+destination, block, or identifier.
 
 ## Deterministic output
 
 `parse_bods_siri_vm(...)` returns a strict, frozen `BodsParseReport` containing:
 
 - complete activity accounting (`seen`, accepted, malformed, out of bounds, duplicates,
-  conflicts, and every freshness state);
+  conflicts, official-profile gaps/alternate journey identity, and every freshness state);
 - typed, redacted findings without payload text or vehicle identifiers;
 - accepted `LiveTransitVehicleObservation` records in deterministic order; and
 - explicit negative capability flags for retention, public export, raw-ID output, and Bee

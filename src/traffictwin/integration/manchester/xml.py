@@ -29,6 +29,7 @@ class XmlPolicy(BaseModel):
     max_text_characters: int = Field(ge=0, le=1_000_000_000)
     allowed_root_local_names: tuple[str, ...]
     allowed_namespaces: tuple[str, ...] = ()
+    allowed_attribute_namespaces: tuple[str, ...] | None = None
 
     @model_validator(mode="after")
     def validate_names(self) -> XmlPolicy:
@@ -44,6 +45,12 @@ class XmlPolicy(BaseModel):
             raise ValueError("namespace values must be non-empty and trimmed")
         if len(set(self.allowed_namespaces)) != len(self.allowed_namespaces):
             raise ValueError("namespace values must be unique")
+        attribute_namespaces = self.allowed_attribute_namespaces
+        if attribute_namespaces is not None:
+            if any(not value or value.strip() != value for value in attribute_namespaces):
+                raise ValueError("attribute namespace values must be non-empty and trimmed")
+            if len(set(attribute_namespaces)) != len(attribute_namespaces):
+                raise ValueError("attribute namespace values must be unique")
         return self
 
 
@@ -101,12 +108,18 @@ def parse_xml(payload: bytes, *, policy: XmlPolicy) -> ParsedXml:
         namespace, _ = _expanded_name(element.tag)
         if policy.allowed_namespaces and namespace not in policy.allowed_namespaces:
             raise ManchesterXmlError("XML element namespace is not admitted")
+        if policy.allowed_attribute_namespaces is None:
+            attribute_namespaces = policy.allowed_namespaces
+            restrict_attribute_namespaces = bool(policy.allowed_namespaces)
+        else:
+            attribute_namespaces = policy.allowed_attribute_namespaces
+            restrict_attribute_namespaces = True
         for attribute_name in element.attrib:
             attribute_namespace, _ = _expanded_name(attribute_name)
             if (
-                policy.allowed_namespaces
+                restrict_attribute_namespaces
                 and attribute_namespace is not None
-                and attribute_namespace not in policy.allowed_namespaces
+                and attribute_namespace not in attribute_namespaces
             ):
                 raise ManchesterXmlError("XML attribute namespace is not admitted")
 

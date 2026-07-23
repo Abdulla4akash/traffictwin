@@ -148,10 +148,10 @@ def _render_batch_import(registry_path: Path) -> None:
         inputs = [line.strip() for line in raw_inputs.splitlines() if line.strip()]
         validate_column, import_column = st.columns(2)
         with validate_column:
-            if st.button("Validate Batch", use_container_width=True):
+            if st.button("Validate Batch", width="stretch"):
                 st.session_state["bundle_batch_summary"] = validate_bundle_batch_for_ui(inputs)
         with import_column:
-            if st.button("Import Accepted Batch", use_container_width=True):
+            if st.button("Import Accepted Batch", width="stretch"):
                 st.session_state["bundle_batch_summary"] = import_bundle_batch_for_ui(
                     inputs,
                     registry_path,
@@ -230,13 +230,13 @@ def _render_streaming_import(bundle_path: Path, registry_path: Path) -> None:
 
     validate_column, import_column = st.columns(2)
     with validate_column:
-        if st.button("Stream Validate", type="primary", use_container_width=True):
+        if st.button("Stream Validate", type="primary", width="stretch"):
             st.session_state["streaming_bundle_result"] = validate_bundle_streaming_for_ui(
                 bundle_path,
                 chunk_rows=chunk_rows,
             )
     with import_column:
-        if st.button("Stream Validate & Import", use_container_width=True):
+        if st.button("Stream Validate & Import", width="stretch"):
             imported = import_bundle_streaming_for_ui(
                 bundle_path,
                 registry_path,

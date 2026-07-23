@@ -13404,6 +13404,528 @@
       "title": "DftAadfRecord",
       "type": "object"
     },
+    "DftAcceptedDatasetCounts": {
+      "additionalProperties": false,
+      "description": "Dataset inventory for one verified local DfT catalogue.",
+      "properties": {
+        "aadf": {
+          "minimum": 0,
+          "title": "Aadf",
+          "type": "integer"
+        },
+        "count_points": {
+          "minimum": 0,
+          "title": "Count Points",
+          "type": "integer"
+        },
+        "raw_counts": {
+          "minimum": 0,
+          "title": "Raw Counts",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "raw_counts",
+        "count_points",
+        "aadf"
+      ],
+      "title": "DftAcceptedDatasetCounts",
+      "type": "object"
+    },
+    "DftAcceptedSnapshotCatalogue": {
+      "$defs": {
+        "DftAcceptedDatasetCounts": {
+          "additionalProperties": false,
+          "description": "Dataset inventory for one verified local DfT catalogue.",
+          "properties": {
+            "aadf": {
+              "minimum": 0,
+              "title": "Aadf",
+              "type": "integer"
+            },
+            "count_points": {
+              "minimum": 0,
+              "title": "Count Points",
+              "type": "integer"
+            },
+            "raw_counts": {
+              "minimum": 0,
+              "title": "Raw Counts",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "raw_counts",
+            "count_points",
+            "aadf"
+          ],
+          "title": "DftAcceptedDatasetCounts",
+          "type": "object"
+        },
+        "DftAcceptedSnapshotSummary": {
+          "additionalProperties": false,
+          "description": "Verified local identity of one accepted and reproducible DfT snapshot.",
+          "properties": {
+            "attribution_text": {
+              "title": "Attribution Text",
+              "type": "string"
+            },
+            "capability_id": {
+              "const": "MAN-02",
+              "default": "MAN-02",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "dataset": {
+              "enum": [
+                "raw_counts",
+                "count_points",
+                "aadf"
+              ],
+              "title": "Dataset",
+              "type": "string"
+            },
+            "endpoint_path": {
+              "title": "Endpoint Path",
+              "type": "string"
+            },
+            "filter_id": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Filter Id"
+            },
+            "licence_id": {
+              "const": "OGL-v3.0",
+              "default": "OGL-v3.0",
+              "title": "Licence Id",
+              "type": "string"
+            },
+            "manifest_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Manifest Fingerprint",
+              "type": "string"
+            },
+            "method_version": {
+              "const": "manchester-dft-accepted-catalogue-1.0",
+              "default": "manchester-dft-accepted-catalogue-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "opened_offline": {
+              "const": true,
+              "default": true,
+              "title": "Opened Offline",
+              "type": "boolean"
+            },
+            "page_size": {
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            },
+            "pages": {
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Pages",
+              "type": "integer"
+            },
+            "parser_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Parser Report Fingerprint",
+              "type": "string"
+            },
+            "parser_status": {
+              "$ref": "#/$defs/ManchesterValidationState"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "retrieval_completed_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Completed At Utc",
+              "type": "string"
+            },
+            "retrieval_started_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Started At Utc",
+              "type": "string"
+            },
+            "rows_seen": {
+              "minimum": 0,
+              "title": "Rows Seen",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "snapshot_receipt_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Snapshot Receipt Fingerprint",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "dft_raw_counts",
+                "dft_count_points",
+                "dft_aadf"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "total_bytes": {
+              "minimum": 0,
+              "title": "Total Bytes",
+              "type": "integer"
+            },
+            "year": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 1990,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Year"
+            }
+          },
+          "required": [
+            "dataset",
+            "source_id",
+            "endpoint_path",
+            "snapshot_id",
+            "raw_fingerprint",
+            "manifest_fingerprint",
+            "snapshot_receipt_fingerprint",
+            "parser_report_fingerprint",
+            "retrieval_started_at_utc",
+            "retrieval_completed_at_utc",
+            "pages",
+            "total_bytes",
+            "rows_seen",
+            "records_accepted",
+            "parser_status",
+            "page_size",
+            "publication_class",
+            "attribution_text",
+            "synthetic"
+          ],
+          "title": "DftAcceptedSnapshotSummary",
+          "type": "object"
+        },
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded deterministic inventory of verified accepted DfT snapshots.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "counts": {
+          "$ref": "#/$defs/DftAcceptedDatasetCounts"
+        },
+        "maximum_snapshots": {
+          "const": 512,
+          "default": 512,
+          "title": "Maximum Snapshots",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "manchester-dft-accepted-catalogue-1.0",
+          "default": "manchester-dft-accepted-catalogue-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "network_access_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Access Performed",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/DftAcceptedSnapshotSummary"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "counts"
+      ],
+      "title": "DftAcceptedSnapshotCatalogue",
+      "type": "object"
+    },
+    "DftAcceptedSnapshotSummary": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Verified local identity of one accepted and reproducible DfT snapshot.",
+      "properties": {
+        "attribution_text": {
+          "title": "Attribution Text",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "dataset": {
+          "enum": [
+            "raw_counts",
+            "count_points",
+            "aadf"
+          ],
+          "title": "Dataset",
+          "type": "string"
+        },
+        "endpoint_path": {
+          "title": "Endpoint Path",
+          "type": "string"
+        },
+        "filter_id": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filter Id"
+        },
+        "licence_id": {
+          "const": "OGL-v3.0",
+          "default": "OGL-v3.0",
+          "title": "Licence Id",
+          "type": "string"
+        },
+        "manifest_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Fingerprint",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-dft-accepted-catalogue-1.0",
+          "default": "manchester-dft-accepted-catalogue-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "opened_offline": {
+          "const": true,
+          "default": true,
+          "title": "Opened Offline",
+          "type": "boolean"
+        },
+        "page_size": {
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Page Size",
+          "type": "integer"
+        },
+        "pages": {
+          "maximum": 500,
+          "minimum": 1,
+          "title": "Pages",
+          "type": "integer"
+        },
+        "parser_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Report Fingerprint",
+          "type": "string"
+        },
+        "parser_status": {
+          "$ref": "#/$defs/ManchesterValidationState"
+        },
+        "publication_class": {
+          "$ref": "#/$defs/ManchesterPublicationClass"
+        },
+        "raw_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Fingerprint",
+          "type": "string"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "retrieval_completed_at_utc": {
+          "format": "date-time",
+          "title": "Retrieval Completed At Utc",
+          "type": "string"
+        },
+        "retrieval_started_at_utc": {
+          "format": "date-time",
+          "title": "Retrieval Started At Utc",
+          "type": "string"
+        },
+        "rows_seen": {
+          "minimum": 0,
+          "title": "Rows Seen",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "snapshot_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Receipt Fingerprint",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "dft_raw_counts",
+            "dft_count_points",
+            "dft_aadf"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "total_bytes": {
+          "minimum": 0,
+          "title": "Total Bytes",
+          "type": "integer"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "maximum": 2100,
+              "minimum": 1990,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Year"
+        }
+      },
+      "required": [
+        "dataset",
+        "source_id",
+        "endpoint_path",
+        "snapshot_id",
+        "raw_fingerprint",
+        "manifest_fingerprint",
+        "snapshot_receipt_fingerprint",
+        "parser_report_fingerprint",
+        "retrieval_started_at_utc",
+        "retrieval_completed_at_utc",
+        "pages",
+        "total_bytes",
+        "rows_seen",
+        "records_accepted",
+        "parser_status",
+        "page_size",
+        "publication_class",
+        "attribution_text",
+        "synthetic"
+      ],
+      "title": "DftAcceptedSnapshotSummary",
+      "type": "object"
+    },
     "DftAcquisitionRequest": {
       "$defs": {
         "DftManchesterScope": {
@@ -14011,6 +14533,193 @@
         "synthetic"
       ],
       "title": "DftAcquisitionResult",
+      "type": "object"
+    },
+    "DftCountPointLayerSummary": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Reconciled boundary for one accepted Manchester count-point snapshot.",
+      "properties": {
+        "aadf_values_included": {
+          "const": false,
+          "default": false,
+          "title": "Aadf Values Included",
+          "type": "boolean"
+        },
+        "acquisition_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Acquisition Fingerprint",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "cross_source_join_performed": {
+          "const": false,
+          "default": false,
+          "title": "Cross Source Join Performed",
+          "type": "boolean"
+        },
+        "distinct_count_points": {
+          "minimum": 0,
+          "title": "Distinct Count Points",
+          "type": "integer"
+        },
+        "evidence_kind": {
+          "const": "count_point_reference",
+          "default": "count_point_reference",
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "layer_id": {
+          "const": "dft-count-points",
+          "default": "dft-count-points",
+          "title": "Layer Id",
+          "type": "string"
+        },
+        "layer_request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Layer Request Fingerprint",
+          "type": "string"
+        },
+        "layer_status": {
+          "enum": [
+            "available",
+            "partial",
+            "unavailable"
+          ],
+          "title": "Layer Status",
+          "type": "string"
+        },
+        "live_road_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Road Traffic Available",
+          "type": "boolean"
+        },
+        "map_capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Map Capability Id",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-dft-scene-1.0",
+          "default": "manchester-dft-scene-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "historical_replay",
+            "latest_available"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "parser_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Report Fingerprint",
+          "type": "string"
+        },
+        "public_export_available": {
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "publication_class": {
+          "$ref": "#/$defs/ManchesterPublicationClass"
+        },
+        "raw_count_values_included": {
+          "const": false,
+          "default": false,
+          "title": "Raw Count Values Included",
+          "type": "boolean"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "rows_seen": {
+          "minimum": 0,
+          "title": "Rows Seen",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_time_promoted_to_utc": {
+          "const": false,
+          "default": false,
+          "title": "Source Time Promoted To Utc",
+          "type": "boolean"
+        },
+        "spatial_admitted": {
+          "minimum": 0,
+          "title": "Spatial Admitted",
+          "type": "integer"
+        },
+        "spatial_capability_id": {
+          "const": "MAN-07",
+          "default": "MAN-07",
+          "title": "Spatial Capability Id",
+          "type": "string"
+        },
+        "spatial_excluded": {
+          "minimum": 0,
+          "title": "Spatial Excluded",
+          "type": "integer"
+        },
+        "spatial_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Spatial Report Fingerprint",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "snapshot_id",
+        "acquisition_fingerprint",
+        "parser_report_fingerprint",
+        "spatial_report_fingerprint",
+        "layer_request_fingerprint",
+        "rows_seen",
+        "records_accepted",
+        "distinct_count_points",
+        "spatial_admitted",
+        "spatial_excluded",
+        "layer_status",
+        "publication_class",
+        "public_export_available",
+        "synthetic"
+      ],
+      "title": "DftCountPointLayerSummary",
       "type": "object"
     },
     "DftCountPointParseReport": {
@@ -16538,6 +17247,1225 @@
         "road_type"
       ],
       "title": "DftRoadLocation",
+      "type": "object"
+    },
+    "DftSourceRefreshSummary": {
+      "additionalProperties": false,
+      "description": "Small receipt for selected historical DfT rows and their map reference.",
+      "properties": {
+        "aadf_records": {
+          "minimum": 0,
+          "title": "Aadf Records",
+          "type": "integer"
+        },
+        "aadf_snapshot_id": {
+          "title": "Aadf Snapshot Id",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "count_point_records": {
+          "minimum": 0,
+          "title": "Count Point Records",
+          "type": "integer"
+        },
+        "count_point_snapshot_id": {
+          "title": "Count Point Snapshot Id",
+          "type": "string"
+        },
+        "evidence_kind": {
+          "const": "historical_survey_and_reference",
+          "default": "historical_survey_and_reference",
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "live_road_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Road Traffic Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-source-refresh-1.0",
+          "default": "manchester-source-refresh-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "raw_count_records": {
+          "minimum": 0,
+          "title": "Raw Count Records",
+          "type": "integer"
+        },
+        "raw_count_snapshot_id": {
+          "title": "Raw Count Snapshot Id",
+          "type": "string"
+        },
+        "scene_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scene Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw_count_snapshot_id",
+        "count_point_snapshot_id",
+        "aadf_snapshot_id",
+        "raw_count_records",
+        "count_point_records",
+        "aadf_records",
+        "scene_fingerprint"
+      ],
+      "title": "DftSourceRefreshSummary",
+      "type": "object"
+    },
+    "DftSurveyFilterOptions": {
+      "$defs": {
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact filter values evidenced by one accepted parser report.",
+      "properties": {
+        "aadf_included": {
+          "const": false,
+          "default": false,
+          "title": "Aadf Included",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "count_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "title": "Count Dates",
+          "type": "array"
+        },
+        "count_point_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Count Point Ids",
+          "type": "array"
+        },
+        "directions": {
+          "items": {
+            "enum": [
+              "C",
+              "E",
+              "N",
+              "S",
+              "W"
+            ],
+            "type": "string"
+          },
+          "title": "Directions",
+          "type": "array"
+        },
+        "hours": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Hours",
+          "type": "array"
+        },
+        "measured_speed_available": {
+          "const": false,
+          "default": false,
+          "title": "Measured Speed Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-dft-survey-view-1.0",
+          "default": "manchester-dft-survey-view-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_record_count": {
+          "minimum": 0,
+          "title": "Source Record Count",
+          "type": "integer"
+        },
+        "source_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Report Fingerprint",
+          "type": "string"
+        },
+        "source_status": {
+          "$ref": "#/$defs/ManchesterValidationState"
+        },
+        "time_basis": {
+          "const": "local_clock_hour",
+          "default": "local_clock_hour",
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "utc_timestamps_available": {
+          "const": false,
+          "default": false,
+          "title": "Utc Timestamps Available",
+          "type": "boolean"
+        },
+        "vehicle_classes_complete": {
+          "items": {
+            "enum": [
+              "pedal_cycles",
+              "two_wheeled_motor_vehicles",
+              "cars_and_taxis",
+              "buses_and_coaches",
+              "lgvs",
+              "hgvs_2_rigid_axle",
+              "hgvs_3_rigid_axle",
+              "hgvs_4_or_more_rigid_axle",
+              "hgvs_3_or_4_articulated_axle",
+              "hgvs_5_articulated_axle",
+              "hgvs_6_articulated_axle",
+              "all_hgvs",
+              "all_motor_vehicles"
+            ],
+            "type": "string"
+          },
+          "title": "Vehicle Classes Complete",
+          "type": "array"
+        },
+        "vehicle_classes_with_any_value": {
+          "items": {
+            "enum": [
+              "pedal_cycles",
+              "two_wheeled_motor_vehicles",
+              "cars_and_taxis",
+              "buses_and_coaches",
+              "lgvs",
+              "hgvs_2_rigid_axle",
+              "hgvs_3_rigid_axle",
+              "hgvs_4_or_more_rigid_axle",
+              "hgvs_3_or_4_articulated_axle",
+              "hgvs_5_articulated_axle",
+              "hgvs_6_articulated_axle",
+              "all_hgvs",
+              "all_motor_vehicles"
+            ],
+            "type": "string"
+          },
+          "title": "Vehicle Classes With Any Value",
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_report_fingerprint",
+        "source_status",
+        "source_record_count",
+        "count_point_ids",
+        "directions",
+        "count_dates",
+        "hours",
+        "vehicle_classes_with_any_value",
+        "vehicle_classes_complete"
+      ],
+      "title": "DftSurveyFilterOptions",
+      "type": "object"
+    },
+    "DftSurveyObservation": {
+      "additionalProperties": false,
+      "description": "One selected source row and one exact source vehicle-class field.",
+      "properties": {
+        "aadf_value_used": {
+          "const": false,
+          "default": false,
+          "title": "Aadf Value Used",
+          "type": "boolean"
+        },
+        "aggregation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Aggregation Performed",
+          "type": "boolean"
+        },
+        "count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count"
+        },
+        "count_date": {
+          "format": "date",
+          "title": "Count Date",
+          "type": "string"
+        },
+        "count_point_id": {
+          "minimum": 1,
+          "title": "Count Point Id",
+          "type": "integer"
+        },
+        "direction": {
+          "enum": [
+            "C",
+            "E",
+            "N",
+            "S",
+            "W"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "evidence_kind": {
+          "const": "survey_hour_raw_count",
+          "default": "survey_hour_raw_count",
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "evidence_status": {
+          "const": "historical",
+          "default": "historical",
+          "title": "Evidence Status",
+          "type": "string"
+        },
+        "hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "interval_seconds": {
+          "default": null,
+          "title": "Interval Seconds",
+          "type": "null"
+        },
+        "latitude": {
+          "anyOf": [
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latitude"
+        },
+        "longitude": {
+          "anyOf": [
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Longitude"
+        },
+        "measured_speed_mps": {
+          "default": null,
+          "title": "Measured Speed Mps",
+          "type": "null"
+        },
+        "missing_filled_with_zero": {
+          "const": false,
+          "default": false,
+          "title": "Missing Filled With Zero",
+          "type": "boolean"
+        },
+        "observed_at_utc": {
+          "default": null,
+          "title": "Observed At Utc",
+          "type": "null"
+        },
+        "road_name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Road Name"
+        },
+        "selected_value_missing": {
+          "title": "Selected Value Missing",
+          "type": "boolean"
+        },
+        "source_member_path": {
+          "maxLength": 1000,
+          "minLength": 1,
+          "title": "Source Member Path",
+          "type": "string"
+        },
+        "source_member_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Member Sha256",
+          "type": "string"
+        },
+        "source_record_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Record Fingerprint",
+          "type": "string"
+        },
+        "source_row_index": {
+          "minimum": 0,
+          "title": "Source Row Index",
+          "type": "integer"
+        },
+        "source_snapshot_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Source Snapshot Id",
+          "type": "string"
+        },
+        "source_timezone": {
+          "default": null,
+          "title": "Source Timezone",
+          "type": "null"
+        },
+        "source_total_motor_vehicles": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Total Motor Vehicles"
+        },
+        "time_basis": {
+          "const": "local_clock_hour",
+          "default": "local_clock_hour",
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "vehicle_class": {
+          "enum": [
+            "pedal_cycles",
+            "two_wheeled_motor_vehicles",
+            "cars_and_taxis",
+            "buses_and_coaches",
+            "lgvs",
+            "hgvs_2_rigid_axle",
+            "hgvs_3_rigid_axle",
+            "hgvs_4_or_more_rigid_axle",
+            "hgvs_3_or_4_articulated_axle",
+            "hgvs_5_articulated_axle",
+            "hgvs_6_articulated_axle",
+            "all_hgvs",
+            "all_motor_vehicles"
+          ],
+          "title": "Vehicle Class",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_fingerprint",
+        "source_snapshot_id",
+        "source_member_path",
+        "source_member_sha256",
+        "source_row_index",
+        "count_point_id",
+        "direction",
+        "count_date",
+        "hour",
+        "vehicle_class",
+        "selected_value_missing"
+      ],
+      "title": "DftSurveyObservation",
+      "type": "object"
+    },
+    "DftSurveyView": {
+      "$defs": {
+        "DftParseCounts": {
+          "additionalProperties": false,
+          "description": "Complete deterministic accounting for one parse run.",
+          "properties": {
+            "duplicate_rows_collapsed": {
+              "minimum": 0,
+              "title": "Duplicate Rows Collapsed",
+              "type": "integer"
+            },
+            "pages": {
+              "minimum": 1,
+              "title": "Pages",
+              "type": "integer"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "records_with_incomplete_counts": {
+              "minimum": 0,
+              "title": "Records With Incomplete Counts",
+              "type": "integer"
+            },
+            "rows_excluded_conflicting": {
+              "minimum": 0,
+              "title": "Rows Excluded Conflicting",
+              "type": "integer"
+            },
+            "rows_excluded_malformed": {
+              "minimum": 0,
+              "title": "Rows Excluded Malformed",
+              "type": "integer"
+            },
+            "rows_excluded_out_of_scope": {
+              "minimum": 0,
+              "title": "Rows Excluded Out Of Scope",
+              "type": "integer"
+            },
+            "rows_seen": {
+              "minimum": 0,
+              "title": "Rows Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "pages",
+            "rows_seen",
+            "records_accepted",
+            "rows_excluded_malformed",
+            "rows_excluded_out_of_scope",
+            "rows_excluded_conflicting",
+            "duplicate_rows_collapsed",
+            "records_with_incomplete_counts"
+          ],
+          "title": "DftParseCounts",
+          "type": "object"
+        },
+        "DftSurveyObservation": {
+          "additionalProperties": false,
+          "description": "One selected source row and one exact source vehicle-class field.",
+          "properties": {
+            "aadf_value_used": {
+              "const": false,
+              "default": false,
+              "title": "Aadf Value Used",
+              "type": "boolean"
+            },
+            "aggregation_performed": {
+              "const": false,
+              "default": false,
+              "title": "Aggregation Performed",
+              "type": "boolean"
+            },
+            "count": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Count"
+            },
+            "count_date": {
+              "format": "date",
+              "title": "Count Date",
+              "type": "string"
+            },
+            "count_point_id": {
+              "minimum": 1,
+              "title": "Count Point Id",
+              "type": "integer"
+            },
+            "direction": {
+              "enum": [
+                "C",
+                "E",
+                "N",
+                "S",
+                "W"
+              ],
+              "title": "Direction",
+              "type": "string"
+            },
+            "evidence_kind": {
+              "const": "survey_hour_raw_count",
+              "default": "survey_hour_raw_count",
+              "title": "Evidence Kind",
+              "type": "string"
+            },
+            "evidence_status": {
+              "const": "historical",
+              "default": "historical",
+              "title": "Evidence Status",
+              "type": "string"
+            },
+            "hour": {
+              "maximum": 23,
+              "minimum": 0,
+              "title": "Hour",
+              "type": "integer"
+            },
+            "interval_seconds": {
+              "default": null,
+              "title": "Interval Seconds",
+              "type": "null"
+            },
+            "latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Latitude"
+            },
+            "longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Longitude"
+            },
+            "measured_speed_mps": {
+              "default": null,
+              "title": "Measured Speed Mps",
+              "type": "null"
+            },
+            "missing_filled_with_zero": {
+              "const": false,
+              "default": false,
+              "title": "Missing Filled With Zero",
+              "type": "boolean"
+            },
+            "observed_at_utc": {
+              "default": null,
+              "title": "Observed At Utc",
+              "type": "null"
+            },
+            "road_name": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Road Name"
+            },
+            "selected_value_missing": {
+              "title": "Selected Value Missing",
+              "type": "boolean"
+            },
+            "source_member_path": {
+              "maxLength": 1000,
+              "minLength": 1,
+              "title": "Source Member Path",
+              "type": "string"
+            },
+            "source_member_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Member Sha256",
+              "type": "string"
+            },
+            "source_record_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Record Fingerprint",
+              "type": "string"
+            },
+            "source_row_index": {
+              "minimum": 0,
+              "title": "Source Row Index",
+              "type": "integer"
+            },
+            "source_snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "source_timezone": {
+              "default": null,
+              "title": "Source Timezone",
+              "type": "null"
+            },
+            "source_total_motor_vehicles": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Source Total Motor Vehicles"
+            },
+            "time_basis": {
+              "const": "local_clock_hour",
+              "default": "local_clock_hour",
+              "title": "Time Basis",
+              "type": "string"
+            },
+            "vehicle_class": {
+              "enum": [
+                "pedal_cycles",
+                "two_wheeled_motor_vehicles",
+                "cars_and_taxis",
+                "buses_and_coaches",
+                "lgvs",
+                "hgvs_2_rigid_axle",
+                "hgvs_3_rigid_axle",
+                "hgvs_4_or_more_rigid_axle",
+                "hgvs_3_or_4_articulated_axle",
+                "hgvs_5_articulated_axle",
+                "hgvs_6_articulated_axle",
+                "all_hgvs",
+                "all_motor_vehicles"
+              ],
+              "title": "Vehicle Class",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_record_fingerprint",
+            "source_snapshot_id",
+            "source_member_path",
+            "source_member_sha256",
+            "source_row_index",
+            "count_point_id",
+            "direction",
+            "count_date",
+            "hour",
+            "vehicle_class",
+            "selected_value_missing"
+          ],
+          "title": "DftSurveyObservation",
+          "type": "object"
+        },
+        "DftSurveyViewCounts": {
+          "additionalProperties": false,
+          "description": "Complete source-to-selection-to-value reconciliation.",
+          "properties": {
+            "records_outside_selection": {
+              "minimum": 0,
+              "title": "Records Outside Selection",
+              "type": "integer"
+            },
+            "selected_records": {
+              "minimum": 0,
+              "title": "Selected Records",
+              "type": "integer"
+            },
+            "source_records": {
+              "minimum": 0,
+              "title": "Source Records",
+              "type": "integer"
+            },
+            "values_missing": {
+              "minimum": 0,
+              "title": "Values Missing",
+              "type": "integer"
+            },
+            "values_present": {
+              "minimum": 0,
+              "title": "Values Present",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_records",
+            "selected_records",
+            "records_outside_selection",
+            "values_present",
+            "values_missing"
+          ],
+          "title": "DftSurveyViewCounts",
+          "type": "object"
+        },
+        "DftSurveyViewQuery": {
+          "additionalProperties": false,
+          "description": "One explicit bounded selection over DfT historical survey records.",
+          "properties": {
+            "aggregation_policy": {
+              "const": "none_one_source_row_per_output",
+              "default": "none_one_source_row_per_output",
+              "title": "Aggregation Policy",
+              "type": "string"
+            },
+            "capability_id": {
+              "const": "MAN-02",
+              "default": "MAN-02",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "count_dates": {
+              "items": {
+                "format": "date",
+                "type": "string"
+              },
+              "maxItems": 4096,
+              "minItems": 1,
+              "title": "Count Dates",
+              "type": "array"
+            },
+            "count_point_ids": {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 512,
+              "minItems": 1,
+              "title": "Count Point Ids",
+              "type": "array"
+            },
+            "directions": {
+              "items": {
+                "enum": [
+                  "C",
+                  "E",
+                  "N",
+                  "S",
+                  "W"
+                ],
+                "type": "string"
+              },
+              "maxItems": 5,
+              "minItems": 1,
+              "title": "Directions",
+              "type": "array"
+            },
+            "hours": {
+              "items": {
+                "type": "integer"
+              },
+              "maxItems": 24,
+              "minItems": 1,
+              "title": "Hours",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "manchester-dft-survey-view-1.0",
+              "default": "manchester-dft-survey-view-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "missing_value_policy": {
+              "const": "preserve_null_never_zero",
+              "default": "preserve_null_never_zero",
+              "title": "Missing Value Policy",
+              "type": "string"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "source_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Report Fingerprint",
+              "type": "string"
+            },
+            "timezone_policy": {
+              "const": "retain_undocumented_local_clock_hour",
+              "default": "retain_undocumented_local_clock_hour",
+              "title": "Timezone Policy",
+              "type": "string"
+            },
+            "vehicle_class": {
+              "enum": [
+                "pedal_cycles",
+                "two_wheeled_motor_vehicles",
+                "cars_and_taxis",
+                "buses_and_coaches",
+                "lgvs",
+                "hgvs_2_rigid_axle",
+                "hgvs_3_rigid_axle",
+                "hgvs_4_or_more_rigid_axle",
+                "hgvs_3_or_4_articulated_axle",
+                "hgvs_5_articulated_axle",
+                "hgvs_6_articulated_axle",
+                "all_hgvs",
+                "all_motor_vehicles"
+              ],
+              "title": "Vehicle Class",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_report_fingerprint",
+            "count_point_ids",
+            "directions",
+            "count_dates",
+            "hours",
+            "vehicle_class"
+          ],
+          "title": "DftSurveyViewQuery",
+          "type": "object"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic non-aggregated historical view bound to its parser report.",
+      "properties": {
+        "aadf_included": {
+          "const": false,
+          "default": false,
+          "title": "Aadf Included",
+          "type": "boolean"
+        },
+        "aggregation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Aggregation Performed",
+          "type": "boolean"
+        },
+        "canonical_projection_available": {
+          "const": false,
+          "default": false,
+          "title": "Canonical Projection Available",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "continuous_time_series_available": {
+          "const": false,
+          "default": false,
+          "title": "Continuous Time Series Available",
+          "type": "boolean"
+        },
+        "counts": {
+          "$ref": "#/$defs/DftSurveyViewCounts"
+        },
+        "measured_speed_available": {
+          "const": false,
+          "default": false,
+          "title": "Measured Speed Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-dft-survey-view-1.0",
+          "default": "manchester-dft-survey-view-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "missing_filled_with_zero": {
+          "const": false,
+          "default": false,
+          "title": "Missing Filled With Zero",
+          "type": "boolean"
+        },
+        "operations_capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Operations Capability Id",
+          "type": "string"
+        },
+        "query": {
+          "$ref": "#/$defs/DftSurveyViewQuery"
+        },
+        "query_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Query Fingerprint",
+          "type": "string"
+        },
+        "row_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Row Fingerprints",
+          "type": "array"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/DftSurveyObservation"
+          },
+          "title": "Rows",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_parse_counts": {
+          "$ref": "#/$defs/DftParseCounts"
+        },
+        "source_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Report Fingerprint",
+          "type": "string"
+        },
+        "source_status": {
+          "$ref": "#/$defs/ManchesterValidationState"
+        },
+        "time_basis": {
+          "const": "local_clock_hour",
+          "default": "local_clock_hour",
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "utc_timestamps_available": {
+          "const": false,
+          "default": false,
+          "title": "Utc Timestamps Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source_report_fingerprint",
+        "source_status",
+        "source_parse_counts",
+        "query",
+        "query_fingerprint",
+        "rows",
+        "row_fingerprints",
+        "counts"
+      ],
+      "title": "DftSurveyView",
+      "type": "object"
+    },
+    "DftSurveyViewCounts": {
+      "additionalProperties": false,
+      "description": "Complete source-to-selection-to-value reconciliation.",
+      "properties": {
+        "records_outside_selection": {
+          "minimum": 0,
+          "title": "Records Outside Selection",
+          "type": "integer"
+        },
+        "selected_records": {
+          "minimum": 0,
+          "title": "Selected Records",
+          "type": "integer"
+        },
+        "source_records": {
+          "minimum": 0,
+          "title": "Source Records",
+          "type": "integer"
+        },
+        "values_missing": {
+          "minimum": 0,
+          "title": "Values Missing",
+          "type": "integer"
+        },
+        "values_present": {
+          "minimum": 0,
+          "title": "Values Present",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source_records",
+        "selected_records",
+        "records_outside_selection",
+        "values_present",
+        "values_missing"
+      ],
+      "title": "DftSurveyViewCounts",
+      "type": "object"
+    },
+    "DftSurveyViewQuery": {
+      "additionalProperties": false,
+      "description": "One explicit bounded selection over DfT historical survey records.",
+      "properties": {
+        "aggregation_policy": {
+          "const": "none_one_source_row_per_output",
+          "default": "none_one_source_row_per_output",
+          "title": "Aggregation Policy",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-02",
+          "default": "MAN-02",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "count_dates": {
+          "items": {
+            "format": "date",
+            "type": "string"
+          },
+          "maxItems": 4096,
+          "minItems": 1,
+          "title": "Count Dates",
+          "type": "array"
+        },
+        "count_point_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 512,
+          "minItems": 1,
+          "title": "Count Point Ids",
+          "type": "array"
+        },
+        "directions": {
+          "items": {
+            "enum": [
+              "C",
+              "E",
+              "N",
+              "S",
+              "W"
+            ],
+            "type": "string"
+          },
+          "maxItems": 5,
+          "minItems": 1,
+          "title": "Directions",
+          "type": "array"
+        },
+        "hours": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 24,
+          "minItems": 1,
+          "title": "Hours",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "manchester-dft-survey-view-1.0",
+          "default": "manchester-dft-survey-view-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "missing_value_policy": {
+          "const": "preserve_null_never_zero",
+          "default": "preserve_null_never_zero",
+          "title": "Missing Value Policy",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Report Fingerprint",
+          "type": "string"
+        },
+        "timezone_policy": {
+          "const": "retain_undocumented_local_clock_hour",
+          "default": "retain_undocumented_local_clock_hour",
+          "title": "Timezone Policy",
+          "type": "string"
+        },
+        "vehicle_class": {
+          "enum": [
+            "pedal_cycles",
+            "two_wheeled_motor_vehicles",
+            "cars_and_taxis",
+            "buses_and_coaches",
+            "lgvs",
+            "hgvs_2_rigid_axle",
+            "hgvs_3_rigid_axle",
+            "hgvs_4_or_more_rigid_axle",
+            "hgvs_3_or_4_articulated_axle",
+            "hgvs_5_articulated_axle",
+            "hgvs_6_articulated_axle",
+            "all_hgvs",
+            "all_motor_vehicles"
+          ],
+          "title": "Vehicle Class",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_report_fingerprint",
+        "count_point_ids",
+        "directions",
+        "count_dates",
+        "hours",
+        "vehicle_class"
+      ],
+      "title": "DftSurveyViewQuery",
       "type": "object"
     },
     "DftVehicleClassCounts": {
@@ -29094,6 +31022,394 @@
       "title": "ManchesterHttpSnapshotParts",
       "type": "object"
     },
+    "ManchesterLineageArtifactReference": {
+      "$defs": {
+        "ManchesterLineageArtifactKind": {
+          "description": "Exact artifact kind admitted at each MAN-11 lineage stage.",
+          "enum": [
+            "manchester_source_snapshot",
+            "manchester_projection_report",
+            "manchester_network_mapping",
+            "manchester_calibration_report",
+            "sumo_execution_receipt",
+            "vec_fcd_preprocess_receipt",
+            "vec_execution_receipt",
+            "vec_reproduction_report",
+            "vec_scientific_admission_report",
+            "vec_interface_snapshot",
+            "vec_dissertation_pack_manifest",
+            "vec_end_to_end_archive_receipt"
+          ],
+          "title": "ManchesterLineageArtifactKind",
+          "type": "string"
+        },
+        "ManchesterLineageStageName": {
+          "description": "Frozen stage order from v0.7 Gate E and accepted VEC-06--VEC-12.",
+          "enum": [
+            "source_snapshot",
+            "projection",
+            "network_mapping",
+            "calibration",
+            "sumo_execution",
+            "fcd_preprocessing",
+            "vec_execution",
+            "vec_reproduction",
+            "scientific_admission",
+            "thin_interface",
+            "permission_pack",
+            "research_archive"
+          ],
+          "title": "ManchesterLineageStageName",
+          "type": "string"
+        },
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Portable identity for one already-validated upstream artifact.\n\nThe model carries no artifact bytes or filesystem path.  The immediate\nparent digest is mandatory after the first stage, making a skipped gate or\nan unbound downstream result unrepresentable.",
+      "properties": {
+        "artifact_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Artifact Fingerprint",
+          "type": "string"
+        },
+        "artifact_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "artifact_kind": {
+          "$ref": "#/$defs/ManchesterLineageArtifactKind"
+        },
+        "contract_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Fingerprint",
+          "type": "string"
+        },
+        "parent_artifact_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 1,
+          "title": "Parent Artifact Fingerprints",
+          "type": "array"
+        },
+        "publication_class": {
+          "$ref": "#/$defs/ManchesterPublicationClass"
+        },
+        "source_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "title": "Source Snapshot Ids",
+          "type": "array"
+        },
+        "stage": {
+          "$ref": "#/$defs/ManchesterLineageStageName"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stage",
+        "artifact_kind",
+        "artifact_id",
+        "artifact_fingerprint",
+        "contract_fingerprint",
+        "parent_artifact_fingerprints",
+        "source_snapshot_ids",
+        "publication_class",
+        "synthetic"
+      ],
+      "title": "ManchesterLineageArtifactReference",
+      "type": "object"
+    },
+    "ManchesterLineageEdge": {
+      "$defs": {
+        "ManchesterLineageStageName": {
+          "description": "Frozen stage order from v0.7 Gate E and accepted VEC-06--VEC-12.",
+          "enum": [
+            "source_snapshot",
+            "projection",
+            "network_mapping",
+            "calibration",
+            "sumo_execution",
+            "fcd_preprocessing",
+            "vec_execution",
+            "vec_reproduction",
+            "scientific_admission",
+            "thin_interface",
+            "permission_pack",
+            "research_archive"
+          ],
+          "title": "ManchesterLineageStageName",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One fixed adjacent dependency and its currently bound identity.",
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "downstream": {
+          "$ref": "#/$defs/ManchesterLineageStageName"
+        },
+        "downstream_artifact_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Downstream Artifact Fingerprint"
+        },
+        "upstream": {
+          "$ref": "#/$defs/ManchesterLineageStageName"
+        },
+        "upstream_artifact_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Upstream Artifact Fingerprint"
+        }
+      },
+      "required": [
+        "upstream",
+        "downstream",
+        "active"
+      ],
+      "title": "ManchesterLineageEdge",
+      "type": "object"
+    },
+    "ManchesterLineageStage": {
+      "$defs": {
+        "ManchesterLineageArtifactKind": {
+          "description": "Exact artifact kind admitted at each MAN-11 lineage stage.",
+          "enum": [
+            "manchester_source_snapshot",
+            "manchester_projection_report",
+            "manchester_network_mapping",
+            "manchester_calibration_report",
+            "sumo_execution_receipt",
+            "vec_fcd_preprocess_receipt",
+            "vec_execution_receipt",
+            "vec_reproduction_report",
+            "vec_scientific_admission_report",
+            "vec_interface_snapshot",
+            "vec_dissertation_pack_manifest",
+            "vec_end_to_end_archive_receipt"
+          ],
+          "title": "ManchesterLineageArtifactKind",
+          "type": "string"
+        },
+        "ManchesterLineageArtifactReference": {
+          "additionalProperties": false,
+          "description": "Portable identity for one already-validated upstream artifact.\n\nThe model carries no artifact bytes or filesystem path.  The immediate\nparent digest is mandatory after the first stage, making a skipped gate or\nan unbound downstream result unrepresentable.",
+          "properties": {
+            "artifact_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Artifact Fingerprint",
+              "type": "string"
+            },
+            "artifact_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "artifact_kind": {
+              "$ref": "#/$defs/ManchesterLineageArtifactKind"
+            },
+            "contract_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Contract Fingerprint",
+              "type": "string"
+            },
+            "parent_artifact_fingerprints": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 1,
+              "title": "Parent Artifact Fingerprints",
+              "type": "array"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "source_snapshot_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Source Snapshot Ids",
+              "type": "array"
+            },
+            "stage": {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "stage",
+            "artifact_kind",
+            "artifact_id",
+            "artifact_fingerprint",
+            "contract_fingerprint",
+            "parent_artifact_fingerprints",
+            "source_snapshot_ids",
+            "publication_class",
+            "synthetic"
+          ],
+          "title": "ManchesterLineageArtifactReference",
+          "type": "object"
+        },
+        "ManchesterLineageEvidenceLabel": {
+          "description": "Truth-preserving semantic label derived from stage and source class.",
+          "enum": [
+            "synthetic_development",
+            "observed_manchester_evidence",
+            "manchester_calibration_candidate",
+            "manchester_calibrated_simulation",
+            "randy_policy_on_manchester_calibrated_simulation"
+          ],
+          "title": "ManchesterLineageEvidenceLabel",
+          "type": "string"
+        },
+        "ManchesterLineageReason": {
+          "description": "Deterministic reason for one stage state.",
+          "enum": [
+            "available",
+            "artifact_not_supplied",
+            "upstream_stage_unavailable"
+          ],
+          "title": "ManchesterLineageReason",
+          "type": "string"
+        },
+        "ManchesterLineageStageName": {
+          "description": "Frozen stage order from v0.7 Gate E and accepted VEC-06--VEC-12.",
+          "enum": [
+            "source_snapshot",
+            "projection",
+            "network_mapping",
+            "calibration",
+            "sumo_execution",
+            "fcd_preprocessing",
+            "vec_execution",
+            "vec_reproduction",
+            "scientific_admission",
+            "thin_interface",
+            "permission_pack",
+            "research_archive"
+          ],
+          "title": "ManchesterLineageStageName",
+          "type": "string"
+        },
+        "ManchesterLineageStageState": {
+          "description": "Whether one stage has an exact, contiguous artifact binding.",
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "ManchesterLineageStageState",
+          "type": "string"
+        },
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One re-derived stage truth in the fixed MAN-11 chain.",
+      "properties": {
+        "artifact": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManchesterLineageArtifactReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capability_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capability Ids",
+          "type": "array"
+        },
+        "evidence_label": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManchesterLineageEvidenceLabel"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "position": {
+          "maximum": 12,
+          "minimum": 1,
+          "title": "Position",
+          "type": "integer"
+        },
+        "reason": {
+          "$ref": "#/$defs/ManchesterLineageReason"
+        },
+        "stage": {
+          "$ref": "#/$defs/ManchesterLineageStageName"
+        },
+        "state": {
+          "$ref": "#/$defs/ManchesterLineageStageState"
+        }
+      },
+      "required": [
+        "stage",
+        "position",
+        "capability_ids",
+        "state",
+        "reason",
+        "artifact",
+        "evidence_label"
+      ],
+      "title": "ManchesterLineageStage",
+      "type": "object"
+    },
     "ManchesterMapLayerManifest": {
       "$defs": {
         "ManchesterMapPoint": {
@@ -33808,6 +36124,420 @@
         "path"
       ],
       "title": "ManchesterRequestIdentity",
+      "type": "object"
+    },
+    "ManchesterResearchLineage": {
+      "$defs": {
+        "ManchesterLineageArtifactKind": {
+          "description": "Exact artifact kind admitted at each MAN-11 lineage stage.",
+          "enum": [
+            "manchester_source_snapshot",
+            "manchester_projection_report",
+            "manchester_network_mapping",
+            "manchester_calibration_report",
+            "sumo_execution_receipt",
+            "vec_fcd_preprocess_receipt",
+            "vec_execution_receipt",
+            "vec_reproduction_report",
+            "vec_scientific_admission_report",
+            "vec_interface_snapshot",
+            "vec_dissertation_pack_manifest",
+            "vec_end_to_end_archive_receipt"
+          ],
+          "title": "ManchesterLineageArtifactKind",
+          "type": "string"
+        },
+        "ManchesterLineageArtifactReference": {
+          "additionalProperties": false,
+          "description": "Portable identity for one already-validated upstream artifact.\n\nThe model carries no artifact bytes or filesystem path.  The immediate\nparent digest is mandatory after the first stage, making a skipped gate or\nan unbound downstream result unrepresentable.",
+          "properties": {
+            "artifact_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Artifact Fingerprint",
+              "type": "string"
+            },
+            "artifact_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+              "title": "Artifact Id",
+              "type": "string"
+            },
+            "artifact_kind": {
+              "$ref": "#/$defs/ManchesterLineageArtifactKind"
+            },
+            "contract_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Contract Fingerprint",
+              "type": "string"
+            },
+            "parent_artifact_fingerprints": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 1,
+              "title": "Parent Artifact Fingerprints",
+              "type": "array"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "source_snapshot_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "title": "Source Snapshot Ids",
+              "type": "array"
+            },
+            "stage": {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "stage",
+            "artifact_kind",
+            "artifact_id",
+            "artifact_fingerprint",
+            "contract_fingerprint",
+            "parent_artifact_fingerprints",
+            "source_snapshot_ids",
+            "publication_class",
+            "synthetic"
+          ],
+          "title": "ManchesterLineageArtifactReference",
+          "type": "object"
+        },
+        "ManchesterLineageChainState": {
+          "description": "Overall completeness without implying scientific or capability acceptance.",
+          "enum": [
+            "empty",
+            "partial",
+            "complete"
+          ],
+          "title": "ManchesterLineageChainState",
+          "type": "string"
+        },
+        "ManchesterLineageEdge": {
+          "additionalProperties": false,
+          "description": "One fixed adjacent dependency and its currently bound identity.",
+          "properties": {
+            "active": {
+              "title": "Active",
+              "type": "boolean"
+            },
+            "downstream": {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            "downstream_artifact_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Downstream Artifact Fingerprint"
+            },
+            "upstream": {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            "upstream_artifact_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Upstream Artifact Fingerprint"
+            }
+          },
+          "required": [
+            "upstream",
+            "downstream",
+            "active"
+          ],
+          "title": "ManchesterLineageEdge",
+          "type": "object"
+        },
+        "ManchesterLineageEvidenceLabel": {
+          "description": "Truth-preserving semantic label derived from stage and source class.",
+          "enum": [
+            "synthetic_development",
+            "observed_manchester_evidence",
+            "manchester_calibration_candidate",
+            "manchester_calibrated_simulation",
+            "randy_policy_on_manchester_calibrated_simulation"
+          ],
+          "title": "ManchesterLineageEvidenceLabel",
+          "type": "string"
+        },
+        "ManchesterLineageReason": {
+          "description": "Deterministic reason for one stage state.",
+          "enum": [
+            "available",
+            "artifact_not_supplied",
+            "upstream_stage_unavailable"
+          ],
+          "title": "ManchesterLineageReason",
+          "type": "string"
+        },
+        "ManchesterLineageStage": {
+          "additionalProperties": false,
+          "description": "One re-derived stage truth in the fixed MAN-11 chain.",
+          "properties": {
+            "artifact": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ManchesterLineageArtifactReference"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "capability_ids": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Capability Ids",
+              "type": "array"
+            },
+            "evidence_label": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ManchesterLineageEvidenceLabel"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "position": {
+              "maximum": 12,
+              "minimum": 1,
+              "title": "Position",
+              "type": "integer"
+            },
+            "reason": {
+              "$ref": "#/$defs/ManchesterLineageReason"
+            },
+            "stage": {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            "state": {
+              "$ref": "#/$defs/ManchesterLineageStageState"
+            }
+          },
+          "required": [
+            "stage",
+            "position",
+            "capability_ids",
+            "state",
+            "reason",
+            "artifact",
+            "evidence_label"
+          ],
+          "title": "ManchesterLineageStage",
+          "type": "object"
+        },
+        "ManchesterLineageStageName": {
+          "description": "Frozen stage order from v0.7 Gate E and accepted VEC-06--VEC-12.",
+          "enum": [
+            "source_snapshot",
+            "projection",
+            "network_mapping",
+            "calibration",
+            "sumo_execution",
+            "fcd_preprocessing",
+            "vec_execution",
+            "vec_reproduction",
+            "scientific_admission",
+            "thin_interface",
+            "permission_pack",
+            "research_archive"
+          ],
+          "title": "ManchesterLineageStageName",
+          "type": "string"
+        },
+        "ManchesterLineageStageState": {
+          "description": "Whether one stage has an exact, contiguous artifact binding.",
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "title": "ManchesterLineageStageState",
+          "type": "string"
+        },
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Self-validating source-to-VEC lineage without widened scientific claims.",
+      "properties": {
+        "artifact_bytes_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Artifact Bytes Embedded",
+          "type": "boolean"
+        },
+        "artifacts": {
+          "items": {
+            "$ref": "#/$defs/ManchesterLineageArtifactReference"
+          },
+          "title": "Artifacts",
+          "type": "array"
+        },
+        "available_stage_count": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Available Stage Count",
+          "type": "integer"
+        },
+        "capability_acceptance_performed": {
+          "const": false,
+          "default": false,
+          "title": "Capability Acceptance Performed",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-11",
+          "default": "MAN-11",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "causal_claim_available": {
+          "const": false,
+          "default": false,
+          "title": "Causal Claim Available",
+          "type": "boolean"
+        },
+        "chain_state": {
+          "$ref": "#/$defs/ManchesterLineageChainState"
+        },
+        "domain_validity_established": {
+          "const": false,
+          "default": false,
+          "title": "Domain Validity Established",
+          "type": "boolean"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/ManchesterLineageEdge"
+          },
+          "minItems": 11,
+          "title": "Edges",
+          "type": "array"
+        },
+        "execution_performed_by_lineage_builder": {
+          "const": false,
+          "default": false,
+          "title": "Execution Performed By Lineage Builder",
+          "type": "boolean"
+        },
+        "furthest_available_stage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManchesterLineageStageName"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "generated_analysis_sites_are_canonical_infrastructure": {
+          "const": false,
+          "default": false,
+          "title": "Generated Analysis Sites Are Canonical Infrastructure",
+          "type": "boolean"
+        },
+        "graph_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Graph Fingerprint",
+          "type": "string"
+        },
+        "interpretation_statement": {
+          "const": "A complete lineage proves that named artifacts form the declared Manchester-to-VEC software chain; it does not prove Manchester realism, Randy-policy domain validity, causality, public-hosting permission, or capability acceptance.",
+          "default": "A complete lineage proves that named artifacts form the declared Manchester-to-VEC software chain; it does not prove Manchester realism, Randy-policy domain validity, causality, public-hosting permission, or capability acceptance.",
+          "title": "Interpretation Statement",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-research-lineage-1.0",
+          "default": "manchester-research-lineage-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "randy_policy_validated_for_manchester": {
+          "const": false,
+          "default": false,
+          "title": "Randy Policy Validated For Manchester",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Snapshot Ids",
+          "type": "array"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/ManchesterLineageStage"
+          },
+          "minItems": 12,
+          "title": "Stages",
+          "type": "array"
+        },
+        "unavailable_stage_count": {
+          "maximum": 12,
+          "minimum": 0,
+          "title": "Unavailable Stage Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "artifacts",
+        "stages",
+        "edges",
+        "chain_state",
+        "available_stage_count",
+        "unavailable_stage_count",
+        "furthest_available_stage",
+        "source_snapshot_ids",
+        "graph_fingerprint"
+      ],
+      "title": "ManchesterResearchLineage",
       "type": "object"
     },
     "ManchesterRetrievalWindow": {
@@ -79863,8 +82593,8 @@
           "$ref": "#/$defs/TfgmSelectedMemberEvidence"
         },
         "attribution_text": {
-          "const": "Contains Transport for Greater Manchester data. Contains OS data \u00a9 Crown copyright and database right 2026.",
-          "default": "Contains Transport for Greater Manchester data. Contains OS data \u00a9 Crown copyright and database right 2026.",
+          "const": "Contains Transport for Greater Manchester data.  Contains OS data \u00a9 Crown copyright and database right 2026.",
+          "default": "Contains Transport for Greater Manchester data.  Contains OS data \u00a9 Crown copyright and database right 2026.",
           "title": "Attribution Text",
           "type": "string"
         },
@@ -80301,8 +83031,8 @@
           "$ref": "#/$defs/TfgmSelectedMemberEvidence"
         },
         "attribution_text": {
-          "const": "Contains Transport for Greater Manchester data. Contains OS data \u00a9 Crown copyright and database right 2026.",
-          "default": "Contains Transport for Greater Manchester data. Contains OS data \u00a9 Crown copyright and database right 2026.",
+          "const": "Contains Transport for Greater Manchester data.  Contains OS data \u00a9 Crown copyright and database right 2026.",
+          "default": "Contains Transport for Greater Manchester data.  Contains OS data \u00a9 Crown copyright and database right 2026.",
           "title": "Attribution Text",
           "type": "string"
         },
@@ -80651,6 +83381,75 @@
         "synthetic"
       ],
       "title": "TfgmSignalLayerSummary",
+      "type": "object"
+    },
+    "TfgmSourceRefreshSummary": {
+      "additionalProperties": false,
+      "description": "Small receipt for one static TfGM signal-location refresh.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-04",
+          "default": "MAN-04",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "evidence_kind": {
+          "const": "static_traffic_signal_reference",
+          "default": "static_traffic_signal_reference",
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "live_state_available": {
+          "const": false,
+          "default": false,
+          "title": "Live State Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-source-refresh-1.0",
+          "default": "manchester-source-refresh-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "scene_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scene Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "spatial_admitted": {
+          "minimum": 0,
+          "title": "Spatial Admitted",
+          "type": "integer"
+        },
+        "spatial_excluded": {
+          "minimum": 0,
+          "title": "Spatial Excluded",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "records_accepted",
+        "spatial_admitted",
+        "spatial_excluded",
+        "scene_fingerprint"
+      ],
+      "title": "TfgmSourceRefreshSummary",
       "type": "object"
     },
     "ThresholdFlipBoundary": {
@@ -99399,6 +102198,694 @@
       "title": "VehicleStateRecord",
       "type": "object"
     },
+    "WebtrisAcceptedProductCounts": {
+      "additionalProperties": false,
+      "description": "Exact product inventory for one verified local WebTRIS catalogue.",
+      "properties": {
+        "daily_quality": {
+          "minimum": 0,
+          "title": "Daily Quality",
+          "type": "integer"
+        },
+        "daily_report": {
+          "minimum": 0,
+          "title": "Daily Report",
+          "type": "integer"
+        },
+        "parser_reproduced": {
+          "minimum": 0,
+          "title": "Parser Reproduced",
+          "type": "integer"
+        },
+        "parser_scope_unavailable": {
+          "minimum": 0,
+          "title": "Parser Scope Unavailable",
+          "type": "integer"
+        },
+        "site": {
+          "minimum": 0,
+          "title": "Site",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "site",
+        "daily_report",
+        "daily_quality",
+        "parser_reproduced",
+        "parser_scope_unavailable"
+      ],
+      "title": "WebtrisAcceptedProductCounts",
+      "type": "object"
+    },
+    "WebtrisAcceptedSnapshotCatalogue": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        },
+        "WebtrisAcceptedProductCounts": {
+          "additionalProperties": false,
+          "description": "Exact product inventory for one verified local WebTRIS catalogue.",
+          "properties": {
+            "daily_quality": {
+              "minimum": 0,
+              "title": "Daily Quality",
+              "type": "integer"
+            },
+            "daily_report": {
+              "minimum": 0,
+              "title": "Daily Report",
+              "type": "integer"
+            },
+            "parser_reproduced": {
+              "minimum": 0,
+              "title": "Parser Reproduced",
+              "type": "integer"
+            },
+            "parser_scope_unavailable": {
+              "minimum": 0,
+              "title": "Parser Scope Unavailable",
+              "type": "integer"
+            },
+            "site": {
+              "minimum": 0,
+              "title": "Site",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "site",
+            "daily_report",
+            "daily_quality",
+            "parser_reproduced",
+            "parser_scope_unavailable"
+          ],
+          "title": "WebtrisAcceptedProductCounts",
+          "type": "object"
+        },
+        "WebtrisAcceptedSnapshotSummary": {
+          "additionalProperties": false,
+          "description": "Verified local identity and replay state of one accepted WebTRIS snapshot.",
+          "properties": {
+            "attribution_text": {
+              "title": "Attribution Text",
+              "type": "string"
+            },
+            "capability_id": {
+              "const": "MAN-03",
+              "default": "MAN-03",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "endpoint_path": {
+              "title": "Endpoint Path",
+              "type": "string"
+            },
+            "intervals_missing": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Intervals Missing"
+            },
+            "licence_id": {
+              "const": "OGL",
+              "default": "OGL",
+              "title": "Licence Id",
+              "type": "string"
+            },
+            "manifest_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Manifest Fingerprint",
+              "type": "string"
+            },
+            "method_version": {
+              "const": "manchester-webtris-accepted-catalogue-1.0",
+              "default": "manchester-webtris-accepted-catalogue-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "observation_time_from_retrieval": {
+              "const": false,
+              "default": false,
+              "title": "Observation Time From Retrieval",
+              "type": "boolean"
+            },
+            "opened_offline": {
+              "const": true,
+              "default": true,
+              "title": "Opened Offline",
+              "type": "boolean"
+            },
+            "page_size": {
+              "anyOf": [
+                {
+                  "maximum": 96,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Page Size"
+            },
+            "pages": {
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Pages",
+              "type": "integer"
+            },
+            "parser_replay_state": {
+              "enum": [
+                "reproduced",
+                "scope_unavailable"
+              ],
+              "title": "Parser Replay State",
+              "type": "string"
+            },
+            "parser_report_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Parser Report Fingerprint"
+            },
+            "product": {
+              "enum": [
+                "site",
+                "daily_report",
+                "daily_quality"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "records_accepted": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Records Accepted"
+            },
+            "report_date": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Report Date"
+            },
+            "retrieval_completed_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Completed At Utc",
+              "type": "string"
+            },
+            "retrieval_started_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Started At Utc",
+              "type": "string"
+            },
+            "rows_seen": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Rows Seen"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            },
+            "site_name": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Site Name"
+            },
+            "site_name_basis": {
+              "enum": [
+                "source_record",
+                "not_present_in_product"
+              ],
+              "title": "Site Name Basis",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "snapshot_receipt_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Snapshot Receipt Fingerprint",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "webtris_site",
+                "webtris_daily_report",
+                "webtris_daily_quality"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "stored_validation_state": {
+              "$ref": "#/$defs/ManchesterValidationState"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "total_bytes": {
+              "minimum": 0,
+              "title": "Total Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "endpoint_path",
+            "site_id",
+            "site_name_basis",
+            "snapshot_id",
+            "raw_fingerprint",
+            "manifest_fingerprint",
+            "snapshot_receipt_fingerprint",
+            "retrieval_started_at_utc",
+            "retrieval_completed_at_utc",
+            "pages",
+            "total_bytes",
+            "stored_validation_state",
+            "parser_replay_state",
+            "publication_class",
+            "attribution_text",
+            "synthetic"
+          ],
+          "title": "WebtrisAcceptedSnapshotSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded deterministic inventory of verified accepted WebTRIS snapshots.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-03",
+          "default": "MAN-03",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "counts": {
+          "$ref": "#/$defs/WebtrisAcceptedProductCounts"
+        },
+        "maximum_snapshots": {
+          "const": 512,
+          "default": 512,
+          "title": "Maximum Snapshots",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "manchester-webtris-accepted-catalogue-1.0",
+          "default": "manchester-webtris-accepted-catalogue-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "network_access_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Access Performed",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/WebtrisAcceptedSnapshotSummary"
+          },
+          "title": "Snapshots",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshots",
+        "counts"
+      ],
+      "title": "WebtrisAcceptedSnapshotCatalogue",
+      "type": "object"
+    },
+    "WebtrisAcceptedSnapshotSummary": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Verified local identity and replay state of one accepted WebTRIS snapshot.",
+      "properties": {
+        "attribution_text": {
+          "title": "Attribution Text",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-03",
+          "default": "MAN-03",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "endpoint_path": {
+          "title": "Endpoint Path",
+          "type": "string"
+        },
+        "intervals_missing": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Intervals Missing"
+        },
+        "licence_id": {
+          "const": "OGL",
+          "default": "OGL",
+          "title": "Licence Id",
+          "type": "string"
+        },
+        "manifest_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Fingerprint",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-webtris-accepted-catalogue-1.0",
+          "default": "manchester-webtris-accepted-catalogue-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "observation_time_from_retrieval": {
+          "const": false,
+          "default": false,
+          "title": "Observation Time From Retrieval",
+          "type": "boolean"
+        },
+        "opened_offline": {
+          "const": true,
+          "default": true,
+          "title": "Opened Offline",
+          "type": "boolean"
+        },
+        "page_size": {
+          "anyOf": [
+            {
+              "maximum": 96,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Size"
+        },
+        "pages": {
+          "maximum": 100,
+          "minimum": 1,
+          "title": "Pages",
+          "type": "integer"
+        },
+        "parser_replay_state": {
+          "enum": [
+            "reproduced",
+            "scope_unavailable"
+          ],
+          "title": "Parser Replay State",
+          "type": "string"
+        },
+        "parser_report_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parser Report Fingerprint"
+        },
+        "product": {
+          "enum": [
+            "site",
+            "daily_report",
+            "daily_quality"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "publication_class": {
+          "$ref": "#/$defs/ManchesterPublicationClass"
+        },
+        "raw_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Fingerprint",
+          "type": "string"
+        },
+        "records_accepted": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Records Accepted"
+        },
+        "report_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Report Date"
+        },
+        "retrieval_completed_at_utc": {
+          "format": "date-time",
+          "title": "Retrieval Completed At Utc",
+          "type": "string"
+        },
+        "retrieval_started_at_utc": {
+          "format": "date-time",
+          "title": "Retrieval Started At Utc",
+          "type": "string"
+        },
+        "rows_seen": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rows Seen"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_id": {
+          "pattern": "^[1-9][0-9]{0,9}$",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "site_name": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Site Name"
+        },
+        "site_name_basis": {
+          "enum": [
+            "source_record",
+            "not_present_in_product"
+          ],
+          "title": "Site Name Basis",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "snapshot_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Receipt Fingerprint",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "webtris_site",
+            "webtris_daily_report",
+            "webtris_daily_quality"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "stored_validation_state": {
+          "$ref": "#/$defs/ManchesterValidationState"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "total_bytes": {
+          "minimum": 0,
+          "title": "Total Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "product",
+        "source_id",
+        "endpoint_path",
+        "site_id",
+        "site_name_basis",
+        "snapshot_id",
+        "raw_fingerprint",
+        "manifest_fingerprint",
+        "snapshot_receipt_fingerprint",
+        "retrieval_started_at_utc",
+        "retrieval_completed_at_utc",
+        "pages",
+        "total_bytes",
+        "stored_validation_state",
+        "parser_replay_state",
+        "publication_class",
+        "attribution_text",
+        "synthetic"
+      ],
+      "title": "WebtrisAcceptedSnapshotSummary",
+      "type": "object"
+    },
     "WebtrisAcquisitionRequest": {
       "$defs": {
         "ManchesterPriorRelation": {
@@ -99974,6 +103461,204 @@
       "title": "WebtrisAcquisitionResult",
       "type": "object"
     },
+    "WebtrisChartSeries": {
+      "$defs": {
+        "WebtrisChartPoint": {
+          "additionalProperties": false,
+          "description": "One chart point; missing measurements stay gaps, never zero.",
+          "properties": {
+            "average_speed_mph": {
+              "anyOf": [
+                {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Average Speed Mph"
+            },
+            "average_speed_mps": {
+              "anyOf": [
+                {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Average Speed Mps"
+            },
+            "interval_index": {
+              "maximum": 95,
+              "minimum": 0,
+              "title": "Interval Index",
+              "type": "integer"
+            },
+            "measurement_state": {
+              "enum": [
+                "observed",
+                "missing"
+              ],
+              "title": "Measurement State",
+              "type": "string"
+            },
+            "report_date": {
+              "format": "date",
+              "title": "Report Date",
+              "type": "string"
+            },
+            "report_date_raw": {
+              "maxLength": 19,
+              "minLength": 19,
+              "title": "Report Date Raw",
+              "type": "string"
+            },
+            "time_period_ending_raw": {
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$",
+              "title": "Time Period Ending Raw",
+              "type": "string"
+            },
+            "total_volume": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Volume"
+            }
+          },
+          "required": [
+            "report_date",
+            "report_date_raw",
+            "time_period_ending_raw",
+            "interval_index",
+            "measurement_state"
+          ],
+          "title": "WebtrisChartPoint",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Per-site chart data with explicit source-local axis semantics.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "evidence_status": {
+          "const": "historical",
+          "default": "historical",
+          "title": "Evidence Status",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-webtris-timeseries-1.0",
+          "default": "manchester-webtris-timeseries-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "missing_filled_with_zero": {
+          "const": false,
+          "default": false,
+          "title": "Missing Filled With Zero",
+          "type": "boolean"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/WebtrisChartPoint"
+          },
+          "maxItems": 3072,
+          "minItems": 1,
+          "title": "Points",
+          "type": "array"
+        },
+        "result_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Result Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_id": {
+          "pattern": "^[1-9][0-9]{0,9}$",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "site_name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Site Name",
+          "type": "string"
+        },
+        "speed_derived_unit": {
+          "const": "m_per_s",
+          "default": "m_per_s",
+          "title": "Speed Derived Unit",
+          "type": "string"
+        },
+        "speed_source_unit": {
+          "const": "mph",
+          "default": "mph",
+          "title": "Speed Source Unit",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "time_axis_basis": {
+          "const": "source_string_undeclared",
+          "default": "source_string_undeclared",
+          "title": "Time Axis Basis",
+          "type": "string"
+        },
+        "utc_timestamps_available": {
+          "const": false,
+          "default": false,
+          "title": "Utc Timestamps Available",
+          "type": "boolean"
+        },
+        "volume_unit": {
+          "const": "vehicles_per_reported_interval",
+          "default": "vehicles_per_reported_interval",
+          "title": "Volume Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "site_id",
+        "site_name",
+        "result_fingerprint",
+        "synthetic",
+        "points"
+      ],
+      "title": "WebtrisChartSeries",
+      "type": "object"
+    },
     "WebtrisReplayRequest": {
       "additionalProperties": false,
       "description": "Offline replay binding: the caller's claimed product/scope, verified strictly.",
@@ -100256,6 +103941,1953 @@
         "synthetic"
       ],
       "title": "WebtrisReplayResult",
+      "type": "object"
+    },
+    "WebtrisSiteLayerSummary": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Reconciled scientific boundary for one selected strategic-road site.",
+      "properties": {
+        "acquisition_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Acquisition Fingerprint",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-03",
+          "default": "MAN-03",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "cross_source_join_performed": {
+          "const": false,
+          "default": false,
+          "title": "Cross Source Join Performed",
+          "type": "boolean"
+        },
+        "daily_traffic_values_included": {
+          "const": false,
+          "default": false,
+          "title": "Daily Traffic Values Included",
+          "type": "boolean"
+        },
+        "evidence_kind": {
+          "const": "strategic_road_site_reference",
+          "default": "strategic_road_site_reference",
+          "title": "Evidence Kind",
+          "type": "string"
+        },
+        "layer_id": {
+          "pattern": "^webtris-site-[1-9][0-9]{0,9}$",
+          "title": "Layer Id",
+          "type": "string"
+        },
+        "layer_request_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Layer Request Fingerprint",
+          "type": "string"
+        },
+        "layer_status": {
+          "enum": [
+            "available",
+            "partial",
+            "unavailable"
+          ],
+          "title": "Layer Status",
+          "type": "string"
+        },
+        "live_road_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Road Traffic Available",
+          "type": "boolean"
+        },
+        "map_capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Map Capability Id",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-webtris-scene-1.0",
+          "default": "manchester-webtris-scene-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "historical_replay",
+            "latest_available"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "parser_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Report Fingerprint",
+          "type": "string"
+        },
+        "public_export_available": {
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "publication_class": {
+          "$ref": "#/$defs/ManchesterPublicationClass"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "rows_seen": {
+          "minimum": 0,
+          "title": "Rows Seen",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_id": {
+          "pattern": "^[1-9][0-9]{0,9}$",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_time_promoted_to_utc": {
+          "const": false,
+          "default": false,
+          "title": "Source Time Promoted To Utc",
+          "type": "boolean"
+        },
+        "spatial_admitted": {
+          "minimum": 0,
+          "title": "Spatial Admitted",
+          "type": "integer"
+        },
+        "spatial_capability_id": {
+          "const": "MAN-07",
+          "default": "MAN-07",
+          "title": "Spatial Capability Id",
+          "type": "string"
+        },
+        "spatial_excluded": {
+          "minimum": 0,
+          "title": "Spatial Excluded",
+          "type": "integer"
+        },
+        "spatial_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Spatial Report Fingerprint",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "mode",
+        "site_id",
+        "layer_id",
+        "snapshot_id",
+        "acquisition_fingerprint",
+        "parser_report_fingerprint",
+        "spatial_report_fingerprint",
+        "layer_request_fingerprint",
+        "rows_seen",
+        "records_accepted",
+        "spatial_admitted",
+        "spatial_excluded",
+        "layer_status",
+        "publication_class",
+        "public_export_available",
+        "synthetic"
+      ],
+      "title": "WebtrisSiteLayerSummary",
+      "type": "object"
+    },
+    "WebtrisSourceRefreshSummary": {
+      "additionalProperties": false,
+      "description": "Small receipt for one explicit three-product WebTRIS site/day refresh.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-03",
+          "default": "MAN-03",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "daily_parser_status": {
+          "enum": [
+            "accepted",
+            "accepted_with_warnings"
+          ],
+          "title": "Daily Parser Status",
+          "type": "string"
+        },
+        "daily_snapshot_id": {
+          "title": "Daily Snapshot Id",
+          "type": "string"
+        },
+        "daily_warning_codes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Daily Warning Codes",
+          "type": "array"
+        },
+        "intervals_accepted": {
+          "minimum": 0,
+          "title": "Intervals Accepted",
+          "type": "integer"
+        },
+        "intervals_missing": {
+          "minimum": 0,
+          "title": "Intervals Missing",
+          "type": "integer"
+        },
+        "live_road_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Road Traffic Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-source-refresh-1.0",
+          "default": "manchester-source-refresh-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "quality_rows_accepted": {
+          "minimum": 0,
+          "title": "Quality Rows Accepted",
+          "type": "integer"
+        },
+        "quality_snapshot_id": {
+          "title": "Quality Snapshot Id",
+          "type": "string"
+        },
+        "report_date": {
+          "format": "date",
+          "title": "Report Date",
+          "type": "string"
+        },
+        "road_domain": {
+          "const": "national_highways_strategic_road",
+          "default": "national_highways_strategic_road",
+          "title": "Road Domain",
+          "type": "string"
+        },
+        "scene_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Scene Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_id": {
+          "pattern": "^[1-9][0-9]{0,9}$",
+          "title": "Site Id",
+          "type": "string"
+        },
+        "site_name": {
+          "title": "Site Name",
+          "type": "string"
+        },
+        "site_snapshot_id": {
+          "title": "Site Snapshot Id",
+          "type": "string"
+        },
+        "source_time_promoted_to_utc": {
+          "const": false,
+          "default": false,
+          "title": "Source Time Promoted To Utc",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "site_id",
+        "site_name",
+        "report_date",
+        "site_snapshot_id",
+        "daily_snapshot_id",
+        "quality_snapshot_id",
+        "intervals_accepted",
+        "intervals_missing",
+        "daily_parser_status",
+        "daily_warning_codes",
+        "quality_rows_accepted",
+        "scene_fingerprint"
+      ],
+      "title": "WebtrisSourceRefreshSummary",
+      "type": "object"
+    },
+    "WebtrisTimeseriesEvidence": {
+      "$defs": {
+        "ManchesterPriorRelation": {
+          "description": "Relationship between this snapshot and the previous accepted one.",
+          "enum": [
+            "first_snapshot",
+            "supersedes",
+            "duplicate_no_change"
+          ],
+          "title": "ManchesterPriorRelation",
+          "type": "string"
+        },
+        "ManchesterPriorSnapshotLink": {
+          "additionalProperties": false,
+          "description": "Relationship to the previous accepted snapshot of the same source.",
+          "properties": {
+            "prior_raw_fingerprint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Raw Fingerprint"
+            },
+            "prior_snapshot_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Snapshot Id"
+            },
+            "relation": {
+              "$ref": "#/$defs/ManchesterPriorRelation"
+            }
+          },
+          "required": [
+            "relation"
+          ],
+          "title": "ManchesterPriorSnapshotLink",
+          "type": "object"
+        },
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterRawMember": {
+          "additionalProperties": false,
+          "description": "Identity of one raw response member preserved byte-for-byte.",
+          "properties": {
+            "byte_size": {
+              "minimum": 0,
+              "title": "Byte Size",
+              "type": "integer"
+            },
+            "media_type": {
+              "title": "Media Type",
+              "type": "string"
+            },
+            "relative_path": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Relative Path",
+              "type": "string"
+            },
+            "sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "relative_path",
+            "byte_size",
+            "media_type",
+            "sha256"
+          ],
+          "title": "ManchesterRawMember",
+          "type": "object"
+        },
+        "ManchesterSnapshotPolicy": {
+          "additionalProperties": false,
+          "description": "Explicit publication bounds; there are no implicit defaults.",
+          "properties": {
+            "max_member_bytes": {
+              "maximum": 2000000000,
+              "minimum": 1,
+              "title": "Max Member Bytes",
+              "type": "integer"
+            },
+            "max_member_count": {
+              "maximum": 100000,
+              "minimum": 1,
+              "title": "Max Member Count",
+              "type": "integer"
+            },
+            "max_total_bytes": {
+              "maximum": 4000000000,
+              "minimum": 1,
+              "title": "Max Total Bytes",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "max_member_count",
+            "max_member_bytes",
+            "max_total_bytes"
+          ],
+          "title": "ManchesterSnapshotPolicy",
+          "type": "object"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        },
+        "WebtrisAcquisitionRequest": {
+          "additionalProperties": false,
+          "description": "Strict typed request; no host, URL, free path, free query, or date strings.",
+          "properties": {
+            "admitted_warning_codes": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Admitted Warning Codes",
+              "type": "array"
+            },
+            "max_pages": {
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Max Pages",
+              "type": "integer"
+            },
+            "page_size": {
+              "anyOf": [
+                {
+                  "maximum": 96,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Page Size"
+            },
+            "policy": {
+              "$ref": "#/$defs/ManchesterSnapshotPolicy"
+            },
+            "prior": {
+              "$ref": "#/$defs/ManchesterPriorSnapshotLink",
+              "default": {
+                "prior_raw_fingerprint": null,
+                "prior_snapshot_id": null,
+                "relation": "first_snapshot"
+              }
+            },
+            "product": {
+              "enum": [
+                "site",
+                "daily_report",
+                "daily_quality"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "report_date": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Report Date"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            },
+            "site_name": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Site Name"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "product",
+            "site_id",
+            "max_pages",
+            "policy",
+            "publication_class",
+            "synthetic"
+          ],
+          "title": "WebtrisAcquisitionRequest",
+          "type": "object"
+        },
+        "WebtrisAcquisitionResult": {
+          "additionalProperties": false,
+          "description": "Strict frozen receipt for one promoted WebTRIS acquisition.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-03",
+              "default": "MAN-03",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "endpoint_host": {
+              "const": "webtris.nationalhighways.co.uk",
+              "default": "webtris.nationalhighways.co.uk",
+              "title": "Endpoint Host",
+              "type": "string"
+            },
+            "endpoint_path": {
+              "title": "Endpoint Path",
+              "type": "string"
+            },
+            "intervals_missing": {
+              "minimum": 0,
+              "title": "Intervals Missing",
+              "type": "integer"
+            },
+            "members": {
+              "items": {
+                "$ref": "#/$defs/ManchesterRawMember"
+              },
+              "minItems": 1,
+              "title": "Members",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "manchester-webtris-acquisition-1.0",
+              "default": "manchester-webtris-acquisition-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "pages": {
+              "minimum": 1,
+              "title": "Pages",
+              "type": "integer"
+            },
+            "parser_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Parser Report Fingerprint",
+              "type": "string"
+            },
+            "parser_status": {
+              "$ref": "#/$defs/ManchesterValidationState"
+            },
+            "product": {
+              "enum": [
+                "site",
+                "daily_report",
+                "daily_quality"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "promoted": {
+              "const": true,
+              "default": true,
+              "title": "Promoted",
+              "type": "boolean"
+            },
+            "quarantine_receipt_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Quarantine Receipt Fingerprint",
+              "type": "string"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "request": {
+              "$ref": "#/$defs/WebtrisAcquisitionRequest"
+            },
+            "rows_seen": {
+              "minimum": 0,
+              "title": "Rows Seen",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "snapshot_receipt_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Snapshot Receipt Fingerprint",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "webtris_site",
+                "webtris_daily_report",
+                "webtris_daily_quality"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "endpoint_path",
+            "request",
+            "snapshot_id",
+            "raw_fingerprint",
+            "members",
+            "pages",
+            "rows_seen",
+            "records_accepted",
+            "intervals_missing",
+            "parser_status",
+            "parser_report_fingerprint",
+            "quarantine_receipt_fingerprint",
+            "snapshot_receipt_fingerprint",
+            "synthetic"
+          ],
+          "title": "WebtrisAcquisitionResult",
+          "type": "object"
+        },
+        "WebtrisReplayRequest": {
+          "additionalProperties": false,
+          "description": "Offline replay binding: the caller's claimed product/scope, verified strictly.",
+          "properties": {
+            "expected_synthetic": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Expected Synthetic"
+            },
+            "page_size": {
+              "anyOf": [
+                {
+                  "maximum": 96,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Page Size"
+            },
+            "product": {
+              "enum": [
+                "site",
+                "daily_report",
+                "daily_quality"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "report_date": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Report Date"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            },
+            "site_name": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Site Name"
+            }
+          },
+          "required": [
+            "product",
+            "site_id"
+          ],
+          "title": "WebtrisReplayRequest",
+          "type": "object"
+        },
+        "WebtrisReplayResult": {
+          "additionalProperties": false,
+          "description": "Offline re-validation of quarantined WebTRIS bytes; no network, no promotion.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-03",
+              "default": "MAN-03",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "endpoint_path": {
+              "title": "Endpoint Path",
+              "type": "string"
+            },
+            "intervals_missing": {
+              "minimum": 0,
+              "title": "Intervals Missing",
+              "type": "integer"
+            },
+            "method_version": {
+              "const": "manchester-webtris-acquisition-1.0",
+              "default": "manchester-webtris-acquisition-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "pages": {
+              "minimum": 1,
+              "title": "Pages",
+              "type": "integer"
+            },
+            "parser_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Parser Report Fingerprint",
+              "type": "string"
+            },
+            "parser_status": {
+              "$ref": "#/$defs/ManchesterValidationState"
+            },
+            "product": {
+              "enum": [
+                "site",
+                "daily_report",
+                "daily_quality"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "replayed_offline": {
+              "const": true,
+              "default": true,
+              "title": "Replayed Offline",
+              "type": "boolean"
+            },
+            "request": {
+              "$ref": "#/$defs/WebtrisReplayRequest"
+            },
+            "rows_seen": {
+              "minimum": 0,
+              "title": "Rows Seen",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "webtris_site",
+                "webtris_daily_report",
+                "webtris_daily_quality"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "endpoint_path",
+            "request",
+            "snapshot_id",
+            "raw_fingerprint",
+            "pages",
+            "rows_seen",
+            "records_accepted",
+            "intervals_missing",
+            "parser_status",
+            "parser_report_fingerprint",
+            "synthetic"
+          ],
+          "title": "WebtrisReplayResult",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One site-day of accepted or replayed WebTRIS acquisition artifacts.\n\nExactly one daily-report receipt is required: an acquisition receipt for a\npromoted accepted snapshot, or an offline replay receipt for quarantined\nbytes. A daily-quality receipt is optional and must bind the same site,\ndate, site name, and evidence class.",
+      "properties": {
+        "daily_acquisition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WebtrisAcquisitionResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "daily_replay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WebtrisReplayResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quality_acquisition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WebtrisAcquisitionResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "quality_replay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/WebtrisReplayResult"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "WebtrisTimeseriesEvidence",
+      "type": "object"
+    },
+    "WebtrisTimeseriesFilter": {
+      "additionalProperties": false,
+      "description": "Strict typed filter over evidenced dimensions only.\n\nEvery WebTRIS site is a per-carriageway identity, so ``site_ids`` is the\nonly admitted direction/carriageway dimension; no letter decoding rule\nexists in any audited contract. UTC windows, vehicle classes, and any\nother dimension without source evidence are structurally unavailable.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "carriageway_direction_dimension_available": {
+          "const": false,
+          "default": false,
+          "title": "Carriageway Direction Dimension Available",
+          "type": "boolean"
+        },
+        "end_date": {
+          "format": "date",
+          "title": "End Date",
+          "type": "string"
+        },
+        "measurement_states": {
+          "items": {
+            "enum": [
+              "observed",
+              "missing"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Measurement States",
+          "type": "array"
+        },
+        "method_version": {
+          "const": "manchester-webtris-timeseries-1.0",
+          "default": "manchester-webtris-timeseries-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "min_availability_percent": {
+          "anyOf": [
+            {
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Min Availability Percent"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "site_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Site Ids",
+          "type": "array"
+        },
+        "start_date": {
+          "format": "date",
+          "title": "Start Date",
+          "type": "string"
+        },
+        "utc_window_dimension_available": {
+          "const": false,
+          "default": false,
+          "title": "Utc Window Dimension Available",
+          "type": "boolean"
+        },
+        "vehicle_class_dimension_available": {
+          "const": false,
+          "default": false,
+          "title": "Vehicle Class Dimension Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "site_ids",
+        "start_date",
+        "end_date",
+        "measurement_states"
+      ],
+      "title": "WebtrisTimeseriesFilter",
+      "type": "object"
+    },
+    "WebtrisTimeseriesResult": {
+      "$defs": {
+        "ManchesterPublicationClass": {
+          "description": "Exact publication classes from the v0.7 design (\u00a78).",
+          "enum": [
+            "private",
+            "redistributable_raw",
+            "redistributable_derived",
+            "metadata_only"
+          ],
+          "title": "ManchesterPublicationClass",
+          "type": "string"
+        },
+        "ManchesterValidationState": {
+          "description": "Structural validation outcome recorded on a snapshot manifest.",
+          "enum": [
+            "accepted",
+            "accepted_with_warnings",
+            "rejected"
+          ],
+          "title": "ManchesterValidationState",
+          "type": "string"
+        },
+        "WebtrisExclusionReasonCount": {
+          "additionalProperties": false,
+          "description": "Count of excluded rows for one deterministic exclusion reason.",
+          "properties": {
+            "reason": {
+              "enum": [
+                "availability_below_minimum",
+                "availability_unreported",
+                "measurement_state_filtered",
+                "outside_date_range",
+                "site_not_selected"
+              ],
+              "title": "Reason",
+              "type": "string"
+            },
+            "rows": {
+              "maximum": 3072,
+              "minimum": 1,
+              "title": "Rows",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "reason",
+            "rows"
+          ],
+          "title": "WebtrisExclusionReasonCount",
+          "type": "object"
+        },
+        "WebtrisIntervalExclusion": {
+          "additionalProperties": false,
+          "description": "One filtered-out source interval with its deterministic reason.",
+          "properties": {
+            "excluded_value_replaced_with_zero": {
+              "const": false,
+              "default": false,
+              "title": "Excluded Value Replaced With Zero",
+              "type": "boolean"
+            },
+            "interval_index": {
+              "maximum": 95,
+              "minimum": 0,
+              "title": "Interval Index",
+              "type": "integer"
+            },
+            "reason": {
+              "enum": [
+                "availability_below_minimum",
+                "availability_unreported",
+                "measurement_state_filtered",
+                "outside_date_range",
+                "site_not_selected"
+              ],
+              "title": "Reason",
+              "type": "string"
+            },
+            "report_date": {
+              "format": "date",
+              "title": "Report Date",
+              "type": "string"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "site_id",
+            "report_date",
+            "interval_index",
+            "reason"
+          ],
+          "title": "WebtrisIntervalExclusion",
+          "type": "object"
+        },
+        "WebtrisIntervalRow": {
+          "additionalProperties": false,
+          "description": "One historical WebTRIS source interval prepared for filters and charts.",
+          "properties": {
+            "availability_interpretation": {
+              "const": "data_availability_percentage",
+              "default": "data_availability_percentage",
+              "title": "Availability Interpretation",
+              "type": "string"
+            },
+            "availability_percent": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Availability Percent"
+            },
+            "average_speed_mph": {
+              "anyOf": [
+                {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Average Speed Mph"
+            },
+            "average_speed_mps": {
+              "anyOf": [
+                {
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Average Speed Mps"
+            },
+            "daily_member_path": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}(/[A-Za-z0-9][A-Za-z0-9._-]{0,99}){0,9}$",
+              "title": "Daily Member Path",
+              "type": "string"
+            },
+            "daily_member_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Daily Member Sha256",
+              "type": "string"
+            },
+            "daily_page_number": {
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Daily Page Number",
+              "type": "integer"
+            },
+            "daily_row_index": {
+              "maximum": 95,
+              "minimum": 0,
+              "title": "Daily Row Index",
+              "type": "integer"
+            },
+            "daily_snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Daily Snapshot Id",
+              "type": "string"
+            },
+            "evidence_kind": {
+              "const": "strategic_road_interval",
+              "default": "strategic_road_interval",
+              "title": "Evidence Kind",
+              "type": "string"
+            },
+            "evidence_status": {
+              "const": "historical",
+              "default": "historical",
+              "title": "Evidence Status",
+              "type": "string"
+            },
+            "interval_index": {
+              "maximum": 95,
+              "minimum": 0,
+              "title": "Interval Index",
+              "type": "integer"
+            },
+            "measurement_state": {
+              "enum": [
+                "observed",
+                "missing"
+              ],
+              "title": "Measurement State",
+              "type": "string"
+            },
+            "missing_filled_with_zero": {
+              "const": false,
+              "default": false,
+              "title": "Missing Filled With Zero",
+              "type": "boolean"
+            },
+            "nominal_interval_seconds": {
+              "const": 900,
+              "default": 900,
+              "title": "Nominal Interval Seconds",
+              "type": "integer"
+            },
+            "quality_snapshot_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quality Snapshot Id"
+            },
+            "report_date": {
+              "format": "date",
+              "title": "Report Date",
+              "type": "string"
+            },
+            "report_date_raw": {
+              "maxLength": 19,
+              "minLength": 19,
+              "title": "Report Date Raw",
+              "type": "string"
+            },
+            "road_domain": {
+              "const": "national_highways_strategic_road",
+              "default": "national_highways_strategic_road",
+              "title": "Road Domain",
+              "type": "string"
+            },
+            "sensor_accuracy_claim_available": {
+              "const": false,
+              "default": false,
+              "title": "Sensor Accuracy Claim Available",
+              "type": "boolean"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            },
+            "site_name": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Site Name",
+              "type": "string"
+            },
+            "speed_derived_unit": {
+              "const": "m_per_s",
+              "default": "m_per_s",
+              "title": "Speed Derived Unit",
+              "type": "string"
+            },
+            "speed_source_unit": {
+              "const": "mph",
+              "default": "mph",
+              "title": "Speed Source Unit",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "time_basis": {
+              "const": "source_string_undeclared",
+              "default": "source_string_undeclared",
+              "title": "Time Basis",
+              "type": "string"
+            },
+            "time_period_ending_raw": {
+              "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$",
+              "title": "Time Period Ending Raw",
+              "type": "string"
+            },
+            "total_volume": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Total Volume"
+            },
+            "utc_projection_available": {
+              "const": false,
+              "default": false,
+              "title": "Utc Projection Available",
+              "type": "boolean"
+            },
+            "volume_unit": {
+              "const": "vehicles_per_reported_interval",
+              "default": "vehicles_per_reported_interval",
+              "title": "Volume Unit",
+              "type": "string"
+            }
+          },
+          "required": [
+            "site_id",
+            "site_name",
+            "report_date",
+            "report_date_raw",
+            "time_period_ending_raw",
+            "interval_index",
+            "measurement_state",
+            "daily_snapshot_id",
+            "daily_member_path",
+            "daily_member_sha256",
+            "daily_page_number",
+            "daily_row_index",
+            "synthetic"
+          ],
+          "title": "WebtrisIntervalRow",
+          "type": "object"
+        },
+        "WebtrisTimeseriesCounts": {
+          "additionalProperties": false,
+          "description": "Complete reconciliation accounting for one timeseries build.",
+          "properties": {
+            "evidence_admitted": {
+              "maximum": 32,
+              "minimum": 1,
+              "title": "Evidence Admitted",
+              "type": "integer"
+            },
+            "evidence_supplied": {
+              "maximum": 32,
+              "minimum": 1,
+              "title": "Evidence Supplied",
+              "type": "integer"
+            },
+            "exclusion_reasons": {
+              "default": [],
+              "items": {
+                "$ref": "#/$defs/WebtrisExclusionReasonCount"
+              },
+              "title": "Exclusion Reasons",
+              "type": "array"
+            },
+            "identical_duplicates_collapsed": {
+              "maximum": 32,
+              "minimum": 0,
+              "title": "Identical Duplicates Collapsed",
+              "type": "integer"
+            },
+            "input_pages_total": {
+              "maximum": 3232,
+              "minimum": 1,
+              "title": "Input Pages Total",
+              "type": "integer"
+            },
+            "intervals_expected": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Intervals Expected",
+              "type": "integer"
+            },
+            "intervals_missing_measurement_seen": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Intervals Missing Measurement Seen",
+              "type": "integer"
+            },
+            "rows_admitted": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Rows Admitted",
+              "type": "integer"
+            },
+            "rows_excluded": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Rows Excluded",
+              "type": "integer"
+            },
+            "rows_missing_measurement_admitted": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Rows Missing Measurement Admitted",
+              "type": "integer"
+            },
+            "rows_seen": {
+              "maximum": 3072,
+              "minimum": 0,
+              "title": "Rows Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "evidence_supplied",
+            "evidence_admitted",
+            "identical_duplicates_collapsed",
+            "input_pages_total",
+            "intervals_expected",
+            "rows_seen",
+            "rows_admitted",
+            "rows_excluded",
+            "intervals_missing_measurement_seen",
+            "rows_missing_measurement_admitted"
+          ],
+          "title": "WebtrisTimeseriesCounts",
+          "type": "object"
+        },
+        "WebtrisTimeseriesFilter": {
+          "additionalProperties": false,
+          "description": "Strict typed filter over evidenced dimensions only.\n\nEvery WebTRIS site is a per-carriageway identity, so ``site_ids`` is the\nonly admitted direction/carriageway dimension; no letter decoding rule\nexists in any audited contract. UTC windows, vehicle classes, and any\nother dimension without source evidence are structurally unavailable.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-08",
+              "default": "MAN-08",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "carriageway_direction_dimension_available": {
+              "const": false,
+              "default": false,
+              "title": "Carriageway Direction Dimension Available",
+              "type": "boolean"
+            },
+            "end_date": {
+              "format": "date",
+              "title": "End Date",
+              "type": "string"
+            },
+            "measurement_states": {
+              "items": {
+                "enum": [
+                  "observed",
+                  "missing"
+                ],
+                "type": "string"
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "title": "Measurement States",
+              "type": "array"
+            },
+            "method_version": {
+              "const": "manchester-webtris-timeseries-1.0",
+              "default": "manchester-webtris-timeseries-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "min_availability_percent": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Min Availability Percent"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "site_ids": {
+              "items": {
+                "type": "string"
+              },
+              "maxItems": 32,
+              "minItems": 1,
+              "title": "Site Ids",
+              "type": "array"
+            },
+            "start_date": {
+              "format": "date",
+              "title": "Start Date",
+              "type": "string"
+            },
+            "utc_window_dimension_available": {
+              "const": false,
+              "default": false,
+              "title": "Utc Window Dimension Available",
+              "type": "boolean"
+            },
+            "vehicle_class_dimension_available": {
+              "const": false,
+              "default": false,
+              "title": "Vehicle Class Dimension Available",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "site_ids",
+            "start_date",
+            "end_date",
+            "measurement_states"
+          ],
+          "title": "WebtrisTimeseriesFilter",
+          "type": "object"
+        },
+        "WebtrisTimeseriesInput": {
+          "additionalProperties": false,
+          "description": "Verified per-site-day lineage retained inside the result.",
+          "properties": {
+            "availability_interpretation": {
+              "const": "data_availability_percentage",
+              "default": "data_availability_percentage",
+              "title": "Availability Interpretation",
+              "type": "string"
+            },
+            "availability_percent": {
+              "anyOf": [
+                {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Availability Percent"
+            },
+            "daily_intervals_missing": {
+              "maximum": 96,
+              "minimum": 0,
+              "title": "Daily Intervals Missing",
+              "type": "integer"
+            },
+            "daily_pages": {
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Daily Pages",
+              "type": "integer"
+            },
+            "daily_parser_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Daily Parser Report Fingerprint",
+              "type": "string"
+            },
+            "daily_parser_status": {
+              "$ref": "#/$defs/ManchesterValidationState"
+            },
+            "daily_raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Daily Raw Fingerprint",
+              "type": "string"
+            },
+            "daily_records_accepted": {
+              "const": 96,
+              "default": 96,
+              "title": "Daily Records Accepted",
+              "type": "integer"
+            },
+            "daily_snapshot_id": {
+              "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Daily Snapshot Id",
+              "type": "string"
+            },
+            "daily_storage_area": {
+              "enum": [
+                "accepted",
+                "quarantine"
+              ],
+              "title": "Daily Storage Area",
+              "type": "string"
+            },
+            "identical_duplicates_collapsed": {
+              "maximum": 32,
+              "minimum": 0,
+              "title": "Identical Duplicates Collapsed",
+              "type": "integer"
+            },
+            "publication_class": {
+              "$ref": "#/$defs/ManchesterPublicationClass"
+            },
+            "quality_parser_report_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quality Parser Report Fingerprint"
+            },
+            "quality_publication_class": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/ManchesterPublicationClass"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "quality_raw_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quality Raw Fingerprint"
+            },
+            "quality_snapshot_id": {
+              "anyOf": [
+                {
+                  "pattern": "^[a-z0-9][a-z0-9_.-]{0,95}-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quality Snapshot Id"
+            },
+            "quality_storage_area": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "accepted",
+                    "quarantine"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Quality Storage Area"
+            },
+            "report_date": {
+              "format": "date",
+              "title": "Report Date",
+              "type": "string"
+            },
+            "sensor_accuracy_claim_available": {
+              "const": false,
+              "default": false,
+              "title": "Sensor Accuracy Claim Available",
+              "type": "boolean"
+            },
+            "site_id": {
+              "pattern": "^[1-9][0-9]{0,9}$",
+              "title": "Site Id",
+              "type": "string"
+            },
+            "site_name": {
+              "maxLength": 120,
+              "minLength": 1,
+              "title": "Site Name",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "traffic_validity_claim_available": {
+              "const": false,
+              "default": false,
+              "title": "Traffic Validity Claim Available",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "site_id",
+            "site_name",
+            "report_date",
+            "synthetic",
+            "publication_class",
+            "daily_storage_area",
+            "daily_snapshot_id",
+            "daily_raw_fingerprint",
+            "daily_parser_report_fingerprint",
+            "daily_parser_status",
+            "daily_pages",
+            "daily_intervals_missing",
+            "identical_duplicates_collapsed"
+          ],
+          "title": "WebtrisTimeseriesInput",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic, self-revalidating historical interval result.",
+      "properties": {
+        "attribution_text": {
+          "title": "Attribution Text",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "carriageway_direction_decoded": {
+          "const": false,
+          "default": false,
+          "title": "Carriageway Direction Decoded",
+          "type": "boolean"
+        },
+        "causal_interpretation_available": {
+          "const": false,
+          "default": false,
+          "title": "Causal Interpretation Available",
+          "type": "boolean"
+        },
+        "city_road_coverage_claimed": {
+          "const": false,
+          "default": false,
+          "title": "City Road Coverage Claimed",
+          "type": "boolean"
+        },
+        "counts": {
+          "$ref": "#/$defs/WebtrisTimeseriesCounts"
+        },
+        "cross_site_aggregation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Cross Site Aggregation Performed",
+          "type": "boolean"
+        },
+        "cross_source_fusion_performed": {
+          "const": false,
+          "default": false,
+          "title": "Cross Source Fusion Performed",
+          "type": "boolean"
+        },
+        "evidence_status": {
+          "const": "historical",
+          "default": "historical",
+          "title": "Evidence Status",
+          "type": "string"
+        },
+        "exclusions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/WebtrisIntervalExclusion"
+          },
+          "maxItems": 3072,
+          "title": "Exclusions",
+          "type": "array"
+        },
+        "filter_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Filter Fingerprint",
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/WebtrisTimeseriesInput"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Inputs",
+          "type": "array"
+        },
+        "inputs_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Inputs Fingerprint",
+          "type": "string"
+        },
+        "interval_filter": {
+          "$ref": "#/$defs/WebtrisTimeseriesFilter"
+        },
+        "licence_id": {
+          "title": "Licence Id",
+          "type": "string"
+        },
+        "live_road_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Road Traffic Available",
+          "type": "boolean"
+        },
+        "map_association_performed": {
+          "const": false,
+          "default": false,
+          "title": "Map Association Performed",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-webtris-timeseries-1.0",
+          "default": "manchester-webtris-timeseries-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "missing_filled_with_zero": {
+          "const": false,
+          "default": false,
+          "title": "Missing Filled With Zero",
+          "type": "boolean"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "quality_is_accuracy_score": {
+          "const": false,
+          "default": false,
+          "title": "Quality Is Accuracy Score",
+          "type": "boolean"
+        },
+        "resampling_or_interpolation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Resampling Or Interpolation Performed",
+          "type": "boolean"
+        },
+        "result_state": {
+          "enum": [
+            "rows_available",
+            "empty_after_filters"
+          ],
+          "title": "Result State",
+          "type": "string"
+        },
+        "retrieval_time_used_as_observation_time": {
+          "const": false,
+          "default": false,
+          "title": "Retrieval Time Used As Observation Time",
+          "type": "boolean"
+        },
+        "rows": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/WebtrisIntervalRow"
+          },
+          "maxItems": 3072,
+          "title": "Rows",
+          "type": "array"
+        },
+        "rows_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Rows Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_capability_id": {
+          "const": "MAN-03",
+          "default": "MAN-03",
+          "title": "Source Capability Id",
+          "type": "string"
+        },
+        "source_host": {
+          "const": "webtris.nationalhighways.co.uk",
+          "default": "webtris.nationalhighways.co.uk",
+          "title": "Source Host",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "time_basis": {
+          "const": "source_string_undeclared",
+          "default": "source_string_undeclared",
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "utc_timestamps_available": {
+          "const": false,
+          "default": false,
+          "title": "Utc Timestamps Available",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "interval_filter",
+        "filter_fingerprint",
+        "inputs",
+        "inputs_fingerprint",
+        "rows_fingerprint",
+        "counts",
+        "result_state",
+        "licence_id",
+        "attribution_text",
+        "synthetic"
+      ],
+      "title": "WebtrisTimeseriesResult",
       "type": "object"
     },
     "WindowMetricContributionReport": {
@@ -101872,6 +107504,21 @@
       "additionalProperties": false,
       "description": "Exact syntax and resource boundary for one XML source family.",
       "properties": {
+        "allowed_attribute_namespaces": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Allowed Attribute Namespaces"
+        },
         "allowed_namespaces": {
           "default": [],
           "items": {

@@ -1331,6 +1331,17 @@ closed member set, ZIP metadata/size bounds, checksums, inventory, artifact ID, 
 private-path exclusion. See [ADR-051](decisions/ADR-051-deterministic-vec-end-to-end-research-artifact.md)
 and the [VEC-12 guide](integration/vec_end_to_end_research_artifact.md).
 
+The candidate MAN-11 boundary under `integration.manchester.research_lineage` does not introduce a
+second executor or research-pack format. It assembles path-free references to already-verified
+Manchester and VEC artifacts into the fixed Gate-E sequence: MAN-01 snapshot, MAN-07 projection,
+MAN-09 mapping/calibration, controlled SUMO receipt, and VEC-06 through VEC-12. Only a contiguous
+prefix is representable; every downstream reference binds the exact immediate-parent fingerprint,
+and every absent downstream stage is materialised with a deterministic blocker. Synthetic state is
+preserved through the complete graph. Reload re-derives stages, edges, counts, labels, and graph
+identity. Even a complete graph fixes domain validity, causality, public export, capability
+acceptance, and canonical-infrastructure claims false. See the
+[MAN-11 lineage guide](integration/manchester_research_lineage.md).
+
 Future canonical adapters must:
 
 - declare supported schemas and units;
@@ -1624,15 +1635,37 @@ source truth, scientific availability, licence, or capability status.
 
 The candidate MAN-08 page adds one deliberately narrow UI boundary. The opt-in `/manchester`
 route reads only mode-specific `ManchesterMapScene` JSON below
-`workspace/manchester/scenes/` during ordinary rendering. Only an explicit, prerequisite-gated
-Live vehicles form invokes one controlled BODS acquisition; there is no background polling or
-network access on ordinary reruns. The loader resolves the fixed path
+`workspace/manchester/scenes/` during ordinary rendering. Only four explicit, prerequisite-gated
+source forms invoke controlled acquisition: BODS live vehicles, one WebTRIS site/day/quality set,
+the pinned TfGM static archive, or three selected DfT historical rows. There is no background
+polling or network access on ordinary reruns. The loader resolves the fixed path
 inside the configured workspace, refuses symlinks/escapes, applies an 8 MiB bound, validates the
 complete scene contract, and caches at most 12 entries for 30 seconds. A renderer adapter removes
 point identities from the browser payload and creates symbol-based PyDeck `TextLayer` objects with
 no map provider or map style, so page rendering requires no third-party tile request. Layer
-selection changes display only: it cannot change spatial admission, freshness, publication, or
-scientific truth. The additive route remains outside the 34-row v0.6 migration inventory.
+selection, geographic-scope pills, and freshness-state pills operate through one pure local view
+service. It validates every selected value against the exact selected-layer inventory, filters only
+already-admitted points, and publishes separate per-layer accepted/displayed/hidden/excluded
+reconciliation. It creates no cross-source total and cannot change spatial admission, freshness,
+publication, missingness, or scientific truth. The additive route remains outside the 34-row v0.6
+migration inventory. Historical mode also inventories accepted DfT and WebTRIS snapshots through
+separate bounded local caches. For DfT it selects one exact raw-count snapshot, count point, survey
+date, audited vehicle-class field, direction set, and source-hour set, then delegates the complete
+selection to the tested survey-view boundary. It projects one source row per grouped bar and into a
+missingness-visible table; it does not create a continuous series. For WebTRIS it selects one exact
+daily-report snapshot and delegates all interval filtering and chart-series construction to the
+tested non-spatial MAN-08 service. The UI only projects returned rows into separate native volume
+and speed charts; missing values remain gaps and the axis stays labelled as a timezone-undeclared
+source string. Latest mode exposes the same WebTRIS historical chart without relabelling the
+selected source day as live.
+
+The explicit source forms remain thin over `source_refresh.py`. That orchestration fixes byte/page
+bounds and publication classes, calls only the existing source adapters, and preserves unrelated
+source-separated layer requests when atomically replacing the same source's layer. A missing scene
+produces an empty composition; an invalid, oversized, cross-mode, or symlinked existing scene is a
+typed refusal. DfT updates only the historical scene, while WebTRIS and TfGM update only the
+latest-available scene. The orchestration summaries structurally declare live-road state false for
+all three non-BODS sources.
 
 Historical and latest scene files are produced by one deterministic MAN-08 publication boundary,
 not by the page. It accepts only sorted, unique, same-mode `MapLayerRequest` values, rebuilds each
@@ -1647,7 +1680,96 @@ the stored acquisition receipt and raw ZIP, repeats bounded archive selection an
 parse, reconciles the parser fingerprint and counts, applies MAN-07 dual-coordinate admission, and
 emits a private attributed layer request. It can populate only `latest_available`; it cannot create
 traffic observations, live state, phase/timing data, source joins, or public output. The bridge has
-offline synthetic acceptance tests, while a real-network Gate B run remains outstanding.
+offline synthetic acceptance tests. The controlled 23 July 2026 real-source run matched the pinned
+archive and CSV hashes, retained the exact two-space attribution shipped in the archive, admitted
+all 2,529 rows, and published the latest static-reference layer with zero spatial exclusions.
+
+The DfT source-to-scene candidate accepts only the count-point reference product. It re-verifies
+the accepted snapshot and complete page inventory through the shared DfT accepted-replay service,
+reproduces the MAN-02 parser report, refuses
+duplicate count-point identities rather than selecting an arbitrary AADF year, and applies MAN-07
+dual-coordinate admission to every record. The resulting historical/latest MAN-08 layer contains
+no raw survey counts, AADF estimates, fabricated UTC time, source fusion, or live-road claim.
+
+A separate DfT survey-view boundary consumes only a non-rejected raw-count parser report. Its
+on-disk entry point uses the same accepted-replay service, so a valid isolated v0.7 workspace,
+exact acquisition receipt, immutable bytes, source request, publication policy, and reproduced
+parser fingerprint are prerequisites rather than UI assertions. A bounded receipt-free catalogue
+also verifies and replays DfT-prefixed accepted snapshots by safe snapshot ID, exposing sorted
+source summaries without reconstructing an acquisition request; this lets later processes reopen
+evidence after the original in-memory receipt is gone. It derives
+the exact available count-point, direction, date, local-clock-hour, and vehicle-class filters, then
+emits one selected source field per matching source row without aggregation. Null counts remain
+null; empty filter intersections remain empty; oversized views are refused rather than truncated.
+Because `GA-DFT-1` remains open, the view structurally has no source timezone, UTC observation,
+continuous-series claim, measured speed, AADF value, canonical projection, or SUMO demand meaning.
+Persisted views must be re-derived against their exact parser-report fingerprint.
+Manchester Operations consumes only the receipt-free accepted-snapshot entry points. Its controls
+come directly from `DftSurveyFilterOptions`, and its grouped bars/table are projections of the
+returned `DftSurveyObservation` rows. It performs no formula, aggregation, speed inference, AADF
+conversion, timezone promotion, or SUMO demand construction.
+
+The scoped DfT Gate-B probe exercises this complete vertical boundary with the three minimal
+audited real row IDs. All three source products reproduce from accepted storage; the raw-count row
+also reaches the survey view without UTC promotion, and the count point reaches an available
+historical scene layer. The probe does not turn the local-clock label into canonical time, test a
+full Manchester bulk load, or accept MAN-01/MAN-02/MAN-08.
+
+The WebTRIS source-to-scene candidate follows the same offline boundary but accepts only the
+selected-site product. It re-verifies the immutable snapshot and acquisition binding, reproduces
+the MAN-03 parser report, requires exactly one response record whose ID matches the selected
+endpoint ID, and uses the acquisition-request fingerprint as the explicit strategic-approach scope
+artifact for MAN-07. Each site is a separate MAN-08 layer in historical or latest-available mode.
+Daily interval and quality products are not joined to site coordinates here, source strings are not
+promoted to UTC, and neither retrieval nor display state can create a live-road claim. The bounded
+transport preserves the service's gzip wire bytes; MAN-03 separately binds the decompressed parser
+payload hash and refuses unaudited content encodings. The controlled site-34 run reproduces the
+site, `2026-03-01` daily report, and daily-quality response, retaining eight missing intervals and
+both observed warning codes before publishing the latest site-reference layer.
+
+Receipt-free WebTRIS discovery is a separate bounded accepted-snapshot boundary. It scans only the
+three WebTRIS source-ID directory families in the isolated v0.7 accepted area, re-verifies each
+generic snapshot and its exact source/request/licence contract, and returns a sorted inventory with
+per-product and parser-replay-availability reconciliation. Site and daily-report products replay
+fully; the latter derives its parser scope from the single source-reported name in the bounded raw
+pages. Daily-quality evidence is inventoried but cannot independently reproduce the historical
+parser fingerprint because that response contains no site name and the original caller-supplied
+name was not persisted in the generic manifest. This state is explicit rather than repaired with
+an invented name. The catalogue performs no network access, writes no files, and does not change
+accepted evidence.
+
+Daily WebTRIS measurements enter a different, non-spatial MAN-08 boundary. A typed site-day input
+pairs one accepted or quarantine-replayed daily-report receipt with optional quality evidence for
+the same site, name, date, and evidence class. The service re-verifies stored bytes and receipt
+scope, replays the MAN-03 parser, then emits a complete 96-interval partition of admitted rows and
+typed exclusions. Filtering is limited to source-evidenced site IDs, source dates, measurement
+state, and data-availability percentage; it performs no direction decoding, source fusion,
+aggregation, resampling, interpolation, coordinate join, or UTC projection. Source clock strings
+remain `source_string_undeclared`, missing measurements remain null, and the quality percentage
+cannot become an accuracy score. Persisted results have internal reconciliation validators and a
+separate workspace-backed verifier that rebuilds the artifact from immutable evidence before it is
+trusted by a later process. A second entry point consumes safe accepted daily-report snapshot IDs
+from the receipt-free catalogue, replays their parser reports again, and refuses conflicting
+versions of one site-day. Because accepted daily-quality evidence lacks reproducible site-name
+scope, that entry point keeps availability unreported; requesting an availability threshold
+therefore excludes the site-day as `availability_unreported`.
+
+Randy/TOS evidence enters Manchester Operations through a separate non-geographic panel, not a
+`ManchesterMapLayerManifest`. The UI loads only an explicitly configured VEC-11 dissertation pack
+through the existing fail-closed MAN-06 bridge and displays its approved sanitised samples,
+aggregate availability states, citations, fingerprints, and limitations. The configured path is
+operational only and is not rendered or retained in the report. Because VEC-11 removed coordinates
+and clocks, this path cannot create a map point, freshness state, live claim, canonical Manchester
+observation, or public-hosting permission.
+
+The v0.7 router selects a focused Home renderer without changing the default v0.6 Home. It derives
+the Manchester evidence state only from the same bounded local scene loader used by Manchester
+Operations, derives registry activity from the existing project-status service, and sends actions
+through the router-aware navigation boundary. When a latest scene exists, Home renders the same
+no-basemap, display-safe PyDeck projection; otherwise it presents an explicit unavailable state.
+The page performs no source acquisition, metric calculation, hidden fallback, or workspace write.
+All v0.7 UI source now uses Streamlit's `width` API; deprecated `use_container_width` calls have
+been removed without changing the legacy router's functional inventory.
 
 The candidate MAN-09 calibration library is a pure post-execution evaluator, not a SUMO launcher
 or raw-count conversion service. A versioned contract fixes source/scope/time/measure/unit,

@@ -4,8 +4,9 @@
 
 `src/traffictwin/integration/manchester/randy.py` gives v0.7 a read-only, fail-closed view of the
 accepted v0.6 `VEC-11` dissertation pack. It is a candidate library boundary; it does not mark
-`MAN-06` implemented and is not yet wired into the Manchester Operations UI or shared capability
-manifest.
+`MAN-06` implemented. Manchester Operations can render the verified report as an optional local,
+non-geographic case-study panel when `TRAFFICTWIN_RANDY_PACK_PATH` names the accepted pack. The
+bridge remains outside the geographic map and does not change the shared capability manifest.
 
 The bridge is deliberately narrow. It supports a non-geographic Randy/TOS case-study panel using
 only material already permitted and accepted for repository/dissertation use. The public-source
@@ -85,6 +86,20 @@ assert bridge.public_hosting_authorized is False
 ```
 
 The input path is operational only and is never written into the report or its fingerprint.
+
+## Local Manchester Operations panel
+
+Set the pack path before starting Streamlit:
+
+```bash
+export TRAFFICTWIN_RANDY_PACK_PATH="$PWD/docs/reference/generated/vec_dissertation_pack"
+```
+
+Manchester Operations then shows the three approved sanitised rows, all available and unavailable
+aggregate states, the reviewed commits/citations, fingerprints, and mandatory limitations. The
+page does not display or persist the configured filesystem path. The panel is deliberately
+separate from the geographic scene: it has no layer selector, map points, freshness badge, live
+claim, canonical projection, or public-export action.
 
 ## Verification
 

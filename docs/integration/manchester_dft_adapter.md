@@ -96,13 +96,14 @@ API on 2026-07-22 and are covered by the Crown copyright/Open Government Licence
 recorded beside the fixtures. Their decoded SHA-256 values are pinned and tested. They are schema
 evidence only, not representative data or dissertation results.
 
-## Open points for Gate B real-source acceptance
+## Residual points after the minimal real-source probe
 
 1. Confirm nullability across a deliberately selected bounded sample; the current nullable set is
    a conservative fail-closed contract and the three minimal rows are all complete.
 2. `GA-DFT-1` (hour timezone) remains open; hour values stay local clock labels.
-3. Source-specific acquisition still has to be wired through MAN-01 before the capability can be
-   marked implemented.
+3. The controlled acquisition and accepted-replay path has passed the exact three-row real-source
+   probe recorded in [the Gate-B probe report](manchester_dft_gate_b_probe.md), but full Manchester
+   bulk/load acceptance and the common MAN-01 integrating gate remain open.
 
 ## Test evidence
 

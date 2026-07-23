@@ -44,6 +44,11 @@ from traffictwin.integration.manchester.acquisition import (
     ManchesterHttpSnapshotParts,
     snapshot_parts_from_http_response,
 )
+from traffictwin.integration.manchester.archive import (
+    ArchivePolicy,
+    ManchesterArchiveError,
+    decompress_gzip,
+)
 from traffictwin.integration.manchester.bods import (
     MAX_SIRI_BYTES,
     BodsAdapterError,
@@ -129,6 +134,13 @@ _BACKOFF_BASE_S = 0.2
 _BACKOFF_MAX_S = 1.0
 _ALLOWED_MEDIA_TYPES = ("application/xml", "text/xml")
 _AUTHENTICATED_FETCH_LOCK = RLock()
+_BODS_GZIP_POLICY = ArchivePolicy(
+    max_compressed_bytes=MAX_SIRI_BYTES,
+    max_decompressed_bytes=MAX_SIRI_BYTES,
+    max_member_bytes=MAX_SIRI_BYTES,
+    max_members=1,
+    max_compression_ratio=200.0,
+)
 
 
 class BodsAcquisitionError(RuntimeError):
@@ -826,10 +838,23 @@ def _parse_quarantined_feed(
             "quarantined SIRI-VM member hash drifted",
             quarantine_snapshot_id=manifest.snapshot_id,
         )
+    if manifest.http is None:
+        raise BodsAcquisitionError(
+            "SOURCE_CONTRACT_MISMATCH",
+            "the BODS snapshot requires bounded HTTP metadata",
+            quarantine_snapshot_id=manifest.snapshot_id,
+        )
+    content_encoding = manifest.http.response_content_encoding
+    parser_payload = decode_bods_http_payload(
+        payload,
+        content_encoding=content_encoding,
+    )
     ref = BodsMemberRef(
         snapshot_id=manifest.snapshot_id,
         member_path=member.relative_path,
         member_sha256=member.sha256,
+        content_encoding="gzip" if content_encoding == "gzip" else "identity",
+        parser_payload_sha256=(sha256_hex(parser_payload) if content_encoding == "gzip" else None),
         synthetic=manifest.synthetic,
     )
     scope = BodsParseScope(
@@ -838,10 +863,40 @@ def _parse_quarantined_feed(
         bounding_box=bounding_box,
     )
     try:
-        return parse_bods_siri_vm((ref, payload), scope)
+        return parse_bods_siri_vm((ref, parser_payload), scope)
     except BodsAdapterError as exc:
         raise BodsAcquisitionError(
             "PARSE_INTEGRITY",
             f"the MAN-05 parser refused the quarantined member ({exc.code})",
             quarantine_snapshot_id=manifest.snapshot_id,
+        ) from exc
+
+
+def decode_bods_http_payload(
+    payload: bytes,
+    *,
+    content_encoding: Literal["gzip", "deflate"] | None,
+) -> bytes:
+    """Decode verified HTTP content only after its raw bytes are quarantined.
+
+    The bounded transport validates the encoded stream while retaining the
+    exact wire bytes. BODS currently returns gzip content, so the adapter must
+    preserve those bytes as raw evidence and separately produce bounded XML
+    bytes for the parser. Deflate is not part of the audited BODS fixture and
+    therefore fails closed rather than gaining an unaudited decoder here.
+    """
+
+    if content_encoding is None:
+        return payload
+    if content_encoding != "gzip":
+        raise BodsAcquisitionError(
+            "CONTENT_ENCODING_REJECTED",
+            "the BODS adapter admits identity or bounded gzip content only",
+        )
+    try:
+        return decompress_gzip(payload, policy=_BODS_GZIP_POLICY)
+    except ManchesterArchiveError as exc:
+        raise BodsAcquisitionError(
+            "CONTENT_DECODING_FAILED",
+            "the quarantined BODS gzip response failed bounded decoding",
         ) from exc

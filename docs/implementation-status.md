@@ -80,11 +80,49 @@ snapshot members. Official documentation and three minimal OGL-attributed exact 
 Manchester's DfT authority ID at `85`, require AADF row IDs, and confirm the API's decimal-string
 coordinate/link representation and vehicle-total identities. A controlled DfT acquisition
 candidate now composes the bounded transport, quarantine, exact parser, and atomic promotion
-boundaries; its offline replay is bound to the exact source ID, endpoint, anonymous Manchester
+boundaries; its quarantine replay is bound to the exact source ID, endpoint, anonymous Manchester
 query, licence, and sequential page inventory. Mixed snapshots/evidence classes,
 non-standard JSON, schema drift, broken hashes, out-of-scope rows, and inconsistent totals fail
-closed. This remains candidate Gate-B evidence only: no real-network acceptance run has passed,
-the raw-count hour timezone remains unresolved, and MAN-02 therefore remains planned.
+closed. A shared accepted-snapshot replay boundary additionally requires an isolated v0.7
+workspace and rebinds the accepted receipt, exact request/policy/inventory, every stored member,
+and the reproduced parser report before any downstream DfT service consumes it. A bounded local
+catalogue can now verify, classify, and reopen accepted DfT snapshots by safe ID without requiring
+the original in-memory acquisition result; it refuses unsafe entries and reconciles exact
+per-dataset inventory counts. This remains
+candidate Gate-B evidence only. A bounded real-source probe on 23 July 2026 passed the three
+minimal audited cases (raw count `43177`, count point `6046`, AADF `9219`): each real response was
+quarantined, parsed, promoted, and reproduced from accepted storage with exact report/count
+reconciliation. The machine record and limits are in
+`docs/integration/manchester_dft_gate_b_probe.md`. This is not a full Manchester bulk/load test;
+the raw-count hour timezone, source rate-limit policy, and SLA remain unresolved, and MAN-02
+therefore remains planned.
+
+An offline DfT count-point-to-scene bridge now re-verifies an accepted count-point snapshot,
+reproduces the MAN-02 parser report, refuses raw-count/AADF relabelling and duplicate count-point
+identities, and sends every preserved dual-coordinate record through MAN-07. It emits one
+source-separated MAN-08 reference layer with complete available/partial/unavailable reconciliation
+in historical or latest-available scenes. It contains no raw counts, AADF values, inferred UTC
+time, live-road claim, or publication-class upgrade. Synthetic offline tests pass, while real-source
+layer replay now admits the minimal audited count point with zero spatial exclusions. Full scene
+publication and complete real-source acceptance remain outstanding; `MAN-02`, `MAN-07`, and
+`MAN-08` remain planned.
+
+A deterministic DfT historical survey-view candidate now derives exact count-point, direction,
+date, local-clock-hour, and vehicle-class options from one non-rejected raw-count parser report. An
+explicit fingerprint-bound query selects one audited vehicle-class source field and preserves one
+output per matching source row. It refuses unknown/duplicate/unsorted inputs and oversized output,
+keeps null separate from zero, returns honest empty intersections, and can re-derive a persisted
+view against its source report. Its accepted-snapshot entry points use the shared offline replay
+boundary and refuse unmarked workspaces, receipt/byte drift, and non-raw-count datasets. A later
+session can now build the same options and view directly from a catalogue snapshot ID. UTC
+timestamps, timezone, continuous-series status, speed, AADF,
+aggregation, canonical replay, and SUMO demand remain structurally unavailable. Synthetic tests
+pass, and the minimal real raw-count receipt now reproduces one exact present-value survey view
+without UTC promotion. Manchester Operations now exposes one accepted raw-count snapshot through
+source-supported count-point, direction, date, local-clock-hour, and vehicle-class controls, with
+discrete grouped bars and a missingness-preserving source-row table. `GA-DFT-1`, full
+Manchester/bulk and browser accessibility acceptance, and a reviewed calibration profile remain
+open, so `MAN-02` and `MAN-08` remain planned.
 
 A controlled WebTRIS acquisition candidate now composes the same bounded transport, immutable
 quarantine, exact MAN-03 parser, warning-code admission, and atomic promotion boundaries for site,
@@ -94,18 +132,58 @@ inventory, and evidence class before parsing. Promoted and replay receipts valid
 product/request/source identity and the promoted receipt binds its exact JSON member inventory and
 raw fingerprint. WebTRIS remains historical strategic-road evidence; retrieval time cannot become
 observation time, source-empty intervals remain missing, and quality remains data availability
-rather than accuracy. The official daily fixture closes `GA-WT-2` for that exact parser surface;
-`GA-WT-1`, `GA-WT-3`, and `GA-WT-5` retain their audited scopes. No real-network acquisition
-acceptance run has passed, so `MAN-03` remains planned.
+rather than accuracy. The official daily fixture closes `GA-WT-2` for that exact parser surface. A
+controlled real-source vertical on 23 July 2026 additionally accepted site `34`, its complete
+`2026-03-01` daily report, and daily quality after preserving and bounded-decoding the service's
+gzip wire bytes. The report retained eight missing intervals plus `LENGTH_TOTAL_MISMATCH` and
+`MISSING_INTERVAL_MEASUREMENTS` warnings. `GA-WT-1`, `GA-WT-3`, and `GA-WT-5` retain their audited
+scopes; this narrow run is not full provider acceptance, so `MAN-03` remains planned.
+
+A bounded accepted WebTRIS catalogue now lets later local processes discover and reopen safe
+WebTRIS snapshot IDs without retaining the original in-memory acquisition result. It verifies the
+isolated v0.7 workspace, generic accepted receipt, exact source/request/licence contract, member
+inventory, and immutable bytes. Site and daily-report products reproduce the current MAN-03 parser
+and stored finding inventory; daily-report scope uses the one source-reported site name in its
+bounded pages. Historical daily-quality snapshots remain visible but explicitly report parser
+scope unavailable because neither their response nor the generic request manifest preserves the
+caller-supplied site name included by the current report fingerprint. The catalogue performs no
+network access, invents no name, and accepts no capability; `MAN-03` remains planned.
+
+An offline WebTRIS site-to-scene bridge now re-verifies one accepted site snapshot, reproduces the
+MAN-03 parser report, and requires the response to contain exactly the site ID selected by the
+audited endpoint before MAN-07 spatial admission. Each site becomes a distinct attributed MAN-08
+strategic-road reference layer in historical or latest-available scenes. The bridge never attaches
+daily measurements to site coordinates, promotes WebTRIS source strings to UTC, claims live road
+traffic, fuses scopes, or upgrades the accepted publication class. Its synthetic acceptance suite
+passes offline. The same controlled site `34` run now produces an accepted latest-available site
+layer, but does not establish live-road coverage, timezone semantics, or multi-site acceptance, so
+`MAN-03` and `MAN-08` remain planned.
+
+A separate offline WebTRIS historical-timeseries boundary now re-verifies accepted snapshots or
+quarantine replay receipts for complete daily reports and optional daily-quality artifacts. It
+replays the exact MAN-03 parser, binds source scope and immutable bytes, preserves all 96 source
+intervals, keeps source-empty measurements missing, and exposes only site/date/measurement-state
+and availability filters plus non-aggregated chart series. WebTRIS clock strings remain
+`source_string_undeclared`; quality remains data availability rather than accuracy; direction is
+not decoded from site names. Persisted artifacts can be reproduced against their original
+workspace evidence with a dedicated verifier. A receipt-free path now reopens accepted daily
+snapshots by safe ID and the historical Manchester page exposes one exact site-day through local
+measurement-state filters and separate non-aggregated volume/speed charts. Missing values remain
+gaps and accepted quality remains unreported when its stored scope cannot be replayed. The offline
+suite passes, and the controlled site-day now replays in the local chart boundary with missing
+values preserved. Timezone resolution, browser accessibility acceptance, and broad capability
+acceptance remain open; `MAN-03` and `MAN-08` remain planned.
 
 A controlled TfGM signal acquisition candidate now binds the audited static ZIP endpoint to the
 shared bounded transport, immutable quarantine-before-decompression boundary, bounded archive
 inspection, exact MAN-04 CSV parser, warning-code admission, and atomic promotion. The full archive
 remains private; the shipped attribution, selected-member hashes/sizes, complete archive inventory,
 parser reconciliation, and embedded generic snapshot receipts are retained and internally bound.
-Offline replay performs no network access and reports parser rejection through a typed error. No
-real-network acceptance run has passed and future overwritten releases deliberately fail their
-pinned identity checks, so `MAN-01` and `MAN-04` remain planned.
+Offline replay performs no network access and reports parser rejection through a typed error. A
+controlled real-source run on 23 July 2026 matched the audited ZIP/CSV hashes, admitted all 2,529
+rows with zero spatial exclusions, and corrected the frozen attribution to the exact two-space
+wording shipped in the ZIP. Future overwritten releases deliberately fail their pinned identity
+checks; full Gate-B reconciliation is still open, so `MAN-01` and `MAN-04` remain planned.
 
 The candidate `MAN-07` foundation now includes an explicit UTC analysis-window/time-projection
 contract, a unified source freshness/truth-state service, and a source-specific road-observation
@@ -140,25 +218,42 @@ retaining the prior scene. The BODS live workflow reuses the same file boundary,
 scene modes share one path/size/symlink/atomicity implementation. A local TfGM vertical bridge now
 re-verifies an accepted signal acquisition and immutable ZIP, reproduces the MAN-04 parser report,
 spatially admits its static locations, retains private/OGL/attribution semantics, and can populate
-the latest scene without network access or any phase/timing/count/live claim. An additive, opt-in
+the latest scene without network access or any phase/timing/count/live claim. A DfT bridge
+re-verifies accepted count-point pages, refuses measurement-product relabelling and duplicate
+point identities, and publishes Manchester reference points with complete coordinate-exclusion
+reconciliation. A separate WebTRIS bridge re-verifies accepted selected-site responses, enforces
+selected/returned site identity, and publishes site-specific strategic-road reference layers in
+historical or latest scenes without joining daily values or inventing timezone/live semantics. An
+additive, opt-in
 Manchester
 Operations page now
 loads only a fixed, bounded `ManchesterMapScene` below the configured v0.7 workspace, rejects
 escaped/symlinked/oversized/invalid/cross-mode artifacts, caches only local validated scenes, and
 renders admitted points through a no-basemap PyDeck `TextLayer`. It provides the three required
-mode labels, layer pills, source-specific reconciliation cards, visible scope/attribution, and
-disabled MAN-09/MAN-10 actions with exact prerequisite wording. In Live vehicles mode, an explicit
-form can now perform one controlled BODS request using an environment-only credential and an
-operator-declared bounding box, re-verify the accepted private XML, admit privacy-safe bus
-positions through MAN-07, and atomically publish the fixed local live-vehicle scene. Ordinary
-reruns perform no acquisition, failures preserve the prior scene, stale positions remain separate,
-and the UI structurally declares road-traffic live state and public export unavailable. The package
-now directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. No real-key Gate B
-acceptance, general live-road evidence, accepted Bee Network membership, boundary
-artifact, accepted real-source historical/latest publication, interval/site/direction/vehicle-class
-filter service, compatible traffic chart,
-minimum-version rerun of this new page, or complete browser/mobile/accessibility acceptance exists,
-so `MAN-05` and `MAN-08` remain planned.
+mode labels, layer pills, exact geographic-scope and freshness-state display filters,
+source-specific accepted/displayed/hidden/excluded reconciliation, visible scope/attribution, and
+disabled MAN-09/MAN-10 actions with exact prerequisite wording. Filters validate against the
+selected local layers and never change evidence, fill missing records, or produce a cross-source
+total. In Live vehicles mode, an explicit form can now perform one controlled BODS request using an
+environment-only credential and an operator-declared bounding box, re-verify the accepted private
+XML, admit privacy-safe bus positions through MAN-07, and atomically publish the fixed local
+live-vehicle scene. Ordinary reruns perform no acquisition, failures preserve the prior scene,
+stale positions remain separate, and the UI structurally declares road-traffic live state and
+public export unavailable. A controlled real BODS probe on 23 July 2026 accepted 1,565 scoped
+transit observations, classified 304 as live and 1,261 as stale under the strict 60-second rule,
+and published the private local scene. The probe also recorded official-profile gaps rather than
+inventing values: 836 missing bearings, 25 missing block references, and 1,553 framed journey
+references in place of direct `VehicleJourneyRef`. Raw gzip wire bytes remain immutable and both
+raw and decoded hashes are bound. This passes the local fetch-to-scene slice but does not settle
+retention, Bee membership, registration terms, or complete Gate-B acceptance. The package now
+directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. Historical and latest modes
+now add explicit, bounded source forms: selected DfT raw/count-point/AADF rows; one WebTRIS
+site/day/quality set; and the pinned TfGM signal archive. Their 23 July 2026 controlled runs
+populate source-separated local scenes and catalogues, while ordinary reruns remain offline and a
+broken scene-path symlink fails closed. General live-road evidence, accepted Bee Network
+membership, an accepted boundary artifact, broad/multi-site real-source acceptance,
+minimum-version rerun of this new page, and complete browser/mobile/accessibility acceptance remain
+outstanding, so `MAN-05` and `MAN-08` remain planned.
 
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.
@@ -172,6 +267,16 @@ baseline availability are structurally false. No real calibration, uncertainty/a
 temporal-profile builder, baseline acceptance artifact, or SUMO launch exists, so `MAN-09` remains
 planned.
 
+The existing `MAN-06` permission-safe Randy/TOS bridge is now available in Manchester Operations
+as an explicit opt-in local case-study panel. It re-verifies the accepted VEC-11 pack and renders
+only the three sanitised rows, admitted/unavailable aggregate states, reviewed citations,
+fingerprints, and mandatory limitations. It neither enters the geographic scene nor acquires raw
+TOS evidence; coordinates, simulation clocks, source identities, physical completion, confirmed
+targets, per-task energy, live/fresh state, canonical Manchester projection, and public hosting
+remain structurally unavailable. UI tests prove an unset or invalid pack fails closed and that the
+configured private path is not rendered. `MAN-06` and `MAN-08` remain planned pending their full
+acceptance gates.
+
 The candidate `MAN-10` comparison foundation now binds one observed source, geographic scope,
 time basis, exact interval duration, measure/unit, weighting, missingness, duplicate policy,
 per-side denominator and minimum coverage, precision, and interpretation in a versioned contract.
@@ -181,6 +286,19 @@ cross-source/scope/time-basis/duration aggregation. Ambient Decimal context cann
 canonical output; numerically equal Decimal duplicates collapse; DfT raw-count speed is
 structurally unavailable; and missing rows never become zero. The reviewed production-contract
 registry remains empty, so all real MAE/RMSE values stay unavailable and `MAN-10` remains planned.
+
+The candidate `MAN-11` research-lineage foundation now records a fixed, path-free source-to-result
+graph from a MAN-01 snapshot through MAN-07 projection, MAN-09 mapping/calibration, controlled SUMO,
+and VEC-06–VEC-12. It admits only an exact contiguous stage prefix, binds every downstream artifact
+to its immediate parent's fingerprint, preserves one synthetic/observed classification, and
+materialises the first missing artifact plus all upstream-blocked stages rather than hiding gaps.
+Reload re-derives the stage and edge inventories, capability ownership, evidence labels, counts,
+source snapshot inventory, and graph fingerprint. The builder performs no execution or verification
+of artifact bytes, and even a complete graph structurally leaves domain validity, causality, public
+export, capability acceptance, canonical-infrastructure identity, and Randy-policy validity for
+Manchester false. No accepted Manchester baseline, controlled Manchester SUMO receipt, matching
+one-second FCD/network pair, full VEC-06–VEC-12 Manchester chain, or research/usability evaluation
+exists, so `MAN-11` remains planned.
 
 A candidate `REL-01` foundation now provides a separately marked
 v0.7 workspace, distinct registry/cache namespaces, immutable source inspection, and a byte-exact
@@ -214,7 +332,18 @@ checks render all 34 direct paths without a Streamlit exception and pass direct 
 Home-to-Guided navigation, and back/forward history after correcting callback-based page switching
 to run at normal top-level script execution.
 
-No current page may call a Manchester source live, no source adapter is accepted, and no
+The opt-in v0.7 router now renders a focused `UX-02` home while the default legacy router retains
+the complete v0.6 home. The v0.7 entry point leads with the approved research task, three primary
+actions, meaningful local evidence/run/comparison indicators, and either the accepted local
+latest-available Manchester map scene or an honest bounded empty state. It presents the next
+evidence/run/compare actions and source-specific road/bus/infrastructure limits without leading
+with the full capability table. A separate `UX-03` migration removes every deprecated
+`use_container_width` call from `src/traffictwin/ui` and uses the reviewed `width` API instead.
+These are candidate UI slices only; screenshot, mobile, accessibility, complete browser, and final
+cutover acceptance remain outstanding, so `UX-02` and `UX-03` remain planned.
+
+Only the explicit operator-submitted BODS form may call a Manchester source; ordinary page reruns
+and every other Manchester page remain local/import-first. No source adapter is accepted, and no
 observation may be used as a SUMO baseline until its v0.7 gate passes. BODS remains bus evidence,
 DfT remains historical survey/statistical evidence, WebTRIS remains strategic-road evidence, TfGM
 signals remain infrastructure reference data, and Randy artifacts retain every v0.6 limit.

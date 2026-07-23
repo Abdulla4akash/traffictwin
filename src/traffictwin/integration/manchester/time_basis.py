@@ -362,7 +362,6 @@ def _require_utc(value: datetime, label: str) -> None:
 
 
 def _timedelta_seconds(value: timedelta) -> Decimal:
-    return (
-        Decimal(value.days * 86_400 + value.seconds)
-        + Decimal(value.microseconds) / Decimal(1_000_000)
+    return Decimal(value.days * 86_400 + value.seconds) + Decimal(value.microseconds) / Decimal(
+        1_000_000
     )

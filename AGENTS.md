@@ -39,6 +39,31 @@ As the project evolves, update:
 
 ## v0.7 Work Coordination
 
+### Active parallel ownership grant: Claude UI presentation Phase 1
+
+- Claude owns advisory presentation groundwork for `UX-01`–`UX-03` on
+  `claude/ui-redesign`, forked from the first pushed lead v0.7 integration commit after
+  `c2160999c6c66ab3b871b2ebd0ef6645a1ee6952` that records this grant. This grant does not accept a
+  gate or permit any capability-status change.
+- The exclusive Phase 1 file set is `.streamlit/config.toml`,
+  `src/traffictwin/ui/theme.py`, `src/traffictwin/ui/tables.py`, every tracked source file under
+  `src/traffictwin/ui/components/`, and new tests named
+  `tests/unit/ui/test_components_*.py` or `tests/unit/ui/test_tables_display.py`.
+- Existing public functions, imports, arguments, and return shapes in the claimed presentation
+  modules must remain backward compatible because lead-owned in-flight pages consume them. New
+  display models and helpers may be additive; removing or renaming an existing API requires a new
+  lead review.
+- Claude must not edit `src/traffictwin/ui/app.py`, either navigation module,
+  `src/traffictwin/ui/manchester_operations.py`, any file under `src/traffictwin/ui/pages/`, any
+  existing test outside the exact new-test allowance, `pyproject.toml`, `uv.lock`, integration or
+  CLI code, shared project records, generated references, documentation indexes, changelog, or
+  this `AGENTS.md` file.
+- If the branch was created earlier, it must be rebased onto that pushed integration commit before
+  work continues. Merge is conditional on focused component tests, existing UI tests, the full
+  relevant unit suite, light- and dark-theme smoke checks, and lead review of the complete branch
+  diff. Phase 2 page or navigation work requires a fresh disjointness check and a separate
+  ownership grant.
+
 - Use `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, `REL-01`, and Gates A–F from the v0.7 design as units of
   ownership. Record the capability and files owned before editing; agents sharing one checkout
   must use disjoint file sets.

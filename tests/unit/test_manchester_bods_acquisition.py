@@ -8,6 +8,7 @@ asserted explicitly.
 
 from __future__ import annotations
 
+import gzip
 import json
 import logging
 import socket
@@ -139,14 +140,18 @@ def make_transport(
     calls: list[tuple[str, str, dict[str, str]]],
     status: int = 200,
     content_type: str = "application/xml",
+    content_encoding: str | None = None,
 ) -> httpx.MockTransport:
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append((request.url.host, request.url.path, dict(request.url.params)))
         if status != 200:
             return httpx.Response(status)
+        headers = {"content-type": content_type}
+        if content_encoding is not None:
+            headers["content-encoding"] = content_encoding
         return httpx.Response(
             200,
-            headers={"content-type": content_type},
+            headers=headers,
             stream=httpx.ByteStream(payload),
         )
 
@@ -170,12 +175,17 @@ def acquire(
     calls: list[tuple[str, str, dict[str, str]]] | None = None,
     status: int = 200,
     content_type: str = "application/xml",
+    content_encoding: str | None = None,
     api_key: str = API_KEY,
 ) -> BodsAcquisitionResult:
     recorded = calls if calls is not None else []
     with httpx.Client(
         transport=make_transport(
-            payload if payload is not None else siri_xml(), recorded, status, content_type
+            payload if payload is not None else siri_xml(),
+            recorded,
+            status,
+            content_type,
+            content_encoding,
         )
     ) as raw_client:
         return acquire_bods_snapshot(
@@ -185,6 +195,37 @@ def acquire(
             http_client=raw_client,
             utc_now=make_clock(),
         )
+
+
+def test_gzip_wire_bytes_are_preserved_then_decoded_after_quarantine(tmp_path: Path) -> None:
+    raw_xml = siri_xml()
+    encoded = gzip.compress(raw_xml, mtime=0)
+
+    result = acquire(
+        tmp_path,
+        make_request(),
+        payload=encoded,
+        content_encoding="gzip",
+    )
+
+    accepted_member = tmp_path / "accepted" / result.snapshot_id / "raw" / BODS_FEED_MEMBER_PATH
+    assert accepted_member.read_bytes() == encoded
+    assert result.quarantine_manifest.http is not None
+    assert result.quarantine_manifest.http.response_content_encoding == "gzip"
+    assert result.feed_sha256 == sha256_hex(encoded)
+    assert result.records_accepted == 2
+
+    replayed = replay_bods_quarantine(
+        tmp_path,
+        result.snapshot_id,
+        replay_request(),
+    )
+    # Replay intentionally uses an ``offline_replay`` parse scope, so its full
+    # report fingerprint differs from the live acquisition report even though
+    # both validate the same decoded payload and reconcile the same records.
+    assert replayed.feed_sha256 == result.feed_sha256
+    assert replayed.records_accepted == result.records_accepted
+    assert replayed.parser_status == result.parser_status
 
 
 def workspace_dirs(workspace: Path, area: str) -> list[Path]:

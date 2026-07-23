@@ -36,9 +36,7 @@ def basis(
 
 def test_utc_instant_projects_to_exact_relative_seconds() -> None:
     window = basis()
-    source = UtcInstantTime(
-        observed_at_utc=datetime(2026, 7, 22, 12, 15, 30, 125000, tzinfo=UTC)
-    )
+    source = UtcInstantTime(observed_at_utc=datetime(2026, 7, 22, 12, 15, 30, 125000, tzinfo=UTC))
     projection = project_source_time(source, window)
     assert projection.status == "admitted"
     assert projection.reason == "utc_instant_in_window"
@@ -127,9 +125,7 @@ def test_time_basis_requires_explicit_utc_start_anchor_and_positive_window() -> 
     with pytest.raises(ValidationError, match="explicitly UTC"):
         basis(start=start.replace(tzinfo=None))
     with pytest.raises(ValidationError, match="explicitly UTC"):
-        UtcInstantTime(
-            observed_at_utc=start.astimezone(timezone(timedelta(hours=1)))
-        )
+        UtcInstantTime(observed_at_utc=start.astimezone(timezone(timedelta(hours=1))))
 
 
 def test_spring_forward_missing_london_hour_is_nonexistent() -> None:

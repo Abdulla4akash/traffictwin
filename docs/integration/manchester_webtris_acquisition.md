@@ -94,18 +94,56 @@ The saved acquisition and replay results repeat those bindings: product, request
 endpoint, evidence class, inventory, and count constraints validate again on reload. The
 acquisition result also recomputes its raw fingerprint from the exact member inventory.
 
+## Accepted-snapshot catalogue and later-session replay
+
+`open_accepted_webtris_snapshot(workspace, snapshot_id)` reopens a safe accepted
+snapshot ID without requiring the ephemeral `WebtrisAcquisitionResult` returned
+by the original process. It requires an isolated v0.7 workspace, re-verifies
+the generic snapshot receipt, manifest, policy, inventory, and every member
+hash, and rebinds the exact WebTRIS product, endpoint, query parameters,
+licence, attribution, and evidence class.
+
+For `site` snapshots, the opener requires exactly one source record whose ID
+matches the selected endpoint. For `daily_report`, it discovers one exact
+source-reported site name from the already bounded, re-hashed page set and then
+replays the complete MAN-03 parser with the site ID/date/page-size scope stored
+by the request manifest. Both products require the current parser status and
+complete finding inventory to reproduce the accepted manifest.
+
+The historical `daily_quality` acceptance shape has one explicit limitation:
+its response contains site ID/date/availability but no site name, while the
+current MAN-03 quality report fingerprint also includes the caller-supplied
+`site_name`; that name was not written into the generic request manifest.
+Consequently, the catalogue verifies and inventories those bytes but reports
+`parser_replay_state="scope_unavailable"`, null parser counts/fingerprint, and
+`site_name_basis="not_present_in_product"`. It does not invent a name or claim
+to reproduce the original parser report. A later reviewed join can bind the
+quality artifact to source-reported daily evidence for the same site/date.
+
+`catalogue_accepted_webtris_snapshots(workspace)` scans only the three
+WebTRIS-prefixed accepted directory families, caps the inventory at 512,
+verifies every candidate, ignores unrelated source snapshots, refuses unsafe
+or symlinked entries, and returns sorted summaries with exact per-product and
+parser-replay-availability counts. It performs no network access and creates
+no files, making it the discovery boundary for later local processes and a
+thin historical-evidence UI.
+
 ## Failure behaviour
 
 | Situation | Code | Durable evidence |
 |---|---|---|
 | Transport failure / HTTP rejection / oversized response | `TRANSPORT_FAILURE` | none — incomplete, nothing published |
 | Body fails the bounded row-count peek | `PAGINATION_PEEK_FAILED` | none |
+| Content encoding is not identity or gzip / bounded decode fails | `CONTENT_ENCODING_REJECTED` / `CONTENT_DECODING_FAILED` | quarantine retained when already complete |
 | Later page disagrees with page 1 | `PAGINATION_DRIFT` | none |
 | Reported pages / combined bytes exceed bounds | `PAGE_LIMIT_EXCEEDED` / `TOTAL_BYTES_EXCEEDED` | none |
 | Parser rejects (schema drift, scope mismatch, malformed rows) | `PARSE_REJECTED` | complete quarantine retained |
 | Warning code outside the admitted set | `WARNINGS_REFUSED` | complete quarantine retained |
 | Quarantined bytes drift | `QUARANTINE_INVALID` / snapshot-service `MEMBER_MUTATED` | quarantine preserved |
 | Replay claim disagrees with manifest | `PRODUCT_MISMATCH` / `SOURCE_CONTRACT_MISMATCH` / `SCOPE_MISMATCH` / `SYNTHETIC_MISMATCH` | quarantine preserved |
+| Accepted snapshot ID/path/member is unsafe or drifted | `SNAPSHOT_ID_INVALID` / `ACCEPTED_SNAPSHOT_INVALID` | accepted evidence unchanged |
+| Accepted product scope or validation cannot reproduce | `ACCEPTED_SCOPE_MISMATCH` / `ACCEPTED_VALIDATION_MISMATCH` | accepted evidence unchanged |
+| WebTRIS accepted inventory exceeds 512 | `ACCEPTED_CATALOGUE_LIMIT` | accepted evidence unchanged |
 | Same acquisition repeated | snapshot-service `DESTINATION_EXISTS` | prior snapshots unchanged |
 
 Existing accepted snapshots are never replaced; a post-success failing rerun leaves the accepted
@@ -135,7 +173,19 @@ refusal; historical/strategic-road/timezone and quality-as-availability boundari
 disabled during replay with deterministic fingerprints; and official-fixture replay for all three
 products with pinned SHA-256 values and no download.
 
-Validation commands (run 2026-07-22): the focused pytest file, the full
+`tests/unit/test_manchester_webtris_catalogue.py` adds six offline tests for
+empty and mixed-product catalogues, socket-disabled opening, exact site and
+daily-report replay, explicit daily-quality scope unavailability, safe-ID and
+symlink refusal, unrelated-source isolation, the fixed catalogue bound,
+persisted-count reconciliation, same-size accepted-byte tampering, and v0.7
+workspace isolation, plus exact multi-page warning/finding reproduction.
+
+The controlled 23 July 2026 run additionally proved the provider's gzip path. Exact compressed
+wire bytes remain the immutable raw member; bounded decoded JSON carries a separate parser-payload
+hash. Site `34`, its `2026-03-01` report, and quality response were accepted and reproduced. The
+daily report retained 96 intervals, eight missing measurements, and two explicit warning codes.
+
+Validation commands (updated 2026-07-23): the focused pytest files, the full
 `tests/unit/test_manchester_*.py` suite, `ruff check`/`ruff format --check`, and strict `mypy`
 over the two owned Python files, plus `git diff --check` — all passing at handoff.
 
@@ -147,9 +197,10 @@ over the two owned Python files, plus `git diff --check` — all passing at hand
 - `GA-WT-5` records that no API rate-limit statement was found; acquisition therefore retains its
   conservative self-imposed request and retry bounds.
 - The official Gate-B daily fixture closes `GA-WT-2` for the supported daily parser surface only.
-- No real-network acceptance run was performed; the announced 2026 WebTRIS interruption makes
-  the lead's early real-fixture capture advice in the Gate A audit stand.
+- One narrow real-network site/day/quality run passed; it does not establish current-day
+  availability, multi-site coverage, source SLA, or a source timezone. A 22 July 2026 request
+  failed closed while the announced interruption was in effect.
 - MAN-01 v1 stores one `http` metadata block per snapshot (first response); page identity, bytes,
   and hashes cover the rest of the inventory.
-- `MAN-01` and `MAN-03` remain `planned`; exports, generated schemas, and documentation are now
-  reconciled, but real-source acquisition acceptance still gates any capability claim.
+- `MAN-01` and `MAN-03` remain `planned`; the narrow vertical is not complete source/capability
+  acceptance.

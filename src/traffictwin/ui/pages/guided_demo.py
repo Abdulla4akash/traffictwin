@@ -70,21 +70,21 @@ def render(config: UiConfig) -> None:
         disabled=current_index == 0,
         on_click=_move_stage,
         args=(-1, len(steps)),
-        use_container_width=True,
+        width="stretch",
     )
     navigation_button(
         open_col.button,
         f"Open {step.target_page.value}",
         step.target_page,
         kind="primary",
-        use_container_width=True,
+        width="stretch",
     )
     next_col.button(
         "Next stage",
         disabled=current_index == len(steps) - 1,
         on_click=_move_stage,
         args=(1, len(steps)),
-        use_container_width=True,
+        width="stretch",
     )
 
 

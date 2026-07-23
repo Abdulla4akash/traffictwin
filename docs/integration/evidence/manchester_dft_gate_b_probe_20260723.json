@@ -1,0 +1,161 @@
+{
+  "schema_version": "traffictwin.manchester.dft-gate-b-probe.v1",
+  "design_version": "0.7",
+  "capability_id": "MAN-02",
+  "capability_status_after_probe": "planned",
+  "outcome": "accepted_with_scoped_blockers",
+  "probe_started_at_utc": "2026-07-23T19:22:19Z",
+  "probe_completed_at_utc": "2026-07-23T19:22:19.872523Z",
+  "source_host": "roadtraffic.dft.gov.uk",
+  "source_authentication": "anonymous",
+  "transport": "BoundedHttpClient",
+  "workspace_kind": "traffictwin_v0_7",
+  "publication_class": "redistributable_raw",
+  "synthetic": false,
+  "git": {
+    "branch": "codex/traffictwin-v0.7",
+    "head_before_probe": "c2160999c6c66ab3b871b2ebd0ef6645a1ee6952",
+    "working_tree_clean": false
+  },
+  "implementation_files": [
+    {
+      "path": "src/traffictwin/integration/manchester/dft.py",
+      "sha256": "115523d6eeb4dc04f61a1c20106b5d19e8776668abb5aea44b5d2b6b224892d5"
+    },
+    {
+      "path": "src/traffictwin/integration/manchester/dft_acquisition.py",
+      "sha256": "c2122c80c8d7462ea571a830d3e9bec4b5e7b1c1dc266e94654eeaa0e9e5eccf"
+    },
+    {
+      "path": "src/traffictwin/integration/manchester/dft_scene.py",
+      "sha256": "6c32f1adddf30b05ffbf985f9f3fadbb809f93845c061c18ddcfb9978be9046f"
+    },
+    {
+      "path": "src/traffictwin/integration/manchester/dft_survey_view.py",
+      "sha256": "2da23cad5dc80f838a63c3305a3771ab1448f6467909fb92c4fb1bae4f4d19f7"
+    },
+    {
+      "path": "src/traffictwin/integration/manchester/snapshots.py",
+      "sha256": "7db6ef07d495546afbecdce8a8fc1ff82b72ec76d256674b6f2ad48642de0d59"
+    },
+    {
+      "path": "src/traffictwin/integration/manchester/transport.py",
+      "sha256": "b24d57cffd4d9ba9137136975573d4a17217e84741119edb81664b739d9ce64d"
+    }
+  ],
+  "request_policy": {
+    "filter_local_authority_id": 85,
+    "page_size": 1,
+    "max_pages": 2,
+    "max_rows": 2,
+    "max_member_count": 2,
+    "max_member_bytes": 2000000,
+    "max_total_bytes": 2000000,
+    "accept_with_warnings": false
+  },
+  "results": [
+    {
+      "dataset": "raw_counts",
+      "endpoint_path": "/api/raw-counts",
+      "filter_id": 43177,
+      "snapshot_id": "dft_raw_counts-20260723T192219Z-8d0ecd32ae42",
+      "member_path": "pages/page-0001.json",
+      "member_bytes": 1550,
+      "member_sha256": "8cb77b7a0a38d0c8c805c779d565ef225c3b209ae3dcfd322c41ee21cf4cd5b1",
+      "raw_fingerprint": "8d0ecd32ae4268ab2d67700fe3721c363257eb436f26b850fb9219eda082e5fd",
+      "parser_status": "accepted",
+      "rows_seen": 1,
+      "records_accepted": 1,
+      "parser_report_fingerprint": "070adec1dd333e14d330f2e07106d62999799bc86a52fd473d952ee67591dc24",
+      "accepted_replay_fingerprint": "070adec1dd333e14d330f2e07106d62999799bc86a52fd473d952ee67591dc24",
+      "snapshot_receipt_fingerprint": "b72b7238fffb6c59afbbe3d88bfdc90e770f23189a517e7c0db78c500bb577f4",
+      "retained_fixture": "tests/fixtures/manchester/dft/raw-count-43177.json.b64",
+      "retained_fixture_payload_sha256": "06869d2d3ff2606a719bd043bcf8f3e30ad7fca17df1084c12598912c4a56c22",
+      "retained_fixture_row_equal": true
+    },
+    {
+      "dataset": "count_points",
+      "endpoint_path": "/api/count-points",
+      "filter_id": 6046,
+      "snapshot_id": "dft_count_points-20260723T192219Z-5216605b6b3d",
+      "member_path": "pages/page-0001.json",
+      "member_bytes": 1184,
+      "member_sha256": "791e83ce53e22663be6b7579396d2c952628831590414c662eb648b7512c48ed",
+      "raw_fingerprint": "5216605b6b3d5fa70fea86ea6f043aaebd42e617dfc6df6310ee4ab3b147ba48",
+      "parser_status": "accepted",
+      "rows_seen": 1,
+      "records_accepted": 1,
+      "parser_report_fingerprint": "f40c1a461f47e72326d58d48df73d78797d7041c84d031932ddbfd6ed5370bad",
+      "accepted_replay_fingerprint": "f40c1a461f47e72326d58d48df73d78797d7041c84d031932ddbfd6ed5370bad",
+      "snapshot_receipt_fingerprint": "f85e7f2c2362a56085db79698e5c77268c80fe65edc6e0db2c93f8e4cb8eddb2",
+      "retained_fixture": "tests/fixtures/manchester/dft/count-point-6046.json.b64",
+      "retained_fixture_payload_sha256": "525250e7df43cbd8738e841fccf1d3b1a2787c229f87c6dd7d00ca019c122635",
+      "retained_fixture_row_equal": true
+    },
+    {
+      "dataset": "aadf",
+      "endpoint_path": "/api/average-annual-daily-flow",
+      "filter_id": 9219,
+      "snapshot_id": "dft_aadf-20260723T192219Z-2e8840a9f493",
+      "member_path": "pages/page-0001.json",
+      "member_bytes": 1634,
+      "member_sha256": "5ee7918bc580f307573f18300580c9d14ab1d7ab16c3302e656d69b3733600e9",
+      "raw_fingerprint": "2e8840a9f4933e330793cfa20c93c567a02cfc8d6a1991ba82085987d236d360",
+      "parser_status": "accepted",
+      "rows_seen": 1,
+      "records_accepted": 1,
+      "parser_report_fingerprint": "cc821472ff572551f5b16b7829b781affaddf6e2f0e46245dd4d8d38347dda5a",
+      "accepted_replay_fingerprint": "cc821472ff572551f5b16b7829b781affaddf6e2f0e46245dd4d8d38347dda5a",
+      "snapshot_receipt_fingerprint": "0df59b20ae30d06a1c70969d7da60167103dd72ef4f9c57887746ff4ca46e744",
+      "retained_fixture": "tests/fixtures/manchester/dft/aadf-9219.json.b64",
+      "retained_fixture_payload_sha256": "d46e8c8fa29dbf72b3cd974a5dc6349fb8750e32e6758aad91b8b588cb4571a5",
+      "retained_fixture_row_equal": true
+    }
+  ],
+  "reconciliation": {
+    "all_responses_promoted_after_quarantine": true,
+    "all_parser_statuses_accepted": true,
+    "all_counts_reconcile_one_to_one": true,
+    "all_accepted_replay_fingerprints_match": true,
+    "all_retained_fixture_rows_equal": true,
+    "envelope_difference_explained": "The live requests add the mandatory Manchester local-authority filter to pagination URLs; retained fixture row objects and field sets are unchanged."
+  },
+  "downstream_replay": {
+    "raw_count_survey_view": {
+      "filter_options_record_count": 1,
+      "selected_records": 1,
+      "values_present": 1,
+      "values_missing": 0,
+      "time_basis": "local_clock_hour",
+      "utc_timestamps_available": false,
+      "view_fingerprint": "11a54278158c2ac338c010a047691386020436da03f7702251f853c2b87d52b2"
+    },
+    "count_point_layer": {
+      "spatial_admitted": 1,
+      "spatial_excluded": 0,
+      "layer_status": "available",
+      "public_export_available": true,
+      "layer_summary_fingerprint": "613262cefd44ab18ac2ad373c94b2349bdc011a1b2fcb59832131de32652d11c"
+    },
+    "accepted_catalogue": {
+      "snapshot_count": 3,
+      "raw_counts": 1,
+      "count_points": 1,
+      "aadf": 1,
+      "network_access_performed": false
+    }
+  },
+  "raw_bytes_committed_by_probe": false,
+  "limitations": [
+    "The live accepted workspace was temporary and is not a distributable repository artifact.",
+    "This probe covers the exact three minimal audited row IDs, not a full Manchester bulk synchronisation.",
+    "DfT raw-count hour timezone remains undocumented; no UTC instant or cross-source time alignment is admitted.",
+    "No published DfT rate-limit policy or service SLA was discovered; conservative client limits remain self-imposed.",
+    "A successful source response does not by itself accept the common MAN-01 service or complete MAN-02."
+  ],
+  "open_blockers": [
+    "GA-DFT-1",
+    "GA-DFT-2",
+    "GA-DFT-3"
+  ]
+}

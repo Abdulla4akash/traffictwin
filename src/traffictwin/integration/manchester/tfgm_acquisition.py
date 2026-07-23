@@ -260,10 +260,10 @@ class _TfgmReceiptBase(ManchesterSnapshotModel):
     dataset_version: Literal["nov-2025-jan-2026-release"] = "nov-2025-jan-2026-release"
     licence_id: Literal["OGL-v3.0"] = "OGL-v3.0"
     attribution_text: Literal[
-        "Contains Transport for Greater Manchester data. Contains OS data © Crown "
+        "Contains Transport for Greater Manchester data.  Contains OS data © Crown "
         "copyright and database right 2026."
     ] = (
-        "Contains Transport for Greater Manchester data. Contains OS data © Crown "
+        "Contains Transport for Greater Manchester data.  Contains OS data © Crown "
         "copyright and database right 2026."
     )
     publication_class: Literal["private"] = "private"

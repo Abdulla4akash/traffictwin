@@ -14,6 +14,7 @@ from traffictwin.integration.manchester.xml import (
 )
 
 SIRI_NAMESPACE = "http://www.siri.org.uk/siri"
+XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
 
 def _policy(**updates: object) -> XmlPolicy:
@@ -79,6 +80,34 @@ def test_parser_rejects_wrong_root_or_namespace() -> None:
     payload = f'<Siri xmlns="{SIRI_NAMESPACE}"><Other xmlns="https://unexpected.test"/></Siri>'
     with pytest.raises(ManchesterXmlError, match="element namespace"):
         parse_xml(payload.encode(), policy=_policy())
+
+
+def test_parser_separates_element_and_attribute_namespace_admission() -> None:
+    payload = (
+        f'<Siri xmlns="{SIRI_NAMESPACE}" xmlns:xsi="{XSI_NAMESPACE}" '
+        'xsi:schemaLocation="synthetic-location"><ServiceDelivery/></Siri>'
+    ).encode()
+    result = parse_xml(
+        payload,
+        policy=_policy(
+            allowed_attribute_namespaces=(SIRI_NAMESPACE, XSI_NAMESPACE),
+        ),
+    )
+    assert result.element_count == 2
+
+    with pytest.raises(ManchesterXmlError, match="attribute namespace"):
+        parse_xml(payload, policy=_policy(allowed_attribute_namespaces=(SIRI_NAMESPACE,)))
+
+    xsi_element = (
+        f'<Siri xmlns="{SIRI_NAMESPACE}" xmlns:xsi="{XSI_NAMESPACE}"><xsi:Other/></Siri>'
+    ).encode()
+    with pytest.raises(ManchesterXmlError, match="element namespace"):
+        parse_xml(
+            xsi_element,
+            policy=_policy(
+                allowed_attribute_namespaces=(SIRI_NAMESPACE, XSI_NAMESPACE),
+            ),
+        )
 
 
 @pytest.mark.parametrize(

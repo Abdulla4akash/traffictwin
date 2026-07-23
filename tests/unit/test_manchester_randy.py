@@ -42,15 +42,10 @@ def test_checked_in_vec11_pack_loads_as_bounded_case_study() -> None:
 def test_bridge_preserves_both_reviewed_repository_citations() -> None:
     bridge = report()
     assert [citation.repository for citation in bridge.citations] == ["tos-data", "vec_env"]
-    assert bridge.citations[0].reviewed_commit == (
-        "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff"
-    )
-    assert bridge.citations[1].reviewed_commit == (
-        "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4"
-    )
+    assert bridge.citations[0].reviewed_commit == ("f6c67acbed3360dba3a0d5c8d1fd557caa99ecff")
+    assert bridge.citations[1].reviewed_commit == ("068b4ea33e640f206ce6a7d04f3d6fae2ac831f4")
     assert all(
-        citation.reviewed_commit[:12] in citation.citation_text
-        for citation in bridge.citations
+        citation.reviewed_commit[:12] in citation.citation_text for citation in bridge.citations
     )
 
 

@@ -63,7 +63,12 @@ absent consumer rate-limit policy (`GA-BODS-3`) and the 10-second consumer cache
 The exact response bytes are published to MAN-01 quarantine before any XML is touched —
 enforced structurally through `quarantine_validate_and_promote` and proven by a test that
 intercepts the parser and asserts the quarantined feed and manifest already exist on disk. The
-parser re-reads and re-hashes the member, then applies the hardened XML boundary (DTDs,
+parser re-reads and re-hashes the member. Identity responses pass directly to parsing; a declared
+`gzip` response is decoded only at this point through the shared bounded decompressor. The raw
+wire-member SHA-256 and the decoded parser-payload SHA-256 are both bound into parser lineage, so
+decoding never replaces or weakens the preserved evidence. The unaudited `deflate` encoding and
+malformed/oversized/compression-bomb gzip streams fail closed. The parser then applies the
+hardened XML boundary (DTDs,
 entities, external references, wrong roots, and oversized documents all fail closed as
 `PARSE_REJECTED` with the quarantine retained).
 
@@ -140,7 +145,7 @@ A transport failure is a typed failure — never zero buses and never stale-as-l
 
 ## Test evidence
 
-`tests/unit/test_manchester_bods_acquisition.py` (22 tests, all offline via
+`tests/unit/test_manchester_bods_acquisition.py` (all automated cases offline via
 `httpx.MockTransport`, injected deterministic clocks, clearly labelled synthetic SIRI-VM XML):
 exact allowlisted request with key transmission through the secret channel only; key absence
 from canonical JSON, all four persisted artifacts, error strings, and DEBUG-level captured logs;
@@ -152,7 +157,8 @@ quarantine-before-parse interception proof; promotion with bus-only/retention li
 of hard-coded BN\* codes from the module source; code-specific warning admission in both
 directions; malformed XML, DTD/entity, wrong-root, and activity schema-drift refusals with
 quarantine retained; accepted-snapshot byte-identity after failed reruns and new-only repeat
-refusal; sockets-disabled deterministic replay that never promotes and never relabels live;
+refusal; raw gzip preservation plus post-quarantine bounded decoding; sockets-disabled
+deterministic replay that never promotes and never relabels live;
 replay refusal of altered scope/filters, foreign source, publication relabelling, missing and
 extra redacted names, freshness-policy relabelling, and evidence-class mismatch; raw `VehicleRef`
 absence from receipts,
@@ -173,7 +179,9 @@ passing.
   decision), `GA-BODS-3` (consumer rate limits), `GA-BODS-6` (registration terms), and the
   design §18.2 retention/display/export contract all remain open; Bee Network membership and
   public export stay unavailable here until they close.
-- No real-network acceptance run was performed; Gate B real-source acceptance (with a real key,
-  outside this task) remains lead-owned.
+- A controlled real-source probe on 23 July 2026 passed the fetch, quarantine, gzip decoding,
+  parser, promotion, privacy-safe projection, and local-scene publication slice. Its exact safe
+  evidence is recorded in [the BODS Gate-B probe](manchester_bods_gate_b_probe.md). This does not
+  close the retention, membership, terms, or complete Gate-B acceptance blockers.
 - `MAN-01` and `MAN-05` remain `planned`; lead reconciliation (exports, generated schemas, docs
   index, capability truth) still gates any claim.

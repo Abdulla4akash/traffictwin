@@ -119,9 +119,36 @@ retained official fixtures (see the [DfT adapter guide](manchester_dft_adapter.m
 pass through this validation path from locally built quarantines without any
 download, pinned to their recorded SHA-256 values.
 
+`load_accepted_dft_report(workspace, acquisition)` is the separate downstream
+read boundary for promoted evidence. It first requires a valid isolated v0.7
+workspace, re-validates the supplied `DftAcquisitionResult`, verifies the
+accepted snapshot receipt and every member hash, and binds the manifest to the
+exact dataset, request filters, page size, policy, prior link, publication
+class, licence, attribution, validation state, and evidence class. It then
+replays the same MAN-02 parser and requires the report fingerprint and counts
+to reproduce the acquisition receipt exactly. The function performs no HTTP
+request and is shared by DfT map and survey-view services, so those consumers
+do not implement their own weaker accepted-snapshot readers.
+
+For later local sessions that no longer hold the in-memory acquisition result,
+`open_accepted_dft_snapshot(workspace, snapshot_id)` derives the dataset from
+the verified source identity and reproduces the exact parser report using only
+the accepted manifest, receipt, and immutable members. It additionally
+requires the stored validation state and complete finding inventory to match
+the replayed parser result. It returns a strict
+`DftAcceptedSnapshotSummary` plus the verified manifest, receipt, and report;
+it does not reconstruct or invent an acquisition request.
+
+`catalogue_accepted_dft_snapshots(workspace)` discovers only DfT-prefixed
+accepted directories, verifies and replays every candidate, ignores unrelated
+source snapshots, refuses unsafe entries, and caps the inventory at 512. The
+result contains sorted unique summaries and exact raw-count/count-point/AADF
+counts. It performs no network access and creates no files, making it the
+bounded discovery boundary for a later thin UI.
+
 ## Test evidence
 
-`tests/unit/test_manchester_dft_acquisition.py` (22 tests, all offline via
+`tests/unit/test_manchester_dft_acquisition.py` (27 tests, all offline via
 `httpx.MockTransport` and injected deterministic clocks): exact allowlisted
 request per endpoint; immutable Manchester identity (85/E08000003);
 host/path/URL/query injection refusal; deterministic pagination, ordering, and
@@ -134,7 +161,11 @@ accepted snapshot byte-identical; schema drift quarantined but never promoted;
 malformed JSON and pagination drift publishing nothing; hash-mutation
 detection; synthetic/real and replay-dataset mismatch refusal; repeat-acquisition overwrite
 refusal; socket-disabled replay; and official-fixture replay with pinned
-hashes.
+hashes. The accepted-snapshot path additionally proves socket-disabled exact
+report reproduction, request-drift refusal, and v0.7 workspace isolation.
+Catalogue coverage includes empty and mixed-product workspaces, offline
+opening by snapshot ID, unrelated-source isolation, path-shape and symlink
+refusal, fixed inventory bounds, and tampered count reconciliation.
 
 Focused validation commands (run 2026-07-22):
 
@@ -158,5 +189,7 @@ Focused validation commands (run 2026-07-22):
   page numbers are recoverable from the member inventory.
 - `GA-DFT-1` (raw-count hour timezone) remains open; nothing here fabricates
   UTC instants.
-- No real-network acceptance run has been performed by this increment; the
-  lead's Gate B real-source acceptance still gates any capability claim.
+- The [minimal real-source probe](manchester_dft_gate_b_probe.md) passes the
+  three exact audited row IDs through acquisition and accepted replay. It is
+  not a full Manchester bulk/load acceptance and does not by itself change
+  capability truth.

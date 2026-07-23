@@ -31,20 +31,29 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
-from collections.abc import Callable
+import stat
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import Literal, Self, TypeAlias
 
 import httpx
-from pydantic import Field, model_validator
+from pydantic import Field, ValidationError, model_validator
 
 from traffictwin.integration.manchester.acquisition import (
     ManchesterHttpSnapshotParts,
     snapshot_parts_from_http_response,
 )
+from traffictwin.integration.manchester.archive import (
+    ArchivePolicy,
+    ManchesterArchiveError,
+    decompress_gzip,
+)
 from traffictwin.integration.manchester.models import (
+    MANIFEST_FILE_NAME,
     QUARANTINE_MANIFEST_FILE_NAME,
     RAW_DIRECTORY_NAME,
     ManchesterPriorRelation,
@@ -57,6 +66,7 @@ from traffictwin.integration.manchester.models import (
     ManchesterSnapshotManifest,
     ManchesterSnapshotModel,
     ManchesterSnapshotPolicy,
+    ManchesterSnapshotReceipt,
     ManchesterSourceIdentity,
     ManchesterValidationState,
     build_raw_fingerprint,
@@ -64,9 +74,13 @@ from traffictwin.integration.manchester.models import (
     sha256_hex,
 )
 from traffictwin.integration.manchester.snapshots import (
+    ACCEPTED_DIRECTORY_NAME,
+    MAX_MANIFEST_FILE_BYTES,
     QUARANTINE_DIRECTORY_NAME,
+    ManchesterSnapshotError,
     quarantine_validate_and_promote,
     verify_manchester_quarantine,
+    verify_manchester_snapshot,
 )
 from traffictwin.integration.manchester.transport import (
     BoundedHttpClient,
@@ -75,6 +89,7 @@ from traffictwin.integration.manchester.transport import (
     TransportPolicy,
 )
 from traffictwin.integration.manchester.webtris import (
+    MAX_MEMBER_BYTES,
     MAX_REPORT_PAGES,
     WEBTRIS_DAILY_QUALITY_PATH,
     WEBTRIS_DAILY_REPORT_PATH,
@@ -89,9 +104,13 @@ from traffictwin.integration.manchester.webtris import (
     parse_webtris_daily_report,
     parse_webtris_site,
 )
+from traffictwin.release.compatibility import V07WorkspaceError, inspect_v07_workspace
 
 WEBTRIS_ACQUISITION_SCHEMA_VERSION = "1.0"
 WEBTRIS_ACQUISITION_METHOD_VERSION = "manchester-webtris-acquisition-1.0"
+WEBTRIS_ACCEPTED_CATALOGUE_SCHEMA_VERSION = "1.0"
+WEBTRIS_ACCEPTED_CATALOGUE_METHOD_VERSION = "manchester-webtris-accepted-catalogue-1.0"
+WEBTRIS_ACCEPTED_CATALOGUE_MAX_SNAPSHOTS = 512
 WEBTRIS_SITES_PATH_PREFIX = "/api/v1.0/sites"
 
 # The WebTRIS privacy-policy page names the Open Government Licence without a
@@ -158,6 +177,14 @@ _BACKOFF_BASE_S = 0.2
 _BACKOFF_MAX_S = 2.0
 _ALLOWED_MEDIA_TYPES = ("application/json",)
 
+_WEBTRIS_GZIP_POLICY = ArchivePolicy(
+    max_compressed_bytes=MAX_MEMBER_BYTES,
+    max_decompressed_bytes=MAX_MEMBER_BYTES,
+    max_member_bytes=MAX_MEMBER_BYTES,
+    max_members=1,
+    max_compression_ratio=200.0,
+)
+
 _EARLIEST_REPORT_DATE = date(1990, 1, 1)
 _LATEST_REPORT_DATE = date(2100, 12, 31)
 
@@ -166,9 +193,10 @@ class WebtrisAcquisitionError(RuntimeError):
     """Typed deterministic acquisition/replay failure.
 
     ``quarantine_snapshot_id`` is set when complete raw evidence exists in
-    quarantine (rejected parse, refused warnings, replay mismatch); it is
-    ``None`` when the acquisition never became complete, in which case nothing
-    durable was published.
+    quarantine (rejected parse, refused warnings, replay mismatch).
+    ``accepted_snapshot_id`` is set only for a refusal while reopening
+    promoted evidence. Both are ``None`` when acquisition never became
+    complete, in which case nothing durable was published.
     """
 
     def __init__(
@@ -177,10 +205,14 @@ class WebtrisAcquisitionError(RuntimeError):
         message: str,
         *,
         quarantine_snapshot_id: str | None = None,
+        accepted_snapshot_id: str | None = None,
     ) -> None:
         super().__init__(f"{code}: {message}")
+        if quarantine_snapshot_id is not None and accepted_snapshot_id is not None:
+            raise ValueError("an acquisition error cannot label one snapshot twice")
         self.code = code
         self.quarantine_snapshot_id = quarantine_snapshot_id
+        self.accepted_snapshot_id = accepted_snapshot_id
 
 
 class WebtrisAcquisitionRequest(ManchesterSnapshotModel):
@@ -373,6 +405,168 @@ class WebtrisReplayResult(ManchesterSnapshotModel):
         return self
 
 
+class WebtrisAcceptedProductCounts(ManchesterSnapshotModel):
+    """Exact product inventory for one verified local WebTRIS catalogue."""
+
+    site: int = Field(ge=0)
+    daily_report: int = Field(ge=0)
+    daily_quality: int = Field(ge=0)
+    parser_reproduced: int = Field(ge=0)
+    parser_scope_unavailable: int = Field(ge=0)
+
+    @property
+    def total(self) -> int:
+        return self.site + self.daily_report + self.daily_quality
+
+    @model_validator(mode="after")
+    def validate_counts(self) -> Self:
+        if self.total != self.parser_reproduced + self.parser_scope_unavailable:
+            raise ValueError("product totals must reconcile parser replay availability")
+        return self
+
+
+class WebtrisAcceptedSnapshotSummary(ManchesterSnapshotModel):
+    """Verified local identity and replay state of one accepted WebTRIS snapshot."""
+
+    schema_version: Literal["1.0"] = "1.0"
+    capability_id: Literal["MAN-03"] = "MAN-03"
+    method_version: Literal["manchester-webtris-accepted-catalogue-1.0"] = (
+        "manchester-webtris-accepted-catalogue-1.0"
+    )
+    product: WebtrisProduct
+    source_id: WebtrisSourceId
+    endpoint_path: str
+    site_id: str = Field(pattern=_SITE_ID_PATTERN)
+    site_name: str | None = Field(default=None, min_length=1, max_length=500)
+    site_name_basis: Literal["source_record", "not_present_in_product"]
+    report_date: date | None = None
+    page_size: int | None = Field(default=None, ge=1, le=96)
+    snapshot_id: str = Field(pattern=_SNAPSHOT_ID_PATTERN)
+    raw_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    manifest_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    snapshot_receipt_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    retrieval_started_at_utc: datetime
+    retrieval_completed_at_utc: datetime
+    pages: int = Field(ge=1, le=MAX_REPORT_PAGES)
+    total_bytes: int = Field(ge=0)
+    stored_validation_state: ManchesterValidationState
+    parser_replay_state: Literal["reproduced", "scope_unavailable"]
+    parser_report_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    rows_seen: int | None = Field(default=None, ge=0)
+    records_accepted: int | None = Field(default=None, ge=0)
+    intervals_missing: int | None = Field(default=None, ge=0)
+    publication_class: ManchesterPublicationClass
+    licence_id: Literal["OGL"] = "OGL"
+    attribution_text: str
+    synthetic: bool
+    opened_offline: Literal[True] = True
+    observation_time_from_retrieval: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_summary(self) -> Self:
+        if self.source_id != _PRODUCT_SOURCE_IDS[self.product]:
+            raise ValueError("accepted summary source ID must match its WebTRIS product")
+        if self.endpoint_path != _endpoint_path(self.product, self.site_id):
+            raise ValueError("accepted summary endpoint must match its product and site")
+        if not self.snapshot_id.startswith(f"{self.source_id}-") or not self.snapshot_id.endswith(
+            f"-{self.raw_fingerprint[:12]}"
+        ):
+            raise ValueError("accepted summary snapshot ID must bind source and raw fingerprint")
+        if self.stored_validation_state is ManchesterValidationState.REJECTED:
+            raise ValueError("rejected validation state cannot enter the accepted catalogue")
+        if self.attribution_text != WEBTRIS_ATTRIBUTION_TEXT:
+            raise ValueError("accepted summary must retain the audited WebTRIS attribution")
+        parser_values = (
+            self.parser_report_fingerprint,
+            self.rows_seen,
+            self.records_accepted,
+            self.intervals_missing,
+        )
+        if self.parser_replay_state == "reproduced":
+            if not all(value is not None for value in parser_values):
+                raise ValueError("reproduced parser summaries require complete parser counts")
+        elif any(value is not None for value in parser_values):
+            raise ValueError("scope-unavailable summaries cannot claim a parser replay")
+        if (
+            self.records_accepted is not None
+            and self.rows_seen is not None
+            and self.records_accepted > self.rows_seen
+        ):
+            raise ValueError("accepted records cannot exceed parser rows seen")
+        if (
+            self.intervals_missing is not None
+            and self.records_accepted is not None
+            and self.intervals_missing > self.records_accepted
+        ):
+            raise ValueError("missing intervals cannot exceed accepted records")
+        if self.product == "site":
+            if (
+                self.site_name is None
+                or self.site_name_basis != "source_record"
+                or self.report_date is not None
+                or self.page_size is not None
+                or self.parser_replay_state != "reproduced"
+            ):
+                raise ValueError("site summaries must bind one source record and no daily scope")
+        elif self.product == "daily_report":
+            if (
+                self.site_name is None
+                or self.site_name_basis != "source_record"
+                or self.report_date is None
+                or self.page_size is None
+                or self.parser_replay_state != "reproduced"
+            ):
+                raise ValueError("daily-report summaries require complete source scope")
+        elif (
+            self.site_name is not None
+            or self.site_name_basis != "not_present_in_product"
+            or self.report_date is None
+            or self.page_size is not None
+            or self.parser_replay_state != "scope_unavailable"
+        ):
+            raise ValueError("daily-quality summaries must expose their missing name scope")
+        return self
+
+
+class WebtrisAcceptedSnapshotCatalogue(ManchesterSnapshotModel):
+    """Bounded deterministic inventory of verified accepted WebTRIS snapshots."""
+
+    schema_version: Literal["1.0"] = "1.0"
+    capability_id: Literal["MAN-03"] = "MAN-03"
+    method_version: Literal["manchester-webtris-accepted-catalogue-1.0"] = (
+        "manchester-webtris-accepted-catalogue-1.0"
+    )
+    snapshots: tuple[WebtrisAcceptedSnapshotSummary, ...]
+    counts: WebtrisAcceptedProductCounts
+    maximum_snapshots: Literal[512] = 512
+    network_access_performed: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_catalogue(self) -> Self:
+        keys = tuple(
+            (item.retrieval_started_at_utc, item.product, item.snapshot_id)
+            for item in self.snapshots
+        )
+        if keys != tuple(sorted(keys)) or len({item.snapshot_id for item in self.snapshots}) != len(
+            self.snapshots
+        ):
+            raise ValueError("accepted WebTRIS snapshots must be sorted with unique IDs")
+        expected = _accepted_product_counts(self.snapshots)
+        if self.counts != expected:
+            raise ValueError("catalogue counts must reconcile every accepted WebTRIS snapshot")
+        return self
+
+
+@dataclass(frozen=True, slots=True)
+class WebtrisAcceptedSnapshotLoad:
+    """Runtime-only verified accepted snapshot plus an available parser replay."""
+
+    summary: WebtrisAcceptedSnapshotSummary
+    manifest: ManchesterSnapshotManifest
+    receipt: ManchesterSnapshotReceipt
+    report: WebtrisSiteParseReport | WebtrisDailyParseReport | None
+
+
 def acquire_webtris_snapshot(
     workspace_root: str | Path,
     request: WebtrisAcquisitionRequest,
@@ -407,6 +601,7 @@ def acquire_webtris_snapshot(
         if request.product == "daily_report":
             expected_pages: int | None = None
             first_row_count: int | None = None
+            first_content_encoding: Literal["gzip", "deflate"] | None = None
             page_number = 1
             while True:
                 parts = _fetch(
@@ -416,7 +611,19 @@ def acquire_webtris_snapshot(
                     f"pages/page-{page_number:04d}.json",
                     page_number,
                 )
-                row_count = _peek_daily_row_count(parts.payload, page_number)
+                content_encoding = parts.http.response_content_encoding
+                if page_number == 1:
+                    first_content_encoding = content_encoding
+                elif content_encoding != first_content_encoding:
+                    raise WebtrisAcquisitionError(
+                        "PAGINATION_DRIFT",
+                        f"page {page_number} content encoding disagrees with page 1",
+                    )
+                peek_payload = decode_webtris_http_payload(
+                    parts.payload,
+                    content_encoding=content_encoding,
+                )
+                row_count = _peek_daily_row_count(peek_payload, page_number)
                 if expected_pages is None:
                     first_row_count = row_count
                     page_size = request.page_size
@@ -618,6 +825,498 @@ def replay_webtris_quarantine(
     )
 
 
+def open_accepted_webtris_snapshot(
+    workspace_root: str | Path,
+    snapshot_id: str,
+) -> WebtrisAcceptedSnapshotLoad:
+    """Open accepted WebTRIS evidence by safe ID without an ephemeral receipt.
+
+    Site and daily-report products are replayed completely. The quality
+    product is still inventoried and byte-verified, but its parser replay is
+    honestly unavailable because the accepted generic manifest does not
+    persist the ``site_name`` scope required by the current MAN-03 report
+    fingerprint and the quality response itself contains no site name.
+    """
+
+    workspace = _validated_accepted_workspace(workspace_root)
+    return _open_accepted_webtris_snapshot(workspace, snapshot_id)
+
+
+def catalogue_accepted_webtris_snapshots(
+    workspace_root: str | Path,
+) -> WebtrisAcceptedSnapshotCatalogue:
+    """Return a bounded offline inventory of accepted WebTRIS snapshots."""
+
+    workspace = _validated_accepted_workspace(workspace_root)
+    accepted_root = workspace / ACCEPTED_DIRECTORY_NAME
+    if not accepted_root.exists():
+        return WebtrisAcceptedSnapshotCatalogue(
+            snapshots=(),
+            counts=WebtrisAcceptedProductCounts(
+                site=0,
+                daily_report=0,
+                daily_quality=0,
+                parser_reproduced=0,
+                parser_scope_unavailable=0,
+            ),
+        )
+    if accepted_root.is_symlink() or not accepted_root.is_dir():
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_CATALOGUE_INVALID",
+            "the accepted snapshot root is not a safe local directory",
+        )
+    try:
+        candidates = tuple(
+            sorted(
+                entry
+                for entry in accepted_root.iterdir()
+                if entry.name.startswith(
+                    ("webtris_site-", "webtris_daily_report-", "webtris_daily_quality-")
+                )
+            )
+        )
+    except OSError as exc:
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_CATALOGUE_INVALID",
+            "the accepted snapshot root could not be inspected safely",
+        ) from exc
+    if len(candidates) > WEBTRIS_ACCEPTED_CATALOGUE_MAX_SNAPSHOTS:
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_CATALOGUE_LIMIT",
+            "the number of local WebTRIS snapshots exceeds the fixed catalogue bound",
+        )
+    opened = tuple(_open_accepted_webtris_snapshot(workspace, entry.name) for entry in candidates)
+    snapshots = tuple(
+        sorted(
+            (item.summary for item in opened),
+            key=lambda item: (
+                item.retrieval_started_at_utc,
+                item.product,
+                item.snapshot_id,
+            ),
+        )
+    )
+    return WebtrisAcceptedSnapshotCatalogue(
+        snapshots=snapshots,
+        counts=_accepted_product_counts(snapshots),
+    )
+
+
+def _accepted_product_counts(
+    snapshots: tuple[WebtrisAcceptedSnapshotSummary, ...],
+) -> WebtrisAcceptedProductCounts:
+    return WebtrisAcceptedProductCounts(
+        site=sum(item.product == "site" for item in snapshots),
+        daily_report=sum(item.product == "daily_report" for item in snapshots),
+        daily_quality=sum(item.product == "daily_quality" for item in snapshots),
+        parser_reproduced=sum(item.parser_replay_state == "reproduced" for item in snapshots),
+        parser_scope_unavailable=sum(
+            item.parser_replay_state == "scope_unavailable" for item in snapshots
+        ),
+    )
+
+
+def _validated_accepted_workspace(workspace_root: str | Path) -> Path:
+    try:
+        inspect_v07_workspace(workspace_root)
+    except V07WorkspaceError as exc:
+        raise WebtrisAcquisitionError(
+            "WORKSPACE_INVALID",
+            "accepted WebTRIS replay requires a valid isolated v0.7 workspace",
+        ) from exc
+    return Path(workspace_root).resolve(strict=True)
+
+
+def _open_accepted_webtris_snapshot(
+    workspace: Path,
+    snapshot_id: str,
+) -> WebtrisAcceptedSnapshotLoad:
+    if re.fullmatch(_SNAPSHOT_ID_PATTERN, snapshot_id) is None:
+        raise WebtrisAcquisitionError(
+            "SNAPSHOT_ID_INVALID",
+            "accepted WebTRIS snapshot ID has an invalid or unsafe shape",
+        )
+    accepted_dir = workspace / ACCEPTED_DIRECTORY_NAME / snapshot_id
+    try:
+        receipt = verify_manchester_snapshot(accepted_dir)
+        manifest = ManchesterSnapshotManifest.model_validate_json(
+            _read_bounded_regular_file(
+                accepted_dir / MANIFEST_FILE_NAME,
+                max_bytes=MAX_MANIFEST_FILE_BYTES,
+                code="ACCEPTED_SNAPSHOT_INVALID",
+                description="accepted WebTRIS manifest",
+                accepted_snapshot_id=snapshot_id,
+            )
+        )
+    except WebtrisAcquisitionError:
+        raise
+    except (ManchesterSnapshotError, ValidationError, OSError) as exc:
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_SNAPSHOT_INVALID",
+            "the accepted WebTRIS snapshot could not be re-verified",
+            accepted_snapshot_id=snapshot_id,
+        ) from exc
+
+    product = _accepted_product_from_source_id(manifest.source.source_id, snapshot_id)
+    site_id, report_date, page_size = _validate_accepted_manifest_contract(manifest, product)
+    members = _read_accepted_webtris_members(
+        accepted_dir,
+        manifest,
+        max_member_bytes=receipt.policy.max_member_bytes,
+    )
+    report: WebtrisSiteParseReport | WebtrisDailyParseReport | None
+    site_name: str | None
+    site_name_basis: Literal["source_record", "not_present_in_product"]
+    if product == "site":
+        try:
+            parsed_site = parse_webtris_site(members[0])
+        except WebtrisAdapterError as exc:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_PARSER_INTEGRITY",
+                "the accepted WebTRIS site bytes no longer pass the MAN-03 parser",
+                accepted_snapshot_id=snapshot_id,
+            ) from exc
+        if len(parsed_site.records) != 1 or parsed_site.records[0].site_id != site_id:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_SCOPE_MISMATCH",
+                "the accepted WebTRIS site response does not match its selected endpoint ID",
+                accepted_snapshot_id=snapshot_id,
+            )
+        report = parsed_site
+        site_name = parsed_site.records[0].name
+        site_name_basis = "source_record"
+    elif product == "daily_report":
+        if report_date is None:  # pragma: no cover - manifest contract invariant
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_SCOPE_MISMATCH",
+                "the accepted daily-report scope is incomplete",
+                accepted_snapshot_id=snapshot_id,
+            )
+        site_name = _discover_daily_report_site_name(members, snapshot_id)
+        scope = WebtrisDailyScope(
+            site_id=site_id,
+            site_name=site_name,
+            report_date=report_date,
+        )
+        try:
+            report = parse_webtris_daily_report(members, scope)
+        except WebtrisAdapterError as exc:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_PARSER_INTEGRITY",
+                "the accepted WebTRIS daily pages no longer pass the MAN-03 parser",
+                accepted_snapshot_id=snapshot_id,
+            ) from exc
+        site_name_basis = "source_record"
+    else:
+        report = None
+        site_name = None
+        site_name_basis = "not_present_in_product"
+
+    if report is not None:
+        if report.status is ManchesterValidationState.REJECTED:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_PARSER_REJECTED",
+                "a rejected WebTRIS parser report cannot be consumed as accepted evidence",
+                accepted_snapshot_id=snapshot_id,
+            )
+        findings_match = manifest.findings == _snapshot_findings(report)
+        if manifest.validation_state is not report.status or not findings_match:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_VALIDATION_MISMATCH",
+                "the accepted manifest does not reproduce the current WebTRIS validation result",
+                accepted_snapshot_id=snapshot_id,
+            )
+
+    summary = WebtrisAcceptedSnapshotSummary(
+        product=product,
+        source_id=_PRODUCT_SOURCE_IDS[product],
+        endpoint_path=_endpoint_path(product, site_id),
+        site_id=site_id,
+        site_name=site_name,
+        site_name_basis=site_name_basis,
+        report_date=report_date,
+        page_size=page_size,
+        snapshot_id=snapshot_id,
+        raw_fingerprint=manifest.raw_fingerprint,
+        manifest_fingerprint=manifest.fingerprint(),
+        snapshot_receipt_fingerprint=receipt.fingerprint(),
+        retrieval_started_at_utc=manifest.retrieval.started_at_utc,
+        retrieval_completed_at_utc=manifest.retrieval.completed_at_utc,
+        pages=manifest.member_count,
+        total_bytes=manifest.total_bytes,
+        stored_validation_state=manifest.validation_state,
+        parser_replay_state="scope_unavailable" if report is None else "reproduced",
+        parser_report_fingerprint=None if report is None else report.fingerprint(),
+        rows_seen=None if report is None else report.counts.rows_seen,
+        records_accepted=None if report is None else report.counts.records_accepted,
+        intervals_missing=None if report is None else report.counts.intervals_missing,
+        publication_class=manifest.publication_class,
+        attribution_text=manifest.attribution_text,
+        synthetic=manifest.synthetic,
+    )
+    return WebtrisAcceptedSnapshotLoad(
+        summary=summary,
+        manifest=manifest,
+        receipt=receipt,
+        report=report,
+    )
+
+
+def _accepted_product_from_source_id(source_id: str, snapshot_id: str) -> WebtrisProduct:
+    for product, accepted_source_id in _PRODUCT_SOURCE_IDS.items():
+        if source_id == accepted_source_id:
+            return product
+    raise WebtrisAcquisitionError(
+        "PRODUCT_MISMATCH",
+        "the accepted snapshot is not one of the audited WebTRIS products",
+        accepted_snapshot_id=snapshot_id,
+    )
+
+
+def _validate_accepted_manifest_contract(
+    manifest: ManchesterSnapshotManifest,
+    product: WebtrisProduct,
+) -> tuple[str, date | None, int | None]:
+    snapshot_id = manifest.snapshot_id
+    source = manifest.source
+    if (
+        source.source_id != _PRODUCT_SOURCE_IDS[product]
+        or source.adapter_version != WEBTRIS_ACQUISITION_METHOD_VERSION
+        or source.source_schema_version != WEBTRIS_ACQUISITION_SCHEMA_VERSION
+        or source.freshness_policy_version != WEBTRIS_FRESHNESS_POLICY_VERSION
+        or manifest.request.host != WEBTRIS_SOURCE_HOST
+        or manifest.request.redacted_parameter_names
+        or manifest.licence_id != WEBTRIS_LICENCE_ID
+        or manifest.attribution_text != WEBTRIS_ATTRIBUTION_TEXT
+    ):
+        raise WebtrisAcquisitionError(
+            "SOURCE_CONTRACT_MISMATCH",
+            "the accepted snapshot does not bind the audited WebTRIS source contract",
+            accepted_snapshot_id=snapshot_id,
+        )
+    if any(member.media_type != "application/json" for member in manifest.members):
+        raise WebtrisAcquisitionError(
+            "SOURCE_CONTRACT_MISMATCH",
+            "accepted WebTRIS members must retain their JSON media type",
+            accepted_snapshot_id=snapshot_id,
+        )
+
+    parameters = dict(manifest.request.parameters)
+    report_date: date | None = None
+    page_size: int | None = None
+    expected_paths: tuple[str, ...]
+    if product == "site":
+        matched = re.fullmatch(r"/api/v1\.0/sites/([1-9][0-9]{0,9})", manifest.request.path)
+        if matched is None or parameters:
+            raise WebtrisAcquisitionError(
+                "SCOPE_MISMATCH",
+                "accepted WebTRIS site scope does not match the audited endpoint",
+                accepted_snapshot_id=snapshot_id,
+            )
+        site_id = matched.group(1)
+        expected_paths = (_SINGLE_MEMBER_PATHS["site"],)
+    elif product == "daily_report":
+        if manifest.request.path != WEBTRIS_DAILY_REPORT_PATH or set(parameters) != {
+            "sites",
+            "start_date",
+            "end_date",
+            "page",
+            "page_size",
+        }:
+            raise WebtrisAcquisitionError(
+                "SCOPE_MISMATCH",
+                "accepted WebTRIS daily-report request scope is not exact",
+                accepted_snapshot_id=snapshot_id,
+            )
+        site_id = _accepted_site_id(parameters.get("sites"), snapshot_id)
+        report_date = _accepted_report_date(parameters, snapshot_id)
+        if parameters.get("page") != "1":
+            raise WebtrisAcquisitionError(
+                "SCOPE_MISMATCH",
+                "accepted WebTRIS daily-report pagination must start at page one",
+                accepted_snapshot_id=snapshot_id,
+            )
+        page_size = _bounded_decimal_parameter(
+            parameters.get("page_size"), 1, 96, snapshot_id, "page_size"
+        )
+        expected_paths = tuple(
+            f"pages/page-{page_number:04d}.json"
+            for page_number in range(1, manifest.member_count + 1)
+        )
+    else:
+        if manifest.request.path != WEBTRIS_DAILY_QUALITY_PATH or set(parameters) != {
+            "siteId",
+            "start_date",
+            "end_date",
+        }:
+            raise WebtrisAcquisitionError(
+                "SCOPE_MISMATCH",
+                "accepted WebTRIS daily-quality request scope is not exact",
+                accepted_snapshot_id=snapshot_id,
+            )
+        site_id = _accepted_site_id(parameters.get("siteId"), snapshot_id)
+        report_date = _accepted_report_date(parameters, snapshot_id)
+        expected_paths = (_SINGLE_MEMBER_PATHS["daily_quality"],)
+
+    if tuple(member.relative_path for member in manifest.members) != expected_paths:
+        raise WebtrisAcquisitionError(
+            "SOURCE_CONTRACT_MISMATCH",
+            "accepted WebTRIS member inventory does not match its product",
+            accepted_snapshot_id=snapshot_id,
+        )
+    return site_id, report_date, page_size
+
+
+def _accepted_site_id(value: object, snapshot_id: str) -> str:
+    if not isinstance(value, str) or re.fullmatch(_SITE_ID_PATTERN, value) is None:
+        raise WebtrisAcquisitionError(
+            "SCOPE_MISMATCH",
+            "accepted WebTRIS request carries an invalid site ID",
+            accepted_snapshot_id=snapshot_id,
+        )
+    return value
+
+
+def _accepted_report_date(parameters: Mapping[str, object], snapshot_id: str) -> date:
+    start = parameters.get("start_date")
+    end = parameters.get("end_date")
+    if start != end or not isinstance(start, str) or re.fullmatch(r"[0-9]{8}", start) is None:
+        raise WebtrisAcquisitionError(
+            "SCOPE_MISMATCH",
+            "accepted WebTRIS daily request must bind one exact source date",
+            accepted_snapshot_id=snapshot_id,
+        )
+    try:
+        parsed = datetime.strptime(start, "%d%m%Y").date()
+    except ValueError as exc:
+        raise WebtrisAcquisitionError(
+            "SCOPE_MISMATCH",
+            "accepted WebTRIS daily request date is invalid",
+            accepted_snapshot_id=snapshot_id,
+        ) from exc
+    if parsed.strftime("%d%m%Y") != start:
+        raise WebtrisAcquisitionError(
+            "SCOPE_MISMATCH",
+            "accepted WebTRIS daily request date is not canonical",
+            accepted_snapshot_id=snapshot_id,
+        )
+    return parsed
+
+
+def _bounded_decimal_parameter(
+    value: object,
+    minimum: int,
+    maximum: int,
+    snapshot_id: str,
+    name: str,
+) -> int:
+    parsed = -1 if not isinstance(value, str) or not value.isdigit() else int(value)
+    if not minimum <= parsed <= maximum:
+        raise WebtrisAcquisitionError(
+            "SCOPE_MISMATCH",
+            f"accepted WebTRIS request parameter {name!r} is outside its bound",
+            accepted_snapshot_id=snapshot_id,
+        )
+    return parsed
+
+
+def _read_accepted_webtris_members(
+    accepted_dir: Path,
+    manifest: ManchesterSnapshotManifest,
+    *,
+    max_member_bytes: int,
+) -> tuple[tuple[WebtrisMemberRef, bytes], ...]:
+    members: list[tuple[WebtrisMemberRef, bytes]] = []
+    for member in manifest.members:
+        payload = _read_bounded_regular_file(
+            accepted_dir / RAW_DIRECTORY_NAME / member.relative_path,
+            max_bytes=max_member_bytes,
+            expected_size=member.byte_size,
+            code="ACCEPTED_SNAPSHOT_INVALID",
+            description=f"accepted WebTRIS member {member.relative_path!r}",
+            accepted_snapshot_id=manifest.snapshot_id,
+        )
+        if sha256_hex(payload) != member.sha256:
+            raise WebtrisAcquisitionError(
+                "ACCEPTED_SNAPSHOT_INVALID",
+                f"accepted WebTRIS member {member.relative_path!r} changed after verification",
+                accepted_snapshot_id=manifest.snapshot_id,
+            )
+        parser_payload = decode_webtris_http_payload(
+            payload,
+            content_encoding=_manifest_content_encoding(manifest),
+        )
+        members.append(
+            (
+                _member_ref(
+                    manifest,
+                    member.relative_path,
+                    member.sha256,
+                    parser_payload=parser_payload,
+                ),
+                parser_payload,
+            )
+        )
+    return tuple(members)
+
+
+def _discover_daily_report_site_name(
+    members: tuple[tuple[WebtrisMemberRef, bytes], ...],
+    snapshot_id: str,
+) -> str:
+    """Discover only the source-reported name needed to replay the full parser."""
+
+    names: set[str] = set()
+    try:
+        for _reference, payload in members:
+            decoded = json.loads(
+                payload.decode("utf-8"),
+                parse_constant=lambda value: (_ for _ in ()).throw(
+                    ValueError(f"non-standard JSON constant {value!r}")
+                ),
+            )
+            if not isinstance(decoded, dict) or not isinstance(decoded.get("Rows"), list):
+                raise ValueError("daily envelope is not an object with Rows")
+            for row in decoded["Rows"]:
+                if not isinstance(row, dict):
+                    raise ValueError("daily row is not an object")
+                name = row.get("Site Name")
+                if not isinstance(name, str) or not name or name.strip() != name or len(name) > 120:
+                    raise ValueError("daily Site Name is invalid")
+                names.add(name)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError, RecursionError) as exc:
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_SCOPE_MISMATCH",
+            "the accepted daily report cannot reproduce one source-reported site name",
+            accepted_snapshot_id=snapshot_id,
+        ) from exc
+    if len(names) != 1:
+        raise WebtrisAcquisitionError(
+            "ACCEPTED_SCOPE_MISMATCH",
+            "the accepted daily report does not contain one source-reported site name",
+            accepted_snapshot_id=snapshot_id,
+        )
+    return next(iter(names))
+
+
+def _snapshot_findings(
+    report: WebtrisSiteParseReport | WebtrisDailyParseReport,
+) -> tuple[ManchesterSnapshotFinding, ...]:
+    return tuple(
+        ManchesterSnapshotFinding(
+            code=finding.code,
+            severity=finding.severity,
+            message=(
+                finding.message
+                if finding.row_index is None
+                else f"{finding.message} (row {finding.row_index})"
+            ),
+            artifact=finding.member_path,
+        )
+        for finding in report.findings
+    )
+
+
 def _endpoint_path(product: WebtrisProduct, site_id: str) -> str:
     if product == "site":
         return f"{WEBTRIS_SITES_PATH_PREFIX}/{site_id}"
@@ -730,15 +1429,15 @@ def _admit_or_raise(
 
 def _load_quarantine_manifest(quarantine_dir: Path) -> ManchesterQuarantineManifest:
     manifest_path = quarantine_dir / QUARANTINE_MANIFEST_FILE_NAME
-    if manifest_path.is_symlink() or not manifest_path.is_file():
-        raise WebtrisAcquisitionError(
-            "QUARANTINE_INVALID", "quarantine manifest is missing or unsafe"
+    return ManchesterQuarantineManifest.model_validate_json(
+        _read_bounded_regular_file(
+            manifest_path,
+            max_bytes=MAX_QUARANTINE_MANIFEST_BYTES,
+            code="QUARANTINE_INVALID",
+            description="quarantine manifest",
+            quarantine_snapshot_id=quarantine_dir.name,
         )
-    if manifest_path.stat().st_size > MAX_QUARANTINE_MANIFEST_BYTES:
-        raise WebtrisAcquisitionError(
-            "QUARANTINE_INVALID", "quarantine manifest exceeds its byte bound"
-        )
-    return ManchesterQuarantineManifest.model_validate_json(manifest_path.read_bytes())
+    )
 
 
 def _bind_replay_claim(
@@ -832,26 +1531,35 @@ def _parse_quarantined(
     members: list[tuple[WebtrisMemberRef, bytes]] = []
     for member in manifest.members:
         target = quarantine_dir / RAW_DIRECTORY_NAME / member.relative_path
-        if target.is_symlink() or not target.is_file():
-            raise WebtrisAcquisitionError(
-                "QUARANTINE_INVALID",
-                f"quarantined member {member.relative_path!r} is missing or unsafe",
-                quarantine_snapshot_id=manifest.snapshot_id,
-            )
-        if target.stat().st_size != member.byte_size:
-            raise WebtrisAcquisitionError(
-                "QUARANTINE_INVALID",
-                f"quarantined member {member.relative_path!r} size drifted",
-                quarantine_snapshot_id=manifest.snapshot_id,
-            )
-        payload = target.read_bytes()
+        payload = _read_bounded_regular_file(
+            target,
+            max_bytes=MAX_MEMBER_BYTES,
+            expected_size=member.byte_size,
+            code="QUARANTINE_INVALID",
+            description=f"quarantined member {member.relative_path!r}",
+            quarantine_snapshot_id=manifest.snapshot_id,
+        )
         if sha256_hex(payload) != member.sha256:
             raise WebtrisAcquisitionError(
                 "QUARANTINE_INVALID",
                 f"quarantined member {member.relative_path!r} hash drifted",
                 quarantine_snapshot_id=manifest.snapshot_id,
             )
-        members.append((_member_ref(manifest, member.relative_path, member.sha256), payload))
+        parser_payload = decode_webtris_http_payload(
+            payload,
+            content_encoding=_manifest_content_encoding(manifest),
+        )
+        members.append(
+            (
+                _member_ref(
+                    manifest,
+                    member.relative_path,
+                    member.sha256,
+                    parser_payload=parser_payload,
+                ),
+                parser_payload,
+            )
+        )
     try:
         if product == "site":
             if len(members) != 1:  # pragma: no cover - bound by replay binding
@@ -874,7 +1582,11 @@ def _parse_quarantined(
 
 
 def _member_ref(
-    manifest: ManchesterQuarantineManifest, relative_path: str, member_sha256: str
+    manifest: ManchesterQuarantineManifest | ManchesterSnapshotManifest,
+    relative_path: str,
+    member_sha256: str,
+    *,
+    parser_payload: bytes,
 ) -> WebtrisMemberRef:
     if relative_path == _SINGLE_MEMBER_PATHS["site"]:
         role: Literal["site", "daily_report", "daily_quality"] = "site"
@@ -892,11 +1604,128 @@ def _member_ref(
             )
         role = "daily_report"
         page_number = int(matched.group(1))
+    content_encoding = _manifest_content_encoding(manifest)
     return WebtrisMemberRef(
         snapshot_id=manifest.snapshot_id,
         member_path=relative_path,
         member_sha256=member_sha256,
+        content_encoding="gzip" if content_encoding == "gzip" else "identity",
+        parser_payload_sha256=(sha256_hex(parser_payload) if content_encoding == "gzip" else None),
         member_role=role,
         page_number=page_number,
         synthetic=manifest.synthetic,
     )
+
+
+def decode_webtris_http_payload(
+    payload: bytes,
+    *,
+    content_encoding: Literal["gzip", "deflate"] | None,
+) -> bytes:
+    """Decode verified WebTRIS wire bytes only after quarantine.
+
+    The bounded transport preserves the exact HTTP entity.  The official service
+    currently returns gzip content, so parser bytes are derived under a separate
+    decompression bound and bound into ``WebtrisMemberRef``.  Deflate remains
+    unaudited for this adapter and therefore fails closed.
+    """
+
+    if content_encoding is None:
+        return payload
+    if content_encoding != "gzip":
+        raise WebtrisAcquisitionError(
+            "CONTENT_ENCODING_REJECTED",
+            "the WebTRIS adapter admits identity or bounded gzip content only",
+        )
+    try:
+        return decompress_gzip(payload, policy=_WEBTRIS_GZIP_POLICY)
+    except ManchesterArchiveError as exc:
+        raise WebtrisAcquisitionError(
+            "CONTENT_DECODING_FAILED",
+            "the quarantined WebTRIS gzip response failed bounded decoding",
+        ) from exc
+
+
+def _manifest_content_encoding(
+    manifest: ManchesterQuarantineManifest | ManchesterSnapshotManifest,
+) -> Literal["gzip", "deflate"] | None:
+    # Retained, directly published official fixtures predate HTTP metadata and
+    # contain identity JSON bytes. Controlled network acquisitions always carry
+    # ``http`` and therefore retain their observed wire encoding explicitly.
+    return None if manifest.http is None else manifest.http.response_content_encoding
+
+
+def _read_bounded_regular_file(
+    target: Path,
+    *,
+    max_bytes: int,
+    code: str,
+    description: str,
+    expected_size: int | None = None,
+    quarantine_snapshot_id: str | None = None,
+    accepted_snapshot_id: str | None = None,
+) -> bytes:
+    """Read one regular file from its opened descriptor with a hard cap."""
+
+    if target.is_symlink():
+        raise WebtrisAcquisitionError(
+            code,
+            f"the {description} is missing or unsafe",
+            quarantine_snapshot_id=quarantine_snapshot_id,
+            accepted_snapshot_id=accepted_snapshot_id,
+        )
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(target, flags)
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode):
+            raise WebtrisAcquisitionError(
+                code,
+                f"the {description} is not a regular file",
+                quarantine_snapshot_id=quarantine_snapshot_id,
+                accepted_snapshot_id=accepted_snapshot_id,
+            )
+        if opened.st_size > max_bytes:
+            raise WebtrisAcquisitionError(
+                code,
+                f"the {description} exceeds its byte bound",
+                quarantine_snapshot_id=quarantine_snapshot_id,
+                accepted_snapshot_id=accepted_snapshot_id,
+            )
+        if expected_size is not None and opened.st_size != expected_size:
+            raise WebtrisAcquisitionError(
+                code,
+                f"the {description} size drifted",
+                quarantine_snapshot_id=quarantine_snapshot_id,
+                accepted_snapshot_id=accepted_snapshot_id,
+            )
+        with os.fdopen(descriptor, "rb", closefd=False) as handle:
+            payload = handle.read(max_bytes + 1)
+        if len(payload) > max_bytes:
+            raise WebtrisAcquisitionError(
+                code,
+                f"the {description} exceeds its byte bound",
+                quarantine_snapshot_id=quarantine_snapshot_id,
+                accepted_snapshot_id=accepted_snapshot_id,
+            )
+        if expected_size is not None and len(payload) != expected_size:
+            raise WebtrisAcquisitionError(
+                code,
+                f"the {description} size drifted",
+                quarantine_snapshot_id=quarantine_snapshot_id,
+                accepted_snapshot_id=accepted_snapshot_id,
+            )
+        return payload
+    except WebtrisAcquisitionError:
+        raise
+    except OSError as exc:
+        raise WebtrisAcquisitionError(
+            code,
+            f"the {description} is missing or unsafe",
+            quarantine_snapshot_id=quarantine_snapshot_id,
+            accepted_snapshot_id=accepted_snapshot_id,
+        ) from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)

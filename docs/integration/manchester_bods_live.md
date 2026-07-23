@@ -26,8 +26,9 @@ labelled synthetic tests by the underlying MAN-05 boundary.
 2. Build the fixed one-member, 16 MiB-bounded `BodsAcquisitionRequest`.
 3. Run the [controlled MAN-05 acquisition](manchester_bods_acquisition.md), which quarantines the
    exact private response before parsing and promotes only admitted evidence.
-4. Re-read the accepted XML using the bounded member reader and run the existing SIRI-VM parser at
-   the acquisition receipt's exact evaluation time and bounding box.
+4. Re-read the accepted raw member using the bounded member reader, apply the same bounded
+   content-decoding contract recorded by acquisition, and run the existing SIRI-VM parser at the
+   acquisition receipt's exact evaluation time and bounding box.
 5. Reconcile parser fingerprint, source identity, evidence class, scope, and every accepted/live/
    stale/synthetic count against the acquisition receipt.
 6. Convert privacy-safe observations through MAN-07 spatial admission, split them into live, stale,
@@ -62,6 +63,8 @@ failure preserves the prior scene. `tests/ui/test_manchester_operations.py` prov
 disabled without a valid v0.7 workspace and environment credential and that bounding boxes are
 explicitly validated.
 
-No real BODS request is part of automated tests. A real-key run and source acceptance remain an
-operator-owned Gate B action; until then this is working candidate software, not accepted live
-research evidence.
+No real BODS request is part of automated tests. A controlled operator-triggered real-source probe
+passed on 23 July 2026 and is recorded in
+[the BODS Gate-B probe](manchester_bods_gate_b_probe.md). The live vertical slice works locally,
+but `MAN-05`, `MAN-07`, and `MAN-08` remain planned until the residual privacy, retention,
+membership, terms, and complete Gate-B acceptance conditions are reconciled.

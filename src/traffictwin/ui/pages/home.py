@@ -8,6 +8,11 @@ from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
+from traffictwin.ui.manchester_operations import (
+    build_manchester_deck,
+    load_local_manchester_scene,
+    visible_layer_ids,
+)
 from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
@@ -16,6 +21,147 @@ from traffictwin.ui.tables import capability_rows
 
 def render(config: UiConfig) -> None:
     """Render the Home page."""
+
+    if st.session_state.get("_v07_navigation_active") is True:
+        _render_v07_home(config)
+        return
+
+    _render_legacy_home(config)
+
+
+def _render_v07_home(config: UiConfig) -> None:
+    """Render the focused v0.7 research entry point without hiding evidence limits."""
+
+    status = load_project_status(config.registry_path)
+    summary = status.registry_summary
+    run_count = summary.run_count if summary else 0
+    comparison_count = (
+        workspace_status(config.workspace_path).comparison_count
+        if config.workspace_path is not None
+        else 0
+    )
+    workspace = None if config.workspace_path is None else str(config.workspace_path)
+    manchester = load_local_manchester_scene(workspace, "latest_available")
+    visible_layers = visible_layer_ids(manchester.scene) if manchester.scene is not None else ()
+
+    st.title("TrafficTwin")
+    st.header("Model a traffic scenario. Run or import it. Compare the evidence.")
+    st.caption(
+        "A reproducible research workspace for Manchester observations, SUMO/VEC evidence, "
+        "and deterministic analysis. Evidence labels describe what is actually loaded."
+    )
+
+    with st.container(horizontal=True):
+        if st.button(
+            "Explore Manchester",
+            type="primary",
+            icon=":material/map:",
+            width="stretch",
+            key="home_v07_manchester",
+        ):
+            st.switch_page("app_pages/manchester.py")
+        navigation_button(
+            st.button,
+            "Create scenario",
+            UiPage.SCENARIO,
+            key="home_v07_scenario",
+            width="stretch",
+        )
+        navigation_button(
+            st.button,
+            "Open latest run",
+            UiPage.RUN_OVERVIEW,
+            key="home_v07_latest_run",
+            width="stretch",
+        )
+
+    with st.container(horizontal=True):
+        st.metric(
+            "Manchester evidence",
+            manchester.status.replace("_", " "),
+            border=True,
+        )
+        st.metric("Visible local layers", len(visible_layers), border=True)
+        st.metric("Registered runs", run_count, border=True)
+        st.metric("Comparisons", comparison_count, border=True)
+
+    st.subheader("Current evidence context")
+    if manchester.scene is not None and visible_layers:
+        st.pydeck_chart(
+            build_manchester_deck(manchester.scene, visible_layers),
+            width="stretch",
+            height=430,
+            key="home_v07_manchester_map",
+        )
+        st.caption(
+            f"Latest accepted local scene · {len(visible_layers)} source-separated layer(s) · "
+            f"state: {manchester.scene.status.replace('_', ' ')} · basemap disabled"
+        )
+    else:
+        with st.container(border=True):
+            st.markdown("**No accepted latest-available Manchester scene is loaded.**")
+            st.write(manchester.message)
+            st.caption(
+                "You can still build synthetic scenarios, import completed runs, inspect "
+                "Randy/TOS evidence, and use the guided workflow. Missing observations are not "
+                "filled with synthetic or stale values."
+            )
+
+    st.subheader("Next reproducible actions")
+    with st.container(horizontal=True):
+        with st.container(border=True):
+            st.markdown("**Inspect or acquire evidence**")
+            st.caption(
+                "Use Manchester Operations for local source-separated scenes and the explicit "
+                "bounded live-bus action."
+            )
+        with st.container(border=True):
+            st.markdown("**Run or import**")
+            st.caption(
+                "Use the controlled SUMO/VEC pages or import completed generic, SUMO, and TOS "
+                "artifacts."
+            )
+        with st.container(border=True):
+            st.markdown("**Compare and explain**")
+            st.caption(
+                "Compute deterministic metrics, comparisons, diagnostics, provenance, and "
+                "research exports."
+            )
+
+    reports = list_workspace_reports(config.workspace_path)[:5]
+    if status.latest_runs or reports:
+        st.subheader("Recent research activity")
+        if status.latest_runs:
+            st.dataframe(
+                [
+                    {
+                        "Run": run.run_id,
+                        "Algorithm": run.algorithm,
+                        "Seed": run.random_seed,
+                        "Status": run.status.value,
+                    }
+                    for run in status.latest_runs[:5]
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+        if reports:
+            st.caption(
+                f"{len(reports)} recent report artifact(s) are available from the configured "
+                "workspace."
+            )
+
+    st.warning(
+        "Manchester sources remain evidence-specific: DfT is historical survey evidence, "
+        "WebTRIS covers strategic roads, TfGM signals are infrastructure references, and BODS "
+        "positions are buses—not general live road traffic.",
+        icon=":material/info:",
+    )
+    st.caption(REQUIRED_PROTOTYPE_NOTICE)
+
+
+def _render_legacy_home(config: UiConfig) -> None:
+    """Preserve the complete v0.6 home while the v0.7 router remains opt-in."""
 
     status = load_project_status(config.registry_path)
     st.title("TrafficTwin")
@@ -30,20 +176,20 @@ def render(config: UiConfig) -> None:
         "Start Guided Demo",
         UiPage.GUIDED_DEMO,
         kind="primary",
-        use_container_width=True,
+        width="stretch",
     )
     navigation_button(
         action_cols[1].button,
         "Plan an Experiment",
         UiPage.EXPERIMENT_PLANNER,
         key="home_plan_experiment",
-        use_container_width=True,
+        width="stretch",
     )
     navigation_button(
         st.button,
         "Open Imported TOS Results",
         UiPage.TOS_RESULTS,
-        use_container_width=True,
+        width="stretch",
     )
 
     cols = st.columns(4)
@@ -93,27 +239,27 @@ def render(config: UiConfig) -> None:
             first_actions[0].button,
             "Build a Scenario",
             UiPage.SCENARIO,
-            use_container_width=True,
+            width="stretch",
         )
         navigation_button(
             first_actions[1].button,
             "Plan an Experiment",
             UiPage.EXPERIMENT_PLANNER,
             key="home_quick_plan_experiment",
-            use_container_width=True,
+            width="stretch",
         )
         second_actions = st.columns(2)
         navigation_button(
             second_actions[0].button,
             "Open Reports",
             UiPage.REPORTS,
-            use_container_width=True,
+            width="stretch",
         )
         navigation_button(
             second_actions[1].button,
             "Trace Provenance",
             UiPage.PROVENANCE,
-            use_container_width=True,
+            width="stretch",
         )
 
         section_header("Recent Workspace Artifacts")

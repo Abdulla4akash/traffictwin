@@ -25,9 +25,10 @@ normative 34-page migration inventory.
 
 ## Local scene contract
 
-Except for the explicit BODS form described below, the page never calls DfT, WebTRIS, TfGM,
-BODS, Randy, SUMO, or any arbitrary URL. Ordinary Streamlit reruns and **Refresh local evidence**
-perform no acquisition. For the selected mode the page reads one fixed, bounded local artifact:
+Only the four explicit source forms described below may call DfT, WebTRIS, TfGM, or BODS. The page
+never calls Randy, SUMO, or an arbitrary URL. Ordinary Streamlit reruns and **Refresh local
+evidence** perform no acquisition. For the selected mode the page reads one fixed, bounded local
+artifact:
 
 | Mode | Workspace-relative artifact |
 |---|---|
@@ -37,8 +38,11 @@ perform no acquisition. For the selected mode the page reads one fixed, bounded 
 
 Each file must be at most 8 MiB and validate as the exact `ManchesterMapScene` for that mode.
 Missing files are unavailable. Empty, oversized, symlinked, escaped, unreadable, mutated, invalid,
-or cross-mode files fail closed with display-safe reasons. The cache is bounded to 12 entries with
-a 30-second TTL; the refresh action clears only this local scene cache.
+or cross-mode files fail closed with display-safe reasons. The scene cache is bounded to 12 entries
+with a 30-second TTL. The accepted WebTRIS and DfT catalogue caches are each bounded to four
+entries; selected WebTRIS site-days are bounded to 12 entries, DfT filter inventories to 12, and
+small explicit DfT survey views to 24, also for 30 seconds. The refresh action clears these local
+caches.
 
 ## Explicit live-bus acquisition
 
@@ -77,39 +81,84 @@ spatial, freshness, workspace, or file-publication check fails, the prior local 
 See [the controlled live workflow](manchester_bods_live.md) for the library contract.
 Historical and latest scenes use the separate
 [bounded local publication service](manchester_scene_publication.md); ordinary page rendering never
-creates either scene. An explicit [TfGM snapshot-to-scene bridge](manchester_tfgm_scene.md) can
-populate the latest view with accepted static signal locations; those points are infrastructure,
-not signal state or traffic observations.
+creates either scene.
+
+## Explicit latest and historical acquisition
+
+The **Latest available** mode contains two separate forms:
+
+- WebTRIS accepts one numeric site ID and one explicit source date, fetches the site, daily report,
+  and quality response through MAN-03, and publishes only the selected strategic-road site
+  reference. Daily values stay in the separate interval chart and retain missing values and source
+  warnings. This is latest-available/historical evidence, not live city-road telemetry.
+- TfGM fetches the one audited static signal-location archive through MAN-04 and publishes its
+  source-separated reference layer. It cannot represent signal phase, timing, queues, incidents,
+  traffic counts, or live operational state.
+
+The **Historical replay** mode contains one expanded DfT form for exact raw-count, count-point, and
+AADF row IDs. Each request is Manchester-scoped and bounded to the selected row. The source-specific
+survey view consumes only the raw-count result; the map consumes only the count-point reference;
+AADF stays a separately labelled statistical artifact.
+
+The workflows preserve exact source bytes, publish only after complete validation, retain unrelated
+scene layers, and expose display-safe failure codes. See
+[Manchester explicit source refresh workflows](manchester_source_refresh.md) for the tested
+real-source behavior and residual boundaries.
 
 ## Rendering and interaction
 
 - `st.segmented_control` selects the evidence mode.
 - `st.pills` selects only layers already marked visible and locally renderable by MAN-08.
+- Separate `st.pills` controls filter that selected layer inventory by exact geographic scope and
+  freshness state. Defaults show every evidenced option; an empty selection honestly shows no map
+  points.
 - `st.pydeck_chart` renders admitted WGS84 points with a `TextLayer` symbol per source family.
 - `map_provider=None` and `map_style=None` prevent a hidden external basemap request.
 - Colour is supplemented by circle, square, diamond, triangle, or cross symbols and accessible
   source descriptions.
-- Source cards retain status, deterministic reason, freshness, rendered/excluded record counts,
-  snapshot, publication class, and licence.
-- Attribution and geographic scopes remain visible below the map.
+- The per-source table and cards retain status, deterministic reason, freshness,
+  accepted/displayed/hidden/excluded point reconciliation, snapshot, publication class, and
+  licence. These rows are never summed into a cross-source traffic total.
+- Attribution and geographic scopes below the map follow the displayed point subset.
 - Point identifiers are not sent through the evidence-details table; it contains layer-level
   reconciliation only.
+- In **Historical replay**, a separate `st.selectbox` lists only verified accepted DfT raw-count
+  snapshots. A single count point, survey date, and audited vehicle-class field combine with exact
+  source-direction pills and local-clock-hour selections. The tested source service produces one
+  output per matching source row without aggregation.
+- A grouped native bar chart displays present DfT source counts by exact direction and
+  timezone-undeclared local-clock label. A separate table retains every selected row and its
+  present/missing state. Empty intersections and all-missing selections render explicit states,
+  never substituted surveys or zero-filled bars.
+- In **Historical replay** and **Latest available**, a `st.selectbox` lists only verified accepted WebTRIS daily-report
+  snapshot IDs. The label retains exact site, source date, evidence class, and snapshot suffix;
+  conflicting versions are never silently merged.
+- Measurement-state pills filter `observed` and `missing` rows through the tested MAN-08 service.
+  Separate native line charts show per-reported-interval volume and source mph without aggregation;
+  missing measurements remain chart gaps. The x-axis is explicitly a timezone-undeclared source
+  label, not UTC.
 
-The page does not sum records across sources or call them traffic volume. Traffic charts remain
-unavailable until compatible interval observations exist. **Compare with SUMO** and **Prepare SUMO
-baseline** remain disabled until the MAN-09 and MAN-10 contracts pass.
+The page does not sum records across sources or call spatial-record counts traffic volume. DfT
+survey bars are not a continuous time series, speed, AADF demand, or a SUMO input. WebTRIS charts
+are available only when a compatible accepted daily snapshot exists; the map scene itself still
+carries no interval observations. **Compare with SUMO** and **Prepare SUMO baseline** remain
+disabled until the MAN-09 and MAN-10 contracts pass.
 
 ## Verification
 
 The focused tests cover unavailable workspaces, missing artifacts, invalid and oversized JSON,
 symlink refusal, cross-mode refusal, byte hashing, layer selection, no-basemap PyDeck output,
-additive navigation, disabled actions, AppTest rendering of both empty and valid local states,
-live-form prerequisite gating, explicit bounding-box validation, one-request publication, secret
-absence from persisted artifacts, report-drift refusal, and preservation of the prior scene after
-publication failure. The scene-publication tests additionally cover fixed historical/latest paths,
-private-only output, request and receipt tampering, interrupted atomic replacement, and preservation
-of the prior scene.
+exact scope/freshness option derivation, unknown/duplicate/tampered filtered-view refusal,
+empty-filter reconciliation, additive navigation, disabled actions, AppTest rendering and
+interaction for both empty and valid local states, accepted DfT catalogue/filter/view rendering,
+empty and missing survey semantics, accepted WebTRIS catalogue selection and chart projection with
+missing-value gaps, live-form prerequisite gating, explicit
+bounding-box validation, one-request publication, secret absence from persisted artifacts,
+report-drift refusal, and preservation of the prior scene after publication failure. The
+scene-publication tests additionally cover fixed historical/latest paths, private-only output,
+request and receipt tampering, interrupted atomic replacement, and preservation of the prior scene.
 
-Real-source Gate B acceptance using an operator-supplied valid key, historical/site/direction/
-vehicle-class filters, compatible traffic charts, browser screenshots, mobile/keyboard/contrast
-checks, and the complete MAN-05/MAN-08 acceptance gates remain outstanding.
+Controlled real-source vertical slices now pass for BODS, the three selected DfT products, one
+WebTRIS site/day plus quality, and the pinned TfGM archive. Full-source/bulk acceptance, browser
+screenshots, mobile/keyboard/contrast checks, provider SLA/rate-limit decisions, live city-road
+telemetry, and the complete MAN-01 through MAN-08 acceptance reconciliation remain outstanding.

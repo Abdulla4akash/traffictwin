@@ -60,6 +60,12 @@ Open:
     authentication is required, and how should unmatched or incomplete feed coverage be reported?
 15. Which immutable workspace marker, release manifest, or clean-checkout evidence proves that a
     registry was produced by the exact `v0.6.0` release before compatibility migration is allowed?
+16. Should future WebTRIS acquisitions persist a separate source-specific receipt containing the
+    non-query `site_name` parser scope, so a daily-quality parser fingerprint can be reproduced in
+    a later process without the original acquisition result?
+17. Which exact accepted artifact and owning verification service should provide each MAN-11
+    reference at the Manchester mapping, baseline, controlled-SUMO, and final-report stages before
+    the candidate lineage builder is connected to a real Gate-E workflow?
 
 Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questions:
 
@@ -74,7 +80,7 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
 - Question 14 is partially resolved: identifier-only NOC matching and the candidate BN allowlist
   are accepted, while live-feed confirmation (`GA-BEE-1`) and NOC/schedule publication rights
   remain Gate B blockers.
-- Questions 1, 2, 5–9, 11, 12, and 15 remain open at their stated gates.
+- Questions 1, 2, 5–9, 11, 12, and 15–17 remain open at their stated gates.
 
 ### v0.5 design decisions
 

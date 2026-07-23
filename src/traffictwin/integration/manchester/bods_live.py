@@ -35,6 +35,7 @@ from traffictwin.integration.manchester.bods_acquisition import (
     BodsAcquisitionRequest,
     BodsAcquisitionResult,
     acquire_bods_snapshot,
+    decode_bods_http_payload,
 )
 from traffictwin.integration.manchester.freshness import (
     FreshnessEvaluationRequest,
@@ -52,6 +53,7 @@ from traffictwin.integration.manchester.models import (
     ManchesterPublicationClass,
     ManchesterSnapshotModel,
     ManchesterSnapshotPolicy,
+    sha256_hex,
 )
 from traffictwin.integration.manchester.scene_publication import (
     ManchesterScenePublicationError,
@@ -77,7 +79,14 @@ _LIVE_SNAPSHOT_POLICY = ManchesterSnapshotPolicy(
     max_member_bytes=MAX_SIRI_BYTES,
     max_total_bytes=MAX_SIRI_BYTES,
 )
-_ADMITTED_WARNING_CODES = ("DUPLICATE_ACTIVITY", "OUTSIDE_BOUNDING_BOX")
+_ADMITTED_WARNING_CODES = (
+    "DUPLICATE_ACTIVITY",
+    "OUTSIDE_BOUNDING_BOX",
+    "PROFILE_ALTERNATE_VEHICLE_JOURNEY_REF",
+    "PROFILE_MISSING_BEARING",
+    "PROFILE_MISSING_BLOCK_REF",
+    "PROFILE_MISSING_VEHICLE_JOURNEY_REF",
+)
 _STATE_LAYER: dict[FreshnessState, tuple[str, str]] = {
     "live_vehicle": ("bods-live-vehicles", "Live transit vehicles"),
     "stale": ("bods-stale-vehicles", "Stale transit observations"),
@@ -218,13 +227,26 @@ def _reparse_accepted_snapshot(
     acquisition: BodsAcquisitionResult,
 ) -> BodsParseReport:
     accepted_dir = workspace / ACCEPTED_DIRECTORY_NAME / acquisition.snapshot_id
-    payload = read_manchester_member(accepted_dir, BODS_FEED_MEMBER_PATH)
+    raw_payload = read_manchester_member(accepted_dir, BODS_FEED_MEMBER_PATH)
+    http = acquisition.quarantine_manifest.http
+    if http is None:
+        raise BodsLiveWorkflowError(
+            "SOURCE_CONTRACT_MISMATCH",
+            "the accepted BODS snapshot has no bounded HTTP metadata",
+        )
+    content_encoding = http.response_content_encoding
+    payload = decode_bods_http_payload(
+        raw_payload,
+        content_encoding=content_encoding,
+    )
     report = parse_bods_siri_vm(
         (
             BodsMemberRef(
                 snapshot_id=acquisition.snapshot_id,
                 member_path=BODS_FEED_MEMBER_PATH,
                 member_sha256=acquisition.feed_sha256,
+                content_encoding="gzip" if content_encoding == "gzip" else "identity",
+                parser_payload_sha256=(sha256_hex(payload) if content_encoding == "gzip" else None),
                 synthetic=acquisition.synthetic,
             ),
             payload,

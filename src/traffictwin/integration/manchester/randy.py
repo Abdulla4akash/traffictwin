@@ -123,9 +123,7 @@ class RandyAggregateMetric(RandyBridgeModel):
     def validate_state(self) -> RandyAggregateMetric:
         if self.status == "available" and (self.value is None or self.missing_evidence):
             raise ValueError("available metric needs a value and no missing evidence")
-        if self.status == "unavailable" and (
-            self.value is not None or not self.missing_evidence
-        ):
+        if self.status == "unavailable" and (self.value is not None or not self.missing_evidence):
             raise ValueError("unavailable metric needs null value and missing evidence")
         _reject_non_finite(self.value)
         return self
@@ -136,15 +134,11 @@ class RandyManchesterBridgeReport(RandyBridgeModel):
 
     schema_version: Literal["1.0"] = "1.0"
     capability_id: Literal["MAN-06"] = "MAN-06"
-    method_version: Literal["manchester-randy-bridge-1.0"] = (
-        "manchester-randy-bridge-1.0"
-    )
+    method_version: Literal["manchester-randy-bridge-1.0"] = "manchester-randy-bridge-1.0"
     status: Literal["candidate"] = "candidate"
     source_capability: Literal["VEC-11"] = "VEC-11"
     source_pack_status: Literal["accepted"] = "accepted"
-    source_pack_version: Literal["vec-dissertation-pack-1.0"] = (
-        "vec-dissertation-pack-1.0"
-    )
+    source_pack_version: Literal["vec-dissertation-pack-1.0"] = "vec-dissertation-pack-1.0"
     source_pack_manifest_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     source_pack_manifest_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
     members: tuple[RandyBridgeMember, ...]
@@ -159,9 +153,7 @@ class RandyManchesterBridgeReport(RandyBridgeModel):
     metrics: tuple[RandyAggregateMetric, ...]
     available_metric_count: int = Field(ge=1)
     unavailable_metric_count: int = Field(ge=1)
-    evidence_kind: Literal["randy_tos_sanitised_case_study"] = (
-        "randy_tos_sanitised_case_study"
-    )
+    evidence_kind: Literal["randy_tos_sanitised_case_study"] = "randy_tos_sanitised_case_study"
     temporal_semantics: Literal["simulation_clock_removed_by_sanitisation"] = (
         "simulation_clock_removed_by_sanitisation"
     )
@@ -177,9 +169,9 @@ class RandyManchesterBridgeReport(RandyBridgeModel):
     general_manchester_telemetry: Literal[False] = False
     public_hosting_authorized: Literal[False] = False
     permission_is_formal_licence: Literal[False] = False
-    permission_scope: Literal[
+    permission_scope: Literal["repository_and_dissertation_sanitised_samples_and_aggregates"] = (
         "repository_and_dissertation_sanitised_samples_and_aggregates"
-    ] = "repository_and_dissertation_sanitised_samples_and_aggregates"
+    )
     pseudonymisation_is_anonymity: Literal[False] = False
     raw_source_identity_available: Literal[False] = False
     physical_completion_available: Literal[False] = False

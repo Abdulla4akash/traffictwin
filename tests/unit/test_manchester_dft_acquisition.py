@@ -22,11 +22,15 @@ from traffictwin.integration.manchester.dft import DftManchesterScope
 from traffictwin.integration.manchester.dft_acquisition import (
     DFT_ATTRIBUTION_TEXT,
     DFT_LICENCE_ID,
+    DftAcceptedSnapshotCatalogue,
     DftAcquisitionError,
     DftAcquisitionRequest,
     DftAcquisitionResult,
     DftDataset,
     acquire_dft_snapshot,
+    catalogue_accepted_dft_snapshots,
+    load_accepted_dft_report,
+    open_accepted_dft_snapshot,
     replay_dft_quarantine,
 )
 from traffictwin.integration.manchester.models import (
@@ -48,6 +52,7 @@ from traffictwin.integration.manchester.snapshots import (
     publish_manchester_quarantine,
     verify_manchester_snapshot,
 )
+from traffictwin.release.compatibility import initialise_v07_workspace
 
 FIXTURE_DIR = Path("tests/fixtures/manchester/dft")
 FIXTURE_HASHES = {
@@ -216,7 +221,7 @@ def acquire(
     request: DftAcquisitionRequest,
     calls: list[tuple[str, str, dict[str, str]]] | None = None,
     fail_page: int | None = None,
-) -> object:
+) -> DftAcquisitionResult:
     recorded = calls if calls is not None else []
     with httpx.Client(transport=make_transport(pages, recorded, fail_page)) as raw_client:
         return acquire_dft_snapshot(tmp_path, request, http_client=raw_client, utc_now=make_clock())
@@ -250,8 +255,8 @@ def test_exact_allowlisted_request_per_endpoint(
             {"filter[local_authority_id]": "85", "page[number]": "1", "page[size]": "1"},
         )
     ]
-    assert result.endpoint_path == path  # type: ignore[attr-defined]
-    assert result.records_accepted == 1  # type: ignore[attr-defined]
+    assert result.endpoint_path == path
+    assert result.records_accepted == 1
 
 
 def test_manchester_identity_cannot_change() -> None:
@@ -286,9 +291,9 @@ def test_deterministic_pagination_and_stable_receipt(tmp_path: Path) -> None:
     first = acquire(tmp_path / "a", two_page_raw_dataset(), make_request(), calls)
     assert [call[2]["page[number]"] for call in calls] == ["1", "2"]
     second = acquire(tmp_path / "b", two_page_raw_dataset(), make_request())
-    assert first.fingerprint() == second.fingerprint()  # type: ignore[attr-defined]
-    assert first.snapshot_id == second.snapshot_id  # type: ignore[attr-defined]
-    assert [m.relative_path for m in first.members] == [  # type: ignore[attr-defined]
+    assert first.fingerprint() == second.fingerprint()
+    assert first.snapshot_id == second.snapshot_id
+    assert [m.relative_path for m in first.members] == [
         "pages/page-0001.json",
         "pages/page-0002.json",
     ]
@@ -296,12 +301,12 @@ def test_deterministic_pagination_and_stable_receipt(tmp_path: Path) -> None:
 
 def test_result_contract_reconciles_dataset_members_and_request(tmp_path: Path) -> None:
     result = acquire(tmp_path, two_page_raw_dataset(), make_request())
-    payload = result.model_dump(mode="python")  # type: ignore[attr-defined]
+    payload = result.model_dump(mode="python")
     payload["endpoint_path"] = "/api/average-annual-daily-flow"
     with pytest.raises(ValidationError, match="must match the selected DfT dataset"):
         DftAcquisitionResult.model_validate(payload)
 
-    payload = result.model_dump(mode="python")  # type: ignore[attr-defined]
+    payload = result.model_dump(mode="python")
     payload["pages"] = 1
     with pytest.raises(ValidationError, match="page count must match"):
         DftAcquisitionResult.model_validate(payload)
@@ -336,7 +341,7 @@ def test_successful_promotion_publishes_accepted_snapshot(tmp_path: Path) -> Non
     assert len(accepted) == 1
     assert len(quarantined) == 1
     receipt = verify_manchester_snapshot(accepted[0])
-    assert receipt.fingerprint() == result.snapshot_receipt_fingerprint  # type: ignore[attr-defined]
+    assert receipt.fingerprint() == result.snapshot_receipt_fingerprint
     stored = ManchesterSnapshotManifest.model_validate_json(
         (accepted[0] / "snapshot-manifest.json").read_bytes()
     )
@@ -344,6 +349,144 @@ def test_successful_promotion_publishes_accepted_snapshot(tmp_path: Path) -> Non
     assert stored.licence_id == DFT_LICENCE_ID
     assert stored.attribution_text == DFT_ATTRIBUTION_TEXT
     assert stored.synthetic is True
+
+
+def test_accepted_report_replays_offline_from_exact_receipt(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    result = acquire(workspace, two_page_raw_dataset(), make_request())
+    assert isinstance(result, DftAcquisitionResult)
+
+    def refuse_socket(*_args: object, **_kwargs: object) -> socket.socket:
+        raise AssertionError("accepted DfT replay must not use the network")
+
+    monkeypatch.setattr(socket, "socket", refuse_socket)
+    report = load_accepted_dft_report(workspace, result)
+
+    assert report.fingerprint() == result.parser_report_fingerprint
+    assert report.counts.rows_seen == result.rows_seen
+    assert report.counts.records_accepted == result.records_accepted
+    assert report.status is result.parser_status
+
+
+def test_accepted_report_refuses_request_drift_and_unmarked_workspace(tmp_path: Path) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    result = acquire(workspace, two_page_raw_dataset(), make_request())
+    assert isinstance(result, DftAcquisitionResult)
+    drifted_request = result.request.model_copy(update={"page_size": 2})
+    drifted = result.model_copy(update={"request": drifted_request})
+
+    with pytest.raises(DftAcquisitionError) as mismatch:
+        load_accepted_dft_report(workspace, drifted)
+    assert mismatch.value.code == "ACCEPTED_SNAPSHOT_MISMATCH"
+    assert mismatch.value.accepted_snapshot_id == result.snapshot_id
+    assert mismatch.value.quarantine_snapshot_id is None
+
+    ordinary = tmp_path / "ordinary"
+    ordinary.mkdir()
+    with pytest.raises(DftAcquisitionError) as unmarked:
+        load_accepted_dft_report(ordinary, result)
+    assert unmarked.value.code == "WORKSPACE_INVALID"
+
+
+def test_empty_and_three_product_accepted_catalogues_are_offline(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    empty = catalogue_accepted_dft_snapshots(workspace)
+    assert empty.snapshots == ()
+    assert empty.counts.total == 0
+
+    cases: tuple[tuple[DftDataset, dict[str, object]], ...] = (
+        ("raw_counts", raw_row()),
+        ("count_points", count_point_row()),
+        ("aadf", aadf_row()),
+    )
+    acquired: dict[DftDataset, DftAcquisitionResult] = {}
+    for dataset, row in cases:
+        result = acquire(
+            workspace,
+            {1: envelope_bytes([row], 1, 1, 1, 1)},
+            make_request(dataset),
+        )
+        assert isinstance(result, DftAcquisitionResult)
+        acquired[dataset] = result
+
+    def refuse_socket(*_args: object, **_kwargs: object) -> socket.socket:
+        raise AssertionError("accepted DfT catalogue must not use the network")
+
+    monkeypatch.setattr(socket, "socket", refuse_socket)
+    catalogue = catalogue_accepted_dft_snapshots(workspace)
+
+    assert tuple(item.dataset for item in catalogue.snapshots) == (
+        "aadf",
+        "count_points",
+        "raw_counts",
+    )
+    assert catalogue.counts.raw_counts == 1
+    assert catalogue.counts.count_points == 1
+    assert catalogue.counts.aadf == 1
+    assert catalogue.counts.total == 3
+    opened = open_accepted_dft_snapshot(workspace, acquired["raw_counts"].snapshot_id)
+    assert (
+        opened.summary.parser_report_fingerprint == acquired["raw_counts"].parser_report_fingerprint
+    )
+    assert opened.summary.records_accepted == 1
+    assert opened.summary.opened_offline is True
+    assert opened.report.fingerprint() == opened.summary.parser_report_fingerprint
+
+
+def test_accepted_catalogue_refuses_unsafe_id_limit_and_tampered_counts(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import traffictwin.integration.manchester.dft_acquisition as module
+
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    result = acquire(
+        workspace,
+        {1: envelope_bytes([raw_row()], 1, 1, 1, 1)},
+        make_request(),
+    )
+    assert isinstance(result, DftAcquisitionResult)
+
+    with pytest.raises(DftAcquisitionError) as unsafe:
+        open_accepted_dft_snapshot(workspace, "../accepted/escape")
+    assert unsafe.value.code == "SNAPSHOT_ID_INVALID"
+
+    unrelated = workspace / "accepted" / "webtris_site-20260723T120000Z-abcdef012345"
+    unrelated.mkdir()
+    assert catalogue_accepted_dft_snapshots(workspace).counts.total == 1
+
+    monkeypatch.setattr(module, "DFT_ACCEPTED_CATALOGUE_MAX_SNAPSHOTS", 0)
+    with pytest.raises(DftAcquisitionError) as limited:
+        catalogue_accepted_dft_snapshots(workspace)
+    assert limited.value.code == "ACCEPTED_CATALOGUE_LIMIT"
+
+    monkeypatch.setattr(module, "DFT_ACCEPTED_CATALOGUE_MAX_SNAPSHOTS", 512)
+    catalogue = catalogue_accepted_dft_snapshots(workspace)
+    payload = catalogue.model_dump(mode="python")
+    payload["counts"]["raw_counts"] = 0
+    with pytest.raises(ValidationError, match="catalogue counts must reconcile"):
+        DftAcceptedSnapshotCatalogue.model_validate(payload)
+
+
+def test_accepted_catalogue_refuses_dft_named_symlink(tmp_path: Path) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    accepted = workspace / "accepted"
+    accepted.mkdir()
+    target = tmp_path / "outside"
+    target.mkdir()
+    unsafe = accepted / "dft_raw_counts-20260723T120000Z-abcdef012345"
+    unsafe.symlink_to(target, target_is_directory=True)
+
+    with pytest.raises(DftAcquisitionError) as error:
+        catalogue_accepted_dft_snapshots(workspace)
+    assert error.value.code == "ACCEPTED_SNAPSHOT_INVALID"
+    assert error.value.accepted_snapshot_id == unsafe.name
 
 
 def test_accepted_with_warnings_follows_explicit_policy(tmp_path: Path) -> None:
@@ -358,7 +501,7 @@ def test_accepted_with_warnings_follows_explicit_policy(tmp_path: Path) -> None:
     assert not workspace_dirs(tmp_path / "refuse", "accepted")
 
     result = acquire(tmp_path / "accept", pages, make_request(accept_with_warnings=True))
-    assert result.parser_status is ManchesterValidationState.ACCEPTED_WITH_WARNINGS  # type: ignore[attr-defined]
+    assert result.parser_status is ManchesterValidationState.ACCEPTED_WITH_WARNINGS
     accepted = workspace_dirs(tmp_path / "accept", "accepted")
     stored = ManchesterSnapshotManifest.model_validate_json(
         (accepted[0] / "snapshot-manifest.json").read_bytes()
@@ -480,7 +623,7 @@ def test_hash_mutation_in_quarantine_is_detected(tmp_path: Path) -> None:
     with pytest.raises(ManchesterSnapshotError):
         replay_dft_quarantine(
             tmp_path,
-            result.snapshot_id,  # type: ignore[attr-defined]
+            result.snapshot_id,
             "raw_counts",
         )
 
@@ -490,7 +633,7 @@ def test_synthetic_mismatch_is_refused(tmp_path: Path) -> None:
     with pytest.raises(DftAcquisitionError) as excinfo:
         replay_dft_quarantine(
             tmp_path,
-            result.snapshot_id,  # type: ignore[attr-defined]
+            result.snapshot_id,
             "raw_counts",
             expected_synthetic=False,
         )
@@ -502,12 +645,12 @@ def test_replay_dataset_must_match_quarantine_provenance(tmp_path: Path) -> None
     with pytest.raises(DftAcquisitionError) as excinfo:
         replay_dft_quarantine(
             tmp_path,
-            result.snapshot_id,  # type: ignore[attr-defined]
+            result.snapshot_id,
             "aadf",
             expected_synthetic=True,
         )
     assert excinfo.value.code == "DATASET_MISMATCH"
-    assert excinfo.value.quarantine_snapshot_id == result.snapshot_id  # type: ignore[attr-defined]
+    assert excinfo.value.quarantine_snapshot_id == result.snapshot_id
 
 
 def test_repeated_acquisition_cannot_overwrite(tmp_path: Path) -> None:
@@ -530,11 +673,11 @@ def test_replay_is_offline_and_matches_the_original_parse(
     monkeypatch.setattr(socket, "create_connection", refuse)
     replayed = replay_dft_quarantine(
         tmp_path,
-        result.snapshot_id,  # type: ignore[attr-defined]
+        result.snapshot_id,
         "raw_counts",
         expected_synthetic=True,
     )
-    assert replayed.parser_report_fingerprint == result.parser_report_fingerprint  # type: ignore[attr-defined]
+    assert replayed.parser_report_fingerprint == result.parser_report_fingerprint
     assert replayed.parser_status is ManchesterValidationState.ACCEPTED
     assert replayed.records_accepted == 2
     assert len(workspace_dirs(tmp_path, "accepted")) == 1

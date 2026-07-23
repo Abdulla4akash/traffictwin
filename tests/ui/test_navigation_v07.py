@@ -155,12 +155,10 @@ def test_candidate_navigation_button_switches_from_top_level(
         "Open About",
         UiPage.ABOUT,
         kind="primary",
-        use_container_width=True,
+        width="stretch",
     )
 
-    assert calls == [
-        ("Open About", {"use_container_width": True, "type": "primary"})
-    ]
+    assert calls == [("Open About", {"width": "stretch", "type": "primary"})]
     assert switched == ["app_pages/about.py"]
 
 
@@ -182,7 +180,7 @@ def test_legacy_navigation_button_preserves_callback_router(
         (
             "Open About",
             {
-                "use_container_width": False,
+                "width": "content",
                 "on_click": legacy_navigation.activate_page,
                 "args": (UiPage.ABOUT,),
             },
@@ -203,6 +201,15 @@ def test_candidate_router_renders_hidden_root_home_without_legacy_radio(
     assert app.session_state["_v07_navigation_active"] is True
     assert app.session_state["_active_ui_page"] is UiPage.HOME
     assert any("Workspace status" in caption.value for caption in app.sidebar.caption)
+    assert any(
+        "Model a traffic scenario. Run or import it. Compare the evidence." in item.value
+        for item in app.header
+    )
+    assert {"Explore Manchester", "Create scenario", "Open latest run"}.issubset(
+        {button.label for button in app.button}
+    )
+    assert any(item.label == "Manchester evidence" for item in app.metric)
+    assert not any(item.value == "Capability Manifest" for item in app.subheader)
 
 
 def test_default_router_keeps_complete_legacy_navigation(

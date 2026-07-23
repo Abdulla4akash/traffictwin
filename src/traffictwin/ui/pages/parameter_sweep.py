@@ -200,14 +200,14 @@ def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
         data=parameter_sweep_result_json_for_ui(result),
         file_name=f"{result.sweep_id}.json",
         mime="application/json",
-        use_container_width=True,
+        width="stretch",
     )
     downloads[1].download_button(
         "Download Response CSV",
         data=parameter_sweep_response_csv_for_ui(result),
         file_name=f"{result.sweep_id}-response.csv",
         mime="text/csv",
-        use_container_width=True,
+        width="stretch",
     )
 
 

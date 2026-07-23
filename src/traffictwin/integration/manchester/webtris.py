@@ -97,9 +97,19 @@ class WebtrisMemberRef(WebtrisModel):
     snapshot_id: str = Field(pattern=_SNAPSHOT_ID_PATTERN)
     member_path: str = Field(pattern=_MEMBER_PATH_PATTERN)
     member_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    content_encoding: Literal["identity", "gzip"] = "identity"
+    parser_payload_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     member_role: Literal["site", "daily_report", "daily_quality"]
     page_number: int = Field(default=1, ge=1, le=MAX_REPORT_PAGES)
     synthetic: bool
+
+    @model_validator(mode="after")
+    def validate_content_identity(self) -> WebtrisMemberRef:
+        if self.content_encoding == "identity" and self.parser_payload_sha256 is not None:
+            raise ValueError("identity members cannot carry a separate parser-payload hash")
+        if self.content_encoding == "gzip" and self.parser_payload_sha256 is None:
+            raise ValueError("gzip members require the decoded parser-payload hash")
+        return self
 
 
 class WebtrisFinding(WebtrisModel):
@@ -529,7 +539,10 @@ def _verify_members(
     for ref, payload in members:
         if len(payload) > MAX_MEMBER_BYTES:
             raise WebtrisAdapterError("MEMBER_TOO_LARGE", "member byte bound exceeded")
-        if sha256_hex(payload) != ref.member_sha256:
+        expected_payload_sha256 = (
+            ref.member_sha256 if ref.content_encoding == "identity" else ref.parser_payload_sha256
+        )
+        if sha256_hex(payload) != expected_payload_sha256:
             raise WebtrisAdapterError("MEMBER_HASH_MISMATCH", "member bytes changed")
     return refs
 

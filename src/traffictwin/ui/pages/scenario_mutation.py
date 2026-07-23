@@ -185,7 +185,7 @@ def _render_result(result: ScenarioMutationResult, output_dir: str) -> None:
         data=scenario_mutation_result_json_for_ui(result),
         file_name=f"{result.mutation_id}.json",
         mime="application/json",
-        use_container_width=True,
+        width="stretch",
     )
 
 

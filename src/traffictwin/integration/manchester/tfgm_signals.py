@@ -34,7 +34,7 @@ TFGM_SIGNALS_ARCHIVE_SHA256 = "85a52992ba2ef30b4bdb4aca4162a2ffd8a5244f7139be50e
 TFGM_SIGNALS_CSV_SHA256 = "c45ad8439c9058a239f7e0ad33f39e2da8d79a80194229ad3b67a50f12fc3a81"
 TFGM_SIGNALS_FULL_ROW_COUNT = 2529
 TFGM_SIGNALS_ATTRIBUTION = (
-    "Contains Transport for Greater Manchester data. Contains OS data © Crown copyright "
+    "Contains Transport for Greater Manchester data.  Contains OS data © Crown copyright "
     "and database right 2026."
 )
 TFGM_SIGNALS_OGL_URI = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
@@ -77,7 +77,7 @@ Authority = Literal[
     "Wigan",
 ]
 TfgmAttribution = Literal[
-    "Contains Transport for Greater Manchester data. Contains OS data © Crown "
+    "Contains Transport for Greater Manchester data.  Contains OS data © Crown "
     "copyright and database right 2026."
 ]
 
@@ -203,7 +203,7 @@ class TfgmSignalParseReport(TfgmSignalModel):
     complete_dataset: bool
     publication_class: Literal["workspace_only_raw", "redistributable_derived"]
     attribution: TfgmAttribution = (
-        "Contains Transport for Greater Manchester data. Contains OS data © Crown "
+        "Contains Transport for Greater Manchester data.  Contains OS data © Crown "
         "copyright and database right 2026."
     )
     ogl_uri: Literal[
