@@ -44,6 +44,8 @@ from traffictwin.experiments.statistical_study import (
     statistical_study_pairs_to_csv,
     statistical_study_to_markdown,
 )
+from traffictwin.ui.charts import bar_figure
+from traffictwin.ui.components.badges import badge_markdown
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -60,6 +62,7 @@ from traffictwin.ui.services import (
     statistical_study_experiments_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -354,27 +357,35 @@ def _render_power_analysis(analysis: PowerAnalysis) -> None:
 
     result = analysis.calculation
     st.subheader("Prospective Paired Common-Seed Power Plan")
-    cards = st.columns(4)
-    cards[0].metric("Planning status", analysis.status.value)
-    cards[1].metric(
+    st.markdown(f"**Planning status:** {badge_markdown(analysis.status.value)}")
+    cards = st.columns(3)
+    cards[0].metric(
         "Required common-seed pairs",
         result.required_common_seed_replicates or "Unavailable",
+        border=True,
     )
-    cards[2].metric("Required policy runs", result.required_total_policy_runs or "Unavailable")
-    cards[3].metric("Approximate power", _display(result.achieved_power))
-    st.write(
-        {
-            "labels": [item.value for item in analysis.labels],
-            "target_effect": analysis.config.target_effect,
-            "paired_difference_variance": analysis.config.paired_difference_variance,
-            "standardised_effect_magnitude": result.standardised_effect_magnitude,
-            "alpha": analysis.config.alpha,
-            "target_power": analysis.config.target_power,
-            "preceding_replicate_count": result.preceding_replicate_count,
-            "preceding_power": result.preceding_power,
-            "reason_code": result.reason_code.value,
-        }
+    cards[1].metric(
+        "Required policy runs",
+        result.required_total_policy_runs or "Unavailable",
+        border=True,
     )
+    cards[2].metric("Approximate power", _display(result.achieved_power), border=True)
+    with st.container(border=True):
+        st.markdown("**Declared study design**")
+        design = st.columns(2)
+        design[0].markdown(
+            f"**Labels:** {', '.join(item.value for item in analysis.labels)}\n\n"
+            f"**Target effect:** {analysis.config.target_effect}\n\n"
+            f"**Paired-difference variance:** {analysis.config.paired_difference_variance}\n\n"
+            f"**Standardised effect magnitude:** {result.standardised_effect_magnitude}"
+        )
+        design[1].markdown(
+            f"**Alpha:** {analysis.config.alpha}\n\n"
+            f"**Target power:** {analysis.config.target_power}\n\n"
+            f"**Preceding replicate count:** {result.preceding_replicate_count}\n\n"
+            f"**Preceding power:** {result.preceding_power}"
+        )
+        st.caption(f"Reason code: {result.reason_code.value}")
     if analysis.status is PowerAnalysisStatus.UNAVAILABLE:
         st.warning(result.reason or "This planning calculation is unavailable.")
     else:
@@ -406,7 +417,7 @@ def _render_power_analysis(analysis: PowerAnalysis) -> None:
         file_name=f"{analysis.analysis_id}.csv",
         mime="text/csv",
     )
-    with st.expander("Planning provenance, warnings, assumptions, and limitations"):
+    with st.expander("Advanced/Evidence: planning provenance, warnings, assumptions, limitations"):
         st.json(
             {
                 "config": analysis.config.model_dump(mode="json"),
@@ -500,38 +511,40 @@ def _render_regression_gate(report: RegressionGateReport) -> None:
     """Render only the complete typed STA-04 decision and check audit."""
 
     st.subheader("Versioned Regression Gate And Assertion Audit")
-    cards = st.columns(4)
-    cards[0].metric("Gate status", report.status.value)
-    cards[1].metric("Passed checks", report.passed_count)
-    cards[2].metric("Failed checks", report.failed_count)
-    cards[3].metric("Unavailable checks", report.unavailable_count)
+    st.markdown(f"**Gate status:** {badge_markdown(report.status.value)}")
+    cards = st.columns(3)
+    cards[0].metric("Passed checks", report.passed_count, border=True)
+    cards[1].metric("Failed checks", report.failed_count, border=True)
+    cards[2].metric("Unavailable checks", report.unavailable_count, border=True)
     if report.status is RegressionGateStatus.FAILED:
         st.error("At least one complete scalar assertion exceeded its declared tolerance.")
     elif report.status is RegressionGateStatus.UNAVAILABLE:
         st.warning("The complete gate could not be decided from compatible available evidence.")
     else:
         st.success("Every declared scalar assertion passed its versioned tolerance.")
+    check_rows = [
+        {
+            "selector": check.selector,
+            "status": check.status.value,
+            "expected": check.expected_value,
+            "actual": check.actual_value,
+            "unit": check.unit,
+            "absolute_tolerance": check.absolute_tolerance,
+            "relative_tolerance": check.relative_tolerance,
+            "allowed_error": check.allowed_error,
+            "absolute_error": check.absolute_error,
+            "reason": check.reason_code.value,
+        }
+        for check in report.checks
+    ]
     st.dataframe(
-        [
-            {
-                "selector": check.selector,
-                "status": check.status.value,
-                "expected": check.expected_value,
-                "actual": check.actual_value,
-                "unit": check.unit,
-                "absolute_tolerance": check.absolute_tolerance,
-                "relative_tolerance": check.relative_tolerance,
-                "allowed_error": check.allowed_error,
-                "absolute_error": check.absolute_error,
-                "reason": check.reason_code.value,
-            }
-            for check in report.checks
-        ],
+        check_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(check_rows),
     )
     if report.blocking_findings:
-        with st.expander("Blocking compatibility findings"):
+        with st.expander("Advanced/Evidence: blocking compatibility findings"):
             st.json([finding.model_dump(mode="json") for finding in report.blocking_findings])
     downloads = st.columns(3)
     downloads[0].download_button(
@@ -552,7 +565,7 @@ def _render_regression_gate(report: RegressionGateReport) -> None:
         file_name=f"{report.gate_id}.csv",
         mime="text/csv",
     )
-    with st.expander("Golden, provenance, warnings, and limitations"):
+    with st.expander("Advanced/Evidence: golden, provenance, warnings, and limitations"):
         st.json(
             {
                 "golden_contract": report.contract.model_dump(mode="json"),
@@ -686,13 +699,16 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
 
     tost = study.tost
     st.subheader("Paired TOST Equivalence Result And Common-Seed Audit")
-    cards = st.columns(4)
-    cards[0].metric("Study status", study.status.value)
-    cards[1].metric("Conclusion", tost.conclusion.value)
-    cards[2].metric("Eligible pairs", study.pairing_audit.eligible_pair_count)
-    cards[3].metric(
+    st.markdown(
+        f"**Study status:** {badge_markdown(study.status.value)} · "
+        f"**Conclusion:** {badge_markdown(tost.conclusion.value)}"
+    )
+    cards = st.columns(2)
+    cards[0].metric("Eligible pairs", study.pairing_audit.eligible_pair_count, border=True)
+    cards[1].metric(
         "Mean paired difference",
         _display(tost.mean_paired_difference, study.metric_unit),
+        border=True,
     )
     st.caption(
         f"Study {study.study_id} | Method {study.method_version} | Margin "
@@ -713,42 +729,54 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
             "Upper one-sided p",
             _display(tost.upper_test.p_value if tost.upper_test is not None else None),
         )
-        results[3].metric(
-            "Both one-sided nulls rejected",
-            "Yes" if tost.conclusion is EquivalenceConclusion.DEMONSTRATED else "No",
-        )
+        rejected = tost.conclusion is EquivalenceConclusion.DEMONSTRATED
+        with results[3], st.container(border=True):
+            st.caption("Both one-sided nulls rejected")
+            st.markdown(badge_markdown("yes" if rejected else "no"))
     else:
         st.info(tost.reason or "Paired TOST is unavailable.")
-    st.write(
-        {
-            "margin_basis": study.config.margin_basis.value,
-            "margin_justification": study.config.margin_justification,
-            "margin_reference": study.config.margin_reference,
-            "alpha": study.config.alpha,
-        }
-    )
+    with st.container(border=True):
+        st.markdown("**Predeclared margin design**")
+        st.markdown(
+            f"**Basis:** {study.config.margin_basis.value} · **Alpha:** {study.config.alpha}\n\n"
+            f"**Justification:** {study.config.margin_justification or 'none'}\n\n"
+            f"**Reference:** {study.config.margin_reference or 'none'}"
+        )
     st.caption(
         "Equivalence requires both predeclared one-sided tests to reject. An ordinary "
         "non-significant difference test is not equivalence, and failed TOST does not prove "
         "meaningful difference."
     )
     if study.observations:
+        observation_rows = [
+            {
+                "random_seed": row.random_seed,
+                "baseline_run": row.baseline_run_id,
+                "variation_run": row.variation_run_id,
+                "baseline": row.baseline_value,
+                "variation": row.variation_value,
+                "variation_minus_baseline": row.paired_difference,
+            }
+            for row in study.observations
+        ]
         st.dataframe(
-            [
-                {
-                    "random_seed": row.random_seed,
-                    "baseline_run": row.baseline_run_id,
-                    "variation_run": row.variation_run_id,
-                    "baseline": row.baseline_value,
-                    "variation": row.variation_value,
-                    "variation_minus_baseline": row.paired_difference,
-                }
-                for row in study.observations
-            ],
+            observation_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                observation_rows,
+                units=(
+                    {
+                        "baseline": study.metric_unit,
+                        "variation": study.metric_unit,
+                        "variation_minus_baseline": study.metric_unit,
+                    }
+                    if study.metric_unit
+                    else None
+                ),
+            ),
         )
-    with st.expander("Complete inherited STA-01 pairing audit"):
+    with st.expander("Advanced/Evidence: complete inherited STA-01 pairing audit"):
         st.json(study.pairing_audit.model_dump(mode="json"))
     downloads = st.columns(3)
     downloads[0].download_button(
@@ -769,7 +797,7 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
         file_name=f"{study.study_id}-audit.csv",
         mime="text/csv",
     )
-    with st.expander("Complete equivalence plan, provenance, assumptions, and limitations"):
+    with st.expander("Advanced/Evidence: equivalence plan, provenance, assumptions, limitations"):
         st.json(
             {
                 "config": study.config.model_dump(mode="json"),
@@ -906,16 +934,18 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
     """Render only values already computed by the N-way library service."""
 
     st.subheader("N-Way Policy Ranking And Common-Seed Audit")
-    cards = st.columns(4)
-    cards[0].metric("Study status", study.status.value)
-    cards[1].metric("Scenario families", len(study.entries))
-    cards[2].metric(
+    st.markdown(f"**Study status:** {badge_markdown(study.status.value)}")
+    cards = st.columns(3)
+    cards[0].metric("Scenario families", len(study.entries), border=True)
+    cards[1].metric(
         "Available families",
         sum(entry.status is NWayRankingStatus.AVAILABLE for entry in study.entries),
+        border=True,
     )
-    cards[3].metric(
+    cards[2].metric(
         "Complete seed rows",
         sum(entry.audit.complete_seed_count for entry in study.entries),
+        border=True,
     )
     st.caption(
         f"Study {study.study_id} | Config {study.config_fingerprint[:16]}… | "
@@ -931,32 +961,34 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
             f"exclusions={entry.audit.exclusion_count} | bootstrap seed={entry.bootstrap.seed}"
         )
         if entry.policy_ranks:
+            rank_rows = [
+                {
+                    "rank": row.rank,
+                    "policy": row.algorithm,
+                    "n": row.observation_count,
+                    "mean": row.mean,
+                    "mean_interval_lower": row.mean_interval_lower,
+                    "mean_interval_upper": row.mean_interval_upper,
+                    "top_rank_frequency": row.top_rank_frequency,
+                    "rank_interval": (
+                        f"[{row.rank_interval_lower}, {row.rank_interval_upper}]"
+                        if row.rank_interval_lower is not None
+                        else "Unavailable"
+                    ),
+                    "regret": row.regret,
+                    "winner": row.winner,
+                }
+                for row in entry.policy_ranks
+            ]
             st.dataframe(
-                [
-                    {
-                        "rank": row.rank,
-                        "policy": row.algorithm,
-                        "n": row.observation_count,
-                        "mean": row.mean,
-                        "mean_interval_lower": row.mean_interval_lower,
-                        "mean_interval_upper": row.mean_interval_upper,
-                        "top_rank_frequency": row.top_rank_frequency,
-                        "rank_interval": (
-                            f"[{row.rank_interval_lower}, {row.rank_interval_upper}]"
-                            if row.rank_interval_lower is not None
-                            else "Unavailable"
-                        ),
-                        "regret": row.regret,
-                        "winner": row.winner,
-                    }
-                    for row in entry.policy_ranks
-                ],
+                rank_rows,
                 hide_index=True,
                 width="stretch",
+                column_config=table_column_config(rank_rows),
             )
         else:
             st.info(entry.status_reason or "No compatible policy ranking is available.")
-        with st.expander(f"Common-seed audit — {entry.seed_id}"):
+        with st.expander(f"Advanced/Evidence: common-seed audit — {entry.seed_id}"):
             st.json(entry.audit.model_dump(mode="json"))
             if entry.observations:
                 st.dataframe(
@@ -989,7 +1021,7 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
         file_name=f"{study.study_id}-audit.csv",
         mime="text/csv",
     )
-    with st.expander("Complete N-way plan, provenance, assumptions, and limitations"):
+    with st.expander("Advanced/Evidence: N-way plan, provenance, assumptions, and limitations"):
         st.json(
             {
                 "config": study.config.model_dump(mode="json"),
@@ -1015,43 +1047,56 @@ def _render_study(study: StatisticalStudy) -> None:
         if study.synthetic is False
         else "unavailable"
     )
-    cards = st.columns(4)
-    cards[0].metric("Study status", study.status.value)
-    cards[1].metric("Eligible pairs", audit.eligible_pair_count)
-    cards[2].metric("Excluded inputs/pairs", audit.exclusion_count)
-    cards[3].metric(
+    st.markdown(
+        f"**Study status:** {badge_markdown(study.status.value)} · "
+        f"**Source mode:** {badge_markdown(source_mode)}"
+    )
+    cards = st.columns(3)
+    cards[0].metric("Eligible pairs", audit.eligible_pair_count, border=True)
+    cards[1].metric("Excluded inputs/pairs", audit.exclusion_count, border=True)
+    cards[2].metric(
         "Mean paired difference",
         _display(study.estimate.mean_paired_difference, study.metric_unit),
+        border=True,
     )
     st.caption(
-        f"Study {study.study_id} | Config {study.config_fingerprint[:16]}… | "
-        f"Method {study.method_version} | Source mode: {source_mode}"
+        f"Study {study.study_id} | Method {study.method_version}. The difference is always "
+        "variation minus baseline; objective affects interpretation only, never causality."
     )
 
-    if study.status is StatisticalStudyStatus.AVAILABLE:
-        results = st.columns(4)
-        results[0].metric(
-            f"{study.bootstrap_interval.confidence_level:.0%} bootstrap interval",
-            f"[{_display(study.bootstrap_interval.lower)}, "
-            f"{_display(study.bootstrap_interval.upper)}]",
-        )
-        results[1].metric("Two-sided sign-flip p", _display(study.randomisation_test.p_value))
-        results[2].metric("Cohen's dz", _display(study.effect_sizes.cohen_dz))
-        results[3].metric(
-            "Matched rank-biserial",
-            _display(study.effect_sizes.matched_pairs_rank_biserial),
-        )
-        st.caption(
-            f"Randomisation mode: {study.randomisation_test.mode.value}; evaluated "
-            f"{study.randomisation_test.evaluated_assignments} assignments. The p-value does not "
-            "measure effect size, practical importance, equivalence, or causal evidence."
-        )
-    else:
-        st.info(study.estimate.reason or "Inferential components are unavailable.")
+    results_tab, pairs_tab, audit_tab, evidence_tab = st.tabs(
+        ["Results", "Paired observations", "Pairing audit", "Exports & evidence"]
+    )
 
-    if study.observations:
-        st.dataframe(
-            [
+    with results_tab:
+        if study.status is StatisticalStudyStatus.AVAILABLE:
+            results = st.columns(4)
+            results[0].metric(
+                f"{study.bootstrap_interval.confidence_level:.0%} bootstrap interval",
+                f"[{_display(study.bootstrap_interval.lower)}, "
+                f"{_display(study.bootstrap_interval.upper)}]",
+                border=True,
+            )
+            results[1].metric(
+                "Two-sided sign-flip p", _display(study.randomisation_test.p_value), border=True
+            )
+            results[2].metric("Cohen's dz", _display(study.effect_sizes.cohen_dz), border=True)
+            results[3].metric(
+                "Matched rank-biserial",
+                _display(study.effect_sizes.matched_pairs_rank_biserial),
+                border=True,
+            )
+            st.caption(
+                f"Randomisation mode: {study.randomisation_test.mode.value}; evaluated "
+                f"{study.randomisation_test.evaluated_assignments} assignments. The p-value does "
+                "not measure effect size, practical importance, equivalence, or causal evidence."
+            )
+        else:
+            st.info(study.estimate.reason or "Inferential components are unavailable.")
+
+    with pairs_tab:
+        if study.observations:
+            observation_rows = [
                 {
                     "random_seed": row.random_seed,
                     "baseline_run": row.baseline_run_id,
@@ -1062,66 +1107,112 @@ def _render_study(study: StatisticalStudy) -> None:
                     "objective_interpretation": row.interpretation.value,
                 }
                 for row in study.observations
-            ],
-            hide_index=True,
-            width="stretch",
-        )
-    else:
-        st.info("No compatible common-seed pairs were admitted.")
+            ]
+            st.dataframe(
+                observation_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(
+                    observation_rows,
+                    units=(
+                        {
+                            "baseline": study.metric_unit,
+                            "variation": study.metric_unit,
+                            "variation_minus_baseline": study.metric_unit,
+                        }
+                        if study.metric_unit
+                        else None
+                    ),
+                ),
+            )
+            differences = [
+                float(row.paired_difference)
+                for row in study.observations
+                if row.paired_difference is not None
+            ]
+            if differences:
+                labels = [
+                    str(row.random_seed)
+                    for row in study.observations
+                    if row.paired_difference is not None
+                ]
+                y_title = "Difference" + (f" ({study.metric_unit})" if study.metric_unit else "")
+                st.plotly_chart(
+                    bar_figure(
+                        labels,
+                        differences,
+                        title="Per-seed variation minus baseline",
+                        y_title=y_title,
+                    ),
+                    width="stretch",
+                )
+                st.caption(
+                    "Signed per-seed differences over already-computed pairs; direction is not "
+                    "favourability."
+                )
+        else:
+            st.info("No compatible common-seed pairs were admitted.")
 
-    st.subheader("Missing, Unmatched, And Excluded Evidence")
-    st.write(
-        {
-            "expected_random_seeds": audit.expected_random_seeds,
-            "eligible_random_seeds": audit.eligible_random_seeds,
-            "missing_expected_random_seeds": audit.missing_expected_random_seeds,
-            "unmatched_baseline_random_seeds": audit.unmatched_baseline_random_seeds,
-            "unmatched_variation_random_seeds": audit.unmatched_variation_random_seeds,
-            "duplicate_baseline_random_seeds": audit.duplicate_baseline_random_seeds,
-            "duplicate_variation_random_seeds": audit.duplicate_variation_random_seeds,
-        }
-    )
-    if audit.exclusions:
-        st.dataframe(
-            [item.model_dump(mode="json") for item in audit.exclusions],
-            hide_index=True,
-            width="stretch",
+    with audit_tab:
+        audit_columns = st.columns(2)
+        audit_columns[0].markdown(
+            f"**Expected random seeds:** {_seed_list(audit.expected_random_seeds)}\n\n"
+            f"**Eligible random seeds:** {_seed_list(audit.eligible_random_seeds)}\n\n"
+            f"**Missing expected seeds:** {_seed_list(audit.missing_expected_random_seeds)}"
         )
-    else:
-        st.success("No input or pair exclusions were recorded.")
+        audit_columns[1].markdown(
+            f"**Unmatched baseline seeds:** {_seed_list(audit.unmatched_baseline_random_seeds)}\n\n"
+            f"**Unmatched variation seeds:** "
+            f"{_seed_list(audit.unmatched_variation_random_seeds)}\n\n"
+            f"**Duplicate baseline seeds:** {_seed_list(audit.duplicate_baseline_random_seeds)} · "
+            f"**Duplicate variation seeds:** {_seed_list(audit.duplicate_variation_random_seeds)}"
+        )
+        if audit.exclusions:
+            exclusion_rows = [item.model_dump(mode="json") for item in audit.exclusions]
+            st.dataframe(
+                exclusion_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(exclusion_rows),
+            )
+        else:
+            st.success("No input or pair exclusions were recorded.")
 
-    downloads = st.columns(3)
-    downloads[0].download_button(
-        "Download StatisticalStudy JSON",
-        data=study.to_json(),
-        file_name=f"{study.study_id}.json",
-        mime="application/json",
-    )
-    downloads[1].download_button(
-        "Download Study Markdown",
-        data=statistical_study_to_markdown(study),
-        file_name=f"{study.study_id}.md",
-        mime="text/markdown",
-    )
-    downloads[2].download_button(
-        "Download Pair Audit CSV",
-        data=statistical_study_pairs_to_csv(study),
-        file_name=f"{study.study_id}-pairs.csv",
-        mime="text/csv",
-    )
-    with st.expander("Complete plan, provenance, assumptions, and limitations"):
-        st.json(
-            {
-                "config": study.config.model_dump(mode="json"),
-                "config_fingerprint": study.config_fingerprint,
-                "compatibility_signature_fingerprint": (study.compatibility_signature_fingerprint),
-                "provenance": study.provenance,
-                "warnings": study.warnings,
-                "assumptions": study.assumptions,
-                "limitations": study.limitations,
-                "study_fingerprint": study.fingerprint(),
-            }
+    with evidence_tab:
+        downloads = st.columns(3)
+        downloads[0].download_button(
+            "Download StatisticalStudy JSON",
+            data=study.to_json(),
+            file_name=f"{study.study_id}.json",
+            mime="application/json",
         )
+        downloads[1].download_button(
+            "Download Study Markdown",
+            data=statistical_study_to_markdown(study),
+            file_name=f"{study.study_id}.md",
+            mime="text/markdown",
+        )
+        downloads[2].download_button(
+            "Download Pair Audit CSV",
+            data=statistical_study_pairs_to_csv(study),
+            file_name=f"{study.study_id}-pairs.csv",
+            mime="text/csv",
+        )
+        with st.expander("Advanced/Evidence: complete plan, provenance, assumptions, limitations"):
+            st.json(
+                {
+                    "config": study.config.model_dump(mode="json"),
+                    "config_fingerprint": study.config_fingerprint,
+                    "compatibility_signature_fingerprint": (
+                        study.compatibility_signature_fingerprint
+                    ),
+                    "provenance": study.provenance,
+                    "warnings": study.warnings,
+                    "assumptions": study.assumptions,
+                    "limitations": study.limitations,
+                    "study_fingerprint": study.fingerprint(),
+                }
+            )
 
 
 def _display(value: float | None, unit: str | None = None) -> str:
@@ -1129,6 +1220,14 @@ def _display(value: float | None, unit: str | None = None) -> str:
         return "Unavailable"
     suffix = f" {unit}" if unit else ""
     return f"{value:.6g}{suffix}"
+
+
+def _seed_list(seeds: object) -> str:
+    """Render a sequence of seeds as a compact human string."""
+
+    if not isinstance(seeds, (list, tuple)) or not seeds:
+        return "none"
+    return ", ".join(str(seed) for seed in seeds)
 
 
 def _render_error(error: ServiceError) -> None:

@@ -138,3 +138,26 @@ def test_vec_workbench_preset_execution_badge_is_visible() -> None:
     # Approved preset and its foreground-only execution boundary are shown.
     assert "Approved preset" in body
     assert "-badge[" in body  # badges are rendered natively
+
+
+# --- Statistical Study (STA-05 power-analysis path, registry-free) -----------
+
+
+def test_statistical_study_power_analysis_is_structured_not_raw_dict() -> None:
+    app = page_app(UiPage.STATISTICAL_STUDY).run(timeout=30)
+    assert not app.exception
+    app.radio[0].set_value("Power analysis helper (STA-05)").run(timeout=30)
+    app = click_button(app, "Calculate required common-seed pairs")
+    assert not app.exception
+
+    body = text_of(app)
+    # Study-design values are a structured panel, not a primary raw dict dump.
+    assert "Declared study design" in body
+    # Numeric plan quantities use st.metric.
+    assert "Required common-seed pairs" in metric_labels(app)
+    # Categorical planning status is a badge, not a numeric metric.
+    assert "Planning status" not in metric_labels(app)
+    # Raw config JSON only lives under the Advanced/Evidence expander.
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    assert advanced
+    assert len(app.json) == 1

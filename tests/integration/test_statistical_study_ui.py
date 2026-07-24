@@ -36,6 +36,9 @@ def test_streamlit_statistical_study_page_runs_registered_plan(
             payload_json=collection.model_dump_json(),
         )
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(registry_path))
+    # This test navigates via the complete v0.6 radio router, which is the explicit
+    # legacy compatibility route now that grouped st.navigation is the normal default.
+    monkeypatch.setenv("TRAFFICTWIN_V07_NAVIGATION", "legacy")
 
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app = app_test.from_file("src/traffictwin/ui/app.py")
@@ -58,3 +61,12 @@ def test_streamlit_statistical_study_page_runs_registered_plan(
         "Download Study Markdown",
         "Download Pair Audit CSV",
     }
+    # Presentation (Tier 2): the study status is a categorical badge, not a numeric metric,
+    # and the results are organised into tabs rather than a flat raw dump.
+    assert not any(metric.label == "Study status" for metric in app.metric)
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert "Study status:" in markdown_text
+    tab_labels = {str(tab.label) for tab in app.tabs}
+    assert {"Results", "Paired observations", "Pairing audit", "Exports & evidence"} <= tab_labels
+    # The raw plan/provenance JSON lives only under the Advanced/Evidence expander.
+    assert len(app.json) == 1
