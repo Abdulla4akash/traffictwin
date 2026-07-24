@@ -174,8 +174,41 @@ reviewed `claude/ui-redesign` commits onto the `claude/complete-v0.7` integratio
 at `v0.7.0-alpha.4`. The reviewed diff stayed exactly inside the granted seven-page file set plus
 the permitted new Tier 1 presentation test; the lead-owned action-aware Guided Demo, National
 Highways layers, and all shared records were untouched. The Tier 1 source and test claim is
-closed; later edits to those pages require a new explicit grant. Phase 2B Tier 2 remains
-ungranted.
+closed; later edits to those pages require a new explicit grant.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 2
+
+- The repository owner granted Phase 2B Tier 2 presentation work on 24 July 2026 from the clean
+  pushed integration head `6c554164ed86f5174ca9c75fea4b24aa141287c2` on `claude/complete-v0.7`.
+  The work is presentation-only groundwork for `UX-01`–`UX-03`; it cannot accept a gate, change
+  capability truth, fetch evidence, alter deterministic calculations, or edit source data, and no
+  capability moves off `planned`.
+- The exclusive source files are exactly
+  `src/traffictwin/ui/pages/{statistical_study.py,vec_workbench.py,temporal_metrics.py,threshold_sensitivity.py}`.
+  These four pages may adopt the existing badge, table, column-configuration, fingerprint,
+  bordered-container, tab, chart, and numeric-metric presentation helpers.
+- Permitted existing tests to edit for presentation assertions:
+  `tests/ui/test_statistical_study_services.py`, `tests/integration/test_statistical_study_ui.py`,
+  `tests/ui/test_vec_oneclick_ui.py`, `tests/ui/test_threshold_sensitivity_services.py`, and the
+  presentation-related assertions for these four pages in `tests/integration/test_ui_demo_flow.py`.
+  Scientific, service, navigation, and interaction assertions must remain intact. New tests may be
+  added under `tests/unit/ui/` named `test_page_presentation_tier2*`,
+  `test_statistical_study_presentation*`, `test_vec_workbench_presentation*`,
+  `test_temporal_metrics_presentation*`, or `test_threshold_sensitivity_presentation*`.
+- Primary content uses human labels, explicit units, native tables/charts, numeric `st.metric`
+  values, tabs/bordered sections, and concise evidence states. Raw dictionaries/JSON, complete
+  fingerprints, machine IDs, commands, and receipts move only to clearly labelled Advanced/Evidence
+  surfaces; unavailable, partial, stale, rejected, and synthetic states remain visible and exact.
+  No page performs a scientific calculation, and statistical difference is never presented as
+  causality or practical superiority.
+- Do not edit scientific libraries, integration adapters, source contracts, capability manifests,
+  dependency files, external repositories, other page/navigation/app files, Phase 1 shared
+  components, or protected tags. No new dependency and no deprecated `use_container_width`.
+- Handoff requires the exact changed-file inventory, focused new/edited tests, all `tests/ui`, all
+  `tests/unit`, affected integration tests, repository Ruff and format checks, strict mypy,
+  `git diff --check`, light/dark desktop/mobile screenshots of all four pages, and confirmation
+  the 140-view browser audit is not weakened. Commit in small logical commits on
+  `claude/complete-v0.7`; never create or move a release tag.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
