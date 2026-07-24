@@ -125,14 +125,17 @@ def navigation_button(
 
 
 def render_sidebar_context(page: UiPage) -> None:
-    """Render consistent sidebar context for the active page."""
+    """Render the page description once, as shared sidebar context."""
 
     st.sidebar.caption(PAGE_DESCRIPTIONS[page])
 
 
 def render_page_header(page: UiPage) -> None:
-    """Render a consistent page heading and breadcrumb."""
+    """Render a consistent page heading and breadcrumb.
+
+    The page description renders once, in the sidebar context, so the header
+    stays a small breadcrumb plus title without duplicated copy.
+    """
 
     st.caption(f"TrafficTwin / {page.value}")
     st.title(page.value)
-    st.caption(PAGE_DESCRIPTIONS[page])
