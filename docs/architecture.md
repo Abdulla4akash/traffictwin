@@ -1800,14 +1800,15 @@ operational only and is not rendered or retained in the report. Because VEC-11 r
 and clocks, this path cannot create a map point, freshness state, live claim, canonical Manchester
 observation, or public-hosting permission.
 
-The v0.7 router selects a focused Home renderer without changing the default v0.6 Home. It derives
-the Manchester evidence state only from the same bounded local scene loader used by Manchester
-Operations, derives registry activity from the existing project-status service, and sends actions
-through the router-aware navigation boundary. When a latest scene exists, Home renders the same
-no-basemap, display-safe PyDeck projection; otherwise it presents an explicit unavailable state.
-The page performs no source acquisition, metric calculation, hidden fallback, or workspace write.
-All v0.7 UI source now uses Streamlit's `width` API; deprecated `use_container_width` calls have
-been removed without changing the legacy router's functional inventory.
+The normal v0.7 router selects a focused Home renderer, while the explicit legacy compatibility
+route preserves the complete v0.6 Home. It derives the Manchester evidence state only from the
+same bounded local scene loader used by Manchester Operations, derives registry activity from the
+existing project-status service, and sends actions through the router-aware navigation boundary.
+When a latest scene exists, Home renders the same no-basemap, display-safe PyDeck projection;
+otherwise it presents an explicit unavailable state. The page performs no source acquisition,
+metric calculation, hidden fallback, or workspace write. All v0.7 UI source now uses Streamlit's
+`width` API; deprecated `use_container_width` calls have been removed without changing the legacy
+router's functional inventory.
 
 The candidate MAN-09 calibration library is a pure post-execution evaluator, not a SUMO launcher
 or raw-count conversion service. A versioned contract fixes source/scope/time/measure/unit,
@@ -1827,13 +1828,14 @@ inventories and re-derives every pair, exclusion, denominator, coverage value, a
 and metric during reload. Production goodness-of-fit is unavailable because the reviewed contract
 registry is empty. This candidate evidence does not accept MAN-10 or establish model quality.
 
-The candidate `UX-01` implementation preserves the complete legacy router as the default and
-enables the new router only through `TRAFFICTWIN_V07_NAVIGATION=1`. A normative typed inventory maps
-all 34 `UiPage` values to unique direct scripts and URL paths. A shared page runtime serves both
-routers, while candidate page-to-page callbacks use registered `st.switch_page` targets. The
-feature flag cannot become the default until direct-URL/browser, cross-page state, accessibility,
-screenshot, new-page minimum-version, package-version, and final reconciliation gates pass. Packaging now
-declares the reviewed Streamlit floor and PyDeck directly. Minimum/locked Streamlit
+The candidate `UX-01` implementation makes the grouped router the normal v0.7 development route
+and preserves the complete legacy router through `TRAFFICTWIN_V07_NAVIGATION=legacy`. A normative
+typed inventory maps all 34 `UiPage` values to unique direct scripts and URL paths. A shared page
+runtime serves both routers, while candidate page-to-page callbacks use registered
+`st.switch_page` targets. This development default does not accept the capability; direct-URL and
+browser, cross-page state, accessibility, screenshot, new-page minimum-version, package-version,
+and final reconciliation gates remain. Packaging declares the reviewed Streamlit floor and PyDeck
+directly. Minimum/locked Streamlit
 tests, isolated installed-wheel execution, all 34 live direct paths, direct refresh, a cross-page
 action, and browser history now pass for the candidate foundation. Candidate page actions invoke
 `st.switch_page` only from normal top-level script execution, because rerun-triggering navigation

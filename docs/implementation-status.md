@@ -381,31 +381,36 @@ v0.7 specification defines these planned groups without changing current capabil
 
 A candidate `UX-01` router now maps all 34 current pages to the five approved groups, unique direct
 scripts, stable URL paths, Material icons, and the existing tested renderers. All direct scripts
-pass AppTest smoke rendering and the candidate is available only through
-`TRAFFICTWIN_V07_NAVIGATION=1`; the complete legacy router remains the default. Cross-page state,
-accessibility, screenshot, new-page minimum-version, package-version, and final cutover evidence
-remain, so `UX-01` is not implemented. The original candidate's 45-test suite passes on both the minimum
+pass AppTest smoke rendering. The grouped `st.navigation` router is now the normal route; the
+complete legacy router remains available only through the explicit
+`TRAFFICTWIN_V07_NAVIGATION=legacy` compatibility setting. Cross-page state, accessibility,
+screenshot, new-page minimum-version, package-version, and final cutover evidence remain, so
+`UX-01` is not implemented. The original candidate's 45-test suite passes on both the minimum
 `streamlit==1.58.0` and locked `streamlit==1.59.2` environments; a built wheel contains all 34
 direct scripts and its installed candidate root passes AppTest from `site-packages`. Live-browser
 checks render all 34 direct paths without a Streamlit exception and pass direct refresh,
 Home-to-Guided navigation, and back/forward history after correcting callback-based page switching
 to run at normal top-level script execution.
 
-The opt-in v0.7 router now renders a focused `UX-02` home while the default legacy router retains
-the complete v0.6 home. The v0.7 entry point leads with the approved research task, three primary
-actions, meaningful local evidence/run/comparison indicators, and either the accepted local
-latest-available Manchester map scene or an honest bounded empty state. It presents the next
-evidence/run/compare actions and source-specific road/bus/infrastructure limits without leading
-with the full capability table. A separate `UX-03` migration removes every deprecated
-`use_container_width` call from `src/traffictwin/ui` and uses the reviewed `width` API instead.
-These are candidate UI slices only; screenshot, mobile, accessibility, complete browser, and final
-cutover acceptance remain outstanding, so `UX-02` and `UX-03` remain planned.
+The normal v0.7 router now renders a focused `UX-02` home; the explicit legacy compatibility route
+retains the complete v0.6 home. The v0.7 entry point leads with the approved research task, three
+primary actions, meaningful local evidence/run/comparison indicators, and either the accepted
+local latest-available Manchester map scene or an honest bounded empty state. Phase 2A also moves
+machine-oriented details behind Advanced/Evidence surfaces on Home, Run Overview, and Evidence
+Readiness, uses numeric metrics and tested evidence badges, and migrates affected AppTests to
+direct `st.navigation` page switching. The integrated unit/UI gate passes all 1,707 tests. A
+separate `UX-03` migration removes every deprecated `use_container_width` call from
+`src/traffictwin/ui` and uses the reviewed `width` API instead. These are candidate UI slices only;
+screenshot, mobile, accessibility, complete browser, and final cutover acceptance remain
+outstanding, so `UX-02` and `UX-03` remain planned.
 
-Only the explicit operator-submitted BODS form may call a Manchester source; ordinary page reruns
-and every other Manchester page remain local/import-first. No source adapter is accepted, and no
-observation may be used as a SUMO baseline until its v0.7 gate passes. BODS remains bus evidence,
-DfT remains historical survey/statistical evidence, WebTRIS remains strategic-road evidence, TfGM
-signals remain infrastructure reference data, and Randy artifacts retain every v0.6 limit.
+Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
+and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
+its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains
+historical/latest-available strategic-road evidence, TfGM signals remain infrastructure reference
+data, BODS remains bus-position evidence, National Highways remains strategic-road operational
+event evidence, and Randy artifacts retain every v0.6 limit. None supplies continuous city-road
+flow, measured congestion, or traffic-signal phases.
 
 ## v0.6 `VEC-01` Source-snapshot Audit Status
 

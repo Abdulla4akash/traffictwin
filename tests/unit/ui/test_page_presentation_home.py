@@ -39,6 +39,22 @@ def test_v07_home_shows_evidence_state_as_badge_not_text_metric() -> None:
         assert str(item.value).replace(".", "", 1).isdigit()
 
 
+def test_home_states_the_bounded_live_sources_and_residual_limits() -> None:
+    v07 = _home_app(v07_active=True).run(timeout=25)
+    legacy = _home_app(v07_active=False).run(timeout=25)
+
+    assert not v07.exception
+    assert not legacy.exception
+    visible_copy = "\n".join(
+        str(block.value) for block in [*v07.warning, *v07.caption, *legacy.markdown, *legacy.info]
+    )
+    assert "BODS bus-position" in visible_copy
+    assert "National Highways" in visible_copy
+    assert "continuous city-road" in visible_copy
+    assert "WebTRIS is historical/latest-available" in visible_copy
+    assert "live data remain unavailable" not in visible_copy
+
+
 def test_legacy_home_keeps_information_without_raw_list_dump() -> None:
     app = _home_app(v07_active=False).run(timeout=25)
 

@@ -2,6 +2,18 @@
 
 ## v0.7.0 - In development
 
+Integrated the reviewed UI presentation Phase 2A:
+
+- made the five-group `st.navigation` shell the normal v0.7 development route while preserving
+  the complete v0.6 radio router through `TRAFFICTWIN_V07_NAVIGATION=legacy`;
+- focused Home on evidence, run, and comparison actions; moved machine-oriented details behind
+  Advanced/Evidence surfaces on Home, Run Overview, and Evidence Readiness; and kept numeric
+  metrics and exact evidence-state badges;
+- migrated affected AppTests to direct registered page switching and reconciled Home copy with
+  the bounded BODS and National Highways live-source truth; and
+- retained `UX-01`–`UX-03` as planned pending screenshot, mobile, accessibility, complete browser,
+  minimum-version, and final cutover acceptance.
+
 Added a bounded private National Highways operational workflow:
 
 - exact REST acquisition for Road and Lane Closures v2, Speed Managed Areas v1, and Digital VMS

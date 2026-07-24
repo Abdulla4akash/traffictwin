@@ -872,7 +872,6 @@ PY
 Then start the UI with credentials supplied only through the local process environment:
 
 ```bash
-export TRAFFICTWIN_V07_NAVIGATION=1
 export TRAFFICTWIN_WORKSPACE_PATH='/absolute/path/to/workspace-v0.7'
 export BODS_API_KEY='your-BODS-key'
 export NATIONAL_HIGHWAYS_API_KEY='your-National-Highways-key'

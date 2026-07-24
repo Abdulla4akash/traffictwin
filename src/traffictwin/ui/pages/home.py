@@ -150,8 +150,9 @@ def _render_v07_home(config: UiConfig) -> None:
 
     st.warning(
         "Manchester sources remain evidence-specific: DfT is historical survey evidence, "
-        "WebTRIS covers strategic roads, TfGM signals are infrastructure references, and BODS "
-        "positions are buses—not general live road traffic.",
+        "WebTRIS is historical/latest-available strategic-road evidence, TfGM signals are "
+        "infrastructure references, BODS positions are buses, and National Highways supplies "
+        "strategic-road operational events—not continuous city-road flow or congestion.",
         icon=":material/info:",
     )
     st.caption(REQUIRED_PROTOTYPE_NOTICE)
@@ -321,9 +322,11 @@ def _render_legacy_home(config: UiConfig) -> None:
     section_header("Current Limitations")
     st.markdown(
         "- Direct simulator launch is unavailable for the default generic CSV adapter.\n"
-        "- Live Manchester evidence covers BODS bus positions only; general live or "
-        "near-live Manchester road traffic remains unavailable, and WebTRIS road "
-        "evidence is historical/latest-available, not near-live.\n"
+        "- Private Manchester acquisition is bounded to explicit BODS bus-position snapshots "
+        "and National Highways strategic-road closures/incidents, imposed temporary speed "
+        "restrictions, and VMS status. Continuous city-road flow, measured speed/congestion, "
+        "traffic-signal phases, and background polling remain unavailable; WebTRIS is "
+        "historical/latest-available, not near-live.\n"
         "- Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.\n"
         "- TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
         "exact VEC foreground evaluation is available only through request-specific "

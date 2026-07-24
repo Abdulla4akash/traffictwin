@@ -531,10 +531,11 @@ every row has an accepted destination, stable URL, page-level test, and cross-pa
 During development an incomplete v0.7 regroup keeps the complete v0.6 navigation active; no page is
 removed or hidden merely because its replacement has not landed.
 
-The candidate regroup may be exercised through `TRAFFICTWIN_V07_NAVIGATION=1`, but that development
-flag does not change capability truth. It cannot become the default until the complete Appendix-D
-inventory and minimum/locked-version, direct-URL, browser-history, cross-page-state, packaging,
-accessibility, mobile, and screenshot gates pass together.
+The grouped router is the normal route on the v0.7 development branch. The complete v0.6 router
+remains available through `TRAFFICTWIN_V07_NAVIGATION=legacy`, while the immutable `v0.6.0` tag is
+unchanged. Development-default routing does not change capability truth or release acceptance;
+the complete Appendix-D inventory and minimum/locked-version, direct-URL, browser-history,
+cross-page-state, packaging, accessibility, mobile, and screenshot gates must still pass together.
 
 The v0.7 UI requires `streamlit>=1.58,<2`; the reviewed development lock is
 `streamlit==1.59.2`. That floor covers
@@ -817,9 +818,11 @@ service both pass. One source adapter may complete without enabling or weakening
 2. Build Manchester Operations from accepted local services.
 3. Add historical/latest/live-vehicle modes, source cards, filters, maps, charts, provenance, and
    unavailable states.
-4. Retain the complete v0.6 router until the replacement inventory passes atomically.
-5. Keep any candidate router behind `TRAFFICTWIN_V07_NAVIGATION=1`; the flag is development
-   evidence, not an accepted cutover or capability state.
+4. Retain the complete v0.6 router as an explicit compatibility route until the replacement
+   inventory passes atomically; never alter the immutable `v0.6.0` release.
+5. Treat the normal v0.7 development router as candidate evidence, not an accepted release cutover
+   or capability state; `TRAFFICTWIN_V07_NAVIGATION=legacy` must continue to select the complete
+   compatibility router.
 6. Pass minimum-version, locked-version, unit, AppTest, direct-URL/history, cross-page-state,
    packaged-wheel, browser, screenshot, mobile, and
    accessibility gates, including removal of existing `use_container_width` calls.

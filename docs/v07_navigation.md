@@ -2,17 +2,24 @@
 
 This document describes the implemented candidate foundation for `UX-01` from the
 [TrafficTwin v0.7 design](traffictwin-design-v0_7.md#13-product-information-architecture-and-visual-design).
-`UX-01` remains `planned`; the candidate is opt-in until its complete atomic-cutover gate passes.
+`UX-01` remains `planned`; making this the normal development router does not accept its complete
+atomic-cutover gate.
 
 ## Current behaviour
 
-The ordinary application continues to use the complete v0.6 radio router. No existing page has
-been removed, hidden, renamed in the legacy UI, or made dependent on a Manchester source.
-
-An explicit environment flag enables the candidate router:
+The ordinary v0.7 development application uses the grouped router. No existing page has been
+removed, hidden, or made dependent on a Manchester source. The complete v0.6 radio router remains
+available as an explicit compatibility route:
 
 ```bash
-TRAFFICTWIN_V07_NAVIGATION=1 uv run streamlit run src/traffictwin/ui/app.py
+TRAFFICTWIN_V07_NAVIGATION=legacy uv run streamlit run src/traffictwin/ui/app.py
+```
+
+Values `0`, `false`, and `no` select the same compatibility route. Omitting the variable, or using
+`1`, selects the grouped router:
+
+```bash
+uv run streamlit run src/traffictwin/ui/app.py
 ```
 
 The candidate uses `st.navigation(..., position="sidebar")` and `st.Page`. Its five visible groups
@@ -44,8 +51,8 @@ Automated checks currently prove:
 - the additive Manchester route is unique and its direct script exists;
 - complete renderer coverage;
 - Material icons and navigation construction accepted by the locked Streamlit runtime;
-- candidate hidden-root Home rendering without the legacy radio;
-- default fallback to all 34 legacy options;
+- default grouped hidden-root Home rendering without the legacy radio;
+- explicit compatibility fallback to all 34 legacy options;
 - candidate page-to-page callback routing; and
 - successful AppTest smoke rendering of every direct page with initialized shared state;
 - the complete 45-test navigation suite on both `streamlit==1.58.0` and the locked
@@ -57,9 +64,10 @@ Automated checks currently prove:
 - live-browser acceptance of direct-route refresh, Home-to-Guided page action, and browser
   back/forward history. This check found and drove the top-level page-action correction above.
 
-## Remaining cutover gates
+## Remaining acceptance gates
 
-The feature flag must not become the default until the project also passes:
+The development-router default does not make `UX-01` implemented. Release acceptance still
+requires:
 
 - cross-page state tests for representative research workflows;
 - desktop/mobile screenshots, keyboard order, labels, contrast, and truncation checks;
@@ -67,5 +75,6 @@ The feature flag must not become the default until the project also passes:
 - minimum-version acceptance for each new page, shared capability/documentation, package version,
   and release reconciliation. Packaging now declares the reviewed `streamlit>=1.58,<2` floor.
 
-Until those gates pass, this candidate is development evidence only and the complete v0.6 router
-remains the guaranteed default.
+Until those gates pass, this candidate is development evidence only. The immutable `v0.6.0` tag
+and its complete router remain the guaranteed release baseline, while the v0.7 branch retains the
+explicit legacy compatibility route.

@@ -143,7 +143,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
 REQUIRED_PROTOTYPE_NOTICE = (
     "Current prototype supports synthetic fixtures, imported run bundles, historical replay, and "
     "deterministic diagnostic hypotheses. Exact VEC execution is request-preflight-gated in its "
-    "dedicated workbench; generic/SUMO launch and live data remain unavailable."
+    "dedicated workbench. The opt-in Manchester Operations workflow supports private, explicit "
+    "BODS bus-position and National Highways operational snapshots; generic/SUMO launch, "
+    "continuous city-road telemetry, and background live polling remain unavailable."
 )
 
 DIAGNOSTIC_NOTICE = (

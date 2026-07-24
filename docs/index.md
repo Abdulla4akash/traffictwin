@@ -22,7 +22,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Manchester map and attribution decision](decisions/ADR-056-manchester-map-rendering-and-attribution.md)
 - [Bee Network membership decision](decisions/ADR-057-bee-network-membership-identifiers.md)
 - [v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md)
-- [v0.7 task-oriented navigation candidate](v07_navigation.md)
+- [v0.7 task-oriented navigation and legacy compatibility](v07_navigation.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [User guide](user_guide.md)
 - [CLI reference](cli_reference.md)

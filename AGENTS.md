@@ -68,7 +68,7 @@ Phase 1 was lead-reviewed and merged at `11eacb6`; the lead then removed the res
 at `0da8175` so native Streamlit configuration is the only theme mechanism. The Phase 1 file claim
 is closed. Later edits to those shared presentation files require a new grant.
 
-### Active parallel ownership grant: Claude UI presentation Phase 2A
+### Completed parallel ownership: Claude UI presentation Phase 2A
 
 - Claude owns the bounded `UX-01`–`UX-03` shell and first-impression presentation slice after
   fast-forwarding `claude/ui-redesign` to the latest `codex/traffictwin-v0.7`. This work remains
@@ -125,6 +125,44 @@ is closed. Later edits to those shared presentation files require a new grant.
   strict mypy, and `git diff --check`, and supply the required light/dark screenshots. Do not begin
   the proposed Phase 2B page/table harvest until the lead merges this closed Phase 2A branch and
   records a new file-level grant.
+
+Phase 2A was lead-reviewed and merged at
+`b4f4d39c66c9e10d9ce16c5ba232d09e51abfea3`. The lead then reconciled its Manchester evidence
+copy against the accepted BODS and National Highways operational slices. The Phase 2A source and
+test claim is closed; later edits require a new explicit grant.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 1
+
+- Claude owns the first bounded page-presentation harvest after fast-forwarding
+  `claude/ui-redesign` to the pushed `codex/traffictwin-v0.7` HEAD that contains this grant. The
+  work is presentation-only groundwork for `UX-01`–`UX-03`; it cannot accept a gate, change
+  capability truth, fetch evidence, alter deterministic calculations, or edit source data.
+- The exclusive source files are exactly
+  `src/traffictwin/ui/pages/{helpers.py,sumo_import.py,bundle_import.py,compare.py,about.py,tos_data_import.py,experiment_manager.py}`.
+  The shared helper may shorten a primary-display fingerprint only while retaining the complete
+  value in an Advanced/Evidence surface. The six pages may adopt the existing badge, table,
+  column-configuration, fingerprint, bordered-container, and numeric-metric presentation helpers.
+- Claude may edit only these existing tests where a presentation assertion must follow the owned
+  page: `tests/ui/test_product_polish.py`, `tests/ui/test_sumo_services.py`, and
+  `tests/ui/test_tos_services.py`. Scientific, service, navigation, and interaction assertions
+  must remain intact. Claude may add tests named
+  `tests/unit/ui/test_page_presentation_tier1*.py`; no other existing test file is transferred.
+- Primary content must use human labels, explicit units, native Streamlit tables/charts, numeric
+  `st.metric` values, and concise evidence states. Raw dictionaries/JSON, complete fingerprints,
+  machine IDs, and implementation metadata may move only to clearly labelled Advanced/Evidence
+  expanders; unavailable, rejected, warning, stale, historical, synthetic, and live states must
+  remain visible and exact. Hiding a display column must not be used as a privacy boundary.
+- Do not edit `.streamlit/config.toml`, navigation/app files, `src/traffictwin/ui/labels.py`, any
+  Manchester Operations file, Phase 1 shared components or `tables.py`, `vec_workbench.py`, any
+  integration/service/CLI module, dependency file, project record, generated reference,
+  documentation index, changelog, or this `AGENTS.md`. In particular,
+  `client.showSidebarNavigation` is not part of this grant; the installed Streamlit contract says
+  it controls legacy `pages/` auto-navigation, not the explicit `st.navigation` router.
+- Handoff requires a clean branch, exact changed-file inventory, focused new/edited tests, all
+  `tests/ui`, all `tests/unit`, repository Ruff, strict mypy, `git diff --check`, and light/dark
+  screenshots of at least one import page and one comparison/metadata page. Leave commits only on
+  `claude/ui-redesign`; the lead owns review, merge, shared records, capability reconciliation, and
+  push. Phase 2B Tier 2 remains ungranted.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 

@@ -6,7 +6,7 @@ software evidence, not acceptance of any Manchester source, live feed, calibrati
 
 ## Availability and setup
 
-The page is additive at `/manchester` inside the opt-in v0.7 router:
+The page is additive at `/manchester` inside the normal v0.7 development router:
 
 ```bash
 uv run python - <<'PY'
@@ -15,13 +15,13 @@ from traffictwin.release import initialise_v07_workspace
 initialise_v07_workspace("/path/to/workspace-v0.7")
 PY
 
-export TRAFFICTWIN_V07_NAVIGATION=1
 export TRAFFICTWIN_WORKSPACE_PATH=/path/to/workspace-v0.7
 uv run streamlit run src/traffictwin/ui/app.py
 ```
 
-The complete v0.6 router remains the default. Adding Manchester Operations does not change the
-normative 34-page migration inventory.
+The complete v0.6 router remains available with `TRAFFICTWIN_V07_NAVIGATION=legacy`. Adding
+Manchester Operations does not change the normative 34-page migration inventory or the immutable
+`v0.6.0` release.
 
 ## Local scene contract
 
