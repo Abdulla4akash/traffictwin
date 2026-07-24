@@ -70,12 +70,15 @@ exclusions and precautionary BODS retention controls remain.
 Decision needed (open question 15): what evidence proves a registry was produced by the exact
 `v0.6.0` release before compatibility migration is allowed.
 
-Recommended policy to approve: accept only a workspace accompanied by a clean-checkout
-attestation — the registry was produced (or re-verified) by running the immutable `v0.6.0` tag
-from a clean checkout, recorded in a signed-off marker containing the tag commit, package
-version, and registry hash at attestation time. Weaker alternatives (trusting schema shape
-alone) are already refused by the implemented preview. On approval, the attestation
-mechanism, migration activation, backup, and rollback work becomes ordinary engineering.
+**Approved on 24 July 2026** and recorded in
+[ADR-058](decisions/ADR-058-v06-producer-attestation.md): only an operator clean-checkout
+attestation establishes `v0.6.0` producer provenance. The typed attestation
+(`traffictwin.release.attestation`) binds the exact tag commit, package version, registry hash
+and size, a timezone-aware instant, and the operator's literal statement; verification re-hashes
+the current bytes and fails closed on drift, sidecars, or tampered literals, and a verified
+attestation approves no migration or activation by itself. The migration
+preview/backup/activation/rollback build-out against attested sources is now ordinary
+engineering.
 
 ## 5. Manual accessibility and participant evaluation (blocks final Gate C acceptance, RQ16)
 

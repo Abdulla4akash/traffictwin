@@ -292,3 +292,90 @@ def test_cli_v06_copy_preview_and_copy_preserve_source_bytes(tmp_path: Path) -> 
     repeat = runner.invoke(app, ["release", "v06-copy", str(source), str(workspace)])
     assert repeat.exit_code == 1
     assert _sha256(source) == source_before
+
+
+def test_attestation_binds_exact_registry_bytes_and_stays_non_approving(tmp_path: Path) -> None:
+    from traffictwin.release.attestation import (
+        build_v06_producer_attestation,
+        load_v06_producer_attestation,
+        verify_v06_producer_attestation,
+    )
+
+    registry = _closed_registry(tmp_path / "v06.sqlite")
+    attestation = build_v06_producer_attestation(
+        registry, operator_name="Abdulla Al Mamun Akash", attested_at=FIXED_NOW
+    )
+
+    assert attestation.attested_tag == "v0.6.0"
+    assert attestation.attested_tag_commit == "1c50a25246426128ac6e8530240eff362d16be02"
+    assert attestation.registry_sha256 == _sha256(registry)
+    assert attestation.migration_approved is False
+    assert attestation.activation_available is False
+
+    artifact = tmp_path / "attestation.json"
+    artifact.write_text(attestation.model_dump_json(indent=2), encoding="utf-8")
+    reloaded = load_v06_producer_attestation(artifact)
+    assert reloaded.fingerprint() == attestation.fingerprint()
+
+    verification = verify_v06_producer_attestation(reloaded, registry)
+    assert verification.verified is True
+    assert verification.source_product_version == "0.6.0"
+    assert verification.migration_approved is False
+    assert verification.activation_available is False
+
+
+def test_attestation_verification_fails_closed_on_drift(tmp_path: Path) -> None:
+    from traffictwin.release.attestation import (
+        V06AttestationError,
+        build_v06_producer_attestation,
+        verify_v06_producer_attestation,
+    )
+
+    registry = _closed_registry(tmp_path / "v06.sqlite")
+    attestation = build_v06_producer_attestation(
+        registry, operator_name="Abdulla Al Mamun Akash", attested_at=FIXED_NOW
+    )
+
+    with registry.open("ab") as handle:
+        handle.write(b"drift")
+    changed = verify_v06_producer_attestation(attestation, registry)
+    assert changed.verified is False
+    assert changed.failure == "REGISTRY_BYTES_CHANGED_SINCE_ATTESTATION"
+    assert changed.source_product_version is None
+
+    missing = verify_v06_producer_attestation(attestation, tmp_path / "absent.sqlite")
+    assert missing.verified is False
+    assert missing.failure == "REGISTRY_MISSING_OR_UNSAFE"
+
+    with pytest.raises(ValueError, match="timezone"):
+        build_v06_producer_attestation(
+            registry,
+            operator_name="Abdulla Al Mamun Akash",
+            attested_at=FIXED_NOW.replace(tzinfo=None),
+        )
+    sidecar = registry.with_name(registry.name + "-wal")
+    sidecar.write_bytes(b"")
+    with pytest.raises(V06AttestationError, match="REGISTRY_NOT_CHECKPOINTED"):
+        build_v06_producer_attestation(
+            registry, operator_name="Abdulla Al Mamun Akash", attested_at=FIXED_NOW
+        )
+
+
+def test_attestation_artifact_refuses_tampered_literals(tmp_path: Path) -> None:
+    from traffictwin.release.attestation import (
+        V06AttestationError,
+        build_v06_producer_attestation,
+        load_v06_producer_attestation,
+    )
+
+    registry = _closed_registry(tmp_path / "v06.sqlite")
+    attestation = build_v06_producer_attestation(
+        registry, operator_name="Abdulla Al Mamun Akash", attested_at=FIXED_NOW
+    )
+    payload = json.loads(attestation.model_dump_json())
+    payload["attested_tag_commit"] = "f" * 40
+    artifact = tmp_path / "tampered.json"
+    artifact.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(V06AttestationError, match="ATTESTATION_INVALID"):
+        load_v06_producer_attestation(artifact)

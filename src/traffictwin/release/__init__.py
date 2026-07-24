@@ -1,5 +1,13 @@
 """Standalone release and deployment helpers."""
 
+from traffictwin.release.attestation import (
+    V06AttestationError,
+    V06AttestationVerification,
+    V06ProducerAttestation,
+    build_v06_producer_attestation,
+    load_v06_producer_attestation,
+    verify_v06_producer_attestation,
+)
 from traffictwin.release.compatibility import (
     V06RegistryCopyError,
     V06RegistryCopyPreview,
@@ -25,6 +33,9 @@ from traffictwin.release.metadata import ReleaseMetadata, current_release_metada
 __all__ = [
     "ReleaseMetadata",
     "SyntheticStaticSiteManifest",
+    "V06AttestationError",
+    "V06AttestationVerification",
+    "V06ProducerAttestation",
     "V06RegistryCopyError",
     "V06RegistryCopyPreview",
     "V06RegistryCopyReceipt",
@@ -34,11 +45,14 @@ __all__ = [
     "V07WorkspaceError",
     "V07WorkspaceInitialiseResult",
     "V07WorkspaceInspection",
+    "build_v06_producer_attestation",
     "copy_v06_registry",
     "current_release_metadata",
     "initialise_v07_workspace",
+    "load_v06_producer_attestation",
     "inspect_v07_workspace",
     "preview_v06_registry_copy",
+    "verify_v06_producer_attestation",
     "stage_synthetic_demo_site",
     "v07_workspace_contract",
 ]

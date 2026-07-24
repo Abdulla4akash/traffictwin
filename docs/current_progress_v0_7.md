@@ -58,7 +58,7 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,606 unit tests and 169 UI tests pass, 1,775 combined;
+- 1,609 unit tests and 169 UI tests pass, 1,778 combined;
 - repository-wide Ruff formatting and checks pass;
 - strict mypy passes over all 696 configured source and test files;
 - lock validation and package build pass;

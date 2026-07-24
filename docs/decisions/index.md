@@ -59,6 +59,7 @@
 | [ADR-055](ADR-055-manchester-time-basis.md) | Manchester time basis | accepted |
 | [ADR-056](ADR-056-manchester-map-rendering-and-attribution.md) | Manchester map rendering, offline behaviour, and attribution | accepted |
 | [ADR-057](ADR-057-bee-network-membership-identifiers.md) | Bee Network membership by identifier | accepted |
+| [ADR-058](ADR-058-v06-producer-attestation.md) | Operator clean-checkout attestation for v0.6 registry provenance | accepted |
 
 Related documents:
 

@@ -22,6 +22,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Manchester time-basis decision](decisions/ADR-055-manchester-time-basis.md)
 - [Manchester map and attribution decision](decisions/ADR-056-manchester-map-rendering-and-attribution.md)
 - [Bee Network membership decision](decisions/ADR-057-bee-network-membership-identifiers.md)
+- [v0.6 producer-attestation decision](decisions/ADR-058-v06-producer-attestation.md)
 - [v0.7 external decision pack](v07_external_decision_pack.md)
 - [Workspace setup and side-by-side operation](workspace_setup.md)
 - [v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md)

@@ -411,7 +411,12 @@ registry copy with hash-reconciled receipt and negative tests. Bounded CLI comma
 and print `capability_status: planned`; `demo launch --port` supports side-by-side operation of a
 synthetic demo process and a separately configured v0.7 process on different ports and
 workspaces; and `docs/workspace_setup.md` records the workspace kinds, markers, safety rules, and
-read-only diagnostics. It does not perform migration,
+read-only diagnostics. The owner-approved ADR-058 producer-attestation policy is now
+implemented: an operator clean-checkout attestation binds the exact `v0.6.0` tag commit,
+package version, registry hash/size, timezone-aware instant, and literal operator statement;
+verification re-hashes current bytes and fails closed on drift, sidecars, naive timestamps, or
+tampered literals, and a verified attestation is provenance evidence only. It does not perform
+migration,
 activation, backup, rollback, or release acceptance, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 
