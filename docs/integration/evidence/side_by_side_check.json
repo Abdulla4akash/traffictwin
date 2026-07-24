@@ -1,6 +1,6 @@
 {
   "capability_status": "REL-01 remains planned",
-  "checked_at_utc": "2026-07-24T15:02:16.870317+00:00",
+  "checked_at_utc": "2026-07-24T15:42:15.817387+00:00",
   "cross_registry_mutation_observed": false,
   "findings": [
     "clean v0.6.0 checkout created at commit 1c50a25246426128ac6e8530240eff362d16be02",
@@ -16,10 +16,10 @@
   "v06_commit": "1c50a25246426128ac6e8530240eff362d16be02",
   "v06_http_status": 200,
   "v06_port": 8611,
-  "v06_registry_sha256": "db1d58e37a8ed2e5b5e9951c4a2c47c6dd27d49c78a7cefc715c376495538c67",
+  "v06_registry_sha256": "93432872175abfbee98941941aab0c6c705cd6414787ed91dfcf92b183cdf9c6",
   "v06_tag": "v0.6.0",
-  "v07_commit": "6382c8313d5a237ca5e2f9b85b9692b2f30f718f",
+  "v07_commit": "1e6ee2910e64935a63de8543d859727ff82bb255",
   "v07_http_status": 200,
   "v07_port": 8612,
-  "v07_registry_sha256": "3c7108f593501e6b2194cadb7c964555ac2dea36abe7f2e778dc5702fe54e436"
+  "v07_registry_sha256": "d0944b29e45129c7670f9cec41e31514ca24135f49de429643358185a6d44285"
 }
