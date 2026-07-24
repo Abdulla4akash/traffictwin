@@ -89,12 +89,16 @@ traffictwin release v06-rollback workspace-v0.7 --receipt workspace-v0.7/compati
 
 `v06-attest` records the ADR-058 operator clean-checkout statement against exact registry
 bytes. `v06-migrate` activates an attested source only after publishing a durable byte-exact
-backup of the previous active registry; the frozen v0.6 schema equals the current v0.7 schema,
-so no schema transformation occurs and any other source version is refused. An interruption
-before the receipt exists leaves a receipt-less quarantined backup directory that must be
-inspected before retrying, and `v06-rollback` restores the backup only while the active registry
-still matches the migration receipt. Activation transfers operational bytes only: scientific
-admission stays unavailable and `REL-01` remains planned.
+backup of the previous active registry together with its reconciling receipt in one atomic
+rename, before the active registry is swapped; the frozen v0.6 schema equals the current v0.7
+schema, so no schema transformation occurs and any other source version (or a source living
+inside the workspace) is refused. The migration identity is derived only from the source
+registry, so a retry after any interruption resumes deterministically — an already-activated
+registry is acknowledged idempotently and a published-but-not-activated backup completes its
+swap — and the previous registry is never orphaned. `v06-rollback` restores the backup
+idempotently while the active registry matches either the activated or the pre-migration state.
+Activation transfers operational bytes only: scientific admission stays unavailable and
+`REL-01` remains planned.
 
 `v07-workspace-init` is new-only, `v07-workspace-inspect` and `v06-copy-preview` are read-only,
 and `v06-copy` publishes only the non-active byte-exact snapshot described above. See

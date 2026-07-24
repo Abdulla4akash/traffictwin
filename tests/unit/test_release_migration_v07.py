@@ -101,23 +101,25 @@ def test_migration_backs_up_activates_and_receipts_byte_exactly(tmp_path: Path) 
 def test_repeat_migration_and_quarantined_backup_are_refused(tmp_path: Path) -> None:
     source, attestation = _attested_source(tmp_path)
     workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    original_active = _sha256(workspace.active_registry_path)
     first = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    source_sha = _sha256(source)
 
     rollback_v06_migration(workspace.path, first.receipt_path, clock=lambda: FIXED_NOW)
-    with pytest.raises(V06MigrationError, match="MIGRATION_ALREADY_PRESENT.*completed"):
-        migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    assert _sha256(workspace.active_registry_path) == original_active
 
-    quarantined_source, quarantined_attestation = _attested_source(tmp_path / "other")
-    quarantine_preview = preview_v06_migration(
-        quarantined_source, workspace.path, quarantined_attestation
-    )
-    quarantine_dir = workspace.path / quarantine_preview.backup_relative_directory
-    quarantine_dir.mkdir(parents=True)
-    (quarantine_dir / "previous-active-registry.sqlite").write_bytes(b"partial")
-    with pytest.raises(V06MigrationError, match="MIGRATION_ALREADY_PRESENT.*quarantined"):
-        migrate_v06_registry(
-            quarantined_source, workspace.path, quarantined_attestation, clock=lambda: FIXED_NOW
-        )
+    # Re-migrating the same source after rollback resumes idempotently and
+    # re-activates it, reusing the same source-derived backup directory.
+    resumed = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    assert resumed.backup_directory == first.backup_directory
+    assert _sha256(workspace.active_registry_path) == source_sha
+
+    # A backup directory that somehow lost its receipt is quarantined, not
+    # silently overwritten.
+    receipt_only_dir = first.receipt_path
+    receipt_only_dir.unlink()
+    with pytest.raises(V06MigrationError, match="MIGRATION_QUARANTINED"):
+        migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
 
 
 def test_rollback_restores_previous_registry_and_preserves_backup(tmp_path: Path) -> None:
@@ -332,3 +334,118 @@ def test_rollback_refuses_absolute_backup_path(tmp_path: Path) -> None:
     with pytest.raises(V06MigrationError, match="RECEIPT_INVALID"):
         rollback_v06_migration(workspace.path, receipt_path, clock=lambda: FIXED_NOW)
     assert _sha256(workspace.active_registry_path) == active_sha
+
+
+def test_crash_after_swap_before_receipt_is_resumable(tmp_path: Path) -> None:
+    """A crash between activation and receipt cannot happen post-fix, but a crash
+    between backup-publish and swap resumes to the activated state."""
+
+    from unittest.mock import patch
+
+    source, attestation = _attested_source(tmp_path)
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    original_active = _sha256(workspace.active_registry_path)
+    source_sha = _sha256(source)
+
+    # Simulate power loss immediately after the backup+receipt directory is
+    # published but before the active registry is swapped.
+    def boom(src: object, dst: object) -> None:
+        raise KeyboardInterrupt("crash before active swap")
+
+    with (
+        patch("traffictwin.release.migration.os.replace", boom),
+        pytest.raises(KeyboardInterrupt),
+    ):
+        migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+
+    # The active registry is still the original; backup + receipt are durable.
+    assert _sha256(workspace.active_registry_path) == original_active
+    backup_dir = next((workspace.path / "compatibility" / "backups").iterdir())
+    assert (backup_dir / "migration-receipt.json").is_file()
+
+    # A retry resumes deterministically and completes the activation.
+    resumed = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    assert _sha256(workspace.active_registry_path) == source_sha
+    # And the receipt from the interrupted run remains valid for rollback.
+    rollback_v06_migration(workspace.path, resumed.receipt_path, clock=lambda: FIXED_NOW)
+    assert _sha256(workspace.active_registry_path) == original_active
+
+
+def test_already_activated_retry_is_idempotent(tmp_path: Path) -> None:
+    source, attestation = _attested_source(tmp_path)
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    first = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    source_sha = _sha256(source)
+
+    again = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    assert again.backup_directory == first.backup_directory
+    assert again.receipt.fingerprint() == first.receipt.fingerprint()
+    assert _sha256(workspace.active_registry_path) == source_sha
+
+
+def test_migration_refuses_source_inside_workspace(tmp_path: Path) -> None:
+    from traffictwin.release.migration import V06MigrationError
+
+    source, attestation = _attested_source(tmp_path)
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    # A compatibility copy lives inside the workspace and must not be a source.
+    inside = workspace.path / "compatibility" / "v0.6" / "copy" / "registry.sqlite"
+    inside.parent.mkdir(parents=True)
+    inside.write_bytes(source.read_bytes())
+    inside_attestation = build_v06_producer_attestation(
+        inside, operator_name="Op", attested_at=FIXED_NOW
+    )
+    with pytest.raises(V06MigrationError, match="SOURCE_INSIDE_WORKSPACE"):
+        preview_v06_migration(inside, workspace.path, inside_attestation)
+
+
+def test_rollback_receipt_reloads_and_is_write_once(tmp_path: Path) -> None:
+    from traffictwin.release.migration import (
+        load_v06_rollback_receipt,
+    )
+
+    source, attestation = _attested_source(tmp_path)
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    result = migrate_v06_registry(source, workspace.path, attestation, clock=lambda: FIXED_NOW)
+    rollback = rollback_v06_migration(workspace.path, result.receipt_path, clock=lambda: FIXED_NOW)
+
+    reloaded = load_v06_rollback_receipt(rollback.receipt_path)
+    assert reloaded.fingerprint() == rollback.receipt.fingerprint()
+    assert reloaded.migration_id == result.receipt.migration_id
+
+    # A second rollback is idempotent: the registry is already restored, so it
+    # returns the same recorded rollback receipt rather than acting again.
+    again = rollback_v06_migration(workspace.path, result.receipt_path, clock=lambda: FIXED_NOW)
+    assert again.receipt.fingerprint() == rollback.receipt.fingerprint()
+
+
+def test_migration_refusal_branches(tmp_path: Path) -> None:
+    from traffictwin.release.migration import (
+        V06MigrationError,
+        load_v06_migration_receipt,
+        preview_v06_migration,
+    )
+
+    source, attestation = _attested_source(tmp_path)
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+
+    # Oversized / missing receipt refusals.
+    big = tmp_path / "big.json"
+    big.write_text("x" * (64 * 1024 + 1), encoding="utf-8")
+    with pytest.raises(V06MigrationError, match="RECEIPT_OVERSIZED"):
+        load_v06_migration_receipt(big)
+    with pytest.raises(V06MigrationError, match="RECEIPT_MISSING_OR_UNSAFE"):
+        load_v06_migration_receipt(tmp_path / "absent.json")
+
+    # Naive clock is refused.
+    with pytest.raises(V06MigrationError, match="NAIVE_CLOCK"):
+        migrate_v06_registry(
+            source,
+            workspace.path,
+            attestation,
+            clock=lambda: FIXED_NOW.replace(tzinfo=None),
+        )
+    # The workspace is unchanged after the refusal.
+    assert (
+        preview_v06_migration(source, workspace.path, attestation).source_product_version == "0.6.0"
+    )

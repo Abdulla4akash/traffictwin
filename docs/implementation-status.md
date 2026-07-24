@@ -418,11 +418,16 @@ verification re-hashes current bytes and fails closed on drift, sidecars, naive 
 tampered literals, and a verified attestation is provenance evidence only. An attested
 same-schema activation slice now implements the migration workflow for attested sources: a
 read-only preview binds attestation, hashes, schema versions, backup plan, and free space; the
-activation publishes a durable byte-exact backup of the previous active registry before
-atomically replacing it with the attested source bytes; an interruption before the receipt
-exists leaves a receipt-less quarantined backup directory and never corrupts the source or the
-previous registry; and rollback restores the backup only while the active registry still
-matches the migration receipt, preserving the backup as evidence. The frozen v0.6 registry
+activation publishes a durable byte-exact backup of the previous active registry together with
+its reconciling receipt in one atomic rename, then swaps the active registry. Because the
+migration identity is derived only from the source registry, a retry after any interruption
+resumes deterministically — an already-activated registry is acknowledged idempotently and a
+published-but-not-activated backup completes its swap — so the previous registry is never
+orphaned; a hand-crafted receipt carrying a path-traversal or absolute backup path is refused at
+load and by a runtime within-root guard; and a source living inside the target workspace is
+refused. Rollback restores the backup idempotently while the active registry matches either the
+activated or the pre-migration state and records a reconciling rollback receipt that is itself
+reloadable. The frozen v0.6 registry
 schema equals the current v0.7 schema, so no schema transformation occurs and any other source
 version is refused; four bounded CLI commands (v06-attest, v06-migrate-preview, v06-migrate,
 v06-rollback) wire the workflow and print `capability_status: planned`. A scripted
