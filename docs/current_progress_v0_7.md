@@ -6,8 +6,8 @@
 `v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
 
 **Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
-REL-01 CLI foundation, the MAN-09 temporal-profile foundation, and the synthetic analyst-review
-demonstration
+REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review
+demonstration, and the automated cross-page-state evidence
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -58,7 +58,7 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,607 unit tests and 162 UI tests pass, 1,769 combined;
+- 1,605 unit tests and 168 UI tests pass, 1,773 combined;
 - repository-wide Ruff formatting and checks pass;
 - strict mypy passes over all 696 configured source and test files;
 - lock validation and package build pass;
@@ -103,7 +103,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness with a thin in-page synthetic review demonstration, a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls, and a day-type/season/slot temporal-profile builder with exact source dates, typed exclusions, visible missing cells, and a frozen-empty production policy registry | No approved Manchester network/licence or real-source matching/review/profile policy, real calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run |
 | `MAN-10` observed-versus-simulated comparison | `foundation_only` | Deterministic contract model, pairing, exclusions, missingness protection, coverage, lineage, and MAE/RMSE implementation | The production contract registry is intentionally empty; no scientific contract or real compatible comparison has been accepted |
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
-| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, and a candidate action-aware Guided Demo with persistent progress and automatic next-task routing; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
+| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
 | `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, bounded init/inspect/preview/copy CLI commands, a demo-launcher `--port` option for side-by-side operation, and a workspace setup/diagnostics guide | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |

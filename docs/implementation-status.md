@@ -428,15 +428,22 @@ A candidate `UX-01` router now maps all 34 current pages to the five approved gr
 scripts, stable URL paths, Material icons, and the existing tested renderers. All direct scripts
 pass AppTest smoke rendering. The grouped `st.navigation` router is now the normal route; the
 complete legacy router remains available only through the explicit
-`TRAFFICTWIN_V07_NAVIGATION=legacy` compatibility setting. Cross-page state, manual
+`TRAFFICTWIN_V07_NAVIGATION=legacy` compatibility setting. Manual
 keyboard/screen-reader/contrast/zoom acceptance, new-page minimum-version, package-version,
-and final cutover evidence remain, so
+and the final cutover decision remain, so
 `UX-01` is not implemented. The original candidate's 45-test suite passes on both the minimum
 `streamlit==1.58.0` and locked `streamlit==1.59.2` environments; a built wheel contains all 34
 direct scripts and its installed candidate root passes AppTest from `site-packages`. Live-browser
 checks render all 34 direct paths without a Streamlit exception and pass direct refresh,
 Home-to-Guided navigation, and back/forward history after correcting callback-based page switching
-to run at normal top-level script execution.
+to run at normal top-level script execution. A dedicated cross-page-state suite now models
+Streamlit's per-session shared-state contract: a bundle selection made on the import page stays
+authoritative across Analyse, Evidence, and Advanced group pages without re-selection; the
+computed evidence pack survives group switches; seven analysis-consuming pages preserve an
+explicit prior selection without resetting shared keys; and the explicit legacy compatibility
+router preserves the same selection end-to-end through its real radio control. This closes the
+automated cross-page-state slice only and does not replace the remaining manual or release
+gates.
 
 The normal v0.7 router now renders a focused `UX-02` home; the explicit legacy compatibility route
 retains the complete v0.6 home. The v0.7 entry point leads with the approved research task, three
