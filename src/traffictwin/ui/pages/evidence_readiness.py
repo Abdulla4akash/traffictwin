@@ -56,12 +56,21 @@ def render() -> None:
 
     st.subheader("Evidence Availability")
     evidence_states = analysis.validation.evidence.model_dump(mode="json")
-    st.table(
-        [
-            {"Evidence": category.replace("_", " ").capitalize(), "State": badge_markdown(state)}
-            for category, state in evidence_states.items()
-        ]
-    )
+    grouped: dict[str, list[str]] = {}
+    for category, state in evidence_states.items():
+        grouped.setdefault(str(state), []).append(category.replace("_", " ").capitalize())
+    # Group available, partial, blocked, and unavailable evidence separately so a
+    # single flat dictionary no longer dominates. Every state stays visible.
+    ordered_states = ["available", "partial", "blocked", "unavailable"]
+    seen_states = [state for state in ordered_states if state in grouped]
+    seen_states += [state for state in sorted(grouped) if state not in ordered_states]
+    with st.container(border=True):
+        summary = st.columns(len(seen_states) or 1)
+        for column, state in zip(summary, seen_states, strict=False):
+            column.metric(state.capitalize(), len(grouped[state]), border=True)
+    for state in seen_states:
+        st.markdown(f"{badge_markdown(state)} **{state.capitalize()} evidence**")
+        st.markdown("\n".join(f"- {name}" for name in sorted(grouped[state])))
     with st.expander("Advanced: raw evidence availability JSON"):
         st.json(evidence_states)
 

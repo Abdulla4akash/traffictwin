@@ -119,3 +119,27 @@ def test_manifest_inference_preview_is_structured_not_raw_dict() -> None:
     assert len(app.dataframe) >= 1
     # Confirmation stays explicit and disabled until acknowledged.
     assert any(button.label == "Confirm Selected Mappings" for button in app.button)
+
+
+# --- Diagnostics & Evidence (evidence readiness) ----------------------------
+
+
+def test_evidence_readiness_groups_availability_by_state() -> None:
+    app = page_app(UiPage.EVIDENCE).run(timeout=30)
+    assert not app.exception
+
+    subheaders = {str(item.value) for item in app.subheader}
+    assert "Evidence Availability" in subheaders
+    body = text_of(app)
+    info_text = "\n".join(str(item.value) for item in app.info)
+    # Availability is grouped by state (available/partial/blocked/unavailable), not a flat dict.
+    assert "evidence**" in body  # e.g. "Available evidence" / "Unavailable evidence"
+    # Diagnoses are framed as hypotheses that are NOT proven causes (the disclaimer is present),
+    # and the page never asserts a confirmed/proven cause as a positive claim.
+    assert "not proven root causes" in info_text.lower()
+    assert "confirmed cause" not in body.lower()
+    # Numeric readiness counts use st.metric.
+    assert len(app.metric) >= 1
+    # The raw availability dict stays under an Advanced expander.
+    advanced = [str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)]
+    assert any("evidence availability" in label.lower() for label in advanced)
