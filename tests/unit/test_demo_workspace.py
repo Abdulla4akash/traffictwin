@@ -95,3 +95,36 @@ def test_workspace_reset_regenerates_marked_workspace(tmp_path: Path) -> None:
 
     assert result.imported_run_count == 62
     assert workspace_status(workspace).valid_workspace
+
+
+def test_launch_plan_dry_run_binds_workspace_and_default_port(tmp_path: Path) -> None:
+    from traffictwin.demo.launcher import launch_workspace
+
+    workspace = tmp_path / "demo"
+    plan = launch_workspace(workspace, dry_run=True)
+
+    assert plan.workspace == workspace
+    assert plan.registry == workspace / "registry.sqlite"
+    assert plan.environment["TRAFFICTWIN_WORKSPACE_PATH"] == str(workspace)
+    assert plan.environment["TRAFFICTWIN_REGISTRY_PATH"] == str(workspace / "registry.sqlite")
+    assert "--server.port" not in plan.command
+
+
+def test_launch_plan_dry_run_appends_explicit_side_by_side_port(tmp_path: Path) -> None:
+    from traffictwin.demo.launcher import launch_workspace
+
+    workspace = tmp_path / "demo"
+    plan = launch_workspace(workspace, dry_run=True, port=8602)
+
+    assert plan.command[-2:] == ["--server.port", "8602"]
+
+
+def test_launch_plan_rejects_out_of_range_port_before_creating_workspace(
+    tmp_path: Path,
+) -> None:
+    from traffictwin.demo.launcher import launch_workspace
+
+    workspace = tmp_path / "demo"
+    with pytest.raises(ValueError, match="port must be between"):
+        launch_workspace(workspace, dry_run=True, port=80)
+    assert not workspace.exists()

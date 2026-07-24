@@ -1,10 +1,13 @@
 """Standalone release and deployment helpers."""
 
 from traffictwin.release.compatibility import (
+    V06RegistryCopyError,
     V06RegistryCopyPreview,
     V06RegistryCopyReceipt,
     V06RegistryCopyResult,
+    V07CompatibilityError,
     V07WorkspaceContract,
+    V07WorkspaceError,
     V07WorkspaceInitialiseResult,
     V07WorkspaceInspection,
     copy_v06_registry,
@@ -22,10 +25,13 @@ from traffictwin.release.metadata import ReleaseMetadata, current_release_metada
 __all__ = [
     "ReleaseMetadata",
     "SyntheticStaticSiteManifest",
+    "V06RegistryCopyError",
     "V06RegistryCopyPreview",
     "V06RegistryCopyReceipt",
     "V06RegistryCopyResult",
+    "V07CompatibilityError",
     "V07WorkspaceContract",
+    "V07WorkspaceError",
     "V07WorkspaceInitialiseResult",
     "V07WorkspaceInspection",
     "copy_v06_registry",

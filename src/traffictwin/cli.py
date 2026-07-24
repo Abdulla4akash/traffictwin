@@ -333,7 +333,15 @@ from traffictwin.registry_search import (
     registry_search_contract,
     search_registry,
 )
-from traffictwin.release import current_release_metadata, stage_synthetic_demo_site
+from traffictwin.release import (
+    V07CompatibilityError,
+    copy_v06_registry,
+    current_release_metadata,
+    initialise_v07_workspace,
+    inspect_v07_workspace,
+    preview_v06_registry_copy,
+    stage_synthetic_demo_site,
+)
 from traffictwin.rendering.findings import (
     diagnostic_narrative_to_markdown,
     render_diagnostic_findings,
@@ -3862,11 +3870,16 @@ def participant_evaluation_analyse_mock_command(
 def demo_launch_command(
     path: Annotated[Path, typer.Argument(file_okay=False)],
     dry_run: Annotated[bool, typer.Option("--dry-run")] = False,
+    port: Annotated[int | None, typer.Option("--port", min=1024, max=65535)] = None,
 ) -> None:
-    """Initialise if needed and launch the Streamlit demo UI."""
+    """Initialise if needed and launch the Streamlit demo UI.
+
+    Use --port for side-by-side operation next to another TrafficTwin process
+    serving a different workspace on a different port.
+    """
 
     try:
-        plan = launch_workspace(path, dry_run=dry_run)
+        plan = launch_workspace(path, dry_run=dry_run, port=port)
     except (FileExistsError, ValueError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
@@ -4206,6 +4219,127 @@ def release_stage_demo_site_command(
     typer.echo("synthetic: true")
     typer.echo("live_data: false")
     typer.echo(f"licence: {manifest.licence_status}")
+
+
+@release_app.command("v07-workspace-init")
+def release_v07_workspace_init_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+) -> None:
+    """Create a new, separately marked v0.7 workspace (REL-01 foundation).
+
+    The target must not exist; no v0.6 workspace or registry is read or
+    changed. REL-01 remains planned.
+    """
+
+    try:
+        result = initialise_v07_workspace(path)
+    except (V07CompatibilityError, FileExistsError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    manifest = result.inspection.manifest
+    typer.echo(f"workspace: {result.path}")
+    typer.echo(f"workspace_kind: {manifest.workspace_kind}")
+    typer.echo(f"workspace_namespace: {manifest.workspace_namespace}")
+    typer.echo(f"cache_namespace: {manifest.cache_namespace}")
+    typer.echo(f"active_registry: {result.active_registry_path}")
+    typer.echo(f"manifest_fingerprint: {result.inspection.manifest_sha256}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-workspace-inspect")
+def release_v07_workspace_inspect_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Read-only structural diagnosis of one v0.7 workspace marker and registry."""
+
+    try:
+        inspection = inspect_v07_workspace(path)
+    except V07CompatibilityError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(json.dumps(inspection.model_dump(mode="json"), indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    manifest = inspection.manifest
+    typer.echo(f"workspace: {path}")
+    typer.echo(f"valid: {str(inspection.valid).lower()}")
+    typer.echo(f"workspace_kind: {manifest.workspace_kind}")
+    typer.echo(f"workspace_namespace: {manifest.workspace_namespace}")
+    typer.echo(f"design_version: {manifest.design_version}")
+    typer.echo(f"implementation_status: {manifest.implementation_status}")
+    typer.echo(f"created_at: {manifest.created_at.isoformat()}")
+    typer.echo(f"producer_package_version: {manifest.producer_package_version}")
+    typer.echo(f"registry_schema_version: {inspection.active_registry_status.current_version}")
+    typer.echo(f"manifest_sha256: {inspection.manifest_sha256}")
+    typer.echo(f"active_registry_sha256: {inspection.active_registry_sha256}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-copy-preview")
+def release_v06_copy_preview_command(
+    source_registry: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Read-only preview of a byte-exact, non-active v0.6 registry copy.
+
+    The source registry and the active v0.7 registry are not modified. The
+    source must be closed and checkpointed; WAL/journal sidecars are refused.
+    """
+
+    try:
+        preview = preview_v06_registry_copy(source_registry, workspace)
+    except V07CompatibilityError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(json.dumps(preview.model_dump(mode="json"), indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"operation: {preview.operation}")
+    typer.echo(f"source_registry_sha256: {preview.source_registry_sha256}")
+    typer.echo(f"source_registry_schema_version: {preview.source_registry_schema_version}")
+    typer.echo("source_product_version: unknown")
+    typer.echo(f"target_directory: {preview.target_relative_directory}")
+    typer.echo(f"required_free_bytes: {preview.required_free_bytes}")
+    typer.echo(f"available_free_bytes: {preview.available_free_bytes}")
+    typer.echo(f"has_required_space: {str(preview.has_required_space).lower()}")
+    typer.echo(f"backup_required: {str(preview.backup_required).lower()}")
+    typer.echo(f"automatic_activation: {str(preview.automatic_activation).lower()}")
+    for blocker in preview.blockers:
+        typer.echo(f"blocker: {blocker}")
+    for action in preview.actions:
+        typer.echo(f"action: {action}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-copy")
+def release_v06_copy_command(
+    source_registry: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+) -> None:
+    """Publish a byte-exact v0.6 registry copy under compatibility/v0.6.
+
+    The copy is new-only and never becomes the active v0.7 registry; the
+    source registry bytes are verified unchanged before and after.
+    """
+
+    try:
+        result = copy_v06_registry(source_registry, workspace)
+    except V07CompatibilityError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    receipt = result.receipt
+    typer.echo(f"copy_id: {receipt.copy_id}")
+    typer.echo(f"copied_registry: {result.registry_path}")
+    typer.echo(f"receipt: {result.receipt_path}")
+    typer.echo(f"byte_exact: {str(receipt.byte_exact).lower()}")
+    typer.echo(f"source_unchanged: {str(receipt.source_unchanged_during_copy).lower()}")
+    typer.echo(f"automatic_activation: {str(receipt.automatic_activation).lower()}")
+    typer.echo(f"scientific_admission: {receipt.scientific_admission}")
+    typer.echo("capability_status: planned")
 
 
 @external_app.command("contract")

@@ -221,3 +221,74 @@ def test_naive_clock_is_rejected_without_publishing_workspace(tmp_path: Path) ->
 
     assert not target.exists()
     assert not any(path.name.startswith(".traffictwin-v07") for path in tmp_path.iterdir())
+
+
+def test_cli_v07_workspace_init_and_inspect_stay_planned(tmp_path: Path) -> None:
+    from typer.testing import CliRunner
+
+    from traffictwin.cli import app
+
+    runner = CliRunner()
+    workspace = tmp_path / "workspace-v0.7"
+
+    created = runner.invoke(app, ["release", "v07-workspace-init", str(workspace)])
+    assert created.exit_code == 0, created.output
+    assert "workspace_kind: traffictwin_v0_7" in created.output
+    assert "workspace_namespace: workspace-v0.7" in created.output
+    assert "capability_status: planned" in created.output
+
+    repeated = runner.invoke(app, ["release", "v07-workspace-init", str(workspace)])
+    assert repeated.exit_code == 1
+    assert "already exists" in repeated.output
+
+    inspected = runner.invoke(app, ["release", "v07-workspace-inspect", str(workspace)])
+    assert inspected.exit_code == 0, inspected.output
+    assert "valid: true" in inspected.output
+    assert "implementation_status: foundation_not_release" in inspected.output
+    assert "capability_status: planned" in inspected.output
+
+    inspected_json = runner.invoke(
+        app, ["release", "v07-workspace-inspect", str(workspace), "--format", "json"]
+    )
+    assert inspected_json.exit_code == 0, inspected_json.output
+    payload = json.loads(inspected_json.output)
+    assert payload["valid"] is True
+    assert payload["capability_status"] == "planned"
+
+
+def test_cli_v06_copy_preview_and_copy_preserve_source_bytes(tmp_path: Path) -> None:
+    from typer.testing import CliRunner
+
+    from traffictwin.cli import app
+
+    runner = CliRunner()
+    workspace = tmp_path / "workspace-v0.7"
+    assert runner.invoke(app, ["release", "v07-workspace-init", str(workspace)]).exit_code == 0
+    source = _closed_registry(tmp_path / "v06-registry.sqlite")
+    source_before = _sha256(source)
+    active_registry = workspace / "registry" / "traffictwin.sqlite"
+    active_before = _sha256(active_registry)
+
+    preview = runner.invoke(app, ["release", "v06-copy-preview", str(source), str(workspace)])
+    assert preview.exit_code == 0, preview.output
+    assert "operation: copy_only_not_migration" in preview.output
+    assert "source_product_version: unknown" in preview.output
+    assert "backup_required: false" in preview.output
+    assert "automatic_activation: false" in preview.output
+    assert _sha256(source) == source_before
+
+    copied = runner.invoke(app, ["release", "v06-copy", str(source), str(workspace)])
+    assert copied.exit_code == 0, copied.output
+    assert "byte_exact: true" in copied.output
+    assert "source_unchanged: true" in copied.output
+    assert "automatic_activation: false" in copied.output
+    assert "scientific_admission: unavailable" in copied.output
+    assert _sha256(source) == source_before
+
+    copied_path = next((workspace / "compatibility" / "v0.6").glob("*/registry.sqlite"))
+    assert _sha256(copied_path) == source_before
+    assert _sha256(active_registry) == active_before
+
+    repeat = runner.invoke(app, ["release", "v06-copy", str(source), str(workspace)])
+    assert repeat.exit_code == 1
+    assert _sha256(source) == source_before

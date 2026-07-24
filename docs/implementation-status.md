@@ -380,7 +380,13 @@ exists, so `MAN-11` remains planned.
 A candidate `REL-01` foundation now provides a separately marked
 v0.7 workspace, distinct registry/cache namespaces, immutable source inspection, and a byte-exact
 non-active v0.6
-registry copy with hash-reconciled receipt and negative tests. It does not perform migration,
+registry copy with hash-reconciled receipt and negative tests. Bounded CLI commands
+(`release v07-workspace-init`, the read-only `release v07-workspace-inspect` and
+`release v06-copy-preview`, and the new-only `release v06-copy`) now wire that exact foundation
+and print `capability_status: planned`; `demo launch --port` supports side-by-side operation of a
+synthetic demo process and a separately configured v0.7 process on different ports and
+workspaces; and `docs/workspace_setup.md` records the workspace kinds, markers, safety rules, and
+read-only diagnostics. It does not perform migration,
 activation, backup, rollback, or release acceptance, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 

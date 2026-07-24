@@ -71,6 +71,22 @@ The source SQLite application must be stopped or otherwise closed and checkpoint
 operation refuses `-wal`, `-shm`, and `-journal` sidecars rather than guessing whether copying the
 main file would capture a consistent database.
 
+## CLI usage
+
+The same foundation is available through bounded CLI commands; each prints
+`capability_status: planned` because no command accepts `REL-01`:
+
+```bash
+traffictwin release v07-workspace-init workspace-v0.7
+traffictwin release v07-workspace-inspect workspace-v0.7 [--format json]
+traffictwin release v06-copy-preview /path/to/closed-v0.6-registry.sqlite workspace-v0.7
+traffictwin release v06-copy /path/to/closed-v0.6-registry.sqlite workspace-v0.7
+```
+
+`v07-workspace-init` is new-only, `v07-workspace-inspect` and `v06-copy-preview` are read-only,
+and `v06-copy` publishes only the non-active byte-exact snapshot described above. See
+[workspace setup and side-by-side operation](workspace_setup.md) for the surrounding workflow.
+
 ## Evidence and remaining acceptance work
 
 The machine-readable contract is frozen by
@@ -80,6 +96,8 @@ read-only preview, byte identity, receipt reconciliation, repeat-copy refusal, s
 source-inside-target refusal, failure cleanup, and timezone-safe timestamps.
 
 `REL-01` remains planned until later work adds and accepts complete workspace preview/migration,
-backup, interruption quarantine, activation, rollback, downgrade refusal, CLI integration,
+backup, interruption quarantine, activation, rollback, downgrade refusal,
 side-by-side clean-checkout tests, package/release version alignment, and final documentation and
-capability reconciliation.
+capability reconciliation. The bounded init/inspect/preview/copy CLI above wires only the existing
+foundation; migration, activation, and rollback have no CLI because they have no accepted
+implementation.

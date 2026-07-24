@@ -5,7 +5,8 @@
 **Development branch:** `claude/complete-v0.7` (integration branch created at the protected
 `v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
 
-**Snapshot commit:** the Phase 2B Tier 1 integration head of `claude/complete-v0.7`
+**Snapshot commit:** the Phase 2B Tier 1 plus REL-01 CLI-foundation head of
+`claude/complete-v0.7`
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -56,7 +57,7 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,578 unit tests and 162 UI tests pass, 1,740 combined;
+- 1,583 unit tests and 162 UI tests pass, 1,745 combined;
 - repository-wide Ruff formatting and checks pass;
 - strict mypy passes over all 696 configured source and test files;
 - lock validation and package build pass;
@@ -104,7 +105,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, and a candidate action-aware Guided Demo with persistent progress and automatic next-task routing; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces and byte-exact read-only v0.6 registry copying | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, bounded init/inspect/preview/copy CLI commands, a demo-launcher `--port` option for side-by-side operation, and a workspace setup/diagnostics guide | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |
 
 ## 6. Major work ready to build now
 
