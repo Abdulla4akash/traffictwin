@@ -10,9 +10,11 @@ from traffictwin.rendering.findings import (
     render_diagnostic_findings,
 )
 from traffictwin.rules.models import RuleStatus
+from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import render_fingerprint
 from traffictwin.ui.labels import DIAGNOSTIC_NOTICE
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
-from traffictwin.ui.tables import metric_rows
+from traffictwin.ui.tables import metric_rows, table_column_config
 
 
 def render() -> None:
@@ -28,44 +30,90 @@ def render() -> None:
     insufficient = analysis.validation.insufficient_evidence
 
     st.subheader("Validation Status")
-    st.json(
-        {
-            "status": validation_report.status.value,
-            "may_import": validation_report.may_import,
-            "counts_by_severity": validation_report.counts_by_severity,
-        }
-    )
+    with st.container(border=True):
+        import_text = "may import" if validation_report.may_import else "may not import"
+        st.markdown(
+            f"{badge_markdown(validation_report.status.value)} — this bundle {import_text}."
+        )
+        severity_cols = st.columns(3)
+        severity_cols[0].metric(
+            "Errors", validation_report.counts_by_severity.get("error", 0), border=True
+        )
+        severity_cols[1].metric(
+            "Warnings", validation_report.counts_by_severity.get("warning", 0), border=True
+        )
+        severity_cols[2].metric(
+            "Fatal", validation_report.counts_by_severity.get("fatal", 0), border=True
+        )
+    with st.expander("Advanced: raw validation status JSON"):
+        st.json(
+            {
+                "status": validation_report.status.value,
+                "may_import": validation_report.may_import,
+                "counts_by_severity": validation_report.counts_by_severity,
+            }
+        )
 
     st.subheader("Evidence Availability")
-    st.json(analysis.validation.evidence.model_dump(mode="json"))
+    evidence_states = analysis.validation.evidence.model_dump(mode="json")
+    st.table(
+        [
+            {"Evidence": category.replace("_", " ").capitalize(), "State": badge_markdown(state)}
+            for category, state in evidence_states.items()
+        ]
+    )
+    with st.expander("Advanced: raw evidence availability JSON"):
+        st.json(evidence_states)
 
     st.subheader("Diagnostic Readiness")
-    st.json(insufficient.model_dump(mode="json"))
+    with st.container(border=True):
+        if insufficient.diagnosis_allowed:
+            st.markdown(f"{badge_markdown('available')} Deterministic diagnosis is allowed.")
+        else:
+            st.markdown(
+                f"{badge_markdown('unavailable')} Deterministic diagnosis is not allowed "
+                "for this bundle."
+            )
+        if insufficient.blocked_capabilities:
+            st.markdown(
+                "**Blocked capabilities:**\n"
+                + "\n".join(f"- `{name}`" for name in insufficient.blocked_capabilities)
+            )
+        if insufficient.missing_evidence:
+            st.markdown(
+                "**Missing evidence:**\n"
+                + "\n".join(f"- {item}" for item in insufficient.missing_evidence)
+            )
+    with st.expander("Advanced: raw diagnostic readiness JSON"):
+        st.json(insufficient.model_dump(mode="json"))
 
     st.subheader("Metric Collection Summary")
     if analysis.metrics is not None:
-        st.write(
-            {
-                "run_id": analysis.metrics.run_id,
-                "metric_version": analysis.metrics.metric_version,
-                "metric_count": len(analysis.metrics.results),
-                "unavailable_count": analysis.metrics.unavailable_count,
-                "partial_count": analysis.metrics.partial_count,
-            }
-        )
+        metric_cols = st.columns(3)
+        metric_cols[0].metric("Metrics", len(analysis.metrics.results), border=True)
+        metric_cols[1].metric("Unavailable", analysis.metrics.unavailable_count, border=True)
+        metric_cols[2].metric("Partial", analysis.metrics.partial_count, border=True)
         with st.expander("Metric details"):
-            st.dataframe(metric_rows(analysis.metrics), width="stretch", hide_index=True)
+            detail_rows = metric_rows(analysis.metrics)
+            st.dataframe(
+                detail_rows,
+                width="stretch",
+                hide_index=True,
+                column_config=table_column_config(detail_rows),
+            )
+        with st.expander("Advanced: metric collection identifiers"):
+            st.code(
+                f"run_id: {analysis.metrics.run_id}\n"
+                f"metric_version: {analysis.metrics.metric_version}",
+                language=None,
+            )
 
     st.subheader("Evidence Pack")
     if analysis.evidence_pack is None:
         st.info("Evidence pack is unavailable because the bundle was not accepted.")
     else:
-        st.write(
-            {
-                "pack_id": analysis.evidence_pack.pack_id,
-                "fingerprint": analysis.evidence_pack.fingerprint(),
-            }
-        )
+        st.markdown(f"Evidence pack `{analysis.evidence_pack.pack_id}` is available.")
+        render_fingerprint("Evidence pack fingerprint", analysis.evidence_pack.fingerprint())
         st.download_button(
             "Download EvidencePack JSON",
             data=analysis.evidence_pack.to_json(),
@@ -79,19 +127,24 @@ def render() -> None:
         return
 
     diagnostic_report = analysis.diagnostic_report
-    st.write(
-        {
-            "report_id": diagnostic_report.report_id,
-            "overall_readiness": diagnostic_report.overall_readiness.value,
-            "ruleset_version": diagnostic_report.ruleset_version,
-            "triggered": diagnostic_report.triggered_rule_ids,
-            "insufficient": diagnostic_report.insufficient_rule_ids,
-            "conflicting": diagnostic_report.conflicting_rule_ids,
-        }
-    )
+    with st.container(border=True):
+        st.markdown(
+            f"**Overall readiness:** {badge_markdown(diagnostic_report.overall_readiness.value)}"
+        )
+        st.markdown(
+            f"**Triggered:** {_rule_id_list(diagnostic_report.triggered_rule_ids)} · "
+            f"**Insufficient:** {_rule_id_list(diagnostic_report.insufficient_rule_ids)} · "
+            f"**Conflicting:** {_rule_id_list(diagnostic_report.conflicting_rule_ids)}"
+        )
+    with st.expander("Advanced: report identifiers"):
+        st.code(
+            f"report_id: {diagnostic_report.report_id}\n"
+            f"ruleset_version: {diagnostic_report.ruleset_version}",
+            language=None,
+        )
     if diagnostic_report.conflict_observations:
         st.warning("\n".join(diagnostic_report.conflict_observations))
-    with st.expander("Rule configuration thresholds"):
+    with st.expander("Advanced: rule configuration thresholds"):
         st.json(diagnostic_report.rule_config.model_dump(mode="json"))
 
     _render_cross_rule_analysis(diagnostic_report)
@@ -101,45 +154,66 @@ def render() -> None:
     for result in diagnostic_report.results:
         label = f"{result.rule_id} - {result.title}"
         with st.expander(label, expanded=result.status is RuleStatus.TRIGGERED):
-            st.write(
-                {
-                    "status": result.status.value,
-                    "confidence": result.confidence.value,
-                    "rule_version": result.rule_version,
-                }
+            st.markdown(
+                f"{badge_markdown(result.status.value)} "
+                f"**Confidence:** {badge_markdown(result.confidence.value)}"
             )
+            st.caption(f"Rule version: {result.rule_version}")
             if result.hypothesis:
                 st.markdown(f"**Candidate hypothesis:** {result.hypothesis}")
             if result.confidence_basis:
-                st.markdown("**Confidence basis**")
-                st.write(result.confidence_basis)
+                st.markdown(
+                    "**Confidence basis**\n"
+                    + "\n".join(f"- {item}" for item in result.confidence_basis)
+                )
             if result.supporting_evidence:
                 st.markdown("**Supporting findings**")
-                st.write(
-                    [finding.model_dump(mode="json") for finding in result.supporting_evidence]
+                supporting_rows = [
+                    finding.model_dump(mode="json") for finding in result.supporting_evidence
+                ]
+                st.dataframe(
+                    supporting_rows,
+                    width="stretch",
+                    hide_index=True,
+                    column_config=table_column_config(supporting_rows),
                 )
             if result.contradicting_evidence:
                 st.markdown("**Contradicting findings**")
-                st.write(
-                    [finding.model_dump(mode="json") for finding in result.contradicting_evidence]
+                contradicting_rows = [
+                    finding.model_dump(mode="json") for finding in result.contradicting_evidence
+                ]
+                st.dataframe(
+                    contradicting_rows,
+                    width="stretch",
+                    hide_index=True,
+                    column_config=table_column_config(contradicting_rows),
                 )
             if result.missing_evidence:
-                st.markdown("**Missing evidence**")
-                st.write(result.missing_evidence)
+                st.markdown(
+                    "**Missing evidence**\n"
+                    + "\n".join(f"- {item}" for item in result.missing_evidence)
+                )
             if result.alternative_explanations:
-                st.markdown("**Alternative explanations**")
-                st.write(result.alternative_explanations)
+                st.markdown(
+                    "**Alternative explanations**\n"
+                    + "\n".join(f"- {item}" for item in result.alternative_explanations)
+                )
             if result.recommendations:
                 st.markdown("**Conditional recommendations**")
-                st.write(
-                    [
-                        recommendation.model_dump(mode="json")
-                        for recommendation in result.recommendations
-                    ]
+                recommendation_rows = [
+                    recommendation.model_dump(mode="json")
+                    for recommendation in result.recommendations
+                ]
+                st.dataframe(
+                    recommendation_rows,
+                    width="stretch",
+                    hide_index=True,
+                    column_config=table_column_config(recommendation_rows),
                 )
             if result.limitations:
-                st.markdown("**Limitations**")
-                st.write(result.limitations)
+                st.markdown(
+                    "**Limitations**\n" + "\n".join(f"- {item}" for item in result.limitations)
+                )
 
     st.download_button(
         "Download DiagnosticReport JSON",
@@ -167,6 +241,14 @@ def render() -> None:
         )
 
 
+def _rule_id_list(rule_ids: list[str]) -> str:
+    """Return rule identifiers as inline code, keeping emptiness explicit."""
+
+    if not rule_ids:
+        return "none"
+    return ", ".join(f"`{rule_id}`" for rule_id in rule_ids)
+
+
 def _render_cross_rule_analysis(diagnostic_report: DiagnosticReport) -> None:
     """Render the typed additive relationship report without deriving relationships in the UI."""
 
@@ -192,22 +274,24 @@ def _render_cross_rule_analysis(diagnostic_report: DiagnosticReport) -> None:
             "their original status and reason."
         )
     if analysis.relationships:
+        relationship_rows = [
+            {
+                "type": relationship.relation_type.value,
+                "source": relationship.source_rule_id,
+                "target": relationship.target_rule_id,
+                "shared_evidence": ", ".join(relationship.shared_evidence_keys) or "—",
+                "source_precedence": relationship.source_precedence,
+                "target_precedence": relationship.target_precedence,
+                "presentation_effect": relationship.presentation_effect,
+                "statement": relationship.statement,
+            }
+            for relationship in analysis.relationships
+        ]
         st.dataframe(
-            [
-                {
-                    "type": relationship.relation_type.value,
-                    "source": relationship.source_rule_id,
-                    "target": relationship.target_rule_id,
-                    "shared_evidence": ", ".join(relationship.shared_evidence_keys) or "—",
-                    "source_precedence": relationship.source_precedence,
-                    "target_precedence": relationship.target_precedence,
-                    "presentation_effect": relationship.presentation_effect,
-                    "statement": relationship.statement,
-                }
-                for relationship in analysis.relationships
-            ],
+            relationship_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(relationship_rows),
         )
     else:
         st.info("No relationship was activated by the declared DIA-07 v1 policy.")
@@ -217,7 +301,7 @@ def _render_cross_rule_analysis(diagnostic_report: DiagnosticReport) -> None:
             + ", ".join(analysis.unclassified_triggered_rule_ids)
             + ". No relationship is inferred."
         )
-    with st.expander("Cross-rule policy, provenance, and limitations"):
+    with st.expander("Advanced: cross-rule policy, provenance, and limitations"):
         st.json(
             {
                 "analysis_id": analysis.analysis_id,
