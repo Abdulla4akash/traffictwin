@@ -6,25 +6,25 @@ import streamlit as st
 
 
 def apply_research_theme() -> None:
-    """Apply lightweight, local CSS for visual consistency."""
+    """Apply small, theme-aware presentation helpers.
+
+    Colour, typography, radius, and light/dark variants come from the native
+    Streamlit theme in ``.streamlit/config.toml``. This helper only keeps
+    layout-neutral utility styles that read correctly in both modes; it must
+    never hard-code light-only or dark-only colours.
+    """
 
     st.markdown(
         """
         <style>
-        [data-testid="stMetric"] {
-            border: 1px solid rgba(49, 51, 63, 0.16);
-            border-radius: 8px;
-            padding: 0.75rem 0.85rem;
-            background: rgba(250, 250, 252, 0.72);
-        }
         [data-testid="stSidebar"] [role="radiogroup"] label {
             margin-bottom: 0.15rem;
         }
         .tt-notice {
-            border-left: 4px solid #607d8b;
+            border-left: 4px solid rgba(100, 116, 139, 0.9);
             padding: 0.65rem 0.8rem;
-            background: #f6f8fa;
-            border-radius: 4px;
+            background: rgba(148, 163, 184, 0.12);
+            border-radius: 6px;
         }
         .tt-lineage {
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
