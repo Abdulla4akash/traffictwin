@@ -7,14 +7,16 @@
 Checkpoint tag `v0.7.0-alpha.5` marks commit
 `310117e` (the coexistence-check checkpoint); later verified commits continue on the branch.
 
-**Snapshot commit:** `0060056` (`fix(security): refuse path traversal in v0.6 migration rollback
-receipts`) plus the requirement-audit preparation commit that records this update. Cumulative
-content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the REL-01 workspace CLI, the MAN-09
-temporal-profile foundation, the synthetic analyst-review and temporal-profile demonstrations,
-the automated cross-page-state evidence, the external decision pack and its 24 July 2026
-source-documentation probe, the ADR-058 producer attestation, the attested
-activation/backup/rollback workflow, the side-by-side coexistence check, the rollback
-path-traversal fix, and the human-decision preparation pack.
+**Snapshot commit:** `084c118` (`chore: refresh side-by-side coexistence evidence at the audited
+head`). Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the REL-01
+workspace CLI, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
+temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
+pack and its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, the
+attested activation/backup/rollback workflow, the side-by-side coexistence check, and — from the
+24 July 2026 requirement-level re-audit — the rollback path-traversal fix, the crash-safe
+resumable migration, the temporal-profile tamper-evidence hardening, the CLI graceful-refusal
+fix, the three-state comparison provenance badge, the side-by-side hardening, the requirement
+matrix, and the human-decision preparation pack.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -65,9 +67,9 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,618 unit tests and 169 UI tests pass, 1,787 combined;
+- 1,633 unit tests and 169 UI tests pass, 1,802 combined;
 - repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 705 configured source and test files;
+- strict mypy passes over all 707 configured source and test files;
 - lock validation and package build pass;
 - the built wheel contains the required Manchester boundary assets; and
 - 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
