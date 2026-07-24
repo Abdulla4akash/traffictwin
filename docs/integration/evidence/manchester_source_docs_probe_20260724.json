@@ -1,0 +1,39 @@
+{
+  "schema_version": "traffictwin.source-docs-probe.v1",
+  "probe_date": "2026-07-24",
+  "method": "Read-only fetches of the official reference pages frozen in the v0.7 design (section 5.1). Outcomes record only what each page states; silence is recorded as silence.",
+  "capability_change": "none",
+  "probes": [
+    {
+      "blocker": "GA-DFT-1 raw-count hour timezone",
+      "url": "https://roadtraffic.dft.gov.uk/api-documentation",
+      "outcome": "silent",
+      "finding": "The Raw Counts endpoint documents 'hour' only as an integer filter parameter. No statement of UTC, GMT, BST, or local-time basis appears."
+    },
+    {
+      "blocker": "WebTRIS clock/timezone semantics",
+      "url": "https://webtris.nationalhighways.co.uk/api/swagger/ui/index",
+      "outcome": "silent_with_caveat",
+      "finding": "No timezone statement in the rendered page. Caveat: the Swagger UI is script-driven; the underlying definition was probed separately."
+    },
+    {
+      "blocker": "WebTRIS clock/timezone semantics",
+      "url": "https://webtris.nationalhighways.co.uk/api/swagger/docs/v1",
+      "outcome": "silent",
+      "finding": "Date descriptions specify only the format, for example 'The start date of the report in the format ddmmyyyy (i.e 31012016)'. No timezone basis is stated for dates, Time Period, or timestamps."
+    },
+    {
+      "blocker": "BODS licence, retention, republication, registration",
+      "url": "https://www.gov.uk/guidance/find-and-use-bus-open-data",
+      "outcome": "partial",
+      "finding": "Page footer states 'All content is available under the Open Government Licence v3.0'. SIRI-VM retention, storage, and republication conditions are not addressed. Registration/API-key requirements are not addressed on this page (the live service separately requires an API key, as recorded in the accepted Gate-A audit)."
+    },
+    {
+      "blocker": "BODS SIRI-VM timestamps, retention, identifier privacy",
+      "url": "https://www.gov.uk/government/publications/technical-guidance-publishing-location-data-using-the-bus-open-data-service-siri-vm",
+      "outcome": "silent_with_caveat",
+      "finding": "The publication landing page addresses none of: timestamp timezone basis, consumer retention/republication conditions, or vehicle-identifier semantics/privacy. Caveat: only the landing page was probed; its downloadable guidance attachments were not retrieved in this probe."
+    }
+  ],
+  "conclusion": "None of the probed official pages resolves the DfT raw-count hour timezone, WebTRIS clock semantics, or BODS retention/republication terms. These blockers require direct provider enquiries (DfT road traffic statistics team, National Highways WebTRIS support, BODS service) or deeper authoritative documents. Until answered, DfT and WebTRIS rows keep their typed source-local exclusions and the precautionary BODS retention controls remain."
+}

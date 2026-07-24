@@ -58,8 +58,12 @@ Decision needed: provider-documented facts, not choices.
   current BODS service terms against the intended research use; any longitudinal retention or
   public output additionally needs your decision as data controller for this project.
 
-Say the word and I will run the documentation probes and record machine-readable evidence with
-exact URLs, access dates, and quotations — asserting nothing the documents do not state.
+Probed on 24 July 2026
+([machine record](integration/evidence/manchester_source_docs_probe_20260724.json)): every
+official reference page checked is silent on these facts, so the honest closing step is a
+direct provider enquiry (DfT road traffic statistics team, National Highways WebTRIS support,
+BODS service) or their deeper authoritative documents. Until answered, the typed source-local
+exclusions and precautionary BODS retention controls remain.
 
 ## 4. v0.6 producer attestation (blocks REL-01 migration and activation)
 
