@@ -60,3 +60,19 @@ def test_review_demo_records_explicit_decisions_and_stays_synthetic(
     assert "1 selected, 2 rejected across 3 observations" in successes
     captions = "\n".join(str(item.value) for item in app.caption)
     assert "accepts no real map match" in captions
+
+
+def test_temporal_profile_demo_renders_visible_missing_cells(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("TRAFFICTWIN_WORKSPACE_PATH", raising=False)
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
+    app = app_test.from_file("src/traffictwin/ui/app_pages/manchester.py").run(timeout=25)
+
+    assert not app.exception
+    captions = "\n".join(str(item.value) for item in app.caption)
+    assert "never filled with zero" in captions
+    assert "declared_excluded_date" in captions
+    assert "null_value_retained" in captions
+    warnings = "\n".join(str(item.value) for item in app.warning)
+    assert "production policy registry is empty" in warnings

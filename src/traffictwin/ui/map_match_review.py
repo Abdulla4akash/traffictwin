@@ -10,6 +10,7 @@ SUMO baseline remain structurally unavailable behind their recorded blockers.
 
 from __future__ import annotations
 
+import datetime as dt
 from collections.abc import Mapping
 from decimal import Decimal
 from typing import Literal
@@ -36,6 +37,13 @@ from traffictwin.integration.manchester.models import sha256_hex
 from traffictwin.integration.manchester.spatial import (
     ManchesterSpatialPointEvidence,
     evaluate_spatial_batch,
+)
+from traffictwin.integration.manchester.temporal_profile import (
+    DeclaredExcludedDate,
+    ManchesterTemporalProfileReport,
+    TemporalProfileObservation,
+    TemporalProfilePolicy,
+    build_temporal_profile,
 )
 
 REJECT_ALL_SENTINEL = "__reject_all_candidates__"
@@ -215,4 +223,72 @@ def candidate_display_rows(report: SyntheticMapMatchReport) -> list[dict[str, ob
             "reasons": ", ".join(candidate.reasons),
         }
         for candidate in report.candidates
+    ]
+
+
+def synthetic_temporal_profile_demo() -> ManchesterTemporalProfileReport:
+    """Build the deterministic synthetic temporal-profile demonstration.
+
+    The labelled synthetic fixture demonstrates available, insufficient,
+    missing, null-value, and declared-excluded-date cells without inventing
+    evidence; missing cells stay visible and never become zero.
+    """
+
+    policy = TemporalProfilePolicy(
+        policy_label="synthetic-demo-profile",
+        source="synthetic_utc_road",
+        measure="vehicle_count",
+        unit="vehicles_per_interval",
+        time_basis="utc",
+        season_rule="none",
+        window_start_date=dt.date(2026, 3, 2),
+        window_end_date=dt.date(2026, 3, 8),
+        expected_slot_labels=("07:00", "08:00"),
+        declared_excluded_dates=(
+            DeclaredExcludedDate(date=dt.date(2026, 3, 6), reason_label="declared-event-day"),
+        ),
+        minimum_cell_observations=2,
+    )
+    fingerprint = sha256_hex(b"traffictwin-synthetic-temporal-profile-demo-v1")
+    observations = [
+        TemporalProfileObservation(
+            source="synthetic_utc_road",
+            source_record_id=record_id,
+            source_date=source_date,
+            slot_label=slot,
+            measure="vehicle_count",
+            unit="vehicles_per_interval",
+            value=value,
+            snapshot_fingerprint=fingerprint,
+            parser_report_fingerprint=fingerprint,
+        )
+        for record_id, source_date, slot, value in (
+            # Weekday 07:00 becomes available: two observed survey days.
+            ("synthetic:row-1", dt.date(2026, 3, 2), "07:00", Decimal("120")),
+            ("synthetic:row-2", dt.date(2026, 3, 3), "07:00", Decimal("132")),
+            # Weekday 08:00 stays insufficient: one observation under the
+            # two-observation minimum.
+            ("synthetic:row-3", dt.date(2026, 3, 2), "08:00", Decimal("141")),
+            # A null value stays a typed exclusion, never zero.
+            ("synthetic:row-4", dt.date(2026, 3, 4), "07:00", None),
+            # A declared excluded date is refused with its reason label.
+            ("synthetic:row-5", dt.date(2026, 3, 6), "07:00", Decimal("95")),
+        )
+    ]
+    return build_temporal_profile(policy, observations)
+
+
+def profile_cell_display_rows(report: ManchesterTemporalProfileReport) -> list[dict[str, object]]:
+    """Project the complete cell grid into human-readable table rows."""
+
+    return [
+        {
+            "day_type": cell.day_type,
+            "slot": cell.slot_label,
+            "state": cell.state,
+            "observations": cell.observation_count,
+            "mean": str(cell.mean_value) if cell.mean_value is not None else None,
+            "dates": ", ".join(item.isoformat() for item in cell.contributing_dates),
+        }
+        for cell in report.cells
     ]

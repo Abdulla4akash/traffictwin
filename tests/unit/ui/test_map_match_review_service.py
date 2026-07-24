@@ -95,3 +95,32 @@ def test_preflight_keeps_every_real_blocker() -> None:
     assert preflight.synthetic_harness_available is True
     assert preflight.real_candidate_generation_available is False
     assert "MANCHESTER_NETWORK_LICENCE_UNAPPROVED" in preflight.blockers
+
+
+def test_temporal_profile_demo_is_deterministic_and_complete() -> None:
+    from traffictwin.ui.map_match_review import (
+        profile_cell_display_rows,
+        synthetic_temporal_profile_demo,
+    )
+
+    report = synthetic_temporal_profile_demo()
+
+    assert report.fingerprint() == synthetic_temporal_profile_demo().fingerprint()
+    assert report.admission == "synthetic_development_inputs"
+    states = report.cells_by_state()
+    assert states == {
+        "available": 1,
+        "insufficient_observations": 1,
+        "no_observations": 4,
+    }
+    assert sorted({item.reason for item in report.excluded_observations}) == [
+        "declared_excluded_date",
+        "null_value_retained",
+    ]
+    assert report.calibration_use_available is False
+    assert report.sumo_demand_available is False
+    assert report.baseline_available is False
+    rows = profile_cell_display_rows(report)
+    assert len(rows) == len(report.cells)
+    empty_rows = [row for row in rows if row["state"] == "no_observations"]
+    assert all(row["mean"] is None and row["observations"] == 0 for row in empty_rows)

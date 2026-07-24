@@ -106,8 +106,10 @@ from traffictwin.ui.map_match_review import (
     candidate_display_rows,
     eligible_candidates_by_point,
     map_match_preflight_for_ui,
+    profile_cell_display_rows,
     review_from_selections,
     synthetic_map_match_demo_report,
+    synthetic_temporal_profile_demo,
 )
 from traffictwin.ui.state import UiConfig
 
@@ -1537,6 +1539,36 @@ def _render_disabled_actions(reason: str) -> None:
             key="manchester_ops_baseline",
         )
     _render_map_match_review_demo()
+    _render_temporal_profile_demo()
+
+
+def _render_temporal_profile_demo() -> None:
+    """Render the synthetic MAN-09 temporal-profile workflow demonstration."""
+
+    with st.expander(
+        "Synthetic temporal profile (MAN-09 demonstration)", icon=":material/calendar_month:"
+    ):
+        st.warning(
+            "Synthetic demonstration only: these survey rows are generated software "
+            "fixtures, not Manchester evidence. Real DfT/WebTRIS profiles remain "
+            "not admitted while the production policy registry is empty and their "
+            "source timezone blockers are open.",
+            icon=":material/science:",
+        )
+        report = synthetic_temporal_profile_demo()
+        states = report.cells_by_state()
+        st.caption(
+            f"Cells: {states['available']} available · "
+            f"{states['insufficient_observations']} insufficient · "
+            f"{states['no_observations']} without observations (never filled with zero) · "
+            f"exclusions: "
+            + ", ".join(sorted({item.reason for item in report.excluded_observations}))
+        )
+        st.dataframe(profile_cell_display_rows(report), hide_index=True, width="stretch")
+        st.caption(
+            "Null values stay typed exclusions, declared excluded dates carry their reason "
+            "label, and no cell becomes SUMO demand, a baseline, or calibration input."
+        )
 
 
 def _render_map_match_review_demo() -> None:

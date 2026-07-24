@@ -338,7 +338,11 @@ candidate table stays visible, one explicit decision is required per observation
 automatic selection, rejection reasons are derived from the report itself, and the typed review
 record is downloadable while stating that it accepts no real map match and creates no baseline
 or calibration input. The panel lists the exact real-source blockers from the fail-closed
-preflight; `MAN-09` remains planned.
+preflight. A sibling panel demonstrates the temporal-profile builder on a labelled synthetic
+fixture whose complete day-type/slot grid shows available, insufficient, and
+never-filled-with-zero missing cells beside its typed null-value and declared-excluded-date
+exclusions, while stating that real DfT/WebTRIS profiles remain not admitted with the empty
+production policy registry and open timezone blockers; `MAN-09` remains planned.
 
 A candidate `MAN-09` temporal-profile foundation now builds reviewable day-type/time-of-day
 profiles from caller-supplied source-specific observations under one versioned policy binding
