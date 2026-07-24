@@ -101,6 +101,14 @@ from traffictwin.ui.manchester_operations import (
     webtris_chart_rows,
     webtris_snapshot_label,
 )
+from traffictwin.ui.map_match_review import (
+    REJECT_ALL_SENTINEL,
+    candidate_display_rows,
+    eligible_candidates_by_point,
+    map_match_preflight_for_ui,
+    review_from_selections,
+    synthetic_map_match_demo_report,
+)
 from traffictwin.ui.state import UiConfig
 
 _MODE_LABELS: dict[MapMode, str] = {
@@ -1528,3 +1536,65 @@ def _render_disabled_actions(reason: str) -> None:
             help=reason,
             key="manchester_ops_baseline",
         )
+    _render_map_match_review_demo()
+
+
+def _render_map_match_review_demo() -> None:
+    """Render the synthetic MAN-09 analyst-review workflow demonstration."""
+
+    with st.expander("Synthetic map-match review (MAN-09 demonstration)", icon=":material/route:"):
+        preflight = map_match_preflight_for_ui()
+        st.warning(
+            "Synthetic demonstration only: these observations, edges, and matches are "
+            "generated software fixtures, not Manchester evidence. Real Manchester map "
+            "matching remains unavailable: " + ", ".join(preflight.blockers) + ".",
+            icon=":material/science:",
+        )
+        report = synthetic_map_match_demo_report()
+        st.caption(
+            f"Candidate pairs evaluated: {report.counts.candidate_pairs_evaluated} "
+            f"(complete Cartesian reconciliation) · eligible pairs: "
+            f"{report.counts.eligible_pairs} · observations without an eligible "
+            f"candidate: {report.counts.observations_without_eligible_candidate}"
+        )
+        st.dataframe(candidate_display_rows(report), hide_index=True, width="stretch")
+        eligible = eligible_candidates_by_point(report)
+        with st.form("manchester_ops_map_match_review"):
+            st.caption(
+                "Each observation needs one explicit decision. Nothing is selected "
+                "automatically, and rejected candidates stay in the record."
+            )
+            selections: dict[str, str] = {}
+            for observation in report.request.observations:
+                options = {REJECT_ALL_SENTINEL: "Reject all candidates"}
+                for candidate in eligible[observation.point_id]:
+                    options[candidate.fingerprint()] = (
+                        f"{candidate.edge_id} · {candidate.distance_m} m · "
+                        f"Δ{candidate.direction_delta_degrees}°"
+                    )
+                selections[observation.point_id] = st.selectbox(
+                    observation.point_id,
+                    options=list(options),
+                    format_func=lambda value, mapping=options: mapping[value],
+                    key=f"manchester_ops_map_match_{observation.point_id}",
+                )
+            submitted = st.form_submit_button("Record synthetic review", icon=":material/rule:")
+        if submitted:
+            review = review_from_selections(report, selections)
+            st.success(
+                f"Synthetic review recorded: {review.candidates_selected} selected, "
+                f"{review.observations_rejected} rejected across "
+                f"{review.observations_reviewed} observations.",
+                icon=":material/fact_check:",
+            )
+            st.caption(
+                "This typed record is synthetic workflow evidence only. It accepts no "
+                "real map match and creates no SUMO baseline or calibration input."
+            )
+            st.download_button(
+                "Download synthetic review record (JSON)",
+                data=review.model_dump_json(indent=2),
+                file_name="synthetic-map-match-review.json",
+                mime="application/json",
+                icon=":material/download:",
+            )

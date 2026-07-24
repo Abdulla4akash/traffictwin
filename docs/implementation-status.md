@@ -331,6 +331,14 @@ requires one explicit typed decision per observation. Its real-source preflight 
 unavailable because no reviewed Manchester SUMO network/licence, matching policy, or accepted
 real-source projection dependency exists. The harness does not parse a real network, accept a
 Manchester mapping, construct demand, calibrate, or run SUMO, so `MAN-09` remains planned.
+A thin analyst-review demonstration now renders that synthetic harness inside Manchester
+Operations next to the disabled baseline action: a deterministic labelled synthetic fixture
+covers the one-eligible, ambiguous, and no-suitable-candidate situations, the complete Cartesian
+candidate table stays visible, one explicit decision is required per observation with no
+automatic selection, rejection reasons are derived from the report itself, and the typed review
+record is downloadable while stating that it accepts no real map match and creates no baseline
+or calibration input. The panel lists the exact real-source blockers from the fail-closed
+preflight; `MAN-09` remains planned.
 
 A candidate `MAN-09` temporal-profile foundation now builds reviewable day-type/time-of-day
 profiles from caller-supplied source-specific observations under one versioned policy binding
