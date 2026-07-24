@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import replace
 from importlib import import_module
 from pathlib import Path
@@ -7,6 +8,8 @@ from pathlib import Path
 import pytest
 from tests.tos_helpers import write_tos_package
 
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     analyse_tos_run_for_ui,
@@ -18,6 +21,7 @@ from traffictwin.ui.services import (
     tos_results_for_ui,
     tos_supervisor_pack_for_ui,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 
 def test_tos_ui_services_use_integration_pipeline(tmp_path: Path) -> None:
@@ -55,9 +59,11 @@ def test_tos_ui_services_use_integration_pipeline(tmp_path: Path) -> None:
 
 def test_streamlit_tos_page_renders_without_package() -> None:
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.TOS_DATA)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("TOS Data Import").run(timeout=10)
 
     assert not app.exception
 
@@ -98,9 +104,11 @@ def test_streamlit_tos_page_inspects_source_contract(
     package = write_tos_package(tmp_path / "tos")
     monkeypatch.setenv("TRAFFICTWIN_TOS_DATA_PATH", str(package))
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.TOS_DATA)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("TOS Data Import").run(timeout=10)
     app.button[0].click().run(timeout=15)
 
     assert not app.exception

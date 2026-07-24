@@ -1,4 +1,4 @@
-"""Candidate task-oriented Streamlit navigation for UX-01."""
+"""Task-oriented grouped Streamlit navigation for the v0.7 shell."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import streamlit as st
 from traffictwin.ui.labels import UiPage
 
 V07_NAVIGATION_ENV = "TRAFFICTWIN_V07_NAVIGATION"
+V07_LEGACY_ROUTER_VALUES = frozenset({"0", "false", "no", "legacy"})
 V07_NAVIGATION_GROUPS: tuple[str, ...] = (
     "Overview",
     "Build & run",
@@ -289,10 +290,27 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
 _SPEC_BY_PAGE = {spec.page: spec for spec in V07_PAGE_SPECS}
 
 
-def v07_navigation_requested() -> bool:
-    """Return whether the candidate router was explicitly requested."""
+def legacy_navigation_requested() -> bool:
+    """Return whether the preserved legacy compatibility router was requested.
 
-    return os.getenv(V07_NAVIGATION_ENV, "").strip().lower() in {"1", "true", "yes"}
+    Setting ``TRAFFICTWIN_V07_NAVIGATION`` to ``0``, ``false``, ``no``, or
+    ``legacy`` keeps the complete v0.6 flat-radio router available as an
+    explicit, tested compatibility route.
+    """
+
+    return os.getenv(V07_NAVIGATION_ENV, "").strip().lower() in V07_LEGACY_ROUTER_VALUES
+
+
+def v07_navigation_requested() -> bool:
+    """Return whether the grouped v0.7 router should run.
+
+    The grouped ``st.navigation`` router is the normal route; only an
+    explicit legacy request selects the compatibility router. This changes
+    presentation routing only and does not accept `UX-01` or alter any
+    capability status.
+    """
+
+    return not legacy_navigation_requested()
 
 
 def page_script_for(page: UiPage) -> str:

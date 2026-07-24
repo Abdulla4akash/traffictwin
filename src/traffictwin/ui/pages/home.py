@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from traffictwin.demo.workspace import workspace_status
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_row, evidence_state_badge
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
 from traffictwin.ui.manchester_operations import (
@@ -16,7 +16,7 @@ from traffictwin.ui.manchester_operations import (
 from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.services import list_workspace_reports, load_project_status
 from traffictwin.ui.state import UiConfig
-from traffictwin.ui.tables import capability_rows
+from traffictwin.ui.tables import ColumnDisplay, capability_rows, table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -44,8 +44,7 @@ def _render_v07_home(config: UiConfig) -> None:
     manchester = load_local_manchester_scene(workspace, "latest_available")
     visible_layers = visible_layer_ids(manchester.scene) if manchester.scene is not None else ()
 
-    st.title("TrafficTwin")
-    st.header("Model a traffic scenario. Run or import it. Compare the evidence.")
+    st.title("Model a traffic scenario. Run or import it. Compare the evidence.")
     st.caption(
         "A reproducible research workspace for Manchester observations, SUMO/VEC evidence, "
         "and deterministic analysis. Evidence labels describe what is actually loaded."
@@ -76,11 +75,9 @@ def _render_v07_home(config: UiConfig) -> None:
         )
 
     with st.container(horizontal=True):
-        st.metric(
-            "Manchester evidence",
-            manchester.status.replace("_", " "),
-            border=True,
-        )
+        with st.container(border=True):
+            st.caption("Manchester evidence")
+            evidence_state_badge(manchester.status)
         st.metric("Visible local layers", len(visible_layers), border=True)
         st.metric("Registered runs", run_count, border=True)
         st.metric("Comparisons", comparison_count, border=True)
@@ -192,11 +189,15 @@ def _render_legacy_home(config: UiConfig) -> None:
         width="stretch",
     )
 
-    cols = st.columns(4)
-    cols[0].metric("Implementation phase", status.current_phase)
-    cols[1].metric("Design version", status.canonical_design_version)
-    cols[2].metric("Registry", "Present" if status.registry_exists else "Missing")
-    cols[3].metric("Adapter", status.capability_manifest.adapter)
+    with st.container(border=True):
+        st.markdown(
+            f"**Implementation phase:** {status.current_phase} · "
+            f"**Design version:** {status.canonical_design_version}"
+        )
+        st.markdown(
+            f"**Registry:** {'Present' if status.registry_exists else 'Missing'} · "
+            f"**Adapter:** `{status.capability_manifest.adapter}`"
+        )
 
     summary = status.registry_summary
     seed_count = summary.seed_count if summary else 0
@@ -216,11 +217,13 @@ def _render_legacy_home(config: UiConfig) -> None:
             "Standalone mode uses repository-contained synthetic fixtures only. "
             "It does not use Randy, SUMO, or live Manchester data."
         )
-        demo_cols = st.columns(4)
-        demo_cols[0].metric("Workspace", "Ready" if demo_status.valid_workspace else "Missing")
-        demo_cols[1].metric("Synthetic scenarios", demo_status.scenario_count)
-        demo_cols[2].metric("Imported runs", demo_status.imported_run_count)
-        demo_cols[3].metric("Diagnostics", demo_status.diagnostics_status)
+        st.markdown(
+            f"**Workspace:** {'Ready' if demo_status.valid_workspace else 'Missing'} · "
+            f"**Diagnostics:** {demo_status.diagnostics_status}"
+        )
+        demo_cols = st.columns(2)
+        demo_cols[0].metric("Synthetic scenarios", demo_status.scenario_count)
+        demo_cols[1].metric("Imported runs", demo_status.imported_run_count)
         st.caption(f"Workspace: {demo_status.path}")
         report_count = len(list_workspace_reports(config.workspace_path))
         export_dir = config.workspace_path / "exports"
@@ -265,52 +268,74 @@ def _render_legacy_home(config: UiConfig) -> None:
         section_header("Recent Workspace Artifacts")
         reports = list_workspace_reports(config.workspace_path)[:5]
         if reports:
-            st.table(
-                [
-                    {
-                        "report": report.name,
-                        "type": report.report_type,
-                        "format": report.format_label,
-                        "scenario": report.scenario_hint,
-                    }
-                    for report in reports
-                ],
+            report_rows = [
+                {
+                    "report": report.name,
+                    "type": report.report_type,
+                    "format": report.format_label,
+                    "scenario": report.scenario_hint,
+                }
+                for report in reports
+            ]
+            st.dataframe(
+                report_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(report_rows),
             )
         else:
             st.info("No report artifacts found in the active workspace.")
 
-    section_header("Capability Manifest")
-    st.table(capability_rows(status.capability_manifest))
-
     section_header("Latest Imported Runs")
     if status.latest_runs:
-        st.table(
-            [
-                {
-                    "run_id": run.run_id,
-                    "experiment_id": run.experiment_id,
-                    "seed_id": run.seed_id,
-                    "algorithm": run.algorithm,
-                    "random_seed": run.random_seed,
-                    "status": run.status.value,
-                }
-                for run in status.latest_runs
-            ],
+        run_rows = [
+            {
+                "run_id": run.run_id,
+                "algorithm": run.algorithm,
+                "status": run.status.value,
+                "experiment_id": run.experiment_id,
+                "seed_id": run.seed_id,
+                "random_seed": run.random_seed,
+            }
+            for run in status.latest_runs
+        ]
+        st.dataframe(
+            run_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(
+                run_rows,
+                overrides={"run_id": ColumnDisplay(key="run_id", label="Run", hidden=False)},
+            ),
         )
+        with st.expander("Advanced: run identifiers"):
+            st.dataframe(
+                run_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(run_rows, hide_machine_ids=False),
+            )
     else:
         st.info("No registered runs yet. Import a synthetic or historical bundle first.")
 
     section_header("Current Limitations")
-    st.write(
-        [
-            "Direct simulator launch is unavailable for the default generic CSV adapter.",
-            "No live, near-live, or true-live Manchester data is connected.",
-            "Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.",
-            (
-                "TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
-                "exact VEC foreground evaluation is available only through request-specific "
-                "preflight in the VEC workbench. SUMO launch and promotion of source-specific "
-                "RSU pressure to canonical infrastructure metrics remain unavailable."
-            ),
-        ]
+    st.markdown(
+        "- Direct simulator launch is unavailable for the default generic CSV adapter.\n"
+        "- Live Manchester evidence covers BODS bus positions only; general live or "
+        "near-live Manchester road traffic remains unavailable, and WebTRIS road "
+        "evidence is historical/latest-available, not near-live.\n"
+        "- Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.\n"
+        "- TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
+        "exact VEC foreground evaluation is available only through request-specific "
+        "preflight in the VEC workbench. SUMO launch and promotion of source-specific "
+        "RSU pressure to canonical infrastructure metrics remain unavailable."
     )
+
+    with st.expander("Advanced: capability manifest"):
+        manifest_rows = capability_rows(status.capability_manifest)
+        st.dataframe(
+            manifest_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(manifest_rows),
+        )

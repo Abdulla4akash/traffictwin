@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
@@ -9,12 +10,15 @@ from traffictwin.experiments.scenario_mutation import (
     MutationOperator,
     ScenarioMutationRequest,
 )
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     execute_scenario_mutation_for_ui,
     prepare_scenario_mutation_for_ui,
     scenario_mutation_catalog_for_ui,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 FIXTURE = Path("tests/fixtures/bundles/baseline_valid")
 
@@ -72,9 +76,11 @@ def test_streamlit_scenario_mutation_builds_validated_copy(
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
 
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.SCENARIO_MUTATION)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Scenario Mutations").run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Scenario Mutations" for title in app.title)

@@ -13,6 +13,7 @@ from traffictwin.ui.navigation_v07 import (
     V07_NAVIGATION_GROUPS,
     V07_PAGE_SPECS,
     V07PageSpec,
+    legacy_navigation_requested,
     page_script_for,
     v07_navigation_requested,
     validate_v07_page_specs,
@@ -73,15 +74,20 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
     assert {spec.page: (spec.group, spec.url_path) for spec in V07_PAGE_SPECS} == expected
 
 
-def test_candidate_router_requires_explicit_opt_in(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_grouped_router_is_default_with_explicit_legacy_compatibility(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv(V07_NAVIGATION_ENV, raising=False)
-    assert v07_navigation_requested() is False
+    assert v07_navigation_requested() is True
+    assert legacy_navigation_requested() is False
 
     monkeypatch.setenv(V07_NAVIGATION_ENV, "1")
     assert v07_navigation_requested() is True
 
-    monkeypatch.setenv(V07_NAVIGATION_ENV, "false")
-    assert v07_navigation_requested() is False
+    for legacy_value in ("0", "false", "no", "legacy", " LEGACY "):
+        monkeypatch.setenv(V07_NAVIGATION_ENV, legacy_value)
+        assert legacy_navigation_requested() is True
+        assert v07_navigation_requested() is False
 
 
 def test_page_script_lookup_is_exact() -> None:
@@ -188,10 +194,10 @@ def test_legacy_navigation_button_preserves_callback_router(
     ]
 
 
-def test_candidate_router_renders_hidden_root_home_without_legacy_radio(
+def test_grouped_router_renders_hidden_root_home_by_default(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv(V07_NAVIGATION_ENV, "1")
+    monkeypatch.delenv(V07_NAVIGATION_ENV, raising=False)
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
 
     app = app_test.from_file("src/traffictwin/ui/app.py").run(timeout=20)
@@ -203,19 +209,21 @@ def test_candidate_router_renders_hidden_root_home_without_legacy_radio(
     assert any("Workspace status" in caption.value for caption in app.sidebar.caption)
     assert any(
         "Model a traffic scenario. Run or import it. Compare the evidence." in item.value
-        for item in app.header
+        for item in app.title
     )
     assert {"Explore Manchester", "Create scenario", "Open latest run"}.issubset(
         {button.label for button in app.button}
     )
-    assert any(item.label == "Manchester evidence" for item in app.metric)
+    # The Manchester evidence state renders as a badge, never a text metric.
+    assert not any(item.label == "Manchester evidence" for item in app.metric)
+    assert any("Manchester evidence" in caption.value for caption in app.caption)
     assert not any(item.value == "Capability Manifest" for item in app.subheader)
 
 
-def test_default_router_keeps_complete_legacy_navigation(
+def test_explicit_compatibility_route_keeps_complete_legacy_navigation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.delenv(V07_NAVIGATION_ENV, raising=False)
+    monkeypatch.setenv(V07_NAVIGATION_ENV, "legacy")
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
 
     app = app_test.from_file("src/traffictwin/ui/app.py").run(timeout=20)

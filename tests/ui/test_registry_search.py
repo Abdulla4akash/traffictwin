@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
@@ -7,7 +8,10 @@ import pytest
 
 from traffictwin.demo.workspace import initialise_workspace
 from traffictwin.registry_search import RegistrySearchResult, SearchCategory
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import search_for_ui
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 
 def test_registry_search_ui_service_exposes_typed_ranked_results(tmp_path: Path) -> None:
@@ -51,9 +55,11 @@ def test_registry_search_page_runs_query_with_apptest(
     monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
     monkeypatch.setenv("TRAFFICTWIN_FIXTURE_PATH", str(workspace / "bundles"))
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.SEARCH)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Search").run(timeout=10)
     query = next(
         item for item in app.text_input if item.label.startswith("Search findings, annotations")
     )
