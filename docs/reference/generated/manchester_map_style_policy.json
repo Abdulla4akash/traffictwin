@@ -50,6 +50,48 @@
       "symbol": "circle"
     },
     {
+      "accessible_description": "Cross-marked National Highways closure or incident position",
+      "colour_is_sole_meaning": false,
+      "fill_rgba": [
+        190,
+        48,
+        48,
+        210
+      ],
+      "legend_label": "Road/lane closure",
+      "radius_pixels": 9,
+      "source": "national_highways_closures",
+      "symbol": "cross"
+    },
+    {
+      "accessible_description": "Diamond National Highways imposed temporary speed restriction",
+      "colour_is_sole_meaning": false,
+      "fill_rgba": [
+        218,
+        132,
+        24,
+        210
+      ],
+      "legend_label": "Temporary speed restriction",
+      "radius_pixels": 9,
+      "source": "national_highways_speed_limits",
+      "symbol": "diamond"
+    },
+    {
+      "accessible_description": "Square National Highways digital variable-message sign status",
+      "colour_is_sole_meaning": false,
+      "fill_rgba": [
+        36,
+        112,
+        196,
+        210
+      ],
+      "legend_label": "Variable message sign",
+      "radius_pixels": 9,
+      "source": "national_highways_vms",
+      "symbol": "square"
+    },
+    {
       "accessible_description": "Cross-marked non-geographic Randy evidence",
       "colour_is_sole_meaning": false,
       "fill_rgba": [

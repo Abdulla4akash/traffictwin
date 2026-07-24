@@ -33,6 +33,8 @@ MANCHESTER_MAP_SCHEMA_VERSION = "1.0"
 MANCHESTER_MAP_METHOD_VERSION = "manchester-map-layer-1.0"
 MANCHESTER_MAP_CAPABILITY_ID = "MAN-08"
 OGL_V3_URI = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+NATIONAL_HIGHWAYS_TERMS_URI = "https://developer.data.nationalhighways.co.uk/terms"
+NATIONAL_HIGHWAYS_ATTRIBUTION = "Powered by National Highways’ Transport Data Feeds"
 SYNTHETIC_ATTRIBUTION = "Synthetic TrafficTwin fixture; not observed Manchester data."
 
 MapMode: TypeAlias = Literal["historical_replay", "latest_available", "live_vehicles"]
@@ -102,6 +104,7 @@ class MapLayerRequest(ManchesterMapModel):
     attribution_lines: tuple[str, ...] = Field(min_length=1, max_length=4)
     synthetic: bool
     requested_visible: bool = True
+    point_labels: tuple[tuple[str, str], ...] = ()
 
     @model_validator(mode="after")
     def validate_request(self) -> MapLayerRequest:
@@ -118,10 +121,33 @@ class MapLayerRequest(ManchesterMapModel):
             raise ValueError("observed-source layers cannot claim a synthetic licence")
         if self.source in {"dft", "webtris", "tfgm_signals"} and (self.licence_uri != OGL_V3_URI):
             raise ValueError("OGL source layers must retain the reviewed OGL v3 URI")
+        if self.source.startswith("national_highways_") and (
+            self.licence_uri != NATIONAL_HIGHWAYS_TERMS_URI
+            or NATIONAL_HIGHWAYS_ATTRIBUTION not in self.attribution_lines
+            or self.publication_class is not ManchesterPublicationClass.PRIVATE
+        ):
+            raise ValueError(
+                "National Highways layers require the reviewed terms, attribution, "
+                "and private class"
+            )
         _validate_freshness_source(self.source, self.freshness)
         for result in self.spatial_report.results:
             if result.source != self.source:
                 raise ValueError("a map layer cannot mix spatial source families")
+        label_keys = tuple(key for key, _label in self.point_labels)
+        if label_keys != tuple(sorted(set(label_keys))):
+            raise ValueError("point labels must have sorted unique source fingerprints")
+        if any(len(label) > 500 or not label.strip() for _key, label in self.point_labels):
+            raise ValueError("point labels must be bounded non-empty text")
+        admitted_keys = tuple(
+            sorted(
+                result.source_record_fingerprint
+                for result in self.spatial_report.results
+                if result.status == "admitted"
+            )
+        )
+        if self.point_labels and label_keys != admitted_keys:
+            raise ValueError("point labels must cover every admitted source record exactly")
         return self
 
 
@@ -333,6 +359,9 @@ def map_style_catalogue() -> tuple[MapLayerStyle, ...]:
         "analysis_rsu",
         "bods_siri_vm",
         "dft",
+        "national_highways_closures",
+        "national_highways_speed_limits",
+        "national_highways_vms",
         "randy_tos",
         "sumo_vec",
         "synthetic",
@@ -345,6 +374,7 @@ def map_style_catalogue() -> tuple[MapLayerStyle, ...]:
 def build_map_layer(request: MapLayerRequest) -> ManchesterMapLayerManifest:
     """Build one layer only from MAN-07-admitted points."""
 
+    labels = dict(request.point_labels)
     points = tuple(
         ManchesterMapPoint(
             point_id=result.point_id,
@@ -355,9 +385,12 @@ def build_map_layer(request: MapLayerRequest) -> ManchesterMapLayerManifest:
             geographic_scope=result.geographic_scope,
             geometry_meaning=result.geometry_meaning,
             coordinate_uncertainty_m=result.coordinate_uncertainty_m,
-            accessible_label=(
-                f"{result.geometry_meaning.replace('_', ' ')} {result.point_id}; "
-                f"scope {result.geographic_scope.replace('_', ' ')}"
+            accessible_label=labels.get(
+                result.source_record_fingerprint,
+                (
+                    f"{result.geometry_meaning.replace('_', ' ')}; "
+                    f"scope {result.geographic_scope.replace('_', ' ')}"
+                ),
             ),
         )
         for result in request.spatial_report.results
@@ -477,6 +510,9 @@ def _validate_freshness_source(
         "webtris": frozenset({"webtris_daily"}),
         "tfgm_signals": frozenset({"tfgm_signals"}),
         "bods_siri_vm": frozenset({"bods_siri_vm"}),
+        "national_highways_closures": frozenset({"national_highways_closures"}),
+        "national_highways_speed_limits": frozenset({"national_highways_speed_limits"}),
+        "national_highways_vms": frozenset({"national_highways_vms"}),
         "randy_tos": frozenset({"randy_tos"}),
         "synthetic": frozenset({"synthetic"}),
         "sumo_vec": frozenset(),
@@ -522,6 +558,27 @@ def _style_values(
             "Triangular transit-vehicle position",
             (24, 136, 96, 210),
             8,
+        ),
+        "national_highways_closures": (
+            "cross",
+            "Road/lane closure",
+            "Cross-marked National Highways closure or incident position",
+            (190, 48, 48, 210),
+            9,
+        ),
+        "national_highways_speed_limits": (
+            "diamond",
+            "Temporary speed restriction",
+            "Diamond National Highways imposed temporary speed restriction",
+            (218, 132, 24, 210),
+            9,
+        ),
+        "national_highways_vms": (
+            "square",
+            "Variable message sign",
+            "Square National Highways digital variable-message sign status",
+            (36, 112, 196, 210),
+            9,
         ),
         "randy_tos": (
             "cross",

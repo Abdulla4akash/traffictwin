@@ -24,6 +24,14 @@ Related Gate A decisions:
 - [ADR-056: Manchester map rendering and attribution](../decisions/ADR-056-manchester-map-rendering-and-attribution.md)
 - [ADR-057: Bee Network membership identifiers](../decisions/ADR-057-bee-network-membership-identifiers.md)
 
+Post-audit extension: on 24 July 2026 the lead separately audited and exercised the current
+National Highways key-authenticated operational REST products. That work supersedes the earlier
+callback assumption for the narrow closures/incidents, imposed temporary-limit, and digital-VMS
+slice only. Its exact contracts, terms, limitations, implementation, and real-source machine record
+are in [National Highways operational REST feeds](manchester_national_highways_operational_feeds.md).
+It does not alter the 22 July source matrix below, establish continuous traffic telemetry, or by
+itself complete `MAN-01`, `MAN-07`, or `MAN-08`.
+
 ## 1. Source matrix summary
 
 | Source | Endpoint class | Auth | Format | Licence basis (observed) | Time semantics | Snapshot suitability |

@@ -40,8 +40,10 @@ from traffictwin.integration.manchester.map_layers import (
     ManchesterMapPoint,
     ManchesterMapScene,
     MapMode,
+    build_map_scene,
 )
 from traffictwin.integration.manchester.models import sha256_hex
+from traffictwin.integration.manchester.national_highways_live import overlay_relative_path
 from traffictwin.integration.manchester.randy import (
     RandyManchesterBridgeReport,
     load_randy_manchester_bridge,
@@ -668,6 +670,42 @@ def assess_live_acquisition_readiness(
     )
 
 
+def assess_national_highways_acquisition_readiness(
+    workspace_path: str | Path | None,
+    *,
+    subscription_key_available: bool,
+) -> LiveAcquisitionReadiness:
+    """Check operational-feed prerequisites without reading or retaining the key."""
+
+    if workspace_path is None:
+        return LiveAcquisitionReadiness(
+            status="workspace_unconfigured",
+            message="Configure an isolated TrafficTwin v0.7 workspace first.",
+            ready=False,
+        )
+    try:
+        inspect_v07_workspace(workspace_path)
+    except V07WorkspaceError:
+        return LiveAcquisitionReadiness(
+            status="workspace_invalid",
+            message="The configured workspace is not a valid isolated v0.7 workspace.",
+            ready=False,
+        )
+    if not subscription_key_available:
+        return LiveAcquisitionReadiness(
+            status="api_key_missing",
+            message=(
+                "Set NATIONAL_HIGHWAYS_API_KEY in the app environment, then restart Streamlit."
+            ),
+            ready=False,
+        )
+    return LiveAcquisitionReadiness(
+        status="ready",
+        message="Ready for one controlled three-product National Highways refresh.",
+        ready=True,
+    )
+
+
 def parse_bods_bounding_box(value: str) -> BodsBoundingBox:
     """Parse an explicit four-value request scope without inventing Manchester bounds."""
 
@@ -710,7 +748,54 @@ def load_local_manchester_scene(
         )
 
     workspace = Path(workspace_path)
-    candidate = workspace / scene_relative_path(mode)
+    base = _load_scene_artifact(workspace, workspace / scene_relative_path(mode), mode)
+    overlay_path = overlay_relative_path(mode)
+    if overlay_path is None:
+        return base
+    overlay = _load_scene_artifact(workspace, workspace / overlay_path, mode)
+    if base.scene is None and overlay.scene is None:
+        return overlay if overlay.status == "rejected" else base
+    if base.scene is None:
+        return overlay
+    if overlay.scene is None:
+        if overlay.status == "rejected":
+            return LocalManchesterScene(
+                status="available",
+                reason="ready",
+                message=(
+                    "Validated base Manchester scene loaded; the National Highways overlay "
+                    "failed integrity checks and was isolated."
+                ),
+                scene=base.scene,
+                artifact_sha256=base.artifact_sha256,
+                byte_size=base.byte_size,
+            )
+        return base
+    try:
+        scene = build_map_scene(mode, base.scene.layers + overlay.scene.layers)
+    except ValueError:
+        return _rejected(
+            "scene_invalid",
+            "The base scene and National Highways overlay could not be composed safely.",
+        )
+    payload = scene.canonical_json().encode("utf-8")
+    return LocalManchesterScene(
+        status="available",
+        reason="ready",
+        message="Validated local Manchester scene and National Highways overlay loaded.",
+        scene=scene,
+        artifact_sha256=sha256_hex(payload),
+        byte_size=(base.byte_size or 0) + (overlay.byte_size or 0),
+    )
+
+
+def _load_scene_artifact(
+    workspace: Path,
+    candidate: Path,
+    mode: MapMode,
+) -> LocalManchesterScene:
+    """Load one fixed scene member so independent sources can fail in isolation."""
+
     try:
         resolved_workspace = workspace.resolve()
         resolved_candidate = candidate.resolve(strict=True)
@@ -897,11 +982,7 @@ def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Dec
             {
                 "position": [float(point.longitude), float(point.latitude)],
                 "symbol": glyph,
-                "accessible_label": (
-                    f"{layer.style.legend_label}; "
-                    f"{point.geometry_meaning.replace('_', ' ')}; "
-                    f"scope {point.geographic_scope.replace('_', ' ')}"
-                ),
+                "accessible_label": point.accessible_label,
                 "source": layer.request.source,
                 "scope": point.geographic_scope,
                 "uncertainty_m": (

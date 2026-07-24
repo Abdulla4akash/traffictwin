@@ -179,11 +179,31 @@ service. Site `34` (`M56/8150A`) returned HTTP 204 with no body for 23 July, whi
 96 complete intervals and one quality row that passed the full bounded quarantine, parser,
 promotion, and replay workflow. This agrees with the provider's official statement that WebTRIS
 data is normally uploaded about one month in arrears. WebTRIS is therefore explicitly refused as
-`near_live`, while its latest-available historical workflow remains verified. National Highways'
-separate NTIS DATEX II subscriber push service is recorded as the credible real-time candidate,
-but it needs a new Gate-A source audit, an approved subscriber account, a secured public callback,
-frozen schema/time/retention contracts, and real-source acceptance before code may claim it. No
-capability status changed; `MAN-03`, `MAN-07`, and `MAN-08` remain planned.
+`near_live`, while its latest-available historical workflow remains verified. This does not block
+the separate current National Highways operational REST products described below. No capability
+status changed; `MAN-03`, `MAN-07`, and `MAN-08` remain planned.
+
+A bounded National Highways operational slice now implements the current key-authenticated REST
+products for Road and Lane Closures v2, Speed Managed Areas v1, and Digital VMS v1. Exact
+host/path/query/header policies, transient secret-header handling, raw gzip-entity preservation,
+bounded decoding, strict observed DATEX-JSON parsers, immutable quarantine/promotion, and offline
+replay are source-separated and tested. The fixed broad study envelope is explicitly not an
+official Manchester boundary. Publication-time freshness uses a conservative self-imposed
+ten-minute ceiling; outages preserve prior overlays and reclassify them stale. One manual refresh
+makes exactly three calls, is OS-locked and minute-limited, and retains only a bounded aggregate
+history. A private real-source acceptance run on 24 July 2026 promoted and replayed all three
+responses and admitted 548 in-envelope records: 7 closures/incidents, 60 imposed temporary speed
+restrictions, and 481 unique VMS statuses after 52 exact duplicates were recorded and collapsed.
+No credential or response body was committed. The records cover the Strategic Road Network and do
+not provide continuous flow, measured vehicle speed, congestion, city-road completeness, traffic
+signal phase state, or literal VMS sign text. The slice is real and usable, but release/publication,
+official-boundary, complete Gate-B, minimum-version UI, browser/accessibility, and project-wide
+acceptance remain open; `MAN-01`, `MAN-07`, and `MAN-08` therefore remain planned.
+The integrated quality gate passes 11 focused operational tests, all 672 Manchester unit tests,
+all 1,535 unit tests, and all 162 UI tests; repository-wide Ruff formatting/checks, strict mypy
+over all 670 configured source and test files, generated-reference regeneration, lock validation,
+and package build also
+pass.
 
 A controlled TfGM signal acquisition candidate now binds the audited static ZIP endpoint to the
 shared bounded transport, immutable quarantine-before-decompression boundary, bounded archive
@@ -207,10 +227,11 @@ coordinates remain off the geographic map without a reviewed projection binding,
 proximity never creates identity. The service reads no wall clock,
 never uses retrieval time as observation time, preserves DfT and WebTRIS as historical evidence,
 limits `live_vehicle` to valid BODS SIRI-VM source timestamps within the frozen 60-second window,
-and treats TfGM reference data and Randy simulation time as outside wall-clock freshness. Service
+classifies accepted National Highways operational publication times as `near_live` only within a
+conservative ten-minute window, and treats TfGM reference data and Randy simulation time as outside wall-clock freshness. Service
 outages, rejected evidence, missing snapshots, missing BODS timestamps, and cached fallbacks have
-stable fail-closed outcomes. `near_live` road evidence and general road-traffic live claims remain
-unavailable. DfT survey-hour and WebTRIS source-string rows are preserved as typed exclusions while
+stable fail-closed outcomes. National Highways operational events may be `near_live`, while general
+road-traffic flow/speed and city-wide live claims remain unavailable. DfT survey-hour and WebTRIS source-string rows are preserved as typed exclusions while
 their timezone blockers remain open; they cannot receive a fabricated canonical timestamp. Only a
 clearly labelled UTC synthetic fixture currently demonstrates canonical admission. Real-source
 acquisition acceptance, a versioned boundary artifact, and the remaining MAN-07 gates have not
@@ -257,12 +278,16 @@ inventing values: 836 missing bearings, 25 missing block references, and 1,553 f
 references in place of direct `VehicleJourneyRef`. Raw gzip wire bytes remain immutable and both
 raw and decoded hashes are bound. This passes the local fetch-to-scene slice but does not settle
 the legal retention basis, complete Bee membership, registration terms, or complete Gate-B
-acceptance. The package now
+acceptance. The same page now exposes an independent National Highways form in Latest-available and
+Live-vehicles modes. One explicit action obtains closures/incidents, temporary imposed limits, and
+VMS status; the map merges those local overlay scenes with any BODS scene without fusing records,
+identities, scopes, freshness classes, or totals. Failed operational refreshes retain the prior
+overlay and show it as stale, and ordinary reruns remain offline. The package now
 directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. Historical and latest modes
 now add explicit, bounded source forms: selected DfT raw/count-point/AADF rows; one WebTRIS
 site/day/quality set; and the pinned TfGM signal archive. Their 23 July 2026 controlled runs
 populate source-separated local scenes and catalogues, while ordinary reruns remain offline and a
-broken scene-path symlink fails closed. General live-road evidence, accepted Bee Network
+broken scene-path symlink fails closed. General continuous live-road telemetry, accepted Bee Network
 complete membership coverage, an accepted boundary artifact, broad/multi-site real-source acceptance,
 minimum-version rerun of this new page, and complete browser/mobile/accessibility acceptance remain
 outstanding, so `MAN-05` and `MAN-08` remain planned.
@@ -2476,7 +2501,9 @@ not schedule it, infer environment details, import matched bundles, or change re
   full canonical conversion remains blocked by missing outcome/identity evidence, raw outputs,
   producer/runtime artifacts, and sanitised fixture permission. Public SUMO tripinfo/summary
   ingestion is independently implemented.
-- Direct launch, near-live, and true-live support remain unavailable.
+- In the immutable standalone v0.5/v0.6 baseline, direct launch, near-live, and true-live support
+  remain unavailable. The v0.7 development branch adds only the separately documented private
+  source-specific BODS and National Highways slices; it does not create a generic live mode.
 
 ## Implemented In Read-Only TOS Integration Increment
 

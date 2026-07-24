@@ -22802,6 +22802,24 @@
           "title": "Endpoint Id",
           "type": "string"
         },
+        "fixed_request_headers": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Fixed Request Headers",
+          "type": "array"
+        },
         "host": {
           "pattern": "^[a-z0-9.-]+$",
           "title": "Host",
@@ -22820,6 +22838,14 @@
             "type": "string"
           },
           "title": "Query Parameter Names",
+          "type": "array"
+        },
+        "secret_header_names": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Secret Header Names",
           "type": "array"
         },
         "secret_query_parameter_names": {
@@ -30075,6 +30101,9 @@
             "webtris_daily",
             "tfgm_signals",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "synthetic"
           ],
           "title": "Source",
@@ -33602,6 +33631,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -33615,6 +33645,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -33795,6 +33828,24 @@
               "title": "Mode",
               "type": "string"
             },
+            "point_labels": {
+              "default": [],
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array"
+              },
+              "title": "Point Labels",
+              "type": "array"
+            },
             "publication_class": {
               "$ref": "#/$defs/ManchesterPublicationClass"
             },
@@ -33836,6 +33887,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -33927,6 +33981,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -34027,6 +34084,9 @@
                 "bods_observation_too_old",
                 "bods_validity_expired",
                 "bods_future_dated",
+                "national_highways_within_near_live_window",
+                "national_highways_publication_too_old",
+                "national_highways_publication_future_dated",
                 "offline_replay_is_historical",
                 "source_policy_is_historical",
                 "synthetic_evidence",
@@ -34078,6 +34138,9 @@
                 "webtris_daily",
                 "tfgm_signals",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "synthetic"
               ],
               "title": "Source",
@@ -34263,6 +34326,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -34277,6 +34343,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -34290,6 +34357,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -34310,6 +34378,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -34501,6 +34572,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -34514,6 +34586,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -34616,6 +34691,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -34630,6 +34706,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -35004,6 +35083,7 @@
             "strategic_approaches",
             "greater_manchester",
             "request_bounding_box",
+            "national_highways_manchester_envelope",
             "declared_network",
             "synthetic",
             "unavailable"
@@ -35017,6 +35097,9 @@
             "strategic_road_detector",
             "traffic_signal_site",
             "transit_vehicle_position",
+            "road_closure_position",
+            "temporary_speed_restriction_position",
+            "variable_message_sign_position",
             "simulation_position",
             "analysis_site",
             "synthetic_point",
@@ -35330,6 +35413,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -35343,6 +35427,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -35523,6 +35610,24 @@
               "title": "Mode",
               "type": "string"
             },
+            "point_labels": {
+              "default": [],
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array"
+              },
+              "title": "Point Labels",
+              "type": "array"
+            },
             "publication_class": {
               "$ref": "#/$defs/ManchesterPublicationClass"
             },
@@ -35564,6 +35669,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -35655,6 +35763,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -35755,6 +35866,9 @@
                 "bods_observation_too_old",
                 "bods_validity_expired",
                 "bods_future_dated",
+                "national_highways_within_near_live_window",
+                "national_highways_publication_too_old",
+                "national_highways_publication_future_dated",
                 "offline_replay_is_historical",
                 "source_policy_is_historical",
                 "synthetic_evidence",
@@ -35806,6 +35920,9 @@
                 "webtris_daily",
                 "tfgm_signals",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "synthetic"
               ],
               "title": "Source",
@@ -35991,6 +36108,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -36005,6 +36125,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -36018,6 +36139,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -36038,6 +36160,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -36229,6 +36354,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -36242,6 +36368,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -36344,6 +36473,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -36358,6 +36488,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -36584,6 +36717,7 @@
               "strategic_approaches",
               "greater_manchester",
               "request_bounding_box",
+              "national_highways_manchester_envelope",
               "declared_network",
               "synthetic",
               "unavailable"
@@ -39459,6 +39593,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -39472,6 +39607,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -39635,6 +39773,7 @@
                   "strategic_approaches",
                   "greater_manchester",
                   "request_bounding_box",
+                  "national_highways_manchester_envelope",
                   "declared_network",
                   "synthetic",
                   "unavailable"
@@ -39954,6 +40093,24 @@
               "title": "Mode",
               "type": "string"
             },
+            "point_labels": {
+              "default": [],
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array"
+              },
+              "title": "Point Labels",
+              "type": "array"
+            },
             "publication_class": {
               "$ref": "#/$defs/ManchesterPublicationClass"
             },
@@ -39995,6 +40152,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -40086,6 +40246,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -40186,6 +40349,9 @@
                 "bods_observation_too_old",
                 "bods_validity_expired",
                 "bods_future_dated",
+                "national_highways_within_near_live_window",
+                "national_highways_publication_too_old",
+                "national_highways_publication_future_dated",
                 "offline_replay_is_historical",
                 "source_policy_is_historical",
                 "synthetic_evidence",
@@ -40237,6 +40403,9 @@
                 "webtris_daily",
                 "tfgm_signals",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "synthetic"
               ],
               "title": "Source",
@@ -40422,6 +40591,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -40436,6 +40608,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -40449,6 +40622,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -40469,6 +40643,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -40660,6 +40837,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -40673,6 +40851,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -40775,6 +40956,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -40789,6 +40971,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -41105,6 +41290,24 @@
               "title": "Mode",
               "type": "string"
             },
+            "point_labels": {
+              "default": [],
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ],
+                "type": "array"
+              },
+              "title": "Point Labels",
+              "type": "array"
+            },
             "publication_class": {
               "$ref": "#/$defs/ManchesterPublicationClass"
             },
@@ -41146,6 +41349,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -41251,6 +41457,9 @@
                 "bods_observation_too_old",
                 "bods_validity_expired",
                 "bods_future_dated",
+                "national_highways_within_near_live_window",
+                "national_highways_publication_too_old",
+                "national_highways_publication_future_dated",
                 "offline_replay_is_historical",
                 "source_policy_is_historical",
                 "synthetic_evidence",
@@ -41302,6 +41511,9 @@
                 "webtris_daily",
                 "tfgm_signals",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "synthetic"
               ],
               "title": "Source",
@@ -41487,6 +41699,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -41501,6 +41716,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -41514,6 +41730,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -41534,6 +41751,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -41725,6 +41945,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -41738,6 +41959,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -41840,6 +42064,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -41854,6 +42079,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -42898,6 +43126,7 @@
             "strategic_approaches",
             "greater_manchester",
             "request_bounding_box",
+            "national_highways_manchester_envelope",
             "declared_network",
             "synthetic",
             "unavailable"
@@ -42911,6 +43140,9 @@
             "strategic_road_detector",
             "traffic_signal_site",
             "transit_vehicle_position",
+            "road_closure_position",
+            "temporary_speed_restriction_position",
+            "variable_message_sign_position",
             "simulation_position",
             "analysis_site",
             "synthetic_point",
@@ -42996,6 +43228,7 @@
             "selected_webtris_strategic_site",
             "tfgm_greater_manchester_authority",
             "bods_request_bounds",
+            "national_highways_request_envelope",
             "declared_network_projection",
             "synthetic_contract",
             "none"
@@ -43023,6 +43256,9 @@
             "tfgm_signals",
             "bods_siri_vm",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "sumo_vec",
             "analysis_rsu",
             "synthetic"
@@ -43941,6 +44177,9 @@
                 "bods_observation_too_old",
                 "bods_validity_expired",
                 "bods_future_dated",
+                "national_highways_within_near_live_window",
+                "national_highways_publication_too_old",
+                "national_highways_publication_future_dated",
                 "offline_replay_is_historical",
                 "source_policy_is_historical",
                 "synthetic_evidence",
@@ -43992,6 +44231,9 @@
                 "webtris_daily",
                 "tfgm_signals",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "synthetic"
               ],
               "title": "Source",
@@ -44177,6 +44419,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -44191,6 +44436,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -44204,6 +44450,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -44224,6 +44471,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -44415,6 +44665,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -44428,6 +44679,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -44530,6 +44784,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -44544,6 +44799,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -44748,6 +45006,24 @@
           "title": "Mode",
           "type": "string"
         },
+        "point_labels": {
+          "default": [],
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Point Labels",
+          "type": "array"
+        },
         "publication_class": {
           "$ref": "#/$defs/ManchesterPublicationClass"
         },
@@ -44789,6 +45065,9 @@
             "tfgm_signals",
             "bods_siri_vm",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "sumo_vec",
             "analysis_rsu",
             "synthetic"
@@ -44880,6 +45159,9 @@
             "tfgm_signals",
             "bods_siri_vm",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "sumo_vec",
             "analysis_rsu",
             "synthetic"
@@ -48990,6 +49272,2065 @@
         "input_collection_fingerprints"
       ],
       "title": "NWayRankingStudy",
+      "type": "object"
+    },
+    "NationalHighwaysAcquisitionRequest": {
+      "$defs": {
+        "ManchesterPriorRelation": {
+          "description": "Relationship between this snapshot and the previous accepted one.",
+          "enum": [
+            "first_snapshot",
+            "supersedes",
+            "duplicate_no_change"
+          ],
+          "title": "ManchesterPriorRelation",
+          "type": "string"
+        },
+        "ManchesterPriorSnapshotLink": {
+          "additionalProperties": false,
+          "description": "Relationship to the previous accepted snapshot of the same source.",
+          "properties": {
+            "prior_raw_fingerprint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Raw Fingerprint"
+            },
+            "prior_snapshot_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Snapshot Id"
+            },
+            "relation": {
+              "$ref": "#/$defs/ManchesterPriorRelation"
+            }
+          },
+          "required": [
+            "relation"
+          ],
+          "title": "ManchesterPriorSnapshotLink",
+          "type": "object"
+        },
+        "NationalHighwaysEnvelope": {
+          "additionalProperties": false,
+          "description": "Explicit WGS84 study envelope; not an administrative-boundary claim.",
+          "properties": {
+            "basis": {
+              "const": "caller_declared_study_envelope",
+              "default": "caller_declared_study_envelope",
+              "title": "Basis",
+              "type": "string"
+            },
+            "max_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Latitude"
+            },
+            "max_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Longitude"
+            },
+            "min_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Latitude"
+            },
+            "min_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Longitude"
+            },
+            "official_boundary": {
+              "const": false,
+              "default": false,
+              "title": "Official Boundary",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "min_longitude",
+            "min_latitude",
+            "max_longitude",
+            "max_latitude"
+          ],
+          "title": "NationalHighwaysEnvelope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Strict product request with no host, URL, header, or credential field.",
+      "properties": {
+        "envelope": {
+          "$ref": "#/$defs/NationalHighwaysEnvelope"
+        },
+        "event_type": {
+          "anyOf": [
+            {
+              "enum": [
+                "planned",
+                "unplanned"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Type"
+        },
+        "prior": {
+          "$ref": "#/$defs/ManchesterPriorSnapshotLink",
+          "default": {
+            "prior_raw_fingerprint": null,
+            "prior_snapshot_id": null,
+            "relation": "first_snapshot"
+          }
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "window_end_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Window End Utc"
+        },
+        "window_start_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Window Start Utc"
+        }
+      },
+      "required": [
+        "product",
+        "envelope",
+        "synthetic"
+      ],
+      "title": "NationalHighwaysAcquisitionRequest",
+      "type": "object"
+    },
+    "NationalHighwaysAcquisitionResult": {
+      "$defs": {
+        "ManchesterPriorRelation": {
+          "description": "Relationship between this snapshot and the previous accepted one.",
+          "enum": [
+            "first_snapshot",
+            "supersedes",
+            "duplicate_no_change"
+          ],
+          "title": "ManchesterPriorRelation",
+          "type": "string"
+        },
+        "ManchesterPriorSnapshotLink": {
+          "additionalProperties": false,
+          "description": "Relationship to the previous accepted snapshot of the same source.",
+          "properties": {
+            "prior_raw_fingerprint": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Raw Fingerprint"
+            },
+            "prior_snapshot_id": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Prior Snapshot Id"
+            },
+            "relation": {
+              "$ref": "#/$defs/ManchesterPriorRelation"
+            }
+          },
+          "required": [
+            "relation"
+          ],
+          "title": "ManchesterPriorSnapshotLink",
+          "type": "object"
+        },
+        "NationalHighwaysAcquisitionRequest": {
+          "additionalProperties": false,
+          "description": "Strict product request with no host, URL, header, or credential field.",
+          "properties": {
+            "envelope": {
+              "$ref": "#/$defs/NationalHighwaysEnvelope"
+            },
+            "event_type": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "planned",
+                    "unplanned"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Event Type"
+            },
+            "prior": {
+              "$ref": "#/$defs/ManchesterPriorSnapshotLink",
+              "default": {
+                "prior_raw_fingerprint": null,
+                "prior_snapshot_id": null,
+                "relation": "first_snapshot"
+              }
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "window_end_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Window End Utc"
+            },
+            "window_start_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Window Start Utc"
+            }
+          },
+          "required": [
+            "product",
+            "envelope",
+            "synthetic"
+          ],
+          "title": "NationalHighwaysAcquisitionRequest",
+          "type": "object"
+        },
+        "NationalHighwaysEnvelope": {
+          "additionalProperties": false,
+          "description": "Explicit WGS84 study envelope; not an administrative-boundary claim.",
+          "properties": {
+            "basis": {
+              "const": "caller_declared_study_envelope",
+              "default": "caller_declared_study_envelope",
+              "title": "Basis",
+              "type": "string"
+            },
+            "max_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Latitude"
+            },
+            "max_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Longitude"
+            },
+            "min_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Latitude"
+            },
+            "min_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Longitude"
+            },
+            "official_boundary": {
+              "const": false,
+              "default": false,
+              "title": "Official Boundary",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "min_longitude",
+            "min_latitude",
+            "max_longitude",
+            "max_latitude"
+          ],
+          "title": "NationalHighwaysEnvelope",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Secret-free immutable receipt for one promoted operational snapshot.",
+      "properties": {
+        "attribution_text": {
+          "const": "Powered by National Highways\u2019 Transport Data Feeds",
+          "default": "Powered by National Highways\u2019 Transport Data Feeds",
+          "title": "Attribution Text",
+          "type": "string"
+        },
+        "capability_id": {
+          "const": "MAN-01",
+          "default": "MAN-01",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "complete_manchester_coverage": {
+          "const": false,
+          "default": false,
+          "title": "Complete Manchester Coverage",
+          "type": "boolean"
+        },
+        "coordinates_missing": {
+          "minimum": 0,
+          "title": "Coordinates Missing",
+          "type": "integer"
+        },
+        "endpoint_path": {
+          "enum": [
+            "/roads/v2.0/closures",
+            "/sma/v1.0/speedManagedAreas",
+            "/dvms/v1.0/vms"
+          ],
+          "title": "Endpoint Path",
+          "type": "string"
+        },
+        "exact_duplicates_collapsed": {
+          "minimum": 0,
+          "title": "Exact Duplicates Collapsed",
+          "type": "integer"
+        },
+        "licence_id": {
+          "const": "NH-Transport-Data-Feeds",
+          "default": "NH-Transport-Data-Feeds",
+          "title": "Licence Id",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "national-highways-acquisition-1.0",
+          "default": "national-highways-acquisition-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "outside_envelope": {
+          "minimum": 0,
+          "title": "Outside Envelope",
+          "type": "integer"
+        },
+        "parser_payload_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Payload Sha256",
+          "type": "string"
+        },
+        "parser_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Report Fingerprint",
+          "type": "string"
+        },
+        "publication_class": {
+          "const": "private",
+          "default": "private",
+          "title": "Publication Class",
+          "type": "string"
+        },
+        "publication_time_utc": {
+          "format": "date-time",
+          "title": "Publication Time Utc",
+          "type": "string"
+        },
+        "raw_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Fingerprint",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Sha256",
+          "type": "string"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "request": {
+          "$ref": "#/$defs/NationalHighwaysAcquisitionRequest"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "snapshot_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Receipt Fingerprint",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_items_seen": {
+          "minimum": 0,
+          "title": "Source Items Seen",
+          "type": "integer"
+        },
+        "source_scope": {
+          "const": "strategic_road_network",
+          "default": "strategic_road_network",
+          "title": "Source Scope",
+          "type": "string"
+        },
+        "subscription_key_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Subscription Key Persisted",
+          "type": "boolean"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "request",
+        "source_id",
+        "endpoint_path",
+        "snapshot_id",
+        "raw_fingerprint",
+        "raw_sha256",
+        "parser_payload_sha256",
+        "publication_time_utc",
+        "source_items_seen",
+        "records_accepted",
+        "outside_envelope",
+        "coordinates_missing",
+        "exact_duplicates_collapsed",
+        "parser_report_fingerprint",
+        "snapshot_receipt_fingerprint",
+        "synthetic"
+      ],
+      "title": "NationalHighwaysAcquisitionResult",
+      "type": "object"
+    },
+    "NationalHighwaysControlState": {
+      "$defs": {
+        "NationalHighwaysProductSummary": {
+          "additionalProperties": false,
+          "description": "One source-separated product summary for a complete refresh.",
+          "properties": {
+            "coordinates_missing": {
+              "minimum": 0,
+              "title": "Coordinates Missing",
+              "type": "integer"
+            },
+            "exact_duplicates_collapsed": {
+              "minimum": 0,
+              "title": "Exact Duplicates Collapsed",
+              "type": "integer"
+            },
+            "outside_envelope": {
+              "minimum": 0,
+              "title": "Outside Envelope",
+              "type": "integer"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_time_utc": {
+              "format": "date-time",
+              "title": "Publication Time Utc",
+              "type": "string"
+            },
+            "raw_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Sha256",
+              "type": "string"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Report Fingerprint",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "source_items_seen": {
+              "minimum": 0,
+              "title": "Source Items Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "product",
+            "snapshot_id",
+            "publication_time_utc",
+            "source_items_seen",
+            "records_accepted",
+            "outside_envelope",
+            "coordinates_missing",
+            "exact_duplicates_collapsed",
+            "raw_sha256",
+            "report_fingerprint"
+          ],
+          "title": "NationalHighwaysProductSummary",
+          "type": "object"
+        },
+        "NationalHighwaysRefreshSummary": {
+          "additionalProperties": false,
+          "description": "Secret-free aggregate receipt for one explicit three-call refresh.",
+          "properties": {
+            "automatic_polling_performed": {
+              "const": false,
+              "default": false,
+              "title": "Automatic Polling Performed",
+              "type": "boolean"
+            },
+            "capability_id": {
+              "const": "MAN-08",
+              "default": "MAN-08",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "evaluated_at_utc": {
+              "format": "date-time",
+              "title": "Evaluated At Utc",
+              "type": "string"
+            },
+            "latest_scene_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Latest Scene Sha256",
+              "type": "string"
+            },
+            "live_overlay_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Live Overlay Sha256",
+              "type": "string"
+            },
+            "method_version": {
+              "const": "national-highways-live-control-1.0",
+              "default": "national-highways-live-control-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "operator_triggered": {
+              "const": true,
+              "default": true,
+              "title": "Operator Triggered",
+              "type": "boolean"
+            },
+            "products": {
+              "items": {
+                "$ref": "#/$defs/NationalHighwaysProductSummary"
+              },
+              "title": "Products",
+              "type": "array"
+            },
+            "request_count": {
+              "const": 3,
+              "default": 3,
+              "title": "Request Count",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "source_fusion_performed": {
+              "const": false,
+              "default": false,
+              "title": "Source Fusion Performed",
+              "type": "boolean"
+            },
+            "strategic_road_network_only": {
+              "const": true,
+              "default": true,
+              "title": "Strategic Road Network Only",
+              "type": "boolean"
+            },
+            "subscription_key_persisted": {
+              "const": false,
+              "default": false,
+              "title": "Subscription Key Persisted",
+              "type": "boolean"
+            },
+            "total_records_accepted": {
+              "minimum": 0,
+              "title": "Total Records Accepted",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "evaluated_at_utc",
+            "products",
+            "total_records_accepted",
+            "latest_scene_sha256",
+            "live_overlay_sha256"
+          ],
+          "title": "NationalHighwaysRefreshSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Bounded aggregate-only operational refresh history.",
+      "properties": {
+        "attempts_total": {
+          "minimum": 0,
+          "title": "Attempts Total",
+          "type": "integer"
+        },
+        "automatic_polling_available": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Polling Available",
+          "type": "boolean"
+        },
+        "failures_total": {
+          "minimum": 0,
+          "title": "Failures Total",
+          "type": "integer"
+        },
+        "history": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/NationalHighwaysRefreshSummary"
+          },
+          "title": "History",
+          "type": "array"
+        },
+        "history_entry_count": {
+          "maximum": 240,
+          "minimum": 0,
+          "title": "History Entry Count",
+          "type": "integer"
+        },
+        "last_attempt_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Attempt At Utc"
+        },
+        "last_attempt_status": {
+          "default": "never",
+          "enum": [
+            "never",
+            "succeeded",
+            "failed"
+          ],
+          "title": "Last Attempt Status",
+          "type": "string"
+        },
+        "last_failure_code": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z0-9_]{1,96}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Failure Code"
+        },
+        "method_version": {
+          "const": "national-highways-live-control-1.0",
+          "default": "national-highways-live-control-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "raw_payloads_in_history": {
+          "const": false,
+          "default": false,
+          "title": "Raw Payloads In History",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "successes_total": {
+          "minimum": 0,
+          "title": "Successes Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "attempts_total",
+        "successes_total",
+        "failures_total",
+        "history_entry_count"
+      ],
+      "title": "NationalHighwaysControlState",
+      "type": "object"
+    },
+    "NationalHighwaysEnvelope": {
+      "additionalProperties": false,
+      "description": "Explicit WGS84 study envelope; not an administrative-boundary claim.",
+      "properties": {
+        "basis": {
+          "const": "caller_declared_study_envelope",
+          "default": "caller_declared_study_envelope",
+          "title": "Basis",
+          "type": "string"
+        },
+        "max_latitude": {
+          "anyOf": [
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Latitude"
+        },
+        "max_longitude": {
+          "anyOf": [
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Max Longitude"
+        },
+        "min_latitude": {
+          "anyOf": [
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Min Latitude"
+        },
+        "min_longitude": {
+          "anyOf": [
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Min Longitude"
+        },
+        "official_boundary": {
+          "const": false,
+          "default": false,
+          "title": "Official Boundary",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "min_longitude",
+        "min_latitude",
+        "max_longitude",
+        "max_latitude"
+      ],
+      "title": "NationalHighwaysEnvelope",
+      "type": "object"
+    },
+    "NationalHighwaysParseCounts": {
+      "additionalProperties": false,
+      "description": "Complete input-to-output reconciliation for one response.",
+      "properties": {
+        "coordinates_missing": {
+          "minimum": 0,
+          "title": "Coordinates Missing",
+          "type": "integer"
+        },
+        "exact_duplicates_collapsed": {
+          "minimum": 0,
+          "title": "Exact Duplicates Collapsed",
+          "type": "integer"
+        },
+        "outside_envelope": {
+          "minimum": 0,
+          "title": "Outside Envelope",
+          "type": "integer"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "source_items_seen": {
+          "minimum": 0,
+          "title": "Source Items Seen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source_items_seen",
+        "records_accepted",
+        "outside_envelope",
+        "coordinates_missing",
+        "exact_duplicates_collapsed"
+      ],
+      "title": "NationalHighwaysParseCounts",
+      "type": "object"
+    },
+    "NationalHighwaysParseReport": {
+      "$defs": {
+        "NationalHighwaysEnvelope": {
+          "additionalProperties": false,
+          "description": "Explicit WGS84 study envelope; not an administrative-boundary claim.",
+          "properties": {
+            "basis": {
+              "const": "caller_declared_study_envelope",
+              "default": "caller_declared_study_envelope",
+              "title": "Basis",
+              "type": "string"
+            },
+            "max_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Latitude"
+            },
+            "max_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Longitude"
+            },
+            "min_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Latitude"
+            },
+            "min_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Longitude"
+            },
+            "official_boundary": {
+              "const": false,
+              "default": false,
+              "title": "Official Boundary",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "min_longitude",
+            "min_latitude",
+            "max_longitude",
+            "max_latitude"
+          ],
+          "title": "NationalHighwaysEnvelope",
+          "type": "object"
+        },
+        "NationalHighwaysParseCounts": {
+          "additionalProperties": false,
+          "description": "Complete input-to-output reconciliation for one response.",
+          "properties": {
+            "coordinates_missing": {
+              "minimum": 0,
+              "title": "Coordinates Missing",
+              "type": "integer"
+            },
+            "exact_duplicates_collapsed": {
+              "minimum": 0,
+              "title": "Exact Duplicates Collapsed",
+              "type": "integer"
+            },
+            "outside_envelope": {
+              "minimum": 0,
+              "title": "Outside Envelope",
+              "type": "integer"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "source_items_seen": {
+              "minimum": 0,
+              "title": "Source Items Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_items_seen",
+            "records_accepted",
+            "outside_envelope",
+            "coordinates_missing",
+            "exact_duplicates_collapsed"
+          ],
+          "title": "NationalHighwaysParseCounts",
+          "type": "object"
+        },
+        "NationalHighwaysRecord": {
+          "additionalProperties": false,
+          "description": "One privacy-safe, in-envelope operational feature.",
+          "properties": {
+            "congestion_measure_available": {
+              "const": false,
+              "default": false,
+              "title": "Congestion Measure Available",
+              "type": "boolean"
+            },
+            "direction": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Direction"
+            },
+            "latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Latitude"
+            },
+            "literal_display_text_available": {
+              "const": false,
+              "default": false,
+              "title": "Literal Display Text Available",
+              "type": "boolean"
+            },
+            "location_description": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Location Description",
+              "type": "string"
+            },
+            "longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Longitude"
+            },
+            "measured_speed_available": {
+              "const": false,
+              "default": false,
+              "title": "Measured Speed Available",
+              "type": "boolean"
+            },
+            "operational_type": {
+              "maxLength": 160,
+              "minLength": 1,
+              "title": "Operational Type",
+              "type": "string"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_time_utc": {
+              "format": "date-time",
+              "title": "Publication Time Utc",
+              "type": "string"
+            },
+            "record_token": {
+              "pattern": "^[0-9a-f]{24}$",
+              "title": "Record Token",
+              "type": "string"
+            },
+            "record_updated_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Record Updated At Utc"
+            },
+            "road_name": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Road Name"
+            },
+            "source_geometry_point_count": {
+              "minimum": 1,
+              "title": "Source Geometry Point Count",
+              "type": "integer"
+            },
+            "source_geometry_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Geometry Sha256",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "source_record_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Record Fingerprint",
+              "type": "string"
+            },
+            "strategic_road_network_only": {
+              "const": true,
+              "default": true,
+              "title": "Strategic Road Network Only",
+              "type": "boolean"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "temporary_speed_limit_kph": {
+              "anyOf": [
+                {
+                  "maximum": 300.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Temporary Speed Limit Kph"
+            },
+            "traffic_volume_available": {
+              "const": false,
+              "default": false,
+              "title": "Traffic Volume Available",
+              "type": "boolean"
+            },
+            "valid_from_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Valid From Utc"
+            },
+            "valid_until_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Valid Until Utc"
+            },
+            "validity_status": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Validity Status"
+            },
+            "vms_description": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Description"
+            },
+            "vms_message_information_types": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Vms Message Information Types",
+              "type": "array"
+            },
+            "vms_message_set_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Message Set At Utc"
+            },
+            "vms_reason_for_setting": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Reason For Setting"
+            },
+            "vms_working_status": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Working Status"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "record_token",
+            "source_record_fingerprint",
+            "publication_time_utc",
+            "latitude",
+            "longitude",
+            "source_geometry_point_count",
+            "source_geometry_sha256",
+            "location_description",
+            "operational_type",
+            "synthetic"
+          ],
+          "title": "NationalHighwaysRecord",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic source-separated projection of one exact raw response.",
+      "properties": {
+        "complete_reconciliation": {
+          "const": true,
+          "default": true,
+          "title": "Complete Reconciliation",
+          "type": "boolean"
+        },
+        "counts": {
+          "$ref": "#/$defs/NationalHighwaysParseCounts"
+        },
+        "envelope": {
+          "$ref": "#/$defs/NationalHighwaysEnvelope"
+        },
+        "envelope_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Envelope Fingerprint",
+          "type": "string"
+        },
+        "feed_type": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Feed Type",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "national-highways-datex-json-1.0",
+          "default": "national-highways-datex-json-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "model_base_version": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Model Base Version",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "publication_time_utc": {
+          "format": "date-time",
+          "title": "Publication Time Utc",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Sha256",
+          "type": "string"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/NationalHighwaysRecord"
+          },
+          "title": "Records",
+          "type": "array"
+        },
+        "representative_point_is_source_vertex": {
+          "const": true,
+          "default": true,
+          "title": "Representative Point Is Source Vertex",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "2026-07-24",
+          "default": "2026-07-24",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_fusion_performed": {
+          "const": false,
+          "default": false,
+          "title": "Source Fusion Performed",
+          "type": "boolean"
+        },
+        "source_geometry_preserved_in_raw_snapshot": {
+          "const": true,
+          "default": true,
+          "title": "Source Geometry Preserved In Raw Snapshot",
+          "type": "boolean"
+        },
+        "source_id": {
+          "enum": [
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "product",
+        "source_id",
+        "raw_sha256",
+        "publication_time_utc",
+        "feed_type",
+        "model_base_version",
+        "envelope",
+        "envelope_fingerprint",
+        "records",
+        "counts",
+        "synthetic"
+      ],
+      "title": "NationalHighwaysParseReport",
+      "type": "object"
+    },
+    "NationalHighwaysProductSummary": {
+      "additionalProperties": false,
+      "description": "One source-separated product summary for a complete refresh.",
+      "properties": {
+        "coordinates_missing": {
+          "minimum": 0,
+          "title": "Coordinates Missing",
+          "type": "integer"
+        },
+        "exact_duplicates_collapsed": {
+          "minimum": 0,
+          "title": "Exact Duplicates Collapsed",
+          "type": "integer"
+        },
+        "outside_envelope": {
+          "minimum": 0,
+          "title": "Outside Envelope",
+          "type": "integer"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "publication_time_utc": {
+          "format": "date-time",
+          "title": "Publication Time Utc",
+          "type": "string"
+        },
+        "raw_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Sha256",
+          "type": "string"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Report Fingerprint",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "source_items_seen": {
+          "minimum": 0,
+          "title": "Source Items Seen",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "product",
+        "snapshot_id",
+        "publication_time_utc",
+        "source_items_seen",
+        "records_accepted",
+        "outside_envelope",
+        "coordinates_missing",
+        "exact_duplicates_collapsed",
+        "raw_sha256",
+        "report_fingerprint"
+      ],
+      "title": "NationalHighwaysProductSummary",
+      "type": "object"
+    },
+    "NationalHighwaysRecord": {
+      "additionalProperties": false,
+      "description": "One privacy-safe, in-envelope operational feature.",
+      "properties": {
+        "congestion_measure_available": {
+          "const": false,
+          "default": false,
+          "title": "Congestion Measure Available",
+          "type": "boolean"
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Direction"
+        },
+        "latitude": {
+          "anyOf": [
+            {
+              "maximum": 90.0,
+              "minimum": -90.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Latitude"
+        },
+        "literal_display_text_available": {
+          "const": false,
+          "default": false,
+          "title": "Literal Display Text Available",
+          "type": "boolean"
+        },
+        "location_description": {
+          "maxLength": 500,
+          "minLength": 1,
+          "title": "Location Description",
+          "type": "string"
+        },
+        "longitude": {
+          "anyOf": [
+            {
+              "maximum": 180.0,
+              "minimum": -180.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Longitude"
+        },
+        "measured_speed_available": {
+          "const": false,
+          "default": false,
+          "title": "Measured Speed Available",
+          "type": "boolean"
+        },
+        "operational_type": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Operational Type",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "publication_time_utc": {
+          "format": "date-time",
+          "title": "Publication Time Utc",
+          "type": "string"
+        },
+        "record_token": {
+          "pattern": "^[0-9a-f]{24}$",
+          "title": "Record Token",
+          "type": "string"
+        },
+        "record_updated_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Updated At Utc"
+        },
+        "road_name": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Road Name"
+        },
+        "source_geometry_point_count": {
+          "minimum": 1,
+          "title": "Source Geometry Point Count",
+          "type": "integer"
+        },
+        "source_geometry_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Geometry Sha256",
+          "type": "string"
+        },
+        "source_id": {
+          "enum": [
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms"
+          ],
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_record_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Record Fingerprint",
+          "type": "string"
+        },
+        "strategic_road_network_only": {
+          "const": true,
+          "default": true,
+          "title": "Strategic Road Network Only",
+          "type": "boolean"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        },
+        "temporary_speed_limit_kph": {
+          "anyOf": [
+            {
+              "maximum": 300.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temporary Speed Limit Kph"
+        },
+        "traffic_volume_available": {
+          "const": false,
+          "default": false,
+          "title": "Traffic Volume Available",
+          "type": "boolean"
+        },
+        "valid_from_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid From Utc"
+        },
+        "valid_until_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until Utc"
+        },
+        "validity_status": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Validity Status"
+        },
+        "vms_description": {
+          "anyOf": [
+            {
+              "maxLength": 160,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vms Description"
+        },
+        "vms_message_information_types": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Vms Message Information Types",
+          "type": "array"
+        },
+        "vms_message_set_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vms Message Set At Utc"
+        },
+        "vms_reason_for_setting": {
+          "anyOf": [
+            {
+              "maxLength": 500,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vms Reason For Setting"
+        },
+        "vms_working_status": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Vms Working Status"
+        }
+      },
+      "required": [
+        "product",
+        "source_id",
+        "record_token",
+        "source_record_fingerprint",
+        "publication_time_utc",
+        "latitude",
+        "longitude",
+        "source_geometry_point_count",
+        "source_geometry_sha256",
+        "location_description",
+        "operational_type",
+        "synthetic"
+      ],
+      "title": "NationalHighwaysRecord",
+      "type": "object"
+    },
+    "NationalHighwaysRefreshSummary": {
+      "$defs": {
+        "NationalHighwaysProductSummary": {
+          "additionalProperties": false,
+          "description": "One source-separated product summary for a complete refresh.",
+          "properties": {
+            "coordinates_missing": {
+              "minimum": 0,
+              "title": "Coordinates Missing",
+              "type": "integer"
+            },
+            "exact_duplicates_collapsed": {
+              "minimum": 0,
+              "title": "Exact Duplicates Collapsed",
+              "type": "integer"
+            },
+            "outside_envelope": {
+              "minimum": 0,
+              "title": "Outside Envelope",
+              "type": "integer"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_time_utc": {
+              "format": "date-time",
+              "title": "Publication Time Utc",
+              "type": "string"
+            },
+            "raw_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Sha256",
+              "type": "string"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Report Fingerprint",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "source_items_seen": {
+              "minimum": 0,
+              "title": "Source Items Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "product",
+            "snapshot_id",
+            "publication_time_utc",
+            "source_items_seen",
+            "records_accepted",
+            "outside_envelope",
+            "coordinates_missing",
+            "exact_duplicates_collapsed",
+            "raw_sha256",
+            "report_fingerprint"
+          ],
+          "title": "NationalHighwaysProductSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Secret-free aggregate receipt for one explicit three-call refresh.",
+      "properties": {
+        "automatic_polling_performed": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Polling Performed",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "evaluated_at_utc": {
+          "format": "date-time",
+          "title": "Evaluated At Utc",
+          "type": "string"
+        },
+        "latest_scene_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Latest Scene Sha256",
+          "type": "string"
+        },
+        "live_overlay_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Live Overlay Sha256",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "national-highways-live-control-1.0",
+          "default": "national-highways-live-control-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "operator_triggered": {
+          "const": true,
+          "default": true,
+          "title": "Operator Triggered",
+          "type": "boolean"
+        },
+        "products": {
+          "items": {
+            "$ref": "#/$defs/NationalHighwaysProductSummary"
+          },
+          "title": "Products",
+          "type": "array"
+        },
+        "request_count": {
+          "const": 3,
+          "default": 3,
+          "title": "Request Count",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_fusion_performed": {
+          "const": false,
+          "default": false,
+          "title": "Source Fusion Performed",
+          "type": "boolean"
+        },
+        "strategic_road_network_only": {
+          "const": true,
+          "default": true,
+          "title": "Strategic Road Network Only",
+          "type": "boolean"
+        },
+        "subscription_key_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Subscription Key Persisted",
+          "type": "boolean"
+        },
+        "total_records_accepted": {
+          "minimum": 0,
+          "title": "Total Records Accepted",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "evaluated_at_utc",
+        "products",
+        "total_records_accepted",
+        "latest_scene_sha256",
+        "live_overlay_sha256"
+      ],
+      "title": "NationalHighwaysRefreshSummary",
       "type": "object"
     },
     "NearestFlipAnalysis": {
@@ -66998,6 +69339,14 @@
           "title": "Network Requests",
           "type": "integer"
         },
+        "redacted_header_names": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Redacted Header Names",
+          "type": "array"
+        },
         "redacted_query_parameter_names": {
           "items": {
             "type": "string"
@@ -69607,6 +71956,9 @@
             "bods_observation_too_old",
             "bods_validity_expired",
             "bods_future_dated",
+            "national_highways_within_near_live_window",
+            "national_highways_publication_too_old",
+            "national_highways_publication_future_dated",
             "offline_replay_is_historical",
             "source_policy_is_historical",
             "synthetic_evidence",
@@ -69658,6 +72010,9 @@
             "webtris_daily",
             "tfgm_signals",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "synthetic"
           ],
           "title": "Source",
@@ -69727,7 +72082,10 @@
         "accepted_live_age_seconds": {
           "anyOf": [
             {
-              "const": 60,
+              "enum": [
+                60,
+                600
+              ],
               "type": "integer"
             },
             {
@@ -69833,6 +72191,9 @@
             "webtris_daily",
             "tfgm_signals",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "synthetic"
           ],
           "title": "Source",
@@ -70170,6 +72531,9 @@
             "strategic_road_detector",
             "traffic_signal_site",
             "transit_vehicle_position",
+            "road_closure_position",
+            "temporary_speed_restriction_position",
+            "variable_message_sign_position",
             "simulation_position",
             "analysis_site",
             "synthetic_point",
@@ -70184,6 +72548,7 @@
             "strategic_approaches",
             "greater_manchester",
             "request_bounding_box",
+            "national_highways_manchester_envelope",
             "declared_network",
             "synthetic",
             "unavailable"
@@ -70197,6 +72562,7 @@
             "selected_webtris_strategic_site",
             "tfgm_greater_manchester_authority",
             "bods_request_bounds",
+            "national_highways_request_envelope",
             "declared_network_projection",
             "synthetic_contract",
             "none"
@@ -70217,6 +72583,9 @@
             "tfgm_signals",
             "bods_siri_vm",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "sumo_vec",
             "analysis_rsu",
             "synthetic"
@@ -70396,6 +72765,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -70410,6 +72782,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -70423,6 +72796,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -70443,6 +72817,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -70558,6 +72935,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -70571,6 +72949,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -70673,6 +73054,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -70687,6 +73069,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -70989,6 +73374,9 @@
                 "strategic_road_detector",
                 "traffic_signal_site",
                 "transit_vehicle_position",
+                "road_closure_position",
+                "temporary_speed_restriction_position",
+                "variable_message_sign_position",
                 "simulation_position",
                 "analysis_site",
                 "synthetic_point",
@@ -71003,6 +73391,7 @@
                 "strategic_approaches",
                 "greater_manchester",
                 "request_bounding_box",
+                "national_highways_manchester_envelope",
                 "declared_network",
                 "synthetic",
                 "unavailable"
@@ -71016,6 +73405,7 @@
                 "selected_webtris_strategic_site",
                 "tfgm_greater_manchester_authority",
                 "bods_request_bounds",
+                "national_highways_request_envelope",
                 "declared_network_projection",
                 "synthetic_contract",
                 "none"
@@ -71036,6 +73426,9 @@
                 "tfgm_signals",
                 "bods_siri_vm",
                 "randy_tos",
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms",
                 "sumo_vec",
                 "analysis_rsu",
                 "synthetic"
@@ -71221,6 +73614,7 @@
             "strategic_approaches",
             "greater_manchester",
             "request_bounding_box",
+            "national_highways_manchester_envelope",
             "declared_network",
             "synthetic",
             "unavailable"
@@ -71234,6 +73628,9 @@
             "strategic_road_detector",
             "traffic_signal_site",
             "transit_vehicle_position",
+            "road_closure_position",
+            "temporary_speed_restriction_position",
+            "variable_message_sign_position",
             "simulation_position",
             "analysis_site",
             "synthetic_point",
@@ -71336,6 +73733,7 @@
             "selected_webtris_strategic_site",
             "tfgm_greater_manchester_authority",
             "bods_request_bounds",
+            "national_highways_request_envelope",
             "declared_network_projection",
             "synthetic_contract",
             "none"
@@ -71350,6 +73748,9 @@
             "tfgm_signals",
             "bods_siri_vm",
             "randy_tos",
+            "national_highways_closures",
+            "national_highways_speed_limits",
+            "national_highways_vms",
             "sumo_vec",
             "analysis_rsu",
             "synthetic"

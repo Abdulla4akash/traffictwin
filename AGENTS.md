@@ -157,10 +157,32 @@ is closed. Later edits to those shared presentation files require a new grant.
   `src/traffictwin/integration/manchester/transport.py` and
   `tests/unit/test_manchester_transport.py`. The work is disjoint from Claude's active Phase 2A
   UI claim.
-- Any National Highways NTIS/DATEX II subscriber integration discovered by the reassessment is a
-  new source boundary. It requires a separate Gate-A audit, provider approval, credentials,
-  callback deployment/security design, frozen schema and time semantics, and a new ownership
-  grant before implementation.
+- The older NTIS callback assumption was superseded on 24 July 2026 by direct tests of the current
+  National Highways REST products. The new source boundary is owned and audited separately below;
+  it must not be represented as WebTRIS evidence or as complete Manchester road telemetry.
+
+### Active lead ownership: MAN-01/MAN-07/MAN-08 National Highways operations slice
+
+- The lead owns the bounded current National Highways REST integration for Road and Lane Closures
+  v2, Speed Managed Areas v1, and Digital VMS v1. This includes the Gate-A extension record,
+  secret-header transport support, exact DATEX II JSON parsers, immutable private snapshots,
+  offline replay, source-specific freshness/outage state, explicit Manchester-area envelope,
+  aggregate refresh history, and separate Operations-map layers.
+- The exclusive implementation files are new `national_highways*.py` modules and focused tests,
+  `src/traffictwin/integration/manchester/{transport.py,freshness.py,spatial.py,map_layers.py,__init__.py}`,
+  `src/traffictwin/ui/manchester_operations.py`,
+  `src/traffictwin/ui/pages/manchester_operations.py`, focused Manchester Operations tests, and
+  lead-owned design/audit/status/index/architecture/assumption/open-question records. These files
+  remain disjoint from Claude's active Phase 2A grant.
+- Authentication is a transient `Ocp-Apim-Subscription-Key` header only. No credential value may
+  enter a model, URL, query, snapshot, receipt, scene, log, exception, test fixture, documentation,
+  Git object, or rendered UI. The current 10-request-per-key-per-minute provider limit is enforced
+  more conservatively by one explicit three-product refresh per minute; no background polling is
+  introduced.
+- The operational sources cover the Strategic Road Network only. Closures/incidents, imposed
+  temporary speed restrictions, and displayed VMS messages remain three separate evidence kinds;
+  they are never relabelled as measured traffic speed, traffic volume, congestion, or complete
+  Manchester coverage. Capability state changes remain lead-reconciled after real-source evidence.
 
 - Use `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, `REL-01`, and Gates A–F from the v0.7 design as units of
   ownership. Record the capability and files owned before editing; agents sharing one checkout

@@ -25,7 +25,8 @@ normative 34-page migration inventory.
 
 ## Local scene contract
 
-Only the four explicit source forms described below may call DfT, WebTRIS, TfGM, or BODS. The page
+Only the five explicit source families described below may call DfT, WebTRIS, TfGM, BODS, or the
+three fixed National Highways operational products. The page
 never calls Randy, SUMO, or an arbitrary URL. Ordinary Streamlit reruns and **Refresh local
 evidence** perform no acquisition. For the selected mode the page reads one fixed, bounded local
 artifact:
@@ -35,6 +36,12 @@ artifact:
 | Historical replay | `manchester/scenes/historical_replay.json` |
 | Latest available | `manchester/scenes/latest_available.json` |
 | Live vehicles | `manchester/scenes/live_vehicles.json` |
+
+The National Highways overlays are independently validated at
+`manchester/scenes/national_highways_latest_available.json` and
+`manchester/scenes/national_highways_live_vehicles.json`. The loader composes a valid base scene
+and valid operational overlay in memory. If either source family fails integrity checks, the other
+remains usable; no source is fused or silently dropped from its own reconciliation.
 
 Each file must be at most 8 MiB and validate as the exact `ManchesterMapScene` for that mode.
 Missing files are unavailable. Empty, oversized, symlinked, escaped, unreadable, mutated, invalid,
@@ -92,6 +99,23 @@ not claim approved legal retention or secure erasure.
 Historical and latest scenes use the separate
 [bounded local publication service](manchester_scene_publication.md); ordinary page rendering never
 creates either scene.
+
+## Explicit National Highways operational acquisition
+
+**Latest available** and **Live vehicles** each expose the same explicit three-product refresh
+form. Configure the subscription key before starting Streamlit:
+
+```bash
+export NATIONAL_HIGHWAYS_API_KEY='your-subscription-key'
+```
+
+The key is a transient redacted request header and never enters session state, receipts, scenes,
+logs, errors, or stored URLs. One click performs exactly three bounded requests after the
+one-minute/one-process-lock guard. It snapshots closures/incidents, imposed temporary limits, and
+digital VMS status independently, then publishes source-separated overlays. The broad envelope is
+shown explicitly and is not an official boundary. A failed refresh retains the prior overlay and
+projects it stale; ordinary reruns perform no network activity. National Highways layers use the
+required attribution and remain private pending release review.
 
 ## Explicit latest and historical acquisition
 
@@ -171,6 +195,7 @@ scene-publication tests additionally cover fixed historical/latest paths, privat
 request and receipt tampering, interrupted atomic replacement, and preservation of the prior scene.
 
 Controlled real-source vertical slices now pass for BODS, the three selected DfT products, one
-WebTRIS site/day plus quality, and the pinned TfGM archive. Full-source/bulk acceptance, browser
-screenshots, mobile/keyboard/contrast checks, provider SLA/rate-limit decisions, live city-road
+WebTRIS site/day plus quality, the pinned TfGM archive, and all three National Highways operational
+products. Full-source/bulk acceptance, browser
+screenshots, mobile/keyboard/contrast checks, provider SLA decisions, continuous city-road
 telemetry, and the complete MAN-01 through MAN-08 acceptance reconciliation remain outstanding.

@@ -19,6 +19,9 @@ resolve a geographic boundary, or change `MAN-07` from `planned`.
 | TfGM signals | Published EPSG:27700 and WGS84 pair agreeing within 2.5 m | Audited Greater Manchester authority dataset | Admitted as static signal infrastructure only |
 | WebTRIS | Published WGS84 point | Fingerprint of an explicitly selected strategic-road site | Admitted as a strategic-road detector, not Manchester-wide coverage |
 | BODS SIRI-VM | Profile-documented WGS84 point | Fingerprint of the accepted request bounding box | Admitted in that request box as a transit-vehicle position; this establishes neither Greater Manchester scope nor Bee Network membership |
+| National Highways closures | Source GML line vertices labelled `ESPG::4326`/`EPSG::4326` | Fingerprint of the caller-declared broad study envelope | One actual in-envelope source vertex is rendered as a closure position; full geometry stays in the immutable raw snapshot |
+| National Highways temporary restrictions | Source GML line vertices labelled `ESPG::4326`/`EPSG::4326` | Fingerprint of the caller-declared broad study envelope | One actual in-envelope source vertex is rendered as an imposed-limit position, not measured speed |
+| National Highways digital VMS | Source WGS84 point | Fingerprint of the caller-declared broad study envelope | Admitted as a variable-message-sign position on the Strategic Road Network |
 | Randy/TOS | No geographic projection in the accepted sanitised pack | Unavailable | Excluded from the geographic map |
 | SUMO/VEC and analysis RSUs | Source-local/generated coordinates without a reviewed network projection binding | Unavailable | Excluded from the geographic map |
 | Synthetic | Explicit WGS84 fixture contract and synthetic label | Synthetic scope artifact | Admitted only as clearly labelled synthetic evidence |
@@ -76,7 +79,7 @@ synthetic fixture from an official source remains both, for example `source="dft
 - BODS geographic admission does not establish Bee Network membership.
 - TfGM signal points do not provide phases, timings, queues, incidents, traffic counts, or live
   state.
-- DfT/WebTRIS/TfGM/BODS admission does not make their data mutually comparable or temporally
+- DfT/WebTRIS/TfGM/BODS/National Highways admission does not make their data mutually comparable or temporally
   aligned.
 - Randy, SUMO, VEC, and analysis-site coordinates remain usable in clearly non-geographic views
   where their own contracts permit it; this gate does not reinterpret them as latitude/longitude.
@@ -98,7 +101,7 @@ synthetic fixture from an official source remains both, for example `source="dft
 The focused suite covers the complete policy matrix, direct and dual admission, measured
 coordinate disagreement, every exclusion family, scope/geometry mismatches, synthetic lineage,
 order independence, duplicate refusal, strict mutation failures, and repository fixtures for all
-four public-source families.
+seven public-source policies.
 
 ## Evidence basis
 

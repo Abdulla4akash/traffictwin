@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 import random
 import re
+import threading
 import time
 import zlib
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterator, Mapping
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from math import isfinite
 from pathlib import PurePosixPath
@@ -19,7 +22,15 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 QueryValue: TypeAlias = str | int | float | bool
 _REDIRECT_STATUSES = {301, 302, 303, 307, 308}
 _DEFAULT_RETRY_STATUSES = (429, 500, 502, 503, 504)
-_SECRET_MARKERS = ("api_key", "apikey", "authorization", "password", "secret", "token")
+_SECRET_MARKERS = (
+    "api_key",
+    "apikey",
+    "authorization",
+    "password",
+    "secret",
+    "subscription",
+    "token",
+)
 _SAFE_RESPONSE_HEADERS = (
     "content-encoding",
     "content-length",
@@ -27,6 +38,7 @@ _SAFE_RESPONSE_HEADERS = (
     "etag",
     "last-modified",
 )
+_HTTP_LOGGING_LOCK = threading.RLock()
 
 
 class ManchesterTransportError(RuntimeError):
@@ -49,6 +61,8 @@ class EndpointPolicy(BaseModel):
     query_parameter_names: tuple[str, ...] = ()
     sensitive_query_parameter_names: tuple[str, ...] = ()
     secret_query_parameter_names: tuple[str, ...] = ()
+    secret_header_names: tuple[str, ...] = ()
+    fixed_request_headers: tuple[tuple[str, str], ...] = ()
 
     @model_validator(mode="after")
     def validate_endpoint(self) -> EndpointPolicy:
@@ -69,12 +83,16 @@ class EndpointPolicy(BaseModel):
         safe_names = set(self.query_parameter_names)
         sensitive_names = set(self.sensitive_query_parameter_names)
         secret_names = set(self.secret_query_parameter_names)
+        secret_header_names = set(self.secret_header_names)
+        fixed_header_names = [name for name, _value in self.fixed_request_headers]
         if len(safe_names) != len(self.query_parameter_names):
             raise ValueError("query parameter names must be unique")
         if len(secret_names) != len(self.secret_query_parameter_names):
             raise ValueError("secret query parameter names must be unique")
         if len(sensitive_names) != len(self.sensitive_query_parameter_names):
             raise ValueError("sensitive query parameter names must be unique")
+        if len(secret_header_names) != len(self.secret_header_names):
+            raise ValueError("secret header names must be unique")
         if (
             safe_names & secret_names
             or safe_names & sensitive_names
@@ -83,6 +101,23 @@ class EndpointPolicy(BaseModel):
             raise ValueError("safe, sensitive, and secret query parameter names must not overlap")
         if any(not _valid_query_name(name) for name in safe_names | sensitive_names | secret_names):
             raise ValueError("query parameter names must be canonical")
+        if any(not _valid_header_name(name) for name in secret_header_names):
+            raise ValueError("secret header names must be canonical")
+        if any(not _looks_secret(name) for name in secret_header_names):
+            raise ValueError("secret headers must have credential-like names")
+        if fixed_header_names != sorted(fixed_header_names) or len(set(fixed_header_names)) != len(
+            fixed_header_names
+        ):
+            raise ValueError("fixed request headers must have sorted unique names")
+        if set(fixed_header_names) & secret_header_names:
+            raise ValueError("fixed and secret request headers must not overlap")
+        if any(not _valid_header_name(name) or _looks_secret(name) for name in fixed_header_names):
+            raise ValueError("fixed request header names must be safe")
+        if any(
+            not value or len(value) > 256 or any(character in value for character in "\r\n")
+            for _name, value in self.fixed_request_headers
+        ):
+            raise ValueError("fixed request header values must be bounded")
         if any(_looks_secret(name) for name in safe_names):
             raise ValueError("secret-like names must be declared as secret query parameters")
         return self
@@ -146,6 +181,7 @@ class SafeResponseMetadata(BaseModel):
     final_path: str
     safe_query_parameters: tuple[tuple[str, str], ...]
     redacted_query_parameter_names: tuple[str, ...]
+    redacted_header_names: tuple[str, ...] = ()
     status_code: int = Field(ge=100, le=599)
     response_headers: tuple[tuple[str, str], ...]
     retrieval_started_at_utc: datetime
@@ -195,6 +231,10 @@ class SafeResponseMetadata(BaseModel):
             raise ValueError("redacted query parameter name is not admissible")
         if set(safe_names) & set(self.redacted_query_parameter_names):
             raise ValueError("redacted query names cannot also carry stored values")
+        if self.redacted_header_names != tuple(sorted(set(self.redacted_header_names))):
+            raise ValueError("redacted header names must be sorted and unique")
+        if any(not _valid_header_name(name) for name in self.redacted_header_names):
+            raise ValueError("redacted header name is not admissible")
         header_names = [name for name, _value in self.response_headers]
         if header_names != sorted(header_names) or len(set(header_names)) != len(header_names):
             raise ValueError("response headers must have sorted unique names")
@@ -271,6 +311,7 @@ class BoundedHttpClient:
         query: Mapping[str, QueryValue] | None = None,
         sensitive_query: Mapping[str, QueryValue] | None = None,
         secret_query: Mapping[str, str] | None = None,
+        secret_headers: Mapping[str, str] | None = None,
     ) -> BoundedHttpResponse:
         """Fetch one allowlisted HTTPS resource under all configured bounds."""
 
@@ -279,6 +320,8 @@ class BoundedHttpClient:
         safe_query = _validated_safe_query(query or {}, self._endpoint)
         sensitive = _validated_sensitive_query(sensitive_query or {}, self._endpoint)
         secrets = _validated_secret_query(secret_query or {}, self._endpoint)
+        header_secrets = _validated_secret_headers(secret_headers or {}, self._endpoint)
+        request_headers = {**dict(self._endpoint.fixed_request_headers), **header_secrets}
         combined_query = {**dict(safe_query), **sensitive, **secrets}
 
         start_monotonic = self._monotonic()
@@ -297,11 +340,13 @@ class BoundedHttpClient:
                 network_requests += 1
                 self._check_deadline(deadline)
                 try:
-                    outcome = self._request_once(
-                        url,
-                        query=combined_query if first_request else None,
-                        deadline=deadline,
-                    )
+                    with _suppressed_secret_logging(bool(secrets or header_secrets)):
+                        outcome = self._request_once(
+                            url,
+                            query=combined_query if first_request else None,
+                            request_headers=request_headers,
+                            deadline=deadline,
+                        )
                 except httpx.HTTPError:
                     if attempt >= self._policy.max_attempts:
                         raise ManchesterTransportError("network_failure") from None
@@ -344,6 +389,7 @@ class BoundedHttpClient:
                 final_path=final_path,
                 safe_query_parameters=safe_query,
                 redacted_query_parameter_names=tuple(sorted(set(sensitive) | set(secrets))),
+                redacted_header_names=tuple(sorted(header_secrets)),
                 status_code=response.status_code,
                 response_headers=_safe_headers(response.headers),
                 retrieval_started_at_utc=started_at,
@@ -358,12 +404,14 @@ class BoundedHttpClient:
         url: httpx.URL,
         *,
         query: Mapping[str, str] | None,
+        request_headers: Mapping[str, str],
         deadline: float,
     ) -> tuple[httpx.Response, bytes]:
         with self._client.stream(
             "GET",
             url,
             params=query,
+            headers=request_headers,
             follow_redirects=False,
             timeout=self._timeout,
         ) as response:
@@ -454,6 +502,25 @@ def _validated_safe_query(
     return tuple(sorted(values))
 
 
+@contextmanager
+def _suppressed_secret_logging(enabled: bool) -> Iterator[None]:
+    """Prevent HTTP-library debug records from exposing transient credentials."""
+
+    if not enabled:
+        yield
+        return
+    with _HTTP_LOGGING_LOCK:
+        loggers = (logging.getLogger("httpx"), logging.getLogger("httpcore"))
+        previous_levels = tuple(logger.level for logger in loggers)
+        for logger in loggers:
+            logger.setLevel(max(logger.level, logging.WARNING))
+        try:
+            yield
+        finally:
+            for logger, previous in zip(loggers, previous_levels, strict=True):
+                logger.setLevel(previous)
+
+
 def _validated_secret_query(query: Mapping[str, str], endpoint: EndpointPolicy) -> dict[str, str]:
     unexpected = set(query) - set(endpoint.secret_query_parameter_names)
     if unexpected:
@@ -462,6 +529,20 @@ def _validated_secret_query(query: Mapping[str, str], endpoint: EndpointPolicy) 
     for name, value in query.items():
         if not value or len(value) > 4096 or any(character in value for character in "\r\n"):
             raise ManchesterTransportError("secret_query_value_rejected")
+        result[name] = value
+    return result
+
+
+def _validated_secret_headers(
+    headers: Mapping[str, str], endpoint: EndpointPolicy
+) -> dict[str, str]:
+    unexpected = set(headers) - set(endpoint.secret_header_names)
+    if unexpected:
+        raise ManchesterTransportError("secret_header_rejected")
+    result: dict[str, str] = {}
+    for name, value in headers.items():
+        if not value or len(value) > 4096 or any(character in value for character in "\r\n"):
+            raise ManchesterTransportError("secret_header_value_rejected")
         result[name] = value
     return result
 
@@ -530,6 +611,10 @@ def _path_has_prefix(path: str, prefix: str) -> bool:
 
 def _valid_query_name(value: str) -> bool:
     return re.fullmatch(r"[A-Za-z][A-Za-z0-9_.\[\]-]{0,63}", value) is not None
+
+
+def _valid_header_name(value: str) -> bool:
+    return re.fullmatch(r"[A-Za-z][A-Za-z0-9-]{0,63}", value) is not None
 
 
 def _looks_secret(value: str) -> bool:

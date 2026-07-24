@@ -24,6 +24,15 @@ audited source scripts, immutable outputs, and a deterministic receipt. The VEC-
 the exact audited Randy evaluator locally through a closed typed request and immutable receipt; it
 does not launch SUMO, expose a product Run control, or establish VEC-08 numerical reproduction.
 
+The in-development `codex/traffictwin-v0.7` branch additionally contains private, operator-triggered
+Manchester evidence workflows. BODS supplies source-timed live bus positions. The current National
+Highways developer REST service supplies source-separated near-live/stale closures and incidents,
+imposed temporary restrictions, and digital VMS status for Strategic Road Network features inside
+a declared study envelope. A real three-product acceptance run passed on 24 July 2026. These
+features require credentials supplied through environment variables, never run in the background,
+and do not provide continuous traffic flow, measured road speed, congestion, complete city-road
+coverage, traffic-signal phases, public export, or a change to the immutable v0.6 release.
+
 Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
 application and contains no Randy/TOS artifacts or live Manchester data.
@@ -198,12 +207,13 @@ Implemented:
   accessibility regression checks.
 - Descriptive analysis for explicitly labelled synthetic mock participant results only.
 
-Not implemented:
+Not implemented in the immutable v0.6 release (the bounded v0.7 development exceptions are
+described above):
 
 - Standard Randy/VEC bundle conversion, SUMO FCD/other-output adapters, and simulator launch.
 - Direct simulator launch or asynchronous jobs.
-- Real Manchester sensor ingestion.
-- Near-live or true-live operation.
+- Complete real Manchester sensor ingestion or continuous city-road telemetry.
+- Generic near-live or true-live operation beyond the source-specific private v0.7 workflows.
 - LLM rendering, XAI, trained/calibrated portfolio selection, or training orchestration. The
   deterministic findings renderer is not an LLM and adds no claims.
 
@@ -553,7 +563,7 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 | CSV manifest inference wizard | Implemented, confirmation-gated | Bounded deterministic suggestions only; explicit file/field/unit confirmation required before ordinary bundle validation. |
 | SUMO tripinfo/summary output import | Implemented, bounded | SUMO 1.27.x only; public synthetic acceptance fixture; FCD and launch unavailable. |
 | Direct launch | Adapter-specific | Generic/SUMO launch remains `false`; exact VEC foreground execution is conditional on a complete accepted VEC-07 preflight. |
-| Near-live/true-live data | Not implemented | Must not be inferred from file recency. |
+| Near-live/true-live data | v0.7 candidate, source-bounded | BODS live buses and National Highways operational events are classified from source timestamps; WebTRIS and retrieval recency cannot be promoted to live. Continuous city-road telemetry remains unavailable. |
 
 ## Testing And Quality
 
@@ -615,7 +625,10 @@ The current test count and coverage are documented in [docs/reproducibility.md](
 
 All repository-contained run data is synthetic unless an imported source explicitly says otherwise.
 The optional TOS Data package is an external simulation-results source and is labelled imported
-historical replay, not live Manchester data. The UI does not support true live or near-live data.
+historical replay, not live Manchester data. On the v0.7 development branch, Manchester Operations
+can fetch private BODS and National Highways evidence only after an operator supplies the relevant
+environment credential and clicks the explicit refresh form. Ordinary reruns remain offline; no
+real response or credential is bundled with the repository.
 
 ## External Integration Status
 

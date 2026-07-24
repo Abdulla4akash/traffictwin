@@ -22,8 +22,10 @@ Every `MapLayerRequest` binds:
 - the requested product mode and visibility; and
 - the synthetic marker where applicable.
 
-DfT, WebTRIS, and TfGM layers must retain the reviewed OGL v3 URI. Synthetic layers must use the
-exact “not observed Manchester data” attribution. A private snapshot may render locally but cannot
+DfT, WebTRIS, and TfGM layers must retain the reviewed OGL v3 URI. National Highways operational
+layers must retain the reviewed provider terms URI, exact required attribution, and private
+publication class. Synthetic layers must use the exact “not observed Manchester data” attribution.
+A private snapshot may render locally but cannot
 be exported publicly. `metadata_only` likewise grants no point export.
 
 ## Deterministic availability
@@ -55,6 +57,10 @@ rendered plus excluded points. Missing or unadmitted coordinates never reach the
 - Scene composition unions visible attribution lines exactly and does not fuse records.
 - Points never claim map matching, identity joining, road occupancy, continuity, or movement.
 - BODS point admission and display do not establish Bee Network membership.
+- National Highways operational point counts are event/sign inventory, not traffic volume; imposed
+  temporary limits are not measured vehicle speed.
+- Optional fingerprint-bound point labels may expose bounded human-readable road/location/type
+  context, but must cover every admitted point exactly and never expose raw source identifiers.
 
 ## Usage
 
@@ -105,7 +111,7 @@ memory does not write a file or make a source accepted.
 ```
 
 The suite covers available, partial, stale, unavailable, private, hidden, and multi-layer scenes;
-exact point/bounds/count reconciliation; source/freshness mismatch; OGL and synthetic attribution;
+exact point/bounds/count reconciliation; source/freshness mismatch; OGL, National Highways, and synthetic attribution;
 accessible fixed styles; attribution union; duplicate/mode refusal; mutation resistance; and strict
 deterministic round trips.
 

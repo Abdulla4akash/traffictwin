@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from datetime import UTC, date, datetime, timedelta
 from hashlib import sha256
-from typing import cast
+from typing import Literal, cast
 
 import streamlit as st
 
@@ -34,6 +34,17 @@ from traffictwin.integration.manchester.dft_survey_view import DftVehicleClass
 from traffictwin.integration.manchester.map_layers import (
     ManchesterMapScene,
     MapMode,
+)
+from traffictwin.integration.manchester.national_highways_acquisition import (
+    NationalHighwaysAcquisitionError,
+)
+from traffictwin.integration.manchester.national_highways_live import (
+    NationalHighwaysLiveError,
+    NationalHighwaysRefreshSummary,
+    coordinated_national_highways_refresh,
+    load_national_highways_control_state,
+    national_highways_history_rows,
+    project_national_highways_scene_for_display,
 )
 from traffictwin.integration.manchester.snapshots import ManchesterSnapshotError
 from traffictwin.integration.manchester.source_refresh import (
@@ -65,6 +76,7 @@ from traffictwin.ui.manchester_operations import (
     accepted_dft_raw_count_options,
     accepted_webtris_daily_options,
     assess_live_acquisition_readiness,
+    assess_national_highways_acquisition_readiness,
     build_filtered_manchester_deck,
     dft_snapshot_label,
     dft_survey_chart_rows,
@@ -235,6 +247,38 @@ def render(config: UiConfig) -> None:
         return
 
     scene = loaded.scene
+    if mode in {"latest_available", "live_vehicles"}:
+        try:
+            national_highways_state = (
+                None if workspace is None else load_national_highways_control_state(workspace)
+            )
+            source_outage = (
+                national_highways_state is not None
+                and national_highways_state.last_attempt_status == "failed"
+            )
+            scene = project_national_highways_scene_for_display(
+                scene,
+                evaluated_at_utc=datetime.now(UTC),
+                source_outage=source_outage,
+            )
+        except (NationalHighwaysLiveError, ValueError):
+            st.warning(
+                "The National Highways overlay could not be re-evaluated safely. Other local "
+                "source layers remain available.",
+                icon=":material/warning:",
+            )
+        else:
+            if any(
+                layer.request.source.startswith("national_highways_")
+                and layer.freshness_truth_state == "stale"
+                for layer in scene.layers
+            ):
+                st.warning(
+                    "The cached National Highways operational snapshot is stale or the latest "
+                    "refresh failed. It remains visible for historical context and is not "
+                    "relabeled as current.",
+                    icon=":material/history:",
+                )
     if mode == "live_vehicles":
         try:
             scene = project_bods_live_scene_for_display(
@@ -494,6 +538,7 @@ def _render_latest_source_refresh(workspace: str | None) -> None:
                     icon=":material/check_circle:",
                 )
         _render_tfgm_refresh_summary()
+    _render_national_highways_acquisition(workspace, key_suffix="latest")
 
 
 def _render_dft_source_refresh(workspace: str | None) -> None:
@@ -913,6 +958,7 @@ def _render_webtris_history(workspace: str | None) -> None:
 def _render_live_acquisition(workspace: str | None) -> None:
     """Render one explicit authenticated action; never fetch during an ordinary rerun."""
 
+    _render_national_highways_acquisition(workspace, key_suffix="live")
     api_key = os.getenv("BODS_API_KEY")
     readiness = assess_live_acquisition_readiness(
         workspace,
@@ -1019,6 +1065,140 @@ def _render_live_acquisition(workspace: str | None) -> None:
             )
     _render_bods_live_history(workspace)
     _render_bods_retention(workspace)
+
+
+def _render_national_highways_acquisition(
+    workspace: str | None,
+    *,
+    key_suffix: str,
+) -> None:
+    """Render one explicit three-product operational refresh; ordinary reruns stay local."""
+
+    subscription_key = os.getenv("NATIONAL_HIGHWAYS_API_KEY")
+    readiness = assess_national_highways_acquisition_readiness(
+        workspace,
+        subscription_key_available=bool(subscription_key),
+    )
+    with st.expander(
+        "National Highways operational feeds",
+        expanded=key_suffix == "live",
+        icon=":material/road:",
+    ):
+        st.caption(
+            "One explicit action makes exactly three bounded requests: closures/incidents, "
+            "imposed temporary speed restrictions, and digital VMS status. Coverage is the "
+            "Strategic Road Network inside a broad Manchester study envelope—not all city roads, "
+            "measured traffic speed, traffic volume, or congestion."
+        )
+        with st.form(
+            f"manchester_national_highways_refresh_{key_suffix}",
+            border=True,
+            enter_to_submit=False,
+        ):
+            event_type = st.segmented_control(
+                "Operational event type",
+                options=("unplanned", "planned"),
+                default="unplanned",
+                format_func=lambda value: str(value).replace("_", " ").title(),
+                key=f"manchester_national_highways_event_type_{key_suffix}",
+                width="stretch",
+            )
+            st.caption(
+                "Study envelope: 53.30–53.70 latitude, −2.60–−1.90 longitude · "
+                "manual refresh only · provider limit 10 calls/minute · TrafficTwin uses 3"
+            )
+            st.caption(readiness.message)
+            submitted = st.form_submit_button(
+                "Refresh all three operational feeds",
+                type="primary",
+                icon=":material/sync:",
+                disabled=not readiness.ready,
+                help=None if readiness.ready else readiness.message,
+                width="stretch",
+            )
+        if submitted:
+            try:
+                with st.spinner("Fetching, quarantining, and validating all three feeds..."):
+                    summary = coordinated_national_highways_refresh(
+                        cast(str, workspace),
+                        subscription_key=cast(str, subscription_key),
+                        event_type=cast(Literal["planned", "unplanned"], event_type),
+                    )
+            except (
+                NationalHighwaysAcquisitionError,
+                NationalHighwaysLiveError,
+                ManchesterSnapshotError,
+                OSError,
+                ValueError,
+            ) as exc:
+                code = getattr(exc, "code", "NATIONAL_HIGHWAYS_REFRESH_FAILED")
+                st.error(
+                    f"The operational refresh failed safely ({code}). Existing accepted scenes "
+                    "remain available and will be labelled stale.",
+                    icon=":material/error:",
+                )
+            else:
+                st.session_state["manchester_national_highways_last_refresh"] = (
+                    summary.canonical_json()
+                )
+                _clear_manchester_caches()
+                st.success(
+                    f"Accepted {summary.total_records_accepted} in-envelope operational records "
+                    "across three source-separated layers.",
+                    icon=":material/check_circle:",
+                )
+        _render_national_highways_summary(workspace)
+
+
+def _render_national_highways_summary(workspace: str | None) -> None:
+    value = st.session_state.get("manchester_national_highways_last_refresh")
+    summary: NationalHighwaysRefreshSummary | None = None
+    if isinstance(value, str):
+        try:
+            summary = NationalHighwaysRefreshSummary.model_validate_json(value)
+        except ValueError:
+            del st.session_state["manchester_national_highways_last_refresh"]
+    if summary is not None:
+        counts = {item.product: item.records_accepted for item in summary.products}
+        with st.container(horizontal=True):
+            st.metric("Closures / incidents", counts["closures"], border=True)
+            st.metric("Temporary restrictions", counts["speed_limits"], border=True)
+            st.metric("Digital VMS", counts["vms"], border=True)
+        st.caption(
+            f"Last controlled refresh: {summary.evaluated_at_utc.isoformat()} · three requests · "
+            "raw responses preserved privately · API key not persisted"
+        )
+    if workspace is None:
+        return
+    try:
+        state = load_national_highways_control_state(workspace)
+    except (NationalHighwaysLiveError, OSError, ValueError):
+        st.caption("Operational refresh history is unavailable; no source request was made.")
+        return
+    if state.last_attempt_status == "failed":
+        st.warning(
+            f"Latest refresh failed ({state.last_failure_code}). Any prior accepted overlay is "
+            "unchanged and classified stale.",
+            icon=":material/cloud_off:",
+        )
+    if not state.history:
+        st.caption("Operational refresh history: no completed refresh recorded yet.")
+        return
+    rows = national_highways_history_rows(state)
+    if len(rows) > 1:
+        st.line_chart(
+            rows,
+            x="Retrieved at",
+            y=["Closures/incidents", "Temporary speed restrictions", "VMS signs"],
+            x_label="Controlled refresh time (UTC)",
+            y_label="In-envelope operational records",
+            width="stretch",
+            height=260,
+        )
+    st.caption(
+        f"Aggregate history: {state.history_entry_count} refreshes · 24-hour / 240-entry bound · "
+        "no automatic polling · no cross-source traffic total"
+    )
 
 
 def _render_bods_live_history(workspace: str | None) -> None:

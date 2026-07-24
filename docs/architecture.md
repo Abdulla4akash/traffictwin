@@ -1577,7 +1577,7 @@ every `MAN-*`, `UX-*`, and `REL-01` capability remains planned until its accepta
 
 ```mermaid
 flowchart TD
-    Sources["Allowlisted DfT / WebTRIS / TfGM / BODS / optional Randy sources"] --> Sync["Bounded source sync"]
+    Sources["Allowlisted DfT / WebTRIS / TfGM / BODS / National Highways operational / optional Randy sources"] --> Sync["Bounded source sync"]
     Sync --> Raw["Immutable raw source snapshot"]
     Raw --> SourceValidation["Source-specific validation"]
     SourceValidation --> Normalised["Source-specific typed artifact"]
@@ -1635,6 +1635,19 @@ The display projection separately re-runs the deterministic MAN-07 BODS freshnes
 explicit current UTC instant. It rebuilds only the in-memory MAN-08 scene, changing expired
 source-time `live_vehicle` layers to `stale` while the accepted scene artifact stays immutable.
 
+National Highways operational acquisition is a separate current REST boundary, not the earlier
+speculative NTIS callback design. Three exact-host/path policies admit only closures/incidents,
+temporary imposed speed restrictions, and digital VMS status. A subscription key crosses the
+transport boundary only as a transient redacted header. Each raw HTTP entity is quarantined and
+hashed before bounded gzip decoding and strict source-specific DATEX-JSON parsing. The coordinator
+makes exactly three calls after one explicit operator action, serialises attempts with an OS lock,
+enforces a one-minute minimum interval, atomically publishes source-separated overlays, and stores
+only 24 hours / 240 aggregate refresh summaries. `publicationTime` drives a conservative
+ten-minute `near_live` classification; retrieval time cannot upgrade evidence. A failed refresh
+retains the last accepted overlays and projects them stale in memory. Closures, imposed limits,
+VMS, and BODS buses may coexist on the same map, but the scene builder performs no identity join,
+source fusion, cross-source total, continuous-traffic inference, or city-road coverage claim.
+
 Every geographic source and generated layer has a versioned spatial-admission record containing
 its source CRS, target CRS, transformation, bounds, coordinate meaning, uncertainty, and admission
 status. Unknown or source-local coordinates may support non-geographic replay but cannot appear on
@@ -1659,9 +1672,10 @@ source truth, scientific availability, licence, or capability status.
 
 The candidate MAN-08 page adds one deliberately narrow UI boundary. The opt-in `/manchester`
 route reads only mode-specific `ManchesterMapScene` JSON below
-`workspace/manchester/scenes/` during ordinary rendering. Only four explicit, prerequisite-gated
-source forms invoke controlled acquisition: BODS live vehicles, one WebTRIS site/day/quality set,
-the pinned TfGM static archive, or three selected DfT historical rows. There is no background
+`workspace/manchester/scenes/` during ordinary rendering. Only five explicit, prerequisite-gated
+source families invoke controlled acquisition: BODS live vehicles, the three National Highways
+operational products as one coordinated action, one WebTRIS site/day/quality set, the pinned TfGM
+static archive, or three selected DfT historical rows. There is no background
 polling or network access on ordinary reruns. The loader resolves the fixed path
 inside the configured workspace, refuses symlinks/escapes, applies an 8 MiB bound, validates the
 complete scene contract, and caches at most 12 entries for 30 seconds. A renderer adapter removes
@@ -1683,7 +1697,7 @@ and speed charts; missing values remain gaps and the axis stays labelled as a ti
 source string. Latest mode exposes the same WebTRIS historical chart without relabelling the
 selected source day as live.
 
-The explicit source forms remain thin over `source_refresh.py`. That orchestration fixes byte/page
+The DfT/WebTRIS/TfGM source forms remain thin over `source_refresh.py`. That orchestration fixes byte/page
 bounds and publication classes, calls only the existing source adapters, and preserves unrelated
 source-separated layer requests when atomically replacing the same source's layer. A missing scene
 produces an empty composition; an invalid, oversized, cross-mode, or symlinked existing scene is a

@@ -51,7 +51,11 @@ def snapshot_parts_from_http_response(
         host=metadata.host,
         path=metadata.request_path,
         parameters=metadata.safe_query_parameters,
-        redacted_parameter_names=metadata.redacted_query_parameter_names,
+        redacted_parameter_names=tuple(
+            sorted(
+                set(metadata.redacted_query_parameter_names) | set(metadata.redacted_header_names)
+            )
+        ),
     )
     retrieval = ManchesterRetrievalWindow(
         started_at_utc=metadata.retrieval_started_at_utc,

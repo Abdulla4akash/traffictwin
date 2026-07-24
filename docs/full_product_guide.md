@@ -11,9 +11,11 @@ evidence-linked diagnostic hypotheses, and traces outputs back to their source r
 provides deterministic synthetic scenarios when external data or simulators are unavailable.
 
 TrafficTwin exposes one exact Randy/VEC evaluator through conditional request-preflight-gated
-foreground execution. It does not provide a general Randy/SUMO launcher, background job service,
-live Manchester data, or any claim that synthetic outputs are real-world predictions. Unsupported
-functions remain visibly unavailable.
+foreground execution. On the opt-in v0.7 development branch it also provides explicit, bounded,
+private BODS bus-position and National Highways operational refreshes for Manchester Operations.
+These are operator-triggered snapshot workflows, not continuous city traffic monitoring. The
+product does not provide a general Randy/SUMO launcher, background job service, or any claim that
+synthetic outputs are real-world predictions. Unsupported functions remain visibly unavailable.
 
 ## Contents
 
@@ -851,6 +853,46 @@ participant recruitment, ethics inference, automated qualitative coding, or popu
 
 Real evaluation may begin only after the relevant approval and consent process.
 
+### UC19A: Inspect private Manchester live operational snapshots
+
+**Use when:** you need a current, auditable Manchester-area view of BODS bus positions and/or
+National Highways strategic-road closures, imposed temporary restrictions, and digital sign
+status. This is an opt-in v0.7 development workflow; it does not change the immutable v0.6 release.
+
+Create an isolated v0.7 workspace once:
+
+```bash
+uv run python - <<'PY'
+from traffictwin.release import initialise_v07_workspace
+
+initialise_v07_workspace("/absolute/path/to/workspace-v0.7")
+PY
+```
+
+Then start the UI with credentials supplied only through the local process environment:
+
+```bash
+export TRAFFICTWIN_V07_NAVIGATION=1
+export TRAFFICTWIN_WORKSPACE_PATH='/absolute/path/to/workspace-v0.7'
+export BODS_API_KEY='your-BODS-key'
+export NATIONAL_HIGHWAYS_API_KEY='your-National-Highways-key'
+uv run streamlit run src/traffictwin/ui/app.py
+```
+
+Open **Manchester Operations**. Choose **Live vehicles** to submit one scoped BODS request. Choose
+**Latest available** or **Live vehicles**, expand **National Highways operational feeds**, select
+planned or unplanned closures, and click **Refresh all three operational feeds**. That action makes
+exactly three bounded National Highways requests: closures/incidents, imposed temporary speed
+restrictions, and VMS status. Ordinary page reruns are local and make no network request.
+
+The workspace retains private immutable source snapshots and bounded aggregate refresh history.
+Map layers remain source-separated, independently attributed, and explicitly `near_live`, `stale`,
+or `outage` from source time. A failed refresh keeps the last accepted overlay and marks its state
+honestly. Do not interpret imposed restrictions as measured speed, VMS metadata as literal sign
+text, bus positions as road congestion, or the broad display envelope as an official Manchester
+boundary. See [Manchester Operations UI](integration/manchester_operations_ui.md) and
+[National Highways operational feeds](integration/manchester_national_highways_operational_feeds.md).
+
 ### UC20: Run browser and semantic UI regression checks
 
 ```bash
@@ -1555,7 +1597,9 @@ the calculated values. Report content and calculation remain separate.
   canonicalisation supports larger explicitly bounded generic tables without retaining all
   canonical rows; streaming metadata import does not automatically compute metrics.
 - No arbitrary simulator, detached job, remote execution, or training launcher.
-- No live or near-live Manchester feed.
+- No continuous city-road telemetry, measured road speed/congestion feed, traffic-signal phase
+  feed, or background polling. The v0.7 development branch provides only explicit private BODS
+  bus-position and National Highways operational snapshot workflows with source-time freshness.
 - No persistent canonical analytical row store.
 - The OPS-02 Parquet cache is disposable derived reuse, not a primary evidence store or queryable
   analytical database; it has no automatic retention/eviction or remote/shared-cache service.

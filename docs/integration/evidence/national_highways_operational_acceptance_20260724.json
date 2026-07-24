@@ -1,0 +1,63 @@
+{
+  "access_date": "2026-07-24",
+  "accepted_private_raw_bytes_committed": false,
+  "adapter_version": "national-highways-acquisition-1.0",
+  "automatic_polling_performed": false,
+  "credential_persisted": false,
+  "evaluated_at_utc": "2026-07-24T02:35:36.677982Z",
+  "host": "api.data.nationalhighways.co.uk",
+  "licence_id": "NH-Transport-Data-Feeds",
+  "parser_version": "national-highways-datex-json-1.0",
+  "products": [
+    {
+      "coordinates_missing": 12,
+      "exact_duplicates_collapsed": 0,
+      "outside_envelope": 59,
+      "path": "/roads/v2.0/closures",
+      "product": "closures",
+      "publication_time_utc": "2026-07-24T02:35:36.360000Z",
+      "raw_entity_sha256": "79596321b0841578015ed7633a97e57c600b5ee88ea090fee8d08dc3acc69b7a",
+      "records_accepted": 7,
+      "report_fingerprint": "6ef1bfe075db6b6487b4d463ede87728be911947500830a2bffb2ee4ee639b53",
+      "source_items_seen": 78
+    },
+    {
+      "coordinates_missing": 101,
+      "exact_duplicates_collapsed": 0,
+      "outside_envelope": 326,
+      "path": "/sma/v1.0/speedManagedAreas",
+      "product": "speed_limits",
+      "publication_time_utc": "2026-07-24T02:35:36.360000Z",
+      "raw_entity_sha256": "91bce8243a169551d8a77b2c2cc4c9076ae4b1c9d58153c7741b5fadb28a23d3",
+      "records_accepted": 60,
+      "report_fingerprint": "16945de16766a7df07deb126283b349502e599e6720f217c4a561d56b69daccc",
+      "source_items_seen": 487
+    },
+    {
+      "coordinates_missing": 0,
+      "exact_duplicates_collapsed": 52,
+      "outside_envelope": 0,
+      "path": "/dvms/v1.0/vms",
+      "product": "vms",
+      "publication_time_utc": "2026-07-24T02:35:37.370000Z",
+      "raw_entity_sha256": "a2aa197dc7d8fb61fe33eb276bc88ed6005c9cdf3b0a47cf62defffcf18b2fa2",
+      "records_accepted": 481,
+      "report_fingerprint": "39bfb1fc4aa97fe9c72cde43c24a18a169ddbbfbb3ee5155bc3d08ff539fc4f2",
+      "source_items_seen": 533
+    }
+  ],
+  "publication_class": "private",
+  "request_count": 3,
+  "required_attribution": "Powered by National Highways’ Transport Data Feeds",
+  "schema_observation_version": "2026-07-24",
+  "study_envelope": {
+    "basis": "caller_declared_study_envelope",
+    "max_latitude": "53.70",
+    "max_longitude": "-1.90",
+    "min_latitude": "53.30",
+    "min_longitude": "-2.60",
+    "official_boundary": false
+  },
+  "synthetic": false,
+  "total_records_accepted": 548
+}

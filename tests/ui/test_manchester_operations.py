@@ -302,6 +302,17 @@ def test_live_acquisition_readiness_and_explicit_bounds(tmp_path: Path) -> None:
         operations.assess_live_acquisition_readiness(workspace, api_key_available=True).ready
         is True
     )
+    assert (
+        operations.assess_national_highways_acquisition_readiness(
+            workspace,
+            subscription_key_available=False,
+        ).status
+        == "api_key_missing"
+    )
+    assert operations.assess_national_highways_acquisition_readiness(
+        workspace,
+        subscription_key_available=True,
+    ).ready
 
     box = operations.parse_bods_bounding_box("-2.4, 53.3, -2.1, 53.6")
     assert box.min_longitude == Decimal("-2.4")
@@ -630,6 +641,7 @@ def test_live_fetch_form_is_explicit_and_prerequisite_gated(
     workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
     monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
     monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app = app_test.from_file("src/traffictwin/ui/app_pages/manchester.py").run(timeout=20)
     app.segmented_control[0].set_value("live_vehicles")
@@ -638,7 +650,12 @@ def test_live_fetch_form_is_explicit_and_prerequisite_gated(
     assert not app.exception
     fetch = next(button for button in app.button if button.label == "Fetch latest buses")
     assert fetch.disabled is True
+    road_fetch = next(
+        button for button in app.button if button.label == "Refresh all three operational feeds"
+    )
+    assert road_fetch.disabled is True
     assert any("Set BODS_API_KEY" in item.value for item in app.caption)
+    assert any("Set NATIONAL_HIGHWAYS_API_KEY" in item.value for item in app.caption)
     assert any(item.label == "Request bounding box" for item in app.text_input)
     assert any("verified Bee Network operators" in item.value for item in app.caption)
     assert any("not general live road traffic" in item.value for item in app.caption)
@@ -647,9 +664,14 @@ def test_live_fetch_form_is_explicit_and_prerequisite_gated(
     assert any(button.label == "Preview private snapshot cleanup" for button in app.button)
 
     monkeypatch.setenv("BODS_API_KEY", "test-only-not-submitted")
+    monkeypatch.setenv("NATIONAL_HIGHWAYS_API_KEY", "test-only-not-submitted")
     ready = app_test.from_file("src/traffictwin/ui/app_pages/manchester.py").run(timeout=20)
     ready.segmented_control[0].set_value("live_vehicles")
     ready.run(timeout=20)
     fetch = next(button for button in ready.button if button.label == "Fetch latest buses")
     assert fetch.disabled is False
+    road_fetch = next(
+        button for button in ready.button if button.label == "Refresh all three operational feeds"
+    )
+    assert road_fetch.disabled is False
     assert not ready.exception

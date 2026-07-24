@@ -21,7 +21,8 @@ from traffictwin.integration.manchester.models import (
 MANCHESTER_FRESHNESS_SCHEMA_VERSION = "1.0"
 MANCHESTER_FRESHNESS_METHOD_VERSION = "manchester-freshness-v1"
 MANCHESTER_FRESHNESS_CAPABILITY_ID = "MAN-07"
-BODS_LIVE_AGE_SECONDS = 60
+BODS_LIVE_AGE_SECONDS: Literal[60] = 60
+NATIONAL_HIGHWAYS_NEAR_LIVE_AGE_SECONDS: Literal[600] = 600
 
 FreshnessSource: TypeAlias = Literal[
     "bods_siri_vm",
@@ -31,6 +32,9 @@ FreshnessSource: TypeAlias = Literal[
     "webtris_daily",
     "tfgm_signals",
     "randy_tos",
+    "national_highways_closures",
+    "national_highways_speed_limits",
+    "national_highways_vms",
     "synthetic",
 ]
 FreshnessTruthState: TypeAlias = Literal[
@@ -46,6 +50,9 @@ FreshnessReason: TypeAlias = Literal[
     "bods_observation_too_old",
     "bods_validity_expired",
     "bods_future_dated",
+    "national_highways_within_near_live_window",
+    "national_highways_publication_too_old",
+    "national_highways_publication_future_dated",
     "offline_replay_is_historical",
     "source_policy_is_historical",
     "synthetic_evidence",
@@ -81,7 +88,7 @@ class SourceFreshnessPolicy(ManchesterFreshnessModel):
     ]
     expected_observation_field: str | None = Field(default=None, max_length=100)
     expected_valid_until_field: str | None = Field(default=None, max_length=100)
-    accepted_live_age_seconds: Literal[60] | None = None
+    accepted_live_age_seconds: Literal[60, 600] | None = None
     eligible_truth_states: tuple[FreshnessTruthState, ...]
     traffic_freshness_applicable: bool
     retrieval_time_can_upgrade_state: Literal[False] = False
@@ -94,14 +101,23 @@ class SourceFreshnessPolicy(ManchesterFreshnessModel):
         if len(set(self.eligible_truth_states)) != len(self.eligible_truth_states):
             raise ValueError("eligible truth states must be unique")
         is_bods = self.source == "bods_siri_vm"
-        if is_bods != (
+        bods_shape = (
             self.expected_observation_field == "RecordedAtTime"
             and self.expected_valid_until_field == "ValidUntilTime"
             and self.accepted_live_age_seconds == BODS_LIVE_AGE_SECONDS
-        ):
-            raise ValueError("only BODS may define the v1 live UTC window")
-        if "near_live" in self.eligible_truth_states:
-            raise ValueError("no audited v1 source is eligible for near_live")
+        )
+        is_national_highways = self.source.startswith("national_highways_")
+        national_highways_shape = (
+            self.expected_observation_field == "publicationTime"
+            and self.expected_valid_until_field is None
+            and self.accepted_live_age_seconds == NATIONAL_HIGHWAYS_NEAR_LIVE_AGE_SECONDS
+        )
+        if is_bods != bods_shape:
+            raise ValueError("only BODS may define the v1 live-vehicle UTC window")
+        if is_national_highways != national_highways_shape:
+            raise ValueError("only National Highways may define the v1 near-live UTC window")
+        if ("near_live" in self.eligible_truth_states) != is_national_highways:
+            raise ValueError("near_live is reserved for the audited National Highways sources")
         return self
 
 
@@ -138,8 +154,11 @@ class FreshnessEvaluationRequest(ManchesterFreshnessModel):
             raise ValueError("a cached fallback requires an accepted local snapshot")
         if self.source == "synthetic" and not self.synthetic:
             raise ValueError("the synthetic source must remain labelled synthetic")
-        if self.source not in {"bods_siri_vm", "synthetic"} and (
-            self.observed_at_utc is not None or self.valid_until_utc is not None
+        national_highways = self.source.startswith("national_highways_")
+        if (
+            self.source not in {"bods_siri_vm", "synthetic"}
+            and not national_highways
+            and (self.observed_at_utc is not None or self.valid_until_utc is not None)
         ):
             raise ValueError(
                 "non-BODS audited sources cannot receive fabricated UTC validity fields"
@@ -148,6 +167,8 @@ class FreshnessEvaluationRequest(ManchesterFreshnessModel):
             (self.observed_at_utc is None) != (self.valid_until_utc is None)
         ):
             raise ValueError("BODS observation and validity timestamps must be supplied together")
+        if national_highways and self.valid_until_utc is not None:
+            raise ValueError("National Highways snapshot freshness uses publicationTime only")
         return self
 
 
@@ -196,6 +217,9 @@ class SourceFreshnessEvaluation(ManchesterFreshnessModel):
             "bods_observation_too_old": "stale",
             "bods_validity_expired": "stale",
             "bods_future_dated": "stale",
+            "national_highways_within_near_live_window": "near_live",
+            "national_highways_publication_too_old": "stale",
+            "national_highways_publication_future_dated": "stale",
             "offline_replay_is_historical": "historical",
             "source_policy_is_historical": "historical",
             "synthetic_evidence": "synthetic",
@@ -219,10 +243,10 @@ class SourceFreshnessEvaluation(ManchesterFreshnessModel):
         if self.observation_age_seconds is not None:
             if (
                 self.source != "bods_siri_vm"
+                and not self.source.startswith("national_highways_")
                 or self.observed_at_utc is None
-                or self.valid_until_utc is None
             ):
-                raise ValueError("only fully timestamped BODS evidence may carry an age")
+                raise ValueError("only audited UTC live-source evidence may carry an age")
             if self.observation_age_seconds != _elapsed_seconds(
                 self.evaluated_at_utc, self.observed_at_utc
             ):
@@ -232,14 +256,57 @@ class SourceFreshnessEvaluation(ManchesterFreshnessModel):
             "bods_observation_too_old": frozenset({"bods_siri_vm"}),
             "bods_validity_expired": frozenset({"bods_siri_vm"}),
             "bods_future_dated": frozenset({"bods_siri_vm"}),
-            "offline_replay_is_historical": frozenset({"bods_siri_vm"}),
+            "national_highways_within_near_live_window": frozenset(
+                {
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
+            "national_highways_publication_too_old": frozenset(
+                {
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
+            "national_highways_publication_future_dated": frozenset(
+                {
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
+            "offline_replay_is_historical": frozenset(
+                {
+                    "bods_siri_vm",
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
             "source_policy_is_historical": frozenset(
                 {"dft_raw_counts", "dft_count_points", "dft_aadf", "webtris_daily"}
             ),
             "static_reference_has_no_traffic_freshness": frozenset({"tfgm_signals"}),
             "simulation_clock_has_no_wall_freshness": frozenset({"randy_tos"}),
-            "cached_snapshot_during_service_outage": frozenset({"bods_siri_vm", "webtris_daily"}),
-            "source_timestamp_missing": frozenset({"bods_siri_vm"}),
+            "cached_snapshot_during_service_outage": frozenset(
+                {
+                    "bods_siri_vm",
+                    "webtris_daily",
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
+            "source_timestamp_missing": frozenset(
+                {
+                    "bods_siri_vm",
+                    "national_highways_closures",
+                    "national_highways_speed_limits",
+                    "national_highways_vms",
+                }
+            ),
             "invalid_validity_window": frozenset({"bods_siri_vm"}),
         }
         allowed_sources = source_reasons.get(self.reason)
@@ -292,6 +359,20 @@ def source_freshness_policy(source: FreshnessSource) -> SourceFreshnessPolicy:
             missing_timestamp_behaviour="unavailable",
             display_wording="Historical strategic-road evidence; not city-road live traffic.",
             blockers=("GA-WT-1",),
+        )
+    if source.startswith("national_highways_"):
+        return SourceFreshnessPolicy(
+            source=source,
+            source_time_basis="utc_instant",
+            expected_observation_field="publicationTime",
+            accepted_live_age_seconds=NATIONAL_HIGHWAYS_NEAR_LIVE_AGE_SECONDS,
+            eligible_truth_states=("near_live", "stale", "historical", "unavailable"),
+            traffic_freshness_applicable=True,
+            missing_timestamp_behaviour="unavailable",
+            display_wording=(
+                "Near-live Strategic Road Network operational status; not measured speed, "
+                "traffic volume, congestion, or complete Manchester coverage."
+            ),
         )
     if source == "tfgm_signals":
         return SourceFreshnessPolicy(
@@ -389,6 +470,41 @@ def evaluate_source_freshness(
         return result("classified", "historical", "source_policy_is_historical")
     if request.source == "synthetic":
         return result("classified", "synthetic", "synthetic_evidence")
+
+    if request.source.startswith("national_highways_"):
+        if request.observed_at_utc is None:
+            return result("unavailable", "unavailable", "source_timestamp_missing")
+        age = _elapsed_seconds(request.evaluated_at_utc, request.observed_at_utc)
+        if request.use_mode != "live":
+            return result("classified", "historical", "offline_replay_is_historical", age=age)
+        if request.service_state == "forced_unavailable":
+            return result(
+                "classified",
+                "stale",
+                "cached_snapshot_during_service_outage",
+                age=age,
+                override_applied=True,
+            )
+        if age < 0:
+            return result(
+                "classified",
+                "stale",
+                "national_highways_publication_future_dated",
+                age=age,
+            )
+        if age > NATIONAL_HIGHWAYS_NEAR_LIVE_AGE_SECONDS:
+            return result(
+                "classified",
+                "stale",
+                "national_highways_publication_too_old",
+                age=age,
+            )
+        return result(
+            "classified",
+            "near_live",
+            "national_highways_within_near_live_window",
+            age=age,
+        )
 
     if request.observed_at_utc is None or request.valid_until_utc is None:
         return result("unavailable", "unavailable", "source_timestamp_missing")

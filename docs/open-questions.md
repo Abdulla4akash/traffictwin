@@ -66,9 +66,10 @@ Open:
 17. Which exact accepted artifact and owning verification service should provide each MAN-11
     reference at the Manchester mapping, baseline, controlled-SUMO, and final-report stages before
     the candidate lineage builder is connected to a real Gate-E workflow?
-18. Will National Highways approve an NTIS/DATEX II research subscription, and what exact products,
-    credentials, callback authentication, public ingress, schema/WSDL version, timestamp,
-    heartbeat/retry, retention, attribution, and publication rules would govern that new source?
+18. What official Manchester/Greater Manchester boundary, research retention period, release
+    review, provider cadence/SLA evidence, and browser/accessibility acceptance are required before
+    the bounded National Highways operational REST slice can contribute to formal MAN-01/MAN-07/
+    MAN-08 capability acceptance?
 
 Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questions:
 
@@ -76,8 +77,9 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   exact endpoint families, audited field contracts, bounded dependency ranges, hardened parser
   flags, offline map posture, and remaining source-specific rate/schema blockers are frozen.
 - Question 4 has a versioned v1 answer: BODS alone can be `live_vehicle` under its UTC validity
-  window and 60-second engineering ceiling; DfT and WebTRIS remain historical; TfGM signals are
-  dated reference data. A real-source WebTRIS recency probe on 24 July 2026 confirms that the
+  window and 60-second engineering ceiling; accepted National Highways operational products may
+  be `near_live` from DATEX II `publicationTime` under a conservative self-imposed ten-minute
+  ceiling; DfT and WebTRIS remain historical; TfGM signals are dated reference data. A real-source WebTRIS recency probe on 24 July 2026 confirms that the
   current API cannot support `near_live`: the preceding day returned no report and a day one month
   earlier returned a complete historical report. Later scientific thresholds require a new policy
   version.
@@ -93,12 +95,15 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   retention period, longitudinal-analysis approval, backup treatment, and secure-erasure posture
   remain open and are not inferred by that software control.
 - Question 9 is resolved for the Streamlit application: it does not run recurring source sync.
-  BODS refresh is operator-triggered, serial, and limited to one attempt per 60 seconds; page
-  reruns may read only the bounded local aggregate history. Any future always-on scheduler remains
-  a separate deployment and governance decision.
-- Questions 1, 2, 5–9, 11, 12, and 15–18 remain open at their stated gates. Question 18 describes
-  a new NTIS source boundary; it cannot be answered by the anonymous WebTRIS API or the existing
-  BODS credential.
+  BODS refresh is operator-triggered, serial, and limited to one attempt per 60 seconds. National
+  Highways refresh is also operator-triggered and locked, makes exactly three calls, and is limited
+  to one attempt per 60 seconds. Page reruns may read only bounded local aggregate histories. Any
+  future always-on scheduler remains a separate deployment and governance decision.
+- Question 18 is narrowed by the 24 July 2026 real-source acceptance: the current integration is a
+  key-authenticated REST pull, not a callback; all three bounded products completed quarantine,
+  parse, promotion, replay, scene publication, and secret-persistence checks. The official-boundary,
+  retention/release, provider-SLA, and complete UI/capability gates in the revised question remain
+  open. Questions 1, 2, 5–8, 11, 12, and 15–18 otherwise remain open at their stated gates.
 
 ### v0.5 design decisions
 
@@ -590,8 +595,9 @@ The complete source evidence is in
 - Real portfolio rules, calibration, and statistical evaluation.
 - Later use of DuckDB or Polars.
 - Optional XAI instrumentation.
-- An authorised true-live Manchester city-road count/speed source beyond historical DfT evidence,
-  strategic-road WebTRIS observations, TfGM infrastructure, and live BODS bus positions.
+- An authorised continuous Manchester city-road count/measured-speed source beyond historical DfT
+  evidence, strategic-road WebTRIS observations, TfGM infrastructure, live BODS bus positions, and
+  National Highways Strategic Road Network operational events/restrictions/sign status.
 - Encoding-preserving mutation writers for gzip-CSV/Parquet and evidence-backed severity/seed
   matrices beyond the closed EXP-02 v1.0 contract.
 - Empirically calibrated measurement-error distributions, correlation/drift models, and

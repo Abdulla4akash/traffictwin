@@ -71,8 +71,9 @@ The v0.6 constraints continue to apply. v0.7 adds the following:
    remain transit-vehicle observations and are never coerced into private-vehicle count or speed.
 4. **Infrastructure is not telemetry.** TfGM signal locations are a reference layer, not traffic
    observations, signal states, queues, timings, or incidents.
-5. **Road domain is explicit.** WebTRIS evidence describes the covered National Highways network;
-   it cannot be presented as complete Manchester city-road coverage.
+5. **Road domain is explicit.** WebTRIS observations and National Highways operational feeds
+   describe only their covered Strategic Road Network; neither can be presented as complete
+   Manchester city-road coverage.
 6. **Survey counts retain their denominator.** DfT count-point records are dated survey evidence;
    annual averages or survey-hour counts are not instantaneous SUMO demand.
 7. **No direct observation-to-demand shortcut.** “Use as SUMO baseline” requires accepted
@@ -104,6 +105,8 @@ v0.7 is intended to:
   production-quality adapter;
 - offer historical replay and the latest accepted observation in one coherent workflow;
 - show live Bee Network bus locations without mislabelling them as general traffic;
+- show near-live National Highways closures/incidents, imposed temporary speed restrictions, and
+  digital VMS status as separate Strategic Road Network operational layers;
 - overlay Manchester traffic signals and observation sites on a map with complete provenance;
 - compare compatible observed and SUMO-generated traffic evidence deterministically;
 - turn an accepted observation window into a calibrated, reviewable SUMO baseline candidate;
@@ -118,8 +121,9 @@ v0.7 does not promise:
 
 - a complete real-time digital twin of Greater Manchester;
 - live private-vehicle counts or speeds for every city-centre road;
-- signal phase, controller state, queue, incident, parking, pedestrian, or cyclist telemetry unless
-  a later accepted source contract provides it;
+- signal phase, controller state, queue, city/local-road incident, parking, pedestrian, or cyclist
+  telemetry unless a later accepted source contract provides it; the accepted National Highways
+  operational contract is limited to covered Strategic Road Network events and signs;
 - traffic prediction, learned demand inference, route optimisation, or automatic policy selection;
 - automatic calibration acceptance without analyst review;
 - causal claims from observed-versus-simulated differences;
@@ -150,6 +154,7 @@ API. Initial source facts were reviewed on 22 July 2026 and must be re-audited d
 |---|---|---|---|---|
 | DfT Road Traffic Statistics | Historical Manchester count-point map, survey-hour profiles, vehicle-class counts, long-term context | Dated historical surveys; dataset currently spans 1993–2025 | Manchester local-authority road count points | No measured speed; not continuous or live; AADF is not instantaneous demand |
 | National Highways WebTRIS | Latest accepted and historical strategic-road volume/speed observations | Source-reported intervals, commonly 15 minutes | Covered motorway/trunk-road sites, including relevant M56/M60/M62 approaches | Not city-road coverage; service availability may be interrupted; retrieval time is not freshness |
+| National Highways operational REST feeds | Near-live road/lane closures and incidents, imposed temporary speed restrictions, and digital VMS status | DATEX II `publicationTime` plus record validity/message times where present | Strategic Road Network features inside a caller-declared broad Manchester study envelope | Not complete Manchester coverage; temporary limit is not measured speed; no traffic volume/congestion; observed VMS payload exposes status/reason metadata but no literal displayed message text |
 | TfGM traffic-signal locations | Signal and controller-reference map overlay | Reference dataset updated periodically | Published signal sites in Greater Manchester | No signal state, phase, timing, traffic count, queue, or live incident meaning |
 | DfT Bus Open Data Service | Live or recent Bee Network bus positions and service context | SIRI-VM source timestamps | Bus/transit vehicles and services in England | Not private-vehicle flow, road speed, congestion, or a complete fleet guarantee |
 | Randy/TOS Manchester case-study artifacts | Optional case-study evidence where the exact audited contract and permission permit | Artifact-specific | Exact supplied scenarios, traces, tasks, and trip joins | Not a public live feed; no broader licence, city coverage, or redistribution inference |
@@ -165,6 +170,12 @@ API. Initial source facts were reviewed on 22 July 2026 and must be re-audited d
   <https://webtris.nationalhighways.co.uk/api/swagger/ui/index>
 - WebTRIS service notices:
   <https://webtris.nationalhighways.co.uk/Home/News>
+- National Highways current API catalogue:
+  <https://developer.data.nationalhighways.co.uk/apis>
+- National Highways API terms and attribution:
+  <https://developer.data.nationalhighways.co.uk/terms>
+- National Highways API FAQ, scope, product limits, and rate limit:
+  <https://developer.data.nationalhighways.co.uk/faq>
 - TfGM traffic-signal supporting information:
   <https://odata.tfgm.com/opendata/downloads/TrafficSignals/TrafficSignalsSupportingInfo.pdf>
 - BODS user guidance:
@@ -188,7 +199,9 @@ The Manchester Operations mode selector contains:
 1. **Historical replay** — a selected past date/window from an accepted immutable snapshot.
 2. **Latest available** — the newest accepted record for each enabled road source, with source
    observation time and freshness shown independently.
-3. **Live vehicles** — recent BODS transit-vehicle locations, labelled as buses/transit.
+3. **Live vehicles** — recent BODS transit-vehicle locations, labelled as buses/transit, with
+   independently classified National Highways operational overlays where accepted. The overlays
+   remain `near_live` or `stale`, never `live_vehicle`.
 
 The following evidence-state values are mandatory and mutually explicit:
 
@@ -383,7 +396,23 @@ capability rather than an implicit v0.7 change.
 - Publish matched, unmatched, ambiguous, missing-identifier, stale, and excluded service/vehicle
   counts so feed or scope incompleteness remains visible.
 
-### 9.6 Randy evidence bridge
+### 9.6 National Highways operational projection
+
+- Use only the exact current REST host and product paths frozen in the Gate-A extension; the
+  subscription key is a transient secret header and can never enter persisted metadata.
+- Preserve each gzip/identity response byte-for-byte before bounded decoding and DATEX II JSON
+  parsing. Bind parser output to both the raw entity and decoded-payload hashes.
+- Emit three separate source families: closures/incidents, imposed temporary speed restrictions,
+  and VMS status/message metadata. Never fuse their record counts into traffic volume.
+- Use `publicationTime` for snapshot freshness; retrieval time cannot upgrade it. A conservative
+  ten-minute display threshold is a TrafficTwin policy, not a provider cadence or SLA claim.
+- Treat `temporarySpeedLimit` as an imposed source limit in km/h, not observed vehicle speed.
+- Admit only source WGS84 vertices inside the caller-declared broad study envelope. The envelope is
+  not an official Manchester or Greater Manchester boundary.
+- Retain the exact required attribution `Powered by National Highways’ Transport Data Feeds` and
+  keep accepted raw snapshots private in v0.7 until release/publication review is reconciled.
+
+### 9.7 Randy evidence bridge
 
 The existing v0.6 audit and permission contracts remain authoritative. Any Manchester display:
 
@@ -399,7 +428,10 @@ The product must force an explicit scope choice:
 
 - **Manchester local authority** for DfT Manchester count-point analysis;
 - **Greater Manchester** for TfGM reference layers and eligible Bee Network services; and
-- **strategic approaches** for selected WebTRIS sites.
+- **strategic approaches** for selected WebTRIS sites; and
+- **National Highways Manchester study envelope** for operational Strategic Road Network features;
+  the reviewed initial envelope is latitude 53.30–53.70 and longitude −2.60–−1.90 and explicitly
+  is not an administrative boundary.
 
 These scopes may be displayed together on one map but cannot be reported as equal coverage.
 Boundary geometry, coordinate reference system, and version are recorded as reference artifacts.
@@ -443,7 +475,7 @@ Manchester Operations becomes the main observed-data workspace.
 2. A `st.segmented_control` selects **Historical replay**, **Latest available**, or
    **Live vehicles**.
 3. A primary map shows only admitted layers: roads/sites, traffic signals, analysis RSUs, accepted
-   SUMO network/results, and live buses.
+   SUMO network/results, live buses, and separately styled National Highways operational features.
 4. A responsive metric row shows coverage-appropriate values, never mixed-source totals.
 5. Time, site, direction, vehicle-class, and layer controls appear in a bounded form/sidebar or
    contextual popover.
@@ -705,7 +737,8 @@ Every snapshot records its licence/terms basis and access date. Initial expectat
 implementation audit, are:
 
 - DfT road-traffic and TfGM open-data outputs retain required Open Government Licence attribution;
-- WebTRIS usage and redistribution follow the current National Highways terms and notices;
+- WebTRIS usage follows its current source basis; National Highways operational REST snapshots
+  retain the separate current Transport Data Feeds terms and exact required attribution;
 - BODS access, retention, and republication follow current service terms and SIRI-VM guidance;
 - Randy-derived evidence follows the exact v0.6 written permission, repository citation, engine,
   seed-selection, sanitisation, and exclusion contract; and
@@ -727,8 +760,8 @@ All v0.7 rows are `planned` until their complete acceptance evidence passes.
 | `MAN-04` | TfGM signal reference layer | Versioned download, coordinate conversion, exact field mapping, licence, infrastructure-only semantics, and map acceptance | planned |
 | `MAN-05` | BODS live transit adapter | Audited access/authentication, versioned Bee Network service scope, safe SIRI-VM client/parser, timestamp/freshness, deduplication, retention/privacy, bus-only semantics, outage handling, and acceptance fixture | planned |
 | `MAN-06` | Optional Randy Manchester bridge | Existing audited contract and permission enforced in the new map/workflow without relabelling it live/public/canonical | planned |
-| `MAN-07` | Manchester projection and freshness service | Source-specific models, deterministic canonical projection, complete reconciliation, UTC/BST policy, truth states, and unavailable reasons | planned |
-| `MAN-08` | Manchester Operations map and replay | Historical/latest/live-vehicle modes, spatial admission for every geographic layer, layered map, filters, source cards, charts, offline stale mode, and thin UI tests | planned |
+| `MAN-07` | Manchester projection and freshness service | Source-specific models, deterministic canonical projection, complete reconciliation, UTC/BST policy, truth states including National Highways `publicationTime` near-live/stale classification, and unavailable reasons | planned |
+| `MAN-08` | Manchester Operations map and replay | Historical/latest/live-vehicle modes, spatial admission for every geographic layer, separately attributed National Highways operational overlays, layered map, filters, source cards, charts, offline stale mode, and thin UI tests | planned |
 | `MAN-09` | Observation-to-SUMO baseline | Network binding, map-match candidates, manual ambiguity review, temporal profile, bounded calibration, residuals, and fail-closed acceptance | planned |
 | `MAN-10` | Observed-versus-simulated comparison | Approved versioned comparison-metric contract, compatible intervals/units/coverage, deterministic metrics, exclusions, complete lineage, and non-causal wording | planned |
 | `MAN-11` | Manchester SUMO-to-VEC workflow | Accepted baseline through existing controlled SUMO, FCD/network, VEC-06–VEC-12 gates with no domain-validity shortcut | planned |
@@ -768,7 +801,8 @@ alone.
 ### Gate B — Immutable adapters
 
 1. Implement the common snapshot service and the exact audited transport/parser controls.
-2. Implement DfT, WebTRIS, TfGM, and BODS adapters independently.
+2. Implement DfT, WebTRIS, TfGM, BODS, and the three current National Highways operational REST
+   adapters independently.
 3. Preserve raw bytes and produce source-specific validated artifacts.
 4. Implement `ManchesterTimeBasis`, source-specific projections, and freshness policies.
 5. Prove deterministic parsing, projection, fingerprints, offline replay, and source isolation.
@@ -843,6 +877,8 @@ Output: `REL-01` and a release whose capability manifest matches implementation 
 
 - DfT has no fabricated speed and survey/AADF semantics never cross;
 - WebTRIS stays strategic-road/site evidence;
+- National Highways operational records stay Strategic Road Network closure/restriction/sign
+  evidence and never become measured traffic speed, volume, congestion, or complete city coverage;
 - BODS observations never become road count/speed rows;
 - Bee Network labels require the accepted service-scope mapping; unmatched/ambiguous services stay
   unlabelled and reconciled;
@@ -929,7 +965,8 @@ not Manchester realism.
 2. Does TfGM or Randy provide an authorised, documented live city-road count/speed feed, and under
    what credentials, retention, and publication terms?
 3. Which exact DfT, WebTRIS, TfGM, and BODS endpoint/schema versions and rate limits will be frozen
-   at v0.7 Gate A?
+   at v0.7 Gate A? The current National Highways operational REST paths/schema are frozen by the
+   24 July 2026 extension but still require re-audit if the provider changes them.
 4. What source-specific near-live/stale thresholds are defensible?
 5. Which Manchester SUMO network, generation method, projection, date, and licence are approved?
 6. What deterministic map-matching distance/direction/road-class rules and confidence categories
@@ -959,6 +996,9 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 - DfT count data is historical survey/statistical evidence and has no measured speed field in the
   intended raw-count use.
 - WebTRIS coverage is limited to its strategic-road sites and may experience service interruption.
+- National Highways operational coverage is limited to the Strategic Road Network and active VSS
+  information; it does not provide general Manchester traffic counts, measured speeds, or
+  congestion. The observed VMS response does not expose literal displayed sign text.
 - TfGM signal locations provide infrastructure reference only.
 - A calibrated simulation remains a model with residual error, not a copy of reality.
 - Map matching and source fusion introduce decisions that must remain reviewable.
@@ -976,6 +1016,7 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 | `ManchesterSourceSnapshot` | `MAN-01` | Immutable request/retrieval/raw-response inventory and validation result |
 | `ManchesterRoadObservation` | `MAN-02`, `MAN-03`, `MAN-07` | Source-specific count/speed record with time, geography, interval, quality, and original units |
 | `LiveTransitVehicleObservation` | `MAN-05` | BODS vehicle-position evidence that cannot be used as road volume |
+| `NationalHighwaysOperationalRecord` | `MAN-01`, `MAN-07` | Source-separated closure/incident, imposed temporary-limit, or VMS status feature inside an explicit study envelope |
 | `BeeNetworkServiceScope` | `MAN-05` | Versioned operator/NOC/service membership and reconciliation policy |
 | `ManchesterInfrastructureSite` | `MAN-04`, `MAN-06`, `MAN-08` | Signal, detector, analysis-site, or RSU reference with explicit kind and source |
 | `ManchesterTimeBasis` | `MAN-07` | Explicit UTC analysis anchor and deterministic absolute-to-relative time projection |
@@ -999,6 +1040,7 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 | Official Manchester historical road evidence | `MAN-01`, `MAN-02`, `MAN-03`, `MAN-07`, `MAN-08` |
 | Traffic-signal reference map | `MAN-01`, `MAN-04`, `MAN-08` |
 | Live Bee Network bus locations | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08` |
+| Near-live National Highways operational overlays | `MAN-01`, `MAN-07`, `MAN-08` |
 | Randy evidence in Manchester workflow | `MAN-06`, `MAN-08`, `MAN-11` |
 | Historical/latest/live-vehicle map | `MAN-07`, `MAN-08`, `UX-02`, `UX-03` |
 | Observed-to-SUMO baseline and comparison | `MAN-09`, `MAN-10` |

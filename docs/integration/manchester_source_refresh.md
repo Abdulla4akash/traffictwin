@@ -2,13 +2,14 @@
 
 Status: **working real-source vertical slices; v0.7 capability acceptance remains gated**
 
-The Manchester Operations page exposes four operator-triggered workflows. Ordinary Streamlit
+The Manchester Operations page exposes five operator-triggered source families. Ordinary Streamlit
 reruns and **Refresh local evidence** remain offline. There is no background poller, scheduler,
 arbitrary URL, or automatic source fusion.
 
 | UI mode | Action | Source truth |
 |---|---|---|
-| Live vehicles | Fetch latest buses | BODS SIRI-VM transit positions; the only live feed |
+| Live vehicles | Fetch latest buses | BODS SIRI-VM transit positions; the only `live_vehicle` feed |
+| Latest available / Live vehicles | Refresh all three operational feeds | National Highways closures/incidents, imposed temporary restrictions, and VMS status; `near_live` or `stale`, never bus-live or continuous telemetry |
 | Latest available | Fetch WebTRIS site, report, and quality | One selected National Highways strategic-road site/day; source timezone unresolved |
 | Latest available | Fetch TfGM signal locations | Static signal infrastructure references; no operational state |
 | Historical replay | Fetch selected DfT rows | Historical survey, count-point, and AADF rows; no live state |
@@ -17,6 +18,22 @@ Each workflow reuses the existing bounded transport, quarantine-before-parser, i
 snapshot, exact parser, spatial admission, and atomic scene-publication boundaries. Scene updates
 replace only the same source layer and preserve unrelated source-separated layers. Source record
 counts are never added together as one traffic total.
+
+## National Highways operational products
+
+`coordinated_national_highways_refresh` performs one explicit locked three-call action against the
+exact current REST paths. The subscription key exists only as a redacted request header. Each raw
+gzip HTTP entity is quarantined and hashed before bounded decoding and strict DATEX-JSON parsing.
+The source `publicationTime` drives the conservative ten-minute `near_live`/`stale` classification.
+Failures leave the last accepted overlays unchanged and cause display-time stale projection.
+
+The broad study envelope is a declared filter, not an official boundary. Closures/incidents,
+temporary imposed limits, and VMS status remain separate map layers and can coexist with BODS buses
+without fusion. They do not provide continuous flow, measured vehicle speed, congestion, traffic-
+signal state, literal VMS display text, or complete Manchester road coverage. The isolated
+24 July 2026 real-source acceptance admitted 548 unique in-envelope records and persisted neither
+the credential nor any real response in Git. See
+[the operational feed contract](manchester_national_highways_operational_feeds.md).
 
 ## WebTRIS
 
@@ -71,10 +88,10 @@ labels with no invented timezone.
 - Raw responses are retained in the isolated v0.7 workspace before parsing.
 - A failed scene update leaves the prior scene unchanged.
 - Refresh summaries contain no credentials or unrestricted local paths.
-- WebTRIS and TfGM provider drift is visible as a typed refusal.
+- WebTRIS, TfGM, and National Highways provider drift is visible as a typed refusal.
 - Public hosting and redistribution remain controlled by each snapshot's publication class.
 
 These real-source runs prove the narrow acquisition-to-local-view paths. They do not resolve
-provider SLAs/rate limits, WebTRIS timezone semantics, Bee Network membership, live city-road
-incidents, live signal phases, comparison-contract admission, or public-hosting permission. Those
+provider SLAs, WebTRIS timezone semantics, Bee Network membership, continuous city-road telemetry,
+live signal phases, comparison-contract admission, or public-hosting permission. Those
 limits keep the encompassing `MAN-*` capability gates planned until integration reconciliation.

@@ -151,7 +151,21 @@ It is not a credentials store and should not contain private tokens.
 
 ## Credentials
 
-No credentials, tokens, API keys, or private keys are required by the current prototype. Future external integrations must avoid committing credentials and should use environment variables or local configuration outside version control.
+The immutable v0.6 workflow and every repository-contained synthetic demonstration require no
+credential. The opt-in v0.7 Manchester development workflow can use two operator-supplied
+credentials:
+
+- `BODS_API_KEY` for one explicitly submitted BODS SIRI-VM request; and
+- `NATIONAL_HIGHWAYS_API_KEY` for one explicitly submitted, three-product National Highways
+  operational refresh.
+
+Both values are read from the process environment and passed transiently to the bounded transport
+boundary. They must never be committed, placed in a Streamlit widget or session state, written to
+SQLite, copied into request models/receipts/scenes/snapshots, or included in errors and logs. BODS
+uses a redacted secret query parameter. National Highways uses a redacted secret request header.
+The acquisition tests inspect canonical JSON, persisted artifacts, exceptions, and captured logs
+for credential leakage. Environment variables still remain visible to the local process and may be
+visible to sufficiently privileged local users; TrafficTwin is not a secrets manager.
 
 ## Sanitised Fixtures
 
@@ -169,9 +183,19 @@ They should preserve schema, units, and representative values.
 
 Do not commit large real datasets or private checkpoints. Store only small sanitised fixtures where permission exists.
 
-## Future Live Data
+## Live And Near-Live Data
 
-Near-live or true-live traffic data would require additional security and privacy review, including retention, consent/authority, access control, and audit considerations.
+The v0.7 development branch contains bounded, operator-triggered private acquisition for BODS bus
+positions and three National Highways operational products. It does not run a background poller.
+Every request is quarantined before parsing, admitted only through source-specific validation,
+published as an immutable accepted snapshot, and replayed locally with source-time freshness and
+outage states. BODS raw evidence may retain source vehicle identifiers, even though rendered
+records are pseudonymised. National Highways outputs remain private pending release/licence review.
+
+Continuous collection, public hosting/export, changed retention, multi-user access, or additional
+live sources still require an explicit security, privacy, licensing, retention, and operational
+review. A recently retrieved response must never be called live merely because its download time
+is recent.
 
 ## Future User-Study Data
 

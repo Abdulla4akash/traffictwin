@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.7.0 - In development
+
+Added a bounded private National Highways operational workflow:
+
+- exact REST acquisition for Road and Lane Closures v2, Speed Managed Areas v1, and Digital VMS
+  v1 using one transient environment-supplied subscription key and fixed DATEX-JSON headers;
+- immutable quarantine-before-parse snapshots, bounded gzip decoding, strict observed-schema
+  parsers, offline hash-verified replay, complete inclusion/exclusion/duplicate reconciliation,
+  and no credential persistence;
+- publication-time `near_live`/`stale` classification, failed-refresh cached fallback, a locked
+  manual three-call/minute-limited coordinator, and bounded aggregate history;
+- source-separated closure/incident, imposed-limit, and VMS overlays that combine locally with
+  BODS bus layers without source fusion or cross-source totals; and
+- one isolated real-source acceptance on 24 July 2026 covering 548 admitted in-envelope records,
+  with no credential or private response committed.
+
+This does not add continuous traffic flow, measured vehicle speed, congestion, complete Manchester
+coverage, traffic-signal phases, literal VMS sign text, public hosting, or background polling.
+`MAN-01`, `MAN-07`, and `MAN-08` remain planned pending their wider acceptance gates.
+
 ## v0.1.0 - Standalone Prototype
 
 Prepared the TrafficTwin repository as a self-contained research-software prototype.

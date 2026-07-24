@@ -83,6 +83,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Controlled BODS live-bus scene workflow](integration/manchester_bods_live.md)
 - [Controlled BODS refresh and aggregate history](integration/manchester_bods_live_control.md)
 - [Manchester live-feature matrix](integration/manchester_live_feature_matrix.md)
+- [National Highways operational REST acquisition, replay, and map overlays](integration/manchester_national_highways_operational_feeds.md)
+- [National Highways real-source operational acceptance record](integration/evidence/national_highways_operational_acceptance_20260724.json)
 - [Private BODS snapshot retention](integration/manchester_bods_retention.md)
 - [Bee Network identifier-only live scope](integration/manchester_bee_network_scope.md)
 - [BODS real-source Gate-B probe](integration/manchester_bods_gate_b_probe.md)

@@ -72,6 +72,75 @@
       "visual_proximity_establishes_identity": false
     },
     {
+      "accepted_coordinate_kinds": [
+        "wgs84"
+      ],
+      "always_xy": true,
+      "boundary_inferred_from_coordinates": false,
+      "capability_id": "MAN-07",
+      "dual_coordinate_tolerance_m": null,
+      "method_version": "manchester-spatial-admission-1.0",
+      "proj_version": "9.5.1",
+      "pyproj_version": "3.7.2",
+      "required_geometry_meaning": "road_closure_position",
+      "required_scope": "national_highways_manchester_envelope",
+      "required_scope_basis": "national_highways_request_envelope",
+      "schema_version": "1.0",
+      "source": "national_highways_closures",
+      "source_crs": [
+        "EPSG:4326"
+      ],
+      "target_crs": "EPSG:4326",
+      "transformer_method": "identity_wgs84",
+      "visual_proximity_establishes_identity": false
+    },
+    {
+      "accepted_coordinate_kinds": [
+        "wgs84"
+      ],
+      "always_xy": true,
+      "boundary_inferred_from_coordinates": false,
+      "capability_id": "MAN-07",
+      "dual_coordinate_tolerance_m": null,
+      "method_version": "manchester-spatial-admission-1.0",
+      "proj_version": "9.5.1",
+      "pyproj_version": "3.7.2",
+      "required_geometry_meaning": "temporary_speed_restriction_position",
+      "required_scope": "national_highways_manchester_envelope",
+      "required_scope_basis": "national_highways_request_envelope",
+      "schema_version": "1.0",
+      "source": "national_highways_speed_limits",
+      "source_crs": [
+        "EPSG:4326"
+      ],
+      "target_crs": "EPSG:4326",
+      "transformer_method": "identity_wgs84",
+      "visual_proximity_establishes_identity": false
+    },
+    {
+      "accepted_coordinate_kinds": [
+        "wgs84"
+      ],
+      "always_xy": true,
+      "boundary_inferred_from_coordinates": false,
+      "capability_id": "MAN-07",
+      "dual_coordinate_tolerance_m": null,
+      "method_version": "manchester-spatial-admission-1.0",
+      "proj_version": "9.5.1",
+      "pyproj_version": "3.7.2",
+      "required_geometry_meaning": "variable_message_sign_position",
+      "required_scope": "national_highways_manchester_envelope",
+      "required_scope_basis": "national_highways_request_envelope",
+      "schema_version": "1.0",
+      "source": "national_highways_vms",
+      "source_crs": [
+        "EPSG:4326"
+      ],
+      "target_crs": "EPSG:4326",
+      "transformer_method": "identity_wgs84",
+      "visual_proximity_establishes_identity": false
+    },
+    {
       "accepted_coordinate_kinds": [],
       "always_xy": true,
       "boundary_inferred_from_coordinates": false,
