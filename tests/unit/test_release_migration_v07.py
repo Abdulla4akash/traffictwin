@@ -249,3 +249,86 @@ def test_cli_attest_migrate_and_rollback_chain(tmp_path: Path) -> None:
     assert rolled_back.exit_code == 0, rolled_back.output
     assert "backup_preserved: true" in rolled_back.output
     assert _sha256(active) == active_before
+
+
+def test_rollback_receipt_refuses_path_traversal_backup(tmp_path: Path) -> None:
+    """A hand-crafted receipt cannot steer the restore outside the workspace."""
+
+    import hashlib as _hashlib
+
+    from traffictwin.release.migration import V06MigrationError
+
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    active = workspace.active_registry_path
+    active_sha = _sha256(active)
+    outside = tmp_path / "evil.sqlite"
+    outside.write_bytes(b"attacker-controlled-bytes")
+    evil_sha = _hashlib.sha256(outside.read_bytes()).hexdigest()
+
+    # A receipt whose reconciliation passes but whose backup path traverses out.
+    tampered = {
+        "schema_version": "traffictwin.v06-migration.v1",
+        "capability_id": "REL-01",
+        "capability_status": "planned",
+        "migration_id": "mig-" + "a" * 16,
+        "migrated_at": "2026-07-24T12:00:00+00:00",
+        "attestation_fingerprint": "b" * 64,
+        "source_product_version": "0.6.0",
+        "source_registry_sha256_before": active_sha,
+        "source_registry_sha256_after": active_sha,
+        "backup_registry_sha256": evil_sha,
+        "active_registry_sha256_before": evil_sha,
+        "active_registry_sha256_after": active_sha,
+        "source_schema_version": 5,
+        "target_schema_version": 5,
+        "backup_registry_relative_path": "../evil.sqlite",
+        "source_unchanged_during_migration": True,
+        "rollback_available": True,
+        "scientific_admission": "unavailable",
+    }
+    receipt_path = tmp_path / "tampered-receipt.json"
+    receipt_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+    with pytest.raises(V06MigrationError, match="RECEIPT_INVALID"):
+        rollback_v06_migration(workspace.path, receipt_path, clock=lambda: FIXED_NOW)
+    # The active registry is untouched by the refused rollback.
+    assert _sha256(active) == active_sha
+
+
+def test_rollback_refuses_absolute_backup_path(tmp_path: Path) -> None:
+    """An absolute backup path in a receipt is refused before any read."""
+
+    import hashlib as _hashlib
+
+    from traffictwin.release.migration import V06MigrationError
+
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7", clock=lambda: FIXED_NOW)
+    active_sha = _sha256(workspace.active_registry_path)
+    outside = tmp_path / "abs-evil.sqlite"
+    outside.write_bytes(b"attacker")
+    tampered = {
+        "schema_version": "traffictwin.v06-migration.v1",
+        "capability_id": "REL-01",
+        "capability_status": "planned",
+        "migration_id": "mig-" + "c" * 16,
+        "migrated_at": "2026-07-24T12:00:00+00:00",
+        "attestation_fingerprint": "d" * 64,
+        "source_product_version": "0.6.0",
+        "source_registry_sha256_before": active_sha,
+        "source_registry_sha256_after": active_sha,
+        "backup_registry_sha256": _hashlib.sha256(b"attacker").hexdigest(),
+        "active_registry_sha256_before": _hashlib.sha256(b"attacker").hexdigest(),
+        "active_registry_sha256_after": active_sha,
+        "source_schema_version": 5,
+        "target_schema_version": 5,
+        "backup_registry_relative_path": str(outside),
+        "source_unchanged_during_migration": True,
+        "rollback_available": True,
+        "scientific_admission": "unavailable",
+    }
+    receipt_path = tmp_path / "abs-receipt.json"
+    receipt_path.write_text(json.dumps(tampered), encoding="utf-8")
+
+    with pytest.raises(V06MigrationError, match="RECEIPT_INVALID"):
+        rollback_v06_migration(workspace.path, receipt_path, clock=lambda: FIXED_NOW)
+    assert _sha256(workspace.active_registry_path) == active_sha

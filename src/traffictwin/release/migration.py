@@ -50,6 +50,16 @@ BACKUP_REGISTRY_NAME = "previous-active-registry.sqlite"
 MIGRATION_FREE_SPACE_RESERVE_BYTES = 1024 * 1024
 MAX_RECEIPT_BYTES = 64 * 1024
 
+# Backup paths are always the exact internally-computed layout below. Pinning
+# them by pattern means a tampered or hand-crafted receipt carrying a traversal
+# or absolute path fails to load rather than steering a byte copy off the
+# fixed backup location.
+_BACKUP_DIRECTORY_PATTERN = r"^compatibility/backups/mig-[0-9a-f]{16}$"
+_BACKUP_REGISTRY_PATTERN = (
+    r"^compatibility/backups/mig-[0-9a-f]{16}/previous-active-registry\.sqlite$"
+)
+_MIGRATION_RECEIPT_PATTERN = r"^compatibility/backups/mig-[0-9a-f]{16}/migration-receipt\.json$"
+
 
 class V06MigrationError(ValueError):
     """Typed refusal for unsafe or unverifiable migration requests."""
@@ -95,9 +105,9 @@ class V06MigrationPreview(_MigrationModel):
     schema_transformation_required: Literal[False] = False
     active_registry_sha256_before: str = Field(pattern=r"^[0-9a-f]{64}$")
     migration_id: str = Field(pattern=r"^mig-[0-9a-f]{16}$")
-    backup_relative_directory: str
-    backup_registry_relative_path: str
-    receipt_relative_path: str
+    backup_relative_directory: str = Field(pattern=_BACKUP_DIRECTORY_PATTERN)
+    backup_registry_relative_path: str = Field(pattern=_BACKUP_REGISTRY_PATTERN)
+    receipt_relative_path: str = Field(pattern=_MIGRATION_RECEIPT_PATTERN)
     required_free_bytes: int = Field(ge=1)
     available_free_bytes: int = Field(ge=0)
     source_mutation_allowed: Literal[False] = False
@@ -130,7 +140,7 @@ class V06MigrationReceipt(_MigrationModel):
     active_registry_sha256_after: str = Field(pattern=r"^[0-9a-f]{64}$")
     source_schema_version: int = Field(ge=1)
     target_schema_version: int = Field(ge=1)
-    backup_registry_relative_path: str
+    backup_registry_relative_path: str = Field(pattern=_BACKUP_REGISTRY_PATTERN)
     source_unchanged_during_migration: Literal[True] = True
     rollback_available: Literal[True] = True
     scientific_admission: Literal["unavailable"] = "unavailable"
@@ -366,7 +376,7 @@ def rollback_v06_migration(
 
     root = Path(target_workspace).resolve(strict=True)
     receipt = load_v06_migration_receipt(receipt_path)
-    backup = root / receipt.backup_registry_relative_path
+    backup = _safe_workspace_path(root, receipt.backup_registry_relative_path)
     if backup.is_symlink() or not backup.is_file():
         raise V06MigrationError(
             "BACKUP_MISSING_OR_UNSAFE",
@@ -430,6 +440,27 @@ def _safe_closed_registry(source: Path, workspace_root: Path) -> Path:
             "SOURCE_IS_ACTIVE_REGISTRY", "the active v0.7 registry cannot be its own source"
         )
     return resolved
+
+
+def _safe_workspace_path(root: Path, relative: str) -> Path:
+    """Resolve a workspace-relative path, refusing traversal and escapes.
+
+    The receipt fields are already pattern-pinned, so this is defence in depth
+    against any future field whose validator is relaxed or bypassed.
+    """
+
+    candidate = Path(relative)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise V06MigrationError(
+            "UNSAFE_RECEIPT_PATH", f"unsafe workspace-relative path: {relative}"
+        )
+    resolved_root = root.resolve(strict=True)
+    resolved = (root / candidate).resolve(strict=False)
+    if not resolved.is_relative_to(resolved_root):
+        raise V06MigrationError(
+            "RECEIPT_PATH_ESCAPES_WORKSPACE", f"receipt path escapes the workspace: {relative}"
+        )
+    return root / candidate
 
 
 def _write_new_bytes(path: Path, payload: bytes) -> None:
