@@ -74,3 +74,42 @@ def test_energy_evidence_keeps_r8_raw_in_advanced() -> None:
     assert "Observed completed-task energy (J/task)" in metric_labels(app)
     # Any raw R8 dict/JSON is confined to the Advanced/Evidence expander, not primary content.
     assert advanced
+
+
+# --- Fairness Evidence ------------------------------------------------------
+
+
+def test_fairness_evidence_shows_coverage_disparities_and_exclusions() -> None:
+    app = page_app(UiPage.FAIRNESS).run(timeout=40)
+    assert not app.exception
+
+    labels = metric_labels(app)
+    # Eligible-group coverage KPI row with numeric-with-units metrics.
+    assert "Eligible vehicle-tier groups" in labels
+    assert "Group coverage (%)" in labels
+    # Disparity cards remain numeric metrics.
+    assert "Vehicle-tier completion gap" in labels
+    assert "RSU normalised-load Jain index" in labels
+
+    heads = subheaders(app)
+    assert "Disparity Summary" in heads
+    assert "Exclusions & Limitations" in heads
+
+    body = text_of(app)
+    # No fair/unfair verdict is asserted without the contract and evidence.
+    assert "never labels a policy fair or unfair" in body
+    # Protected-attribute limitation and insufficient-group exclusion stay visible.
+    assert "Protected or demographic attributes are **not represented**" in body
+    assert "excluded" in body.lower()
+    # The categorical R7 status is a badge, not a numeric metric.
+    assert "R7 status" not in labels
+    assert "R7 status:" in body
+
+
+def test_fairness_evidence_keeps_policy_and_r7_raw_in_advanced() -> None:
+    app = page_app(UiPage.FAIRNESS).run(timeout=40)
+    assert not app.exception
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    # Complete policy fingerprint and raw R7 evidence live under Advanced/Evidence.
+    assert any("policy identity" in label.lower() for label in advanced)
+    assert any("R7 evidence" in label for label in advanced)

@@ -373,9 +373,15 @@ def test_streamlit_fairness_page_renders_supported_groups_and_policy(
     assert any(title.value == "Fairness Evidence" for title in app.title)
     assert expected_cards <= {metric.label for metric in app.metric}
     assert len(app.dataframe) == 2
-    assert next(metric for metric in app.metric if metric.label == "R7 status").value
+    # Presentation (Tier 4): the categorical R7 status/dimension render as badges in markdown, not
+    # numeric metrics; the library-evaluated selection is still asserted below.
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert "R7 status:" in markdown_text
+    assert "R7 status" not in {str(metric.label) for metric in app.metric}
     dimension = next(item for item in app.selectbox if item.label == "R7 dimension")
     assert dimension.value == "Vehicle-tier completion"
+    assert ":gray-badge[vehicle_tier_completion]" in markdown_text
+    # The complete fairness policy fingerprint stays visible under Advanced/Evidence.
     assert any(
         "7518652f882ea2928b4fcc6c500af9fa81e2bf6d88fcb0ed655d7be46ede0e6e" in caption.value
         for caption in app.caption
@@ -384,9 +390,8 @@ def test_streamlit_fairness_page_renders_supported_groups_and_policy(
     dimension.set_value("Exact target-RSU completion").run(timeout=10)
 
     assert not app.exception
-    assert next(metric for metric in app.metric if metric.label == "Selected dimension").value == (
-        "target_rsu_completion"
-    )
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert ":gray-badge[target_rsu_completion]" in markdown_text
 
 
 def test_streamlit_energy_page_renders_r8_controls_and_reacts(
