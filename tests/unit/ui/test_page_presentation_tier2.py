@@ -68,7 +68,40 @@ def test_temporal_metrics_keeps_raw_contract_in_advanced() -> None:
     app = click_button(app, "Compute Windowed Metrics")
     assert not app.exception
     # The raw window-contract JSON is present, but behind an Advanced label.
-    advanced_labels = [
-        str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)
-    ]
+    advanced_labels = [str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)]
     assert any("window contract" in label.lower() for label in advanced_labels)
+
+
+# --- Threshold Sensitivity --------------------------------------------------
+
+
+def test_threshold_sensitivity_renders_chart_table_and_no_primary_dict_dump() -> None:
+    app = page_app(UiPage.THRESHOLD_SENSITIVITY).run(timeout=30)
+    assert not app.exception
+    # The descriptive, non-recommendation warning is prominent.
+    assert any("not" in str(w.value) and "recommendation" in str(w.value) for w in app.warning)
+
+    app = click_button(app, "Run Threshold Sweep")
+    assert not app.exception
+
+    body = text_of(app)
+    # Predeclared grid and descriptive (non-optimal) framing are explicit.
+    assert "Predeclared grid" in body
+    assert "not an optimum" in body
+    # A threshold-response chart and a structured grid table exist.
+    assert len(app.dataframe) >= 1
+    # Numeric summary uses metrics with count labels.
+    assert "Evaluated grid points" in metric_labels(app)
+    # Categorical source status must NOT be a numeric st.metric.
+    assert "Source status" not in metric_labels(app)
+    # The stability structure is a bordered panel, not a raw dict in primary content.
+    assert "Stability across the grid" in body
+
+
+def test_threshold_sensitivity_keeps_fingerprints_and_contract_in_advanced() -> None:
+    app = page_app(UiPage.THRESHOLD_SENSITIVITY).run(timeout=30)
+    app = click_button(app, "Run Threshold Sweep")
+    assert not app.exception
+    advanced = [str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)]
+    assert any("fingerprint" in label.lower() for label in advanced)
+    assert any("contract" in label.lower() for label in advanced)

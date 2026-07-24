@@ -12,6 +12,8 @@ from traffictwin.diagnostics.threshold_sweep import (
 from traffictwin.evidence.pack import EvidencePack
 from traffictwin.rules.config import RuleSetConfig
 from traffictwin.ui.charts import threshold_sweep_figure
+from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
 from traffictwin.ui.services import (
     ServiceError,
@@ -20,6 +22,7 @@ from traffictwin.ui.services import (
     rule_config_json_for_ui,
     sweep_point_config_json_for_ui,
 )
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 RULE_OPTIONS = {
     "R5 — training-validation maximum gap": "R5",
@@ -157,41 +160,69 @@ def _render_report(report: ThresholdSensitivityReport) -> None:
         st.error("Sweep report rule identity is inconsistent.")
         return
 
-    summary = st.columns(4)
-    summary[0].metric("Source status", report.source_status.value if report.source_status else "—")
-    summary[1].metric("Evaluated grid points", report.evaluated_point_count)
-    summary[2].metric("Triggered points", report.stability.triggered_point_count)
-    summary[3].metric("Sampled flip intervals", len(report.flip_boundaries))
-    st.caption(
-        f"Requested {report.requested_point_count} points; evaluated "
-        f"{report.evaluated_point_count}. Source threshold inserted: "
-        f"{str(report.source_threshold_injected).lower()}. Triggered fraction: "
-        f"{report.stability.triggered_fraction:.3f}."
-    )
+    source_status = report.source_status.value if report.source_status else "unavailable"
+    with st.container(border=True):
+        st.markdown(f"**Source-threshold rule status:** {badge_markdown(source_status)}")
+        summary = st.columns(3)
+        summary[0].metric("Evaluated grid points", report.evaluated_point_count, border=True)
+        summary[1].metric("Triggered points", report.stability.triggered_point_count, border=True)
+        summary[2].metric("Sampled flip intervals", len(report.flip_boundaries), border=True)
+        st.caption(
+            f"Predeclared grid: {report.requested_point_count} requested points over "
+            f"[{report.points[0].threshold:g}, {report.points[-1].threshold:g}] "
+            f"{report.threshold_unit}; {report.evaluated_point_count} evaluated. "
+            f"Source threshold inserted: {str(report.source_threshold_injected).lower()}. "
+            f"Triggered fraction: {report.stability.triggered_fraction:.3f}. "
+            "Every grid point stays visible; this is descriptive sensitivity, not an optimum."
+        )
+        status_counts = report.stability.status_counts
+        if status_counts:
+            st.caption(
+                "Status reconciliation: "
+                + " · ".join(f"{state}: {count}" for state, count in sorted(status_counts.items()))
+            )
 
     rows = [
         {
             "ordinal": point.ordinal,
             "threshold": point.threshold,
-            "unit": report.threshold_unit,
             "status": point.status.value,
             "triggered": point.triggered,
             "source_threshold": point.is_source_threshold,
             "findings": point.finding_count,
             "missing_evidence": point.missing_evidence_count,
-            "result_fingerprint": point.result_fingerprint,
         }
         for point in report.points
     ]
     st.plotly_chart(threshold_sweep_figure(report), width="stretch")
-    st.dataframe(rows, hide_index=True, width="stretch")
+    st.caption(
+        f"Threshold-response over the predeclared grid ({report.threshold_unit}). "
+        "Unavailable or missing-evidence points remain visible rather than dropped."
+    )
+    st.dataframe(
+        rows,
+        hide_index=True,
+        width="stretch",
+        column_config=table_column_config(
+            rows,
+            units={"threshold": report.threshold_unit or ""},
+            overrides={
+                "ordinal": ColumnDisplay(key="ordinal", label="Grid point", hidden=False),
+                "missing_evidence": ColumnDisplay(
+                    key="missing_evidence", label="Missing evidence", hidden=False
+                ),
+            },
+        ),
+    )
 
     st.subheader("Flip Boundaries And Stability")
     if report.flip_boundaries:
+        boundary_rows = [boundary.model_dump(mode="json") for boundary in report.flip_boundaries]
         st.dataframe(
-            [boundary.model_dump(mode="json") for boundary in report.flip_boundaries],
+            boundary_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(boundary_rows, units={}),
         )
         st.caption(
             "Each interval is bounded by adjacent sampled points and is not the exact boundary."
@@ -210,17 +241,21 @@ def _render_report(report: ThresholdSensitivityReport) -> None:
         st.caption(
             f"Exact DIA-05 nearest flip unavailable: {nearest.reason_code.value} — {nearest.reason}"
         )
-    st.write(
-        {
-            "status_counts": report.stability.status_counts,
-            "status_transition_count": report.stability.status_transition_count,
-            "trigger_transition_count": report.stability.trigger_transition_count,
-            "all_statuses_identical": report.stability.all_statuses_identical,
-            "triggered_membership_monotonic_prefix": (
-                report.stability.triggered_membership_monotonic_prefix
-            ),
-        }
-    )
+    with st.container(border=True):
+        st.markdown("**Stability across the grid**")
+        stability_columns = st.columns(2)
+        stability_columns[0].metric(
+            "Status transitions", report.stability.status_transition_count, border=True
+        )
+        stability_columns[1].metric(
+            "Trigger transitions", report.stability.trigger_transition_count, border=True
+        )
+        identical = "yes" if report.stability.all_statuses_identical else "no"
+        monotonic = "yes" if report.stability.triggered_membership_monotonic_prefix else "no"
+        st.markdown(
+            f"**All statuses identical:** {badge_markdown(identical)} · "
+            f"**Monotonic triggered prefix:** {badge_markdown(monotonic)}"
+        )
 
     source_config = st.session_state.get("threshold_sweep_source_config")
     if isinstance(source_config, RuleSetConfig):
@@ -250,7 +285,34 @@ def _render_report(report: ThresholdSensitivityReport) -> None:
                 mime="application/json",
             )
 
-    with st.expander("Complete sweep contract, provenance, and limitations"):
+    if report.limitations:
+        st.caption("Limitations: " + "; ".join(report.limitations))
+    with st.expander("Advanced: per-point result fingerprints"):
+        fingerprint_rows = [
+            {
+                "ordinal": point.ordinal,
+                "threshold": point.threshold,
+                "result_fingerprint": fingerprint_summary(point.result_fingerprint),
+            }
+            for point in report.points
+        ]
+        st.dataframe(
+            fingerprint_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(
+                fingerprint_rows,
+                hide_machine_ids=False,
+                units={"threshold": report.threshold_unit or ""},
+                overrides={
+                    "result_fingerprint": ColumnDisplay(
+                        key="result_fingerprint", label="Result fingerprint", hidden=False
+                    )
+                },
+            ),
+        )
+        st.caption(f"Report fingerprint: `{report.fingerprint()}`")
+    with st.expander("Advanced: complete sweep contract, provenance, and limitations (raw)"):
         st.json(
             {
                 "request": report.request.model_dump(mode="json"),
