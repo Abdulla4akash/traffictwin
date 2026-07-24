@@ -5,17 +5,21 @@ from __future__ import annotations
 import streamlit as st
 
 from traffictwin.evidence.pack import EvidencePack
-from traffictwin.metrics.results import MetricValue
+from traffictwin.metrics.results import MetricStatus, MetricValue
 from traffictwin.rules.models import RuleStatus
-from traffictwin.ui.components.cards import metric_card
+from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import metric_card, section_header
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
 from traffictwin.ui.services import ServiceError, evaluate_energy_diagnostic_for_ui
 
-ENERGY_METRICS = {
-    "Observed-task energy": "task.energy.mean_per_observed_task_j",
-    "Completed-task energy": "task.energy.per_completed_j",
-    "Energy-delay product": "task.energy_delay_product.mean_j_ms",
-}
+# Human label (with explicit unit), metric key, and the unit token used to group
+# comparable measures on the descriptive chart. The unit lives in the label so
+# every energy card is a numeric-with-units st.metric.
+ENERGY_FAMILY: tuple[tuple[str, str, str], ...] = (
+    ("Observed-task energy (J)", "task.energy.mean_per_observed_task_j", "J"),
+    ("Completed-task energy (J)", "task.energy.per_completed_j", "J"),
+    ("Energy-delay product (J·ms)", "task.energy_delay_product.mean_j_ms", "J·ms"),
+)
 
 
 def render() -> None:
@@ -32,18 +36,99 @@ def render() -> None:
         "or differently defined energy is unavailable and is never treated as zero or converted."
     )
 
-    st.subheader("Contract-Gated Energy Metrics")
+    _render_coverage_dashboard(metrics)
+    _render_family_states(metrics)
+
+    section_header("Contract-Gated Energy Metrics")
     columns = st.columns(3)
-    for column, (title, key) in zip(columns, ENERGY_METRICS.items(), strict=True):
+    for column, (title, key, _unit) in zip(columns, ENERGY_FAMILY, strict=True):
         with column:
             metric_card(title, metrics.get(key))
+    _render_joule_comparison(metrics)
     st.caption(_coverage_caption(metrics))
 
     _render_r8(analysis.evidence_pack)
 
 
+def _render_coverage_dashboard(metrics: dict[str, MetricValue]) -> None:
+    """Render a coverage-first KPI row over the energy family."""
+
+    states = [_state_of(metrics.get(key)) for _title, key, _unit in ENERGY_FAMILY]
+    completed = metrics.get("task.energy.per_completed_j")
+    with st.container(border=True):
+        st.markdown("**Energy-family coverage**")
+        columns = st.columns(4)
+        columns[0].metric("Available (metrics)", states.count("available"), border=True)
+        columns[1].metric("Partial (metrics)", states.count("partial"), border=True)
+        columns[2].metric(
+            "Unavailable (metrics)",
+            states.count("unavailable") + states.count("invalid"),
+            border=True,
+        )
+        columns[3].metric(
+            "Completed-task coverage (%)",
+            _coverage_percentage(completed),
+            help="Eligible completed tasks / population; not inferred when the contract is absent.",
+            border=True,
+        )
+        st.caption(
+            "Coverage counts describe how much of the declared energy contract is satisfied. A "
+            "lower energy value is never, alone, evidence of efficiency or of a superior policy."
+        )
+
+
+def _render_family_states(metrics: dict[str, MetricValue]) -> None:
+    """Separate the energy family into available, partial, and unavailable groups."""
+
+    grouped: dict[str, list[str]] = {"available": [], "partial": [], "unavailable": []}
+    for title, key, _unit in ENERGY_FAMILY:
+        state = _state_of(metrics.get(key))
+        bucket = "unavailable" if state in {"unavailable", "invalid"} else state
+        grouped.setdefault(bucket, []).append(title)
+    section_header("Energy Families By Evidence State")
+    for state, label in (
+        ("available", "Available"),
+        ("partial", "Partial"),
+        ("unavailable", "Unavailable"),
+    ):
+        members = grouped.get(state, [])
+        badges = " ".join(badge_markdown(state) for _ in members) if members else ""
+        listed = ", ".join(members) if members else "none"
+        st.markdown(f"**{label}:** {badges} {listed}".rstrip())
+    st.caption(
+        "Randy/TOS per-task physical energy is not a supported measure; it stays unavailable "
+        "wherever the canonical task-energy contract does not define it, rather than being filled."
+    )
+
+
+def _render_joule_comparison(metrics: dict[str, MetricValue]) -> None:
+    """Chart the two joule-denominated energies when both are available and numeric."""
+
+    rows = [
+        {"Energy measure": title.replace(" (J)", ""), "Energy (J)": float(metric.value)}
+        for title, key, unit in ENERGY_FAMILY
+        if unit == "J"
+        and (metric := metrics.get(key)) is not None
+        and metric.status is MetricStatus.AVAILABLE
+        and isinstance(metric.value, int | float)
+        and not isinstance(metric.value, bool)
+    ]
+    if not rows:
+        st.caption(
+            "No joule-denominated energy value is available, so the descriptive comparison chart "
+            "is omitted rather than drawn from missing or defaulted values."
+        )
+        return
+    st.bar_chart(rows, x="Energy measure", y="Energy (J)", x_label="", y_label="Energy (J)")
+    st.caption(
+        "Descriptive comparison of already-computed joule values; the energy-delay product uses a "
+        "different unit (J·ms) and is shown only as a metric. Bar height is not an efficiency or "
+        "superiority ranking."
+    )
+
+
 def _render_r8(evidence_pack: EvidencePack | None) -> None:
-    st.subheader("R8 Completed-Task Energy Candidate")
+    section_header("R8 Completed-Task Energy Candidate")
     st.caption(
         "The 1.50 J/task default and 10-task support minimum are provisional synthetic-development "
         "configuration, not a hardware benchmark, statistical anomaly test, or efficiency standard."
@@ -79,13 +164,16 @@ def _render_r8(evidence_pack: EvidencePack | None) -> None:
         if result.detail:
             st.code(result.detail)
         return
-    summary = st.columns(3)
-    summary[0].metric("R8 status", result.status.value)
-    summary[1].metric(
-        "Observed completed-task energy",
-        _display_value(result.metadata.get("r8_observed_energy_per_completed_task_j")),
-    )
-    summary[2].metric("Categorical confidence", result.confidence.value)
+    with st.container(border=True):
+        st.markdown(
+            f"**R8 status:** {badge_markdown(result.status.value)} · "
+            f"**Categorical confidence:** {badge_markdown(result.confidence.value)}"
+        )
+        st.metric(
+            "Observed completed-task energy (J/task)",
+            _display_value(result.metadata.get("r8_observed_energy_per_completed_task_j")),
+            border=True,
+        )
     if result.status is RuleStatus.TRIGGERED:
         st.warning(result.hypothesis or "R8 identified the configured candidate pattern.")
     elif result.status is RuleStatus.CONFLICTING_EVIDENCE:
@@ -94,7 +182,7 @@ def _render_r8(evidence_pack: EvidencePack | None) -> None:
         st.info("R8 admission failed; incompatible or missing evidence is shown below.")
     else:
         st.success("R8 did not identify the configured candidate pattern.")
-    with st.expander("R8 evidence, alternatives, and limitations"):
+    with st.expander("Advanced/Evidence: R8 evidence, alternatives, and limitations"):
         for finding in result.findings:
             st.write(f"{finding.finding_id} — {finding.support.value}: {finding.statement}")
         if result.missing_evidence:
@@ -112,6 +200,21 @@ def _render_r8(evidence_pack: EvidencePack | None) -> None:
         file_name=f"{evidence_pack.pack_id}-r8.json",
         mime="application/json",
     )
+
+
+def _state_of(metric: MetricValue | None) -> str:
+    if metric is None:
+        return "unavailable"
+    return metric.status.value
+
+
+def _coverage_percentage(metric: MetricValue | None) -> str:
+    if metric is None:
+        return "Unavailable"
+    coverage = metric.metadata.get("coverage_fraction")
+    if isinstance(coverage, int | float) and not isinstance(coverage, bool):
+        return f"{100 * float(coverage):.1f}%"
+    return "Unavailable"
 
 
 def _coverage_caption(metrics: dict[str, MetricValue]) -> str:

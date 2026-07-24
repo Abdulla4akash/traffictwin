@@ -405,9 +405,13 @@ def test_streamlit_energy_page_renders_r8_controls_and_reacts(
 
     assert not app.exception
     assert any(title.value == "Energy Evidence" for title in app.title)
-    assert next(metric for metric in app.metric if metric.label == "R8 status").value == (
-        "not_triggered"
-    )
+    # Presentation (Tier 4): the categorical R8 status renders as a badge in markdown, not as a
+    # numeric metric; the library-evaluated transition is still asserted below.
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert "R8 status:" in markdown_text
+    assert ":gray-badge[not_triggered]" in markdown_text
+    assert ":gray-badge[triggered]" not in markdown_text
+    assert "R8 status" not in {str(metric.label) for metric in app.metric}
     assert any(button.label == "Download R8 result (JSON)" for button in app.download_button)
     threshold = next(
         item
@@ -417,7 +421,8 @@ def test_streamlit_energy_page_renders_r8_controls_and_reacts(
     threshold.set_value(0.9).run(timeout=10)
 
     assert not app.exception
-    assert next(metric for metric in app.metric if metric.label == "R8 status").value == "triggered"
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert ":gray-badge[triggered]" in markdown_text
 
 
 def test_streamlit_threshold_sensitivity_runs_full_r8_grid_without_persisting(
