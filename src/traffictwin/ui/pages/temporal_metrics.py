@@ -8,12 +8,14 @@ from traffictwin.diagnostics.temporal import TemporalDiagnosticAnalysis
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.metrics.windowed import WindowDisposition, WindowedMetricSeries
 from traffictwin.ui.charts import line_figure
+from traffictwin.ui.components.badges import badge_markdown
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
 from traffictwin.ui.services import (
     ServiceError,
     compute_windowed_metrics_for_ui,
     evaluate_temporal_diagnostics_for_ui,
 )
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 
 def render() -> None:
@@ -64,15 +66,18 @@ def render() -> None:
         st.info("Choose the temporal contract and compute the windowed series.")
         return
 
-    summary = st.columns(4)
-    summary[0].metric("Included windows", result.included_window_count)
-    summary[1].metric("Excluded partial", result.excluded_partial_window_count)
-    summary[2].metric("Empty windows", result.included_empty_window_count)
-    summary[3].metric("Applicable metrics", len(result.applicable_metric_keys))
-    st.caption(
-        f"Range: {result.analysis_start_s} to {result.analysis_end_s} s | "
-        f"Source: {result.range_source.value} | Boundary: {result.boundary}"
-    )
+    with st.container(border=True):
+        st.markdown("**Window reconciliation**")
+        summary = st.columns(4)
+        summary[0].metric("Included windows", result.included_window_count, border=True)
+        summary[1].metric("Excluded partial", result.excluded_partial_window_count, border=True)
+        summary[2].metric("Empty windows", result.included_empty_window_count, border=True)
+        summary[3].metric("Applicable metrics", len(result.applicable_metric_keys), border=True)
+        st.caption(
+            f"Analysis range: {result.analysis_start_s}–{result.analysis_end_s} s "
+            f"(source: {result.range_source.value}, boundary: {result.boundary}). "
+            "Empty windows stay visible; a missing metric is never filled with zero."
+        )
 
     metric_key = st.selectbox(
         "Metric",
@@ -84,7 +89,30 @@ def render() -> None:
         ),
     )
     rows = _metric_rows(result, str(metric_key))
-    st.dataframe(rows, hide_index=True, width="stretch")
+    st.caption(
+        f"One row per fixed window for `{metric_key}`. Coverage is the requested-range overlap "
+        "fraction. A blank value is an unavailable or excluded window, not a zero measurement."
+    )
+    st.dataframe(
+        rows,
+        hide_index=True,
+        width="stretch",
+        column_config=table_column_config(
+            rows,
+            hide_machine_ids=False,
+            units={
+                "window_start_s": "s",
+                "window_end_s": "s",
+                "effective_start_s": "s",
+                "effective_end_s": "s",
+            },
+            number_formats={"coverage": "%.3f"},
+            overrides={
+                "window": ColumnDisplay(key="window", label="Window", hidden=False),
+                "value": ColumnDisplay(key="value", label="Metric value", hidden=False),
+            },
+        ),
+    )
     chart_rows = [
         row
         for row in rows
@@ -101,6 +129,9 @@ def render() -> None:
             ),
             width="stretch",
         )
+        st.caption("Chart plots only available windows over already-computed values.")
+    else:
+        st.info("No available numeric windows to chart for this metric.", icon=":material/info:")
     for warning in result.warnings:
         st.warning(warning)
 
@@ -185,28 +216,39 @@ def render() -> None:
             st.code(diagnosis.detail)
     elif isinstance(diagnosis, TemporalDiagnosticAnalysis):
         r6 = diagnosis.r6_result
-        diagnosis_columns = st.columns(4)
-        diagnosis_columns[0].metric("R6 status", r6.status.value)
-        diagnosis_columns[1].metric(
-            "Eligible windows", diagnosis.temporal_evidence.eligible_window_count
+        episode = (
+            f"{r6.metadata.get('episode_start_ordinal')}–{r6.metadata.get('episode_end_ordinal')}"
+            if r6.metadata.get("episode_start_ordinal") is not None
+            else "none"
         )
-        diagnosis_columns[2].metric(
-            "Episode",
-            (
-                f"{r6.metadata.get('episode_start_ordinal')}–"
-                f"{r6.metadata.get('episode_end_ordinal')}"
-                if r6.metadata.get("episode_start_ordinal") is not None
-                else "none"
-            ),
-        )
-        diagnosis_columns[3].metric(
-            "Recovery", str(r6.metadata.get("recovery_assessment", "unavailable"))
-        )
+        recovery = str(r6.metadata.get("recovery_assessment", "unavailable"))
+        with st.container(border=True):
+            st.markdown(
+                f"**R6 status:** {badge_markdown(r6.status.value)} · "
+                f"**Episode (window ordinals):** {episode} · "
+                f"**Recovery:** {badge_markdown(recovery)}"
+            )
+            st.metric(
+                "Eligible windows",
+                diagnosis.temporal_evidence.eligible_window_count,
+                border=True,
+            )
         if r6.hypothesis:
             st.warning(r6.hypothesis)
-        for finding in r6.findings:
-            st.write(f"{finding.finding_id}: {finding.statement}")
-        with st.expander("R6 evidence, configuration, and limitations"):
+        if r6.findings:
+            finding_rows = [
+                {"finding": finding.finding_id, "statement": finding.statement}
+                for finding in r6.findings
+            ]
+            st.dataframe(
+                finding_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(finding_rows),
+            )
+        if r6.limitations:
+            st.caption("Limitations: " + "; ".join(r6.limitations))
+        with st.expander("Advanced: R6 evidence, configuration, and limitations (raw)"):
             st.json(
                 {
                     "temporal_evidence": diagnosis.temporal_evidence.model_dump(mode="json"),
@@ -222,7 +264,7 @@ def render() -> None:
             file_name=f"{result.run_id}-r6-temporal-diagnosis.json",
             mime="application/json",
         )
-    with st.expander("Window contract and anchors"):
+    with st.expander("Advanced: window contract and anchors (raw)"):
         st.json(
             {
                 "config": result.config.model_dump(mode="json"),

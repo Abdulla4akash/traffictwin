@@ -143,7 +143,11 @@ def test_streamlit_temporal_metrics_page_computes_series_with_apptest() -> None:
     assert not app.exception
     assert isinstance(diagnosis, TemporalDiagnosticAnalysis)
     assert diagnosis.r6_result.rule_id == "R6"
-    assert any(item.label == "R6 status" for item in app.metric)
+    # R6 status is a categorical state, rendered as a badge (not a numeric metric).
+    r6_status = diagnosis.r6_result.status.value
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert "R6 status:" in markdown_text
+    assert r6_status in markdown_text
 
 
 def test_streamlit_spatial_rsu_page_renders_contracted_synthetic_evidence(
