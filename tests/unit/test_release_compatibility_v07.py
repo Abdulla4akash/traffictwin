@@ -382,3 +382,36 @@ def test_attestation_artifact_refuses_tampered_literals(tmp_path: Path) -> None:
 
     with pytest.raises(V06AttestationError, match="ATTESTATION_INVALID"):
         load_v06_producer_attestation(artifact)
+
+
+def test_attestation_loader_refuses_oversized_and_missing(tmp_path: Path) -> None:
+    from traffictwin.release.attestation import (
+        V06AttestationError,
+        load_v06_producer_attestation,
+    )
+
+    with pytest.raises(V06AttestationError, match="ATTESTATION_MISSING_OR_UNSAFE"):
+        load_v06_producer_attestation(tmp_path / "absent.json")
+
+    big = tmp_path / "big.json"
+    big.write_text("x" * (64 * 1024 + 1), encoding="utf-8")
+    with pytest.raises(V06AttestationError, match="ATTESTATION_OVERSIZED"):
+        load_v06_producer_attestation(big)
+
+    invalid = tmp_path / "invalid.json"
+    invalid.write_text("{ not json", encoding="utf-8")
+    with pytest.raises(V06AttestationError, match="ATTESTATION_INVALID"):
+        load_v06_producer_attestation(invalid)
+
+
+def test_attestation_build_refuses_symlinked_registry(tmp_path: Path) -> None:
+    from traffictwin.release.attestation import (
+        V06AttestationError,
+        build_v06_producer_attestation,
+    )
+
+    real = _closed_registry(tmp_path / "real.sqlite")
+    link = tmp_path / "link.sqlite"
+    link.symlink_to(real)
+    with pytest.raises(V06AttestationError, match="REGISTRY_MISSING_OR_UNSAFE"):
+        build_v06_producer_attestation(link, operator_name="Op", attested_at=FIXED_NOW)
