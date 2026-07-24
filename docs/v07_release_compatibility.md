@@ -81,7 +81,20 @@ traffictwin release v07-workspace-init workspace-v0.7
 traffictwin release v07-workspace-inspect workspace-v0.7 [--format json]
 traffictwin release v06-copy-preview /path/to/closed-v0.6-registry.sqlite workspace-v0.7
 traffictwin release v06-copy /path/to/closed-v0.6-registry.sqlite workspace-v0.7
+traffictwin release v06-attest /path/to/registry.sqlite --operator "Name" --output attestation.json
+traffictwin release v06-migrate-preview /path/to/registry.sqlite workspace-v0.7 --attestation attestation.json
+traffictwin release v06-migrate /path/to/registry.sqlite workspace-v0.7 --attestation attestation.json
+traffictwin release v06-rollback workspace-v0.7 --receipt workspace-v0.7/compatibility/backups/mig-*/migration-receipt.json
 ```
+
+`v06-attest` records the ADR-058 operator clean-checkout statement against exact registry
+bytes. `v06-migrate` activates an attested source only after publishing a durable byte-exact
+backup of the previous active registry; the frozen v0.6 schema equals the current v0.7 schema,
+so no schema transformation occurs and any other source version is refused. An interruption
+before the receipt exists leaves a receipt-less quarantined backup directory that must be
+inspected before retrying, and `v06-rollback` restores the backup only while the active registry
+still matches the migration receipt. Activation transfers operational bytes only: scientific
+admission stays unavailable and `REL-01` remains planned.
 
 `v07-workspace-init` is new-only, `v07-workspace-inspect` and `v06-copy-preview` are read-only,
 and `v06-copy` publishes only the non-active byte-exact snapshot described above. See
@@ -95,9 +108,8 @@ tests cover new-only creation, exact layout and namespace validation, tamper and
 read-only preview, byte identity, receipt reconciliation, repeat-copy refusal, sidecar refusal,
 source-inside-target refusal, failure cleanup, and timezone-safe timestamps.
 
-`REL-01` remains planned until later work adds and accepts complete workspace preview/migration,
-backup, interruption quarantine, activation, rollback, downgrade refusal,
-side-by-side clean-checkout tests, package/release version alignment, and final documentation and
-capability reconciliation. The bounded init/inspect/preview/copy CLI above wires only the existing
-foundation; migration, activation, and rollback have no CLI because they have no accepted
-implementation.
+`REL-01` remains planned until later work adds and accepts side-by-side clean-checkout tests,
+package/release version alignment, cross-schema migration if a schema ever diverges, and final
+documentation and capability reconciliation. The attested same-schema activation slice above
+implements preview, backup, interruption quarantine, activation, and rollback for
+ADR-058-attested sources only; an unattested registry still cannot claim v0.6.0 provenance.

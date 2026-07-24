@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Annotated
 
@@ -334,12 +334,19 @@ from traffictwin.registry_search import (
     search_registry,
 )
 from traffictwin.release import (
+    V06AttestationError,
+    V06MigrationError,
     V07CompatibilityError,
+    build_v06_producer_attestation,
     copy_v06_registry,
     current_release_metadata,
     initialise_v07_workspace,
     inspect_v07_workspace,
+    load_v06_producer_attestation,
+    migrate_v06_registry,
+    preview_v06_migration,
     preview_v06_registry_copy,
+    rollback_v06_migration,
     stage_synthetic_demo_site,
 )
 from traffictwin.rendering.findings import (
@@ -4339,6 +4346,121 @@ def release_v06_copy_command(
     typer.echo(f"source_unchanged: {str(receipt.source_unchanged_during_copy).lower()}")
     typer.echo(f"automatic_activation: {str(receipt.automatic_activation).lower()}")
     typer.echo(f"scientific_admission: {receipt.scientific_admission}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-attest")
+def release_v06_attest_command(
+    registry: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    operator: Annotated[str, typer.Option("--operator", help="Attesting operator name.")],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+) -> None:
+    """Record the operator clean-checkout attestation for one registry.
+
+    Running this command is the ADR-058 operator statement that the immutable
+    v0.6.0 tag was run from a clean checkout against this exact registry.
+    TrafficTwin cannot verify that human step and the attestation approves no
+    migration by itself.
+    """
+
+    try:
+        attestation = build_v06_producer_attestation(
+            registry, operator_name=operator, attested_at=datetime.now(UTC)
+        )
+        payload = (attestation.canonical_json() + "\n").encode("utf-8")
+        with output.open("xb") as handle:
+            handle.write(payload)
+    except (V06AttestationError, FileExistsError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"attestation: {output}")
+    typer.echo(f"attested_tag: {attestation.attested_tag}")
+    typer.echo(f"registry_sha256: {attestation.registry_sha256}")
+    typer.echo(f"attestation_fingerprint: {attestation.fingerprint()}")
+    typer.echo(f"migration_approved: {str(attestation.migration_approved).lower()}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-migrate-preview")
+def release_v06_migrate_preview_command(
+    source_registry: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    attestation_path: Annotated[
+        Path, typer.Option("--attestation", exists=True, dir_okay=False, readable=True)
+    ],
+) -> None:
+    """Read-only plan for one attested same-schema activation."""
+
+    try:
+        attestation = load_v06_producer_attestation(attestation_path)
+        preview = preview_v06_migration(source_registry, workspace, attestation)
+    except (V06AttestationError, V06MigrationError, V07CompatibilityError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"operation: {preview.operation}")
+    typer.echo(f"migration_id: {preview.migration_id}")
+    typer.echo(f"source_product_version: {preview.source_product_version} (operator attested)")
+    typer.echo(f"source_registry_sha256: {preview.source_registry_sha256}")
+    typer.echo(f"backup_directory: {preview.backup_relative_directory}")
+    typer.echo(f"required_free_bytes: {preview.required_free_bytes}")
+    typer.echo(f"has_required_space: {str(preview.has_required_space).lower()}")
+    typer.echo(f"rollback_supported: {str(preview.rollback_supported).lower()}")
+    for action in preview.actions:
+        typer.echo(f"action: {action}")
+    for blocker in preview.blockers:
+        typer.echo(f"blocker: {blocker}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-migrate")
+def release_v06_migrate_command(
+    source_registry: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    attestation_path: Annotated[
+        Path, typer.Option("--attestation", exists=True, dir_okay=False, readable=True)
+    ],
+) -> None:
+    """Back up the active v0.7 registry, then activate the attested source.
+
+    The previous active registry is preserved byte-exactly for rollback and
+    the source registry is never modified.
+    """
+
+    try:
+        attestation = load_v06_producer_attestation(attestation_path)
+        result = migrate_v06_registry(source_registry, workspace, attestation)
+    except (V06AttestationError, V06MigrationError, V07CompatibilityError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    receipt = result.receipt
+    typer.echo(f"migration_id: {receipt.migration_id}")
+    typer.echo(f"backup_registry: {result.backup_registry_path}")
+    typer.echo(f"receipt: {result.receipt_path}")
+    typer.echo(f"activated_registry_sha256: {receipt.active_registry_sha256_after}")
+    typer.echo(f"source_unchanged: {str(receipt.source_unchanged_during_migration).lower()}")
+    typer.echo(f"rollback_available: {str(receipt.rollback_available).lower()}")
+    typer.echo(f"scientific_admission: {receipt.scientific_admission}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v06-rollback")
+def release_v06_rollback_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    receipt_path: Annotated[
+        Path, typer.Option("--receipt", exists=True, dir_okay=False, readable=True)
+    ],
+) -> None:
+    """Restore the backed-up registry while the migration receipt matches."""
+
+    try:
+        result = rollback_v06_migration(workspace, receipt_path)
+    except (V06MigrationError, V07CompatibilityError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"migration_id: {result.receipt.migration_id}")
+    typer.echo(f"restored_registry_sha256: {result.receipt.restored_registry_sha256}")
+    typer.echo(f"rollback_receipt: {result.receipt_path}")
+    typer.echo(f"backup_preserved: {str(result.receipt.backup_preserved).lower()}")
     typer.echo("capability_status: planned")
 
 

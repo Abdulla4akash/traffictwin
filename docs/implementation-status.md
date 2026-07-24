@@ -415,9 +415,19 @@ read-only diagnostics. The owner-approved ADR-058 producer-attestation policy is
 implemented: an operator clean-checkout attestation binds the exact `v0.6.0` tag commit,
 package version, registry hash/size, timezone-aware instant, and literal operator statement;
 verification re-hashes current bytes and fails closed on drift, sidecars, naive timestamps, or
-tampered literals, and a verified attestation is provenance evidence only. It does not perform
-migration,
-activation, backup, rollback, or release acceptance, so `REL-01` remains planned. The canonical
+tampered literals, and a verified attestation is provenance evidence only. An attested
+same-schema activation slice now implements the migration workflow for attested sources: a
+read-only preview binds attestation, hashes, schema versions, backup plan, and free space; the
+activation publishes a durable byte-exact backup of the previous active registry before
+atomically replacing it with the attested source bytes; an interruption before the receipt
+exists leaves a receipt-less quarantined backup directory and never corrupts the source or the
+previous registry; and rollback restores the backup only while the active registry still
+matches the migration receipt, preserving the backup as evidence. The frozen v0.6 registry
+schema equals the current v0.7 schema, so no schema transformation occurs and any other source
+version is refused; four bounded CLI commands (v06-attest, v06-migrate-preview, v06-migrate,
+v06-rollback) wire the workflow and print `capability_status: planned`. Side-by-side
+clean-checkout acceptance, package/release version alignment, and final
+release reconciliation remain, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 
 - `MAN-01`–`MAN-07`: audited and immutable source snapshots, DfT historical road counts, WebTRIS

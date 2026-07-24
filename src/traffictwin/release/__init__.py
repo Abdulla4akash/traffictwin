@@ -29,11 +29,29 @@ from traffictwin.release.deployment import (
     stage_synthetic_demo_site,
 )
 from traffictwin.release.metadata import ReleaseMetadata, current_release_metadata
+from traffictwin.release.migration import (
+    V06MigrationError,
+    V06MigrationPreview,
+    V06MigrationReceipt,
+    V06MigrationResult,
+    V06RollbackReceipt,
+    V06RollbackResult,
+    load_v06_migration_receipt,
+    migrate_v06_registry,
+    preview_v06_migration,
+    rollback_v06_migration,
+)
 
 __all__ = [
     "ReleaseMetadata",
     "SyntheticStaticSiteManifest",
     "V06AttestationError",
+    "V06MigrationError",
+    "V06MigrationPreview",
+    "V06MigrationReceipt",
+    "V06MigrationResult",
+    "V06RollbackReceipt",
+    "V06RollbackResult",
     "V06AttestationVerification",
     "V06ProducerAttestation",
     "V06RegistryCopyError",
@@ -49,7 +67,11 @@ __all__ = [
     "copy_v06_registry",
     "current_release_metadata",
     "initialise_v07_workspace",
+    "load_v06_migration_receipt",
     "load_v06_producer_attestation",
+    "migrate_v06_registry",
+    "preview_v06_migration",
+    "rollback_v06_migration",
     "inspect_v07_workspace",
     "preview_v06_registry_copy",
     "verify_v06_producer_attestation",

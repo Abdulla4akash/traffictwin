@@ -8,7 +8,8 @@
 **Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
 REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
 temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
-pack with its 24 July 2026 source-documentation probe, and the ADR-058 producer attestation
+pack with its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, and
+the attested same-schema activation/backup/rollback workflow
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -59,9 +60,9 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,609 unit tests and 169 UI tests pass, 1,778 combined;
+- 1,618 unit tests and 169 UI tests pass, 1,787 combined;
 - repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 703 configured source and test files;
+- strict mypy passes over all 705 configured source and test files;
 - lock validation and package build pass;
 - the built wheel contains the required Manchester boundary assets; and
 - 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
@@ -107,7 +108,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, bounded init/inspect/preview/copy CLI commands, a demo-launcher `--port` option for side-by-side operation, and a workspace setup/diagnostics guide | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, and a workspace setup/diagnostics guide | Side-by-side clean-checkout acceptance, package/release version alignment, cross-schema migration if schemas diverge, and final release/tag reconciliation remain |
 
 ## 6. Major work ready to build now
 
@@ -146,8 +147,9 @@ next section.
 1. Finish broad bounded-source reconciliation and formal acceptance records for the source slices
    whose evidence is sufficient.
 2. Complete cross-page state and manual accessibility checks.
-3. Implement v0.6 migration preview, backup, transactional copy, interruption recovery, refusal,
-   activation, and rollback.
+3. Migration preview, backup, transactional copy, interruption quarantine, refusal, activation,
+   and rollback: done for ADR-058-attested same-schema sources; side-by-side clean-checkout
+   acceptance remains.
 4. Run v0.6 and v0.7 from separate clean checkouts, ports, and workspaces.
 5. Reconcile CLI, generated schemas/references, capability manifest, documentation, package
    version, CI, and final immutable tag.
