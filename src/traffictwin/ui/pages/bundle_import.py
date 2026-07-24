@@ -9,7 +9,7 @@ import streamlit as st
 from traffictwin.ingestion.batch import BatchBundleSummary, BatchOperation
 from traffictwin.ingestion.bundle import StreamingBundleImportResult
 from traffictwin.ingestion.streaming import StreamingBundleValidationResult
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.validation import render_validation_report
 from traffictwin.ui.services import (
     ServiceError,
@@ -23,6 +23,7 @@ from traffictwin.ui.services import (
     validate_bundle_streaming_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -78,39 +79,55 @@ def render(config: UiConfig) -> None:
 
     if manifest is not None:
         st.subheader("Manifest Summary")
-        st.json(
-            {
-                "bundle_id": manifest.bundle.bundle_id,
-                "run_id": manifest.run.run_id,
-                "experiment_id": manifest.run.experiment_id,
-                "seed_id": manifest.run.seed_id,
-                "environment": manifest.environment.model_dump(mode="json"),
-                "declared_files": sorted(manifest.files),
-            }
-        )
+        with st.container(border=True):
+            st.markdown(
+                f"**Environment:** {manifest.environment.name} "
+                f"{manifest.environment.version or ''} · "
+                f"**Declared files:** {len(manifest.files)}"
+            )
+            st.caption(f"Run `{manifest.run.run_id}`")
+        with st.expander("Advanced: manifest identifiers"):
+            st.code(
+                f"bundle_id: {manifest.bundle.bundle_id}\n"
+                f"run_id: {manifest.run.run_id}\n"
+                f"experiment_id: {manifest.run.experiment_id}\n"
+                f"seed_id: {manifest.run.seed_id}",
+                language=None,
+            )
+            st.json(manifest.environment.model_dump(mode="json"))
         st.subheader("Declared Files")
+        declared_rows = [
+            {
+                "kind": kind,
+                "path": declaration.path,
+                "format": declaration.format.value,
+                "compression": (
+                    declaration.compression.value if declaration.compression else "none"
+                ),
+                "schema_version": declaration.schema_version,
+                "required": declaration.required,
+                "required_columns": ", ".join(declaration.required_columns),
+            }
+            for kind, declaration in sorted(manifest.files.items())
+        ]
         st.dataframe(
-            [
-                {
-                    "kind": kind,
-                    "path": declaration.path,
-                    "format": declaration.format.value,
-                    "compression": (
-                        declaration.compression.value if declaration.compression else "none"
-                    ),
-                    "schema_version": declaration.schema_version,
-                    "required": declaration.required,
-                    "required_columns": ", ".join(declaration.required_columns),
-                }
-                for kind, declaration in sorted(manifest.files.items())
-            ],
+            declared_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(declared_rows, hide_machine_ids=False),
         )
 
     render_validation_report(report)
     st.subheader("Evidence Availability")
-    st.json(analysis.validation.evidence.model_dump(mode="json"))
+    evidence_states = analysis.validation.evidence.model_dump(mode="json")
+    st.table(
+        [
+            {"Evidence": category.replace("_", " ").capitalize(), "State": badge_markdown(state)}
+            for category, state in evidence_states.items()
+        ]
+    )
+    with st.expander("Advanced: raw evidence availability JSON"):
+        st.json(evidence_states)
 
     if (
         analysis.analysis_ready
@@ -126,7 +143,10 @@ def render(config: UiConfig) -> None:
             else:
                 store_metrics_for_ui(registry_path, analysis.metrics)
                 store_evidence_for_ui(registry_path, analysis.evidence_pack)
-                st.success(f"{result.message}; run={result.run_id}; idempotent={result.idempotent}")
+                st.success(
+                    f"{result.message} Registry run `{result.run_id}` "
+                    f"({'idempotent re-import' if result.idempotent else 'newly created'})."
+                )
     else:
         st.error("Rejected bundles cannot be imported or used in analysis pages.")
 
@@ -187,17 +207,21 @@ def _render_batch_summary(summary: BatchBundleSummary) -> None:
 
     if summary.input_issues:
         st.subheader("Input issues")
+        issue_rows = [issue.model_dump(mode="json") for issue in summary.input_issues]
         st.dataframe(
-            [issue.model_dump(mode="json") for issue in summary.input_issues],
+            issue_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(issue_rows, hide_machine_ids=False),
         )
     if summary.results:
         st.subheader("Per-bundle outcomes")
+        outcome_rows = [result.model_dump(mode="json") for result in summary.results]
         st.dataframe(
-            [result.model_dump(mode="json") for result in summary.results],
+            outcome_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(outcome_rows, hide_machine_ids=False),
         )
     st.download_button(
         "Download batch summary (JSON)",
@@ -261,7 +285,10 @@ def _render_streaming_import(bundle_path: Path, registry_path: Path) -> None:
 
     if registry_result is not None:
         if registry_result.created or registry_result.idempotent:
-            st.success(f"{registry_result.message}; idempotent={registry_result.idempotent}")
+            st.success(
+                f"{registry_result.message} "
+                f"({'idempotent re-import' if registry_result.idempotent else 'newly created'})."
+            )
         else:
             st.error(registry_result.message)
     summary = validation.streaming
@@ -270,7 +297,8 @@ def _render_streaming_import(bundle_path: Path, registry_path: Path) -> None:
     metrics[1].metric("Canonical records", sum(summary.canonical_record_counts.values()))
     metrics[2].metric("Largest chunk rows", summary.max_observed_chunk_source_rows)
     metrics[3].metric("Largest chunk bytes", summary.max_observed_chunk_decoded_bytes)
-    st.json(summary.model_dump(mode="json"))
+    with st.expander("Advanced: raw streaming summary JSON"):
+        st.json(summary.model_dump(mode="json"))
     render_validation_report(validation.report)
     st.download_button(
         "Download streaming validation (JSON)",
