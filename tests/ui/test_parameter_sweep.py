@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
@@ -9,12 +10,15 @@ from traffictwin.experiments.parameter_sweep import (
     ParameterSweepMode,
     ParameterSweepRequest,
 )
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     execute_parameter_sweep_for_ui,
     parameter_sweep_catalog_for_ui,
     prepare_parameter_sweep_for_ui,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 
 def test_parameter_sweep_ui_service_validates_and_executes(tmp_path: Path) -> None:
@@ -65,9 +69,11 @@ def test_streamlit_parameter_sweep_builds_local_response_surface(
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
 
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.PARAMETER_SWEEP)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Parameter Sweep").run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Parameter Sweep" for title in app.title)

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     build_synthetic_config_from_form,
@@ -10,6 +13,7 @@ from traffictwin.ui.services import (
     measurement_impairment_contract_for_ui,
     preview_synthetic_scenario,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 
 def _measurement_form() -> dict[str, object]:
@@ -80,9 +84,11 @@ def test_measurement_ui_service_previews_and_generates_audited_bundle(tmp_path: 
 
 def test_streamlit_scenario_builder_exposes_working_measurement_controls() -> None:
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.SCENARIO)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Scenario Builder").run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Scenario Builder" for title in app.title)

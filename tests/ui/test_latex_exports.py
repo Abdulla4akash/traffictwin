@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
@@ -10,7 +11,10 @@ from tests.statistical_helpers import (
 )
 
 from traffictwin.experiments.statistical_study import evaluate_paired_statistical_study
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import ServiceError, generate_research_export_for_ui
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 BASELINE = Path("tests/fixtures/bundles/baseline_valid")
 
@@ -63,9 +67,11 @@ def test_ui_service_generates_saved_statistical_study_and_reports_errors(
 
 def test_reports_page_exposes_latex_and_static_figure_controls() -> None:
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.REPORTS)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Reports").run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Reports" for title in app.title)

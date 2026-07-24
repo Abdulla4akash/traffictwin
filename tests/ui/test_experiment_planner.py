@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import io
+from copy import deepcopy
 from datetime import UTC, datetime
 from importlib import import_module
 from pathlib import Path
@@ -11,6 +12,8 @@ from pytest import MonkeyPatch
 from tests.unit.test_registry import make_seed
 
 from traffictwin.storage.registry import Registry
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     build_experiment_protocol_for_ui,
@@ -22,6 +25,7 @@ from traffictwin.ui.services import (
     prepare_experiment_plan_for_ui,
     register_experiment_plan_for_ui,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 
 def _planner_registry(path: Path) -> Registry:
@@ -122,9 +126,11 @@ def test_streamlit_experiment_planner_validates_and_registers(
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(registry_path))
 
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.EXPERIMENT_PLANNER)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=10)
-    app.radio[0].set_value("Experiment Planner").run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Experiment Planner" for title in app.title)
@@ -158,6 +164,9 @@ def test_streamlit_home_renders_workspace_planner_actions(
     _planner_registry(registry_path)
     monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(registry_path))
+    # The planner quick actions belong to the complete v0.6 home, which stays
+    # reachable through the explicit legacy compatibility route.
+    monkeypatch.setenv("TRAFFICTWIN_V07_NAVIGATION", "legacy")
 
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app = app_test.from_file("src/traffictwin/ui/app.py")

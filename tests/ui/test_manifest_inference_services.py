@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from traffictwin.ingestion.manifest_inference import (
     ManifestInferenceSelections,
 )
 from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.services import (
     ServiceError,
     apply_manifest_inference_for_ui,
@@ -16,6 +18,7 @@ from traffictwin.ui.services import (
     infer_manifest_for_ui,
     manifest_file_fragment_for_ui,
 )
+from traffictwin.ui.state import default_session_state, load_ui_config
 
 FIXTURE = Path("tests/fixtures/manifest_inference/value_patterns")
 
@@ -44,9 +47,11 @@ def test_manifest_inference_ui_services_keep_confirmation_explicit() -> None:
 
 def test_manifest_inference_page_renders_non_executable_draft() -> None:
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test.from_file("src/traffictwin/ui/app.py")
+    app = app_test.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.MANIFEST_WIZARD)}")
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
     app.run(timeout=15)
-    app.radio[0].set_value(UiPage.MANIFEST_WIZARD.value).run(timeout=15)
 
     assert not app.exception
     assert any(title.value == UiPage.MANIFEST_WIZARD.value for title in app.title)
