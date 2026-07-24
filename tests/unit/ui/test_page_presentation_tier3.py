@@ -95,3 +95,27 @@ def test_triviality_renders_badges_chart_and_no_universal_best_claim(
     # No raw rule JSON in primary content (R3/R5 detail lives under Advanced expanders).
     advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
     assert advanced
+
+
+# --- Manifest Inference -----------------------------------------------------
+
+
+def test_manifest_inference_preview_is_structured_not_raw_dict() -> None:
+    app = page_app(UiPage.MANIFEST_WIZARD).run(timeout=30)
+    assert not app.exception
+
+    subheaders = {str(item.value) for item in app.subheader}
+    # Preview and confirmation are separate, explicitly labelled sections.
+    assert "Inference preview" in subheaders
+    assert "Review and confirm mappings" in subheaders
+    body = text_of(app)
+    assert "nothing is imported, analysed, or persisted until" in body
+    # Draft identity / sample limits move to Advanced; not a primary JSON dump.
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    assert advanced
+    assert len(app.json) == 1
+    # Candidate kinds render as a structured table with the score-not-probability caption.
+    assert "not a\nprobability" in body or "not a probability" in body
+    assert len(app.dataframe) >= 1
+    # Confirmation stays explicit and disabled until acknowledged.
+    assert any(button.label == "Confirm Selected Mappings" for button in app.button)

@@ -12,7 +12,8 @@ from traffictwin.ingestion.manifest_inference import (
     ManifestInferenceSelections,
     SuggestionStatus,
 )
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
+from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -23,6 +24,7 @@ from traffictwin.ui.services import (
     manifest_file_fragment_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
 
 UNMAPPED = "— unmapped —"
 SELECT_KIND = "— select file kind —"
@@ -57,39 +59,82 @@ def render(config: UiConfig) -> None:
         if draft.detail:
             st.code(draft.detail)
         return
+    st.subheader("Inference preview")
     badge_row(["DRAFT", "CONFIRMATION REQUIRED", "ANALYSIS DISABLED"])
-    st.json(
-        {
-            "source_label": draft.source_label,
-            "source_fingerprint": draft.source_fingerprint,
-            "draft_fingerprint": draft.draft_fingerprint,
-            "analysis_ready": draft.analysis_ready,
-            "sample_limits": draft.limits.model_dump(mode="json"),
-        }
-    )
+    with st.container(border=True):
+        st.markdown(
+            f"**Source:** `{draft.source_label}` · "
+            f"**Analysis ready:** "
+            f"{badge_markdown('yes' if draft.analysis_ready else 'analysis disabled')}"
+        )
+        st.caption(
+            f"Source fingerprint `{fingerprint_summary(draft.source_fingerprint)}` · "
+            f"Draft fingerprint `{fingerprint_summary(draft.draft_fingerprint)}`. "
+            "This is a deterministic preview; nothing is imported, analysed, or persisted until "
+            "you confirm the mappings below."
+        )
+    with st.expander("Advanced/Evidence: draft identity and sample limits"):
+        st.json(
+            {
+                "source_label": draft.source_label,
+                "source_fingerprint": draft.source_fingerprint,
+                "draft_fingerprint": draft.draft_fingerprint,
+                "analysis_ready": draft.analysis_ready,
+                "sample_limits": draft.limits.model_dump(mode="json"),
+            }
+        )
     if draft.findings:
-        st.subheader("Inference findings")
+        st.markdown("**Inference findings**")
+        finding_rows = [
+            {
+                "severity": finding.severity.value,
+                "code": finding.code.value,
+                "file": finding.file,
+                "message": finding.message,
+            }
+            for finding in draft.findings
+        ]
         st.dataframe(
-            [
-                {
-                    "severity": finding.severity.value,
-                    "code": finding.code.value,
-                    "file": finding.file,
-                    "message": finding.message,
-                }
-                for finding in draft.findings
-            ],
+            finding_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(finding_rows),
         )
 
-    st.subheader("Review and edit mappings")
+    st.subheader("Review and confirm mappings")
+    st.caption(
+        "This is the explicit confirmation step, separate from the preview above. Ambiguous or "
+        "missing fields stay unresolved until you choose them; nothing is accepted automatically."
+    )
     selections: dict[str, FileSelection] = {}
     for file_index, file in enumerate(draft.files):
         with st.expander(
             f"{file.path} — {file.status.value}",
             expanded=file_index == 0,
         ):
+            if file.kind_candidates:
+                candidate_rows = [
+                    {
+                        "candidate_kind": candidate.kind,
+                        "eligible": candidate.eligible,
+                        "score": candidate.score,
+                        "required_coverage": (
+                            f"{len(candidate.required_fields_mapped)}/"
+                            f"{len(candidate.required_fields)}"
+                        ),
+                    }
+                    for candidate in file.kind_candidates
+                ]
+                st.caption(
+                    "Candidate file kinds (deterministic score orders evidence; it is not a "
+                    "probability):"
+                )
+                st.dataframe(
+                    candidate_rows,
+                    hide_index=True,
+                    width="stretch",
+                    column_config=table_column_config(candidate_rows),
+                )
             include = st.checkbox(
                 "Include this CSV",
                 value=True,
