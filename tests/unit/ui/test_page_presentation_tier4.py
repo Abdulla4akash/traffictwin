@@ -113,3 +113,30 @@ def test_fairness_evidence_keeps_policy_and_r7_raw_in_advanced() -> None:
     # Complete policy fingerprint and raw R7 evidence live under Advanced/Evidence.
     assert any("policy identity" in label.lower() for label in advanced)
     assert any("R7 evidence" in label for label in advanced)
+
+
+# --- Infrastructure & Congestion --------------------------------------------
+
+
+def test_infrastructure_separates_provenance_and_structures_per_rsu() -> None:
+    app = page_app(UiPage.INFRASTRUCTURE).run(timeout=40)
+    assert not app.exception
+
+    labels = metric_labels(app)
+    # Capacity/pressure/utilisation metrics carry explicit units, plus an observation window.
+    assert "Observation window (s)" in labels
+    assert "P95 utilisation (fraction)" in labels
+    assert "Saturation duration (s)" in labels
+
+    body = text_of(app)
+    # Canonical evidence is separated from synthetic/source infrastructure with a provenance badge.
+    assert "Infrastructure provenance:" in body
+    assert "-badge[" in body
+    # Source RSU slots are never presented as verified Manchester roadside infrastructure.
+    assert "not verified Manchester roadside" in body
+
+    # The per-RSU summary is a structured table; any raw dict is confined to Advanced/Evidence.
+    assert len(app.dataframe) >= 1
+    assert len(app.json) <= 1
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    assert any("per-RSU summary" in label for label in advanced)
