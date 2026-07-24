@@ -24,6 +24,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Bee Network membership decision](decisions/ADR-057-bee-network-membership-identifiers.md)
 - [v0.6 producer-attestation decision](decisions/ADR-058-v06-producer-attestation.md)
 - [v0.7 external decision pack](v07_external_decision_pack.md)
+- [v0.7 requirement matrix](v07_requirement_matrix.md)
 - [Provider enquiry drafts (DfT, WebTRIS, BODS)](integration/provider_enquiry_drafts.md)
 - [Supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
