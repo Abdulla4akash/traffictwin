@@ -80,10 +80,8 @@ def main() -> int:
 
         v06_registry = demo_workspace / "registry.sqlite"
         v07_registry = v07_workspace / "registry" / "traffictwin.sqlite"
-        _require(
-            v06_registry.resolve() != v07_registry.resolve(),
-            "workspace registries must be distinct files",
-        )
+        registries_distinct = v06_registry.resolve() != v07_registry.resolve()
+        _require(registries_distinct, "workspace registries must be distinct files")
         v06_registry_before = _sha256(v06_registry)
         v07_registry_before = _sha256(v07_registry)
 
@@ -111,7 +109,17 @@ def main() -> int:
             )
         )
         v06_status = _wait_for_http(arguments.port_v06, arguments.timeout_seconds)
+        # Both servers must be our own live processes, not a pre-existing squatter
+        # on the port, or the coexistence claim would be false.
+        _require(
+            processes[0].poll() is None,
+            "the v0.6.0 server process exited before responding (port may be in use)",
+        )
         v07_status = _wait_for_http(arguments.port_v07, arguments.timeout_seconds)
+        _require(
+            processes[1].poll() is None,
+            "the v0.7 server process exited before responding (port may be in use)",
+        )
         _require(v06_status == 200, f"v0.6.0 server returned HTTP {v06_status}")
         _require(v07_status == 200, f"v0.7 server returned HTTP {v07_status}")
         findings.append(
@@ -120,19 +128,16 @@ def main() -> int:
         )
 
         _require(
-            _wait_for_http(arguments.port_v06, 10) == 200,
+            processes[0].poll() is None and _wait_for_http(arguments.port_v06, 10) == 200,
             "v0.6.0 server stopped responding while v0.7 was serving",
         )
         v06_registry_after = _sha256(v06_registry)
         v07_registry_after = _sha256(v07_registry)
-        _require(
-            v07_registry_after == v07_registry_before,
-            "the v0.7 registry changed while serving side by side",
-        )
-        _require(
-            v06_registry_after == v06_registry_before,
-            "the v0.6.0 registry changed while serving side by side",
-        )
+        v07_unchanged = v07_registry_after == v07_registry_before
+        v06_unchanged = v06_registry_after == v06_registry_before
+        _require(v07_unchanged, "the v0.7 registry changed while serving side by side")
+        _require(v06_unchanged, "the v0.6.0 registry changed while serving side by side")
+        cross_registry_mutation_observed = not (v06_unchanged and v07_unchanged)
         findings.append("neither registry changed while both applications served")
 
         evidence = {
@@ -147,8 +152,8 @@ def main() -> int:
             "v07_http_status": v07_status,
             "v06_registry_sha256": v06_registry_after,
             "v07_registry_sha256": v07_registry_after,
-            "registries_distinct": True,
-            "cross_registry_mutation_observed": False,
+            "registries_distinct": registries_distinct,
+            "cross_registry_mutation_observed": cross_registry_mutation_observed,
             "findings": findings,
             "release_acceptance": "not_claimed",
             "capability_status": "REL-01 remains planned",

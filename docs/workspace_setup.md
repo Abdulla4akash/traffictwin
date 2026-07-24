@@ -91,6 +91,9 @@ traffictwin release v06-copy /path/to/closed-v0.6-registry.sqlite workspace-v0.7
 The source application must be stopped and the SQLite database checkpointed; WAL/journal
 sidecars are refused rather than guessed about. The copy is published under
 `workspace-v0.7/compatibility/v0.6/<hash-prefix>/` with a reconciling receipt and never becomes
-the active v0.7 registry. Cross-release schema migration, activation, backup, and rollback remain
-separate unimplemented `REL-01` work; see
-[v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md).
+the active v0.7 registry. Attested same-schema **activation** (with durable backup, crash-safe
+resume, and receipt-gated rollback) is implemented for ADR-058-attested sources via
+`release v06-attest`, `release v06-migrate`, and `release v06-rollback`; cross-release schema
+migration remains separate unimplemented `REL-01` work. See
+[v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md) and the
+[operator v0.6 attestation procedure](integration/v06_attestation_procedure.md).
