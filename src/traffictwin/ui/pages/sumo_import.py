@@ -16,7 +16,8 @@ from traffictwin.integration.sumo_execution import (
     sumo_runtime_status,
 )
 from traffictwin.metrics.results import MetricStatus
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
+from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.components.validation import render_validation_report
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
@@ -26,6 +27,7 @@ from traffictwin.ui.services import (
     validate_sumo_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
 
 
 def one_click_sumo_ready(output_dir: str, registry_path: str, confirmed: bool) -> bool:
@@ -50,16 +52,18 @@ def _controlled_run_section(registry: Path) -> None:
     preset = SumoExecutionPreset(preset_value)
     definition = preset_definition(preset)
     runtime = sumo_runtime_status()
-    st.write(
-        {
-            "simulated window (s)": f"{definition.begin_s}..{definition.end_s}",
-            "vehicles (request property)": definition.vehicle_count,
-            "seed": definition.random_seed,
-            "SUMO available": runtime.available,
-            "SUMO version": runtime.version or "unavailable",
-            "supported": runtime.supported,
-        }
-    )
+    with st.container(border=True):
+        runtime_badge = (
+            badge_markdown("available") if runtime.supported else badge_markdown("unavailable")
+        )
+        st.markdown(
+            f"{runtime_badge} **SUMO runtime** — version {runtime.version or 'unavailable'}"
+        )
+        st.markdown(
+            f"**Simulated window:** {definition.begin_s}–{definition.end_s} s · "
+            f"**Vehicles (request property):** {definition.vehicle_count} · "
+            f"**Seed:** {definition.random_seed}"
+        )
     st.caption(definition.description)
     if not runtime.supported:
         st.error(f"Controlled execution is unavailable: {runtime.reason}")
@@ -103,14 +107,16 @@ def _controlled_run_section(registry: Path) -> None:
     receipt = st.session_state.get("sumo_oneclick_receipt")
     if receipt is None:
         return
-    st.write(f"Workflow: **{receipt.status.value}**")
+    st.markdown(f"**Workflow:** {badge_markdown(receipt.status.value)}")
+    stage_rows = [
+        {"stage": item.stage.value, "state": item.state.value, "detail": item.detail}
+        for item in receipt.stages
+    ]
     st.dataframe(
-        [
-            {"stage": item.stage.value, "state": item.state.value, "detail": item.detail}
-            for item in receipt.stages
-        ],
+        stage_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(stage_rows),
     )
     if receipt.status is SumoWorkflowStatus.COMPLETED_IMPORTED and receipt.import_outcome:
         outcome = receipt.import_outcome
@@ -118,19 +124,30 @@ def _controlled_run_section(registry: Path) -> None:
             ("Idempotent re-import of " if outcome.idempotent else "Imported ")
             + f"registry run `{outcome.run_id}`."
         )
-        st.write(
-            {
-                "receipt fingerprint": receipt.receipt_fingerprint,
-                "output fingerprint": receipt.output_fingerprint,
-                "import record fingerprint": receipt.import_record_stable_fingerprint,
-                "inputs unchanged": receipt.inputs_verified_unchanged,
-                "metrics stored": outcome.metrics_stored,
-            }
+        st.markdown(
+            f"**Inputs verified unchanged:** "
+            f"{'yes' if receipt.inputs_verified_unchanged else 'no'} · "
+            f"**Metrics stored:** {'yes' if outcome.metrics_stored else 'no'}"
         )
+        st.caption(
+            f"Receipt `{fingerprint_summary(receipt.receipt_fingerprint)}` · "
+            f"Output `{fingerprint_summary(receipt.output_fingerprint)}` · "
+            f"Import record `{fingerprint_summary(receipt.import_record_stable_fingerprint)}`"
+        )
+        with st.expander("Advanced: full execution receipt identifiers"):
+            st.code(
+                f"receipt_fingerprint: {receipt.receipt_fingerprint}\n"
+                f"output_fingerprint: {receipt.output_fingerprint}\n"
+                f"import_record_stable_fingerprint: "
+                f"{receipt.import_record_stable_fingerprint}",
+                language=None,
+            )
+        output_rows = [item.model_dump(mode="json") for item in receipt.outputs]
         st.dataframe(
-            [item.model_dump(mode="json") for item in receipt.outputs],
+            output_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(output_rows, hide_machine_ids=False),
         )
         st.caption(
             "Synthetic evidence only: not Manchester traffic, not Randy/VEC evidence, and "
@@ -155,10 +172,12 @@ def _imported_records_section(registry: Path) -> None:
                 "Records persist here across Streamlit restarts."
             )
             return
+        summary_rows = [item.model_dump(mode="json") for item in summaries]
         st.dataframe(
-            [item.model_dump(mode="json") for item in summaries],
+            summary_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(summary_rows, hide_machine_ids=False),
         )
         st.caption(
             "Each record is a synthetic controlled execution imported through the existing "
@@ -216,33 +235,49 @@ def render(config: UiConfig) -> None:
     if result.manifest is not None:
         manifest = result.manifest
         st.subheader("Source contract")
-        st.json(
-            {
-                "bundle_id": manifest.bundle.bundle_id,
-                "run_id": manifest.run.run_id,
-                "scenario": manifest.source.scenario_id,
-                "scenario_url": manifest.source.scenario_url,
-                "sumo_version": manifest.source.sumo_version,
-                "licence": manifest.source.licence_spdx,
-                "retrieval_date": manifest.source.retrieval_date.isoformat(),
-                "redistribution_allowed": manifest.source.redistribution_allowed,
-                "direct_launch": False,
-                "fcd_mapping": "unavailable",
-            }
-        )
+        with st.container(border=True):
+            st.markdown(
+                f"**Scenario:** {manifest.source.scenario_id} · "
+                f"**SUMO version:** {manifest.source.sumo_version} · "
+                f"**Licence:** {manifest.source.licence_spdx}"
+            )
+            st.markdown(
+                f"**Retrieved:** {manifest.source.retrieval_date.isoformat()} · "
+                f"**Redistribution allowed:** "
+                f"{'yes' if manifest.source.redistribution_allowed else 'no'}"
+            )
+            st.markdown(
+                f"{badge_markdown('unavailable')} direct launch "
+                f"{badge_markdown('unavailable')} FCD mapping"
+            )
+        with st.expander("Advanced: source contract identifiers"):
+            st.code(
+                f"bundle_id: {manifest.bundle.bundle_id}\n"
+                f"run_id: {manifest.run.run_id}\n"
+                f"scenario_url: {manifest.source.scenario_url}",
+                language=None,
+            )
     st.subheader("Preserved raw evidence")
+    raw_file_rows = [item.model_dump(mode="json") for item in result.raw_files]
     st.dataframe(
-        [item.model_dump(mode="json") for item in result.raw_files],
+        raw_file_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(raw_file_rows, hide_machine_ids=False),
     )
     counts = st.columns(4)
     counts[0].metric("Tripinfo records", len(result.trip_observations))
     counts[1].metric("Canonical trips", len(result.canonical.trips))
-    completed_value: str | int | float = "Unavailable"
-    if analysis.metrics is not None:
-        completed_value = analysis.metrics.by_key()["trip.completed.count"].value
-    counts[2].metric("Completed trips", completed_value)
+    completed_metric = (
+        analysis.metrics.by_key()["trip.completed.count"] if analysis.metrics is not None else None
+    )
+    with counts[2]:
+        if completed_metric is not None and completed_metric.status is MetricStatus.AVAILABLE:
+            st.metric("Completed trips", completed_metric.value)
+        else:
+            with st.container(border=True):
+                st.caption("Completed trips")
+                st.markdown(badge_markdown("unavailable"))
     counts[3].metric("Summary steps", len(result.summary_steps))
 
     render_validation_report(result.report)
@@ -276,20 +311,22 @@ def render(config: UiConfig) -> None:
             "trip.duration.p95_s",
         )
         by_key = analysis.metrics.by_key()
+        metric_table_rows = [
+            {
+                "metric_key": key,
+                "status": by_key[key].status.value,
+                "value": (
+                    by_key[key].value if by_key[key].status is MetricStatus.AVAILABLE else None
+                ),
+                "unit": by_key[key].unit,
+            }
+            for key in keys
+        ]
         st.dataframe(
-            [
-                {
-                    "metric": key,
-                    "status": by_key[key].status.value,
-                    "value": (
-                        by_key[key].value if by_key[key].status is MetricStatus.AVAILABLE else None
-                    ),
-                    "unit": by_key[key].unit,
-                }
-                for key in keys
-            ],
+            metric_table_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(metric_table_rows),
         )
     if result.report.may_import and st.button("Import SUMO Results", type="primary"):
         imported = import_sumo_for_ui(
@@ -304,6 +341,7 @@ def render(config: UiConfig) -> None:
                 st.code(imported.detail)
         else:
             st.success(
-                f"{imported.message}; run={imported.run_id}; "
-                f"idempotent={imported.idempotent}; metrics_stored={imported.metrics_stored}"
+                f"{imported.message} Registry run `{imported.run_id}` "
+                f"({'idempotent re-import' if imported.idempotent else 'newly created'}; "
+                f"metrics {'stored' if imported.metrics_stored else 'not stored'})."
             )
