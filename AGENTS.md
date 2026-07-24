@@ -101,6 +101,31 @@ is closed. Later edits to those shared presentation files require a new grant.
   complete list of residual raw dumps or presentation debt. Leave changes committed only on
   `claude/ui-redesign`; the lead owns final review, merge, capability reconciliation, and push.
 
+#### Phase 2A closure amendment after lead review
+
+- Before any Phase 2B page work, Claude must rebase `claude/ui-redesign` onto lead commit
+  `e3a793765c7ab1a1edd15b7221700376b787b705` and close the 18 reproducible full-UI-suite failures
+  caused by making grouped `st.navigation` the default. This is test migration, not a reason to
+  restore the legacy router as the default.
+- Claude may additionally edit exactly these existing tests:
+  `tests/ui/test_analyst_annotations.py`, `tests/ui/test_executive_summary.py`,
+  `tests/ui/test_experiment_planner.py`, `tests/ui/test_latex_exports.py`,
+  `tests/ui/test_manifest_inference_services.py`, `tests/ui/test_measurement_imperfections.py`,
+  `tests/ui/test_parameter_sweep.py`, `tests/ui/test_registry_search.py`,
+  `tests/ui/test_report_diffing.py`, `tests/ui/test_scenario_mutation.py`,
+  `tests/ui/test_sumo_services.py`, `tests/ui/test_tos_analysis_pages.py`, and
+  `tests/ui/test_tos_services.py`. Migrate only navigation setup from `app.radio[0]` to the exact
+  `AppTest.switch_page(page_script_for(UiPage...))` route; preserve the scientific and interaction
+  assertions.
+- In the already-owned `src/traffictwin/ui/pages/home.py`, replace the stale legacy statement that
+  no live Manchester data is connected with the current source truth: live BODS evidence covers
+  buses only, while general live/near-live Manchester road traffic remains unavailable. Do not
+  imply that WebTRIS is near-live; the lead's new reassessment explicitly refuses that claim.
+- Re-run all `tests/ui` with zero failures, all `tests/unit`, focused navigation/page tests, ruff,
+  strict mypy, and `git diff --check`, and supply the required light/dark screenshots. Do not begin
+  the proposed Phase 2B page/table harvest until the lead merges this closed Phase 2A branch and
+  records a new file-level grant.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
