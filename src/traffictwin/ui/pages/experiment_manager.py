@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from traffictwin.ui.components.cards import section_header
+from traffictwin.ui.components.cards import fingerprint_summary, section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.services import (
@@ -15,6 +15,7 @@ from traffictwin.ui.services import (
     update_protocol_slot_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -44,19 +45,28 @@ def render(config: UiConfig) -> None:
     section_header("Experiments")
     experiments = _filter_rows(view.experiments, query)
     if experiments:
+        experiment_rows = [
+            {
+                "experiment_id": row.get("experiment_id"),
+                "status": row.get("status"),
+                "baseline_seed_id": row.get("baseline_seed_id"),
+                "planned_replicates": row.get("planned_replicates"),
+                "algorithms": _join_values(row.get("algorithms", [])),
+            }
+            for row in experiments
+        ]
         st.dataframe(
-            [
-                {
-                    "experiment_id": row.get("experiment_id"),
-                    "status": row.get("status"),
-                    "baseline_seed_id": row.get("baseline_seed_id"),
-                    "planned_replicates": row.get("planned_replicates"),
-                    "algorithms": _join_values(row.get("algorithms", [])),
-                }
-                for row in experiments
-            ],
+            experiment_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                experiment_rows,
+                overrides={
+                    "experiment_id": ColumnDisplay(
+                        key="experiment_id", label="Experiment", hidden=False
+                    )
+                },
+            ),
         )
     else:
         st.info("No experiments match the current filter.")
@@ -121,81 +131,133 @@ def render(config: UiConfig) -> None:
     if status_filter != "all":
         runs = [row for row in runs if str(row.get("status")) == status_filter]
     if runs:
+        run_rows = [
+            {
+                "run_id": row.get("run_id"),
+                "algorithm": row.get("algorithm"),
+                "status": row.get("status"),
+                "metrics": view.metrics_by_run.get(str(row.get("run_id")), 0),
+                "evidence": view.evidence_by_run.get(str(row.get("run_id")), 0),
+                "experiment_id": row.get("experiment_id"),
+                "seed_id": row.get("seed_id"),
+                "random_seed": row.get("random_seed"),
+            }
+            for row in runs
+        ]
         st.dataframe(
-            [
-                {
-                    "run_id": row.get("run_id"),
-                    "experiment_id": row.get("experiment_id"),
-                    "seed_id": row.get("seed_id"),
-                    "algorithm": row.get("algorithm"),
-                    "random_seed": row.get("random_seed"),
-                    "status": row.get("status"),
-                    "metrics": view.metrics_by_run.get(str(row.get("run_id")), 0),
-                    "evidence": view.evidence_by_run.get(str(row.get("run_id")), 0),
-                }
-                for row in runs
-            ],
+            run_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                run_rows,
+                overrides={"run_id": ColumnDisplay(key="run_id", label="Run", hidden=False)},
+            ),
         )
+        with st.expander("Advanced: full run identifiers"):
+            st.dataframe(
+                run_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(run_rows, hide_machine_ids=False),
+            )
     else:
         st.info("No runs match the current filter.")
 
     section_header("Bundle Imports")
     if view.bundle_imports:
+        filtered_imports = _filter_rows(view.bundle_imports, query)
+        import_rows = [
+            {
+                "bundle_id": row.get("bundle_id"),
+                "run_id": row.get("run_id"),
+                "fingerprint": fingerprint_summary(str(row.get("fingerprint", "")) or None),
+                "source": row.get("source_reference"),
+                "imported_at": row.get("imported_at"),
+            }
+            for row in filtered_imports
+        ]
         st.dataframe(
-            [
+            import_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(
+                import_rows,
+                overrides={
+                    "bundle_id": ColumnDisplay(key="bundle_id", label="Bundle", hidden=False)
+                },
+            ),
+        )
+        with st.expander("Advanced: full bundle import identifiers"):
+            full_import_rows = [
                 {
                     "bundle_id": row.get("bundle_id"),
                     "run_id": row.get("run_id"),
-                    "fingerprint": str(row.get("fingerprint", ""))[:16],
+                    "fingerprint": row.get("fingerprint"),
                     "source": row.get("source_reference"),
                     "imported_at": row.get("imported_at"),
                 }
-                for row in _filter_rows(view.bundle_imports, query)
-            ],
-            hide_index=True,
-            width="stretch",
-        )
+                for row in filtered_imports
+            ]
+            st.dataframe(
+                full_import_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(full_import_rows, hide_machine_ids=False),
+            )
     else:
         st.info("No bundle imports are registered.")
 
     section_header("Seeds And Policies")
     cols = st.columns(2)
     with cols[0]:
+        seed_rows = [
+            {
+                "seed_id": row.get("id") or row.get("seed_id"),
+                "name": row.get("name"),
+                "base": row.get("base"),
+                "schema_version": row.get("schema_version"),
+            }
+            for row in _filter_rows(view.seeds, query)
+        ]
         st.dataframe(
-            [
-                {
-                    "seed_id": row.get("id") or row.get("seed_id"),
-                    "name": row.get("name"),
-                    "base": row.get("base"),
-                    "schema_version": row.get("schema_version"),
-                }
-                for row in _filter_rows(view.seeds, query)
-            ],
+            seed_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                seed_rows,
+                overrides={"seed_id": ColumnDisplay(key="seed_id", label="Seed", hidden=False)},
+            ),
         )
     with cols[1]:
-        st.write(view.policies or ["No policies registered."])
+        if view.policies:
+            st.markdown("\n".join(f"- `{policy}`" for policy in view.policies))
+        else:
+            st.info("No policies registered.")
 
     section_header("Comparisons And Reports")
     cols = st.columns(2)
     with cols[0]:
-        st.dataframe(view.comparisons, hide_index=True, width="stretch")
-    with cols[1]:
         st.dataframe(
-            [
-                {
-                    "name": report.name,
-                    "type": report.report_type,
-                    "format": report.format_label,
-                    "scenario": report.scenario_hint,
-                }
-                for report in view.reports
-            ],
+            view.comparisons,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(view.comparisons, hide_machine_ids=False),
+        )
+    with cols[1]:
+        report_rows = [
+            {
+                "name": report.name,
+                "type": report.report_type,
+                "format": report.format_label,
+                "scenario": report.scenario_hint,
+            }
+            for report in view.reports
+        ]
+        st.dataframe(
+            report_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(report_rows),
         )
 
 

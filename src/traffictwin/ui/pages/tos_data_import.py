@@ -11,7 +11,8 @@ from traffictwin.integration.tos import TosRsuReplayPoint
 from traffictwin.integration.tos.readers import instrumented_key_for_run
 from traffictwin.metrics.results import MetricStatus
 from traffictwin.provenance.serialization import trace_to_json
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
+from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -26,6 +27,7 @@ from traffictwin.ui.services import (
     load_tos_task_sample_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -87,32 +89,43 @@ def _render_package_summary(view: TosPackageView) -> None:
     columns[4].metric("Training curves", inventory.training_csv_files)
     st.caption(
         f"Engine: {', '.join(report.engine_versions) or 'unavailable'} | "
-        f"Package commit: {report.package_commit or 'unavailable'} | "
-        f"Fingerprint: {report.package_fingerprint or 'unavailable'}"
+        f"Package commit: `{fingerprint_summary(report.package_commit)}` | "
+        f"Fingerprint: `{fingerprint_summary(report.package_fingerprint)}`"
     )
+    if report.package_commit or report.package_fingerprint:
+        with st.expander("Advanced: package identity"):
+            st.code(
+                f"package_commit: {report.package_commit or 'unavailable'}\n"
+                f"package_fingerprint: {report.package_fingerprint or 'unavailable'}",
+                language=None,
+            )
     st.subheader("Capability Boundary")
     capabilities = report.capabilities.model_dump(mode="json")
+    capability_table_rows = [
+        {"capability": key, "status": "SUPPORTED" if value else "UNSUPPORTED"}
+        for key, value in capabilities.items()
+    ]
     st.dataframe(
-        [
-            {"capability": key, "status": "SUPPORTED" if value else "UNSUPPORTED"}
-            for key, value in capabilities.items()
-        ],
+        capability_table_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(capability_table_rows),
     )
     with st.expander(f"Validation findings ({len(report.findings)})", expanded=True):
+        finding_rows = [
+            {
+                "severity": item.severity.value,
+                "code": item.code,
+                "message": item.message,
+                "affected": ", ".join(item.affected_capabilities),
+            }
+            for item in report.findings
+        ]
         st.dataframe(
-            [
-                {
-                    "severity": item.severity.value,
-                    "code": item.code,
-                    "message": item.message,
-                    "affected": ", ".join(item.affected_capabilities),
-                }
-                for item in report.findings
-            ],
+            finding_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(finding_rows),
         )
     with st.expander("vec_env source contract"):
         contract = view.source_contract
@@ -121,19 +134,21 @@ def _render_package_summary(view: TosPackageView) -> None:
             f"SUMO: {contract.source_versions['sumo']} | "
             f"Direct launch: {contract.execution.direct_launch.value.upper()}"
         )
+        contract_rows = [
+            {
+                "field": item.field,
+                "meaning": item.meaning,
+                "unit": item.unit or "not applicable",
+                "status": item.status.value,
+                "limitations": "; ".join(item.limitations),
+            }
+            for item in contract.fields
+        ]
         st.dataframe(
-            [
-                {
-                    "field": item.field,
-                    "meaning": item.meaning,
-                    "unit": item.unit or "not applicable",
-                    "status": item.status.value,
-                    "limitations": "; ".join(item.limitations),
-                }
-                for item in contract.fields
-            ],
+            contract_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(contract_rows),
         )
         st.warning("Direct launch remains disabled: " + "; ".join(contract.execution.blockers))
 
@@ -185,24 +200,35 @@ def _render_run_analysis(view: TosPackageView) -> None:
         and (cell == "All" or run.cell == cell)
         and (fleet == "All" or run.eval_fleet == fleet)
     ]
+    evaluation_rows = [
+        {
+            "run_id": run.run_id,
+            "campaign": run.campaign,
+            "cell": run.cell,
+            "fleet": run.eval_fleet,
+            "seed": run.fleet_seed,
+            "deadline_success": run.completion,
+            "mean_latency_ms_all_arrivals": run.avg_latency_ms_per_task,
+            "local": run.p_local,
+            "v2i": run.p_v2i,
+            "v2v": run.p_v2v,
+        }
+        for run in filtered[:200]
+    ]
     st.dataframe(
-        [
-            {
-                "run_id": run.run_id,
-                "campaign": run.campaign,
-                "cell": run.cell,
-                "fleet": run.eval_fleet,
-                "seed": run.fleet_seed,
-                "deadline_success": run.completion,
-                "mean_latency_ms_all_arrivals": run.avg_latency_ms_per_task,
-                "local": run.p_local,
-                "v2i": run.p_v2i,
-                "v2v": run.p_v2v,
-            }
-            for run in filtered[:200]
-        ],
+        evaluation_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(
+            evaluation_rows,
+            overrides={
+                "run_id": ColumnDisplay(key="run_id", label="Run", hidden=False),
+                "mean_latency_ms_all_arrivals": ColumnDisplay(
+                    key="mean_latency_ms_all_arrivals",
+                    label="Mean latency (ms, all arrivals)",
+                ),
+            },
+        ),
     )
     if not filtered:
         st.warning("No evaluation rows match the selected filters.")
@@ -222,20 +248,30 @@ def _render_run_analysis(view: TosPackageView) -> None:
             "task.offload.rate",
             "infra.utilisation.mean",
         ),
-        ("Deadline success", "Mean latency", "Offload share", "RSU utilisation"),
+        ("Deadline success", "Mean latency (ms)", "Offload share", "RSU utilisation"),
         strict=True,
     ):
         metric = metrics[key]
-        value = metric.value if metric.status is MetricStatus.AVAILABLE else "Unavailable"
-        column.metric(label, value)
+        with column:
+            if metric.status is MetricStatus.AVAILABLE:
+                st.metric(label, metric.value, border=True)
+            else:
+                with st.container(border=True):
+                    st.caption(label)
+                    st.markdown(badge_markdown("unavailable"))
     st.warning(
         "Completion is the source-defined fraction of arrivals meeting deadlines. Mean latency "
         "includes deadline-missing arrivals and can represent backlog in overloaded cells."
     )
-    st.write(
-        "Diagnostic readiness:",
-        analysis.diagnostic_report.overall_readiness.value,
-        {result.rule_id: result.status.value for result in analysis.diagnostic_report.results},
+    st.markdown(
+        f"**Diagnostic readiness:** "
+        f"{badge_markdown(analysis.diagnostic_report.overall_readiness.value)}"
+    )
+    st.table(
+        [
+            {"Rule": result.rule_id, "Status": badge_markdown(result.status.value)}
+            for result in analysis.diagnostic_report.results
+        ]
     )
     downloads = st.columns(3)
     downloads[0].download_button(
@@ -359,10 +395,12 @@ def _render_replay(view: TosPackageView, source: Path) -> None:
         if isinstance(sample, ServiceError):
             st.error(sample.message)
         elif sample is not None and getattr(sample, "run_key", None) == run_key:
+            sample_rows = [item.model_dump(mode="json") for item in sample.observations]
             st.dataframe(
-                [item.model_dump(mode="json") for item in sample.observations],
+                sample_rows,
                 hide_index=True,
                 width="stretch",
+                column_config=table_column_config(sample_rows, hide_machine_ids=False),
             )
 
 
@@ -458,7 +496,7 @@ def _render_comparison(view: TosPackageView) -> None:
         return
     rows = [
         {
-            "metric": item.metric_key,
+            "metric_key": item.metric_key,
             "baseline": item.baseline,
             "variation": item.variation,
             "absolute_delta": item.absolute_delta,
@@ -467,6 +505,11 @@ def _render_comparison(view: TosPackageView) -> None:
         }
         for item in comparison.comparable_metrics
     ]
-    st.dataframe(rows, hide_index=True, width="stretch")
+    st.dataframe(
+        rows,
+        hide_index=True,
+        width="stretch",
+        column_config=table_column_config(rows),
+    )
     if comparison.warnings:
         st.warning("; ".join(comparison.warnings))
