@@ -105,3 +105,36 @@ def test_threshold_sensitivity_keeps_fingerprints_and_contract_in_advanced() -> 
     advanced = [str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)]
     assert any("fingerprint" in label.lower() for label in advanced)
     assert any("contract" in label.lower() for label in advanced)
+
+
+# --- VEC Workbench ----------------------------------------------------------
+
+
+def test_vec_workbench_shows_numbered_stages_and_execution_boundary() -> None:
+    app = page_app(UiPage.VEC_WORKBENCH).run(timeout=30)
+    assert not app.exception
+
+    body = text_of(app)
+    # The current-process and approved-preset boundaries are prominent as badges.
+    assert "Execution boundary" in body
+    assert "foreground only" in body
+    assert "Stages run in order" in body
+
+    subheaders = [str(item.value) for item in app.subheader]
+    joined = "\n".join(subheaders)
+    for numbered in ("1.", "2.", "3.", "4.", "5."):
+        assert numbered in joined
+
+    # No primary raw JSON dump before any inspection.
+    assert len(app.json) == 0
+    # The preset workload boundary uses metrics, not a raw dict.
+    assert "Evaluator steps (request property)" in metric_labels(app)
+
+
+def test_vec_workbench_preset_execution_badge_is_visible() -> None:
+    app = page_app(UiPage.VEC_WORKBENCH).run(timeout=30)
+    assert not app.exception
+    body = text_of(app)
+    # Approved preset and its foreground-only execution boundary are shown.
+    assert "Approved preset" in body
+    assert "-badge[" in body  # badges are rendered natively

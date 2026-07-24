@@ -39,8 +39,11 @@ from traffictwin.integration.vec_runner import (
     preflight_vec_run,
     run_vec_evaluator,
 )
+from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
+from traffictwin.ui.tables import table_column_config
 
 
 def render() -> None:
@@ -51,6 +54,12 @@ def render() -> None:
         "This page delegates typed JSON requests to the accepted VEC-06/VEC-07 services. "
         "Execution is foreground-only and request-specific. There is no command box, background "
         "queue, training, dependency installer, or source-repository write path."
+    )
+    st.markdown(
+        f"**Execution boundary:** {badge_markdown('current process')} foreground only · "
+        f"{badge_markdown('approved presets')} closed set · "
+        f"{badge_markdown('unavailable')} background jobs, training, and general launch. "
+        "Stages run in order: 1 inspect · 2 configure · 3 preflight · 4 execute · 5 import."
     )
     paths = _source_paths()
     _snapshot_section(*paths)
@@ -93,31 +102,36 @@ def _snapshot_section(vec_repo: Path, tos_repo: Path) -> None:
     if snapshot is None:
         st.caption("Inspect the repositories before attempting request-specific validation.")
         return
+    repo_rows = [
+        {
+            "repository": item.repository,
+            "clean": item.clean,
+            "audited_commit_available": item.audited_commit_available,
+            "exact_blob_access": item.ready_for_exact_blob_access,
+            "worktree_head": fingerprint_summary(item.worktree_head),
+        }
+        for item in snapshot.repositories
+    ]
     st.dataframe(
-        [
-            {
-                "repository": item.repository,
-                "clean": item.clean,
-                "audited commit available": item.audited_commit_available,
-                "exact blob access": item.ready_for_exact_blob_access,
-                "worktree head": item.worktree_head,
-            }
-            for item in snapshot.repositories
-        ],
+        repo_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(repo_rows, hide_machine_ids=False),
     )
+    st.caption("Read-only capability boundary per operation. Blocked operations show their reason.")
+    operation_rows = [
+        {
+            "operation": item.operation,
+            "availability": item.availability.value,
+            "reason": item.reason,
+        }
+        for item in snapshot.operations
+    ]
     st.dataframe(
-        [
-            {
-                "operation": item.operation,
-                "availability": item.availability.value,
-                "reason": item.reason,
-            }
-            for item in snapshot.operations
-        ],
+        operation_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(operation_rows),
     )
 
 
@@ -150,15 +164,20 @@ def _one_click_section(vec_repo: Path, tos_repo: Path) -> None:
     )
     preset = VecExecutionPreset(preset_value)
     workload = preset_workload(preset)
-    st.write(
-        {
-            "evaluator steps (request property)": workload.evaluator_steps,
-            "trace": workload.trace_file,
-            "timeout bound (s)": workload.timeout_seconds_bound,
-            "foreground only": workload.foreground_only,
-        }
-    )
-    st.caption(workload.description)
+    with st.container(border=True):
+        st.markdown(f"**Approved preset:** `{preset.value}`")
+        workload_columns = st.columns(2)
+        workload_columns[0].metric(
+            "Evaluator steps (request property)", workload.evaluator_steps, border=True
+        )
+        workload_columns[1].metric("Timeout bound (s)", workload.timeout_seconds_bound, border=True)
+        execution_badge = (
+            badge_markdown("foreground only")
+            if workload.foreground_only
+            else badge_markdown("unavailable")
+        )
+        st.markdown(f"**Trace:** `{workload.trace_file}` · **Execution:** {execution_badge}")
+        st.caption(workload.description)
     input_root = st.text_input(
         "Input root (tos-data working tree)",
         value=str(st.session_state.get("vec_oneclick_input_root", tos_repo)),
@@ -218,49 +237,51 @@ def _one_click_section(vec_repo: Path, tos_repo: Path) -> None:
     _imported_execution_records(registry_path)
     if receipt is None:
         return
-    st.write(f"Workflow: **{receipt.status.value}**")
+    st.markdown(f"**Workflow status:** {badge_markdown(receipt.status.value)}")
+    stage_rows = [
+        {"stage": item.stage.value, "state": item.state.value, "detail": item.detail}
+        for item in receipt.stages
+    ]
     st.dataframe(
-        [
-            {
-                "stage": item.stage.value,
-                "state": item.state.value,
-                "detail": item.detail,
-            }
-            for item in receipt.stages
-        ],
+        stage_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(stage_rows),
     )
     if receipt.status is VecWorkflowStatus.COMPLETED_IMPORTED and receipt.import_outcome:
         outcome = receipt.import_outcome
         st.success(
             ("Idempotent re-import of " if outcome.idempotent else "Imported ")
             + f"registry run `{outcome.registry_run_id}` "
-            + f"(stable fingerprint `{outcome.stable_fingerprint[:16]}`)."
+            + f"(stable fingerprint `{fingerprint_summary(outcome.stable_fingerprint)}`)."
         )
-        st.write(
-            {
-                "receipt fingerprint": receipt.receipt_fingerprint,
-                "output fingerprint": receipt.output_fingerprint,
-                "import record fingerprint": receipt.import_record_stable_fingerprint,
-                "external repositories unchanged": (
-                    receipt.external_repositories_verified_unchanged
-                ),
-                "raw inputs unchanged": receipt.raw_inputs_verified_unchanged,
-            }
+        repos_badge = badge_markdown(
+            "yes" if receipt.external_repositories_verified_unchanged else "no"
         )
+        inputs_badge = badge_markdown("yes" if receipt.raw_inputs_verified_unchanged else "no")
+        st.markdown(
+            f"**External repositories unchanged:** {repos_badge} · "
+            f"**Raw inputs unchanged:** {inputs_badge}"
+        )
+        output_rows = [
+            {"output": item.path, "size_bytes": item.size_bytes, "sha256": item.sha256}
+            for item in receipt.outputs
+        ]
         st.dataframe(
-            [
-                {
-                    "output": item.path,
-                    "size (bytes)": item.size_bytes,
-                    "sha256": item.sha256,
-                }
-                for item in receipt.outputs
-            ],
+            output_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                output_rows, hide_machine_ids=False, units={"size_bytes": "bytes"}
+            ),
         )
+        with st.expander("Advanced: execution receipt fingerprints"):
+            st.code(
+                f"receipt_fingerprint: {receipt.receipt_fingerprint}\n"
+                f"output_fingerprint: {receipt.output_fingerprint}\n"
+                f"import_record_stable_fingerprint: {receipt.import_record_stable_fingerprint}",
+                language=None,
+            )
         st.caption(
             "Imported evidence is structural execution evidence: scientific admission stays "
             "unavailable, deadline success is not physical completion, selected actions are "
@@ -297,32 +318,37 @@ def _imported_execution_records(registry_path: str) -> None:
             key="vec_oneclick_imported_record",
         )
         selected = records[labels.index(selected_label)]
-        st.write(
-            {
-                "run id": selected.registry_run_id,
-                "preset": selected.preset.value,
-                "evidence grade": selected.evidence_grade.value,
-                "scientific admission": selected.scientific_admission_status,
-                "publication": selected.publication_status,
-                "request fingerprint": selected.request_fingerprint,
-                "receipt fingerprint": selected.receipt_fingerprint,
-                "output fingerprint": selected.output_fingerprint,
-                "vec_env commit": selected.vec_env_commit,
-                "tos-data commit": selected.tos_data_commit,
-            }
-        )
+        admission_badge = badge_markdown(selected.scientific_admission_status)
+        with st.container(border=True):
+            st.markdown(
+                f"**Run:** `{selected.registry_run_id}` · **Preset:** `{selected.preset.value}`"
+            )
+            st.markdown(
+                f"**Evidence grade:** {badge_markdown(selected.evidence_grade.value)} · "
+                f"**Scientific admission:** {admission_badge} · "
+                f"**Publication:** {badge_markdown(selected.publication_status)}"
+            )
+        record_output_rows = [
+            {"output": item.path, "size_bytes": item.size_bytes, "sha256": item.sha256}
+            for item in selected.outputs
+        ]
         st.dataframe(
-            [
-                {
-                    "output": item.path,
-                    "size (bytes)": item.size_bytes,
-                    "sha256": item.sha256,
-                }
-                for item in selected.outputs
-            ],
+            record_output_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(
+                record_output_rows, hide_machine_ids=False, units={"size_bytes": "bytes"}
+            ),
         )
+        with st.expander("Advanced: record fingerprints and pinned commits"):
+            st.code(
+                f"request_fingerprint: {selected.request_fingerprint}\n"
+                f"receipt_fingerprint: {selected.receipt_fingerprint}\n"
+                f"output_fingerprint: {selected.output_fingerprint}\n"
+                f"vec_env_commit: {selected.vec_env_commit}\n"
+                f"tos_data_commit: {selected.tos_data_commit}",
+                language=None,
+            )
         for limitation in selected.limitations:
             st.warning(limitation)
 
@@ -352,18 +378,16 @@ def _request_section(vec_repo: Path, tos_repo: Path) -> None:
         report.status.value == "accepted"
     )
     if isinstance(report, (VecFcdPreflightReport, VecRunnerPreflightReport)):
-        st.write(f"Preflight: **{report.status.value}**")
+        st.markdown(f"**Preflight status:** {badge_markdown(report.status.value)}")
+        finding_rows = [
+            {"severity": item.severity.value, "code": item.code, "message": item.message}
+            for item in report.findings
+        ]
         st.dataframe(
-            [
-                {
-                    "severity": item.severity.value,
-                    "code": item.code,
-                    "message": item.message,
-                }
-                for item in report.findings
-            ],
+            finding_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(finding_rows),
         )
     label = "Execute preprocessing" if kind == "preprocess" else "Run evaluator in foreground"
     disabled = not accepted or report_kind != kind
@@ -408,7 +432,22 @@ def _artifact_section() -> None:
             st.error(str(exc))
     inspection = st.session_state.get("vec_artifact_inspection")
     if inspection is not None:
-        st.json(inspection.model_dump(mode="json"))
+        payload = inspection.model_dump(mode="json")
+        summary = {
+            key: payload[key]
+            for key in ("artifact_kind", "schema_version", "status")
+            if key in payload
+        }
+        if summary:
+            with st.container(border=True):
+                st.markdown(
+                    " · ".join(
+                        f"**{key.replace('_', ' ').capitalize()}:** {value}"
+                        for key, value in summary.items()
+                    )
+                )
+        with st.expander("Advanced: complete artifact inspection (raw)"):
+            st.json(payload)
 
 
 def _comparison_and_export_section() -> None:
@@ -430,10 +469,12 @@ def _comparison_and_export_section() -> None:
         st.warning(
             "Differences are descriptive variation-minus-baseline values, not causal effects."
         )
+        comparison_rows = [item.model_dump(mode="json") for item in comparison.comparable_metrics]
         st.dataframe(
-            [item.model_dump(mode="json") for item in comparison.comparable_metrics],
+            comparison_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(comparison_rows),
         )
     export_report = Path(st.text_input("VEC-09 report to export", key="vec_export_report"))
     export_format = st.selectbox("Export format", ("json", "csv", "markdown"))
