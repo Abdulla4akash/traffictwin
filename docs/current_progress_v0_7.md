@@ -3,7 +3,8 @@
 **Snapshot date:** 24 July 2026
 
 **Development branch:** `claude/complete-v0.7` (integration branch created at the protected
-`v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
+`v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`; the verified integration head
+is checkpoint-tagged `v0.7.0-alpha.5`)
 
 **Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
 REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
