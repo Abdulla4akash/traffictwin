@@ -219,7 +219,7 @@ passed 1,640 unit + 169 UI = 1,809 tests, Ruff/format, strict mypy over 708 file
 and the 35-route/140-snapshot browser audit with zero findings. The Tier 2 source and test claim is
 closed; later edits to those pages require a new explicit grant.
 
-### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 3
+### Completed parallel ownership: Claude UI presentation Phase 2B Tier 3
 
 - The repository owner granted Phase 2B Tier 3 presentation work on 24 July 2026 from the clean
   pushed integration head `9973e3f87768c86c17d04f8233b50ce175ea6c2a` on `claude/complete-v0.7`,
@@ -255,6 +255,73 @@ closed; later edits to those pages require a new explicit grant.
   cross-page state and replay selection still work, and confirmation the 140-view browser audit is
   not weakened. Commit in small logical commits on `claude/complete-v0.7`; never create or move a
   release tag.
+
+Phase 2B Tier 3 was completed on 24 July 2026 across the six granted debug-console pages
+(`evidence_readiness.py`, `provenance_explorer.py`, `operations.py`, `triviality.py`,
+`participant_evaluation.py`, `manifest_inference.py`) and accepted as a completed presentation
+increment at pushed commit `e8bf792`. The seven Tier 3 commits kept every capability `planned`,
+added `tests/unit/ui/test_page_presentation_tier3.py`, and passed the full 1,816-test unit+UI suite
+and the 35-route/140-snapshot browser audit with zero findings. Categorical rule/evidence states are
+badges, raw JSON/fingerprints live under Advanced/Evidence, and the non-causal, non-live,
+non-universal-best, and no-fabricated-consent framings hold. The Tier 3 source and test claim is
+lead-owned for reconciliation.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 4
+
+- The repository owner granted Phase 2B Tier 4 "analysis-evidence presentation" work on 24 July 2026
+  from the clean pushed integration head `e8bf792` on `claude/complete-v0.7`, verified in sync with
+  `origin/claude/complete-v0.7`. The work is presentation-only groundwork for `UX-01`–`UX-03`; it
+  cannot accept a gate, change capability truth, fetch evidence, alter deterministic calculations, or
+  edit source data, and no capability moves off `planned`.
+- The exclusive source files are exactly
+  `src/traffictwin/ui/pages/{energy.py,fairness.py,infrastructure.py,journey_time.py,spatial_rsu.py}`.
+  These five analysis-evidence pages may adopt the existing badge, table, column-configuration,
+  fingerprint, bordered-container, native-chart, and numeric-metric helpers, and native Vega charts
+  built inline from already-computed results. `charts.py`, `tables.py`, `components/*`, navigation,
+  services, and every other module stay untouched.
+- Permitted existing tests to edit, changing only assertions related to these five owned pages:
+  `tests/integration/test_ui_demo_flow.py`, `tests/ui/test_services.py`, `tests/ui/test_chart_data.py`,
+  and `tests/ui/test_product_polish.py`. Scientific, service, navigation, and interaction assertions
+  must remain intact. New tests are added under `tests/unit/ui/` named `test_page_presentation_tier4*`.
+- Objectives: (1) Energy — coverage-first dashboard showing observed-task, completed-task and
+  energy-delay evidence with units and denominators, deterministic charts from computed results,
+  explicit available/partial/unavailable family separation, Randy/TOS per-task physical energy kept
+  unavailable where unsupported, and never inferring efficiency or superiority from lower energy.
+  (2) Fairness — eligible groups, denominators, disparities, uncertainty and exclusions shown
+  clearly, charts only for compatible existing group metrics, insufficient groups and
+  protected-attribute limitations kept visible, never labelling a policy fair/unfair without the
+  predeclared contract and sufficient evidence, and never manufacturing demographic or
+  protected-attribute data. (3) Infrastructure — RSU capacity, pressure, utilisation and task
+  evidence with explicit units and time windows, canonical infrastructure separated from
+  synthetic/source infrastructure, structured tables plus existing computed charts, missing
+  capacity/mapping/canonical-identity kept unavailable, and source RSU slots never presented as
+  verified Manchester roadside infrastructure. (4) Journey Time — trip-duration evidence, cohort
+  coverage, completion status and exclusions, a deterministic distribution/comparison chart where
+  existing data supports it, missing trip joins and incomplete journeys shown explicitly, no
+  conversion of incomplete/missing journeys to zero, and no causal claim between offloading policy
+  and journey time. (5) Spatial & RSU — coordinate frame, spatial coverage, RSU assignment and
+  exclusion reconciliation, the existing map/plot used only when its coordinate contract permits,
+  synthetic/source coordinates distinguished from geographic Manchester coordinates, unprojectable
+  or unmatched records shown explicitly, and no implied live geographic position or official RSU
+  location without accepted evidence.
+- Primary content uses human labels, explicit units, native tables/charts, bordered horizontal KPI
+  rows, numeric `st.metric` for numeric-with-units only, badges for categorical states, and
+  `column_config` where it materially improves tables. Raw JSON, complete fingerprints, and machine
+  metadata move only to clearly labelled Advanced/Evidence surfaces; unavailable, partial, synthetic,
+  historical, and rejected states remain visible and exact. No page performs a scientific calculation
+  or accesses source data. Horizontal radio controls in owned pages become `st.segmented_control`
+  when behaviour is equivalent. No new dependency, no arbitrary CSS, and no deprecated
+  `use_container_width`.
+- Do not edit services, scientific libraries, Manchester Operations, navigation, adapters,
+  dependency files, capability manifests, external repositories, protected tags, other page/app
+  files, Phase 1 shared components, or the user's checkout.
+- Handoff requires the exact changed-file inventory, focused new/edited tests, all `tests/unit`, all
+  `tests/ui`, affected integration tests, repository Ruff and format checks, strict mypy,
+  `git diff --check`, the complete 35-route desktop/mobile light/dark browser audit, verification of
+  all five pages at desktop and mobile widths, and confirmation that no existing interaction or
+  scientific assertion was weakened. Commit each page as a small logical commit and push continuously,
+  then add one documentation reconciliation commit covering `AGENTS.md`, `current_progress_v0_7.md`,
+  and `implementation-status.md`; never create or move a release tag.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
