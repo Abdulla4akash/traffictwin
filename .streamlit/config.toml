@@ -3,3 +3,81 @@ showSidebarNavigation = false
 
 [browser]
 gatherUsageStats = false
+
+# Restrained transport/research theme (design v0.7 §13.2): deep navy/slate
+# structure, amber for attention, cyan for selected evidence, and semantic
+# status colours. Both light and dark variants are defined so the mode
+# toggle in the app settings menu stays available. Fonts stay built-in so
+# offline use never depends on a font CDN.
+
+# Options without per-mode variants live here; the categorical palette uses
+# mid-tone colours that stay readable on light and dark backgrounds.
+[theme]
+showSidebarBorder = true
+chartCategoricalColors = [
+    "#0891b2",
+    "#d97706",
+    "#64748b",
+    "#16a34a",
+    "#8b5cf6",
+    "#dc2626",
+    "#3b82f6",
+]
+
+[theme.light]
+primaryColor = "#0e7490"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f1f5f9"
+textColor = "#1e293b"
+linkColor = "#0e7490"
+borderColor = "#cbd5e1"
+codeBackgroundColor = "#f1f5f9"
+dataframeBorderColor = "#cbd5e1"
+dataframeHeaderBackgroundColor = "#f1f5f9"
+baseRadius = "8px"
+showWidgetBorder = true
+redColor = "#b91c1c"
+orangeColor = "#b45309"
+yellowColor = "#a16207"
+greenColor = "#15803d"
+blueColor = "#0369a1"
+violetColor = "#6d28d9"
+grayColor = "#475569"
+
+[theme.light.sidebar]
+backgroundColor = "#0f172a"
+secondaryBackgroundColor = "#1e293b"
+textColor = "#e2e8f0"
+borderColor = "#1e293b"
+primaryColor = "#22d3ee"
+linkColor = "#67e8f9"
+codeBackgroundColor = "#1e293b"
+
+[theme.dark]
+primaryColor = "#0891b2"
+backgroundColor = "#0f172a"
+secondaryBackgroundColor = "#1e293b"
+textColor = "#e2e8f0"
+linkColor = "#67e8f9"
+borderColor = "#334155"
+codeBackgroundColor = "#1e293b"
+dataframeBorderColor = "#334155"
+dataframeHeaderBackgroundColor = "#1e293b"
+baseRadius = "8px"
+showWidgetBorder = true
+redColor = "#f87171"
+orangeColor = "#fb923c"
+yellowColor = "#facc15"
+greenColor = "#4ade80"
+blueColor = "#60a5fa"
+violetColor = "#a78bfa"
+grayColor = "#94a3b8"
+
+[theme.dark.sidebar]
+backgroundColor = "#020617"
+secondaryBackgroundColor = "#0f172a"
+textColor = "#e2e8f0"
+borderColor = "#1e293b"
+primaryColor = "#22d3ee"
+linkColor = "#67e8f9"
+codeBackgroundColor = "#0f172a"

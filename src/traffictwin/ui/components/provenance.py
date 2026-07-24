@@ -6,6 +6,7 @@ import streamlit as st
 
 from traffictwin.ingestion.bundle import BundleValidationResult
 from traffictwin.metrics.results import MetricCollection
+from traffictwin.ui.tables import table_column_config
 
 
 def render_run_provenance(
@@ -33,4 +34,9 @@ def render_run_provenance(
             "value": metrics.metric_version if metrics is not None else "Unavailable",
         },
     ]
-    st.dataframe(rows, width="stretch", hide_index=True)
+    st.dataframe(
+        rows,
+        width="stretch",
+        hide_index=True,
+        column_config=table_column_config(rows),
+    )

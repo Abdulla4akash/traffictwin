@@ -5,20 +5,18 @@ from __future__ import annotations
 import streamlit as st
 
 from traffictwin.provenance.models import SourceRowPreview
+from traffictwin.ui.components.badges import badge_markdown
 
 
 def render_source_row_preview(preview: SourceRowPreview) -> None:
     """Render a safe, bounded source-row preview."""
 
-    st.write(
-        {
-            "file": preview.file,
-            "row": preview.row_number,
-            "status": preview.status.value,
-            "inclusion_status": preview.inclusion_status,
-            "canonical_record_type": preview.canonical_record_type or "Unavailable",
-        }
-    )
+    with st.container(border=True):
+        st.markdown(f"**Source row** — `{preview.file}`, row {preview.row_number}")
+        st.markdown(
+            f"{badge_markdown(preview.status.value)} :gray-badge[{preview.inclusion_status}]"
+        )
+        st.caption(f"Canonical record type: {preview.canonical_record_type or 'Unavailable'}")
     if preview.warnings:
         st.warning("\n".join(preview.warnings))
     if preview.raw_values:
