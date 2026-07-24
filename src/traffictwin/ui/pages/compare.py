@@ -21,6 +21,14 @@ from traffictwin.ui.services import (
 from traffictwin.ui.tables import ColumnDisplay, comparison_rows, table_column_config
 
 
+def _provenance_badge(synthetic_flag: object) -> str:
+    """Render a three-state provenance badge without collapsing unknown to a definite state."""
+
+    if synthetic_flag is None:
+        return ":gray-badge[UNKNOWN]"
+    return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
+
+
 def render() -> None:
     """Render comparison page."""
 
@@ -66,8 +74,6 @@ def render() -> None:
     same_seed = report.baseline_context.get("random_seed") == report.variation_context.get(
         "random_seed"
     )
-    baseline_synthetic = bool(report.baseline_context.get("synthetic"))
-    variation_synthetic = bool(report.variation_context.get("synthetic"))
     with st.container(border=True):
         st.markdown(
             f"**Same experiment:** {'yes' if same_experiment else 'no'} · "
@@ -75,10 +81,8 @@ def render() -> None:
             f"**Metric version:** {report.baseline_context.get('metric_version')}"
         )
         st.markdown(
-            f"**Baseline:** "
-            f"{badge_markdown('synthetic') if baseline_synthetic else ':gray-badge[IMPORTED]'} "
-            f"**Variation:** "
-            f"{badge_markdown('synthetic') if variation_synthetic else ':gray-badge[IMPORTED]'}"
+            f"**Baseline:** {_provenance_badge(report.baseline_context.get('synthetic'))} "
+            f"**Variation:** {_provenance_badge(report.variation_context.get('synthetic'))}"
         )
         if report.warnings:
             st.warning("\n".join(report.warnings))
