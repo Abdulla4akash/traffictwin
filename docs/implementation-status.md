@@ -505,6 +505,28 @@ matrix (140 snapshots, zero actionable semantic findings). This is candidate pre
 only; final cutover, manual accessibility/participant review, and release reconciliation remain,
 so `UX-01`–`UX-03` remain planned.
 
+A lead-granted Phase 2B Tier 2 presentation harvest now restructures four analysis/debug-console
+pages — `statistical_study.py`, `vec_workbench.py`, `temporal_metrics.py`, and
+`threshold_sensitivity.py`. Statistical Study organises the STA-01 paired result into tabs
+(Results, Paired observations with a per-seed variation-minus-baseline chart, Pairing audit, and
+Exports & evidence) and replaces the raw pairing-audit/power-analysis/equivalence dict dumps with
+structured panels; VEC Workbench presents the five controlled stages (inspect, configure,
+preflight, execute, import) with prominent current-process/approved-preset boundary badges and
+formatted receipts/status panels in place of the raw workflow dicts; Temporal Metrics adds a
+window-reconciliation panel and a metric table with second/fraction units while keeping missing
+windows visible and never zero; and Threshold Sensitivity replaces the raw stability dict with a
+bordered panel and keeps the descriptive, non-optimal grid response visible. Across all four,
+categorical statuses render as badges (never numeric `st.metric`), tables use `column_config`
+labels/units, and every complete fingerprint, command, and raw JSON payload moves behind
+Advanced/Evidence surfaces. No service, scientific calculation, navigation route, or interaction
+changed, and the non-causal/non-superiority framing is preserved. Nine Tier 2 adversarial
+presentation tests plus updated presentation assertions in the statistical-study and UI-demo-flow
+integration tests cover the harvest. The integrated gate passes 686 Manchester-focused unit tests,
+1,640 unit tests and 169 UI tests (1,809 combined), repository-wide Ruff formatting/checks, strict
+mypy over all 708 configured source and test files, `git diff --check`, and the 35-route
+desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic findings). This
+is candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
+
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
 its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains
