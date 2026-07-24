@@ -6,6 +6,10 @@ Canonical product specification: `docs/traffictwin-design-v0_7.md`
 
 Before architectural work or implementation decisions, read the canonical specification completely. Treat it as the product and research specification, while keeping unconfirmed external integrations behind explicit capability interfaces.
 
+After reading the canonical specification, use `docs/current_progress_v0_7.md` for current
+sequencing, remaining work, dependencies, and blockers. It is a working tracker rather than an
+acceptance authority; `docs/implementation-status.md` remains the formal implementation truth.
+
 The v0.7 specification is the approved future product design for Manchester historical/live
 evidence, observed-to-SUMO calibration, SUMO-to-VEC research flow, and the task-oriented product
 interface. Every `MAN-*`, `UX-*`, and `REL-01` capability begins planned; design inclusion does not
@@ -32,6 +36,7 @@ residual scientific, licensing, hosting, canonicalisation, or generic-launch bou
 
 As the project evolves, update:
 
+- `docs/current_progress_v0_7.md` for v0.7 sequencing and remaining-work changes
 - `docs/implementation-status.md`
 - `docs/assumption-register.md`
 - `docs/open-questions.md`

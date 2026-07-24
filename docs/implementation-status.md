@@ -323,6 +323,15 @@ also re-evaluates preserved BODS timestamps at the current UTC instant, so forme
 become stale-cached titles, filters, warnings, and badges without mutating the stored scene. Therefore
 `MAN-05` and `MAN-08` remain `planned`.
 
+The candidate `MAN-09` map-matching foundation provides a deterministic synthetic-only
+site-to-edge harness and typed analyst-review record. It transforms bounded synthetic WGS84
+fixtures into EPSG:27700, retains and reconciles the complete point-by-edge candidate product,
+records distance, direction, and optional road-class gates, selects nothing automatically, and
+requires one explicit typed decision per observation. Its real-source preflight remains
+unavailable because no reviewed Manchester SUMO network/licence, matching policy, or accepted
+real-source projection dependency exists. The harness does not parse a real network, accept a
+Manchester mapping, construct demand, calibrate, or run SUMO, so `MAN-09` remains planned.
+
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.
 It binds source, projection, mapping, network, run, and row fingerprints; refuses source fusion,
