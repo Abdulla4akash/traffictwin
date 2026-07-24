@@ -14,7 +14,7 @@ from traffictwin.ui.charts import (
     task_event_series,
     traffic_series,
 )
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.unavailable import render_unavailable_panel
 from traffictwin.ui.labels import DataMode
 from traffictwin.ui.pages.helpers import (
@@ -31,6 +31,7 @@ from traffictwin.ui.state import (
     replay_filter_options,
     replay_window_counts,
 )
+from traffictwin.ui.tables import table_column_config
 
 PLAYBACK_SPEEDS = [0.25, 0.5, 1.0, 2.0, 5.0]
 FILTER_WIDGET_KEYS = (
@@ -55,6 +56,10 @@ def render(config: UiConfig | None = None) -> None:
     if analysis is None:
         return
     badge_row([DataMode.HISTORICAL_REPLAY.value, DataMode.SYNTHETIC.value])
+    st.caption(
+        "Historical replay of recorded synthetic/source evidence. This is not live monitoring: "
+        "the clock scrubs stored timestamps and no external feed is polled."
+    )
     render_source_caption(analysis)
 
     clock = replay_clock_from_tables(analysis.validation.canonical)
@@ -229,18 +234,34 @@ def render(config: UiConfig | None = None) -> None:
     )
     st.session_state["replay_clock"] = clock.model_dump(mode="json")
     st.session_state["replay_filters"] = filters.model_dump(mode="json")
+
+    def _filter_badge(value: str | None) -> str:
+        return badge_markdown(value) if value is not None else ":gray-badge[all]"
+
+    st.markdown(
+        f"**Active filters** — vehicle {_filter_badge(filters.vehicle_id)} · "
+        f"RSU {_filter_badge(filters.rsu_id)} · "
+        f"task class {_filter_badge(filters.task_class)} · "
+        f"incident {_filter_badge(filters.incident_type)}"
+    )
+
     counts = replay_window_counts(
         analysis.validation.canonical,
         clock.current_timestamp_s,
         filters=filters,
     )
-    count_cols = st.columns(6)
-    count_cols[0].metric("Task arrivals (60s)", counts["task_arrivals"])
-    count_cols[1].metric("Task completions (60s)", counts["task_completions"])
-    count_cols[2].metric("Traffic rows (60s)", counts["traffic_observations"])
-    count_cols[3].metric("RSU rows (60s)", counts["infrastructure_observations"])
-    count_cols[4].metric("Vehicle rows (60s)", counts["vehicle_observations"])
-    count_cols[5].metric("Incidents (60s)", counts["incidents"])
+    with st.container(border=True):
+        st.markdown(
+            f"**Current 60-second window** ending at {clock.current_timestamp_s:.1f} s "
+            "(filtered counts over recorded evidence)"
+        )
+        count_cols = st.columns(6)
+        count_cols[0].metric("Task arrivals", counts["task_arrivals"], border=True)
+        count_cols[1].metric("Task completions", counts["task_completions"], border=True)
+        count_cols[2].metric("Traffic rows", counts["traffic_observations"], border=True)
+        count_cols[3].metric("RSU rows", counts["infrastructure_observations"], border=True)
+        count_cols[4].metric("Vehicle rows", counts["vehicle_observations"], border=True)
+        count_cols[5].metric("Incidents", counts["incidents"], border=True)
 
     st.subheader("Synthetic/source corridor plane")
     corridor = corridor_figure(
@@ -331,9 +352,16 @@ def render(config: UiConfig | None = None) -> None:
                 for record in analysis.validation.canonical.vehicles
                 if filters.vehicle_id is None or record.vehicle_id == filters.vehicle_id
             ]
+            vehicle_rows = [record.model_dump(mode="json") for record in vehicle_records]
+            st.caption(
+                "Source vehicle-state rows for the selected vehicle filter. These are recorded "
+                "replay coordinates, not live positions."
+            )
             st.dataframe(
-                [record.model_dump(mode="json") for record in vehicle_records],
+                vehicle_rows,
                 width="stretch",
+                hide_index=True,
+                column_config=table_column_config(vehicle_rows, hide_machine_ids=False),
             )
 
 

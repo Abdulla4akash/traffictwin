@@ -165,3 +165,23 @@ def test_provenance_explorer_uses_tabs_badges_and_advanced_json() -> None:
     # Raw metric/rule detail moves behind Advanced/Evidence expanders.
     advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
     assert advanced
+
+
+# --- Operations View (historical replay) ------------------------------------
+
+
+def test_operations_view_shows_replay_not_live_and_active_filters() -> None:
+    app = page_app(UiPage.OPERATIONS).run(timeout=30)
+    assert not app.exception
+
+    body = text_of(app)
+    # Replay is explicitly historical, never live monitoring.
+    assert "not live monitoring" in body
+    # Active-filter visibility and a current-window summary are present.
+    assert "Active filters" in body
+    assert "Current 60-second window" in body
+    # Numeric clock/window counts use st.metric.
+    assert "Current timestamp" in metric_labels(app)
+    assert "Task arrivals" in metric_labels(app)
+    # No primary raw JSON dump (vehicle-state rows are a configured table in an expander).
+    assert len(app.json) == 0
