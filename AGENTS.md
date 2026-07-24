@@ -210,6 +210,52 @@ closed; later edits to those pages require a new explicit grant.
   the 140-view browser audit is not weakened. Commit in small logical commits on
   `claude/complete-v0.7`; never create or move a release tag.
 
+Phase 2B Tier 2 was completed on 24 July 2026 across the four granted pages
+(`statistical_study.py`, `vec_workbench.py`, `temporal_metrics.py`, `threshold_sensitivity.py`):
+tabs/bordered panels, semantic badges for categorical states, `column_config` tables, deterministic
+charts over already-computed values, and all machine detail behind Advanced/Evidence, with services,
+navigation, and interaction unchanged and every capability still `planned`. The integrated gate
+passed 1,640 unit + 169 UI = 1,809 tests, Ruff/format, strict mypy over 708 files, `git diff --check`,
+and the 35-route/140-snapshot browser audit with zero findings. The Tier 2 source and test claim is
+closed; later edits to those pages require a new explicit grant.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 3
+
+- The repository owner granted Phase 2B Tier 3 presentation work on 24 July 2026 from the clean
+  pushed integration head `9973e3f87768c86c17d04f8233b50ce175ea6c2a` on `claude/complete-v0.7`,
+  covering the remaining highest-impact debug-console pages. The work is presentation-only
+  groundwork for `UX-01`–`UX-03`; it cannot accept a gate, change capability truth, fetch evidence,
+  alter deterministic calculations, or edit source data, and no capability moves off `planned`.
+- The exclusive source files are exactly
+  `src/traffictwin/ui/pages/{evidence_readiness.py,provenance_explorer.py,operations.py,triviality.py,participant_evaluation.py,manifest_inference.py}`.
+  `operations.py` is the historical-replay Operations View; `manchester_operations.py` is NOT in
+  this grant and must not be edited. These six pages may adopt the existing badge, table,
+  column-configuration, fingerprint, bordered-container, tab, chart, and numeric-metric helpers.
+- Permitted existing tests to edit, changing only assertions related to the six owned pages:
+  `tests/ui/test_provenance_services.py`, `tests/ui/test_manifest_inference_services.py`,
+  `tests/ui/test_cross_page_state.py`, `tests/integration/test_ui_demo_flow.py`, and
+  `tests/integration/test_ui_diagnostics_flow.py`. Scientific, service, navigation, and interaction
+  assertions must remain intact. New tests may be added under `tests/unit/ui/` named
+  `test_page_presentation_tier3*`.
+- Primary content uses human labels, explicit units, native tables/charts, numeric `st.metric` for
+  numeric quantities only, and structured readiness/lineage/checklist surfaces. Raw dictionaries/JSON,
+  complete fingerprints, machine locators, and inferred manifests move only to clearly labelled
+  Advanced/Evidence surfaces; unavailable, rejected, partial, blocked, historical, synthetic, draft,
+  mock, and unapproved states remain visible and exact. No page performs a scientific calculation, a
+  hypothesis is never presented as a confirmed cause, provenance never implies causality, replay is
+  never implied to be live monitoring, no algorithm is declared universally best, and no consent,
+  ethics approval, participant response, or usability finding is fabricated.
+- Do not edit scientific libraries, integration adapters, source contracts, capability manifests,
+  dependency files, external repositories, `manchester_operations.py`, other page/navigation/app
+  files, Phase 1 shared components, protected tags, or the user's checkout. No new dependency, no
+  arbitrary CSS, and no deprecated `use_container_width`.
+- Handoff requires the exact changed-file inventory, focused new/edited tests, all `tests/ui`, all
+  `tests/unit`, affected integration tests, repository Ruff and format checks, strict mypy,
+  `git diff --check`, light/dark desktop/mobile screenshots of all six pages, confirmation that
+  cross-page state and replay selection still work, and confirmation the 140-view browser audit is
+  not weakened. Commit in small logical commits on `claude/complete-v0.7`; never create or move a
+  release tag.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
