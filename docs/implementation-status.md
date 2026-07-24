@@ -553,6 +553,45 @@ source and test files, `git diff --check`, cross-page-state and replay-selection
 35-route desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic
 findings). This is candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
 
+A lead-granted Phase 2B Tier 4 analysis-evidence presentation harvest then restructures the five
+analysis pages — `energy.py`, `fairness.py`, `infrastructure.py`, `journey_time.py`, and
+`spatial_rsu.py`. Energy Evidence adds a coverage-first family dashboard (available/partial/
+unavailable family counts and completed-task coverage), separates the energy family by evidence
+state with badges, unit-labels every metric, adds a deterministic native joule-comparison chart,
+keeps Randy/TOS per-task physical energy visibly unavailable, and never infers efficiency or
+superiority from a lower energy value while preserving the library-evaluated R8 controls and
+transition. Fairness Evidence adds an eligible-group coverage row with denominators, keeps the four
+disparity metrics, adds an Exclusions & Limitations section that keeps protected-attribute limits
+and insufficient-group exclusions visible, states that no policy is labelled fair or unfair without
+the predeclared contract and sufficient evidence, manufactures no demographic data, and preserves
+the R7 controls. Infrastructure separates canonical evidence from synthetic/source RSU slots with a
+provenance-and-window row, unit-labels the capacity/pressure/utilisation metrics, converts the
+queue and utilisation series to native per-RSU Vega charts, replaces the raw per-RSU JSON dump with
+a structured `column_config` table (raw kept under Advanced/Evidence), and states that source RSU
+slots are not verified Manchester roadside infrastructure. Journey-Time Lens adds a cohort-
+completion row, unit-labels the duration evidence, adds a native per-trip distribution chart, keeps
+incomplete journeys and missing trip joins explicit, never converts them to zero, and makes no
+causal claim between an offloading policy and journey time. Spatial & RSU distinguishes source/
+synthetic coordinates from geographic Manchester coordinates, adds Execution-Target and Coordinate
+reconciliation sections surfacing missing/unknown target tasks and unprojectable observations from
+the real metric metadata, keeps the two contracted evidence sections and exactly two dataframes,
+and implies no live position or official RSU location. Across all five, categorical rule/evidence
+states render as badges (numeric `st.metric` only for numeric-with-units quantities), tables use
+`column_config`, new charts are native Vega with no new dependency and no deprecated
+`use_container_width`, and raw JSON/fingerprints/machine metadata move behind Advanced/Evidence;
+the scientific services, `charts.py`, navigation, and `manchester_operations.py` are untouched.
+Eight Tier 4 adversarial presentation tests (`tests/unit/ui/test_page_presentation_tier4.py`) plus
+updated energy/fairness owned-page assertions in the UI-demo-flow integration test cover the
+harvest, and the R8/R7 transitions and R7 dimension selection remain asserted. The integrated gate
+passes 1,655 unit tests and 169 UI tests (1,824 combined), repository-wide Ruff formatting/checks,
+strict mypy over all 693 configured source and test files, `git diff --check`, and the 35-route
+desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic findings). Six
+pre-existing integration failures (four Statistical Study, one VEC Workbench, and one Manchester
+DfT source-hash probe) are outside this grant: they exercise no Tier 4 page, touch no module Tier 4
+changed, and fail identically at the Tier 4 base commit `e8bf792` — the five `app.radio[0]` cases
+because grouped navigation is the default, and the probe on a source-hash binding. This is
+candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
+
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
 its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains

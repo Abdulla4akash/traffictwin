@@ -323,6 +323,22 @@ lead-owned for reconciliation.
   then add one documentation reconciliation commit covering `AGENTS.md`, `current_progress_v0_7.md`,
   and `implementation-status.md`; never create or move a release tag.
 
+Phase 2B Tier 4 was implemented on 24 July 2026 across the five granted analysis pages in six pushed
+commits — `381b813` (grant record), `b249ed1` (Energy), `587ac8e` (Fairness), `0d0dadf`
+(Infrastructure), `02c9d76` (Journey-Time), `cc89a62` (Spatial & RSU) — plus this documentation
+reconciliation commit. Every capability stayed `planned`; the scientific services, `charts.py`,
+`tables.py`, shared components, navigation, and `manchester_operations.py` were untouched; new charts
+are native Vega built inline from already-computed results, with no new dependency and no
+`use_container_width`. Verification: 1,655 unit and 169 UI tests pass (1,824 combined),
+`tests/unit/ui/test_page_presentation_tier4.py` (8 adversarial tests) and the updated UI-demo-flow
+energy/fairness owned-page assertions pass with the R8/R7 transitions and R7 dimension selection
+still asserted, repository-wide Ruff and format checks pass, strict mypy passes over 693 configured
+files, `git diff --check` is clean, and the 35-route desktop/mobile light/dark browser audit passes
+(140 snapshots, zero findings) with all five pages captured at both widths in both themes. Six
+pre-existing integration failures (Statistical Study ×4, VEC Workbench ×1, and one Manchester DfT
+source-hash probe) fail identically at the base commit `e8bf792`, exercise no Tier 4 page, touch no
+module Tier 4 changed, and are outside this grant. Awaiting repository-owner acceptance.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
