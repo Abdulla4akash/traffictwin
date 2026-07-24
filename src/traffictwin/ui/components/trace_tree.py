@@ -6,22 +6,34 @@ import streamlit as st
 
 from traffictwin.provenance.models import ProvenanceTrace
 from traffictwin.provenance.query import node_type_counts
+from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import fingerprint_summary
+from traffictwin.ui.tables import table_column_config
 
 
 def render_trace_summary(trace: ProvenanceTrace) -> None:
     """Render a compact provenance trace summary."""
 
-    st.write(
-        {
-            "trace_id": trace.trace_id,
-            "root": trace.root_node_id,
-            "completeness": trace.completeness.overall.value,
-            "synthetic": trace.synthetic,
-            "source_fingerprint": trace.source_fingerprint or "Unavailable",
-            "nodes": len(trace.nodes),
-            "edges": len(trace.edges),
-        }
-    )
+    with st.container(border=True):
+        badges = [badge_markdown(trace.completeness.overall.value)]
+        if trace.synthetic:
+            badges.append(badge_markdown("synthetic"))
+        st.markdown(" ".join(badges))
+        st.markdown(
+            f"**Nodes:** {len(trace.nodes)} · **Edges:** {len(trace.edges)} · "
+            f"**Root:** `{trace.root_node_id}`"
+        )
+        st.caption(
+            f"Trace `{trace.trace_id}` · Source fingerprint: "
+            f"`{fingerprint_summary(trace.source_fingerprint)}`"
+        )
+        with st.expander("Advanced: full identifiers"):
+            st.code(
+                f"trace_id: {trace.trace_id}\n"
+                f"root_node_id: {trace.root_node_id}\n"
+                f"source_fingerprint: {trace.source_fingerprint or 'Unavailable'}",
+                language=None,
+            )
     if trace.warnings:
         st.warning("\n".join(trace.warnings))
     st.caption(
@@ -44,7 +56,12 @@ def render_trace_lineage(trace: ProvenanceTrace) -> None:
         for edge in trace.edges
     ]
     if rows:
-        st.dataframe(rows, width="stretch", hide_index=True)
+        st.dataframe(
+            rows,
+            width="stretch",
+            hide_index=True,
+            column_config=table_column_config(rows),
+        )
     else:
         st.info("No lineage edges are available for this trace.")
 
@@ -53,7 +70,10 @@ def render_trace_nodes(trace: ProvenanceTrace) -> None:
     """Render grouped trace nodes."""
 
     counts = node_type_counts(trace)
-    st.write({"node_type_counts": counts})
+    st.caption(
+        "Node types: "
+        + " · ".join(f"{node_type} ({counts[node_type]})" for node_type in sorted(counts))
+    )
     for node_type in sorted(counts):
         with st.expander(f"{node_type} ({counts[node_type]})"):
             rows = [
@@ -66,7 +86,12 @@ def render_trace_nodes(trace: ProvenanceTrace) -> None:
                 for node in trace.nodes
                 if node.node_type.value == node_type
             ]
-            st.dataframe(rows, width="stretch", hide_index=True)
+            st.dataframe(
+                rows,
+                width="stretch",
+                hide_index=True,
+                column_config=table_column_config(rows, hide_machine_ids=False),
+            )
 
 
 def render_trace_completeness(trace: ProvenanceTrace) -> None:
@@ -80,4 +105,9 @@ def render_trace_completeness(trace: ProvenanceTrace) -> None:
         }
         for category, status in sorted(trace.completeness.categories.items())
     ]
-    st.dataframe(rows, width="stretch", hide_index=True)
+    st.dataframe(
+        rows,
+        width="stretch",
+        hide_index=True,
+        column_config=table_column_config(rows),
+    )
