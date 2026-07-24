@@ -2,9 +2,10 @@
 
 **Snapshot date:** 24 July 2026
 
-**Development branch:** `codex/traffictwin-v0.7`
+**Development branch:** `claude/complete-v0.7` (integration branch created at the protected
+`v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
 
-**Snapshot commit:** `4b4e8b2` (`Complete bounded Manchester live follow-up`)
+**Snapshot commit:** the Phase 2B Tier 1 integration head of `claude/complete-v0.7`
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -43,20 +44,21 @@ Under the strict v0.7 completion rule, all 15 v0.7 capability rows remain formal
 This does not mean the branch is empty: substantial bounded source, live-operations, and UI
 workflows are already working.
 
-After the recorded snapshot commit, the Guided Demo was upgraded from a page catalogue to an
-action-aware cross-page workflow candidate. It opens the first real task, keeps persistent progress
-and evidence boundaries visible, advances from typed successful actions where available, uses one
-explicit acknowledgement for review-only stages, and records skipped stages separately. This is
-working-tree candidate evidence until integrated; it does not by itself accept any `UX-*` row.
+At `v0.7.0-alpha.4` (`4e95a5d`), the Guided Demo is an action-aware cross-page workflow
+candidate. It opens the first real task, keeps persistent progress and evidence boundaries
+visible, advances from typed successful actions where available, uses one explicit
+acknowledgement for review-only stages, and records skipped stages separately. The Phase 2B
+Tier 1 presentation harvest (seven pages plus its adversarial test file) is now lead-reviewed and
+integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `UX-*` row.
 
 ## 3. Current verified baseline
 
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,560 unit tests and 162 UI tests pass, 1,722 combined;
+- 1,578 unit tests and 162 UI tests pass, 1,740 combined;
 - repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 677 configured source and test files;
+- strict mypy passes over all 696 configured source and test files;
 - lock validation and package build pass;
 - the built wheel contains the required Manchester boundary assets; and
 - 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
@@ -101,7 +103,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, and a candidate action-aware Guided Demo with persistent progress and automatic next-task routing; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
-| `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
+| `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
 | `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces and byte-exact read-only v0.6 registry copying | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |
 
 ## 6. Major work ready to build now

@@ -136,7 +136,7 @@ Phase 2A was lead-reviewed and merged at
 copy against the accepted BODS and National Highways operational slices. The Phase 2A source and
 test claim is closed; later edits require a new explicit grant.
 
-### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 1
+### Completed parallel ownership: Claude UI presentation Phase 2B Tier 1
 
 - Claude owns the first bounded page-presentation harvest after fast-forwarding
   `claude/ui-redesign` to the pushed `codex/traffictwin-v0.7` HEAD that contains this grant. The
@@ -168,6 +168,14 @@ test claim is closed; later edits require a new explicit grant.
   screenshots of at least one import page and one comparison/metadata page. Leave commits only on
   `claude/ui-redesign`; the lead owns review, merge, shared records, capability reconciliation, and
   push. Phase 2B Tier 2 remains ungranted.
+
+Phase 2B Tier 1 was lead-reviewed on 24 July 2026 and integrated by cherry-picking the six
+reviewed `claude/ui-redesign` commits onto the `claude/complete-v0.7` integration branch created
+at `v0.7.0-alpha.4`. The reviewed diff stayed exactly inside the granted seven-page file set plus
+the permitted new Tier 1 presentation test; the lead-owned action-aware Guided Demo, National
+Highways layers, and all shared records were untouched. The Tier 1 source and test claim is
+closed; later edits to those pages require a new explicit grant. Phase 2B Tier 2 remains
+ungranted.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 

@@ -426,6 +426,23 @@ records but excludes Streamlit Glide's repeated internal grid IDs and does not c
 manual keyboard/screen-reader/contrast/zoom/participant testing. Final cutover acceptance remains
 outstanding, so `UX-02` and `UX-03` remain planned.
 
+A lead-reviewed Phase 2B Tier 1 presentation harvest is now integrated on the
+`claude/complete-v0.7` integration branch created at `v0.7.0-alpha.4`. Its seven granted files
+(the shared analysis-caption helper plus the SUMO import, bundle import, comparison, About, TOS
+data import, and experiment manager pages) present bordered human-labelled summaries, semantic
+badges, configured column tables, and truncated primary fingerprints while retaining every
+complete fingerprint, machine identifier, and raw JSON payload in clearly labelled
+Advanced/Evidence expanders. Unavailable, rejected, warning, and synthetic states remain explicit
+badges; no underlying value, service call, navigation route, or scientific calculation changed,
+and the lead-owned action-aware Guided Demo is untouched. Seven adversarial presentation tests
+cover the harvested pages. The integrated gate passes 686 Manchester-focused unit tests, 1,578
+unit tests and 162 UI tests (1,740 combined), repository-wide Ruff formatting/checks, strict mypy
+over all 696 configured source and test files, lock validation, package build with the required
+Manchester boundary assets, `git diff --check`, and the 35-route desktop/mobile light/dark browser
+matrix (140 snapshots, zero actionable semantic findings). This is candidate presentation evidence
+only; final cutover, manual accessibility/participant review, and release reconciliation remain,
+so `UX-01`–`UX-03` remain planned.
+
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
 its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains
