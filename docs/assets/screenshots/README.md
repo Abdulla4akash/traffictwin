@@ -1,8 +1,17 @@
 # Screenshot Capture Checklist
 
-No reliable automated screenshot workflow is currently part of the repository. Do not create fake screenshots.
+The repository includes a repeatable Playwright screenshot regression workflow. It does not create
+dissertation-ready evidence automatically and must not be represented as a WCAG audit or substitute
+for visual/participant review. Do not create fake screenshots.
 
-Use this manual checklist after launching:
+Run the complete desktop/mobile light/dark matrix with:
+
+```bash
+python -m playwright install chromium
+python scripts/ui_browser_audit.py --output output/ui-audit
+```
+
+Use this separate manual dissertation checklist after launching:
 
 ```bash
 traffictwin demo initialise .demo
@@ -45,6 +54,9 @@ Expected source labels:
 - Direct launch remains unavailable.
 - Reports regenerate only on explicit user action.
 
-Before using screenshots in dissertation material, check that no page claims live data, real Manchester data, real Randy integration, proven root causes, or provenance as proof of real-world causality.
+Before using screenshots in dissertation material, check that synthetic pages do not claim live or
+real Manchester evidence, that Manchester Operations retains its exact source/scope/freshness and
+private-publication labels, and that no page claims proven root causes or provenance as proof of
+real-world causality. Do not publish a private source scene without the applicable reviewed basis.
 For TOS screenshots, also confirm permission to show source-derived values and hide machine-specific
 paths or metadata.

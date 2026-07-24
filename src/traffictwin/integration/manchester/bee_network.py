@@ -215,6 +215,69 @@ class BeeNetworkMembershipReport(ManchesterSnapshotModel):
         return self
 
 
+class BeeNetworkPendingOperatorEvidence(ManchesterSnapshotModel):
+    """Aggregate-only observation count for one frozen pending candidate."""
+
+    operator_ref: Literal["BNVB"] = "BNVB"
+    records_observed: int = Field(ge=0)
+    observed_in_source_snapshot: bool
+
+    @model_validator(mode="after")
+    def validate_observation(self) -> BeeNetworkPendingOperatorEvidence:
+        if self.observed_in_source_snapshot != (self.records_observed > 0):
+            raise ValueError("pending-candidate observation flag must match its count")
+        return self
+
+
+class BeeNetworkCandidateReview(ManchesterSnapshotModel):
+    """Review queue for pending identifiers in one accepted BODS parse report."""
+
+    schema_version: Literal["1.0"] = "1.0"
+    capability_id: Literal["MAN-05"] = "MAN-05"
+    method_version: Literal["bee-network-operator-scope-1.0"] = "bee-network-operator-scope-1.0"
+    source_snapshot_id: str
+    source_report_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    policy: BeeNetworkScopePolicy
+    policy_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    candidate_evidence: tuple[BeeNetworkPendingOperatorEvidence, ...]
+    pending_candidates_observed: tuple[str, ...]
+    pending_candidates_unobserved: tuple[str, ...]
+    policy_update_required: bool
+    policy_activation_performed: Literal[False] = False
+    automatic_policy_activation_available: Literal[False] = False
+    complete_fleet_coverage_available: Literal[False] = False
+    complete_service_coverage_available: Literal[False] = False
+    display_name_matching_used: Literal[False] = False
+    geography_matching_used: Literal[False] = False
+    raw_vehicle_identifiers_in_output: Literal[False] = False
+    public_export_available: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_review(self) -> BeeNetworkCandidateReview:
+        if self.policy_fingerprint != self.policy.fingerprint():
+            raise ValueError("candidate review must bind the exact policy")
+        refs = tuple(item.operator_ref for item in self.candidate_evidence)
+        if refs != self.policy.pending_operator_refs:
+            raise ValueError("candidate evidence must cover every pending reference exactly")
+        observed = tuple(
+            item.operator_ref
+            for item in self.candidate_evidence
+            if item.observed_in_source_snapshot
+        )
+        unobserved = tuple(
+            item.operator_ref
+            for item in self.candidate_evidence
+            if not item.observed_in_source_snapshot
+        )
+        if self.pending_candidates_observed != observed:
+            raise ValueError("observed pending candidates must be re-derived from evidence")
+        if self.pending_candidates_unobserved != unobserved:
+            raise ValueError("unobserved pending candidates must be re-derived from evidence")
+        if self.policy_update_required != bool(observed):
+            raise ValueError("policy-review flag must match pending candidate observations")
+        return self
+
+
 def bee_network_scope_policy_v1() -> BeeNetworkScopePolicy:
     """Return the immutable first live-feed-verified operator policy."""
 
@@ -299,4 +362,61 @@ def verify_bee_network_membership_report(
         raise BeeNetworkScopeError(
             "MEMBERSHIP_REPORT_MISMATCH",
             "membership evidence does not reproduce from the source report and policy",
+        )
+
+
+def review_pending_bee_network_operators(
+    source_report: BodsParseReport,
+    policy: BeeNetworkScopePolicy | None = None,
+) -> BeeNetworkCandidateReview:
+    """Aggregate pending-code observations without activating membership policy."""
+
+    selected_policy = bee_network_scope_policy_v1() if policy is None else policy
+    operator_counts = dict.fromkeys(selected_policy.pending_operator_refs, 0)
+    for record in source_report.records:
+        if record.operator_ref in operator_counts:
+            operator_counts[record.operator_ref] += 1
+    evidence = tuple(
+        BeeNetworkPendingOperatorEvidence(
+            operator_ref=operator_ref,  # type: ignore[arg-type]
+            records_observed=operator_counts[operator_ref],
+            observed_in_source_snapshot=operator_counts[operator_ref] > 0,
+        )
+        for operator_ref in selected_policy.pending_operator_refs
+    )
+    observed = tuple(item.operator_ref for item in evidence if item.observed_in_source_snapshot)
+    unobserved = tuple(
+        item.operator_ref for item in evidence if not item.observed_in_source_snapshot
+    )
+    return BeeNetworkCandidateReview(
+        source_snapshot_id=source_report.source.snapshot_id,
+        source_report_fingerprint=source_report.fingerprint(),
+        policy=selected_policy,
+        policy_fingerprint=selected_policy.fingerprint(),
+        candidate_evidence=evidence,
+        pending_candidates_observed=observed,
+        pending_candidates_unobserved=unobserved,
+        policy_update_required=bool(observed),
+    )
+
+
+def verify_bee_network_candidate_review(
+    review: BeeNetworkCandidateReview,
+    source_report: BodsParseReport,
+) -> None:
+    """Re-derive a candidate review from the exact accepted source report."""
+
+    if (
+        review.source_snapshot_id != source_report.source.snapshot_id
+        or review.source_report_fingerprint != source_report.fingerprint()
+    ):
+        raise BeeNetworkScopeError(
+            "SOURCE_REPORT_MISMATCH",
+            "candidate-review evidence does not bind the supplied BODS report",
+        )
+    expected = review_pending_bee_network_operators(source_report, review.policy)
+    if expected != review:
+        raise BeeNetworkScopeError(
+            "CANDIDATE_REVIEW_MISMATCH",
+            "candidate review does not re-derive from the supplied BODS report",
         )

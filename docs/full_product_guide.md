@@ -885,11 +885,15 @@ exactly three bounded National Highways requests: closures/incidents, imposed te
 restrictions, and VMS status. Ordinary page reruns are local and make no network request.
 
 The workspace retains private immutable source snapshots and bounded aggregate refresh history.
+Expand **Metadata-only live status** to download a local JSON summary of source state, timestamps,
+attribution, and aggregate counts. The file contains no coordinates, vehicle identifiers, API
+keys, or raw response data; public hosting of even that metadata remains unapproved.
 Map layers remain source-separated, independently attributed, and explicitly `near_live`, `stale`,
 or `outage` from source time. A failed refresh keeps the last accepted overlay and marks its state
 honestly. Do not interpret imposed restrictions as measured speed, VMS metadata as literal sign
 text, bus positions as road congestion, or the broad display envelope as an official Manchester
-boundary. See [Manchester Operations UI](integration/manchester_operations_ui.md) and
+source-coverage boundary. Separate ONS polygons provide official display context only. See
+[Manchester Operations UI](integration/manchester_operations_ui.md) and
 [National Highways operational feeds](integration/manchester_national_highways_operational_feeds.md).
 
 ### UC20: Run browser and semantic UI regression checks
@@ -898,8 +902,9 @@ boundary. See [Manchester Operations UI](integration/manchester_operations_ui.md
 python scripts/ui_browser_audit.py --output output/ui-audit
 ```
 
-The script captures five desktop pages and a mobile Home view and checks main headings, visible
-interactive names, image alternatives, duplicate IDs, and horizontal overflow. This is a bounded
+The script captures all 35 v0.7 routes at desktop/mobile viewports in light/dark themes and checks
+exact primary headings, main landmarks, rendered exceptions, visible interactive names, image
+alternatives, application-owned duplicate IDs, and horizontal overflow. This is a bounded
 regression aid, not WCAG conformance or assistive-technology evaluation.
 
 ### UC21: Locate when a run changed with fixed-window metrics

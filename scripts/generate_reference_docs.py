@@ -225,9 +225,11 @@ from traffictwin.integration.manchester import (
     AdmittedComparisonPair,
     ArchiveMember,
     ArchivePolicy,
+    BeeNetworkCandidateReview,
     BeeNetworkMembershipCounts,
     BeeNetworkMembershipReport,
     BeeNetworkOperatorEvidence,
+    BeeNetworkPendingOperatorEvidence,
     BeeNetworkScopePolicy,
     BeeNetworkVehicleClassification,
     BodsAcquisitionRequest,
@@ -280,6 +282,8 @@ from traffictwin.integration.manchester import (
     ExcludedCalibrationInterval,
     ExcludedComparisonInterval,
     FreshnessEvaluationRequest,
+    ManchesterBoundaryFeature,
+    ManchesterBoundaryReference,
     ManchesterCalibrationContract,
     ManchesterCalibrationReport,
     ManchesterComparisonMetricContract,
@@ -288,6 +292,9 @@ from traffictwin.integration.manchester import (
     ManchesterLineageArtifactReference,
     ManchesterLineageEdge,
     ManchesterLineageStage,
+    ManchesterLiveSourceStatus,
+    ManchesterLiveStatusExport,
+    ManchesterLiveStatusMetric,
     ManchesterMapLayerManifest,
     ManchesterMapPoint,
     ManchesterMapScene,
@@ -359,6 +366,7 @@ from traffictwin.integration.manchester import (
     WebtrisTimeseriesFilter,
     WebtrisTimeseriesResult,
     XmlPolicy,
+    get_boundary_reference,
     map_style_catalogue,
     spatial_policy_catalogue,
 )
@@ -736,6 +744,8 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "ManchesterQuarantineManifest": ManchesterQuarantineManifest,
     "ManchesterQuarantineReceipt": ManchesterQuarantineReceipt,
     "BeeNetworkOperatorEvidence": BeeNetworkOperatorEvidence,
+    "BeeNetworkPendingOperatorEvidence": BeeNetworkPendingOperatorEvidence,
+    "BeeNetworkCandidateReview": BeeNetworkCandidateReview,
     "BeeNetworkScopePolicy": BeeNetworkScopePolicy,
     "BeeNetworkVehicleClassification": BeeNetworkVehicleClassification,
     "BeeNetworkMembershipCounts": BeeNetworkMembershipCounts,
@@ -751,6 +761,11 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "BodsRetentionSnapshotDecision": BodsRetentionSnapshotDecision,
     "BodsRetentionPlan": BodsRetentionPlan,
     "BodsRetentionReceipt": BodsRetentionReceipt,
+    "ManchesterBoundaryReference": ManchesterBoundaryReference,
+    "ManchesterBoundaryFeature": ManchesterBoundaryFeature,
+    "ManchesterLiveStatusMetric": ManchesterLiveStatusMetric,
+    "ManchesterLiveSourceStatus": ManchesterLiveSourceStatus,
+    "ManchesterLiveStatusExport": ManchesterLiveStatusExport,
     "CalibrationParameterBound": CalibrationParameterBound,
     "ManchesterCalibrationContract": ManchesterCalibrationContract,
     "CalibrationIntervalContent": CalibrationIntervalContent,
@@ -1454,6 +1469,20 @@ def main() -> None:
             "styles": [style.model_dump(mode="json") for style in map_style_catalogue()],
             "basemap_provider": None,
             "external_network_required": False,
+        },
+    )
+    _write_json(
+        "manchester_boundary_reference.json",
+        {
+            "_meta": _metadata(
+                "traffictwin.integration.manchester.boundary_reference.boundary_reference"
+            ),
+            "references": [
+                get_boundary_reference("manchester_local_authority").model_dump(mode="json"),
+                get_boundary_reference("greater_manchester_combined_authority").model_dump(
+                    mode="json"
+                ),
+            ],
         },
     )
     _write_json(

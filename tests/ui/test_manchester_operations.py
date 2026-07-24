@@ -168,9 +168,18 @@ def test_valid_scene_builds_no_basemap_symbol_layer_without_sensitive_point_tabl
     deck_json = json.loads(deck.to_json())
     assert "mapProvider" not in deck_json
     assert "mapStyle" not in deck_json
-    assert deck_json["layers"][0]["@@type"] == "TextLayer"
-    assert deck_json["layers"][0]["data"][0]["symbol"] == "✚"
-    assert "point_id" not in deck_json["layers"][0]["data"][0]
+    assert [layer["@@type"] for layer in deck_json["layers"]] == [
+        "GeoJsonLayer",
+        "GeoJsonLayer",
+        "TextLayer",
+    ]
+    assert [layer["id"] for layer in deck_json["layers"][:2]] == [
+        "ons-boundary-greater_manchester_combined_authority",
+        "ons-boundary-manchester_local_authority",
+    ]
+    assert deck_json["layers"][2]["data"][0]["symbol"] == "✚"
+    assert "point_id" not in deck_json["layers"][2]["data"][0]
+    assert "display context only" in deck.to_json()
     assert "synthetic:central-manchester" not in deck.to_json()
     assert operations.layer_summary_rows(scene)[0]["Rendered points"] == 1
 
@@ -532,7 +541,11 @@ def test_manchester_page_renders_valid_local_scene(
         for item in app.warning
     )
     assert any(item.label == "Displayed map points" and item.value == "0" for item in app.metric)
-    assert any("Attribution: none displayed" in item.value for item in app.caption)
+    assert any(
+        "Attribution: Contains OS data" in item.value
+        and "Office for National Statistics" in item.value
+        for item in app.caption
+    )
 
 
 def test_manchester_page_exposes_explicit_non_live_source_refresh_forms(
@@ -545,6 +558,7 @@ def test_manchester_page_exposes_explicit_non_live_source_refresh_forms(
 
     latest = app_test.from_file("src/traffictwin/ui/app_pages/manchester.py").run(timeout=20)
     assert not latest.exception
+    assert any(item.label == "Download live-status metadata" for item in latest.download_button)
     latest_buttons = {button.label: button.disabled for button in latest.button}
     assert latest_buttons["Fetch site, report, and quality"] is False
     assert latest_buttons["Fetch signal locations"] is False

@@ -1616,8 +1616,10 @@ Bee Network membership is a separate deterministic projection after the immutabl
 accepted private snapshot, produces one outcome per parser-admitted position, and retains
 non-matches, pending identifiers, and parser exclusions. It never rewrites the source observation,
 uses display names or geography as membership evidence, exposes raw vehicle identifiers, or enables
-public export. The BODS live-scene service consumes that report and creates separate verified and
-other/unknown layers while independently preserving each freshness state.
+public export. A separate aggregate-only candidate review can detect the frozen pending `BNVB` code
+in a later accepted parser report, but cannot activate policy or claim complete fleet/service
+coverage. The BODS live-scene service consumes the current accepted policy report and creates
+separate verified and other/unknown layers while independently preserving each freshness state.
 
 Private BODS raw retention is a separate boundary after immutable publication. A read-only plan
 verifies complete accepted/quarantine families, protects the newest and any live-scene-referenced
@@ -1681,6 +1683,10 @@ inside the configured workspace, refuses symlinks/escapes, applies an 8 MiB boun
 complete scene contract, and caches at most 12 entries for 30 seconds. A renderer adapter removes
 point identities from the browser payload and creates symbol-based PyDeck `TextLayer` objects with
 no map provider or map style, so page rendering requires no third-party tile request. Layer
+rendering begins with two exact packaged ONS `GeoJsonLayer` references for Manchester and Greater
+Manchester. Their hashes, official codes, CRS, geometry bounds, licence, and attribution are
+revalidated at load; they are display context only and never become a road network, sensor/source
+coverage, spatial admission, or scientific clipping rule. Layer
 selection, geographic-scope pills, and freshness-state pills operate through one pure local view
 service. It validates every selected value against the exact selected-layer inventory, filters only
 already-admitted points, and publishes separate per-layer accepted/displayed/hidden/excluded
@@ -1696,6 +1702,12 @@ tested non-spatial MAN-08 service. The UI only projects returned rows into separ
 and speed charts; missing values remain gaps and the axis stays labelled as a timezone-undeclared
 source string. Latest mode exposes the same WebTRIS historical chart without relabelling the
 selected source day as live.
+
+A separate metadata-only projection reads the validated local BODS and National Highways control
+states and produces a local download containing source status, UTC timestamps, fixed aggregate
+counts, scope, and attribution. Its typed model makes raw payloads, coordinates, identifiers,
+credentials, complete-coverage claims, external basemaps, live signal state, and public metadata/
+position/scene hosting unavailable. The page computes no count or licence decision itself.
 
 The DfT/WebTRIS/TfGM source forms remain thin over `source_refresh.py`. That orchestration fixes byte/page
 bounds and publication classes, calls only the existing source adapters, and preserves unrelated
@@ -1833,11 +1845,12 @@ and preserves the complete legacy router through `TRAFFICTWIN_V07_NAVIGATION=leg
 typed inventory maps all 34 `UiPage` values to unique direct scripts and URL paths. A shared page
 runtime serves both routers, while candidate page-to-page callbacks use registered
 `st.switch_page` targets. This development default does not accept the capability; direct-URL and
-browser, cross-page state, accessibility, screenshot, new-page minimum-version, package-version,
-and final reconciliation gates remain. Packaging declares the reviewed Streamlit floor and PyDeck
-directly. Minimum/locked Streamlit
-tests, isolated installed-wheel execution, all 34 live direct paths, direct refresh, a cross-page
-action, and browser history now pass for the candidate foundation. Candidate page actions invoke
+cross-page state, manual accessibility/participant, new-page minimum-version, package-version, and
+final reconciliation gates remain. Packaging declares the reviewed Streamlit floor and PyDeck
+directly. Minimum/locked Streamlit tests, isolated installed-wheel execution, all 34 live direct
+paths, direct refresh, a cross-page action, and browser history pass. A later bounded audit also
+passes the 34 routes plus additive Manchester Operations across desktop/mobile and light/dark (140
+snapshots) with zero actionable semantic findings. Candidate page actions invoke
 `st.switch_page` only from normal top-level script execution, because rerun-triggering navigation
 inside a widget callback is a no-op in Streamlit.
 

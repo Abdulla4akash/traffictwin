@@ -29,9 +29,11 @@ Manchester evidence workflows. BODS supplies source-timed live bus positions. Th
 Highways developer REST service supplies source-separated near-live/stale closures and incidents,
 imposed temporary restrictions, and digital VMS status for Strategic Road Network features inside
 a declared study envelope. A real three-product acceptance run passed on 24 July 2026. These
-features require credentials supplied through environment variables, never run in the background,
-and do not provide continuous traffic flow, measured road speed, congestion, complete city-road
-coverage, traffic-signal phases, public export, or a change to the immutable v0.6 release.
+features require credentials supplied through environment variables and never run in the
+background. Manchester Operations also includes attributed, hash-verified ONS Manchester/Greater
+Manchester display boundaries and a downloadable aggregate-only source-status manifest. It does
+not provide continuous traffic flow, measured road speed, congestion, complete city-road coverage,
+traffic-signal phases, raw/position public export, or a change to the immutable v0.6 release.
 
 Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit

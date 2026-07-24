@@ -18,6 +18,7 @@ import pydeck as pdk
 from pydantic import ValidationError
 
 from traffictwin.integration.manchester.bods import BodsBoundingBox
+from traffictwin.integration.manchester.boundary_reference import load_boundary_features
 from traffictwin.integration.manchester.dft import DirectionCode
 from traffictwin.integration.manchester.dft_acquisition import (
     DftAcceptedSnapshotCatalogue,
@@ -971,10 +972,29 @@ def build_manchester_deck(
 
 
 def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Deck:
-    """Build a no-basemap deck from an already validated display-only view."""
+    """Build an offline deck with pinned official boundary context and admitted points."""
 
     _validate_filtered_scene(filtered)
     deck_layers: list[pdk.Layer] = []
+    boundary_styles = {
+        "greater_manchester_combined_authority": ([92, 104, 120, 190], 2),
+        "manchester_local_authority": ([36, 78, 116, 230], 4),
+    }
+    for boundary in load_boundary_features():
+        line_colour, line_width = boundary_styles[boundary.reference.scope]
+        deck_layers.append(
+            pdk.Layer(
+                "GeoJsonLayer",
+                id=f"ons-boundary-{boundary.reference.scope}",
+                data=boundary.geojson(),
+                stroked=True,
+                filled=False,
+                get_line_color=line_colour,
+                get_line_width=line_width,
+                line_width_units="pixels",
+                pickable=True,
+            )
+        )
     for filtered_layer in filtered.layers:
         layer = filtered_layer.manifest
         glyph = _SYMBOL_GLYPHS[layer.style.symbol]
@@ -1028,8 +1048,9 @@ def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Dec
             "Coordinate uncertainty: {uncertainty_m} m"
         },
         description=(
-            "Offline Manchester evidence map. Symbols identify source families; no basemap, "
-            "source fusion, map matching, or continuity inference is used."
+            "Offline Manchester evidence map. Pinned ONS boundaries provide display context; "
+            "symbols identify source families. No basemap, road network, source fusion, map "
+            "matching, or continuity inference is used."
         ),
     )
 

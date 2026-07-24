@@ -2,6 +2,23 @@
 
 ## v0.7.0 - In development
 
+Closed the buildable portions of the Manchester live/UI follow-up while retaining external-source
+limits:
+
+- packaged exact hash-verified December 2025 ONS Manchester and Greater Manchester boundary
+  derivatives as attributed, no-basemap display context only;
+- added an aggregate-only pending-`BNVB` review that can request a new Bee Network policy review
+  but cannot activate membership or claim complete fleet/service coverage;
+- added a locally downloadable metadata-only live-status manifest for BODS and National Highways,
+  with public metadata hosting, raw payloads, coordinates, identifiers, credentials,
+  complete-coverage claims, and public live-scene hosting structurally unavailable;
+- enabled native grouped sidebar navigation and upgraded the Playwright audit to all 35 v0.7
+  routes across desktop/mobile and light/dark (140 snapshots, zero actionable semantic findings);
+  and
+- retained continuous city-road telemetry, all-road Manchester coverage, live signal phases,
+  external basemap tiles, and raw public live hosting as unavailable because no reviewed source or
+  publication authority supplies them.
+
 Integrated the reviewed UI presentation Phase 2A:
 
 - made the five-group `st.navigation` shell the normal v0.7 development route while preserving
@@ -11,8 +28,8 @@ Integrated the reviewed UI presentation Phase 2A:
   metrics and exact evidence-state badges;
 - migrated affected AppTests to direct registered page switching and reconciled Home copy with
   the bounded BODS and National Highways live-source truth; and
-- retained `UX-01`–`UX-03` as planned pending screenshot, mobile, accessibility, complete browser,
-  minimum-version, and final cutover acceptance.
+- retained `UX-01`–`UX-03` as planned pending manual accessibility/participant, minimum-version,
+  and final cutover acceptance.
 
 Added a bounded private National Highways operational workflow:
 

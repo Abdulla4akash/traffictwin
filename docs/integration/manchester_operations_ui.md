@@ -61,8 +61,9 @@ export BODS_API_KEY='your-BODS-key'
 export TRAFFICTWIN_BODS_BOUNDING_BOX='min_longitude,min_latitude,max_longitude,max_latitude'
 ```
 
-TrafficTwin deliberately supplies no default Manchester boundary. The operator must enter four
-ordered WGS84 coordinates in the form or set `TRAFFICTWIN_BODS_BOUNDING_BOX`. The API key is read
+TrafficTwin deliberately supplies no default **BODS request** boundary. The official Manchester
+display polygon does not choose, clip, or widen the API query. The operator must enter four ordered
+WGS84 coordinates in the form or set `TRAFFICTWIN_BODS_BOUNDING_BOX`. The API key is read
 only when rendering readiness and passed transiently only after **Fetch latest buses** is clicked;
 it is never placed in a model, receipt, scene, session-state value, error, or log. One form submit
 performs one request. The control state permits only one refresh at a time and at least 60 seconds
@@ -147,6 +148,9 @@ real-source behavior and residual boundaries.
   freshness state. Defaults show every evidenced option; an empty selection honestly shows no map
   points.
 - `st.pydeck_chart` renders admitted WGS84 points with a `TextLayer` symbol per source family.
+- Two packaged, hash-verified ONS December 2025 `GeoJsonLayer` polygons provide official
+  Manchester and Greater Manchester display context with the required ONS/OS attribution. They do
+  not represent roads, sensor coverage, source scope, map matching, or scientific clipping.
 - `map_provider=None` and `map_style=None` prevent a hidden external basemap request.
 - Colour is supplemented by circle, square, diamond, triangle, or cross symbols and accessible
   source descriptions.
@@ -178,6 +182,11 @@ are available only when a compatible accepted daily snapshot exists; the map sce
 carries no interval observations. **Compare with SUMO** and **Prepare SUMO baseline** remain
 disabled until the MAN-09 and MAN-10 contracts pass.
 
+The **Metadata-only live status** expander builds a downloadable JSON manifest from validated local
+BODS and National Highways control states. It contains aggregate source states/counts, timestamps,
+scope, and attribution only. Its schema cannot contain coordinates, vehicle identifiers,
+credentials, raw snapshots, or permission to host the metadata or a public live scene.
+
 ## Verification
 
 The focused tests cover unavailable workspaces, missing artifacts, invalid and oversized JSON,
@@ -196,6 +205,8 @@ request and receipt tampering, interrupted atomic replacement, and preservation 
 
 Controlled real-source vertical slices now pass for BODS, the three selected DfT products, one
 WebTRIS site/day plus quality, the pinned TfGM archive, and all three National Highways operational
-products. Full-source/bulk acceptance, browser
-screenshots, mobile/keyboard/contrast checks, provider SLA decisions, continuous city-road
-telemetry, and the complete MAN-01 through MAN-08 acceptance reconciliation remain outstanding.
+products. The exact 35-route v0.7 inventory passed a 140-snapshot automated browser matrix: desktop
+and mobile, light and dark, with zero actionable semantic findings. That automation is not a WCAG
+audit; manual keyboard, screen-reader, contrast, zoom, and participant acceptance remain open.
+Full-source/bulk acceptance, provider SLA decisions, continuous city-road telemetry, and complete
+MAN-01 through MAN-08 acceptance reconciliation also remain outstanding.

@@ -83,12 +83,13 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   current API cannot support `near_live`: the preceding day returned no report and a day one month
   earlier returned a complete historical report. Later scientific thresholds require a new policy
   version.
-- Question 10 is resolved for the default map: pydeck without a basemap, with an exact accepted
-  ONS boundary edition selected at Gate B. Carto remains blocked by `GA-MAP-1`.
+- Question 10 is resolved for the default map: pydeck without a basemap, with exact reviewed,
+  hash-pinned December 2025 ONS boundary derivatives. Carto remains blocked by `GA-MAP-1`.
 - Question 14 is further narrowed: identifier-only NOC matching is accepted and one controlled
   live-feed snapshot verifies `BNDB`, `BNFM`, `BNGN`, `BNML`, and `BNSM`; `BNVB` remains pending.
-  NOC reference-table rights, optional schedule-join publication, complete service coverage, and
-  unmatched-service interpretation remain Gate-B blockers.
+  Later accepted reports can now create an aggregate-only `BNVB` review request, but cannot
+  activate policy automatically. NOC reference-table rights, optional schedule-join publication,
+  complete service coverage, and unmatched-service interpretation remain Gate-B blockers.
 - Question 8 now has a precautionary engineering control: private BODS accepted/quarantine
   families can be previewed against a 24-hour/240-family bound and deleted only with exact
   operator confirmation while the active/newest snapshots remain protected. The lawful research
@@ -101,8 +102,11 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   future always-on scheduler remains a separate deployment and governance decision.
 - Question 18 is narrowed by the 24 July 2026 real-source acceptance: the current integration is a
   key-authenticated REST pull, not a callback; all three bounded products completed quarantine,
-  parse, promotion, replay, scene publication, and secret-persistence checks. The official-boundary,
-  retention/release, provider-SLA, and complete UI/capability gates in the revised question remain
+  parse, promotion, replay, scene publication, and secret-persistence checks. Hash-pinned ONS
+  Manchester and Greater Manchester polygons now provide display context, and the 35-route
+  desktop/mobile light/dark automated browser matrix passes. Source-coverage meaning,
+  retention/release, provider-SLA, manual accessibility/participant review, and complete capability
+  gates in the revised question remain
   open. Questions 1, 2, 5–8, 11, 12, and 15–18 otherwise remain open at their stated gates.
 
 ### v0.5 design decisions

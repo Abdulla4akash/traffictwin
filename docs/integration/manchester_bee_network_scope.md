@@ -31,6 +31,11 @@ remain `non_franchised_or_unknown`; they are not dropped or called non-franchise
 Gate-A candidate but did not occur in the snapshot, so it remains pending and does not activate
 membership in policy v1.
 
+A deterministic pending-candidate review now scans any later accepted `BodsParseReport` and records
+only the aggregate `BNVB` observation count. Seeing `BNVB` creates a review-required result; it does
+not silently activate the code, relabel the current policy, or claim fleet/service completeness.
+Policy activation still requires a reviewed evidence/licence decision and a new explicit version.
+
 Display names, line branding and geography never decide membership. Geography remains only the
 request scope. The policy is local-lookup-only and public export remains unavailable while the
 reference-table licence blocker `GA-BEE-4` remains open.
@@ -43,7 +48,11 @@ reference-table licence blocker `GA-BEE-4` remains open.
 - `classify_bee_network_membership(...)` — one exact outcome for every parser-admitted BODS
   position; and
 - `verify_bee_network_membership_report(...)` — deterministic re-derivation against the original
-  `BodsParseReport`.
+  `BodsParseReport`;
+- `review_pending_bee_network_operators(...)` — aggregate-only detection of the frozen pending
+  candidate in a later accepted report; and
+- `verify_bee_network_candidate_review(...)` — exact source/policy-bound re-derivation of that
+  review queue.
 
 The report retains a complete activity reconciliation: classified positions, out-of-scope rows,
 malformed rows, collapsed duplicates and conflicting duplicates. Missing and ambiguous
@@ -69,7 +78,7 @@ export remain unavailable.
 
 ## What this does not establish
 
-- `BNVB` membership activation;
+- automatic `BNVB` membership activation (observation only opens a review);
 - complete Bee Network vehicle, line or service coverage;
 - that every non-matching operator is outside the franchise;
 - a TfGM schedule join or its ODbL publication obligations;

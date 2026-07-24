@@ -90,14 +90,19 @@ visually inspected before submission.
 
 ## 6. Browser Screenshots And Accessibility Regression Checks
 
-`scripts/ui_browser_audit.py` starts or connects to Streamlit, captures five desktop pages and a
-mobile Home view, and checks main-heading count, visible interactive names, image alt attributes,
-duplicate DOM IDs, and horizontal overflow.
+`scripts/ui_browser_audit.py` starts Streamlit separately in light and dark themes and captures the
+complete 35-route v0.7 inventory at desktop and mobile viewports. It checks the exact primary
+heading, main landmark count, rendered Streamlit exceptions, visible interactive names, image alt
+attributes, application-owned duplicate DOM IDs, and horizontal overflow. Streamlit Glide grid IDs
+are counted separately because the application does not own them.
 
 ```bash
 python -m playwright install chromium
 python scripts/ui_browser_audit.py --output output/ui-audit
 ```
+
+Use `--pages smoke`, `--viewports desktop`, or `--theme light` for a shorter development run. An
+external `--url` is audited using its current theme.
 
 The audit is a regression aid, not a WCAG conformance claim. Keyboard, screen-reader, contrast,
 and participant testing remain separate work.

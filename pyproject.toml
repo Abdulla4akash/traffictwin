@@ -63,6 +63,7 @@ where = ["src"]
     "scenario_synthetic_square/*.sumocfg",
     "scenario_synthetic_square/*.md",
 ]
+"traffictwin.integration.manchester" = ["boundary_data/*.geojson"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

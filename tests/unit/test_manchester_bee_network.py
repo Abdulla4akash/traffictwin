@@ -10,10 +10,13 @@ from pydantic import ValidationError
 from tests.unit.test_manchester_bods import parse
 from traffictwin.integration.manchester.bee_network import (
     BEE_NETWORK_POLICY_VERSION,
+    BeeNetworkCandidateReview,
     BeeNetworkMembershipReport,
     BeeNetworkScopeError,
     bee_network_scope_policy_v1,
     classify_bee_network_membership,
+    review_pending_bee_network_operators,
+    verify_bee_network_candidate_review,
     verify_bee_network_membership_report,
 )
 
@@ -128,3 +131,57 @@ def test_external_verifier_refuses_a_different_source_report() -> None:
 
     with pytest.raises(BeeNetworkScopeError, match="SOURCE_REPORT_MISMATCH"):
         verify_bee_network_membership_report(report, drifted)
+
+
+def test_pending_candidate_review_is_aggregate_only_and_does_not_activate_policy() -> None:
+    source = parse()
+    review = review_pending_bee_network_operators(source)
+
+    assert review.candidate_evidence[0].operator_ref == "BNVB"
+    assert review.candidate_evidence[0].records_observed == 0
+    assert review.pending_candidates_observed == ()
+    assert review.pending_candidates_unobserved == ("BNVB",)
+    assert review.policy_update_required is False
+    assert review.policy_activation_performed is False
+    assert review.automatic_policy_activation_available is False
+    assert review.complete_fleet_coverage_available is False
+    assert review.complete_service_coverage_available is False
+    assert review.raw_vehicle_identifiers_in_output is False
+    assert review.public_export_available is False
+    verify_bee_network_candidate_review(review, source)
+
+
+def test_observed_pending_candidate_requests_review_but_remains_unclassified() -> None:
+    source = parse()
+    candidate = source.records[0].model_copy(update={"operator_ref": "BNVB"})
+    modified = source.model_copy(update={"records": (candidate, *source.records[1:])})
+
+    review = review_pending_bee_network_operators(modified)
+    classification = classify_bee_network_membership(modified)
+
+    assert review.pending_candidates_observed == ("BNVB",)
+    assert review.pending_candidates_unobserved == ()
+    assert review.candidate_evidence[0].records_observed == 1
+    assert review.policy_update_required is True
+    assert review.policy_activation_performed is False
+    assert (
+        next(
+            item for item in classification.classifications if item.operator_ref == "BNVB"
+        ).membership
+        == "non_franchised_or_unknown"
+    )
+
+
+def test_candidate_review_reload_and_source_binding_fail_closed() -> None:
+    source = parse()
+    review = review_pending_bee_network_operators(source)
+    payload = review.model_dump(mode="json")
+    payload["complete_fleet_coverage_available"] = True
+    with pytest.raises(ValidationError):
+        BeeNetworkCandidateReview.model_validate(payload)
+
+    drifted = source.model_copy(
+        update={"source": source.source.model_copy(update={"synthetic": False})}
+    )
+    with pytest.raises(BeeNetworkScopeError, match="SOURCE_REPORT_MISMATCH"):
+        verify_bee_network_candidate_review(review, drifted)

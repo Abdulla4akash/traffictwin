@@ -69,7 +69,8 @@ identity, source publication time, retrieval time, licence, and validation state
 re-verifies the snapshot and reproduces the parser output without network access.
 
 The broad initial study envelope is latitude `53.30–53.70`, longitude `−2.60–−1.90`. It is a
-caller-declared filter, not an official Manchester or Greater Manchester boundary. Linear records
+caller-declared source filter, not the separately packaged ONS Manchester or Greater Manchester
+display boundary and not a complete-coverage claim. Linear records
 enter the map only when an actual source vertex is inside the envelope; TrafficTwin displays one
 deterministically selected in-envelope source vertex and retains the complete source geometry in
 the immutable raw snapshot.
@@ -91,9 +92,9 @@ complete equation is `533 = 481 + 52`. The temporary workspace was removed after
 key or real response was committed.
 
 This accepts the bounded operational slice, not the complete capability catalogue. `MAN-01`,
-`MAN-07`, and `MAN-08` still encompass other sources, release/publication review, browser and
-accessibility acceptance, and full project-level reconciliation, so their capability state remains
-`planned`.
+`MAN-07`, and `MAN-08` still encompass other sources, release/publication review, manual
+accessibility/participant acceptance, and full project-level reconciliation, so their
+capability state remains `planned`.
 
 ## Use
 

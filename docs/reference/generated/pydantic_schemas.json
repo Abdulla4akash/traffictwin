@@ -43,6 +43,11 @@
               "title": "Duplicate Ids",
               "type": "array"
             },
+            "expected_h1": {
+              "default": "",
+              "title": "Expected H1",
+              "type": "string"
+            },
             "horizontal_overflow": {
               "title": "Horizontal Overflow",
               "type": "boolean"
@@ -59,6 +64,12 @@
               "title": "Main H1 Texts",
               "type": "array"
             },
+            "main_landmark_count": {
+              "default": 1,
+              "minimum": 0,
+              "title": "Main Landmark Count",
+              "type": "integer"
+            },
             "page_name": {
               "title": "Page Name",
               "type": "string"
@@ -67,9 +78,59 @@
               "title": "Page Title",
               "type": "string"
             },
+            "requested_theme": {
+              "default": "current",
+              "enum": [
+                "light",
+                "dark",
+                "current"
+              ],
+              "title": "Requested Theme",
+              "type": "string"
+            },
+            "streamlit_exception_count": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Streamlit Exception Count",
+              "type": "integer"
+            },
             "unnamed_interactive_count": {
               "minimum": 0,
               "title": "Unnamed Interactive Count",
+              "type": "integer"
+            },
+            "url_path": {
+              "default": "/",
+              "title": "Url Path",
+              "type": "string"
+            },
+            "vendor_grid_duplicate_id_count": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Vendor Grid Duplicate Id Count",
+              "type": "integer"
+            },
+            "viewport": {
+              "default": "desktop",
+              "enum": [
+                "desktop",
+                "mobile"
+              ],
+              "title": "Viewport",
+              "type": "string"
+            },
+            "viewport_height": {
+              "default": 1000,
+              "maximum": 2160,
+              "minimum": 480,
+              "title": "Viewport Height",
+              "type": "integer"
+            },
+            "viewport_width": {
+              "default": 1440,
+              "maximum": 3840,
+              "minimum": 320,
+              "title": "Viewport Width",
               "type": "integer"
             }
           },
@@ -97,7 +158,7 @@
           "type": "array"
         },
         "limitation": {
-          "default": "These automated semantic checks are a regression aid, not a WCAG conformance audit or a substitute for keyboard, screen-reader, contrast, and user testing.",
+          "default": "These automated semantic checks are a regression aid, not a WCAG conformance audit or a substitute for keyboard, screen-reader, contrast, and user testing. Duplicate glide-cell-* IDs generated inside Streamlit's dataframe grid are counted separately from application-controlled duplicate IDs.",
           "title": "Limitation",
           "type": "string"
         },
@@ -1523,6 +1584,307 @@
       "title": "BatchInputIssue",
       "type": "object"
     },
+    "BeeNetworkCandidateReview": {
+      "$defs": {
+        "BeeNetworkOperatorEvidence": {
+          "additionalProperties": false,
+          "description": "One live-feed-verified operator reference and its aggregate count.",
+          "properties": {
+            "operator_ref": {
+              "pattern": "^[A-Z0-9]{2,12}$",
+              "title": "Operator Ref",
+              "type": "string"
+            },
+            "records_observed": {
+              "exclusiveMinimum": 0,
+              "title": "Records Observed",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "operator_ref",
+            "records_observed"
+          ],
+          "title": "BeeNetworkOperatorEvidence",
+          "type": "object"
+        },
+        "BeeNetworkPendingOperatorEvidence": {
+          "additionalProperties": false,
+          "description": "Aggregate-only observation count for one frozen pending candidate.",
+          "properties": {
+            "observed_in_source_snapshot": {
+              "title": "Observed In Source Snapshot",
+              "type": "boolean"
+            },
+            "operator_ref": {
+              "const": "BNVB",
+              "default": "BNVB",
+              "title": "Operator Ref",
+              "type": "string"
+            },
+            "records_observed": {
+              "minimum": 0,
+              "title": "Records Observed",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "records_observed",
+            "observed_in_source_snapshot"
+          ],
+          "title": "BeeNetworkPendingOperatorEvidence",
+          "type": "object"
+        },
+        "BeeNetworkScopePolicy": {
+          "additionalProperties": false,
+          "description": "Frozen local-only membership policy backed by aggregate live evidence.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "display_name_matching_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Display Name Matching Allowed",
+              "type": "boolean"
+            },
+            "evidence_records_seen": {
+              "const": 1565,
+              "default": 1565,
+              "title": "Evidence Records Seen",
+              "type": "integer"
+            },
+            "geography_matching_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Geography Matching Allowed",
+              "type": "boolean"
+            },
+            "identifier_field": {
+              "const": "OperatorRef",
+              "default": "OperatorRef",
+              "title": "Identifier Field",
+              "type": "string"
+            },
+            "identifier_match_only": {
+              "const": true,
+              "default": true,
+              "title": "Identifier Match Only",
+              "type": "boolean"
+            },
+            "local_lookup_only": {
+              "const": true,
+              "default": true,
+              "title": "Local Lookup Only",
+              "type": "boolean"
+            },
+            "method_version": {
+              "const": "bee-network-operator-scope-1.0",
+              "default": "bee-network-operator-scope-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "pending_operator_refs": {
+              "default": [
+                "BNVB"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "title": "Pending Operator Refs",
+              "type": "array"
+            },
+            "policy_version": {
+              "const": "bee-network-operator-allowlist-v1-20260723",
+              "default": "bee-network-operator-allowlist-v1-20260723",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "reference_licence_status": {
+              "const": "unconfirmed_ga_bee_4",
+              "default": "unconfirmed_ga_bee_4",
+              "title": "Reference Licence Status",
+              "type": "string"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "verification_completed_at_utc": {
+              "default": "2026-07-23T22:39:08.884920Z",
+              "format": "date-time",
+              "title": "Verification Completed At Utc",
+              "type": "string"
+            },
+            "verification_parser_report_fingerprint": {
+              "const": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+              "default": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+              "title": "Verification Parser Report Fingerprint",
+              "type": "string"
+            },
+            "verification_raw_fingerprint": {
+              "const": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+              "default": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+              "title": "Verification Raw Fingerprint",
+              "type": "string"
+            },
+            "verification_snapshot_id": {
+              "const": "bods_siri_vm-20260723T223908Z-33e07061a500",
+              "default": "bods_siri_vm-20260723T223908Z-33e07061a500",
+              "title": "Verification Snapshot Id",
+              "type": "string"
+            },
+            "verified_operator_evidence": {
+              "items": {
+                "$ref": "#/$defs/BeeNetworkOperatorEvidence"
+              },
+              "title": "Verified Operator Evidence",
+              "type": "array"
+            }
+          },
+          "required": [
+            "verified_operator_evidence"
+          ],
+          "title": "BeeNetworkScopePolicy",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Review queue for pending identifiers in one accepted BODS parse report.",
+      "properties": {
+        "automatic_policy_activation_available": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Policy Activation Available",
+          "type": "boolean"
+        },
+        "candidate_evidence": {
+          "items": {
+            "$ref": "#/$defs/BeeNetworkPendingOperatorEvidence"
+          },
+          "title": "Candidate Evidence",
+          "type": "array"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "complete_fleet_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Complete Fleet Coverage Available",
+          "type": "boolean"
+        },
+        "complete_service_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Complete Service Coverage Available",
+          "type": "boolean"
+        },
+        "display_name_matching_used": {
+          "const": false,
+          "default": false,
+          "title": "Display Name Matching Used",
+          "type": "boolean"
+        },
+        "geography_matching_used": {
+          "const": false,
+          "default": false,
+          "title": "Geography Matching Used",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "bee-network-operator-scope-1.0",
+          "default": "bee-network-operator-scope-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "pending_candidates_observed": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pending Candidates Observed",
+          "type": "array"
+        },
+        "pending_candidates_unobserved": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Pending Candidates Unobserved",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/BeeNetworkScopePolicy"
+        },
+        "policy_activation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Policy Activation Performed",
+          "type": "boolean"
+        },
+        "policy_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Fingerprint",
+          "type": "string"
+        },
+        "policy_update_required": {
+          "title": "Policy Update Required",
+          "type": "boolean"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_vehicle_identifiers_in_output": {
+          "const": false,
+          "default": false,
+          "title": "Raw Vehicle Identifiers In Output",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Report Fingerprint",
+          "type": "string"
+        },
+        "source_snapshot_id": {
+          "title": "Source Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_snapshot_id",
+        "source_report_fingerprint",
+        "policy",
+        "policy_fingerprint",
+        "candidate_evidence",
+        "pending_candidates_observed",
+        "pending_candidates_unobserved",
+        "policy_update_required"
+      ],
+      "title": "BeeNetworkCandidateReview",
+      "type": "object"
+    },
     "BeeNetworkMembershipCounts": {
       "additionalProperties": false,
       "description": "Complete parser-to-membership reconciliation for one BODS report.",
@@ -2012,6 +2374,33 @@
         "records_observed"
       ],
       "title": "BeeNetworkOperatorEvidence",
+      "type": "object"
+    },
+    "BeeNetworkPendingOperatorEvidence": {
+      "additionalProperties": false,
+      "description": "Aggregate-only observation count for one frozen pending candidate.",
+      "properties": {
+        "observed_in_source_snapshot": {
+          "title": "Observed In Source Snapshot",
+          "type": "boolean"
+        },
+        "operator_ref": {
+          "const": "BNVB",
+          "default": "BNVB",
+          "title": "Operator Ref",
+          "type": "string"
+        },
+        "records_observed": {
+          "minimum": 0,
+          "title": "Records Observed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "records_observed",
+        "observed_in_source_snapshot"
+      ],
+      "title": "BeeNetworkPendingOperatorEvidence",
       "type": "object"
     },
     "BeeNetworkScopePolicy": {
@@ -30953,6 +31342,421 @@
       "title": "LatexExportContract",
       "type": "object"
     },
+    "ManchesterBoundaryFeature": {
+      "$defs": {
+        "ManchesterBoundaryReference": {
+          "additionalProperties": false,
+          "description": "Frozen provenance and interpretation contract for one boundary asset.",
+          "properties": {
+            "asset_name": {
+              "enum": [
+                "manchester_local_authority.geojson",
+                "greater_manchester_combined_authority.geojson"
+              ],
+              "title": "Asset Name",
+              "type": "string"
+            },
+            "asset_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Asset Sha256",
+              "type": "string"
+            },
+            "attribution_lines": {
+              "default": [
+                "Contains OS data \u00a9 Crown copyright and database right 2025",
+                "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+              ],
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "title": "Attribution Lines",
+              "type": "array"
+            },
+            "capability_id": {
+              "const": "MAN-08",
+              "default": "MAN-08",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "coordinate_reference_system": {
+              "const": "EPSG:4326",
+              "default": "EPSG:4326",
+              "title": "Coordinate Reference System",
+              "type": "string"
+            },
+            "display_query_geometry_precision_decimals": {
+              "const": 4,
+              "default": 4,
+              "title": "Display Query Geometry Precision Decimals",
+              "type": "integer"
+            },
+            "display_query_max_allowable_offset_degrees": {
+              "default": 0.001,
+              "title": "Display Query Max Allowable Offset Degrees",
+              "type": "number"
+            },
+            "licence_id": {
+              "const": "OGL-3.0",
+              "default": "OGL-3.0",
+              "title": "Licence Id",
+              "type": "string"
+            },
+            "licence_uri": {
+              "const": "https://www.ons.gov.uk/methodology/geography/licences",
+              "default": "https://www.ons.gov.uk/methodology/geography/licences",
+              "title": "Licence Uri",
+              "type": "string"
+            },
+            "map_context_available": {
+              "const": true,
+              "default": true,
+              "title": "Map Context Available",
+              "type": "boolean"
+            },
+            "method_version": {
+              "const": "ons-boundary-display-reference-1.0",
+              "default": "ons-boundary-display-reference-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "official_code": {
+              "pattern": "^E[0-9]{8}$",
+              "title": "Official Code",
+              "type": "string"
+            },
+            "official_name": {
+              "title": "Official Name",
+              "type": "string"
+            },
+            "public_display_available": {
+              "const": true,
+              "default": true,
+              "title": "Public Display Available",
+              "type": "boolean"
+            },
+            "reference_date": {
+              "const": "December 2025",
+              "default": "December 2025",
+              "title": "Reference Date",
+              "type": "string"
+            },
+            "remote_basemap_available": {
+              "const": false,
+              "default": false,
+              "title": "Remote Basemap Available",
+              "type": "boolean"
+            },
+            "road_network_available": {
+              "const": false,
+              "default": false,
+              "title": "Road Network Available",
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "scientific_clipping_available": {
+              "const": false,
+              "default": false,
+              "title": "Scientific Clipping Available",
+              "type": "boolean"
+            },
+            "scope": {
+              "enum": [
+                "manchester_local_authority",
+                "greater_manchester_combined_authority"
+              ],
+              "title": "Scope",
+              "type": "string"
+            },
+            "sensor_coverage_available": {
+              "const": false,
+              "default": false,
+              "title": "Sensor Coverage Available",
+              "type": "boolean"
+            },
+            "source_feature_service_uri": {
+              "title": "Source Feature Service Uri",
+              "type": "string"
+            },
+            "source_generalisation": {
+              "const": "BGC Generalised (20m), coastline clipped",
+              "default": "BGC Generalised (20m), coastline clipped",
+              "title": "Source Generalisation",
+              "type": "string"
+            },
+            "source_item_id": {
+              "pattern": "^[0-9a-f]{32}$",
+              "title": "Source Item Id",
+              "type": "string"
+            },
+            "source_owner": {
+              "const": "Office for National Statistics",
+              "default": "Office for National Statistics",
+              "title": "Source Owner",
+              "type": "string"
+            },
+            "source_product": {
+              "title": "Source Product",
+              "type": "string"
+            }
+          },
+          "required": [
+            "scope",
+            "official_code",
+            "official_name",
+            "source_item_id",
+            "source_feature_service_uri",
+            "source_product",
+            "asset_name",
+            "asset_sha256"
+          ],
+          "title": "ManchesterBoundaryReference",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Validated display geometry decoded from one exact packaged asset.",
+      "properties": {
+        "coordinates": {
+          "items": {
+            "items": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "title": "Coordinates",
+          "type": "array"
+        },
+        "display_only": {
+          "const": true,
+          "default": true,
+          "title": "Display Only",
+          "type": "boolean"
+        },
+        "geometry_type": {
+          "const": "Polygon",
+          "default": "Polygon",
+          "title": "Geometry Type",
+          "type": "string"
+        },
+        "reference": {
+          "$ref": "#/$defs/ManchesterBoundaryReference"
+        },
+        "source_asset_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Asset Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference",
+        "coordinates",
+        "source_asset_sha256"
+      ],
+      "title": "ManchesterBoundaryFeature",
+      "type": "object"
+    },
+    "ManchesterBoundaryReference": {
+      "additionalProperties": false,
+      "description": "Frozen provenance and interpretation contract for one boundary asset.",
+      "properties": {
+        "asset_name": {
+          "enum": [
+            "manchester_local_authority.geojson",
+            "greater_manchester_combined_authority.geojson"
+          ],
+          "title": "Asset Name",
+          "type": "string"
+        },
+        "asset_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Asset Sha256",
+          "type": "string"
+        },
+        "attribution_lines": {
+          "default": [
+            "Contains OS data \u00a9 Crown copyright and database right 2025",
+            "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Attribution Lines",
+          "type": "array"
+        },
+        "capability_id": {
+          "const": "MAN-08",
+          "default": "MAN-08",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "coordinate_reference_system": {
+          "const": "EPSG:4326",
+          "default": "EPSG:4326",
+          "title": "Coordinate Reference System",
+          "type": "string"
+        },
+        "display_query_geometry_precision_decimals": {
+          "const": 4,
+          "default": 4,
+          "title": "Display Query Geometry Precision Decimals",
+          "type": "integer"
+        },
+        "display_query_max_allowable_offset_degrees": {
+          "default": 0.001,
+          "title": "Display Query Max Allowable Offset Degrees",
+          "type": "number"
+        },
+        "licence_id": {
+          "const": "OGL-3.0",
+          "default": "OGL-3.0",
+          "title": "Licence Id",
+          "type": "string"
+        },
+        "licence_uri": {
+          "const": "https://www.ons.gov.uk/methodology/geography/licences",
+          "default": "https://www.ons.gov.uk/methodology/geography/licences",
+          "title": "Licence Uri",
+          "type": "string"
+        },
+        "map_context_available": {
+          "const": true,
+          "default": true,
+          "title": "Map Context Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "ons-boundary-display-reference-1.0",
+          "default": "ons-boundary-display-reference-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "official_code": {
+          "pattern": "^E[0-9]{8}$",
+          "title": "Official Code",
+          "type": "string"
+        },
+        "official_name": {
+          "title": "Official Name",
+          "type": "string"
+        },
+        "public_display_available": {
+          "const": true,
+          "default": true,
+          "title": "Public Display Available",
+          "type": "boolean"
+        },
+        "reference_date": {
+          "const": "December 2025",
+          "default": "December 2025",
+          "title": "Reference Date",
+          "type": "string"
+        },
+        "remote_basemap_available": {
+          "const": false,
+          "default": false,
+          "title": "Remote Basemap Available",
+          "type": "boolean"
+        },
+        "road_network_available": {
+          "const": false,
+          "default": false,
+          "title": "Road Network Available",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scientific_clipping_available": {
+          "const": false,
+          "default": false,
+          "title": "Scientific Clipping Available",
+          "type": "boolean"
+        },
+        "scope": {
+          "enum": [
+            "manchester_local_authority",
+            "greater_manchester_combined_authority"
+          ],
+          "title": "Scope",
+          "type": "string"
+        },
+        "sensor_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Sensor Coverage Available",
+          "type": "boolean"
+        },
+        "source_feature_service_uri": {
+          "title": "Source Feature Service Uri",
+          "type": "string"
+        },
+        "source_generalisation": {
+          "const": "BGC Generalised (20m), coastline clipped",
+          "default": "BGC Generalised (20m), coastline clipped",
+          "title": "Source Generalisation",
+          "type": "string"
+        },
+        "source_item_id": {
+          "pattern": "^[0-9a-f]{32}$",
+          "title": "Source Item Id",
+          "type": "string"
+        },
+        "source_owner": {
+          "const": "Office for National Statistics",
+          "default": "Office for National Statistics",
+          "title": "Source Owner",
+          "type": "string"
+        },
+        "source_product": {
+          "title": "Source Product",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "official_code",
+        "official_name",
+        "source_item_id",
+        "source_feature_service_uri",
+        "source_product",
+        "asset_name",
+        "asset_sha256"
+      ],
+      "title": "ManchesterBoundaryReference",
+      "type": "object"
+    },
     "ManchesterCalibrationContract": {
       "$defs": {
         "CalibrationParameterBound": {
@@ -33588,6 +34392,507 @@
         "evidence_label"
       ],
       "title": "ManchesterLineageStage",
+      "type": "object"
+    },
+    "ManchesterLiveSourceStatus": {
+      "$defs": {
+        "ManchesterLiveStatusMetric": {
+          "additionalProperties": false,
+          "description": "One non-negative aggregate with a fixed non-traffic-total meaning.",
+          "properties": {
+            "metric": {
+              "enum": [
+                "accepted_bus_positions",
+                "live_bus_positions",
+                "stale_bus_positions",
+                "synthetic_bus_positions",
+                "closures_and_incidents",
+                "temporary_speed_restrictions",
+                "digital_vms_statuses"
+              ],
+              "title": "Metric",
+              "type": "string"
+            },
+            "unit": {
+              "const": "records",
+              "default": "records",
+              "title": "Unit",
+              "type": "string"
+            },
+            "value": {
+              "minimum": 0,
+              "title": "Value",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "metric",
+            "value"
+          ],
+          "title": "ManchesterLiveStatusMetric",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Metadata-only status for one source family.",
+      "properties": {
+        "attribution": {
+          "title": "Attribution",
+          "type": "string"
+        },
+        "complete_manchester_coverage": {
+          "const": false,
+          "default": false,
+          "title": "Complete Manchester Coverage",
+          "type": "boolean"
+        },
+        "coordinates_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Coordinates Embedded",
+          "type": "boolean"
+        },
+        "credentials_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Credentials Embedded",
+          "type": "boolean"
+        },
+        "evidence_meaning": {
+          "enum": [
+            "bus_position_records",
+            "closures_restrictions_and_sign_status"
+          ],
+          "title": "Evidence Meaning",
+          "type": "string"
+        },
+        "geographic_scope": {
+          "enum": [
+            "request_bounding_box",
+            "strategic_road_network"
+          ],
+          "title": "Geographic Scope",
+          "type": "string"
+        },
+        "identifiers_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Identifiers Embedded",
+          "type": "boolean"
+        },
+        "last_attempt_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Last Attempt At Utc"
+        },
+        "latest_success_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Latest Success At Utc"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/ManchesterLiveStatusMetric"
+          },
+          "title": "Metrics",
+          "type": "array"
+        },
+        "source": {
+          "enum": [
+            "bods_siri_vm",
+            "national_highways_operational"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_data_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Source Data Embedded",
+          "type": "boolean"
+        },
+        "status": {
+          "enum": [
+            "never_attempted",
+            "in_progress_with_cached_success",
+            "in_progress_without_success",
+            "succeeded",
+            "failed_with_cached_success",
+            "failed_without_success"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "status",
+        "last_attempt_at_utc",
+        "latest_success_at_utc",
+        "metrics",
+        "geographic_scope",
+        "evidence_meaning",
+        "attribution"
+      ],
+      "title": "ManchesterLiveSourceStatus",
+      "type": "object"
+    },
+    "ManchesterLiveStatusExport": {
+      "$defs": {
+        "ManchesterLiveSourceStatus": {
+          "additionalProperties": false,
+          "description": "Metadata-only status for one source family.",
+          "properties": {
+            "attribution": {
+              "title": "Attribution",
+              "type": "string"
+            },
+            "complete_manchester_coverage": {
+              "const": false,
+              "default": false,
+              "title": "Complete Manchester Coverage",
+              "type": "boolean"
+            },
+            "coordinates_embedded": {
+              "const": false,
+              "default": false,
+              "title": "Coordinates Embedded",
+              "type": "boolean"
+            },
+            "credentials_embedded": {
+              "const": false,
+              "default": false,
+              "title": "Credentials Embedded",
+              "type": "boolean"
+            },
+            "evidence_meaning": {
+              "enum": [
+                "bus_position_records",
+                "closures_restrictions_and_sign_status"
+              ],
+              "title": "Evidence Meaning",
+              "type": "string"
+            },
+            "geographic_scope": {
+              "enum": [
+                "request_bounding_box",
+                "strategic_road_network"
+              ],
+              "title": "Geographic Scope",
+              "type": "string"
+            },
+            "identifiers_embedded": {
+              "const": false,
+              "default": false,
+              "title": "Identifiers Embedded",
+              "type": "boolean"
+            },
+            "last_attempt_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Last Attempt At Utc"
+            },
+            "latest_success_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Latest Success At Utc"
+            },
+            "metrics": {
+              "items": {
+                "$ref": "#/$defs/ManchesterLiveStatusMetric"
+              },
+              "title": "Metrics",
+              "type": "array"
+            },
+            "source": {
+              "enum": [
+                "bods_siri_vm",
+                "national_highways_operational"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "source_data_embedded": {
+              "const": false,
+              "default": false,
+              "title": "Source Data Embedded",
+              "type": "boolean"
+            },
+            "status": {
+              "enum": [
+                "never_attempted",
+                "in_progress_with_cached_success",
+                "in_progress_without_success",
+                "succeeded",
+                "failed_with_cached_success",
+                "failed_without_success"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "status",
+            "last_attempt_at_utc",
+            "latest_success_at_utc",
+            "metrics",
+            "geographic_scope",
+            "evidence_meaning",
+            "attribution"
+          ],
+          "title": "ManchesterLiveSourceStatus",
+          "type": "object"
+        },
+        "ManchesterLiveStatusMetric": {
+          "additionalProperties": false,
+          "description": "One non-negative aggregate with a fixed non-traffic-total meaning.",
+          "properties": {
+            "metric": {
+              "enum": [
+                "accepted_bus_positions",
+                "live_bus_positions",
+                "stale_bus_positions",
+                "synthetic_bus_positions",
+                "closures_and_incidents",
+                "temporary_speed_restrictions",
+                "digital_vms_statuses"
+              ],
+              "title": "Metric",
+              "type": "string"
+            },
+            "unit": {
+              "const": "records",
+              "default": "records",
+              "title": "Unit",
+              "type": "string"
+            },
+            "value": {
+              "minimum": 0,
+              "title": "Value",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "metric",
+            "value"
+          ],
+          "title": "ManchesterLiveStatusMetric",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Locally downloadable status with every public-hosting claim refused.",
+      "properties": {
+        "bee_network_reference_table_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Bee Network Reference Table Embedded",
+          "type": "boolean"
+        },
+        "complete_bee_network_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Complete Bee Network Coverage Available",
+          "type": "boolean"
+        },
+        "complete_manchester_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Complete Manchester Coverage Available",
+          "type": "boolean"
+        },
+        "continuous_city_road_telemetry_available": {
+          "const": false,
+          "default": false,
+          "title": "Continuous City Road Telemetry Available",
+          "type": "boolean"
+        },
+        "coordinates_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Coordinates Embedded",
+          "type": "boolean"
+        },
+        "credentials_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Credentials Embedded",
+          "type": "boolean"
+        },
+        "external_basemap_available": {
+          "const": false,
+          "default": false,
+          "title": "External Basemap Available",
+          "type": "boolean"
+        },
+        "generated_at_utc": {
+          "format": "date-time",
+          "title": "Generated At Utc",
+          "type": "string"
+        },
+        "licence_terms_recheck_required_before_hosting": {
+          "const": true,
+          "default": true,
+          "title": "Licence Terms Recheck Required Before Hosting",
+          "type": "boolean"
+        },
+        "live_signal_state_available": {
+          "const": false,
+          "default": false,
+          "title": "Live Signal State Available",
+          "type": "boolean"
+        },
+        "local_metadata_download_available": {
+          "const": true,
+          "default": true,
+          "title": "Local Metadata Download Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-live-status-metadata-1.0",
+          "default": "manchester-live-status-metadata-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "official_boundary_context_available": {
+          "const": true,
+          "default": true,
+          "title": "Official Boundary Context Available",
+          "type": "boolean"
+        },
+        "public_live_scene_hosting_accepted": {
+          "const": false,
+          "default": false,
+          "title": "Public Live Scene Hosting Accepted",
+          "type": "boolean"
+        },
+        "public_metadata_hosting_accepted": {
+          "const": false,
+          "default": false,
+          "title": "Public Metadata Hosting Accepted",
+          "type": "boolean"
+        },
+        "public_position_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Position Export Available",
+          "type": "boolean"
+        },
+        "public_raw_snapshot_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Raw Snapshot Available",
+          "type": "boolean"
+        },
+        "publication_class": {
+          "const": "metadata_only",
+          "default": "metadata_only",
+          "title": "Publication Class",
+          "type": "string"
+        },
+        "raw_payloads_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Raw Payloads Embedded",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sources": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/ManchesterLiveSourceStatus"
+            },
+            {
+              "$ref": "#/$defs/ManchesterLiveSourceStatus"
+            }
+          ],
+          "title": "Sources",
+          "type": "array"
+        },
+        "vehicle_identifiers_embedded": {
+          "const": false,
+          "default": false,
+          "title": "Vehicle Identifiers Embedded",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "generated_at_utc",
+        "sources"
+      ],
+      "title": "ManchesterLiveStatusExport",
+      "type": "object"
+    },
+    "ManchesterLiveStatusMetric": {
+      "additionalProperties": false,
+      "description": "One non-negative aggregate with a fixed non-traffic-total meaning.",
+      "properties": {
+        "metric": {
+          "enum": [
+            "accepted_bus_positions",
+            "live_bus_positions",
+            "stale_bus_positions",
+            "synthetic_bus_positions",
+            "closures_and_incidents",
+            "temporary_speed_restrictions",
+            "digital_vms_statuses"
+          ],
+          "title": "Metric",
+          "type": "string"
+        },
+        "unit": {
+          "const": "records",
+          "default": "records",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "minimum": 0,
+          "title": "Value",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metric",
+        "value"
+      ],
+      "title": "ManchesterLiveStatusMetric",
       "type": "object"
     },
     "ManchesterMapLayerManifest": {

@@ -70,10 +70,14 @@ The development-router default does not make `UX-01` implemented. Release accept
 requires:
 
 - cross-page state tests for representative research workflows;
-- desktop/mobile screenshots, keyboard order, labels, contrast, and truncation checks;
-- final removal of deprecated `use_container_width` calls under `UX-03`; and
+- manual keyboard order, screen-reader, contrast, zoom, truncation, and participant checks; and
 - minimum-version acceptance for each new page, shared capability/documentation, package version,
   and release reconciliation. Packaging now declares the reviewed `streamlit>=1.58,<2` floor.
+
+The bounded automated slice is complete: the 34 normative routes plus additive Manchester
+Operations pass 140 browser snapshots across desktop/mobile and light/dark, and the deprecated
+`use_container_width` migration is complete. These results do not replace the remaining manual
+acceptance gates.
 
 Until those gates pass, this candidate is development evidence only. The immutable `v0.6.0` tag
 and its complete router remain the guaranteed release baseline, while the v0.7 branch retains the

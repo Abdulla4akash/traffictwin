@@ -27,10 +27,12 @@ from traffictwin.integration.manchester.bods_retention import (
     apply_bods_retention,
     preview_bods_retention,
 )
+from traffictwin.integration.manchester.boundary_reference import boundary_attributions
 from traffictwin.integration.manchester.dft import DirectionCode
 from traffictwin.integration.manchester.dft_acquisition import DftAcquisitionError
 from traffictwin.integration.manchester.dft_scene import DftSceneError
 from traffictwin.integration.manchester.dft_survey_view import DftVehicleClass
+from traffictwin.integration.manchester.live_status_export import build_live_status_export
 from traffictwin.integration.manchester.map_layers import (
     ManchesterMapScene,
     MapMode,
@@ -186,6 +188,37 @@ def _load_dft_survey_view(
     )
 
 
+def _render_live_status_download(workspace: str | None) -> None:
+    """Offer a local aggregate manifest without exposing private source records."""
+
+    with st.expander("Metadata-only live status", icon=":material/download:"):
+        st.caption(
+            "This local export contains source states, aggregate record counts, scope, and "
+            "attribution only. It excludes coordinates, vehicle identifiers, API credentials, "
+            "raw snapshots, and permission to host the metadata or a public live scene."
+        )
+        if workspace is None:
+            st.caption("Unavailable: configure a v0.7 workspace first.")
+            return
+        try:
+            manifest = build_live_status_export(
+                generated_at_utc=datetime.now(UTC),
+                bods=load_bods_live_control_state(workspace),
+                national_highways=load_national_highways_control_state(workspace),
+            )
+        except (BodsLiveControlError, NationalHighwaysLiveError, ValueError):
+            st.caption("Unavailable: one or more local control-state records failed validation.")
+            return
+        st.download_button(
+            "Download live-status metadata",
+            data=f"{manifest.canonical_json()}\n",
+            file_name="manchester-live-status.json",
+            mime="application/json",
+            icon=":material/download:",
+            width="stretch",
+        )
+
+
 def render(config: UiConfig) -> None:
     """Render local evidence and explicit controlled source acquisition actions."""
 
@@ -215,6 +248,8 @@ def render(config: UiConfig) -> None:
         _render_latest_source_refresh(workspace)
     else:
         _render_live_acquisition(workspace)
+
+    _render_live_status_download(workspace)
 
     with st.container(horizontal=True, horizontal_alignment="right"):
         if st.button(
@@ -1354,7 +1389,12 @@ def _render_scene_header(scene: ManchesterMapScene, loaded: LocalManchesterScene
         st.metric("Source", "Validated local artifact", border=True)
     st.caption(
         f"Mode: {_MODE_LABELS[scene.mode]} · local artifact: {loaded.byte_size} bytes · "
-        "basemap: disabled · network access: not required"
+        "official boundary context: Manchester + Greater Manchester · basemap: disabled · "
+        "network access: not required"
+    )
+    st.caption(
+        "Boundary lines are display context only. They are not a road network, a sensor-coverage "
+        "claim, or a scientific clipping rule."
     )
     if scene.status == "partial":
         st.warning(
@@ -1397,10 +1437,8 @@ def _render_source_card(filtered: FilteredManchesterLayer) -> None:
 
 
 def _render_attribution(filtered: FilteredManchesterScene) -> None:
-    st.caption(
-        "Attribution: "
-        + (" · ".join(filtered.attributions) if filtered.attributions else "none displayed")
-    )
+    boundary_lines = boundary_attributions()
+    st.caption("Attribution: " + " · ".join((*boundary_lines, *filtered.attributions)))
     st.caption(
         "Displayed geographic scopes: "
         + (", ".join(filtered.visible_scopes) if filtered.visible_scopes else "none")

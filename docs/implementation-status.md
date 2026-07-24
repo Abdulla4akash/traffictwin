@@ -188,7 +188,9 @@ products for Road and Lane Closures v2, Speed Managed Areas v1, and Digital VMS 
 host/path/query/header policies, transient secret-header handling, raw gzip-entity preservation,
 bounded decoding, strict observed DATEX-JSON parsers, immutable quarantine/promotion, and offline
 replay are source-separated and tested. The fixed broad study envelope is explicitly not an
-official Manchester boundary. Publication-time freshness uses a conservative self-imposed
+official Manchester source-coverage boundary; the UI now overlays separate hash-pinned ONS
+Manchester and Greater Manchester display polygons without using them to clip or admit records.
+Publication-time freshness uses a conservative self-imposed
 ten-minute ceiling; outages preserve prior overlays and reclassify them stale. One manual refresh
 makes exactly three calls, is OS-locked and minute-limited, and retains only a bounded aggregate
 history. A private real-source acceptance run on 24 July 2026 promoted and replayed all three
@@ -197,13 +199,12 @@ restrictions, and 481 unique VMS statuses after 52 exact duplicates were recorde
 No credential or response body was committed. The records cover the Strategic Road Network and do
 not provide continuous flow, measured vehicle speed, congestion, city-road completeness, traffic
 signal phase state, or literal VMS sign text. The slice is real and usable, but release/publication,
-official-boundary, complete Gate-B, minimum-version UI, browser/accessibility, and project-wide
-acceptance remain open; `MAN-01`, `MAN-07`, and `MAN-08` therefore remain planned.
-The integrated quality gate passes 11 focused operational tests, all 672 Manchester unit tests,
-all 1,535 unit tests, and all 162 UI tests; repository-wide Ruff formatting/checks, strict mypy
-over all 670 configured source and test files, generated-reference regeneration, lock validation,
-and package build also
-pass.
+complete Gate-B, manual accessibility/participant review, and project-wide acceptance remain open;
+`MAN-01`, `MAN-07`, and `MAN-08` therefore remain planned.
+The integrated quality gate passes all 686 Manchester unit tests, all 1,560 unit tests, and all
+162 UI tests (1,722 combined); repository-wide Ruff formatting/checks, strict mypy over all 677
+configured source and test files, generated-reference regeneration, lock validation, package
+build, and the final 140-snapshot browser audit also pass.
 
 A controlled TfGM signal acquisition candidate now binds the audited static ZIP endpoint to the
 shared bounded transport, immutable quarantine-before-decompression boundary, bounded archive
@@ -233,9 +234,10 @@ outages, rejected evidence, missing snapshots, missing BODS timestamps, and cach
 stable fail-closed outcomes. National Highways operational events may be `near_live`, while general
 road-traffic flow/speed and city-wide live claims remain unavailable. DfT survey-hour and WebTRIS source-string rows are preserved as typed exclusions while
 their timezone blockers remain open; they cannot receive a fabricated canonical timestamp. Only a
-clearly labelled UTC synthetic fixture currently demonstrates canonical admission. Real-source
-acquisition acceptance, a versioned boundary artifact, and the remaining MAN-07 gates have not
-passed, so `MAN-07` remains planned.
+clearly labelled UTC synthetic fixture currently demonstrates canonical admission. A versioned,
+hash-verified ONS boundary artifact now supplies display context only; it deliberately does not
+change scientific spatial admission. Real-source acquisition acceptance and the remaining MAN-07
+gates have not passed, so `MAN-07` remains planned.
 
 The candidate `MAN-08` foundation now includes a renderer-neutral, offline map-layer service above
 MAN-07 spatial admission. It emits only admitted WGS84 points, reconciles every exclusion, binds
@@ -287,9 +289,14 @@ directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. Historical
 now add explicit, bounded source forms: selected DfT raw/count-point/AADF rows; one WebTRIS
 site/day/quality set; and the pinned TfGM signal archive. Their 23 July 2026 controlled runs
 populate source-separated local scenes and catalogues, while ordinary reruns remain offline and a
-broken scene-path symlink fails closed. General continuous live-road telemetry, accepted Bee Network
-complete membership coverage, an accepted boundary artifact, broad/multi-site real-source acceptance,
-minimum-version rerun of this new page, and complete browser/mobile/accessibility acceptance remain
+broken scene-path symlink fails closed. The renderer now places the exact December 2025 ONS
+Manchester and Greater Manchester display boundaries beneath source points, retains the required
+ONS/OS attribution, makes no basemap request, and makes no road, sensor-coverage, source-scope, or
+scientific-clipping claim. A metadata-only download separately projects validated BODS and National
+Highways control states to aggregate counts/status/timestamps while structurally refusing raw
+records, coordinates, identifiers, credentials, complete-coverage claims, and public live-scene
+or metadata hosting. General continuous live-road telemetry, complete Bee Network membership coverage,
+broad/multi-site real-source acceptance, and manual accessibility/participant acceptance remain
 outstanding, so `MAN-05` and `MAN-08` remain planned.
 
 A versioned identifier-only Bee Network scope service now closes the narrow `GA-BEE-1` live-feed
@@ -301,8 +308,10 @@ an additive fingerprint-bound projection over the immutable BODS report; it neve
 names or geography, retains every non-match, reconciles parser exclusions, and cannot export
 publicly. The live scene and refresh summary now split verified Bee Network and other/unknown buses
 while independently preserving live/stale/synthetic state. `GA-BEE-2`–`GA-BEE-4`, BODS consumer
-limits/registration terms, complete coverage, and full Gate-B acceptance remain open. A separate
-private snapshot retention boundary now supplies a deterministic read-only inventory and a
+limits/registration terms, complete coverage, and full Gate-B acceptance remain open. A later
+accepted BODS report can now produce an aggregate-only `BNVB` candidate review, but observation
+cannot activate policy or claim fleet/service completeness without a new reviewed policy version.
+A separate private snapshot retention boundary now supplies a deterministic read-only inventory and a
 precautionary 24-hour/240-family default. It protects the active live scene and newest family,
 requires exact preview-bound operator confirmation, deletes accepted/quarantine pairs together,
 and refuses plan drift and symlinks. Cleanup is never automatic and explicitly does not claim an
@@ -383,8 +392,9 @@ A candidate `UX-01` router now maps all 34 current pages to the five approved gr
 scripts, stable URL paths, Material icons, and the existing tested renderers. All direct scripts
 pass AppTest smoke rendering. The grouped `st.navigation` router is now the normal route; the
 complete legacy router remains available only through the explicit
-`TRAFFICTWIN_V07_NAVIGATION=legacy` compatibility setting. Cross-page state, accessibility,
-screenshot, new-page minimum-version, package-version, and final cutover evidence remain, so
+`TRAFFICTWIN_V07_NAVIGATION=legacy` compatibility setting. Cross-page state, manual
+keyboard/screen-reader/contrast/zoom acceptance, new-page minimum-version, package-version,
+and final cutover evidence remain, so
 `UX-01` is not implemented. The original candidate's 45-test suite passes on both the minimum
 `streamlit==1.58.0` and locked `streamlit==1.59.2` environments; a built wheel contains all 34
 direct scripts and its installed candidate root passes AppTest from `site-packages`. Live-browser
@@ -398,10 +408,13 @@ primary actions, meaningful local evidence/run/comparison indicators, and either
 local latest-available Manchester map scene or an honest bounded empty state. Phase 2A also moves
 machine-oriented details behind Advanced/Evidence surfaces on Home, Run Overview, and Evidence
 Readiness, uses numeric metrics and tested evidence badges, and migrates affected AppTests to
-direct `st.navigation` page switching. The integrated unit/UI gate passes all 1,707 tests. A
+direct `st.navigation` page switching. The integrated unit/UI gate passes all 1,722 tests. A
 separate `UX-03` migration removes every deprecated `use_container_width` call from
 `src/traffictwin/ui` and uses the reviewed `width` API instead. These are candidate UI slices only;
-screenshot, mobile, accessibility, complete browser, and final cutover acceptance remain
+the complete 35-route inventory now passes an automated 140-snapshot browser matrix over desktop
+and mobile viewports in light and dark themes with zero actionable semantic findings. The audit
+records but excludes Streamlit Glide's repeated internal grid IDs and does not claim WCAG or replace
+manual keyboard/screen-reader/contrast/zoom/participant testing. Final cutover acceptance remains
 outstanding, so `UX-02` and `UX-03` remain planned.
 
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
