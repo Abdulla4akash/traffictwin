@@ -321,7 +321,9 @@ def _render_legacy_home(config: UiConfig) -> None:
     section_header("Current Limitations")
     st.markdown(
         "- Direct simulator launch is unavailable for the default generic CSV adapter.\n"
-        "- No live, near-live, or true-live Manchester data is connected.\n"
+        "- Live Manchester evidence covers BODS bus positions only; general live or "
+        "near-live Manchester road traffic remains unavailable, and WebTRIS road "
+        "evidence is historical/latest-available, not near-live.\n"
         "- Diagnostic hypotheses R0-R3 are deterministic candidates, not proven causes.\n"
         "- TOS Data evaluation summaries and instrumented arrays can be inspected offline; "
         "exact VEC foreground evaluation is available only through request-specific "
