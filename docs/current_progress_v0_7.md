@@ -3,14 +3,18 @@
 **Snapshot date:** 24 July 2026
 
 **Development branch:** `claude/complete-v0.7` (integration branch created at the protected
-`v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`; the verified integration head
-is checkpoint-tagged `v0.7.0-alpha.5`)
+`v0.7.0-alpha.4` checkpoint `4e95a5d7ea4f31895c7648c0e44448724bc5df9d` on `codex/traffictwin-v0.7`).
+Checkpoint tag `v0.7.0-alpha.5` marks commit
+`310117e` (the coexistence-check checkpoint); later verified commits continue on the branch.
 
-**Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
-REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
-temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
-pack with its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, and
-the attested same-schema activation/backup/rollback workflow
+**Snapshot commit:** `0060056` (`fix(security): refuse path traversal in v0.6 migration rollback
+receipts`) plus the requirement-audit preparation commit that records this update. Cumulative
+content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the REL-01 workspace CLI, the MAN-09
+temporal-profile foundation, the synthetic analyst-review and temporal-profile demonstrations,
+the automated cross-page-state evidence, the external decision pack and its 24 July 2026
+source-documentation probe, the ADR-058 producer attestation, the attested
+activation/backup/rollback workflow, the side-by-side coexistence check, the rollback
+path-traversal fix, and the human-decision preparation pack.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -227,5 +231,11 @@ After a meaningful v0.7 increment, the integrating agent should:
 - [Manchester comparison foundation](integration/manchester_comparison.md)
 - [Manchester research lineage](integration/manchester_research_lineage.md)
 - [v0.7 compatibility and workspace isolation](v07_release_compatibility.md)
+- [v0.7 external decision pack](v07_external_decision_pack.md)
+- [Provider enquiry drafts (DfT, WebTRIS, BODS)](integration/provider_enquiry_drafts.md)
+- [Supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md)
+- [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
+- [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
+- [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
 - [Assumption register](assumption-register.md)
 - [Open questions](open-questions.md)
