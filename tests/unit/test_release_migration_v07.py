@@ -449,3 +449,60 @@ def test_migration_refusal_branches(tmp_path: Path) -> None:
     assert (
         preview_v06_migration(source, workspace.path, attestation).source_product_version == "0.6.0"
     )
+
+
+def test_cli_migrate_and_rollback_refuse_gracefully(tmp_path: Path) -> None:
+    """OS-level and typed failures print a message, never a raw traceback."""
+
+    from typer.testing import CliRunner
+
+    from traffictwin.cli import app
+
+    runner = CliRunner()
+    source, _ = _attested_source(tmp_path)
+    workspace = tmp_path / "workspace-v0.7"
+    assert runner.invoke(app, ["release", "v07-workspace-init", str(workspace)]).exit_code == 0
+    attestation_path = tmp_path / "attestation.json"
+    assert (
+        runner.invoke(
+            app,
+            [
+                "release",
+                "v06-attest",
+                str(source),
+                "--operator",
+                "Op",
+                "--output",
+                str(attestation_path),
+            ],
+        ).exit_code
+        == 0
+    )
+
+    # v06-attest refuses to overwrite an existing output file (graceful).
+    repeat_attest = runner.invoke(
+        app,
+        [
+            "release",
+            "v06-attest",
+            str(source),
+            "--operator",
+            "Op",
+            "--output",
+            str(attestation_path),
+        ],
+    )
+    assert repeat_attest.exit_code == 1
+    assert repeat_attest.exception is None or isinstance(repeat_attest.exception, SystemExit)
+
+    # A rollback against a receipt for a never-run migration refuses gracefully.
+    fake_dir = workspace / "compatibility" / "backups" / ("mig-" + "a" * 16)
+    fake_dir.mkdir(parents=True)
+    fake_receipt = fake_dir / "migration-receipt.json"
+    fake_receipt.write_text("{ not valid json", encoding="utf-8")
+    rolled = runner.invoke(
+        app, ["release", "v06-rollback", str(workspace), "--receipt", str(fake_receipt)]
+    )
+    assert rolled.exit_code == 1
+    assert rolled.exception is None or isinstance(rolled.exception, SystemExit)
+    assert "RECEIPT_INVALID" in rolled.output

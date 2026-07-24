@@ -291,6 +291,9 @@ def test_cli_v06_copy_preview_and_copy_preserve_source_bytes(tmp_path: Path) -> 
 
     repeat = runner.invoke(app, ["release", "v06-copy", str(source), str(workspace)])
     assert repeat.exit_code == 1
+    # A repeat copy must be a graceful typed refusal, not an uncaught traceback.
+    assert repeat.exception is None or isinstance(repeat.exception, SystemExit)
+    assert "already exists" in repeat.output
     assert _sha256(source) == source_before
 
 

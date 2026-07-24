@@ -4335,7 +4335,7 @@ def release_v06_copy_command(
 
     try:
         result = copy_v06_registry(source_registry, workspace)
-    except V07CompatibilityError as exc:
+    except (V07CompatibilityError, FileExistsError, OSError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     receipt = result.receipt
@@ -4429,7 +4429,13 @@ def release_v06_migrate_command(
     try:
         attestation = load_v06_producer_attestation(attestation_path)
         result = migrate_v06_registry(source_registry, workspace, attestation)
-    except (V06AttestationError, V06MigrationError, V07CompatibilityError) as exc:
+    except (
+        V06AttestationError,
+        V06MigrationError,
+        V07CompatibilityError,
+        FileExistsError,
+        OSError,
+    ) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     receipt = result.receipt
@@ -4454,7 +4460,7 @@ def release_v06_rollback_command(
 
     try:
         result = rollback_v06_migration(workspace, receipt_path)
-    except (V06MigrationError, V07CompatibilityError) as exc:
+    except (V06MigrationError, V07CompatibilityError, FileExistsError, OSError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     typer.echo(f"migration_id: {result.receipt.migration_id}")
