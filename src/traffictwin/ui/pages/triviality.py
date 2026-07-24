@@ -6,6 +6,8 @@ import streamlit as st
 
 from traffictwin.experiments.evidence import ObjectiveDirection
 from traffictwin.rules.models import RuleStatus
+from traffictwin.ui.charts import bar_figure
+from traffictwin.ui.components.badges import badge_markdown
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
@@ -16,6 +18,7 @@ from traffictwin.ui.services import (
     load_research_analysis_view,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
 
 
 def render(config: UiConfig) -> None:
@@ -88,36 +91,45 @@ def render(config: UiConfig) -> None:
             st.caption(view.detail)
         return
 
-    cols = st.columns(5)
-    cols[0].metric("Source runs", view.source_collection_count)
-    cols[1].metric("Seed families", len(view.winner_map.entries))
-    cols[2].metric("Winner-map metric", view.winner_map.metric_key)
     r3 = next(
         (result for result in view.diagnostic_report.results if result.rule_id == "R3"),
         None,
     )
-    cols[3].metric("R3", r3.status.value if r3 else "unavailable")
     r5 = next(
         (result for result in view.diagnostic_report.results if result.rule_id == "R5"),
         None,
     )
-    cols[4].metric("R5", r5.status.value if r5 else "unavailable")
+    with st.container(border=True):
+        summary = st.columns(2)
+        summary[0].metric("Source runs", view.source_collection_count, border=True)
+        summary[1].metric("Seed families", len(view.winner_map.entries), border=True)
+        st.markdown(
+            f"**Winner-map metric:** `{view.winner_map.metric_key}` · "
+            f"**R3 (triviality):** {badge_markdown(r3.status.value if r3 else 'unavailable')} · "
+            f"**R5 (drift):** {badge_markdown(r5.status.value if r5 else 'unavailable')}"
+        )
+        st.caption(
+            "A winner or tie within one seed family is not a universal ranking; incompatible or "
+            "missing cohorts stay excluded rather than ranked."
+        )
 
     section_header("Triviality Evidence")
     experiment_metrics = view.evidence_pack.metric_collection.by_key()
+    triviality_rows = [
+        {
+            "metric_key": key,
+            "status": metric.status.value,
+            "value": metric.value,
+            "unit": metric.unit,
+        }
+        for key, metric in sorted(experiment_metrics.items())
+        if key.startswith("experiment.")
+    ]
     st.dataframe(
-        [
-            {
-                "metric_key": key,
-                "status": metric.status.value,
-                "value": metric.value,
-                "unit": metric.unit,
-            }
-            for key, metric in sorted(experiment_metrics.items())
-            if key.startswith("experiment.")
-        ],
+        triviality_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(triviality_rows),
     )
     if r3 is not None:
         if r3.status is RuleStatus.TRIGGERED:
@@ -126,7 +138,7 @@ def render(config: UiConfig) -> None:
             st.info("R3 needs more compatible multi-policy evidence.")
         else:
             st.success("R3 did not identify the configured triviality pattern.")
-        with st.expander("R3 evidence and limitations"):
+        with st.expander("Advanced/Evidence: R3 evidence and limitations"):
             st.json(r3.model_dump(mode="json"))
     if r5 is not None:
         if r5.status is RuleStatus.TRIGGERED:
@@ -137,7 +149,7 @@ def render(config: UiConfig) -> None:
             st.warning(r5.hypothesis or "R5 has conflicting evidence.")
         else:
             st.success("R5 did not identify the configured drift pattern.")
-        with st.expander("R5 evidence and limitations"):
+        with st.expander("Advanced/Evidence: R5 evidence and limitations"):
             st.json(r5.model_dump(mode="json"))
 
     section_header("Per-Seed Winner Map")
@@ -155,7 +167,29 @@ def render(config: UiConfig) -> None:
         for score in entry.policy_scores
     ]
     if rows:
-        st.dataframe(rows, hide_index=True, width="stretch")
+        st.dataframe(
+            rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(rows),
+        )
+        chart_rows = [row for row in rows if isinstance(row["mean"], int | float)]
+        if chart_rows:
+            labels = [f"{row['seed_family']}/{row['algorithm']}" for row in chart_rows]
+            values = [float(row["mean"]) for row in chart_rows]  # type: ignore[arg-type]
+            st.plotly_chart(
+                bar_figure(
+                    labels,
+                    values,
+                    title=f"Mean {view.winner_map.metric_key} by seed family and policy",
+                    y_title="Mean (per compatible cohort)",
+                ),
+                width="stretch",
+            )
+            st.caption(
+                "Descriptive per-cohort means over already-computed scores; bar height is not a "
+                "cross-family ranking or a claim that any policy is universally best."
+            )
     else:
         st.info("No compatible scalar observations are available for a winner map.")
     for warning in view.winner_map.warnings:
@@ -176,10 +210,12 @@ def render(config: UiConfig) -> None:
         if view.portfolio.mean_regret is None
         else f"{view.portfolio.mean_regret:.4f}",
     )
+    portfolio_rows = [row.model_dump(mode="json") for row in view.portfolio.rows]
     st.dataframe(
-        [row.model_dump(mode="json") for row in view.portfolio.rows],
+        portfolio_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(portfolio_rows),
     )
     for warning in view.portfolio.warnings:
         st.caption(warning)
@@ -204,10 +240,14 @@ def render(config: UiConfig) -> None:
             "Held-out selector regret",
             "unavailable" if held_out.mean_regret is None else f"{held_out.mean_regret:.4f}",
         )
+        held_out_rows = [
+            row.model_dump(mode="json") for row in view.portfolio_study.held_out_constituents
+        ]
         st.dataframe(
-            [row.model_dump(mode="json") for row in view.portfolio_study.held_out_constituents],
+            held_out_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(held_out_rows),
         )
         for warning in view.portfolio_study.warnings:
             st.caption(warning)

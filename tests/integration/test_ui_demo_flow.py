@@ -300,6 +300,15 @@ def test_streamlit_triviality_page_renders_demo_analysis(
     assert not app.exception
     assert any(title.value == "Triviality & Winner Map" for title in app.title)
     assert any(heading.value == "Per-Seed Winner Map" for heading in app.subheader)
+    # Presentation (Tier 3): categorical R3/R5 rule statuses render as badges in markdown,
+    # not as numeric metrics, and the winner-map framing avoids a universal-best claim.
+    metric_labels = {str(item.label) for item in app.metric}
+    assert "R3" not in metric_labels
+    assert "R5" not in metric_labels
+    markdown_text = "\n".join(str(block.value) for block in app.markdown)
+    assert "R3 (triviality):" in markdown_text
+    caption_text = "\n".join(str(cap.value) for cap in app.caption)
+    assert "universally best" in caption_text
 
 
 def test_streamlit_run_overview_renders_contract_gated_energy_family(

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from traffictwin.ui.labels import UiPage
@@ -60,3 +62,36 @@ def test_participant_evaluation_keeps_raw_analysis_in_advanced() -> None:
     assert advanced
     # Numeric record counts use st.metric.
     assert "Mock records" in metric_labels(app)
+
+
+# --- Triviality & Winner Map ------------------------------------------------
+
+
+def test_triviality_renders_badges_chart_and_no_universal_best_claim(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from traffictwin.demo.workspace import initialise_workspace
+
+    workspace = tmp_path / "demo"
+    initialise_workspace(workspace)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+    monkeypatch.setenv("TRAFFICTWIN_FIXTURE_PATH", str(workspace / "bundles"))
+
+    app = page_app(UiPage.TRIVIALITY).run(timeout=40)
+    assert not app.exception
+
+    body = text_of(app)
+    # Categorical rule statuses and the winner-map metric are badges, not numeric metrics.
+    assert "R3" not in metric_labels(app)
+    assert "R5" not in metric_labels(app)
+    assert "Winner-map metric:" in body
+    # The non-universal-best framing is explicit.
+    assert "universally best" in body
+    # A descriptive winner-map chart caption is present, and structured tables exist.
+    assert "not a cross-family ranking" in body
+    assert len(app.dataframe) >= 1
+    # No raw rule JSON in primary content (R3/R5 detail lives under Advanced expanders).
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    assert advanced
