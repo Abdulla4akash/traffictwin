@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+
+import streamlit as st
+
 from traffictwin.config.capabilities import CapabilityManifest
 from traffictwin.metrics.comparison import ComparisonReport
 from traffictwin.metrics.results import MetricCollection, MetricValue
@@ -12,6 +17,153 @@ from traffictwin.ui.formatting import (
     validation_label,
 )
 from traffictwin.validation.report import ValidationReport
+
+# Machine-identifier columns hidden from primary tables by default. Hiding is
+# presentation only: the values remain in the row data and stay reachable
+# through Advanced/Evidence views. Sensitive columns must still be removed
+# before render (design v0.7 §13.3); hiding a column is not a security
+# control.
+MACHINE_ID_COLUMNS: frozenset[str] = frozenset(
+    {
+        "bundle_fingerprint",
+        "experiment_id",
+        "fingerprint",
+        "metric_version",
+        "node_id",
+        "random_seed",
+        "run_id",
+        "schema_version",
+        "seed_id",
+        "snapshot_id",
+        "source_fingerprint",
+        "trace_id",
+    }
+)
+
+# Human labels for the machine column keys produced by the row helpers in
+# this module and by component tables. Unknown keys fall back to sentence
+# casing.
+COLUMN_LABELS: dict[str, str] = {
+    "absolute_delta": "Absolute delta",
+    "affected_capabilities": "Affected capabilities",
+    "baseline": "Baseline",
+    "capability": "Capability",
+    "category": "Category",
+    "code": "Finding code",
+    "confidence": "Confidence",
+    "count": "Count",
+    "description": "Description",
+    "direction": "Direction",
+    "field": "Field",
+    "file": "File",
+    "label": "Label",
+    "may_continue": "May continue",
+    "message": "Message",
+    "metric_key": "Metric",
+    "node_type": "Node type",
+    "reason": "Reasons",
+    "reason_codes": "Reason codes",
+    "relation": "Relation",
+    "relative_delta": "Relative delta",
+    "row": "Row",
+    "severity": "Severity",
+    "source": "Source",
+    "status": "Status",
+    "target": "Target",
+    "unit": "Unit",
+    "value": "Value",
+    "variation": "Variation",
+}
+
+
+@dataclass(frozen=True)
+class ColumnDisplay:
+    """Presentation metadata for one table column.
+
+    This describes how a value is labelled and formatted; it never changes
+    the underlying value.
+    """
+
+    key: str
+    label: str
+    hidden: bool = False
+    unit: str | None = None
+    number_format: str | None = None
+    help_text: str | None = None
+
+
+def display_label(key: str) -> str:
+    """Return the human label for a column key."""
+
+    if key in COLUMN_LABELS:
+        return COLUMN_LABELS[key]
+    return key.replace("_", " ").strip().capitalize()
+
+
+def column_display(
+    key: str,
+    *,
+    unit: str | None = None,
+    number_format: str | None = None,
+    help_text: str | None = None,
+    hide_machine_ids: bool = True,
+) -> ColumnDisplay:
+    """Return default presentation metadata for one column key."""
+
+    hidden = hide_machine_ids and (key in MACHINE_ID_COLUMNS or key.endswith("_id"))
+    label = display_label(key)
+    if unit is not None:
+        label = f"{label} ({unit})"
+    return ColumnDisplay(
+        key=key,
+        label=label,
+        hidden=hidden,
+        unit=unit,
+        number_format=number_format,
+        help_text=help_text,
+    )
+
+
+def table_column_config(
+    rows: Sequence[Mapping[str, object]],
+    *,
+    units: Mapping[str, str] | None = None,
+    number_formats: Mapping[str, str] | None = None,
+    hide_machine_ids: bool = True,
+    overrides: Mapping[str, ColumnDisplay] | None = None,
+) -> dict[str, object]:
+    """Return ``st.dataframe`` ``column_config`` metadata for row dicts.
+
+    ``units`` appends a unit to the column label; ``number_formats`` applies a
+    display format such as ``"%.3f"`` or ``"percent"``. Hidden machine-ID
+    columns map to ``None``. Values in ``rows`` are never modified.
+    """
+
+    keys: list[str] = []
+    for row in rows:
+        for key in row:
+            if key not in keys:
+                keys.append(key)
+    config: dict[str, object] = {}
+    for key in keys:
+        if overrides is not None and key in overrides:
+            spec = overrides[key]
+        else:
+            spec = column_display(
+                key,
+                unit=None if units is None else units.get(key),
+                number_format=None if number_formats is None else number_formats.get(key),
+                hide_machine_ids=hide_machine_ids,
+            )
+        if spec.hidden:
+            config[key] = None
+        elif spec.number_format is not None:
+            config[key] = st.column_config.NumberColumn(
+                spec.label, format=spec.number_format, help=spec.help_text
+            )
+        else:
+            config[key] = st.column_config.TextColumn(spec.label, help=spec.help_text)
+    return config
 
 
 def capability_rows(manifest: CapabilityManifest) -> list[dict[str, str]]:
