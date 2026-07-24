@@ -176,3 +176,35 @@ def test_journey_time_duration_status_is_not_a_categorical_metric() -> None:
     # Trip counts and durations are numeric metrics; completion status is a badge, not a metric.
     assert "Trip cohort completion" not in labels
     assert "Trip-duration joins" not in labels
+
+
+# --- Spatial & RSU Evidence -------------------------------------------------
+
+
+def test_spatial_rsu_reconciles_frame_targets_and_coordinates() -> None:
+    app = page_app(UiPage.SPATIAL_RSU).run(timeout=40)
+    assert not app.exception
+
+    heads = subheaders(app)
+    # The two contracted evidence sections and both reconciliation sections are present.
+    assert "Task Outcomes By Execution-Target RSU" in heads
+    assert "Vehicle Source-Frame Grid" in heads
+    assert "Execution-Target Reconciliation" in heads
+    assert "Coordinate Reconciliation" in heads
+
+    labels = metric_labels(app)
+    # Unmatched and unprojectable records are explicit numeric counts.
+    assert "Missing-target tasks (count)" in labels
+    assert "Unknown-target tasks (count)" in labels
+    assert "Unprojectable observations (count)" in labels
+
+    body = text_of(app)
+    # Source/synthetic coordinates are distinguished from geographic Manchester coordinates.
+    assert "Coordinate provenance:" in body
+    assert "-badge[" in body
+    assert "not geographic Manchester coordinates" in body
+    # No live geographic position or official RSU location is implied.
+    assert "No live position and no official RSU location" in body
+    # Unmatched / unprojectable framing is explicit.
+    assert "never assigned to a nearest or assumed RSU" in body
+    assert "reported as unprojectable" in body
