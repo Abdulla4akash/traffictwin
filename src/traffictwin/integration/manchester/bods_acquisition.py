@@ -18,9 +18,9 @@ Privacy and claim limits are inherited unchanged from the MAN-05 parser:
 records are bus/transit vehicle positions only (never road counts,
 private-vehicle flow, congestion, or a complete-fleet claim); raw
 ``VehicleRef`` values are replaced by snapshot-scoped tokens before any output
-exists; ``retention_policy`` stays ``unapproved``; public export and Bee
-Network membership remain unavailable while ``GA-BEE-1`` and the retention
-blockers are open, and no BN* operator code is activated or hard-coded here.
+exists; ``retention_policy`` stays ``unapproved``; public export remains
+unavailable, and membership is deliberately left to the separate versioned
+identifier projection. No BN* operator code is activated or hard-coded here.
 
 ``MAN-01`` and ``MAN-05`` remain ``planned``; this is candidate Gate-B library
 evidence only.

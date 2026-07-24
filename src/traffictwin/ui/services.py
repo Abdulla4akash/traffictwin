@@ -3067,11 +3067,61 @@ def _scenario_hint(name: str) -> str | None:
 
 
 def _git_commit_hash() -> str | None:
-    git_dir = Path(".git")
-    if not git_dir.exists():
+    git_marker = Path(".git")
+    git_dir = _resolve_git_directory(git_marker)
+    if git_dir is None:
         return None
-    head = (git_dir / "HEAD").read_text(encoding="utf-8").strip()
+    head = _read_git_text(git_dir / "HEAD")
+    if head is None:
+        return None
     if head.startswith("ref: "):
-        ref = git_dir / head.removeprefix("ref: ").strip()
-        return ref.read_text(encoding="utf-8").strip()[:12] if ref.exists() else None
-    return head[:12]
+        ref_name = head.removeprefix("ref: ").strip()
+        common_dir = _resolve_git_common_directory(git_dir)
+        for root in dict.fromkeys((git_dir, common_dir)):
+            value = _read_git_text(root / ref_name)
+            if value:
+                return value[:12]
+        packed_refs = _read_git_text(common_dir / "packed-refs")
+        if packed_refs is not None:
+            suffix = f" {ref_name}"
+            for line in packed_refs.splitlines():
+                if not line.startswith(("#", "^")) and line.endswith(suffix):
+                    return line.split(" ", maxsplit=1)[0][:12]
+        return None
+    return head[:12] if head else None
+
+
+def _resolve_git_directory(marker: Path) -> Path | None:
+    """Resolve a normal ``.git`` directory or a linked-worktree marker."""
+
+    if marker.is_dir():
+        return marker
+    content = _read_git_text(marker)
+    if content is None or not content.startswith("gitdir: "):
+        return None
+    candidate = Path(content.removeprefix("gitdir: ").strip())
+    if not candidate.is_absolute():
+        candidate = marker.parent / candidate
+    return candidate.resolve() if candidate.is_dir() else None
+
+
+def _resolve_git_common_directory(git_dir: Path) -> Path:
+    """Return the shared Git directory for a linked worktree when present."""
+
+    content = _read_git_text(git_dir / "commondir")
+    if content is None:
+        return git_dir
+    candidate = Path(content)
+    if not candidate.is_absolute():
+        candidate = git_dir / candidate
+    resolved = candidate.resolve()
+    return resolved if resolved.is_dir() else git_dir
+
+
+def _read_git_text(path: Path) -> str | None:
+    """Read small Git metadata defensively for optional About-page display."""
+
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except (OSError, UnicodeError):
+        return None

@@ -58,8 +58,9 @@ TrafficTwin deliberately supplies no default Manchester boundary. The operator m
 ordered WGS84 coordinates in the form or set `TRAFFICTWIN_BODS_BOUNDING_BOX`. The API key is read
 only when rendering readiness and passed transiently only after **Fetch latest buses** is clicked;
 it is never placed in a model, receipt, scene, session-state value, error, or log. One form submit
-performs one request. There is no timer, polling loop, automatic retry cycle, or network activity
-on an ordinary UI rerun.
+performs one request. The control state permits only one refresh at a time and at least 60 seconds
+between attempts. There is no timer, polling loop, automatic retry cycle, or network activity on
+an ordinary UI rerun.
 
 The controlled workflow is:
 
@@ -69,16 +70,25 @@ explicit submit
   -> private quarantine before XML parsing
   -> accepted snapshot re-read and fingerprint reconciliation
   -> privacy-safe bus positions admitted through MAN-07
+  -> exact OperatorRef Bee Network / other-or-unknown separation
   -> freshness-separated MAN-08 layers
   -> atomic replacement of manchester/scenes/live_vehicles.json
+  -> bounded aggregate-only local history
 ```
 
 The output means **BODS transit vehicle positions only**. It is not live road traffic, traffic
-volume, congestion, or proof that a vehicle belongs to the Bee Network. Stale observations remain
-visibly separate from live observations. Raw and accepted source artifacts and the local scene are
-private; public export remains unavailable. If any transport, quarantine, parser, fingerprint,
+volume, or congestion. Five exact live-feed-verified policy-v1 `OperatorRef` values receive a Bee
+Network label; every non-match stays other/unknown and `BNVB` remains pending. Stale observations
+remain visibly separate from live observations. On later local reruns, source timestamps are
+re-evaluated at the current UTC instant and expired layers become **stale cached** without changing
+the stored scene. Raw and accepted source artifacts and the local scene are private; public export
+remains unavailable. If any transport, quarantine, parser, fingerprint,
 spatial, freshness, workspace, or file-publication check fails, the prior local scene is retained.
-See [the controlled live workflow](manchester_bods_live.md) for the library contract.
+See [the controlled live workflow](manchester_bods_live.md) for the library contract. The page also
+exposes a separate private-snapshot cleanup preview. Its precautionary default is 24 hours / 240
+complete accepted-plus-quarantine families; the active scene and newest family are protected,
+nothing is deleted automatically, and apply requires the exact plan-bound confirmation. This does
+not claim approved legal retention or secure erasure.
 Historical and latest scenes use the separate
 [bounded local publication service](manchester_scene_publication.md); ordinary page rendering never
 creates either scene.
@@ -154,7 +164,9 @@ interaction for both empty and valid local states, accepted DfT catalogue/filter
 empty and missing survey semantics, accepted WebTRIS catalogue selection and chart projection with
 missing-value gaps, live-form prerequisite gating, explicit
 bounding-box validation, one-request publication, secret absence from persisted artifacts,
-report-drift refusal, and preservation of the prior scene after publication failure. The
+report-drift refusal, interval/concurrency guards, bounded aggregate history, live-to-stale local
+projection, retention preview/confirmation/plan-drift checks, and preservation of the prior scene
+after publication failure. The
 scene-publication tests additionally cover fixed historical/latest paths, private-only output,
 request and receipt tampering, interrupted atomic replacement, and preservation of the prior scene.
 

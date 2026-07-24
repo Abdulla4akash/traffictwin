@@ -51,6 +51,10 @@ def test_explicit_refresh_publishes_private_validated_local_scene(tmp_path: Path
     assert result.summary.records_accepted == 2
     assert result.summary.synthetic_records == 2
     assert result.summary.live_vehicle == 0
+    assert result.summary.bee_network_franchised == 0
+    assert result.summary.non_franchised_or_unknown == 2
+    assert result.summary.bee_network_membership_available is True
+    assert result.summary.candidate_operator_still_pending is True
     assert result.summary.transit_live_available is False
     assert result.summary.road_traffic_live_available is False
     assert result.summary.public_export_available is False
@@ -58,6 +62,13 @@ def test_explicit_refresh_publishes_private_validated_local_scene(tmp_path: Path
     assert result.scene.layers[0].request.publication_class.value == "private"
     assert result.scene.layers[0].request.source == "bods_siri_vm"
     assert result.scene.layers[0].freshness_truth_state == "synthetic"
+    assert {layer.request.layer_id for layer in result.scene.layers} == {
+        "bods-other-or-unknown-synthetic",
+    }
+    assert result.membership.counts.records_classified == result.summary.records_accepted
+    assert (
+        result.summary.bee_network_membership_report_fingerprint == result.membership.fingerprint()
+    )
 
     target = workspace / BODS_LIVE_SCENE_RELATIVE_PATH
     assert target.is_file() and not target.is_symlink()

@@ -18,6 +18,12 @@ from typing import Literal
 import httpx
 from pydantic import Field, model_validator
 
+from traffictwin.integration.manchester.bee_network import (
+    BeeNetworkMembership,
+    BeeNetworkMembershipReport,
+    classify_bee_network_membership,
+    verify_bee_network_membership_report,
+)
 from traffictwin.integration.manchester.bods import (
     MAX_SIRI_BYTES,
     BodsBoundingBox,
@@ -87,11 +93,9 @@ _ADMITTED_WARNING_CODES = (
     "PROFILE_MISSING_BLOCK_REF",
     "PROFILE_MISSING_VEHICLE_JOURNEY_REF",
 )
-_STATE_LAYER: dict[FreshnessState, tuple[str, str]] = {
-    "live_vehicle": ("bods-live-vehicles", "Live transit vehicles"),
-    "stale": ("bods-stale-vehicles", "Stale transit observations"),
-    "historical": ("bods-historical-vehicles", "Historical transit observations"),
-    "synthetic": ("bods-synthetic-vehicles", "Synthetic transit fixtures"),
+_MEMBERSHIP_LAYER_PREFIX: dict[BeeNetworkMembership, str] = {
+    "bee_network_franchised": "bods-bee-network",
+    "non_franchised_or_unknown": "bods-other-or-unknown",
 }
 
 
@@ -123,7 +127,19 @@ class BodsLiveRefreshSummary(ManchesterSnapshotModel):
     live_vehicle: int = Field(ge=0)
     stale: int = Field(ge=0)
     synthetic_records: int = Field(ge=0)
-    layer_count: int = Field(ge=1, le=4)
+    bee_network_franchised: int = Field(ge=0)
+    non_franchised_or_unknown: int = Field(ge=0)
+    membership_out_of_scope: int = Field(ge=0)
+    membership_missing_identifier: int = Field(ge=0)
+    membership_ambiguous_identifier: int = Field(ge=0)
+    bee_network_policy_version: Literal["bee-network-operator-allowlist-v1-20260723"] = (
+        "bee-network-operator-allowlist-v1-20260723"
+    )
+    bee_network_policy_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    bee_network_membership_report_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    bee_network_membership_available: Literal[True] = True
+    candidate_operator_still_pending: Literal[True] = True
+    layer_count: int = Field(ge=1, le=8)
     transit_live_available: bool
     road_traffic_live_available: Literal[False] = False
     public_export_available: Literal[False] = False
@@ -134,6 +150,10 @@ class BodsLiveRefreshSummary(ManchesterSnapshotModel):
             raise ValueError("live refresh counts must partition accepted acquisition records")
         if self.transit_live_available != (self.live_vehicle > 0):
             raise ValueError("transit-live availability must match the live record count")
+        if self.records_accepted != (self.bee_network_franchised + self.non_franchised_or_unknown):
+            raise ValueError("membership counts must partition accepted positions")
+        if self.membership_missing_identifier or self.membership_ambiguous_identifier:
+            raise ValueError("the strict parser admits exactly one OperatorRef per position")
         return self
 
 
@@ -144,6 +164,7 @@ class BodsLiveRefresh:
     summary: BodsLiveRefreshSummary
     acquisition: BodsAcquisitionResult
     report: BodsParseReport
+    membership: BeeNetworkMembershipReport
     scene: ManchesterMapScene
 
 
@@ -177,7 +198,8 @@ def refresh_bods_live_scene(
         utc_now=utc_now,
     )
     report = _reparse_accepted_snapshot(workspace, acquisition)
-    scene = build_bods_live_scene(acquisition, report)
+    membership = classify_bee_network_membership(report)
+    scene = build_bods_live_scene(acquisition, report, membership)
     scene_bytes = scene.canonical_json().encode("utf-8")
     scene_sha256 = _publish_live_scene(workspace, scene_bytes)
     summary = BodsLiveRefreshSummary(
@@ -191,6 +213,14 @@ def refresh_bods_live_scene(
         live_vehicle=report.counts.live_vehicle,
         stale=report.counts.stale,
         synthetic_records=report.counts.synthetic,
+        bee_network_franchised=membership.counts.bee_network_franchised,
+        non_franchised_or_unknown=membership.counts.non_franchised_or_unknown,
+        membership_out_of_scope=membership.counts.out_of_scope,
+        membership_missing_identifier=membership.counts.missing_identifier,
+        membership_ambiguous_identifier=membership.counts.ambiguous_identifier,
+        bee_network_policy_version="bee-network-operator-allowlist-v1-20260723",
+        bee_network_policy_fingerprint=membership.policy_fingerprint,
+        bee_network_membership_report_fingerprint=membership.fingerprint(),
         layer_count=len(scene.layers),
         transit_live_available=report.counts.live_vehicle > 0,
     )
@@ -198,6 +228,7 @@ def refresh_bods_live_scene(
         summary=summary,
         acquisition=acquisition,
         report=report,
+        membership=membership,
         scene=scene,
     )
 
@@ -205,20 +236,42 @@ def refresh_bods_live_scene(
 def build_bods_live_scene(
     acquisition: BodsAcquisitionResult,
     report: BodsParseReport,
+    membership: BeeNetworkMembershipReport | None = None,
 ) -> ManchesterMapScene:
-    """Convert one exactly bound MAN-05 report into state-separated MAN-08 layers."""
+    """Convert one report into exact membership- and state-separated layers."""
 
     _bind_report(acquisition, report)
-    groups: dict[FreshnessState, list[LiveTransitVehicleObservation]] = {}
+    classified = classify_bee_network_membership(report) if membership is None else membership
+    verify_bee_network_membership_report(classified, report)
+    by_record = {
+        item.source_record_fingerprint: item.membership for item in classified.classifications
+    }
+    groups: dict[
+        tuple[BeeNetworkMembership, FreshnessState],
+        list[LiveTransitVehicleObservation],
+    ] = {}
     for record in report.records:
-        groups.setdefault(record.freshness_state, []).append(record)
+        record_fingerprint = record.fingerprint()
+        if record_fingerprint not in by_record:
+            raise BodsLiveWorkflowError(
+                "MEMBERSHIP_RECONCILIATION_FAILED",
+                "every admitted BODS record must have one membership outcome",
+            )
+        key = (by_record[record_fingerprint], record.freshness_state)
+        groups.setdefault(key, []).append(record)
     layers = tuple(
-        _build_state_layer(acquisition, state, tuple(groups[state]))
-        for state in _STATE_LAYER
-        if groups.get(state)
+        _build_state_layer(acquisition, membership_state, state, tuple(records))
+        for (membership_state, state), records in sorted(groups.items())
     )
     if not layers:
-        layers = (_build_state_layer(acquisition, "live_vehicle", ()),)
+        layers = (
+            _build_state_layer(
+                acquisition,
+                "bee_network_franchised",
+                "live_vehicle",
+                (),
+            ),
+        )
     return build_map_scene("live_vehicles", layers)
 
 
@@ -300,10 +353,13 @@ def _bind_report(acquisition: BodsAcquisitionResult, report: BodsParseReport) ->
 
 def _build_state_layer(
     acquisition: BodsAcquisitionResult,
+    membership: BeeNetworkMembership,
     state: FreshnessState,
     records: Sequence[LiveTransitVehicleObservation],
 ) -> ManchesterMapLayerManifest:
-    layer_id, title = _STATE_LAYER[state]
+    state_slug = state.replace("_", "-")
+    layer_id = f"{_MEMBERSHIP_LAYER_PREFIX[membership]}-{state_slug}"
+    title = _membership_layer_title(membership, state, synthetic=acquisition.synthetic)
     request_bounds_fingerprint = acquisition.request.bounding_box.fingerprint()
     spatial = evaluate_spatial_batch(
         tuple(
@@ -331,6 +387,33 @@ def _build_state_layer(
             synthetic=acquisition.synthetic,
         )
     )
+
+
+def _membership_layer_title(
+    membership: BeeNetworkMembership,
+    state: FreshnessState,
+    *,
+    synthetic: bool,
+) -> str:
+    if synthetic:
+        scope = (
+            "verified-operator fixture"
+            if membership == "bee_network_franchised"
+            else "other-operator fixture"
+        )
+        return f"Synthetic {scope}"
+    scope = (
+        "Bee Network buses"
+        if membership == "bee_network_franchised"
+        else "Other or unknown-operator buses"
+    )
+    state_label = {
+        "live_vehicle": "live",
+        "stale": "stale",
+        "historical": "historical",
+        "synthetic": "synthetic",
+    }[state]
+    return f"{scope} · {state_label}"
 
 
 def _layer_freshness(

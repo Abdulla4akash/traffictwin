@@ -77,9 +77,19 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   dated reference data. Later scientific thresholds require a new policy version.
 - Question 10 is resolved for the default map: pydeck without a basemap, with an exact accepted
   ONS boundary edition selected at Gate B. Carto remains blocked by `GA-MAP-1`.
-- Question 14 is partially resolved: identifier-only NOC matching and the candidate BN allowlist
-  are accepted, while live-feed confirmation (`GA-BEE-1`) and NOC/schedule publication rights
-  remain Gate B blockers.
+- Question 14 is further narrowed: identifier-only NOC matching is accepted and one controlled
+  live-feed snapshot verifies `BNDB`, `BNFM`, `BNGN`, `BNML`, and `BNSM`; `BNVB` remains pending.
+  NOC reference-table rights, optional schedule-join publication, complete service coverage, and
+  unmatched-service interpretation remain Gate-B blockers.
+- Question 8 now has a precautionary engineering control: private BODS accepted/quarantine
+  families can be previewed against a 24-hour/240-family bound and deleted only with exact
+  operator confirmation while the active/newest snapshots remain protected. The lawful research
+  retention period, longitudinal-analysis approval, backup treatment, and secure-erasure posture
+  remain open and are not inferred by that software control.
+- Question 9 is resolved for the Streamlit application: it does not run recurring source sync.
+  BODS refresh is operator-triggered, serial, and limited to one attempt per 60 seconds; page
+  reruns may read only the bounded local aggregate history. Any future always-on scheduler remains
+  a separate deployment and governance decision.
 - Questions 1, 2, 5–9, 11, 12, and 15–17 remain open at their stated gates.
 
 ### v0.5 design decisions

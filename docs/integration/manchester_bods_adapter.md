@@ -7,16 +7,12 @@
 request, reads no API key, launches no simulator, writes no snapshot, and does not activate the
 `MAN-05` capability by itself.
 
-The remaining live acquisition and acceptance work is deliberately outside this parser:
-
-- a BODS account/API key and a credential-redacting bounded client;
-- one accepted private real Greater Manchester response at Gate B;
-- verification of the observed `OperatorRef` values (`GA-BEE-1`);
-- an approved retention policy for raw longitudinal vehicle identifiers; and
-- outage/service-notice handling around acquisition.
-
-Until those checks pass, the parser outputs Greater Manchester-scope **bus/transit positions
-with operator membership unverified**, not “live Bee Network traffic”.
+The credential-redacting acquisition and one private real Greater Manchester response now have a
+controlled Gate-B vertical slice. A separate identifier-only classifier has also verified five
+observed Bee Network `OperatorRef` values. The parser deliberately continues to emit immutable
+source positions with membership `unverified`; the additive classifier owns membership so the
+source report is never rewritten. Retention, consumer terms, pending `BNVB`, reference licensing,
+outage acceptance and complete Gate B remain outside this parser.
 
 ## Accepted input
 
@@ -82,9 +78,10 @@ Every observation is structurally restricted to bus/transit meaning:
 - no passenger/person inference; and
 - no public export while the retention decision is unapproved.
 
-`OperatorRef`, `PublishedLineName`, geography, and strings containing “Bee Network” cannot decide
-Bee Network membership. `bee_network_membership` remains `unverified` and the membership
-capability remains false while `GA-BEE-1` is open, as required by ADR-057.
+Inside the immutable parser output, `OperatorRef`, `PublishedLineName`, geography, and strings
+containing “Bee Network” cannot independently strengthen membership. The additive
+[Bee Network scope service](manchester_bee_network_scope.md) later uses only an exact
+live-evidence-verified `OperatorRef` policy; display names and geography remain prohibited.
 
 ## Library usage
 

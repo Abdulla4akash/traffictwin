@@ -1523,6 +1523,724 @@
       "title": "BatchInputIssue",
       "type": "object"
     },
+    "BeeNetworkMembershipCounts": {
+      "additionalProperties": false,
+      "description": "Complete parser-to-membership reconciliation for one BODS report.",
+      "properties": {
+        "activities_seen": {
+          "minimum": 0,
+          "title": "Activities Seen",
+          "type": "integer"
+        },
+        "ambiguous_identifier": {
+          "minimum": 0,
+          "title": "Ambiguous Identifier",
+          "type": "integer"
+        },
+        "bee_network_franchised": {
+          "minimum": 0,
+          "title": "Bee Network Franchised",
+          "type": "integer"
+        },
+        "conflicting_duplicates": {
+          "minimum": 0,
+          "title": "Conflicting Duplicates",
+          "type": "integer"
+        },
+        "duplicate_collapsed": {
+          "minimum": 0,
+          "title": "Duplicate Collapsed",
+          "type": "integer"
+        },
+        "malformed_activity": {
+          "minimum": 0,
+          "title": "Malformed Activity",
+          "type": "integer"
+        },
+        "missing_identifier": {
+          "minimum": 0,
+          "title": "Missing Identifier",
+          "type": "integer"
+        },
+        "non_franchised_or_unknown": {
+          "minimum": 0,
+          "title": "Non Franchised Or Unknown",
+          "type": "integer"
+        },
+        "out_of_scope": {
+          "minimum": 0,
+          "title": "Out Of Scope",
+          "type": "integer"
+        },
+        "records_classified": {
+          "minimum": 0,
+          "title": "Records Classified",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "activities_seen",
+        "records_classified",
+        "bee_network_franchised",
+        "non_franchised_or_unknown",
+        "out_of_scope",
+        "missing_identifier",
+        "ambiguous_identifier",
+        "malformed_activity",
+        "duplicate_collapsed",
+        "conflicting_duplicates"
+      ],
+      "title": "BeeNetworkMembershipCounts",
+      "type": "object"
+    },
+    "BeeNetworkMembershipReport": {
+      "$defs": {
+        "BeeNetworkMembershipCounts": {
+          "additionalProperties": false,
+          "description": "Complete parser-to-membership reconciliation for one BODS report.",
+          "properties": {
+            "activities_seen": {
+              "minimum": 0,
+              "title": "Activities Seen",
+              "type": "integer"
+            },
+            "ambiguous_identifier": {
+              "minimum": 0,
+              "title": "Ambiguous Identifier",
+              "type": "integer"
+            },
+            "bee_network_franchised": {
+              "minimum": 0,
+              "title": "Bee Network Franchised",
+              "type": "integer"
+            },
+            "conflicting_duplicates": {
+              "minimum": 0,
+              "title": "Conflicting Duplicates",
+              "type": "integer"
+            },
+            "duplicate_collapsed": {
+              "minimum": 0,
+              "title": "Duplicate Collapsed",
+              "type": "integer"
+            },
+            "malformed_activity": {
+              "minimum": 0,
+              "title": "Malformed Activity",
+              "type": "integer"
+            },
+            "missing_identifier": {
+              "minimum": 0,
+              "title": "Missing Identifier",
+              "type": "integer"
+            },
+            "non_franchised_or_unknown": {
+              "minimum": 0,
+              "title": "Non Franchised Or Unknown",
+              "type": "integer"
+            },
+            "out_of_scope": {
+              "minimum": 0,
+              "title": "Out Of Scope",
+              "type": "integer"
+            },
+            "records_classified": {
+              "minimum": 0,
+              "title": "Records Classified",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "activities_seen",
+            "records_classified",
+            "bee_network_franchised",
+            "non_franchised_or_unknown",
+            "out_of_scope",
+            "missing_identifier",
+            "ambiguous_identifier",
+            "malformed_activity",
+            "duplicate_collapsed",
+            "conflicting_duplicates"
+          ],
+          "title": "BeeNetworkMembershipCounts",
+          "type": "object"
+        },
+        "BeeNetworkOperatorEvidence": {
+          "additionalProperties": false,
+          "description": "One live-feed-verified operator reference and its aggregate count.",
+          "properties": {
+            "operator_ref": {
+              "pattern": "^[A-Z0-9]{2,12}$",
+              "title": "Operator Ref",
+              "type": "string"
+            },
+            "records_observed": {
+              "exclusiveMinimum": 0,
+              "title": "Records Observed",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "operator_ref",
+            "records_observed"
+          ],
+          "title": "BeeNetworkOperatorEvidence",
+          "type": "object"
+        },
+        "BeeNetworkScopePolicy": {
+          "additionalProperties": false,
+          "description": "Frozen local-only membership policy backed by aggregate live evidence.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "display_name_matching_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Display Name Matching Allowed",
+              "type": "boolean"
+            },
+            "evidence_records_seen": {
+              "const": 1565,
+              "default": 1565,
+              "title": "Evidence Records Seen",
+              "type": "integer"
+            },
+            "geography_matching_allowed": {
+              "const": false,
+              "default": false,
+              "title": "Geography Matching Allowed",
+              "type": "boolean"
+            },
+            "identifier_field": {
+              "const": "OperatorRef",
+              "default": "OperatorRef",
+              "title": "Identifier Field",
+              "type": "string"
+            },
+            "identifier_match_only": {
+              "const": true,
+              "default": true,
+              "title": "Identifier Match Only",
+              "type": "boolean"
+            },
+            "local_lookup_only": {
+              "const": true,
+              "default": true,
+              "title": "Local Lookup Only",
+              "type": "boolean"
+            },
+            "method_version": {
+              "const": "bee-network-operator-scope-1.0",
+              "default": "bee-network-operator-scope-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "pending_operator_refs": {
+              "default": [
+                "BNVB"
+              ],
+              "items": {
+                "type": "string"
+              },
+              "title": "Pending Operator Refs",
+              "type": "array"
+            },
+            "policy_version": {
+              "const": "bee-network-operator-allowlist-v1-20260723",
+              "default": "bee-network-operator-allowlist-v1-20260723",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "reference_licence_status": {
+              "const": "unconfirmed_ga_bee_4",
+              "default": "unconfirmed_ga_bee_4",
+              "title": "Reference Licence Status",
+              "type": "string"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "verification_completed_at_utc": {
+              "default": "2026-07-23T22:39:08.884920Z",
+              "format": "date-time",
+              "title": "Verification Completed At Utc",
+              "type": "string"
+            },
+            "verification_parser_report_fingerprint": {
+              "const": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+              "default": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+              "title": "Verification Parser Report Fingerprint",
+              "type": "string"
+            },
+            "verification_raw_fingerprint": {
+              "const": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+              "default": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+              "title": "Verification Raw Fingerprint",
+              "type": "string"
+            },
+            "verification_snapshot_id": {
+              "const": "bods_siri_vm-20260723T223908Z-33e07061a500",
+              "default": "bods_siri_vm-20260723T223908Z-33e07061a500",
+              "title": "Verification Snapshot Id",
+              "type": "string"
+            },
+            "verified_operator_evidence": {
+              "items": {
+                "$ref": "#/$defs/BeeNetworkOperatorEvidence"
+              },
+              "title": "Verified Operator Evidence",
+              "type": "array"
+            }
+          },
+          "required": [
+            "verified_operator_evidence"
+          ],
+          "title": "BeeNetworkScopePolicy",
+          "type": "object"
+        },
+        "BeeNetworkVehicleClassification": {
+          "additionalProperties": false,
+          "description": "One privacy-safe accepted BODS record classified by exact identifier.",
+          "properties": {
+            "freshness_state": {
+              "enum": [
+                "live_vehicle",
+                "stale",
+                "historical",
+                "synthetic"
+              ],
+              "title": "Freshness State",
+              "type": "string"
+            },
+            "identifier_match_only": {
+              "const": true,
+              "default": true,
+              "title": "Identifier Match Only",
+              "type": "boolean"
+            },
+            "line_ref": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Line Ref",
+              "type": "string"
+            },
+            "membership": {
+              "enum": [
+                "bee_network_franchised",
+                "non_franchised_or_unknown"
+              ],
+              "title": "Membership",
+              "type": "string"
+            },
+            "operator_ref": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Operator Ref",
+              "type": "string"
+            },
+            "policy_version": {
+              "const": "bee-network-operator-allowlist-v1-20260723",
+              "default": "bee-network-operator-allowlist-v1-20260723",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "source_record_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Record Fingerprint",
+              "type": "string"
+            },
+            "source_snapshot_id": {
+              "title": "Source Snapshot Id",
+              "type": "string"
+            },
+            "vehicle_token": {
+              "pattern": "^[0-9a-f]{24}$",
+              "title": "Vehicle Token",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source_record_fingerprint",
+            "source_snapshot_id",
+            "vehicle_token",
+            "operator_ref",
+            "line_ref",
+            "freshness_state",
+            "membership"
+          ],
+          "title": "BeeNetworkVehicleClassification",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic membership projection over one accepted BODS parse report.",
+      "properties": {
+        "bee_network_membership_available": {
+          "const": true,
+          "default": true,
+          "title": "Bee Network Membership Available",
+          "type": "boolean"
+        },
+        "candidate_operator_still_pending": {
+          "const": true,
+          "default": true,
+          "title": "Candidate Operator Still Pending",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "classifications": {
+          "items": {
+            "$ref": "#/$defs/BeeNetworkVehicleClassification"
+          },
+          "title": "Classifications",
+          "type": "array"
+        },
+        "counts": {
+          "$ref": "#/$defs/BeeNetworkMembershipCounts"
+        },
+        "display_name_matching_used": {
+          "const": false,
+          "default": false,
+          "title": "Display Name Matching Used",
+          "type": "boolean"
+        },
+        "geography_matching_used": {
+          "const": false,
+          "default": false,
+          "title": "Geography Matching Used",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "bee-network-operator-scope-1.0",
+          "default": "bee-network-operator-scope-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/BeeNetworkScopePolicy"
+        },
+        "policy_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Fingerprint",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_vehicle_identifiers_in_output": {
+          "const": false,
+          "default": false,
+          "title": "Raw Vehicle Identifiers In Output",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Report Fingerprint",
+          "type": "string"
+        },
+        "source_snapshot_id": {
+          "title": "Source Snapshot Id",
+          "type": "string"
+        },
+        "synthetic": {
+          "title": "Synthetic",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source_snapshot_id",
+        "source_report_fingerprint",
+        "policy",
+        "policy_fingerprint",
+        "counts",
+        "classifications",
+        "synthetic"
+      ],
+      "title": "BeeNetworkMembershipReport",
+      "type": "object"
+    },
+    "BeeNetworkOperatorEvidence": {
+      "additionalProperties": false,
+      "description": "One live-feed-verified operator reference and its aggregate count.",
+      "properties": {
+        "operator_ref": {
+          "pattern": "^[A-Z0-9]{2,12}$",
+          "title": "Operator Ref",
+          "type": "string"
+        },
+        "records_observed": {
+          "exclusiveMinimum": 0,
+          "title": "Records Observed",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "operator_ref",
+        "records_observed"
+      ],
+      "title": "BeeNetworkOperatorEvidence",
+      "type": "object"
+    },
+    "BeeNetworkScopePolicy": {
+      "$defs": {
+        "BeeNetworkOperatorEvidence": {
+          "additionalProperties": false,
+          "description": "One live-feed-verified operator reference and its aggregate count.",
+          "properties": {
+            "operator_ref": {
+              "pattern": "^[A-Z0-9]{2,12}$",
+              "title": "Operator Ref",
+              "type": "string"
+            },
+            "records_observed": {
+              "exclusiveMinimum": 0,
+              "title": "Records Observed",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "operator_ref",
+            "records_observed"
+          ],
+          "title": "BeeNetworkOperatorEvidence",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Frozen local-only membership policy backed by aggregate live evidence.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "display_name_matching_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Display Name Matching Allowed",
+          "type": "boolean"
+        },
+        "evidence_records_seen": {
+          "const": 1565,
+          "default": 1565,
+          "title": "Evidence Records Seen",
+          "type": "integer"
+        },
+        "geography_matching_allowed": {
+          "const": false,
+          "default": false,
+          "title": "Geography Matching Allowed",
+          "type": "boolean"
+        },
+        "identifier_field": {
+          "const": "OperatorRef",
+          "default": "OperatorRef",
+          "title": "Identifier Field",
+          "type": "string"
+        },
+        "identifier_match_only": {
+          "const": true,
+          "default": true,
+          "title": "Identifier Match Only",
+          "type": "boolean"
+        },
+        "local_lookup_only": {
+          "const": true,
+          "default": true,
+          "title": "Local Lookup Only",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "bee-network-operator-scope-1.0",
+          "default": "bee-network-operator-scope-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "pending_operator_refs": {
+          "default": [
+            "BNVB"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Pending Operator Refs",
+          "type": "array"
+        },
+        "policy_version": {
+          "const": "bee-network-operator-allowlist-v1-20260723",
+          "default": "bee-network-operator-allowlist-v1-20260723",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "reference_licence_status": {
+          "const": "unconfirmed_ga_bee_4",
+          "default": "unconfirmed_ga_bee_4",
+          "title": "Reference Licence Status",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "verification_completed_at_utc": {
+          "default": "2026-07-23T22:39:08.884920Z",
+          "format": "date-time",
+          "title": "Verification Completed At Utc",
+          "type": "string"
+        },
+        "verification_parser_report_fingerprint": {
+          "const": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+          "default": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+          "title": "Verification Parser Report Fingerprint",
+          "type": "string"
+        },
+        "verification_raw_fingerprint": {
+          "const": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+          "default": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+          "title": "Verification Raw Fingerprint",
+          "type": "string"
+        },
+        "verification_snapshot_id": {
+          "const": "bods_siri_vm-20260723T223908Z-33e07061a500",
+          "default": "bods_siri_vm-20260723T223908Z-33e07061a500",
+          "title": "Verification Snapshot Id",
+          "type": "string"
+        },
+        "verified_operator_evidence": {
+          "items": {
+            "$ref": "#/$defs/BeeNetworkOperatorEvidence"
+          },
+          "title": "Verified Operator Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "verified_operator_evidence"
+      ],
+      "title": "BeeNetworkScopePolicy",
+      "type": "object"
+    },
+    "BeeNetworkVehicleClassification": {
+      "additionalProperties": false,
+      "description": "One privacy-safe accepted BODS record classified by exact identifier.",
+      "properties": {
+        "freshness_state": {
+          "enum": [
+            "live_vehicle",
+            "stale",
+            "historical",
+            "synthetic"
+          ],
+          "title": "Freshness State",
+          "type": "string"
+        },
+        "identifier_match_only": {
+          "const": true,
+          "default": true,
+          "title": "Identifier Match Only",
+          "type": "boolean"
+        },
+        "line_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Line Ref",
+          "type": "string"
+        },
+        "membership": {
+          "enum": [
+            "bee_network_franchised",
+            "non_franchised_or_unknown"
+          ],
+          "title": "Membership",
+          "type": "string"
+        },
+        "operator_ref": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Operator Ref",
+          "type": "string"
+        },
+        "policy_version": {
+          "const": "bee-network-operator-allowlist-v1-20260723",
+          "default": "bee-network-operator-allowlist-v1-20260723",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "source_record_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Source Record Fingerprint",
+          "type": "string"
+        },
+        "source_snapshot_id": {
+          "title": "Source Snapshot Id",
+          "type": "string"
+        },
+        "vehicle_token": {
+          "pattern": "^[0-9a-f]{24}$",
+          "title": "Vehicle Token",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_record_fingerprint",
+        "source_snapshot_id",
+        "vehicle_token",
+        "operator_ref",
+        "line_ref",
+        "freshness_state",
+        "membership"
+      ],
+      "title": "BeeNetworkVehicleClassification",
+      "type": "object"
+    },
     "BodsAcquisitionRequest": {
       "$defs": {
         "BodsBoundingBox": {
@@ -2794,6 +3512,527 @@
       "title": "BodsAcquisitionResult",
       "type": "object"
     },
+    "BodsLiveControlPolicy": {
+      "additionalProperties": false,
+      "description": "Fixed conservative frequency and aggregate-history bounds.",
+      "properties": {
+        "aggregate_history_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregate History Only",
+          "type": "boolean"
+        },
+        "automatic_source_polling_available": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Source Polling Available",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "history_max_age_hours": {
+          "const": 24,
+          "default": 24,
+          "title": "History Max Age Hours",
+          "type": "integer"
+        },
+        "history_max_entries": {
+          "const": 240,
+          "default": 240,
+          "title": "History Max Entries",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "manchester-bods-live-control-1.0",
+          "default": "manchester-bods-live-control-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "minimum_interval_seconds": {
+          "const": 60,
+          "default": 60,
+          "title": "Minimum Interval Seconds",
+          "type": "integer"
+        },
+        "operator_triggered_only": {
+          "const": true,
+          "default": true,
+          "title": "Operator Triggered Only",
+          "type": "boolean"
+        },
+        "policy_version": {
+          "const": "bods-live-control-v1",
+          "default": "bods-live-control-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_vehicle_identifiers_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Raw Vehicle Identifiers Persisted",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "single_refresh_at_a_time": {
+          "const": true,
+          "default": true,
+          "title": "Single Refresh At A Time",
+          "type": "boolean"
+        }
+      },
+      "title": "BodsLiveControlPolicy",
+      "type": "object"
+    },
+    "BodsLiveControlState": {
+      "$defs": {
+        "BodsLiveControlPolicy": {
+          "additionalProperties": false,
+          "description": "Fixed conservative frequency and aggregate-history bounds.",
+          "properties": {
+            "aggregate_history_only": {
+              "const": true,
+              "default": true,
+              "title": "Aggregate History Only",
+              "type": "boolean"
+            },
+            "automatic_source_polling_available": {
+              "const": false,
+              "default": false,
+              "title": "Automatic Source Polling Available",
+              "type": "boolean"
+            },
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "history_max_age_hours": {
+              "const": 24,
+              "default": 24,
+              "title": "History Max Age Hours",
+              "type": "integer"
+            },
+            "history_max_entries": {
+              "const": 240,
+              "default": 240,
+              "title": "History Max Entries",
+              "type": "integer"
+            },
+            "method_version": {
+              "const": "manchester-bods-live-control-1.0",
+              "default": "manchester-bods-live-control-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "minimum_interval_seconds": {
+              "const": 60,
+              "default": 60,
+              "title": "Minimum Interval Seconds",
+              "type": "integer"
+            },
+            "operator_triggered_only": {
+              "const": true,
+              "default": true,
+              "title": "Operator Triggered Only",
+              "type": "boolean"
+            },
+            "policy_version": {
+              "const": "bods-live-control-v1",
+              "default": "bods-live-control-v1",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "raw_vehicle_identifiers_persisted": {
+              "const": false,
+              "default": false,
+              "title": "Raw Vehicle Identifiers Persisted",
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "single_refresh_at_a_time": {
+              "const": true,
+              "default": true,
+              "title": "Single Refresh At A Time",
+              "type": "boolean"
+            }
+          },
+          "title": "BodsLiveControlPolicy",
+          "type": "object"
+        },
+        "BodsLiveRefreshSummary": {
+          "additionalProperties": false,
+          "description": "Small secret-free UI summary for one published live-vehicle scene.",
+          "properties": {
+            "acquisition_receipt_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Acquisition Receipt Fingerprint",
+              "type": "string"
+            },
+            "bee_network_franchised": {
+              "minimum": 0,
+              "title": "Bee Network Franchised",
+              "type": "integer"
+            },
+            "bee_network_membership_available": {
+              "const": true,
+              "default": true,
+              "title": "Bee Network Membership Available",
+              "type": "boolean"
+            },
+            "bee_network_membership_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Bee Network Membership Report Fingerprint",
+              "type": "string"
+            },
+            "bee_network_policy_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Bee Network Policy Fingerprint",
+              "type": "string"
+            },
+            "bee_network_policy_version": {
+              "const": "bee-network-operator-allowlist-v1-20260723",
+              "default": "bee-network-operator-allowlist-v1-20260723",
+              "title": "Bee Network Policy Version",
+              "type": "string"
+            },
+            "candidate_operator_still_pending": {
+              "const": true,
+              "default": true,
+              "title": "Candidate Operator Still Pending",
+              "type": "boolean"
+            },
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "evaluated_at_utc": {
+              "format": "date-time",
+              "title": "Evaluated At Utc",
+              "type": "string"
+            },
+            "layer_count": {
+              "maximum": 8,
+              "minimum": 1,
+              "title": "Layer Count",
+              "type": "integer"
+            },
+            "live_vehicle": {
+              "minimum": 0,
+              "title": "Live Vehicle",
+              "type": "integer"
+            },
+            "map_capability_id": {
+              "const": "MAN-08",
+              "default": "MAN-08",
+              "title": "Map Capability Id",
+              "type": "string"
+            },
+            "membership_ambiguous_identifier": {
+              "minimum": 0,
+              "title": "Membership Ambiguous Identifier",
+              "type": "integer"
+            },
+            "membership_missing_identifier": {
+              "minimum": 0,
+              "title": "Membership Missing Identifier",
+              "type": "integer"
+            },
+            "membership_out_of_scope": {
+              "minimum": 0,
+              "title": "Membership Out Of Scope",
+              "type": "integer"
+            },
+            "method_version": {
+              "const": "manchester-bods-live-scene-1.0",
+              "default": "manchester-bods-live-scene-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "non_franchised_or_unknown": {
+              "minimum": 0,
+              "title": "Non Franchised Or Unknown",
+              "type": "integer"
+            },
+            "parser_report_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Parser Report Fingerprint",
+              "type": "string"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "road_traffic_live_available": {
+              "const": false,
+              "default": false,
+              "title": "Road Traffic Live Available",
+              "type": "boolean"
+            },
+            "scene_file_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Scene File Sha256",
+              "type": "string"
+            },
+            "scene_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Scene Fingerprint",
+              "type": "string"
+            },
+            "scene_relative_path": {
+              "const": "manchester/scenes/live_vehicles.json",
+              "default": "manchester/scenes/live_vehicles.json",
+              "title": "Scene Relative Path",
+              "type": "string"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "title": "Snapshot Id",
+              "type": "string"
+            },
+            "stale": {
+              "minimum": 0,
+              "title": "Stale",
+              "type": "integer"
+            },
+            "synthetic_records": {
+              "minimum": 0,
+              "title": "Synthetic Records",
+              "type": "integer"
+            },
+            "transit_live_available": {
+              "title": "Transit Live Available",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "evaluated_at_utc",
+            "acquisition_receipt_fingerprint",
+            "parser_report_fingerprint",
+            "scene_fingerprint",
+            "scene_file_sha256",
+            "records_accepted",
+            "live_vehicle",
+            "stale",
+            "synthetic_records",
+            "bee_network_franchised",
+            "non_franchised_or_unknown",
+            "membership_out_of_scope",
+            "membership_missing_identifier",
+            "membership_ambiguous_identifier",
+            "bee_network_policy_fingerprint",
+            "bee_network_membership_report_fingerprint",
+            "layer_count",
+            "transit_live_available"
+          ],
+          "title": "BodsLiveRefreshSummary",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Private aggregate-only state for controlled live refreshes.",
+      "properties": {
+        "aggregate_history_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregate History Only",
+          "type": "boolean"
+        },
+        "attempts_total": {
+          "minimum": 0,
+          "title": "Attempts Total",
+          "type": "integer"
+        },
+        "automatic_source_polling_performed": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Source Polling Performed",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "failures_total": {
+          "minimum": 0,
+          "title": "Failures Total",
+          "type": "integer"
+        },
+        "history": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BodsLiveRefreshSummary"
+          },
+          "title": "History",
+          "type": "array"
+        },
+        "history_entry_count": {
+          "maximum": 240,
+          "minimum": 0,
+          "title": "History Entry Count",
+          "type": "integer"
+        },
+        "last_attempt_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Attempt At Utc"
+        },
+        "last_attempt_status": {
+          "default": "never",
+          "enum": [
+            "never",
+            "in_progress",
+            "succeeded",
+            "failed"
+          ],
+          "title": "Last Attempt Status",
+          "type": "string"
+        },
+        "last_failure_code": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z0-9_]{1,96}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Failure Code"
+        },
+        "last_request_scope_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Request Scope Fingerprint"
+        },
+        "latest_success": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BodsLiveRefreshSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "method_version": {
+          "const": "manchester-bods-live-control-1.0",
+          "default": "manchester-bods-live-control-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/BodsLiveControlPolicy",
+          "default": {
+            "aggregate_history_only": true,
+            "automatic_source_polling_available": false,
+            "capability_id": "MAN-05",
+            "history_max_age_hours": 24,
+            "history_max_entries": 240,
+            "method_version": "manchester-bods-live-control-1.0",
+            "minimum_interval_seconds": 60,
+            "operator_triggered_only": true,
+            "policy_version": "bods-live-control-v1",
+            "public_export_available": false,
+            "raw_vehicle_identifiers_persisted": false,
+            "schema_version": "1.0",
+            "single_refresh_at_a_time": true
+          }
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_vehicle_identifiers_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Raw Vehicle Identifiers Persisted",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "successes_total": {
+          "minimum": 0,
+          "title": "Successes Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "attempts_total",
+        "successes_total",
+        "failures_total",
+        "history_entry_count"
+      ],
+      "title": "BodsLiveControlState",
+      "type": "object"
+    },
     "BodsLiveRefreshSummary": {
       "additionalProperties": false,
       "description": "Small secret-free UI summary for one published live-vehicle scene.",
@@ -2802,6 +4041,39 @@
           "pattern": "^[0-9a-f]{64}$",
           "title": "Acquisition Receipt Fingerprint",
           "type": "string"
+        },
+        "bee_network_franchised": {
+          "minimum": 0,
+          "title": "Bee Network Franchised",
+          "type": "integer"
+        },
+        "bee_network_membership_available": {
+          "const": true,
+          "default": true,
+          "title": "Bee Network Membership Available",
+          "type": "boolean"
+        },
+        "bee_network_membership_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Bee Network Membership Report Fingerprint",
+          "type": "string"
+        },
+        "bee_network_policy_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Bee Network Policy Fingerprint",
+          "type": "string"
+        },
+        "bee_network_policy_version": {
+          "const": "bee-network-operator-allowlist-v1-20260723",
+          "default": "bee-network-operator-allowlist-v1-20260723",
+          "title": "Bee Network Policy Version",
+          "type": "string"
+        },
+        "candidate_operator_still_pending": {
+          "const": true,
+          "default": true,
+          "title": "Candidate Operator Still Pending",
+          "type": "boolean"
         },
         "capability_id": {
           "const": "MAN-05",
@@ -2815,7 +4087,7 @@
           "type": "string"
         },
         "layer_count": {
-          "maximum": 4,
+          "maximum": 8,
           "minimum": 1,
           "title": "Layer Count",
           "type": "integer"
@@ -2831,11 +4103,31 @@
           "title": "Map Capability Id",
           "type": "string"
         },
+        "membership_ambiguous_identifier": {
+          "minimum": 0,
+          "title": "Membership Ambiguous Identifier",
+          "type": "integer"
+        },
+        "membership_missing_identifier": {
+          "minimum": 0,
+          "title": "Membership Missing Identifier",
+          "type": "integer"
+        },
+        "membership_out_of_scope": {
+          "minimum": 0,
+          "title": "Membership Out Of Scope",
+          "type": "integer"
+        },
         "method_version": {
           "const": "manchester-bods-live-scene-1.0",
           "default": "manchester-bods-live-scene-1.0",
           "title": "Method Version",
           "type": "string"
+        },
+        "non_franchised_or_unknown": {
+          "minimum": 0,
+          "title": "Non Franchised Or Unknown",
+          "type": "integer"
         },
         "parser_report_fingerprint": {
           "pattern": "^[0-9a-f]{64}$",
@@ -2911,6 +4203,13 @@
         "live_vehicle",
         "stale",
         "synthetic_records",
+        "bee_network_franchised",
+        "non_franchised_or_unknown",
+        "membership_out_of_scope",
+        "membership_missing_identifier",
+        "membership_ambiguous_identifier",
+        "bee_network_policy_fingerprint",
+        "bee_network_membership_report_fingerprint",
         "layer_count",
         "transit_live_available"
       ],
@@ -3945,6 +5244,858 @@
         "request"
       ],
       "title": "BodsReplayResult",
+      "type": "object"
+    },
+    "BodsRetentionPlan": {
+      "$defs": {
+        "BodsRetentionPolicy": {
+          "additionalProperties": false,
+          "description": "Precautionary local bounds; not a legal retention approval.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "delete_accepted_and_quarantine_together": {
+              "const": true,
+              "default": true,
+              "title": "Delete Accepted And Quarantine Together",
+              "type": "boolean"
+            },
+            "explicit_operator_confirmation_required": {
+              "const": true,
+              "default": true,
+              "title": "Explicit Operator Confirmation Required",
+              "type": "boolean"
+            },
+            "legal_retention_basis_approved": {
+              "const": false,
+              "default": false,
+              "title": "Legal Retention Basis Approved",
+              "type": "boolean"
+            },
+            "max_snapshot_age_hours": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Max Snapshot Age Hours",
+              "type": "integer"
+            },
+            "max_snapshot_count": {
+              "default": 240,
+              "maximum": 1440,
+              "minimum": 1,
+              "title": "Max Snapshot Count",
+              "type": "integer"
+            },
+            "method_version": {
+              "const": "manchester-bods-retention-1.0",
+              "default": "manchester-bods-retention-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "minimum_newest_snapshots_to_keep": {
+              "default": 1,
+              "maximum": 24,
+              "minimum": 1,
+              "title": "Minimum Newest Snapshots To Keep",
+              "type": "integer"
+            },
+            "policy_version": {
+              "const": "bods-private-retention-v1",
+              "default": "bods-private-retention-v1",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "protect_active_live_scene": {
+              "const": true,
+              "default": true,
+              "title": "Protect Active Live Scene",
+              "type": "boolean"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "publication_class": {
+              "const": "private",
+              "default": "private",
+              "title": "Publication Class",
+              "type": "string"
+            },
+            "raw_vehicle_identifiers_may_be_present": {
+              "const": true,
+              "default": true,
+              "title": "Raw Vehicle Identifiers May Be Present",
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "secure_erasure_guaranteed": {
+              "const": false,
+              "default": false,
+              "title": "Secure Erasure Guaranteed",
+              "type": "boolean"
+            }
+          },
+          "title": "BodsRetentionPolicy",
+          "type": "object"
+        },
+        "BodsRetentionSnapshotDecision": {
+          "additionalProperties": false,
+          "description": "One verified private snapshot family and its proposed disposition.",
+          "properties": {
+            "accepted_present": {
+              "title": "Accepted Present",
+              "type": "boolean"
+            },
+            "disposition": {
+              "enum": [
+                "keep",
+                "delete"
+              ],
+              "title": "Disposition",
+              "type": "string"
+            },
+            "private_bytes": {
+              "minimum": 1,
+              "title": "Private Bytes",
+              "type": "integer"
+            },
+            "quarantine_present": {
+              "const": true,
+              "default": true,
+              "title": "Quarantine Present",
+              "type": "boolean"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "reasons": {
+              "items": {
+                "enum": [
+                  "within_bounds",
+                  "age_limit_exceeded",
+                  "count_limit_exceeded",
+                  "newest_minimum",
+                  "active_live_scene"
+                ],
+                "type": "string"
+              },
+              "title": "Reasons",
+              "type": "array"
+            },
+            "retrieval_started_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Started At Utc",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^bods_siri_vm-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "retrieval_started_at_utc",
+            "raw_fingerprint",
+            "accepted_present",
+            "private_bytes",
+            "disposition",
+            "reasons"
+          ],
+          "title": "BodsRetentionSnapshotDecision",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Deterministic preview; no deletion occurs while creating this model.",
+      "properties": {
+        "active_live_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Active Live Snapshot Ids",
+          "type": "array"
+        },
+        "automatic_deletion_available": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Deletion Available",
+          "type": "boolean"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "count_limit_satisfied_after_apply": {
+          "title": "Count Limit Satisfied After Apply",
+          "type": "boolean"
+        },
+        "decisions": {
+          "items": {
+            "$ref": "#/$defs/BodsRetentionSnapshotDecision"
+          },
+          "title": "Decisions",
+          "type": "array"
+        },
+        "deletion_candidate_bytes": {
+          "minimum": 0,
+          "title": "Deletion Candidate Bytes",
+          "type": "integer"
+        },
+        "deletion_candidate_count": {
+          "minimum": 0,
+          "title": "Deletion Candidate Count",
+          "type": "integer"
+        },
+        "destructive_action_performed": {
+          "const": false,
+          "default": false,
+          "title": "Destructive Action Performed",
+          "type": "boolean"
+        },
+        "evaluated_at_utc": {
+          "format": "date-time",
+          "title": "Evaluated At Utc",
+          "type": "string"
+        },
+        "legal_retention_basis_approved": {
+          "const": false,
+          "default": false,
+          "title": "Legal Retention Basis Approved",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-bods-retention-1.0",
+          "default": "manchester-bods-retention-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "#/$defs/BodsRetentionPolicy"
+        },
+        "private_bytes_total": {
+          "minimum": 0,
+          "title": "Private Bytes Total",
+          "type": "integer"
+        },
+        "retained_family_count": {
+          "minimum": 0,
+          "title": "Retained Family Count",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "secure_erasure_guaranteed": {
+          "const": false,
+          "default": false,
+          "title": "Secure Erasure Guaranteed",
+          "type": "boolean"
+        },
+        "snapshot_family_count": {
+          "minimum": 0,
+          "title": "Snapshot Family Count",
+          "type": "integer"
+        },
+        "source_id": {
+          "const": "bods_siri_vm",
+          "default": "bods_siri_vm",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evaluated_at_utc",
+        "policy",
+        "active_live_snapshot_ids",
+        "decisions",
+        "snapshot_family_count",
+        "retained_family_count",
+        "deletion_candidate_count",
+        "private_bytes_total",
+        "deletion_candidate_bytes",
+        "count_limit_satisfied_after_apply"
+      ],
+      "title": "BodsRetentionPlan",
+      "type": "object"
+    },
+    "BodsRetentionPolicy": {
+      "additionalProperties": false,
+      "description": "Precautionary local bounds; not a legal retention approval.",
+      "properties": {
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "delete_accepted_and_quarantine_together": {
+          "const": true,
+          "default": true,
+          "title": "Delete Accepted And Quarantine Together",
+          "type": "boolean"
+        },
+        "explicit_operator_confirmation_required": {
+          "const": true,
+          "default": true,
+          "title": "Explicit Operator Confirmation Required",
+          "type": "boolean"
+        },
+        "legal_retention_basis_approved": {
+          "const": false,
+          "default": false,
+          "title": "Legal Retention Basis Approved",
+          "type": "boolean"
+        },
+        "max_snapshot_age_hours": {
+          "default": 24,
+          "maximum": 168,
+          "minimum": 1,
+          "title": "Max Snapshot Age Hours",
+          "type": "integer"
+        },
+        "max_snapshot_count": {
+          "default": 240,
+          "maximum": 1440,
+          "minimum": 1,
+          "title": "Max Snapshot Count",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "manchester-bods-retention-1.0",
+          "default": "manchester-bods-retention-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "minimum_newest_snapshots_to_keep": {
+          "default": 1,
+          "maximum": 24,
+          "minimum": 1,
+          "title": "Minimum Newest Snapshots To Keep",
+          "type": "integer"
+        },
+        "policy_version": {
+          "const": "bods-private-retention-v1",
+          "default": "bods-private-retention-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "protect_active_live_scene": {
+          "const": true,
+          "default": true,
+          "title": "Protect Active Live Scene",
+          "type": "boolean"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "publication_class": {
+          "const": "private",
+          "default": "private",
+          "title": "Publication Class",
+          "type": "string"
+        },
+        "raw_vehicle_identifiers_may_be_present": {
+          "const": true,
+          "default": true,
+          "title": "Raw Vehicle Identifiers May Be Present",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "secure_erasure_guaranteed": {
+          "const": false,
+          "default": false,
+          "title": "Secure Erasure Guaranteed",
+          "type": "boolean"
+        }
+      },
+      "title": "BodsRetentionPolicy",
+      "type": "object"
+    },
+    "BodsRetentionReceipt": {
+      "$defs": {
+        "BodsRetentionPlan": {
+          "additionalProperties": false,
+          "description": "Deterministic preview; no deletion occurs while creating this model.",
+          "properties": {
+            "active_live_snapshot_ids": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Active Live Snapshot Ids",
+              "type": "array"
+            },
+            "automatic_deletion_available": {
+              "const": false,
+              "default": false,
+              "title": "Automatic Deletion Available",
+              "type": "boolean"
+            },
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "count_limit_satisfied_after_apply": {
+              "title": "Count Limit Satisfied After Apply",
+              "type": "boolean"
+            },
+            "decisions": {
+              "items": {
+                "$ref": "#/$defs/BodsRetentionSnapshotDecision"
+              },
+              "title": "Decisions",
+              "type": "array"
+            },
+            "deletion_candidate_bytes": {
+              "minimum": 0,
+              "title": "Deletion Candidate Bytes",
+              "type": "integer"
+            },
+            "deletion_candidate_count": {
+              "minimum": 0,
+              "title": "Deletion Candidate Count",
+              "type": "integer"
+            },
+            "destructive_action_performed": {
+              "const": false,
+              "default": false,
+              "title": "Destructive Action Performed",
+              "type": "boolean"
+            },
+            "evaluated_at_utc": {
+              "format": "date-time",
+              "title": "Evaluated At Utc",
+              "type": "string"
+            },
+            "legal_retention_basis_approved": {
+              "const": false,
+              "default": false,
+              "title": "Legal Retention Basis Approved",
+              "type": "boolean"
+            },
+            "method_version": {
+              "const": "manchester-bods-retention-1.0",
+              "default": "manchester-bods-retention-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "policy": {
+              "$ref": "#/$defs/BodsRetentionPolicy"
+            },
+            "private_bytes_total": {
+              "minimum": 0,
+              "title": "Private Bytes Total",
+              "type": "integer"
+            },
+            "retained_family_count": {
+              "minimum": 0,
+              "title": "Retained Family Count",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "secure_erasure_guaranteed": {
+              "const": false,
+              "default": false,
+              "title": "Secure Erasure Guaranteed",
+              "type": "boolean"
+            },
+            "snapshot_family_count": {
+              "minimum": 0,
+              "title": "Snapshot Family Count",
+              "type": "integer"
+            },
+            "source_id": {
+              "const": "bods_siri_vm",
+              "default": "bods_siri_vm",
+              "title": "Source Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "evaluated_at_utc",
+            "policy",
+            "active_live_snapshot_ids",
+            "decisions",
+            "snapshot_family_count",
+            "retained_family_count",
+            "deletion_candidate_count",
+            "private_bytes_total",
+            "deletion_candidate_bytes",
+            "count_limit_satisfied_after_apply"
+          ],
+          "title": "BodsRetentionPlan",
+          "type": "object"
+        },
+        "BodsRetentionPolicy": {
+          "additionalProperties": false,
+          "description": "Precautionary local bounds; not a legal retention approval.",
+          "properties": {
+            "capability_id": {
+              "const": "MAN-05",
+              "default": "MAN-05",
+              "title": "Capability Id",
+              "type": "string"
+            },
+            "delete_accepted_and_quarantine_together": {
+              "const": true,
+              "default": true,
+              "title": "Delete Accepted And Quarantine Together",
+              "type": "boolean"
+            },
+            "explicit_operator_confirmation_required": {
+              "const": true,
+              "default": true,
+              "title": "Explicit Operator Confirmation Required",
+              "type": "boolean"
+            },
+            "legal_retention_basis_approved": {
+              "const": false,
+              "default": false,
+              "title": "Legal Retention Basis Approved",
+              "type": "boolean"
+            },
+            "max_snapshot_age_hours": {
+              "default": 24,
+              "maximum": 168,
+              "minimum": 1,
+              "title": "Max Snapshot Age Hours",
+              "type": "integer"
+            },
+            "max_snapshot_count": {
+              "default": 240,
+              "maximum": 1440,
+              "minimum": 1,
+              "title": "Max Snapshot Count",
+              "type": "integer"
+            },
+            "method_version": {
+              "const": "manchester-bods-retention-1.0",
+              "default": "manchester-bods-retention-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "minimum_newest_snapshots_to_keep": {
+              "default": 1,
+              "maximum": 24,
+              "minimum": 1,
+              "title": "Minimum Newest Snapshots To Keep",
+              "type": "integer"
+            },
+            "policy_version": {
+              "const": "bods-private-retention-v1",
+              "default": "bods-private-retention-v1",
+              "title": "Policy Version",
+              "type": "string"
+            },
+            "protect_active_live_scene": {
+              "const": true,
+              "default": true,
+              "title": "Protect Active Live Scene",
+              "type": "boolean"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "publication_class": {
+              "const": "private",
+              "default": "private",
+              "title": "Publication Class",
+              "type": "string"
+            },
+            "raw_vehicle_identifiers_may_be_present": {
+              "const": true,
+              "default": true,
+              "title": "Raw Vehicle Identifiers May Be Present",
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "secure_erasure_guaranteed": {
+              "const": false,
+              "default": false,
+              "title": "Secure Erasure Guaranteed",
+              "type": "boolean"
+            }
+          },
+          "title": "BodsRetentionPolicy",
+          "type": "object"
+        },
+        "BodsRetentionSnapshotDecision": {
+          "additionalProperties": false,
+          "description": "One verified private snapshot family and its proposed disposition.",
+          "properties": {
+            "accepted_present": {
+              "title": "Accepted Present",
+              "type": "boolean"
+            },
+            "disposition": {
+              "enum": [
+                "keep",
+                "delete"
+              ],
+              "title": "Disposition",
+              "type": "string"
+            },
+            "private_bytes": {
+              "minimum": 1,
+              "title": "Private Bytes",
+              "type": "integer"
+            },
+            "quarantine_present": {
+              "const": true,
+              "default": true,
+              "title": "Quarantine Present",
+              "type": "boolean"
+            },
+            "raw_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Fingerprint",
+              "type": "string"
+            },
+            "reasons": {
+              "items": {
+                "enum": [
+                  "within_bounds",
+                  "age_limit_exceeded",
+                  "count_limit_exceeded",
+                  "newest_minimum",
+                  "active_live_scene"
+                ],
+                "type": "string"
+              },
+              "title": "Reasons",
+              "type": "array"
+            },
+            "retrieval_started_at_utc": {
+              "format": "date-time",
+              "title": "Retrieval Started At Utc",
+              "type": "string"
+            },
+            "snapshot_id": {
+              "pattern": "^bods_siri_vm-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "retrieval_started_at_utc",
+            "raw_fingerprint",
+            "accepted_present",
+            "private_bytes",
+            "disposition",
+            "reasons"
+          ],
+          "title": "BodsRetentionSnapshotDecision",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "In-memory audit receipt for one explicitly applied deletion plan.",
+      "properties": {
+        "accepted_directories_deleted": {
+          "minimum": 0,
+          "title": "Accepted Directories Deleted",
+          "type": "integer"
+        },
+        "capability_id": {
+          "const": "MAN-05",
+          "default": "MAN-05",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "completed_at_utc": {
+          "format": "date-time",
+          "title": "Completed At Utc",
+          "type": "string"
+        },
+        "deleted_family_count": {
+          "minimum": 0,
+          "title": "Deleted Family Count",
+          "type": "integer"
+        },
+        "deleted_private_bytes": {
+          "minimum": 0,
+          "title": "Deleted Private Bytes",
+          "type": "integer"
+        },
+        "deleted_snapshot_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Deleted Snapshot Ids",
+          "type": "array"
+        },
+        "explicit_operator_confirmation_received": {
+          "const": true,
+          "default": true,
+          "title": "Explicit Operator Confirmation Received",
+          "type": "boolean"
+        },
+        "filesystem_deletion_completed": {
+          "const": true,
+          "default": true,
+          "title": "Filesystem Deletion Completed",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "manchester-bods-retention-1.0",
+          "default": "manchester-bods-retention-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "plan": {
+          "$ref": "#/$defs/BodsRetentionPlan"
+        },
+        "plan_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Fingerprint",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "quarantine_directories_deleted": {
+          "minimum": 0,
+          "title": "Quarantine Directories Deleted",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "secure_erasure_guaranteed": {
+          "const": false,
+          "default": false,
+          "title": "Secure Erasure Guaranteed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "plan",
+        "plan_fingerprint",
+        "completed_at_utc",
+        "deleted_snapshot_ids",
+        "deleted_family_count",
+        "deleted_private_bytes",
+        "accepted_directories_deleted",
+        "quarantine_directories_deleted"
+      ],
+      "title": "BodsRetentionReceipt",
+      "type": "object"
+    },
+    "BodsRetentionSnapshotDecision": {
+      "additionalProperties": false,
+      "description": "One verified private snapshot family and its proposed disposition.",
+      "properties": {
+        "accepted_present": {
+          "title": "Accepted Present",
+          "type": "boolean"
+        },
+        "disposition": {
+          "enum": [
+            "keep",
+            "delete"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "private_bytes": {
+          "minimum": 1,
+          "title": "Private Bytes",
+          "type": "integer"
+        },
+        "quarantine_present": {
+          "const": true,
+          "default": true,
+          "title": "Quarantine Present",
+          "type": "boolean"
+        },
+        "raw_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Raw Fingerprint",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "enum": [
+              "within_bounds",
+              "age_limit_exceeded",
+              "count_limit_exceeded",
+              "newest_minimum",
+              "active_live_scene"
+            ],
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "retrieval_started_at_utc": {
+          "format": "date-time",
+          "title": "Retrieval Started At Utc",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^bods_siri_vm-\\d{8}T\\d{6}Z-[0-9a-f]{12}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "retrieval_started_at_utc",
+        "raw_fingerprint",
+        "accepted_present",
+        "private_bytes",
+        "disposition",
+        "reasons"
+      ],
+      "title": "BodsRetentionSnapshotDecision",
       "type": "object"
     },
     "BooleanPredicateDefinition": {

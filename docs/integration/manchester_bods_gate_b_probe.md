@@ -50,10 +50,15 @@ proof that every publisher conforms to the profile.
 
 The probe proves the fixed authenticated transport, secret redaction, immutable raw preservation,
 bounded gzip decoding, hardened XML parsing, freshness classification, privacy-safe spatial/map
-projection, and atomic local scene publication against one real response. It does not close:
+projection, and atomic local scene publication against one real response. A later aggregate-only
+[Bee Network scope probe](manchester_bee_network_scope.md) uses this exact accepted snapshot to
+verify five operator references without exposing private rows. It does not close:
 
-- `GA-BEE-1` (accepted Bee Network membership scope);
-- `GA-BODS-4` and design §18.2 (identifier retention/display/export policy);
+- pending `BNVB`, complete Bee Network service/fleet coverage, or `GA-BEE-2`–`GA-BEE-4`;
+- `GA-BODS-4` and the legal/governance part of design §18.2 (identifier persistence,
+  longitudinal use, backup/secure-erasure, and publication approval). A separate precautionary
+  local control now previews 24-hour/240-family cleanup and requires exact confirmation, but it
+  does not resolve those external terms;
 - `GA-BODS-3` and `GA-BODS-6` (general consumer limits and registration terms); or
 - complete Gate-B, browser/accessibility, outage, longitudinal-retention, and release acceptance.
 

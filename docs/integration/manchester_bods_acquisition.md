@@ -120,9 +120,11 @@ freshness-policy version after the fact fails validation.
 - `retention_policy="unapproved"` and `public_export_available=False` are literals: the design
   §18.2 retention/display/export decision has not been made, and `GA-BODS-4` (multi-day
   `VehicleRef` persistence) remains open.
-- `bee_network_membership_available=False` is a literal while `GA-BEE-1` is open; the six BN\*
-  candidate NOCs are **not** present anywhere in this module (tested against the source text),
-  and neither display names nor geography ever decide membership (ADR-057).
+- `bee_network_membership_available=False` remains a literal on the immutable acquisition/parser
+  receipt. Membership is an additive downstream projection through the separately versioned
+  [Bee Network identifier policy](manchester_bee_network_scope.md); five live-observed operator
+  references are active there and `BNVB` remains pending. BN\* values remain absent from this
+  acquisition module, and neither display names nor geography ever decide membership (ADR-057).
 - Bus/transit-only semantics are structural: `transit_vehicle_only=True`,
   `road_traffic_volume_available=False`, and no road-count, private-vehicle-flow, congestion, or
   complete-fleet field exists on any model.
@@ -175,13 +177,17 @@ passing.
 
 ## Residual blockers
 
-- `GA-BEE-1` (live-feed NOC verification), `GA-BODS-4` (VehicleRef persistence → retention
-  decision), `GA-BODS-3` (consumer rate limits), `GA-BODS-6` (registration terms), and the
-  design §18.2 retention/display/export contract all remain open; Bee Network membership and
-  public export stay unavailable here until they close.
+- The scoped `GA-BEE-1` live-feed check now verifies five policy-v1 operator references in the
+  downstream classifier; `BNVB` remains pending. `GA-BODS-4` (VehicleRef persistence → retention
+  decision), `GA-BODS-3` (consumer rate limits), `GA-BODS-6` (registration terms),
+  `GA-BEE-2`–`GA-BEE-4`, and the legal/governance part of design §18.2 remain open. The
+  precautionary local retention preview/apply control limits accumulation without claiming to
+  settle those terms;
+  public export stays unavailable.
 - A controlled real-source probe on 23 July 2026 passed the fetch, quarantine, gzip decoding,
   parser, promotion, privacy-safe projection, and local-scene publication slice. Its exact safe
   evidence is recorded in [the BODS Gate-B probe](manchester_bods_gate_b_probe.md). This does not
-  close the retention, membership, terms, or complete Gate-B acceptance blockers.
+  close the retention, terms, reference-licence, pending-operator, or complete Gate-B acceptance
+  blockers.
 - `MAN-01` and `MAN-05` remain `planned`; lead reconciliation (exports, generated schemas, docs
   index, capability truth) still gates any claim.

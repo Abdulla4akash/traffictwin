@@ -1611,6 +1611,30 @@ permission and science limits. The canonical `TrafficObservationRecord` remains 
 source-specific records carry absolute observation time and `ManchesterTimeBasis` deterministically
 projects them onto `timestamp_s` from an explicit UTC analysis-window anchor.
 
+Bee Network membership is a separate deterministic projection after the immutable BODS parser.
+`bee_network.py` binds a versioned exact-`OperatorRef` policy to aggregate evidence from one
+accepted private snapshot, produces one outcome per parser-admitted position, and retains
+non-matches, pending identifiers, and parser exclusions. It never rewrites the source observation,
+uses display names or geography as membership evidence, exposes raw vehicle identifiers, or enables
+public export. The BODS live-scene service consumes that report and creates separate verified and
+other/unknown layers while independently preserving each freshness state.
+
+Private BODS raw retention is a separate boundary after immutable publication. A read-only plan
+verifies complete accepted/quarantine families, protects the newest and any live-scene-referenced
+snapshot, and proposes age/count-bounded cleanup. Applying a plan requires exact operator
+confirmation and a byte-identical re-preview; live acquisition and ordinary UI reruns never delete
+evidence. The engineering default is precautionary and records that legal approval and secure
+erasure are unavailable rather than inferring either.
+
+Operator-triggered BODS refresh coordination is also separate from acquisition. A private
+canonical state enforces a 60-second minimum interval and a one-at-a-time lock, records typed
+attempt outcomes, and retains only 24 hours / 240 entries of already-computed aggregate summaries.
+The UI may chart that local state, but neither page reruns nor the coordinator create a daemon,
+timer, remote scheduler, or hidden API poll.
+The display projection separately re-runs the deterministic MAN-07 BODS freshness rule at an
+explicit current UTC instant. It rebuilds only the in-memory MAN-08 scene, changing expired
+source-time `live_vehicle` layers to `stale` while the accepted scene artifact stays immutable.
+
 Every geographic source and generated layer has a versioned spatial-admission record containing
 its source CRS, target CRS, transformation, bounds, coordinate meaning, uncertainty, and admission
 status. Unknown or source-local coordinates may support non-geographic replay but cannot appear on

@@ -1,0 +1,101 @@
+{
+  "schema_version": "traffictwin.manchester.bods-bee-network-probe.v1",
+  "design_version": "0.7",
+  "capability_id": "MAN-05",
+  "outcome": "accepted_scoped_operator_verification",
+  "capability_status_after_probe": "planned",
+  "execution_mode": "offline_replay_of_accepted_private_snapshot",
+  "network_access_performed": false,
+  "source_snapshot_id": "bods_siri_vm-20260723T223908Z-33e07061a500",
+  "source_raw_fingerprint": "33e07061a500f19c1be5d1cd24f9094b12f0734b6b8edf74f0650c5a2cfed4f7",
+  "source_wire_member_sha256": "adaf5bd20a179f218d4dff9c52a60d9c120c1f983d13512085b385d80a231367",
+  "source_parser_payload_sha256": "975957c76855502c52a656688e2952e745f90f2c725e2ce2c1c6985eb2cf3528",
+  "source_parser_report_fingerprint": "9111421dec9e0c05662abf142d3ae0862a059e005387b30b1cc2973ff225f25c",
+  "retrieval_completed_at_utc": "2026-07-23T22:39:08.884920Z",
+  "scope": {
+    "kind": "operator_declared_bounding_box",
+    "bounding_box_wgs84": [
+      "-2.7304178",
+      "53.3273147",
+      "-1.9096224",
+      "53.6857188"
+    ],
+    "geography_establishes_membership": false
+  },
+  "source_counts": {
+    "records_accepted": 1565,
+    "live_vehicle": 304,
+    "stale": 1261,
+    "distinct_operator_refs": 27
+  },
+  "operator_ref_counts": [
+    ["AMSY", 27],
+    ["ANWE", 8],
+    ["BEVC", 3],
+    ["BNDB", 92],
+    ["BNFM", 32],
+    ["BNGN", 340],
+    ["BNML", 422],
+    ["BNSM", 483],
+    ["BPTR", 3],
+    ["DAGC", 2],
+    ["FHUD", 1],
+    ["GTRI", 1],
+    ["HATT", 4],
+    ["HIPK", 8],
+    ["HOWT", 2],
+    ["HUYT", 6],
+    ["LNUD", 4],
+    ["MBTO", 1],
+    ["MDBC", 1],
+    ["NATX", 12],
+    ["PBLT", 2],
+    ["RSTY", 4],
+    ["SCCU", 23],
+    ["SCMY", 2],
+    ["TLCT", 1],
+    ["VISB", 4],
+    ["WBTR", 77]
+  ],
+  "policy": {
+    "policy_version": "bee-network-operator-allowlist-v1-20260723",
+    "policy_fingerprint": "36e09fc7ff3015391d8cededbf0efd16244a8880a797b187c9fd558794d40396",
+    "identifier_field": "OperatorRef",
+    "verified_operator_refs": ["BNDB", "BNFM", "BNGN", "BNML", "BNSM"],
+    "pending_operator_refs": ["BNVB"],
+    "bee_network_franchised": 1369,
+    "non_franchised_or_unknown": 196,
+    "display_name_matching_used": false,
+    "geography_matching_used": false,
+    "local_lookup_only": true,
+    "public_export_available": false
+  },
+  "privacy": {
+    "raw_vehicle_identifiers_in_record": false,
+    "line_level_inventory_in_record": false,
+    "coordinates_in_record": false,
+    "response_body_in_record": false,
+    "credential_in_record": false
+  },
+  "what_this_proves": [
+    "Five Gate-A candidate BN operator references were populated in one accepted live Greater Manchester BODS response.",
+    "Exact OperatorRef matching can classify every parser-admitted position without display-name or geographic inference.",
+    "Matched and non-matched positions form a complete partition of the 1565 accepted positions."
+  ],
+  "what_this_does_not_prove": [
+    "BNVB was not observed and remains pending rather than inferred.",
+    "The verified five-code set is not a claim of complete Bee Network fleet or service coverage.",
+    "Non-matching operators are not proven non-franchised; they remain non_franchised_or_unknown.",
+    "This aggregate evidence does not resolve NOC reference-table licensing, TfGM schedule-join licensing, BODS retention, or public export.",
+    "Bus positions are not general road-traffic volume, speed, or congestion evidence."
+  ],
+  "residual_blockers": [
+    "GA-BEE-2",
+    "GA-BEE-3",
+    "GA-BEE-4",
+    "GA-BODS-3",
+    "GA-BODS-4",
+    "GA-BODS-6",
+    "design-18.2-retention"
+  ]
+}

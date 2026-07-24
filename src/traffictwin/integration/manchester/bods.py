@@ -2,7 +2,8 @@
 
 This module parses immutable raw XML snapshot bytes through the shared hardened
 XML boundary. It performs no acquisition, stores no raw VehicleRef in derived
-records, and cannot activate Bee Network membership while GA-BEE-1 is open.
+records, and never activates Bee Network membership inside source records. A
+separate evidence-bound projection owns exact identifier classification.
 """
 
 from __future__ import annotations

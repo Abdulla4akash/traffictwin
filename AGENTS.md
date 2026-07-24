@@ -64,6 +64,22 @@ As the project evolves, update:
   diff. Phase 2 page or navigation work requires a fresh disjointness check and a separate
   ownership grant.
 
+### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
+
+- The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
+  its BODS live-scene integration, generated contract wiring, exact aggregate probe evidence,
+  private snapshot retention, manual refresh coordination, aggregate live history, display-time
+  stale fallback, lead-owned Manchester Operations wording, project records, and focused tests.
+- Lead implementation files are limited to new `bee_network.py` library/tests/docs/evidence plus
+  new `bods_retention.py` and `bods_live_control.py` library/tests/docs,
+  `integration/manchester/__init__.py`, `bods_live.py`, the Manchester Operations service/page and
+  their existing tests, the reference generator/output, and lead-owned status/index records.
+  These files do not overlap Claude's Phase 1 presentation-layer grant.
+- The slice may activate only exact `OperatorRef` values observed in accepted live-feed evidence;
+  display names and geography remain prohibited membership tests. Unobserved candidates,
+  non-matches, malformed rows, and out-of-scope rows remain explicitly accounted for, and public
+  export remains unavailable.
+
 - Use `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, `REL-01`, and Gates A–F from the v0.7 design as units of
   ownership. Record the capability and files owned before editing; agents sharing one checkout
   must use disjoint file sets.

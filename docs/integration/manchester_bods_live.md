@@ -16,7 +16,9 @@ The caller supplies:
 - a BODS API key as a transient function argument.
 
 There is no hard-coded Manchester boundary and no background polling. The Streamlit page calls
-`refresh_bods_live_scene` only after the enabled **Fetch latest buses** form is submitted. Real
+the [controlled refresh service](manchester_bods_live_control.md) only after the enabled
+**Fetch latest buses** form is submitted. It imposes one-at-a-time execution and a 60-second
+minimum interval before calling `refresh_bods_live_scene`. Real
 acquisition cannot inject a mock HTTP client or clock; those seams are restricted to clearly
 labelled synthetic tests by the underlying MAN-05 boundary.
 
@@ -31,14 +33,22 @@ labelled synthetic tests by the underlying MAN-05 boundary.
    acquisition receipt's exact evaluation time and bounding box.
 5. Reconcile parser fingerprint, source identity, evidence class, scope, and every accepted/live/
    stale/synthetic count against the acquisition receipt.
-6. Convert privacy-safe observations through MAN-07 spatial admission, split them into live, stale,
-   historical, or synthetic freshness layers, and build the MAN-08 scene.
-7. Canonicalise the scene and atomically replace only
+6. Classify every parser-admitted position through the exact, versioned
+   [Bee Network identifier policy](manchester_bee_network_scope.md), retaining both verified and
+   other/unknown outcomes.
+7. Convert privacy-safe observations through MAN-07 spatial admission, split them by membership
+   outcome and live, stale, historical, or synthetic freshness state, and build the MAN-08 scene.
+8. Canonicalise the scene and atomically replace only
    `manchester/scenes/live_vehicles.json` with mode `0600` after size and path checks.
+9. Offer a separate, explicit [private snapshot retention](manchester_bods_retention.md) preview;
+   live acquisition itself never deletes evidence.
+10. Persist only a bounded, aggregate-only refresh history for local charting; ordinary UI reruns
+    read that local state and make no request.
 
-The returned `BodsLiveRefreshSummary` contains fingerprints and reconciled counts only. It declares
-`road_traffic_live_available=False` and `public_export_available=False`; it cannot represent those
-claims as available. The UI stores only this secret-free canonical summary in session state.
+The returned `BodsLiveRefreshSummary` contains fingerprints and reconciled freshness/membership
+counts only. It declares `road_traffic_live_available=False` and
+`public_export_available=False`; it cannot represent those claims as available. The UI stores only
+this secret-free canonical summary in session state.
 
 ## Failure and privacy behavior
 
@@ -51,8 +61,12 @@ claims as available. The UI stores only this secret-free canonical summary in se
   `os.replace`; failure preserves the prior scene.
 - BODS `VehicleRef` values have already been replaced with snapshot-scoped privacy-safe tokens by
   the MAN-05 parser. The API key is absent from all models and written artifacts.
-- Transit positions are never presented as general road traffic, volume, congestion, complete
-  fleet coverage, or verified Bee Network membership.
+- Raw accepted/quarantine families remain private and are covered by a 24-hour/240-family
+  precautionary preview policy. Cleanup requires a separate exact confirmation, protects the
+  active and newest snapshots, and never claims secure erasure or legal approval.
+- Transit positions are never presented as general road traffic, volume, congestion, or complete
+  fleet coverage. Only the five live-feed-observed policy-v1 `OperatorRef` values receive the Bee
+  Network classification; `BNVB` and every non-match remain pending or other/unknown.
 
 ## Focused verification
 
@@ -65,6 +79,8 @@ explicitly validated.
 
 No real BODS request is part of automated tests. A controlled operator-triggered real-source probe
 passed on 23 July 2026 and is recorded in
-[the BODS Gate-B probe](manchester_bods_gate_b_probe.md). The live vertical slice works locally,
-but `MAN-05`, `MAN-07`, and `MAN-08` remain planned until the residual privacy, retention,
-membership, terms, and complete Gate-B acceptance conditions are reconciled.
+[the BODS Gate-B probe](manchester_bods_gate_b_probe.md). The live vertical slice works locally.
+The separate aggregate membership probe verifies five policy-v1 operator references without
+publishing private rows. `MAN-05`, `MAN-07`, and `MAN-08` remain planned until the residual privacy,
+retention, terms, pending-operator, browser, and complete Gate-B acceptance conditions are
+reconciled.

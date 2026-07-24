@@ -245,15 +245,38 @@ and published the private local scene. The probe also recorded official-profile 
 inventing values: 836 missing bearings, 25 missing block references, and 1,553 framed journey
 references in place of direct `VehicleJourneyRef`. Raw gzip wire bytes remain immutable and both
 raw and decoded hashes are bound. This passes the local fetch-to-scene slice but does not settle
-retention, Bee membership, registration terms, or complete Gate-B acceptance. The package now
+the legal retention basis, complete Bee membership, registration terms, or complete Gate-B
+acceptance. The package now
 directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. Historical and latest modes
 now add explicit, bounded source forms: selected DfT raw/count-point/AADF rows; one WebTRIS
 site/day/quality set; and the pinned TfGM signal archive. Their 23 July 2026 controlled runs
 populate source-separated local scenes and catalogues, while ordinary reruns remain offline and a
 broken scene-path symlink fails closed. General live-road evidence, accepted Bee Network
-membership, an accepted boundary artifact, broad/multi-site real-source acceptance,
+complete membership coverage, an accepted boundary artifact, broad/multi-site real-source acceptance,
 minimum-version rerun of this new page, and complete browser/mobile/accessibility acceptance remain
 outstanding, so `MAN-05` and `MAN-08` remain planned.
+
+A versioned identifier-only Bee Network scope service now closes the narrow `GA-BEE-1` live-feed
+verification question for five Gate-A candidate `OperatorRef` values. Offline replay of the
+accepted private 23 July 2026 BODS snapshot found 1,565 positions across 27 operator references:
+`BNDB`, `BNFM`, `BNGN`, `BNML`, and `BNSM` accounted for 1,369 positions, while the other 196
+remain `non_franchised_or_unknown`. `BNVB` was not observed and remains pending. The classifier is
+an additive fingerprint-bound projection over the immutable BODS report; it never uses display
+names or geography, retains every non-match, reconciles parser exclusions, and cannot export
+publicly. The live scene and refresh summary now split verified Bee Network and other/unknown buses
+while independently preserving live/stale/synthetic state. `GA-BEE-2`–`GA-BEE-4`, BODS consumer
+limits/registration terms, complete coverage, and full Gate-B acceptance remain open. A separate
+private snapshot retention boundary now supplies a deterministic read-only inventory and a
+precautionary 24-hour/240-family default. It protects the active live scene and newest family,
+requires exact preview-bound operator confirmation, deletes accepted/quarantine pairs together,
+and refuses plan drift and symlinks. Cleanup is never automatic and explicitly does not claim an
+approved legal basis or secure erasure. The live form now also uses a persistent conservative
+coordinator: one request at a time, no more often than 60 seconds, with a private 24-hour/240-entry
+aggregate-only history and explicit no-background-polling contract. Its local chart preserves Bee,
+other/unknown, live, and stale counts without storing raw positions or identifiers. Local display
+also re-evaluates preserved BODS timestamps at the current UTC instant, so formerly live layers
+become stale-cached titles, filters, warnings, and badges without mutating the stored scene. Therefore
+`MAN-05` and `MAN-08` remain `planned`.
 
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.

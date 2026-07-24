@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pytest import MonkeyPatch
+
 from traffictwin.demo.workspace import initialise_workspace
 from traffictwin.ui.components.badges import STATUS_STYLE
 from traffictwin.ui.guided import DemoTrack, bounded_step, steps_for_track
@@ -163,3 +165,23 @@ def test_experiment_manager_reports_search_and_about(tmp_path: Path) -> None:
     assert about.package_version
     assert about.licence == "Licence not yet specified."
     assert about.generator_version == "1.0"
+
+
+def test_about_metadata_resolves_commit_from_linked_worktree(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    commit = "1234567890abcdef1234567890abcdef12345678"
+    common_dir = tmp_path / "repository.git"
+    git_dir = common_dir / "worktrees" / "traffic-ui"
+    (common_dir / "refs" / "heads").mkdir(parents=True)
+    git_dir.mkdir(parents=True)
+    (git_dir / "HEAD").write_text("ref: refs/heads/ui-redesign\n", encoding="utf-8")
+    (git_dir / "commondir").write_text("../..\n", encoding="utf-8")
+    (common_dir / "refs" / "heads" / "ui-redesign").write_text(f"{commit}\n", encoding="utf-8")
+
+    checkout = tmp_path / "checkout"
+    checkout.mkdir()
+    (checkout / ".git").write_text(f"gitdir: {git_dir}\n", encoding="utf-8")
+    monkeypatch.chdir(checkout)
+
+    assert about_info_for_ui().commit_hash == commit[:12]

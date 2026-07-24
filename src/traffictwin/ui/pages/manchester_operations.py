@@ -13,7 +13,19 @@ from traffictwin.integration.manchester.bods_acquisition import BodsAcquisitionE
 from traffictwin.integration.manchester.bods_live import (
     BodsLiveRefreshSummary,
     BodsLiveWorkflowError,
-    refresh_bods_live_scene,
+)
+from traffictwin.integration.manchester.bods_live_control import (
+    BodsLiveControlError,
+    bods_live_history_rows,
+    coordinated_bods_live_refresh,
+    load_bods_live_control_state,
+    project_bods_live_scene_for_display,
+)
+from traffictwin.integration.manchester.bods_retention import (
+    BodsRetentionError,
+    BodsRetentionPlan,
+    apply_bods_retention,
+    preview_bods_retention,
 )
 from traffictwin.integration.manchester.dft import DirectionCode
 from traffictwin.integration.manchester.dft_acquisition import DftAcquisitionError
@@ -223,6 +235,26 @@ def render(config: UiConfig) -> None:
         return
 
     scene = loaded.scene
+    if mode == "live_vehicles":
+        try:
+            scene = project_bods_live_scene_for_display(
+                scene,
+                evaluated_at_utc=datetime.now(UTC),
+            )
+        except (BodsLiveControlError, ValueError):
+            st.error(
+                "The cached live scene could not be re-evaluated safely. Its stored evidence was "
+                "not changed.",
+                icon=":material/error:",
+            )
+            _render_disabled_actions("The live scene freshness projection was rejected.")
+            return
+        if any(layer.freshness_truth_state == "stale" for layer in scene.layers):
+            st.warning(
+                "This is a cached local bus scene. Its source-time freshness has expired, so all "
+                "affected positions are displayed as stale until you run another controlled fetch.",
+                icon=":material/history:",
+            )
     _render_scene_header(scene, loaded)
     available_ids = visible_layer_ids(scene)
     title_by_id = {layer.request.layer_id: layer.request.title for layer in scene.layers}
@@ -890,8 +922,9 @@ def _render_live_acquisition(workspace: str | None) -> None:
         st.markdown("**Fetch latest bus positions**")
         st.caption(
             "One click performs one bounded BODS request, preserves the private response, and "
-            "atomically replaces only the local live-vehicle scene. It is not general live road "
-            "traffic and does not verify Bee Network membership."
+            "atomically replaces only the local live-vehicle scene. Exact OperatorRef matching "
+            "separates live-feed-verified Bee Network operators from other or unknown operators; "
+            "the result is bus evidence, not general live road traffic."
         )
         bounding_box_value = st.text_input(
             "Request bounding box",
@@ -921,12 +954,18 @@ def _render_live_acquisition(workspace: str | None) -> None:
         else:
             try:
                 with st.spinner("Fetching and validating the latest BODS bus positions..."):
-                    refreshed = refresh_bods_live_scene(
+                    controlled = coordinated_bods_live_refresh(
                         cast(str, workspace),
                         bounding_box,
                         api_key=cast(str, api_key),
                     )
-            except (BodsAcquisitionError, BodsLiveWorkflowError, ManchesterSnapshotError) as exc:
+                    refreshed = controlled.refresh
+            except (
+                BodsAcquisitionError,
+                BodsLiveControlError,
+                BodsLiveWorkflowError,
+                ManchesterSnapshotError,
+            ) as exc:
                 code = getattr(exc, "code", "LIVE_REFRESH_FAILED")
                 st.error(
                     f"The live-bus refresh failed safely ({code}). Existing local evidence was "
@@ -946,7 +985,9 @@ def _render_live_acquisition(workspace: str | None) -> None:
                 st.success(
                     f"Accepted {refreshed.summary.records_accepted} transit positions: "
                     f"{refreshed.summary.live_vehicle} live and "
-                    f"{refreshed.summary.stale} stale.",
+                    f"{refreshed.summary.stale} stale; "
+                    f"{refreshed.summary.bee_network_franchised} matched the verified Bee "
+                    "Network operator policy.",
                     icon=":material/check_circle:",
                 )
 
@@ -958,12 +999,170 @@ def _render_live_acquisition(workspace: str | None) -> None:
             del st.session_state["manchester_bods_last_refresh"]
         else:
             with st.container(horizontal=True):
+                st.metric(
+                    "Bee Network positions",
+                    summary.bee_network_franchised,
+                    border=True,
+                )
+                st.metric(
+                    "Other or unknown operators",
+                    summary.non_franchised_or_unknown,
+                    border=True,
+                )
                 st.metric("Live buses", summary.live_vehicle, border=True)
                 st.metric("Stale bus records", summary.stale, border=True)
-                st.metric("Accepted positions", summary.records_accepted, border=True)
             st.caption(
                 f"Last controlled fetch: {summary.evaluated_at_utc.isoformat()} · snapshot: "
-                f"{summary.snapshot_id} · road-traffic live state: unavailable"
+                f"{summary.snapshot_id} · membership policy: "
+                f"{summary.bee_network_policy_version} · one candidate operator remains pending · "
+                "road-traffic live state: unavailable"
+            )
+    _render_bods_live_history(workspace)
+    _render_bods_retention(workspace)
+
+
+def _render_bods_live_history(workspace: str | None) -> None:
+    """Render bounded aggregate history from local control state; never fetch."""
+
+    if workspace is None:
+        return
+    try:
+        state = load_bods_live_control_state(workspace)
+    except (BodsLiveControlError, OSError, ValueError) as exc:
+        code = getattr(exc, "code", "LIVE_HISTORY_INVALID")
+        st.warning(
+            f"Local live-refresh history is unavailable ({code}). No source request was made.",
+            icon=":material/history_off:",
+        )
+        return
+    if not state.history:
+        st.caption(
+            "Live refresh history: no controlled fetch recorded yet · source polling: manual only"
+        )
+        return
+    with st.expander("Live bus aggregate history", expanded=False):
+        with st.container(horizontal=True):
+            st.metric("Recorded fetches", state.history_entry_count, border=True)
+            st.metric("Successful fetches", state.successes_total, border=True)
+            st.metric("Failed fetches", state.failures_total, border=True)
+            st.metric("Minimum interval", "60 s", border=True)
+        rows = bods_live_history_rows(state)
+        if len(rows) > 1:
+            st.line_chart(
+                rows,
+                x="Observed at",
+                y=[
+                    "Bee Network buses",
+                    "Other or unknown buses",
+                    "Live buses",
+                    "Stale bus records",
+                ],
+                x_label="Controlled fetch evaluation time (UTC)",
+                y_label="Transit positions",
+                width="stretch",
+                height=280,
+            )
+        else:
+            st.caption("Run another controlled fetch after 60 seconds to begin a history chart.")
+        st.caption(
+            "Aggregate counts only · 24-hour / 240-entry bound · no automatic source polling · "
+            "no raw vehicle identifiers · public export unavailable"
+        )
+
+
+def _render_bods_retention(workspace: str | None) -> None:
+    """Render preview-first private-data retention; never delete automatically."""
+
+    with st.expander("Private BODS snapshot retention", expanded=False):
+        st.caption(
+            "BODS raw snapshots may contain vehicle identifiers. The precautionary default keeps "
+            "at most 24 hours / 240 snapshot families, but cleanup is never automatic and is not "
+            "a claim of approved legal retention. The active live scene and newest snapshot are "
+            "always protected."
+        )
+        if workspace is None:
+            st.info("Configure a valid isolated v0.7 workspace to inspect private snapshots.")
+            return
+        if st.button(
+            "Preview private snapshot cleanup",
+            icon=":material/visibility:",
+            key="manchester_bods_retention_preview",
+            width="stretch",
+        ):
+            try:
+                plan = preview_bods_retention(workspace)
+            except (BodsRetentionError, OSError, ValueError) as exc:
+                code = getattr(exc, "code", "RETENTION_PREVIEW_FAILED")
+                st.error(
+                    f"Private snapshot inventory failed safely ({code}); nothing was deleted.",
+                    icon=":material/error:",
+                )
+            else:
+                st.session_state["manchester_bods_retention_plan"] = plan.canonical_json()
+
+        stored = st.session_state.get("manchester_bods_retention_plan")
+        if not isinstance(stored, str):
+            return
+        try:
+            plan = BodsRetentionPlan.model_validate_json(stored)
+        except ValueError:
+            del st.session_state["manchester_bods_retention_plan"]
+            st.warning("The stored retention preview was invalidated; create a new preview.")
+            return
+
+        with st.container(horizontal=True):
+            st.metric("Private families", plan.snapshot_family_count, border=True)
+            st.metric("Protected / retained", plan.retained_family_count, border=True)
+            st.metric("Cleanup candidates", plan.deletion_candidate_count, border=True)
+            st.metric(
+                "Candidate bytes",
+                f"{plan.deletion_candidate_bytes / (1024 * 1024):.2f} MiB",
+                border=True,
+            )
+        st.caption(
+            f"Previewed {plan.evaluated_at_utc.isoformat()} · automatic deletion: unavailable · "
+            "secure erasure: not guaranteed · public export: unavailable"
+        )
+        if plan.deletion_candidate_count == 0:
+            st.success("The verified private snapshot inventory is within the selected bounds.")
+            return
+        st.warning(
+            "Applying this plan permanently removes each candidate's accepted and quarantine "
+            "directories. Review the preview fingerprint and type the exact confirmation below."
+        )
+        st.code(plan.confirmation_text(), language=None)
+        with st.form("manchester_bods_retention_apply", border=True, enter_to_submit=False):
+            confirmation = st.text_input(
+                "Exact cleanup confirmation",
+                key="manchester_bods_retention_confirmation",
+            )
+            submitted = st.form_submit_button(
+                "Delete previewed private snapshots",
+                icon=":material/delete_forever:",
+                width="stretch",
+            )
+        if not submitted:
+            return
+        try:
+            receipt = apply_bods_retention(
+                workspace,
+                plan,
+                confirmation=confirmation,
+            )
+        except (BodsRetentionError, OSError, ValueError) as exc:
+            code = getattr(exc, "code", "RETENTION_APPLY_FAILED")
+            st.error(
+                f"Private snapshot cleanup failed safely ({code}). Create a new preview before "
+                "trying again.",
+                icon=":material/error:",
+            )
+        else:
+            del st.session_state["manchester_bods_retention_plan"]
+            st.success(
+                f"Deleted {receipt.deleted_family_count} complete private snapshot families "
+                f"({receipt.deleted_private_bytes / (1024 * 1024):.2f} MiB). Filesystem secure "
+                "erasure is not guaranteed.",
+                icon=":material/check_circle:",
             )
 
 
