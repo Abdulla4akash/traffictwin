@@ -167,6 +167,8 @@ next section.
 | Decision on participant usability study and any ethics/supervisor approval | RQ16 and final UX research acceptance |
 
 An unknown answer blocks only its dependent capability. Other disjoint work should continue.
+Each of these decisions is prepared for approval, with options, recommendations, and required
+acceptance evidence, in the [v0.7 external decision pack](v07_external_decision_pack.md).
 
 ## 8. Functions that cannot be created honestly from current sources
 
