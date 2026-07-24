@@ -6,10 +6,10 @@ import streamlit as st
 
 from traffictwin.metrics.results import MetricStatus, MetricValue
 from traffictwin.ui.charts import bar_figure, line_figure, metric_status_counts, task_event_series
-from traffictwin.ui.components.cards import metric_card
+from traffictwin.ui.components.cards import fingerprint_summary, metric_card
 from traffictwin.ui.components.provenance import render_run_provenance
 from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
-from traffictwin.ui.tables import metric_rows
+from traffictwin.ui.tables import metric_rows, table_column_config
 
 KPI_KEYS = {
     "Tasks generated": "task.generated.count",
@@ -23,11 +23,37 @@ KPI_KEYS = {
     "Offload rate": "task.offload.rate",
 }
 
+# Display-only unit suffixes for KPI card labels; ratio metrics already render
+# as percentages, and every card keeps the exact unit in its help tooltip.
+KPI_UNIT_SUFFIXES = {
+    "Latency P50": "ms",
+    "Latency P95": "ms",
+    "Latency P99": "ms",
+}
+
+PRIMARY_KPI_TITLES = (
+    "Tasks completed",
+    "Completion rate",
+    "Latency P50",
+    "Offload rate",
+)
+
 ENERGY_KPI_KEYS = {
     "Observed-task energy": "task.energy.mean_per_observed_task_j",
     "Completed-task energy": "task.energy.per_completed_j",
     "Energy-delay product": "task.energy_delay_product.mean_j_ms",
 }
+
+ENERGY_UNIT_SUFFIXES = {
+    "Observed-task energy": "J",
+    "Completed-task energy": "J",
+    "Energy-delay product": "J·ms",
+}
+
+
+def _kpi_label(title: str) -> str:
+    suffix = KPI_UNIT_SUFFIXES.get(title) or ENERGY_UNIT_SUFFIXES.get(title)
+    return f"{title} ({suffix})" if suffix else title
 
 
 def render() -> None:
@@ -41,22 +67,32 @@ def render() -> None:
     metrics = analysis.metrics.by_key()
 
     st.subheader("KPI Summary")
-    for row_start in range(0, len(KPI_KEYS), 4):
-        cols = st.columns(4)
-        for col, (title, key) in zip(
-            cols,
-            list(KPI_KEYS.items())[row_start : row_start + 4],
-            strict=False,
-        ):
-            with col:
-                metric_card(title, metrics.get(key))
+    cols = st.columns(4)
+    for col, title in zip(cols, PRIMARY_KPI_TITLES, strict=True):
+        with col:
+            metric_card(_kpi_label(title), metrics.get(KPI_KEYS[title]))
+    secondary_titles = [title for title in KPI_KEYS if title not in PRIMARY_KPI_TITLES]
+    with st.expander(f"All task KPIs ({len(secondary_titles)} more)"):
+        for row_start in range(0, len(secondary_titles), 4):
+            cols = st.columns(4)
+            for col, title in zip(
+                cols,
+                secondary_titles[row_start : row_start + 4],
+                strict=False,
+            ):
+                with col:
+                    metric_card(_kpi_label(title), metrics.get(KPI_KEYS[title]))
 
     st.subheader("Energy Evidence")
     energy_cols = st.columns(3)
     for col, (title, key) in zip(energy_cols, ENERGY_KPI_KEYS.items(), strict=True):
         with col:
-            metric_card(title, metrics.get(key))
+            metric_card(_kpi_label(title), metrics.get(key))
     st.caption(_energy_evidence_caption(metrics))
+    full_fingerprints = _energy_contract_fingerprints(metrics)
+    if full_fingerprints:
+        with st.expander("Advanced: full energy-contract fingerprints"):
+            st.code("\n".join(sorted(full_fingerprints)), language=None)
 
     st.subheader("Task Completion By Class")
     class_metric = metrics.get("task.completion.rate_by_class")
@@ -125,19 +161,30 @@ def render() -> None:
         width="stretch",
     )
     with st.expander("Metric details"):
-        st.dataframe(metric_rows(analysis.metrics), width="stretch", hide_index=True)
+        detail_rows = metric_rows(analysis.metrics)
+        st.dataframe(
+            detail_rows,
+            width="stretch",
+            hide_index=True,
+            column_config=table_column_config(detail_rows),
+        )
 
     st.subheader("Context And Provenance")
-    render_run_provenance(analysis.validation, analysis.metrics)
+    with st.expander("Advanced: run identity and provenance"):
+        render_run_provenance(analysis.validation, analysis.metrics)
 
 
-def _energy_evidence_caption(metrics: dict[str, MetricValue]) -> str:
-    fingerprints = {
+def _energy_contract_fingerprints(metrics: dict[str, MetricValue]) -> set[str]:
+    return {
         fingerprint
         for key in ENERGY_KPI_KEYS.values()
         if (metric := metrics.get(key)) is not None
         and isinstance(fingerprint := metric.metadata.get("energy_contract_fingerprint"), str)
     }
+
+
+def _energy_evidence_caption(metrics: dict[str, MetricValue]) -> str:
+    fingerprints = _energy_contract_fingerprints(metrics)
     coverage = []
     for title, key in ENERGY_KPI_KEYS.items():
         metric = metrics.get(key)
@@ -148,7 +195,9 @@ def _energy_evidence_caption(metrics: dict[str, MetricValue]) -> str:
         if isinstance(eligible, int) and isinstance(population, int):
             coverage.append(f"{title}: {eligible}/{population}")
     if fingerprints:
-        fingerprint_text = ", ".join(sorted(fingerprints))
+        fingerprint_text = ", ".join(
+            fingerprint_summary(fingerprint) for fingerprint in sorted(fingerprints)
+        )
         coverage_text = "; ".join(coverage) or "no eligible-row counts"
         return (
             f"Contract fingerprint: {fingerprint_text}. Eligibility coverage: {coverage_text}. "
