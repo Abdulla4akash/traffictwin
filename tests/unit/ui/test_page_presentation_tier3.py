@@ -132,8 +132,11 @@ def test_evidence_readiness_groups_availability_by_state() -> None:
     assert "Evidence Availability" in subheaders
     body = text_of(app)
     info_text = "\n".join(str(item.value) for item in app.info)
-    # Availability is grouped by state (available/partial/blocked/unavailable), not a flat dict.
-    assert "evidence**" in body  # e.g. "Available evidence" / "Unavailable evidence"
+    # Availability is grouped by state: a per-state count summary plus a badge table with an
+    # explicit Group column, rather than a single flat dictionary dump.
+    assert len(app.table) >= 1
+    availability_table = str(app.table[0].value)
+    assert "Group" in availability_table and "-badge[" in availability_table
     # Diagnoses are framed as hypotheses that are NOT proven causes (the disclaimer is present),
     # and the page never asserts a confirmed/proven cause as a positive claim.
     assert "not proven root causes" in info_text.lower()

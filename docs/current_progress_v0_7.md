@@ -7,17 +7,19 @@
 Checkpoint tag `v0.7.0-alpha.5` marks commit
 `310117e` (the coexistence-check checkpoint); later verified commits continue on the branch.
 
-**Snapshot commit:** `edc9267` (`feat(ui): restructure Statistical Study presentation (Tier 2)`).
-Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the REL-01
-workspace CLI, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
+**Snapshot commit:** the head of `claude/complete-v0.7` after the Phase 2B Tier 3 presentation
+harvest (see below). Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the
+REL-01 workspace CLI, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
 temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
 pack and its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, the
 attested activation/backup/rollback workflow, the side-by-side coexistence check, the 24 July 2026
 requirement-level re-audit fixes (rollback path-traversal fix, crash-safe resumable migration,
 temporal-profile tamper-evidence hardening, CLI graceful-refusal fix, three-state comparison
 provenance badge, side-by-side hardening, requirement matrix, and human-decision preparation
-pack), and the Phase 2B Tier 2 presentation harvest over the Statistical Study, VEC Workbench,
-Temporal Metrics, and Threshold Sensitivity pages.
+pack), the Phase 2B Tier 2 presentation harvest over the Statistical Study, VEC Workbench,
+Temporal Metrics, and Threshold Sensitivity pages, and the Phase 2B Tier 3 presentation harvest
+over the Diagnostics & Evidence, Provenance Explorer, Operations View (historical replay),
+Triviality & Winner Map, Participant Evaluation, and Manifest Inference pages.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -68,9 +70,9 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,640 unit tests and 169 UI tests pass, 1,809 combined;
+- 1,647 unit tests and 169 UI tests pass, 1,816 combined;
 - repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 708 configured source and test files;
+- strict mypy passes over all 709 configured source and test files;
 - lock validation and package build pass;
 - the built wheel contains the required Manchester boundary assets; and
 - 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
@@ -115,7 +117,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
-| `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), the Tier 2 harvest (Statistical Study tabs and per-seed chart, VEC Workbench staged workflow, Temporal Metrics reconciliation, Threshold Sensitivity response panels), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
+| `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), the Tier 2 harvest (Statistical Study tabs and per-seed chart, VEC Workbench staged workflow, Temporal Metrics reconciliation, Threshold Sensitivity response panels), the Tier 3 harvest (Diagnostics & Evidence grouped availability, Provenance Explorer structured dependency views, Operations View replay/active-filter/window panels, Triviality descriptive chart, Participant Evaluation readiness checklist, Manifest Inference preview/confirm separation), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
 | `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, and a workspace setup/diagnostics guide | Package/release version alignment, cross-schema migration if schemas diverge, and final release/tag reconciliation remain |
 
 ## 6. Major work ready to build now

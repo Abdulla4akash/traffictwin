@@ -68,9 +68,22 @@ def render() -> None:
         summary = st.columns(len(seen_states) or 1)
         for column, state in zip(summary, seen_states, strict=False):
             column.metric(state.capitalize(), len(grouped[state]), border=True)
-    for state in seen_states:
-        st.markdown(f"{badge_markdown(state)} **{state.capitalize()} evidence**")
-        st.markdown("\n".join(f"- {name}" for name in sorted(grouped[state])))
+    # One badge table, ordered by state so the groups are visually contiguous.
+    state_order = {state: index for index, state in enumerate(seen_states)}
+    ordered_rows = sorted(
+        evidence_states.items(),
+        key=lambda item: (state_order.get(str(item[1]), len(seen_states)), item[0]),
+    )
+    st.table(
+        [
+            {
+                "Group": str(state).capitalize(),
+                "Evidence": category.replace("_", " ").capitalize(),
+                "State": badge_markdown(str(state)),
+            }
+            for category, state in ordered_rows
+        ]
+    )
     with st.expander("Advanced: raw evidence availability JSON"):
         st.json(evidence_states)
 

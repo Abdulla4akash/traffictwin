@@ -527,6 +527,32 @@ mypy over all 708 configured source and test files, `git diff --check`, and the 
 desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic findings). This
 is candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
 
+A lead-granted Phase 2B Tier 3 presentation harvest then restructures the six remaining
+debug-console pages — `evidence_readiness.py`, `provenance_explorer.py`, `operations.py`
+(historical replay), `triviality.py`, `participant_evaluation.py`, and `manifest_inference.py`
+(`manchester_operations.py` was explicitly out of scope). Diagnostics & Evidence groups evidence
+availability into separate available/partial/blocked/unavailable sections and keeps the
+candidate-hypothesis, alternatives, missing-evidence, and verification framing; Provenance
+Explorer replaces the metric/rule dependency dict dumps with bordered panels and badges over its
+existing staged lineage tabs, moving raw definitions/thresholds/node detail to Advanced/Evidence;
+Operations View adds an explicit not-live-monitoring caption, an active-filter badge summary, and
+a bordered current-60-second-window panel while preserving the deterministic replay clock and
+vehicle selection; Triviality & Winner Map renders R3/R5 statuses as badges, adds a descriptive
+per-cohort mean chart, and states no policy is universally best; Participant Evaluation becomes a
+readiness checklist with unavailable ethics/supervisor/recruitment states and a no-study-without-
+approval statement; and Manifest Inference separates the deterministic preview from explicit
+confirmation with a candidate-kind table and keeps ambiguous/missing fields unresolved. Across all
+six, categorical states render as badges (numeric `st.metric` only for quantities), tables use
+`column_config`, and raw JSON/fingerprints/inferred manifests move behind Advanced/Evidence; no
+hypothesis is a confirmed cause, provenance implies no causality, replay is never live, and no
+consent/ethics/participant data is fabricated. Seven Tier 3 adversarial presentation tests plus
+updated triviality assertions in the UI-demo-flow integration test cover the harvest. The
+integrated gate passes 686 Manchester-focused unit tests, 1,647 unit tests and 169 UI tests
+(1,816 combined), repository-wide Ruff formatting/checks, strict mypy over all 709 configured
+source and test files, `git diff --check`, cross-page-state and replay-selection checks, and the
+35-route desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic
+findings). This is candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
+
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
 its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains
