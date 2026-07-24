@@ -9,6 +9,7 @@ import streamlit as st
 from traffictwin.metrics.comparison import ComparisonReport
 from traffictwin.provenance.completeness import provenance_completeness_report_to_csv
 from traffictwin.provenance.differences import difference_contribution_report_to_csv
+from traffictwin.ui.components.badges import badge_markdown
 from traffictwin.ui.services import (
     BundleAnalysis,
     ServiceError,
@@ -17,7 +18,7 @@ from traffictwin.ui.services import (
     difference_contributions_for_ui,
     validate_bundle_for_ui,
 )
-from traffictwin.ui.tables import comparison_rows
+from traffictwin.ui.tables import ColumnDisplay, comparison_rows, table_column_config
 
 
 def render() -> None:
@@ -59,33 +60,52 @@ def render() -> None:
         return
 
     st.subheader("Compatibility")
-    st.json(
-        {
-            "same_experiment": report.baseline_context.get("experiment_id")
-            == report.variation_context.get("experiment_id"),
-            "same_random_seed": report.baseline_context.get("random_seed")
-            == report.variation_context.get("random_seed"),
-            "metric_version": report.baseline_context.get("metric_version"),
-            "synthetic_flags": {
-                "baseline": report.baseline_context.get("synthetic"),
-                "variation": report.variation_context.get("synthetic"),
-            },
-            "warnings": report.warnings,
-        }
+    same_experiment = report.baseline_context.get("experiment_id") == report.variation_context.get(
+        "experiment_id"
     )
+    same_seed = report.baseline_context.get("random_seed") == report.variation_context.get(
+        "random_seed"
+    )
+    baseline_synthetic = bool(report.baseline_context.get("synthetic"))
+    variation_synthetic = bool(report.variation_context.get("synthetic"))
+    with st.container(border=True):
+        st.markdown(
+            f"**Same experiment:** {'yes' if same_experiment else 'no'} · "
+            f"**Same random seed:** {'yes' if same_seed else 'no'} · "
+            f"**Metric version:** {report.baseline_context.get('metric_version')}"
+        )
+        st.markdown(
+            f"**Baseline:** "
+            f"{badge_markdown('synthetic') if baseline_synthetic else ':gray-badge[IMPORTED]'} "
+            f"**Variation:** "
+            f"{badge_markdown('synthetic') if variation_synthetic else ':gray-badge[IMPORTED]'}"
+        )
+        if report.warnings:
+            st.warning("\n".join(report.warnings))
+    with st.expander("Advanced: raw compatibility context JSON"):
+        st.json(
+            {
+                "baseline_context": report.baseline_context,
+                "variation_context": report.variation_context,
+                "warnings": report.warnings,
+            }
+        )
 
     st.subheader("Changed Scenario Parameters")
     if report.changed_seed_parameters:
-        st.table(
-            [
-                {
-                    "path": change["path"],
-                    "baseline": str(change["baseline"]),
-                    "variation": str(change["variation"]),
-                }
-                for change in report.changed_seed_parameters
-            ],
+        change_rows = [
+            {
+                "path": change["path"],
+                "baseline": str(change["baseline"]),
+                "variation": str(change["variation"]),
+            }
+            for change in report.changed_seed_parameters
+        ]
+        st.dataframe(
+            change_rows,
             hide_index=True,
+            width="stretch",
+            column_config=table_column_config(change_rows),
         )
     else:
         st.info("No seed snapshots or parameter changes available.")
@@ -100,7 +120,12 @@ def render() -> None:
         domain_rows = [row for row in rows if str(row["metric_key"]).startswith(prefix)]
         st.subheader(title)
         if domain_rows:
-            st.table(domain_rows, hide_index=True)
+            st.dataframe(
+                domain_rows,
+                hide_index=True,
+                width="stretch",
+                column_config=table_column_config(domain_rows),
+            )
         else:
             st.info(f"No {title.lower()} comparisons available.")
 
@@ -143,32 +168,42 @@ def _render_difference_provenance(
         if result.detail:
             st.caption(result.detail)
         return
-    st.write(
+    with st.container(border=True):
+        st.markdown(
+            f"{badge_markdown(result.status.value)} **Comparison basis:** {result.comparison_basis}"
+        )
+        st.markdown(
+            f"**Absolute delta:** {result.absolute_delta} · "
+            f"**Arithmetic contribution sum:** {result.arithmetic_contribution_sum} · "
+            f"**Reconciles:** {'yes' if result.reconciles_to_absolute_delta else 'no'}"
+        )
+        eligible_cols = st.columns(2)
+        eligible_cols[0].metric(
+            "Baseline eligible rows", result.baseline.included_row_count, border=True
+        )
+        eligible_cols[1].metric(
+            "Variation eligible rows", result.variation.included_row_count, border=True
+        )
+    lineage_rows = [
         {
-            "status": result.status.value,
-            "comparison_basis": result.comparison_basis,
-            "absolute_delta": result.absolute_delta,
-            "arithmetic_contribution_sum": result.arithmetic_contribution_sum,
-            "reconciles": result.reconciles_to_absolute_delta,
-            "baseline_eligible_rows": result.baseline.included_row_count,
-            "variation_eligible_rows": result.variation.included_row_count,
+            "side": row.side.value,
+            "source": f"{row.source_file}:{row.source_row}",
+            "record_id": row.record_id,
+            "included": row.included,
+            "run_contribution": row.run_metric_contribution,
+            "signed_difference_contribution": row.signed_difference_contribution,
+            "reason": row.inclusion_reason,
         }
-    )
+        for row in result.rows
+    ]
     st.dataframe(
-        [
-            {
-                "side": row.side.value,
-                "source": f"{row.source_file}:{row.source_row}",
-                "record_id": row.record_id,
-                "included": row.included,
-                "run contribution": row.run_metric_contribution,
-                "signed difference contribution": row.signed_difference_contribution,
-                "reason": row.inclusion_reason,
-            }
-            for row in result.rows
-        ],
+        lineage_rows,
         hide_index=True,
         width="stretch",
+        column_config=table_column_config(
+            lineage_rows,
+            overrides={"record_id": ColumnDisplay(key="record_id", label="Record", hidden=False)},
+        ),
     )
     st.caption(result.non_causality_statement)
     safe_key = metric_key.replace(".", "_")
@@ -206,18 +241,21 @@ def _render_comparison_completeness(
     columns[1].metric("Source-row complete", result.source_row_complete_count)
     columns[2].metric("Aggregate only", result.aggregate_only_count)
     columns[3].metric("Unavailable", result.unavailable_count)
-    st.table(
-        [
-            {
-                "metric": claim.artifact_key,
-                "status": claim.artifact_status,
-                "classification": claim.classification.value,
-                "candidate rows": claim.candidate_source_row_count,
-                "reasons": "; ".join(claim.reason_codes),
-            }
-            for claim in result.claims
-        ],
+    claim_rows = [
+        {
+            "metric_key": claim.artifact_key,
+            "status": claim.artifact_status,
+            "classification": claim.classification.value,
+            "candidate_rows": claim.candidate_source_row_count,
+            "reasons": "; ".join(claim.reason_codes),
+        }
+        for claim in result.claims
+    ]
+    st.dataframe(
+        claim_rows,
         hide_index=True,
+        width="stretch",
+        column_config=table_column_config(claim_rows),
     )
     st.caption(result.denominator_definition)
     downloads = st.columns(2)

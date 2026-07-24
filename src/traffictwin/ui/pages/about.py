@@ -52,35 +52,50 @@ def render() -> None:
     )
     section_header("Trusted Metric Extensions")
     plugin_api = metric_plugin_api_for_ui()
-    st.write(
-        {
-            "schema_version": plugin_api.schema_version,
-            "registration_mode": plugin_api.registration_mode,
-            "repeatability_runs": plugin_api.determinism_verification_runs,
-            "failure_policy": plugin_api.execution_failure_policy,
-            "uploaded_code_execution": plugin_api.uploaded_code_execution,
-            "sandboxed_execution": plugin_api.sandboxed_execution,
-        }
+    st.markdown(
+        f"Trusted local metric plugins register through **{plugin_api.registration_mode}** "
+        f"(schema {plugin_api.schema_version}); determinism is checked over "
+        f"{plugin_api.determinism_verification_runs} repeat runs and failures follow the "
+        f"**{plugin_api.execution_failure_policy}** policy."
     )
     st.warning(
         "Custom metrics are explicit trusted local Python registrations. The UI does not upload, "
         "import, or execute user-supplied code, and repeatability checking is not a sandbox."
     )
+    with st.expander("Advanced: metric plugin API contract (raw)"):
+        st.json(
+            {
+                "schema_version": plugin_api.schema_version,
+                "registration_mode": plugin_api.registration_mode,
+                "repeatability_runs": plugin_api.determinism_verification_runs,
+                "failure_policy": plugin_api.execution_failure_policy,
+                "uploaded_code_execution": plugin_api.uploaded_code_execution,
+                "sandboxed_execution": plugin_api.sandboxed_execution,
+            }
+        )
     section_header("Trusted Declarative Rules")
     rule_contract = declarative_rule_contract_for_ui()
-    st.write(
-        {
-            "schema_version": rule_contract.schema_version,
-            "grammar_version": rule_contract.grammar_version,
-            "trust_boundary": rule_contract.trust_boundary,
-            "evidence_boundary": rule_contract.evidence_boundary,
-            "maximum_yaml_bytes": rule_contract.maximum_yaml_bytes,
-            "maximum_predicates": rule_contract.maximum_predicates,
-            "reference_rule": rule_contract.reference_rule_id,
-        }
+    st.markdown(
+        f"Declarative rules use the closed grammar **{rule_contract.grammar_version}** "
+        f"(schema {rule_contract.schema_version}) bounded to "
+        f"{rule_contract.maximum_yaml_bytes:,} YAML bytes and "
+        f"{rule_contract.maximum_predicates} predicates; the reference rule is "
+        f"`{rule_contract.reference_rule_id}`."
     )
     st.warning(
         "Declarative rules use a closed threshold/boolean grammar over EvidencePack metrics. "
         "There is no YAML upload/evaluation control in the UI, arbitrary code is unsupported, "
         "and trusted local configuration is not a sandbox or scientific-validity guarantee."
     )
+    with st.expander("Advanced: declarative rule contract (raw)"):
+        st.json(
+            {
+                "schema_version": rule_contract.schema_version,
+                "grammar_version": rule_contract.grammar_version,
+                "trust_boundary": rule_contract.trust_boundary,
+                "evidence_boundary": rule_contract.evidence_boundary,
+                "maximum_yaml_bytes": rule_contract.maximum_yaml_bytes,
+                "maximum_predicates": rule_contract.maximum_predicates,
+                "reference_rule": rule_contract.reference_rule_id,
+            }
+        )
