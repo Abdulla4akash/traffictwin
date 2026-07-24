@@ -6,8 +6,9 @@
 `v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
 
 **Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
-REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review
-demonstration, and the automated cross-page-state evidence
+REL-01 CLI foundation, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
+temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
+pack with its 24 July 2026 source-documentation probe, and the ADR-058 producer attestation
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -60,7 +61,7 @@ At the snapshot commit:
 - 686 Manchester-focused unit tests pass;
 - 1,609 unit tests and 169 UI tests pass, 1,778 combined;
 - repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 696 configured source and test files;
+- strict mypy passes over all 703 configured source and test files;
 - lock validation and package build pass;
 - the built wheel contains the required Manchester boundary assets; and
 - 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
