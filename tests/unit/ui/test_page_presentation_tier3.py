@@ -143,3 +143,25 @@ def test_evidence_readiness_groups_availability_by_state() -> None:
     # The raw availability dict stays under an Advanced expander.
     advanced = [str(exp.label) for exp in app.expander if "Advanced" in str(exp.label)]
     assert any("evidence availability" in label.lower() for label in advanced)
+
+
+# --- Provenance Explorer ----------------------------------------------------
+
+
+def test_provenance_explorer_uses_tabs_badges_and_advanced_json() -> None:
+    app = page_app(UiPage.PROVENANCE).run(timeout=30)
+    assert not app.exception
+
+    info_text = "\n".join(str(item.value) for item in app.info)
+    assert "does not establish real-world causality" in info_text
+    # Lineage is a staged tab flow.
+    tab_labels = {str(tab.label) for tab in app.tabs}
+    assert {"Completeness", "Graph", "Lineage", "Nodes", "Export"} <= tab_labels
+    body = text_of(app)
+    # The metric dependency view is a structured panel with a non-causal caption, not a raw dict.
+    assert "do not establish" in body or "not establish real-world causality" in body
+    # Ledger counts use st.metric.
+    assert "Candidate rows" in metric_labels(app)
+    # Raw metric/rule detail moves behind Advanced/Evidence expanders.
+    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    assert advanced

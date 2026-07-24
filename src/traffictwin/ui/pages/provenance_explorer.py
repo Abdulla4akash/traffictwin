@@ -21,6 +21,7 @@ from traffictwin.provenance.models import ProvenanceTrace
 from traffictwin.provenance.query import dependent_rules_for_metric
 from traffictwin.provenance.serialization import trace_to_json
 from traffictwin.reporting.models import ResearchReportType
+from traffictwin.ui.components.badges import badge_markdown
 from traffictwin.ui.components.source_preview import render_source_row_preview
 from traffictwin.ui.components.trace_tree import (
     render_trace_completeness,
@@ -40,6 +41,7 @@ from traffictwin.ui.services import (
     run_provenance_for_ui,
     source_preview_for_ui,
 )
+from traffictwin.ui.tables import table_column_config
 
 PROVENANCE_NOTICE = (
     "Provenance shows how TrafficTwin derived a result from available records and configured "
@@ -98,24 +100,27 @@ def _render_report_completeness(analysis: BundleAnalysis) -> None:
         columns[2].metric("Source-row complete", completeness.source_row_complete_count)
         columns[3].metric("Aggregate only", completeness.aggregate_only_count)
         columns[4].metric("Unavailable", completeness.unavailable_count)
-        st.table(
-            [
-                {
-                    "claim": claim.artifact_key,
-                    "kind": claim.claim_kind.value,
-                    "status": claim.artifact_status,
-                    "classification": claim.classification.value,
-                    "depth": claim.trace_depth.value,
-                    "candidate rows": claim.candidate_source_row_count,
-                    "reasons": "; ".join(claim.reason_codes),
-                }
-                for claim in completeness.claims
-            ],
+        claim_rows = [
+            {
+                "claim": claim.artifact_key,
+                "kind": claim.claim_kind.value,
+                "status": claim.artifact_status,
+                "classification": claim.classification.value,
+                "depth": claim.trace_depth.value,
+                "candidate_rows": claim.candidate_source_row_count,
+                "reasons": "; ".join(claim.reason_codes),
+            }
+            for claim in completeness.claims
+        ]
+        st.dataframe(
+            claim_rows,
             hide_index=True,
+            width="stretch",
+            column_config=table_column_config(claim_rows),
         )
         st.caption(completeness.denominator_definition)
-        with st.expander("Denominator exclusions and trace-depth rules"):
-            st.write(
+        with st.expander("Advanced/Evidence: denominator exclusions and trace-depth rules"):
+            st.json(
                 {
                     "exclusions": [
                         item.model_dump(mode="json") for item in completeness.exclusions
@@ -153,39 +158,54 @@ def _render_metric_trace(analysis: BundleAnalysis) -> None:
         return
     metric = metrics.by_key().get(metric_key)
     definition = metric_definition_for_result(metric) if metric is not None else None
-    with st.expander("Metric dependency view", expanded=True):
-        st.write(
+    dependent_rules = dependent_rules_for_metric(metric_key)
+    with st.container(border=True):
+        st.markdown(
+            f"**Metric:** `{metric_key}` · "
+            f"**Status:** {badge_markdown(metric.status.value if metric else 'unavailable')}"
+        )
+        st.markdown(
+            f"**Current value:** {metric.value if metric else 'Unavailable'} · "
+            f"**Dependent rules:** {', '.join(dependent_rules) if dependent_rules else 'none'}"
+        )
+        st.caption(
+            "Dependency links are how this metric feeds configured rules; they do not establish "
+            "real-world causality."
+        )
+    with st.expander("Advanced/Evidence: metric definition and dependents (raw)"):
+        st.json(
             {
                 "key": metric_key,
                 "definition": definition.model_dump(mode="json") if definition else "Unavailable",
                 "current_status": metric.status.value if metric else "unavailable",
                 "current_value": metric.value if metric else None,
-                "dependent_rules": dependent_rules_for_metric(metric_key),
+                "dependent_rules": dependent_rules,
             }
         )
     with st.expander("Complete canonical-row contribution ledger"):
         contributions = metric_contributions_for_ui(analysis, metric_key)
-        st.write(
+        ledger_cols = st.columns(4)
+        ledger_cols[0].metric("Candidate rows", contributions.candidate_row_count, border=True)
+        ledger_cols[1].metric("Included rows", contributions.included_row_count, border=True)
+        ledger_cols[2].metric("Excluded rows", contributions.excluded_row_count, border=True)
+        with ledger_cols[3], st.container(border=True):
+            st.caption("Complete row ledger")
+            st.markdown(badge_markdown("yes" if contributions.complete_row_ledger else "no"))
+        ledger_rows = [
             {
-                "candidate_rows": contributions.candidate_row_count,
-                "included_rows": contributions.included_row_count,
-                "excluded_rows": contributions.excluded_row_count,
-                "complete_row_ledger": contributions.complete_row_ledger,
+                "table": row.canonical_table,
+                "record_id": row.record_id,
+                "source": f"{row.source_file}:{row.source_row}",
+                "included": row.included,
+                "reason": row.inclusion_reason,
             }
-        )
+            for row in contributions.rows
+        ]
         st.dataframe(
-            [
-                {
-                    "table": row.canonical_table,
-                    "record_id": row.record_id,
-                    "source": f"{row.source_file}:{row.source_row}",
-                    "included": row.included,
-                    "reason": row.inclusion_reason,
-                }
-                for row in contributions.rows
-            ],
+            ledger_rows,
             hide_index=True,
             width="stretch",
+            column_config=table_column_config(ledger_rows),
         )
         cols = st.columns(2)
         cols[0].download_button(
@@ -213,8 +233,26 @@ def _render_rule_trace(analysis: BundleAnalysis) -> None:
     if not isinstance(rule_id, str):
         return
     result = next(item for item in report.results if item.rule_id == rule_id)
-    with st.expander("Rule dependency view", expanded=True):
-        st.write(
+    with st.container(border=True):
+        st.markdown(
+            f"**Rule:** `{result.rule_id}` · "
+            f"**Status:** {badge_markdown(result.status.value)} · "
+            f"**Confidence:** {badge_markdown(result.confidence.value)}"
+        )
+        if result.hypothesis:
+            st.markdown(f"**Candidate hypothesis:** {result.hypothesis}")
+        st.markdown(
+            f"**Evidence keys:** {', '.join(result.evidence_keys) or 'none'}\n\n"
+            f"**Missing evidence:** "
+            + ("; ".join(result.missing_evidence) if result.missing_evidence else "none")
+        )
+        if result.alternative_explanations:
+            st.markdown(
+                "**Alternative explanations:** " + "; ".join(result.alternative_explanations)
+            )
+        st.caption("A hypothesis is a candidate explanation, not a confirmed cause.")
+    with st.expander("Advanced/Evidence: rule thresholds and recommendations (raw)"):
+        st.json(
             {
                 "rule_id": result.rule_id,
                 "status": result.status.value,
@@ -305,7 +343,9 @@ def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
             summary_cols[0].metric("Shown nodes", f"{len(graph_view.nodes)}/{len(trace.nodes)}")
             summary_cols[1].metric("Shown edges", f"{len(graph_view.edges)}/{len(trace.edges)}")
             summary_cols[2].metric("Redactions", graph_view.redaction_count)
-            summary_cols[3].metric("Truncated", "Yes" if graph_view.truncated else "No")
+            with summary_cols[3], st.container(border=True):
+                st.caption("Truncated")
+                st.markdown(badge_markdown("yes" if graph_view.truncated else "no"))
             if graph_view.truncated:
                 st.warning(
                     f"Bounded view omitted {graph_view.omitted_node_count} nodes and "
@@ -324,7 +364,12 @@ def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
             selected_node = next(
                 node for node in graph_view.nodes if node.node_id == selected_node_id
             )
-            st.json(selected_node.model_dump(mode="json"))
+            st.markdown(
+                f"**Node:** {selected_node.label} · "
+                f"**Type:** {badge_markdown(selected_node.node_type.value)}"
+            )
+            with st.expander("Advanced/Evidence: selected node (raw)"):
+                st.json(selected_node.model_dump(mode="json"))
     with tab_lineage:
         render_trace_lineage(trace)
     with tab_nodes:
