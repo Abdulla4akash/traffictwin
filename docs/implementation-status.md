@@ -425,8 +425,12 @@ previous registry; and rollback restores the backup only while the active regist
 matches the migration receipt, preserving the backup as evidence. The frozen v0.6 registry
 schema equals the current v0.7 schema, so no schema transformation occurs and any other source
 version is refused; four bounded CLI commands (v06-attest, v06-migrate-preview, v06-migrate,
-v06-rollback) wire the workflow and print `capability_status: planned`. Side-by-side
-clean-checkout acceptance, package/release version alignment, and final
+v06-rollback) wire the workflow and print `capability_status: planned`. A scripted
+side-by-side check now installs the immutable `v0.6.0` tag from a clean detached checkout with
+its own lockfile and serves it beside the v0.7 checkout on separate ports and workspaces; the
+24 July 2026 run confirmed concurrent responses, distinct registries, and no cross-registry
+mutation before removing the temporary checkout. This is automated coexistence evidence, not
+release acceptance. Package/release version alignment and final
 release reconciliation remain, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 

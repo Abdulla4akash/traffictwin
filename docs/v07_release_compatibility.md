@@ -108,8 +108,18 @@ tests cover new-only creation, exact layout and namespace validation, tamper and
 read-only preview, byte identity, receipt reconciliation, repeat-copy refusal, sidecar refusal,
 source-inside-target refusal, failure cleanup, and timezone-safe timestamps.
 
-`REL-01` remains planned until later work adds and accepts side-by-side clean-checkout tests,
+A scripted side-by-side check (`scripts/side_by_side_check.py`) now creates a clean detached
+checkout of the immutable `v0.6.0` tag, installs it from its own lockfile, initialises and
+validates its synthetic demo workspace with its own CLI, and serves it beside the current v0.7
+checkout on separate ports and workspaces. The 24 July 2026 run
+([evidence](integration/evidence/side_by_side_check.json)) confirmed both servers respond
+concurrently, every workspace/registry path is distinct, and neither side changed the other's
+registry bytes; the temporary checkout is removed afterwards and the tag is never modified.
+
+`REL-01` remains planned until later work adds and accepts
 package/release version alignment, cross-schema migration if a schema ever diverges, and final
 documentation and capability reconciliation. The attested same-schema activation slice above
 implements preview, backup, interruption quarantine, activation, and rollback for
-ADR-058-attested sources only; an unattested registry still cannot claim v0.6.0 provenance.
+ADR-058-attested sources only; an unattested registry still cannot claim v0.6.0 provenance, and
+the scripted coexistence run is automated evidence rather than formal Gate-F release
+acceptance.

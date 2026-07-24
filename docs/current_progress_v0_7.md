@@ -108,7 +108,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, and a workspace setup/diagnostics guide | Side-by-side clean-checkout acceptance, package/release version alignment, cross-schema migration if schemas diverge, and final release/tag reconciliation remain |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, and a workspace setup/diagnostics guide | Package/release version alignment, cross-schema migration if schemas diverge, and final release/tag reconciliation remain |
 
 ## 6. Major work ready to build now
 
@@ -150,7 +150,9 @@ next section.
 3. Migration preview, backup, transactional copy, interruption quarantine, refusal, activation,
    and rollback: done for ADR-058-attested same-schema sources; side-by-side clean-checkout
    acceptance remains.
-4. Run v0.6 and v0.7 from separate clean checkouts, ports, and workspaces.
+4. Run v0.6 and v0.7 from separate clean checkouts, ports, and workspaces: automated by
+   `scripts/side_by_side_check.py` with a passing 24 July 2026 evidence record; formal Gate-F
+   acceptance still happens at release reconciliation.
 5. Reconcile CLI, generated schemas/references, capability manifest, documentation, package
    version, CI, and final immutable tag.
 
