@@ -66,6 +66,9 @@ Open:
 17. Which exact accepted artifact and owning verification service should provide each MAN-11
     reference at the Manchester mapping, baseline, controlled-SUMO, and final-report stages before
     the candidate lineage builder is connected to a real Gate-E workflow?
+18. Will National Highways approve an NTIS/DATEX II research subscription, and what exact products,
+    credentials, callback authentication, public ingress, schema/WSDL version, timestamp,
+    heartbeat/retry, retention, attribution, and publication rules would govern that new source?
 
 Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questions:
 
@@ -74,7 +77,10 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   flags, offline map posture, and remaining source-specific rate/schema blockers are frozen.
 - Question 4 has a versioned v1 answer: BODS alone can be `live_vehicle` under its UTC validity
   window and 60-second engineering ceiling; DfT and WebTRIS remain historical; TfGM signals are
-  dated reference data. Later scientific thresholds require a new policy version.
+  dated reference data. A real-source WebTRIS recency probe on 24 July 2026 confirms that the
+  current API cannot support `near_live`: the preceding day returned no report and a day one month
+  earlier returned a complete historical report. Later scientific thresholds require a new policy
+  version.
 - Question 10 is resolved for the default map: pydeck without a basemap, with an exact accepted
   ONS boundary edition selected at Gate B. Carto remains blocked by `GA-MAP-1`.
 - Question 14 is further narrowed: identifier-only NOC matching is accepted and one controlled
@@ -90,7 +96,9 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   BODS refresh is operator-triggered, serial, and limited to one attempt per 60 seconds; page
   reruns may read only the bounded local aggregate history. Any future always-on scheduler remains
   a separate deployment and governance decision.
-- Questions 1, 2, 5–9, 11, 12, and 15–17 remain open at their stated gates.
+- Questions 1, 2, 5–9, 11, 12, and 15–18 remain open at their stated gates. Question 18 describes
+  a new NTIS source boundary; it cannot be answered by the anonymous WebTRIS API or the existing
+  BODS credential.
 
 ### v0.5 design decisions
 

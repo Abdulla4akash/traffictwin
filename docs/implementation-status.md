@@ -174,6 +174,17 @@ suite passes, and the controlled site-day now replays in the local chart boundar
 values preserved. Timezone resolution, browser accessibility acceptance, and broad capability
 acceptance remain open; `MAN-03` and `MAN-08` remain planned.
 
+A 24 July 2026 WebTRIS recency reassessment tested the requested near-live path against the real
+service. Site `34` (`M56/8150A`) returned HTTP 204 with no body for 23 July, while 24 June returned
+96 complete intervals and one quality row that passed the full bounded quarantine, parser,
+promotion, and replay workflow. This agrees with the provider's official statement that WebTRIS
+data is normally uploaded about one month in arrears. WebTRIS is therefore explicitly refused as
+`near_live`, while its latest-available historical workflow remains verified. National Highways'
+separate NTIS DATEX II subscriber push service is recorded as the credible real-time candidate,
+but it needs a new Gate-A source audit, an approved subscriber account, a secured public callback,
+frozen schema/time/retention contracts, and real-source acceptance before code may claim it. No
+capability status changed; `MAN-03`, `MAN-07`, and `MAN-08` remain planned.
+
 A controlled TfGM signal acquisition candidate now binds the audited static ZIP endpoint to the
 shared bounded transport, immutable quarantine-before-decompression boundary, bounded archive
 inspection, exact MAN-04 CSV parser, warning-code admission, and atomic promotion. The full archive

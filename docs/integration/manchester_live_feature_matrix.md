@@ -15,7 +15,8 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | Aggregate live history | Built | Private 24-hour/240-entry history of Bee/other/live/stale counts; no raw positions or vehicle identifiers |
 | Raw private snapshot retention control | Built as a precautionary software control | Read-only preview, 24-hour/240-family default, active/newest protection, exact confirmation, paired accepted/quarantine cleanup; legal approval and secure erasure remain unavailable |
 | General live Manchester road counts/speeds | **Unavailable** | No authorised, audited city-road private-vehicle feed has been supplied; BODS buses cannot substitute for road traffic |
-| WebTRIS `near_live` | **Unavailable** | Source timestamp timezone and defensible latency semantics remain undocumented (`GA-WT-1`) |
+| WebTRIS `near_live` | **Refused after real-source probe** | The official cadence is normally about one month in arrears. On 24 July 2026 the 23 July report returned HTTP 204, while 24 June returned a complete 96-interval historical day and passed the controlled workflow; source timezone also remains undocumented (`GA-WT-1`) |
+| National Highways NTIS real-time road feed | **Candidate; not integrated** | A separate subscriber-only DATEX II push service exists, but TrafficTwin has no approved subscription, credentials, callback receiver, frozen schema/time contract, retention decision, or real acceptance fixture |
 | Live traffic-signal state or incidents | **Unavailable** | TfGM source is a dated signal-location reference only; no phase, timing, queue, incident, or operational-state feed exists |
 | Complete Bee Network fleet/service claim | **Unavailable** | `BNVB`, branding-versus-franchise scope, NOC/schedule reference rights, and complete feed coverage remain unresolved |
 | Public live-data hosting/export | **Unavailable** | BODS terms, identifier retention/publication basis, reference-data licences, and complete gate acceptance remain open |
@@ -24,8 +25,10 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 ## Current acceptance position
 
 The buildable local live-transit path is present: fetch, validate, classify, map, age to stale,
-rate-limit, retain aggregate history, and preview private cleanup. The remaining “live” work is not
-another hidden UI button. It requires new authoritative evidence: an authorised live road source,
-provider time/terms/SLA answers, remaining Bee identifiers/licences, and formal Gate-B/UI
-acceptance. Until then, `MAN-05`, `MAN-07`, and `MAN-08` remain `planned`, and unsupported states
-remain visibly unavailable.
+rate-limit, retain aggregate history, and preview private cleanup. The WebTRIS near-live option has
+now been tested and rejected rather than left as a speculative UI option; its latest-available
+historical path remains useful. True National Highways real-time traffic would be a new NTIS source
+boundary, not a WebTRIS status change. It requires provider approval, a secured public callback,
+frozen contracts, and real-source acceptance. Remaining Bee identifiers/licences and formal
+Gate-B/UI acceptance also remain open. Until then, `MAN-03`, `MAN-05`, `MAN-07`, and `MAN-08`
+remain `planned`, and unsupported states remain visibly unavailable.

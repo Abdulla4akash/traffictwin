@@ -373,6 +373,8 @@ class BoundedHttpClient:
                 return response, b""
             if not 200 <= response.status_code < 300:
                 return response, b""
+            if response.status_code == 204:
+                raise ManchesterTransportError("response_body_missing", status_code=204)
             self._check_response_headers(response)
             body = bytearray()
             decoder = _BoundedContentDecoder(response.headers.get("content-encoding"))

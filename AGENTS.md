@@ -117,6 +117,26 @@ is closed. Later edits to those shared presentation files require a new grant.
   non-matches, malformed rows, and out-of-scope rows remain explicitly accounted for, and public
   export remains unavailable.
 
+### Active lead ownership: MAN-03/MAN-07 WebTRIS recency reassessment
+
+- The lead owns the bounded 24 July 2026 WebTRIS real-source recency probe, the resulting
+  machine-readable evidence and interpretation document, and reconciliation of the Manchester
+  live-feature matrix and lead-owned project records. This reassessment may refine blockers but
+  cannot promote WebTRIS historical observations to `near_live` or accept a `MAN-*` capability.
+- The exclusive file set is
+  `docs/integration/evidence/manchester_webtris_recency_probe_20260724.json`,
+  `docs/integration/manchester_webtris_near_live_reassessment.md`,
+  `docs/integration/manchester_live_feature_matrix.md`, `docs/implementation-status.md`,
+  `docs/open-questions.md`, `docs/assumption-register.md`, `docs/index.md`, and this ownership
+  record. The lead also owns the narrow HTTP-204 classification correction in
+  `src/traffictwin/integration/manchester/transport.py` and
+  `tests/unit/test_manchester_transport.py`. The work is disjoint from Claude's active Phase 2A
+  UI claim.
+- Any National Highways NTIS/DATEX II subscriber integration discovered by the reassessment is a
+  new source boundary. It requires a separate Gate-A audit, provider approval, credentials,
+  callback deployment/security design, frozen schema and time semantics, and a new ownership
+  grant before implementation.
+
 - Use `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, `REL-01`, and Gates A–F from the v0.7 design as units of
   ownership. Record the capability and files owned before editing; agents sharing one checkout
   must use disjoint file sets.

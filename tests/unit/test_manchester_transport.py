@@ -229,6 +229,18 @@ def test_retry_exhaustion_returns_only_typed_code() -> None:
     assert str(caught.value) == "retry_exhausted"
 
 
+def test_no_content_is_reported_as_missing_body_before_header_validation() -> None:
+    transport = httpx.MockTransport(lambda _request: httpx.Response(204))
+    with _client(transport) as raw_client:
+        bounded = BoundedHttpClient(endpoint=_endpoint(), policy=_policy(), client=raw_client)
+        with pytest.raises(ManchesterTransportError) as caught:
+            bounded.fetch("/api/v1/datafeed/")
+
+    assert caught.value.code == "response_body_missing"
+    assert caught.value.status_code == 204
+    assert str(caught.value) == "response_body_missing"
+
+
 @pytest.mark.parametrize(
     ("headers", "content", "code"),
     [

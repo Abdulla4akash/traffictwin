@@ -93,6 +93,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Controlled WebTRIS acquisition and offline replay](integration/manchester_webtris_acquisition.md)
 - [WebTRIS accepted sites to Manchester map scenes](integration/manchester_webtris_scene.md)
 - [WebTRIS historical interval filters and chart data](integration/manchester_webtris_timeseries.md)
+- [WebTRIS near-live reassessment and NTIS boundary](integration/manchester_webtris_near_live_reassessment.md)
+- [WebTRIS real-source recency probe](integration/evidence/manchester_webtris_recency_probe_20260724.json)
 - [Controlled TfGM signal acquisition and offline replay](integration/manchester_tfgm_acquisition.md)
 - [TfGM accepted snapshot to latest map scene](integration/manchester_tfgm_scene.md)
 - [Randy/VEC v0.6 pinned source-snapshot audit](integration/randy-source-snapshot-audit-v0_6.md)

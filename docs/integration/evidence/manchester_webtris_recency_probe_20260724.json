@@ -1,0 +1,76 @@
+{
+  "capability_ids": [
+    "MAN-03",
+    "MAN-07"
+  ],
+  "conclusion": {
+    "capability_status_changed": false,
+    "historical_latest_available_workflow": "accepted_for_the_observed_site_day",
+    "near_live_admission": "rejected",
+    "near_live_reason_codes": [
+      "WEBTRIS_MONTH_IN_ARREARS",
+      "CURRENT_DAY_REPORT_UNAVAILABLE",
+      "GA-WT-1"
+    ],
+    "ntis_candidate_requires_new_gate_a": true
+  },
+  "evidence_class": "real_source_private_probe_metadata",
+  "observed_date": "2026-07-24",
+  "official_source_evidence": [
+    {
+      "finding": "WebTRIS data is normally processed and uploaded about one month in arrears.",
+      "url": "https://webtris.nationalhighways.co.uk/Home/Faqs"
+    },
+    {
+      "finding": "The provider announced a 2026 WebTRIS service interruption of approximately three to six months.",
+      "url": "https://webtris.nationalhighways.co.uk/Home/News"
+    },
+    {
+      "finding": "The separate NTIS subscriber service advertises real-time traffic data delivery and requires subscriber registration.",
+      "url": "https://www.trafficengland.com/services-info"
+    },
+    {
+      "finding": "The NTIS interface is a server-side DATEX II push service with a subscriber callback, not a replacement anonymous WebTRIS query.",
+      "url": "https://www.trafficengland.com/resources/cms-docs/datex-eidd.pdf"
+    }
+  ],
+  "probe_contract": {
+    "endpoint_family": "https://webtris.nationalhighways.co.uk/api/v1.0/reports/daily",
+    "page": 1,
+    "page_size": 96,
+    "site_id": "34",
+    "site_name_from_official_site_response": "M56/8150A"
+  },
+  "probes": [
+    {
+      "decoded_body_bytes": 0,
+      "decoded_body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "http_content_type": null,
+      "http_status": 204,
+      "intervals_accepted": 0,
+      "report_date": "2026-07-23",
+      "result": "unavailable",
+      "traffic_twin_outcome": "rejected_before_parse",
+      "transport_error_code": "response_body_missing"
+    },
+    {
+      "decoded_body_bytes": 44225,
+      "decoded_body_sha256": "d3fef7dda5aa53c6df137c7fe2214e87fd18a79b904f1e28330e25fb104c92e1",
+      "http_content_type": "application/json",
+      "http_status": 200,
+      "intervals_accepted": 96,
+      "intervals_missing": 0,
+      "parser_status": "accepted",
+      "quality_rows_accepted": 1,
+      "report_date": "2026-06-24",
+      "result": "accepted_historical",
+      "traffic_twin_outcome": "quarantined_parsed_promoted_and_replayed"
+    }
+  ],
+  "schema_version": "manchester-webtris-recency-probe-1.0",
+  "security": {
+    "credentials_persisted": false,
+    "raw_response_body_embedded": false,
+    "request_cookies_persisted": false
+  }
+}
