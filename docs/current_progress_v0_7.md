@@ -5,8 +5,8 @@
 **Development branch:** `claude/complete-v0.7` (integration branch created at the protected
 `v0.7.0-alpha.4` checkpoint `4e95a5d` on `codex/traffictwin-v0.7`)
 
-**Snapshot commit:** the Phase 2B Tier 1 plus REL-01 CLI-foundation head of
-`claude/complete-v0.7`
+**Snapshot commit:** the head of `claude/complete-v0.7` after Phase 2B Tier 1 integration, the
+REL-01 CLI foundation, and the MAN-09 temporal-profile foundation
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -57,7 +57,7 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
-- 1,583 unit tests and 162 UI tests pass, 1,745 combined;
+- 1,599 unit tests and 162 UI tests pass, 1,761 combined;
 - repository-wide Ruff formatting and checks pass;
 - strict mypy passes over all 696 configured source and test files;
 - lock validation and package build pass;
@@ -99,7 +99,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-06` Randy Manchester bridge | `working_bounded` | Permission-safe local panel over accepted sanitised VEC-11 evidence, aggregates, citations, fingerprints, and limitations | Full workflow acceptance remains; source limits deliberately prohibit raw identity, geographic/live relabelling, and public hosting |
 | `MAN-07` projection/freshness service | `working_bounded` | UTC time-basis contract, source truth states, BODS and National Highways freshness, spatial admission, exclusions, and ONS display boundaries | Real canonical time projection for DfT/WebTRIS is blocked by unresolved source-time semantics; broad real-source projection acceptance remains |
 | `MAN-08` Manchester Operations | `working_bounded` | Historical/latest/live-vehicle modes, source-separated maps, BODS and National Highways refreshes, TfGM/DfT/WebTRIS views, filters, source cards, stale fallback, Randy panel, and metadata-only download | Broad/multi-site acceptance, upstream capability acceptance, public-export decisions, and manual accessibility/participant acceptance remain |
-| `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness, plus a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls | No approved Manchester network/licence or real-source matching/review policy, temporal profile, real calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run |
+| `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness, a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls, and a day-type/season/slot temporal-profile builder with exact source dates, typed exclusions, visible missing cells, and a frozen-empty production policy registry | No approved Manchester network/licence or real-source matching/review/profile policy, real calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run |
 | `MAN-10` observed-versus-simulated comparison | `foundation_only` | Deterministic contract model, pairing, exclusions, missingness protection, coverage, lineage, and MAE/RMSE implementation | The production contract registry is intentionally empty; no scientific contract or real compatible comparison has been accepted |
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, and a candidate action-aware Guided Demo with persistent progress and automatic next-task routing; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
@@ -120,8 +120,9 @@ next section.
 2. Extend the existing typed synthetic review boundary to the approved real-source policy and add
    a thin analyst-review UI for accepted, rejected, ambiguous, distant, conflicting, and
    many-to-one map matches.
-3. Implement the temporal-profile builder with exact source dates, gaps, exclusions, day type,
-   season, timezone, and no missing-as-zero behaviour.
+3. Temporal-profile builder: done as a candidate foundation (exact source dates, gaps, typed
+   exclusions, day type, season, structural time basis, and no missing-as-zero behaviour);
+   production policy approval and resolved source timezone semantics remain external.
 4. Connect the existing calibration evaluator to mapping, parameter selection, residual review,
    uncertainty, and explicit analyst acceptance.
 5. Produce the versioned `ManchesterSumoBaseline` artifact and bind it to the existing controlled

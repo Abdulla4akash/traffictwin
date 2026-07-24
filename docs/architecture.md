@@ -1822,6 +1822,16 @@ metric calculation, hidden fallback, or workspace write. All v0.7 UI source now 
 `width` API; deprecated `use_container_width` calls have been removed without changing the legacy
 router's functional inventory.
 
+The candidate MAN-09 temporal-profile library is a pure transformation from already-parsed
+source-specific observations to a complete day-type/season/slot cell grid. One versioned policy
+fixes the source, measure/unit, structural time basis, exact bounded window, exact slot grid,
+day-type/season rules, caller-declared excluded dates, and minimum cell support before any cell
+exists. Unobserved cells stay visible as `no_observations`, null values remain typed exclusions,
+conflicting duplicates exclude every conflicting row, and DfT/WebTRIS slot labels remain
+source-local strings that are never promoted to UTC. Reports embed their inputs, re-derive the
+complete partition on reload, and structurally refuse calibration use, SUMO demand, and baseline
+availability; the production policy registry is intentionally empty.
+
 The candidate MAN-09 calibration library is a pure post-execution evaluator, not a SUMO launcher
 or raw-count conversion service. A versioned contract fixes source/scope/time/measure/unit,
 objective, exact parameter grid, missingness, duplicates, coverage, precision, and interpretation;

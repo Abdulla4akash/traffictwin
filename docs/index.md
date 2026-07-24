@@ -93,6 +93,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Private BODS snapshot retention](integration/manchester_bods_retention.md)
 - [Bee Network identifier-only live scope](integration/manchester_bee_network_scope.md)
 - [BODS real-source Gate-B probe](integration/manchester_bods_gate_b_probe.md)
+- [Deterministic day-type/time-of-day temporal profiles](integration/manchester_temporal_profile.md)
 - [Deterministic calibration-candidate evaluation](integration/manchester_calibration.md)
 - [Deterministic observed-versus-simulated comparison](integration/manchester_comparison.md)
 - [Manchester source-to-VEC research lineage](integration/manchester_research_lineage.md)

@@ -332,6 +332,19 @@ unavailable because no reviewed Manchester SUMO network/licence, matching policy
 real-source projection dependency exists. The harness does not parse a real network, accept a
 Manchester mapping, construct demand, calibrate, or run SUMO, so `MAN-09` remains planned.
 
+A candidate `MAN-09` temporal-profile foundation now builds reviewable day-type/time-of-day
+profiles from caller-supplied source-specific observations under one versioned policy binding
+source, measure/unit, structural time basis, an exact bounded analysis window, an exact slot-label
+grid, the fixed ISO day-type rule, a versioned season rule, caller-declared excluded dates, and a
+minimum per-cell count. The complete expected cell grid stays visible with explicit
+available/insufficient/no-observations states; missing observations never become zero, null values
+stay typed exclusions, conflicting duplicates exclude every conflicting row, and no interpolation
+or holiday inference exists. DfT and WebTRIS profiles are structurally
+`source_local_clock_undeclared` and evaluate as `not_admitted_production_unapproved` because the
+production policy registry is intentionally empty; reports re-derive their complete partition on
+reload and fix calibration-use, SUMO-demand, and baseline availability to false. This is
+foundation evidence only, so `MAN-09` remains planned.
+
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.
 It binds source, projection, mapping, network, run, and row fingerprints; refuses source fusion,
