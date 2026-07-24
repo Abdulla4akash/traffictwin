@@ -44,7 +44,10 @@ frozen-empty production-registry design of the
 - available cells publish deterministic Decimal mean (quantised to 0.001, immune to the ambient
   Decimal context), minimum, maximum, observation count, and exact contributing dates; and
 - reports embed their exact inputs and re-derive the complete cell partition, admission class,
-  and reconciliation counts on every reload, so a stored artifact is tamper-evident.
+  and reconciliation counts on every reload, and the exclusion partition is re-derived too —
+  admitted and excluded identities must be disjoint, non-conflicting exclusions must be
+  identity-unique, and each `conflicting_duplicate_rows` group must contain at least two rows in
+  at least two distinct forms — so a fabricated or overlapping exclusion is rejected on reload.
 
 ## Structural negatives
 

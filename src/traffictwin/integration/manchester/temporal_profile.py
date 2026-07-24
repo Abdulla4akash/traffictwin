@@ -83,7 +83,6 @@ ProfileExclusionReason: TypeAlias = Literal[
     "unknown_slot_label",
     "declared_excluded_date",
     "null_value_retained",
-    "duplicate_identical_row",
     "conflicting_duplicate_rows",
 ]
 
@@ -321,6 +320,7 @@ class ManchesterTemporalProfileReport(ManchesterTemporalProfileModel):
             elif item.reason == "null_value_retained":
                 if row.value is not None:
                     raise ValueError("a null-value exclusion carries a present value")
+        self._validate_partition_disjointness()
         derived = _derive(self.policy, self.admitted_observations)
         if derived.admission != self.admission:
             raise ValueError("admission does not re-derive from the embedded policy")
@@ -340,6 +340,54 @@ class ManchesterTemporalProfileReport(ManchesterTemporalProfileModel):
         if self.utc_projection_available != (self.policy.time_basis == "utc"):
             raise ValueError("utc_projection_available must follow the policy time basis")
         return self
+
+    def _validate_partition_disjointness(self) -> None:
+        """Re-derive the duplicate/conflict structure so it cannot be forged.
+
+        The deterministic builder groups offered observations by identity and
+        (a) admits or singly-excludes a unique identity, or (b) excludes every
+        row of an identity that carries two or more distinct forms as
+        ``conflicting_duplicate_rows``. These invariants make a fabricated
+        never-offered exclusion or an admitted-and-excluded overlap detectable
+        on reload.
+        """
+
+        def identity(row: TemporalProfileObservation) -> tuple[str, str, str]:
+            return (row.source_record_id, row.source_date.isoformat(), row.slot_label)
+
+        admitted_ids = [identity(row) for row in self.admitted_observations]
+        if len(set(admitted_ids)) != len(admitted_ids):
+            raise ValueError("admitted observations must have unique identities")
+
+        conflict_rows = [
+            item.observation
+            for item in self.excluded_observations
+            if item.reason == "conflicting_duplicate_rows"
+        ]
+        singular_ids = [
+            identity(item.observation)
+            for item in self.excluded_observations
+            if item.reason != "conflicting_duplicate_rows"
+        ]
+        if len(set(singular_ids)) != len(singular_ids):
+            raise ValueError("non-conflicting exclusions must have unique identities")
+
+        conflict_groups: dict[tuple[str, str, str], list[TemporalProfileObservation]] = {}
+        for row in conflict_rows:
+            conflict_groups.setdefault(identity(row), []).append(row)
+        for rows in conflict_groups.values():
+            if len(rows) < 2:
+                raise ValueError(
+                    "a conflicting-duplicate exclusion must group at least two offered rows"
+                )
+            if len({row.canonical_json() for row in rows}) < 2:
+                raise ValueError("conflicting-duplicate rows must differ in content")
+
+        excluded_ids = set(singular_ids) | set(conflict_groups)
+        if set(admitted_ids) & excluded_ids:
+            raise ValueError("an observation cannot be both admitted and excluded")
+        if set(singular_ids) & set(conflict_groups):
+            raise ValueError("an identity cannot be both singly excluded and conflicting")
 
     def cells_by_state(self) -> dict[CellState, int]:
         """Return the visible cell-state inventory."""

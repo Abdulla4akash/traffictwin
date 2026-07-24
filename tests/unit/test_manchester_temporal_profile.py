@@ -286,3 +286,70 @@ def test_policy_grid_and_window_bounds_fail_closed() -> None:
             _policy(),
             [_observation(record_id=f"row-{index}") for index in range(50_001)],
         )
+
+
+def test_reload_refuses_fabricated_conflicting_exclusion() -> None:
+    """A never-offered row marked conflicting is refused (single-row group)."""
+
+    import json as _json
+
+    report = build_temporal_profile(_policy(), [_observation()])
+    payload = report.model_dump(mode="json")
+    fake = _observation(record_id="synthetic:ghost", value=Decimal("7")).model_dump(mode="json")
+    payload["excluded_observations"] = [
+        {"reason": "conflicting_duplicate_rows", "observation": fake}
+    ]
+    payload["excluded_observation_count"] = 1
+    payload["offered_observation_count"] = (
+        payload["admitted_observation_count"] + 1 + payload["collapsed_duplicate_count"]
+    )
+    with pytest.raises(ValueError, match="at least two offered rows|do not re-derive"):
+        ManchesterTemporalProfileReport.model_validate_json(_json.dumps(payload))
+
+
+def test_reload_refuses_admitted_and_excluded_overlap() -> None:
+    """The same observation cannot appear in both partitions."""
+
+    import json as _json
+
+    report = build_temporal_profile(_policy(), [_observation()])
+    payload = report.model_dump(mode="json")
+    admitted = payload["admitted_observations"][0]
+    payload["excluded_observations"] = [
+        {"reason": "null_value_retained", "observation": {**admitted, "value": None}}
+    ]
+    payload["excluded_observation_count"] = 1
+    payload["offered_observation_count"] = (
+        payload["admitted_observation_count"] + 1 + payload["collapsed_duplicate_count"]
+    )
+    with pytest.raises(ValueError, match="both admitted and excluded|do not re-derive"):
+        ManchesterTemporalProfileReport.model_validate_json(_json.dumps(payload))
+
+
+def test_reload_refuses_removed_duplicate_identical_reason() -> None:
+    """The dead duplicate_identical_row reason is no longer a valid enum value."""
+
+    import json as _json
+
+    report = build_temporal_profile(_policy(), [_observation(value=None)])
+    payload = report.model_dump(mode="json")
+    payload["excluded_observations"][0]["reason"] = "duplicate_identical_row"
+    with pytest.raises(ValueError):
+        ManchesterTemporalProfileReport.model_validate_json(_json.dumps(payload))
+
+
+def test_genuine_conflict_group_still_reloads() -> None:
+    """A real two-form conflict group round-trips through validation."""
+
+    import json as _json
+
+    conflicting = [
+        _observation(record_id="synthetic:c", value=Decimal("5")),
+        _observation(record_id="synthetic:c", value=Decimal("6")),
+    ]
+    report = build_temporal_profile(_policy(), [*conflicting, _observation(record_id="ok")])
+    assert any(item.reason == "conflicting_duplicate_rows" for item in report.excluded_observations)
+    reloaded = ManchesterTemporalProfileReport.model_validate_json(
+        _json.dumps(report.model_dump(mode="json"))
+    )
+    assert reloaded.fingerprint() == report.fingerprint()
