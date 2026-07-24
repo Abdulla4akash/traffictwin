@@ -824,6 +824,14 @@ shared badges/cards, Guided Demo, and a clearer mobile-accessible Home dashboard
 polish only; it adds no new metrics, diagnostic rules, simulator adapters, live data, launchers, ML
 algorithms, or LLM behavior.
 
+Guided workflow follow-up status: candidate implementation. The former page catalogue now starts
+and resumes a persistent action-aware journey through the real product pages. Typed successful
+experiment-registration and report-regeneration actions complete their stages automatically;
+inspection stages require an explicit reviewed acknowledgement; skips remain distinct from
+completions. Focused state, AppTest, UI-suite, and browser click-through checks pass. This does not
+change `UX-01`–`UX-03` capability truth or replace the remaining manual accessibility and
+participant acceptance gates.
+
 TOS Results Workbench status: implemented. The optional read-only integration now includes an
 evaluation matrix, exact fleet-seed paired campaign comparison, processed-FCD logical replay,
 source-specific RSU pressure/backlog summaries, full showcase task aggregation, bounded training
@@ -2480,7 +2488,9 @@ portfolio calibration, and training orchestration remain outside this integratio
 
 ## Implemented In Product Polish & Research UX
 
-- `Guided Demo` page with eight standalone-synthetic stages and four read-only imported-TOS stages.
+- Action-aware `Guided Demo` with eight standalone-synthetic stages, four read-only imported-TOS
+  stages, cross-page progress, automatic routing, typed action completion where available,
+  explicit review acknowledgement elsewhere, honest skipping, exit, and resume.
 - Mobile-visible Home actions that use safe Streamlit navigation callbacks rather than requiring
   the collapsed sidebar.
 - `Scenario Builder` page over `SyntheticScenarioConfig`.

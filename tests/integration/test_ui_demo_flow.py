@@ -21,6 +21,15 @@ from traffictwin.ui.services import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _use_legacy_router_for_navigation_integration(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Exercise the radio-driven integration suite through its explicit legacy router."""
+
+    monkeypatch.setenv("TRAFFICTWIN_V07_NAVIGATION", "legacy")
+
+
 def test_ui_demo_flow_services(tmp_path: Path) -> None:
     registry = tmp_path / "registry.sqlite"
     baseline = validate_bundle_for_ui(Path("tests/fixtures/bundles/baseline_valid"))
@@ -306,19 +315,23 @@ def test_streamlit_run_overview_renders_contract_gated_energy_family(
     energy_cards = {
         item.label: item.value
         for item in app.metric
-        if item.label in {"Observed-task energy", "Completed-task energy", "Energy-delay product"}
+        if item.label
+        in {
+            "Observed-task energy (J)",
+            "Completed-task energy (J)",
+            "Energy-delay product (J·ms)",
+        }
     }
     assert not app.exception
     assert any(heading.value == "Energy Evidence" for heading in app.subheader)
     assert set(energy_cards) == {
-        "Observed-task energy",
-        "Completed-task energy",
-        "Energy-delay product",
+        "Observed-task energy (J)",
+        "Completed-task energy (J)",
+        "Energy-delay product (J·ms)",
     }
     assert all(value != "Unavailable" for value in energy_cards.values())
     assert any(
-        "d71e4d10bb37aded7a6c8cdfc5b9cde4c59ef41b88c51facb54930ae9664ebaa" in caption.value
-        and "Observed-task energy: 31/33" in caption.value
+        "d71e4d10bb37…" in caption.value and "Observed-task energy: 31/33" in caption.value
         for caption in app.caption
     )
 
@@ -449,10 +462,29 @@ def test_home_starts_and_advances_guided_demo() -> None:
         for heading in app.subheader
     )
 
-    next(button for button in app.button if button.label == "Next stage").click().run(timeout=10)
+    next(button for button in app.button if button.label == "Start guided workflow").click().run(
+        timeout=10
+    )
 
     assert not app.exception
-    assert any(heading.value == "Stage 2 of 8: Validate a run bundle" for heading in app.subheader)
+    assert any(title.value == "Experiment Planner" for title in app.title)
+    assert any(button.label == "Waiting for task" for button in app.button)
+    assert any("stage 1 of 8" in caption.value for caption in app.caption)
+
+    next(button for button in app.button if button.label == "Skip").click().run(timeout=10)
+
+    assert not app.exception
+    assert any(title.value == "Bundle Import & Validation" for title in app.title)
+    assert any(button.label == "Reviewed — continue" for button in app.button)
+    assert any("stage 2 of 8" in caption.value for caption in app.caption)
+
+    next(button for button in app.button if button.label == "Reviewed — continue").click().run(
+        timeout=10
+    )
+
+    assert not app.exception
+    assert any(title.value == "Run Overview" for title in app.title)
+    assert any("stage 3 of 8" in caption.value for caption in app.caption)
 
 
 def test_guided_demo_tos_track_has_honest_empty_state() -> None:
@@ -469,7 +501,14 @@ def test_guided_demo_tos_track_has_honest_empty_state() -> None:
         heading.value == "Stage 1 of 4: Inspect Randy's artifact package"
         for heading in app.subheader
     )
-    assert any(button.label == "Open TOS Data Import" for button in app.button)
+    next(button for button in app.button if button.label == "Start guided workflow").click().run(
+        timeout=10
+    )
+
+    assert not app.exception
+    assert any(title.value == "TOS Data Import" for title in app.title)
+    assert any(button.label == "Reviewed — continue" for button in app.button)
+    assert any("stage 1 of 4" in caption.value for caption in app.caption)
 
 
 def test_streamlit_about_page_exposes_safe_extension_boundaries() -> None:

@@ -7,20 +7,16 @@ import streamlit as st
 from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row, status_badge
 from traffictwin.ui.components.cards import section_header
-from traffictwin.ui.guided import DemoTrack, bounded_step, steps_for_track
+from traffictwin.ui.guided import DemoTrack, GuidedDemoProgress, steps_for_track
+from traffictwin.ui.guided_runtime import (
+    begin_guided_workflow,
+    load_guided_progress,
+    resume_guided_workflow,
+)
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation import navigation_button, render_page_header
+from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tos_context import active_tos_package
-
-
-def _reset_stage() -> None:
-    st.session_state["guided_demo_step"] = 0
-
-
-def _move_stage(delta: int, step_count: int) -> None:
-    current = int(st.session_state.get("guided_demo_step", 0))
-    st.session_state["guided_demo_step"] = bounded_step(current + delta, step_count)
 
 
 def render(config: UiConfig) -> None:
@@ -38,13 +34,16 @@ def render(config: UiConfig) -> None:
         [track.value for track in DemoTrack],
         horizontal=True,
         key="guided_demo_track",
-        on_change=_reset_stage,
     )
     track = DemoTrack(selected)
     _render_track_status(config, track)
 
     steps = steps_for_track(track)
-    current_index = bounded_step(int(st.session_state.get("guided_demo_step", 0)), len(steps))
+    progress = load_guided_progress()
+    matching_progress = progress if progress is not None and progress.track is track else None
+    if matching_progress is not None and matching_progress.finished:
+        _render_completion(matching_progress)
+    current_index = matching_progress.step_index if matching_progress is not None else 0
     step = steps[current_index]
     st.progress((current_index + 1) / len(steps))
     section_header(
@@ -63,29 +62,91 @@ def render(config: UiConfig) -> None:
         st.markdown("**Evidence output**")
         st.write(step.output_label)
     st.warning(step.boundary)
+    st.markdown("**Your task**")
+    st.write(step.instruction)
 
-    back_col, open_col, next_col = st.columns(3)
-    back_col.button(
-        "Previous stage",
-        disabled=current_index == 0,
-        on_click=_move_stage,
-        args=(-1, len(steps)),
-        width="stretch",
+    if matching_progress is not None and matching_progress.active:
+        controls = st.columns(3)
+        if controls[0].button(
+            "Resume current task",
+            type="primary",
+            width="stretch",
+            key="guided_resume_workflow",
+        ):
+            resume_guided_workflow(matching_progress)
+        if controls[1].button(
+            "Restart this track",
+            width="stretch",
+            key="guided_restart_workflow",
+        ):
+            begin_guided_workflow(track)
+        if controls[2].button(
+            "Exit guided mode",
+            width="stretch",
+            key="guided_exit_workflow",
+        ):
+            st.session_state["guided_demo_progress"] = matching_progress.exit().model_dump(
+                mode="json"
+            )
+            st.rerun()
+    elif matching_progress is not None and not matching_progress.finished:
+        controls = st.columns(2)
+        if controls[0].button(
+            "Resume guided workflow",
+            type="primary",
+            width="stretch",
+            key="guided_resume_paused_workflow",
+        ):
+            resume_guided_workflow(matching_progress)
+        if controls[1].button(
+            "Restart this track",
+            width="stretch",
+            key="guided_restart_paused_workflow",
+        ):
+            begin_guided_workflow(track)
+    else:
+        label = "Start again" if matching_progress is not None else "Start guided workflow"
+        if st.button(
+            label,
+            type="primary",
+            width="stretch",
+            key="guided_start_workflow",
+        ):
+            begin_guided_workflow(track)
+
+    with st.expander(f"Full {len(steps)}-stage journey", expanded=False):
+        completed = (
+            set(matching_progress.completed_step_keys) if matching_progress is not None else set()
+        )
+        skipped = (
+            set(matching_progress.skipped_step_keys) if matching_progress is not None else set()
+        )
+        for index, candidate in enumerate(steps, start=1):
+            outcome = (
+                "completed"
+                if candidate.key in completed
+                else "skipped"
+                if candidate.key in skipped
+                else "upcoming"
+            )
+            st.markdown(
+                f"**{index}. {candidate.title}** — {candidate.target_page.value} · {outcome}"
+            )
+            st.caption(candidate.instruction)
+
+
+def _render_completion(progress: GuidedDemoProgress) -> None:
+    """Render an honest completion summary without claiming skipped stages complete."""
+
+    steps = steps_for_track(progress.track)
+    completed = len(progress.completed_step_keys)
+    skipped = len(progress.skipped_step_keys)
+    st.success(
+        f"Guided workflow finished: {completed} completed and {skipped} explicitly skipped "
+        f"out of {len(steps)} stages."
     )
-    navigation_button(
-        open_col.button,
-        f"Open {step.target_page.value}",
-        step.target_page,
-        kind="primary",
-        width="stretch",
-    )
-    next_col.button(
-        "Next stage",
-        disabled=current_index == len(steps) - 1,
-        on_click=_move_stage,
-        args=(1, len(steps)),
-        width="stretch",
-    )
+    if skipped:
+        st.warning("Skipped stages remain skipped; the guide does not count them as evidence.")
 
 
 def _render_track_status(config: UiConfig, track: DemoTrack) -> None:

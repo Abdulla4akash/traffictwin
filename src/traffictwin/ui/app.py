@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from traffictwin.ui.guided_runtime import consume_guided_legacy_navigation
 from traffictwin.ui.navigation import render_sidebar_context, select_page
 from traffictwin.ui.navigation_v07 import (
     v07_navigation_pages,
@@ -40,6 +41,7 @@ def main() -> None:
         navigation.run()
         return
     st.session_state["_v07_navigation_active"] = False
+    consume_guided_legacy_navigation()
     page = select_page()
     st.session_state["_active_ui_page"] = page
     render_sidebar_context(page)

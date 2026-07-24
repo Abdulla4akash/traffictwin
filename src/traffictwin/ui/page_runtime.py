@@ -6,6 +6,7 @@ from collections.abc import Callable
 
 import streamlit as st
 
+from traffictwin.ui.guided_runtime import render_guided_assistant
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import redirect_pending_v07_page, render_sidebar_context
 from traffictwin.ui.pages import (
@@ -91,6 +92,7 @@ PAGE_RENDERERS: dict[UiPage, PageRenderer] = {
 def render_registered_page(page: UiPage, config: UiConfig) -> None:
     """Render one exact registered page through its existing tested service boundary."""
 
+    render_guided_assistant(page)
     PAGE_RENDERERS[page](config)
 
 

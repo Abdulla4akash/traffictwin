@@ -2,6 +2,17 @@
 
 ## v0.7.0 - In development
 
+Replaced Guided Demo's per-stage page-opening catalogue with an action-aware workflow assistant:
+
+- one start/resume action opens the current real task and persistent guidance follows across pages;
+- successful experiment-plan registration and report regeneration complete their stages and open
+  the next page automatically;
+- review-only stages use one explicit **Reviewed — continue** acknowledgement, while skipped stages
+  remain distinct from completed stages; and
+- Previous, Exit, resume, deterministic state validation, legacy/v0.7 routing, AppTest coverage,
+  and a real browser click-through preserve an honest, recoverable workflow without timers or
+  automatic scientific choices.
+
 Closed the buildable portions of the Manchester live/UI follow-up while retaining external-source
 limits:
 

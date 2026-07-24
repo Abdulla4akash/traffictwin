@@ -43,6 +43,12 @@ Under the strict v0.7 completion rule, all 15 v0.7 capability rows remain formal
 This does not mean the branch is empty: substantial bounded source, live-operations, and UI
 workflows are already working.
 
+After the recorded snapshot commit, the Guided Demo was upgraded from a page catalogue to an
+action-aware cross-page workflow candidate. It opens the first real task, keeps persistent progress
+and evidence boundaries visible, advances from typed successful actions where available, uses one
+explicit acknowledgement for review-only stages, and records skipped stages separately. This is
+working-tree candidate evidence until integrated; it does not by itself accept any `UX-*` row.
+
 ## 3. Current verified baseline
 
 At the snapshot commit:
@@ -93,7 +99,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness, plus a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls | No approved Manchester network/licence or real-source matching/review policy, temporal profile, real calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run |
 | `MAN-10` observed-versus-simulated comparison | `foundation_only` | Deterministic contract model, pairing, exclusions, missingness protection, coverage, lineage, and MAE/RMSE implementation | The production contract registry is intentionally empty; no scientific contract or real compatible comparison has been accepted |
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
-| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, and complete legacy fallback; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
+| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, and a candidate action-aware Guided Demo with persistent progress and automatic next-task routing; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cross-page-state/cutover evidence and manual accessibility acceptance remain |
 | `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
 | `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces and byte-exact read-only v0.6 registry copying | Migration activation, backup, interrupted-migration recovery, rollback, side-by-side clean-checkout acceptance, and final release/tag reconciliation remain |

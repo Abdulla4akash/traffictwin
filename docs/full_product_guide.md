@@ -237,7 +237,8 @@ traffictwin demo launch .demo
 ```
 
 The workspace contains validated synthetic bundles, a SQLite registry, reports, and exports. Open
-**Guided Demo** and choose **Standalone synthetic**.
+**Guided Demo**, choose **Standalone synthetic**, and select **Start guided workflow**. TrafficTwin
+then opens each real task page and keeps the current instruction and evidence boundary visible.
 
 ### Option C: analyse one existing bundle from the CLI
 
@@ -449,8 +450,10 @@ traffictwin demo initialise .demo
 traffictwin demo launch .demo
 ```
 
-In the UI, open **Guided Demo**, choose **Standalone synthetic**, and progress through validation,
-metrics, replay, comparison, diagnostics, provenance, and reports.
+In the UI, open **Guided Demo**, choose **Standalone synthetic**, and select **Start guided
+workflow**. Action stages advance after their deterministic operation succeeds; inspection stages
+use **Reviewed — continue**. Progress through validation, metrics, replay, comparison, diagnostics,
+provenance, and reports without reopening each stage from the catalogue.
 
 **Output:** synthetic bundles, registry records, metrics, EvidencePacks, diagnostic reports,
 comparisons, provenance traces, and reports.
@@ -1188,7 +1191,7 @@ For a configured standalone workspace, prefer `traffictwin demo launch .demo`.
 | Page | Primary purpose | Does not do |
 |---|---|---|
 | Home | Status, registry counts, capabilities, limitations, entry actions | Calculate results or launch simulators |
-| Guided Demo | Route users through synthetic and imported-TOS evidence tracks | Create a second analysis pipeline |
+| Guided Demo | Persistently route users through real synthetic and imported-TOS task pages, auto-advancing on supported successful actions | Create a second analysis pipeline, make scientific choices, or treat skips as completion |
 | Experiment Manager | Browse seeds, experiments, runs, metrics, evidence, reports, tracking | Modify result data or execute runs |
 | Reports | Search/download/regenerate reports, export fingerprinted LaTeX/static figures, manage typed append-only analyst history, compare saved structured report JSON, and render bounded one-page executive summaries | Regenerate automatically, edit/delete annotation history, parse rendered prose as evidence, calculate scientific values in the page, or hide caveats to fit |
 | Search | Deterministic read-only lexical search over six labelled registry/report categories with bounded snippets and path redaction | Search raw rows/the web, rank scientific importance, or mutate an index |
@@ -1629,7 +1632,8 @@ the calculated values. Report content and calculation remain separate.
 
 1. Initialise `.demo`.
 2. Launch the Streamlit app.
-3. Follow **Guided Demo → Standalone synthetic**.
+3. Follow **Guided Demo → Standalone synthetic → Start guided workflow**; use the persistent task
+   guide as it opens each real page.
 4. Show baseline/variation comparison.
 5. Show R1/R2 with evidence limitations.
 6. Trace one metric and one rule in Provenance Explorer.

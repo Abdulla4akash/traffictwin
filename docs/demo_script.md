@@ -45,14 +45,18 @@ traffictwin demo launch .demo
      and researcher interpretation.
    - If the authorised external package is configured, switch to **Randy/TOS imported simulation**
      and show its read-only inventory. Do not describe this as a live connection.
+   - Select **Start guided workflow** once; TrafficTwin opens Experiment Planner and keeps the
+     current instruction, progress, and evidence boundary visible on every subsequent page.
 
-3. Open Experiment Planner.
+3. Complete the highlighted Experiment Planner task.
    - Select `seed-baseline` as baseline and `seed-stressed_demand` as variation.
    - Use one registered synthetic policy label and common random seed `7`.
    - Validate the plan and show the condition/policy/seed matrix plus changed seed parameters.
    - Show the exhaustive execution protocol and download its YAML or CSV run sheet.
    - Explain that suggested run/bundle IDs support coordination but do not prove execution.
    - Explain that registration creates one planned `Experiment` and no `Run` records.
+   - Register the plan and show that the successful deterministic action completes the stage and
+     opens Bundle Import automatically.
 
 4. Open Scenario Builder.
    - Duplicate the baseline synthetic preset.
@@ -61,9 +65,11 @@ traffictwin demo launch .demo
    - Show the expected bundle/run IDs and configuration YAML.
    - Explain that generation writes a standard bundle and then uses the normal validator.
 
-5. Open Bundle Import & Validation.
+5. In Bundle Import & Validation, follow the persistent guided instruction.
    - Validate `.demo/bundles/baseline`.
    - Show status accepted, declared files, record counts, and evidence categories.
+   - Select **Reviewed — continue** after inspecting the evidence; this acknowledgement advances
+     the guide without pretending that inspection was machine-verifiable.
 
 6. Validate `.demo/bundles/stressed_demand`.
    - Show it uses the same experiment and random seed but different seed parameters.

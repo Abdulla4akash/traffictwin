@@ -118,6 +118,7 @@ DEFAULT_SESSION_STATE: dict[str, object] = {
     "data_mode_label": "SYNTHETIC",
     "guided_demo_step": 0,
     "guided_demo_track": "Standalone synthetic",
+    "guided_demo_progress": None,
     "latest_experiment_plan": None,
     "latest_registered_experiment_id": None,
     "ui_settings": {

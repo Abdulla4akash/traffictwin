@@ -137,9 +137,14 @@ reconciliation, warning/limitation retention, provenance links, escaping, and PD
 verification. The page displays those returned values and downloads; it cannot select claims,
 recalculate results, hide caveats, or include analyst annotations.
 
-Guided Demo is a workflow catalogue and navigation surface. Its stage definitions are
-framework-independent, but every analysis action opens an existing page backed by the established
-services. The guide itself performs no scientific computation.
+Guided Demo is an action-aware workflow assistant rather than a page catalogue. Its
+framework-independent stage and progress models persist the selected evidence track, current
+stage, completions, and explicit skips. Starting or resuming a workflow opens the current real
+page, where a persistent guide gives the exact task and interpretation boundary. Successful
+experiment registration and report regeneration emit typed completion signals and open the next
+stage automatically; inspection stages require one explicit **Reviewed — continue** acknowledgement.
+The guide itself performs no scientific computation, makes no scientific choice, and never
+advances from elapsed time.
 
 Experiment Planner delegates design validation to `traffictwin.experiments.planning` and registry
 operations to `ui.services`. `traffictwin.experiments.protocol` supplies every slot, fingerprint,

@@ -15,6 +15,7 @@ from traffictwin.experiments.protocol import (
 )
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.components.cards import section_header
+from traffictwin.ui.guided_runtime import complete_guided_action
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.services import (
@@ -253,6 +254,10 @@ def _render_plan_preview(
             st.success(
                 f"Registered {registered.experiment_id} with status {registered.status.value}. "
                 "No runs were created."
+            )
+            complete_guided_action(
+                UiPage.EXPERIMENT_PLANNER,
+                "register_experiment_plan",
             )
     navigation_button(
         st.button,

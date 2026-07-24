@@ -61,6 +61,13 @@ def _render_v07_home(config: UiConfig) -> None:
             st.switch_page("app_pages/manchester.py")
         navigation_button(
             st.button,
+            "Start Guided Demo",
+            UiPage.GUIDED_DEMO,
+            key="home_v07_guided_demo",
+            width="stretch",
+        )
+        navigation_button(
+            st.button,
             "Create scenario",
             UiPage.SCENARIO,
             key="home_v07_scenario",

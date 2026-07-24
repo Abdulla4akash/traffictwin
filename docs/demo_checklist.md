@@ -30,6 +30,14 @@ traffictwin demo launch .demo
 - [ ] Home shows prototype notice and capability manifest.
 - [ ] Home exposes **Start Guided Demo** without requiring the sidebar.
 - [ ] Guided Demo shows eight standalone stages and keeps every stage synthetic/import-first.
+- [ ] **Start guided workflow** opens the first real task page without requiring a separate
+  per-stage **Open ...** click.
+- [ ] The persistent guide keeps task instructions, interpretation boundaries, progress, and
+  Previous/Skip/Exit controls visible across page changes.
+- [ ] Successful experiment registration and report regeneration advance automatically; review
+  stages advance only through **Reviewed — continue**.
+- [ ] A skipped stage is visibly recorded as skipped rather than completed, and an exited workflow
+  can resume at its current task.
 - [ ] Experiment Planner previews the baseline/variation matrix and seed differences.
 - [ ] Experiment Planner exports an exhaustive protocol YAML and CSV run sheet.
 - [ ] Completed-bundle matching is read-only and distinguishes exact, compatible, mismatch, and

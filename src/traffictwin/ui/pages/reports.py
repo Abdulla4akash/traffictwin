@@ -12,6 +12,7 @@ from traffictwin.annotations import (
     AnalystDecisionLabel,
 )
 from traffictwin.ui.components.cards import report_card, section_header
+from traffictwin.ui.guided_runtime import complete_guided_action
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -116,6 +117,7 @@ def render(config: UiConfig) -> None:
             st.code(generated.detail or "")
         else:
             st.success(f"Report generated: {generated}")
+            complete_guided_action(UiPage.REPORTS, "regenerate_report")
 
     report_root = workspace / "reports" if workspace is not None else Path("reports")
     section_header(

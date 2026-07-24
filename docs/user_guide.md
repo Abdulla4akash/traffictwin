@@ -68,9 +68,17 @@ Guided Demo presents two evidence tracks without introducing a second analysis p
 - **Randy/TOS imported simulation** follows package inspection, evaluation results, historical
   mobility/RSU replay, and training/reproducibility audit.
 
-Each stage shows its evidence input, the existing deterministic operation, its output, and the
-interpretation boundary. **Open ...** moves to the real page that performs or presents that stage.
-The guide does not calculate metrics, evaluate rules, launch a simulator, or manufacture evidence.
+Select **Start guided workflow** once. TrafficTwin opens the real page for the first task and keeps
+a compact guide above each subsequent page. A successful experiment-plan registration or report
+regeneration completes its action stage and opens the next page automatically. Review-only stages
+use one **Reviewed — continue** control after the researcher has inspected the requested evidence.
+**Skip** is recorded separately and is never reported as completion; **Previous**, **Exit**, and
+**Resume current task** preserve an honest, recoverable workflow.
+
+Each stage shows its evidence input, deterministic operation, output, task instruction, and
+interpretation boundary. The guide does not calculate metrics, evaluate rules, choose scientific
+settings, launch a simulator, or manufacture evidence. It advances from accepted application
+actions or explicit researcher review, never from a timer.
 
 The standalone context reports workspace scenario, run, and comparison counts. When a local TOS
 package is configured, the imported track reports its validated artifact inventory and package
