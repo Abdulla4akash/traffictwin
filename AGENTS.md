@@ -39,7 +39,7 @@ As the project evolves, update:
 
 ## v0.7 Work Coordination
 
-### Active parallel ownership grant: Claude UI presentation Phase 1
+### Completed parallel ownership: Claude UI presentation Phase 1
 
 - Claude owns advisory presentation groundwork for `UX-01`–`UX-03` on
   `claude/ui-redesign`, forked from the first pushed lead v0.7 integration commit after
@@ -63,6 +63,43 @@ As the project evolves, update:
   relevant unit suite, light- and dark-theme smoke checks, and lead review of the complete branch
   diff. Phase 2 page or navigation work requires a fresh disjointness check and a separate
   ownership grant.
+
+Phase 1 was lead-reviewed and merged at `11eacb6`; the lead then removed the residual CSS injector
+at `0da8175` so native Streamlit configuration is the only theme mechanism. The Phase 1 file claim
+is closed. Later edits to those shared presentation files require a new grant.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2A
+
+- Claude owns the bounded `UX-01`–`UX-03` shell and first-impression presentation slice after
+  fast-forwarding `claude/ui-redesign` to the latest `codex/traffictwin-v0.7`. This work remains
+  presentation-only: it cannot accept a gate, change capability truth, fetch evidence, or compute
+  scientific results.
+- The exclusive Phase 2A source files are `src/traffictwin/ui/app.py`,
+  `src/traffictwin/ui/navigation.py`, `src/traffictwin/ui/navigation_v07.py`, and exactly these page
+  files: `src/traffictwin/ui/pages/home.py`, `src/traffictwin/ui/pages/run_overview.py`, and
+  `src/traffictwin/ui/pages/evidence_readiness.py`.
+- Claude may edit `tests/ui/test_navigation_v07.py` and `tests/ui/test_product_polish.py`, and may
+  add tests named `tests/unit/ui/test_page_presentation_*.py`. The linked-worktree About regression
+  test must remain intact. No other existing test file is transferred.
+- Phase 2A must make grouped `st.navigation` the normal v0.7 route while preserving an explicit,
+  tested compatibility path; remove duplicated shell copy; move raw dictionaries/JSON and full
+  machine identifiers out of primary page content into clearly labelled Advanced/Evidence
+  expanders; use numeric `st.metric` cards only; and apply the merged table/badge/fingerprint
+  presentation helpers without changing the underlying values.
+- Use native Streamlit APIs and `.streamlit/config.toml`: no custom HTML/CSS, no
+  `unsafe_allow_html`, no deprecated `use_container_width`, no new dependency, and no scientific or
+  acquisition logic in a page. Unavailable, stale, synthetic, historical, near-live, and
+  live-vehicle evidence states must remain explicit and must never be hidden, combined, or filled
+  with defaults.
+- Claude must not edit `src/traffictwin/ui/pages/manchester_operations.py`,
+  `src/traffictwin/ui/manchester_operations.py`, `src/traffictwin/ui/services.py`,
+  `src/traffictwin/ui/page_runtime.py`, `src/traffictwin/ui/labels.py`, any `app_pages/` wrapper,
+  any Phase 1 shared presentation file, integration/CLI code, dependencies, shared project records,
+  generated references, documentation indexes, changelog, or this `AGENTS.md` file.
+- Handoff requires focused tests, all `tests/ui`, all `tests/unit`, ruff, strict mypy on edited
+  source, `git diff --check`, light/dark screenshots of the Home and one evidence-heavy page, and a
+  complete list of residual raw dumps or presentation debt. Leave changes committed only on
+  `claude/ui-redesign`; the lead owns final review, merge, capability reconciliation, and push.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
