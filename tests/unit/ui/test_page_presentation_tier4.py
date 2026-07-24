@@ -140,3 +140,39 @@ def test_infrastructure_separates_provenance_and_structures_per_rsu() -> None:
     assert len(app.json) <= 1
     advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
     assert any("per-RSU summary" in label for label in advanced)
+
+
+# --- Journey-Time Lens ------------------------------------------------------
+
+
+def test_journey_time_shows_cohort_completion_and_no_causality() -> None:
+    app = page_app(UiPage.JOURNEY_TIME).run(timeout=40)
+    assert not app.exception
+
+    labels = metric_labels(app)
+    # Cohort-coverage counts and unit-labelled duration evidence.
+    assert "Total trips (count)" in labels
+    assert "Incomplete trips (count)" in labels
+    assert "Mean duration (s)" in labels
+    assert "P95 duration (s)" in labels
+
+    heads = subheaders(app)
+    assert "Completion and Exclusions" in heads
+
+    body = text_of(app)
+    # Completion status is a badge; incomplete/missing journeys stay explicit.
+    assert "Trip cohort completion:" in body
+    assert "-badge[" in body
+    assert "Incomplete journeys are reported as a count" in body
+    # No zero-conversion and no causal claim.
+    assert "never converted to a zero" in body or "never plotted as zero" in body
+    assert "caused a change in journey time" in body
+
+
+def test_journey_time_duration_status_is_not_a_categorical_metric() -> None:
+    app = page_app(UiPage.JOURNEY_TIME).run(timeout=40)
+    assert not app.exception
+    labels = metric_labels(app)
+    # Trip counts and durations are numeric metrics; completion status is a badge, not a metric.
+    assert "Trip cohort completion" not in labels
+    assert "Trip-duration joins" not in labels
