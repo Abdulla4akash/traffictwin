@@ -37,12 +37,10 @@ _UNINFORMATIVE_LABELS = frozenset(
 #: marked ``strict``, so the suite fails the moment one is fixed and the entry
 #: has to be removed. Weakening the assertion instead would have hidden the
 #: defect and left the check asserting nothing.
-_KNOWN_LABEL_DEFECTS: dict[UiPage, str] = {
-    UiPage.HOME: (
-        "home.py renders two buttons both labelled 'Plan an Experiment'; a user "
-        "traversing by keyboard or screen reader cannot tell them apart"
-    ),
-}
+#:
+#: Empty: the duplicate "Plan an Experiment" button on the home page was
+#: removed once the UI came into scope, and this registry emptied with it.
+_KNOWN_LABEL_DEFECTS: dict[UiPage, str] = {}
 
 
 def _page_params() -> list[object]:

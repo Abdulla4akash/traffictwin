@@ -173,4 +173,15 @@ def test_streamlit_home_renders_workspace_planner_actions(
     app.run(timeout=10)
 
     assert not app.exception
-    assert len([button for button in app.button if button.label == "Plan an Experiment"]) == 2
+    # The contract this pins is reachability: the legacy v0.6 home offers the
+    # planner from both its workflow row and its quick actions. It previously
+    # asserted two buttons carrying the *same* label, which is what made them
+    # indistinguishable to keyboard and screen-reader users. The labels now
+    # differ; both routes still exist.
+    planner_labels = [
+        button.label for button in app.button if "Plan an Experiment" in (button.label or "")
+    ]
+    assert len(planner_labels) == 2, planner_labels
+    assert len(set(planner_labels)) == 2, (
+        f"both planner routes must be distinguishable: {planner_labels}"
+    )

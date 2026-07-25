@@ -252,9 +252,14 @@ def _render_legacy_home(config: UiConfig) -> None:
             UiPage.SCENARIO,
             width="stretch",
         )
+        # Routes to the same planner as the Research Workflow row above, and is
+        # kept because this Quick Actions block is the retained v0.6 home
+        # surface. The label differs deliberately: two buttons sharing one label
+        # are indistinguishable to anyone traversing by keyboard or screen
+        # reader, even though a sighted user tells them apart by position.
         navigation_button(
             first_actions[1].button,
-            "Plan an Experiment",
+            "Plan an Experiment from Quick Actions",
             UiPage.EXPERIMENT_PLANNER,
             key="home_quick_plan_experiment",
             width="stretch",
