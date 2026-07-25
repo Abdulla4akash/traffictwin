@@ -20,6 +20,7 @@ from traffictwin.integration.vec_interface import (
 )
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import page_options
+from traffictwin.ui.navigation_v07 import page_script_for
 
 ROOT = Path(__file__).parents[2]
 REPORT = ROOT / "docs/reference/generated/vec_scientific_admission_report.json"
@@ -125,7 +126,9 @@ def test_vec_workbench_renders_with_execution_gated() -> None:
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app_state = app_test.from_file("src/traffictwin/ui/app.py")
     app_state.run(timeout=15)
-    app_state.radio[0].set_value(UiPage.VEC_WORKBENCH.value).run(timeout=15)
+    # v0.7 grouped navigation is the default: route to the direct VEC Workbench page rather than
+    # the removed legacy sidebar radio.
+    app_state.switch_page(page_script_for(UiPage.VEC_WORKBENCH)).run(timeout=15)
 
     assert not app_state.exception
     assert any(title.value == UiPage.VEC_WORKBENCH.value for title in app_state.title)

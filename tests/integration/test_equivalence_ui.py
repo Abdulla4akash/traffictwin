@@ -12,6 +12,8 @@ from traffictwin.experiments.equivalence_testing import (
     EquivalenceStudy,
 )
 from traffictwin.storage.registry import Registry
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 
 
 def test_streamlit_statistical_page_runs_registered_equivalence_plan(
@@ -43,7 +45,9 @@ def test_streamlit_statistical_page_runs_registered_equivalence_plan(
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app = app_test.from_file("src/traffictwin/ui/app.py")
     app.run(timeout=10)
-    app.radio[0].set_value("Statistical Study").run(timeout=10)
+    # v0.7 grouped navigation is the default: route to the direct Statistical Study page rather
+    # than the removed legacy sidebar radio.
+    app.switch_page(page_script_for(UiPage.STATISTICAL_STUDY)).run(timeout=10)
     next(radio for radio in app.radio if radio.label == "Study type").set_value(
         "Paired equivalence TOST (STA-03)"
     ).run(timeout=10)

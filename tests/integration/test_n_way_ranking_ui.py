@@ -10,6 +10,8 @@ from traffictwin.domain.experiment import Experiment
 from traffictwin.experiments.n_way_ranking import NWayRankingStatus, NWayRankingStudy
 from traffictwin.metrics.results import MetricCollection
 from traffictwin.storage.registry import Registry
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.navigation_v07 import page_script_for
 
 
 def _collection(algorithm: str, random_seed: int, value: float) -> MetricCollection:
@@ -65,7 +67,9 @@ def test_streamlit_statistical_page_runs_n_way_registered_plan(
     app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]
     app = app_test.from_file("src/traffictwin/ui/app.py")
     app.run(timeout=10)
-    app.radio[0].set_value("Statistical Study").run(timeout=10)
+    # v0.7 grouped navigation is the default: route to the direct Statistical Study page rather
+    # than the removed legacy sidebar radio.
+    app.switch_page(page_script_for(UiPage.STATISTICAL_STUDY)).run(timeout=10)
     next(radio for radio in app.radio if radio.label == "Study type").set_value(
         "N-way policy ranking (STA-02)"
     ).run(timeout=10)
