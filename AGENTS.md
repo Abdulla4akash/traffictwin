@@ -574,6 +574,15 @@ acceptance.
   instant (`osmosis_replication_timestamp=2026-07-24T20:20:51Z`, read from the PBF header), the
   provider publication time (`Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT`), and the operator
   decision/retrieval date (25 July 2026).
+- The decoder boundary is written up as its own decision,
+  [ADR-060](docs/decisions/ADR-060-controlled-osm-pbf-decode-boundary.md), rather than left as an
+  amendment note, and the claimed file set is extended by that ADR plus its index row.
+- The sub-area probe now keeps its label **by measurement** rather than by convention. Local-
+  authority containment is measured per edge and the network's admissible role follows from it:
+  the Greater Manchester build classifies `baseline_candidate` (zero shortfall), the city-centre
+  build `sub_area_probe_only`. A contradicting classification is refused by the model. A shortfall
+  does not reject a build, because a small probe is a valid artifact that simply is not the
+  baseline.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 

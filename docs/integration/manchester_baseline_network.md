@@ -120,6 +120,9 @@ digest: defining it away would make the artifact assert a stability it does not 
 
 ## Decode step: PBF to OSM XML
 
+The decoder boundary is its own decision:
+[ADR-060](../decisions/ADR-060-controlled-osm-pbf-decode-boundary.md).
+
 `netconvert` 1.27.1 as built in the reviewed environment reads **OSM XML only**. Handed a
 `.osm.pbf` it exits 1 with `Error: invalid byte '' at position 2 of a 2-byte sequence` — it tries
 to parse the binary container as XML. The repository owner approved **`osmium-tool`** as the
@@ -140,8 +143,23 @@ receipt fixes `content_filtered`, `bounding_box_clipped`, `simplified`, and
 `road_classes_selected` false, and a test asserts no filtering argument can enter the vector.
 
 Measured on the pinned extract: 50,502,348 bytes of PBF decode to 996,913,352 bytes of XML
-(≈19.7×) in under three seconds. The decoded XML is a **private workspace intermediate** and is
-never committed.
+(≈19.7×) in 2.639 s. The decoded XML is a **private workspace intermediate** and is never
+committed.
+
+**The pinned source expectation is the default, not an option.** A decode without it refuses with
+`UNPINNED_SOURCE_REFUSED`; the opt-out exists only for clearly-labelled synthetic fixtures and
+forces `synthetic: true` into the receipt, so an unverified source is legible rather than silent.
+The destination must resolve inside the declared workspace or the decode refuses with
+`WORKSPACE_ESCAPE_REFUSED` — traversal is refused, not followed — and the workspace appears in
+evidence as a digest-derived label, never as an absolute path. The decoded document is then
+checked structurally: the root must be `osm` (`DECODED_WRONG_XML_ROOT`) and it must contain nodes,
+ways, or relations (`DECODED_OSM_XML_EMPTY`), read from a bounded prefix rather than by parsing a
+gigabyte-scale file.
+
+Each receipt is **sealed** with a digest over its own complete payload, computed in two passes so
+the seal covers defaulted fields too. A receipt that was edited after the fact, or that was never
+sealed, is rejected on load — which is what makes the decode replayable and checkable offline with
+neither the provider nor the decoder present.
 
 ## Real-build evidence
 
@@ -166,9 +184,31 @@ The full Greater Manchester baseline network, built from the pinned extract thro
 | Input box (`origBoundary`, **not** the extent) | −2.831812, 52.858497, 1.459963, 53.693129 |
 | Manchester city centre inside | yes |
 | University of Manchester inside | yes |
+| Local-authority filter fully inside | yes, zero shortfall on all four edges |
+| Admissible role | `baseline_candidate` |
+| `netconvert` wall-clock | 83.118 s (89.858 s on the other retained run) |
 | Private paths embedded in the network | 0 |
 
 Validating the 1.25 GB network streams in 1.7 s at 148 MB peak RSS; nothing is ever loaded whole.
+
+### A probe cannot be mistaken for the baseline
+
+Manchester local authority is a *filter* over the one baseline network, never a second network, so
+a network that does not contain the whole filter area would silently return a truncated area when
+filtered. Containment is therefore measured per edge, and the network's admissible role follows
+from that measurement rather than from whatever the operator named it:
+
+| Build | Shortfall (W/E/S/N, degrees) | Role |
+|---|---|---|
+| Greater Manchester | 0 / 0 / 0 / 0 | `baseline_candidate` |
+| City-centre probe | 0.065963 / 0.074585 / 0.120328 / 0.063751 | `sub_area_probe_only` |
+
+A shortfall does **not** reject the build — a deliberately small probe is a valid artifact that
+simply is not the baseline — and the classification is refused if it contradicts the measurement,
+so the probe keeps its label without anyone having to remember to apply it.
+
+Containing the filter area is *geometric* coverage. It says nothing about observation coverage,
+which remains Manchester local authority only; see below.
 
 No raw OSM bytes and no decoded XML are committed to Git.
 
@@ -271,6 +311,12 @@ reads accepted candidates and honest status through it. Tests assert the module 
 - Observed-versus-simulated goodness-of-fit — no approved `ManchesterComparisonMetricContract`.
 - Reproducibility of a Greater Manchester build — intermittently unstable in `<roundabout>`
   groupings, so it must be measured with `compare_builds` rather than assumed.
+- Connectivity and routability — connected components are **not computed**. `netconvert` emits no
+  component analysis, and TrafficTwin does not compute one rather than publish an unverified
+  number. Every validation states this explicitly (`connectivity.availability: unavailable`,
+  `routability_established: false`, observation `CONNECTED_COMPONENTS_NOT_COMPUTED`) so an
+  `accepted` network cannot be read as routable. Component analysis belongs to the map-matching
+  and calibration components of `MAN-09`, none of which are in Gate-D step 1.
 
 The map-matching blockers `MANCHESTER_NETWORK_LICENCE_UNAPPROVED` and
 `MANCHESTER_NETWORK_NOT_REVIEWED` are **not lifted** by this foundation, because lifting them also

@@ -6,6 +6,7 @@ stays runnable offline without ever faking a decode.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import re
 import shutil
@@ -18,6 +19,7 @@ from typing import Any
 import pytest
 from pydantic import ValidationError
 
+from traffictwin.integration.manchester import network_decode
 from traffictwin.integration.manchester.network_decode import (
     MIN_DECODED_BYTES,
     OSMIUM_FIXED_ARGUMENTS,
@@ -743,3 +745,42 @@ class TestReceiptCarriesItsProvenance:
         payload["synthetic"] = False
         with pytest.raises(ValidationError):
             OsmDecodeReceipt.model_validate_json(json.dumps(payload))
+
+
+class TestTheDecoderStaysAnExternalRuntime:
+    """ADR-060 admits osmium-tool as an executed external runtime only.
+
+    A Python binding would pull GPL-licensed code into the scientific import
+    path, which is exactly the boundary the decision draws.
+    """
+
+    def _project_root(self) -> Path:
+        return Path(__file__).resolve().parents[2]
+
+    def test_no_osmium_package_is_a_python_dependency(self) -> None:
+        manifest = (self._project_root() / "pyproject.toml").read_text(encoding="utf-8")
+        lowered = manifest.lower()
+        assert "pyosmium" not in lowered
+        assert "osmium" not in lowered
+
+    def test_the_decoder_is_not_importable_into_the_scientific_path(self) -> None:
+        assert importlib.util.find_spec("osmium") is None
+
+    def test_the_module_shells_out_rather_than_importing_a_binding(self) -> None:
+        source = Path(network_decode.__file__).read_text(encoding="utf-8")
+        assert "import osmium" not in source
+        assert "subprocess" in source
+
+    def test_the_absent_decoder_still_gives_an_actionable_diagnostic(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(network_decode, "discover_osmium", lambda: None)
+        with pytest.raises(NetworkDecodeError, match="OSMIUM_TOOLCHAIN_UNAVAILABLE") as caught:
+            decode_pbf_to_osm_xml(
+                _fake_pbf(tmp_path),
+                tmp_path / "out.osm.xml",
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
+        # Actionable means it names the missing tool and what to install.
+        assert "osmium-tool" in str(caught.value)

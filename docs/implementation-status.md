@@ -372,7 +372,8 @@ planned.
 A candidate `MAN-09` **baseline-network foundation** now satisfies design Gate-D step 1 ("Bind one
 reviewed Manchester SUMO network and licence") and nothing further. The repository owner supplied
 the open decisions on 25 July 2026 and they are recorded in
-[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md),
+[ADR-060](decisions/ADR-060-controlled-osm-pbf-decode-boundary.md), and the
 [baseline network guide](integration/manchester_baseline_network.md): Greater Manchester
 (`E47000001`) is the single primary baseline scope, Manchester local authority (`E08000003`) is a
 selectable sub-area filter rather than a second network, the source is OpenStreetMap via Geofabrik,

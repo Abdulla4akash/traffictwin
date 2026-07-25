@@ -1,5 +1,11 @@
 {
   "build": {
+    "duration_note": "netconvert wall-clock per run, excluding digesting, validation and promotion. Two full Greater Manchester runs were retained; the city-centre sub-area probe built in 0.814 s, so these figures are scale-dependent and are not a benchmark of the tool.",
+    "duration_observed_per_run_s": [
+      89.858,
+      83.118
+    ],
+    "duration_s": 83.118,
     "envelope_reconciliation": {
       "east_overshoot_degrees": "0.020121",
       "network_clipped_to_boundary": false,
@@ -62,6 +68,17 @@
       "lanes": 2157380,
       "traffic_lights": 2434
     },
+    "sub_area_coverage": {
+      "admissible_role": "baseline_candidate",
+      "east_shortfall_degrees": "0",
+      "fully_inside_network": true,
+      "north_shortfall_degrees": "0",
+      "note": "the local authority is a filter over this one baseline network, never a second network. The earlier city-centre build classifies from the same measurement as sub_area_probe_only and keeps that label. Containing the filter area is geometric coverage only and says nothing about observation coverage, which remains Manchester local authority only.",
+      "official_code": "E08000003",
+      "south_shortfall_degrees": "0",
+      "sub_area": "manchester_local_authority",
+      "west_shortfall_degrees": "0"
+    },
     "tool": "netconvert",
     "validation_status": "accepted"
   },
@@ -75,6 +92,8 @@
     "decoded_bytes": 996913352,
     "decoded_sha256": "233af3fa6dd34b1541ec022f0139a543f44355fe1748fd9d609ed653c8c9edf1",
     "decoded_xml_committed_to_git": false,
+    "duration_note": "measured on the pinned 50,502,348-byte extract producing 996,913,352 bytes of OSM XML; wall-clock of the osmium process only, excluding digesting and validation",
+    "duration_s": 2.639,
     "expansion_ratio": 19.74,
     "frozen_argument_shape": [
       "cat",

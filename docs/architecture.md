@@ -1360,7 +1360,8 @@ local authority only, so Greater Manchester locations without observations class
 are structurally prevented from becoming zero. A built network is geometry: `calibration_performed`,
 `comparison_performed`, `vec_execution_performed`, `live_traffic_claim`, and
 `accepted_for_real_matching` are all fixed false on the binding. See
-[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md),
+[ADR-060](decisions/ADR-060-controlled-osm-pbf-decode-boundary.md), and the
 [baseline network guide](integration/manchester_baseline_network.md).
 
 The MAN-09 decode boundary under `integration.manchester.network_decode` is a fourth,
@@ -1382,7 +1383,8 @@ optional `DecodeSourceExpectation` makes the decode refuse anything but the exac
 
 Reproducibility is measured rather than asserted anywhere in this chain. `compare_builds` is the
 only thing that can set a verified status, and a single build records `not_verified`. See
-[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md),
+[ADR-060](decisions/ADR-060-controlled-osm-pbf-decode-boundary.md), and the
 [baseline network guide](integration/manchester_baseline_network.md).
 
 Future canonical adapters must:
