@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `5932d65`
+- Working head at last update: `c628e66`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -70,19 +70,23 @@ Phase 9 cannot start until an accepted FCD/network pair exists, which decision 1
 
 ### Phase 10 — CLI, service and thin UI integration
 
-Thirteen Manchester modules are built; only `network` and `profile` have CLI surface. Everything from
-phase 2 onward is reachable only by writing Python, which is not a product.
+**In progress.** A read-only `workflow_service` now reports every phase and its blocker, and four
+command families exist: `network`, `profile`, `workflow`, `observation`, `match`. Nine workflows
+still have no CLI.
 
 Required workflows, from the brief:
 
 | Workflow | CLI today |
 |---|---|
-| acquire DfT evidence | missing |
+| acquire DfT evidence | missing (module exists; needs an operator-confirmed command) |
 | inspect snapshots | missing |
 | measure matching ambiguity | missing |
 | generate map-match candidates | missing |
 | review and resume matches | missing |
 | build temporal profiles | `profile build` |
+| inspect workflow status and blockers | `workflow status`, `workflow decisions` |
+| inspect DfT snapshots | `observation snapshots` |
+| show the map-match policy | `match policy` |
 | build candidate demand | missing |
 | run calibration | missing |
 | run held-out evaluation | missing |
