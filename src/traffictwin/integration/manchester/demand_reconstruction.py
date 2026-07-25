@@ -239,7 +239,7 @@ class CountConstrainedDemandInput(DemandModel):
         bound = {
             resolution.edge_id
             for resolution in self.resolutions
-            if resolution.binding == "bound_to_single_edge"
+            if resolution.binding in BOUND_BINDINGS and resolution.edge_id is not None
         }
         for count in self.counts:
             if count.edge_id not in bound:
@@ -463,14 +463,14 @@ INCLUDED_EARLIER_YEAR: Literal["2019"] = "2019"
 WINDOW_FLOOR_YEAR: Literal["2022"] = "2022"
 
 
-def site_is_in_survey_window(latest_count_date: str) -> bool:
+def site_is_in_survey_window(latest_count_date: str | Any) -> bool:
     """Whether a site's latest survey admits it to the owner's Phase 5 window.
 
-    ``latest_count_date`` is an ISO date. Only the year is consulted, because the
-    owner's rule is stated in years.
+    ``latest_count_date`` is an ISO date string or date object. Only the year is consulted,
+    because the owner's rule is stated in years.
     """
 
-    year = latest_count_date[:4]
+    year = str(latest_count_date)[:4]
     if year in EXCLUDED_PANDEMIC_YEARS:
         return False
     return year == INCLUDED_EARLIER_YEAR or year >= WINDOW_FLOOR_YEAR

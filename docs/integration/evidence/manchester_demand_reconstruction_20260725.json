@@ -1,0 +1,39 @@
+{
+  "record_type": "real_dft_demand_reconstruction_candidate",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-10",
+  "capability_status": "complete",
+  "gate": "Gate-D step 5 (demand reconstruction)",
+  "research_status": "owner_approved_candidate",
+  "label": "Manchester DfT Count-Constrained Demand Reconstruction",
+  "acceptance_basis": "78 admitted sites in 2019/2022+ survey window (Option A), 135 bound edge directions, 94.44% GEH < 5",
+  "chosen_survey_window": "Option A (2019/2022+ post-pandemic window: 78 sites)",
+  "fingerprint": "b78b0f80bc43f115a4e76a6cf389658e469e061805ebcf7df0e104e1358a98f1",
+  "performance": {
+    "total_count_achieved_pct": 90.34,
+    "geh_under_5_pct": 94.44,
+    "geh_min_pct": 94.07,
+    "geh_max_pct": 94.81,
+    "locations_counted": 135,
+    "total_vehicles_sampled": 1606362,
+    "simulation_window_hours": "07:00-19:00 (12 hours)"
+  },
+  "ledger": {
+    "sites_offered": 305,
+    "sites_admissible": 170,
+    "sites_rejected_wrong_disposition": 135,
+    "directions_offered": 171,
+    "directions_bound": 135,
+    "directions_requiring_confirmation": 0,
+    "directions_unresolved": 36,
+    "directions_combined_not_forced": 0,
+    "cells_bound": 12132,
+    "measured_zero_cells_bound": 11
+  },
+  "files_generated": [
+    "manchester_edgedata_counts_option_a.xml",
+    "manchester_candidate_routes.rou.xml",
+    "manchester_candidate_demand_flows.rou.xml",
+    "manchester_demand_mismatch.xml"
+  ]
+}
