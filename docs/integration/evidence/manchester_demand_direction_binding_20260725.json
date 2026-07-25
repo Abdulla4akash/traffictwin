@@ -1,0 +1,75 @@
+{
+  "record_type": "count_constrained_candidate_demand_direction_binding",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 5 (demand reconstruction), input preparation only",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "analyst_accepted": false,
+  "human_accepted": false,
+  "acceptance_basis": "owner_policy_accepted_candidate",
+  "acceptance_note": "The input is the set of rows the owner's written policy accepted. No analyst, human, or supervisor reviewed any row. The design brief's phrase 'analyst-accepted matches' is not yet satisfied by a person, and no artifact here describes it as such.",
+  "inputs": {
+    "match_policy": "manchester-dft-map-match-owner-policy-1.1",
+    "accepted_sites_reproduced": 131,
+    "distinct_member_edges": 596,
+    "network": "accepted Greater Manchester baseline (ADR-059/060)",
+    "reproduction_check": "the v1.1 run was re-executed from the accepted snapshots and reproduced 131 accepted / 165 awaiting manual review / 9 no suitable candidate, matching the Phase 3/4 record exactly"
+  },
+  "why_direction_is_applied_here": "The approved policy sequences it this way: reference matching first identifies an undirected road group, and the raw count's direction is applied afterwards to the underlying directed SUMO edges. Policy v1.1 accordingly leaves bearing_degrees unset, so this is the first stage at which direction exists.",
+  "direction_application": {
+    "site_directions_offered": 311,
+    "bound_to_single_edge": 87,
+    "several_compatible_edges_require_confirmation": 163,
+    "direction_unresolved": 61,
+    "sites_with_at_least_one_bound_direction": 53,
+    "sites_accepted_total": 131,
+    "bound_directions_per_site": {"1": 22, "2": 29, "3": 1, "4": 1},
+    "tolerance_degrees": 45,
+    "note": "every offered direction reaches exactly one outcome; none is dropped"
+  },
+  "substantive_finding_for_the_owner": {
+    "summary": "the 'several compatible edges' rule fires mostly on collinear fragments of one carriageway, not on opposing directions",
+    "measurement": {
+      "cases": 163,
+      "compatible_edges_per_case_median": 3,
+      "compatible_edges_per_case_max": 6,
+      "circular_bearing_spread_degrees": {"median": 2.09, "p90": 22.61, "max": 76.03},
+      "all_compatible_edges_within_5_degrees": {"cases": 107, "percent": 65.6},
+      "all_compatible_edges_within_10_degrees": {"cases": 124, "percent": 76.1},
+      "all_compatible_edges_within_20_degrees": {"cases": 143, "percent": 87.7}
+    },
+    "measurement_correction": "an earlier pass computed the spread as max(bearing) - min(bearing), which is wrong for circular data and reported a spurious maximum of 359.50 degrees for edges lying either side of north. The figures above use the maximum pairwise circular difference and give a true maximum of 76.03 degrees.",
+    "interpretation": "The approved rule 'if both directed edges remain plausible, keep both and require analyst confirmation' was written for the two opposing carriageways of one road. In practice it fires most often because SUMO splits a single carriageway at every junction, so several fragments of the same road run within a couple of degrees of each other and all satisfy the 45 degree tolerance. That is a grouping artifact rather than genuine directional ambiguity.",
+    "consequence": "Only 87 of 311 site-directions bind, across 53 of the 131 accepted sites. Route sampling against 87 edge-directions would be severely under-constrained relative to the observations actually available.",
+    "options_for_the_owner": [
+      "treat collinear same-direction fragments of one road group as a single binding target, so the count binds once to that road rather than deferring",
+      "keep the current rule and accept the reduced coverage, recording it as a limitation",
+      "raise the confirmation rule's threshold so it fires only when compatible bearings genuinely diverge"
+    ],
+    "not_decided_here": "no option has been chosen or implemented. The approved policy was applied exactly as authorised, and the shortfall is reported rather than engineered around."
+  },
+  "boundaries_held": {
+    "direction_never_reversed_or_invented": true,
+    "combined_direction_never_forced_onto_one_edge": true,
+    "measured_zero_kept_distinct_from_missing": true,
+    "every_offered_direction_reaches_one_outcome": true,
+    "counts_may_only_bind_to_a_resolved_edge": "enforced by model validator",
+    "no_demand_synthesised_for_uncovered_greater_manchester": true
+  },
+  "not_yet_done": {
+    "route_pool_generation": "not run",
+    "routeSampler_execution": "not run",
+    "reason": "route sampling against 87 of 311 available site-directions would be under-constrained, and the fragment question above changes how many bind. Running it first would produce a demand artifact whose coverage reflects an unresolved policy question rather than the evidence.",
+    "tooling_verified_available": "SUMO 1.27.1 with tools/routeSampler.py and tools/randomTrips.py present; dfrouter deliberately not used because SUMO documentation warns it can produce implausible routes in highly meshed city networks"
+  },
+  "explicit_non_claims": [
+    "no demand artifact has been produced; this record covers input preparation only",
+    "reconstructed routes would be count-constrained candidates, never observed origin-destination travel",
+    "no calibration, comparison, or simulation was performed",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}

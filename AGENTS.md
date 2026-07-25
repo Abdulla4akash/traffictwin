@@ -744,6 +744,45 @@ integration tests, repository Ruff and format checks, strict mypy, the generated
 and `git diff --check`. Each coherent phase is committed and pushed separately to
 `origin/claude/complete-v0.7`; no release tag is created or moved and nothing is force-pushed.
 
+### Phase 5 claim: count-constrained candidate demand
+
+Claimed on 25 July 2026 from the clean pushed head `5a860fc`, verified in sync with
+`origin/claude/complete-v0.7`, under the same mandate and standing terms. No capability moves off
+`planned`, no gate is accepted, and the unsigned supervisor form is untouched.
+
+**Exclusive new source file.** `src/traffictwin/integration/manchester/demand_reconstruction.py`.
+**Exclusive new tests.** `tests/unit/test_manchester_demand_reconstruction.py`.
+**Additionally edited** under the mandate's shared-surface transfer: `src/traffictwin/cli.py` (one
+new bounded `integration manchester demand` family only), `scripts/generate_reference_docs.py`
+generated output, a new dated record under `docs/integration/evidence/`, a new
+`docs/integration/manchester_demand_reconstruction.md`, and the shared project records.
+
+**Not edited.** Everything listed as not edited in the Phase 3/4 claim, plus
+`observation_matching_v11.py`, `dft_temporal_profile.py`, and `network_connectivity.py`, which are
+read and imported only.
+
+**Substantive boundaries.**
+
+- **The acceptance limitation propagates.** The demand input is the set of rows the owner's *written
+  policy* accepted (`owner_policy_accepted_candidate`). **No analyst, human, or supervisor reviewed
+  any row.** Every artifact this phase produces carries that limitation forward explicitly; none may
+  describe its input as analyst-accepted, and the design brief's phrase "analyst-accepted matches"
+  is not yet satisfied by a person.
+- **`routeSampler.py`, not `dfrouter`.** SUMO's own documentation warns that `dfrouter` can generate
+  implausible routes in highly meshed city networks, and Greater Manchester is exactly that. The
+  route pool is fixed and documented, and `routeSampler` is run against it with a fixed seed.
+- **Reconstructed routes are not observed journeys.** The result is labelled
+  `count_constrained_candidate_demand`. It is never described as observed origin-destination travel,
+  and mismatch output, unmatched counts, overflow, route coverage, and warnings are preserved rather
+  than summarised away.
+- **Manchester-LA study scope stays distinct from the Greater Manchester parent.** If a study
+  subnetwork is built because whole-network route generation is impractical, it records its binding
+  to the parent network and is never called a Greater Manchester-wide calibration.
+- **No demand is synthesised for uncovered areas.** Greater Manchester outside the local authority
+  has no DfT observations and stays uncovered; a missing count never becomes a zero count.
+- Executable identities, argument vectors, versions, seeds, timeouts, and workspace boundaries are
+  frozen and recorded. No arbitrary command execution is exposed.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,

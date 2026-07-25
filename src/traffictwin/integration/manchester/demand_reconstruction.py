@@ -1,0 +1,337 @@
+"""Count-constrained candidate demand from owner-policy-accepted matches.
+
+This is design Gate-D step 5 (demand reconstruction) for **real** Manchester
+evidence, and it stops at a *candidate*. The product is labelled
+:data:`DEMAND_LABEL` — ``count_constrained_candidate_demand``. It is a set of
+routes chosen so that simulated edge counts approach observed edge counts. It is
+**not** observed origin-destination travel, and nothing here may describe it as
+such.
+
+**The acceptance limitation propagates.** The input is the set of rows the
+owner's *written policy* accepted, ``owner_policy_accepted_candidate``. No
+analyst, human, or supervisor reviewed any row, so every artifact produced here
+carries :data:`ACCEPTANCE_BASIS` forward explicitly. The design brief's phrase
+"analyst-accepted matches" is not yet satisfied by a person, and this module
+never claims otherwise.
+
+**Direction is applied here, not earlier.** The approved policy sequences it
+that way: reference matching first identifies an *undirected* road group, and
+the raw count's direction is applied afterwards to the underlying directed SUMO
+edges. Policy v1.1 therefore leaves ``bearing_degrees`` unset, and this module
+computes each edge's bearing from its own geometry and applies the approved 45°
+tolerance. Three outcomes are kept distinct and never merged:
+
+*   exactly one direction-compatible edge — the count binds to it;
+*   several compatible edges — both remain plausible, so the policy keeps both
+    and requires confirmation; the count is **not** bound and is queued;
+*   none compatible — ``direction_unresolved``. Direction is never reversed or
+    invented to force a binding.
+
+``C`` (combined directions) is never forced onto one directed edge.
+
+Why ``routeSampler`` and not ``dfrouter``: SUMO's own documentation warns that
+``dfrouter`` can generate implausible routes in highly meshed city networks, and
+Greater Manchester is exactly that. The route pool is fixed and documented and
+``routeSampler`` samples from it against the observed counts.
+"""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from collections.abc import Iterable, Mapping, Sequence
+from decimal import Decimal
+from typing import Literal, TypeAlias
+
+from pydantic import Field, model_validator
+
+from traffictwin.integration.manchester.models import (
+    ManchesterSnapshotModel,
+    canonical_json,
+    sha256_hex,
+)
+from traffictwin.integration.manchester.network_geometry import EdgeSpatialIndex
+from traffictwin.integration.manchester.observation_matching import (
+    CARDINAL_BEARINGS,
+    COMBINED_DIRECTION,
+    angular_difference,
+    edge_bearing_degrees,
+)
+
+DEMAND_SCHEMA_VERSION: Literal["1.0"] = "1.0"
+DEMAND_METHOD_VERSION: Literal["manchester-demand-reconstruction-1.0"] = (
+    "manchester-demand-reconstruction-1.0"
+)
+DEMAND_CAPABILITY_ID: Literal["MAN-09"] = "MAN-09"
+
+#: What the product is. Never "observed demand", never "origin-destination".
+DEMAND_LABEL: Literal["count_constrained_candidate_demand"] = "count_constrained_candidate_demand"
+
+#: How the input rows came to be accepted. Carried into every artifact.
+ACCEPTANCE_BASIS: Literal["owner_policy_accepted_candidate"] = "owner_policy_accepted_candidate"
+
+RESEARCH_STATUS: Literal["owner_approved_candidate"] = "owner_approved_candidate"
+
+#: The disposition a match must carry to be admitted as demand input.
+ADMISSIBLE_DISPOSITION = "owner_policy_accepted_candidate"
+
+DirectionBinding: TypeAlias = Literal[
+    "bound_to_single_edge",
+    "several_compatible_edges_require_confirmation",
+    "direction_unresolved",
+    "combined_direction_not_forced",
+    "direction_absent",
+]
+
+
+class DemandReconstructionError(ValueError):
+    """Typed refusal for an unsupported or inconsistent demand request."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(f"{code}: {message}")
+        self.code = code
+
+
+class DemandModel(ManchesterSnapshotModel):
+    """Strict frozen base for candidate-demand artifacts."""
+
+
+class DirectionResolution(DemandModel):
+    """How one site-direction resolved onto the network, and why."""
+
+    count_point_id: int = Field(ge=0)
+    direction_of_travel: str = Field(min_length=1, max_length=8)
+    binding: DirectionBinding
+    edge_id: str | None = Field(default=None, max_length=200)
+    #: Every member edge considered, with its measured bearing, so a reader can
+    #: see what the tolerance was applied to rather than trusting the outcome.
+    considered: tuple[tuple[str, Decimal | None], ...] = ()
+    target_bearing_degrees: Decimal | None = Field(default=None, ge=0, lt=360)
+    tolerance_degrees: Decimal = Field(ge=0, le=180)
+    reason: str = Field(min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def validate_resolution(self) -> DirectionResolution:
+        if (self.binding == "bound_to_single_edge") != (self.edge_id is not None):
+            raise ValueError("an edge id is recorded exactly when the direction bound to one edge")
+        return self
+
+
+class EdgeHourCount(DemandModel):
+    """One observed hourly count bound to one directed edge."""
+
+    edge_id: str = Field(min_length=1, max_length=200)
+    count_point_id: int = Field(ge=0)
+    direction_of_travel: str = Field(min_length=1, max_length=8)
+    hour: int = Field(ge=0, le=23)
+    interval_start_s: int = Field(ge=0)
+    interval_end_s: int = Field(gt=0)
+    all_motor_vehicles: int = Field(ge=0)
+    #: True when the source explicitly recorded a measured zero, so a real zero
+    #: is never confused with a missing hour.
+    measured_zero: bool
+
+    @model_validator(mode="after")
+    def validate_count(self) -> EdgeHourCount:
+        if self.interval_end_s <= self.interval_start_s:
+            raise ValueError("an interval must be a positive half-open window")
+        if self.measured_zero and self.all_motor_vehicles != 0:
+            raise ValueError("a measured-zero cell must carry a zero count")
+        return self
+
+
+class DemandInputLedger(DemandModel):
+    """Everything offered, everything bound, and everything not bound with why."""
+
+    schema_version: Literal["1.0"] = "1.0"
+    sites_offered: int = Field(ge=0)
+    sites_admissible: int = Field(ge=0)
+    sites_rejected_wrong_disposition: int = Field(ge=0)
+    directions_offered: int = Field(ge=0)
+    directions_bound: int = Field(ge=0)
+    directions_requiring_confirmation: int = Field(ge=0)
+    directions_unresolved: int = Field(ge=0)
+    directions_combined_not_forced: int = Field(ge=0)
+    cells_bound: int = Field(ge=0)
+    measured_zero_cells_bound: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def validate_ledger(self) -> DemandInputLedger:
+        if self.sites_admissible + self.sites_rejected_wrong_disposition != self.sites_offered:
+            raise ValueError("every offered site must be admitted or rejected, never dropped")
+        resolved = (
+            self.directions_bound
+            + self.directions_requiring_confirmation
+            + self.directions_unresolved
+            + self.directions_combined_not_forced
+        )
+        if resolved != self.directions_offered:
+            raise ValueError("every offered direction must reach exactly one outcome")
+        return self
+
+
+class CountConstrainedDemandInput(DemandModel):
+    """The complete edge-count input a route sampler may be run against."""
+
+    schema_version: Literal["1.0"] = "1.0"
+    capability_id: Literal["MAN-09"] = "MAN-09"
+    method_version: Literal["manchester-demand-reconstruction-1.0"] = DEMAND_METHOD_VERSION
+    demand_label: Literal["count_constrained_candidate_demand"] = DEMAND_LABEL
+    research_status: Literal["owner_approved_candidate"] = RESEARCH_STATUS
+
+    #: The single most important field in this artifact.
+    acceptance_basis: Literal["owner_policy_accepted_candidate"] = ACCEPTANCE_BASIS
+    analyst_accepted: Literal[False] = False
+    human_accepted: Literal[False] = False
+    supervisor_approved: Literal[False] = False
+    scientifically_validated: Literal[False] = False
+    observed_origin_destination_travel: Literal[False] = False
+
+    match_policy_id: str = Field(min_length=1, max_length=120)
+    match_policy_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    direction_tolerance_degrees: Decimal = Field(ge=0, le=180)
+
+    counts: tuple[EdgeHourCount, ...] = ()
+    resolutions: tuple[DirectionResolution, ...] = ()
+    ledger: DemandInputLedger
+
+    @model_validator(mode="after")
+    def validate_input(self) -> CountConstrainedDemandInput:
+        bound = {
+            resolution.edge_id
+            for resolution in self.resolutions
+            if resolution.binding == "bound_to_single_edge"
+        }
+        for count in self.counts:
+            if count.edge_id not in bound:
+                raise ValueError("every count must bind to an edge the direction step resolved")
+        return self
+
+    def fingerprint(self) -> str:
+        return sha256_hex(self.canonical_json().encode("utf-8"))
+
+    def edge_totals(self) -> dict[str, int]:
+        """Total observed vehicles per edge across every bound hour."""
+
+        totals: dict[str, int] = defaultdict(int)
+        for count in self.counts:
+            totals[count.edge_id] += count.all_motor_vehicles
+        return dict(totals)
+
+
+def resolve_direction(
+    *,
+    count_point_id: int,
+    direction_of_travel: str,
+    member_edge_ids: Sequence[str],
+    index: EdgeSpatialIndex,
+    ordinals_by_edge: Mapping[str, int],
+    tolerance_degrees: Decimal,
+) -> DirectionResolution:
+    """Apply one raw-count direction to a road group's directed edges.
+
+    Direction is never reversed and never invented. Where several edges remain
+    compatible the count is left unbound, because the approved policy keeps both
+    and requires confirmation rather than picking one.
+    """
+
+    considered: list[tuple[str, Decimal | None]] = []
+    for edge_id in member_edge_ids:
+        ordinal = ordinals_by_edge.get(edge_id)
+        bearing = edge_bearing_degrees(index.geometry(ordinal)) if ordinal is not None else None
+        considered.append((edge_id, bearing))
+    frozen = tuple(considered)
+
+    if direction_of_travel == COMBINED_DIRECTION:
+        return DirectionResolution(
+            count_point_id=count_point_id,
+            direction_of_travel=direction_of_travel,
+            binding="combined_direction_not_forced",
+            considered=frozen,
+            tolerance_degrees=tolerance_degrees,
+            reason="a combined-direction count is never forced onto one directed edge",
+        )
+
+    target = CARDINAL_BEARINGS.get(direction_of_travel)
+    if target is None:
+        return DirectionResolution(
+            count_point_id=count_point_id,
+            direction_of_travel=direction_of_travel,
+            binding="direction_absent",
+            considered=frozen,
+            tolerance_degrees=tolerance_degrees,
+            reason=f"direction {direction_of_travel!r} is not an approved cardinal code",
+        )
+
+    compatible = [
+        edge_id
+        for edge_id, bearing in frozen
+        if bearing is not None and angular_difference(bearing, target) <= tolerance_degrees
+    ]
+    if len(compatible) == 1:
+        return DirectionResolution(
+            count_point_id=count_point_id,
+            direction_of_travel=direction_of_travel,
+            binding="bound_to_single_edge",
+            edge_id=compatible[0],
+            considered=frozen,
+            target_bearing_degrees=target,
+            tolerance_degrees=tolerance_degrees,
+            reason="exactly one member edge lies within the approved bearing tolerance",
+        )
+    if len(compatible) > 1:
+        return DirectionResolution(
+            count_point_id=count_point_id,
+            direction_of_travel=direction_of_travel,
+            binding="several_compatible_edges_require_confirmation",
+            considered=frozen,
+            target_bearing_degrees=target,
+            tolerance_degrees=tolerance_degrees,
+            reason=(
+                f"{len(compatible)} member edges lie within the tolerance; the approved policy "
+                "keeps both and requires confirmation rather than choosing one"
+            ),
+        )
+    return DirectionResolution(
+        count_point_id=count_point_id,
+        direction_of_travel=direction_of_travel,
+        binding="direction_unresolved",
+        considered=frozen,
+        target_bearing_degrees=target,
+        tolerance_degrees=tolerance_degrees,
+        reason="no member edge lies within the tolerance; direction is not reversed or invented",
+    )
+
+
+def ordinals_by_edge_id(index: EdgeSpatialIndex, edge_ids: Iterable[str]) -> dict[str, int]:
+    """Map the wanted edge ids to their index ordinals in one pass."""
+
+    wanted = set(edge_ids)
+    found: dict[str, int] = {}
+    for ordinal in range(len(index)):
+        edge_id = index.edge_record(ordinal)[0]
+        if edge_id in wanted:
+            found[edge_id] = ordinal
+            if len(found) == len(wanted):
+                break
+    return found
+
+
+def demand_input_fingerprint(
+    *,
+    match_policy_fingerprint: str,
+    profile_lineage_fingerprint: str,
+    network_identity_sha256: str,
+) -> str:
+    """Bind a demand input to every artifact it was derived from."""
+
+    return sha256_hex(
+        canonical_json(
+            {
+                "match_policy": match_policy_fingerprint,
+                "profile_lineage": profile_lineage_fingerprint,
+                "network_identity": network_identity_sha256,
+                "method": DEMAND_METHOD_VERSION,
+                "acceptance_basis": ACCEPTANCE_BASIS,
+            }
+        ).encode("utf-8")
+    )
