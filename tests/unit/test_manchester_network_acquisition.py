@@ -17,6 +17,8 @@ from traffictwin.integration.manchester.models import (
 from traffictwin.integration.manchester.network_acquisition import (
     OSM_CHECKSUM_MEMBER_PATH,
     OSM_CHECKSUM_PATH,
+    OSM_EXTRACT_DATA_CUTOFF_DATE,
+    OSM_EXTRACT_FILENAME,
     OSM_EXTRACT_MEMBER_PATH,
     OSM_EXTRACT_PATH,
     OSM_MIN_EXTRACT_BYTES,
@@ -198,6 +200,32 @@ class TestBoundedAcquisition:
             utc_now=_clock,
         )
         assert result.identity.reference_date == OSM_REFERENCE_DATE == date(2026, 7, 25)
+
+    def test_retrieval_date_stays_separate_from_the_extract_data_cutoff(
+        self, tmp_path: Path
+    ) -> None:
+        # Design §3.1: observation time is not retrieval time.  The operator
+        # decided on 25 July 2026, but the newest published extract carries a
+        # 24 July 2026 data cutoff; both are recorded and never collapsed.
+        result = acquire_osm_extract_snapshot(
+            _workspace(tmp_path),
+            OsmExtractAcquisitionRequest(
+                authorisation=_authorisation(), policy=_policy(), synthetic=True
+            ),
+            http_client=_transport(_synthetic_pbf()),
+            utc_now=_clock,
+        )
+        assert result.identity.reference_date == date(2026, 7, 25)
+        assert result.identity.extract_data_cutoff_date == OSM_EXTRACT_DATA_CUTOFF_DATE
+        assert result.identity.extract_data_cutoff_date == date(2026, 7, 24)
+        assert result.identity.reference_date != result.identity.extract_data_cutoff_date
+
+    def test_the_pinned_path_is_dated_and_never_the_moving_latest_alias(self) -> None:
+        # `-latest` 302-redirects to a dated file, so pinning it would make the
+        # baseline non-reproducible.  Redirects are disallowed outright.
+        assert "latest" not in OSM_EXTRACT_PATH
+        assert OSM_EXTRACT_PATH.endswith("greater-manchester-260724.osm.pbf")
+        assert OSM_EXTRACT_FILENAME == "greater-manchester-260724.osm.pbf"
 
     def test_result_makes_no_build_or_calibration_claim(self, tmp_path: Path) -> None:
         result = acquire_osm_extract_snapshot(

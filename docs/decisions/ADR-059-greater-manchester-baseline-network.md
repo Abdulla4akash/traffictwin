@@ -32,25 +32,41 @@ repository owner on 25 July 2026 and recorded in the
 2. **Manchester local authority is a selectable sub-area filter, not a second network.** `E08000003`
    is modelled as a filter over the one baseline network. Building a second baseline network for the
    local authority is explicitly refused.
-3. **Source is OpenStreetMap via Geofabrik**, extract reference date **25 July 2026**, licence
-   **ODbL 1.0 — accepted**, attribution `© OpenStreetMap contributors, ODbL 1.0`. Accepted raw
-   extracts are `private` (workspace-only, never committed); derived networks are
-   `redistributable_derived` subject to share-alike being honoured at publication review.
-4. **The ONS boundary assets provide identity and a derived envelope only.** The packaged GeoJSON is
+3. **Source is OpenStreetMap via Geofabrik**, licence **ODbL 1.0 — accepted**, attribution
+   `© OpenStreetMap contributors, ODbL 1.0`. Accepted raw extracts are `private` (workspace-only,
+   never committed); derived networks are `redistributable_derived` subject to share-alike being
+   honoured at publication review.
+4. **The pinned extract is the dated file, not the `-latest` alias, and its two dates are kept
+   separate.** Probing the provider on 25 July 2026 established that
+   `greater-manchester-latest.osm.pbf` responds `302 Found` and redirects to a dated file, so
+   pinning `-latest` would make the baseline non-reproducible by construction. The dated file is
+   pinned instead and is served directly with no redirect, which is why the transport allows zero
+   redirects. Design §3.1 ("observation time is not retrieval time") applies to the two dates:
+
+   | Field | Value | Meaning |
+   |---|---|---|
+   | `reference_date` | 2026-07-25 | Operator decision and retrieval date |
+   | `extract_data_cutoff_date` | 2026-07-24 | OSM data cutoff encoded in the provider's filename |
+
+   **The owner's requested 25 July 2026 extract does not exist.** `greater-manchester-260725.osm.pbf`
+   returns HTTP 404; the newest published extract is `greater-manchester-260724.osm.pbf`, itself
+   served with `Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT`. Rather than relabel a 24 July extract
+   as a 25 July one, both dates are recorded and a test asserts they never collapse into one value.
+5. **The ONS boundary assets provide identity and a derived envelope only.** The packaged GeoJSON is
    BGC-generalised to 20 m, coastline clipped, and rounded to 4 decimal degrees. It is **not** used
    as a scientific clipping boundary — `boundary_reference.py` already declares
    `scientific_clipping_available = False`, and this ADR does not override that. The extract
    envelope derived from it is labelled `derived_from_display_geometry` and carries an explicit
    uncertainty statement and margin.
-5. **Construction uses SUMO 1.27.1 `netconvert` through one fixed reviewed argument vector.** The
+6. **Construction uses SUMO 1.27.1 `netconvert` through one fixed reviewed argument vector.** The
    operator selects no argument, no host, no URL, no path, and no tool name. An observed version
    other than 1.27.1 fails the build closed with `SUMO_VERSION_DRIFT`.
-6. **Projection is read back from the produced network, never asserted.** `netconvert` selects UTM
+7. **Projection is read back from the produced network, never asserted.** `netconvert` selects UTM
    zone 30N for this longitude band; the produced `<location>` element's `projParameter`,
    `netOffset`, `convBoundary`, and `origBoundary` are read verbatim and pinned into the binding.
    TrafficTwin never re-derives, overrides, or silently reprojects them. Distance work elsewhere
    continues to use EPSG:27700.
-7. **Determinism is claimed at semantic identity, not byte identity.** This was measured, not
+8. **Determinism is claimed at semantic identity, not byte identity.** This was measured, not
    assumed (see Consequences).
 
 ## Consequences

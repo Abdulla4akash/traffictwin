@@ -80,18 +80,25 @@ OSM_ACQUISITION_METHOD_VERSION: Literal["manchester-osm-extract-acquisition-1.0"
 )
 OSM_SOURCE_ID: Literal["osm_greater_manchester"] = "osm_greater_manchester"
 OSM_SOURCE_HOST: Literal["download.geofabrik.de"] = "download.geofabrik.de"
-OSM_EXTRACT_PATH: Literal["/europe/united-kingdom/england/greater-manchester-latest.osm.pbf"] = (
-    "/europe/united-kingdom/england/greater-manchester-latest.osm.pbf"
+
+# The provider's ``-latest`` alias is a moving target that 302-redirects to a
+# dated file, so pinning it would make the baseline non-reproducible by design.
+# The dated file is pinned instead and is served without a redirect.
+OSM_EXTRACT_FILENAME: Literal["greater-manchester-260724.osm.pbf"] = (
+    "greater-manchester-260724.osm.pbf"
+)
+OSM_EXTRACT_PATH: Literal["/europe/united-kingdom/england/greater-manchester-260724.osm.pbf"] = (
+    "/europe/united-kingdom/england/greater-manchester-260724.osm.pbf"
 )
 OSM_CHECKSUM_PATH: Literal[
-    "/europe/united-kingdom/england/greater-manchester-latest.osm.pbf.md5"
-] = "/europe/united-kingdom/england/greater-manchester-latest.osm.pbf.md5"
+    "/europe/united-kingdom/england/greater-manchester-260724.osm.pbf.md5"
+] = "/europe/united-kingdom/england/greater-manchester-260724.osm.pbf.md5"
 
-OSM_EXTRACT_MEMBER_PATH: Literal["osm/greater-manchester-latest.osm.pbf"] = (
-    "osm/greater-manchester-latest.osm.pbf"
+OSM_EXTRACT_MEMBER_PATH: Literal["osm/greater-manchester-260724.osm.pbf"] = (
+    "osm/greater-manchester-260724.osm.pbf"
 )
-OSM_CHECKSUM_MEMBER_PATH: Literal["osm/greater-manchester-latest.osm.pbf.md5"] = (
-    "osm/greater-manchester-latest.osm.pbf.md5"
+OSM_CHECKSUM_MEMBER_PATH: Literal["osm/greater-manchester-260724.osm.pbf.md5"] = (
+    "osm/greater-manchester-260724.osm.pbf.md5"
 )
 
 OSM_LICENCE_ID: Literal["ODbL-1.0"] = "ODbL-1.0"
@@ -103,8 +110,17 @@ OSM_ATTRIBUTION: Literal["© OpenStreetMap contributors, ODbL 1.0"] = (
 )
 OSM_FRESHNESS_POLICY_VERSION: Literal["osm-dated-extract-1.0"] = "osm-dated-extract-1.0"
 
-#: The ADR-059 pinned reference date for the accepted extract.
+#: The ADR-059 reference/access date: when the operator decided and retrieved.
+#: Observation time is not retrieval time (design §3.1), so this is recorded
+#: separately from the extract's own data-cutoff date below.
 OSM_REFERENCE_DATE: date = date(2026, 7, 25)
+
+#: The data-cutoff date encoded in the provider's dated filename.  Probed on
+#: 25 July 2026: a ``260725`` extract does not exist (HTTP 404); ``260724`` is
+#: the newest published extract, itself served with
+#: ``Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT``.  Recording the real
+#: available date rather than the requested one keeps the provenance truthful.
+OSM_EXTRACT_DATA_CUTOFF_DATE: date = date(2026, 7, 24)
 
 #: Hard ceiling for the extract read.  The Greater Manchester extract is on the
 #: order of tens of megabytes; this bound is far above it and still finite.
@@ -230,7 +246,11 @@ class OsmExtractIdentity(ManchesterSnapshotModel):
     extract_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     extract_md5: str = Field(pattern=r"^[0-9a-f]{32}$")
     extract_bytes: int = Field(ge=OSM_MIN_EXTRACT_BYTES)
+    extract_filename: Literal["greater-manchester-260724.osm.pbf"] = OSM_EXTRACT_FILENAME
+    #: When the operator decided and retrieved.  Not the data cutoff.
     reference_date: date
+    #: The OSM data-cutoff date encoded in the provider's dated filename.
+    extract_data_cutoff_date: date = OSM_EXTRACT_DATA_CUTOFF_DATE
     provider_checksum_verified: bool
     provider_checksum_source: Literal["provider_md5_companion", "operator_declared", "absent"]
     licence_id: Literal["ODbL-1.0"] = OSM_LICENCE_ID

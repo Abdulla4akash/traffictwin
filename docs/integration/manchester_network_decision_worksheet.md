@@ -34,8 +34,9 @@ never reported as equal coverage.
 | Decision | Value |
 |---|---|
 | Source (recommended: OpenStreetMap) | **OpenStreetMap** |
-| Exact extract provider (e.g. Geofabrik) and file | **Geofabrik**, `https://download.geofabrik.de/europe/united-kingdom/england/greater-manchester-latest.osm.pbf`, with its published `.md5` companion. The provider, host, and path family are pinned in the endpoint policy; no caller-supplied URL is accepted. |
-| Extract date to pin | **25 July 2026** (`osm_reference_date`). The date is recorded in the acquisition receipt and rebound on every replay. |
+| Exact extract provider (e.g. Geofabrik) and file | **Geofabrik**, `https://download.geofabrik.de/europe/united-kingdom/england/greater-manchester-260724.osm.pbf`, with its published `.md5` companion. The **dated** file is pinned, not the `-latest` alias: probing on 25 July 2026 showed `-latest` returns `302 Found` and redirects, so pinning it would make the baseline non-reproducible. The provider, host, and path are frozen in the endpoint policy; no caller-supplied URL is accepted, and the transport allows **zero** redirects. |
+| Extract date to pin | Two dates, kept separate per design §3.1. **Reference/access date: 25 July 2026** (operator decision and retrieval). **Extract data-cutoff date: 24 July 2026** (encoded in the provider's filename). A `260725` extract **does not exist** — it returns HTTP 404 — and the `260724` file is itself served with `Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT`. Both dates are recorded on the acquisition receipt; a test asserts they never collapse. |
+| Verified provider facts (probed 25 July 2026) | `Content-Length: 50502348` (≈50.5 MB); `Content-Type: application/octet-stream`; published MD5 `c73b16ec7da303c1dfd331dc914bd5bc`. |
 | Licence (OSM is ODbL 1.0 — confirm acceptable) | **ODbL 1.0 — accepted** by the repository owner on 25 July 2026. Licence URI `https://opendatacommons.org/licenses/odbl/1-0/`. Accepted raw extracts stay `private` (workspace-only, excluded from Git); derived networks are `redistributable_derived` subject to the share-alike obligation being honoured at publication review. |
 | Required attribution string | © OpenStreetMap contributors, ODbL 1.0 |
 
