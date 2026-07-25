@@ -273,17 +273,30 @@ class ConnectivityReviewAvailability(NetworkServiceModel):
     def validate_availability(self) -> ConnectivityReviewAvailability:
         if (self.review is not None) != (self.state == "available"):
             raise ValueError("a review is published only when the record is available")
-        if self.review is not None and (
-            self.review.network_identity_sha256 != self.network_identity_sha256
-            or self.review.network_id != self.network_id
-        ):
+        if self.review is not None:
             # The binding is re-checked on the model itself, not only where the
             # record was read. Otherwise a caller could assemble an "available"
             # view whose embedded review describes a different network.
-            raise ValueError(
-                "an available review must name the same network id and identity "
-                "as the candidate it is published against"
-            )
+            if (
+                self.review.network_identity_sha256 != self.network_identity_sha256
+                or self.review.network_id != self.network_id
+            ):
+                raise ValueError(
+                    "an available review must name the same network id and identity "
+                    "as the candidate it is published against"
+                )
+            # The summary fields are a mirror of the embedded review, so they
+            # are bound to it too. Left unchecked they are free text, and a
+            # reader trusting the summary would be told something the review
+            # itself does not say.
+            if self.review_identity_sha256 != self.review.network_identity_sha256:
+                raise ValueError(
+                    "review_identity_sha256 must equal the embedded review's own identity"
+                )
+            if self.review_network_id != self.review.network_id:
+                raise ValueError(
+                    "review_network_id must equal the embedded review's own network id"
+                )
         return self
 
 
@@ -363,6 +376,16 @@ def write_connectivity_record(
             "CONNECTIVITY_RECORD_SYMLINK", "the connectivity record path is a symlink"
         )
     payload = review.canonical_json().encode("utf-8")
+    if len(payload) > MAX_CONNECTIVITY_RECORD_BYTES:
+        # Refused before anything is opened or renamed. Writing a record the
+        # reader is bound to refuse as oversized would leave a file on disk
+        # that can never be read back, which is worse than not writing it.
+        raise NetworkBuildError(
+            "CONNECTIVITY_RECORD_OVERSIZED",
+            f"the review serialises to {len(payload)} bytes, beyond the "
+            f"{MAX_CONNECTIVITY_RECORD_BYTES}-byte bound the reader admits, so it is "
+            "not written",
+        )
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.stem}-", dir=target.parent)
     temporary = Path(temporary_name)
     try:

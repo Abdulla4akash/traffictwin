@@ -8,14 +8,33 @@ permits a delivery van but not a private car.
 
 from __future__ import annotations
 
+import contextlib
 import json
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 import pytest
 from pydantic import ValidationError
+from typer.testing import CliRunner, Result
 
+from traffictwin.cli import app
+from traffictwin.integration.manchester.models import sha256_hex
+from traffictwin.integration.manchester.network_acquisition import (
+    OSM_MIN_EXTRACT_BYTES,
+    OsmExtractIdentity,
+)
+from traffictwin.integration.manchester.network_build import (
+    NETCONVERT_FIXED_ARGUMENTS,
+    ManchesterBaselineNetworkBinding,
+    NetconvertToolIdentity,
+    NetworkBuildCommandReceipt,
+    NetworkBuildError,
+    NetworkBuildInputManifest,
+    canonical_network_digest,
+    validate_network_file,
+)
 from traffictwin.integration.manchester.network_connectivity import (
     DEFAULT_PROBE_EXPANSION,
     ISOLATED_COMPONENT_MAX_EDGES,
@@ -40,6 +59,7 @@ from traffictwin.integration.manchester.network_connectivity import (
     summarise_components,
     weak_component_labels,
 )
+from traffictwin.integration.manchester.network_scope import baseline_scope_decision
 from traffictwin.integration.manchester.network_service import (
     CONNECTIVITY_RECORD_NAME,
     MAX_CONNECTIVITY_RECORD_BYTES,
@@ -55,6 +75,50 @@ CAR_DISALLOW = (
     "tram rail_urban rail rail_electric rail_fast ship container "
     "cable_car subway aircraft wheelchair scooter drone"
 )
+runner = CliRunner()
+
+PROJ_FOR_CLI = "+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+
+
+def _cli_output(result: Result) -> str:
+    """Combine both CLI streams and flatten whitespace for substring checks.
+
+    Refusals are written to stderr, so a stdout-only assertion would pass
+    against an empty string; and Rich wraps a boxed error across lines, so a
+    message can otherwise be split mid-sentence.
+    """
+
+    streams = [result.stdout]
+    with contextlib.suppress(ValueError):  # stderr may not be captured separately
+        streams.append(result.stderr)
+    return " ".join("".join(stream for stream in streams if stream).split())
+
+
+def _junctions_for_cli() -> str:
+    names = (
+        "J1",
+        "J2",
+        "J3",
+        "J10",
+        "J11",
+        "J40",
+        "J20",
+        "J21",
+        "J22",
+        "J23",
+        "J30",
+        "J31",
+        "J50",
+        "J60",
+        "J61",
+    )
+    return "\n".join(
+        f'  <junction id="{name}" type="priority" x="{1000 + index * 40}.00" '
+        f'y="{2000 + index * 40}.00" incLanes="" intLanes=""/>'
+        for index, name in enumerate(names)
+    )
+
+
 SERVICE_ALLOW = "pedestrian delivery bicycle"
 FOOTWAY_ALLOW = "pedestrian"
 BUS_ALLOW = "bus"
@@ -857,3 +921,290 @@ class TestPersistedReviewRecords:
     def test_a_record_that_is_not_utf8_is_unreadable(self, tmp_path: Path) -> None:
         (tmp_path / CONNECTIVITY_RECORD_NAME).write_bytes(b"\xff\xfe not utf-8")
         assert read_connectivity_record(tmp_path).state == "unreadable"
+
+    def test_an_oversized_review_is_refused_before_anything_is_written(
+        self, tmp_path: Path, network: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Writing a record the reader is bound to refuse as oversized would
+        # leave a file on disk that can never be read back.
+        store = tmp_path / "store"
+        store.mkdir()
+        monkeypatch.setattr(
+            "traffictwin.integration.manchester.network_service.MAX_CONNECTIVITY_RECORD_BYTES",
+            16,
+        )
+        with pytest.raises(NetworkBuildError) as oversized:
+            write_connectivity_record(store, self._review(network))
+        assert oversized.value.code == "CONNECTIVITY_RECORD_OVERSIZED"
+        assert list(store.iterdir()) == []
+
+    def test_an_oversized_write_does_not_modify_an_existing_record(
+        self, tmp_path: Path, network: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        store = tmp_path / "store"
+        store.mkdir()
+        write_connectivity_record(store, self._review(network))
+        target = store / CONNECTIVITY_RECORD_NAME
+        before = target.read_bytes()
+        monkeypatch.setattr(
+            "traffictwin.integration.manchester.network_service.MAX_CONNECTIVITY_RECORD_BYTES",
+            16,
+        )
+        with pytest.raises(NetworkBuildError):
+            write_connectivity_record(store, self._review(network))
+        assert target.read_bytes() == before
+        assert [item.name for item in store.iterdir()] == [CONNECTIVITY_RECORD_NAME]
+
+    def test_a_review_within_the_bound_still_writes(self, tmp_path: Path, network: Path) -> None:
+        store = tmp_path / "store"
+        store.mkdir()
+        written = write_connectivity_record(store, self._review(network))
+        assert written.exists()
+        assert len(written.read_bytes()) <= MAX_CONNECTIVITY_RECORD_BYTES
+
+    def test_summary_identity_must_mirror_the_embedded_review(self, network: Path) -> None:
+        # The summary fields are otherwise free text, and a reader trusting them
+        # would be told something the review itself does not say.
+        with pytest.raises(ValidationError, match="review_identity_sha256 must equal"):
+            ConnectivityReviewAvailability(
+                network_id="fixture",
+                state="available",
+                network_identity_sha256="a" * 64,
+                review_identity_sha256="c" * 64,
+                review_network_id="fixture",
+                review=self._review(network),
+            )
+
+    def test_summary_network_id_must_mirror_the_embedded_review(self, network: Path) -> None:
+        with pytest.raises(ValidationError, match="review_network_id must equal"):
+            ConnectivityReviewAvailability(
+                network_id="fixture",
+                state="available",
+                network_identity_sha256="a" * 64,
+                review_identity_sha256="a" * 64,
+                review_network_id="a-different-name",
+                review=self._review(network),
+            )
+
+    def test_unavailable_state_invariants_are_preserved(self) -> None:
+        # Summary fields may still describe a rejected record, because there is
+        # no embedded review for them to contradict.
+        availability = ConnectivityReviewAvailability(
+            network_id="fixture",
+            state="stale",
+            network_identity_sha256="a" * 64,
+            review_identity_sha256="c" * 64,
+            review_network_id="another",
+            reason="different network",
+        )
+        assert availability.review is None
+
+
+def _synthetic_binding(directory: Path, network_body: str, network_id: str) -> None:
+    """Write a labelled-synthetic accepted candidate the CLI can open.
+
+    Built by hand rather than by running netconvert: the CLI path under test is
+    argument handling and the save decision, and a real build would make these
+    assertions depend on an external toolchain they are not about.
+    """
+
+    network_path = directory / f"{network_id}.net.xml"
+    network_path.write_text(network_body, encoding="utf-8")
+    validation = validate_network_file(network_path, scope=baseline_scope_decision())
+    binding = ManchesterBaselineNetworkBinding(
+        network_id=network_id,
+        network_sha256=sha256_hex(network_path.read_bytes()),
+        network_identity_sha256=canonical_network_digest(network_path),
+        network_bytes=network_path.stat().st_size,
+        inputs=NetworkBuildInputManifest(
+            extract=OsmExtractIdentity(
+                extract_sha256="0" * 64,
+                extract_md5="0" * 32,
+                extract_bytes=OSM_MIN_EXTRACT_BYTES,
+                reference_date=date(2026, 7, 25),
+                provider_checksum_verified=False,
+                provider_checksum_source="absent",
+                synthetic=True,
+            ),
+            scope=baseline_scope_decision(),
+            tool=NetconvertToolIdentity(reported_version="1.27.1", executable_sha256="0" * 64),
+            argument_shape=NETCONVERT_FIXED_ARGUMENTS,
+        ),
+        command=NetworkBuildCommandReceipt(
+            reported_version="1.27.1",
+            argument_shape=NETCONVERT_FIXED_ARGUMENTS,
+            exit_code=0,
+            started_at_utc=datetime(2026, 7, 25, tzinfo=UTC),
+            completed_at_utc=datetime(2026, 7, 25, tzinfo=UTC),
+            duration_s=Decimal("0"),
+        ),
+        validation=validation,
+    )
+    (directory / "binding.json").write_text(binding.canonical_json(), encoding="utf-8")
+
+
+class TestTheConnectivityCommand:
+    """Real CliRunner behaviour for the bounded connectivity command."""
+
+    NETWORK_ID = "synthetic-cli-net"
+
+    def _workspace(self, tmp_path: Path) -> Path:
+        workspace = tmp_path / "ws"
+        directory = workspace / "manchester" / "networks" / self.NETWORK_ID
+        directory.mkdir(parents=True)
+        location = (
+            '  <location netOffset="-517074.60,-5908760.37" '
+            'convBoundary="0.00,0.00,5000.00,5000.00" '
+            'origBoundary="-2.40,53.30,-2.10,53.60" '
+            f'projParameter="{PROJ_FOR_CLI}"/>'
+        )
+        body = "<?xml version='1.0'?>\n<net>\n" + location + "\n"
+        body += _junctions_for_cli() + "\n"
+        body += "\n".join(FIXTURE_EDGES) + "\n"
+        body += "  <!-- padding to clear the minimum network size -->\n"
+        body += "  <!-- " + "x" * 1200 + " -->\n</net>\n"
+        _synthetic_binding(directory, body, self.NETWORK_ID)
+        return workspace
+
+    def _record(self, tmp_path: Path) -> Path:
+        return (
+            tmp_path / "ws" / "manchester" / "networks" / self.NETWORK_ID / CONNECTIVITY_RECORD_NAME
+        )
+
+    def _invoke(self, workspace: Path, *extra: str) -> Result:
+        return runner.invoke(
+            app,
+            [
+                "integration",
+                "manchester",
+                "network",
+                "connectivity",
+                str(workspace),
+                "--network-id",
+                self.NETWORK_ID,
+                *extra,
+            ],
+        )
+
+    def test_an_invalid_format_is_refused_with_its_exact_message(self, tmp_path: Path) -> None:
+        # The shared repository format check: exit 1, its own wording.
+        workspace = self._workspace(tmp_path)
+        result = self._invoke(workspace, "--format", "yaml")
+        assert result.exit_code == 1
+        assert "only --format text or json is supported" in _cli_output(result)
+        assert not self._record(tmp_path).exists()
+
+    def test_an_invalid_probe_subgraph_is_a_click_usage_error(self, tmp_path: Path) -> None:
+        # This option validates through typer.BadParameter, so Click renders it
+        # as a usage error and exits 2.
+        workspace = self._workspace(tmp_path)
+        result = self._invoke(workspace, "--probe-subgraph", "hovercraft")
+        assert result.exit_code == 2
+        flattened = _cli_output(result)
+        assert "Invalid value" in flattened
+        assert "--probe-subgraph must be one of" in flattened
+        assert "any_motor_vehicle" in flattened
+        assert not self._record(tmp_path).exists()
+
+    def test_a_rejected_argument_skips_both_traversal_and_persistence(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Ordering matters twice over: a run that will be refused must neither
+        # stream the whole network nor touch the record on disk. The two
+        # options refuse differently, so each expected code is named.
+        workspace = self._workspace(tmp_path)
+        reviewed: list[object] = []
+        written: list[object] = []
+
+        def _no_review(*args: object, **kwargs: object) -> None:
+            reviewed.append(args)
+            raise AssertionError("the review builder must not run for a refused argument")
+
+        def _no_write(*args: object, **kwargs: object) -> None:
+            written.append(args)
+            raise AssertionError("the save path must not run for a refused argument")
+
+        monkeypatch.setattr("traffictwin.cli.review_network_connectivity", _no_review)
+        monkeypatch.setattr("traffictwin.cli.write_connectivity_record", _no_write)
+        for flag, value, expected in (
+            ("--format", "yaml", 1),
+            ("--probe-subgraph", "hovercraft", 2),
+        ):
+            result = self._invoke(workspace, flag, value)
+            assert result.exit_code == expected
+        assert reviewed == []
+        assert written == []
+        assert not self._record(tmp_path).exists()
+
+    def test_no_save_emits_json_and_creates_no_record(self, tmp_path: Path) -> None:
+        workspace = self._workspace(tmp_path)
+        result = runner.invoke(
+            app,
+            [
+                "integration",
+                "manchester",
+                "network",
+                "connectivity",
+                str(workspace),
+                "--network-id",
+                self.NETWORK_ID,
+                "--no-save",
+                "--format",
+                "json",
+                "--probes",
+                "2",
+                "--contrast-probes",
+                "0",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        payload = json.loads(result.stdout)
+        assert payload["network_id"] == self.NETWORK_ID
+        assert payload["capability_status"] == "planned"
+        assert payload["proves_universal_routability"] is False
+        assert not self._record(tmp_path).exists()
+
+    def test_no_save_text_output_states_what_it_cannot_prove(self, tmp_path: Path) -> None:
+        workspace = self._workspace(tmp_path)
+        result = runner.invoke(
+            app,
+            [
+                "integration",
+                "manchester",
+                "network",
+                "connectivity",
+                str(workspace),
+                "--network-id",
+                self.NETWORK_ID,
+                "--no-save",
+                "--probes",
+                "2",
+                "--contrast-probes",
+                "0",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert "proves_universal_routability: false" in result.stdout
+        assert "capability_status: planned" in result.stdout
+        assert not self._record(tmp_path).exists()
+
+    def test_saving_is_the_default_and_writes_one_record(self, tmp_path: Path) -> None:
+        workspace = self._workspace(tmp_path)
+        result = runner.invoke(
+            app,
+            [
+                "integration",
+                "manchester",
+                "network",
+                "connectivity",
+                str(workspace),
+                "--network-id",
+                self.NETWORK_ID,
+                "--probes",
+                "2",
+                "--contrast-probes",
+                "0",
+            ],
+        )
+        assert result.exit_code == 0, result.output
+        assert self._record(tmp_path).is_file()
