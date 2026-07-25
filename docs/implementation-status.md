@@ -610,6 +610,32 @@ passes with zero failures (no real-SUMO skip required); the full unit+UI+integra
 2,035 passing; repository Ruff/format checks, strict mypy over 693 files, and `git diff --check` are
 clean; and no historical evidence file or protected tag changed.
 
+A lead-granted Phase 2B Tier 5 research-workflow presentation harvest then restructures the five
+research pages — `scenario_builder.py`, `scenario_mutation.py`, `experiment_planner.py`,
+`parameter_sweep.py`, and `reports.py` — in seven commits on 25 July 2026. Scenario Builder becomes a
+sequential preset → configure → review → generate flow that separates authored configuration from a
+structured generated-bundle receipt and never implies SUMO/Randy/VEC/live launch; Scenario Mutations
+renders source → mutation → candidate as three badged stages with a human-readable before/after table
+and fingerprints/manifest under Advanced/Evidence, never implying simulator execution; Experiment
+Planner shows define → validate → inspect run matrix → register with an explicit numeric
+common-random-seed run matrix and a registration-not-execution stage, preserving the Guided Demo hook
+only after successful registration; Parameter Sweep shows choose → define → preview → export with grid
+size, affected fields, a deterministic preview chart, and no optimal-parameter or executed claim; and
+Reports is organised into five peer-view tabs (Inventory/Regenerate/Compare/Exports/Annotations) with
+analyst annotations kept separate from computed findings, no automatic regeneration, and the Guided
+Demo hook only after successful regeneration. Across all five, categorical states render as badges,
+`st.form` batches related inputs, tables use readable columns, and raw JSON/YAML/fingerprints stay
+under Advanced/Evidence or explicit preview/download surfaces; every capability stays `planned` and no
+service, scientific library, adapter, navigation, or shared component is touched. Seven Tier 5
+adversarial presentation tests (`tests/unit/ui/test_page_presentation_tier5.py`) plus preserved
+existing interaction and Guided Demo assertions cover the harvest. The integrated gate passes 1,662
+unit and 169 UI tests (1,831 combined), the complete unit+UI+integration suite at 2,042 passing with
+zero failures, repository Ruff/format checks, strict mypy over 694 files, `git diff --check`, and the
+35-route desktop/mobile light/dark browser matrix (140 snapshots, zero findings) with all five pages
+captured at both widths and themes. No generated artifact or registry outside an isolated temporary
+test workspace changed, and no historical source evidence or protected tag changed. This is candidate
+presentation evidence only; `UX-01`–`UX-03` remain planned.
+
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
 its v0.7 gate passes. DfT remains historical survey/statistical evidence, WebTRIS remains

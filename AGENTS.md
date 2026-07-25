@@ -398,7 +398,7 @@ the affected Statistical Study and VEC Workbench AppTests pass under grouped nav
 historical evidence file or protected tag changed. The repository owner accepted this repair as
 complete at pushed commit `522dc16`.
 
-### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 5
+### Completed parallel ownership: Claude UI presentation Phase 2B Tier 5
 
 - The repository owner granted Phase 2B Tier 5 "research-workflow presentation" work on 25 July 2026
   from the accepted pushed head `522dc16` on `claude/complete-v0.7`. The work is presentation-only
@@ -453,6 +453,32 @@ complete at pushed commit `522dc16`.
   historical source evidence. Commit each page separately, push continuously, and finish with one
   documentation reconciliation commit covering `AGENTS.md`, `current_progress_v0_7.md`, and
   `implementation-status.md`; never create or move a release tag.
+
+Phase 2B Tier 5 was completed on 25 July 2026 across the five granted research-workflow pages in
+seven pushed commits — `10f5ea8` (grant record), `7255ea8` (Scenario Mutations), `e40b586`
+(Experiment Planner), `df4d3eb` (Parameter Sweep), `9fa922f` (Scenario Builder), `1fb533d` (Reports),
+and `c9442e5` (test format) — plus this documentation reconciliation commit. Scenario Mutations now
+renders source → mutation → candidate as three badged stages with a human-readable before/after table
+and fingerprints/manifest under Advanced/Evidence; Experiment Planner shows a define → validate →
+inspect run matrix → register sequence with an explicit numeric common-random-seed run matrix and a
+Stage 4 registration-not-execution caption; Parameter Sweep shows choose → define → preview → export
+with grid size, affected fields, a deterministic preview chart, and no optimal/executed claim;
+Scenario Builder is a sequential preset → configure → review → generate flow that separates authored
+configuration from a structured generated-bundle receipt and never implies SUMO/Randy/VEC/live
+launch; and Reports is organised into five peer-view tabs (Inventory/Regenerate/Compare/Exports/
+Annotations) with annotations kept separate from computed findings and no automatic regeneration.
+Every capability stayed `planned`; services, scientific libraries, adapters, navigation, Manchester
+Operations, shared components, and capability manifests were untouched; new charts are native Vega
+and there is no new dependency, custom CSS, or `use_container_width`. Both Guided Demo hooks (planner
+registration and reports regeneration) still fire only after success, and every pinned interaction
+label, button, and subheading is preserved. Verification: 1,662 unit and 169 UI tests pass (1,831
+combined) with `tests/unit/ui/test_page_presentation_tier5.py` (7 adversarial tests); the complete
+unit+UI+integration suite reports 2,042 passing with zero failures; repository Ruff/format checks,
+strict mypy over 694 files, and `git diff --check` are clean; and the 35-route desktop/mobile
+light/dark browser audit passes (140 snapshots, zero findings) with all five pages captured at both
+widths in both themes. No generated artifact or registry outside an isolated temporary test workspace
+changed, and no historical source evidence or protected tag changed. Awaiting repository-owner
+acceptance.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
