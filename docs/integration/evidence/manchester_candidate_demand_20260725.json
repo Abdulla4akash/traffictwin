@@ -1,0 +1,111 @@
+{
+  "record_type": "count_constrained_candidate_demand_generation",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 5 (demand reconstruction), candidate demand produced",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "demand_label": "count_constrained_candidate_demand",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "analyst_accepted": false,
+  "human_accepted": false,
+  "acceptance_basis": "owner_policy_accepted_candidate",
+  "acceptance_note": "The matches that constrain this demand were accepted by the owner's written policy. No analyst, human, or supervisor reviewed any row, and the supervisor contract decision form remains unsigned.",
+  "survey_window": {
+    "decision": "Option A, selected by the owner on 25 July 2026, recorded in commit 13ae063",
+    "rule": "each site is represented by its latest survey, admitted only if that survey falls in 2019 or in 2022 and later",
+    "pandemic_years_excluded": ["2020", "2021"],
+    "encoded_as": "a gap, not a floor: a plain 'from 2019' threshold would silently readmit the 26 sites whose latest survey measured pandemic-restricted traffic",
+    "accepted_sites_in_window": 81,
+    "sites_carrying_a_bound_direction": 78,
+    "bound_site_directions_used": 149,
+    "reconciliation": "the decision record's 151 site-directions were counted over all survey dates; demand uses 149 because site 26157's northbound and southbound directions bound historically but are absent from its latest survey"
+  },
+  "observed_input": {
+    "edge_hour_cells": 1788,
+    "distinct_edges": 149,
+    "intervals": 12,
+    "interval_duration_s": 3600,
+    "simulation_window_s": [0, 43200],
+    "time_basis": "local_clock_hour; local 07:00 maps to simulation second 0",
+    "total_observed_vehicles": 2024123,
+    "measured_zero_cells": 11,
+    "measured_zero_note": "admitted as zero and flagged; never confused with a missing hour"
+  },
+  "study_network": {
+    "network": "Manchester local-authority study subnetwork, clipped from the accepted Greater Manchester parent",
+    "real_edges": 285794,
+    "all_bound_edges_present": true
+  },
+  "route_pool": {
+    "why_not_dfrouter": "SUMO documentation warns that dfrouter can generate implausible routes in highly meshed city networks, and Greater Manchester is exactly that",
+    "trip_generation": {
+      "tool": "randomTrips.py, SUMO 1.27.1",
+      "argument_shape": ["-n", "<study_network>", "-o", "<trips>", "-r", "<routes>", "-b", "0", "-e", "43200", "-p", "1.0", "--seed", "42", "--fringe-factor", "5", "--min-distance", "300", "--validate", "--vehicle-class", "passenger"],
+      "trips_generated": 43200
+    },
+    "routing": {
+      "tool": "duarouter, SUMO 1.27.1",
+      "argument_shape": ["-n", "<study_network>", "-r", "<trips>", "-o", "<pool>", "--seed", "42", "--ignore-errors", "--no-step-log", "--xml-validation", "never"],
+      "routes_in_pool": 43200,
+      "pool_bytes": 88163497,
+      "note": "the first attempt combined trip generation and routing in one invocation and was interrupted at 29,799 of 43,200 routes, leaving a truncated file. The trips file was complete, so routing was rerun directly from it rather than regenerating trips, and the truncated output was discarded rather than reused."
+    },
+    "envelope_is_fixed_and_documented": true,
+    "seed": 42
+  },
+  "route_sampling": {
+    "tool": "routeSampler.py, SUMO 1.27.1",
+    "argument_shape": ["-r", "<pool>", "-d", "<counts>", "-o", "<demand>", "--mismatch-output", "<mismatch>", "--seed", "42", "--verbose"],
+    "duration_s": 183.42,
+    "counting_locations_covered": 149,
+    "vehicles_written": 746440,
+    "demand_bytes": 1279963857,
+    "routes_ignored_passing_no_counting_location": 11148
+  },
+  "mismatch": {
+    "preserved": true,
+    "mismatch_cells": 1788,
+    "cells_matched_exactly": 1629,
+    "cells_matched_exactly_percent": 91.1,
+    "underflow_cells": 159,
+    "underflow_vehicles": 175616,
+    "overflow_cells": 0,
+    "overflow_vehicles": 0,
+    "achieved_vehicles": 1848507,
+    "achieved_percent_of_observed": 91.32,
+    "edges_with_any_underflow": 18,
+    "edges_with_any_underflow_of_total": 149,
+    "concentration": {
+      "finding": "the shortfall is concentrated, not spread thin",
+      "top_edges": [
+        {"edge_id": "1544431771", "unmet_vehicles": 53245},
+        {"edge_id": "1544380919", "unmet_vehicles": 49839},
+        {"edge_id": "998731423", "unmet_vehicles": 13169},
+        {"edge_id": "153235276", "unmet_vehicles": 11429},
+        {"edge_id": "153673384", "unmet_vehicles": 10903}
+      ],
+      "interpretation": "two edges account for 103,084 of the 175,616 unmet vehicles, about 59%. The route pool cannot supply enough vehicles traversing those particular high-flow locations, which is a property of the pool's size and fringe bias at those edges rather than a global inadequacy: zero overflow anywhere means no location was over-assigned, and 131 of 149 edges were met exactly in every interval."
+    },
+    "no_silent_cap": "every observed cell appears in the mismatch output, so an unmet count is visible rather than absent"
+  },
+  "tool_reported_diagnostic": {
+    "geh_under_5_percent_of_locations": {"min": 91.95, "max": 93.96, "mean": 93.01},
+    "note": "GEH is reported by routeSampler and is recorded verbatim as a tool diagnostic. It is not treated as validation, acceptance, or evidence of causality, and no threshold on it has been approved."
+  },
+  "explicit_non_claims": [
+    "the routes are count-constrained candidates, not observed origin-destination travel",
+    "no calibration was performed; demand_scale has not been varied",
+    "no observed-versus-simulated comparison was performed",
+    "no SUMO simulation was run on this demand",
+    "a 91.32% achieved count is not a goodness-of-fit result and does not indicate validity",
+    "this is Manchester local-authority evidence and is not Greater Manchester-wide",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ],
+  "storage": {
+    "private_workspace_only": ["trips", "route pool", "demand routes", "counts edgeData", "mismatch"],
+    "committed": "this aggregate record only"
+  }
+}

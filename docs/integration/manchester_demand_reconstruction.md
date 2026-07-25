@@ -1,7 +1,7 @@
 # Manchester count-constrained candidate demand
 
 - Capability: `MAN-09`, Gate-D step 5 (demand reconstruction)
-- Status: **Option A selected on 25 July 2026 (2019/2022+ post-pandemic window: 78 sites, 151 site-directions)**; route sampling unblocked
+- Status: **candidate demand produced** under Option A (2019/2022+ window, 78 sites, 149 bound site-directions used)
 - Research status: `owner_approved_candidate` — **not** supervisor-approved
 - Records: [direction binding](evidence/manchester_demand_direction_binding_20260725.json),
   [study subnetwork](evidence/manchester_study_subnetwork_20260725.json),
@@ -146,8 +146,8 @@ admitted as zero and flagged, never confused with a missing hour.
 | Study subnetwork | built, all 233 bound edges present |
 | `routeSampler` / `randomTrips` tooling | SUMO 1.27.1, verified present |
 | edgeData counts file | written: 1,788 cells, 149 edges, 12 intervals |
-| Fixed route pool | not generated |
-| `routeSampler` run and mismatch output | not run |
+| Fixed route pool | 43,200 routes, seed 42, envelope recorded |
+| `routeSampler` run and mismatch output | run: 746,440 vehicles, 91.32% of observed counts achieved, zero overflow |
 
 Once the window is declared, the remaining work is mechanical: write the `edgeData` counts file for
 the chosen window, generate the fixed route pool with a recorded envelope and seed, run
