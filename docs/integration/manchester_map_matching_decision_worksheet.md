@@ -1,6 +1,6 @@
 # Manchester map-matching decision worksheet (open question 6)
 
-- Status: **owner-approved candidate policy** (25 July 2026); supervisor review still outstanding
+- Status: **owner-approved candidate policy v1.0**, revised into **exploratory owner policy v1.1** (25 July 2026); supervisor review still outstanding
 - Raised by: Gate-D step 2 (site-to-edge map-match candidates), capability `MAN-09`
 - Prepared: 25 July 2026, against the accepted Greater Manchester baseline network (ADR-059/060)
 - Prepared by: measurement, not by proposal
@@ -252,3 +252,89 @@ analyst confirmation. Confidence is triage, not proof.
 Every real observation receives exactly one terminal disposition — accepted, rejected, no suitable
 candidate, or unavailable through missing evidence. No observation may disappear from
 reconciliation.
+
+## Exploratory owner policy v1.1 (25 July 2026)
+
+Policy identifier: **`manchester-dft-map-match-owner-policy-1.1`**
+Research status: **`owner_approved_candidate`**
+Evidence class: **exploratory candidate software evidence**
+Evidence: [`manchester_map_match_policy_v11_20260725.json`](evidence/manchester_map_match_policy_v11_20260725.json)
+
+v1.0 left 21 of 305 sites with no suitable candidate. Several sit on a numbered A road with a
+rejected edge less than a metre away — the nearest is 0.880 m — because DfT calls the count point
+`Major` while OpenStreetMap tags that stretch as a minor class. The hard family split rejected an
+edge whose **road identity matched exactly**.
+
+DfT `road_type` and the OSM `highway` class are independent classifications, so they disagree
+without either being wrong. v1.1 therefore lets an exact normalised signed-road-reference match
+override **the family split alone**, under guards that are all required together.
+
+| Guard | Value |
+|---|---|
+| Relaxes | `wrong_road_type_family` only |
+| Maximum distance | 5 m (v1.0 eligibility is 30/50 m) |
+| Candidate must permit motor vehicles | Required; unknown access fails closed |
+| Signed reference identifies exactly one road group | Required |
+| Other eligible groups may remain | **No**, by default — see below |
+| Fuzzy names | Never |
+| Family mismatch | Preserved and displayed on the row |
+| Recorded reason | `exact_reference_family_override` |
+| Service-class candidates | Still require manual confirmation, unchanged from v1.0 |
+
+The override never rescues a hard-excluded class, a class outside the approved lists, a non-road
+class, or a candidate beyond 5 m. Those stay rejected exactly as in v1.0.
+
+`observation_matching.py` (v1.0) is **frozen and imported, not rewritten**: an exact reconciliation
+has to compare two implementations, and mutating v1.0 in place would leave nothing to compare
+against.
+
+### Exact v1.0-versus-v1.1 reconciliation, over all 305 real sites
+
+| v1.0 | v1.1 | Path | Sites |
+|---|---|---|---|
+| `clear_candidate` | `owner_policy_accepted_candidate` | strict v1.0 clear | 106 |
+| `no_suitable_candidate` | `owner_policy_accepted_candidate` | exact-reference override | 12 |
+| `no_suitable_candidate` | `no_suitable_candidate` | — | 9 |
+| `review_required` | `awaiting_manual_review` | — | 178 |
+
+v1.1 acceptance is exactly v1.0's 106 clear candidates **plus** 12 override rescues. It accepts
+nothing v1.0 sent to review and demotes nothing v1.0 accepted. The manual review queue holds 187 of
+305 sites and is preserved rather than emptied.
+
+`owner_policy_accepted_candidate` means **the owner's written policy accepted the row**. It is not
+analyst acceptance, not human acceptance, and not supervisor approval; the artifact fixes all three
+to false structurally.
+
+### One rule the policy left underdetermined, made explicit
+
+The policy says both that "the signed reference must identify exactly one nearby road group" *and*
+that "ambiguous rows remain review-required". On the real data those readings disagree for **13 of
+305 sites** — one with 25 competing eligible groups.
+
+The conservative reading ships as the default (`override_requires_sole_eligible_group = true`): the
+override rescues a site the reference resolves outright and does not silently settle a many-way
+competition. It is the reading that can be relaxed later without retracting evidence already
+accepted.
+
+| Reading | Accepted | Override rescues | Review | Unavailable |
+|---|---|---|---|---|
+| Conservative (default) | 118 | 12 | 178 | 9 |
+| Relaxed | 131 | 25 | 165 | 9 |
+
+Changing it changes the policy fingerprint, so results can never look identical under different
+rules. The choice remains the owner's.
+
+### A correction to the Phase 2 finding
+
+The Phase 2 record noted that the unmatched sites included the **A56 (5 sites)** and **A6042 (4
+sites)**, and listed an exact-reference override as an option. Measured: the override reaches **4 of
+the 5 A56 sites and none of the 4 A6042 sites**.
+
+The edges near the A6042 sites carry **no matching signed reference in OpenStreetMap at all** —
+every override consideration there refused with `reference_not_exact`. An exact-reference rule
+cannot reach them by construction. Doing so would need a road-class widening or a name-based rule,
+and fuzzy names are explicitly excluded from the override.
+
+Four guards — non-motor access, unknown access, service class, and several exact-reference groups —
+are implemented and adversarially tested but were **not exercised by any real Manchester site**.
+Their absence here is a property of this data, not evidence that they are unnecessary.
