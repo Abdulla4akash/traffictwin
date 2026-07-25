@@ -1,0 +1,37 @@
+{
+  "record_type": "gate_f_ci_and_quality_gate_reconciliation",
+  "record_date": "2026-07-25",
+  "capability_id": "REL-01",
+  "capability_status": "planned",
+  "gate": "Gate F",
+  "gate_accepted": false,
+  "evidence_class": "automated_candidate_reconciliation",
+  "purpose": "verify by execution that the repository's declared CI gate and the gate run during development are the same gate, rather than assuming it from the workflow file",
+  "method": "each CI step was run locally in the order the workflow declares it",
+  "steps": [
+    {"step": "dependency lock consistency", "command": "uv lock --check", "result": "resolved 91 packages, no change"},
+    {"step": "ruff format check", "command": "ruff format --check .", "result": "746 files already formatted"},
+    {"step": "ruff lint", "command": "ruff check .", "result": "all checks passed"},
+    {"step": "mypy", "command": "mypy", "result": "no issues in 728 source files"},
+    {"step": "tests", "command": "pytest", "result": "3087 passed, 1 xfailed"},
+    {"step": "generated reference consistency", "command": "generate_reference_docs.py then git diff --exit-code", "result": "no drift"},
+    {"step": "fixture immutability", "command": "git diff --exit-code -- tests/fixtures examples", "result": "unchanged"}
+  ],
+  "scope_reconciliation": {
+    "finding": "the CI lint and format steps run repository-wide while mypy runs the configured files list",
+    "detail": "ruff check . and ruff format --check . cover every file including scripts, whereas pyproject sets mypy files to src and tests. Development checks were run over src, tests and scripts, which is a superset of the mypy scope and matches the ruff scope, so the two agree.",
+    "consequence": "a type error inside scripts is outside the declared gate. One was found and fixed during phase 10 by widening mypy manually; that widening is not part of CI and is not proposed as a change here."
+  },
+  "the_single_expected_failure": {
+    "test": "tests/ui/test_accessibility.py::TestControlLabelsAreUnambiguous[HOME]",
+    "reason": "home.py renders two buttons both labelled 'Plan an Experiment'",
+    "marking": "strict xfail, so the suite fails when the defect is fixed and the entry must be removed",
+    "why_not_fixed": "UI pages are outside this work's grant; the defect is recorded rather than silently tolerated or weakened away"
+  },
+  "what_this_does_not_establish": [
+    "it does not accept Gate F or advance REL-01",
+    "it does not verify the CI runner environment, only that the same commands pass locally",
+    "it does not cover the container build or the standalone demo smoke step, which need Docker and were not run",
+    "a passing quality gate is not a release"
+  ]
+}
