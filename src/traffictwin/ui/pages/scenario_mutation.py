@@ -59,7 +59,7 @@ def render(config: UiConfig) -> None:
     )
 
     section_header(
-        "Mutation Declaration",
+        "Mutation declaration",
         f"One operator per copy; exact ledger limit: {catalog.max_changed_rows:,} rows.",
     )
     with st.form("scenario-mutation-form"):
@@ -160,7 +160,7 @@ def render(config: UiConfig) -> None:
 
 
 def _render_result(result: ScenarioMutationResult, output_dir: str) -> None:
-    section_header("Mutation Result", "Exact changed-row and file reconciliation.")
+    section_header("Mutation result", "Exact changed-row and file reconciliation.")
 
     # Stage 1 — Source scenario (the read-only parent).
     with st.container(border=True):
@@ -194,7 +194,7 @@ def _render_result(result: ScenarioMutationResult, output_dir: str) -> None:
         )
         st.caption(f"Output directory: `{output_dir}`. Import validation is not simulation.")
 
-    section_header("Before / After Field Changes", "Human-readable per-field mutation of the copy.")
+    section_header("Before / after field changes", "Human-readable per-field mutation of the copy.")
     field_rows = [
         {
             "table": change.table_kind.value,

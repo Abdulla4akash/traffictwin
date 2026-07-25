@@ -71,7 +71,7 @@ def render(config: UiConfig) -> None:
     else:
         st.info("No experiments match the current filter.")
 
-    section_header("Manual Protocol Tracking")
+    section_header("Manual protocol tracking")
     experiment_ids = [str(row.get("experiment_id")) for row in view.experiments]
     if experiment_ids:
         selected_experiment = st.selectbox(
@@ -163,7 +163,7 @@ def render(config: UiConfig) -> None:
     else:
         st.info("No runs match the current filter.")
 
-    section_header("Bundle Imports")
+    section_header("Bundle imports")
     if view.bundle_imports:
         filtered_imports = _filter_rows(view.bundle_imports, query)
         import_rows = [
@@ -207,7 +207,7 @@ def render(config: UiConfig) -> None:
     else:
         st.info("No bundle imports are registered.")
 
-    section_header("Seeds And Policies")
+    section_header("Seeds and policies")
     cols = st.columns(2)
     with cols[0]:
         seed_rows = [
@@ -234,7 +234,7 @@ def render(config: UiConfig) -> None:
         else:
             st.info("No policies registered.")
 
-    section_header("Comparisons And Reports")
+    section_header("Comparisons and reports")
     cols = st.columns(2)
     with cols[0]:
         st.dataframe(

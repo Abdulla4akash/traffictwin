@@ -129,7 +129,7 @@ def test_evidence_readiness_groups_availability_by_state() -> None:
     assert not app.exception
 
     subheaders = {str(item.value) for item in app.subheader}
-    assert "Evidence Availability" in subheaders
+    assert "Evidence availability" in subheaders
     body = text_of(app)
     info_text = "\n".join(str(item.value) for item in app.info)
     # Availability is grouped by state: a per-state count summary plus a badge table with an

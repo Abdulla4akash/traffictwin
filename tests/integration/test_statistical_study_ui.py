@@ -54,7 +54,7 @@ def test_streamlit_statistical_study_page_runs_registered_plan(
     assert result.status is StatisticalStudyStatus.AVAILABLE
     assert any(metric.label == "Eligible pairs" and metric.value == "3" for metric in app.metric)
     assert any(
-        heading.value == "Pairing Audit And Statistical Results" for heading in app.subheader
+        heading.value == "Pairing audit and statistical results" for heading in app.subheader
     )
     assert {button.label for button in app.download_button} >= {
         "Download StatisticalStudy JSON",

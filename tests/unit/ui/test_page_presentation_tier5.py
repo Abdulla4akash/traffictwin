@@ -82,8 +82,8 @@ def test_scenario_mutation_shows_three_stages_and_before_after(
     assert not app.exception
 
     heads = subheaders(app)
-    assert "Mutation Result" in heads
-    assert "Before / After Field Changes" in heads
+    assert "Mutation result" in heads
+    assert "Before / after field changes" in heads
     body = text_of(app)
     # Source, mutation, and candidate render as three distinct stages with badges.
     assert "Stage 1 · Source scenario" in body
@@ -135,11 +135,11 @@ def test_scenario_builder_is_sequential_with_authored_vs_generated(
     assert "1 Choose preset" in body
     assert "4 Generate bundle" in body
     assert "authored configuration" in body.lower()
-    assert "Stage 1 · Choose Preset" in heads
-    assert "Stage 2 · Configure" in heads
+    assert "Stage 1 · choose preset" in heads
+    assert "Stage 2 · configure" in heads
     # The preview renders as a structured summary with the Bundle ID metric.
-    assert "Stage 3 · Review Preview" in heads
-    assert "Stage 4 · Generate Bundle" in heads
+    assert "Stage 3 · review preview" in heads
+    assert "Stage 4 · generate bundle" in heads
     assert "Bundle ID" in {str(item.label) for item in app.metric}
 
 
@@ -185,8 +185,8 @@ def test_parameter_sweep_is_sequential_with_grid_and_chart(
     assert not app.exception
 
     heads = subheaders(app)
-    assert "Sweep Result" in heads
-    assert "Response Surface" in heads
+    assert "Sweep result" in heads
+    assert "Response surface" in heads
     body = text_of(app)
     # Grid size, affected fields, and the no-optimal / no-execution framing are explicit.
     assert "Grid size =" in body
@@ -225,8 +225,8 @@ def test_experiment_planner_is_sequential_with_run_matrix(
     assert not app.exception
 
     heads = subheaders(app)
-    assert "Validated Plan Preview" in heads
-    assert "Execution Protocol" in heads
+    assert "Validated plan preview" in heads
+    assert "Execution protocol" in heads
     body = text_of(app)
     # Run-matrix size is explicit and numeric, framed as CRN design.
     assert "Common-random-seed design" in body

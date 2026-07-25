@@ -78,7 +78,7 @@ def render(config: UiConfig) -> None:
     )
 
     if manifest is not None:
-        st.subheader("Manifest Summary")
+        st.subheader("Manifest summary")
         with st.container(border=True):
             st.markdown(
                 f"**Environment:** {manifest.environment.name} "
@@ -95,7 +95,7 @@ def render(config: UiConfig) -> None:
                 language=None,
             )
             st.json(manifest.environment.model_dump(mode="json"))
-        st.subheader("Declared Files")
+        st.subheader("Declared files")
         declared_rows = [
             {
                 "kind": kind,
@@ -118,7 +118,7 @@ def render(config: UiConfig) -> None:
         )
 
     render_validation_report(report)
-    st.subheader("Evidence Availability")
+    st.subheader("Evidence availability")
     evidence_states = analysis.validation.evidence.model_dump(mode="json")
     st.table(
         [

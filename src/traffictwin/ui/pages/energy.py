@@ -39,7 +39,7 @@ def render() -> None:
     _render_coverage_dashboard(metrics)
     _render_family_states(metrics)
 
-    section_header("Contract-Gated Energy Metrics")
+    section_header("Contract-gated energy metrics")
     columns = st.columns(3)
     for column, (title, key, _unit) in zip(columns, ENERGY_FAMILY, strict=True):
         with column:
@@ -85,7 +85,7 @@ def _render_family_states(metrics: dict[str, MetricValue]) -> None:
         state = _state_of(metrics.get(key))
         bucket = "unavailable" if state in {"unavailable", "invalid"} else state
         grouped.setdefault(bucket, []).append(title)
-    section_header("Energy Families By Evidence State")
+    section_header("Energy families by evidence state")
     for state, label in (
         ("available", "Available"),
         ("partial", "Partial"),
@@ -128,7 +128,7 @@ def _render_joule_comparison(metrics: dict[str, MetricValue]) -> None:
 
 
 def _render_r8(evidence_pack: EvidencePack | None) -> None:
-    section_header("R8 Completed-Task Energy Candidate")
+    section_header("R8 completed-task energy candidate")
     st.caption(
         "The 1.50 J/task default and 10-task support minimum are provisional synthetic-development "
         "configuration, not a hardware benchmark, statistical anomaly test, or efficiency standard."

@@ -58,7 +58,7 @@ def render(config: UiConfig) -> None:
         )
     )
 
-    section_header("Explicit Training–Validation Pairs")
+    section_header("Explicit training–validation pairs")
     st.caption(
         "Selections are paired by position. Each pair must match algorithm, checkpoint, random "
         "seed, metric definition, and unit; environment provenance remains explicit."
@@ -113,7 +113,7 @@ def render(config: UiConfig) -> None:
             "missing cohorts stay excluded rather than ranked."
         )
 
-    section_header("Triviality Evidence")
+    section_header("Triviality evidence")
     experiment_metrics = view.evidence_pack.metric_collection.by_key()
     triviality_rows = [
         {
@@ -152,7 +152,7 @@ def render(config: UiConfig) -> None:
         with st.expander("Advanced: R5 evidence and limitations"):
             st.json(r5.model_dump(mode="json"))
 
-    section_header("Per-Seed Winner Map")
+    section_header("Per-seed winner map")
     rows = [
         {
             "seed_family": entry.seed_id,
@@ -195,7 +195,7 @@ def render(config: UiConfig) -> None:
     for warning in view.winner_map.warnings:
         st.caption(warning)
 
-    section_header("Transparent Portfolio Prototype")
+    section_header("Transparent portfolio prototype")
     cols = st.columns(3)
     cols[0].metric("Evaluated seed families", view.portfolio.evaluated_seed_count)
     cols[1].metric(
@@ -221,7 +221,7 @@ def render(config: UiConfig) -> None:
         st.caption(warning)
 
     if view.portfolio_study is not None:
-        section_header("Fixed Held-out Portfolio Study")
+        section_header("Fixed held-out portfolio study")
         st.caption(
             "The transparent rules are fixed before evaluation on the S5/S6 synthetic seed "
             "families. This is a workflow verification, not external validation."

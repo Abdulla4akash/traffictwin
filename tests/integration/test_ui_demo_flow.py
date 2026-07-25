@@ -114,8 +114,8 @@ def test_streamlit_diagnostics_page_retains_results_and_renders_cross_rule_analy
     app.radio[0].set_value("Diagnostics & Evidence").run(timeout=10)
 
     assert not app.exception
-    assert any(heading.value == "Cross-Rule Relationships" for heading in app.subheader)
-    assert any(heading.value == "Original Rule Results" for heading in app.subheader)
+    assert any(heading.value == "Cross-rule relationships" for heading in app.subheader)
+    assert any(heading.value == "Original rule results" for heading in app.subheader)
     assert any(metric.label == "Retained results" and metric.value == "9" for metric in app.metric)
     assert any(
         button.label == "Download CrossRuleReasoningReport JSON" for button in app.download_button
@@ -162,9 +162,9 @@ def test_streamlit_spatial_rsu_page_renders_contracted_synthetic_evidence(
 
     assert not app.exception
     assert any(
-        heading.value == "Task Outcomes By Execution-Target RSU" for heading in app.subheader
+        heading.value == "Task outcomes by execution-target RSU" for heading in app.subheader
     )
-    assert any(heading.value == "Vehicle Source-Frame Grid" for heading in app.subheader)
+    assert any(heading.value == "Vehicle source-frame grid" for heading in app.subheader)
     assert len(app.dataframe) == 2
 
 
@@ -299,7 +299,7 @@ def test_streamlit_triviality_page_renders_demo_analysis(
 
     assert not app.exception
     assert any(title.value == "Triviality & Winner Map" for title in app.title)
-    assert any(heading.value == "Per-Seed Winner Map" for heading in app.subheader)
+    assert any(heading.value == "Per-seed winner map" for heading in app.subheader)
     # Presentation (Tier 3): categorical R3/R5 rule statuses render as badges in markdown,
     # not as numeric metrics, and the winner-map framing avoids a universal-best claim.
     metric_labels = {str(item.label) for item in app.metric}
@@ -336,7 +336,7 @@ def test_streamlit_run_overview_renders_contract_gated_energy_family(
         }
     }
     assert not app.exception
-    assert any(heading.value == "Energy Evidence" for heading in app.subheader)
+    assert any(heading.value == "Energy evidence" for heading in app.subheader)
     assert set(energy_cards) == {
         "Observed-task energy (J)",
         "Completed-task energy (J)",
@@ -541,8 +541,8 @@ def test_streamlit_about_page_exposes_safe_extension_boundaries() -> None:
     app.radio[0].set_value("About").run(timeout=10)
 
     assert not app.exception
-    assert any(heading.value == "Trusted Metric Extensions" for heading in app.subheader)
-    assert any(heading.value == "Trusted Declarative Rules" for heading in app.subheader)
+    assert any(heading.value == "Trusted metric extensions" for heading in app.subheader)
+    assert any(heading.value == "Trusted declarative rules" for heading in app.subheader)
     assert any(
         "does not upload" in warning.value and "not a sandbox" in warning.value
         for warning in app.warning

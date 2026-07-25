@@ -82,7 +82,7 @@ def test_streamlit_statistical_page_runs_n_way_registered_plan(
     assert isinstance(result, NWayRankingStudy)
     assert result.status is NWayRankingStatus.AVAILABLE
     assert any(
-        heading.value == "N-Way Policy Ranking And Common-Seed Audit" for heading in app.subheader
+        heading.value == "N-way policy ranking and common-seed audit" for heading in app.subheader
     )
     assert {button.label for button in app.download_button} >= {
         "Download NWayRankingStudy JSON",

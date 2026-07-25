@@ -215,7 +215,7 @@ def _render_report(report: ThresholdSensitivityReport) -> None:
         ),
     )
 
-    st.subheader("Flip Boundaries And Stability")
+    st.subheader("Flip boundaries and stability")
     if report.flip_boundaries:
         boundary_rows = [boundary.model_dump(mode="json") for boundary in report.flip_boundaries]
         st.dataframe(

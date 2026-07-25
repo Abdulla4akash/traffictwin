@@ -32,7 +32,7 @@ def render() -> None:
     grid_count = metrics.get("spatial.vehicle.observation_count_by_grid_cell")
     _render_frame_and_provenance(analysis, grid_count)
 
-    st.subheader("Task Outcomes By Execution-Target RSU")
+    st.subheader("Task outcomes by execution-target RSU")
     rsu_rows = _rsu_rows(metrics)
     if rsu_rows:
         columns = st.columns(2)
@@ -63,7 +63,7 @@ def render() -> None:
         )
     _render_target_reconciliation(target_count)
 
-    st.subheader("Vehicle Source-Frame Grid")
+    st.subheader("Vehicle source-frame grid")
     grid_rows = _grid_rows(metrics)
     if grid_rows:
         columns = st.columns(2)
@@ -114,7 +114,7 @@ def _render_frame_and_provenance(analysis: BundleAnalysis, grid_count: MetricVal
 def _render_target_reconciliation(target_count: MetricValue | None) -> None:
     """Show matched and unmatched task-to-RSU records explicitly."""
 
-    section_header("Execution-Target Reconciliation")
+    section_header("Execution-target reconciliation")
     metadata = target_count.metadata if target_count is not None else {}
     columns = st.columns(3)
     columns[0].metric(
@@ -139,7 +139,7 @@ def _render_target_reconciliation(target_count: MetricValue | None) -> None:
 def _render_grid_reconciliation(grid_count: MetricValue | None) -> None:
     """Show positioned and unprojectable observations, plus the source-frame extent."""
 
-    section_header("Coordinate Reconciliation")
+    section_header("Coordinate reconciliation")
     metadata = grid_count.metadata if grid_count is not None else {}
     eligible = metadata.get("eligible_count")
     population = metadata.get("population_count")

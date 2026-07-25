@@ -82,7 +82,7 @@ def test_streamlit_parameter_sweep_builds_local_response_surface(
     )
 
     assert not app.exception
-    assert any(heading.value == "Sweep Result" for heading in app.subheader)
-    assert any(heading.value == "Response Surface" for heading in app.subheader)
+    assert any(heading.value == "Sweep result" for heading in app.subheader)
+    assert any(heading.value == "Response surface" for heading in app.subheader)
     result_path = workspace / "exports" / "parameter-sweeps" / "sweep-ui" / "sweep_result.json"
     assert result_path.is_file()

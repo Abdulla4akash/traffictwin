@@ -29,7 +29,7 @@ def render() -> None:
     validation_report = analysis.validation.report
     insufficient = analysis.validation.insufficient_evidence
 
-    st.subheader("Validation Status")
+    st.subheader("Validation status")
     with st.container(border=True):
         import_text = "may import" if validation_report.may_import else "may not import"
         st.markdown(
@@ -54,7 +54,7 @@ def render() -> None:
             }
         )
 
-    st.subheader("Evidence Availability")
+    st.subheader("Evidence availability")
     evidence_states = analysis.validation.evidence.model_dump(mode="json")
     grouped: dict[str, list[str]] = {}
     for category, state in evidence_states.items():
@@ -87,7 +87,7 @@ def render() -> None:
     with st.expander("Advanced: raw evidence availability JSON"):
         st.json(evidence_states)
 
-    st.subheader("Diagnostic Readiness")
+    st.subheader("Diagnostic readiness")
     with st.container(border=True):
         if insufficient.diagnosis_allowed:
             st.markdown(f"{badge_markdown('available')} Deterministic diagnosis is allowed.")
@@ -109,7 +109,7 @@ def render() -> None:
     with st.expander("Advanced: raw diagnostic readiness JSON"):
         st.json(insufficient.model_dump(mode="json"))
 
-    st.subheader("Metric Collection Summary")
+    st.subheader("Metric collection summary")
     if analysis.metrics is not None:
         metric_cols = st.columns(3)
         metric_cols[0].metric("Metrics", len(analysis.metrics.results), border=True)
@@ -130,7 +130,7 @@ def render() -> None:
                 language=None,
             )
 
-    st.subheader("Evidence Pack")
+    st.subheader("Evidence pack")
     if analysis.evidence_pack is None:
         st.info("Evidence pack is unavailable because the bundle was not accepted.")
     else:
@@ -143,7 +143,7 @@ def render() -> None:
             mime="application/json",
         )
 
-    st.subheader("Diagnostic Report")
+    st.subheader("Diagnostic report")
     if analysis.diagnostic_report is None:
         st.info("Diagnostic report is unavailable because the bundle was not accepted.")
         return
@@ -171,7 +171,7 @@ def render() -> None:
 
     _render_cross_rule_analysis(diagnostic_report)
 
-    st.subheader("Original Rule Results")
+    st.subheader("Original rule results")
 
     for result in diagnostic_report.results:
         label = f"{result.rule_id} - {result.title}"
@@ -274,7 +274,7 @@ def _rule_id_list(rule_ids: list[str]) -> str:
 def _render_cross_rule_analysis(diagnostic_report: DiagnosticReport) -> None:
     """Render the typed additive relationship report without deriving relationships in the UI."""
 
-    st.subheader("Cross-Rule Relationships")
+    st.subheader("Cross-rule relationships")
     analysis = diagnostic_report.cross_rule_analysis
     if analysis is None:
         st.info("Typed DIA-07 cross-rule analysis is unavailable for this historical report.")

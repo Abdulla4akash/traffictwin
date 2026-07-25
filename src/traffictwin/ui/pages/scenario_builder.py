@@ -45,13 +45,13 @@ def render(config: UiConfig) -> None:
         "Nothing here launches a simulator or a live source."
     )
 
-    section_header("Stage 1 · Choose Preset", "Authored configuration starting point.")
+    section_header("Stage 1 · choose preset", "Authored configuration starting point.")
     presets = synthetic_preset_names_for_ui()
     preset_name = st.selectbox("Duplicate preset", presets, index=0)
     preset = preset_config_for_ui(preset_name)
 
     section_header(
-        "Stage 2 · Configure",
+        "Stage 2 · configure",
         "Authored configuration in coherent sections; disabled controls stay unsupported.",
     )
     with st.form("synthetic_scenario_builder"):
@@ -98,7 +98,7 @@ def render(config: UiConfig) -> None:
             step=0.05,
         )
 
-        section_header("Incident Or Event")
+        section_header("Incident or event")
         default_incident = preset.incident_schedule[0] if preset.incident_schedule else None
         incident_enabled = st.checkbox(
             "Add a synthetic incident/event",
@@ -151,7 +151,7 @@ def render(config: UiConfig) -> None:
             help="Optional comma-separated synthetic vehicle references.",
         )
 
-        section_header("Vehicle Tier Mix")
+        section_header("Vehicle tier mix")
         cols = st.columns(3)
         vehicle_low_share = cols[0].number_input(
             "Low-tier share",
@@ -214,7 +214,7 @@ def render(config: UiConfig) -> None:
             value=preset.baseline_network_delay_ms,
         )
 
-        section_header("Measurement Noise And Dropout (EXP-03)")
+        section_header("Measurement noise and dropout (EXP-03)")
         st.caption(
             "Optional deterministic bounded-uniform measurement imperfections. These are "
             "synthetic robustness inputs, not calibrated sensor behavior."
@@ -300,7 +300,7 @@ def render(config: UiConfig) -> None:
             step=0.05,
         )
 
-        section_header("Policy And Evidence Files")
+        section_header("Policy and evidence files")
         policy_behavior = st.selectbox(
             "Synthetic policy profile",
             synthetic_policy_options_for_ui(),
@@ -388,7 +388,7 @@ def render(config: UiConfig) -> None:
 
     preview = preview_synthetic_scenario(scenario)
     section_header(
-        "Stage 3 · Review Preview",
+        "Stage 3 · review preview",
         "Expected bundle shape before generation — not yet generated evidence.",
     )
     st.markdown(f"{badge_markdown('synthetic')} Expected shape · not yet generated")
@@ -426,7 +426,7 @@ def render(config: UiConfig) -> None:
                 )
 
     section_header(
-        "Stage 4 · Generate Bundle",
+        "Stage 4 · generate bundle",
         "Deterministic synthetic generation validated through the ordinary import path.",
     )
     default_output = (

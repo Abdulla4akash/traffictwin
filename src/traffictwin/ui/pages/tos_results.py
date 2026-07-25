@@ -50,7 +50,7 @@ def render(config: UiConfig) -> None:
         st.error(result.message)
         return
     matrix = result.matrix
-    st.subheader("Evaluation Matrix")
+    st.subheader("Evaluation matrix")
     z = []
     text = []
     by_key = {(entry.campaign, entry.cell): entry for entry in matrix.entries}
@@ -98,7 +98,7 @@ def render(config: UiConfig) -> None:
 
 
 def _render_comparison(package: TosPackageView, campaigns: list[str], fleet: str, key: str) -> None:
-    st.subheader("Paired Campaign Comparison")
+    st.subheader("Paired campaign comparison")
     if "baseline" not in campaigns or len(campaigns) < 2:
         st.info("A baseline and at least one variation campaign are required.")
         return
@@ -154,7 +154,7 @@ def _render_comparison(package: TosPackageView, campaigns: list[str], fleet: str
 
 
 def _render_generalisation(result: TosResultsView) -> None:
-    st.subheader("Training/Evaluation Domain Matrix")
+    st.subheader("Training/evaluation domain matrix")
     generalisation = result.generalisation
     st.dataframe(
         [

@@ -41,7 +41,7 @@ def render(config: UiConfig) -> None:
 
 
 def _render_training(package: TosPackageView) -> None:
-    st.subheader("Training History Explorer")
+    st.subheader("Training history explorer")
     summaries = tos_training_runs_for_ui(package)
     if isinstance(summaries, ServiceError):
         st.error(summaries.message)
@@ -111,7 +111,7 @@ def _render_training(package: TosPackageView) -> None:
 
 
 def _render_audit(package: TosPackageView) -> None:
-    st.subheader("Reproducibility Auditor")
+    st.subheader("Reproducibility auditor")
     audit = tos_audit_for_ui(package)
     if isinstance(audit, ServiceError):
         st.error(audit.message)
@@ -142,7 +142,7 @@ def _render_audit(package: TosPackageView) -> None:
 
 
 def _render_readiness(package: TosPackageView) -> None:
-    st.subheader("External Integration Gates")
+    st.subheader("External integration gates")
     readiness = tos_readiness_for_ui(package)
     if isinstance(readiness, ServiceError):
         st.error(readiness.message)
@@ -168,7 +168,7 @@ def _render_readiness(package: TosPackageView) -> None:
 
 
 def _render_exports(package: TosPackageView) -> None:
-    st.subheader("Supervisor, Viva & Dissertation Pack")
+    st.subheader("Supervisor, viva & dissertation pack")
     campaigns = sorted({run.campaign for run in package.evaluation_runs})
     variations = [campaign for campaign in campaigns if campaign != "baseline"]
     variation = st.selectbox("Comparison campaign for report", variations)

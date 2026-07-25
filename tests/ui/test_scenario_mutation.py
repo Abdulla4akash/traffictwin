@@ -89,7 +89,7 @@ def test_streamlit_scenario_mutation_builds_validated_copy(
     )
 
     assert not app.exception
-    assert any(heading.value == "Mutation Result" for heading in app.subheader)
+    assert any(heading.value == "Mutation result" for heading in app.subheader)
     output = workspace / "exports" / "scenario-mutations" / "mutation-ui"
     assert (output / "mutation_manifest.json").is_file()
     assert (output / "bundle" / "manifest.yaml").is_file()

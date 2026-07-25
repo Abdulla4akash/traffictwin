@@ -43,7 +43,7 @@ def render() -> None:
 
     _render_cohort_coverage(metrics)
 
-    section_header("Trip Duration Evidence")
+    section_header("Trip duration evidence")
     columns = st.columns(len(DURATION_KEYS))
     for column, (title, key) in zip(columns, DURATION_KEYS.items(), strict=True):
         with column:
@@ -97,7 +97,7 @@ def _render_cohort_coverage(metrics: dict[str, MetricValue]) -> None:
 def _render_completion_and_exclusions(metrics: dict[str, MetricValue]) -> None:
     """Show incomplete journeys and missing trip joins explicitly."""
 
-    section_header("Completion and Exclusions")
+    section_header("Completion and exclusions")
     incomplete = metrics.get("trip.incomplete.count")
     mean_duration = metrics.get("trip.duration.mean_s")
     incomplete_state = "available" if incomplete is not None else "unavailable"
@@ -124,7 +124,7 @@ def _render_completion_and_exclusions(metrics: dict[str, MetricValue]) -> None:
 
 
 def _render_comparison() -> None:
-    section_header("Baseline/Variation Journey-Time Comparison")
+    section_header("Baseline/variation journey-time comparison")
     baseline_path = Path(
         str(st.session_state.get("selected_baseline_run", "tests/fixtures/bundles/baseline_valid"))
     )

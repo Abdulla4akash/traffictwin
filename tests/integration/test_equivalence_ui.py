@@ -60,7 +60,7 @@ def test_streamlit_statistical_page_runs_registered_equivalence_plan(
     assert isinstance(result, EquivalenceStudy)
     assert result.tost.conclusion is EquivalenceConclusion.DEMONSTRATED
     assert any(
-        heading.value == "Paired TOST Equivalence Result And Common-Seed Audit"
+        heading.value == "Paired TOST equivalence result and common-seed audit"
         for heading in app.subheader
     )
     assert {button.label for button in app.download_button} >= {

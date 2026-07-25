@@ -58,7 +58,7 @@ def render(config: UiConfig) -> None:
     default_values = ["0.08, 0.12, 0.16", "", "", ""]
 
     section_header(
-        "Sweep Declaration",
+        "Sweep declaration",
         f"Hard limit: {catalog.max_axes} axes and {catalog.max_points} complete grid points.",
     )
     with st.form("parameter-sweep-form"):
@@ -148,7 +148,7 @@ def render(config: UiConfig) -> None:
 
 
 def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
-    section_header("Sweep Result", "Typed point provenance and response-surface artifacts.")
+    section_header("Sweep result", "Typed point provenance and response-surface artifacts.")
     affected_fields = sorted(
         {
             item.parameter_path.value
@@ -191,7 +191,7 @@ def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
         width="stretch",
     )
     if result.response_surface:
-        section_header("Response Surface")
+        section_header("Response surface")
         st.dataframe(
             [
                 {

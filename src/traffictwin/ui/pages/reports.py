@@ -62,7 +62,7 @@ def render(config: UiConfig) -> None:
 
 
 def _render_inventory(reports: list[ReportEntry]) -> None:
-    section_header("Available Reports", "Deterministic report inventory for the active workspace.")
+    section_header("Available reports", "Deterministic report inventory for the active workspace.")
     query = st.text_input("Search reports", value="")
     filtered = [
         report
@@ -112,7 +112,7 @@ def _render_inventory(reports: list[ReportEntry]) -> None:
 
 
 def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle: Path) -> None:
-    section_header("Regenerate Report", "Choose explicit inputs before regenerating.")
+    section_header("Regenerate report", "Choose explicit inputs before regenerating.")
     report_type = st.selectbox("Report type", ["run", "compare", "diagnostics", "full"])
     primary = Path(st.text_input("Primary bundle path", value=str(default_bundle)))
     secondary_value = ""
@@ -159,7 +159,7 @@ def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle:
 
 def _render_executive_summary(report_root: Path) -> None:
     section_header(
-        "One-page Executive Summary (REP-04)",
+        "One-page executive summary (REP-04)",
         "Render a supervisor-facing A4 summary from one saved typed report JSON.",
     )
     st.info(
@@ -244,7 +244,7 @@ def _render_executive_summary(report_root: Path) -> None:
 
 def _render_structured_diff(report_root: Path) -> None:
     section_header(
-        "Structured Report Diff (REP-03)",
+        "Structured report diff (REP-03)",
         "Compare saved typed report JSON payloads before rendering; prose is never evidence.",
     )
     st.info(
@@ -307,7 +307,7 @@ def _render_structured_diff(report_root: Path) -> None:
 
 def _render_annotations(config: UiConfig) -> None:
     section_header(
-        "Analyst Annotations (REP-02)",
+        "Analyst annotations (REP-02)",
         "Append notes or decisions to typed artifact references without rewriting evidence.",
     )
     st.info(
@@ -400,7 +400,7 @@ def _render_annotations(config: UiConfig) -> None:
 
 def _render_latex_export(workspace: Path | None, default_bundle: Path) -> None:
     section_header(
-        "LaTeX Research Export (REP-01)",
+        "LaTeX research export (REP-01)",
         "Render escaped tables and deterministic SVG/PDF figures from existing typed results.",
     )
     st.caption(

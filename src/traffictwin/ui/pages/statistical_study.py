@@ -356,7 +356,7 @@ def _render_power_analysis(analysis: PowerAnalysis) -> None:
     """Render only values already computed by the STA-05 library service."""
 
     result = analysis.calculation
-    st.subheader("Prospective Paired Common-Seed Power Plan")
+    st.subheader("Prospective paired common-seed power plan")
     st.markdown(f"**Planning status:** {badge_markdown(analysis.status.value)}")
     cards = st.columns(3)
     cards[0].metric(
@@ -510,7 +510,7 @@ def _render_regression_controls(config: UiConfig) -> None:
 def _render_regression_gate(report: RegressionGateReport) -> None:
     """Render only the complete typed STA-04 decision and check audit."""
 
-    st.subheader("Versioned Regression Gate And Assertion Audit")
+    st.subheader("Versioned regression gate and assertion audit")
     st.markdown(f"**Gate status:** {badge_markdown(report.status.value)}")
     cards = st.columns(3)
     cards[0].metric("Passed checks", report.passed_count, border=True)
@@ -698,7 +698,7 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
     """Render only values already computed by the STA-03 library service."""
 
     tost = study.tost
-    st.subheader("Paired TOST Equivalence Result And Common-Seed Audit")
+    st.subheader("Paired TOST equivalence result and common-seed audit")
     st.markdown(
         f"**Study status:** {badge_markdown(study.status.value)} · "
         f"**Conclusion:** {badge_markdown(tost.conclusion.value)}"
@@ -933,7 +933,7 @@ def _render_n_way_controls(config: UiConfig, experiments: list[str]) -> None:
 def _render_n_way_study(study: NWayRankingStudy) -> None:
     """Render only values already computed by the N-way library service."""
 
-    st.subheader("N-Way Policy Ranking And Common-Seed Audit")
+    st.subheader("N-way policy ranking and common-seed audit")
     st.markdown(f"**Study status:** {badge_markdown(study.status.value)}")
     cards = st.columns(3)
     cards[0].metric("Scenario families", len(study.entries), border=True)
@@ -1038,7 +1038,7 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
 def _render_study(study: StatisticalStudy) -> None:
     """Render the typed study without calculating scientific values in Streamlit."""
 
-    st.subheader("Pairing Audit And Statistical Results")
+    st.subheader("Pairing audit and statistical results")
     audit = study.pairing_audit
     source_mode = (
         "synthetic"

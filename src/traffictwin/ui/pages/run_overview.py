@@ -66,7 +66,7 @@ def render() -> None:
     render_source_caption(analysis)
     metrics = analysis.metrics.by_key()
 
-    st.subheader("KPI Summary")
+    st.subheader("KPI summary")
     cols = st.columns(4)
     for col, title in zip(cols, PRIMARY_KPI_TITLES, strict=True):
         with col:
@@ -83,7 +83,7 @@ def render() -> None:
                 with col:
                     metric_card(_kpi_label(title), metrics.get(KPI_KEYS[title]))
 
-    st.subheader("Energy Evidence")
+    st.subheader("Energy evidence")
     energy_cols = st.columns(3)
     for col, (title, key) in zip(energy_cols, ENERGY_KPI_KEYS.items(), strict=True):
         with col:
@@ -94,7 +94,7 @@ def render() -> None:
         with st.expander("Advanced: full energy-contract fingerprints"):
             st.code("\n".join(sorted(full_fingerprints)), language=None)
 
-    st.subheader("Task Completion By Class")
+    st.subheader("Task completion by class")
     class_metric = metrics.get("task.completion.rate_by_class")
     if class_metric is not None and class_metric.status is MetricStatus.AVAILABLE:
         values = class_metric.value
@@ -111,7 +111,7 @@ def render() -> None:
     else:
         st.info("Task-class completion is unavailable.")
 
-    st.subheader("Decision Shares")
+    st.subheader("Decision shares")
     share_keys = [
         "task.decision_share.local",
         "task.decision_share.v2i",
@@ -136,7 +136,7 @@ def render() -> None:
     else:
         st.info("Decision share metrics are unavailable.")
 
-    st.subheader("Task Arrivals And Completions")
+    st.subheader("Task arrivals and completions")
     task_rows = task_event_series(analysis.validation.canonical)
     if task_rows:
         st.plotly_chart(
@@ -152,7 +152,7 @@ def render() -> None:
     else:
         st.info("Task event timeline is unavailable.")
 
-    st.subheader("Metric Availability")
+    st.subheader("Metric availability")
     counts = metric_status_counts(analysis.metrics)
     st.plotly_chart(
         bar_figure(
@@ -169,7 +169,7 @@ def render() -> None:
             column_config=table_column_config(detail_rows),
         )
 
-    st.subheader("Context And Provenance")
+    st.subheader("Context and provenance")
     with st.expander("Advanced: run identity and provenance"):
         render_run_provenance(analysis.validation, analysis.metrics)
 

@@ -37,7 +37,7 @@ def render() -> None:
             "licence": info.licence,
         },
     )
-    section_header("Schema Versions")
+    section_header("Schema versions")
     st.dataframe(
         [
             {"contract": "ScenarioSeed", "schema_version": "1.0"},
@@ -50,7 +50,7 @@ def render() -> None:
         hide_index=True,
         width="stretch",
     )
-    section_header("Trusted Metric Extensions")
+    section_header("Trusted metric extensions")
     plugin_api = metric_plugin_api_for_ui()
     st.markdown(
         f"Trusted local metric plugins register through **{plugin_api.registration_mode}** "
@@ -73,7 +73,7 @@ def render() -> None:
                 "sandboxed_execution": plugin_api.sandboxed_execution,
             }
         )
-    section_header("Trusted Declarative Rules")
+    section_header("Trusted declarative rules")
     rule_contract = declarative_rule_contract_for_ui()
     st.markdown(
         f"Declarative rules use the closed grammar **{rule_contract.grammar_version}** "

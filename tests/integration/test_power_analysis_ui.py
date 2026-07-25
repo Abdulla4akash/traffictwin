@@ -27,7 +27,7 @@ def test_streamlit_statistical_page_runs_power_analysis() -> None:
     assert result.status is PowerAnalysisStatus.AVAILABLE
     assert result.calculation.required_common_seed_replicates == 8
     assert any(
-        heading.value == "Prospective Paired Common-Seed Power Plan" for heading in app.subheader
+        heading.value == "Prospective paired common-seed power plan" for heading in app.subheader
     )
     assert {button.label for button in app.download_button} >= {
         "Download PowerAnalysis JSON",

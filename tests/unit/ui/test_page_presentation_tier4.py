@@ -53,7 +53,7 @@ def test_energy_evidence_is_coverage_first_with_family_states() -> None:
 
     body = text_of(app)
     # Families are separated by evidence state, with badges rather than a flat dump.
-    assert "Energy Families By Evidence State" in subheaders(app)
+    assert "Energy families by evidence state" in subheaders(app)
     assert "-badge[" in body
     # Efficiency/superiority is explicitly never inferred from a lower energy value.
     assert "efficiency" in body.lower()
@@ -92,8 +92,8 @@ def test_fairness_evidence_shows_coverage_disparities_and_exclusions() -> None:
     assert "RSU normalised-load Jain index" in labels
 
     heads = subheaders(app)
-    assert "Disparity Summary" in heads
-    assert "Exclusions & Limitations" in heads
+    assert "Disparity summary" in heads
+    assert "Exclusions & limitations" in heads
 
     body = text_of(app)
     # No fair/unfair verdict is asserted without the contract and evidence.
@@ -157,7 +157,7 @@ def test_journey_time_shows_cohort_completion_and_no_causality() -> None:
     assert "P95 duration (s)" in labels
 
     heads = subheaders(app)
-    assert "Completion and Exclusions" in heads
+    assert "Completion and exclusions" in heads
 
     body = text_of(app)
     # Completion status is a badge; incomplete/missing journeys stay explicit.
@@ -187,10 +187,10 @@ def test_spatial_rsu_reconciles_frame_targets_and_coordinates() -> None:
 
     heads = subheaders(app)
     # The two contracted evidence sections and both reconciliation sections are present.
-    assert "Task Outcomes By Execution-Target RSU" in heads
-    assert "Vehicle Source-Frame Grid" in heads
-    assert "Execution-Target Reconciliation" in heads
-    assert "Coordinate Reconciliation" in heads
+    assert "Task outcomes by execution-target RSU" in heads
+    assert "Vehicle source-frame grid" in heads
+    assert "Execution-target reconciliation" in heads
+    assert "Coordinate reconciliation" in heads
 
     labels = metric_labels(app)
     # Unmatched and unprojectable records are explicit numeric counts.

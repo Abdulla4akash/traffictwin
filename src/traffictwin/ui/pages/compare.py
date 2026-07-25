@@ -95,7 +95,7 @@ def render() -> None:
             }
         )
 
-    st.subheader("Changed Scenario Parameters")
+    st.subheader("Changed scenario parameters")
     if report.changed_seed_parameters:
         change_rows = [
             {

@@ -69,7 +69,7 @@ def render(config: UiConfig | None = None) -> None:
         if clock.max_timestamp_s == 0 and clock.min_timestamp_s == 0:
             clock = replay_clock_from_tables(analysis.validation.canonical)
 
-    st.subheader("Replay Clock")
+    st.subheader("Replay clock")
     cols = st.columns(4)
     cols[0].metric("Current timestamp", f"{clock.current_timestamp_s:.1f} s")
     cols[1].metric("First timestamp", f"{clock.min_timestamp_s:.1f} s")
@@ -120,7 +120,7 @@ def render(config: UiConfig | None = None) -> None:
         if isinstance(stored_filters, dict)
         else ReplayFilters()
     )
-    st.subheader("Replay Filters")
+    st.subheader("Replay filters")
     vehicle_options = ["All", *options["vehicles"]]
     rsu_options = ["All", *options["rsus"]]
     task_class_options = ["All", *options["task_classes"]]

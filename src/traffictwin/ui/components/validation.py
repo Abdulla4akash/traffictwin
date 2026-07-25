@@ -16,7 +16,7 @@ from traffictwin.validation.report import ValidationReport
 def render_validation_report(report: ValidationReport) -> None:
     """Render validation summary and findings."""
 
-    st.subheader("Validation Report")
+    st.subheader("Validation report")
     st.markdown(badge_markdown(report.status.value))
     summary_rows = validation_summary_rows(report)
     st.dataframe(

@@ -135,7 +135,7 @@ def render() -> None:
     for warning in result.warnings:
         st.warning(warning)
 
-    st.subheader("R6 Temporal Degradation")
+    st.subheader("R6 temporal degradation")
     st.caption(
         "R6 compares exact consecutive windows with a declared baseline. Missing or low-coverage "
         "windows break episodes; event context is optional and never inferred. Defaults are "

@@ -71,7 +71,7 @@ def test_streamlit_statistical_page_runs_metric_regression_gate(
     assert isinstance(result, RegressionGateReport)
     assert result.status is RegressionGateStatus.PASSED
     assert any(
-        heading.value == "Versioned Regression Gate And Assertion Audit"
+        heading.value == "Versioned regression gate and assertion audit"
         for heading in app.subheader
     )
     assert {button.label for button in app.download_button} >= {

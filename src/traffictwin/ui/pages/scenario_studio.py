@@ -159,7 +159,7 @@ def render(config: UiConfig) -> None:
         return
 
     yaml_text = export_seed_for_ui(seed)
-    st.subheader("YAML Preview")
+    st.subheader("YAML preview")
     st.code(yaml_text, language="yaml")
     st.download_button("Download Seed YAML", data=yaml_text, file_name=f"{seed.seed_id}.yaml")
 

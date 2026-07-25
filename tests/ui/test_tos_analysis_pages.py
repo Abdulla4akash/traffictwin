@@ -47,5 +47,5 @@ def test_tos_results_page_exposes_paired_comparison(
     app.run(timeout=15)
 
     assert not app.exception
-    assert any(item.value == "Paired Campaign Comparison" for item in app.subheader)
+    assert any(item.value == "Paired campaign comparison" for item in app.subheader)
     assert any("does not establish" in item.value for item in app.info)

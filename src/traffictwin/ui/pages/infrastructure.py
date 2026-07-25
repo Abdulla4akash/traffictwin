@@ -37,7 +37,7 @@ def render(config: MetricEngineConfig) -> None:
         analysis.validation.canonical,
         None if selected == "All RSUs" else str(selected),
     )
-    section_header("Queue and Utilisation Over the Observed Window")
+    section_header("Queue and utilisation over the observed window")
     if rows:
         st.line_chart(
             rows,
@@ -66,7 +66,7 @@ def render(config: MetricEngineConfig) -> None:
         )
 
     metrics = analysis.metrics.by_key()
-    section_header("Capacity, Pressure and Utilisation")
+    section_header("Capacity, pressure and utilisation")
     cols = st.columns(4)
     with cols[0]:
         metric_card("P95 utilisation (fraction)", metrics.get("infra.utilisation.p95"))
@@ -77,7 +77,7 @@ def render(config: MetricEngineConfig) -> None:
     with cols[3]:
         metric_card("Saturation duration (s)", metrics.get("infra.saturation.duration_s"))
 
-    section_header("Load Balance")
+    section_header("Load balance")
     balance_columns = st.columns(2)
     metric = metrics.get("infra.load_balance.jain_capacity_normalised")
     with balance_columns[0]:
@@ -128,7 +128,7 @@ def _render_provenance_and_window(analysis: BundleAnalysis) -> None:
 def _render_per_rsu_summary(summary: MetricValue | None) -> None:
     """Render the per-RSU summary as a structured table; keep the raw dict in Advanced/Evidence."""
 
-    section_header("Per-RSU Summary")
+    section_header("Per-RSU summary")
     if summary is None or not isinstance(summary.value, dict):
         render_metric_unavailable(summary, "infra_state.csv")
         return

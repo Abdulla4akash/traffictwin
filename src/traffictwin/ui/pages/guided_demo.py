@@ -150,7 +150,7 @@ def _render_completion(progress: GuidedDemoProgress) -> None:
 
 
 def _render_track_status(config: UiConfig, track: DemoTrack) -> None:
-    section_header("Active Evidence Context")
+    section_header("Active evidence context")
     if track is DemoTrack.STANDALONE:
         badge_row(["SYNTHETIC", "OFFLINE", "DETERMINISTIC"])
         if config.workspace_path is None:

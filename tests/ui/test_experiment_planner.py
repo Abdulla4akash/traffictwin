@@ -140,8 +140,8 @@ def test_streamlit_experiment_planner_validates_and_registers(
     next(button for button in app.button if button.label == "Validate Plan").click().run(timeout=10)
 
     assert not app.exception
-    assert any(heading.value == "Validated Plan Preview" for heading in app.subheader)
-    assert any(heading.value == "Execution Protocol" for heading in app.subheader)
+    assert any(heading.value == "Validated plan preview" for heading in app.subheader)
+    assert any(heading.value == "Execution protocol" for heading in app.subheader)
     next(
         button for button in app.button if button.label == "Register Planned Experiment"
     ).click().run(timeout=10)
@@ -150,7 +150,7 @@ def test_streamlit_experiment_planner_validates_and_registers(
     assert registry.get_experiment("exp-apptest-plan").status.value == "planned"
     assert registry.inspect().run_count == 0
     app.run(timeout=10)
-    assert any(heading.value == "Registered Protocol Export" for heading in app.subheader)
+    assert any(heading.value == "Registered protocol export" for heading in app.subheader)
 
 
 def test_streamlit_home_renders_workspace_planner_actions(

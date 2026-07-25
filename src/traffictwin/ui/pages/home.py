@@ -174,7 +174,7 @@ def _render_legacy_home(config: UiConfig) -> None:
     st.info(REQUIRED_PROTOTYPE_NOTICE)
     badge_row(["SYNTHETIC", "IMPORTED", "HISTORICAL REPLAY"])
 
-    section_header("Research Workflow")
+    section_header("Research workflow")
     action_cols = st.columns(2)
     navigation_button(
         action_cols[0].button,
@@ -219,7 +219,7 @@ def _render_legacy_home(config: UiConfig) -> None:
     cols[3].metric("Metric collections", metric_count)
 
     if config.workspace_path is not None:
-        section_header("Standalone Demo")
+        section_header("Standalone demo")
         demo_status = workspace_status(config.workspace_path)
         st.info(
             "Standalone mode uses repository-contained synthetic fixtures only. "
@@ -244,7 +244,7 @@ def _render_legacy_home(config: UiConfig) -> None:
         cols[1].metric("Comparisons", comparison_count)
         cols[2].metric("Provenance exports", provenance_count)
 
-        section_header("Quick Actions")
+        section_header("Quick actions")
         first_actions = st.columns(2)
         navigation_button(
             first_actions[0].button,
@@ -278,7 +278,7 @@ def _render_legacy_home(config: UiConfig) -> None:
             width="stretch",
         )
 
-        section_header("Recent Workspace Artifacts")
+        section_header("Recent workspace artifacts")
         reports = list_workspace_reports(config.workspace_path)[:5]
         if reports:
             report_rows = [
@@ -299,7 +299,7 @@ def _render_legacy_home(config: UiConfig) -> None:
         else:
             st.info("No report artifacts found in the active workspace.")
 
-    section_header("Latest Imported Runs")
+    section_header("Latest imported runs")
     if status.latest_runs:
         run_rows = [
             {
@@ -331,7 +331,7 @@ def _render_legacy_home(config: UiConfig) -> None:
     else:
         st.info("No registered runs yet. Import a synthetic or historical bundle first.")
 
-    section_header("Current Limitations")
+    section_header("Current limitations")
     st.markdown(
         "- Direct simulator launch is unavailable for the default generic CSV adapter.\n"
         "- Private Manchester acquisition is bounded to explicit BODS bus-position snapshots "

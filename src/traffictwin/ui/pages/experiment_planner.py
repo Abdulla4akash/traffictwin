@@ -79,7 +79,7 @@ def render(config: UiConfig) -> None:
 
 def _render_plan_form(catalog: ExperimentPlannerCatalog) -> None:
     section_header(
-        "Research Design",
+        "Research design",
         "All conditions reference immutable registered ScenarioSeed records.",
     )
     seed_by_id = {seed.seed_id: seed for seed in catalog.seeds}
@@ -165,7 +165,7 @@ def _render_plan_preview(
     catalog: ExperimentPlannerCatalog,
 ) -> None:
     section_header(
-        "Validated Plan Preview",
+        "Validated plan preview",
         "Each row is a planned run slot. No Run records or result values are created.",
     )
     cols = st.columns(4)
@@ -188,7 +188,7 @@ def _render_plan_preview(
         width="stretch",
     )
 
-    section_header("Seed Changes")
+    section_header("Seed changes")
     change_rows = [
         {"variation_seed_id": variation_id, **change}
         for variation_id, changes in summary.seed_differences.items()
@@ -210,7 +210,7 @@ def _render_plan_preview(
     protocol = protocol_result
 
     section_header(
-        "Execution Protocol",
+        "Execution protocol",
         "A deterministic coordination checklist only. It does not create Run records or "
         "launch work.",
     )
@@ -281,7 +281,7 @@ def _render_plan_preview(
 
 
 def _render_existing_plans(catalog: ExperimentPlannerCatalog) -> None:
-    section_header("Registered Experiment Plans")
+    section_header("Registered experiment plans")
     if not catalog.experiments:
         st.info("No experiment plans are registered yet.")
         return
@@ -301,7 +301,7 @@ def _render_existing_plans(catalog: ExperimentPlannerCatalog) -> None:
         width="stretch",
     )
     section_header(
-        "Registered Protocol Export",
+        "Registered protocol export",
         "Rebuild a stable checklist from a registered experiment and its seed snapshots.",
     )
     experiment_ids = [experiment.experiment_id for experiment in catalog.experiments]

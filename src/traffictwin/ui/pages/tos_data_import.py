@@ -99,7 +99,7 @@ def _render_package_summary(view: TosPackageView) -> None:
                 f"package_fingerprint: {report.package_fingerprint or 'unavailable'}",
                 language=None,
             )
-    st.subheader("Capability Boundary")
+    st.subheader("Capability boundary")
     capabilities = report.capabilities.model_dump(mode="json")
     capability_table_rows = [
         {"capability": key, "status": "SUPPORTED" if value else "UNSUPPORTED"}
@@ -154,7 +154,7 @@ def _render_package_summary(view: TosPackageView) -> None:
 
 
 def _render_import(view: TosPackageView, source: Path, config: UiConfig) -> None:
-    st.subheader("Registry Import")
+    st.subheader("Registry import")
     registry = Path(
         st.text_input(
             "Registry path for TOS summaries",
@@ -186,7 +186,7 @@ def _render_import(view: TosPackageView, source: Path, config: UiConfig) -> None
 
 
 def _render_run_analysis(view: TosPackageView) -> None:
-    st.subheader("Evaluation Summary Analysis")
+    st.subheader("Evaluation summary analysis")
     campaigns = sorted({run.campaign for run in view.evaluation_runs})
     cells = sorted({run.cell for run in view.evaluation_runs})
     filter_cols = st.columns(3)
@@ -295,7 +295,7 @@ def _render_run_analysis(view: TosPackageView) -> None:
 
 
 def _render_replay(view: TosPackageView, source: Path) -> None:
-    st.subheader("Instrumented Historical Replay")
+    st.subheader("Instrumented historical replay")
     badge_row(["HISTORICAL REPLAY", "IMPORTED SIMULATION"])
     if not view.instrumented_runs:
         st.info("No matched per-step and summary artifacts are available.")
@@ -453,7 +453,7 @@ def _render_rsu_history(points: list[TosRsuReplayPoint]) -> None:
 
 
 def _render_comparison(view: TosPackageView) -> None:
-    st.subheader("Source-Summary Comparison")
+    st.subheader("Source-summary comparison")
     st.caption(
         "Choose runs with the same cell, evaluation fleet, and fleet seed. Comparison uses the "
         "existing deterministic delta service and retains source-metric provenance."

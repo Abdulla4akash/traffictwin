@@ -41,7 +41,7 @@ def render() -> None:
     rsu_metric = metrics.get("fairness.rsu.capacity_normalised_load.by_group")
     _render_group_coverage(tier_metric, rsu_metric)
 
-    section_header("Disparity Summary")
+    section_header("Disparity summary")
     columns = st.columns(4)
     for column, (title, key) in zip(columns, DISPARITY_CARDS, strict=True):
         with column:
@@ -52,7 +52,7 @@ def render() -> None:
         "gap alone is a description, not a verdict."
     )
 
-    section_header("Vehicle-Tier Completion Groups")
+    section_header("Vehicle-tier completion groups")
     tier_rows = _group_rows(tier_metric, value_label="completion_rate")
     if tier_rows:
         st.dataframe(
@@ -73,7 +73,7 @@ def render() -> None:
     else:
         render_metric_unavailable(tier_metric, "stable vehicle tiers joined to every task")
 
-    section_header("RSU Capacity-Normalised Load Groups")
+    section_header("RSU capacity-normalised load groups")
     rsu_rows = _group_rows(rsu_metric, value_label="mean_active_tasks_per_capacity")
     if rsu_rows:
         st.dataframe(
@@ -157,7 +157,7 @@ def _render_group_chart(
 def _render_exclusions(tier_metric: MetricValue | None, rsu_metric: MetricValue | None) -> None:
     """Keep insufficient groups and protected-attribute limitations visible."""
 
-    section_header("Exclusions & Limitations")
+    section_header("Exclusions & limitations")
     for label, metric in (
         ("Vehicle-tier groups", tier_metric),
         ("RSU groups", rsu_metric),
@@ -203,7 +203,7 @@ def _render_policy_identity(metric: MetricValue) -> None:
 
 
 def _render_r7(evidence_pack: EvidencePack | None) -> None:
-    section_header("R7 Operational Outcome Disparity")
+    section_header("R7 operational outcome disparity")
     st.caption(
         "Select exactly one operational dimension. The 0.20 default is a provisional synthetic-"
         "development threshold, not a fairness standard. R7 reports a candidate pattern and "
