@@ -339,7 +339,7 @@ pre-existing integration failures (Statistical Study ×4, VEC Workbench ×1, and
 source-hash probe) fail identically at the base commit `e8bf792`, exercise no Tier 4 page, touch no
 module Tier 4 changed, and are outside this grant. Awaiting repository-owner acceptance.
 
-### Active parallel ownership grant: integration-regression repair slice
+### Completed parallel ownership: integration-regression repair slice
 
 - The repository owner independently reproduced the six pre-existing integration failures and, on
   25 July 2026, granted a repair slice from the pushed head `8fe2301` on `claude/complete-v0.7`. No
@@ -377,6 +377,25 @@ module Tier 4 changed, and are outside this grant. Awaiting repository-owner acc
   AppTests under grouped navigation; confirm no old evidence file or protected tag changed. Commit the
   navigation repair and the DfT evidence repair separately, inspect both staged diffs, push to
   `claude/complete-v0.7`, and never create or move a release tag.
+
+The integration-regression repair was completed on 25 July 2026 in two pushed commits — `7011b6f`
+(grouped-navigation `switch_page` migration of the four Statistical Study tests and the VEC Workbench
+render test) and `7c63213` (DfT Gate-B re-probe binding the current implementation). Diagnosis:
+`transport.py`'s byte hash drifted after the 23 July probe because of unrelated National Highways /
+WebTRIS work; the historical `manchester_dft_gate_b_probe_20260723.json` correctly bound the code
+that executed that probe and is unchanged. A bounded, anonymous, read-only re-probe of the same three
+audited endpoints (LA 85; filters 43177/6046/9219; one row each) through the current transport/
+acquisition/parser code reproduced byte-identical accepted evidence, so the committed one-row
+fixtures were reused unchanged; the new `manchester_dft_gate_b_probe_20260725.json` binds the current
+implementation hashes and a recorded clean commit, keeps capability `planned`, commits no raw bytes,
+and retains every scoped blocker (GA-DFT-1/2/3). The offline integrity test now discovers all dated
+probe records, treats historical records as immutable well-formed evidence (files exist, hashes not
+re-bound to current code), and requires the newest accepted probe to bind current code exactly.
+Verification: the six previously failing tests pass; the complete `tests/integration` suite passes
+with zero failures (no real-SUMO skip required); the full unit+UI+integration suite reports 2035
+passed; repository Ruff/format checks, strict mypy over 693 files, and `git diff --check` are clean;
+the affected Statistical Study and VEC Workbench AppTests pass under grouped navigation; and no
+historical evidence file or protected tag changed. Awaiting repository-owner acceptance.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 

@@ -8,7 +8,7 @@ Checkpoint tag `v0.7.0-alpha.5` marks commit
 `310117e` (the coexistence-check checkpoint); later verified commits continue on the branch.
 
 **Snapshot commit:** the head of `claude/complete-v0.7` after the Phase 2B Tier 4 presentation
-harvest (see below). Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the
+harvest and the 25 July 2026 integration-regression repair (see below). Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the
 REL-01 workspace CLI, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
 temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
 pack and its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, the
@@ -73,6 +73,10 @@ At the snapshot commit:
 
 - 686 Manchester-focused unit tests pass;
 - 1,655 unit tests and 169 UI tests pass, 1,824 combined;
+- the complete `tests/integration` suite passes with zero failures, and the full
+  unit+UI+integration suite reports 2,035 passing (after the 25 July 2026 integration-regression
+  repair migrated the Statistical Study and VEC Workbench AppTests to grouped navigation and re-bound
+  the DfT Gate-B probe to the current implementation);
 - repository-wide Ruff formatting and checks pass;
 - strict mypy passes over all 693 configured source and test files;
 - lock validation and package build pass;

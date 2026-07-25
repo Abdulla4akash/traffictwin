@@ -587,10 +587,28 @@ passes 1,655 unit tests and 169 UI tests (1,824 combined), repository-wide Ruff 
 strict mypy over all 693 configured source and test files, `git diff --check`, and the 35-route
 desktop/mobile light/dark browser matrix (140 snapshots, zero actionable semantic findings). Six
 pre-existing integration failures (four Statistical Study, one VEC Workbench, and one Manchester
-DfT source-hash probe) are outside this grant: they exercise no Tier 4 page, touch no module Tier 4
-changed, and fail identically at the Tier 4 base commit `e8bf792` — the five `app.radio[0]` cases
-because grouped navigation is the default, and the probe on a source-hash binding. This is
-candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
+DfT source-hash probe) were outside this Tier 4 grant and were repaired in the separate slice below.
+This is candidate presentation evidence only; `UX-01`–`UX-03` remain planned.
+
+A lead-granted integration-regression repair slice then resolved those six pre-existing failures
+honestly on 25 July 2026 in two commits. The grouped-navigation repair (`7011b6f`) migrated the four
+Statistical Study tests and the VEC Workbench render test off the removed legacy `app.radio[0]`
+sidebar to the default v0.7 `app.switch_page(page_script_for(UiPage...))` mechanism, preserving every
+STA-02/03/04/05 result, download-set, and VEC execution-gated assertion; legacy navigation was not
+enabled. The DfT Gate-B repair (`7c63213`) diagnosed that `transport.py`'s byte hash drifted after
+the 23 July probe because of unrelated National Highways / WebTRIS work, so the historical
+`manchester_dft_gate_b_probe_20260723.json` — which correctly bound the code that executed that probe
+against a dirty tree — is preserved unchanged. A bounded, anonymous, read-only re-probe of the same
+three audited endpoints through the current transport/acquisition/parser code reproduced
+byte-identical accepted evidence (same raw/member fingerprints and retained one-row fixtures), so the
+committed fixtures were reused; the new `manchester_dft_gate_b_probe_20260725.json` binds the current
+implementation hashes and a recorded clean commit, keeps capability `planned`, commits no raw bytes,
+and retains every scoped blocker. The offline integrity test now discovers all dated probe records,
+treats historical records as immutable well-formed evidence, and requires the newest accepted probe
+to bind current code. The six previously failing tests pass; the complete `tests/integration` suite
+passes with zero failures (no real-SUMO skip required); the full unit+UI+integration suite reports
+2,035 passing; repository Ruff/format checks, strict mypy over 693 files, and `git diff --check` are
+clean; and no historical evidence file or protected tag changed.
 
 Only explicit operator-submitted source forms may call a Manchester source; ordinary page reruns
 and local scene rendering remain import-first. No observation may be used as a SUMO baseline until
