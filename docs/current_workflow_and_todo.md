@@ -36,7 +36,7 @@ analyst, human, or supervisor has reviewed any row**, and no downstream artifact
 | 7 | Controlled SUMO execution | **boundary built; run blocked** | runner built and tested; demand gridlocks, see below |
 | 8 | Comparison contract | **built, not registered** | fingerprint `b1d31a1b122be3a5…`; registry lives in `comparison.py`, outside the agent grant |
 | 9 | SUMO-to-VEC chain | **to do** | depends on an accepted FCD/network pair |
-| 10 | CLI, service and thin UI integration | **to do** | 13 modules built, 2 have CLI surface |
+| 10 | CLI, service and thin UI integration | **in progress** | five command families; nine workflows still have no CLI |
 | 11 | Gate B, C and F closure | **to do** | independent of the demand blocker |
 | 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
 | 13 | Final verified alpha checkpoint | **to do** | not a release; no final `v0.7.0` tag |
@@ -78,24 +78,24 @@ Required workflows, from the brief:
 
 | Workflow | CLI today |
 |---|---|
-| acquire DfT evidence | missing (module exists; needs an operator-confirmed command) |
-| inspect snapshots | missing |
-| measure matching ambiguity | missing |
-| generate map-match candidates | missing |
-| review and resume matches | missing |
-| build temporal profiles | `profile build` |
 | inspect workflow status and blockers | `workflow status`, `workflow decisions` |
 | inspect DfT snapshots | `observation snapshots` |
 | show the map-match policy | `match policy` |
-| build candidate demand | missing |
-| run calibration | missing |
-| run held-out evaluation | missing |
-| run SUMO | missing |
-| validate FCD and network | missing |
-| compare observed and simulated | missing |
-| execute eligible VEC stages | missing |
-| inspect lineage | missing |
-| export permission-safe evidence | missing |
+| build temporal profiles | `profile build`, `profile inspect`, `profile policy` |
+| acquire and build the network | `network acquire`, `network decode`, `network build`, and five more |
+| acquire DfT evidence | **missing** — module exists, needs an operator-confirmed command |
+| measure matching ambiguity | **missing** |
+| generate map-match candidates | **missing** |
+| review and resume matches | **missing** — must stay non-automatable |
+| build candidate demand | **missing** |
+| run SUMO | **missing** — runner exists, run is blocked on decision 1 |
+| validate FCD and network | **missing** — no FCD exists yet |
+| run calibration | **missing** — contract blocked |
+| run held-out evaluation | **missing** — contract blocked |
+| compare observed and simulated | **missing** — contract unregistered |
+| execute eligible VEC stages | **missing** — no FCD pair |
+| inspect lineage | **missing** |
+| export permission-safe evidence | **missing** |
 
 Constraints: no Streamlit page may compute a scientific metric, fetch implicitly, launch a process,
 mutate raw evidence, or hide an unavailable state. Manchester Operations and Guided Demo expose the
