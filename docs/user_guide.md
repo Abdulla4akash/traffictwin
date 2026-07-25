@@ -895,15 +895,19 @@ download or a build:
 ```bash
 traffictwin integration manchester network scope
 traffictwin integration manchester network acquire <workspace> --confirm
-traffictwin integration manchester network build <workspace> --extract <path> --network-id gm-1
+traffictwin integration manchester network decode --extract <pbf> --output <osm.xml>
+traffictwin integration manchester network build <workspace> --extract <osm.xml> --network-id gm-1
 traffictwin integration manchester network status <workspace>
 ```
 
 Two things are worth knowing before you rely on a build:
 
-- **Rebuilds match semantically, not byte-for-byte.** SUMO writes a timestamp into every network
-  file, so the raw file differs each run. TrafficTwin records a second "identity" checksum with that
-  banner removed, and that one is stable. `verify` checks both.
+- **Rebuilds are not guaranteed to match.** SUMO writes a timestamp into every network file, so the
+  raw file always differs. TrafficTwin also records an "identity" checksum with that banner removed
+  — but at Greater Manchester scale even that is only *usually* stable: in three measured builds,
+  two matched exactly and one differed in 238 of 10.9 million lines, all of them roundabout
+  groupings. Road, junction and traffic-light counts were identical every time. So TrafficTwin
+  never claims a build is reproducible; it says `not_verified` until you compare two real builds.
 - **DfT traffic counts only cover Manchester local authority.** Inside the wider Greater Manchester
   network that is partial coverage. Places without counts are shown as *uncovered*, never as zero
   traffic — no survey point is not the same thing as no vehicles.

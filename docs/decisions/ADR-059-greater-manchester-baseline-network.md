@@ -66,29 +66,73 @@ repository owner on 25 July 2026 and recorded in the
    `netOffset`, `convBoundary`, and `origBoundary` are read verbatim and pinned into the binding.
    TrafficTwin never re-derives, overrides, or silently reprojects them. Distance work elsewhere
    continues to use EPSG:27700.
-8. **Determinism is claimed at semantic identity, not byte identity.** This was measured, not
-   assumed (see Consequences).
+8. **Reproducibility is measured, never asserted.** A single build cannot establish it, so a
+   binding records `semantic_reproducibility = not_verified` until two real builds are compared.
+   The measured Greater Manchester result is in Consequences.
+9. **PBF decoding uses `osmium-tool`, and the decode is a format conversion only.** `netconvert`
+   1.27.1 reads OSM XML, so the pinned `.osm.pbf` needs a decode step first. The decoder applies no
+   tag filter, bounding-box clip, simplification, or road-class selection; which ways become edges
+   stays entirely inside the frozen `netconvert` recipe.
 
 ## Consequences
 
-### Determinism, stated honestly
+### Reproducibility, corrected after measuring at full scale
 
-Two `netconvert` 1.27.1 runs over identical inputs produce `.net.xml` files whose **raw bytes
-differ**. The observed differences are exactly two, both inside the leading XML comment banner:
+**An earlier revision of this ADR claimed `semantically_reproducible = true`. That claim was
+wrong and has been withdrawn.** It was generalised from four runs of the small city-centre
+network, which do reproduce identically. Greater Manchester does not always.
 
-- the generation timestamp (`generated on 2026-07-25T03:14:09... ` vs `...T03:14:15...`);
-- the echoed `--output-file` value.
+Raw bytes never match across runs: `netconvert` writes a generation banner containing a timestamp
+and the echoed output filename. That much was correct and is confined to a comment.
 
-After removing XML comments and normalising trailing whitespace, the two outputs are
-**byte-identical**, giving the same SHA-256. The build therefore records two digests:
+Canonical identity — comments removed, trailing whitespace normalised — is **intermittently**
+unstable at Greater Manchester scale. Three independent builds over byte-identical decoded input
+and identical frozen arguments produced:
 
-| Digest | Meaning |
+| Comparison | Canonical identity | Structural counts | Differing canonical lines |
+|---|---|---|---|
+| build 3 vs build 1 | identical | identical | 0 of 10,913,436 |
+| build 3 vs build 2 | **differs** | identical | 238 of 10,913,444 (0.0022%) |
+| build 1 vs build 2 | **differs** | identical | 238 of 10,913,444 |
+
+Every differing line is a `<roundabout>` membership list — the node/edge grouping netconvert infers.
+Edge, junction, connection, lane, and traffic-light counts were identical in every build
+(2,106,404 / 468,442 / 2,545,492 / 2,157,380 / 2,434).
+
+The build therefore records three things rather than a claim:
+
+| Field | Meaning |
 |---|---|
-| `network_sha256` | Raw `.net.xml` bytes. Reproducible only within a single run; **not** stable across runs. |
-| `network_identity_sha256` | Canonical form with comments removed and trailing whitespace normalised. **Stable across runs** and is the digest a rebuild is verified against. |
+| `network_sha256` | Raw bytes. Never stable across runs. |
+| `network_identity_sha256` | Canonical form. Stable for the small network; intermittently unstable at Greater Manchester scale. |
+| `semantic_reproducibility` | `not_verified` on a single build. Only `compare_builds` over two real builds sets `verified_identical` or `verified_varies`, and a validator refuses a status the measurement contradicts. |
 
-Claiming byte-level reproducibility here would be false, so it is not claimed. The unavoidable
-nondeterminism is confined to a generation banner that carries no network semantics.
+This is deliberately not resolved by excluding `<roundabout>` from the digest. Defining the
+difference away would make the artifact assert a stability it does not have.
+
+### The network extent is the network, not the input box
+
+`netconvert` writes both `origBoundary` (the bounding box of everything it *read*) and
+`convBoundary` (the extent of the network it *built*). An OSM extract retains whole ways and
+relation members crossing its edge, so on the Greater Manchester build `origBoundary` spanned
+longitude −2.83 to **+1.46** — Norfolk — while the network itself spanned −2.74 to −1.88.
+
+The extent is therefore computed from `convBoundary`, offset by `netOffset` and transformed back
+through the network's own `projParameter`. Reading `origBoundary` instead would have overstated
+coverage and let a point 250 km away pass a containment test.
+
+The network is **not clipped** to the administrative boundary, and
+`NetworkEnvelopeReconciliation` records the resulting overshoot per side as a measurement with
+`network_clipped_to_boundary` and `overshoot_threshold_applied` both false. No clipping rule or
+tolerance has been approved, so none is invented in a validator.
+
+### Private paths must not travel inside the artifact
+
+`netconvert` echoes its resolved configuration into the network's comment banner, so absolute
+input and staging paths were being embedded in the `.net.xml` itself and would have shipped with
+any published derived network. The extract is now hard-linked into the staging directory and the
+build runs on bare filenames; the link is removed before promotion. The produced Greater
+Manchester network contains zero private paths.
 
 ### Environment observation
 

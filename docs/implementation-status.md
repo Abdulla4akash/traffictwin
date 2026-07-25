@@ -386,18 +386,43 @@ private-path-free command receipt, network validation, a read-only service, and 
 the derived extract envelope is labelled `derived_from_display_geometry` with a declared margin and
 uncertainty, and `scientific_clipping_boundary` is structurally false.
 
-Determinism is claimed only where measured. Four `netconvert` 1.27.1 runs over identical real
-Manchester OSM input produced four different raw digests and one identical canonical identity
-digest, the difference being confined to the generation banner; the binding records
-`byte_reproducible = false` and `semantically_reproducible = true`.
+The **complete Greater Manchester baseline network** now exists: the owner approved `osmium-tool`
+as the controlled PBF-to-OSM-XML decoder, and the pinned 50,502,348-byte extract decodes to
+996,913,352 bytes of XML and builds to a 1,248,945,774-byte network with 2,106,404 edges, 468,442
+junctions, 2,545,492 connections and 2,434 traffic lights at UTM zone 30N, validation `accepted`
+with no findings and both required areas inside. The decode is a format conversion only — no tag
+filter, bbox clip, simplification, or road-class selection — so which ways become edges stays
+inside the frozen `netconvert` recipe. `osmium` is an external runtime executed like SUMO, never
+linked or imported, and no project dependency changed.
 
-Two limits are recorded honestly rather than worked around. First, the provider's `-latest` alias
-302-redirects and the requested 25 July 2026 extract returns HTTP 404, so the dated 24 July file is
-pinned and the retrieval date and data-cutoff date are kept separate. Second, `netconvert` 1.27.1 as
-built here reads OSM XML only and exits 1 on the pinned PBF container, and no approved decoder is
-installed, so the **full Greater Manchester network build is blocked** on
-`OSM_PBF_DECODE_UNAVAILABLE`; the real build evidence is a bounded city-centre/university sub-area
-probe explicitly labelled as not the Greater Manchester baseline.
+Reproducibility is **measured, never asserted**, and an earlier `semantically_reproducible = true`
+claim has been withdrawn. Three Greater Manchester builds over byte-identical input and identical
+arguments produced identical structural counts every time, but two matched canonical identity
+exactly while the third differed in 238 of 10,913,444 canonical lines, all `<roundabout>`
+membership. Greater Manchester builds are therefore intermittently, not systematically,
+non-reproducible; the smaller city-centre network reproduced exactly across four runs, so the
+property is scale-dependent. A single build records `semantic_reproducibility = not_verified` and
+only `compare_builds` over two real builds can set a verified status.
+
+Provider time facts stay separate and are never collapsed: the OSM data-cutoff instant
+`2026-07-24T20:20:51Z` read from the PBF header, the provider publication time
+`Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT`, and the operator retrieval date 25 July 2026. The
+`-latest` alias 302-redirects and a `260725` file returns HTTP 404, so the dated `260724` file is
+pinned.
+
+Two further defects surfaced only at full scale and are fixed. The validator loaded the whole
+network and would have peaked at several gigabytes, so digests, structure counts, and the
+projection prefix are now streamed — validating the 1.25 GB network peaks at 148 MB RSS. The
+network extent was read from `origBoundary`, which is the box of everything `netconvert` *read*:
+because an OSM extract retains whole ways crossing its edge, that reached longitude +1.46 while the
+network stopped at −1.88, overstating coverage. The extent is now computed from `convBoundary`
+through the network's own `projParameter`, and the network is explicitly recorded as **not clipped**
+to the administrative boundary with the overshoot measured and no tolerance invented. `netconvert`
+also embedded absolute staging paths in the network's own comment banner; builds now run on bare
+filenames inside staging and the produced Greater Manchester network contains zero private paths.
+
+The earlier city-centre/University build remains recorded as a **sub-area probe** and is not
+relabelled as the Greater Manchester baseline.
 
 No map matching, analyst ambiguity review over real evidence, temporal profile, calibration,
 residuals, accepted `ManchesterSumoBaseline`, or comparison contract is delivered. The

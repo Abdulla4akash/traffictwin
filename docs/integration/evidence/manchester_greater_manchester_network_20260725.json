@@ -1,0 +1,150 @@
+{
+  "build": {
+    "envelope_reconciliation": {
+      "east_overshoot_degrees": "0.020121",
+      "network_clipped_to_boundary": false,
+      "north_overshoot_degrees": "0",
+      "overshoot_threshold_applied": false,
+      "south_overshoot_degrees": "0",
+      "west_overshoot_degrees": "0.003229"
+    },
+    "exit_code": 0,
+    "findings": [],
+    "frozen_argument_shape": [
+      "--osm-files",
+      "<input>",
+      "--output-file",
+      "<output>",
+      "--osm.bike-access",
+      "false",
+      "--osm.sidewalks",
+      "false",
+      "--geometry.remove",
+      "--ramps.guess",
+      "--junctions.join",
+      "--tls.guess-signals",
+      "--tls.discard-simple",
+      "--tls.join",
+      "--no-turnarounds",
+      "--numerical-ids",
+      "--seed",
+      "42",
+      "--xml-validation",
+      "never"
+    ],
+    "location_read_from_network": {
+      "convBoundary": "0.00,0.00,56916.58,40960.18",
+      "netOffset": "-517074.60,-5908760.37",
+      "origBoundary": "-2.831812,52.858497,1.459963,53.693129",
+      "projParameter": "+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+    },
+    "network_bytes": 1248945774,
+    "network_extent_wgs84": {
+      "derivation": "projected_from_network_conv_boundary",
+      "max_latitude": "53.690950",
+      "max_longitude": "-1.879479",
+      "min_latitude": "53.327738",
+      "min_longitude": "-2.743629",
+      "note": "Derived from convBoundary, not origBoundary. origBoundary is the box of everything netconvert read and reaches longitude +1.46 because an OSM extract retains whole ways crossing its edge."
+    },
+    "network_identity_sha256": "ce285f85d07fee24414cc3318cf85ea1ca0cb967e2eadb2ac7bcb3f96bde2577",
+    "network_sha256": "7be28c5a2228c327f9ad3dbdbf9fece04b25f9473738a45542fc0791aee6de71",
+    "private_paths_embedded_in_network": 0,
+    "reported_version": "1.27.1",
+    "required_area_coverage": {
+      "manchester_city_centre": true,
+      "university_of_manchester": true
+    },
+    "structure": {
+      "connections": 2545492,
+      "edges": 2106404,
+      "junctions": 468442,
+      "lanes": 2157380,
+      "traffic_lights": 2434
+    },
+    "tool": "netconvert",
+    "validation_status": "accepted"
+  },
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "decision_record": "ADR-059",
+  "decode": {
+    "bounding_box_clipped": false,
+    "content_filtered": false,
+    "conversion_only": true,
+    "decoded_bytes": 996913352,
+    "decoded_sha256": "233af3fa6dd34b1541ec022f0139a543f44355fe1748fd9d609ed653c8c9edf1",
+    "decoded_xml_committed_to_git": false,
+    "expansion_ratio": 19.74,
+    "frozen_argument_shape": [
+      "cat",
+      "--output-format",
+      "osm",
+      "--output",
+      "<output>",
+      "--no-progress",
+      "<input>"
+    ],
+    "libosmium_version": "2.23.1",
+    "licence": "GPL-3.0-or-later; executed as an external tool, never linked",
+    "reported_version": "1.19.1",
+    "road_classes_selected": false,
+    "tool": "osmium"
+  },
+  "explicit_non_claims": [
+    "no calibration was performed",
+    "no observed-versus-simulated comparison was performed",
+    "no VEC execution was performed",
+    "no live traffic is represented",
+    "the network is not clipped to the administrative boundary",
+    "no matching threshold, calibration objective, or comparison metric was invented",
+    "MAN-09 remains planned; Gate D remains foundation_only",
+    "the map-matching blockers are not lifted"
+  ],
+  "gate": "Gate-D step 1 (network binding) only",
+  "practical_state": "foundation_only",
+  "record_date": "2026-07-25",
+  "record_type": "manchester_greater_manchester_baseline_network_build",
+  "reproducibility_measurement": {
+    "builds_compared": 3,
+    "byte_reproducible": false,
+    "differing_fraction_percent": 0.002181,
+    "interpretation": "Greater Manchester builds are intermittently, not systematically, non-reproducible: two of three builds matched exactly and the third differed in 238 of 10,913,444 canonical lines, all roundabout groupings. The smaller city-centre network reproduced identically across four runs, so this is scale-dependent. A single build therefore records semantic_reproducibility=not_verified and never asserts reproducibility.",
+    "method": "three independent builds over byte-identical decoded input and identical frozen arguments",
+    "pairs": {
+      "final_vs_run1": {
+        "differing_canonical_lines": 0,
+        "identity_identical": true,
+        "structure_identical": true
+      },
+      "final_vs_run2": {
+        "differing_canonical_lines": 238,
+        "identity_identical": false,
+        "structure_identical": true
+      }
+    },
+    "total_canonical_lines": 10913444,
+    "what_is_stable": "edge, junction, connection, lane and tlLogic counts were identical in every build",
+    "what_varies": "<roundabout> membership lists only"
+  },
+  "source_extract": {
+    "attribution_text": "\u00a9 OpenStreetMap contributors, ODbL 1.0",
+    "bytes": 996913352,
+    "committed_to_git": false,
+    "host": "download.geofabrik.de",
+    "licence_id": "ODbL-1.0",
+    "md5": "b7fa4a2aed786843e7d6ed35f9bf4be5",
+    "md5_published_by_provider": "c73b16ec7da303c1dfd331dc914bd5bc",
+    "osm_replication_sequence_number": 4549,
+    "path": "/europe/united-kingdom/england/greater-manchester-260724.osm.pbf",
+    "provider": "Geofabrik",
+    "publication_class": "private",
+    "sha256": "233af3fa6dd34b1541ec022f0139a543f44355fe1748fd9d609ed653c8c9edf1",
+    "three_distinct_times_never_collapsed": {
+      "operator_retrieval_date": "2026-07-25",
+      "osm_data_cutoff_instant": "2026-07-24T20:20:51Z",
+      "provider_last_modified": "Sat, 25 Jul 2026 00:29:36 GMT"
+    }
+  },
+  "supersedes_note": "The 20260725 sub-area probe record remains valid as a city-centre/University probe. It is NOT the Greater Manchester baseline and is not relabelled."
+}

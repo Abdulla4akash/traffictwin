@@ -604,17 +604,19 @@ The complete source evidence is in
 - Formal participant recruitment and data collection remain blocked until the relevant ethics and
   supervisory approvals are recorded.
 
-## Blocking: Greater Manchester baseline network build
+## Resolved: Greater Manchester baseline network build (25 July 2026)
 
-- **A PBF-to-OSM-XML decode step for the pinned Greater Manchester extract.** ADR-059 pins
-  `greater-manchester-260724.osm.pbf` (50,502,348 bytes, MD5 reconciled against the provider), and
-  acquisition of it is implemented and verified. However `netconvert` 1.27.1 as built in the
-  reviewed environment reads OSM XML only and exits 1 on the PBF container, and no approved decoder
-  (`osmium`, `osmconvert`, `osmosis`, `pyosmium`) is installed. Adding a decoder dependency is a
-  lead-owned `pyproject.toml`/`uv.lock` decision. Until it is resolved the full Greater Manchester
-  network cannot be built; the recorded real build is a bounded city-centre/university sub-area
-  probe explicitly labelled as not the Greater Manchester baseline. This blocks `MAN-09` network
-  binding at Greater Manchester scale only; every other part of the foundation is built and tested.
+- The PBF-to-OSM-XML decode blocker is **closed**. The repository owner approved `osmium-tool` as a
+  controlled external runtime, and the complete Greater Manchester network is built and validated
+  (2,106,404 edges, 468,442 junctions, 2,545,492 connections, 2,434 traffic lights, UTM zone 30N,
+  both required areas inside). `MAN-09` still stays `planned`: network binding is only the first of
+  its seven acceptance components.
+- One measured limitation replaces it and is **not** blocking: Greater Manchester builds are
+  intermittently non-reproducible. Three builds over identical input gave identical structural
+  counts, but one of three differed in 238 of 10,913,444 canonical lines, all `<roundabout>`
+  membership. Reproducibility is therefore measured with `compare_builds` rather than asserted, and
+  a single build records `semantic_reproducibility = not_verified`. Whether a stricter guarantee is
+  needed for dissertation evidence is a supervisor decision, not an engineering blocker.
 
 ## Non-Blocking Unknowns
 

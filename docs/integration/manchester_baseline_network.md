@@ -93,56 +93,98 @@ appear in evidence; the receipt records the placeholder shape.
 private staging directory and are renamed into place only after validation, so a failed build
 leaves no accepted artifact.
 
-### Determinism, stated honestly
+### Reproducibility is measured, not asserted
 
-Two digests are recorded for every build:
+An earlier version of this document claimed builds were semantically reproducible. **That claim
+was withdrawn after measuring at full scale.** It held for the small city-centre network (four
+runs, identical canonical identity) but does not always hold for Greater Manchester.
 
-| Digest | Stability |
-|---|---|
-| `network_sha256` (raw `.net.xml` bytes) | **Not** stable across runs |
-| `network_identity_sha256` (comments removed, trailing whitespace normalised) | **Stable** across runs |
+Three independent Greater Manchester builds over byte-identical decoded input and identical frozen
+arguments:
 
-This was measured, not assumed. Four independent `netconvert` 1.27.1 runs over identical real
-Manchester OSM input produced **four different raw digests** and **one identical canonical
-identity**, `75ef6fd3fb5cf64dd4cd476903861a05ecf62df0b09647a1dad9bebcfec623c9`. The difference is
-confined to the generation banner's timestamp and echoed output filename, which carry no network
-semantics. The binding therefore sets `byte_reproducible = false` and
-`semantically_reproducible = true`; byte reproducibility is not claimed because it is not true.
+| Comparison | Canonical identity | Structural counts | Differing canonical lines |
+|---|---|---|---|
+| build 3 vs build 1 | identical | identical | 0 of 10,913,436 |
+| build 3 vs build 2 | **differs** | identical | 238 of 10,913,444 (0.0022%) |
+| build 1 vs build 2 | **differs** | identical | 238 of 10,913,444 |
 
-## Known blocker: PBF cannot be read by the reviewed toolchain
+Every differing line is a `<roundabout>` membership list. Edge, junction, connection, lane, and
+traffic-light counts were identical in all three builds. So Greater Manchester builds are
+**intermittently**, not systematically, non-reproducible.
 
-`netconvert` 1.27.1 as built in the reviewed environment reads **OSM XML only**. Handed the pinned
-`.osm.pbf` it exits 1 with `Error: invalid byte '' at position 2 of a 2-byte sequence` — it is
-trying to parse the binary container as XML. Its reported build features
-(`Proj GUI FMT Intl SWIG Parquet Eigen GDAL GL2PS JuPedSim`) list no PBF reader, and no approved
-decoder (`osmium`, `osmconvert`, `osmosis`, `pyosmium`) is installed.
+A single build therefore records `semantic_reproducibility = not_verified`, because one build
+cannot establish reproducibility. Only `compare_builds` over two real builds sets
+`verified_identical` or `verified_varies`, and a validator refuses a status its own measurement
+contradicts. The difference is deliberately **not** hidden by excluding `<roundabout>` from the
+digest: defining it away would make the artifact assert a stability it does not have.
 
-The builder therefore sniffs PBF framing and refuses with `OSM_PBF_DECODE_UNAVAILABLE`, naming the
-missing decode step, rather than surfacing an opaque XML parse error. **The full Greater Manchester
-baseline build is blocked on this tooling decision.** Acquisition of the pinned extract works and is
-verified; only the decode-to-XML step is missing.
+## Decode step: PBF to OSM XML
+
+`netconvert` 1.27.1 as built in the reviewed environment reads **OSM XML only**. Handed a
+`.osm.pbf` it exits 1 with `Error: invalid byte '' at position 2 of a 2-byte sequence` — it tries
+to parse the binary container as XML. The repository owner approved **`osmium-tool`** as the
+controlled decoder, and the builder still refuses PBF input directly with
+`OSM_PBF_DECODE_UNAVAILABLE` so nobody skips the step by accident.
+
+`osmium` is an optional audited external runtime, treated exactly like SUMO: discovered on `PATH`,
+version-probed, run through a frozen argument vector with no shell, never imported into Python.
+Observed runtime `osmium 1.19.1` / `libosmium 2.23.1`, GPL-3.0-or-later — executed as a separate
+process, never linked, so its licence does not attach to TrafficTwin. `pyproject.toml` and
+`uv.lock` are untouched.
+
+**The decode is a format conversion and never a content selection.** It applies no tag filter, no
+bounding-box clip, no simplification, and no road-class choice; deciding which ways become edges
+stays entirely inside the frozen `netconvert` recipe. A decode that changed which objects survive
+would move a scientific decision into a conversion step where nobody would look for it. The
+receipt fixes `content_filtered`, `bounding_box_clipped`, `simplified`, and
+`road_classes_selected` false, and a test asserts no filtering argument can enter the vector.
+
+Measured on the pinned extract: 50,502,348 bytes of PBF decode to 996,913,352 bytes of XML
+(≈19.7×) in under three seconds. The decoded XML is a **private workspace intermediate** and is
+never committed.
 
 ## Real-build evidence
 
-Recorded in
-[`evidence/manchester_baseline_network_build_20260725.json`](evidence/manchester_baseline_network_build_20260725.json).
+Two records exist and must not be confused:
 
-Because of the PBF gap, the real network build used a bounded OpenStreetMap API extract of the
-Manchester city-centre and University of Manchester area (bbox `-2.248,53.464,-2.230,53.480`,
-14,552,830 bytes). **This is explicitly a sub-area probe and NOT the Greater Manchester baseline
-network.**
+| Record | Scope |
+|---|---|
+| [`manchester_baseline_network_build_20260725.json`](evidence/manchester_baseline_network_build_20260725.json) | Manchester city-centre / University **sub-area probe**. **Not** the Greater Manchester baseline. |
+| [`manchester_greater_manchester_network_20260725.json`](evidence/manchester_greater_manchester_network_20260725.json) | The **full Greater Manchester baseline network**. |
+
+The full Greater Manchester baseline network, built from the pinned extract through
+`osmium` 1.19.1 and `netconvert` 1.27.1:
 
 | Measure | Value |
 |---|---|
 | Validation status | `accepted`, no findings |
-| Edges / junctions / connections | 14,852 / 4,706 / 13,758 |
-| Lanes / traffic lights | 15,422 / 57 |
+| Edges / junctions / connections | 2,106,404 / 468,442 / 2,545,492 |
+| Lanes / traffic lights | 2,157,380 / 2,434 |
+| Network size | 1,248,945,774 bytes |
 | Projection (read from network) | `+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs` |
-| `origBoundary` | `-2.269013,53.460412,-2.216746,53.493202` |
+| Network extent (from `convBoundary`) | lon −2.743629…−1.879479, lat 53.327738…53.690950 |
+| Input box (`origBoundary`, **not** the extent) | −2.831812, 52.858497, 1.459963, 53.693129 |
 | Manchester city centre inside | yes |
 | University of Manchester inside | yes |
+| Private paths embedded in the network | 0 |
 
-No raw OSM bytes are committed to Git.
+Validating the 1.25 GB network streams in 1.7 s at 148 MB peak RSS; nothing is ever loaded whole.
+
+No raw OSM bytes and no decoded XML are committed to Git.
+
+### The extent is the network, not the input box
+
+`netconvert` writes both `origBoundary` (everything it *read*) and `convBoundary` (what it
+*built*). An OSM extract retains whole ways crossing its edge, so `origBoundary` reached longitude
+**+1.46** — Norfolk — while the network stopped at −1.88. The extent is therefore computed from
+`convBoundary`, offset by `netOffset` and transformed back through the network's own
+`projParameter`. Reading `origBoundary` instead would have overstated coverage and let a point
+250 km away pass a containment test.
+
+The network is **not clipped** to the administrative boundary: whole ways are retained, so it
+reaches slightly beyond the approved envelope. `NetworkEnvelopeReconciliation` records that
+overshoot per side as a measurement, with `network_clipped_to_boundary` and
+`overshoot_threshold_applied` both false, because no clipping rule or tolerance has been approved.
 
 ## DfT calibration coverage
 
@@ -162,7 +204,8 @@ and that `classify_dft_coverage` returns a categorical state rather than a numbe
 ```text
 traffictwin integration manchester network scope
 traffictwin integration manchester network acquire <workspace> --confirm [--from-file <path>]
-traffictwin integration manchester network build <workspace> --extract <path> --network-id <id>
+traffictwin integration manchester network decode --extract <pbf> --output <osm.xml>
+traffictwin integration manchester network build <workspace> --extract <osm.xml> --network-id <id>
 traffictwin integration manchester network list <workspace>
 traffictwin integration manchester network verify <workspace> --network-id <id>
 traffictwin integration manchester network status [<workspace>]
@@ -183,7 +226,8 @@ reads accepted candidates and honest status through it. Tests assert the module 
 - Real site-to-edge map matching — `MAP_MATCH_POLICY_UNAPPROVED`, `REAL_SOURCE_GATE_B_UNACCEPTED`.
 - Demand calibration — no approved objective, bounds, or uncertainty treatment.
 - Observed-versus-simulated goodness-of-fit — no approved `ManchesterComparisonMetricContract`.
-- The full Greater Manchester network — blocked by `OSM_PBF_DECODE_UNAVAILABLE`.
+- Reproducibility of a Greater Manchester build — intermittently unstable in `<roundabout>`
+  groupings, so it must be measured with `compare_builds` rather than assumed.
 
 The map-matching blockers `MANCHESTER_NETWORK_LICENCE_UNAPPROVED` and
 `MANCHESTER_NETWORK_NOT_REVIEWED` are **not lifted** by this foundation, because lifting them also

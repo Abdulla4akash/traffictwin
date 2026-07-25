@@ -1501,6 +1501,13 @@ traffictwin integration manchester network acquire <workspace> --confirm
 traffictwin integration manchester network acquire <workspace> --confirm --from-file <path>
 ```
 
+Decode a PBF extract to OSM XML. `netconvert` 1.27.1 reads OSM XML only, so a PBF extract needs
+this first. The decode is a format conversion and never a content selection:
+
+```bash
+traffictwin integration manchester network decode --extract <pbf> --output <osm.xml>
+```
+
 Build one candidate with the frozen `netconvert` 1.27.1 recipe. The builder takes no arguments,
 flags, or tool paths from the caller and never uses a shell:
 
@@ -1522,9 +1529,14 @@ or binding record fails with `NETWORK_MUTATED` or `NETWORK_IDENTITY_MUTATED` and
 `status` lists what remains unavailable, including every map-matching blocker and the fact that DfT
 calibration evidence covers Manchester local authority only.
 
-Known refusals: `OSM_PBF_DECODE_UNAVAILABLE` (the reviewed `netconvert` build reads OSM XML only and
-no approved PBF decoder is installed), `SUMO_VERSION_DRIFT`, `SUMO_TOOLCHAIN_UNAVAILABLE`,
-`CHECKSUM_IDENTITY_DRIFT`, and `NETWORK_VALIDATION_REJECTED`.
+Known refusals: `OSM_PBF_DECODE_UNAVAILABLE` (build was handed a PBF; decode it first),
+`OSMIUM_TOOLCHAIN_UNAVAILABLE`, `OSMIUM_VERSION_DRIFT`, `SUMO_VERSION_DRIFT`,
+`SUMO_TOOLCHAIN_UNAVAILABLE`, `CHECKSUM_IDENTITY_DRIFT`, `NETWORK_VALIDATION_REJECTED`, and
+`NETWORK_CORRUPT`.
+
+`status` also reports decoder availability. A Greater Manchester build is **intermittently**
+non-reproducible in `<roundabout>` groupings, so a binding records
+`semantic_reproducibility: not_verified` until two real builds are compared.
 
 ## Release And Deployment Commands
 
