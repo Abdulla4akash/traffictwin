@@ -31,6 +31,9 @@ from traffictwin.integration.manchester.network_build import (
     NetworkBuildCommandReceipt,
     NetworkBuildError,
     NetworkBuildRequest,
+    NetworkWarningSummary,
+    SubAreaCoverage,
+    SumoNetworkValidation,
     build_baseline_network,
     canonical_network_bytes,
     canonical_network_digest,
@@ -46,6 +49,7 @@ from traffictwin.integration.manchester.network_scope import (
     ExtractEnvelope,
     GeographicPoint,
     baseline_scope_decision,
+    sub_area_bounds,
 )
 
 SYNTHETIC_OSM = """<?xml version='1.0' encoding='UTF-8'?>
@@ -693,3 +697,143 @@ class TestRealToolchainBuild:
         payload["calibration_performed"] = True
         with pytest.raises(ValidationError):
             ManchesterBaselineNetworkBinding.model_validate_json(json.dumps(payload))
+
+
+class TestSubAreaFilterCoverage:
+    """The local authority is a filter over the baseline, never a second network.
+
+    A network that does not contain the whole filter area cannot answer a
+    request filtered to that authority without silently returning a truncated
+    area, so containment is measured and the network's admissible role follows
+    from the measurement rather than from whatever the operator named it.
+    """
+
+    def test_a_greater_manchester_extent_is_a_baseline_candidate(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
+        )
+        coverage = result.sub_area_coverage
+        assert coverage is not None
+        assert coverage.fully_inside_network is True
+        assert coverage.admissible_role == "baseline_candidate"
+        assert coverage.west_shortfall_degrees == Decimal("0")
+
+    def test_a_city_centre_extent_is_a_probe_and_not_the_baseline(self) -> None:
+        # These are the corners measured from the real city-centre probe build.
+        result = validate_network_bytes(
+            _network_document(-2.253937, 53.460528, -2.221485, 53.480849),
+            scope=baseline_scope_decision(),
+        )
+        coverage = result.sub_area_coverage
+        assert coverage is not None
+        assert coverage.fully_inside_network is False
+        assert coverage.admissible_role == "sub_area_probe_only"
+        assert coverage.south_shortfall_degrees > 0
+        assert "SUB_AREA_NOT_FULLY_INSIDE_NETWORK" in result.observations
+
+    def test_a_probe_network_is_still_accepted_as_a_build(self) -> None:
+        # A deliberately small network is a legitimate artifact; it simply is
+        # not the baseline.  Rejecting it would destroy valid evidence.
+        result = validate_network_bytes(
+            _network_document(-2.253937, 53.460528, -2.221485, 53.480849),
+            scope=baseline_scope_decision(),
+        )
+        assert result.status == "accepted"
+        assert result.sub_area_coverage is not None
+        assert result.sub_area_coverage.admissible_role == "sub_area_probe_only"
+
+    def test_a_role_contradicting_the_measurement_is_refused(self) -> None:
+        with pytest.raises(ValidationError, match="must follow from the measured containment"):
+            SubAreaCoverage(
+                fully_inside_network=False,
+                west_shortfall_degrees=Decimal("0.1"),
+                east_shortfall_degrees=Decimal("0"),
+                south_shortfall_degrees=Decimal("0"),
+                north_shortfall_degrees=Decimal("0"),
+                admissible_role="baseline_candidate",
+            )
+
+    def test_containment_contradicting_the_shortfalls_is_refused(self) -> None:
+        with pytest.raises(ValidationError, match="agree with the measured shortfalls"):
+            SubAreaCoverage(
+                fully_inside_network=True,
+                west_shortfall_degrees=Decimal("0.1"),
+                east_shortfall_degrees=Decimal("0"),
+                south_shortfall_degrees=Decimal("0"),
+                north_shortfall_degrees=Decimal("0"),
+                admissible_role="baseline_candidate",
+            )
+
+    def test_the_filter_bounds_lie_inside_the_baseline_bounds(self) -> None:
+        bounds = sub_area_bounds()
+        envelope = baseline_scope_decision().envelope
+        assert envelope.min_longitude < bounds.min_longitude
+        assert envelope.max_longitude > bounds.max_longitude
+        assert envelope.min_latitude < bounds.min_latitude
+        assert envelope.max_latitude > bounds.max_latitude
+        assert bounds.administrative_boundary is False
+
+    def test_the_role_survives_serialisation(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.253937, 53.460528, -2.221485, 53.480849),
+            scope=baseline_scope_decision(),
+        )
+        reloaded = SumoNetworkValidation.model_validate_json(result.canonical_json())
+        assert reloaded.sub_area_coverage is not None
+        assert reloaded.sub_area_coverage.admissible_role == "sub_area_probe_only"
+
+
+class TestConnectivityIsNotClaimed:
+    def test_an_accepted_validation_does_not_claim_routability(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
+        )
+        assert result.status == "accepted"
+        assert result.connectivity.availability == "unavailable"
+        assert result.connectivity.connected_components_computed is False
+        assert result.connectivity.routability_established is False
+        assert "CONNECTED_COMPONENTS_NOT_COMPUTED" in result.observations
+
+    def test_a_forged_routability_claim_is_refused(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
+        )
+        payload: dict[str, Any] = json.loads(result.canonical_json())
+        payload["connectivity"]["routability_established"] = True
+        with pytest.raises(ValidationError):
+            SumoNetworkValidation.model_validate_json(json.dumps(payload))
+
+
+class TestWarningTotalsAreCountedBeforeTruncation:
+    """Greater Manchester emits far more diagnostics than a receipt retains, so
+    reporting only the retained examples would read as a quiet build."""
+
+    def test_totals_exceed_the_retained_examples(self) -> None:
+        text = "\n".join(f"Warning: joined junction {index}" for index in range(500))
+        warnings, _errors, summary = network_build._classify_output(text)
+        assert len(warnings) == 64
+        assert summary.total_warning_lines == 500
+        assert summary.retained_warning_examples == 64
+        assert summary.examples_truncated is True
+
+    def test_a_quiet_build_is_not_reported_as_truncated(self) -> None:
+        warnings, errors, summary = network_build._classify_output("Success.")
+        assert warnings == ()
+        assert errors == ()
+        assert summary.total_warning_lines == 0
+        assert summary.examples_truncated is False
+
+    def test_an_over_long_line_is_counted_rather_than_dropped_silently(self) -> None:
+        _warnings, _errors, summary = network_build._classify_output("x" * 500)
+        assert summary.unparsed_lines == 1
+
+    def test_a_summary_retaining_more_than_it_counted_is_refused(self) -> None:
+        with pytest.raises(ValidationError, match="cannot exceed the counted total"):
+            NetworkWarningSummary(
+                total_warning_lines=1,
+                total_error_lines=0,
+                retained_warning_examples=5,
+                retained_error_examples=0,
+                examples_truncated=False,
+                unparsed_lines=0,
+            )

@@ -56,9 +56,11 @@ from traffictwin.integration.manchester.network_acquisition import (
     OsmExtractIdentity,
 )
 from traffictwin.integration.manchester.network_scope import (
+    SUB_AREA_SCOPE,
     BaselineScopeDecision,
     GeographicPoint,
     baseline_scope_decision,
+    sub_area_bounds,
 )
 
 NETWORK_BUILD_SCHEMA_VERSION: Literal["1.0"] = "1.0"
@@ -122,6 +124,10 @@ _COUNT_PATTERNS: dict[str, re.Pattern[bytes]] = {
 #: headroom while staying finite.
 MAX_NETWORK_BYTES = 8_000_000_000
 MIN_NETWORK_BYTES = 1_000
+
+#: Example diagnostic lines kept in a receipt.  Totals are counted separately so
+#: a capped example list never reads as a quiet build.
+_MAX_RECEIPT_EXAMPLES = 64
 
 #: A gigabyte-scale network is never loaded whole; digests, structure counts,
 #: and the projection prefix are all streamed.
@@ -213,6 +219,8 @@ class NetworkBuildCommandReceipt(NetworkBuildModel):
     duration_s: Decimal = Field(ge=0)
     warning_lines: tuple[str, ...] = ()
     error_lines: tuple[str, ...] = ()
+    #: Totals counted before the example lines above were capped.
+    warning_summary: NetworkWarningSummary | None = None
     shell_used: Literal[False] = False
     caller_supplied_arguments: Literal[False] = False
 
@@ -329,6 +337,104 @@ class RequiredAreaCoverage(NetworkBuildModel):
     evaluation_frame: Literal["EPSG:4326"] = "EPSG:4326"
 
 
+class SubAreaCoverage(NetworkBuildModel):
+    """Whether the local-authority filter fits inside the produced network.
+
+    Manchester local authority is a filter over the baseline network, never a
+    second network, so a network that does not contain the whole filter area
+    cannot answer a request filtered to that authority without silently
+    returning a truncated area.  That is measured here rather than assumed, and
+    the shortfall is reported per edge so a near miss is distinguishable from a
+    network that covers only a small part of the authority.
+
+    A shortfall does **not** reject the build.  A deliberately small probe
+    network is a legitimate artifact; it simply is not the baseline.  The
+    outcome is therefore a role classification, which is what keeps a sub-area
+    probe from being read as the full Greater Manchester baseline.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    sub_area: Literal["manchester_local_authority"] = SUB_AREA_SCOPE
+    official_code: Literal["E08000003"] = "E08000003"
+    fully_inside_network: bool
+    west_shortfall_degrees: Decimal = Field(ge=0)
+    east_shortfall_degrees: Decimal = Field(ge=0)
+    south_shortfall_degrees: Decimal = Field(ge=0)
+    north_shortfall_degrees: Decimal = Field(ge=0)
+    #: A network that does not contain the whole filter area may only be
+    #: described as a probe, whatever the operator chose to name it.
+    admissible_role: Literal["baseline_candidate", "sub_area_probe_only"]
+    comparison_basis: Literal["display_geometry_bounds_vs_measured_network_extent"] = (
+        "display_geometry_bounds_vs_measured_network_extent"
+    )
+    boundary_geometry_is_generalised: Literal[True] = True
+
+    @model_validator(mode="after")
+    def validate_coverage(self) -> SubAreaCoverage:
+        shortfall = (
+            self.west_shortfall_degrees
+            + self.east_shortfall_degrees
+            + self.south_shortfall_degrees
+            + self.north_shortfall_degrees
+        )
+        if self.fully_inside_network != (shortfall == 0):
+            raise ValueError("sub-area containment must agree with the measured shortfalls")
+        expected = "baseline_candidate" if self.fully_inside_network else "sub_area_probe_only"
+        if self.admissible_role != expected:
+            raise ValueError("the admissible role must follow from the measured containment")
+        return self
+
+
+class NetworkConnectivityStatement(NetworkBuildModel):
+    """What was, and expressly was not, checked about connectivity.
+
+    Recorded so a reader of an accepted validation cannot infer that routability
+    was established.  Component analysis belongs to the map-matching and
+    calibration components of MAN-09, none of which are in Gate-D step 1.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    availability: Literal["unavailable"] = "unavailable"
+    connected_components_computed: Literal[False] = False
+    largest_component_share: None = None
+    isolated_edges_checked: Literal[False] = False
+    routability_established: Literal[False] = False
+    reason: Literal["component analysis is outside Gate-D step 1"] = (
+        "component analysis is outside Gate-D step 1"
+    )
+
+
+class NetworkWarningSummary(NetworkBuildModel):
+    """Counts over the builder's own diagnostic output.
+
+    The receipt keeps a bounded number of example lines.  Greater Manchester
+    produces far more than that, so the totals are counted before truncation:
+    reporting only the retained examples would read as a quiet build.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    total_warning_lines: int = Field(ge=0)
+    total_error_lines: int = Field(ge=0)
+    retained_warning_examples: int = Field(ge=0)
+    retained_error_examples: int = Field(ge=0)
+    examples_truncated: bool
+    unparsed_lines: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def validate_summary(self) -> NetworkWarningSummary:
+        if self.retained_warning_examples > self.total_warning_lines:
+            raise ValueError("retained warning examples cannot exceed the counted total")
+        if self.retained_error_examples > self.total_error_lines:
+            raise ValueError("retained error examples cannot exceed the counted total")
+        truncated = (
+            self.retained_warning_examples < self.total_warning_lines
+            or self.retained_error_examples < self.total_error_lines
+        )
+        if self.examples_truncated != truncated:
+            raise ValueError("truncation must follow from the retained and total counts")
+        return self
+
+
 class SumoNetworkValidation(NetworkBuildModel):
     """Structural and geographic admission of one produced network."""
 
@@ -339,7 +445,11 @@ class SumoNetworkValidation(NetworkBuildModel):
     network_extent_wgs84: NetworkExtent | None
     envelope_reconciliation: NetworkEnvelopeReconciliation | None = None
     required_areas: tuple[RequiredAreaCoverage, ...]
+    sub_area_coverage: SubAreaCoverage | None = None
+    connectivity: NetworkConnectivityStatement = NetworkConnectivityStatement()
     findings: tuple[str, ...] = ()
+    #: Observations that are recorded but do not reject the build.
+    observations: tuple[str, ...] = ()
     calibration_performed: Literal[False] = False
     validated_against_observations: Literal[False] = False
 
@@ -692,19 +802,39 @@ def netconvert_identity() -> NetconvertToolIdentity:
     )
 
 
-def _classify_output(text: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+def _classify_output(
+    text: str,
+) -> tuple[tuple[str, ...], tuple[str, ...], NetworkWarningSummary]:
+    """Classify builder output, counting every line before examples are capped."""
+
     warnings: list[str] = []
     errors: list[str] = []
+    unparsed = 0
     for raw in text.splitlines():
         line = raw.strip()
-        if not line or len(line) > 400:
+        if not line:
+            continue
+        if len(line) > 400:
+            unparsed += 1
             continue
         lowered = line.lower()
         if lowered.startswith("error") or "error:" in lowered:
             errors.append(line)
         elif lowered.startswith("warning") or "cannot find" in lowered:
             warnings.append(line)
-    return tuple(warnings[:64]), tuple(errors[:64])
+    retained_warnings = tuple(warnings[:_MAX_RECEIPT_EXAMPLES])
+    retained_errors = tuple(errors[:_MAX_RECEIPT_EXAMPLES])
+    summary = NetworkWarningSummary(
+        total_warning_lines=len(warnings),
+        total_error_lines=len(errors),
+        retained_warning_examples=len(retained_warnings),
+        retained_error_examples=len(retained_errors),
+        examples_truncated=(
+            len(retained_warnings) < len(warnings) or len(retained_errors) < len(errors)
+        ),
+        unparsed_lines=unparsed,
+    )
+    return retained_warnings, retained_errors, summary
 
 
 def _parse_location(payload: bytes) -> SumoNetworkLocation:
@@ -867,6 +997,12 @@ def _assemble_validation(
         findings.append("NETWORK_HAS_NO_CONNECTIONS")
     missing = [item.area for item in coverage if not item.inside_network_boundary]
     findings.extend(f"REQUIRED_AREA_OUTSIDE_NETWORK:{area}" for area in sorted(missing))
+    sub_area = _sub_area_coverage(extent)
+    observations: list[str] = []
+    if sub_area is not None and not sub_area.fully_inside_network:
+        # Not a rejection: a probe network is a valid artifact that is not the baseline.
+        observations.append("SUB_AREA_NOT_FULLY_INSIDE_NETWORK")
+    observations.append("CONNECTED_COMPONENTS_NOT_COMPUTED")
     status: Literal["accepted", "rejected"] = (
         "accepted"
         if not findings and structure.edge_count > 0 and structure.junction_count > 0
@@ -879,7 +1015,31 @@ def _assemble_validation(
         network_extent_wgs84=extent,
         envelope_reconciliation=reconciliation,
         required_areas=tuple(coverage),
+        sub_area_coverage=sub_area,
         findings=tuple(findings),
+        observations=tuple(observations),
+    )
+
+
+def _sub_area_coverage(extent: NetworkExtent | None) -> SubAreaCoverage | None:
+    """Measure how far the local-authority filter falls outside the network."""
+
+    if extent is None:
+        return None
+    bounds = sub_area_bounds()
+    zero = Decimal("0")
+    west = max(zero, extent.min_longitude - bounds.min_longitude)
+    east = max(zero, bounds.max_longitude - extent.max_longitude)
+    south = max(zero, extent.min_latitude - bounds.min_latitude)
+    north = max(zero, bounds.max_latitude - extent.max_latitude)
+    inside = (west + east + south + north) == 0
+    return SubAreaCoverage(
+        fully_inside_network=inside,
+        west_shortfall_degrees=west,
+        east_shortfall_degrees=east,
+        south_shortfall_degrees=south,
+        north_shortfall_degrees=north,
+        admissible_role="baseline_candidate" if inside else "sub_area_probe_only",
     )
 
 
@@ -986,7 +1146,9 @@ def build_baseline_network(
                 "BUILD_FAILED", "the bounded netconvert build could not be started"
             ) from exc
         finished = _utc_now(clock)
-        warnings, errors = _classify_output(f"{completed.stdout}\n{completed.stderr}")
+        warnings, errors, warning_summary = _classify_output(
+            f"{completed.stdout}\n{completed.stderr}"
+        )
         receipt = NetworkBuildCommandReceipt(
             reported_version=tool.reported_version,
             argument_shape=NETCONVERT_FIXED_ARGUMENTS,
@@ -996,6 +1158,7 @@ def build_baseline_network(
             duration_s=Decimal(str(round((finished - started).total_seconds(), 3))),
             warning_lines=warnings,
             error_lines=errors,
+            warning_summary=warning_summary,
         )
         if completed.returncode != 0:
             raise NetworkBuildError(

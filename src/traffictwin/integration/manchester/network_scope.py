@@ -158,6 +158,40 @@ class ExtractEnvelope(NetworkScopeModel):
         )
 
 
+class SubAreaBounds(NetworkScopeModel):
+    """The Manchester local-authority filter's own axis-aligned WGS84 bounds.
+
+    The local authority is a *filter* over the baseline network, never a second
+    network, so a built network has to contain the whole filter area before a
+    request filtered to the local authority can be answered without silently
+    returning a truncated area.  These bounds exist so that containment can be
+    measured rather than assumed.
+
+    Like :class:`ExtractEnvelope` this comes from generalised display geometry
+    and carries no margin, so it is not an administrative boundary either.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    scope: Literal["manchester_local_authority"] = SUB_AREA_SCOPE
+    official_code: Literal["E08000003"] = "E08000003"
+    derivation: Literal["derived_from_display_geometry"] = "derived_from_display_geometry"
+    min_longitude: Decimal = Field(ge=-180, le=180)
+    min_latitude: Decimal = Field(ge=-90, le=90)
+    max_longitude: Decimal = Field(ge=-180, le=180)
+    max_latitude: Decimal = Field(ge=-90, le=90)
+    coordinate_reference_system: Literal["EPSG:4326"] = GEOGRAPHIC_CRS
+    administrative_boundary: Literal[False] = False
+    margin_degrees: Literal[0] = 0
+
+    @model_validator(mode="after")
+    def validate_bounds(self) -> SubAreaBounds:
+        if self.min_longitude >= self.max_longitude:
+            raise ValueError("sub-area longitude range must be increasing")
+        if self.min_latitude >= self.max_latitude:
+            raise ValueError("sub-area latitude range must be increasing")
+        return self
+
+
 class RequiredAreaProbe(NetworkScopeModel):
     """One required-inclusion probe and the frame that evaluated it."""
 
@@ -328,6 +362,20 @@ def evaluate_required_areas(envelope: ExtractEnvelope) -> tuple[RequiredAreaProb
             )
         )
     return tuple(probes)
+
+
+def sub_area_bounds() -> SubAreaBounds:
+    """Measure the local-authority filter's own bounds from its display geometry."""
+
+    ring = _ring(load_boundary_feature(SUB_AREA_SCOPE))
+    longitudes = [position[0] for position in ring]
+    latitudes = [position[1] for position in ring]
+    return SubAreaBounds(
+        min_longitude=_quantise(min(longitudes)),
+        min_latitude=_quantise(min(latitudes)),
+        max_longitude=_quantise(max(longitudes)),
+        max_latitude=_quantise(max(latitudes)),
+    )
 
 
 def in_sub_area(point: GeographicPoint) -> bool:
