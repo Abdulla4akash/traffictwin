@@ -873,6 +873,42 @@ rendered element tree through the existing `AppTest` harness and change nothing.
 - A check that cannot be made reliably automatic is recorded as a manual item rather than
   approximated, because a weak automated proxy reported as a pass is worse than an honest gap.
 
+### Phase 12 claim: UI presentation (owner-directed, 25 July 2026)
+
+The owner directed a UI overhaul on 25 July 2026. This extends the standing mandate to the UI
+surface, with one exclusion.
+
+**Excluded, because a lead slice actively claims them.** `src/traffictwin/ui/manchester_operations.py`
+and `src/traffictwin/ui/pages/manchester_operations.py` belong to the in-flight National Highways
+operations slice and are read, never modified.
+
+**In scope.** `src/traffictwin/ui/` other than those two files, and `tests/ui/`.
+
+**Assessed before changing anything, and it revised the brief.** Two things that look like mess are
+not:
+
+- `app_pages/` and `pages/` are not duplicate page sets. The 36 files in `app_pages/` are four-line
+  entry shims that Streamlit's navigation requires, each delegating to the real implementation in
+  `pages/`. Collapsing them would break navigation.
+- `navigation.py` and `navigation_v07.py` are both live. The first supplies grouping helpers and the
+  sidebar; the second supplies the v0.7 navigation. Neither is dead code.
+
+**What is genuinely wrong**, and what this phase addresses:
+
+- `home.py` renders two buttons both labelled *Plan an Experiment*, already recorded as a strict
+  expected failure by `tests/ui/test_accessibility.py`.
+- `services.py` is 3,127 lines with 160 top-level definitions and 70 internal imports, which is a
+  god module rather than a UI concern.
+- The `Analysis` navigation group holds 16 of the 34 pages, against 5, 10 and 3 in the others.
+
+**Substantive boundaries.**
+
+- No page may compute a scientific metric, fetch implicitly, launch a process, mutate raw evidence,
+  or hide an unavailable state. Presentation work must not quietly relax any of those.
+- Capability truth, unavailable states, and their stated reasons are presentation-critical: making a
+  page tidier must never make a blocked thing look available.
+- The 375 existing UI tests are the contract. None is weakened to accommodate a redesign.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
