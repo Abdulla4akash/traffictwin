@@ -670,6 +670,80 @@ phase records its own claim below before editing.
   `Counted` versus `Estimated` is preserved. AADF is contextual only and is never used as an
   instantaneous hourly observation.
 
+### Phase 2 claim: real observation-to-network map matching (`MAN-09`, completed)
+
+Phase 2 implemented `manchester-dft-map-match-owner-candidate-1.0` in
+`src/traffictwin/integration/manchester/observation_matching.py` with
+`tests/unit/test_manchester_observation_matching.py` and the dated candidate-run evidence record.
+It matched all 305 real Manchester count points: 106 `clear_candidate`, 178 `review_required`, 21
+`no_suitable_candidate`, every observation reaching exactly one terminal disposition and every
+rejected edge keeping its reason. That file set is now **frozen as the v1.0 reference
+implementation** so the v1.1 reconciliation below compares two implementations rather than one
+mutated one; `observation_matching.py` is read and imported by the v1.1 module, not rewritten.
+
+### Phase 3/4 claim: network review, temporal profile, and map-matching policy v1.1
+
+Claimed on 25 July 2026 from the clean pushed head `b8f4016` on `claude/complete-v0.7`, verified in
+sync with `origin/claude/complete-v0.7`, under the designated v0.7 integration-agent mandate and its
+standing terms above. No capability moves off `planned`, no gate is accepted, and the unsigned
+supervisor contract form is neither edited nor represented as complete.
+
+**Exclusive new source files.**
+`src/traffictwin/integration/manchester/network_connectivity.py` (motor-vehicle lane access,
+connected components, bounded route probes),
+`src/traffictwin/integration/manchester/observation_matching_v11.py` (exploratory owner-policy v1.1
+and the exact v1.0-versus-v1.1 reconciliation), and
+`src/traffictwin/integration/manchester/dft_temporal_profile.py` (real DfT temporal-profile
+candidate).
+
+**Exclusive new tests.** `tests/unit/test_manchester_network_connectivity.py`,
+`tests/unit/test_manchester_observation_matching_v11.py`, and
+`tests/unit/test_manchester_dft_temporal_profile.py`.
+
+**Additionally edited, under the mandate's transfer of shared integration surfaces.**
+`src/traffictwin/integration/manchester/network_service.py` (read-only connectivity and profile
+status only), `src/traffictwin/cli.py` (new bounded
+`integration manchester network connectivity` and `integration manchester profile` commands only),
+`scripts/generate_reference_docs.py` plus its generated output for the new commands and models,
+`docs/integration/manchester_map_matching_decision_worksheet.md`, new dated records under
+`docs/integration/evidence/`, `docs/integration/manchester_network_connectivity.md`,
+`docs/integration/manchester_dft_temporal_profile.md`, and the shared project records
+(`implementation-status.md`, `current_progress_v0_7.md`, `architecture.md`,
+`assumption-register.md`, `open-questions.md`, `index.md`, this `AGENTS.md`).
+
+**Not edited.** `map_matching.py`, `spatial.py`, `dft.py`, `dft_acquisition.py`, `calibration.py`,
+`comparison.py`, `temporal_profile.py`, `network_geometry.py`, `network_build.py`,
+`network_decode.py`, `network_scope.py`, `observation_matching.py`,
+`integration/manchester/__init__.py`, any `bods*`/`bee_network`/`national_highways*` module, any
+Manchester Operations file, `pyproject.toml`, `uv.lock`, and every existing test. Those modules are
+read and imported, never modified.
+
+**Substantive boundaries carried into this claim.**
+
+- Policy v1.1 is **exploratory candidate software evidence**, identified
+  `manchester-dft-map-match-owner-policy-1.1` with research status `owner_approved_candidate`. Rows
+  it accepts are labelled `owner_policy_accepted_candidate` and are **never** described as human-,
+  analyst-, or supervisor-accepted, and never as scientific validation.
+- The exact-reference override relaxes **only** the DfT `Major`/`Minor` versus OSM family split. It
+  never rescues a hard-excluded class, a class outside the approved lists, a non-road class, or a
+  candidate beyond the override distance, and it never uses a fuzzy name.
+- Bounded route probes are bounded probes. They never claim universal routability, and the artifact
+  carries that refusal structurally rather than in prose alone.
+- The temporal profile stays on `local_clock_hour` (ADR-055, `GA-DFT-1` open): 07:00 local maps to
+  simulation second zero as a declared simulation-clock origin, and no UTC instant is produced.
+  Missing stays missing, a measured zero stays zero only where the source states it, and no
+  observation is fused across site, date, season, or direction. WebTRIS stays excluded while
+  `GA-WT-1` is open.
+- Raw `.osm.pbf`, decoded `.osm.xml`, built `.net.xml`, and acquired DfT snapshots stay private
+  workspace artifacts and are never committed. Only reviewed aggregate evidence records are.
+- Manchester-wide live private traffic, signal phases, complete Bee fleet coverage, and public raw
+  hosting stay visibly unavailable.
+
+**Handoff.** Focused new tests, all Manchester unit tests, the full unit and UI suites, the affected
+integration tests, repository Ruff and format checks, strict mypy, the generated-reference check,
+and `git diff --check`. Each coherent phase is committed and pushed separately to
+`origin/claude/complete-v0.7`; no release tag is created or moved and nothing is force-pushed.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
