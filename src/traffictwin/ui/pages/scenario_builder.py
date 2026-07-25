@@ -9,7 +9,7 @@ import streamlit as st
 from traffictwin.domain.enums import TaskClass
 from traffictwin.domain.measurement import MeasurementTableKind
 from traffictwin.synthetic.config import SyntheticPolicyProfile
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
@@ -33,14 +33,27 @@ def render(config: UiConfig) -> None:
     render_page_header(st.session_state.get("_active_ui_page", UiPage.SCENARIO))
     st.info(
         "Scenario Builder writes deterministic synthetic TrafficTwin bundles. "
-        "It does not launch Randy, SUMO, or live data sources."
+        "It does not launch Randy, SUMO, VEC, or live data sources."
     )
     badge_row(["SYNTHETIC", "IMPORT-FIRST", "DETERMINISTIC", "BOUNDED EXP-03"])
+    st.markdown(
+        f"{badge_markdown('synthetic')} **1 Choose preset** → **2 Configure** → "
+        "**3 Review preview** → **4 Generate bundle**"
+    )
+    st.caption(
+        "Stages 1–2 are authored configuration. Stages 3–4 are generated synthetic evidence. "
+        "Nothing here launches a simulator or a live source."
+    )
 
+    section_header("Stage 1 · Choose Preset", "Authored configuration starting point.")
     presets = synthetic_preset_names_for_ui()
     preset_name = st.selectbox("Duplicate preset", presets, index=0)
     preset = preset_config_for_ui(preset_name)
 
+    section_header(
+        "Stage 2 · Configure",
+        "Authored configuration in coherent sections; disabled controls stay unsupported.",
+    )
     with st.form("synthetic_scenario_builder"):
         section_header("General")
         cols = st.columns(3)
@@ -374,7 +387,11 @@ def render(config: UiConfig) -> None:
         return
 
     preview = preview_synthetic_scenario(scenario)
-    section_header("Preview", "Expected bundle shape before generation.")
+    section_header(
+        "Stage 3 · Review Preview",
+        "Expected bundle shape before generation — not yet generated evidence.",
+    )
+    st.markdown(f"{badge_markdown('synthetic')} Expected shape · not yet generated")
     cols = st.columns(3)
     cols[0].metric("Bundle ID", preview.expected_bundle_id)
     cols[1].metric("Run ID", preview.expected_run_id)
@@ -408,6 +425,10 @@ def render(config: UiConfig) -> None:
                     file_name=f"{variant.scenario_id}.yaml",
                 )
 
+    section_header(
+        "Stage 4 · Generate Bundle",
+        "Deterministic synthetic generation validated through the ordinary import path.",
+    )
     default_output = (
         config.workspace_path / "bundles" / scenario.scenario_id
         if config.workspace_path is not None
@@ -429,11 +450,23 @@ def render(config: UiConfig) -> None:
             st.success(f"Generated {generated.bundle_path} ({status})")
             manifest = generated.analysis.validation.manifest
             audit = manifest.synthetic_measurement_impairment if manifest is not None else None
-            if audit is not None:
+            with st.container(border=True):
+                st.markdown(
+                    f"{badge_markdown('synthetic')} **Generated bundle receipt** · "
+                    f"import validation {badge_markdown(status)}"
+                )
+                receipt_cols = st.columns(3)
+                receipt_cols[0].metric("Noisy fields", len(audit.field_audits) if audit else 0)
+                receipt_cols[1].metric(
+                    "Dropped rows",
+                    sum(item.rows_dropped for item in audit.dropout_audits) if audit else 0,
+                )
+                receipt_cols[2].metric("EXP-03 audited", "Yes" if audit is not None else "No")
+                st.caption(f"Bundle path: `{generated.bundle_path}`")
+                if audit is not None:
+                    st.caption(f"EXP-03 audit fingerprint: `{audit.audit_fingerprint[:12]}`")
                 st.caption(
-                    "EXP-03 audit "
-                    f"{audit.audit_fingerprint[:12]} · "
-                    f"{len(audit.field_audits)} noisy fields · "
-                    f"{sum(item.rows_dropped for item in audit.dropout_audits)} dropped rows"
+                    "This is generated synthetic evidence, distinct from the authored config "
+                    "above; it is import-validated, not simulated."
                 )
             st.session_state["selected_bundle_path"] = str(generated.bundle_path)

@@ -116,6 +116,55 @@ def test_scenario_mutation_keeps_fingerprints_and_manifest_in_advanced(
     )
 
 
+# --- Scenario Builder -------------------------------------------------------
+
+
+def test_scenario_builder_is_sequential_with_authored_vs_generated(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "bundles").mkdir(parents=True)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+
+    app = page_app(UiPage.SCENARIO).run(timeout=20)
+    assert not app.exception
+    assert any(title.value == "Scenario Builder" for title in app.title)
+
+    body = text_of(app)
+    heads = subheaders(app)
+    # Sequential preset -> configure -> review -> generate, with authored/generated framing.
+    assert "1 Choose preset" in body
+    assert "4 Generate bundle" in body
+    assert "authored configuration" in body.lower()
+    assert "Stage 1 · Choose Preset" in heads
+    assert "Stage 2 · Configure" in heads
+    # The preview renders as a structured summary with the Bundle ID metric.
+    assert "Stage 3 · Review Preview" in heads
+    assert "Stage 4 · Generate Bundle" in heads
+    assert "Bundle ID" in {str(item.label) for item in app.metric}
+
+
+def test_scenario_builder_generated_receipt_is_structured(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "bundles").mkdir(parents=True)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+
+    app = page_app(UiPage.SCENARIO).run(timeout=20)
+    app = click(app, "Generate And Validate Bundle", timeout=40)
+    assert not app.exception
+
+    body = text_of(app)
+    # The generated bundle receipt is a structured summary distinct from authored configuration.
+    assert "Generated bundle receipt" in body
+    assert "generated synthetic evidence, distinct from the authored config" in body
+    assert "Noisy fields" in {str(item.label) for item in app.metric}
+    assert app.session_state["selected_bundle_path"]
+
+
 # --- Parameter Sweep --------------------------------------------------------
 
 
