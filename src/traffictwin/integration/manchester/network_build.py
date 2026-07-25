@@ -27,21 +27,24 @@ The module performs no acquisition, no map matching, and no calibration.
 
 from __future__ import annotations
 
+import hashlib
+import math
 import re
 import shutil
 import subprocess
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
-from typing import Literal, TypeAlias
+from typing import BinaryIO, Literal, TypeAlias
 
 from pydantic import Field, model_validator
+from pyproj import CRS, Transformer
+from pyproj.exceptions import CRSError, ProjError
 
 from traffictwin.integration.manchester.models import (
     ManchesterSnapshotModel,
-    sha256_hex,
 )
 from traffictwin.integration.manchester.network_acquisition import (
     OSM_ATTRIBUTION,
@@ -94,6 +97,7 @@ NETCONVERT_FIXED_ARGUMENTS: tuple[str, ...] = (
     "never",
 )
 
+_TARGET_CRS = "EPSG:4326"
 _VERSION_PROBE_TIMEOUT_S = 20
 _BUILD_TIMEOUT_S = 3_600
 _SUMO_VERSION_PATTERN = re.compile(r"\b(\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)\b")
@@ -109,8 +113,15 @@ _COUNT_PATTERNS: dict[str, re.Pattern[bytes]] = {
 }
 
 #: Bound the produced network so a runaway build cannot exhaust the host.
-MAX_NETWORK_BYTES = 4_000_000_000
+#: The measured Greater Manchester network is about 1.25 GB, so this bound has
+#: headroom while staying finite.
+MAX_NETWORK_BYTES = 8_000_000_000
 MIN_NETWORK_BYTES = 1_000
+
+#: A gigabyte-scale network is never loaded whole; digests, structure counts,
+#: and the projection prefix are all streamed.
+_STREAM_CHUNK_BYTES = 4 * 1024 * 1024
+_PREFIX_BYTES = 64 * 1024
 
 #: PBF framing marker, used only to refuse PBF input with a clear reason.
 #: Measured on 25 July 2026: ``netconvert`` 1.27.1 as built in the reviewed
@@ -222,17 +233,30 @@ class SumoNetworkLocation(NetworkBuildModel):
 
 
 class NetworkExtent(NetworkBuildModel):
-    """The produced network's own WGS84 extent, read from ``origBoundary``.
+    """The produced network's own WGS84 extent.
 
-    This is deliberately a distinct type from
+    Derived from the network's ``convBoundary`` (the extent of the *converted*
+    network) offset by ``netOffset`` and transformed back through the network's
+    own ``projParameter``.  It is deliberately **not** taken from
+    ``origBoundary``, which is the bounding box of everything ``netconvert``
+    *read*: an OSM extract retains whole ways and relation members that cross
+    the extract edge, so ``origBoundary`` can reach hundreds of kilometres
+    beyond the built network.  Measured on the Greater Manchester build,
+    ``origBoundary`` spanned longitude −2.83 to +1.46 while the network itself
+    spanned −2.74 to −1.88.  Using the input box as the network extent would
+    have overstated coverage and let a far-away point pass a containment test.
+
+    This is also a distinct type from
     :class:`~traffictwin.integration.manchester.network_scope.ExtractEnvelope`.
     The envelope is derived from generalised ONS display geometry with a
     declared margin; this is measured from the network itself and carries no
-    margin and no display-geometry derivation.  Conflating the two would
-    misattribute where the numbers came from.
+    margin and no display-geometry derivation.  Conflating any of the three
+    would misattribute where the numbers came from.
     """
 
-    derivation: Literal["read_from_produced_network"] = "read_from_produced_network"
+    derivation: Literal["projected_from_network_conv_boundary"] = (
+        "projected_from_network_conv_boundary"
+    )
     min_longitude: Decimal = Field(ge=-180, le=180)
     min_latitude: Decimal = Field(ge=-90, le=90)
     max_longitude: Decimal = Field(ge=-180, le=180)
@@ -255,6 +279,25 @@ class NetworkExtent(NetworkBuildModel):
             self.min_longitude <= point.longitude <= self.max_longitude
             and self.min_latitude <= point.latitude <= self.max_latitude
         )
+
+
+class NetworkEnvelopeReconciliation(NetworkBuildModel):
+    """Measured difference between the network extent and the approved envelope.
+
+    The network is **not** clipped to the administrative boundary: an OSM way
+    crossing the extract edge is retained whole, so the built network normally
+    reaches slightly beyond the envelope.  That overshoot is reported as a
+    measurement with no pass/fail threshold, because no clipping rule and no
+    tolerance has been approved and inventing one here would be a scientific
+    decision hidden in a validator.
+    """
+
+    west_overshoot_degrees: Decimal = Field(ge=0)
+    east_overshoot_degrees: Decimal = Field(ge=0)
+    south_overshoot_degrees: Decimal = Field(ge=0)
+    north_overshoot_degrees: Decimal = Field(ge=0)
+    network_clipped_to_boundary: Literal[False] = False
+    overshoot_threshold_applied: Literal[False] = False
 
 
 class SumoNetworkStructure(NetworkBuildModel):
@@ -283,6 +326,7 @@ class SumoNetworkValidation(NetworkBuildModel):
     structure: SumoNetworkStructure
     location: SumoNetworkLocation
     network_extent_wgs84: NetworkExtent | None
+    envelope_reconciliation: NetworkEnvelopeReconciliation | None = None
     required_areas: tuple[RequiredAreaCoverage, ...]
     findings: tuple[str, ...] = ()
     calibration_performed: Literal[False] = False
@@ -372,13 +416,141 @@ def _utc_now(clock: Callable[[], datetime] | None) -> datetime:
 
 
 def _sha256_file(path: Path) -> str:
-    import hashlib
-
     digest = hashlib.sha256()
     with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        for chunk in iter(lambda: handle.read(_STREAM_CHUNK_BYTES), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _strip_comments(
+    payload: bytes,
+    *,
+    in_comment: bool,
+    final: bool,
+) -> tuple[bytes, bytes, bool]:
+    """Remove XML comments from one chunk, returning (emit, carry, in_comment).
+
+    ``carry`` is the tail that may hold a partially-seen ``<!--`` or ``-->``
+    marker and must be prepended to the next chunk.  On the ``final`` call no
+    carry is retained, because there is no next chunk to complete a marker and
+    retaining bytes there would silently drop the end of the document.
+    """
+
+    out = bytearray()
+    index = 0
+    length = len(payload)
+    while index < length:
+        if in_comment:
+            end = payload.find(b"-->", index)
+            if end == -1:
+                if final:
+                    # An unterminated comment is malformed; refuse rather than
+                    # let the streaming and in-memory forms disagree silently.
+                    raise NetworkBuildError(
+                        "NETWORK_CORRUPT",
+                        "the network contains an unterminated XML comment",
+                    )
+                return bytes(out), payload[max(index, length - 2) :], True
+            index = end + 3
+            in_comment = False
+            continue
+        start = payload.find(b"<!--", index)
+        if start == -1:
+            if final:
+                out += payload[index:]
+                return bytes(out), b"", False
+            keep = max(index, length - 3)
+            out += payload[index:keep]
+            return bytes(out), payload[keep:], False
+        out += payload[index:start]
+        index = start + 4
+        in_comment = True
+    if final and in_comment:
+        raise NetworkBuildError(
+            "NETWORK_CORRUPT", "the network contains an unterminated XML comment"
+        )
+    return bytes(out), b"", in_comment
+
+
+def _canonical_line_blocks(handle: BinaryIO) -> Iterator[bytes]:
+    """Yield canonical lines: comment-free, right-stripped, blank lines dropped."""
+
+    carry = b""
+    pending = b""
+    in_comment = False
+    while True:
+        chunk = handle.read(_STREAM_CHUNK_BYTES)
+        if not chunk:
+            break
+        emitted, carry, in_comment = _strip_comments(
+            carry + chunk, in_comment=in_comment, final=False
+        )
+        pending += emitted
+        if b"\n" in pending:
+            *lines, pending = pending.split(b"\n")
+            for line in lines:
+                if line.strip():
+                    yield line.rstrip()
+    emitted, _carry, _in_comment = _strip_comments(carry, in_comment=in_comment, final=True)
+    pending += emitted
+    for line in pending.split(b"\n"):
+        if line.strip():
+            yield line.rstrip()
+
+
+def canonical_network_digest(path: str | Path) -> str:
+    """Stream the canonical identity digest without loading the whole network.
+
+    A Greater Manchester network is on the order of a gigabyte, so the digest
+    is computed incrementally.  The result is byte-identical to hashing
+    :func:`canonical_network_bytes` over the same file.
+    """
+
+    digest = hashlib.sha256()
+    first = True
+    with Path(path).open("rb") as handle:
+        for line in _canonical_line_blocks(handle):
+            digest.update(line if first else b"\n" + line)
+            first = False
+    return digest.hexdigest()
+
+
+def network_structure_from_file(path: str | Path) -> SumoNetworkStructure:
+    """Count structural elements by streaming, with chunk-boundary overlap."""
+
+    counts = dict.fromkeys(_COUNT_PATTERNS, 0)
+    overlap = max(len(name) for name in ("<connection", "<junction", "<tlLogic", "<edge", "<lane"))
+    tail = b""
+    with Path(path).open("rb") as handle:
+        while True:
+            chunk = handle.read(_STREAM_CHUNK_BYTES)
+            if not chunk:
+                break
+            window = tail + chunk
+            for name, pattern in _COUNT_PATTERNS.items():
+                counts[name] += len(pattern.findall(window))
+            # Re-scanning the retained tail would double-count, so drop the
+            # matches already attributed to it before carrying it forward.
+            tail = window[-overlap:] if len(window) > overlap else window
+            for name, pattern in _COUNT_PATTERNS.items():
+                counts[name] -= len(pattern.findall(tail))
+    for name, pattern in _COUNT_PATTERNS.items():
+        counts[name] += len(pattern.findall(tail))
+    return SumoNetworkStructure(
+        edge_count=counts["edge"],
+        junction_count=counts["junction"],
+        connection_count=counts["connection"],
+        lane_count=counts["lane"],
+        traffic_light_count=counts["tl_logic"],
+    )
+
+
+def read_network_prefix(path: str | Path, limit: int = _PREFIX_BYTES) -> bytes:
+    """Read a bounded prefix, which is where ``<location>`` always appears."""
+
+    with Path(path).open("rb") as handle:
+        return handle.read(limit)
 
 
 def canonical_network_bytes(payload: bytes) -> bytes:
@@ -517,25 +689,51 @@ def _parse_location(payload: bytes) -> SumoNetworkLocation:
         ) from exc
 
 
-def _parse_extent(location: SumoNetworkLocation) -> NetworkExtent | None:
-    """Read the network's own WGS84 extent from ``origBoundary``."""
-
-    parts = location.orig_boundary.split(",")
-    if len(parts) != 4:
+def _numbers(value: str, count: int) -> list[Decimal] | None:
+    parts = value.split(",")
+    if len(parts) != count:
         return None
     try:
-        values = [Decimal(part.strip()) for part in parts]
+        return [Decimal(part.strip()) for part in parts]
     except ArithmeticError:
         return None
-    min_longitude, min_latitude, max_longitude, max_latitude = values
-    if min_longitude >= max_longitude or min_latitude >= max_latitude:
+
+
+def _parse_extent(location: SumoNetworkLocation) -> NetworkExtent | None:
+    """Compute the network's WGS84 extent from its own converted boundary.
+
+    ``convBoundary`` is in network coordinates; ``projected = network -
+    netOffset``.  The result is transformed back through the network's own
+    ``projParameter``, so TrafficTwin never chooses or assumes a projection.
+    """
+
+    boundary = _numbers(location.conv_boundary, 4)
+    offset = _numbers(location.net_offset, 2)
+    if boundary is None or offset is None:
+        return None
+    min_x, min_y, max_x, max_y = boundary
+    if min_x >= max_x or min_y >= max_y:
+        return None
+    try:
+        transformer = Transformer.from_crs(
+            CRS.from_proj4(location.proj_parameter), _TARGET_CRS, always_xy=True
+        )
+        lower = transformer.transform(float(min_x - offset[0]), float(min_y - offset[1]))
+        upper = transformer.transform(float(max_x - offset[0]), float(max_y - offset[1]))
+    except (CRSError, ProjError, ValueError):
+        return None
+    longitudes = sorted((lower[0], upper[0]))
+    latitudes = sorted((lower[1], upper[1]))
+    if not all(math.isfinite(value) for value in (*longitudes, *latitudes)):
+        return None
+    if longitudes[0] >= longitudes[1] or latitudes[0] >= latitudes[1]:
         return None
     quantum = Decimal("0.000001")
     return NetworkExtent(
-        min_longitude=min_longitude.quantize(quantum),
-        min_latitude=min_latitude.quantize(quantum),
-        max_longitude=max_longitude.quantize(quantum),
-        max_latitude=max_latitude.quantize(quantum),
+        min_longitude=Decimal(str(longitudes[0])).quantize(quantum),
+        min_latitude=Decimal(str(latitudes[0])).quantize(quantum),
+        max_longitude=Decimal(str(longitudes[1])).quantize(quantum),
+        max_latitude=Decimal(str(latitudes[1])).quantize(quantum),
     )
 
 
@@ -548,6 +746,33 @@ def _structure(payload: bytes) -> SumoNetworkStructure:
         lane_count=counts["lane"],
         traffic_light_count=counts["tl_logic"],
     )
+
+
+def validate_network_file(
+    path: str | Path,
+    *,
+    scope: BaselineScopeDecision,
+) -> SumoNetworkValidation:
+    """Validate a produced network by streaming, never loading it whole.
+
+    Used for real builds, where a Greater Manchester network is on the order of
+    a gigabyte.  Produces the same result as :func:`validate_network_bytes`.
+    """
+
+    network = Path(path)
+    size = network.stat().st_size
+    if size < MIN_NETWORK_BYTES:
+        raise NetworkBuildError(
+            "NETWORK_EMPTY", "the produced network is empty or truncated and is never accepted"
+        )
+    prefix = read_network_prefix(network)
+    if b"<net" not in prefix[:4096]:
+        raise NetworkBuildError(
+            "NETWORK_CORRUPT", "the produced file does not open as a SUMO network document"
+        )
+    location = _parse_location(prefix)
+    structure = network_structure_from_file(network)
+    return _assemble_validation(location=location, structure=structure, scope=scope)
 
 
 def validate_network_bytes(
@@ -565,9 +790,23 @@ def validate_network_bytes(
         raise NetworkBuildError(
             "NETWORK_CORRUPT", "the produced file does not open as a SUMO network document"
         )
-    location = _parse_location(payload)
-    structure = _structure(payload)
+    return _assemble_validation(
+        location=_parse_location(payload),
+        structure=_structure(payload),
+        scope=scope,
+    )
+
+
+def _assemble_validation(
+    *,
+    location: SumoNetworkLocation,
+    structure: SumoNetworkStructure,
+    scope: BaselineScopeDecision,
+) -> SumoNetworkValidation:
+    """Shared admission logic for the streaming and in-memory validators."""
+
     extent = _parse_extent(location)
+    reconciliation = _reconcile_envelope(extent, scope)
     findings: list[str] = []
     coverage: list[RequiredAreaCoverage] = []
     for probe in scope.required_areas:
@@ -594,8 +833,27 @@ def validate_network_bytes(
         structure=structure,
         location=location,
         network_extent_wgs84=extent,
+        envelope_reconciliation=reconciliation,
         required_areas=tuple(coverage),
         findings=tuple(findings),
+    )
+
+
+def _reconcile_envelope(
+    extent: NetworkExtent | None,
+    scope: BaselineScopeDecision,
+) -> NetworkEnvelopeReconciliation | None:
+    """Measure how far the network reaches beyond the approved envelope."""
+
+    if extent is None:
+        return None
+    envelope = scope.envelope
+    zero = Decimal("0")
+    return NetworkEnvelopeReconciliation(
+        west_overshoot_degrees=max(zero, envelope.min_longitude - extent.min_longitude),
+        east_overshoot_degrees=max(zero, extent.max_longitude - envelope.max_longitude),
+        south_overshoot_degrees=max(zero, envelope.min_latitude - extent.min_latitude),
+        north_overshoot_degrees=max(zero, extent.max_latitude - envelope.max_latitude),
     )
 
 
@@ -693,8 +951,7 @@ def build_baseline_network(
             raise NetworkBuildError(
                 "NETWORK_TOO_LARGE", "the produced network exceeds the reviewed byte bound"
             )
-        payload = network_path.read_bytes()
-        validation = validate_network_bytes(payload, scope=resolved_scope)
+        validation = validate_network_file(network_path, scope=resolved_scope)
         if validation.status != "accepted":
             raise NetworkBuildError(
                 "NETWORK_VALIDATION_REJECTED",
@@ -702,8 +959,8 @@ def build_baseline_network(
             )
         binding = ManchesterBaselineNetworkBinding(
             network_id=request.network_id,
-            network_sha256=sha256_hex(payload),
-            network_identity_sha256=sha256_hex(canonical_network_bytes(payload)),
+            network_sha256=_sha256_file(network_path),
+            network_identity_sha256=canonical_network_digest(network_path),
             network_bytes=size,
             inputs=NetworkBuildInputManifest(
                 extract=request.extract,
@@ -742,12 +999,11 @@ def load_binding(network_dir: str | Path) -> ManchesterBaselineNetworkBinding:
     network_path = directory / f"{binding.network_id}.net.xml"
     if network_path.is_symlink() or not network_path.is_file():
         raise NetworkBuildError("NETWORK_MISSING", "the bound network file is absent")
-    payload = network_path.read_bytes()
-    if sha256_hex(payload) != binding.network_sha256:
+    if _sha256_file(network_path) != binding.network_sha256:
         raise NetworkBuildError(
             "NETWORK_MUTATED", "the bound network file no longer matches its recorded digest"
         )
-    if sha256_hex(canonical_network_bytes(payload)) != binding.network_identity_sha256:
+    if canonical_network_digest(network_path) != binding.network_identity_sha256:
         raise NetworkBuildError(
             "NETWORK_IDENTITY_MUTATED",
             "the bound network no longer matches its recorded semantic identity",

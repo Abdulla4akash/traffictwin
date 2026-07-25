@@ -14,7 +14,9 @@ from typing import Any
 
 import pytest
 from pydantic import ValidationError
+from pyproj import Transformer
 
+from traffictwin.integration.manchester import network_build
 from traffictwin.integration.manchester.models import sha256_hex
 from traffictwin.integration.manchester.network_acquisition import (
     OSM_EXTRACT_DATA_CUTOFF_DATE,
@@ -31,14 +33,17 @@ from traffictwin.integration.manchester.network_build import (
     NetworkBuildRequest,
     build_baseline_network,
     canonical_network_bytes,
+    canonical_network_digest,
     check_builder_input_format,
     discover_netconvert,
     load_binding,
     netconvert_identity,
+    network_structure_from_file,
     validate_network_bytes,
 )
 from traffictwin.integration.manchester.network_scope import (
     ExtractEnvelope,
+    GeographicPoint,
     baseline_scope_decision,
 )
 
@@ -101,15 +106,37 @@ def _output_root(tmp_path: Path) -> Path:
     return root
 
 
-def _network_document(orig_boundary: bytes) -> bytes:
-    """Build a minimal network-shaped document above the reviewed size floor."""
+_PROJ = "+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
 
+
+def _network_document(
+    min_longitude: float,
+    min_latitude: float,
+    max_longitude: float,
+    max_latitude: float,
+    *,
+    orig_boundary: str | None = None,
+) -> bytes:
+    """Build a minimal network-shaped document with a self-consistent location.
+
+    ``convBoundary`` is the real UTM 30N box for the requested WGS84 corners,
+    because the validator derives the network extent from the converted
+    boundary rather than from ``origBoundary``.  ``origBoundary`` defaults to a
+    deliberately much wider box, mirroring how a real OSM extract retains whole
+    ways far outside the built network.
+    """
+
+    forward = Transformer.from_crs("EPSG:4326", "EPSG:32630", always_xy=True)
+    min_x, min_y = forward.transform(min_longitude, min_latitude)
+    max_x, max_y = forward.transform(max_longitude, max_latitude)
+    wide = orig_boundary if orig_boundary is not None else "-9.00,50.00,2.00,56.00"
     header = (
-        b"<net>"
-        b'<location netOffset="0.00,0.00" convBoundary="0.00,0.00,10.00,10.00" '
-        b'origBoundary="' + orig_boundary + b'" '
-        b'projParameter="+proj=utm +zone=30 +ellps=WGS84"/>'
-    )
+        "<net>"
+        f'<location netOffset="0.00,0.00" '
+        f'convBoundary="{min_x:.2f},{min_y:.2f},{max_x:.2f},{max_y:.2f}" '
+        f'origBoundary="{wide}" '
+        f'projParameter="{_PROJ}"/>'
+    ).encode("ascii")
     body = b"<edge id='a'/><junction id='j'/><connection from='a'/>" * 64
     return header + body + b"</net>"
 
@@ -234,11 +261,11 @@ class TestCanonicalIdentity:
 class TestExtentProvenance:
     def test_the_network_extent_is_labelled_as_read_from_the_network(self) -> None:
         result = validate_network_bytes(
-            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
         )
         extent = result.network_extent_wgs84
         assert extent is not None
-        assert extent.derivation == "read_from_produced_network"
+        assert extent.derivation == "projected_from_network_conv_boundary"
         assert extent.administrative_boundary is False
 
     def test_the_network_extent_is_not_the_display_derived_envelope_type(self) -> None:
@@ -246,13 +273,140 @@ class TestExtentProvenance:
         # the envelope is derived from generalised ONS display geometry with a
         # declared margin; the extent is measured from the network itself.
         result = validate_network_bytes(
-            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
         )
         extent = result.network_extent_wgs84
         assert extent is not None
         assert not isinstance(extent, ExtractEnvelope)
         assert not hasattr(extent, "margin_degrees")
         assert baseline_scope_decision().envelope.derivation == "derived_from_display_geometry"
+
+
+class TestStreamingEquivalence:
+    """A gigabyte-scale network is never loaded whole, so the streaming and
+    in-memory forms must agree exactly."""
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            b"<!-- banner -->\n<net>\n  <edge id='a'/>   \n\n  <junction id='j'/>\n</net>\n",
+            b"<!--\nmulti\nline\n-->\n<net><edge id='a'/></net>\n",
+            b"<!--a-->\n<net>\n<!--b-->\n<edge id='x'/>\n</net>",
+            b"<net><edge id='q'/></net>\n<!-- trailing -->",
+            b"<net><edge id='z'/><junction id='j'/></net>",
+            b"<!--c-->\r\n<net>\r\n<edge id='a'/>\r\n</net>\r\n",
+            b"<!---->\n<net><edge id='a'/></net>",
+            b"<!--a--><!--b--><net/>",
+        ],
+    )
+    def test_streaming_digest_matches_in_memory_digest(
+        self, tmp_path: Path, payload: bytes
+    ) -> None:
+        target = tmp_path / "n.net.xml"
+        target.write_bytes(payload)
+        assert canonical_network_digest(target) == sha256_hex(canonical_network_bytes(payload))
+
+    @pytest.mark.parametrize("chunk", [1, 2, 3, 5, 7, 4096])
+    def test_streaming_digest_is_chunk_size_independent(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, chunk: int
+    ) -> None:
+        payload = b"<!--x-->\n<net>\n<edge id='a'/>\n<!--y\nz-->\n<junction id='j'/>\n</net>\n"
+        target = tmp_path / "n.net.xml"
+        target.write_bytes(payload)
+        monkeypatch.setattr(network_build, "_STREAM_CHUNK_BYTES", chunk)
+        assert canonical_network_digest(target) == sha256_hex(canonical_network_bytes(payload))
+
+    @pytest.mark.parametrize("chunk", [1, 3, 8, 4096])
+    def test_streaming_structure_counts_match_in_memory(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, chunk: int
+    ) -> None:
+        payload = (
+            b"<net><edge id='a'/><lane id='l'/><junction id='j'/>"
+            b"<connection from='a'/><tlLogic id='t'/><edgeXtra/></net>"
+        )
+        target = tmp_path / "n.net.xml"
+        target.write_bytes(payload)
+        monkeypatch.setattr(network_build, "_STREAM_CHUNK_BYTES", chunk)
+        assert network_structure_from_file(target) == network_build._structure(payload)
+
+    def test_an_unterminated_comment_is_refused_rather_than_diverging(self, tmp_path: Path) -> None:
+        target = tmp_path / "n.net.xml"
+        target.write_bytes(b"<net><edge id='a'/><!-- never closed")
+        with pytest.raises(NetworkBuildError, match="NETWORK_CORRUPT"):
+            canonical_network_digest(target)
+
+
+class TestExtentIsNotTheInputBox:
+    def test_the_extent_comes_from_conv_boundary_not_orig_boundary(self) -> None:
+        # A real OSM extract retains whole ways far outside the built network,
+        # so origBoundary can reach hundreds of km beyond it.  Measured on the
+        # Greater Manchester build: origBoundary spanned to longitude +1.46
+        # while the network itself stopped at -1.88.
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70, orig_boundary="-9.00,50.00,2.00,56.00"),
+            scope=baseline_scope_decision(),
+        )
+        extent = result.network_extent_wgs84
+        assert extent is not None
+        assert result.location.orig_boundary == "-9.00,50.00,2.00,56.00"
+        # The far-east input corner must not become the network's extent.
+        assert extent.max_longitude < Decimal("0")
+        assert Decimal("-2.8") < extent.min_longitude < Decimal("-2.7")
+
+    def test_a_far_away_point_does_not_pass_containment_via_the_input_box(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70, orig_boundary="-9.00,50.00,2.00,56.00"),
+            scope=baseline_scope_decision(),
+        )
+        extent = result.network_extent_wgs84
+        assert extent is not None
+        norfolk = GeographicPoint(longitude=Decimal("1.2"), latitude=Decimal("52.6"))
+        assert extent.contains(norfolk) is False
+
+    def test_an_unreadable_conv_boundary_yields_no_extent(self) -> None:
+        payload = (
+            b"<net>"
+            b'<location netOffset="0.00,0.00" convBoundary="not,a,box,here" '
+            b'origBoundary="-2.75,53.30,-1.89,53.70" '
+            b'projParameter="+proj=utm +zone=30 +ellps=WGS84"/>'
+            + b"<edge id='a'/><junction id='j'/><connection from='a'/>" * 64
+            + b"</net>"
+        )
+        result = validate_network_bytes(payload, scope=baseline_scope_decision())
+        assert result.network_extent_wgs84 is None
+        assert "NETWORK_EXTENT_UNREADABLE" in result.findings
+        assert result.status == "rejected"
+
+
+class TestEnvelopeReconciliation:
+    def test_the_network_is_recorded_as_not_clipped_to_the_boundary(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
+        )
+        reconciliation = result.envelope_reconciliation
+        assert reconciliation is not None
+        assert reconciliation.network_clipped_to_boundary is False
+        assert reconciliation.overshoot_threshold_applied is False
+
+    def test_overshoot_beyond_the_approved_envelope_is_measured(self) -> None:
+        # Deliberately wider than the approved envelope on the west side.
+        result = validate_network_bytes(
+            _network_document(-3.20, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
+        )
+        reconciliation = result.envelope_reconciliation
+        assert reconciliation is not None
+        assert reconciliation.west_overshoot_degrees > Decimal("0")
+
+    def test_a_network_inside_the_envelope_reports_zero_overshoot(self) -> None:
+        result = validate_network_bytes(
+            _network_document(-2.60, 53.40, -2.00, 53.60), scope=baseline_scope_decision()
+        )
+        reconciliation = result.envelope_reconciliation
+        assert reconciliation is not None
+        assert reconciliation.west_overshoot_degrees == Decimal("0")
+        assert reconciliation.east_overshoot_degrees == Decimal("0")
+        assert reconciliation.north_overshoot_degrees == Decimal("0")
+        assert reconciliation.south_overshoot_degrees == Decimal("0")
 
 
 class TestValidationRefusals:
@@ -273,7 +427,7 @@ class TestValidationRefusals:
     def test_a_network_outside_the_required_areas_is_rejected(self) -> None:
         # A valid-looking network covering Leeds, not Manchester.
         result = validate_network_bytes(
-            _network_document(b"-1.60,53.75,-1.50,53.85"), scope=baseline_scope_decision()
+            _network_document(-1.60, 53.75, -1.50, 53.85), scope=baseline_scope_decision()
         )
         assert result.status == "rejected"
         assert any(
@@ -282,14 +436,14 @@ class TestValidationRefusals:
 
     def test_a_network_covering_the_required_areas_is_accepted(self) -> None:
         result = validate_network_bytes(
-            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
         )
         assert result.status == "accepted"
         assert all(area.inside_network_boundary for area in result.required_areas)
 
     def test_an_accepted_validation_cannot_be_forged_without_coverage(self) -> None:
         result = validate_network_bytes(
-            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+            _network_document(-2.75, 53.30, -1.89, 53.70), scope=baseline_scope_decision()
         )
         payload_json: dict[str, Any] = json.loads(result.canonical_json())
         payload_json["status"] = "accepted"

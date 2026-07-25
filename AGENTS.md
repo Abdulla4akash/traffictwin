@@ -531,6 +531,45 @@ acceptance.
   Commit in small reviewed commits and push to `origin/claude/complete-v0.7`; never create or move
   a release tag and never force-push.
 
+#### Grant amendment: approved `osmium-tool` decode step (25 July 2026)
+
+- The previous slice ended blocked on `OSM_PBF_DECODE_UNAVAILABLE`: `netconvert` 1.27.1 as built in
+  the reviewed environment reads OSM XML only and exits 1 on the pinned `.osm.pbf`. The repository
+  owner has now approved **`osmium-tool`** as the controlled PBF-to-OSM-XML decoder for this
+  workflow, from the clean pushed head `5a483f8`, verified in sync with
+  `origin/claude/complete-v0.7`.
+- `osmium` is an **optional audited external runtime**, treated exactly like the existing SUMO
+  toolchain: discovered on `PATH`, version-probed, invoked through a frozen argument vector with no
+  shell, and never imported into Python scientific code. It is not a project dependency and
+  `pyproject.toml`/`uv.lock` are not touched. The observed runtime is `osmium 1.19.1` /
+  `libosmium 2.23.1` (GPL-3.0-or-later), installed via Homebrew; its GPL licence covers the
+  standalone tool only and does not attach to TrafficTwin, which merely executes it.
+- The decode is **format conversion only and never content selection**. It applies no tag filter,
+  no bounding-box clip, no simplification, and no road-class choice; deciding which ways become
+  edges remains entirely inside the already-frozen `netconvert` recipe. A decode that changed which
+  OSM objects survive would silently move a scientific decision into a conversion step.
+- The claimed file set is extended by exactly
+  `src/traffictwin/integration/manchester/network_decode.py` and
+  `tests/unit/test_manchester_network_decode.py`, plus one new dated evidence record under
+  `docs/integration/evidence/`. Every other boundary in the parent grant is unchanged, including
+  the prohibition on editing `integration/manchester/__init__.py`, `transport.py`, `spatial.py`,
+  `map_matching.py`, `boundary_reference.py`, any lead-claimed module, and any UI page.
+- Capability truth is unchanged by this amendment. Decoding an extract and building a network is
+  still Gate-D step 1 (network binding) only — the first of `MAN-09`'s seven acceptance components.
+  `MAN-09` stays `planned` and practically `foundation_only`; Gate D stays `foundation_only`; the
+  `MANCHESTER_NETWORK_LICENCE_UNAPPROVED`, `MANCHESTER_NETWORK_NOT_REVIEWED`,
+  `MAP_MATCH_POLICY_UNAPPROVED`, and `REAL_SOURCE_GATE_B_UNACCEPTED` blockers are not lifted, and a
+  built network remains geometry rather than calibration, validation, live traffic, or VEC
+  execution.
+- Raw `.osm.pbf` extracts and decoded `.osm.xml` intermediates stay **private workspace artifacts**
+  and are never committed; derived-network publication remains conditional on ODbL share-alike and
+  the final publication review. The previously built city-centre/University network remains
+  labelled a **sub-area probe** and must never be relabelled as the Greater Manchester baseline.
+- The provider's three time facts stay separate and are never collapsed: the OSM data-cutoff
+  instant (`osmosis_replication_timestamp=2026-07-24T20:20:51Z`, read from the PBF header), the
+  provider publication time (`Last-Modified: Sat, 25 Jul 2026 00:29:36 GMT`), and the operator
+  decision/retrieval date (25 July 2026).
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
