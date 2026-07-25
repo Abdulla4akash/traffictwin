@@ -846,6 +846,31 @@ project records.
   accepted rather than a person.
 - No CLI command may accept an executable path, an argument vector, a threshold, or a shell string.
 
+### Phase 11 claim: Gate C accessibility evidence
+
+Claimed 25 July 2026 from the clean pushed head `d17093c`, under the same mandate and standing
+terms. No capability moves off `planned`, no gate is accepted.
+
+**Why.** Gate C asks for automated keyboard-order, label, contrast and zoom checks where possible,
+and `tests/ui/` currently has none: there is no accessibility test of any kind.
+
+**Exclusive new tests.** `tests/ui/test_accessibility.py`.
+**Additionally edited** under the shared-surface transfer: a new
+`docs/evaluation/manual_accessibility_checklist.md` and the shared project records.
+
+**Not edited.** No UI page, no Manchester Operations file, no component module. The tests read the
+rendered element tree through the existing `AppTest` harness and change nothing.
+
+**Substantive boundaries.**
+
+- Automated checks are **automated evidence only**. They cannot accept Gate C, and they are never
+  described as an accessibility audit.
+- **No fabricated human evidence.** No screen-reader user, participant, or assistive-technology
+  session is invented. What needs a person is written into a checklist for a person, and the
+  checklist ships unsigned and unticked.
+- A check that cannot be made reliably automatic is recorded as a manual item rather than
+  approximated, because a weak automated proxy reported as a pass is worse than an honest gap.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
