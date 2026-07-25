@@ -17,6 +17,7 @@ import sys
 from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
+from typing import Any
 
 from traffictwin.integration.manchester.demand_reconstruction import (
     ACCEPTANCE_BASIS,
@@ -166,7 +167,7 @@ def main() -> None:
 
     # 2. Filter sites by survey window (Option A)
     site_dates: dict[int, str] = {}
-    site_records: dict[int, list] = defaultdict(list)
+    site_records: dict[int, list[Any]] = defaultdict(list)
     for rec in records:
         site_id = rec.count_point_id
         site_records[site_id].append(rec)
@@ -203,10 +204,16 @@ def main() -> None:
     distance_by_edge: dict[int, dict[str, Decimal]] = defaultdict(dict)
 
     accepted_sites_count = 0
+    sites_without_coordinates = 0
     for site_id in sorted(admitted_sites):
         if site_id not in count_points_by_id:
             continue
         cp = count_points_by_id[site_id]
+        if cp.location.easting is None or cp.location.northing is None:
+            # A count point without coordinates cannot be matched. Skipping it
+            # silently would drop an observation; it is counted instead.
+            sites_without_coordinates += 1
+            continue
         res = match_observation_v11(
             count_point_id=cp.count_point_id,
             dft_road_ref=cp.location.road_name,
@@ -226,6 +233,8 @@ def main() -> None:
             for m in group.members:
                 distance_by_edge[site_id][m.edge_id] = m.distance_m
 
+    if sites_without_coordinates:
+        print(f"Sites skipped for missing coordinates: {sites_without_coordinates}")
     print(f"Option A sites accepted by policy v1.1: {accepted_sites_count} / {len(admitted_sites)}")
 
     # 5. Process Option A counts and bind directions
@@ -233,7 +242,7 @@ def main() -> None:
     resolutions: list[DirectionResolution] = []
     bound_edge_ids: set[str] = set()
 
-    site_directions: dict[tuple[int, str], list] = defaultdict(list)
+    site_directions: dict[tuple[int, str], list[Any]] = defaultdict(list)
     # Option A represents each site by its LATEST survey. Collecting every survey
     # date would emit one cell per date for the same edge-hour, fusing surveys
     # the temporal-profile policy keeps separate and inflating the count target.
@@ -423,7 +432,7 @@ def main() -> None:
     # Every performance figure below is measured from the artifacts this run
     # produced. Hardcoding them would report the same result whatever happened.
     observed_total = sum(cell.all_motor_vehicles for cell in edge_counts)
-    underflow = overflow = 0
+    underflow = overflow = 0.0
     underflow_cells = overflow_cells = mismatch_cells = 0
     if mismatch_output_path.is_file():
         # Scanned rather than parsed as a document: the file is a flat, machine

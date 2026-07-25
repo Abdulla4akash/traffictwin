@@ -247,6 +247,9 @@ from traffictwin.integration.manchester.network_service import (
     list_network_candidates,
     write_connectivity_record,
 )
+from traffictwin.integration.manchester.workflow_service import (
+    manchester_workflow_status,
+)
 from traffictwin.integration.sumo import (
     compute_metrics_for_sumo,
     import_sumo_results,
@@ -537,6 +540,10 @@ manchester_profile_app = typer.Typer(
     no_args_is_help=True,
     help="Read-only DfT temporal-profile candidate commands (MAN-09, planned).",
 )
+manchester_workflow_app = typer.Typer(
+    no_args_is_help=True,
+    help="Read-only status across the Manchester research workflow (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -567,6 +574,7 @@ integration_app.add_typer(vec_app, name="vec")
 integration_app.add_typer(manchester_app, name="manchester")
 manchester_app.add_typer(manchester_network_app, name="network")
 manchester_app.add_typer(manchester_profile_app, name="profile")
+manchester_app.add_typer(manchester_workflow_app, name="workflow")
 
 
 @vec_app.command("contract")
@@ -6910,3 +6918,79 @@ def _echo_profile_text(profile: ManchesterDftTemporalProfile) -> None:
     typer.echo(f"aadf_fused: {str(profile.aadf_fused).lower()}")
     typer.echo(f"webtris_included: {str(profile.webtris_included).lower()}")
     typer.echo(f"capability_status: {profile.capability_status}")
+
+
+@manchester_workflow_app.command("status")
+def manchester_workflow_status_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+    show: Annotated[str, typer.Option("--show", help="all, available, or blocked")] = "all",
+) -> None:
+    """Show where the Manchester research workflow stands and what blocks it.
+
+    Read-only and offline: nothing is fetched, executed, or computed. Every
+    blocked stage states its blocker, so an unavailable stage is visible rather
+    than silently absent. MAN-09 remains planned.
+    """
+
+    status = manchester_workflow_status()
+    if output_format == "json":
+        _echo_json(status.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    if show not in {"all", "available", "blocked"}:
+        typer.secho(
+            "--show must be one of: all, available, blocked",
+            err=True,
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(code=2)
+
+    typer.echo(f"research_status: {status.research_status}")
+    typer.echo(f"acceptance_basis: {status.acceptance_basis}")
+    typer.echo(f"analyst_reviewed: {str(status.analyst_reviewed).lower()}")
+    typer.echo(f"supervisor_approved: {str(status.supervisor_approved).lower()}")
+    typer.echo(f"capability_status: {status.capability_status}")
+    typer.echo(f"gate_d: {status.gate_d_state}")
+    typer.echo(f"gate_e: {status.gate_e_state}")
+    typer.echo(
+        f"stages: {len(status.stages)} "
+        f"(available {len(status.available_stages)}, blocked {len(status.blocked_stages)})"
+    )
+
+    if show == "available":
+        selected = status.available_stages
+    elif show == "blocked":
+        selected = status.blocked_stages
+    else:
+        selected = status.stages
+    for stage in selected:
+        typer.echo(f"phase {stage.phase}: {stage.key} [{stage.state}]")
+        if stage.summary:
+            typer.echo(f"    produced: {stage.summary}")
+        if stage.blocker:
+            typer.echo(f"    blocked_by: {stage.blocker}")
+            if stage.blocker_owner != "none":
+                typer.echo(f"    lifted_by: {stage.blocker_owner}")
+
+    for decision in status.open_owner_decisions:
+        typer.echo(f"open_owner_decision: {decision}")
+
+
+@manchester_workflow_app.command("decisions")
+def manchester_workflow_decisions_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """List the decisions only the repository owner can make.
+
+    These gate the remaining research chain. No agent may answer them, and none
+    is answered by a default.
+    """
+
+    status = manchester_workflow_status()
+    if output_format == "json":
+        _echo_json({"open_owner_decisions": list(status.open_owner_decisions)})
+        return
+    _require_text_format(output_format)
+    typer.echo(f"open_owner_decisions: {len(status.open_owner_decisions)}")
+    for index, decision in enumerate(status.open_owner_decisions, start=1):
+        typer.echo(f"{index}. {decision}")
