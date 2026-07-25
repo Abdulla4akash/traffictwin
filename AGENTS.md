@@ -783,6 +783,40 @@ read and imported only.
 - Executable identities, argument vectors, versions, seeds, timeouts, and workspace boundaries are
   frozen and recorded. No arbitrary command execution is exposed.
 
+### Phase 7 claim: controlled Manchester SUMO execution
+
+Claimed 25 July 2026 from the clean pushed head `cbda486`, under the same mandate and standing
+terms. No capability moves off `planned`, no gate is accepted, the unsigned supervisor form is
+untouched.
+
+**Why a new module rather than reusing `sumo_execution`.** The lead's controlled runner is
+structurally synthetic-only and cannot express this run: `scenario_directory` is
+`Literal["scenario_synthetic_square"]`, `config_file` is `Literal["square.sumocfg"]`,
+`vehicle_count` is bounded at 1,000, and `manchester_traffic` is fixed `False`. Those are
+deliberate refusals, not gaps, so they are left exactly as they are and a separate Manchester
+boundary is built beside them.
+
+**Exclusive new source file.** `src/traffictwin/integration/manchester/sumo_run.py`.
+**Exclusive new tests.** `tests/unit/test_manchester_sumo_run.py`.
+**Additionally edited** under the shared-surface transfer: a new dated record under
+`docs/integration/evidence/`, `docs/integration/manchester_sumo_run.md`, and the shared project
+records.
+
+**Not edited.** `integration/sumo_execution/**` and everything listed as not edited in the earlier
+claims. Those are read and imported only.
+
+**Substantive boundaries.**
+
+- The run consumes the count-constrained candidate demand and the reviewed study subnetwork. Its
+  output is simulated traffic under a candidate demand, never observed traffic, and the
+  `owner_policy_accepted_candidate` basis carries forward.
+- Executable identity, argument vector, seed, step length, and time window are frozen and recorded.
+  No arbitrary command is exposed and no shell is used.
+- Raw outputs stay private workspace artifacts; only a bounded aggregate record is committed.
+- A failed or interrupted run never replaces an accepted output.
+- Simulating a demand is not calibrating it and not comparing it. `MAN-09` stays `planned`, Gate D
+  and Gate E stay `foundation_only`.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
