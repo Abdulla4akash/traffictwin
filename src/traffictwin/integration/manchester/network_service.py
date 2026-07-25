@@ -33,6 +33,12 @@ from traffictwin.integration.manchester.network_build import (
     load_binding,
     netconvert_identity,
 )
+from traffictwin.integration.manchester.network_decode import (
+    SUPPORTED_OSMIUM_MAJOR,
+    NetworkDecodeError,
+    discover_osmium,
+    osmium_identity,
+)
 from traffictwin.integration.manchester.network_scope import (
     BaselineScopeDecision,
     baseline_scope_decision,
@@ -61,7 +67,7 @@ class ToolchainAvailability(NetworkServiceModel):
     schema_version: Literal["1.0"] = "1.0"
     available: bool
     reported_version: str | None = Field(default=None, max_length=64)
-    required_version_prefix: Literal["1.27."] = SUPPORTED_SUMO_VERSION_PREFIX
+    required_version_prefix: str = Field(min_length=1, max_length=16)
     blocker: str | None = Field(default=None, max_length=96)
 
 
@@ -84,7 +90,7 @@ class NetworkCandidateSummary(NetworkServiceModel):
     attribution_text: str
     required_areas_covered: bool
     byte_reproducible: Literal[False] = False
-    semantically_reproducible: Literal[True] = True
+    semantic_reproducibility: str
     calibration_performed: Literal[False] = False
     accepted_for_real_matching: Literal[False] = False
 
@@ -103,6 +109,7 @@ class BaselineNetworkStatus(NetworkServiceModel):
     gate: Literal["Gate-D step 1 (network binding) only"] = "Gate-D step 1 (network binding) only"
     scope: BaselineScopeDecision
     toolchain: ToolchainAvailability
+    decoder: ToolchainAvailability
     candidates: tuple[NetworkCandidateSummary, ...]
     candidate_count: int = Field(ge=0)
     map_matching_preflight: ManchesterMapMatchingPreflight
@@ -116,15 +123,55 @@ class BaselineNetworkStatus(NetworkServiceModel):
 
 
 def toolchain_availability() -> ToolchainAvailability:
-    """Report toolchain presence without building anything."""
+    """Report build-toolchain presence without building anything."""
 
     if discover_netconvert() is None:
-        return ToolchainAvailability(available=False, blocker="SUMO_TOOLCHAIN_UNAVAILABLE")
+        return ToolchainAvailability(
+            available=False,
+            required_version_prefix=SUPPORTED_SUMO_VERSION_PREFIX,
+            blocker="SUMO_TOOLCHAIN_UNAVAILABLE",
+        )
     try:
         identity = netconvert_identity()
     except NetworkBuildError as exc:
-        return ToolchainAvailability(available=False, blocker=exc.code)
-    return ToolchainAvailability(available=True, reported_version=identity.reported_version)
+        return ToolchainAvailability(
+            available=False,
+            required_version_prefix=SUPPORTED_SUMO_VERSION_PREFIX,
+            blocker=exc.code,
+        )
+    return ToolchainAvailability(
+        available=True,
+        reported_version=identity.reported_version,
+        required_version_prefix=SUPPORTED_SUMO_VERSION_PREFIX,
+    )
+
+
+def decoder_availability() -> ToolchainAvailability:
+    """Report decoder presence without decoding anything.
+
+    A PBF extract cannot become a network without this, because netconvert
+    1.27.1 reads OSM XML only.
+    """
+
+    if discover_osmium() is None:
+        return ToolchainAvailability(
+            available=False,
+            required_version_prefix=SUPPORTED_OSMIUM_MAJOR,
+            blocker="OSMIUM_TOOLCHAIN_UNAVAILABLE",
+        )
+    try:
+        identity = osmium_identity()
+    except NetworkDecodeError as exc:
+        return ToolchainAvailability(
+            available=False,
+            required_version_prefix=SUPPORTED_OSMIUM_MAJOR,
+            blocker=exc.code,
+        )
+    return ToolchainAvailability(
+        available=True,
+        reported_version=identity.reported_version,
+        required_version_prefix=SUPPORTED_OSMIUM_MAJOR,
+    )
 
 
 def _summarise(binding: ManchesterBaselineNetworkBinding) -> NetworkCandidateSummary:
@@ -145,6 +192,7 @@ def _summarise(binding: ManchesterBaselineNetworkBinding) -> NetworkCandidateSum
         required_areas_covered=all(
             area.inside_network_boundary for area in binding.validation.required_areas
         ),
+        semantic_reproducibility=binding.semantic_reproducibility,
     )
 
 
@@ -195,6 +243,7 @@ def baseline_network_status(networks_root: str | Path | None = None) -> Baseline
     return BaselineNetworkStatus(
         scope=baseline_scope_decision(),
         toolchain=toolchain_availability(),
+        decoder=decoder_availability(),
         candidates=candidates,
         candidate_count=len(candidates),
         map_matching_preflight=current_map_matching_preflight(),

@@ -35,6 +35,7 @@ from traffictwin.integration.manchester.network_build import (
     canonical_network_bytes,
     canonical_network_digest,
     check_builder_input_format,
+    compare_builds,
     discover_netconvert,
     load_binding,
     netconvert_identity,
@@ -336,6 +337,60 @@ class TestStreamingEquivalence:
             canonical_network_digest(target)
 
 
+class TestReproducibilityIsMeasuredNotAsserted:
+    def test_two_identical_files_verify_as_identical(self, tmp_path: Path) -> None:
+        payload = b"<!--a-->\n<net>\n<edge id='x'/>\n<junction id='j'/>\n</net>\n"
+        first = tmp_path / "a.net.xml"
+        second = tmp_path / "b.net.xml"
+        first.write_bytes(payload)
+        second.write_bytes(payload)
+        report = compare_builds(first, second)
+        assert report.canonical_identity_identical is True
+        assert report.status == "verified_identical"
+        assert report.differing_canonical_lines == 0
+
+    def test_a_banner_only_difference_still_verifies_as_identical(self, tmp_path: Path) -> None:
+        body = b"<net>\n<edge id='x'/>\n<junction id='j'/>\n</net>\n"
+        first = tmp_path / "a.net.xml"
+        second = tmp_path / "b.net.xml"
+        first.write_bytes(b"<!-- generated 00:00:01 -->\n" + body)
+        second.write_bytes(b"<!-- generated 11:11:11 -->\n" + body)
+        report = compare_builds(first, second)
+        assert report.raw_identical is False
+        assert report.canonical_identity_identical is True
+        assert report.status == "verified_identical"
+
+    def test_a_content_difference_verifies_as_varying(self, tmp_path: Path) -> None:
+        first = tmp_path / "a.net.xml"
+        second = tmp_path / "b.net.xml"
+        first.write_bytes(b"<net>\n<edge id='x'/>\n<roundabout nodes='1 2'/>\n</net>\n")
+        second.write_bytes(b"<net>\n<edge id='x'/>\n<roundabout nodes='1 2 3'/>\n</net>\n")
+        report = compare_builds(first, second)
+        assert report.canonical_identity_identical is False
+        assert report.status == "verified_varies"
+        assert report.differing_canonical_lines == 1
+        # Counts can still agree while content differs, which is exactly the
+        # measured Greater Manchester situation.
+        assert report.structure_identical is True
+
+    def test_a_report_cannot_claim_a_status_its_measurement_contradicts(self) -> None:
+        with pytest.raises(ValidationError, match="follow the measured comparison"):
+            network_build.NetworkReproducibilityReport(
+                raw_identical=False,
+                canonical_identity_identical=False,
+                structure_identical=True,
+                differing_canonical_lines=238,
+                total_canonical_lines=10_913_444,
+                status="verified_identical",
+            )
+
+    def test_comparing_a_missing_file_is_refused(self, tmp_path: Path) -> None:
+        present = tmp_path / "a.net.xml"
+        present.write_bytes(b"<net/>")
+        with pytest.raises(NetworkBuildError, match="NETWORK_MISSING"):
+            compare_builds(present, tmp_path / "absent.net.xml")
+
+
 class TestExtentIsNotTheInputBox:
     def test_the_extent_comes_from_conv_boundary_not_orig_boundary(self) -> None:
         # A real OSM extract retains whole ways far outside the built network,
@@ -483,7 +538,14 @@ class TestRealToolchainBuild:
         second = build_baseline_network(root, source, _request("gm-second"))
         assert first.network_identity_sha256 == second.network_identity_sha256
         assert first.byte_reproducible is False
-        assert first.semantically_reproducible is True
+        # A single build never asserts reproducibility; it is measured.
+        assert first.semantic_reproducibility == "not_verified"
+        report = compare_builds(
+            root / first.network_id / f"{first.network_id}.net.xml",
+            root / second.network_id / f"{second.network_id}.net.xml",
+        )
+        assert report.canonical_identity_identical is True
+        assert report.status == "verified_identical"
 
     def test_the_binding_makes_no_calibration_or_execution_claim(self, tmp_path: Path) -> None:
         binding = build_baseline_network(_output_root(tmp_path), _osm_file(tmp_path), _request())
@@ -593,6 +655,23 @@ class TestRealToolchainBuild:
         assert manifest.tool.reported_version.startswith(SUPPORTED_SUMO_VERSION_PREFIX)
         assert manifest.argument_shape == NETCONVERT_FIXED_ARGUMENTS
         assert manifest.decision_record == "ADR-059"
+
+    def test_no_private_path_is_embedded_in_the_produced_network(self, tmp_path: Path) -> None:
+        # netconvert echoes its resolved configuration into a comment banner
+        # inside the network itself, so an absolute input or output path would
+        # travel with any published derived network.
+        root = _output_root(tmp_path)
+        binding = build_baseline_network(root, _osm_file(tmp_path), _request())
+        produced = (root / binding.network_id / f"{binding.network_id}.net.xml").read_bytes()
+        assert str(tmp_path).encode() not in produced
+        assert b"/Users/" not in produced
+        assert b"/private/" not in produced
+
+    def test_the_linked_build_input_is_not_promoted(self, tmp_path: Path) -> None:
+        root = _output_root(tmp_path)
+        binding = build_baseline_network(root, _osm_file(tmp_path), _request())
+        promoted = {child.name for child in (root / binding.network_id).iterdir()}
+        assert promoted == {f"{binding.network_id}.net.xml", "binding.json"}
 
     def test_no_private_path_appears_anywhere_in_the_binding(self, tmp_path: Path) -> None:
         binding = build_baseline_network(_output_root(tmp_path), _osm_file(tmp_path), _request())

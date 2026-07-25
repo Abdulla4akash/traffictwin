@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import os
 import re
 import shutil
 import subprocess
@@ -36,6 +37,7 @@ import tempfile
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime
 from decimal import Decimal
+from itertools import zip_longest
 from pathlib import Path
 from typing import BinaryIO, Literal, TypeAlias
 
@@ -97,6 +99,9 @@ NETCONVERT_FIXED_ARGUMENTS: tuple[str, ...] = (
     "never",
 )
 
+#: Bare filename the extract is linked to inside staging, so netconvert's
+#: echoed configuration records a filename rather than a private path.
+_BUILD_INPUT_NAME = "input.osm.xml"
 _TARGET_CRS = "EPSG:4326"
 _VERSION_PROBE_TIMEOUT_S = 20
 _BUILD_TIMEOUT_S = 3_600
@@ -133,6 +138,12 @@ _PREFIX_BYTES = 64 * 1024
 #: PBF explicitly and names the missing decode step.
 _PBF_HEADER_MARKER = b"\x0a\x09OSMHeader"
 _PBF_SNIFF_BYTES = 64
+
+ReproducibilityStatus: TypeAlias = Literal[
+    "not_verified",
+    "verified_identical",
+    "verified_varies",
+]
 
 BuildBlocker: TypeAlias = Literal[
     "OSM_PBF_DECODE_UNAVAILABLE",
@@ -348,6 +359,36 @@ class SumoNetworkValidation(NetworkBuildModel):
         return self
 
 
+class NetworkReproducibilityReport(NetworkBuildModel):
+    """Measured comparison of two builds over identical inputs.
+
+    Reproducibility is established by comparing real builds, never asserted by
+    one.  Measured on the Greater Manchester baseline (SUMO 1.27.1, identical
+    decoded input, identical frozen arguments): raw bytes differ, structural
+    counts are identical, and 238 of 10,913,444 canonical lines differ, all of
+    them ``<roundabout>`` membership lists.  The smaller city-centre network
+    reproduced its canonical identity exactly across four runs, so this is a
+    scale-dependent property and not a universal one.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    raw_identical: bool
+    canonical_identity_identical: bool
+    structure_identical: bool
+    differing_canonical_lines: int = Field(ge=0)
+    total_canonical_lines: int = Field(ge=0)
+    status: ReproducibilityStatus
+
+    @model_validator(mode="after")
+    def validate_report(self) -> NetworkReproducibilityReport:
+        expected: ReproducibilityStatus = (
+            "verified_identical" if self.canonical_identity_identical else "verified_varies"
+        )
+        if self.status != expected:
+            raise ValueError("reproducibility status must follow the measured comparison")
+        return self
+
+
 class ManchesterBaselineNetworkBinding(NetworkBuildModel):
     """The bound Greater Manchester baseline network.
 
@@ -367,7 +408,10 @@ class ManchesterBaselineNetworkBinding(NetworkBuildModel):
     network_identity_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     network_bytes: int = Field(ge=MIN_NETWORK_BYTES)
     byte_reproducible: Literal[False] = False
-    semantically_reproducible: Literal[True] = True
+    #: A single build cannot establish reproducibility.  Asserting it here
+    #: would be an unfounded claim, so it stays ``not_verified`` until a repeat
+    #: build is actually compared with :func:`compare_builds`.
+    semantic_reproducibility: ReproducibilityStatus = "not_verified"
     inputs: NetworkBuildInputManifest
     command: NetworkBuildCommandReceipt
     validation: SumoNetworkValidation
@@ -901,7 +945,23 @@ def build_baseline_network(
         payload_dir = staging / "payload"
         payload_dir.mkdir()
         network_path = payload_dir / f"{request.network_id}.net.xml"
-        substitutions = {"<input>": str(source), "<output>": str(network_path)}
+
+        # netconvert echoes its resolved configuration into a comment banner
+        # inside the produced network, so absolute paths handed to it end up
+        # embedded in the artifact and would travel with any published derived
+        # network. The input is therefore linked into the staging directory and
+        # the build runs on bare relative names, leaving only filenames in the
+        # banner. A hard link avoids copying a gigabyte; a copy is the fallback
+        # when the input sits on another device.
+        linked_input = payload_dir / _BUILD_INPUT_NAME
+        try:
+            os.link(source, linked_input)
+        except OSError:
+            shutil.copyfile(source, linked_input)
+        substitutions = {
+            "<input>": _BUILD_INPUT_NAME,
+            "<output>": network_path.name,
+        }
         argv = [str(executable)]
         argv.extend(
             substitutions.get(argument, argument) for argument in NETCONVERT_FIXED_ARGUMENTS
@@ -972,6 +1032,9 @@ def build_baseline_network(
             validation=validation,
         )
         (payload_dir / "binding.json").write_text(binding.canonical_json() + "\n", encoding="utf-8")
+        # The linked input is a build-time convenience, not part of the accepted
+        # artifact, and the raw extract stays private, so it never promotes.
+        linked_input.unlink(missing_ok=True)
         if destination.exists() or destination.is_symlink():
             raise NetworkBuildError(
                 "DESTINATION_EXISTS", "the network destination appeared during staging"
@@ -1009,3 +1072,46 @@ def load_binding(network_dir: str | Path) -> ManchesterBaselineNetworkBinding:
             "the bound network no longer matches its recorded semantic identity",
         )
     return binding
+
+
+def compare_builds(
+    first_path: str | Path,
+    second_path: str | Path,
+    *,
+    max_reported_lines: int = 1_000_000,
+) -> NetworkReproducibilityReport:
+    """Measure whether two builds over identical inputs actually agree.
+
+    This is the only way a reproducibility claim is established.  Both files
+    are streamed, so a gigabyte-scale pair is compared without loading either.
+    """
+
+    first = Path(first_path)
+    second = Path(second_path)
+    for candidate in (first, second):
+        if candidate.is_symlink() or not candidate.is_file():
+            raise NetworkBuildError(
+                "NETWORK_MISSING", "both comparison paths must be existing regular files"
+            )
+    raw_identical = _sha256_file(first) == _sha256_file(second)
+    identity_identical = canonical_network_digest(first) == canonical_network_digest(second)
+    structure_identical = network_structure_from_file(first) == network_structure_from_file(second)
+    differing = 0
+    total = 0
+    with first.open("rb") as left_handle, second.open("rb") as right_handle:
+        left = _canonical_line_blocks(left_handle)
+        right = _canonical_line_blocks(right_handle)
+        for left_line, right_line in zip_longest(left, right, fillvalue=None):
+            total += 1
+            if left_line != right_line:
+                differing += 1
+                if differing >= max_reported_lines:
+                    break
+    return NetworkReproducibilityReport(
+        raw_identical=raw_identical,
+        canonical_identity_identical=identity_identical,
+        structure_identical=structure_identical,
+        differing_canonical_lines=differing,
+        total_canonical_lines=total,
+        status="verified_identical" if identity_identical else "verified_varies",
+    )

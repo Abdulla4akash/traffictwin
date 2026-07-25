@@ -213,6 +213,10 @@ from traffictwin.integration.manchester.network_build import (
     build_baseline_network,
     check_builder_input_format,
 )
+from traffictwin.integration.manchester.network_decode import (
+    NetworkDecodeError,
+    decode_pbf_to_osm_xml,
+)
 from traffictwin.integration.manchester.network_scope import baseline_scope_decision
 from traffictwin.integration.manchester.network_service import (
     NETWORKS_DIRECTORY_NAME,
@@ -6406,7 +6410,7 @@ def _echo_binding(binding: ManchesterBaselineNetworkBinding) -> None:
     typer.echo(f"network_sha256: {binding.network_sha256}")
     typer.echo(f"network_bytes: {binding.network_bytes}")
     typer.echo(f"byte_reproducible: {str(binding.byte_reproducible).lower()}")
-    typer.echo(f"semantically_reproducible: {str(binding.semantically_reproducible).lower()}")
+    typer.echo(f"semantic_reproducibility: {binding.semantic_reproducibility}")
     typer.echo(f"netconvert_version: {binding.command.reported_version}")
     typer.echo(f"exit_code: {binding.command.exit_code}")
     typer.echo(f"validation_status: {binding.validation.status}")
@@ -6506,6 +6510,11 @@ def manchester_network_status_command(
         typer.echo(f"netconvert_version: {status.toolchain.reported_version}")
     if status.toolchain.blocker is not None:
         typer.echo(f"toolchain_blocker: {status.toolchain.blocker}")
+    typer.echo(f"decoder_available: {str(status.decoder.available).lower()}")
+    if status.decoder.reported_version is not None:
+        typer.echo(f"osmium_version: {status.decoder.reported_version}")
+    if status.decoder.blocker is not None:
+        typer.echo(f"decoder_blocker: {status.decoder.blocker}")
     typer.echo(f"candidate_count: {status.candidate_count}")
     typer.echo(f"calibration_available: {str(status.calibration_available).lower()}")
     typer.echo(f"comparison_available: {str(status.comparison_available).lower()}")
@@ -6514,3 +6523,53 @@ def manchester_network_status_command(
         typer.echo(f"map_matching_blocker: {blocker}")
     for reason in status.unavailable_reasons:
         typer.echo(f"unavailable: {reason}")
+
+
+@manchester_network_app.command("decode")
+def manchester_network_decode_command(
+    extract: Annotated[Path, typer.Option("--extract", exists=True, dir_okay=False)],
+    output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Decode a PBF extract to OSM XML with the frozen osmium recipe.
+
+    netconvert 1.27.1 reads OSM XML only, so a PBF extract needs this step
+    first. The decode is a format conversion and never a content selection: it
+    applies no tag filter, bounding-box clip, simplification, or road-class
+    choice. The decoded artifact is a private workspace intermediate and is
+    never committed.
+    """
+
+    try:
+        receipt = decode_pbf_to_osm_xml(extract, output)
+    except (NetworkDecodeError, ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(receipt.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"osmium_version: {receipt.tool.reported_version}")
+    if receipt.tool.libosmium_version is not None:
+        typer.echo(f"libosmium_version: {receipt.tool.libosmium_version}")
+    typer.echo(f"source_sha256: {receipt.source_sha256}")
+    typer.echo(f"source_bytes: {receipt.source_bytes}")
+    typer.echo(f"decoded_sha256: {receipt.decoded_sha256}")
+    typer.echo(f"decoded_bytes: {receipt.decoded_bytes}")
+    header = receipt.source_header
+    if header.replication_timestamp is not None:
+        typer.echo(f"osm_data_cutoff_instant: {header.replication_timestamp}")
+    if header.replication_sequence_number is not None:
+        typer.echo(f"osm_replication_sequence: {header.replication_sequence_number}")
+    if header.header_min_longitude is not None:
+        typer.echo(
+            "source_header_bbox: "
+            f"lon {header.header_min_longitude}..{header.header_max_longitude} "
+            f"lat {header.header_min_latitude}..{header.header_max_latitude}"
+        )
+    typer.echo(f"conversion_only: {str(receipt.conversion_only).lower()}")
+    typer.echo(f"content_filtered: {str(receipt.content_filtered).lower()}")
+    typer.echo(f"bounding_box_clipped: {str(receipt.bounding_box_clipped).lower()}")
+    typer.echo(f"publication_class: {receipt.publication_class}")
+    typer.echo(f"committed_to_git: {str(receipt.committed_to_git).lower()}")
+    typer.echo(f"capability_status: {receipt.capability_status}")
