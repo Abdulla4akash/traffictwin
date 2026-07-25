@@ -1,0 +1,67 @@
+{
+  "record_type": "manchester_local_authority_study_subnetwork",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 5 prerequisite (demand reconstruction workspace)",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "why_a_subnetwork": {
+    "reason": "route generation over the whole Greater Manchester network is impractical: 804,611 real road edges, and every observation that could constrain demand lies inside Manchester local authority.",
+    "authorised_by": "the mission brief permits a reviewed Manchester-LA study subnetwork where whole-network route generation is impractical, provided its binding to the parent is preserved",
+    "measured_before_building": "285,782 parent edges were predicted to fall inside the local-authority box; the built subnetwork holds 285,794, a 12-edge difference"
+  },
+  "derivation": {
+    "method": "the accepted parent network was clipped, not re-derived from OpenStreetMap, so the subnetwork is provably a subset of the reviewed parent rather than a second independent build",
+    "tool": "netconvert 1.27.1",
+    "argument_shape": [
+      "--sumo-net-file", "<parent>",
+      "--keep-edges.in-geo-boundary", "-2.319900,53.340200,-2.146900,53.544600",
+      "--output-file", "<output>",
+      "--numerical-ids",
+      "--seed", "42",
+      "--xml-validation", "never"
+    ],
+    "boundary_source": "the Manchester local-authority bounds derived from packaged generalised display geometry (network_scope.sub_area_bounds), the same bounds already used for the sub-area containment measurement",
+    "duration_s": 32.97
+  },
+  "parent_binding": {
+    "parent_network": "gm-baseline-260724, accepted Greater Manchester baseline (ADR-059/060)",
+    "parent_real_edges": 804611,
+    "study_real_edges": 285794,
+    "study_junctions": 165397,
+    "study_share_of_parent_percent": 35.5,
+    "edge_ids_preserved": true,
+    "edge_id_check": "all 285,794 study edge ids are present in the parent; none was renamed, so every accepted match binding remains valid against the subnetwork",
+    "note": "--numerical-ids was retained for argument-vector consistency with the parent build. Verified rather than assumed: because the parent already carries numerical ids, the clip preserves them."
+  },
+  "bound_edge_coverage": {
+    "distinct_bound_edges": 233,
+    "present_in_study_subnetwork": 233,
+    "missing": 0,
+    "verdict": "every edge the direction step bound a real observation to exists in the study subnetwork, so no observation is lost by working in it"
+  },
+  "boundaries_held": {
+    "not_called_greater_manchester_wide": "this is a Manchester local-authority study subnetwork. Calibration or comparison evidence produced in it is Manchester-LA evidence and must never be described as Greater Manchester-wide.",
+    "parent_remains_the_reviewed_baseline": true,
+    "no_demand_synthesised_outside_the_local_authority": "Greater Manchester outside the local authority has no DfT observations and stays uncovered; a missing count never becomes a zero count.",
+    "boundary_truncation_is_a_known_limitation": "routes generated in a clipped network necessarily start and end at the boundary rather than at true external origins. This is recorded as a limitation of the count-constrained candidate, which is not a claim about observed origin-destination travel in any case."
+  },
+  "storage": {
+    "study_network_bytes": 424988627,
+    "location": "private workspace only; never committed"
+  },
+  "not_yet_done": {
+    "route_pool_generation": "not run",
+    "routeSampler_execution": "not run",
+    "tooling_verified_available": "SUMO 1.27.1 with tools/routeSampler.py and tools/randomTrips.py; dfrouter deliberately unused because SUMO documentation warns it can produce implausible routes in highly meshed city networks"
+  },
+  "explicit_non_claims": [
+    "a clipped subnetwork is geometry, not calibration, comparison, or validation",
+    "no demand artifact has been produced",
+    "no claim of routability is made here; connectivity was reviewed separately for the parent",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}
