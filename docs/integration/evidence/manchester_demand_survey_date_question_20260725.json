@@ -6,11 +6,19 @@
   "gate": "Gate-D step 5 (demand reconstruction), blocked pending an owner decision",
   "research_status": "owner_approved_candidate",
   "supervisor_approved": false,
-  "status": "awaiting_owner_decision",
+  "status": "owner_decision_recorded",
+  "chosen_window": {
+    "window": "2019, or 2022 and later (skip COVID years)",
+    "sites": 78,
+    "site_directions": 151,
+    "distinct_edges": 151,
+    "covid_years_included": false,
+    "decision_date": "2026-07-25"
+  },
   "why_this_blocks": {
     "summary": "a route sampler needs one set of hourly edge counts, and the source does not supply one",
-    "detail": "The approved temporal-profile policy fixes fuses_across_dates false, so each series is one site, one direction, one survey date. Producing a single demand artifact therefore requires choosing which survey date represents each site, and no rule for that choice is declared anywhere.",
-    "not_decided_here": "no date-selection rule has been chosen or implemented. This record exists so the owner can decide from measurement."
+    "detail": "The approved temporal-profile policy fixes fuses_across_dates false, so each series is one site, one direction, one survey date. Producing a single demand artifact therefore requires choosing which survey date represents each site. The owner selected Option A (2019/2022+ post-pandemic window).",
+    "decided_here": "Option A (2019 or 2022+ post-pandemic) is selected by the owner on 25 July 2026."
   },
   "measured_properties_of_the_source": {
     "character": "the DfT Manchester raw counts are a 25-year archive of one-off manual surveys, not a synchronised network-wide count",

@@ -1,7 +1,7 @@
 # Manchester count-constrained candidate demand
 
 - Capability: `MAN-09`, Gate-D step 5 (demand reconstruction)
-- Status: **input stage complete; route sampling blocked on one owner decision**
+- Status: **Option A selected on 25 July 2026 (2019/2022+ post-pandemic window: 78 sites, 151 site-directions)**; route sampling unblocked
 - Research status: `owner_approved_candidate` — **not** supervisor-approved
 - Records: [direction binding](evidence/manchester_demand_direction_binding_20260725.json),
   [study subnetwork](evidence/manchester_study_subnetwork_20260725.json),
