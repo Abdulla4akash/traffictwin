@@ -2,7 +2,7 @@
 
 **Status:** planning supplement; no capability or gate is accepted by this document
 
-**Snapshot date:** 25 July 2026
+**Snapshot date:** 26 July 2026
 
 **Evidence baseline:** remote `claude/complete-v0.7` at
 `e4c0d88620fdd7e0d4781631b98cf263fa77e9af`, tagged `v0.7.0-alpha.7`
@@ -30,8 +30,9 @@ The following repository facts were checked directly before this document was wr
 - the Claude integration worktree is clean at `e4c0d88` before this documentation-only slice;
 - `origin/claude/complete-v0.7` points to the same commit;
 - the annotated `v0.7.0-alpha.7` tag exists on GitHub and resolves to `e4c0d88`;
-- `origin/codex/traffictwin-v0.7` remains at `b6aa9a9` (`v0.7.0-alpha.6`), so alpha.7 has not been
-  integrated into the official v0.7 branch;
+- at the start of the owner-requested merge, `origin/codex/traffictwin-v0.7` was at `b6aa9a9`
+  (`v0.7.0-alpha.6`); on 26 July 2026 it was safely fast-forwarded to include alpha.7, this beta
+  backlog, and the merge-verification repair, without a force-push;
 - `main` and the immutable `v0.6.0` release line remain unchanged; and
 - the alpha.7 evidence record reports 3,162 passing tests, repository-wide Ruff and strict mypy
   success, an unchanged lock, no generated-reference drift, and no tracked private paths. These
@@ -107,7 +108,7 @@ A v0.7 beta candidate should not be created until all of the following are true:
 | `UX-01` task-oriented navigation | `working_bounded`: all 34 v0.6 pages have stable destinations; the active design now uses seven question-led groups, direct routes, legacy fallback and shared-state tests. | Reconcile the canonical inventory and all project records to the seven-group implementation; make the formal cutover decision; verify the declared minimum and locked Streamlit versions after final integration; retain the complete legacy route. | Lead release reconciliation and human accessibility acceptance. |
 | `UX-02` map-led home/workflow | `working_bounded`: focused home actions and accepted-context summaries exist. | Improve first-run and empty-registry guidance so pages do not present large undirected empty states; prove the home and Manchester workflow against accepted local evidence; complete the human usability/participant decision. | Real accepted downstream artifacts and human evaluation are missing. |
 | `UX-03` responsive/accessibility system | `working_bounded`: native theme/components, responsive page harvests, seven-group presentation conventions, automated accessibility checks and browser snapshots exist. | Perform and sign the manual keyboard, screen-reader, contrast and 200% zoom checklist; resolve any findings; run final desktop/mobile/light/dark regression after integration; do not claim WCAG conformance from automation alone. | Requires a person and, if RQ16 proceeds, the applicable ethics/supervisor path. |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only`: separate workspaces, read-only v0.6 copying, attested activation, backup/interruption/rollback, side-by-side operation and release reconciliation tests exist. | Integrate alpha.7 into the official v0.7 branch through review; align package/version/manifests/docs; define cross-schema migration only if schemas diverge; run the container build/demo smoke; repeat clean-checkout side-by-side verification at the beta head; create an immutable beta tag only after all claimed truth agrees. | Docker evidence, lead merge/release action and final capability reconciliation. |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only`: separate workspaces, read-only v0.6 copying, attested activation, backup/interruption/rollback, side-by-side operation and release reconciliation tests exist; alpha.7 was integrated into the official v0.7 branch by a verified fast-forward on 26 July 2026. | Align package/version/manifests/docs; define cross-schema migration only if schemas diverge; run the container build/demo smoke; repeat clean-checkout side-by-side verification at the beta head; create an immutable beta tag only after all claimed truth agrees. | Docker evidence, final release action and capability reconciliation. |
 
 ## 6. Critical beta work packages
 
@@ -187,10 +188,10 @@ required ethics and supervisor approval.
 
 ### `BETA-F-01` — Integrate and checkpoint honestly
 
-Review alpha.7 and subsequent beta commits, merge or fast-forward the official v0.7 branch without
-touching `main`, run full quality/security/package/generated-reference/container/side-by-side
-checks, reconcile every status record, and create the beta tag only after the tag message matches
-the evidence. Never move `v0.6.0` or an existing alpha tag.
+Alpha.7 integration is complete. Review subsequent beta commits without touching `main`, run full
+quality/security/package/generated-reference/container/side-by-side checks, reconcile every status
+record, and create the beta tag only after the tag message matches the evidence. Never move
+`v0.6.0` or an existing alpha tag.
 
 ## 7. Features that remain unavailable rather than beta build promises
 
