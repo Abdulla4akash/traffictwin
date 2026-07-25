@@ -1,0 +1,86 @@
+{
+  "record_type": "real_observation_to_network_map_match_candidate_run",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 2 (map-match candidates), candidate generation only",
+  "research_status": "owner_approved_candidate",
+  "supervisor_approved": false,
+  "supervisor_note": "docs/evaluation/supervisor_contract_decision_form.md is unsigned; no supervisor approval is claimed or implied",
+  "policy": {
+    "policy_id": "manchester-dft-map-match-owner-candidate-1.0",
+    "method_version": "manchester-observation-matching-1.0",
+    "outer_search_radius_m": 50,
+    "native_eligibility_m": 30,
+    "fallback_eligibility_m": 50,
+    "clear_native_m": 10,
+    "clear_fallback_m": 20,
+    "direction_tolerance_degrees": 45,
+    "automatic_acceptance_enabled": false,
+    "service_requires_manual_confirmation": true,
+    "fuzzy_text_matching_accepts": false
+  },
+  "inputs": {
+    "observations": "dft_count_points-20260725T063353Z-053491696819 joined to dft_raw_counts-20260725T063354Z-61965dc5c182",
+    "sites_matched": 305,
+    "network": "accepted Greater Manchester baseline (ADR-059/060), 804,611 real road edges"
+  },
+  "outcomes": {
+    "confidence": {
+      "clear_candidate": 106,
+      "review_required": 178,
+      "no_suitable_candidate": 21
+    },
+    "terminal_disposition": {
+      "awaiting_analyst_review": 284,
+      "no_suitable_candidate": 21
+    },
+    "note": "every one of the 305 observations reached exactly one terminal disposition; none disappeared from reconciliation"
+  },
+  "invariant_cross_checks": {
+    "clear_candidate_implies_exactly_one_group": "106 of 106",
+    "no_suitable_candidate_implies_zero_groups": "21 of 21",
+    "automatically_accepted": 0,
+    "note": "policy 1.0 disables automatic final acceptance, so even a clear_candidate awaits analyst confirmation"
+  },
+  "road_identity": {
+    "sites_with_a_signed_reference": 163,
+    "sites_without_a_signed_reference": 142,
+    "sites_with_an_exact_reference_match": 126,
+    "dft_placeholder_handling": "DfT records a category placeholder rather than a road number for unnumbered minor roads: 125 of 305 sites carry 'U' and 19 carry 'C'. These are treated as absent references, not compared as road numbers, so a placeholder never appears to disagree with every candidate edge.",
+    "motorway_standard_a_road": "A57(M) occurs in the real data and is recognised as a signed reference"
+  },
+  "rejection_ledger": {
+    "hard_excluded": 3392,
+    "wrong_road_type_family": 1390,
+    "outside_eligibility_for_geometry_source": 938,
+    "not_in_approved_policy": 348,
+    "not_a_road_class": 144,
+    "note": "every retrieved-then-rejected edge keeps its reason; nothing is discarded silently"
+  },
+  "policy_gap_found": {
+    "summary": "seven road classes present in the real network are in neither the approved admit lists nor the approved exclude list",
+    "classes": ["pedestrian", "track", "busway", "bus_guideway", "raceway", "service|psv", "railway.* family"],
+    "handling": "fail closed, but reported under a distinct reason 'not_in_approved_policy' rather than folded into 'hard_excluded'",
+    "reason": "both outcomes reject the candidate, but only one of them represents a decision the owner actually made. Reporting them together would describe the policy as more complete than it is.",
+    "owner_action_available": "extend the approved class lists to cover these, or confirm that failing closed is intended"
+  },
+  "substantive_finding_for_the_owner": {
+    "summary": "the Major/Minor class split rejects some edges that are plausibly the correct road",
+    "detail": "21 sites terminate as no_suitable_candidate. 12 are DfT Major and 9 Minor. Several sit on the A56 (5 sites) and A6042 (4 sites) with a rejected edge less than one metre away - the nearest rejected edge for one A56 site is 0.880 m. The dominant rejection reasons across these sites are hard_excluded (9 sites), wrong_road_type_family (6), not_in_approved_policy (3), and outside_eligibility_for_geometry_source (3).",
+    "interpretation": "DfT's road_type and OpenStreetMap's highway class are independent classifications. Where OSM tags a stretch of a numbered A road as a minor class, the approved hard family split rejects the edge even though the road identity matches exactly. This is a policy-refinement question, not a defect in the run: the observations correctly remain unavailable rather than being attributed to a road the policy does not admit.",
+    "options_for_the_owner": [
+      "allow an exact signed-reference match to override the road_type family split, subject to analyst confirmation",
+      "widen the Major admissible class set",
+      "accept that these sites stay unavailable, and record the resulting coverage loss"
+    ],
+    "not_decided_here": "no option above has been chosen or implemented; the approved policy was applied exactly as authorised"
+  },
+  "explicit_non_claims": [
+    "candidate generation is not acceptance; no match has been accepted",
+    "no analyst review has been performed",
+    "confidence is triage and is not a probability or a scientific confidence interval",
+    "no demand, calibration, comparison, or simulation was produced by this run",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}
