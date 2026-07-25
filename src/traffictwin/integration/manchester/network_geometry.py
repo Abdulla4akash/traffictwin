@@ -44,8 +44,10 @@ Manchester landmarks, each resolving to a junction 11–33 m away.
 from __future__ import annotations
 
 import re
+from array import array
 from collections.abc import Iterator
 from decimal import Decimal
+from math import hypot, inf
 from pathlib import Path
 from typing import Literal, TypeAlias
 
@@ -58,7 +60,7 @@ from traffictwin.integration.manchester.network_build import (
     SumoNetworkLocation,
     read_network_prefix,
 )
-from traffictwin.integration.manchester.network_scope import GeographicPoint
+from traffictwin.integration.manchester.network_scope import DISTANCE_CRS, GeographicPoint
 
 NETWORK_GEOMETRY_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 NETWORK_GEOMETRY_METHOD_VERSION: Literal["manchester-network-geometry-1.0"] = (
@@ -86,6 +88,11 @@ MAX_EDGES = 10_000_000
 #: being read into memory.  The longest line measured in the 1.25 GB Greater
 #: Manchester network is 5,331 bytes.
 MAX_LINE_BYTES = 1_000_000
+
+#: Default grid resolution for the spatial index. This is a *performance*
+#: parameter: it changes how many candidate edges a lookup scans, never which
+#: edges the lookup returns. It is deliberately not a matching threshold.
+DEFAULT_INDEX_CELL_SIZE_M = 200.0
 
 _TARGET_CRS = "EPSG:4326"
 _COORDINATE_QUANTUM = Decimal("0.000001")
@@ -545,3 +552,183 @@ def geometry_fingerprint(summary: EdgeGeometrySummary, network_identity_sha256: 
     """Bind a geometry reading to the exact network identity it came from."""
 
     return sha256_hex(f"{network_identity_sha256}:{summary.canonical_json()}".encode())
+
+
+class EdgeSpatialIndex:
+    """Uniform-grid index over real edge geometry, for candidate lookup.
+
+    Deliberately a plain data structure rather than a frozen model: it holds
+    millions of coordinates and exists to make a spatial question answerable at
+    all, not to be published as evidence.
+
+    Coordinates are held in the reviewed **distance** CRS (``EPSG:27700``), the
+    same one :mod:`network_scope` declares, so a query in metres needs no
+    per-query projection.  WGS84 geometry stays available through
+    :meth:`edge_record` for the small number of edges an analyst reviews.
+
+    The grid cell size is a **performance** parameter and cannot change which
+    edges a query returns: :meth:`edges_within` tests every candidate cell and
+    then every candidate edge against the caller's own bound.  It is not a
+    threshold and must never be presented as one.
+    """
+
+    __slots__ = ("_cell_size_m", "_cells", "_extra", "_offsets", "_points")
+
+    def __init__(self, cell_size_m: float) -> None:
+        if cell_size_m <= 0:
+            raise NetworkGeometryError(
+                "INDEX_CELL_SIZE_REFUSED", "the index cell size must be a positive distance"
+            )
+        self._cell_size_m = cell_size_m
+        self._points = array("d")
+        self._offsets = array("q", [0])
+        self._extra: list[tuple[str, str | None, str | None, GeometrySource]] = []
+        self._cells: dict[tuple[int, int], list[int]] = {}
+
+    def __len__(self) -> int:
+        return len(self._extra)
+
+    @property
+    def cell_size_m(self) -> float:
+        return self._cell_size_m
+
+    def add(self, record: RawEdge, projected: tuple[float, ...]) -> None:
+        """Add one edge whose geometry is already in the distance CRS."""
+
+        ordinal = len(self._extra)
+        self._points.extend(projected)
+        self._offsets.append(len(self._points))
+        self._extra.append((record[0], record[3], record[4], record[5]))
+        size = self._cell_size_m
+        xs = projected[0::2]
+        ys = projected[1::2]
+        for cell_x in range(int(min(xs) // size), int(max(xs) // size) + 1):
+            for cell_y in range(int(min(ys) // size), int(max(ys) // size) + 1):
+                self._cells.setdefault((cell_x, cell_y), []).append(ordinal)
+
+    def geometry(self, ordinal: int) -> tuple[float, ...]:
+        """Return one edge's projected geometry as a flat coordinate tuple."""
+
+        start, end = self._offsets[ordinal], self._offsets[ordinal + 1]
+        return tuple(self._points[start:end])
+
+    def edge_record(self, ordinal: int) -> tuple[str, str | None, str | None, GeometrySource]:
+        """Return one edge's id, road type, road ref, and geometry source."""
+
+        return self._extra[ordinal]
+
+    def edges_within(self, easting: float, northing: float, *, radius_m: float) -> list[int]:
+        """Edge ordinals whose geometry passes within ``radius_m`` of a point.
+
+        ``radius_m`` has **no default**.  A search radius is a matching
+        threshold, and open question 6 has not decided one; the caller must
+        supply the value it is willing to defend.
+        """
+
+        if radius_m <= 0:
+            raise NetworkGeometryError(
+                "SEARCH_RADIUS_REFUSED", "a search radius must be a positive distance"
+            )
+        size = self._cell_size_m
+        found: list[int] = []
+        seen: set[int] = set()
+        for cell_x in range(
+            int((easting - radius_m) // size), int((easting + radius_m) // size) + 1
+        ):
+            for cell_y in range(
+                int((northing - radius_m) // size), int((northing + radius_m) // size) + 1
+            ):
+                for ordinal in self._cells.get((cell_x, cell_y), ()):
+                    if ordinal in seen:
+                        continue
+                    seen.add(ordinal)
+                    if self.distance_to(ordinal, easting, northing) <= radius_m:
+                        found.append(ordinal)
+        found.sort()
+        return found
+
+    def distance_to(self, ordinal: int, easting: float, northing: float) -> float:
+        """Shortest distance in metres from a point to one edge's polyline."""
+
+        start, end = self._offsets[ordinal], self._offsets[ordinal + 1]
+        best = inf
+        for index in range(start, end - 2, 2):
+            best = min(
+                best,
+                _point_segment_distance(
+                    easting,
+                    northing,
+                    self._points[index],
+                    self._points[index + 1],
+                    self._points[index + 2],
+                    self._points[index + 3],
+                ),
+            )
+        return best
+
+
+def _point_segment_distance(
+    px: float, py: float, ax: float, ay: float, bx: float, by: float
+) -> float:
+    """Exact shortest distance from a point to one line segment, in metres."""
+
+    dx, dy = bx - ax, by - ay
+    if dx == 0.0 and dy == 0.0:
+        return hypot(px - ax, py - ay)
+    t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)
+    t = max(0.0, min(1.0, t))
+    return hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def build_edge_index(
+    path: str | Path,
+    *,
+    cell_size_m: float = DEFAULT_INDEX_CELL_SIZE_M,
+) -> EdgeSpatialIndex:
+    """Build a spatial index over every real edge in a network.
+
+    ``cell_size_m`` tunes lookup cost only; it cannot change a query's result.
+    """
+
+    source = Path(path)
+    location = read_network_location(source)
+    try:
+        to_distance = Transformer.from_crs(_TARGET_CRS, DISTANCE_CRS, always_xy=True)
+    except (CRSError, ProjError, ValueError) as exc:  # pragma: no cover - fixed reviewed CRS
+        raise NetworkGeometryError(
+            "DISTANCE_PROJECTION_UNAVAILABLE", "the reviewed distance CRS could not be prepared"
+        ) from exc
+
+    index = EdgeSpatialIndex(cell_size_m)
+    for record in stream_raw_edges(source, location=location):
+        flat = record[6]
+        projected: list[float] = []
+        for position in range(0, len(flat), 2):
+            easting, northing = to_distance.transform(flat[position], flat[position + 1])
+            projected.extend((easting, northing))
+        index.add(record, tuple(projected))
+    return index
+
+
+def real_match_candidates(*_args: object, **_kwargs: object) -> None:
+    """Refuse real site-to-edge candidate generation, with the reason.
+
+    The geometry and the index are ready.  What is missing is the **decision**:
+    open question 6 — "which map-matching distance, direction, road-class, and
+    confidence rules are scientifically acceptable, and which cases require
+    manual confirmation" — is unanswered, and the lead's reviewed preflight
+    still reports all four blockers.
+
+    Generating candidates would mean choosing a snap radius, a bearing
+    tolerance, a road-class rule, and a confidence category. Those are the
+    scientific content of the matching method, not implementation details, so
+    this fails closed rather than picking defensible-looking numbers.
+    """
+
+    raise NetworkGeometryError(
+        "MAP_MATCH_POLICY_UNAPPROVED",
+        "real candidate generation needs an approved matching policy (open question 6): "
+        "distance, direction, road-class, and confidence rules are undecided, and no "
+        "threshold is invented here. Edge geometry and spatial lookup are available for "
+        "an approved policy to use.",
+    )

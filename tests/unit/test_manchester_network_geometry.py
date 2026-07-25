@@ -16,11 +16,14 @@ from pydantic import ValidationError
 from traffictwin.integration.manchester.network_geometry import (
     MAX_LINE_BYTES,
     EdgeGeometrySummary,
+    EdgeSpatialIndex,
     NetworkGeometryError,
     RealNetworkEdge,
+    build_edge_index,
     geometry_fingerprint,
     read_junction_coordinates,
     read_network_location,
+    real_match_candidates,
     stream_raw_edges,
     summarise_edge_geometry,
     to_real_network_edge,
@@ -328,3 +331,108 @@ class TestGeometryBinding:
         second = geometry_fingerprint(summary, "b" * 64)
         assert first != second, "the same counts from a different network must not collide"
         assert len(first) == 64
+
+
+def _grid_network(spacing: float = 50.0, count: int = 6) -> str:
+    """A small lattice of edges, so spatial queries have real structure."""
+
+    junctions = []
+    edges = []
+    for row in range(count):
+        for column in range(count):
+            name = f"J{row}_{column}"
+            junctions.append(
+                f'  <junction id="{name}" type="priority" '
+                f'x="{31000 + column * spacing:.2f}" y="{16000 + row * spacing:.2f}" '
+                'incLanes="" intLanes=""/>'
+            )
+    for row in range(count):
+        for column in range(count - 1):
+            edges.append(
+                f'  <edge id="E{row}_{column}" from="J{row}_{column}" '
+                f'to="J{row}_{column + 1}" type="highway.residential">\n  </edge>'
+            )
+    return "\n".join([*junctions, *edges])
+
+
+class TestSpatialIndexLookup:
+    def test_every_real_edge_is_indexed(self, tmp_path: Path) -> None:
+        path = _write(tmp_path, _grid_network())
+        index = build_edge_index(path)
+        assert len(index) == len(list(stream_raw_edges(path)))
+
+    def test_a_lookup_returns_only_edges_within_the_bound(self, tmp_path: Path) -> None:
+        index = build_edge_index(_write(tmp_path, _grid_network()))
+        easting, northing = _distance_point(index, 0)
+        radius = 40.0
+        for ordinal in index.edges_within(easting, northing, radius_m=radius):
+            assert index.distance_to(ordinal, easting, northing) <= radius
+
+    def test_a_lookup_omits_no_edge_within_the_bound(self, tmp_path: Path) -> None:
+        index = build_edge_index(_write(tmp_path, _grid_network()))
+        easting, northing = _distance_point(index, 0)
+        radius = 80.0
+        found = set(index.edges_within(easting, northing, radius_m=radius))
+        exhaustive = {
+            ordinal
+            for ordinal in range(len(index))
+            if index.distance_to(ordinal, easting, northing) <= radius
+        }
+        assert found == exhaustive
+
+    def test_the_cell_size_cannot_change_a_result(self, tmp_path: Path) -> None:
+        # The grid resolution is a performance parameter. If it could change
+        # which edges come back it would be a threshold in disguise.
+        path = _write(tmp_path, _grid_network())
+        coarse = build_edge_index(path, cell_size_m=500.0)
+        fine = build_edge_index(path, cell_size_m=25.0)
+        easting, northing = _distance_point(coarse, 0)
+        for radius in (10.0, 45.0, 120.0):
+            assert coarse.edges_within(easting, northing, radius_m=radius) == fine.edges_within(
+                easting, northing, radius_m=radius
+            )
+
+    def test_a_non_positive_cell_size_is_refused(self) -> None:
+        with pytest.raises(NetworkGeometryError, match="INDEX_CELL_SIZE_REFUSED"):
+            EdgeSpatialIndex(0.0)
+
+    def test_a_search_radius_must_be_supplied_and_positive(self, tmp_path: Path) -> None:
+        index = build_edge_index(_write(tmp_path, _grid_network()))
+        easting, northing = _distance_point(index, 0)
+        with pytest.raises(NetworkGeometryError, match="SEARCH_RADIUS_REFUSED"):
+            index.edges_within(easting, northing, radius_m=0.0)
+        with pytest.raises(TypeError):
+            index.edges_within(easting, northing)  # type: ignore[call-arg]
+
+    def test_the_index_keeps_each_edge_road_class(self, tmp_path: Path) -> None:
+        index = build_edge_index(_write(tmp_path, _grid_network()))
+        assert index.edge_record(0)[1] == "highway.residential"
+
+
+def _distance_point(index: EdgeSpatialIndex, ordinal: int) -> tuple[float, float]:
+    """A point lying exactly on one indexed edge, in the distance CRS."""
+
+    geometry = index.geometry(ordinal)
+    return geometry[0], geometry[1]
+
+
+class TestRealMatchingStaysFailClosed:
+    """Geometry and lookup are ready; the scientific decision is not."""
+
+    def test_real_candidate_generation_is_refused(self) -> None:
+        with pytest.raises(NetworkGeometryError, match="MAP_MATCH_POLICY_UNAPPROVED"):
+            real_match_candidates()
+
+    def test_the_refusal_names_the_undecided_rules(self) -> None:
+        with pytest.raises(NetworkGeometryError) as caught:
+            real_match_candidates()
+        message = str(caught.value)
+        for rule in ("distance", "direction", "road-class", "confidence"):
+            assert rule in message
+        assert "open question 6" in message
+
+    def test_the_refusal_survives_any_argument(self) -> None:
+        # There is deliberately no argument that unlocks it: a caller cannot
+        # pass a threshold in and have it honoured.
+        with pytest.raises(NetworkGeometryError, match="MAP_MATCH_POLICY_UNAPPROVED"):
+            real_match_candidates(max_distance_m=30.0, approved=True)
