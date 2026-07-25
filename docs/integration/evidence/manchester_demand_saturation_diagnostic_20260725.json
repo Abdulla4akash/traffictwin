@@ -1,0 +1,60 @@
+{
+  "record_type": "candidate_demand_saturation_diagnostic",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 7 diagnostic; no accepted simulation output produced",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "purpose": "decide cheaply whether the count-constrained candidate demand simulates as a healthy signalised network or gridlocks, before committing to a full-window run that would cost hours and tens of gigabytes of one-second FCD",
+  "method": {
+    "window_s": 3600,
+    "fcd_written": false,
+    "fcd_omitted_because": "FCD is what costs the disk; the summary answers the question for a few megabytes",
+    "outputs": ["summary", "tripinfo"],
+    "seed": 42,
+    "network": "Manchester local-authority study subnetwork, 285,794 real edges",
+    "demand": "count-constrained candidate demand, 748,589 vehicles across 212,666 flows",
+    "wall_clock_s": 618
+  },
+  "trajectory": [
+    {"t_s": 599, "inserted": 10973, "running": 10733, "halting": 5343, "halting_share": 0.498, "waiting_to_insert": 355, "teleports": 113},
+    {"t_s": 1199, "inserted": 21910, "running": 20395, "halting": 13662, "halting_share": 0.670, "waiting_to_insert": 1156, "teleports": 957},
+    {"t_s": 1799, "inserted": 32897, "running": 30006, "halting": 25117, "halting_share": 0.837, "waiting_to_insert": 2206, "teleports": 3163},
+    {"t_s": 2399, "inserted": 44208, "running": 40198, "halting": 33766, "halting_share": 0.840, "waiting_to_insert": 3675, "teleports": 7182},
+    {"t_s": 2999, "inserted": 55617, "running": 50765, "halting": 44131, "halting_share": 0.869, "waiting_to_insert": 5479, "teleports": 13368},
+    {"t_s": 3599, "inserted": 60640, "running": 55095, "halting": 48932, "halting_share": 0.888, "waiting_to_insert": 7119, "teleports": 21669}
+  ],
+  "verdict": {
+    "outcome": "gridlock, not normal signalised-network halting",
+    "halting_share_plateaued": false,
+    "halting_share_path": "0.498 rising monotonically to 0.888",
+    "teleports_growth": "113 to 21,669 over a sixfold increase in elapsed time, a 192-fold rise",
+    "teleports_as_share_of_inserted": 0.357,
+    "insertion_rate_veh_per_s": {"first_600s": 18.3, "last_600s": 8.4},
+    "demand_inserted_by_t3599": {"vehicles": 60640, "of_total": 748589, "share": 0.081},
+    "reasoning": "A signalised urban network legitimately shows a high halting share, because a vehicle waiting at a red light is halting. Teleports do not have that excuse: SUMO teleports a vehicle only after it has been blocked beyond the 300 second threshold. Teleports rose superlinearly and reached 35.7% of all inserted vehicles, insertion rate more than halved as the network filled, and the queue of vehicles unable to enter grew twentyfold. The network is not absorbing the demand."
+  },
+  "consequence_for_the_planned_run": {
+    "full_window_run": "would produce tens of gigabytes of one-second FCD describing a mostly stationary network with over a third of vehicles teleporting, which is unusable for the VEC chain and for any observed-versus-simulated comparison",
+    "one_peak_hour_run": "this diagnostic was one hour and it gridlocked, so a bounded window does not avoid the problem",
+    "decision": "no full-window or peak-hour FCD run was performed"
+  },
+  "hypotheses_not_investigated": [
+    "the route pool was generated with a fringe factor of 5 and a 300 m minimum distance, which biases it towards long cross-network trips. A vehicle on a long route occupies the network for a long time and satisfies several counting locations at once, so matching the counts needs fewer vehicles but loads the network far more than the per-edge counts alone imply.",
+    "real urban traffic contains many short local trips that this pool does not represent",
+    "routeSampler was run with -f number and no departure-time shaping within each hourly interval, so departures may cluster",
+    "traffic signals in the network are netconvert defaults and have not been calibrated"
+  ],
+  "hypothesis_status": "none of the above has been tested. They are recorded so the next step starts from candidates rather than from scratch, and no adjustment has been made to the demand.",
+  "why_nothing_was_tuned": "adjusting the demand until it simulated smoothly would hide the finding this diagnostic exists to produce, and no such adjustment is authorised",
+  "cost_avoided": "the full-window run projected to at least 37 GB of FCD and several hours of compute. The diagnostic cost about ten minutes and one megabyte of summary output.",
+  "explicit_non_claims": [
+    "no accepted simulation output was produced",
+    "this is a diagnostic, not a result, and not a calibration or comparison",
+    "the demand has not been altered, tuned, or rejected",
+    "MAN-09 remains planned; Gate D and Gate E remain foundation_only"
+  ]
+}
