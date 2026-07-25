@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `c4a1644`
+- Working head at last update: `cf33888`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -36,7 +36,7 @@ analyst, human, or supervisor has reviewed any row**, and no downstream artifact
 | 7 | Controlled SUMO execution | **boundary built; run blocked** | runner built and tested; demand gridlocks, see below |
 | 8 | Comparison contract | **built, not registered** | fingerprint `b1d31a1b122be3a5…`; registry lives in `comparison.py`, outside the agent grant |
 | 9 | SUMO-to-VEC chain | **to do** | depends on an accepted FCD/network pair |
-| 10 | CLI, service and thin UI integration | **in progress** | five command families; nine workflows still have no CLI |
+| 10 | CLI, service and thin UI integration | **done (CLI); UI pending** | 33 commands, seven families; remaining workflows are blocked, not unwritten |
 | 11 | Gate B, C and F closure | **to do** | independent of the demand blocker |
 | 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
 | 13 | Final verified alpha checkpoint | **to do** | not a release; no final `v0.7.0` tag |
@@ -70,9 +70,9 @@ Phase 9 cannot start until an accepted FCD/network pair exists, which decision 1
 
 ### Phase 10 — CLI, service and thin UI integration
 
-**In progress.** A read-only `workflow_service` reports every phase and its blocker, and six command
-families exist: `network`, `profile`, `workflow`, `observation`, `match`, `run`. Nine workflows still
-have no CLI, and most of those are waiting on a decision rather than on unwritten code.
+**CLI complete.** A read-only `workflow_service` reports every phase and its blocker, and seven
+command families exist: `network`, `profile`, `workflow`, `observation`, `match`, `demand`, `run`,
+`evidence`. The thin UI wiring remains.
 
 Required workflows, from the brief:
 
@@ -86,19 +86,21 @@ Required workflows, from the brief:
 | generate map-match candidates | `match candidates` |
 | review matches | `match review` (read-only; cannot accept or reject) |
 | build temporal profiles | `profile build`, `profile inspect`, `profile policy` |
+| build candidate demand | `demand build` |
 | acquire and build the network | `network` family, nine commands |
 | check the SUMO toolchain | `run preflight` |
-| build candidate demand | **missing** |
-| run SUMO | **missing** — runner exists, blocked on decision 1 |
-| validate FCD and network | **missing** — no FCD exists yet |
-| run calibration | **missing** — contract blocked |
-| run held-out evaluation | **missing** — contract blocked |
-| compare observed and simulated | **missing** — contract unregistered |
-| execute eligible VEC stages | **missing** — no FCD pair |
-| inspect lineage | **missing** |
-| export permission-safe evidence | **missing** |
+| inspect lineage | `evidence lineage` |
+| export permission-safe evidence | `evidence export` |
+| run SUMO | **blocked** — runner built; decision 1 |
+| validate FCD and network | **blocked** — no FCD exists yet |
+| run calibration | **blocked** — contract needs artifacts that do not exist |
+| run held-out evaluation | **blocked** — same contract |
+| compare observed and simulated | **blocked** — contract unregistered (decision 3) |
+| execute eligible VEC stages | **blocked** — no FCD pair |
 
-The documented Manchester command surface is now 28 commands across six families.
+**Phase 10 is complete for everything that can be exposed honestly**: 33 documented commands across
+seven families. The six remaining rows are blocked on a decision or on an artifact that does not
+exist, and a command that pretended otherwise would be worse than its absence.
 
 Constraints: no Streamlit page may compute a scientific metric, fetch implicitly, launch a process,
 mutate raw evidence, or hide an unavailable state. Manchester Operations and Guided Demo expose the
