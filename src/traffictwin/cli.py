@@ -211,6 +211,7 @@ from traffictwin.integration.manchester.network_build import (
     NetworkBuildError,
     NetworkBuildRequest,
     build_baseline_network,
+    check_builder_input_format,
 )
 from traffictwin.integration.manchester.network_scope import baseline_scope_decision
 from traffictwin.integration.manchester.network_service import (
@@ -6358,16 +6359,21 @@ def manchester_network_build_command(
 
     root = _networks_root(workspace)
     try:
+        # Check the input format before deriving identity, so a PBF extract
+        # reports the actionable decode blocker instead of a byte-count error.
+        check_builder_input_format(extract)
+        identity_path = extract.parent / f"{extract.name}.identity.json"
+        extract_identity = (
+            OsmExtractIdentity.model_validate_json(identity_path.read_text(encoding="utf-8"))
+            if identity_path.is_file()
+            else _identity_from_file(extract)
+        )
         binding = build_baseline_network(
             root,
             extract,
             NetworkBuildRequest(
                 network_id=network_id,
-                extract=OsmExtractIdentity.model_validate_json(
-                    (extract.parent / f"{extract.name}.identity.json").read_text(encoding="utf-8")
-                )
-                if (extract.parent / f"{extract.name}.identity.json").is_file()
-                else _identity_from_file(extract),
+                extract=extract_identity,
                 synthetic=False,
             ),
         )

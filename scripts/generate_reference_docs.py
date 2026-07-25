@@ -1360,6 +1360,14 @@ CLI_COMMANDS = [
     ["integration", "tos", "readiness"],
     ["integration", "tos", "supervisor-pack"],
     ["integration", "tos", "stage-public-atlas"],
+    ["integration", "manchester"],
+    ["integration", "manchester", "network"],
+    ["integration", "manchester", "network", "scope"],
+    ["integration", "manchester", "network", "acquire"],
+    ["integration", "manchester", "network", "build"],
+    ["integration", "manchester", "network", "list"],
+    ["integration", "manchester", "network", "verify"],
+    ["integration", "manchester", "network", "status"],
 ]
 
 
