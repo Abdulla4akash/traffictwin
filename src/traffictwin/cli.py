@@ -191,7 +191,10 @@ from traffictwin.integration.external import (
     external_source_catalogue,
     inspect_external_source,
 )
-from traffictwin.integration.manchester.dft_acquisition import DftAcquisitionError
+from traffictwin.integration.manchester.dft_acquisition import (
+    DftAcquisitionError,
+    catalogue_accepted_dft_snapshots,
+)
 from traffictwin.integration.manchester.dft_temporal_profile import (
     MAX_PROFILE_ARTIFACT_BYTES,
     DftTemporalProfileError,
@@ -246,6 +249,9 @@ from traffictwin.integration.manchester.network_service import (
     inspect_network_candidate,
     list_network_candidates,
     write_connectivity_record,
+)
+from traffictwin.integration.manchester.observation_matching_v11 import (
+    ManchesterMapMatchPolicyV11,
 )
 from traffictwin.integration.manchester.workflow_service import (
     manchester_workflow_status,
@@ -544,6 +550,14 @@ manchester_workflow_app = typer.Typer(
     no_args_is_help=True,
     help="Read-only status across the Manchester research workflow (MAN-09, planned).",
 )
+manchester_observation_app = typer.Typer(
+    no_args_is_help=True,
+    help="Operator-invoked DfT observation acquisition and inspection (MAN-02).",
+)
+manchester_match_app = typer.Typer(
+    no_args_is_help=True,
+    help="Read-only observation-to-network map-match views (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -575,6 +589,8 @@ integration_app.add_typer(manchester_app, name="manchester")
 manchester_app.add_typer(manchester_network_app, name="network")
 manchester_app.add_typer(manchester_profile_app, name="profile")
 manchester_app.add_typer(manchester_workflow_app, name="workflow")
+manchester_app.add_typer(manchester_observation_app, name="observation")
+manchester_app.add_typer(manchester_match_app, name="match")
 
 
 @vec_app.command("contract")
@@ -6994,3 +7010,73 @@ def manchester_workflow_decisions_command(
     typer.echo(f"open_owner_decisions: {len(status.open_owner_decisions)}")
     for index, decision in enumerate(status.open_owner_decisions, start=1):
         typer.echo(f"{index}. {decision}")
+
+
+@manchester_observation_app.command("snapshots")
+def manchester_observation_snapshots_command(
+    workspace: Annotated[Path, typer.Option("--workspace", help="v0.7 workspace root")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """List accepted DfT snapshots in a workspace.
+
+    Read-only and offline: the catalogue is read from promoted artifacts and no
+    request is made. MAN-02 evidence is historical and is never live traffic.
+    """
+
+    try:
+        catalogue = catalogue_accepted_dft_snapshots(workspace)
+    except DftAcquisitionError as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(catalogue.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"network_access_performed: {str(catalogue.network_access_performed).lower()}")
+    typer.echo(f"snapshots: {len(catalogue.snapshots)}")
+    for snapshot in catalogue.snapshots:
+        typer.echo(
+            f"snapshot: {snapshot.snapshot_id} dataset={snapshot.dataset} pages={snapshot.pages}"
+        )
+        typer.echo(f"    raw_fingerprint: {snapshot.raw_fingerprint}")
+        typer.echo(f"    endpoint_path: {snapshot.endpoint_path}")
+    if not catalogue.snapshots:
+        typer.echo("no accepted snapshot is present; acquisition is operator-invoked")
+
+
+@manchester_match_app.command("policy")
+def manchester_match_policy_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the owner-approved candidate map-matching policy.
+
+    The policy is owner-approved candidate research, not supervisor-approved,
+    and version 1.1 disables automatic final acceptance. MAN-09 remains planned.
+    """
+
+    policy = ManchesterMapMatchPolicyV11()
+    if output_format == "json":
+        _echo_json(policy.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"policy_id: {policy.policy_id}")
+    typer.echo(f"research_status: {policy.research_status}")
+    typer.echo(f"supervisor_approved: {str(policy.supervisor_approved).lower()}")
+    typer.echo(f"scientifically_validated: {str(policy.scientifically_validated).lower()}")
+    base = policy.base
+    typer.echo(f"supersedes_policy_id: {policy.supersedes_policy_id}")
+    typer.echo(f"automatic_acceptance_enabled: {str(base.automatic_acceptance_enabled).lower()}")
+    typer.echo(
+        f"owner_policy_acceptance_enabled: {str(policy.owner_policy_acceptance_enabled).lower()}"
+    )
+    typer.echo(f"outer_search_radius_m: {base.outer_search_radius_m}")
+    typer.echo(f"native_eligibility_m: {base.native_eligibility_m}")
+    typer.echo(f"fallback_eligibility_m: {base.fallback_eligibility_m}")
+    typer.echo(f"direction_tolerance_degrees: {base.direction_tolerance_degrees}")
+    typer.echo(f"override_relaxes_only: {policy.override_relaxes_only}")
+    typer.echo(f"override_max_distance_m: {policy.override_max_distance_m}")
+    typer.echo(f"override_uses_fuzzy_names: {str(policy.override_uses_fuzzy_names).lower()}")
+    typer.echo(
+        "acceptance_note: rows this policy accepts are owner_policy_accepted_candidate; "
+        "no analyst, human, or supervisor has reviewed any row"
+    )

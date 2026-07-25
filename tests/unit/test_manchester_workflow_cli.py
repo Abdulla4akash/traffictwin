@@ -7,6 +7,7 @@ is to render the honest state and never to soften it.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from typer.testing import CliRunner
 
@@ -89,3 +90,75 @@ class TestTheCliExposesNoUnsafeSurface:
             lowered = output.lower()
             for forbidden in ("--executable", "--argument", "--command", "--shell"):
                 assert forbidden not in lowered
+
+
+class TestMatchPolicyCommand:
+    def test_it_shows_the_owner_approved_candidate_policy(self) -> None:
+        code, output = _invoke("integration", "manchester", "match", "policy")
+        assert code == 0
+        assert "policy_id: manchester-dft-map-match-owner-policy-1.1" in output
+        assert "research_status: owner_approved_candidate" in output
+
+    def test_it_never_claims_supervisor_approval_or_validation(self) -> None:
+        _code, output = _invoke("integration", "manchester", "match", "policy")
+        assert "supervisor_approved: false" in output
+        assert "scientifically_validated: false" in output
+
+    def test_it_states_that_automatic_acceptance_is_disabled(self) -> None:
+        _code, output = _invoke("integration", "manchester", "match", "policy")
+        assert "automatic_acceptance_enabled: false" in output
+
+    def test_it_states_that_no_person_reviewed_any_row(self) -> None:
+        _code, output = _invoke("integration", "manchester", "match", "policy")
+        assert "owner_policy_accepted_candidate" in output
+        assert "no analyst, human, or supervisor has reviewed any row" in output
+
+    def test_it_records_what_the_override_may_and_may_not_relax(self) -> None:
+        _code, output = _invoke("integration", "manchester", "match", "policy")
+        assert "override_relaxes_only: wrong_road_type_family" in output
+        assert "override_uses_fuzzy_names: false" in output
+
+
+class TestObservationSnapshotsCommand:
+    def test_an_absent_workspace_refuses_rather_than_reporting_empty(self, tmp_path: Path) -> None:
+        # Reporting "0 snapshots" for an invalid workspace would look like a
+        # workspace that simply has none.
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "snapshots",
+            "--workspace",
+            str(tmp_path / "absent"),
+        )
+        assert code == 1
+        assert output.strip()
+
+    def test_it_declares_that_no_request_was_made(self, tmp_path: Path) -> None:
+        from traffictwin.release.compatibility import initialise_v07_workspace
+
+        initialise_v07_workspace(tmp_path / "ws")
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "snapshots",
+            "--workspace",
+            str(tmp_path / "ws"),
+        )
+        assert code == 0
+        assert "network_access_performed: false" in output
+
+    def test_an_empty_workspace_says_so_explicitly(self, tmp_path: Path) -> None:
+        from traffictwin.release.compatibility import initialise_v07_workspace
+
+        initialise_v07_workspace(tmp_path / "ws")
+        _code, output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "snapshots",
+            "--workspace",
+            str(tmp_path / "ws"),
+        )
+        assert "acquisition is operator-invoked" in output
