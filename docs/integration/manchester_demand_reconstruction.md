@@ -72,7 +72,7 @@ Manchester-wide. Routes generated in a clipped network necessarily start and end
 rather than at true external origins; that is a recorded limitation of a count-constrained
 candidate, which is not a claim about real journeys in any case.
 
-## The mismatch that blocks route sampling
+## The mismatch that blocked route sampling, and the window that resolved it
 
 `routeSampler` needs **one** set of hourly edge counts. The source does not contain one.
 
@@ -116,10 +116,26 @@ window shrinks both partitions. At 2025-only roughly 25 development and 6 held-o
 which is thin for a held-out evaluation; the wider windows keep the held-out set meaningful and pay
 for it in date consistency.
 
-**No option has been chosen, implemented, or recommended.** The date-selection rule is a scientific
-decision that determines what any subsequent calibration means, so it stays with the owner. Nothing
-downstream fabricates a substitute: without a declared window there is no demand artifact, and the
-absence is visible rather than filled in.
+### The owner's decision
+
+The owner selected **Option A** on 25 July 2026, recorded in commit `13ae063`: each site is
+represented by its **latest** survey, admitted only if that survey falls in **2019, or 2022 and
+later**. The pandemic years are skipped.
+
+The rule is encoded as a *gap*, not a floor — `site_is_in_survey_window` admits 2019 and 2022 onward
+and rejects 2020 and 2021 — because a plain "from 2019" threshold would silently readmit the 26
+sites whose latest survey measured pandemic-restricted traffic, and a fitted `demand_scale` would
+absorb that discrepancy rather than surface it.
+
+Reconciled against the decision record rather than assumed: **81** accepted sites fall in the window
+and **78** of them carry a bound direction, matching the recorded figure. The record's **151**
+site-directions were counted over all survey dates; demand can use **149**, because site `26157`'s
+northbound and southbound directions bound historically but are absent from its latest survey. That
+two-direction difference is a property of the window, not a loss.
+
+Applied to the real data, the window yields **1,788 edge-hour cells** over 149 edges and 12 hourly
+intervals, totalling **2,024,123 observed vehicles**, of which **11 cells are measured zeros** —
+admitted as zero and flagged, never confused with a missing hour.
 
 ## What is ready and waiting
 
@@ -129,7 +145,7 @@ absence is visible rather than filled in.
 | Direction binding | settled, 241 of 311 site-directions |
 | Study subnetwork | built, all 233 bound edges present |
 | `routeSampler` / `randomTrips` tooling | SUMO 1.27.1, verified present |
-| edgeData counts file | **blocked** on the window decision |
+| edgeData counts file | written: 1,788 cells, 149 edges, 12 intervals |
 | Fixed route pool | not generated |
 | `routeSampler` run and mismatch output | not run |
 
