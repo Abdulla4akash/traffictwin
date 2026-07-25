@@ -53,6 +53,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
+from datetime import date
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal, TypeAlias
@@ -463,11 +464,11 @@ INCLUDED_EARLIER_YEAR: Literal["2019"] = "2019"
 WINDOW_FLOOR_YEAR: Literal["2022"] = "2022"
 
 
-def site_is_in_survey_window(latest_count_date: str | Any) -> bool:
+def site_is_in_survey_window(latest_count_date: str | date) -> bool:
     """Whether a site's latest survey admits it to the owner's Phase 5 window.
 
-    ``latest_count_date`` is an ISO date string or date object. Only the year is consulted,
-    because the owner's rule is stated in years.
+    ``latest_count_date`` is an ISO date string or a ``date``. Only the year is
+    consulted, because the owner's rule is stated in years.
     """
 
     year = str(latest_count_date)[:4]
