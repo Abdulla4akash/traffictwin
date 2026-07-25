@@ -18,13 +18,17 @@ from pydantic import ValidationError
 from traffictwin.integration.manchester.demand_reconstruction import (
     ACCEPTANCE_BASIS,
     DEMAND_LABEL,
+    EXCLUDED_PANDEMIC_YEARS,
     CountConstrainedDemandInput,
     DemandInputLedger,
+    DemandReconstructionError,
     DirectionResolution,
     EdgeHourCount,
     demand_input_fingerprint,
     ordinals_by_edge_id,
     resolve_direction,
+    site_is_in_survey_window,
+    write_edgedata_counts,
 )
 from traffictwin.integration.manchester.network_geometry import (
     EdgeSpatialIndex,
@@ -416,3 +420,81 @@ class TestLineageBinding:
             network_identity_sha256="c" * 64,
         )
         assert len({base, changed_network, changed_profile}) == 3
+
+
+class TestTheOwnersSurveyWindow:
+    """Option A, selected 25 July 2026 and recorded in commit 13ae063: each site
+    is represented by its latest survey, admitted only if that survey falls in
+    2019 or in 2022 and later."""
+
+    def test_the_pandemic_years_are_excluded(self) -> None:
+        assert frozenset({"2020", "2021"}) == EXCLUDED_PANDEMIC_YEARS
+        assert site_is_in_survey_window("2020-06-15") is False
+        assert site_is_in_survey_window("2021-11-02") is False
+
+    def test_two_thousand_nineteen_is_admitted(self) -> None:
+        assert site_is_in_survey_window("2019-03-15") is True
+
+    def test_two_thousand_twenty_two_onward_is_admitted(self) -> None:
+        for date in ("2022-03-30", "2023-01-01", "2024-04-16", "2025-10-14"):
+            assert site_is_in_survey_window(date) is True
+
+    def test_everything_before_two_thousand_nineteen_is_excluded(self) -> None:
+        for date in ("2018-04-17", "2015-07-08", "2009-05-01", "2000-04-04"):
+            assert site_is_in_survey_window(date) is False
+
+    def test_the_window_gap_is_deliberate_not_a_range(self) -> None:
+        # 2019 in, 2020 and 2021 out, 2022 in. A plain ">= 2019" rule would
+        # silently readmit pandemic-restricted traffic.
+        admitted = [
+            y for y in ("2019", "2020", "2021", "2022") if site_is_in_survey_window(f"{y}-06-01")
+        ]
+        assert admitted == ["2019", "2022"]
+
+
+class TestEdgeDataWriting:
+    def _count(self, edge_id: str, hour: int, vehicles: int) -> EdgeHourCount:
+        return EdgeHourCount(
+            edge_id=edge_id,
+            count_point_id=1,
+            direction_of_travel="N",
+            hour=hour,
+            interval_start_s=(hour - 7) * 3600,
+            interval_end_s=(hour - 7) * 3600 + 3600,
+            all_motor_vehicles=vehicles,
+            measured_zero=vehicles == 0,
+        )
+
+    def test_counts_are_written_in_the_attribute_routesampler_reads(self, tmp_path: Path) -> None:
+        target = tmp_path / "counts.edgedata.xml"
+        write_edgedata_counts(target, [self._count("E1", 7, 120)])
+        body = target.read_text(encoding="utf-8")
+        assert 'entered="120"' in body, "routeSampler reads the entered attribute by default"
+        assert '<edge id="E1"' in body
+
+    def test_one_interval_per_hour_with_exact_half_open_windows(self, tmp_path: Path) -> None:
+        target = tmp_path / "counts.edgedata.xml"
+        written = write_edgedata_counts(
+            target, [self._count("E1", 7, 10), self._count("E1", 8, 20)]
+        )
+        body = target.read_text(encoding="utf-8")
+        assert '<interval id="h00" begin="0" end="3600">' in body
+        assert '<interval id="h01" begin="3600" end="7200">' in body
+        assert written == {"h00": 1, "h01": 1}
+
+    def test_a_measured_zero_is_written_as_zero(self, tmp_path: Path) -> None:
+        target = tmp_path / "counts.edgedata.xml"
+        write_edgedata_counts(target, [self._count("E1", 7, 0)])
+        assert 'entered="0"' in target.read_text(encoding="utf-8")
+
+    def test_an_empty_count_set_is_refused(self, tmp_path: Path) -> None:
+        # An edgeData file with no observations would assert an unconstrained
+        # network rather than a measured one.
+        with pytest.raises(DemandReconstructionError, match="NO_BOUND_COUNTS"):
+            write_edgedata_counts(tmp_path / "counts.edgedata.xml", [])
+
+    def test_edges_are_written_in_a_stable_order(self, tmp_path: Path) -> None:
+        target = tmp_path / "counts.edgedata.xml"
+        write_edgedata_counts(target, [self._count("E2", 7, 5), self._count("E1", 7, 5)])
+        body = target.read_text(encoding="utf-8")
+        assert body.index('id="E1"') < body.index('id="E2"')

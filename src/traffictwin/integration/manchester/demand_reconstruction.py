@@ -54,6 +54,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from decimal import Decimal
+from pathlib import Path
 from typing import Literal, TypeAlias
 
 from pydantic import Field, model_validator
@@ -446,3 +447,72 @@ def demand_input_fingerprint(
             }
         ).encode("utf-8")
     )
+
+
+#: The owner's Phase 5 survey-date window, selected on 25 July 2026 and recorded
+#: in commit 13ae063: each site is represented by its **latest** survey, and only
+#: sites whose latest survey falls in 2019 or in 2022 and later are admitted. The
+#: gap is deliberate: 2020 and 2021 surveys measured pandemic-restricted traffic,
+#: and mixing them with normal conditions would be absorbed silently into a
+#: fitted demand scale rather than surfacing as a data-consistency problem.
+SURVEY_WINDOW_ID: Literal["manchester-dft-latest-survey-2019-or-2022-onward"] = (
+    "manchester-dft-latest-survey-2019-or-2022-onward"
+)
+EXCLUDED_PANDEMIC_YEARS: frozenset[str] = frozenset({"2020", "2021"})
+INCLUDED_EARLIER_YEAR: Literal["2019"] = "2019"
+WINDOW_FLOOR_YEAR: Literal["2022"] = "2022"
+
+
+def site_is_in_survey_window(latest_count_date: str) -> bool:
+    """Whether a site's latest survey admits it to the owner's Phase 5 window.
+
+    ``latest_count_date`` is an ISO date. Only the year is consulted, because the
+    owner's rule is stated in years.
+    """
+
+    year = latest_count_date[:4]
+    if year in EXCLUDED_PANDEMIC_YEARS:
+        return False
+    return year == INCLUDED_EARLIER_YEAR or year >= WINDOW_FLOOR_YEAR
+
+
+def write_edgedata_counts(
+    destination: Path,
+    counts: Sequence[EdgeHourCount],
+) -> dict[str, int]:
+    """Write bound counts as a SUMO ``edgeData`` file for ``routeSampler``.
+
+    ``routeSampler`` reads counts from the ``entered`` attribute by default, so
+    that is the attribute written. One interval per hour, using the temporal
+    contract's exact half-open simulation windows; no interval is resampled or
+    merged.
+
+    Returns per-interval cell counts so a caller can record what was written
+    without re-reading the file.
+    """
+
+    if not counts:
+        raise DemandReconstructionError(
+            "NO_BOUND_COUNTS",
+            "an edgeData file is not written from an empty count set; a demand input with no "
+            "observations would assert an unconstrained network rather than a measured one",
+        )
+
+    by_interval: dict[tuple[int, int], list[EdgeHourCount]] = defaultdict(list)
+    for count in counts:
+        by_interval[(count.interval_start_s, count.interval_end_s)].append(count)
+
+    written: dict[str, int] = {}
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', "<meandata>"]
+    for start, end in sorted(by_interval):
+        cells = sorted(by_interval[(start, end)], key=lambda item: item.edge_id)
+        label = f"h{start // 3600:02d}"
+        written[label] = len(cells)
+        lines.append(f'  <interval id="{label}" begin="{start}" end="{end}">')
+        lines.extend(
+            f'    <edge id="{cell.edge_id}" entered="{cell.all_motor_vehicles}"/>' for cell in cells
+        )
+        lines.append("  </interval>")
+    lines.append("</meandata>")
+    destination.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return written
