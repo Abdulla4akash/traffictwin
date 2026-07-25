@@ -1,4 +1,4 @@
-# Research Directions — From Infrastructure to Findings
+# Research Directions — From Infrastructure to Findings (Claude v1)
 
 Date: 25 July 2026
 Sources: supervisor meetings 1–2, Randy meetings 1–2, Randy's Year 1 report, the VEC-01
@@ -141,7 +141,59 @@ window, historical data only.
 - Keep any one paired study on one platform; environments are recorded in receipts and
   float tails differ across hardware.
 
-## 6. Marks-per-effort priority list
+## 6. Is CSF required? (decision rule)
+
+**No.** The entire dissertation is locally feasible: the pilot is ~20 runs and a disciplined
+full study is 50–100 runs — a few overnight batches on one machine. VEC-08 already proved
+the local CPU toolchain reproduces source outputs. CSF is an optimisation, not a dependency.
+
+Escalate to CSF only if one of these triggers fires:
+
+1. A single incident-trace (`inc`) run exceeds ~1 hour locally (its 2,488-vehicle fleet is
+   the likely source of Randy's 4-hour outliers), making sweeps painful.
+2. The pilot justifies a large factorial (≳150–200 runs) for statistical weight.
+3. Deadline pressure demands turnaround in hours rather than nights.
+
+**Rule:** time the local pilot first. Request the CSF account in the Monday email cycle
+anyway (Sandra already endorsed it — free insurance), but never let account setup, queues,
+or cluster environment issues block any experiment. Every design in §3 was chosen to be
+locally feasible precisely so CSF can never be the reason a finding doesn't exist.
+
+## 7. Immediate action plan (from 25 July 2026)
+
+Assume an early-September deadline: ~6 working weeks. Two items have external lead times,
+so they start first despite being small.
+
+**This weekend — the pilot.**
+
+- Predeclare the capacity-squeeze design in one page: both actors, `inc` trace, capacities
+  {2.5, 2.0, 1.5, 1.0, 0.75}, 2 seeds, primary metric = deadline-success rate, hypothesis
+  stated before running.
+- Fire the ~20 runs locally overnight via the VEC-07 runner. By Sunday: crossover or not,
+  and real local run timings (feeds the §6 CSF decision).
+
+**Monday — two emails with turnaround delays.**
+
+1. Finalise and submit the ethics application (drafts already in `docs/evaluation/`);
+   ~1-week review ⇒ participants can run mid-August.
+2. Email Randy, exactly two asks: (a) an always-local/Lyapunov baseline checkpoint or his
+   earlier comparison summary rows; (b) what he intends by "Study Case 2".
+
+**Next week — react to the pilot.**
+
+- Crossover found → scale to the full design (5 seeds, add the fleet-mismatch arm) and
+  email Sandra: "pilot found X, requesting CSF access for the full study" — progress plus
+  a concrete ask, which also forces the offloading-vs-journey-time decision.
+- No crossover → run §3.2 fleet mismatch locally; same cost, backed by the Year 1 report.
+
+**In the gaps** (waiting on ethics/Randy/runs): fix the cluttered menus, script one clean
+end-to-end demo path, and write sections as results land (Sandra's explicit advice — do
+not save writing for the end).
+
+**Deliberately deferred:** bus-data calibration (§4) — slot mid-August only if the finding
+and user evaluation are locked in.
+
+## 8. Marks-per-effort priority list
 
 1. **Predeclared sweep + the finding** (§3.1–3.3). The single largest mark lever.
 2. **User evaluation, executed.** Ethics application, survey, interview guide, and task
@@ -153,7 +205,7 @@ window, historical data only.
 5. **Write-up:** `dissertation_mapping.md` and `dissertation_evaluation_plan.md` already
    map chapters to evidence; keep filling them as results land.
 
-## 7. Explicitly deprioritised
+## 9. Explicitly deprioritised
 
 - Any further platform/infrastructure capability work (the 39 v0.5 + 12 v0.6 capabilities
   are accepted; residual items are scientific/administrative, not engineering).
