@@ -2,9 +2,9 @@
 
 - Prepared: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Range: `b6aa9a9` (`v0.7.0-alpha.6`) → `b50f27d`, **47 commits**, 57 files, +21,071 / −98
+- Range: `b6aa9a9` (`v0.7.0-alpha.6`) → `d586d87`, **55 commits**
 - **Proposed tag name: `v0.7.0-alpha.7`**
-- **Status: proposal only. No tag has been created.** Creating it is the lead's action after review.
+- **Status: created by owner instruction on 25 July 2026.**
 
 ## Proposed annotated tag message
 
@@ -37,6 +37,7 @@ is not the final v0.7 release.
 | 9 VEC chain | **not started** — needs an accepted FCD/network pair |
 | 10 CLI and service | 33 documented commands across seven families |
 | 11 Gates B, C, F | reconciled; remaining items need a person or a provider |
+| 12 UI presentation | seven navigation groups replacing a 14-page one; heading case, disclosure labels and conventions unified |
 
 Nine new library modules: `network_geometry`, `network_connectivity`,
 `observation_matching`, `observation_matching_v11`, `dft_temporal_profile`,
@@ -98,7 +99,7 @@ not exist.
 
 | Check | Result |
 |---|---|
-| Full test suite | **3,087 passed, 1 xfailed** |
+| Full test suite | **3,162 passed** |
 | Ruff lint and format | clean repository-wide, 746 files |
 | Strict mypy | clean, 728 files |
 | `uv lock --check` | unchanged |
@@ -108,8 +109,9 @@ not exist.
 | Private paths in tracked files | none |
 | Container build / demo smoke | **not run** — needs Docker |
 
-The single expected failure is a real defect: `home.py` renders two buttons both labelled *Plan an
-Experiment*. Marked **strict**, so the suite fails when it is fixed.
+There are no expected failures. The duplicate *Plan an Experiment* button on the home page, which
+the accessibility checks found and held as a strict expected failure, was fixed once the UI came
+into scope, and the registry of known defects is empty.
 
 ## Capability and gate status
 
@@ -149,11 +151,16 @@ these.
 | `supervisor questions2 Gemini/` | untouched |
 | `../external/` | untouched |
 
-Nothing was force-pushed. No tag was created or moved.
+Nothing was force-pushed. No existing tag was moved.
 
-## What the lead is asked to decide
+## Tag
 
-1. Whether to create `v0.7.0-alpha.7` at `b50f27d`, and whether that name is right.
-2. Whether to fast-forward `codex/traffictwin-v0.7` as was done for alpha.6.
+Created at `d586d87` on owner instruction. No branch was fast-forwarded and no existing tag was
+moved; whether to advance `codex/traffictwin-v0.7` as was done for alpha.6 remains open.
 
-Neither has been done. The tag does not exist and no branch was moved.
+## Known limitation seen on first run
+
+With an empty registry — no runs, experiments or seeds — the results, comparison and evidence pages
+render headings and unavailable panels around no content. That is the correct behaviour, since a
+missing value is reported rather than invented, but the empty states are larger and less directive
+than they should be. Recorded as presentation work, not as a data or correctness problem.
