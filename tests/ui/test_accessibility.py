@@ -27,6 +27,11 @@ from traffictwin.ui.state import default_session_state
 #: Controls a keyboard or screen-reader user must be able to identify.
 _LABELLED_ELEMENTS = ("button", "text_input", "selectbox", "checkbox", "radio", "multiselect")
 
+#: Above this many collapsible and text elements, a single heading is not enough
+#: to orient by. Chosen to sit well above the median page, so it flags genuinely
+#: dense pages rather than ordinary ones.
+_DENSE_PAGE_ELEMENTS = 20
+
 #: Labels that exist but say nothing useful out of context.
 _UNINFORMATIVE_LABELS = frozenset(
     {"", " ", "...", "…", "-", "--", "click", "click here", "here", "ok", "go", "submit", "?"}
@@ -120,6 +125,20 @@ class TestHeadingStructureIsCoherent:
         if len(app.subheader) > 0:
             assert len(app.title) + len(app.header) > 0, (
                 f"{page.name} uses subheadings with no heading above them"
+            )
+
+    def test_a_dense_page_offers_more_than_one_landmark(self, page: UiPage) -> None:
+        # A page with one heading and dozens of elements gives a reader
+        # navigating by heading nothing to navigate by. The provenance page had
+        # a title followed by 24 expanders and no heading between them.
+        app = _run(page)
+        headings = len(app.title) + len(app.header) + len(app.subheader)
+        collapsible = len(getattr(app, "expander", []) or [])
+        body = len(getattr(app, "markdown", []) or []) + len(getattr(app, "caption", []) or [])
+        if collapsible + body >= _DENSE_PAGE_ELEMENTS:
+            assert headings >= 2, (
+                f"{page.name} renders {collapsible + body} content elements behind "
+                f"{headings} heading(s); a reader navigating by heading has nothing to use"
             )
 
     def test_no_heading_is_blank(self, page: UiPage) -> None:

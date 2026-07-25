@@ -22,6 +22,7 @@ from traffictwin.provenance.query import dependent_rules_for_metric
 from traffictwin.provenance.serialization import trace_to_json
 from traffictwin.reporting.models import ResearchReportType
 from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.components.source_preview import render_source_row_preview
 from traffictwin.ui.components.trace_tree import (
     render_trace_completeness,
@@ -58,8 +59,21 @@ def render() -> None:
     if analysis is None:
         return
     render_source_caption(analysis)
+
+    # This page previously rendered a title followed by two dozen expanders with
+    # no heading between them, so it offered one landmark for the whole page.
+    # A sighted reader could scan expander captions; anyone navigating by
+    # heading had nothing to navigate by.
+    section_header(
+        "Report completeness",
+        "How much of the selected report can be traced back to source rows.",
+    )
     _render_report_completeness(analysis)
 
+    section_header(
+        "Trace a result to its source",
+        "Choose what to trace from, then follow it back through the evidence.",
+    )
     root_type = st.radio(
         "Trace root",
         ["Metric", "Diagnostic rule", "Source file row", "Run metadata"],
