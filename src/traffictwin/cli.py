@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Callable
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from pathlib import Path
 from typing import Annotated, cast
 
@@ -192,6 +193,14 @@ from traffictwin.integration.external import (
     external_source_catalogue,
     inspect_external_source,
 )
+from traffictwin.integration.manchester.demand_reconstruction import (
+    DemandReconstructionError,
+    EdgeHourCount,
+    ordinals_by_edge_id,
+    resolve_direction,
+    site_is_in_survey_window,
+    write_edgedata_counts,
+)
 from traffictwin.integration.manchester.dft_acquisition import (
     DftAcquisitionError,
     DftAcquisitionRequest,
@@ -208,6 +217,7 @@ from traffictwin.integration.manchester.dft_temporal_profile import (
     build_dft_temporal_profile,
     open_real_raw_count_evidence,
     profile_service_status,
+    simulation_interval_for_hour,
     write_profile_record,
 )
 from traffictwin.integration.manchester.models import (
@@ -271,6 +281,11 @@ from traffictwin.integration.manchester.observation_matching_v11 import (
     ObservationMatchV11,
     build_manual_review_queue,
     match_observation_v11,
+)
+from traffictwin.integration.manchester.owner_candidate_contracts import (
+    COMPARISON_CONTRACT_VERSION,
+    comparison_contract_fingerprint,
+    comparison_contract_is_registered,
 )
 from traffictwin.integration.manchester.sumo_run import (
     ManchesterSumoRunError,
@@ -589,6 +604,12 @@ manchester_run_app = typer.Typer(
     no_args_is_help=True,
     help="Operator-invoked controlled SUMO execution (MAN-09, planned).",
 )
+MANCHESTER_EVIDENCE_DIR = Path(__file__).resolve().parents[2] / "docs" / "integration" / "evidence"
+
+manchester_evidence_app = typer.Typer(
+    no_args_is_help=True,
+    help="Read-only lineage and permission-safe evidence export (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -624,6 +645,7 @@ manchester_app.add_typer(manchester_observation_app, name="observation")
 manchester_app.add_typer(manchester_match_app, name="match")
 manchester_app.add_typer(manchester_demand_app, name="demand")
 manchester_app.add_typer(manchester_run_app, name="run")
+manchester_app.add_typer(manchester_evidence_app, name="evidence")
 
 
 @vec_app.command("contract")
@@ -7411,3 +7433,266 @@ def manchester_run_preflight_command(
         "note: the current candidate demand gridlocks in simulation; see "
         "`integration manchester workflow status --show blocked`"
     )
+
+
+@manchester_demand_app.command("build")
+def manchester_demand_build_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    network: Annotated[Path, typer.Option("--network")],
+    raw_snapshot_id: Annotated[str, typer.Option("--raw-snapshot-id")],
+    count_point_snapshot_id: Annotated[str, typer.Option("--count-point-snapshot-id")],
+    counts_output: Annotated[
+        Path | None, typer.Option("--counts-output", help="write the edgeData counts file here")
+    ] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Bind raw-count directions to network edges and summarise the demand input.
+
+    Applies the owner's Option A survey window and the approved 45 degree
+    direction tolerance. Produces the count target only: route sampling is a
+    separate, expensive step, and the current candidate demand is known to
+    gridlock in simulation.
+    """
+
+    try:
+        records, _binding = open_real_raw_count_evidence(workspace, raw_snapshot_id)
+        results = _manchester_match_results(
+            workspace, network, raw_snapshot_id, count_point_snapshot_id
+        )
+        index = build_edge_index(network)
+    except (DftAcquisitionError, ObservationMatchingError, NetworkGeometryError) as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    accepted = {
+        result.count_point_id: result
+        for result in results
+        if result.disposition == "owner_policy_accepted_candidate"
+    }
+    latest: dict[int, str] = {}
+    for record in records:
+        stamp = str(record.count_date)
+        if record.count_point_id not in latest or stamp > latest[record.count_point_id]:
+            latest[record.count_point_id] = stamp
+    in_window = {
+        site for site in accepted if site_is_in_survey_window(latest.get(site, "1900-01-01"))
+    }
+
+    member_ids = {
+        edge.edge_id
+        for site in in_window
+        for group in accepted[site].groups
+        for edge in group.members
+    }
+    ordinals = ordinals_by_edge_id(index, member_ids)
+
+    directions: dict[int, set[str]] = defaultdict(set)
+    for record in records:
+        if (
+            record.count_point_id in in_window
+            and str(record.count_date) == latest[record.count_point_id]
+        ):
+            directions[record.count_point_id].add(record.direction_of_travel)
+
+    bindings: dict[tuple[int, str], str] = {}
+    outcomes: Counter[str] = Counter()
+    for site in sorted(in_window):
+        result = accepted[site]
+        members = [edge.edge_id for group in result.groups for edge in group.members]
+        distances = {
+            edge.edge_id: edge.distance_m for group in result.groups for edge in group.members
+        }
+        for direction in sorted(directions[site]):
+            resolution = resolve_direction(
+                count_point_id=site,
+                direction_of_travel=direction,
+                member_edge_ids=members,
+                index=index,
+                ordinals_by_edge=ordinals,
+                tolerance_degrees=Decimal("45"),
+                distance_by_edge=distances,
+            )
+            outcomes[resolution.binding] += 1
+            if resolution.edge_id:
+                bindings[(site, direction)] = resolution.edge_id
+
+    cells: list[EdgeHourCount] = []
+    for record in records:
+        key = (record.count_point_id, record.direction_of_travel)
+        if key not in bindings or str(record.count_date) != latest[record.count_point_id]:
+            continue
+        vehicles = record.counts.all_motor_vehicles
+        if vehicles is None:
+            continue
+        start, end = simulation_interval_for_hour(record.hour)
+        cells.append(
+            EdgeHourCount(
+                edge_id=bindings[key],
+                count_point_id=record.count_point_id,
+                direction_of_travel=record.direction_of_travel,
+                hour=record.hour,
+                interval_start_s=start,
+                interval_end_s=end,
+                all_motor_vehicles=vehicles,
+                measured_zero=vehicles == 0,
+            )
+        )
+
+    written: dict[str, int] = {}
+    if counts_output is not None:
+        try:
+            written = write_edgedata_counts(counts_output, cells)
+        except DemandReconstructionError as exc:
+            typer.secho(str(exc), err=True, fg=typer.colors.RED)
+            raise typer.Exit(code=1) from exc
+
+    payload = {
+        "accepted_sites": len(accepted),
+        "sites_in_survey_window": len(in_window),
+        "site_directions": sum(len(value) for value in directions.values()),
+        "direction_outcomes": dict(sorted(outcomes.items())),
+        "bound_site_directions": len(bindings),
+        "distinct_bound_edges": len(set(bindings.values())),
+        "edge_hour_cells": len(cells),
+        "total_observed_vehicles": sum(cell.all_motor_vehicles for cell in cells),
+        "measured_zero_cells": sum(1 for cell in cells if cell.measured_zero),
+        "intervals_written": written,
+        "acceptance_basis": "owner_policy_accepted_candidate",
+        "demand_label": "count_constrained_candidate_demand",
+        "observed_origin_destination_travel": False,
+    }
+    if output_format == "json":
+        _echo_json(payload)
+        return
+    _require_text_format(output_format)
+    typer.echo(f"accepted_sites: {payload['accepted_sites']}")
+    typer.echo(f"sites_in_survey_window: {payload['sites_in_survey_window']}")
+    for binding, count in sorted(outcomes.items()):
+        typer.echo(f"direction_outcome: {binding} = {count}")
+    typer.echo(f"bound_site_directions: {payload['bound_site_directions']}")
+    typer.echo(f"distinct_bound_edges: {payload['distinct_bound_edges']}")
+    typer.echo(f"edge_hour_cells: {payload['edge_hour_cells']}")
+    typer.echo(f"total_observed_vehicles: {payload['total_observed_vehicles']}")
+    typer.echo(f"measured_zero_cells: {payload['measured_zero_cells']}")
+    if counts_output is not None:
+        typer.echo(f"counts_written_intervals: {len(written)}")
+    typer.echo("demand_label: count_constrained_candidate_demand")
+    typer.echo("note: a count target, not observed origin-destination travel")
+
+
+@manchester_evidence_app.command("lineage")
+def manchester_evidence_lineage_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the chain of fingerprints binding the workflow's artifacts.
+
+    Read-only and offline. A stage with no artifact is reported as absent rather
+    than omitted, so a broken chain is visible instead of merely short.
+    """
+
+    try:
+        catalogue = catalogue_accepted_dft_snapshots(workspace)
+    except DftAcquisitionError as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    snapshots: list[dict[str, object]] = [
+        {
+            "stage": "observation_snapshot",
+            "dataset": snapshot.dataset,
+            "id": snapshot.snapshot_id,
+            "raw_fingerprint": snapshot.raw_fingerprint,
+        }
+        for snapshot in catalogue.snapshots
+    ]
+    policy = ManchesterMapMatchPolicyV11()
+    links: list[dict[str, object]] = [*snapshots]
+    links.append(
+        {
+            "stage": "map_match_policy",
+            "id": policy.policy_id,
+            "raw_fingerprint": policy.fingerprint(),
+        }
+    )
+    links.append(
+        {
+            "stage": "comparison_contract",
+            "id": COMPARISON_CONTRACT_VERSION,
+            "raw_fingerprint": comparison_contract_fingerprint(),
+            "registered": comparison_contract_is_registered(),
+        }
+    )
+    if output_format == "json":
+        _echo_json({"links": links, "network_access_performed": False})
+        return
+    _require_text_format(output_format)
+    typer.echo(f"links: {len(links)}")
+    for link in links:
+        typer.echo(f"stage: {link['stage']} id={link['id']}")
+        typer.echo(f"    fingerprint: {link['raw_fingerprint']}")
+        if "registered" in link:
+            typer.echo(f"    registered: {str(link['registered']).lower()}")
+    if not snapshots:
+        typer.echo("absent: no accepted observation snapshot; the chain starts unbound")
+    typer.echo("network_access_performed: false")
+
+
+@manchester_evidence_app.command("export")
+def manchester_evidence_export_command(
+    destination: Annotated[Path, typer.Option("--destination")],
+    workspace: Annotated[Path | None, typer.Option("--workspace")] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Export a permission-safe evidence bundle.
+
+    Only bounded aggregate records are exported. Raw extracts, decoded XML,
+    built networks, route pools and demand files stay private, and the export
+    refuses if any record still carries a private absolute path.
+    """
+
+    records = sorted(MANCHESTER_EVIDENCE_DIR.glob("manchester_*.json"))
+    if not records:
+        typer.secho(
+            "no aggregate evidence record was found to export",
+            err=True,
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(code=1)
+
+    leaked: list[str] = []
+    for record in records:
+        text = record.read_text(encoding="utf-8")
+        if "/Users/" in text or "/home/" in text or "/private/" in text:
+            leaked.append(record.name)
+    if leaked:
+        typer.secho(
+            "refusing to export: these records still carry a private absolute path: "
+            + ", ".join(leaked),
+            err=True,
+            fg=typer.colors.RED,
+        )
+        raise typer.Exit(code=1)
+
+    destination.mkdir(parents=True, exist_ok=True)
+    exported: list[str] = []
+    for record in records:
+        (destination / record.name).write_text(record.read_text(encoding="utf-8"), encoding="utf-8")
+        exported.append(record.name)
+
+    payload = {
+        "exported": exported,
+        "count": len(exported),
+        "workspace_inspected": workspace is not None,
+        "raw_artifacts_included": False,
+        "private_paths_present": False,
+    }
+    if output_format == "json":
+        _echo_json(payload)
+        return
+    _require_text_format(output_format)
+    typer.echo(f"exported: {len(exported)} aggregate evidence records")
+    for name in exported:
+        typer.echo(f"    {name}")
+    typer.echo("raw_artifacts_included: false")
+    typer.echo("private_paths_present: false")

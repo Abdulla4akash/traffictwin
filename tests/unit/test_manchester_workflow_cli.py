@@ -244,3 +244,103 @@ class TestTheReviewQueueCannotBeCleared:
         lowered = output.lower()
         for forbidden in ("--accept", "--approve", "--auto"):
             assert forbidden not in lowered
+
+
+class TestEvidenceExportIsPermissionSafe:
+    def test_it_exports_only_aggregate_records(self, tmp_path: Path) -> None:
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "export",
+            "--destination",
+            str(tmp_path / "out"),
+        )
+        assert code == 0
+        assert "raw_artifacts_included: false" in output
+        exported = list((tmp_path / "out").glob("*"))
+        assert exported, "at least one aggregate record should export"
+        assert all(item.suffix == ".json" for item in exported)
+
+    def test_no_raw_or_large_artifact_is_exported(self, tmp_path: Path) -> None:
+        _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "export",
+            "--destination",
+            str(tmp_path / "out"),
+        )
+        for item in (tmp_path / "out").glob("*"):
+            assert not item.name.endswith((".rou.xml", ".net.xml", ".osm.xml", ".osm.pbf"))
+
+    def test_nothing_exported_carries_a_private_path(self, tmp_path: Path) -> None:
+        _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "export",
+            "--destination",
+            str(tmp_path / "out"),
+        )
+        for item in (tmp_path / "out").glob("*.json"):
+            text = item.read_text(encoding="utf-8")
+            assert "/Users/" not in text
+            assert "/private/" not in text
+
+
+class TestEvidenceLineage:
+    def test_it_reports_the_comparison_contract_as_unregistered(self, tmp_path: Path) -> None:
+        from traffictwin.release.compatibility import initialise_v07_workspace
+
+        initialise_v07_workspace(tmp_path / "ws")
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "lineage",
+            "--workspace",
+            str(tmp_path / "ws"),
+        )
+        assert code == 0
+        assert "registered: false" in output
+
+    def test_an_unbound_chain_says_so_rather_than_looking_short(self, tmp_path: Path) -> None:
+        from traffictwin.release.compatibility import initialise_v07_workspace
+
+        initialise_v07_workspace(tmp_path / "ws")
+        _code, output = _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "lineage",
+            "--workspace",
+            str(tmp_path / "ws"),
+        )
+        assert "the chain starts unbound" in output
+
+    def test_it_makes_no_request(self, tmp_path: Path) -> None:
+        from traffictwin.release.compatibility import initialise_v07_workspace
+
+        initialise_v07_workspace(tmp_path / "ws")
+        _code, output = _invoke(
+            "integration",
+            "manchester",
+            "evidence",
+            "lineage",
+            "--workspace",
+            str(tmp_path / "ws"),
+        )
+        assert "network_access_performed: false" in output
+
+
+class TestDemandBuildLabelsItsProduct:
+    def test_help_states_it_is_a_count_target_not_a_simulation(self) -> None:
+        _code, output = _invoke("integration", "manchester", "demand", "build", "--help")
+        assert "count target" in output.lower() or "route sampling is a separate" in output.lower()
+
+    def test_no_option_runs_a_simulation(self) -> None:
+        _code, output = _invoke("integration", "manchester", "demand", "build", "--help")
+        lowered = output.lower()
+        for forbidden in ("--simulate", "--run-sumo", "--sample"):
+            assert forbidden not in lowered
