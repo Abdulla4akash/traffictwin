@@ -517,13 +517,24 @@ implemented through `st.navigation(..., position="sidebar")` and `st.Page`. The 
 `src/traffictwin/ui/app_pages/` so they do not activate Streamlit's legacy reserved `pages/`
 auto-discovery. Shared business logic remains in services/modules rather than page scripts.
 
-| Group | Purpose | Initial pages |
+Each group answers one question a researcher actually has, and no group exceeds nine pages.
+
+| Group | Question it answers | Pages |
 |---|---|---|
-| Overview | Establish current evidence and next action | Home, Manchester Operations, Guided workflow |
-| Build & run | Define and execute or coordinate experiments | Scenario builder, Experiment planner, Controlled SUMO, Controlled VEC, Imports |
-| Analyse | Understand accepted runs and comparisons | Run overview, Compare policies/runs, Journey and mobility, RSU/task analysis, Replay |
-| Evidence | Inspect deterministic conclusions and lineage | Diagnostics, Statistics, Provenance, Reports and research exports |
-| Advanced | Inspect and configure technical boundaries | Registry/search, Source snapshots, Capabilities, Manifests, Doctor/settings |
+| Overview | Where am I, and what should I do next? | Home, Manchester Operations, Guided workflow, Search |
+| Build & run | How do I define and execute an experiment? | Experiment planner, Parameter sweep, Scenario mutations, Scenario builder, Bundle import, SUMO import, TOS import, VEC workbench, Experiments |
+| Results | What did this run produce? | Run overview, Journey time, Temporal metrics, Energy, Fairness, Infrastructure, Spatial/RSU |
+| Compare & test | How do runs differ, and is the difference real? | Compare, Statistics, Threshold sensitivity, Triviality |
+| Source evidence | What did the imported source material say? | TOS results, TOS replay, TOS training, Replay |
+| Evidence & reports | What is the lineage, and what can I export? | Diagnostics, Provenance, Reports, Mock evaluation |
+| Advanced | How do I configure and inspect boundaries? | Manifest inference, Settings, About |
+
+**Why this replaced the earlier five-group split.** The original `Analyse` group held 14 of the 34
+pages and mixed three unrelated concerns: imported source material, per-run metrics, and comparison
+testing. A reader looking for journey time had to scan past replay and training pages to reach it,
+and `Statistics` sat under `Evidence` where an analyst would not look for it. Splitting by the
+question each page answers keeps every group scannable, and configuration stays last so it is
+reached deliberately rather than stumbled into.
 
 [Appendix D](#appendix-d--complete-v06-page-migration-inventory) is the normative migration
 inventory for all 34 current `UiPage` values. The new router cannot replace the v0.6 router until
@@ -1069,35 +1080,35 @@ is additive and is not counted among the 34 v0.6 rows.
 |---|---|---|---|
 | Home | Overview | `home` | Map-led home and latest accepted research context |
 | Guided Demo | Overview | `guided-workflow` | Guided workflow |
+| Search | Overview | `search` | Registry and report search |
 | Experiment Planner | Build & run | `experiment-planner` | Experiment planner |
 | Parameter Sweep | Build & run | `parameter-sweep` | Parameter sweep |
 | Scenario Mutations | Build & run | `scenario-mutations` | Scenario mutations |
 | Scenario Builder | Build & run | `scenario-builder` | Scenario builder |
 | Bundle Import & Validation | Build & run | `bundle-import` | Generic bundle import |
-| Manifest Inference Wizard | Advanced | `manifest-inference` | Manifest inference |
 | SUMO Output Import | Build & run | `sumo` | SUMO import and controlled execution |
 | TOS Data Import | Build & run | `tos-import` | TOS data import |
 | VEC Reproduction Workbench | Build & run | `vec` | Controlled VEC and reproduction workbench |
-| TOS Results | Analyse | `tos-results` | TOS results |
-| TOS Mobility & RSU Replay | Analyse | `tos-replay` | TOS mobility and RSU replay |
-| TOS Training & Audit | Analyse | `tos-training` | TOS training and audit |
 | Experiment Manager | Build & run | `experiments` | Experiment and run manager |
-| Triviality & Winner Map | Analyse | `triviality` | Triviality and winner map |
-| Replay | Analyse | `replay` | Generic historical replay |
-| Run Overview | Analyse | `run-overview` | Run overview |
-| Temporal Metrics | Analyse | `temporal-metrics` | Temporal metrics |
-| Energy Evidence | Analyse | `energy` | Energy evidence |
-| Fairness Evidence | Analyse | `fairness` | Operational fairness evidence |
-| Threshold Sensitivity | Analyse | `threshold-sensitivity` | Threshold sensitivity |
-| Statistical Study | Evidence | `statistics` | Statistical studies |
-| Spatial & RSU Evidence | Analyse | `spatial-rsu` | Spatial and RSU evidence |
-| Infrastructure & Congestion | Analyse | `infrastructure` | Infrastructure and congestion |
-| Comparison | Analyse | `compare` | Run and policy comparison |
-| Journey-Time Lens | Analyse | `journey-time` | Journey and mobility analysis |
-| Diagnostics & Evidence | Evidence | `diagnostics` | Diagnostics and evidence readiness |
-| Provenance Explorer | Evidence | `provenance` | Provenance explorer |
-| Reports | Evidence | `reports` | Reports and research exports |
-| Mock Evaluation Analysis | Evidence | `mock-evaluation` | Ethics-gated evaluation support |
-| Search | Advanced | `search` | Registry and report search |
+| Run Overview | Results | `run-overview` | Run overview |
+| Journey-Time Lens | Results | `journey-time` | Journey and mobility analysis |
+| Temporal Metrics | Results | `temporal-metrics` | Temporal metrics |
+| Energy Evidence | Results | `energy` | Energy evidence |
+| Fairness Evidence | Results | `fairness` | Operational fairness evidence |
+| Infrastructure & Congestion | Results | `infrastructure` | Infrastructure and congestion |
+| Spatial & RSU Evidence | Results | `spatial-rsu` | Spatial and RSU evidence |
+| Comparison | Compare & test | `compare` | Run and policy comparison |
+| Statistical Study | Compare & test | `statistics` | Statistical studies |
+| Threshold Sensitivity | Compare & test | `threshold-sensitivity` | Threshold sensitivity |
+| Triviality & Winner Map | Compare & test | `triviality` | Triviality and winner map |
+| TOS Results | Source evidence | `tos-results` | TOS results |
+| TOS Mobility & RSU Replay | Source evidence | `tos-replay` | TOS mobility and RSU replay |
+| TOS Training & Audit | Source evidence | `tos-training` | TOS training and audit |
+| Replay | Source evidence | `replay` | Generic historical replay |
+| Diagnostics & Evidence | Evidence & reports | `diagnostics` | Diagnostics and evidence readiness |
+| Provenance Explorer | Evidence & reports | `provenance` | Provenance explorer |
+| Reports | Evidence & reports | `reports` | Reports and research exports |
+| Mock Evaluation Analysis | Evidence & reports | `mock-evaluation` | Ethics-gated evaluation support |
+| Manifest Inference Wizard | Advanced | `manifest-inference` | Manifest inference |
 | Settings | Advanced | `settings` | Local settings and doctor links |
 | About | Advanced | `about` | Versions, capabilities, limitations, and attribution |

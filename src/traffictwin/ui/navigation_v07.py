@@ -12,11 +12,20 @@ from traffictwin.ui.labels import UiPage
 
 V07_NAVIGATION_ENV = "TRAFFICTWIN_V07_NAVIGATION"
 V07_LEGACY_ROUTER_VALUES = frozenset({"0", "false", "no", "legacy"})
+#: Task-oriented groups, each answering one question a researcher actually has.
+#: The earlier five-group split put 14 of the 34 pages in a single "Analyse"
+#: group that mixed three unrelated concerns — imported source material, per-run
+#: metrics, and comparison testing — so a reader hunting for journey time had to
+#: scan past replay and training pages to find it. Splitting by question keeps
+#: every group scannable and puts configuration last, where it is reached
+#: deliberately rather than stumbled into.
 V07_NAVIGATION_GROUPS: tuple[str, ...] = (
     "Overview",
     "Build & run",
-    "Analyse",
-    "Evidence",
+    "Results",
+    "Compare & test",
+    "Source evidence",
+    "Evidence & reports",
     "Advanced",
 )
 
@@ -53,13 +62,26 @@ MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
 
 
 V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
-    V07PageSpec(UiPage.HOME, "Overview", "app_pages/home.py", "home", ":material/home:"),
+    V07PageSpec(
+        UiPage.HOME,
+        "Overview",
+        "app_pages/home.py",
+        "home",
+        ":material/home:",
+    ),
     V07PageSpec(
         UiPage.GUIDED_DEMO,
         "Overview",
         "app_pages/guided_demo.py",
         "guided-workflow",
         ":material/route:",
+    ),
+    V07PageSpec(
+        UiPage.SEARCH,
+        "Overview",
+        "app_pages/search.py",
+        "search",
+        ":material/search:",
     ),
     V07PageSpec(
         UiPage.EXPERIMENT_PLANNER,
@@ -125,134 +147,134 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/folder_managed:",
     ),
     V07PageSpec(
-        UiPage.TOS_RESULTS,
-        "Analyse",
-        "app_pages/tos_results.py",
-        "tos-results",
-        ":material/analytics:",
-    ),
-    V07PageSpec(
-        UiPage.TOS_REPLAY,
-        "Analyse",
-        "app_pages/tos_replay.py",
-        "tos-replay",
-        ":material/play_circle:",
-    ),
-    V07PageSpec(
-        UiPage.TOS_TRAINING,
-        "Analyse",
-        "app_pages/tos_training.py",
-        "tos-training",
-        ":material/model_training:",
-    ),
-    V07PageSpec(
-        UiPage.TRIVIALITY,
-        "Analyse",
-        "app_pages/triviality.py",
-        "triviality",
-        ":material/emoji_events:",
-    ),
-    V07PageSpec(
-        UiPage.OPERATIONS,
-        "Analyse",
-        "app_pages/replay.py",
-        "replay",
-        ":material/replay:",
-    ),
-    V07PageSpec(
         UiPage.RUN_OVERVIEW,
-        "Analyse",
+        "Results",
         "app_pages/run_overview.py",
         "run-overview",
         ":material/dashboard:",
     ),
     V07PageSpec(
+        UiPage.JOURNEY_TIME,
+        "Results",
+        "app_pages/journey_time.py",
+        "journey-time",
+        ":material/schedule:",
+    ),
+    V07PageSpec(
         UiPage.TEMPORAL_METRICS,
-        "Analyse",
+        "Results",
         "app_pages/temporal_metrics.py",
         "temporal-metrics",
         ":material/timeline:",
     ),
     V07PageSpec(
         UiPage.ENERGY,
-        "Analyse",
+        "Results",
         "app_pages/energy.py",
         "energy",
         ":material/bolt:",
     ),
     V07PageSpec(
         UiPage.FAIRNESS,
-        "Analyse",
+        "Results",
         "app_pages/fairness.py",
         "fairness",
         ":material/balance:",
     ),
     V07PageSpec(
-        UiPage.THRESHOLD_SENSITIVITY,
-        "Analyse",
-        "app_pages/threshold_sensitivity.py",
-        "threshold-sensitivity",
-        ":material/linear_scale:",
-    ),
-    V07PageSpec(
-        UiPage.SPATIAL_RSU,
-        "Analyse",
-        "app_pages/spatial_rsu.py",
-        "spatial-rsu",
-        ":material/map:",
-    ),
-    V07PageSpec(
         UiPage.INFRASTRUCTURE,
-        "Analyse",
+        "Results",
         "app_pages/infrastructure.py",
         "infrastructure",
         ":material/cell_tower:",
     ),
     V07PageSpec(
+        UiPage.SPATIAL_RSU,
+        "Results",
+        "app_pages/spatial_rsu.py",
+        "spatial-rsu",
+        ":material/map:",
+    ),
+    V07PageSpec(
         UiPage.COMPARE,
-        "Analyse",
+        "Compare & test",
         "app_pages/compare.py",
         "compare",
         ":material/compare_arrows:",
     ),
     V07PageSpec(
-        UiPage.JOURNEY_TIME,
-        "Analyse",
-        "app_pages/journey_time.py",
-        "journey-time",
-        ":material/schedule:",
-    ),
-    V07PageSpec(
         UiPage.STATISTICAL_STUDY,
-        "Evidence",
+        "Compare & test",
         "app_pages/statistics.py",
         "statistics",
         ":material/query_stats:",
     ),
     V07PageSpec(
+        UiPage.THRESHOLD_SENSITIVITY,
+        "Compare & test",
+        "app_pages/threshold_sensitivity.py",
+        "threshold-sensitivity",
+        ":material/linear_scale:",
+    ),
+    V07PageSpec(
+        UiPage.TRIVIALITY,
+        "Compare & test",
+        "app_pages/triviality.py",
+        "triviality",
+        ":material/emoji_events:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_RESULTS,
+        "Source evidence",
+        "app_pages/tos_results.py",
+        "tos-results",
+        ":material/analytics:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_REPLAY,
+        "Source evidence",
+        "app_pages/tos_replay.py",
+        "tos-replay",
+        ":material/play_circle:",
+    ),
+    V07PageSpec(
+        UiPage.TOS_TRAINING,
+        "Source evidence",
+        "app_pages/tos_training.py",
+        "tos-training",
+        ":material/model_training:",
+    ),
+    V07PageSpec(
+        UiPage.OPERATIONS,
+        "Source evidence",
+        "app_pages/replay.py",
+        "replay",
+        ":material/replay:",
+    ),
+    V07PageSpec(
         UiPage.EVIDENCE,
-        "Evidence",
+        "Evidence & reports",
         "app_pages/diagnostics.py",
         "diagnostics",
         ":material/fact_check:",
     ),
     V07PageSpec(
         UiPage.PROVENANCE,
-        "Evidence",
+        "Evidence & reports",
         "app_pages/provenance.py",
         "provenance",
         ":material/account_tree:",
     ),
     V07PageSpec(
         UiPage.REPORTS,
-        "Evidence",
+        "Evidence & reports",
         "app_pages/reports.py",
         "reports",
         ":material/article:",
     ),
     V07PageSpec(
         UiPage.PARTICIPANT_EVALUATION,
-        "Evidence",
+        "Evidence & reports",
         "app_pages/mock_evaluation.py",
         "mock-evaluation",
         ":material/assignment_ind:",
@@ -263,13 +285,6 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         "app_pages/manifest_inference.py",
         "manifest-inference",
         ":material/schema:",
-    ),
-    V07PageSpec(
-        UiPage.SEARCH,
-        "Advanced",
-        "app_pages/search.py",
-        "search",
-        ":material/search:",
     ),
     V07PageSpec(
         UiPage.SETTINGS,
@@ -354,7 +369,7 @@ def _render_root_home() -> None:
 
 
 def v07_navigation_pages() -> dict[str, list[object]]:
-    """Build the hidden root plus five visible task-oriented navigation groups."""
+    """Build the hidden root plus task-oriented navigation groups."""
 
     validate_v07_page_specs()
     pages: dict[str, list[object]] = {
