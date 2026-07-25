@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `6b38d8b`
+- Working head at last update: `8b0824d`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -37,7 +37,7 @@ analyst, human, or supervisor has reviewed any row**, and no downstream artifact
 | 8 | Comparison contract | **built, not registered** | fingerprint `b1d31a1b122be3a5…`; registry lives in `comparison.py`, outside the agent grant |
 | 9 | SUMO-to-VEC chain | **to do** | depends on an accepted FCD/network pair |
 | 10 | CLI, service and thin UI integration | **done (CLI); UI pending** | 33 commands, seven families; remaining workflows are blocked, not unwritten |
-| 11 | Gate B, C and F closure | **in progress** | accessibility, release and time-basis reconciliation added |
+| 11 | Gate B, C and F closure | **done for automated work** | remaining items need a person or a provider reply |
 | 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
 | 13 | Final verified alpha checkpoint | **to do** | not a release; no final `v0.7.0` tag |
 
@@ -108,29 +108,28 @@ workflow through thin service calls only.
 
 ### Phase 11 — Gate B, C and F closure
 
-**In progress.**
+**Automated work complete.** What remains in each gate needs a person or a provider, not more code.
 
-- **Gate B.** The DfT hour stays a local clock label and is asserted never to be converted:
-  `tests/unit/test_gate_b_dft_time_basis.py` pins that the profile module performs no timezone
-  conversion, that the basis is fixed rather than configurable, and that the simulation mapping is a
-  declared offset with contiguous non-overlapping windows. `GA-DFT-1` stays **open** — it needs a
-  provider answer or an owner decision, and no automated check can close it. Remaining: reconcile
-  eligible TfGM, WebTRIS, BODS and National Highways evidence.
-- **Gate C.** `tests/ui/test_accessibility.py` covers all 34 pages for control labelling and heading
-  structure. It found a real defect: `home.py` renders two buttons both labelled *Plan an
-  Experiment*, recorded as a **strict** expected failure so the suite fails when it is fixed.
-  Contrast, zoom, keyboard order and screen-reader announcement cannot be established from the
-  element tree and are in [the manual checklist](evaluation/manual_accessibility_checklist.md),
-  shipping unticked. Remaining: a person to work that checklist.
-- **Gate F / REL-01.** Migration preview, backup, activation, receipt, rollback, tamper refusal,
-  crash-resume and path-traversal refusal were already covered by 17 tests.
-  `tests/unit/test_release_reconciliation_v07.py` adds what was missing: package, pyproject and
-  citation versions must agree, every documented CLI command must have exited cleanly, the
-  Manchester surface must be documented, the package must not carry the final `v0.7.0` version while
-  gates are incomplete, and no final `v0.7.0` tag may exist. Remaining: clean-checkout v0.6/v0.7
-  side-by-side verification on a real second checkout.
+- **Gate B.** Sources reconciled and the invariants each open blocker implies are pinned across
+  every source: only audited National Highways feeds may be near-live, WebTRIS is not near-live
+  eligible, DfT is historical only, only BODS may claim a live vehicle, TfGM signals offer nothing
+  beyond unavailable, and every source can express unavailability. The DfT hour is asserted never to
+  be converted. **Three blockers stay open and cannot be closed here** — `GA-DFT-1`, `GA-WT-1`, and
+  BODS retention/republication terms — because each needs a **provider reply**, and the recorded
+  documentation probe established that no official page answers them.
+- **Gate C.** All 34 pages are covered for control labelling and heading structure. A real defect was
+  found and is recorded as a strict expected failure: `home.py` renders two buttons both labelled
+  *Plan an Experiment*. Contrast, zoom, keyboard order and screen-reader announcement cannot be
+  established from the element tree; they are in
+  [the manual checklist](evaluation/manual_accessibility_checklist.md), shipping unticked.
+  **Remaining: a person to work that checklist, and someone with the UI grant to fix the label.**
+- **Gate F / REL-01.** Migration was already covered by 17 tests. Added: release reconciliation
+  (versions agree, documented commands exit cleanly, the package must not carry the final `v0.7.0`
+  version, no final tag may exist), a re-run clean-checkout side-by-side verification against the
+  current head, and a CI reconciliation run by execution rather than by reading. **Remaining: the
+  container build and demo smoke step, which need Docker.**
 
-No gate is accepted by any of this. These are automated candidate checks.
+No gate is accepted by any of this.
 
 ### Phases 12 and 13
 
