@@ -390,6 +390,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Historical design proposal v0.4](traffictwin-design-v0_4.md)
 - [Implementation status](implementation-status.md)
 - [Current workflow and to-do](current_workflow_and_todo.md)
+- [UI conventions](ui_conventions.md)
 - [Proposed alpha.7 checkpoint handoff](v07_alpha7_checkpoint_handoff.md)
 - [Assumption register](assumption-register.md)
 - [Open questions](open-questions.md)

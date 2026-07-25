@@ -217,3 +217,25 @@ class TestDisclosureLabellingIsConsistent:
         labels = [label for label in labels if label]
         duplicates = {label for label in labels if labels.count(label) > 1}
         assert not duplicates, f"{page.name} repeats a disclosure label: {sorted(duplicates)}"
+
+
+class TestTheConventionsAreDocumented:
+    """A convention nobody can find is one that drifts back."""
+
+    def _doc(self) -> str:
+        return (Path(__file__).resolve().parents[2] / "docs" / "ui_conventions.md").read_text(
+            encoding="utf-8"
+        )
+
+    def test_the_conventions_document_exists(self) -> None:
+        assert self._doc().strip()
+
+    def test_it_covers_every_convention_this_suite_enforces(self) -> None:
+        lowered = self._doc().lower()
+        for topic in ("sentence case", "advanced:", "landmark", "unavailable", "url path"):
+            assert topic in lowered, f"the conventions document must cover {topic}"
+
+    def test_it_does_not_relax_the_design_boundaries(self) -> None:
+        lowered = self._doc().lower()
+        assert "hides an unavailable state" in lowered or "hidden" in lowered
+        assert "never" in lowered
