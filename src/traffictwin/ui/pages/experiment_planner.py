@@ -13,7 +13,7 @@ from traffictwin.experiments.protocol import (
     ExperimentProtocolSlot,
     ProtocolBundleMatch,
 )
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.guided_runtime import complete_guided_action
 from traffictwin.ui.labels import UiPage
@@ -39,6 +39,10 @@ def render(config: UiConfig) -> None:
 
     render_page_header(UiPage.EXPERIMENT_PLANNER)
     badge_row(["PLANNED", "REPRODUCIBLE", "NO DIRECT LAUNCH"])
+    st.markdown(
+        f"{badge_markdown('planned')} **1 Define** → **2 Validate** → **3 Inspect run matrix** → "
+        "**4 Register**"
+    )
     st.info(
         "Use registered scenario seeds to define a baseline, variations, policy labels, and "
         "common random seeds. This page records a research plan only; it never creates runs or "
@@ -169,6 +173,12 @@ def _render_plan_preview(
     cols[1].metric("Policy labels", summary.algorithm_count)
     cols[2].metric("Common seeds", summary.replicate_count)
     cols[3].metric("Planned run slots", summary.planned_run_count)
+    st.markdown(
+        f"{badge_markdown('reproducible')} **Common-random-seed design** · run matrix = "
+        f"{summary.condition_count} conditions × {summary.algorithm_count} policies × "
+        f"{summary.replicate_count} common seeds = **{summary.planned_run_count}** run slots. "
+        "Registering the plan records these slots; it never creates or launches runs."
+    )
 
     for warning in summary.warnings:
         st.warning(warning)
@@ -237,6 +247,10 @@ def _render_plan_preview(
         mime="text/csv",
         width="stretch",
         key="download-current-protocol-csv",
+    )
+    st.caption(
+        "Stage 4 · Register. Registration stores the plan and its run matrix only; execution stays "
+        "a separate, later step and is never started here."
     )
     if st.button(
         "Register Planned Experiment",
