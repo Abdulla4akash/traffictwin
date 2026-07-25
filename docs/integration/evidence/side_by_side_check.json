@@ -1,6 +1,6 @@
 {
   "capability_status": "REL-01 remains planned",
-  "checked_at_utc": "2026-07-24T15:42:15.817387+00:00",
+  "checked_at_utc": "2026-07-25T19:26:25.596944+00:00",
   "cross_registry_mutation_observed": false,
   "findings": [
     "clean v0.6.0 checkout created at commit 1c50a25246426128ac6e8530240eff362d16be02",
@@ -10,16 +10,20 @@
     "both servers responded concurrently (v0.6.0 on 8611, v0.7 on 8612)",
     "neither registry changed while both applications served"
   ],
+  "gate_f_accepted": false,
   "registries_distinct": true,
   "release_acceptance": "not_claimed",
+  "rerun_note": "Re-run on 25 July 2026 against the v0.7 head carrying the phase 1 to 11 work. The two registry digests differ from the 24 July record because each run initialises a fresh workspace, so the SQLite bytes are new. That is not drift: the assertion that matters is cross_registry_mutation_observed, which stayed false, meaning neither side altered the other's registry while both served.",
   "schema_version": "traffictwin.side-by-side-check.v1",
+  "user_checkout_touched": false,
   "v06_commit": "1c50a25246426128ac6e8530240eff362d16be02",
   "v06_http_status": 200,
   "v06_port": 8611,
-  "v06_registry_sha256": "93432872175abfbee98941941aab0c6c705cd6414787ed91dfcf92b183cdf9c6",
+  "v06_registry_sha256": "ae25cbc034595d1c7a80981e0a48919dcd4e982f7998e3cded7df45182b1fa93",
   "v06_tag": "v0.6.0",
-  "v07_commit": "1e6ee2910e64935a63de8543d859727ff82bb255",
+  "v06_workspaces_preserved": true,
+  "v07_commit": "0b8d283cfabc5713e066771cafb149f2cc85737d",
   "v07_http_status": 200,
   "v07_port": 8612,
-  "v07_registry_sha256": "d0944b29e45129c7670f9cec41e31514ca24135f49de429643358185a6d44285"
+  "v07_registry_sha256": "284ecd88c68015e478e315801d851213424d38fe343a3210b2573a7348f04e30"
 }
