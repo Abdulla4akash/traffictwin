@@ -19,6 +19,9 @@ build/
 dist/
 *.egg-info/
 
+# Local-only meeting notes and external papers (kept out of version control)
+docs/meetings/
+
 # Local data and generated outputs
 data/
 data/raw/
