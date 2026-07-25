@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Callable
 from datetime import UTC, date, datetime
@@ -189,6 +190,34 @@ from traffictwin.integration.external import (
     discover_external_sources,
     external_source_catalogue,
     inspect_external_source,
+)
+from traffictwin.integration.manchester.models import (
+    ManchesterSnapshotPolicy,
+    sha256_hex,
+)
+from traffictwin.integration.manchester.network_acquisition import (
+    OSM_MAX_EXTRACT_BYTES,
+    OSM_REFERENCE_DATE,
+    LocalOsmExtractImportRequest,
+    OperatorAuthorisation,
+    OsmAcquisitionError,
+    OsmExtractAcquisitionRequest,
+    OsmExtractIdentity,
+    acquire_osm_extract_snapshot,
+    import_local_osm_extract,
+)
+from traffictwin.integration.manchester.network_build import (
+    ManchesterBaselineNetworkBinding,
+    NetworkBuildError,
+    NetworkBuildRequest,
+    build_baseline_network,
+)
+from traffictwin.integration.manchester.network_scope import baseline_scope_decision
+from traffictwin.integration.manchester.network_service import (
+    NETWORKS_DIRECTORY_NAME,
+    baseline_network_status,
+    inspect_network_candidate,
+    list_network_candidates,
 )
 from traffictwin.integration.sumo import (
     compute_metrics_for_sumo,
@@ -468,6 +497,14 @@ external_app = typer.Typer(
 tos_app = typer.Typer(no_args_is_help=True, help="Read-only TOS Data package tools.")
 sumo_app = typer.Typer(no_args_is_help=True, help="Import-only Eclipse SUMO result tools.")
 vec_app = typer.Typer(no_args_is_help=True, help="Capability-gated Randy/VEC workflows.")
+manchester_app = typer.Typer(
+    no_args_is_help=True,
+    help="Bounded Manchester evidence and baseline-network tools.",
+)
+manchester_network_app = typer.Typer(
+    no_args_is_help=True,
+    help="Operator-invoked Greater Manchester baseline-network commands (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -495,6 +532,8 @@ integration_app.add_typer(tos_app, name="tos")
 integration_app.add_typer(sumo_app, name="sumo")
 integration_app.add_typer(external_app, name="external")
 integration_app.add_typer(vec_app, name="vec")
+integration_app.add_typer(manchester_app, name="manchester")
+manchester_app.add_typer(manchester_network_app, name="network")
 
 
 @vec_app.command("contract")
@@ -6167,3 +6206,305 @@ def _projection_source_mode(projection: ResearchExportProjection) -> str:
     if projection.synthetic is False:
         return "imported_or_non_synthetic"
     return "unresolved"
+
+
+# --- MAN-09 Gate-D step 1: Greater Manchester baseline network -----------------
+#
+# These commands are the only place network acquisition and netconvert execution
+# happen. Streamlit pages read accepted results through
+# `integration.manchester.network_service` and never fetch or build.
+
+
+def _networks_root(workspace: Path) -> Path:
+    root = workspace / "manchester" / NETWORKS_DIRECTORY_NAME
+    root.mkdir(parents=True, exist_ok=True)
+    return root
+
+
+def _echo_json(payload: object) -> None:
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
+@manchester_network_app.command("scope")
+def manchester_network_scope_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the approved ADR-059 baseline scope and required-area inclusion.
+
+    Greater Manchester is the baseline; Manchester local authority is a filter.
+    MAN-09 remains planned.
+    """
+
+    decision = baseline_scope_decision()
+    if output_format == "json":
+        _echo_json(decision.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"decision_record: {decision.decision_record}")
+    typer.echo(f"baseline_scope: {decision.baseline_scope} ({decision.baseline_official_code})")
+    typer.echo(f"sub_area_filter: {decision.sub_area_scope} ({decision.sub_area_official_code})")
+    typer.echo(f"sub_area_is_second_network: {str(decision.sub_area_is_second_network).lower()}")
+    envelope = decision.envelope
+    typer.echo(
+        "extract_envelope: "
+        f"lon {envelope.min_longitude}..{envelope.max_longitude} "
+        f"lat {envelope.min_latitude}..{envelope.max_latitude}"
+    )
+    typer.echo(f"envelope_derivation: {envelope.derivation}")
+    typer.echo(f"envelope_margin_degrees: {envelope.margin_degrees}")
+    typer.echo(f"envelope_boundary_uncertainty_m: {envelope.boundary_uncertainty_m}")
+    typer.echo(f"geographic_crs: {decision.geographic_crs}")
+    typer.echo(f"distance_crs: {decision.distance_crs}")
+    for probe in decision.required_areas:
+        typer.echo(
+            f"required_area: {probe.area} "
+            f"inside_baseline={str(probe.inside_baseline_boundary).lower()} "
+            f"inside_manchester_filter={str(probe.inside_sub_area_boundary).lower()}"
+        )
+    coverage = decision.dft_coverage
+    typer.echo(f"dft_coverage: {coverage.coverage_kind} ({coverage.observation_scope} only)")
+    typer.echo(f"dft_uncovered_state: {coverage.uncovered_state}")
+    typer.echo(f"dft_uncovered_is_zero: {str(coverage.uncovered_is_zero).lower()}")
+    typer.echo(f"capability_status: {decision.capability_status}")
+
+
+@manchester_network_app.command("acquire")
+def manchester_network_acquire_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    confirm: Annotated[
+        bool, typer.Option("--confirm", help="Explicit operator authorisation for network access.")
+    ] = False,
+    reason: Annotated[str, typer.Option("--reason")] = "operator-invoked baseline acquisition",
+    from_file: Annotated[
+        Path | None,
+        typer.Option("--from-file", help="Import a local extract instead of fetching."),
+    ] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Acquire the pinned OSM extract into the workspace, or import a local one.
+
+    Network access happens only with an explicit --confirm. The endpoint, path,
+    media types, and byte bounds are frozen; no URL is accepted. MAN-09 remains
+    planned and no network is built by this command.
+    """
+
+    if not confirm:
+        typer.echo(
+            "refused: acquisition needs explicit operator authorisation; pass --confirm",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+    root = _networks_root(workspace)
+    policy = ManchesterSnapshotPolicy(
+        max_member_count=8,
+        max_member_bytes=OSM_MAX_EXTRACT_BYTES,
+        max_total_bytes=OSM_MAX_EXTRACT_BYTES + 1_000_000,
+    )
+    authorisation = OperatorAuthorisation(
+        confirmed_by_operator=True, invoked_via="cli", reason=reason
+    )
+    try:
+        if from_file is not None:
+            result = import_local_osm_extract(
+                root,
+                from_file,
+                LocalOsmExtractImportRequest(
+                    authorisation=authorisation, policy=policy, synthetic=False
+                ),
+            )
+        else:
+            result = acquire_osm_extract_snapshot(
+                root,
+                OsmExtractAcquisitionRequest(
+                    authorisation=authorisation, policy=policy, synthetic=False
+                ),
+            )
+    except (OsmAcquisitionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(result.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    identity = result.identity
+    typer.echo(f"acquisition_mode: {result.acquisition_mode}")
+    typer.echo(f"snapshot_id: {result.snapshot_id}")
+    typer.echo(f"extract_sha256: {identity.extract_sha256}")
+    typer.echo(f"extract_md5: {identity.extract_md5}")
+    typer.echo(f"extract_bytes: {identity.extract_bytes}")
+    typer.echo(f"reference_date: {identity.reference_date.isoformat()}")
+    typer.echo(f"extract_data_cutoff_date: {identity.extract_data_cutoff_date.isoformat()}")
+    typer.echo(f"provider_checksum_verified: {str(identity.provider_checksum_verified).lower()}")
+    typer.echo(f"licence_id: {identity.licence_id}")
+    typer.echo(f"attribution: {identity.attribution_text}")
+    typer.echo(f"publication_class: {identity.publication_class}")
+    typer.echo(f"network_build_performed: {str(result.network_build_performed).lower()}")
+    typer.echo(f"capability_status: {result.capability_status}")
+
+
+@manchester_network_app.command("build")
+def manchester_network_build_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    extract: Annotated[Path, typer.Option("--extract", exists=True, dir_okay=False)],
+    network_id: Annotated[str, typer.Option("--network-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Build one baseline-network candidate with the frozen netconvert recipe.
+
+    The builder takes no arguments, flags, or tool paths from the caller and
+    never uses a shell. A build is geometry only: it is not calibration, not
+    validation against observations, not live traffic, and not VEC execution.
+    """
+
+    root = _networks_root(workspace)
+    try:
+        binding = build_baseline_network(
+            root,
+            extract,
+            NetworkBuildRequest(
+                network_id=network_id,
+                extract=OsmExtractIdentity.model_validate_json(
+                    (extract.parent / f"{extract.name}.identity.json").read_text(encoding="utf-8")
+                )
+                if (extract.parent / f"{extract.name}.identity.json").is_file()
+                else _identity_from_file(extract),
+                synthetic=False,
+            ),
+        )
+    except (NetworkBuildError, ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(binding.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    _echo_binding(binding)
+
+
+def _identity_from_file(extract: Path) -> OsmExtractIdentity:
+    payload = extract.read_bytes()
+    return OsmExtractIdentity(
+        extract_sha256=sha256_hex(payload),
+        extract_md5=hashlib.md5(payload, usedforsecurity=False).hexdigest(),
+        extract_bytes=len(payload),
+        reference_date=OSM_REFERENCE_DATE,
+        provider_checksum_verified=False,
+        provider_checksum_source="absent",
+        synthetic=False,
+    )
+
+
+def _echo_binding(binding: ManchesterBaselineNetworkBinding) -> None:
+    typer.echo(f"network_id: {binding.network_id}")
+    typer.echo(f"network_identity_sha256: {binding.network_identity_sha256}")
+    typer.echo(f"network_sha256: {binding.network_sha256}")
+    typer.echo(f"network_bytes: {binding.network_bytes}")
+    typer.echo(f"byte_reproducible: {str(binding.byte_reproducible).lower()}")
+    typer.echo(f"semantically_reproducible: {str(binding.semantically_reproducible).lower()}")
+    typer.echo(f"netconvert_version: {binding.command.reported_version}")
+    typer.echo(f"exit_code: {binding.command.exit_code}")
+    typer.echo(f"validation_status: {binding.validation.status}")
+    structure = binding.validation.structure
+    typer.echo(
+        "structure: "
+        f"edges={structure.edge_count} junctions={structure.junction_count} "
+        f"connections={structure.connection_count} lanes={structure.lane_count} "
+        f"traffic_lights={structure.traffic_light_count}"
+    )
+    typer.echo(f"proj_parameter: {binding.validation.location.proj_parameter}")
+    typer.echo(f"orig_boundary: {binding.validation.location.orig_boundary}")
+    for area in binding.validation.required_areas:
+        typer.echo(f"required_area: {area.area} inside={str(area.inside_network_boundary).lower()}")
+    for warning in binding.command.warning_lines:
+        typer.echo(f"warning: {warning}")
+    typer.echo(f"licence_id: {binding.licence_id}")
+    typer.echo(f"attribution: {binding.attribution_text}")
+    typer.echo(f"baseline_scope: {binding.baseline_scope}")
+    typer.echo(f"sub_area_filter_scope: {binding.sub_area_filter_scope}")
+    typer.echo(f"calibration_performed: {str(binding.calibration_performed).lower()}")
+    typer.echo(f"accepted_for_real_matching: {str(binding.accepted_for_real_matching).lower()}")
+    typer.echo(f"gate: {binding.gate_d_step}")
+    typer.echo(f"capability_status: {binding.capability_status}")
+
+
+@manchester_network_app.command("list")
+def manchester_network_list_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """List accepted baseline-network candidates in one workspace."""
+
+    candidates = list_network_candidates(_networks_root(workspace))
+    if output_format == "json":
+        _echo_json([candidate.model_dump(mode="json") for candidate in candidates])
+        return
+    _require_text_format(output_format)
+    if not candidates:
+        typer.echo("no accepted baseline-network candidate exists in this workspace")
+        typer.echo("capability_status: planned")
+        return
+    for candidate in candidates:
+        typer.echo(
+            f"{candidate.network_id} "
+            f"identity={candidate.network_identity_sha256[:16]} "
+            f"status={candidate.validation_status} "
+            f"edges={candidate.edge_count} junctions={candidate.junction_count} "
+            f"areas_covered={str(candidate.required_areas_covered).lower()}"
+        )
+    typer.echo("capability_status: planned")
+
+
+@manchester_network_app.command("verify")
+def manchester_network_verify_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    network_id: Annotated[str, typer.Option("--network-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Re-verify one candidate's recorded raw and semantic digests."""
+
+    try:
+        binding = inspect_network_candidate(_networks_root(workspace) / network_id)
+    except (NetworkBuildError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(binding.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"network_id: {binding.network_id}")
+    typer.echo("verified: true")
+    typer.echo(f"network_sha256: {binding.network_sha256}")
+    typer.echo(f"network_identity_sha256: {binding.network_identity_sha256}")
+    typer.echo(f"capability_status: {binding.capability_status}")
+
+
+@manchester_network_app.command("status")
+def manchester_network_status_command(
+    workspace: Annotated[Path | None, typer.Argument(file_okay=False)] = None,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Report honest baseline-network status, including what stays unavailable."""
+
+    root = _networks_root(workspace) if workspace is not None and workspace.is_dir() else None
+    status = baseline_network_status(root)
+    if output_format == "json":
+        _echo_json(status.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"capability_id: {status.capability_id}")
+    typer.echo(f"capability_status: {status.capability_status}")
+    typer.echo(f"practical_state: {status.practical_state}")
+    typer.echo(f"gate: {status.gate}")
+    typer.echo(f"toolchain_available: {str(status.toolchain.available).lower()}")
+    if status.toolchain.reported_version is not None:
+        typer.echo(f"netconvert_version: {status.toolchain.reported_version}")
+    if status.toolchain.blocker is not None:
+        typer.echo(f"toolchain_blocker: {status.toolchain.blocker}")
+    typer.echo(f"candidate_count: {status.candidate_count}")
+    typer.echo(f"calibration_available: {str(status.calibration_available).lower()}")
+    typer.echo(f"comparison_available: {str(status.comparison_available).lower()}")
+    typer.echo(f"live_traffic_available: {str(status.live_traffic_available).lower()}")
+    for blocker in status.map_matching_preflight.blockers:
+        typer.echo(f"map_matching_blocker: {blocker}")
+    for reason in status.unavailable_reasons:
+        typer.echo(f"unavailable: {reason}")
