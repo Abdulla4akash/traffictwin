@@ -29,12 +29,14 @@ from traffictwin.integration.manchester.network_decode import (
     NetworkDecodeError,
     OsmDecodeReceipt,
     OsmiumToolIdentity,
+    argument_fingerprint,
     decode_pbf_to_osm_xml,
     discover_osmium,
     is_pbf,
     osmium_identity,
     pinned_source_expectation,
     read_source_header,
+    validate_osm_xml_structure,
     verify_decoded_artifact,
 )
 
@@ -579,3 +581,165 @@ class TestNoRawArtifactIsTracked:
             if (repository / name).is_file() and (repository / name).stat().st_size > 8_000_000
         ]
         assert not oversized, f"unexpectedly large tracked files: {oversized}"
+
+
+class TestPinnedSourceIsTheDefault:
+    """An unpinned decode is admitted only as clearly-labelled synthetic evidence."""
+
+    def test_an_unpinned_real_decode_is_refused_by_default(self, tmp_path: Path) -> None:
+        with pytest.raises(NetworkDecodeError, match="UNPINNED_SOURCE_REFUSED"):
+            decode_pbf_to_osm_xml(
+                _fake_pbf(tmp_path), tmp_path / "out.osm.xml", allow_unpinned_source=True
+            )
+
+    def test_the_default_path_demands_the_pinned_identity(self, tmp_path: Path) -> None:
+        # Without an opt-out the pinned expectation applies, so a placeholder
+        # extract fails identity rather than being quietly decoded.
+        with pytest.raises(NetworkDecodeError):
+            decode_pbf_to_osm_xml(_fake_pbf(tmp_path), tmp_path / "out.osm.xml")
+
+    @requires_osmium
+    def test_a_synthetic_decode_is_labelled_synthetic_in_its_receipt(self, tmp_path: Path) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        assert receipt.synthetic is True
+        assert receipt.source_pinned_by_default is False
+        assert receipt.source_identity_verified is False
+
+
+class TestWorkspaceContainment:
+    @requires_osmium
+    def test_a_destination_outside_the_workspace_is_refused(self, tmp_path: Path) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        with pytest.raises(NetworkDecodeError, match="WORKSPACE_ESCAPE_REFUSED"):
+            decode_pbf_to_osm_xml(
+                _real_pbf(tmp_path),
+                tmp_path / "elsewhere.osm.xml",
+                workspace_root=workspace,
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
+
+    @requires_osmium
+    def test_a_traversal_destination_is_refused(self, tmp_path: Path) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        with pytest.raises(NetworkDecodeError, match="WORKSPACE_ESCAPE_REFUSED"):
+            decode_pbf_to_osm_xml(
+                _real_pbf(tmp_path),
+                workspace / ".." / "escaped.osm.xml",
+                workspace_root=workspace,
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
+
+    @requires_osmium
+    def test_the_recorded_workspace_identity_discloses_no_private_path(
+        self, tmp_path: Path
+    ) -> None:
+        workspace = tmp_path / "workspace"
+        workspace.mkdir()
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            workspace / "out.osm.xml",
+            workspace_root=workspace,
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        assert receipt.workspace_identity is not None
+        assert str(tmp_path) not in receipt.workspace_identity
+        assert "/" not in receipt.workspace_identity
+        assert receipt.workspace_identity.startswith("workspace:")
+
+
+class TestDecodedStructureIsValidated:
+    def test_a_wrong_root_element_is_refused(self, tmp_path: Path) -> None:
+        target = tmp_path / "wrong.osm.xml"
+        target.write_text(
+            "<?xml version='1.0'?>\n<netconvert><node id='1'/></netconvert>\n", encoding="utf-8"
+        )
+        with pytest.raises(NetworkDecodeError, match="DECODED_WRONG_XML_ROOT"):
+            validate_osm_xml_structure(target)
+
+    def test_an_osm_document_with_no_content_is_refused(self, tmp_path: Path) -> None:
+        target = tmp_path / "empty.osm.xml"
+        target.write_text("<?xml version='1.0'?>\n<osm version='0.6'>\n</osm>\n", encoding="utf-8")
+        with pytest.raises(NetworkDecodeError, match="DECODED_OSM_XML_EMPTY"):
+            validate_osm_xml_structure(target)
+
+    def test_a_real_osm_document_reports_its_root_and_content(self, tmp_path: Path) -> None:
+        target = tmp_path / "good.osm.xml"
+        target.write_text(SYNTHETIC_OSM, encoding="utf-8")
+        root, elements = validate_osm_xml_structure(target)
+        assert root == "osm"
+        assert elements > 0
+
+
+class TestReceiptCarriesItsProvenance:
+    @requires_osmium
+    def test_the_receipt_records_licence_and_attribution(self, tmp_path: Path) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        assert receipt.licence_id == "ODbL-1.0"
+        assert receipt.attribution_text == "© OpenStreetMap contributors, ODbL 1.0"
+
+    @requires_osmium
+    def test_the_receipt_binds_the_frozen_argument_vector(self, tmp_path: Path) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        assert receipt.argument_fingerprint == argument_fingerprint()
+
+    @requires_osmium
+    def test_a_receipt_recording_a_changed_argument_vector_is_refused(self, tmp_path: Path) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        payload: dict[str, Any] = json.loads(receipt.canonical_json())
+        payload["argument_fingerprint"] = "d" * 64
+        with pytest.raises(ValidationError, match="exact frozen argument vector"):
+            OsmDecodeReceipt.model_validate_json(json.dumps(payload))
+
+    @requires_osmium
+    def test_the_receipt_states_the_decode_changed_no_content(self, tmp_path: Path) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        assert receipt.conversion_only is True
+        assert receipt.content_filtered is False
+        assert receipt.bounding_box_clipped is False
+        assert receipt.simplified is False
+        assert receipt.road_classes_selected is False
+
+    @requires_osmium
+    def test_a_receipt_claiming_real_evidence_without_a_pinned_source_is_refused(
+        self, tmp_path: Path
+    ) -> None:
+        receipt = decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path),
+            tmp_path / "out.osm.xml",
+            allow_unpinned_source=True,
+            synthetic=True,
+        )
+        payload: dict[str, Any] = json.loads(receipt.canonical_json())
+        payload["synthetic"] = False
+        with pytest.raises(ValidationError):
+            OsmDecodeReceipt.model_validate_json(json.dumps(payload))

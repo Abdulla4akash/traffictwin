@@ -3,11 +3,24 @@
 from __future__ import annotations
 
 import inspect
+import json
+from decimal import Decimal
 from pathlib import Path
+from typing import Any
+
+import pytest
+from pydantic import ValidationError
 
 from traffictwin.integration.manchester import network_service
+from traffictwin.integration.manchester.network_scope import (
+    GeographicPoint,
+    classify_dft_coverage,
+    in_baseline,
+    in_sub_area,
+)
 from traffictwin.integration.manchester.network_service import (
     NETWORKS_DIRECTORY_NAME,
+    BaselineNetworkStatus,
     baseline_network_status,
     list_network_candidates,
     toolchain_availability,
@@ -102,3 +115,56 @@ class TestToolchainReporting:
             assert availability.reported_version.startswith("1.27.")
         else:
             assert availability.blocker is not None
+
+
+class TestDftCoverageSurvivesEveryBoundary:
+    """DfT observations cover Manchester local authority only.
+
+    The rest of Greater Manchester is *unavailable*, never zero traffic, and
+    that distinction has to survive every boundary a consumer might read it
+    through - not just the prose in ``unavailable_reasons``.
+    """
+
+    def test_the_service_exposes_the_distinction_structurally(self) -> None:
+        coverage = baseline_network_status().scope.dft_coverage
+        assert coverage.coverage_kind == "partial"
+        assert coverage.uncovered_state == "unavailable"
+        assert coverage.uncovered_is_zero is False
+        assert coverage.missing_filled_with_zero is False
+
+    def test_the_distinction_survives_serialisation(self) -> None:
+        status = baseline_network_status()
+        reloaded = BaselineNetworkStatus.model_validate_json(status.canonical_json())
+        assert reloaded.scope.dft_coverage.uncovered_is_zero is False
+        assert reloaded.scope.dft_coverage.uncovered_state == "unavailable"
+
+    def test_a_status_claiming_uncovered_means_zero_is_refused(self) -> None:
+        payload: dict[str, Any] = json.loads(baseline_network_status().canonical_json())
+        payload["scope"]["dft_coverage"]["uncovered_is_zero"] = True
+        with pytest.raises(ValidationError):
+            BaselineNetworkStatus.model_validate_json(json.dumps(payload))
+
+    def test_a_status_claiming_missing_is_filled_with_zero_is_refused(self) -> None:
+        payload: dict[str, Any] = json.loads(baseline_network_status().canonical_json())
+        payload["scope"]["dft_coverage"]["missing_filled_with_zero"] = True
+        with pytest.raises(ValidationError):
+            BaselineNetworkStatus.model_validate_json(json.dumps(payload))
+
+    def test_network_coverage_and_observation_coverage_are_different_things(self) -> None:
+        # Bolton sits inside the Greater Manchester baseline network but outside
+        # the local-authority observation filter.  Having network geometry there
+        # says nothing about having observations there.
+        bolton = GeographicPoint(longitude=Decimal("-2.429900"), latitude=Decimal("53.578300"))
+        assert in_baseline(bolton) is True
+        assert in_sub_area(bolton) is False
+        assert classify_dft_coverage(bolton) == "uncovered"
+
+    def test_an_uncovered_location_is_never_reported_as_a_count(self) -> None:
+        # The return type is a closed set of categorical states, so a numeric
+        # zero cannot be produced here at all - mypy rejects even comparing the
+        # two.  What remains checkable at run time is that no zero-like string
+        # sneaks in as a stand-in for one.
+        bolton = GeographicPoint(longitude=Decimal("-2.429900"), latitude=Decimal("53.578300"))
+        state = classify_dft_coverage(bolton)
+        assert isinstance(state, str)
+        assert state not in {"0", "0.0", "zero", "none", ""}
