@@ -584,6 +584,45 @@ acceptance.
   does not reject a build, because a small probe is a valid artifact that simply is not the
   baseline.
 
+#### Grant amendment: real network edge geometry (Gate-D step 2 prerequisite, 25 July 2026)
+
+- The owner directed the next core feature to be **real observation-to-network map matching**. The
+  observation half already exists and is real (`dft.py` count points admitted through
+  `spatial.py`, carrying a `spatial_result_fingerprint`). The network half does not: nothing reads
+  real directed edge geometry out of a built network, and `map_matching.py` models only
+  `SyntheticSumoEdgeGeometry`, capped at 64 coordinates and fixed `synthetic: Literal[True]`.
+  Reading real edge geometry is therefore the missing prerequisite, and it is **mechanical** — it
+  invents no threshold, objective, or metric.
+- The exclusive new source file is exactly
+  `src/traffictwin/integration/manchester/network_geometry.py`. The exclusive new tests are
+  `tests/unit/test_manchester_network_geometry.py`. The exclusive new document is
+  `docs/integration/manchester_map_matching_decision_worksheet.md`. The shared-record and
+  `cli.py` allowances of the parent grant carry over unchanged.
+- **Disjointness is unchanged and binding.** `map_matching.py`, `spatial.py`, `dft.py`,
+  `calibration.py`, `temporal_profile.py`, `comparison.py`, and
+  `integration/manchester/__init__.py` are read and imported, **never modified**. The lead's
+  synthetic map-matching harness, its `SyntheticMapMatchingPolicy`, and its preflight blockers
+  stay exactly as they are; this slice adds a real-geometry reader beside them and does not
+  rewrite, widen, or bypass them.
+- **Scientifically blocked and stays blocked.** Open question 6 — "which map-matching distance,
+  direction, road-class, and confidence rules are scientifically acceptable, and which cases
+  require manual confirmation" — is unanswered. Every matching threshold, tie-break rule,
+  confidence category, and acceptance criterion is therefore an owner decision. This slice must
+  not choose any of them, must not supply a default for any of them, and real candidate generation
+  must continue to fail closed on `MAP_MATCH_POLICY_UNAPPROVED`. The worksheet may record measured
+  distributions from real data to inform the decision; it must not make it.
+- Capability truth is unchanged. Reading edge geometry is a prerequisite for the *second* of
+  `MAN-09`'s seven acceptance components, not the component itself. `MAN-09` stays `planned` and
+  practically `foundation_only`; Gate D stays `foundation_only`; all four map-matching blockers
+  stay in force; `MAN-10`, `MAN-11`, and Gates E–F are untouched. This grant cannot accept a gate.
+- **Geometry provenance must stay visible.** Measured on the accepted Greater Manchester network:
+  of 2,106,404 `<edge>` elements only 804,611 are real road edges — 1,301,793 are junction-internal
+  and must be excluded — and 288,151 of the real edges (36%) carry no `shape` attribute, so their
+  geometry can only be reconstructed as a straight line between their two junctions. A straight
+  line is not the true road shape, and distance-based matching is sensitive to that difference, so
+  every edge must record which of the two sources produced its geometry. It must never be averaged
+  away or presented as uniform-fidelity geometry.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
