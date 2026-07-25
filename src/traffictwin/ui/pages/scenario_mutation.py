@@ -10,8 +10,8 @@ from traffictwin.experiments.scenario_mutation import (
     MutationOperator,
     ScenarioMutationResult,
 )
-from traffictwin.ui.components.badges import badge_row
-from traffictwin.ui.components.cards import section_header
+from traffictwin.ui.components.badges import badge_markdown, badge_row
+from traffictwin.ui.components.cards import fingerprint_summary, section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -22,6 +22,21 @@ from traffictwin.ui.services import (
     scenario_mutation_result_json_for_ui,
 )
 from traffictwin.ui.state import UiConfig
+from traffictwin.ui.tables import table_column_config
+
+
+def _stage_caption() -> None:
+    """Render the ordered three-stage workflow indicator."""
+
+    st.markdown(
+        f"{badge_markdown('source')} **1 Source scenario** → "
+        f"{badge_markdown('mutation')} **2 Requested mutation** → "
+        f"{badge_markdown('candidate')} **3 Resulting candidate**"
+    )
+    st.caption(
+        "Each stage is deterministic and import-first. Building a mutation copies and validates a "
+        "bundle through the ordinary import path; it never executes or validates a simulator."
+    )
 
 
 def render(config: UiConfig) -> None:
@@ -29,6 +44,7 @@ def render(config: UiConfig) -> None:
 
     render_page_header(UiPage.SCENARIO_MUTATION)
     badge_row(["SYNTHETIC EVALUATION", "PARENT READ-ONLY", "VALIDATED COPY", "NO DIRECT LAUNCH"])
+    _stage_caption()
     st.info(
         "Apply one bounded deterministic mutation to a copied synthetic/evaluation bundle. "
         "TrafficTwin records every changed row and validates the derived bundle through the "
@@ -145,48 +161,117 @@ def render(config: UiConfig) -> None:
 
 def _render_result(result: ScenarioMutationResult, output_dir: str) -> None:
     section_header("Mutation Result", "Exact changed-row and file reconciliation.")
-    columns = st.columns(4)
-    columns[0].metric("Changed rows", result.changed_row_count)
-    columns[1].metric("Operator", _operator_label(result.mutation.operator.value))
-    columns[2].metric("Validation", result.validation_status)
-    columns[3].metric("Raw parent edited", "No")
-    st.caption(f"Output: {output_dir}")
-    st.caption(f"Parent fingerprint: {result.parent_bundle_fingerprint}")
-    st.caption(f"Derived fingerprint: {result.derived_bundle_fingerprint}")
-    st.dataframe(
-        [
-            {
-                "table": change.table_kind.value,
-                "source_file": change.source_file,
-                "parent_row": change.parent_source_row,
-                "action": change.action,
-                "fields": ", ".join(item.canonical_field for item in change.field_changes)
-                or "whole row",
-                "before_fingerprint": change.row_fingerprint_before,
-                "after_fingerprint": change.row_fingerprint_after or "removed",
-            }
-            for change in result.row_changes
-        ],
-        hide_index=True,
-        width="stretch",
-    )
-    with st.expander("Changed files"):
+
+    # Stage 1 — Source scenario (the read-only parent).
+    with st.container(border=True):
+        st.markdown(f"{badge_markdown('source')} **Stage 1 · Source scenario**")
+        source_cols = st.columns(2)
+        source_cols[0].metric("Parent rows edited in place", 0)
+        source_cols[1].markdown(
+            f"**Parent identity:** `{fingerprint_summary(result.parent_bundle_fingerprint)}`"
+        )
+        st.caption("The parent synthetic/evaluation bundle is read-only and is never modified.")
+
+    # Stage 2 — Requested mutation (the declared operator).
+    with st.container(border=True):
+        st.markdown(f"{badge_markdown('mutation')} **Stage 2 · Requested mutation**")
+        mutation_cols = st.columns(2)
+        mutation_cols[0].markdown(
+            f"**Operator:** {badge_markdown(_operator_label(result.mutation.operator.value))}"
+        )
+        mutation_cols[1].metric("Changed rows", result.changed_row_count)
+        st.caption("One bounded deterministic operator per copy; no simulator is executed.")
+
+    # Stage 3 — Resulting candidate (the validated derived copy).
+    with st.container(border=True):
+        st.markdown(f"{badge_markdown('candidate')} **Stage 3 · Resulting candidate**")
+        candidate_cols = st.columns(2)
+        candidate_cols[0].markdown(
+            f"**Import validation:** {badge_markdown(result.validation_status)}"
+        )
+        candidate_cols[1].markdown(
+            f"**Derived identity:** `{fingerprint_summary(result.derived_bundle_fingerprint)}`"
+        )
+        st.caption(f"Output directory: `{output_dir}`. Import validation is not simulation.")
+
+    section_header("Before / After Field Changes", "Human-readable per-field mutation of the copy.")
+    field_rows = [
+        {
+            "table": change.table_kind.value,
+            "parent_row": change.parent_source_row,
+            "field": field.canonical_field,
+            "before": field.before,
+            "after": field.after,
+            "action": change.action,
+        }
+        for change in result.row_changes
+        for field in change.field_changes
+    ]
+    excluded_rows = [
+        {
+            "table": change.table_kind.value,
+            "parent_row": change.parent_source_row,
+            "field": "(whole row)",
+            "before": "present",
+            "after": "removed",
+            "action": change.action,
+        }
+        for change in result.row_changes
+        if not change.field_changes
+    ]
+    combined = field_rows + excluded_rows
+    if combined:
+        st.dataframe(
+            combined,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(combined),
+        )
+        changed = len(field_rows)
+        excluded = len(excluded_rows)
+        st.caption(
+            f"Changed fields: {changed} · Excluded (removed) rows: {excluded}. Fields not listed "
+            "are unchanged; controls disabled for this operator are unsupported for the selection."
+        )
+    else:
+        st.info("This mutation produced no per-field changes.")
+
+    if result.validation_finding_codes:
+        st.warning("Ordinary validation findings: " + ", ".join(result.validation_finding_codes))
+    for warning in result.warnings:
+        st.warning(warning)
+
+    with st.expander("Advanced/Evidence: fingerprints, changed files, and manifest"):
+        st.caption(f"Complete parent fingerprint: {result.parent_bundle_fingerprint}")
+        st.caption(f"Complete derived fingerprint: {result.derived_bundle_fingerprint}")
+        st.markdown("**Row-level provenance fingerprints**")
+        st.dataframe(
+            [
+                {
+                    "table": change.table_kind.value,
+                    "parent_row": change.parent_source_row,
+                    "action": change.action,
+                    "before_fingerprint": change.row_fingerprint_before,
+                    "after_fingerprint": change.row_fingerprint_after or "removed",
+                }
+                for change in result.row_changes
+            ],
+            hide_index=True,
+            width="stretch",
+        )
+        st.markdown("**Changed files**")
         st.dataframe(
             [item.model_dump(mode="json") for item in result.file_changes],
             hide_index=True,
             width="stretch",
         )
-    if result.validation_finding_codes:
-        st.warning("Ordinary validation findings: " + ", ".join(result.validation_finding_codes))
-    for warning in result.warnings:
-        st.warning(warning)
-    st.download_button(
-        "Download Mutation Manifest JSON",
-        data=scenario_mutation_result_json_for_ui(result),
-        file_name=f"{result.mutation_id}.json",
-        mime="application/json",
-        width="stretch",
-    )
+        st.download_button(
+            "Download Mutation Manifest JSON",
+            data=scenario_mutation_result_json_for_ui(result),
+            file_name=f"{result.mutation_id}.json",
+            mime="application/json",
+            width="stretch",
+        )
 
 
 def _operator_label(value: str) -> str:
