@@ -16,6 +16,7 @@ from traffictwin.ui.guided_runtime import complete_guided_action
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
+    ReportEntry,
     ServiceError,
     append_analyst_annotation_for_ui,
     build_executive_summary_for_ui,
@@ -29,14 +30,39 @@ from traffictwin.ui.state import UiConfig
 
 
 def render(config: UiConfig) -> None:
-    """Render report inventory and deliberate report generation."""
+    """Render report inventory and deliberate report generation as peer views."""
 
     render_page_header(st.session_state.get("_active_ui_page", UiPage.REPORTS))
     st.info("Reports are deterministic exports. They are never regenerated automatically.")
     workspace = config.workspace_path
     reports = list_workspace_reports(workspace)
+    default_bundle = (
+        workspace / "bundles" / "baseline"
+        if workspace is not None
+        else Path("tests/fixtures/bundles/baseline_valid")
+    )
+    report_root = workspace / "reports" if workspace is not None else Path("reports")
 
-    section_header("Available Reports")
+    tab_inventory, tab_regenerate, tab_compare, tab_exports, tab_annotations = st.tabs(
+        ["Inventory", "Regenerate", "Compare", "Exports", "Annotations"]
+    )
+
+    with tab_inventory:
+        _render_inventory(reports)
+    with tab_regenerate:
+        _render_regenerate(config, workspace, default_bundle)
+    with tab_compare:
+        _render_structured_diff(report_root)
+    with tab_exports:
+        _render_executive_summary(report_root)
+        st.divider()
+        _render_latex_export(workspace, default_bundle)
+    with tab_annotations:
+        _render_annotations(config)
+
+
+def _render_inventory(reports: list[ReportEntry]) -> None:
+    section_header("Available Reports", "Deterministic report inventory for the active workspace.")
     query = st.text_input("Search reports", value="")
     filtered = [
         report
@@ -53,6 +79,20 @@ def render(config: UiConfig) -> None:
         ).lower()
     ]
     if filtered:
+        st.dataframe(
+            [
+                {
+                    "report": report.name,
+                    "type": report.report_type,
+                    "format": report.format_label,
+                    "modified": report.modified_at,
+                    "source": report.scenario_hint or "unavailable",
+                }
+                for report in filtered
+            ],
+            hide_index=True,
+            width="stretch",
+        )
         for report in filtered:
             with st.expander(report.name, expanded=False):
                 report_card(
@@ -70,12 +110,9 @@ def render(config: UiConfig) -> None:
     else:
         st.info("No reports found for the active workspace.")
 
+
+def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle: Path) -> None:
     section_header("Regenerate Report", "Choose explicit inputs before regenerating.")
-    default_bundle = (
-        workspace / "bundles" / "baseline"
-        if workspace is not None
-        else Path("tests/fixtures/bundles/baseline_valid")
-    )
     report_type = st.selectbox("Report type", ["run", "compare", "diagnostics", "full"])
     primary = Path(st.text_input("Primary bundle path", value=str(default_bundle)))
     secondary_value = ""
@@ -119,7 +156,8 @@ def render(config: UiConfig) -> None:
             st.success(f"Report generated: {generated}")
             complete_guided_action(UiPage.REPORTS, "regenerate_report")
 
-    report_root = workspace / "reports" if workspace is not None else Path("reports")
+
+def _render_executive_summary(report_root: Path) -> None:
     section_header(
         "One-page Executive Summary (REP-04)",
         "Render a supervisor-facing A4 summary from one saved typed report JSON.",
@@ -203,6 +241,8 @@ def render(config: UiConfig) -> None:
                 mime="application/json",
             )
 
+
+def _render_structured_diff(report_root: Path) -> None:
     section_header(
         "Structured Report Diff (REP-03)",
         "Compare saved typed report JSON payloads before rendering; prose is never evidence.",
@@ -264,6 +304,8 @@ def render(config: UiConfig) -> None:
                 mime="text/markdown",
             )
 
+
+def _render_annotations(config: UiConfig) -> None:
     section_header(
         "Analyst Annotations (REP-02)",
         "Append notes or decisions to typed artifact references without rewriting evidence.",
@@ -355,6 +397,8 @@ def render(config: UiConfig) -> None:
     else:
         st.caption("The active registry will be created only when an annotation is appended.")
 
+
+def _render_latex_export(workspace: Path | None, default_bundle: Path) -> None:
     section_header(
         "LaTeX Research Export (REP-01)",
         "Render escaped tables and deterministic SVG/PDF figures from existing typed results.",

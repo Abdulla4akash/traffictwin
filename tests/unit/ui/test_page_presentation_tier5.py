@@ -238,3 +238,38 @@ def test_experiment_planner_is_sequential_with_run_matrix(
     assert "Planned run slots" in {str(item.label) for item in app.metric}
     # Stage 4 makes registration separate from execution.
     assert "Stage 4 · Register" in body
+
+
+# --- Reports ----------------------------------------------------------------
+
+
+def test_reports_organised_into_peer_view_tabs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "reports").mkdir(parents=True)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+
+    app = page_app(UiPage.REPORTS).run(timeout=15)
+    assert not app.exception
+    assert any(title.value == "Reports" for title in app.title)
+
+    # The five report surfaces are clear peer views (tabs).
+    tab_labels = {str(tab.label) for tab in app.tabs}
+    assert {"Inventory", "Regenerate", "Compare", "Exports", "Annotations"} <= tab_labels
+
+    # Every peer-view action stays accessible and its download/generation is button-gated.
+    button_labels = {str(button.label) for button in app.button}
+    assert {
+        "Regenerate Selected Report",
+        "Compare Structured Reports",
+        "Generate One-page Executive Summary",
+        "Append Analyst Annotation",
+        "Generate LaTeX Research Export",
+    } <= button_labels
+
+    info_text = "\n".join(str(item.value) for item in app.info)
+    # Reports never regenerate automatically; annotations stay separate from computed findings.
+    assert "never regenerated automatically" in info_text
+    assert "structurally separate from computed findings" in info_text
