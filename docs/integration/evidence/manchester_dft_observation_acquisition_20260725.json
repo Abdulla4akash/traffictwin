@@ -1,0 +1,118 @@
+{
+  "record_type": "real_dft_observation_acquisition_and_ambiguity_measurement",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-02",
+  "capability_status": "working_bounded",
+  "research_status": "owner_approved_candidate",
+  "gate": "Gate-B evidence for the Gate-D step 2 workflow",
+  "scope": {
+    "local_authority": "Manchester",
+    "ons_code": "E08000003",
+    "dft_local_authority_id": 85,
+    "binding_basis": "dft-local-authorities-2026-07-22",
+    "note": "filter[local_authority_id] is applied server-side, so no Great Britain-wide fetch was performed"
+  },
+  "source": {
+    "host": "roadtraffic.dft.gov.uk",
+    "licence_id": "OGL-v3.0",
+    "api_contract": "official DfT road traffic API, audited request shape only",
+    "retrieval_date_utc": "2026-07-25",
+    "note": "retrieval time is not observation time; count_date carries the observation date"
+  },
+  "snapshots": [
+    {
+      "dataset": "count_points",
+      "snapshot_id": "dft_count_points-20260725T063353Z-053491696819",
+      "endpoint_path": "/api/count-points",
+      "pages": 1,
+      "page_size": 500,
+      "rows_seen": 342,
+      "records_accepted": 342,
+      "parser_status": "accepted",
+      "synthetic": false,
+      "raw_fingerprint": "053491696819f2f0767851a24805b1f921fdd8b254f8b8cc04f52e8c396b92b9",
+      "parser_report_fingerprint_prefix": "eeb9c45dcd251a06",
+      "quarantine_receipt_fingerprint_prefix": "576c4cb05d01a8c4",
+      "snapshot_receipt_fingerprint_prefix": "744e8a36de7ee0db"
+    },
+    {
+      "dataset": "raw_counts",
+      "snapshot_id": "dft_raw_counts-20260725T063354Z-61965dc5c182",
+      "endpoint_path": "/api/raw-counts",
+      "pages": 79,
+      "page_size": 500,
+      "rows_seen": 39072,
+      "records_accepted": 39072,
+      "parser_status": "accepted",
+      "synthetic": false,
+      "raw_fingerprint": "61965dc5c182ae335a4bc266664fc808bea35bd35bc9d30740897d8c2b39a33c",
+      "parser_report_fingerprint_prefix": "7b6b8708c2f21d1d",
+      "quarantine_receipt_fingerprint_prefix": "2225483c3fae625a",
+      "snapshot_receipt_fingerprint_prefix": "adc8afb2b4d663f8"
+    }
+  ],
+  "join_verification": {
+    "raw_count_sites": 305,
+    "count_point_sites": 342,
+    "raw_count_sites_resolved_in_count_points": 305,
+    "raw_count_sites_unresolved": 0,
+    "count_points_without_raw_counts": 37,
+    "verdict": "every raw-count site resolves to a count point; no orphaned observation"
+  },
+  "preserved_fields": {
+    "all_required_present": true,
+    "fields": [
+      "count_date", "hour", "direction_of_travel", "road_name", "road_category",
+      "road_type", "start_junction_road_name", "end_junction_road_name",
+      "easting", "northing", "latitude", "longitude"
+    ]
+  },
+  "observed_content": {
+    "hours_present": [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    "hour_semantics": "local clock-hour label, not UTC; no timezone offset is invented",
+    "direction_of_travel": {"N": 10524, "S": 10320, "W": 9144, "E": 9084},
+    "direction_note": "no combined-direction 'C' rows are present in this Manchester window; the policy still handles 'C' rather than assuming its absence",
+    "road_type": {"Major": 20592, "Minor": 18480},
+    "years": "2000 to 2025",
+    "count_date_range": ["2000-03-21", "2025-10-14"],
+    "calibration_measure_available": "all_motor_vehicles"
+  },
+  "counted_versus_estimated": {
+    "raw_counts_carry_estimation_marker": false,
+    "aadf_carries_estimation_marker": true,
+    "aadf_marker_fields": ["estimation_method", "estimation_method_detailed"],
+    "aadf_observed_example": {"estimation_method": "Counted", "estimation_method_detailed": "Manual count"},
+    "consequence": "the Counted/Estimated distinction lives on AADF only. Using raw counts as the calibration evidence and keeping AADF contextual preserves the distinction structurally rather than by convention. Estimated AADF is never used as measured hourly traffic."
+  },
+  "provider_coordinate_self_consistency": {
+    "comparison": "provider easting/northing versus the provider's own latitude/longitude reprojected to EPSG:27700",
+    "median_m": 1.79,
+    "p95_m": 1.85,
+    "max_m": 1.87,
+    "interpretation": "a small systematic offset of about 1.8 m, consistent with datum handling inside the provider's own conversion. It is recorded because it is a real component of positional uncertainty, and it is an order of magnitude below the approved eligibility distances rather than negligible in principle."
+  },
+  "observation_side_ambiguity": {
+    "sample": "305 real Manchester count points that carry raw counts",
+    "network": "accepted Greater Manchester baseline (ADR-059/060), 804,611 real road edges",
+    "measured_at_radii_m": {
+      "10": {"sites_with_at_least_one_candidate": 298, "mean_candidates": 4.5, "median": 3, "p90": 9, "max": 24, "percent_spanning_more_than_one_road_class": 58.4},
+      "20": {"sites_with_at_least_one_candidate": 304, "mean_candidates": 8.3, "median": 6, "p90": 18, "max": 44, "percent_spanning_more_than_one_road_class": 70.8},
+      "30": {"sites_with_at_least_one_candidate": 305, "mean_candidates": 13.3, "median": 10, "p90": 28, "max": 61, "percent_spanning_more_than_one_road_class": 80.0},
+      "50": {"sites_with_at_least_one_candidate": 305, "mean_candidates": 27.2, "median": 23, "p90": 57, "max": 128, "percent_spanning_more_than_one_road_class": 90.5},
+      "100": {"sites_with_at_least_one_candidate": 305, "mean_candidates": 87.4, "median": 71, "p90": 179, "max": 460, "percent_spanning_more_than_one_road_class": 98.7}
+    },
+    "distance_to_nearest_edge_of_any_class": {
+      "Major": {"n": 141, "median_m": 2.3, "p90_m": 5.2, "max_m": 22.4},
+      "Minor": {"n": 164, "median_m": 1.4, "p90_m": 3.3, "max_m": 14.3}
+    },
+    "interpretation": "Distance barely discriminates. Real Manchester count points sit essentially on the network - median 2.3 m for Major and 1.4 m for Minor roads - and every one of the 305 sites has a candidate within 30 m, so no site is excluded by the approved eligibility distances. The difficulty is ambiguity, not proximity: at 10 m the median site already has three candidate edges and 58.4% draw candidates from more than one road class. The road-class filter, road identity, and analyst confirmation therefore carry the discriminating work, which is what the approved candidate policy assumes."
+  },
+  "explicit_non_claims": [
+    "acquisition is not matching, calibration, comparison, or validation",
+    "DfT is historical evidence and is never used as live traffic",
+    "estimated AADF is never used as measured hourly traffic",
+    "retrieval time is not observation time",
+    "no supervisor approval is claimed; the contract decision form remains unsigned",
+    "MAN-09 remains planned and Gate D remains foundation_only at the time of this record"
+  ]
+}

@@ -623,6 +623,53 @@ acceptance.
   every edge must record which of the two sources produced its geometry. It must never be averaged
   away or presented as uniform-fidelity geometry.
 
+## Designated v0.7 integration agent (25 July 2026)
+
+The repository owner has designated Claude as the **v0.7 integration agent** and transferred the
+shared integration surfaces to this single ownership for the duration. Work proceeds in phases; each
+phase records its own claim below before editing.
+
+### Standing terms for the integration-agent mandate
+
+- **Research status.** The owner authorises the map-matching, calibration, and comparison decisions
+  as **versioned candidate-research policies**, identified by `owner_approved_candidate`. This is
+  authorisation to implement and exercise the complete candidate workflow. It is **not** supervisor
+  approval. `docs/evaluation/supervisor_contract_decision_form.md` is unsigned — Dr. Sandra Sampaio
+  has not signed it — and must not be filled in, signed, or represented as complete by this agent.
+  A later supervisor review may accept or revise any candidate contract without changing raw
+  evidence.
+- **Permitted labels:** `owner_approved_candidate`, `analyst_reviewed_candidate`,
+  `descriptive_non_causal`, `held_out_candidate_evaluation`.
+- **Forbidden labels:** `scientifically_validated`, `ground_truth`, `publication_approved`,
+  `causal`, `production_deployment_ready`.
+- **No fabrication.** Where an authorised source, accepted terms, or genuine human evidence does not
+  exist, the capability stays visibly unavailable with its exact reason. A failed real acquisition
+  is never replaced by synthetic data, and no supervisor signature, participant result, or provider
+  response is ever invented.
+- **Capability truth.** Completing a candidate workflow may justify at most `working_bounded`.
+  Gate D is not accepted without real mapping, review, demand, calibration, and comparison evidence;
+  Gate E not without the controlled SUMO/FCD/VEC chain; Gate F not without release reconciliation.
+- **Unchanged prohibitions.** `main`, protected tags, force-pushing, the user's checkout,
+  `supervisor questions2 Gemini/`, and `../external/` remain untouched, and no final `v0.7.0` tag is
+  created.
+
+### Phase 1 claim: real DfT observation acquisition (`MAN-02`)
+
+- Uses the **existing** audited `dft_acquisition.py` contract unchanged — bounded transport,
+  quarantine, hashing, receipt, atomic promotion — invoked for Manchester local authority `85`
+  (ONS `E08000003`), which the scope model already binds as a literal so the boundary cannot be
+  redefined by a caller.
+- Probed before acquiring rather than assumed: `count-points` returns 342 rows for LA 85 in a single
+  page; `raw-counts` returns 39,072 rows across 79 pages at 500 rows per page. Server-side
+  `filter[local_authority_id]` means no Great Britain-wide fetch is performed.
+- New files claimed by this phase: an evidence record under `docs/integration/evidence/` and
+  additions to `tests/unit/test_manchester_network_geometry.py` plus one new
+  `tests/unit/test_manchester_observation_*.py`. `dft.py`, `dft_acquisition.py`, and `spatial.py`
+  are read and invoked, **not modified**.
+- DfT `hour` is a **local clock-hour label**, not UTC, and no timezone offset is invented.
+  `Counted` versus `Estimated` is preserved. AADF is contextual only and is never used as an
+  instantaneous hourly observation.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
