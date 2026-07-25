@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `8b0824d`
+- Working head at last update: `b50f27d`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -39,7 +39,7 @@ analyst, human, or supervisor has reviewed any row**, and no downstream artifact
 | 10 | CLI, service and thin UI integration | **done (CLI); UI pending** | 33 commands, seven families; remaining workflows are blocked, not unwritten |
 | 11 | Gate B, C and F closure | **done for automated work** | remaining items need a person or a provider reply |
 | 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
-| 13 | Final verified alpha checkpoint | **to do** | not a release; no final `v0.7.0` tag |
+| 13 | Final verified alpha checkpoint | **proposed** | [handoff](v07_alpha7_checkpoint_handoff.md); tag not created |
 
 ## Open decisions, owner-only
 
