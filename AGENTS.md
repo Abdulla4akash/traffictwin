@@ -846,7 +846,7 @@ project records.
   accepted rather than a person.
 - No CLI command may accept an executable path, an argument vector, a threshold, or a shell string.
 
-### Phase 11 claim: Gate C accessibility evidence
+### Phase 11 claim: Gate B, C and F reconciliation evidence
 
 Claimed 25 July 2026 from the clean pushed head `d17093c`, under the same mandate and standing
 terms. No capability moves off `planned`, no gate is accepted.
@@ -854,7 +854,9 @@ terms. No capability moves off `planned`, no gate is accepted.
 **Why.** Gate C asks for automated keyboard-order, label, contrast and zoom checks where possible,
 and `tests/ui/` currently has none: there is no accessibility test of any kind.
 
-**Exclusive new tests.** `tests/ui/test_accessibility.py`.
+**Exclusive new tests.** `tests/ui/test_accessibility.py`,
+`tests/unit/test_release_reconciliation_v07.py` (Gate F), and
+`tests/unit/test_gate_b_dft_time_basis.py` (Gate B).
 **Additionally edited** under the shared-surface transfer: a new
 `docs/evaluation/manual_accessibility_checklist.md` and the shared project records.
 
