@@ -23,6 +23,7 @@ The module performs no acquisition, no network build, and no calibration.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -36,7 +37,11 @@ from typing import Literal, TypeAlias
 
 from pydantic import Field, model_validator
 
-from traffictwin.integration.manchester.models import ManchesterSnapshotModel
+from traffictwin.integration.manchester.models import (
+    ManchesterSnapshotModel,
+    canonical_json,
+    sha256_hex,
+)
 from traffictwin.integration.manchester.network_acquisition import (
     OSM_EXTRACT_DATA_CUTOFF_DATE,
     OSM_EXTRACT_FILENAME,
@@ -84,8 +89,23 @@ PINNED_PROVIDER_MD5 = "c73b16ec7da303c1dfd331dc914bd5bc"
 PINNED_PROVIDER_LAST_MODIFIED = "Sat, 25 Jul 2026 00:29:36 GMT"
 
 #: Receipt filename written beside a promoted decoded artifact.
+#: Placeholder used only while a receipt is being sealed in two passes: the first pass
+#: validates the payload so pydantic fills every default, the second seals the result.
+#: A persisted receipt carrying this value is rejected on load.
+UNSEALED_FINGERPRINT = "0" * 64
 DECODE_RECEIPT_SUFFIX = ".receipt.json"
 MAX_RECEIPT_BYTES = 200_000
+
+#: Structural validation reads a bounded prefix; an OSM XML document declares
+#: its root and first elements immediately.
+MAX_STRUCTURE_PREFIX_BYTES = 64 * 1024
+ALLOWED_OSM_ROOT: Literal["osm"] = "osm"
+_ROOT_ELEMENT = re.compile(rb"<\s*([A-Za-z_][\w.:-]*)")
+_OSM_CONTENT_PATTERNS = (
+    re.compile(rb"<node\b"),
+    re.compile(rb"<way\b"),
+    re.compile(rb"<relation\b"),
+)
 _PBF_SNIFF_BYTES = 64
 
 #: A ~50 MB Greater Manchester PBF decodes to roughly 1 GB of XML (measured:
@@ -237,8 +257,21 @@ class OsmDecodeReceipt(NetworkDecodeModel):
     retrieval_date: date | None = None
     provider_last_modified: str | None = Field(default=None, max_length=64)
     source_identity_verified: bool
-    osm_root_element: Literal["osm"] = "osm"
+    source_pinned_by_default: bool
+    accepted_snapshot_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    osm_root_element: Literal["osm"] = ALLOWED_OSM_ROOT
     structural_validation_passed: Literal[True] = True
+    structural_elements_observed: int = Field(ge=1)
+    #: Workspace name plus a digest of its resolved path; never the path.
+    workspace_identity: str = Field(min_length=1, max_length=128)
+    #: Digest of the frozen argument vector, so a changed builder is visible.
+    argument_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+    licence_id: Literal["ODbL-1.0"] = "ODbL-1.0"
+    attribution_text: Literal["© OpenStreetMap contributors, ODbL 1.0"] = (
+        "© OpenStreetMap contributors, ODbL 1.0"
+    )
+    refusal_codes: tuple[str, ...] = ()
+    synthetic: bool
     source_header: OsmSourceHeader
     tool: OsmiumToolIdentity
     command: NetworkDecodeCommandReceipt
@@ -251,6 +284,40 @@ class OsmDecodeReceipt(NetworkDecodeModel):
     publication_class: Literal["private"] = "private"
     committed_to_git: Literal[False] = False
     capability_status: Literal["planned"] = "planned"
+    #: Stored so a reloaded receipt proves it was not edited in place.
+    receipt_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
+
+    @model_validator(mode="after")
+    def validate_receipt(self) -> OsmDecodeReceipt:
+        if self.argument_fingerprint != argument_fingerprint():
+            raise ValueError("the decode receipt must record the exact frozen argument vector")
+        if (
+            self.receipt_fingerprint != UNSEALED_FINGERPRINT
+            and self.receipt_fingerprint != self._expected_fingerprint()
+        ):
+            raise ValueError("the decode receipt fingerprint does not match its own content")
+        if not self.synthetic and not self.source_identity_verified:
+            raise ValueError("real evidence must have a verified pinned source identity")
+        return self
+
+    def _expected_fingerprint(self) -> str:
+        payload = self.model_dump(mode="json")
+        payload.pop("receipt_fingerprint", None)
+        return sha256_hex(canonical_json(payload).encode("utf-8"))
+
+
+def build_receipt_fingerprint(values: dict[str, object]) -> str:
+    """Fingerprint a receipt payload that does not yet carry its own digest."""
+
+    payload = dict(values)
+    payload.pop("receipt_fingerprint", None)
+    return sha256_hex(canonical_json(payload).encode("utf-8"))
+
+
+def argument_fingerprint() -> str:
+    """Digest of the frozen decoder vector, so a changed builder is visible."""
+
+    return sha256_hex(canonical_json(list(OSMIUM_FIXED_ARGUMENTS)).encode("utf-8"))
 
 
 def _utc_now(clock: Callable[[], datetime] | None) -> datetime:
@@ -408,10 +475,20 @@ def decode_pbf_to_osm_xml(
     source_path: str | Path,
     destination_path: str | Path,
     *,
+    workspace_root: str | Path | None = None,
     expectation: DecodeSourceExpectation | None = None,
+    allow_unpinned_source: bool = False,
+    accepted_snapshot_dir: str | Path | None = None,
+    synthetic: bool = False,
     clock: Callable[[], datetime] | None = None,
 ) -> OsmDecodeReceipt:
     """Decode one PBF extract to OSM XML through the frozen ``osmium`` vector.
+
+    The pinned source identity is verified **by default**: the ADR-059
+    expectation applies unless the caller passes ``allow_unpinned_source``,
+    which exists only for clearly-labelled synthetic fixtures and is recorded
+    on the receipt.  ``workspace_root`` confines both staging and the
+    destination; a destination that escapes it is refused.
 
     The decode writes to a private staging file and is renamed into place only
     after the output is verified, so a failed decode leaves no partial
@@ -421,6 +498,15 @@ def decode_pbf_to_osm_xml(
 
     source = Path(source_path)
     destination = Path(destination_path)
+    refusal_codes: list[str] = []
+    if expectation is None and not allow_unpinned_source:
+        expectation = pinned_source_expectation()
+    if expectation is None and allow_unpinned_source and not synthetic:
+        raise NetworkDecodeError(
+            "UNPINNED_SOURCE_REFUSED",
+            "an unpinned source is admitted only for clearly-labelled synthetic evidence; "
+            "pass synthetic=True or supply the pinned expectation",
+        )
     if source.is_symlink() or not source.is_file():
         raise NetworkDecodeError(
             "SOURCE_PATH_REFUSED", "the extract path must be an existing non-symlink regular file"
@@ -445,6 +531,14 @@ def decode_pbf_to_osm_xml(
             "DESTINATION_INVALID",
             "the decode destination directory must exist and not be a symlink",
         )
+    workspace = _validated_workspace(workspace_root, parent)
+    snapshot_fingerprint = (
+        verify_accepted_snapshot(accepted_snapshot_dir)
+        if accepted_snapshot_dir is not None
+        else None
+    )
+    if snapshot_fingerprint is None:
+        refusal_codes.append("ACCEPTED_SNAPSHOT_NOT_SUPPLIED")
     if expectation is not None:
         observed_sha, _ = _sha256_file(source)
         if observed_sha != expectation.expected_sha256:
@@ -532,12 +626,7 @@ def decode_pbf_to_osm_xml(
             raise NetworkDecodeError(
                 "DECODED_EMPTY", "the decoded XML is empty or truncated and is never accepted"
             )
-        with staged.open("rb") as handle:
-            prefix = handle.read(512)
-        if b"<osm" not in prefix:
-            raise NetworkDecodeError(
-                "DECODED_NOT_OSM_XML", "the decoded output does not open as an OSM XML document"
-            )
+        _root, structural_elements = validate_osm_xml_structure(staged)
         source_digest, _ = _sha256_file(source)
         decoded_digest, verified_size = _sha256_file(staged)
         if verified_size != decoded_size:
@@ -549,25 +638,45 @@ def decode_pbf_to_osm_xml(
                 "DESTINATION_EXISTS", "the decode destination appeared during staging"
             )
         os.replace(staged, destination)
-        receipt = OsmDecodeReceipt(
-            source_sha256=source_digest,
-            source_bytes=source_size,
-            decoded_sha256=decoded_digest,
-            decoded_bytes=decoded_size,
-            source_filename=source.name,
-            decoded_filename=destination.name,
-            provider_md5=expectation.expected_md5 if expectation is not None else None,
-            data_cutoff_date=(
+        values: dict[str, object] = {
+            "source_sha256": source_digest,
+            "source_bytes": source_size,
+            "decoded_sha256": decoded_digest,
+            "decoded_bytes": decoded_size,
+            "source_filename": source.name,
+            "decoded_filename": destination.name,
+            "provider_md5": expectation.expected_md5 if expectation is not None else None,
+            "data_cutoff_date": (
                 expectation.expected_data_cutoff_date if expectation is not None else None
             ),
-            retrieval_date=expectation.expected_retrieval_date if expectation is not None else None,
-            provider_last_modified=(
+            "retrieval_date": (
+                expectation.expected_retrieval_date if expectation is not None else None
+            ),
+            "provider_last_modified": (
                 expectation.expected_provider_last_modified if expectation is not None else None
             ),
-            source_identity_verified=expectation is not None,
-            source_header=header,
-            tool=tool,
-            command=receipt_command,
+            "source_identity_verified": expectation is not None,
+            "source_pinned_by_default": not allow_unpinned_source,
+            "accepted_snapshot_fingerprint": snapshot_fingerprint,
+            "structural_elements_observed": structural_elements,
+            "workspace_identity": workspace,
+            "argument_fingerprint": argument_fingerprint(),
+            "refusal_codes": tuple(refusal_codes),
+            "synthetic": synthetic,
+            "source_header": header.model_dump(mode="json"),
+            "tool": tool.model_dump(mode="json"),
+            "command": receipt_command.model_dump(mode="json"),
+        }
+        # Strict mode rejects the coercions a plain dict would need (str->datetime,
+        # str->Decimal, list->tuple), so rebuild through the JSON boundary instead.
+        # Seal in two passes so the digest covers the defaulted fields as well: the
+        # draft exists only to let pydantic materialise the complete payload.
+        draft = OsmDecodeReceipt.model_validate_json(
+            json.dumps({**values, "receipt_fingerprint": UNSEALED_FINGERPRINT})
+        )
+        sealed = draft.model_dump(mode="json")
+        receipt = OsmDecodeReceipt.model_validate_json(
+            json.dumps({**sealed, "receipt_fingerprint": build_receipt_fingerprint(sealed)})
         )
         _receipt_path(destination).write_text(receipt.canonical_json() + "\n", encoding="utf-8")
         return receipt
@@ -618,6 +727,10 @@ def verify_decoded_artifact(destination_path: str | Path) -> OsmDecodeReceipt:
         raise NetworkDecodeError(
             "DECODE_RECEIPT_INVALID", "the persisted decode receipt is malformed or mutated"
         ) from exc
+    if receipt.receipt_fingerprint == UNSEALED_FINGERPRINT:
+        raise NetworkDecodeError(
+            "DECODE_RECEIPT_INVALID", "the persisted decode receipt was never sealed"
+        )
     if receipt.decoded_filename != destination.name:
         raise NetworkDecodeError(
             "DECODE_RECEIPT_MISMATCH", "the receipt does not describe this decoded artifact"
@@ -640,3 +753,89 @@ def verify_decoded_artifact(destination_path: str | Path) -> OsmDecodeReceipt:
             "DECODED_NOT_OSM_XML", "the decoded artifact no longer opens as an OSM XML document"
         )
     return receipt
+
+
+def _validated_workspace(workspace_root: str | Path | None, parent: Path) -> str:
+    """Confine the decode to one workspace and refuse traversal or escape.
+
+    Returns a short workspace identity for the receipt.  The identity is the
+    workspace directory *name* plus a digest of its resolved path, never the
+    path itself, so a receipt can bind a workspace without disclosing where the
+    operator keeps it.
+    """
+
+    resolved_parent = parent.resolve()
+    if workspace_root is None:
+        return _workspace_identity(resolved_parent)
+    root = Path(workspace_root)
+    if root.is_symlink() or not root.is_dir():
+        raise NetworkDecodeError(
+            "WORKSPACE_INVALID", "the workspace root must be an existing non-symlink directory"
+        )
+    resolved_root = root.resolve()
+    if not resolved_parent.is_relative_to(resolved_root):
+        raise NetworkDecodeError(
+            "WORKSPACE_ESCAPE_REFUSED",
+            "the decode destination resolves outside the declared workspace; traversal and "
+            "workspace escape are refused rather than followed",
+        )
+    return _workspace_identity(resolved_root)
+
+
+def _workspace_identity(resolved: Path) -> str:
+    """Bind a workspace without disclosing a private absolute path."""
+
+    digest = hashlib.sha256(str(resolved).encode("utf-8")).hexdigest()[:16]
+    return f"{resolved.name}:{digest}"
+
+
+def validate_osm_xml_structure(path: Path) -> tuple[str, int]:
+    """Confirm an allowed root element and expected structural content.
+
+    Reads a bounded prefix rather than parsing a gigabyte document: an OSM XML
+    file declares its root and first elements at the very start, so a wrong
+    root or an element-free document is detectable without a full parse.
+    """
+
+    with path.open("rb") as handle:
+        prefix = handle.read(MAX_STRUCTURE_PREFIX_BYTES)
+    root_match = _ROOT_ELEMENT.search(prefix)
+    if root_match is None:
+        raise NetworkDecodeError(
+            "DECODED_NOT_OSM_XML", "the decoded output declares no XML root element"
+        )
+    root = root_match.group(1).decode("ascii", "replace")
+    if root != ALLOWED_OSM_ROOT:
+        raise NetworkDecodeError(
+            "DECODED_WRONG_XML_ROOT",
+            f"the decoded output has root element {root!r}; only {ALLOWED_OSM_ROOT!r} is admitted",
+        )
+    elements = sum(len(pattern.findall(prefix)) for pattern in _OSM_CONTENT_PATTERNS)
+    if elements == 0:
+        raise NetworkDecodeError(
+            "DECODED_OSM_XML_EMPTY",
+            "the decoded output declares an <osm> root but contains no node, way, or relation",
+        )
+    return root, elements
+
+
+def verify_accepted_snapshot(snapshot_dir: str | Path) -> str:
+    """Re-verify a promoted MAN-01 snapshot before its bytes are decoded.
+
+    Reuses the existing snapshot service rather than reimplementing hashing, so
+    a decode can only consume evidence that already passed acquisition.
+    """
+
+    from traffictwin.integration.manchester.snapshots import (
+        ManchesterSnapshotError,
+        verify_manchester_snapshot,
+    )
+
+    try:
+        receipt = verify_manchester_snapshot(snapshot_dir)
+    except ManchesterSnapshotError as exc:
+        raise NetworkDecodeError(
+            "SNAPSHOT_RECEIPT_INVALID",
+            f"the accepted snapshot did not re-verify ({exc.code}); its bytes are not decoded",
+        ) from exc
+    return receipt.raw_fingerprint

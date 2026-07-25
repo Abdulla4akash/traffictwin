@@ -23,6 +23,7 @@ from traffictwin.integration.manchester.network_decode import (
     OSMIUM_FIXED_ARGUMENTS,
     PBF_HEADER_MARKER,
     SUPPORTED_OSMIUM_MAJOR,
+    UNSEALED_FINGERPRINT,
     DecodeSourceExpectation,
     NetworkDecodeCommandReceipt,
     NetworkDecodeError,
@@ -186,7 +187,9 @@ class TestFramingDetection:
         source = tmp_path / "a.osm"
         source.write_text(SYNTHETIC_OSM, encoding="utf-8")
         with pytest.raises(NetworkDecodeError, match="SOURCE_NOT_PBF"):
-            decode_pbf_to_osm_xml(source, tmp_path / "out.osm.xml")
+            decode_pbf_to_osm_xml(
+                source, tmp_path / "out.osm.xml", allow_unpinned_source=True, synthetic=True
+            )
 
 
 class TestPathAndBoundRefusals:
@@ -206,13 +209,18 @@ class TestPathAndBoundRefusals:
         destination = tmp_path / "out.osm.xml"
         destination.write_text("existing", encoding="utf-8")
         with pytest.raises(NetworkDecodeError, match="DESTINATION_EXISTS"):
-            decode_pbf_to_osm_xml(source, destination)
+            decode_pbf_to_osm_xml(source, destination, allow_unpinned_source=True, synthetic=True)
         assert destination.read_text(encoding="utf-8") == "existing"
 
     def test_a_missing_destination_directory_is_refused(self, tmp_path: Path) -> None:
         source = _fake_pbf(tmp_path)
         with pytest.raises(NetworkDecodeError, match="DESTINATION_INVALID"):
-            decode_pbf_to_osm_xml(source, tmp_path / "absent" / "out.osm.xml")
+            decode_pbf_to_osm_xml(
+                source,
+                tmp_path / "absent" / "out.osm.xml",
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
 
     def test_an_oversized_source_is_refused(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -221,7 +229,12 @@ class TestPathAndBoundRefusals:
 
         monkeypatch.setattr(network_decode, "MAX_PBF_INPUT_BYTES", 16)
         with pytest.raises(NetworkDecodeError, match="SOURCE_TOO_LARGE"):
-            decode_pbf_to_osm_xml(_fake_pbf(tmp_path), tmp_path / "out.osm.xml")
+            decode_pbf_to_osm_xml(
+                _fake_pbf(tmp_path),
+                tmp_path / "out.osm.xml",
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
 
     def test_insufficient_disk_space_refuses_before_starting(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -230,7 +243,12 @@ class TestPathAndBoundRefusals:
 
         monkeypatch.setattr(network_decode, "DECODE_EXPANSION_HEADROOM", 10**12)
         with pytest.raises(NetworkDecodeError, match="INSUFFICIENT_DISK_SPACE"):
-            decode_pbf_to_osm_xml(_fake_pbf(tmp_path), tmp_path / "out.osm.xml")
+            decode_pbf_to_osm_xml(
+                _fake_pbf(tmp_path),
+                tmp_path / "out.osm.xml",
+                allow_unpinned_source=True,
+                synthetic=True,
+            )
 
 
 class TestReceiptContract:
@@ -283,7 +301,9 @@ class TestRealDecoder:
     def test_a_real_pbf_decodes_to_osm_xml(self, tmp_path: Path) -> None:
         source = _real_pbf(tmp_path)
         destination = tmp_path / "decoded.osm.xml"
-        receipt = decode_pbf_to_osm_xml(source, destination)
+        receipt = decode_pbf_to_osm_xml(
+            source, destination, allow_unpinned_source=True, synthetic=True
+        )
         assert destination.is_file()
         assert destination.read_bytes().lstrip().startswith(b"<?xml")
         assert b"<osm" in destination.read_bytes()[:512]
@@ -294,7 +314,7 @@ class TestRealDecoder:
         # Conversion only: nothing is filtered out on the way through.
         source = _real_pbf(tmp_path)
         destination = tmp_path / "decoded.osm.xml"
-        decode_pbf_to_osm_xml(source, destination)
+        decode_pbf_to_osm_xml(source, destination, allow_unpinned_source=True, synthetic=True)
         decoded = destination.read_bytes()
         assert decoded.count(b"<node") == SYNTHETIC_OSM.count("<node")
         assert decoded.count(b"<way") == SYNTHETIC_OSM.count("<way")
@@ -304,8 +324,8 @@ class TestRealDecoder:
         source = _real_pbf(tmp_path)
         first = tmp_path / "a.osm.xml"
         second = tmp_path / "b.osm.xml"
-        one = decode_pbf_to_osm_xml(source, first)
-        two = decode_pbf_to_osm_xml(source, second)
+        one = decode_pbf_to_osm_xml(source, first, allow_unpinned_source=True, synthetic=True)
+        two = decode_pbf_to_osm_xml(source, second, allow_unpinned_source=True, synthetic=True)
         assert one.decoded_sha256 == two.decoded_sha256
         assert first.read_bytes() == second.read_bytes()
 
@@ -314,13 +334,15 @@ class TestRealDecoder:
         source = _fake_pbf(tmp_path)
         destination = tmp_path / "out.osm.xml"
         with pytest.raises(NetworkDecodeError):
-            decode_pbf_to_osm_xml(source, destination)
+            decode_pbf_to_osm_xml(source, destination, allow_unpinned_source=True, synthetic=True)
         assert not destination.exists()
         assert not any(child.name.startswith(".osm-decode-") for child in tmp_path.iterdir())
 
     def test_no_private_path_appears_in_the_receipt(self, tmp_path: Path) -> None:
         source = _real_pbf(tmp_path)
-        receipt = decode_pbf_to_osm_xml(source, tmp_path / "decoded.osm.xml")
+        receipt = decode_pbf_to_osm_xml(
+            source, tmp_path / "decoded.osm.xml", allow_unpinned_source=True, synthetic=True
+        )
         serialised = receipt.canonical_json()
         assert str(tmp_path) not in serialised
         assert "/Users/" not in serialised
@@ -336,7 +358,9 @@ class TestRealDecoder:
     def test_the_receipt_binds_both_input_and_output_digests(self, tmp_path: Path) -> None:
         source = _real_pbf(tmp_path)
         destination = tmp_path / "decoded.osm.xml"
-        receipt = decode_pbf_to_osm_xml(source, destination)
+        receipt = decode_pbf_to_osm_xml(
+            source, destination, allow_unpinned_source=True, synthetic=True
+        )
         from traffictwin.integration.manchester.models import sha256_hex
 
         assert receipt.source_sha256 == sha256_hex(source.read_bytes())
@@ -414,7 +438,9 @@ class TestSourceIdentityBinding:
 class TestOfflineReplay:
     def _decoded(self, tmp_path: Path) -> Path:
         destination = tmp_path / "decoded.osm.xml"
-        decode_pbf_to_osm_xml(_real_pbf(tmp_path), destination)
+        decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path), destination, allow_unpinned_source=True, synthetic=True
+        )
         return destination
 
     def test_a_receipt_is_persisted_beside_the_artifact(self, tmp_path: Path) -> None:
@@ -441,12 +467,23 @@ class TestOfflineReplay:
             verify_decoded_artifact(destination)
 
     def test_a_mutated_receipt_is_detected(self, tmp_path: Path) -> None:
+        # The seal covers the whole payload, so an edited field is rejected before
+        # any downstream check gets to run.
         destination = self._decoded(tmp_path)
         receipt_file = tmp_path / "decoded.osm.xml.receipt.json"
         payload = json.loads(receipt_file.read_text(encoding="utf-8"))
         payload["decoded_sha256"] = "c" * 64
         receipt_file.write_text(json.dumps(payload), encoding="utf-8")
-        with pytest.raises(NetworkDecodeError, match="DECODED_ARTIFACT_MUTATED"):
+        with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_INVALID"):
+            verify_decoded_artifact(destination)
+
+    def test_an_unsealed_receipt_is_rejected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        receipt_file = tmp_path / "decoded.osm.xml.receipt.json"
+        payload = json.loads(receipt_file.read_text(encoding="utf-8"))
+        payload["receipt_fingerprint"] = UNSEALED_FINGERPRINT
+        receipt_file.write_text(json.dumps(payload), encoding="utf-8")
+        with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_INVALID"):
             verify_decoded_artifact(destination)
 
     def test_a_malformed_receipt_is_detected(self, tmp_path: Path) -> None:
@@ -456,11 +493,15 @@ class TestOfflineReplay:
             verify_decoded_artifact(destination)
 
     def test_a_receipt_for_a_different_artifact_is_detected(self, tmp_path: Path) -> None:
+        # Use a genuinely sealed receipt from a second decode rather than a hand-edited
+        # one, so this exercises the artifact binding and not the seal.
         destination = self._decoded(tmp_path)
-        receipt_file = tmp_path / "decoded.osm.xml.receipt.json"
-        payload = json.loads(receipt_file.read_text(encoding="utf-8"))
-        payload["decoded_filename"] = "somethingelse.osm.xml"
-        receipt_file.write_text(json.dumps(payload), encoding="utf-8")
+        other = tmp_path / "somethingelse.osm.xml"
+        decode_pbf_to_osm_xml(
+            _real_pbf(tmp_path), other, allow_unpinned_source=True, synthetic=True
+        )
+        foreign = (tmp_path / "somethingelse.osm.xml.receipt.json").read_text(encoding="utf-8")
+        (tmp_path / "decoded.osm.xml.receipt.json").write_text(foreign, encoding="utf-8")
         with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_MISMATCH"):
             verify_decoded_artifact(destination)
 
@@ -474,7 +515,9 @@ class TestOfflineReplay:
         destination = self._decoded(tmp_path)
         original = destination.read_bytes()
         with pytest.raises(NetworkDecodeError, match="DESTINATION_EXISTS"):
-            decode_pbf_to_osm_xml(_real_pbf(tmp_path), destination)
+            decode_pbf_to_osm_xml(
+                _real_pbf(tmp_path), destination, allow_unpinned_source=True, synthetic=True
+            )
         assert destination.read_bytes() == original
         verify_decoded_artifact(destination)
 
