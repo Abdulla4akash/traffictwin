@@ -1,0 +1,107 @@
+{
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "decision_record": "ADR-059",
+  "determinism_measurement": {
+    "identity_sha256_per_run": [
+      "75ef6fd3fb5cf64dd4cd476903861a05ecf62df0b09647a1dad9bebcfec623c9",
+      "75ef6fd3fb5cf64dd4cd476903861a05ecf62df0b09647a1dad9bebcfec623c9",
+      "75ef6fd3fb5cf64dd4cd476903861a05ecf62df0b09647a1dad9bebcfec623c9"
+    ],
+    "interpretation": "netconvert writes a generation banner containing a timestamp and the echoed output filename, so raw bytes differ per run. The canonical identity digest, computed with XML comments removed, is stable.",
+    "raw_bytes_identical_across_runs": false,
+    "raw_sha256_per_run": [
+      "fee84802225a23c70c1941861d8d84eeb989a27f3b3debadc596c7c78135eb0a",
+      "472f48724f273f1ebf760e5eebededab42462893ca443f85e2801efd3b7a534b",
+      "6f4cd058364a3bddefffeba5dcff3fc4079f8289ae62e88dd4fd7ad0915f2063"
+    ],
+    "runs": 3,
+    "semantic_identity_identical_across_runs": true
+  },
+  "explicit_non_claims": [
+    "no calibration was performed",
+    "no observed-versus-simulated comparison was performed",
+    "no VEC execution was performed",
+    "no live traffic is represented",
+    "no matching threshold, calibration objective, or comparison metric was invented",
+    "MAN-09 remains planned; Gate D remains foundation_only"
+  ],
+  "frozen_argument_shape": [
+    "--osm-files",
+    "<input>",
+    "--output-file",
+    "<output>",
+    "--osm.bike-access",
+    "false",
+    "--osm.sidewalks",
+    "false",
+    "--geometry.remove",
+    "--ramps.guess",
+    "--junctions.join",
+    "--tls.guess-signals",
+    "--tls.discard-simple",
+    "--tls.join",
+    "--no-turnarounds",
+    "--numerical-ids",
+    "--seed",
+    "42",
+    "--xml-validation",
+    "never"
+  ],
+  "gate": "Gate-D step 1 (network binding) only",
+  "pinned_extract_acquisition": {
+    "attribution_text": "\u00a9 OpenStreetMap contributors, ODbL 1.0",
+    "build_outcome": "refused: OSM_PBF_DECODE_UNAVAILABLE",
+    "bytes": 50502348,
+    "committed_to_git": false,
+    "data_cutoff_date": "2026-07-24",
+    "host": "download.geofabrik.de",
+    "licence_id": "ODbL-1.0",
+    "md5_observed": "c73b16ec7da303c1dfd331dc914bd5bc",
+    "md5_published_by_provider": "c73b16ec7da303c1dfd331dc914bd5bc",
+    "md5_reconciled": true,
+    "path": "/europe/united-kingdom/england/greater-manchester-260724.osm.pbf",
+    "provider": "Geofabrik",
+    "publication_class": "private",
+    "reference_date": "2026-07-25",
+    "sha256": "38f18e98441e89f7376678eab72d1245454547ffad4df80b76a5ac1c9ccfef3e"
+  },
+  "real_build_probe": {
+    "findings": [],
+    "input_bbox_wgs84": "-2.248,53.464,-2.230,53.480",
+    "input_bytes": 14552830,
+    "input_licence_id": "ODbL-1.0",
+    "input_sha256": "373c4caaae541db5d223448b620bda73753e04d67e5b200617358a83d6af2606",
+    "input_source": "OpenStreetMap API 0.6 /map",
+    "location_read_from_network": {
+      "convBoundary": "0.00,0.00,2129.92,2283.66",
+      "netOffset": "-549533.76,-5923761.60",
+      "origBoundary": "-2.269013,53.460412,-2.216746,53.493202",
+      "projParameter": "+proj=utm +zone=30 +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+    },
+    "network_bytes": 8410123,
+    "network_identity_sha256": "75ef6fd3fb5cf64dd4cd476903861a05ecf62df0b09647a1dad9bebcfec623c9",
+    "network_sha256": "fee84802225a23c70c1941861d8d84eeb989a27f3b3debadc596c7c78135eb0a",
+    "required_area_coverage": {
+      "manchester_city_centre": true,
+      "university_of_manchester": true
+    },
+    "scope_claim": "bounded Manchester city-centre and University of Manchester sub-area; this is NOT the Greater Manchester baseline network",
+    "structure": {
+      "connections": 13758,
+      "edges": 14852,
+      "junctions": 4706,
+      "lanes": 15422,
+      "traffic_lights": 57
+    },
+    "validation_status": "accepted",
+    "why_not_the_pinned_extract": "netconvert 1.27.1 as built in the reviewed environment reads OSM XML only and exits 1 on the pinned PBF container; no approved PBF decoder is available, so the full Greater Manchester baseline build is blocked."
+  },
+  "record_date": "2026-07-25",
+  "record_type": "manchester_baseline_network_build_probe",
+  "toolchain": {
+    "executable_name": "netconvert",
+    "executable_sha256": "df8bdaea278b40db0b4361b39cdf16adde0983cf82875bbc999f3aa35346489e",
+    "reported_version": "1.27.1"
+  }
+}
