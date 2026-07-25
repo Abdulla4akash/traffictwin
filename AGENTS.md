@@ -909,6 +909,17 @@ not:
   page tidier must never make a blocked thing look available.
 - The 375 existing UI tests are the contract. None is weakened to accommodate a redesign.
 
+### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
+
+- The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
+  that is not fully accepted at the `v0.7.0-alpha.7` checkpoint. This work records current evidence,
+  blockers, beta acceptance targets, and the dependency order; it does not change the canonical
+  v0.7 design, capability truth, scientific policy, source contracts, or any gate status.
+- The exclusive file set is this ownership record,
+  `docs/traffictwin-design-v0_7_beta-goals.md`, and the corresponding entry in `docs/index.md`.
+  No implementation, test, generated reference, capability manifest, existing progress record, or
+  external repository is edited in this slice.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,

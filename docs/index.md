@@ -16,6 +16,7 @@ This index points only to documentation and repository paths that exist in the c
 ## User Documentation
 
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
+- [TrafficTwin v0.7 beta goals and incomplete-feature backlog](traffictwin-design-v0_7_beta-goals.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [Accepted v0.7 Manchester source Gate A audit](integration/manchester-source-gate-a-audit-v0_7.md)
 - [Manchester acquisition and hardened-parsing decision](decisions/ADR-054-bounded-manchester-acquisition-transport-and-parsing.md)
