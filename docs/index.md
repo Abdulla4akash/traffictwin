@@ -105,6 +105,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Deterministic calibration-candidate evaluation](integration/manchester_calibration.md)
 - [Greater Manchester baseline network foundation](integration/manchester_baseline_network.md)
 - [Manchester map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md)
+- [Manchester count-constrained candidate demand](integration/manchester_demand_reconstruction.md)
 - [Greater Manchester network build evidence](integration/evidence/manchester_greater_manchester_network_20260725.json)
 - [Deterministic observed-versus-simulated comparison](integration/manchester_comparison.md)
 - [Manchester source-to-VEC research lineage](integration/manchester_research_lineage.md)
