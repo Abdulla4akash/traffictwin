@@ -52,7 +52,6 @@ from traffictwin.integration.manchester.network_acquisition import (
 )
 from traffictwin.integration.manchester.network_scope import (
     BaselineScopeDecision,
-    ExtractEnvelope,
     GeographicPoint,
     baseline_scope_decision,
 )
@@ -222,6 +221,42 @@ class SumoNetworkLocation(NetworkBuildModel):
     rederived_by_traffictwin: Literal[False] = False
 
 
+class NetworkExtent(NetworkBuildModel):
+    """The produced network's own WGS84 extent, read from ``origBoundary``.
+
+    This is deliberately a distinct type from
+    :class:`~traffictwin.integration.manchester.network_scope.ExtractEnvelope`.
+    The envelope is derived from generalised ONS display geometry with a
+    declared margin; this is measured from the network itself and carries no
+    margin and no display-geometry derivation.  Conflating the two would
+    misattribute where the numbers came from.
+    """
+
+    derivation: Literal["read_from_produced_network"] = "read_from_produced_network"
+    min_longitude: Decimal = Field(ge=-180, le=180)
+    min_latitude: Decimal = Field(ge=-90, le=90)
+    max_longitude: Decimal = Field(ge=-180, le=180)
+    max_latitude: Decimal = Field(ge=-90, le=90)
+    coordinate_reference_system: Literal["EPSG:4326"] = "EPSG:4326"
+    administrative_boundary: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_extent(self) -> NetworkExtent:
+        if self.min_longitude >= self.max_longitude:
+            raise ValueError("network extent longitude range must be increasing")
+        if self.min_latitude >= self.max_latitude:
+            raise ValueError("network extent latitude range must be increasing")
+        return self
+
+    def contains(self, point: GeographicPoint) -> bool:
+        """Report containment without altering the point."""
+
+        return (
+            self.min_longitude <= point.longitude <= self.max_longitude
+            and self.min_latitude <= point.latitude <= self.max_latitude
+        )
+
+
 class SumoNetworkStructure(NetworkBuildModel):
     """Deterministic structural counts for the produced network."""
 
@@ -247,7 +282,7 @@ class SumoNetworkValidation(NetworkBuildModel):
     status: Literal["accepted", "rejected"]
     structure: SumoNetworkStructure
     location: SumoNetworkLocation
-    network_extent_wgs84: ExtractEnvelope | None
+    network_extent_wgs84: NetworkExtent | None
     required_areas: tuple[RequiredAreaCoverage, ...]
     findings: tuple[str, ...] = ()
     calibration_performed: Literal[False] = False
@@ -482,7 +517,7 @@ def _parse_location(payload: bytes) -> SumoNetworkLocation:
         ) from exc
 
 
-def _parse_extent(location: SumoNetworkLocation) -> ExtractEnvelope | None:
+def _parse_extent(location: SumoNetworkLocation) -> NetworkExtent | None:
     """Read the network's own WGS84 extent from ``origBoundary``."""
 
     parts = location.orig_boundary.split(",")
@@ -496,13 +531,11 @@ def _parse_extent(location: SumoNetworkLocation) -> ExtractEnvelope | None:
     if min_longitude >= max_longitude or min_latitude >= max_latitude:
         return None
     quantum = Decimal("0.000001")
-    return ExtractEnvelope(
+    return NetworkExtent(
         min_longitude=min_longitude.quantize(quantum),
         min_latitude=min_latitude.quantize(quantum),
         max_longitude=max_longitude.quantize(quantum),
         max_latitude=max_latitude.quantize(quantum),
-        margin_degrees=Decimal("0.01"),
-        boundary_uncertainty_m=20,
     )
 
 

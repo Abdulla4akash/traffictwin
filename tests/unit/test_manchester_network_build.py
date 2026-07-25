@@ -37,7 +37,10 @@ from traffictwin.integration.manchester.network_build import (
     netconvert_identity,
     validate_network_bytes,
 )
-from traffictwin.integration.manchester.network_scope import baseline_scope_decision
+from traffictwin.integration.manchester.network_scope import (
+    ExtractEnvelope,
+    baseline_scope_decision,
+)
 
 SYNTHETIC_OSM = """<?xml version='1.0' encoding='UTF-8'?>
 <osm version="0.6" generator="traffictwin-synthetic-fixture">
@@ -226,6 +229,30 @@ class TestCanonicalIdentity:
         first = b"<net>\n  <edge id='a'/>   \n</net>\n"
         second = b"<net>\n  <edge id='a'/>\n</net>\n"
         assert canonical_network_bytes(first) == canonical_network_bytes(second)
+
+
+class TestExtentProvenance:
+    def test_the_network_extent_is_labelled_as_read_from_the_network(self) -> None:
+        result = validate_network_bytes(
+            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+        )
+        extent = result.network_extent_wgs84
+        assert extent is not None
+        assert extent.derivation == "read_from_produced_network"
+        assert extent.administrative_boundary is False
+
+    def test_the_network_extent_is_not_the_display_derived_envelope_type(self) -> None:
+        # Conflating the two would misattribute where the numbers came from:
+        # the envelope is derived from generalised ONS display geometry with a
+        # declared margin; the extent is measured from the network itself.
+        result = validate_network_bytes(
+            _network_document(b"-2.75,53.30,-1.89,53.70"), scope=baseline_scope_decision()
+        )
+        extent = result.network_extent_wgs84
+        assert extent is not None
+        assert not isinstance(extent, ExtractEnvelope)
+        assert not hasattr(extent, "margin_degrees")
+        assert baseline_scope_decision().envelope.derivation == "derived_from_display_geometry"
 
 
 class TestValidationRefusals:
