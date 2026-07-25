@@ -1,89 +1,71 @@
-# Manual Accessibility Checklist And Evidence Record (UX-03)
+# Manual accessibility checklist (Gate C, UX-03)
 
-This checklist supports the manual accessibility acceptance that the automated 140-snapshot
-browser audit deliberately does **not** provide (see
-[assumption register](../assumption-register.md): "Automated screenshot capture is a complete
-accessibility evaluation" is `contradicted`). It is an execution template for a human reviewer;
-completing it does not by itself accept `UX-03`, and TrafficTwin never records a WCAG-conformance
-claim without the underlying evidence.
+- Status: **unticked**; no item has been performed
+- Scope: the v0.7 Streamlit page set
+- Companion to the automated checks in `tests/ui/test_accessibility.py`
 
-## How to run
+## What this checklist is for
 
-1. Start the v0.7 app: `traffictwin demo launch .demo` (or point `TRAFFICTWIN_WORKSPACE_PATH` at a
-   v0.7 workspace and run Streamlit directly). Visit each route at `?page=<url-path>` where the
-   grouped router exposes it.
-2. For each route, perform the four checks below and record `pass` / `fail` / `n/a` with a note.
-3. Repeat the keyboard and contrast checks at 200% browser zoom.
-4. Record the reviewer, date, browser, assistive technology, and viewport in the header block.
-5. File the completed copy under `docs/evaluation/evidence/` with a dated filename. Do not mark any
-   `UX-*` capability accepted from this document alone; the lead reconciles it with the other gates.
+The automated checks establish what the rendered element tree can prove: that every interactive
+control carries a usable, informative, non-duplicated label, and that heading structure is coherent.
+They run over every page on every test run.
 
-### Per-route checks
+They are **not an accessibility audit**, and they cannot accept Gate C. Four things matter and none
+of them can be established from the element tree:
 
-- **K (keyboard):** every interactive control is reachable and operable by keyboard alone, focus
-  order is logical, and focus is always visible.
-- **S (screen reader):** headings, buttons, form fields, tables, and status/badge text expose a
-  meaningful accessible name; unavailable/partial/stale evidence states are announced, not just
-  colour-coded.
-- **C (contrast):** text and essential non-text indicators meet a legible contrast ratio in both
-  light and dark themes; no critical copy is truncated.
-- **Z (zoom/reflow):** at 200% zoom, content reflows without loss of function or horizontal
-  scrolling of the page body.
-
-## Evidence header (fill in)
-
-| Field | Value |
+| Cannot be automated | Why |
 |---|---|
-| Reviewer | |
-| Date | |
-| Browser + version | |
-| Assistive technology | |
-| Viewports tested | desktop 1440×1000 / mobile 390×844 |
-| App commit | |
+| Contrast ratio | needs the rendered colours of a real browser, not the element tree |
+| Zoom and reflow | needs a viewport at 200% and 400% |
+| Keyboard traversal order | Streamlit does not expose DOM tab order to the test harness |
+| Screen-reader announcement | needs assistive technology and a person using it |
 
-## Route matrix (35 routes)
+Approximating any of these and reporting a pass would be worse than an honest gap, so they are
+listed here for a person instead.
 
-| Group | URL path | Page | K | S | C | Z | Notes |
-|---|---|---|---|---|---|---|---|
-| Overview | `home` | Home | | | | | |
-| Overview | `guided-workflow` | Guided Demo | | | | | |
-| Overview | `manchester` | Manchester Operations | | | | | |
-| Build & run | `experiment-planner` | Experiment Planner | | | | | |
-| Build & run | `parameter-sweep` | Parameter Sweep | | | | | |
-| Build & run | `scenario-mutations` | Scenario Mutations | | | | | |
-| Build & run | `scenario-builder` | Scenario Builder | | | | | |
-| Build & run | `bundle-import` | Bundle Import & Validation | | | | | |
-| Build & run | `sumo` | SUMO Output Import | | | | | |
-| Build & run | `tos-import` | TOS Data Import | | | | | |
-| Build & run | `vec` | VEC Reproduction Workbench | | | | | |
-| Build & run | `experiments` | Experiment Manager | | | | | |
-| Analyse | `tos-results` | TOS Results | | | | | |
-| Analyse | `tos-replay` | TOS Mobility & RSU Replay | | | | | |
-| Analyse | `tos-training` | TOS Training & Audit | | | | | |
-| Analyse | `triviality` | Triviality & Winner Map | | | | | |
-| Analyse | `replay` | Replay | | | | | |
-| Analyse | `run-overview` | Run Overview | | | | | |
-| Analyse | `temporal-metrics` | Temporal Metrics | | | | | |
-| Analyse | `energy` | Energy Evidence | | | | | |
-| Analyse | `fairness` | Fairness Evidence | | | | | |
-| Analyse | `threshold-sensitivity` | Threshold Sensitivity | | | | | |
-| Analyse | `spatial-rsu` | Spatial & RSU Evidence | | | | | |
-| Analyse | `infrastructure` | Infrastructure & Congestion | | | | | |
-| Analyse | `compare` | Comparison | | | | | |
-| Analyse | `journey-time` | Journey-Time Lens | | | | | |
-| Evidence | `statistics` | Statistical Study | | | | | |
-| Evidence | `diagnostics` | Diagnostics & Evidence | | | | | |
-| Evidence | `provenance` | Provenance Explorer | | | | | |
-| Evidence | `reports` | Reports | | | | | |
-| Evidence | `mock-evaluation` | Mock Evaluation Analysis | | | | | |
-| Advanced | `manifest-inference` | Manifest Inference Wizard | | | | | |
-| Advanced | `search` | Search | | | | | |
-| Advanced | `settings` | Settings | | | | | |
-| Advanced | `about` | About | | | | | |
+**No screen-reader user, participant, or assistive-technology session has been invented anywhere in
+this repository.** This checklist ships unticked and unsigned, and must be completed by a person
+before any Gate-C accessibility claim is made.
 
-## Outcome
+## Keyboard
 
-- Total routes: 35. Passed: ___ / Failed: ___ / N/A: ___.
-- Blocking issues (must fix before UX-03 acceptance):
-- Non-blocking issues:
-- Reviewer conclusion (not a WCAG conformance claim):
+- [ ] Every interactive control is reachable using only Tab and Shift+Tab.
+- [ ] Tab order follows the visible reading order on each page.
+- [ ] Focus is always visible; no control receives focus without a visible indicator.
+- [ ] No keyboard trap: focus can always leave a control, an expander, and a dialog.
+- [ ] Every action available by pointer is available by keyboard.
+- [ ] Skipping to the main content does not require tabbing through the whole navigation.
+
+## Contrast and colour
+
+- [ ] Body text meets WCAG 2.2 AA contrast (4.5:1) in both light and dark themes.
+- [ ] Large text and UI component boundaries meet 3:1 in both themes.
+- [ ] No state is signalled by colour alone; an unavailable state carries text as well.
+- [ ] Charts remain readable in greyscale, or carry a non-colour encoding.
+- [ ] Focus indicators meet contrast against both the control and the background.
+
+## Zoom and reflow
+
+- [ ] At 200% browser zoom no content is lost and no horizontal scrolling is required.
+- [ ] At 400% zoom the page reflows to a single column without overlapping content.
+- [ ] Tables and wide evidence blocks scroll within their own container, not the page.
+- [ ] Text spacing overrides (line height 1.5, paragraph spacing 2em) do not clip content.
+
+## Screen reader
+
+- [ ] Each page announces a single, meaningful top-level heading.
+- [ ] Heading levels descend without skipping.
+- [ ] Every control announces a label that identifies it out of context.
+- [ ] Unavailable states announce *why* they are unavailable, not merely that they are.
+- [ ] Status changes after an action are announced without needing to hunt for them.
+- [ ] Data tables announce their column headers.
+
+## Recording the outcome
+
+Record the browser, assistive technology, versions and date beside each section. An item left
+unticked is an item not done — it is never inferred from a passing automated check.
+
+| Role | Name | Date | Signature |
+|---|---|---|---|
+| Performed by | | | |
+| Reviewed by | | | |
