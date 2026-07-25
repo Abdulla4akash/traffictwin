@@ -1,0 +1,88 @@
+{
+  "record_type": "gate_b_source_reconciliation",
+  "record_date": "2026-07-25",
+  "capability_ids": ["MAN-01", "MAN-02", "MAN-03", "MAN-05", "MAN-07"],
+  "gate": "Gate B",
+  "gate_accepted": false,
+  "evidence_class": "automated_candidate_reconciliation",
+  "supervisor_approved": false,
+  "purpose": "reconcile the eligible non-DfT source evidence and pin the invariants that each unresolved external blocker implies",
+  "sources_reconciled": {
+    "dft": {
+      "state": "real evidence acquired and in use for Manchester local authority 85",
+      "eligible_truth_states": ["historical", "unavailable", "synthetic"],
+      "never": ["near_live", "live_vehicle"],
+      "reason": "DfT is a survey archive; a live state would present a survey from an earlier year as current traffic"
+    },
+    "webtris": {
+      "state": "historical latest-available workflow accepted for the observed site-day",
+      "near_live_admission": "rejected",
+      "reason_codes": ["WEBTRIS_MONTH_IN_ARREARS", "CURRENT_DAY_REPORT_UNAVAILABLE", "GA-WT-1"],
+      "ntis_candidate": "would require a new Gate A"
+    },
+    "national_highways": {
+      "state": "operationally accepted for the audited feeds",
+      "licence_id": "NH-Transport-Data-Feeds",
+      "credential_persisted": false,
+      "automatic_polling_performed": false,
+      "accepted_private_raw_bytes_committed": false,
+      "eligible_truth_states": ["near_live", "stale", "historical", "unavailable"],
+      "note": "the only sources permitted to be near-live, and the freshness policy enforces that exclusivity"
+    },
+    "bods": {
+      "state": "accepted scoped operator verification for Bee Network membership by identifier",
+      "eligible_truth_states": ["live_vehicle", "stale", "historical", "unavailable", "synthetic"],
+      "note": "the only source permitted to claim a live vehicle observation, and it can still degrade to stale and unavailable"
+    },
+    "tfgm_signals": {
+      "state": "no accepted terms",
+      "eligible_truth_states": ["unavailable", "synthetic"],
+      "note": "signal phases, queues and controller timing stay visibly unavailable"
+    }
+  },
+  "unresolved_external_blockers": [
+    {
+      "id": "GA-DFT-1",
+      "subject": "the DfT raw-count hour carries no stated timezone",
+      "held_by": "provider",
+      "consequence": "the hour is typed as a local clock label and never converted; the profile module is asserted to contain no timezone conversion at all"
+    },
+    {
+      "id": "GA-WT-1",
+      "subject": "WebTRIS clock semantics are unstated and the feed runs a month in arrears",
+      "held_by": "provider",
+      "consequence": "near-live admission stays rejected; WebTRIS is not eligible for the near_live state"
+    },
+    {
+      "id": "BODS retention and republication terms",
+      "subject": "retention period and republication permissions are unstated",
+      "held_by": "provider",
+      "consequence": "retention stays fail-closed and no retention default is assumed"
+    }
+  ],
+  "documentation_probe": {
+    "performed": "24 July 2026",
+    "finding": "none of the probed official pages resolves the DfT hour timezone, WebTRIS clock semantics, or BODS retention and republication terms",
+    "capability_change": "none",
+    "next_step": "direct provider enquiries; the answers cannot be derived from published documentation"
+  },
+  "what_this_record_does_not_do": [
+    "it does not close any of the three external blockers",
+    "it does not invent a provider reply, a licence term, or a retention period",
+    "it does not accept Gate B or advance any capability",
+    "it does not claim TfGM signal data, Manchester-wide live private traffic, or complete Bee Network fleet coverage"
+  ],
+  "invariants_pinned_in_code": {
+    "test_file": "tests/unit/test_gate_b_source_reconciliation.py",
+    "checks": [
+      "only the audited National Highways feeds may be near-live, asserted across every source",
+      "WebTRIS is not near-live eligible",
+      "DfT is historical only and never live",
+      "only BODS may claim a live vehicle, and it can still degrade to stale and unavailable",
+      "TfGM signals and Randy TOS offer no real state beyond unavailable and synthetic",
+      "every source can express unavailability, so no source has to invent a state when evidence is missing",
+      "the recorded probes still say what they said: WebTRIS near-live rejected, no credential persisted, no automatic polling, no raw bytes committed"
+    ],
+    "why": "these are the invariants that could regress silently. A source quietly promoted to near-live, a credential quietly persisted, or a retention default quietly appearing would each look like progress rather than a defect."
+  }
+}
