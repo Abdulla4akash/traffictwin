@@ -199,6 +199,49 @@ A missing survey point is not measured silence, so uncovered is never rendered a
 Tests confirm Wigan and Stockport sit inside Greater Manchester but outside the Manchester filter,
 and that `classify_dft_coverage` returns a categorical state rather than a number.
 
+## Operator workflow and storage
+
+Install and check the decoder (a standalone CLI, never a Python dependency):
+
+```bash
+command -v osmium && osmium --version        # expect osmium 1.19.x / libosmium 2.x
+HOMEBREW_NO_AUTO_UPDATE=1 brew install osmium-tool   # if missing, on macOS
+```
+
+If `osmium` is absent, every decode fails closed with
+`OSMIUM_TOOLCHAIN_UNAVAILABLE`, and `network status` reports
+`decoder_available: false` with the blocker named.
+
+Full workflow:
+
+```bash
+traffictwin integration manchester network status                     # readiness
+traffictwin integration manchester network acquire <ws> --confirm     # pinned PBF
+traffictwin integration manchester network decode \
+    --extract <pbf> --output <osm.xml> --verify-pinned                # PBF -> XML
+traffictwin integration manchester network verify-decode <osm.xml>    # offline replay
+traffictwin integration manchester network build <ws> \
+    --extract <osm.xml> --network-id gm-baseline-260724               # build
+traffictwin integration manchester network verify <ws> --network-id …  # re-verify
+traffictwin integration manchester network list <ws>                  # inspect
+```
+
+**Storage expectations.** Budget roughly **2.3 GB** of workspace per build:
+~50 MB PBF + ~1.0 GB decoded XML + ~1.25 GB network. The decode refuses to
+start unless free space covers 30× the PBF. All three artifact classes are
+distinct: the **raw** PBF and the **decoded** XML are private workspace
+intermediates and are never committed; only the **derived** network is
+`redistributable_derived`, and that remains conditional on ODbL share-alike and
+the final publication review.
+
+`--verify-pinned` refuses anything but the exact ADR-059 extract identity
+(SHA-256, provider MD5, dated filename), and the expectation model refuses a
+request that collapses the data-cutoff and retrieval dates into one.
+`verify-decode` revalidates a promoted artifact **entirely offline** — it calls
+neither the provider nor the decoder — and detects both artifact and receipt
+mutation. Measured on the real 997 MB artifact: replay completes in about one
+second and an 8-byte append is caught.
+
 ## CLI
 
 ```text

@@ -102,6 +102,14 @@
     "the map-matching blockers are not lifted"
   ],
   "gate": "Gate-D step 1 (network binding) only",
+  "offline_replay": {
+    "decoder_invoked": false,
+    "detection_example": "an 8-byte append was refused with DECODED_ARTIFACT_MUTATED",
+    "mutation_detected": true,
+    "provider_called": false,
+    "replay_seconds_approx": 1.0,
+    "verified_artifact_bytes": 996913352
+  },
   "practical_state": "foundation_only",
   "record_date": "2026-07-25",
   "record_type": "manchester_greater_manchester_baseline_network_build",
@@ -146,5 +154,39 @@
       "provider_last_modified": "Sat, 25 Jul 2026 00:29:36 GMT"
     }
   },
-  "supersedes_note": "The 20260725 sub-area probe record remains valid as a city-centre/University probe. It is NOT the Greater Manchester baseline and is not relabelled."
+  "storage_expectations": {
+    "approximate_total_per_build_bytes": 2296361474,
+    "decoded_xml_bytes": 996913352,
+    "disk_preflight_multiple_of_pbf": 30,
+    "network_bytes": 1248945774,
+    "note": "raw and decoded artifacts are private workspace intermediates; only the derived network is redistributable_derived, conditional on ODbL share-alike and publication review",
+    "raw_pbf_bytes": 50502348,
+    "validation_peak_rss_bytes": 155189248
+  },
+  "supersedes_note": "The 20260725 sub-area probe record remains valid as a city-centre/University probe. It is NOT the Greater Manchester baseline and is not relabelled.",
+  "toolchain_identity": {
+    "netconvert": {
+      "drift_behaviour": "fails closed with SUMO_VERSION_DRIFT",
+      "executable_sha256": "df8bdaea278b40db0b4361b39cdf16adde0983cf82875bbc999f3aa35346489e",
+      "version": "1.27.1"
+    },
+    "osmium": {
+      "absent_behaviour": "fails closed with OSMIUM_TOOLCHAIN_UNAVAILABLE",
+      "executable_sha256": "527a2b003c7d81d7ce7080177e3ef57c431eb36315a0a3abad12bea232e1680e",
+      "formula": "osmium-tool",
+      "install": "HOMEBREW_NO_AUTO_UPDATE=1 brew install osmium-tool",
+      "libosmium": "2.23.1",
+      "licence": "GPL-3.0-or-later",
+      "linkage": "executed as a separate process, never linked",
+      "python_dependency": false,
+      "version": "1.19.1"
+    },
+    "private_paths_recorded": false
+  },
+  "warning_summary_observed": {
+    "connected_component_analysis_available": false,
+    "incomplete_roundabout": 199,
+    "non_numeric_maxspeed_type": 29,
+    "note": "netconvert emits no connected-component analysis, so none is recorded; TrafficTwin does not compute one rather than publish an unverified number. The 199 incomplete-roundabout warnings and the 238 differing <roundabout> canonical lines are consistent, but causation was not established and is not claimed."
+  }
 }

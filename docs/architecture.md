@@ -1363,6 +1363,28 @@ are structurally prevented from becoming zero. A built network is geometry: `cal
 [ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
 [baseline network guide](integration/manchester_baseline_network.md).
 
+The MAN-09 decode boundary under `integration.manchester.network_decode` is a fourth,
+deliberately narrow stage between acquisition and build: **accepted PBF snapshot → controlled
+`osmium` decode → validated private OSM XML → frozen `netconvert` builder → validated network
+binding**. It exists because `netconvert` 1.27.1 reads OSM XML only. `osmium` is an optional
+audited external runtime treated exactly like SUMO — discovered on `PATH`, version-probed, invoked
+through a frozen argument vector with no shell, never imported into Python and never a project
+dependency, so its GPL licence covers the standalone tool and does not attach to TrafficTwin.
+
+The decode is constrained to be a **format conversion and never a content selection**: no tag
+filter, bounding-box clip, simplification, or road-class choice, so deciding which OSM ways become
+SUMO edges stays entirely inside the already-frozen `netconvert` recipe. `OsmDecodeReceipt` binds
+the source and decoded digests, the provider MD5, the three separate time facts (data-cutoff
+instant read from the PBF header, provider publication time, operator retrieval date), tool
+identity, and the frozen argument shape; it is persisted beside the promoted artifact so
+`verify_decoded_artifact` can revalidate entirely offline, calling neither provider nor decoder. An
+optional `DecodeSourceExpectation` makes the decode refuse anything but the exact pinned extract.
+
+Reproducibility is measured rather than asserted anywhere in this chain. `compare_builds` is the
+only thing that can set a verified status, and a single build records `not_verified`. See
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[baseline network guide](integration/manchester_baseline_network.md).
+
 Future canonical adapters must:
 
 - declare supported schemas and units;

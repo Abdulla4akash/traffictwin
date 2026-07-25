@@ -29,7 +29,7 @@ import shutil
 import subprocess
 import tempfile
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Literal, TypeAlias
@@ -37,6 +37,11 @@ from typing import Literal, TypeAlias
 from pydantic import Field, model_validator
 
 from traffictwin.integration.manchester.models import ManchesterSnapshotModel
+from traffictwin.integration.manchester.network_acquisition import (
+    OSM_EXTRACT_DATA_CUTOFF_DATE,
+    OSM_EXTRACT_FILENAME,
+    OSM_REFERENCE_DATE,
+)
 
 NETWORK_DECODE_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 NETWORK_DECODE_METHOD_VERSION: Literal["manchester-osm-pbf-decode-1.0"] = (
@@ -71,6 +76,16 @@ _LIBOSMIUM_VERSION_PATTERN = re.compile(r"libosmium version\s+(\d+\.\d+\.\d+)")
 #: PBF framing marker: a 4-byte big-endian BlobHeader length followed by a
 #: protobuf whose field 1 is the blob type ``OSMHeader``.
 PBF_HEADER_MARKER = b"\x0a\x09OSMHeader"
+
+#: ADR-059 pinned identity, measured on 25 July 2026.  Recorded here so the
+#: decode can refuse an extract that is not the reviewed one.
+PINNED_EXTRACT_SHA256 = "38f18e98441e89f7376678eab72d1245454547ffad4df80b76a5ac1c9ccfef3e"
+PINNED_PROVIDER_MD5 = "c73b16ec7da303c1dfd331dc914bd5bc"
+PINNED_PROVIDER_LAST_MODIFIED = "Sat, 25 Jul 2026 00:29:36 GMT"
+
+#: Receipt filename written beside a promoted decoded artifact.
+DECODE_RECEIPT_SUFFIX = ".receipt.json"
+MAX_RECEIPT_BYTES = 200_000
 _PBF_SNIFF_BYTES = 64
 
 #: A ~50 MB Greater Manchester PBF decodes to roughly 1 GB of XML (measured:
@@ -137,6 +152,44 @@ class OsmSourceHeader(NetworkDecodeModel):
     read_from_source_header: Literal[True] = True
 
 
+class DecodeSourceExpectation(NetworkDecodeModel):
+    """Caller-declared source identity the decode verifies before executing.
+
+    The decode refuses to run on anything but the exact pinned extract, so an
+    unrelated or drifted PBF cannot silently become the baseline input.  The
+    three provider time facts are separate fields and are never collapsed.
+    """
+
+    expected_filename: str = Field(min_length=1, max_length=128)
+    expected_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_md5: str = Field(pattern=r"^[0-9a-f]{32}$")
+    expected_data_cutoff_date: date
+    expected_retrieval_date: date
+    expected_provider_last_modified: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def validate_expectation(self) -> DecodeSourceExpectation:
+        if self.expected_data_cutoff_date == self.expected_retrieval_date:
+            raise ValueError(
+                "the data-cutoff and retrieval dates must stay distinct; "
+                "collapsing them would misrepresent when the data was observed"
+            )
+        return self
+
+
+def pinned_source_expectation() -> DecodeSourceExpectation:
+    """Return the ADR-059 pinned Greater Manchester extract expectation."""
+
+    return DecodeSourceExpectation(
+        expected_filename=OSM_EXTRACT_FILENAME,
+        expected_sha256=PINNED_EXTRACT_SHA256,
+        expected_md5=PINNED_PROVIDER_MD5,
+        expected_data_cutoff_date=OSM_EXTRACT_DATA_CUTOFF_DATE,
+        expected_retrieval_date=OSM_REFERENCE_DATE,
+        expected_provider_last_modified=PINNED_PROVIDER_LAST_MODIFIED,
+    )
+
+
 class NetworkDecodeCommandReceipt(NetworkDecodeModel):
     """Exactly what ran, with no private path in any recorded field."""
 
@@ -176,6 +229,16 @@ class OsmDecodeReceipt(NetworkDecodeModel):
     source_bytes: int = Field(ge=1)
     decoded_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     decoded_bytes: int = Field(ge=MIN_DECODED_BYTES)
+    source_filename: str = Field(min_length=1, max_length=128)
+    decoded_filename: str = Field(min_length=1, max_length=128)
+    provider_md5: str | None = Field(default=None, pattern=r"^[0-9a-f]{32}$")
+    #: Three distinct provider/operator time facts, never collapsed into one.
+    data_cutoff_date: date | None = None
+    retrieval_date: date | None = None
+    provider_last_modified: str | None = Field(default=None, max_length=64)
+    source_identity_verified: bool
+    osm_root_element: Literal["osm"] = "osm"
+    structural_validation_passed: Literal[True] = True
     source_header: OsmSourceHeader
     tool: OsmiumToolIdentity
     command: NetworkDecodeCommandReceipt
@@ -345,6 +408,7 @@ def decode_pbf_to_osm_xml(
     source_path: str | Path,
     destination_path: str | Path,
     *,
+    expectation: DecodeSourceExpectation | None = None,
     clock: Callable[[], datetime] | None = None,
 ) -> OsmDecodeReceipt:
     """Decode one PBF extract to OSM XML through the frozen ``osmium`` vector.
@@ -381,6 +445,24 @@ def decode_pbf_to_osm_xml(
             "DESTINATION_INVALID",
             "the decode destination directory must exist and not be a symlink",
         )
+    if expectation is not None:
+        observed_sha, _ = _sha256_file(source)
+        if observed_sha != expectation.expected_sha256:
+            raise NetworkDecodeError(
+                "SOURCE_IDENTITY_MISMATCH",
+                "the extract does not match the expected pinned SHA-256; an unrelated or "
+                "drifted extract never becomes the baseline input",
+            )
+        if _md5_file(source) != expectation.expected_md5:
+            raise NetworkDecodeError(
+                "PROVIDER_MD5_MISMATCH",
+                "the extract does not match the provider's published MD5",
+            )
+        if source.name != expectation.expected_filename:
+            raise NetworkDecodeError(
+                "SOURCE_FILENAME_MISMATCH",
+                "the extract filename does not match the pinned dated provider file",
+            )
     free_bytes = shutil.disk_usage(parent).free
     if free_bytes < source_size * DECODE_EXPANSION_HEADROOM:
         raise NetworkDecodeError(
@@ -467,14 +549,94 @@ def decode_pbf_to_osm_xml(
                 "DESTINATION_EXISTS", "the decode destination appeared during staging"
             )
         os.replace(staged, destination)
-        return OsmDecodeReceipt(
+        receipt = OsmDecodeReceipt(
             source_sha256=source_digest,
             source_bytes=source_size,
             decoded_sha256=decoded_digest,
             decoded_bytes=decoded_size,
+            source_filename=source.name,
+            decoded_filename=destination.name,
+            provider_md5=expectation.expected_md5 if expectation is not None else None,
+            data_cutoff_date=(
+                expectation.expected_data_cutoff_date if expectation is not None else None
+            ),
+            retrieval_date=expectation.expected_retrieval_date if expectation is not None else None,
+            provider_last_modified=(
+                expectation.expected_provider_last_modified if expectation is not None else None
+            ),
+            source_identity_verified=expectation is not None,
             source_header=header,
             tool=tool,
             command=receipt_command,
         )
+        _receipt_path(destination).write_text(receipt.canonical_json() + "\n", encoding="utf-8")
+        return receipt
     finally:
         shutil.rmtree(staging_dir, ignore_errors=True)
+
+
+def _md5_file(path: Path) -> str:
+    """Stream the provider-comparison MD5 without loading the file."""
+
+    digest = hashlib.md5(usedforsecurity=False)
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(4 * 1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _receipt_path(destination: Path) -> Path:
+    return destination.with_name(destination.name + DECODE_RECEIPT_SUFFIX)
+
+
+def verify_decoded_artifact(destination_path: str | Path) -> OsmDecodeReceipt:
+    """Revalidate a promoted decoded artifact entirely offline.
+
+    Calls neither the provider nor the decoder: it reloads the persisted
+    receipt, re-hashes the artifact by streaming, and reconciles size, digest,
+    and structural framing.  A mutated receipt or a mutated artifact fails.
+    """
+
+    destination = Path(destination_path)
+    if destination.is_symlink() or not destination.is_file():
+        raise NetworkDecodeError(
+            "DECODED_ARTIFACT_MISSING",
+            "the decoded artifact path must be an existing non-symlink regular file",
+        )
+    receipt_file = _receipt_path(destination)
+    if receipt_file.is_symlink() or not receipt_file.is_file():
+        raise NetworkDecodeError(
+            "DECODE_RECEIPT_MISSING", "the decoded artifact has no persisted receipt"
+        )
+    if receipt_file.stat().st_size > MAX_RECEIPT_BYTES:
+        raise NetworkDecodeError(
+            "DECODE_RECEIPT_REFUSED", "the persisted decode receipt exceeds its bounded size"
+        )
+    try:
+        receipt = OsmDecodeReceipt.model_validate_json(receipt_file.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise NetworkDecodeError(
+            "DECODE_RECEIPT_INVALID", "the persisted decode receipt is malformed or mutated"
+        ) from exc
+    if receipt.decoded_filename != destination.name:
+        raise NetworkDecodeError(
+            "DECODE_RECEIPT_MISMATCH", "the receipt does not describe this decoded artifact"
+        )
+    observed_size = destination.stat().st_size
+    if observed_size != receipt.decoded_bytes:
+        raise NetworkDecodeError(
+            "DECODED_ARTIFACT_MUTATED", "the decoded artifact no longer matches its recorded size"
+        )
+    observed_digest, _ = _sha256_file(destination)
+    if observed_digest != receipt.decoded_sha256:
+        raise NetworkDecodeError(
+            "DECODED_ARTIFACT_MUTATED",
+            "the decoded artifact no longer matches its recorded SHA-256",
+        )
+    with destination.open("rb") as handle:
+        prefix = handle.read(512)
+    if b"<osm" not in prefix:
+        raise NetworkDecodeError(
+            "DECODED_NOT_OSM_XML", "the decoded artifact no longer opens as an OSM XML document"
+        )
+    return receipt

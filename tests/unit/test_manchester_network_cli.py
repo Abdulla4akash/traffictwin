@@ -151,3 +151,79 @@ class TestVerifyRefusals:
         )
         assert code == 1
         assert "NETWORK_DIR_INVALID" in output or "BINDING_MISSING" in output
+
+
+class TestDecodeCommand:
+    def test_decode_help_exposes_no_filter_or_bbox_option(self) -> None:
+        _code, output = _run("integration", "manchester", "network", "decode", "--help")
+        lowered = output.lower()
+        for forbidden in ("--bbox", "--polygon", "--tags-filter", "--filter", "--executable"):
+            assert forbidden not in lowered
+
+    def test_decoding_a_non_pbf_is_refused(self, tmp_path: Path) -> None:
+        source = tmp_path / "not.osm.pbf"
+        source.write_text("<osm/>", encoding="utf-8")
+        code, output = _run(
+            "integration",
+            "manchester",
+            "network",
+            "decode",
+            "--extract",
+            str(source),
+            "--output",
+            str(tmp_path / "out.osm.xml"),
+        )
+        assert code == 1
+        assert "SOURCE_NOT_PBF" in output
+
+    def test_verify_decode_of_a_missing_receipt_fails_closed(self, tmp_path: Path) -> None:
+        artifact = tmp_path / "decoded.osm.xml"
+        artifact.write_text("<osm></osm>", encoding="utf-8")
+        code, output = _run("integration", "manchester", "network", "verify-decode", str(artifact))
+        assert code == 1
+        assert "DECODE_RECEIPT_MISSING" in output
+
+    def test_status_reports_decoder_readiness(self) -> None:
+        _code, output = _run("integration", "manchester", "network", "status")
+        assert "decoder_available:" in output
+
+
+class TestHumanAndJsonAgree:
+    def test_scope_json_matches_the_human_output(self) -> None:
+        _c, text = _run("integration", "manchester", "network", "scope")
+        _c2, raw = _run("integration", "manchester", "network", "scope", "--format", "json")
+        payload = json.loads(raw)
+        assert payload["baseline_scope"] in text
+        assert payload["sub_area_scope"] in text
+        assert payload["capability_status"] in text
+
+    def test_status_json_matches_the_human_output(self) -> None:
+        _c, text = _run("integration", "manchester", "network", "status")
+        _c2, raw = _run("integration", "manchester", "network", "status", "--format", "json")
+        payload = json.loads(raw)
+        assert payload["capability_status"] in text
+        assert payload["practical_state"] in text
+        assert str(payload["toolchain"]["available"]).lower() in text
+        assert str(payload["decoder"]["available"]).lower() in text
+
+
+class TestExitCodesDistinguishOutcomes:
+    def test_accepted_listing_exits_zero(self, tmp_path: Path) -> None:
+        code, _output = _run("integration", "manchester", "network", "list", str(tmp_path))
+        assert code == 0
+
+    def test_a_rejected_operation_exits_one(self, tmp_path: Path) -> None:
+        code, _output = _run(
+            "integration",
+            "manchester",
+            "network",
+            "verify",
+            str(tmp_path),
+            "--network-id",
+            "absent",
+        )
+        assert code == 1
+
+    def test_an_unauthorised_acquisition_exits_two(self, tmp_path: Path) -> None:
+        code, _output = _run("integration", "manchester", "network", "acquire", str(tmp_path))
+        assert code == 2

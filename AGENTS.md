@@ -551,7 +551,12 @@ acceptance.
 - The claimed file set is extended by exactly
   `src/traffictwin/integration/manchester/network_decode.py` and
   `tests/unit/test_manchester_network_decode.py`, plus one new dated evidence record under
-  `docs/integration/evidence/`. Every other boundary in the parent grant is unchanged, including
+  `docs/integration/evidence/`. Installed identity recorded for audit:
+  formula `osmium-tool 1.19.1`, `osmium 1.19.1` / `libosmium 2.23.1`, executable SHA-256
+  `527a2b003c7d81d7ce7080177e3ef57c431eb36315a0a3abad12bea232e1680e`; `netconvert 1.27.1`,
+  executable SHA-256 `df8bdaea278b40db0b4361b39cdf16adde0983cf82875bbc999f3aa35346489e`. Installed
+  with `brew install osmium-tool` only — no `brew upgrade`, no general `brew update`, no `sudo`, and
+  no alternative decoder. Executable paths stay out of persisted evidence. Every other boundary in the parent grant is unchanged, including
   the prohibition on editing `integration/manchester/__init__.py`, `transport.py`, `spatial.py`,
   `map_matching.py`, `boundary_reference.py`, any lead-claimed module, and any UI page.
 - Capability truth is unchanged by this amendment. Decoding an extract and building a network is

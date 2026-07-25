@@ -7,7 +7,10 @@ stays runnable offline without ever faking a decode.
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+import re
+import shutil
+import subprocess
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -20,6 +23,7 @@ from traffictwin.integration.manchester.network_decode import (
     OSMIUM_FIXED_ARGUMENTS,
     PBF_HEADER_MARKER,
     SUPPORTED_OSMIUM_MAJOR,
+    DecodeSourceExpectation,
     NetworkDecodeCommandReceipt,
     NetworkDecodeError,
     OsmDecodeReceipt,
@@ -28,7 +32,9 @@ from traffictwin.integration.manchester.network_decode import (
     discover_osmium,
     is_pbf,
     osmium_identity,
+    pinned_source_expectation,
     read_source_header,
+    verify_decoded_artifact,
 )
 
 
@@ -87,9 +93,11 @@ def _fake_pbf(tmp_path: Path, name: str = "extract.osm.pbf") -> Path:
 def _real_pbf(tmp_path: Path) -> Path:
     """Build a genuine tiny PBF by round-tripping synthetic XML through osmium."""
 
+    target = tmp_path / "tiny.osm.pbf"
+    if target.is_file():
+        return target  # idempotent: osmium refuses to overwrite
     source = tmp_path / "tiny.osm"
     source.write_text(SYNTHETIC_OSM, encoding="utf-8")
-    target = tmp_path / "tiny.osm.pbf"
     import subprocess
 
     executable = discover_osmium()
@@ -333,3 +341,198 @@ class TestRealDecoder:
 
         assert receipt.source_sha256 == sha256_hex(source.read_bytes())
         assert receipt.decoded_sha256 == sha256_hex(destination.read_bytes())
+
+
+class TestSourceIdentityBinding:
+    def test_the_pinned_expectation_keeps_the_three_dates_distinct(self) -> None:
+        expectation = pinned_source_expectation()
+        assert expectation.expected_data_cutoff_date != expectation.expected_retrieval_date
+        assert expectation.expected_data_cutoff_date.isoformat() == "2026-07-24"
+        assert expectation.expected_retrieval_date.isoformat() == "2026-07-25"
+        assert expectation.expected_provider_last_modified == "Sat, 25 Jul 2026 00:29:36 GMT"
+
+    def test_collapsing_the_cutoff_and_retrieval_dates_is_refused(self) -> None:
+        with pytest.raises(ValidationError, match="must stay distinct"):
+            DecodeSourceExpectation(
+                expected_filename="greater-manchester-260724.osm.pbf",
+                expected_sha256="a" * 64,
+                expected_md5="b" * 32,
+                expected_data_cutoff_date=date(2026, 7, 25),
+                expected_retrieval_date=date(2026, 7, 25),
+                expected_provider_last_modified="Sat, 25 Jul 2026 00:29:36 GMT",
+            )
+
+    @requires_osmium
+    def test_a_source_sha_mismatch_is_refused_before_decoding(self, tmp_path: Path) -> None:
+        source = _real_pbf(tmp_path)
+        renamed = tmp_path / "greater-manchester-260724.osm.pbf"
+        source.rename(renamed)
+        with pytest.raises(NetworkDecodeError, match="SOURCE_IDENTITY_MISMATCH"):
+            decode_pbf_to_osm_xml(
+                renamed, tmp_path / "out.osm.xml", expectation=pinned_source_expectation()
+            )
+        assert not (tmp_path / "out.osm.xml").exists()
+
+    @requires_osmium
+    def test_a_provider_md5_mismatch_is_refused(self, tmp_path: Path) -> None:
+        source = _real_pbf(tmp_path)
+        renamed = tmp_path / "greater-manchester-260724.osm.pbf"
+        source.rename(renamed)
+        from traffictwin.integration.manchester.network_decode import _sha256_file
+
+        observed, _ = _sha256_file(renamed)
+        expectation = DecodeSourceExpectation(
+            expected_filename="greater-manchester-260724.osm.pbf",
+            expected_sha256=observed,
+            expected_md5="0" * 32,
+            expected_data_cutoff_date=date(2026, 7, 24),
+            expected_retrieval_date=date(2026, 7, 25),
+            expected_provider_last_modified="Sat, 25 Jul 2026 00:29:36 GMT",
+        )
+        with pytest.raises(NetworkDecodeError, match="PROVIDER_MD5_MISMATCH"):
+            decode_pbf_to_osm_xml(renamed, tmp_path / "out.osm.xml", expectation=expectation)
+
+    @requires_osmium
+    def test_a_wrong_filename_is_refused(self, tmp_path: Path) -> None:
+        source = _real_pbf(tmp_path)
+        from traffictwin.integration.manchester.network_decode import _md5_file, _sha256_file
+
+        observed, _ = _sha256_file(source)
+        expectation = DecodeSourceExpectation(
+            expected_filename="greater-manchester-260724.osm.pbf",
+            expected_sha256=observed,
+            expected_md5=_md5_file(source),
+            expected_data_cutoff_date=date(2026, 7, 24),
+            expected_retrieval_date=date(2026, 7, 25),
+            expected_provider_last_modified="Sat, 25 Jul 2026 00:29:36 GMT",
+        )
+        with pytest.raises(NetworkDecodeError, match="SOURCE_FILENAME_MISMATCH"):
+            decode_pbf_to_osm_xml(source, tmp_path / "out.osm.xml", expectation=expectation)
+
+
+@requires_osmium
+class TestOfflineReplay:
+    def _decoded(self, tmp_path: Path) -> Path:
+        destination = tmp_path / "decoded.osm.xml"
+        decode_pbf_to_osm_xml(_real_pbf(tmp_path), destination)
+        return destination
+
+    def test_a_receipt_is_persisted_beside_the_artifact(self, tmp_path: Path) -> None:
+        self._decoded(tmp_path)
+        assert (tmp_path / "decoded.osm.xml.receipt.json").is_file()
+
+    def test_replay_revalidates_without_provider_or_decoder(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        receipt = verify_decoded_artifact(destination)
+        assert receipt.decoded_filename == "decoded.osm.xml"
+        assert receipt.decoded_bytes == destination.stat().st_size
+
+    def test_replay_reproduces_the_recorded_identity(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        first = verify_decoded_artifact(destination)
+        second = verify_decoded_artifact(destination)
+        assert first.decoded_sha256 == second.decoded_sha256
+        assert first.fingerprint() == second.fingerprint()
+
+    def test_a_mutated_artifact_is_detected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        destination.write_bytes(destination.read_bytes() + b"<!-- tampered -->")
+        with pytest.raises(NetworkDecodeError, match="DECODED_ARTIFACT_MUTATED"):
+            verify_decoded_artifact(destination)
+
+    def test_a_mutated_receipt_is_detected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        receipt_file = tmp_path / "decoded.osm.xml.receipt.json"
+        payload = json.loads(receipt_file.read_text(encoding="utf-8"))
+        payload["decoded_sha256"] = "c" * 64
+        receipt_file.write_text(json.dumps(payload), encoding="utf-8")
+        with pytest.raises(NetworkDecodeError, match="DECODED_ARTIFACT_MUTATED"):
+            verify_decoded_artifact(destination)
+
+    def test_a_malformed_receipt_is_detected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        (tmp_path / "decoded.osm.xml.receipt.json").write_text("{ not json", encoding="utf-8")
+        with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_INVALID"):
+            verify_decoded_artifact(destination)
+
+    def test_a_receipt_for_a_different_artifact_is_detected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        receipt_file = tmp_path / "decoded.osm.xml.receipt.json"
+        payload = json.loads(receipt_file.read_text(encoding="utf-8"))
+        payload["decoded_filename"] = "somethingelse.osm.xml"
+        receipt_file.write_text(json.dumps(payload), encoding="utf-8")
+        with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_MISMATCH"):
+            verify_decoded_artifact(destination)
+
+    def test_a_missing_receipt_is_detected(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        (tmp_path / "decoded.osm.xml.receipt.json").unlink()
+        with pytest.raises(NetworkDecodeError, match="DECODE_RECEIPT_MISSING"):
+            verify_decoded_artifact(destination)
+
+    def test_a_failed_rerun_preserves_the_accepted_artifact(self, tmp_path: Path) -> None:
+        destination = self._decoded(tmp_path)
+        original = destination.read_bytes()
+        with pytest.raises(NetworkDecodeError, match="DESTINATION_EXISTS"):
+            decode_pbf_to_osm_xml(_real_pbf(tmp_path), destination)
+        assert destination.read_bytes() == original
+        verify_decoded_artifact(destination)
+
+
+class TestNoRawArtifactIsTracked:
+    """Raw extracts, decoded XML and built networks are private workspace
+    artifacts. This audits the actual Git index rather than trusting policy.
+
+    Two small pre-existing synthetic fixtures are named exceptions: the closed
+    SUMO synthetic-square scenario (1,048 bytes) and a VEC micro test fixture
+    (433 bytes). Neither is Manchester or OSM derived. They are listed
+    explicitly so the audit stays strict rather than being broadened away.
+    """
+
+    PERMITTED_SYNTHETIC_FIXTURES = frozenset(
+        {
+            "src/traffictwin/integration/sumo_execution/scenario_synthetic_square/square.net.xml",
+            "tests/fixtures/vec_fcd/synthetic_micro/network.net.xml",
+        }
+    )
+
+    @staticmethod
+    def _tracked_files() -> list[str]:
+        git = shutil.which("git")
+        assert git is not None, "git is required for the tracked-file audit"
+        repository = Path(__file__).resolve().parents[2]
+        return subprocess.run(  # noqa: S603 - resolved git path, fixed read-only argv
+            [git, "-C", str(repository), "ls-files"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        ).stdout.splitlines()
+
+    def test_no_raw_osm_or_network_artifact_is_tracked(self) -> None:
+        forbidden = tuple(
+            name
+            for name in self._tracked_files()
+            if name.endswith((".osm", ".osm.pbf", ".osm.xml", ".net.xml", ".pbf"))
+            and name not in self.PERMITTED_SYNTHETIC_FIXTURES
+        )
+        assert not forbidden, f"raw source or network artifacts are tracked: {forbidden}"
+
+    def test_no_dated_provider_extract_is_tracked(self) -> None:
+        # Matches the provider's dated artifact shape, e.g.
+        # greater-manchester-260724.osm.pbf, without flagging documentation
+        # whose filename merely mentions Greater Manchester.
+        dated_extract = re.compile(r"greater-manchester-\d{6}\.osm(\.pbf|\.xml)?$")
+        suspicious = tuple(
+            name for name in self._tracked_files() if dated_extract.search(name.lower())
+        )
+        assert not suspicious, f"provider source extracts are tracked: {suspicious}"
+
+    def test_no_tracked_file_is_implausibly_large(self) -> None:
+        repository = Path(__file__).resolve().parents[2]
+        oversized = [
+            (name, (repository / name).stat().st_size)
+            for name in self._tracked_files()
+            if (repository / name).is_file() and (repository / name).stat().st_size > 8_000_000
+        ]
+        assert not oversized, f"unexpectedly large tracked files: {oversized}"

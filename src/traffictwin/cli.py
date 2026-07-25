@@ -216,6 +216,8 @@ from traffictwin.integration.manchester.network_build import (
 from traffictwin.integration.manchester.network_decode import (
     NetworkDecodeError,
     decode_pbf_to_osm_xml,
+    pinned_source_expectation,
+    verify_decoded_artifact,
 )
 from traffictwin.integration.manchester.network_scope import baseline_scope_decision
 from traffictwin.integration.manchester.network_service import (
@@ -6529,6 +6531,13 @@ def manchester_network_status_command(
 def manchester_network_decode_command(
     extract: Annotated[Path, typer.Option("--extract", exists=True, dir_okay=False)],
     output: Annotated[Path, typer.Option("--output", dir_okay=False)],
+    verify_pinned: Annotated[
+        bool,
+        typer.Option(
+            "--verify-pinned",
+            help="Refuse anything but the exact ADR-059 pinned extract identity.",
+        ),
+    ] = False,
     output_format: Annotated[str, typer.Option("--format")] = "text",
 ) -> None:
     """Decode a PBF extract to OSM XML with the frozen osmium recipe.
@@ -6541,7 +6550,11 @@ def manchester_network_decode_command(
     """
 
     try:
-        receipt = decode_pbf_to_osm_xml(extract, output)
+        receipt = decode_pbf_to_osm_xml(
+            extract,
+            output,
+            expectation=pinned_source_expectation() if verify_pinned else None,
+        )
     except (NetworkDecodeError, ValueError, OSError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
@@ -6567,9 +6580,46 @@ def manchester_network_decode_command(
             f"lon {header.header_min_longitude}..{header.header_max_longitude} "
             f"lat {header.header_min_latitude}..{header.header_max_latitude}"
         )
+    typer.echo(f"source_identity_verified: {str(receipt.source_identity_verified).lower()}")
+    if receipt.data_cutoff_date is not None:
+        typer.echo(f"data_cutoff_date: {receipt.data_cutoff_date.isoformat()}")
+    if receipt.retrieval_date is not None:
+        typer.echo(f"retrieval_date: {receipt.retrieval_date.isoformat()}")
+    if receipt.provider_last_modified is not None:
+        typer.echo(f"provider_last_modified: {receipt.provider_last_modified}")
     typer.echo(f"conversion_only: {str(receipt.conversion_only).lower()}")
     typer.echo(f"content_filtered: {str(receipt.content_filtered).lower()}")
     typer.echo(f"bounding_box_clipped: {str(receipt.bounding_box_clipped).lower()}")
     typer.echo(f"publication_class: {receipt.publication_class}")
     typer.echo(f"committed_to_git: {str(receipt.committed_to_git).lower()}")
+    typer.echo(f"capability_status: {receipt.capability_status}")
+
+
+@manchester_network_app.command("verify-decode")
+def manchester_network_verify_decode_command(
+    decoded: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Revalidate a promoted decoded OSM artifact and its receipt, fully offline.
+
+    Calls neither the provider nor the decoder. A mutated artifact or a mutated
+    receipt fails with a non-zero exit.
+    """
+
+    try:
+        receipt = verify_decoded_artifact(decoded)
+    except (NetworkDecodeError, ValueError, OSError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(receipt.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo("verified: true")
+    typer.echo(f"decoded_sha256: {receipt.decoded_sha256}")
+    typer.echo(f"decoded_bytes: {receipt.decoded_bytes}")
+    typer.echo(f"source_sha256: {receipt.source_sha256}")
+    typer.echo(f"source_identity_verified: {str(receipt.source_identity_verified).lower()}")
+    typer.echo("network_access_performed: false")
+    typer.echo("decoder_invoked: false")
     typer.echo(f"capability_status: {receipt.capability_status}")
