@@ -395,7 +395,64 @@ Verification: the six previously failing tests pass; the complete `tests/integra
 with zero failures (no real-SUMO skip required); the full unit+UI+integration suite reports 2035
 passed; repository Ruff/format checks, strict mypy over 693 files, and `git diff --check` are clean;
 the affected Statistical Study and VEC Workbench AppTests pass under grouped navigation; and no
-historical evidence file or protected tag changed. Awaiting repository-owner acceptance.
+historical evidence file or protected tag changed. The repository owner accepted this repair as
+complete at pushed commit `522dc16`.
+
+### Active parallel ownership grant: Claude UI presentation Phase 2B Tier 5
+
+- The repository owner granted Phase 2B Tier 5 "research-workflow presentation" work on 25 July 2026
+  from the accepted pushed head `522dc16` on `claude/complete-v0.7`. The work is presentation-only
+  groundwork for `UX-01`–`UX-03`; it cannot accept a gate, change capability truth, fetch evidence,
+  alter deterministic calculations, or edit source data, and no capability moves off `planned`.
+- The exclusive source files are exactly
+  `src/traffictwin/ui/pages/{scenario_builder.py,scenario_mutation.py,experiment_planner.py,parameter_sweep.py,reports.py}`.
+  They may adopt the existing badge, table, column-configuration, fingerprint, bordered-container,
+  native-chart, form, and numeric-metric helpers. Services, scientific libraries, adapters,
+  navigation, Manchester Operations, shared components, and capability manifests stay untouched.
+- Permitted existing tests to edit, changing only assertions related to these five pages:
+  `tests/ui/test_measurement_imperfections.py`, `tests/ui/test_scenario_mutation.py`,
+  `tests/ui/test_experiment_planner.py`, `tests/ui/test_parameter_sweep.py`,
+  `tests/ui/test_analyst_annotations.py`, `tests/ui/test_executive_summary.py`,
+  `tests/ui/test_latex_exports.py`, `tests/ui/test_report_diffing.py`, and
+  `tests/integration/test_ui_demo_flow.py`. Every existing interaction and Guided Demo assertion is
+  preserved. New tests are added under `tests/unit/ui/` named `test_page_presentation_tier5*.py`.
+- Objectives: (1) Scenario Builder — a visually sequential preset → configure → review → generate
+  workflow that keeps SYNTHETIC/deterministic/import-first labels prominent, distinguishes authored
+  configuration from generated evidence, presents traffic/vehicle/RSU/task/incident/measurement
+  settings in coherent sections, keeps unsupported controls disabled with exact reasons, presents the
+  preview and generated-bundle receipt as structured summaries, and never implies SUMO/Randy/VEC/live
+  launch. (2) Scenario Mutations — source → mutation → candidate as three distinct stages with
+  changed/unchanged/excluded/unsupported fields explicit, a human-readable before/after table, and
+  deterministic fingerprints/provenance under Advanced/Evidence, never implying simulator execution
+  or validation. (3) Experiment Planner — define → validate → inspect run matrix → register with
+  common-random-seed design, algorithms, replicates and compatibility visible, the run-matrix size
+  numeric, registration separate from execution, the Guided Demo hook only after successful
+  registration, and no implication that registering launches runs. (4) Parameter Sweep — choose
+  parameter → define bounded values → preview combinations → export/register with grid size, affected
+  fields, and evidence limitations shown, a deterministic preview chart/table, unsupported/duplicate/
+  invalid/excessive grids explicit, and never an "optimal" parameter or an "executed" claim.
+  (5) Reports — inventory, deterministic regeneration, structured comparison, research exports, and
+  analyst annotations as clear peer views with lazy/open-state gating where practical without changing
+  behaviour, readable report type/format/modified/source cards or tables, separated preview/generate/
+  download actions, the Guided Demo hook only after successful report generation, analyst annotations
+  visibly separate from computed findings, and no automatic regeneration or annotation-driven change
+  to scientific results.
+- Primary content uses native Streamlit components and the existing design system, bordered and
+  responsive horizontal containers, `st.form` to batch related inputs where appropriate,
+  `st.segmented_control` in place of any owned-page horizontal radio when behaviour is equivalent,
+  numeric `st.metric` only for numeric-with-units values, and meaningful `column_config` with
+  sensitive fields removed before display. Raw JSON/YAML, complete fingerprints, and machine metadata
+  live under Advanced/Evidence or explicit preview/download surfaces; unavailable, partial, planned,
+  synthetic, and rejected states stay visible. No page performs a scientific computation or external
+  acquisition. No new dependency, custom CSS, or deprecated `use_container_width`.
+- Verification requires adversarial presentation tests for all five pages, preserved interaction and
+  Guided Demo assertions, focused page tests, the complete unit/UI/integration suites at zero
+  failures, Ruff/format/strict-mypy/`git diff --check`, the 35-route desktop/mobile light/dark browser
+  audit with all five pages captured at both widths and themes, unchanged generated artifacts and
+  registries unless a test uses an isolated temporary workspace, and unchanged protected tags and
+  historical source evidence. Commit each page separately, push continuously, and finish with one
+  documentation reconciliation commit covering `AGENTS.md`, `current_progress_v0_7.md`, and
+  `implementation-status.md`; never create or move a release tag.
 
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
