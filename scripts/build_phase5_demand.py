@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 from collections import defaultdict
@@ -33,6 +34,7 @@ from traffictwin.integration.manchester.demand_reconstruction import (
 )
 from traffictwin.integration.manchester.dft_acquisition import open_accepted_dft_snapshot
 from traffictwin.integration.manchester.dft_temporal_profile import open_real_raw_count_evidence
+from traffictwin.integration.manchester.network_connectivity import stream_network_edges
 from traffictwin.integration.manchester.network_geometry import build_edge_index
 from traffictwin.integration.manchester.observation_matching_v11 import (
     ManchesterMapMatchPolicyV11,
@@ -97,6 +99,17 @@ def find_default_network() -> Path:
         if c.is_file():
             return c
     raise FileNotFoundError("Study network file (.net.xml) not found. Pass --network explicitly.")
+
+
+def redact_absolute_paths(path: Path) -> None:
+    """Replace absolute paths in a tool-written file with bare filenames."""
+
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    redacted = re.sub(r'(?:/[^"\s<>]+)+/([^/"\s<>]+\.(?:xml|rou\.xml))', r"\1", text)
+    if redacted != text:
+        path.write_text(redacted, encoding="utf-8")
 
 
 def parse_args() -> argparse.Namespace:
@@ -180,6 +193,12 @@ def main() -> None:
     policy = ManchesterMapMatchPolicyV11()
     match_policy_fingerprint = policy.fingerprint()
 
+    # The exact-reference override refuses any edge whose motor access is
+    # unknown, so without this map the override can never fire and matching is
+    # quietly stricter than the approved policy.
+    motor_access = {edge.edge_id: edge.access for edge in stream_network_edges(study_net)}
+    print(f"Read motor access for {len(motor_access)} edges.")
+
     accepted_member_edges: dict[int, list[str]] = {}
     distance_by_edge: dict[int, dict[str, Decimal]] = defaultdict(dict)
 
@@ -197,6 +216,7 @@ def main() -> None:
             northing=float(cp.location.northing),
             index=net_index,
             policy=policy,
+            motor_access=motor_access,
         )
         if res.disposition == "owner_policy_accepted_candidate" and res.groups:
             accepted_sites_count += 1
@@ -214,9 +234,17 @@ def main() -> None:
     bound_edge_ids: set[str] = set()
 
     site_directions: dict[tuple[int, str], list] = defaultdict(list)
+    # Option A represents each site by its LATEST survey. Collecting every survey
+    # date would emit one cell per date for the same edge-hour, fusing surveys
+    # the temporal-profile policy keeps separate and inflating the count target.
+    # write_edgedata_counts now refuses that outright, so the filter is the fix
+    # and the refusal is the backstop.
     for rec in records:
-        if rec.count_point_id in accepted_member_edges:
-            site_directions[(rec.count_point_id, rec.direction_of_travel)].append(rec)
+        if rec.count_point_id not in accepted_member_edges:
+            continue
+        if str(rec.count_date) != site_dates[rec.count_point_id]:
+            continue
+        site_directions[(rec.count_point_id, rec.direction_of_travel)].append(rec)
 
     print(
         f"Processing {len(site_directions)} site-directions "
@@ -335,8 +363,6 @@ def main() -> None:
     cmd_sampler = [
         sys.executable,
         str(route_sampler_script),
-        "-n",
-        str(study_net),
         "-d",
         str(edgedata_xml_path),
         "-r",
@@ -347,16 +373,29 @@ def main() -> None:
         str(mismatch_output_path),
         "-f",
         "number",
+        # Fixed seed: route sampling is stochastic, and an unseeded run cannot be
+        # reproduced or compared against a later one.
+        "--seed",
+        "42",
     ]
     res_sampler = subprocess.run(  # noqa: S603 - fixed argv, no shell
         cmd_sampler, capture_output=True, text=True, check=False
     )
     if res_sampler.returncode == 0:
         print(f"Successfully generated candidate demand flows: {candidate_demand_path}")
+        # SUMO records its invocation with absolute paths. Those name the
+        # operator's home directory, so the filenames are kept and the
+        # directories dropped before the report becomes tracked evidence.
+        redact_absolute_paths(mismatch_output_path)
         print(f"Mismatch report saved to: {mismatch_output_path}")
     else:
-        print(
-            f"routeSampler output: {res_sampler.stdout[:300]} / stderr: {res_sampler.stderr[:300]}"
+        # No evidence is written for a run that did not produce demand. A record
+        # describing a failed sample would be indistinguishable from one
+        # describing a real result.
+        raise SystemExit(
+            "routeSampler failed; no evidence written.\n"
+            f"stdout: {res_sampler.stdout[-2000:]}\n"
+            f"stderr: {res_sampler.stderr[-2000:]}"
         )
 
     # 9. Produce Evidence JSON artifact
@@ -380,27 +419,74 @@ def main() -> None:
     )
 
     evidence_json_path = EVIDENCE_DIR / "manchester_demand_reconstruction_20260725.json"
+
+    # Every performance figure below is measured from the artifacts this run
+    # produced. Hardcoding them would report the same result whatever happened.
+    observed_total = sum(cell.all_motor_vehicles for cell in edge_counts)
+    underflow = overflow = 0
+    underflow_cells = overflow_cells = mismatch_cells = 0
+    if mismatch_output_path.is_file():
+        # Scanned rather than parsed as a document: the file is a flat, machine
+        # written list of edge deficits, and a regex keeps this free of an XML
+        # parser on a path that only needs two numbers.
+        deficit_pattern = re.compile(r'<edge\b[^>]*\bdeficit="([-0-9.eE]+)"')
+        for match in deficit_pattern.finditer(mismatch_output_path.read_text(encoding="utf-8")):
+            mismatch_cells += 1
+            deficit = float(match.group(1))
+            if deficit > 0:
+                underflow += deficit
+                underflow_cells += 1
+            elif deficit < 0:
+                overflow += -deficit
+                overflow_cells += 1
+    achieved = observed_total - underflow
+
     evidence_payload = {
         "record_type": "real_dft_demand_reconstruction_candidate",
         "record_date": "2026-07-25",
         "capability_id": DEMAND_CAPABILITY_ID,
-        "capability_status": "complete",
-        "gate": "Gate-D step 5 (demand reconstruction)",
+        # Producing a candidate demand does not accept a capability.
+        "capability_status": "planned",
+        "gate": "Gate-D step 5 (demand reconstruction), candidate demand only",
         "research_status": RESEARCH_STATUS,
         "label": DEMAND_LABEL,
         "acceptance_basis": ACCEPTANCE_BASIS,
-        "chosen_survey_window": "Option A (2019/2022+ post-pandemic window: 78 sites)",
+        "acceptance_note": (
+            "The matches constraining this demand were accepted by the owner's written "
+            "policy. No analyst, human, or supervisor reviewed any row."
+        ),
+        "supervisor_approved": False,
+        "scientifically_validated": False,
+        "analyst_accepted": False,
+        "human_accepted": False,
+        "observed_origin_destination_travel": False,
+        "chosen_survey_window": (
+            "Option A (2019 or 2022 onward, pandemic years excluded), owner decision 13ae063"
+        ),
         "fingerprint": input_fp,
         "network_sha256": net_sha256,
-        "performance": {
-            "total_count_achieved_pct": 90.34,
-            "geh_under_5_pct": 94.44,
-            "geh_min_pct": 94.07,
-            "geh_max_pct": 94.81,
-            "locations_counted": 135,
-            "total_vehicles_sampled": 1606362,
-            "simulation_window_hours": "07:00-19:00 (12 hours)",
+        "measured_result": {
+            "observed_edge_hour_cells": len(edge_counts),
+            "distinct_bound_edges": len(bound_edge_ids),
+            "total_observed_vehicles": observed_total,
+            "mismatch_cells": mismatch_cells,
+            "underflow_cells": underflow_cells,
+            "underflow_vehicles": int(underflow),
+            "overflow_cells": overflow_cells,
+            "overflow_vehicles": int(overflow),
+            "achieved_vehicles": int(achieved),
+            "achieved_percent_of_observed": (
+                round(100.0 * achieved / observed_total, 2) if observed_total else None
+            ),
         },
+        "interpretation_limits": [
+            "achieved share of a count target is not a goodness-of-fit result",
+            "no GEH threshold has been approved; any GEH reported by routeSampler is a tool "
+            "diagnostic and is not treated as validation",
+            "the routes are count-constrained candidates, not observed origin-destination travel",
+            "no calibration, comparison, or simulation was performed by this script",
+            "Manchester local-authority evidence; not Greater Manchester-wide",
+        ],
         "ledger": ledger.model_dump(),
         "files_generated": [
             str(edgedata_xml_path.name),
@@ -413,7 +499,7 @@ def main() -> None:
 
     evidence_json_path.write_text(json.dumps(evidence_payload, indent=2) + "\n", encoding="utf-8")
     print(f"Wrote evidence JSON artifact: {evidence_json_path}")
-    print("--- Phase 5 Execution Successfully Complete! ---")
+    print("--- Phase 5 candidate demand written ---")
 
 
 if __name__ == "__main__":
