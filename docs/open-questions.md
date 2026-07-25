@@ -604,6 +604,18 @@ The complete source evidence is in
 - Formal participant recruitment and data collection remain blocked until the relevant ethics and
   supervisory approvals are recorded.
 
+## Blocking: Greater Manchester baseline network build
+
+- **A PBF-to-OSM-XML decode step for the pinned Greater Manchester extract.** ADR-059 pins
+  `greater-manchester-260724.osm.pbf` (50,502,348 bytes, MD5 reconciled against the provider), and
+  acquisition of it is implemented and verified. However `netconvert` 1.27.1 as built in the
+  reviewed environment reads OSM XML only and exits 1 on the PBF container, and no approved decoder
+  (`osmium`, `osmconvert`, `osmosis`, `pyosmium`) is installed. Adding a decoder dependency is a
+  lead-owned `pyproject.toml`/`uv.lock` decision. Until it is resolved the full Greater Manchester
+  network cannot be built; the recorded real build is a bounded city-centre/university sub-area
+  probe explicitly labelled as not the Greater Manchester baseline. This blocks `MAN-09` network
+  binding at Greater Manchester scale only; every other part of the foundation is built and tested.
+
 ## Non-Blocking Unknowns
 
 - Real portfolio rules, calibration, and statistical evaluation.

@@ -103,6 +103,7 @@ This index points only to documentation and repository paths that exist in the c
 - [BODS real-source Gate-B probe](integration/manchester_bods_gate_b_probe.md)
 - [Deterministic day-type/time-of-day temporal profiles](integration/manchester_temporal_profile.md)
 - [Deterministic calibration-candidate evaluation](integration/manchester_calibration.md)
+- [Greater Manchester baseline network foundation](integration/manchester_baseline_network.md)
 - [Deterministic observed-versus-simulated comparison](integration/manchester_comparison.md)
 - [Manchester source-to-VEC research lineage](integration/manchester_research_lineage.md)
 - [Generated Manchester map-style policy](reference/generated/manchester_map_style_policy.json)

@@ -369,6 +369,46 @@ baseline availability are structurally false. No real calibration, uncertainty/a
 temporal-profile builder, baseline acceptance artifact, or SUMO launch exists, so `MAN-09` remains
 planned.
 
+A candidate `MAN-09` **baseline-network foundation** now satisfies design Gate-D step 1 ("Bind one
+reviewed Manchester SUMO network and licence") and nothing further. The repository owner supplied
+the open decisions on 25 July 2026 and they are recorded in
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[baseline network guide](integration/manchester_baseline_network.md): Greater Manchester
+(`E47000001`) is the single primary baseline scope, Manchester local authority (`E08000003`) is a
+selectable sub-area filter rather than a second network, the source is OpenStreetMap via Geofabrik,
+and ODbL 1.0 with `© OpenStreetMap contributors, ODbL 1.0` is accepted.
+
+The foundation provides operator-invoked bounded acquisition through the existing MAN-01
+quarantine/hash/receipt/atomic-promotion contracts, a checkable scope decision with required-area
+inclusion probes, one frozen `netconvert` argument vector, an immutable input manifest, a
+private-path-free command receipt, network validation, a read-only service, and a bounded
+`integration manchester network` CLI family. The packaged ONS boundary assets stay display-only:
+the derived extract envelope is labelled `derived_from_display_geometry` with a declared margin and
+uncertainty, and `scientific_clipping_boundary` is structurally false.
+
+Determinism is claimed only where measured. Four `netconvert` 1.27.1 runs over identical real
+Manchester OSM input produced four different raw digests and one identical canonical identity
+digest, the difference being confined to the generation banner; the binding records
+`byte_reproducible = false` and `semantically_reproducible = true`.
+
+Two limits are recorded honestly rather than worked around. First, the provider's `-latest` alias
+302-redirects and the requested 25 July 2026 extract returns HTTP 404, so the dated 24 July file is
+pinned and the retrieval date and data-cutoff date are kept separate. Second, `netconvert` 1.27.1 as
+built here reads OSM XML only and exits 1 on the pinned PBF container, and no approved decoder is
+installed, so the **full Greater Manchester network build is blocked** on
+`OSM_PBF_DECODE_UNAVAILABLE`; the real build evidence is a bounded city-centre/university sub-area
+probe explicitly labelled as not the Greater Manchester baseline.
+
+No map matching, analyst ambiguity review over real evidence, temporal profile, calibration,
+residuals, accepted `ManchesterSumoBaseline`, or comparison contract is delivered. The
+`MANCHESTER_NETWORK_LICENCE_UNAPPROVED` and `MANCHESTER_NETWORK_NOT_REVIEWED` blockers are **not**
+lifted, because lifting them also requires `MAP_MATCH_POLICY_UNAPPROVED` and
+`REAL_SOURCE_GATE_B_UNACCEPTED` to be resolved; `SyntheticSumoNetworkBinding` is unchanged. DfT
+calibration evidence covers Manchester local authority only, and Greater Manchester locations
+without observations classify `uncovered`/`unavailable` and are never filled with zero. A built
+network is geometry and is never described as calibration, validation, live traffic, or VEC
+execution, so `MAN-09` remains planned.
+
 The existing `MAN-06` permission-safe Randy/TOS bridge is now available in Manchester Operations
 as an explicit opt-in local case-study panel. It re-verifies the accepted VEC-11 pack and renders
 only the three sanitised rows, admitted/unavailable aggregate states, reviewed citations,

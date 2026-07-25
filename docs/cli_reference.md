@@ -1478,6 +1478,54 @@ Purpose: analyse only a JSON dataset carrying `dataset_mode: synthetic_mock`. Wi
 are excluded. Outputs are descriptive software-fixture summaries, not participant evidence or
 ethics approval.
 
+## Manchester Baseline-Network Commands
+
+Design Gate-D step 1 (network binding) only. `MAN-09` remains `planned`; a built network is
+geometry and is never calibration, validation, live traffic, or VEC execution. See
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[baseline network guide](integration/manchester_baseline_network.md).
+
+Show the approved scope, required-area inclusion, CRS, and DfT coverage semantics:
+
+```bash
+traffictwin integration manchester network scope
+traffictwin integration manchester network scope --format json
+```
+
+Acquire the pinned OpenStreetMap extract. Network access requires an explicit `--confirm`; the
+host, path, media types, and byte bounds are frozen and no URL is accepted. Use `--from-file` to
+import an operator-supplied local extract with no network access at all:
+
+```bash
+traffictwin integration manchester network acquire <workspace> --confirm
+traffictwin integration manchester network acquire <workspace> --confirm --from-file <path>
+```
+
+Build one candidate with the frozen `netconvert` 1.27.1 recipe. The builder takes no arguments,
+flags, or tool paths from the caller and never uses a shell:
+
+```bash
+traffictwin integration manchester network build <workspace> \
+    --extract <path> --network-id <id>
+```
+
+List, re-verify, and report honest status:
+
+```bash
+traffictwin integration manchester network list <workspace>
+traffictwin integration manchester network verify <workspace> --network-id <id>
+traffictwin integration manchester network status [<workspace>]
+```
+
+`verify` re-checks both the raw digest and the canonical semantic identity; a mutated network file
+or binding record fails with `NETWORK_MUTATED` or `NETWORK_IDENTITY_MUTATED` and a non-zero exit.
+`status` lists what remains unavailable, including every map-matching blocker and the fact that DfT
+calibration evidence covers Manchester local authority only.
+
+Known refusals: `OSM_PBF_DECODE_UNAVAILABLE` (the reviewed `netconvert` build reads OSM XML only and
+no approved PBF decoder is installed), `SUMO_VERSION_DRIFT`, `SUMO_TOOLCHAIN_UNAVAILABLE`,
+`CHECKSUM_IDENTITY_DRIFT`, and `NETWORK_VALIDATION_REJECTED`.
+
 ## Release And Deployment Commands
 
 ### `traffictwin release status [--format text|json]`

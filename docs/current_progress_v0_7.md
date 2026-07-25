@@ -101,7 +101,7 @@ reliable engineering-time estimate.
 | Gate A | Freeze source, legal, schema, time, security, dependency, map, and publication decisions | `accepted` | Re-audit only when a provider or source contract changes | None for the frozen sources |
 | Gate B | Immutable source acquisition, parsing, replay, projection, freshness, and isolation | `working_bounded` | Complete broad/source-wide reconciliation; close time, rate-limit, retention, membership, licence, and publication blockers | 3–6 working days, excluding external decisions |
 | Gate C | Manchester Operations, grouped navigation, home page, responsive visual system, and accessibility | `working_bounded` | Final cross-page state and cutover evidence; manual keyboard, screen-reader, contrast, zoom, and participant review where required | 2–4 working days, plus human evaluation time |
-| Gate D | Observation-to-SUMO mapping, calibration, accepted baseline, and observed-versus-simulated comparison | `foundation_only` | Approve a network and scientific contracts; extend the synthetic mapping/review harness to accepted real evidence; build profile/baseline orchestration; register and exercise a real comparison contract | 7–14 working days after decisions |
+| Gate D | Observation-to-SUMO mapping, calibration, accepted baseline, and observed-versus-simulated comparison | `foundation_only` | **Step 1 (network binding) is now built** under ADR-059 — approved Greater Manchester scope, frozen netconvert 1.27.1 builder, validation, CLI. Remaining: resolve the PBF decode blocker for the full Greater Manchester build; approve the matching/calibration/comparison contracts; extend the synthetic mapping/review harness to accepted real evidence; build profile/baseline orchestration; register and exercise a real comparison contract | 7–14 working days after the remaining decisions |
 | Gate E | Accepted Manchester SUMO output through FCD/network and VEC-06–VEC-12 | `foundation_only` | Run the accepted baseline, validate one-second FCD/network, execute the gated VEC chain, and assemble research/evaluation evidence | 4–8 working days after Gate D |
 | Gate F | v0.6/v0.7 isolation, migration, rollback, packaging, documentation, CI, and immutable release | `foundation_only` | Migration/backup/interruption/rollback and side-by-side clean-checkout tests; reconcile manifests and create the final release | 3–6 working days after claimed capabilities settle |
 
@@ -120,7 +120,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-06` Randy Manchester bridge | `working_bounded` | Permission-safe local panel over accepted sanitised VEC-11 evidence, aggregates, citations, fingerprints, and limitations | Full workflow acceptance remains; source limits deliberately prohibit raw identity, geographic/live relabelling, and public hosting |
 | `MAN-07` projection/freshness service | `working_bounded` | UTC time-basis contract, source truth states, BODS and National Highways freshness, spatial admission, exclusions, and ONS display boundaries | Real canonical time projection for DfT/WebTRIS is blocked by unresolved source-time semantics; broad real-source projection acceptance remains |
 | `MAN-08` Manchester Operations | `working_bounded` | Historical/latest/live-vehicle modes, source-separated maps, BODS and National Highways refreshes, TfGM/DfT/WebTRIS views, filters, source cards, stale fallback, Randy panel, and metadata-only download | Broad/multi-site acceptance, upstream capability acceptance, public-export decisions, and manual accessibility/participant acceptance remain |
-| `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness with thin in-page synthetic review and temporal-profile demonstrations, a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls, and a day-type/season/slot temporal-profile builder with exact source dates, typed exclusions, visible missing cells, and a frozen-empty production policy registry | No approved Manchester network/licence or real-source matching/review/profile policy, real calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run |
+| `MAN-09` observation-to-SUMO baseline | `foundation_only` | Deterministic synthetic-only map-matching candidate and typed analyst-review harness with thin in-page synthetic review and temporal-profile demonstrations, a bounded calibration evaluator with coverage, residual, exclusion, parameter, and fingerprint controls, a day-type/season/slot temporal-profile builder with exact source dates, typed exclusions, visible missing cells, and a frozen-empty production policy registry, and (25 July 2026) the **Gate-D step 1 baseline-network foundation**: approved Greater Manchester scope with a Manchester local-authority filter, operator-invoked bounded OSM acquisition, a frozen `netconvert` 1.27.1 builder with immutable input manifest/command receipt/dual checksums, network validation with required-area inclusion, DfT partial-coverage semantics, a read-only service, and a bounded CLI family | Network binding is only the first of `MAN-09`'s seven acceptance components. No real-source matching policy, analyst review over real evidence, real temporal profile, calibration, uncertainty decision, accepted baseline, or baseline-triggered SUMO run. The full Greater Manchester build is additionally blocked by `OSM_PBF_DECODE_UNAVAILABLE` (netconvert 1.27.1 reads OSM XML only; no approved PBF decoder installed) |
 | `MAN-10` observed-versus-simulated comparison | `foundation_only` | Deterministic contract model, pairing, exclusions, missingness protection, coverage, lineage, and MAE/RMSE implementation | The production contract registry is intentionally empty; no scientific contract or real compatible comparison has been accepted |
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free lineage graph and explicit missing-stage reporting | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
 | `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
@@ -178,7 +178,8 @@ next section.
 
 | Required decision/evidence | Blocks |
 |---|---|
-| Approved Manchester SUMO network, construction/version, CRS, date, and licence | `MAN-09`, `MAN-11`, Gates D/E |
+| ~~Approved Manchester SUMO network, construction/version, CRS, date, and licence~~ — **answered 25 July 2026** (ADR-059: Greater Manchester baseline, Manchester LA filter, OSM/Geofabrik, netconvert 1.27.1, UTM 30N read from the network, ODbL 1.0) | ~~`MAN-09`, `MAN-11`, Gates D/E~~ |
+| **PBF-to-OSM-XML decode step for the pinned Greater Manchester extract** — netconvert 1.27.1 as built here reads OSM XML only and refuses the pinned `.osm.pbf`; no approved decoder (`osmium`/`osmconvert`/`osmosis`/`pyosmium`) is installed and adding a dependency is a lead-owned decision | Full Greater Manchester baseline network build; `MAN-09` network binding at Greater Manchester scale |
 | Map-matching thresholds, direction/road-class rules, confidence categories, and analyst policy | `MAN-09` |
 | Calibration objective, parameters, bounds, uncertainty treatment, and held-out design | `MAN-09`, `MAN-10` |
 | Approved production comparison metric contract | `MAN-10` |
@@ -209,7 +210,9 @@ WebTRIS remains a useful historical/latest-available source. It is explicitly re
 
 ## 9. Recommended execution order
 
-1. Freeze the Manchester SUMO network and Gate-D scientific decisions.
+1. ~~Freeze the Manchester SUMO network~~ (done 25 July 2026, ADR-059) and freeze the remaining
+   Gate-D scientific decisions; resolve the PBF-to-OSM-XML decode step so the full Greater
+   Manchester network can be built.
 2. Extend the synthetic map-matching/review foundations to the accepted network and build temporal
    profiles.
 3. Complete calibration orchestration and create the first reviewable baseline.
@@ -248,6 +251,8 @@ After a meaningful v0.7 increment, the integrating agent should:
 - [Provider enquiry drafts (DfT, WebTRIS, BODS)](integration/provider_enquiry_drafts.md)
 - [Supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
+- [Greater Manchester baseline network foundation](integration/manchester_baseline_network.md)
+- [ADR-059 Greater Manchester baseline network](decisions/ADR-059-greater-manchester-baseline-network.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
 - [Assumption register](assumption-register.md)

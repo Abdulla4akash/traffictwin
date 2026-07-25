@@ -1342,6 +1342,27 @@ identity. Even a complete graph fixes domain validity, causality, public export,
 acceptance, and canonical-infrastructure claims false. See the
 [MAN-11 lineage guide](integration/manchester_research_lineage.md).
 
+The candidate MAN-09 baseline-network boundary under `integration.manchester.network_scope`,
+`network_acquisition`, `network_build`, and `network_service` implements design Gate-D step 1
+(network binding) and nothing beyond it. Dependency direction is one-way: `network_scope` owns the
+approved Greater Manchester scope, the derived extract envelope, required-area inclusion probes, and
+DfT partial-coverage semantics; `network_acquisition` reuses the existing MAN-01 bounded transport,
+quarantine, hashing, receipt, and atomic-promotion services and adds no new transport;
+`network_build` owns one frozen `netconvert` argument vector plus validation; and `network_service`
+is a read-only offline view for a later Manchester Operations page. Acquisition and subprocess
+execution exist only behind the CLI, never in a page or service call.
+
+Three boundaries are structural rather than documentary. The packaged ONS polygons stay display-only
+and the extract envelope is labelled `derived_from_display_geometry` with a declared margin and
+uncertainty. Determinism is claimed only at canonical identity, because measurement showed raw
+`.net.xml` bytes differ per run inside the generation banner. DfT calibration coverage is Manchester
+local authority only, so Greater Manchester locations without observations classify `uncovered` and
+are structurally prevented from becoming zero. A built network is geometry: `calibration_performed`,
+`comparison_performed`, `vec_execution_performed`, `live_traffic_claim`, and
+`accepted_for_real_matching` are all fixed false on the binding. See
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md) and the
+[baseline network guide](integration/manchester_baseline_network.md).
+
 Future canonical adapters must:
 
 - declare supported schemas and units;

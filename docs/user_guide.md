@@ -878,6 +878,40 @@ executes the function twice and isolates failures. Follow the complete example i
 For case-study generation, extended fault evaluation, portfolio reports, browser auditing, and
 CLI examples, see [Advanced research tools](advanced_research_tools.md).
 
+## Greater Manchester Baseline Network
+
+TrafficTwin can build a deterministic SUMO road network for Greater Manchester from an
+OpenStreetMap extract. This is **infrastructure only**: it produces road geometry. It does not
+calibrate traffic, does not validate the model against observations, does not show live traffic,
+and does not run a VEC experiment.
+
+The baseline scope is **Greater Manchester** (all ten boroughs). **Manchester local authority is a
+filter over that one network**, not a second network, and the baseline is checked to contain both
+Manchester city centre and the University of Manchester area.
+
+Everything runs from the command line, never from a page, so no browser refresh can trigger a
+download or a build:
+
+```bash
+traffictwin integration manchester network scope
+traffictwin integration manchester network acquire <workspace> --confirm
+traffictwin integration manchester network build <workspace> --extract <path> --network-id gm-1
+traffictwin integration manchester network status <workspace>
+```
+
+Two things are worth knowing before you rely on a build:
+
+- **Rebuilds match semantically, not byte-for-byte.** SUMO writes a timestamp into every network
+  file, so the raw file differs each run. TrafficTwin records a second "identity" checksum with that
+  banner removed, and that one is stable. `verify` checks both.
+- **DfT traffic counts only cover Manchester local authority.** Inside the wider Greater Manchester
+  network that is partial coverage. Places without counts are shown as *uncovered*, never as zero
+  traffic — no survey point is not the same thing as no vehicles.
+
+Source and licence: OpenStreetMap via Geofabrik, ODbL 1.0, attributed as
+`© OpenStreetMap contributors, ODbL 1.0`. Downloaded extracts stay in your workspace and are never
+committed to the repository.
+
 ## Data-Mode Labels
 
 | Label | Meaning in current prototype |
