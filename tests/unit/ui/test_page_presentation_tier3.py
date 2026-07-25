@@ -58,7 +58,7 @@ def test_participant_evaluation_is_a_readiness_checklist_with_explicit_states() 
 def test_participant_evaluation_keeps_raw_analysis_in_advanced() -> None:
     app = page_app(UiPage.PARTICIPANT_EVALUATION).run(timeout=30)
     assert not app.exception
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert advanced
     # Numeric record counts use st.metric.
     assert "Mock records" in metric_labels(app)
@@ -93,7 +93,7 @@ def test_triviality_renders_badges_chart_and_no_universal_best_claim(
     assert "not a cross-family ranking" in body
     assert len(app.dataframe) >= 1
     # No raw rule JSON in primary content (R3/R5 detail lives under Advanced expanders).
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert advanced
 
 
@@ -111,7 +111,7 @@ def test_manifest_inference_preview_is_structured_not_raw_dict() -> None:
     body = text_of(app)
     assert "nothing is imported, analysed, or persisted until" in body
     # Draft identity / sample limits move to Advanced; not a primary JSON dump.
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert advanced
     assert len(app.json) == 1
     # Candidate kinds render as a structured table with the score-not-probability caption.
@@ -166,7 +166,7 @@ def test_provenance_explorer_uses_tabs_badges_and_advanced_json() -> None:
     # Ledger counts use st.metric.
     assert "Candidate rows" in metric_labels(app)
     # Raw metric/rule detail moves behind Advanced/Evidence expanders.
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert advanced
 
 

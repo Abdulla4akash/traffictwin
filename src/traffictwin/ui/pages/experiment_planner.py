@@ -53,7 +53,7 @@ def render(config: UiConfig) -> None:
     if isinstance(result, ServiceError):
         st.error(result.message)
         if result.detail:
-            with st.expander("Technical detail"):
+            with st.expander("Advanced: technical detail"):
                 st.code(result.detail, language=None)
         return
     catalog = result

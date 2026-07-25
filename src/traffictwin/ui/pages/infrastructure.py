@@ -143,7 +143,7 @@ def _render_per_rsu_summary(summary: MetricValue | None) -> None:
         "Per-RSU capacity and pressure summary over canonical infrastructure observations only; "
         "unmapped or capacity-free RSUs stay unavailable rather than defaulted."
     )
-    with st.expander("Advanced/Evidence: raw per-RSU summary"):
+    with st.expander("Advanced: raw per-RSU summary"):
         st.json(summary.value)
 
 

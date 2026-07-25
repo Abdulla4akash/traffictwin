@@ -108,9 +108,9 @@ def test_scenario_mutation_keeps_fingerprints_and_manifest_in_advanced(
     app = click(app, "Build Mutated Copy")
     assert not app.exception
 
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert any("fingerprints" in label.lower() for label in advanced)
-    # The manifest download stays under Advanced/Evidence, not in primary content.
+    # The manifest download stays under Advanced, not in primary content.
     assert any(button.label == "Download Mutation Manifest JSON" for button in app.download_button)
 
 

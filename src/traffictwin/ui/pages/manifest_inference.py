@@ -73,7 +73,7 @@ def render(config: UiConfig) -> None:
             "This is a deterministic preview; nothing is imported, analysed, or persisted until "
             "you confirm the mappings below."
         )
-    with st.expander("Advanced/Evidence: draft identity and sample limits"):
+    with st.expander("Advanced: draft identity and sample limits"):
         st.json(
             {
                 "source_label": draft.source_label,

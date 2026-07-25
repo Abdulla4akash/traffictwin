@@ -140,6 +140,14 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
 }
 
 
+#: One prefix for every collapsed technical-detail disclosure. Three grew
+#: organically — "Advanced:", "Advanced/Evidence:" and "Technical detail" —
+#: so the same affordance was labelled three ways and a reader had to learn
+#: it more than once. The slash form also read as two destinations rather
+#: than one kind of content.
+ADVANCED_DISCLOSURE_PREFIX = "Advanced:"
+
+
 REQUIRED_PROTOTYPE_NOTICE = (
     "Current prototype supports synthetic fixtures, imported run bundles, historical replay, and "
     "deterministic diagnostic hypotheses. Exact VEC execution is request-preflight-gated in its "

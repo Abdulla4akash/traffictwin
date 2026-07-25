@@ -62,7 +62,7 @@ def render(config: UiConfig) -> None:
     if isinstance(view, ServiceError):
         st.error(view.message)
         if view.detail:
-            with st.expander("Technical detail"):
+            with st.expander("Advanced: technical detail"):
                 st.code(view.detail)
         return
     if not isinstance(view, TosPackageView):
@@ -176,7 +176,7 @@ def _render_import(view: TosPackageView, source: Path, config: UiConfig) -> None
         if isinstance(result, ServiceError):
             st.error(result.message)
             if result.detail:
-                with st.expander("Technical detail"):
+                with st.expander("Advanced: technical detail"):
                     st.code(result.detail)
         else:
             st.success(

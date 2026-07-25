@@ -241,7 +241,7 @@ def _render_result(result: ScenarioMutationResult, output_dir: str) -> None:
     for warning in result.warnings:
         st.warning(warning)
 
-    with st.expander("Advanced/Evidence: fingerprints, changed files, and manifest"):
+    with st.expander("Advanced: fingerprints, changed files, and manifest"):
         st.caption(f"Complete parent fingerprint: {result.parent_bundle_fingerprint}")
         st.caption(f"Complete derived fingerprint: {result.derived_bundle_fingerprint}")
         st.markdown("**Row-level provenance fingerprints**")

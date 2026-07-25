@@ -68,7 +68,7 @@ def test_energy_evidence_is_coverage_first_with_family_states() -> None:
 def test_energy_evidence_keeps_r8_raw_in_advanced() -> None:
     app = page_app(UiPage.ENERGY).run(timeout=40)
     assert not app.exception
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert any("R8" in label for label in advanced)
     # The numeric observed energy stays a units-labelled metric.
     assert "Observed completed-task energy (J/task)" in metric_labels(app)
@@ -109,7 +109,7 @@ def test_fairness_evidence_shows_coverage_disparities_and_exclusions() -> None:
 def test_fairness_evidence_keeps_policy_and_r7_raw_in_advanced() -> None:
     app = page_app(UiPage.FAIRNESS).run(timeout=40)
     assert not app.exception
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     # Complete policy fingerprint and raw R7 evidence live under Advanced/Evidence.
     assert any("policy identity" in label.lower() for label in advanced)
     assert any("R7 evidence" in label for label in advanced)
@@ -138,7 +138,7 @@ def test_infrastructure_separates_provenance_and_structures_per_rsu() -> None:
     # The per-RSU summary is a structured table; any raw dict is confined to Advanced/Evidence.
     assert len(app.dataframe) >= 1
     assert len(app.json) <= 1
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert any("per-RSU summary" in label for label in advanced)
 
 

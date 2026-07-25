@@ -158,6 +158,6 @@ def test_statistical_study_power_analysis_is_structured_not_raw_dict() -> None:
     # Categorical planning status is a badge, not a numeric metric.
     assert "Planning status" not in metric_labels(app)
     # Raw config JSON only lives under the Advanced/Evidence expander.
-    advanced = [str(exp.label) for exp in app.expander if "Advanced/Evidence" in str(exp.label)]
+    advanced = [str(exp.label) for exp in app.expander if "Advanced:" in str(exp.label)]
     assert advanced
     assert len(app.json) == 1

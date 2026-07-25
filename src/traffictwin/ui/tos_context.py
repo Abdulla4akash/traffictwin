@@ -26,7 +26,7 @@ def active_tos_package(config: UiConfig) -> TosPackageView | None:
     if isinstance(current, ServiceError):
         st.error(current.message)
         if current.detail:
-            with st.expander("Technical detail"):
+            with st.expander("Advanced: technical detail"):
                 st.code(current.detail)
         return None
     if isinstance(current, TosPackageView):

@@ -182,7 +182,7 @@ def _render_r8(evidence_pack: EvidencePack | None) -> None:
         st.info("R8 admission failed; incompatible or missing evidence is shown below.")
     else:
         st.success("R8 did not identify the configured candidate pattern.")
-    with st.expander("Advanced/Evidence: R8 evidence, alternatives, and limitations"):
+    with st.expander("Advanced: R8 evidence, alternatives, and limitations"):
         for finding in result.findings:
             st.write(f"{finding.finding_id} — {finding.support.value}: {finding.statement}")
         if result.missing_evidence:

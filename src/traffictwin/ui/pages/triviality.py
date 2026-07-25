@@ -138,7 +138,7 @@ def render(config: UiConfig) -> None:
             st.info("R3 needs more compatible multi-policy evidence.")
         else:
             st.success("R3 did not identify the configured triviality pattern.")
-        with st.expander("Advanced/Evidence: R3 evidence and limitations"):
+        with st.expander("Advanced: R3 evidence and limitations"):
             st.json(r3.model_dump(mode="json"))
     if r5 is not None:
         if r5.status is RuleStatus.TRIGGERED:
@@ -149,7 +149,7 @@ def render(config: UiConfig) -> None:
             st.warning(r5.hypothesis or "R5 has conflicting evidence.")
         else:
             st.success("R5 did not identify the configured drift pattern.")
-        with st.expander("Advanced/Evidence: R5 evidence and limitations"):
+        with st.expander("Advanced: R5 evidence and limitations"):
             st.json(r5.model_dump(mode="json"))
 
     section_header("Per-Seed Winner Map")

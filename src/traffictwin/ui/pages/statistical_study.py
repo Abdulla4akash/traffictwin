@@ -417,7 +417,7 @@ def _render_power_analysis(analysis: PowerAnalysis) -> None:
         file_name=f"{analysis.analysis_id}.csv",
         mime="text/csv",
     )
-    with st.expander("Advanced/Evidence: planning provenance, warnings, assumptions, limitations"):
+    with st.expander("Advanced: planning provenance, warnings, assumptions, limitations"):
         st.json(
             {
                 "config": analysis.config.model_dump(mode="json"),
@@ -544,7 +544,7 @@ def _render_regression_gate(report: RegressionGateReport) -> None:
         column_config=table_column_config(check_rows),
     )
     if report.blocking_findings:
-        with st.expander("Advanced/Evidence: blocking compatibility findings"):
+        with st.expander("Advanced: blocking compatibility findings"):
             st.json([finding.model_dump(mode="json") for finding in report.blocking_findings])
     downloads = st.columns(3)
     downloads[0].download_button(
@@ -565,7 +565,7 @@ def _render_regression_gate(report: RegressionGateReport) -> None:
         file_name=f"{report.gate_id}.csv",
         mime="text/csv",
     )
-    with st.expander("Advanced/Evidence: golden, provenance, warnings, and limitations"):
+    with st.expander("Advanced: golden, provenance, warnings, and limitations"):
         st.json(
             {
                 "golden_contract": report.contract.model_dump(mode="json"),
@@ -776,7 +776,7 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
                 ),
             ),
         )
-    with st.expander("Advanced/Evidence: complete inherited STA-01 pairing audit"):
+    with st.expander("Advanced: complete inherited STA-01 pairing audit"):
         st.json(study.pairing_audit.model_dump(mode="json"))
     downloads = st.columns(3)
     downloads[0].download_button(
@@ -797,7 +797,7 @@ def _render_equivalence_study(study: EquivalenceStudy) -> None:
         file_name=f"{study.study_id}-audit.csv",
         mime="text/csv",
     )
-    with st.expander("Advanced/Evidence: equivalence plan, provenance, assumptions, limitations"):
+    with st.expander("Advanced: equivalence plan, provenance, assumptions, limitations"):
         st.json(
             {
                 "config": study.config.model_dump(mode="json"),
@@ -988,7 +988,7 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
             )
         else:
             st.info(entry.status_reason or "No compatible policy ranking is available.")
-        with st.expander(f"Advanced/Evidence: common-seed audit — {entry.seed_id}"):
+        with st.expander(f"Advanced: common-seed audit — {entry.seed_id}"):
             st.json(entry.audit.model_dump(mode="json"))
             if entry.observations:
                 st.dataframe(
@@ -1021,7 +1021,7 @@ def _render_n_way_study(study: NWayRankingStudy) -> None:
         file_name=f"{study.study_id}-audit.csv",
         mime="text/csv",
     )
-    with st.expander("Advanced/Evidence: N-way plan, provenance, assumptions, and limitations"):
+    with st.expander("Advanced: N-way plan, provenance, assumptions, and limitations"):
         st.json(
             {
                 "config": study.config.model_dump(mode="json"),
@@ -1198,7 +1198,7 @@ def _render_study(study: StatisticalStudy) -> None:
             file_name=f"{study.study_id}-pairs.csv",
             mime="text/csv",
         )
-        with st.expander("Advanced/Evidence: complete plan, provenance, assumptions, limitations"):
+        with st.expander("Advanced: complete plan, provenance, assumptions, limitations"):
             st.json(
                 {
                     "config": study.config.model_dump(mode="json"),

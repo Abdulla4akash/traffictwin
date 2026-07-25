@@ -138,7 +138,7 @@ def render(config: UiConfig) -> None:
             result = safe_import_bundle_for_ui(bundle_path, registry_path)
             if isinstance(result, ServiceError):
                 st.error(result.message)
-                with st.expander("Technical detail"):
+                with st.expander("Advanced: technical detail"):
                     st.write(result.detail)
             else:
                 store_metrics_for_ui(registry_path, analysis.metrics)
@@ -271,7 +271,7 @@ def _render_streaming_import(bundle_path: Path, registry_path: Path) -> None:
     result = st.session_state.get("streaming_bundle_result")
     if isinstance(result, ServiceError):
         st.error(result.message)
-        with st.expander("Technical detail"):
+        with st.expander("Advanced: technical detail"):
             st.write(result.detail)
         return
     registry_result = None

@@ -133,7 +133,7 @@ def _render_report_completeness(analysis: BundleAnalysis) -> None:
             column_config=table_column_config(claim_rows),
         )
         st.caption(completeness.denominator_definition)
-        with st.expander("Advanced/Evidence: denominator exclusions and trace-depth rules"):
+        with st.expander("Advanced: denominator exclusions and trace-depth rules"):
             st.json(
                 {
                     "exclusions": [
@@ -186,7 +186,7 @@ def _render_metric_trace(analysis: BundleAnalysis) -> None:
             "Dependency links are how this metric feeds configured rules; they do not establish "
             "real-world causality."
         )
-    with st.expander("Advanced/Evidence: metric definition and dependents (raw)"):
+    with st.expander("Advanced: metric definition and dependents (raw)"):
         st.json(
             {
                 "key": metric_key,
@@ -265,7 +265,7 @@ def _render_rule_trace(analysis: BundleAnalysis) -> None:
                 "**Alternative explanations:** " + "; ".join(result.alternative_explanations)
             )
         st.caption("A hypothesis is a candidate explanation, not a confirmed cause.")
-    with st.expander("Advanced/Evidence: rule thresholds and recommendations (raw)"):
+    with st.expander("Advanced: rule thresholds and recommendations (raw)"):
         st.json(
             {
                 "rule_id": result.rule_id,
@@ -382,7 +382,7 @@ def _render_trace(trace: ProvenanceTrace, *, root_label: str) -> None:
                 f"**Node:** {selected_node.label} · "
                 f"**Type:** {badge_markdown(selected_node.node_type.value)}"
             )
-            with st.expander("Advanced/Evidence: selected node (raw)"):
+            with st.expander("Advanced: selected node (raw)"):
                 st.json(selected_node.model_dump(mode="json"))
     with tab_lineage:
         render_trace_lineage(trace)

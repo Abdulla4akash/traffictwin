@@ -17,6 +17,8 @@ by this file.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from streamlit.testing.v1 import AppTest
 
@@ -153,16 +155,12 @@ class TestTheAutomatedScopeIsStatedHonestly:
     """The value of these checks depends on nobody mistaking them for an audit."""
 
     def test_the_manual_checklist_exists_and_is_unticked(self) -> None:
-        from pathlib import Path
-
         checklist = Path("docs/evaluation/manual_accessibility_checklist.md")
         assert checklist.is_file(), "the manual checklist must accompany the automated checks"
         text = checklist.read_text(encoding="utf-8")
         assert "[x]" not in text.lower(), "no manual item may ship pre-ticked"
 
     def test_the_checklist_covers_what_cannot_be_automated(self) -> None:
-        from pathlib import Path
-
         text = Path("docs/evaluation/manual_accessibility_checklist.md").read_text(encoding="utf-8")
         lowered = text.lower()
         for item in ("contrast", "zoom", "keyboard", "screen reader"):
@@ -171,3 +169,51 @@ class TestTheAutomatedScopeIsStatedHonestly:
     def test_every_page_is_covered_by_the_automated_checks(self) -> None:
         # A page silently omitted would look checked.
         assert len(list(UiPage)) >= 30
+
+
+class TestDisclosureLabellingIsConsistent:
+    """One affordance, one label.
+
+    Collapsed technical detail was labelled three ways — ``Advanced:``,
+    ``Advanced/Evidence:`` and ``Technical detail`` — so a reader had to learn
+    the same affordance more than once, and the slash form read as two
+    destinations rather than one kind of content.
+    """
+
+    def _ui_sources(self) -> list[Path]:
+        root = Path(__file__).resolve().parents[2] / "src" / "traffictwin" / "ui"
+        return [path for path in root.rglob("*.py") if path.name != "labels.py"]
+
+    def test_the_canonical_prefix_is_defined_once(self) -> None:
+        from traffictwin.ui.labels import ADVANCED_DISCLOSURE_PREFIX
+
+        assert ADVANCED_DISCLOSURE_PREFIX == "Advanced:"
+
+    def test_no_page_uses_the_slash_form(self) -> None:
+        offenders = [
+            path.name
+            for path in self._ui_sources()
+            if "Advanced/Evidence:" in path.read_text(encoding="utf-8")
+        ]
+        assert not offenders, f"these still use the slash form: {offenders}"
+
+    def test_no_page_uses_a_bare_technical_detail_expander(self) -> None:
+        offenders = [
+            path.name
+            for path in self._ui_sources()
+            if 'st.expander("Technical detail"' in path.read_text(encoding="utf-8")
+        ]
+        assert not offenders, f"these still use an unprefixed disclosure: {offenders}"
+
+    @pytest.mark.parametrize("page", list(UiPage), ids=lambda page: page.name)
+    def test_every_disclosure_label_is_distinguishable(self, page: UiPage) -> None:
+        # Two collapsed sections sharing one label on a page cannot be told
+        # apart when collapsed, which is when a reader has to choose.
+        app = _run(page)
+        labels = [
+            str(getattr(element, "label", "")).strip().lower()
+            for element in (getattr(app, "expander", []) or [])
+        ]
+        labels = [label for label in labels if label]
+        duplicates = {label for label in labels if labels.count(label) > 1}
+        assert not duplicates, f"{page.name} repeats a disclosure label: {sorted(duplicates)}"

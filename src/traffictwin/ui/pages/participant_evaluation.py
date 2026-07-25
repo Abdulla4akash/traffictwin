@@ -110,7 +110,7 @@ def render() -> None:
         st.caption("No coded comments were supplied in the mock dataset.")
     for limitation in report.limitations:
         st.caption(limitation)
-    with st.expander("Advanced/Evidence: complete mock analysis (raw)"):
+    with st.expander("Advanced: complete mock analysis (raw)"):
         st.json(report.model_dump(mode="json"))
     downloads = st.columns(2)
     downloads[0].download_button(

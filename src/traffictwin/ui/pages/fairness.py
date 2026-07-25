@@ -188,7 +188,7 @@ def _render_policy_identity(metric: MetricValue) -> None:
         f"minimum support {metadata.get('minimum_group_support', 'unavailable')}; "
         f"required coverage {metadata.get('minimum_coverage_fraction', 'unavailable')}."
     )
-    with st.expander("Advanced/Evidence: fairness policy identity"):
+    with st.expander("Advanced: fairness policy identity"):
         st.caption(
             f"Complete fairness policy fingerprint: {fingerprint if fingerprint else 'unavailable'}"
         )
@@ -261,7 +261,7 @@ def _render_r7(evidence_pack: EvidencePack | None) -> None:
         st.info("R7 is unavailable for this selection; missing evidence is shown below.")
     else:
         st.success("R7 did not identify the configured candidate pattern.")
-    with st.expander("Advanced/Evidence: R7 evidence, alternatives, and limitations"):
+    with st.expander("Advanced: R7 evidence, alternatives, and limitations"):
         for finding in result.findings:
             st.write(f"{finding.finding_id} — {finding.support.value}: {finding.statement}")
         if result.missing_evidence:
