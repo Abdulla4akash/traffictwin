@@ -272,14 +272,19 @@ override **the family split alone**, under guards that are all required together
 | Guard | Value |
 |---|---|
 | Relaxes | `wrong_road_type_family` only |
-| Maximum distance | 5 m (v1.0 eligibility is 30/50 m) |
+| Maximum distance | 5 m inclusive (v1.0 eligibility is 30/50 m) |
 | Candidate must permit motor vehicles | Required; unknown access fails closed |
-| Signed reference identifies exactly one road group | Required |
-| Other eligible groups may remain | **No**, by default — see below |
+| Match must be on a **signed** M/A/B reference | Required; `A57(M)` valid |
+| Signed reference identifies exactly one **exact-reference** road group | Required |
 | Fuzzy names | Never |
 | Family mismatch | Preserved and displayed on the row |
 | Recorded reason | `exact_reference_family_override` |
 | Service-class candidates | Still require manual confirmation, unchanged from v1.0 |
+
+The signed-reference requirement is not a formality. Conservative normalisation alone would equate
+two identical road names, so without it a shared `CHESTER ROAD` on both sides would trigger the
+family override. Two matching names are not road identity in the way a road number is; a non-signed
+reference is refused with `reference_not_signed`.
 
 The override never rescues a hard-excluded class, a class outside the approved lists, a non-road
 class, or a candidate beyond 5 m. Those stay rejected exactly as in v1.0.
@@ -288,41 +293,65 @@ class, or a candidate beyond 5 m. Those stay rejected exactly as in v1.0.
 has to compare two implementations, and mutating v1.0 in place would leave nothing to compare
 against.
 
+### Readmission is not application
+
+A candidate that passes every per-candidate guard is **readmitted** past the family filter and
+becomes visible for review. That is audit evidence. The override is **applied** only on a row it
+actually accepts. A strict-path row and a review row may both carry readmitted candidates while
+applying nothing, so the two are counted separately — and row counts and edge counts never share a
+field, because a single "applied total" would report either 25 or 51 here depending on which unit it
+silently meant.
+
+| Denominator | Unit | Value |
+|---|---|---|
+| Rows the override accepted | rows | 25 |
+| Candidate edges on those accepted rows | edges | 51 |
+| Candidate edges readmitted past the family filter | edges | 51 |
+| Candidate edges examined and refused | edges | 1,339 |
+
+### Missing evidence is not absence
+
+A candidate that satisfies every other guard but whose motor-vehicle access the network cannot
+supply leaves its site `unavailable_missing_evidence`, never `no_suitable_candidate`. The first is a
+gap in what we know; the second is a statement about the road. `motor_access_unknown` is the only
+refusal that means *we could not find out*, so it is the only value the missing-evidence field
+admits — a refusal that settled the question can never be presented as a gap. Such a site keeps the
+same confidence, so the reconciliation compares dispositions too and records it as changed.
+
+No real Manchester site took this path: every retrieved edge carried readable lane permissions.
+
 ### Exact v1.0-versus-v1.1 reconciliation, over all 305 real sites
 
 | v1.0 | v1.1 | Path | Sites |
 |---|---|---|---|
 | `clear_candidate` | `owner_policy_accepted_candidate` | strict v1.0 clear | 106 |
 | `no_suitable_candidate` | `owner_policy_accepted_candidate` | exact-reference override | 12 |
+| `review_required` | `owner_policy_accepted_candidate` | exact-reference override | 13 |
 | `no_suitable_candidate` | `no_suitable_candidate` | — | 9 |
-| `review_required` | `awaiting_manual_review` | — | 178 |
+| `review_required` | `awaiting_manual_review` | — | 165 |
 
-v1.1 acceptance is exactly v1.0's 106 clear candidates **plus** 12 override rescues. It accepts
-nothing v1.0 sent to review and demotes nothing v1.0 accepted. The manual review queue holds 187 of
-305 sites and is preserved rather than emptied.
+v1.1 acceptance is v1.0's 106 clear candidates **plus** 25 override rescues. It demotes nothing v1.0
+accepted. The manual review queue holds 174 of 305 sites and is preserved rather than emptied.
 
 `owner_policy_accepted_candidate` means **the owner's written policy accepted the row**. It is not
 analyst acceptance, not human acceptance, and not supervisor approval; the artifact fixes all three
 to false structurally.
 
-### One rule the policy left underdetermined, made explicit
+### One measurement reported, not acted on
 
-The policy says both that "the signed reference must identify exactly one nearby road group" *and*
-that "ambiguous rows remain review-required". On the real data those readings disagree for **13 of
-305 sites** — one with 25 competing eligible groups.
+On 13 of the 25 override-accepted rows, the override group was the only one carrying the site's
+exact signed reference while other eligible groups still competed on distance alone. One such row
+had 25 competing groups.
 
-The conservative reading ships as the default (`override_requires_sole_eligible_group = true`): the
-override rescues a site the reference resolves outright and does not silently settle a many-way
-competition. It is the reading that can be relaxed later without retracting evidence already
-accepted.
+| Eligible groups on an override-accepted row | 1 | 3 | 5 | 7 | 11 | 13 | 15 | 19 | 25 |
+|---|---|---|---|---|---|---|---|---|---|
+| Rows | 12 | 4 | 2 | 1 | 1 | 2 | 1 | 1 | 1 |
 
-| Reading | Accepted | Override rescues | Review | Unavailable |
-|---|---|---|---|---|
-| Conservative (default) | 118 | 12 | 178 | 9 |
-| Relaxed | 131 | 25 | 165 | 9 |
-
-Changing it changes the policy fingerprint, so results can never look identical under different
-rules. The choice remains the owner's.
+The authorised uniqueness guard is about **exact-reference** groups only, and a nearby group
+carrying no reference cannot make the reference non-unique. Blocking on those groups would tighten
+the owner-approved override beyond what was authorised, so no extra rule was added. The competing
+groups stay on every accepted row and in the audit record, and this measurement is reported for the
+owner to consider.
 
 ### A correction to the Phase 2 finding
 
@@ -335,6 +364,14 @@ every override consideration there refused with `reference_not_exact`. An exact-
 cannot reach them by construction. Doing so would need a road-class widening or a name-based rule,
 and fuzzy names are explicitly excluded from the override.
 
-Four guards — non-motor access, unknown access, service class, and several exact-reference groups —
-are implemented and adversarially tested but were **not exercised by any real Manchester site**.
-Their absence here is a property of this data, not evidence that they are unnecessary.
+The nine sites left after the override terminate as `no_suitable_candidate` — four A6042, one A56,
+one A6, one A62, one A665, and one carrying no signed reference. **None of them is
+`unavailable_missing_evidence`**: the network supplied readable permissions for every retrieved
+edge, so nothing about these sites was unknown. Zero real rows took the missing-evidence path.
+
+Five guards — non-signed reference, non-motor access, unknown access, service class, and several
+exact-reference groups — are implemented and adversarially tested but were **not exercised by any
+real Manchester site**. Their absence here is a property of this data, not evidence that they are
+unnecessary. Adding the signed-reference guard after review left the reconciliation byte-identical
+(fingerprint `ae3ecff1`) and moved only the declared policy fingerprint, from `6bcb487b` to
+`f0bc213b`.

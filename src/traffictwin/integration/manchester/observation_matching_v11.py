@@ -28,9 +28,27 @@ guards that are all required together:
 
 *   the candidate must **permit motor vehicles**;
 *   the distance must be **at most 5 m**, far tighter than v1.0's eligibility;
-*   the signed reference must identify **exactly one** nearby road group;
+*   the signed reference must identify **exactly one** nearby *exact-reference*
+    road group — nearby groups carrying no reference cannot make it non-unique;
 *   the family mismatch is **preserved and displayed**, never repaired away;
 *   the reason ``exact_reference_family_override`` is recorded on the row.
+
+Readmission is not application
+==============================
+
+A candidate that passes every per-candidate guard is **readmitted** past the
+family filter and becomes visible for review.  That is audit evidence.  The
+override is **applied** only on a row it actually accepts, and the two are
+counted separately throughout: a strict-path row and a review row may both carry
+readmitted candidates while applying nothing.
+
+Missing evidence is not absence
+===============================
+
+A candidate that satisfies every other guard but whose motor-vehicle access the
+network cannot supply leaves its site ``unavailable_missing_evidence``, never
+``no_suitable_candidate``.  The first is a gap in what we know; the second is a
+statement about the road, and reporting one as the other would be a false claim.
 
 What the override never does
 ============================
@@ -79,6 +97,7 @@ from traffictwin.integration.manchester.observation_matching import (
     ObservationMatchingModel,
     bare_road_class,
     classify_edge_class,
+    is_signed_reference,
     match_observation,
     normalise_road_reference,
 )
@@ -109,16 +128,22 @@ TerminalDispositionV11: TypeAlias = Literal[
 
 OverrideRefusal: TypeAlias = Literal[
     "reference_absent",
+    "reference_not_signed",
     "reference_not_exact",
     "class_not_family_mismatch",
     "beyond_override_distance",
     "motor_access_unknown",
     "does_not_permit_motor_vehicles",
     "several_exact_reference_groups",
-    "other_eligible_groups_remain",
     "service_class_requires_manual_confirmation",
     "strict_path_already_accepted",
 ]
+
+#: The only refusal that means *we could not find out*, as opposed to *we found
+#: out and the answer was no*.  Typed separately so a row can never claim to be
+#: unavailable through missing evidence on the strength of a refusal that
+#: actually settled the question.
+MissingEvidence: TypeAlias = Literal["motor_access_unknown"]
 
 
 def permits_motor_vehicles(access: MotorAccess | None) -> bool:
@@ -154,20 +179,15 @@ class ManchesterMapMatchPolicyV11(ObservationMatchingModel):
     #: strong enough that the trade is not a guess.
     override_max_distance_m: Decimal = Decimal("5")
     override_requires_motor_vehicle_access: Literal[True] = True
+    #: The match must be on a **signed** M/A/B road reference, not merely on
+    #: identical text. Two identical road names are not road identity in the way
+    #: a road number is, and normalisation alone cannot tell them apart.
+    override_requires_signed_reference: Literal[True] = True
+    #: The authorised uniqueness guard, and the only one: the signed reference
+    #: must identify exactly one nearby **exact-reference** road group. Nearby
+    #: groups that do not carry the reference do not make it non-unique; they
+    #: are preserved on the row for review and audit, never used to block.
     override_requires_unique_reference_group: Literal[True] = True
-    #: Whether the override may also resolve a *broader* ambiguity — a site
-    #: where its group is the only one carrying the exact reference, but other
-    #: eligible groups still compete on distance alone.
-    #:
-    #: The owner's policy says both that "the signed reference must identify
-    #: exactly one nearby road group" and that "ambiguous rows remain
-    #: review-required", and on the real Manchester data those two readings
-    #: disagree for 13 of 305 sites — one of them with 25 competing groups.
-    #: The default is therefore the conservative reading: the override rescues
-    #: a site the reference resolves outright, and does not silently settle a
-    #: many-way competition. Setting this False is a recorded policy choice
-    #: that changes the fingerprint, not a hidden default.
-    override_requires_sole_eligible_group: bool = True
     override_uses_fuzzy_names: Literal[False] = False
     #: The override relaxes the family split and nothing else.
     override_relaxes_only: Literal["wrong_road_type_family"] = OVERRIDABLE_REJECTION_REASON
@@ -279,14 +299,24 @@ class ObservationMatchV11(ObservationMatchingModel):
     #: The complete v1.0 rejection ledger, kept whole. An override readmits a
     #: candidate without erasing the record that it was rejected first.
     rejections: tuple[CandidateRejection, ...] = ()
-    #: Candidates readmitted past the family split. Readmission makes a
-    #: candidate visible for review; acceptance is decided separately below.
+    #: Candidates that passed every per-candidate override guard and were
+    #: readmitted past the v1.0 family filter. Readmission is **audit
+    #: evidence**: it makes a candidate visible for review. It is not an
+    #: applied override, and counting it as one would overstate how often the
+    #: override actually decided anything.
+    candidates_readmitted: tuple[ExactReferenceOverride, ...] = ()
+    #: The override as *applied*: populated only on a row this override
+    #: actually accepted. Empty on every strict-path row and every review row.
     overrides_applied: tuple[ExactReferenceOverride, ...] = ()
     overrides_refused: tuple[OverrideConsidered, ...] = ()
     #: Why the override readmitted candidates but was not allowed to accept any
     #: of them. Recorded at row level because the reason is about the row's
     #: ambiguity, not about any single candidate.
     override_acceptance_refused: OverrideRefusal | None = None
+    #: Evidence the network could not supply, which is why this row is
+    #: unavailable rather than simply having no candidate. Missing evidence and
+    #: absent evidence are different findings and never collapse together.
+    missing_evidence: tuple[MissingEvidence, ...] = ()
 
     confidence: MatchConfidence
     disposition: TerminalDispositionV11
@@ -324,14 +354,38 @@ class ObservationMatchV11(ObservationMatchingModel):
         if self.confidence == "no_suitable_candidate":
             if self.groups:
                 raise ValueError("a no-candidate result cannot carry candidate groups")
-            if self.disposition != "no_suitable_candidate":
-                raise ValueError("a no-candidate result must terminate as no_suitable_candidate")
+            if self.disposition not in {"no_suitable_candidate", "unavailable_missing_evidence"}:
+                raise ValueError(
+                    "a no-candidate result terminates as no_suitable_candidate, or as "
+                    "unavailable_missing_evidence when evidence was missing rather than absent"
+                )
+        if (self.disposition == "unavailable_missing_evidence") != bool(self.missing_evidence):
+            # Strictly biconditional: an unavailable row must name what was
+            # missing, and no other disposition may claim missing evidence.
+            raise ValueError(
+                "an unavailable row must name the evidence that was missing, and only "
+                "an unavailable row may name it; missing evidence is not the same as "
+                "no candidate"
+            )
         if self.disposition == "awaiting_manual_review" and not self.review_reasons:
             raise ValueError("a row sent to manual review must say why")
+        if bool(self.overrides_applied) != (
+            self.acceptance_path == "exact_reference_family_override"
+        ):
+            # Readmission is audit evidence; only an acceptance is an applied
+            # override. Conflating them overstates how often the override
+            # actually decided anything.
+            raise ValueError(
+                "overrides_applied is populated on exactly the rows the override accepted"
+            )
+        for applied in self.overrides_applied:
+            if applied not in self.candidates_readmitted:
+                raise ValueError("an applied override must also appear as a readmitted candidate")
         if (
-            self.overrides_applied
+            self.candidates_readmitted
             and self.acceptance_path != "exact_reference_family_override"
             and self.override_acceptance_refused is None
+            and self.disposition != "unavailable_missing_evidence"
         ):
             raise ValueError(
                 "a row that readmitted candidates without accepting one must record "
@@ -392,7 +446,7 @@ def match_observation_v11(
     observation_ref = normalise_road_reference(dft_road_ref)
     lookup = motor_access if motor_access is not None else {}
 
-    overrides, refusals = _consider_overrides(
+    readmitted, refusals = _consider_overrides(
         rejections=base_result.rejections,
         observation_ref=observation_ref,
         dft_road_type=dft_road_type,
@@ -402,13 +456,13 @@ def match_observation_v11(
         easting=easting,
         northing=northing,
     )
-    groups = _build_groups(base_result, overrides, observation_ref, dft_road_type)
+    groups = _build_groups(base_result, readmitted, observation_ref, dft_road_type)
 
     return _decide(
         base_result=base_result,
         policy=policy,
         groups=groups,
-        overrides=overrides,
+        readmitted=readmitted,
         refusals=refusals,
         observation_ref=observation_ref,
         dft_road_type=dft_road_type,
@@ -427,9 +481,14 @@ def _consider_overrides(
     easting: float,
     northing: float,
 ) -> tuple[tuple[ExactReferenceOverride, ...], tuple[OverrideConsidered, ...]]:
-    """Examine every family-rejected candidate, publishing refusals too."""
+    """Examine every family-rejected candidate, publishing refusals too.
 
-    applied: list[ExactReferenceOverride] = []
+    Candidates that pass every per-candidate guard are **readmitted**, not
+    applied. Whether the override goes on to accept the row is decided later,
+    over the whole group set.
+    """
+
+    readmitted: list[ExactReferenceOverride] = []
     refused: list[OverrideConsidered] = []
     ordinals = _ordinals_by_edge_id(index, easting, northing, policy)
 
@@ -460,7 +519,7 @@ def _consider_overrides(
         road_class = bare_road_class(rejection.road_type)
         assert road_class is not None and rejection.road_type is not None  # noqa: S101
         assert observation_ref is not None  # noqa: S101 - narrowed by the refusal checks
-        applied.append(
+        readmitted.append(
             ExactReferenceOverride(
                 edge_id=rejection.edge_id,
                 road_type=rejection.road_type,
@@ -475,7 +534,7 @@ def _consider_overrides(
             )
         )
     return (
-        tuple(sorted(applied, key=lambda item: (item.distance_m, item.edge_id))),
+        tuple(sorted(readmitted, key=lambda item: (item.distance_m, item.edge_id))),
         tuple(sorted(refused, key=lambda item: (item.distance_m, item.edge_id))),
     )
 
@@ -494,6 +553,12 @@ def _refuse_override(
 
     if observation_ref is None:
         return "reference_absent"
+    if not is_signed_reference(observation_ref):
+        # The authorised rule is a *signed road reference* match, not a text
+        # match. Normalisation alone would happily equate two identical road
+        # names, and "CHESTER ROAD" appearing on both sides is not evidence of
+        # road identity in the way an M/A/B number is. A57(M) stays valid.
+        return "reference_not_signed"
     if classify_edge_class(rejection.road_type, dft_road_type) != OVERRIDABLE_REJECTION_REASON:
         return "class_not_family_mismatch"
     ordinal = ordinals.get(rejection.edge_id)
@@ -599,7 +664,7 @@ def _decide(
     base_result: ObservationMatch,
     policy: ManchesterMapMatchPolicyV11,
     groups: tuple[RoadGroupV11, ...],
-    overrides: tuple[ExactReferenceOverride, ...],
+    readmitted: tuple[ExactReferenceOverride, ...],
     refusals: tuple[OverrideConsidered, ...],
     observation_ref: str | None,
     dft_road_type: str,
@@ -614,6 +679,8 @@ def _decide(
         confidence: MatchConfidence,
         disposition: TerminalDispositionV11,
         acceptance_path: AcceptancePath | None = None,
+        applied: tuple[ExactReferenceOverride, ...] = (),
+        missing_evidence: tuple[MissingEvidence, ...] = (),
         audit_flag: bool = False,
         family_mismatch: str | None = None,
         reasons: tuple[str, ...],
@@ -629,8 +696,10 @@ def _decide(
             dft_road_name=dft_road_name,
             dft_normalised_ref=observation_ref,
             rejections=base_result.rejections,
-            overrides_applied=overrides,
+            candidates_readmitted=readmitted,
+            overrides_applied=applied,
             overrides_refused=refusals,
+            missing_evidence=missing_evidence,
             groups=groups,
             confidence=confidence,
             disposition=disposition,
@@ -642,6 +711,30 @@ def _decide(
         )
 
     if not groups:
+        # Missing evidence is not the same finding as absent evidence. A
+        # candidate that satisfied every other override guard and failed only
+        # because the network could not tell us whether it admits a motor
+        # vehicle leaves this site *unavailable*, not candidate-free. Collapsing
+        # the two would report a gap in our knowledge as a fact about the road.
+        missing: tuple[MissingEvidence, ...] = (
+            ("motor_access_unknown",)
+            if any(item.refusal == "motor_access_unknown" for item in refusals)
+            else ()
+        )
+        if missing:
+            return build(
+                acceptance_refused=None,
+                groups=(),
+                confidence="no_suitable_candidate",
+                disposition="unavailable_missing_evidence",
+                missing_evidence=missing,
+                reasons=(
+                    "a candidate met every other override guard but the network supplied no "
+                    "motor-vehicle access for it, so this site is unavailable through missing "
+                    "evidence rather than through having no candidate.",
+                ),
+                review_reasons=(),
+            )
         return build(
             acceptance_refused=None,
             groups=(),
@@ -657,7 +750,7 @@ def _decide(
     # v1.1 would accept less than v1.0 and the revision would be a regression.
     if base_result.confidence == "clear_candidate":
         return build(
-            acceptance_refused=("strict_path_already_accepted" if overrides else None),
+            acceptance_refused=("strict_path_already_accepted" if readmitted else None),
             groups=groups,
             confidence="clear_candidate",
             disposition="owner_policy_accepted_candidate",
@@ -671,20 +764,17 @@ def _decide(
         )
 
     # Path 2: the override applied, and every one of its guards held. The
-    # uniqueness guard runs over the *combined* group set: the override may only
-    # accept when the signed reference identifies exactly one nearby road group,
-    # because a competing identity is ambiguity rather than a tie to break.
+    # authorised uniqueness guard is that the signed reference identifies exactly
+    # one nearby **exact-reference** road group. Nearby groups that do not carry
+    # the reference do not make it non-unique, so they never block; they stay on
+    # the row for review and audit.
     exact_groups = [group for group in groups if group.exact_reference_match]
     override_group = next((group for group in groups if group.admitted_by_override), None)
-    sole_group_satisfied = (
-        len(groups) == 1 if policy.override_requires_sole_eligible_group else True
-    )
     if (
-        overrides
+        readmitted
         and override_group is not None
         and len(exact_groups) == 1
         and exact_groups[0] is override_group
-        and sole_group_satisfied
         and not override_group.contains_service_member
         and override_group.nearest_distance_m <= policy.override_max_distance_m
     ):
@@ -694,6 +784,11 @@ def _decide(
             confidence="clear_candidate",
             disposition="owner_policy_accepted_candidate",
             acceptance_path="exact_reference_family_override",
+            applied=tuple(
+                item
+                for item in readmitted
+                if item.edge_id in {member.edge_id for member in override_group.members}
+            ),
             audit_flag=True,
             family_mismatch=override_group.family_mismatch,
             reasons=(
@@ -706,14 +801,10 @@ def _decide(
 
     # Reaching here means candidates were readmitted but no acceptance path
     # held. Name which guard stopped it, so the refusal is auditable.
-    refused: OverrideRefusal | None = None
-    if overrides:
-        refused = (
-            "several_exact_reference_groups"
-            if len(exact_groups) != 1
-            else "other_eligible_groups_remain"
-        )
-    review = _review_reasons(base_result, groups, overrides, observation_ref, refused)
+    refused: OverrideRefusal | None = (
+        "several_exact_reference_groups" if readmitted and len(exact_groups) != 1 else None
+    )
+    review = _review_reasons(base_result, groups, readmitted, observation_ref, refused)
     return build(
         acceptance_refused=refused,
         groups=groups,
@@ -727,11 +818,16 @@ def _decide(
 def _review_reasons(
     base_result: ObservationMatch,
     groups: Sequence[RoadGroupV11],
-    overrides: Sequence[ExactReferenceOverride],
+    readmitted: Sequence[ExactReferenceOverride],
     observation_ref: str | None,
     acceptance_refused: OverrideRefusal | None,
 ) -> tuple[str, ...]:
-    """Say exactly why a row still needs a person."""
+    """Say exactly why a row still needs a person.
+
+    v1.0's own reasons come first and are not restated: it already reports how
+    many eligible groups compete, so repeating that here would give a reviewer
+    the same fact twice in slightly different words.
+    """
 
     reasons: list[str] = list(base_result.reasons)
     if acceptance_refused == "several_exact_reference_groups":
@@ -739,14 +835,7 @@ def _review_reasons(
             "several road groups carry the same exact signed reference, so the override "
             "readmitted them for review but may not accept any of them"
         )
-    if acceptance_refused == "other_eligible_groups_remain":
-        reasons.append(
-            "the exact signed reference identifies one group, but other eligible groups "
-            "still compete, and the override does not settle a broader ambiguity"
-        )
-    if len(groups) > 1:
-        reasons.append(f"{len(groups)} eligible road groups compete after the override step")
-    if overrides and any(group.contains_service_member for group in groups):
+    if readmitted and any(group.contains_service_member for group in groups):
         reasons.append("a service-class candidate always requires manual confirmation")
     if observation_ref is None:
         reasons.append("the observation carries no signed road reference, so no override applies")
@@ -770,11 +859,19 @@ class ManualReviewEntry(ObservationMatchingModel):
     eligible_group_count: int = Field(ge=0)
     nearest_distance_m: Decimal | None = Field(default=None, ge=0)
     review_reasons: tuple[str, ...] = Field(min_length=1)
+    #: The evidence the network could not supply, carried into the queue so a
+    #: reviewer sees what to go and obtain rather than a generic no-candidate.
+    missing_evidence: tuple[MissingEvidence, ...] = ()
 
     @model_validator(mode="after")
     def validate_entry(self) -> ManualReviewEntry:
         if self.disposition == "owner_policy_accepted_candidate":
             raise ValueError("an accepted row does not belong in the manual review queue")
+        if (self.disposition == "unavailable_missing_evidence") != bool(self.missing_evidence):
+            raise ValueError(
+                "an unavailable-through-missing-evidence entry names what was missing, "
+                "and only such an entry does"
+            )
         return self
 
 
@@ -799,6 +896,23 @@ class ManualReviewQueue(ObservationMatchingModel):
         return self
 
 
+def _queue_reasons(result: ObservationMatchV11) -> tuple[str, ...]:
+    """Say why one row is in the queue, naming missing evidence specifically.
+
+    A row that is unavailable because the network could not tell us something
+    needs a different action from a row that genuinely has no candidate, so the
+    generic no-candidate wording must never stand in for it.
+    """
+
+    if result.review_reasons:
+        return result.review_reasons
+    if result.disposition == "unavailable_missing_evidence":
+        return tuple(
+            f"unavailable through missing evidence: {reason}" for reason in result.missing_evidence
+        )
+    return ("no candidate survived the approved filters, including the override",)
+
+
 def build_manual_review_queue(
     results: Sequence[ObservationMatchV11],
 ) -> ManualReviewQueue:
@@ -815,11 +929,8 @@ def build_manual_review_queue(
             nearest_distance_m=(
                 min(group.nearest_distance_m for group in result.groups) if result.groups else None
             ),
-            review_reasons=(
-                result.review_reasons
-                if result.review_reasons
-                else ("no candidate survived the approved filters, including the override",)
-            ),
+            review_reasons=_queue_reasons(result),
+            missing_evidence=result.missing_evidence,
         )
         for result in results
         if result.disposition != "owner_policy_accepted_candidate"
@@ -878,11 +989,24 @@ class PolicyReconciliation(ObservationMatchingModel):
     v1_1_owner_policy_accepted: int = Field(ge=0)
     v1_1_awaiting_manual_review: int = Field(ge=0)
     v1_1_no_suitable_candidate: int = Field(ge=0)
+    #: Rows unavailable because evidence was missing, not because no candidate
+    #: existed. Its own denominator, so the two never blur together.
+    v1_1_unavailable_missing_evidence: int = Field(ge=0)
 
     accepted_by_strict_path: int = Field(ge=0)
     accepted_by_override_path: int = Field(ge=0)
-    overrides_applied_total: int = Field(ge=0)
-    overrides_refused_total: int = Field(ge=0)
+
+    # Override denominators. Row counts and edge counts are named separately and
+    # never share a field: "applied total" that silently switches between rows
+    # and edges would make the override look larger or smaller than it is.
+    #: ROWS the override accepted.
+    override_accepted_rows: int = Field(ge=0)
+    #: EDGES carried by those accepted rows.
+    override_applied_candidate_edges: int = Field(ge=0)
+    #: EDGES readmitted past the family filter, accepted or not: audit evidence.
+    candidates_readmitted_edges: int = Field(ge=0)
+    #: EDGES the override examined and refused, with their reasons on the rows.
+    candidates_refused_edges: int = Field(ge=0)
 
     transitions: tuple[ReconciliationTransition, ...] = ()
     changed_observations: tuple[ChangedObservation, ...] = ()
@@ -904,9 +1028,18 @@ class PolicyReconciliation(ObservationMatchingModel):
             self.v1_1_owner_policy_accepted
             + self.v1_1_awaiting_manual_review
             + self.v1_1_no_suitable_candidate
+            + self.v1_1_unavailable_missing_evidence
             != self.observations_total
         ):
             raise ValueError("the v1.1 populations must account for every observation")
+        if self.override_applied_candidate_edges > self.candidates_readmitted_edges:
+            raise ValueError("an applied candidate edge is always a readmitted candidate edge")
+        if self.override_accepted_rows != self.accepted_by_override_path:
+            raise ValueError(
+                "override_accepted_rows counts rows, so it must equal the override acceptance path"
+            )
+        if self.override_accepted_rows > self.override_applied_candidate_edges:
+            raise ValueError("an accepted row carries at least one applied candidate edge")
         if (
             self.accepted_by_strict_path + self.accepted_by_override_path
             != self.v1_1_owner_policy_accepted
@@ -995,23 +1128,36 @@ def reconcile_policies(
         v1_1_no_suitable_candidate=sum(
             1 for _, newer in pairs if newer.disposition == "no_suitable_candidate"
         ),
+        v1_1_unavailable_missing_evidence=sum(
+            1 for _, newer in pairs if newer.disposition == "unavailable_missing_evidence"
+        ),
         accepted_by_strict_path=sum(
             1 for _, newer in pairs if newer.acceptance_path == "strict_v1_0_clear"
         ),
         accepted_by_override_path=sum(
             1 for _, newer in pairs if newer.acceptance_path == "exact_reference_family_override"
         ),
-        overrides_applied_total=sum(len(newer.overrides_applied) for _, newer in pairs),
-        overrides_refused_total=sum(len(newer.overrides_refused) for _, newer in pairs),
+        override_accepted_rows=sum(1 for _, newer in pairs if newer.overrides_applied),
+        override_applied_candidate_edges=sum(len(newer.overrides_applied) for _, newer in pairs),
+        candidates_readmitted_edges=sum(len(newer.candidates_readmitted) for _, newer in pairs),
+        candidates_refused_edges=sum(len(newer.overrides_refused) for _, newer in pairs),
         transitions=transitions,
         changed_observations=changed,
     )
 
 
 def _outcome_changed(older: ObservationMatch, newer: ObservationMatchV11) -> bool:
-    """Whether v1.1 reached a materially different outcome for one observation."""
+    """Whether v1.1 reached a materially different outcome for one observation.
+
+    Confidence alone is not enough. A site that moves from *no suitable
+    candidate* to *unavailable through missing evidence* keeps the same
+    confidence but changes what it is telling the reader, so it counts as
+    changed.
+    """
 
     if newer.disposition == "owner_policy_accepted_candidate":
+        return True
+    if newer.disposition == "unavailable_missing_evidence":
         return True
     return older.confidence != newer.confidence
 

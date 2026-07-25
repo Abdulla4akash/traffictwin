@@ -265,6 +265,43 @@ class TestWrongReferencesNeverOverride:
         assert not result.overrides_applied
         assert result.disposition != "owner_policy_accepted_candidate"
 
+    def test_identical_non_signed_text_on_both_sides_never_overrides(self, tmp_path: Path) -> None:
+        # The authorised rule is a *signed reference* match. Normalisation alone
+        # would equate these two strings, so without the signed check a road
+        # name appearing on both sides would trigger the family override.
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="CHESTER ROAD"))
+        easting, northing = _site(index)
+        result = _match(
+            index,
+            easting=easting,
+            northing=northing,
+            road_name="CHESTER ROAD",
+            road_ref="CHESTER ROAD",
+            access=_access("e1"),
+        )
+        assert result.overrides_applied == ()
+        assert result.disposition != "owner_policy_accepted_candidate"
+        assert [item.refusal for item in result.overrides_refused] == ["reference_not_signed"]
+
+    def test_a_motorway_standard_a_road_remains_a_valid_signed_reference(
+        self, tmp_path: Path
+    ) -> None:
+        # A57(M) occurs in the real Manchester data and must stay eligible.
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A57(M)"))
+        easting, northing = _site(index)
+        result = _match(
+            index,
+            easting=easting,
+            northing=northing,
+            road_name="A57(M)",
+            road_ref="A57(M)",
+            access=_access("e1"),
+        )
+        assert result.acceptance_path == "exact_reference_family_override"
+
+    def test_the_policy_declares_the_signed_reference_rule(self) -> None:
+        assert POLICY.override_requires_signed_reference is True
+
 
 class TestDuplicateReferenceGroupsNeverOverride:
     def test_two_competing_exact_reference_groups_refuse_the_override(self, tmp_path: Path) -> None:
@@ -302,7 +339,9 @@ class TestDuplicateReferenceGroupsNeverOverride:
         easting, northing = _site(index)
         result = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
         assert result.confidence == "review_required"
-        assert {item.edge_id for item in result.overrides_applied} == {"e1", "e2"}
+        # Readmitted for review, but never applied: only an acceptance applies.
+        assert {item.edge_id for item in result.candidates_readmitted} == {"e1", "e2"}
+        assert result.overrides_applied == ()
         assert len([group for group in result.groups if group.exact_reference_match]) == 2
         assert any("same exact signed reference" in reason for reason in result.review_reasons)
 
@@ -430,6 +469,79 @@ class TestExcessiveDistanceNeverOverrides:
         result = _match(index, easting=easting + 4.0, northing=northing, access=_access("e1"))
         assert result.acceptance_path == "exact_reference_family_override"
 
+    def test_a_distance_exactly_equal_to_the_limit_is_accepted(self, tmp_path: Path) -> None:
+        """Prove the limit is ``<=`` rather than ``<`` at literal equality.
+
+        Sampling either side of a boundary never touches the boundary itself, so
+        the exact case is constructed instead: measure a candidate's distance,
+        then set the threshold to exactly that Decimal.
+        """
+
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        probe_easting = easting + 4.0
+
+        measured = (
+            _match(index, easting=probe_easting, northing=northing, access=_access("e1"))
+            .overrides_applied[0]
+            .distance_m
+        )
+        assert measured > Decimal("0")
+
+        at_limit = ManchesterMapMatchPolicyV11(override_max_distance_m=measured)
+        accepted = _match(
+            index,
+            easting=probe_easting,
+            northing=northing,
+            access=_access("e1"),
+            policy=at_limit,
+        )
+        assert accepted.acceptance_path == "exact_reference_family_override"
+        assert accepted.overrides_applied[0].distance_m == at_limit.override_max_distance_m
+
+        # One quantum tighter, and the same candidate must fall outside.
+        just_under = ManchesterMapMatchPolicyV11(
+            override_max_distance_m=measured - Decimal("0.001")
+        )
+        refused = _match(
+            index,
+            easting=probe_easting,
+            northing=northing,
+            access=_access("e1"),
+            policy=just_under,
+        )
+        assert refused.overrides_applied == ()
+        assert [item.refusal for item in refused.overrides_refused] == ["beyond_override_distance"]
+
+    def test_the_five_metre_limit_is_inclusive(self, tmp_path: Path) -> None:
+        # The exact offset that lands on 5.000 m depends on the projection, so
+        # the boundary is locked behaviourally instead: sweep across it and
+        # require that acceptance holds exactly where the measured distance is
+        # at most 5 m, and distance-refusal exactly where it is more.
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        # The fixture edge runs at 45 degrees, so an easting offset moves the
+        # site perpendicular by only about 0.707 of it; the sweep has to reach
+        # roughly 7.1 m of offset before the measured distance passes 5 m.
+        seen_accepted = False
+        seen_refused = False
+        for step in range(0, 261):
+            offset = step * 0.05
+            result = _match(
+                index, easting=easting + offset, northing=northing, access=_access("e1")
+            )
+            if result.acceptance_path == "exact_reference_family_override":
+                measured = result.overrides_applied[0].distance_m
+                assert measured <= Decimal("5"), f"accepted at {measured} m, beyond the limit"
+                seen_accepted = True
+            elif result.overrides_refused and result.overrides_refused[0].refusal == (
+                "beyond_override_distance"
+            ):
+                measured = result.overrides_refused[0].distance_m
+                assert measured > Decimal("5"), f"refused at {measured} m, inside the limit"
+                seen_refused = True
+        assert seen_accepted and seen_refused, "the sweep must cross the boundary"
+
 
 class TestTheStrictPathIsUnchanged:
     def test_a_v1_0_clear_candidate_becomes_owner_policy_accepted(self, tmp_path: Path) -> None:
@@ -447,11 +559,16 @@ class TestTheStrictPathIsUnchanged:
         assert result.analyst_accepted is False
         assert "No analyst, human, or supervisor has reviewed it" in " ".join(result.reasons)
 
-    def test_a_site_with_no_candidate_at_all_stays_unavailable(self, tmp_path: Path) -> None:
+    def test_a_site_with_no_candidate_at_all_stays_no_suitable_candidate(
+        self, tmp_path: Path
+    ) -> None:
+        # Named exactly: no_suitable_candidate and unavailable_missing_evidence
+        # are distinct terminal findings and this one is the former.
         index = _index(tmp_path, _edge("e1", "highway.footway", ref="A56"))
         easting, northing = _site(index)
         result = _match(index, easting=easting, northing=northing, access=_access("e1"))
         assert result.disposition == "no_suitable_candidate"
+        assert result.missing_evidence == ()
         assert not result.groups
 
 
@@ -620,13 +737,13 @@ class TestTheReconciliationIsExact:
             PolicyReconciliation.model_validate_json(json.dumps(payload))
 
 
-class TestTheOverrideDoesNotSettleABroaderAmbiguity:
-    """The conservative default, and the recorded choice that relaxes it."""
+class TestUniquenessIsAboutExactReferenceGroupsOnly:
+    """The authorised guard, and nothing tighter than it."""
 
     def _competing(self, tmp_path: Path) -> EdgeSpatialIndex:
         # For a Major site: one exact-reference edge in the *minor* family
         # (which v1.0 rejects on the family split), plus an unreferenced
-        # Major-family edge that v1.0 already admitted as a competing group.
+        # Major-family edge that v1.0 already admitted as a separate group.
         return _index(
             tmp_path,
             "\n".join(
@@ -637,36 +754,326 @@ class TestTheOverrideDoesNotSettleABroaderAmbiguity:
             ),
         )
 
-    def test_by_default_a_competing_group_blocks_the_override(self, tmp_path: Path) -> None:
+    def test_a_nonmatching_nearby_group_does_not_block_the_override(self, tmp_path: Path) -> None:
+        # A nearby group that does not carry the reference cannot make the
+        # reference non-unique, so it must not block the authorised override.
         index = self._competing(tmp_path)
         easting, northing = _site(index)
-        result = _match(
-            index,
-            easting=easting,
-            northing=northing,
-            access=_access("e1", "e2"),
-        )
-        assert result.disposition == "awaiting_manual_review"
-        assert result.override_acceptance_refused == "other_eligible_groups_remain"
-        assert any("broader ambiguity" in reason for reason in result.review_reasons)
-
-    def test_the_relaxed_reading_is_an_explicit_recorded_choice(self, tmp_path: Path) -> None:
-        relaxed = ManchesterMapMatchPolicyV11(override_requires_sole_eligible_group=False)
-        index = self._competing(tmp_path)
-        easting, northing = _site(index)
-        result = _match(
-            index,
-            easting=easting,
-            northing=northing,
-            access=_access("e1", "e2"),
-            policy=relaxed,
-        )
+        result = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
         assert result.acceptance_path == "exact_reference_family_override"
+        assert result.audit_flag is True
 
-    def test_relaxing_the_guard_changes_the_policy_fingerprint(self) -> None:
-        # A different rule must never produce results that look identical.
-        relaxed = ManchesterMapMatchPolicyV11(override_requires_sole_eligible_group=False)
-        assert relaxed.fingerprint() != POLICY.fingerprint()
+    def test_the_nonmatching_group_is_still_preserved_on_the_row(self, tmp_path: Path) -> None:
+        index = self._competing(tmp_path)
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
+        assert len(result.groups) == 2
+        assert len([g for g in result.groups if g.exact_reference_match]) == 1
 
-    def test_the_conservative_default_is_the_one_that_ships(self) -> None:
-        assert POLICY.override_requires_sole_eligible_group is True
+
+class TestReadmissionIsNotApplication:
+    """Readmission is audit evidence; only an acceptance is an applied override."""
+
+    def test_an_accepted_row_records_the_override_as_applied(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access=_access("e1"))
+        assert [item.edge_id for item in result.overrides_applied] == ["e1"]
+        assert [item.edge_id for item in result.candidates_readmitted] == ["e1"]
+
+    def test_a_review_row_readmits_without_applying(self, tmp_path: Path) -> None:
+        index = _index(
+            tmp_path,
+            "\n".join(
+                (
+                    _edge("e1", "highway.unclassified", ref="A56"),
+                    _edge("e2", "highway.residential", ref="A56"),
+                )
+            ),
+        )
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
+        assert result.disposition == "awaiting_manual_review"
+        assert result.candidates_readmitted
+        assert result.overrides_applied == ()
+
+    def test_a_strict_row_never_reports_an_applied_override(self, tmp_path: Path) -> None:
+        index = _index(
+            tmp_path,
+            "\n".join(
+                (
+                    _edge("e1", "highway.primary", ref="A56"),
+                    _edge("e2", "highway.unclassified", ref="A56"),
+                )
+            ),
+        )
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
+        assert result.acceptance_path == "strict_v1_0_clear"
+        assert result.overrides_applied == ()
+        assert result.candidates_readmitted
+
+    def test_an_applied_override_on_a_non_accepted_row_is_refused(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(index, easting=easting, northing=northing, access=_access("e1")).canonical_json()
+        )
+        payload["acceptance_path"] = None
+        payload["disposition"] = "awaiting_manual_review"
+        payload["audit_flag"] = False
+        payload["review_reasons"] = ["something"]
+        with pytest.raises(ValidationError, match="exactly the rows the override accepted"):
+            ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_the_reconciliation_counts_applications_not_readmissions(self, tmp_path: Path) -> None:
+        index = _index(
+            tmp_path,
+            "\n".join(
+                (
+                    _edge("e1", "highway.unclassified", ref="A56"),
+                    _edge("e2", "highway.residential", ref="A56"),
+                )
+            ),
+        )
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
+        report = reconcile_policies([older], [newer])
+        assert report.candidates_readmitted_edges == 2
+        assert report.override_applied_candidate_edges == 0
+        assert report.override_accepted_rows == 0
+        assert report.accepted_by_override_path == 0
+
+    def test_row_and_edge_denominators_are_named_separately(self, tmp_path: Path) -> None:
+        # One accepted row carrying two applied edges: a single "applied total"
+        # would report either 1 or 2 depending on which unit it meant.
+        index = _index(
+            tmp_path,
+            "\n".join(
+                (
+                    _edge("e1", "highway.unclassified", ref="A56"),
+                    _edge("e2", "highway.unclassified", ref="A56"),
+                )
+            ),
+        )
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access=_access("e1", "e2"))
+        report = reconcile_policies([older], [newer])
+        assert report.override_accepted_rows == 1
+        assert report.override_applied_candidate_edges == 2
+        assert report.candidates_readmitted_edges == 2
+
+    def test_more_accepted_rows_than_applied_edges_is_refused(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access=_access("e1"))
+        payload: dict[str, Any] = json.loads(reconcile_policies([older], [newer]).canonical_json())
+        payload["override_applied_candidate_edges"] = 0
+        with pytest.raises(ValidationError, match="at least one applied candidate edge"):
+            PolicyReconciliation.model_validate_json(json.dumps(payload))
+
+
+class TestMissingEvidenceStaysUnavailable:
+    """Missing evidence is a different finding from having no candidate."""
+
+    def test_unknown_motor_access_makes_the_site_unavailable_not_candidate_free(
+        self, tmp_path: Path
+    ) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access={})
+        assert result.disposition == "unavailable_missing_evidence"
+        assert result.missing_evidence == ("motor_access_unknown",)
+
+    def test_the_refusal_ledger_is_still_preserved(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access={})
+        assert [item.refusal for item in result.overrides_refused] == ["motor_access_unknown"]
+        assert [item.reason for item in result.rejections] == ["wrong_road_type_family"]
+
+    def test_a_genuinely_candidate_free_site_stays_no_suitable_candidate(
+        self, tmp_path: Path
+    ) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.footway", ref="A56"))
+        easting, northing = _site(index)
+        result = _match(index, easting=easting, northing=northing, access=_access("e1"))
+        assert result.disposition == "no_suitable_candidate"
+        assert result.missing_evidence == ()
+
+    def test_an_unavailable_row_may_not_be_accepted(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(index, easting=easting, northing=northing, access={}).canonical_json()
+        )
+        payload["disposition"] = "owner_policy_accepted_candidate"
+        payload["acceptance_path"] = "exact_reference_family_override"
+        with pytest.raises(ValidationError):
+            ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_an_unavailable_row_must_name_what_was_missing(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(index, easting=easting, northing=northing, access={}).canonical_json()
+        )
+        payload["missing_evidence"] = []
+        with pytest.raises(ValidationError, match="must name the evidence that was missing"):
+            ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_only_motor_access_unknown_counts_as_missing_evidence(self, tmp_path: Path) -> None:
+        # A refusal that settled the question is not missing evidence. Typing it
+        # out means a row cannot claim unavailability on the wrong grounds.
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(index, easting=easting, northing=northing, access={}).canonical_json()
+        )
+        for settled in ("does_not_permit_motor_vehicles", "beyond_override_distance"):
+            payload["missing_evidence"] = [settled]
+            with pytest.raises(ValidationError):
+                ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_a_review_row_may_not_claim_missing_evidence(self, tmp_path: Path) -> None:
+        index = _index(
+            tmp_path,
+            "\n".join(
+                (
+                    _edge("e1", "highway.unclassified", ref="A56"),
+                    _edge("e2", "highway.residential", ref="A56"),
+                )
+            ),
+        )
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(
+                index, easting=easting, northing=northing, access=_access("e1", "e2")
+            ).canonical_json()
+        )
+        payload["missing_evidence"] = ["motor_access_unknown"]
+        with pytest.raises(ValidationError, match="only\\s+an unavailable row may name it"):
+            ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_an_accepted_row_may_not_claim_missing_evidence(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        payload: dict[str, Any] = json.loads(
+            _match(index, easting=easting, northing=northing, access=_access("e1")).canonical_json()
+        )
+        payload["missing_evidence"] = ["motor_access_unknown"]
+        with pytest.raises(ValidationError):
+            ObservationMatchV11.model_validate_json(json.dumps(payload))
+
+    def test_becoming_unavailable_counts_as_a_changed_observation(self, tmp_path: Path) -> None:
+        # Confidence stays no_suitable_candidate on both sides, so a
+        # confidence-only comparison would miss this entirely.
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access={})
+        report = reconcile_policies([older], [newer])
+        assert older.confidence == newer.confidence == "no_suitable_candidate"
+        assert [item.count_point_id for item in report.changed_observations] == [1]
+        assert report.changed_observations[0].v1_1_disposition == "unavailable_missing_evidence"
+
+    def test_the_queue_reason_names_the_missing_evidence(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        queue = build_manual_review_queue(
+            [_match(index, easting=easting, northing=northing, access={})]
+        )
+        assert queue.queued_total == 1
+        assert queue.entries[0].missing_evidence == ("motor_access_unknown",)
+        assert any("missing evidence" in reason for reason in queue.entries[0].review_reasons)
+
+    def test_only_an_unavailable_entry_names_missing_evidence(self) -> None:
+        with pytest.raises(ValidationError, match="names what was missing"):
+            ManualReviewEntry(
+                count_point_id=1,
+                dft_road_type="Major",
+                confidence="review_required",
+                disposition="awaiting_manual_review",
+                eligible_group_count=1,
+                review_reasons=("something",),
+                missing_evidence=("motor_access_unknown",),
+            )
+
+    def test_the_reconciliation_gives_unavailable_its_own_denominator(self, tmp_path: Path) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access={})
+        report = reconcile_policies([older], [newer])
+        assert report.v1_1_unavailable_missing_evidence == 1
+        assert report.v1_1_no_suitable_candidate == 0
+        assert sum(item.observations for item in report.transitions) == 1
+
+    def test_a_reconciliation_that_drops_the_unavailable_count_is_refused(
+        self, tmp_path: Path
+    ) -> None:
+        index = _index(tmp_path, _edge("e1", "highway.unclassified", ref="A56"))
+        easting, northing = _site(index)
+        older = match_observation(
+            count_point_id=1,
+            easting=easting,
+            northing=northing,
+            dft_road_type="Major",
+            dft_road_name="A56",
+            dft_road_ref="A56",
+            index=index,
+            policy=ManchesterMapMatchPolicy(),
+        )
+        newer = _match(index, easting=easting, northing=northing, access={})
+        payload: dict[str, Any] = json.loads(reconcile_policies([older], [newer]).canonical_json())
+        payload["v1_1_unavailable_missing_evidence"] = 0
+        with pytest.raises(ValidationError, match="must account for every observation"):
+            PolicyReconciliation.model_validate_json(json.dumps(payload))

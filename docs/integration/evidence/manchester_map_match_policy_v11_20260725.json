@@ -15,15 +15,18 @@
     "policy_id": "manchester-dft-map-match-owner-policy-1.1",
     "method_version": "manchester-observation-matching-1.1",
     "supersedes": "manchester-dft-map-match-owner-candidate-1.0",
-    "policy_fingerprint": "f1c2ab09517217bebe953dd3e1b79cb59c5d7bbc7d09054c2fc0499834aab907",
+    "policy_fingerprint": "f0bc213b02fab2f15b411982b8ad585ec0dda5df05b298d0954b34c0cbe1226c",
     "inherits_all_v1_0_search_values": true,
     "override": {
       "name": "exact_reference_family_override",
       "relaxes_only": "wrong_road_type_family",
       "max_distance_m": 5,
+      "max_distance_is_inclusive": true,
       "requires_motor_vehicle_access": true,
+      "requires_signed_reference": true,
+      "signed_reference_definition": "an M/A/B road number after conservative normalisation, including the motorway-standard form A57(M). Identical non-signed text on both sides - a shared road name - is refused with reference_not_signed, because two matching names are not road identity in the way a road number is.",
       "requires_unique_reference_group": true,
-      "requires_sole_eligible_group": true,
+      "uniqueness_definition": "the signed reference must identify exactly one nearby exact-reference road group. Nearby groups that do not carry the reference do not make it non-unique; they are preserved on the row for review and audit and never used to block.",
       "uses_fuzzy_names": false,
       "preserves_family_mismatch": true,
       "service_class_still_requires_manual_confirmation": true
@@ -35,74 +38,89 @@
     "network": "accepted Greater Manchester baseline (ADR-059/060), 804,611 real road edges",
     "motor_access_source": "per-edge lane permissions read by network_connectivity, 804,611 entries"
   },
+  "readmission_versus_application": {
+    "definition": "readmission means a candidate passed every per-candidate override guard and became visible for review. It is audit evidence. Application means the override actually accepted the row.",
+    "why_they_are_separated": "counting a readmission as an applied override would overstate how often the override decided anything. A strict-path row and a review row may both carry readmitted candidates and neither applies the override.",
+    "invariant": "overrides_applied is populated on exactly the rows the override accepted, and every applied override also appears as a readmitted candidate",
+    "denominators": {
+      "unit_note": "row counts and edge counts are named separately and never share a field, so a figure can never switch units silently",
+      "override_accepted_rows": 25,
+      "override_applied_candidate_edges": 51,
+      "candidates_readmitted_edges": 51,
+      "candidates_refused_edges": 1339
+    },
+    "note_on_this_run": "every readmitted edge on this data belonged to a row the override went on to accept, so the readmitted and applied edge counts coincide at 51. That is a property of this data, not an identity: a readmitted candidate on a review row would separate them."
+  },
   "reconciliation_v1_0_versus_v1_1": {
-    "reconciliation_fingerprint": "102b52704b9c34d6177fbe72e3426e800b2934761f1d5ea68528557dc0d02498",
+    "reconciliation_fingerprint": "ae3ecff1ce611d5a646f1681b245ad44e7a650029cd8d661806a36694cf2b959",
     "observations_total": 305,
     "v1_0": {"clear_candidate": 106, "review_required": 178, "no_suitable_candidate": 21},
-    "v1_1": {"owner_policy_accepted_candidate": 118, "awaiting_manual_review": 178, "no_suitable_candidate": 9},
-    "acceptance_paths": {"strict_v1_0_clear": 106, "exact_reference_family_override": 12},
+    "v1_1": {
+      "owner_policy_accepted_candidate": 131,
+      "awaiting_manual_review": 165,
+      "no_suitable_candidate": 9,
+      "unavailable_missing_evidence": 0
+    },
+    "acceptance_paths": {"strict_v1_0_clear": 106, "exact_reference_family_override": 25},
     "transitions": [
       {"from": "clear_candidate", "to": "owner_policy_accepted_candidate", "path": "strict_v1_0_clear", "observations": 106},
       {"from": "no_suitable_candidate", "to": "owner_policy_accepted_candidate", "path": "exact_reference_family_override", "observations": 12},
       {"from": "no_suitable_candidate", "to": "no_suitable_candidate", "path": null, "observations": 9},
-      {"from": "review_required", "to": "awaiting_manual_review", "path": null, "observations": 178}
+      {"from": "review_required", "to": "owner_policy_accepted_candidate", "path": "exact_reference_family_override", "observations": 13},
+      {"from": "review_required", "to": "awaiting_manual_review", "path": null, "observations": 165}
     ],
-    "monotonicity": "v1.1 acceptance is exactly v1.0's 106 clear candidates plus 12 override rescues. v1.1 accepts nothing that v1.0 sent to review, and demotes nothing v1.0 accepted",
-    "manual_review_queue": {"observations_total": 305, "accepted_total": 118, "queued_total": 187}
+    "monotonicity": "v1.1 accepts every row v1.0 accepted and demotes none of them",
+    "manual_review_queue": {"observations_total": 305, "accepted_total": 131, "queued_total": 174}
   },
   "override_outcome": {
-    "candidate_edges_readmitted": 51,
-    "rows_accepted_by_override": 12,
-    "eligible_groups_on_every_accepted_row": 1,
-    "dft_road_type": {"Major": 4, "Minor": 8},
-    "signed_references": {"A56": 4, "B5167": 4, "B6393": 2, "B5166": 1, "B5219": 1},
-    "osm_classes_overridden_onto": {"secondary": 14, "tertiary": 4},
-    "override_distances_m": {"min": 0.247, "max": 4.708},
+    "rows_accepted_by_override": 25,
+    "from_v1_0_no_suitable_candidate": 12,
+    "from_v1_0_review_required": 13,
+    "dft_road_type": {"Minor": 21, "Major": 4},
+    "signed_references": {"B5093": 6, "B5167": 6, "A56": 4, "B6393": 2, "B5166": 2, "B5218": 1, "B6178": 1, "B5219": 1, "B5117": 1, "B5217": 1},
+    "override_distances_m": {"max": 4.708},
     "refusals": {"reference_not_exact": 1210, "beyond_override_distance": 88, "reference_absent": 41},
     "guards_that_did_not_fire_on_this_data": [
+      "reference_not_signed",
       "does_not_permit_motor_vehicles",
       "motor_access_unknown",
       "service_class_requires_manual_confirmation",
       "several_exact_reference_groups"
     ],
-    "guards_note": "these four guards are implemented and adversarially tested, but no real Manchester site exercised them. Their absence here is a property of this data, not evidence that they are unnecessary."
+    "guards_note": "these five guards are implemented and adversarially tested, but no real Manchester site exercised them. Their absence here is a property of this data, not evidence that they are unnecessary.",
+    "signed_reference_guard_added_after_review": "the signed-reference check was added after a lead review found that conservative normalisation alone would equate two identical road names. Adding it changed the declared policy fingerprint from 6bcb487b to f0bc213b and left the real 305-site reconciliation byte-identical (fingerprint ae3ecff1), with zero reference_not_signed refusals: every real DfT road_name that reached the override already carried an M/A/B number."
   },
-  "underdetermined_rule_made_explicit": {
-    "question": "may the override also resolve a site where its group is the only one carrying the exact reference, but other eligible groups still compete on distance alone?",
-    "why_it_is_underdetermined": "the owner's policy says both that 'the signed reference must identify exactly one nearby road group' and that 'ambiguous rows remain review-required'. On this data the two readings disagree for 13 of 305 sites, one of them with 25 competing eligible groups.",
-    "implemented_default": "conservative - override_requires_sole_eligible_group = true. The override rescues a site the reference resolves outright and does not silently settle a many-way competition.",
-    "measured_effect_of_each_reading": {
-      "conservative_default": {"accepted": 118, "override_rescues": 12, "review": 178, "unavailable": 9,
-        "policy_fingerprint": "f1c2ab09517217bebe953dd3e1b79cb59c5d7bbc7d09054c2fc0499834aab907"},
-      "relaxed_alternative": {"accepted": 131, "override_rescues": 25, "review": 165, "unavailable": 9,
-        "policy_fingerprint": "143fd0f8f2b96725a3da01a48c40ae4c565ee9503be8695a5b5842b08e4b7f74"}
-    },
-    "owner_action_available": "confirm the conservative default, or set override_requires_sole_eligible_group to false as a recorded policy choice. Either way the fingerprint changes, so results can never look identical under different rules.",
-    "not_decided_here": "the conservative reading was implemented because it is the one that can be relaxed later without retracting evidence already accepted. The choice remains the owner's."
+  "reported_observation_not_a_policy_change": {
+    "what_was_measured": "the number of eligible road groups present on each of the 25 override-accepted rows",
+    "distribution": {"1 group": 12, "3 groups": 4, "5 groups": 2, "7 groups": 1, "11 groups": 1, "13 groups": 2, "15 groups": 1, "19 groups": 1, "25 groups": 1},
+    "observation": "on 13 of the 25 accepted rows the override group was the only one carrying the site's exact signed reference while other eligible groups still competed on distance alone. One such row had 25 competing groups.",
+    "why_this_is_reported_rather_than_acted_on": "the authorised uniqueness guard is about exact-reference groups only. Nearby groups that carry no reference do not make the reference non-unique, so blocking on them would tighten the owner-approved override beyond what was authorised. The measurement is reported for the owner to consider; no extra rule was added.",
+    "owner_action_available": "confirm that the exact-reference uniqueness guard is sufficient, or authorise an additional condition. The competing groups remain on every accepted row and in the audit record either way."
+  },
+  "missing_evidence_handling": {
+    "rule": "a candidate that satisfies every other override guard but whose motor-vehicle access the network cannot supply leaves the site unavailable_missing_evidence, never no_suitable_candidate",
+    "why": "missing evidence is a gap in our knowledge; no suitable candidate is a statement about the road. Collapsing them would report the first as the second.",
+    "typed_narrowly": "motor_access_unknown is the only refusal that means we could not find out, so it is the only value the missing-evidence field admits. A refusal that settled the question can never be presented as a gap.",
+    "counted_as_changed": "a site moving from no_suitable_candidate to unavailable_missing_evidence keeps the same confidence, so the reconciliation compares dispositions as well and records it as a changed observation",
+    "observed_on_this_data": 0,
+    "observed_note": "every retrieved edge carried readable lane permissions, so no real Manchester site took this path. It is implemented, invariant-checked, and adversarially tested.",
+    "queue_behaviour": "an unavailable row enters the manual review queue naming the exact missing evidence, and the override refusal ledger is preserved alongside it",
+    "reconciliation": "unavailable_missing_evidence has its own denominator and never merges into the no-candidate count"
   },
   "correction_to_the_phase_2_finding": {
     "earlier_statement": "the Phase 2 record noted that several of the 21 unmatched sites sit on the A56 (5 sites) and A6042 (4 sites) with a rejected edge less than a metre away, and listed an exact-reference override as an option",
     "what_the_override_actually_reached": "4 of the 5 A56 sites, and none of the 4 A6042 sites",
     "why_the_a6042_sites_were_not_reached": "the nearby rejected edges at those sites carry no matching signed reference in OpenStreetMap at all. Every override consideration there refused with reference_not_exact, so an exact-reference rule cannot reach them by construction.",
     "consequence": "the earlier framing implied the override would resolve both roads. It resolves one. Reaching the A6042 sites would need either a road-class widening or a name-based rule, and neither is authorised - fuzzy names are explicitly excluded from the override.",
-    "remaining_unavailable_sites": [
-      {"count_point_id": 8464, "road_type": "Major", "ref": "A56", "nearest_rejected_m": 2.292},
-      {"count_point_id": 18548, "road_type": "Major", "ref": "A6042", "nearest_rejected_m": 0.363},
-      {"count_point_id": 48035, "road_type": "Major", "ref": "A6042", "nearest_rejected_m": 0.633},
-      {"count_point_id": 70152, "road_type": "Major", "ref": "A6", "nearest_rejected_m": 12.811},
-      {"count_point_id": 70155, "road_type": "Major", "ref": "A62", "nearest_rejected_m": 1.689},
-      {"count_point_id": 74555, "road_type": "Major", "ref": "A6042", "nearest_rejected_m": 0.199},
-      {"count_point_id": 94143, "road_type": "Major", "ref": "A665", "nearest_rejected_m": 0.074},
-      {"count_point_id": 97178, "road_type": "Major", "ref": "A6042", "nearest_rejected_m": 1.293},
-      {"count_point_id": 944469, "road_type": "Minor", "ref": null, "nearest_rejected_m": 3.338}
-    ]
+    "remaining_no_candidate_references": {"A6042": 4, "A56": 1, "A6": 1, "A62": 1, "A665": 1, "no signed reference": 1},
+    "remaining_no_candidate_note": "these nine sites terminate as no_suitable_candidate. None of them is unavailable_missing_evidence: the network supplied readable permissions for every retrieved edge, so nothing about them was unknown."
   },
   "preserved_evidence": {
-    "rejection_ledger_kept_whole": "an override readmits a candidate without erasing the record that it was rejected first; every v1.0 rejection and reason is retained on the row",
+    "rejection_ledger_kept_whole": "a readmission never erases the record that a candidate was rejected first; every v1.0 rejection and reason is retained on the row",
     "override_refusals_published": "every family-rejected candidate the override examined and refused is published with its refusal reason, so the override's narrowness is auditable rather than asserted",
     "family_mismatch_preserved": "every override acceptance displays the DfT/OSM classification disagreement it proceeded despite, and the artifact refuses an override acceptance that drops it",
     "audit_flag": "every override acceptance carries audit_flag = true; a strict acceptance may not claim one",
-    "missing_evidence_never_zero": "no observation was filled, defaulted, or converted to zero; 9 sites remain explicitly unavailable"
+    "no_value_was_filled_or_defaulted": "no observation was filled, defaulted, or converted to zero. Nine sites remain explicitly no_suitable_candidate, and zero real rows were unavailable_missing_evidence: no_suitable_candidate and unavailable_missing_evidence are different findings and this run produced only the former."
   },
   "explicit_non_claims": [
     "candidate generation is not human acceptance; no analyst reviewed any row",
