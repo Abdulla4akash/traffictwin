@@ -45,6 +45,12 @@ Open:
    used for map matching and calibration?
 6. Which map-matching distance, direction, road-class, and confidence rules are scientifically
    acceptable, and which cases require manual confirmation?
+   Measured evidence is prepared in the
+   [map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md):
+   on the accepted Greater Manchester network a point known to be on an A road already draws a
+   median of 6 candidate edges within 10 m, and nearest-edge alone would attribute about 19% of
+   such points to a service road, residential street, path, or footway. Real candidate generation
+   fails closed on `MAP_MATCH_POLICY_UNAPPROVED` until this is decided.
 7. Which deterministic calibration objective, parameter bounds, uncertainty treatment, and
    development/held-out evaluation design should be used?
 8. Which BODS identifiers may be retained, rendered, exported, and published, and for how long?

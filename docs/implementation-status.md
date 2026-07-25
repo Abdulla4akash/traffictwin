@@ -357,6 +357,8 @@ production policy registry is intentionally empty; reports re-derive their compl
 reload and fix calibration-use, SUMO-demand, and baseline availability to false. This is
 foundation evidence only, so `MAN-09` remains planned.
 
+On 25 July 2026 the **network half of Gate-D step 2** was added: real directed edge geometry is read from the accepted Greater Manchester network with per-edge provenance, and a spatial index over all 804,611 real road edges supports candidate lookup. Reading geometry is not matching: real candidate generation fails closed on `MAP_MATCH_POLICY_UNAPPROVED` because open question 6 — the distance, direction, road-class, and confidence rules — is undecided, and no threshold exists in the code, not even as a default. Measured evidence for that decision is in the [map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md). `MAN-09` remains planned and Gate D remains `foundation_only`.
+
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.
 It binds source, projection, mapping, network, run, and row fingerprints; refuses source fusion,
