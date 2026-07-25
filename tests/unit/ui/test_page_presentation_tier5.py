@@ -116,6 +116,41 @@ def test_scenario_mutation_keeps_fingerprints_and_manifest_in_advanced(
     )
 
 
+# --- Parameter Sweep --------------------------------------------------------
+
+
+def test_parameter_sweep_is_sequential_with_grid_and_chart(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace = tmp_path / "workspace"
+    (workspace / "exports").mkdir(parents=True)
+    monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
+    monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(workspace / "registry.sqlite"))
+
+    app = page_app(UiPage.PARAMETER_SWEEP).run(timeout=15)
+    assert not app.exception
+    body = text_of(app)
+    # The choose -> define -> preview -> export sequence is shown up front.
+    assert "1 Choose parameter" in body
+    assert "3 Preview combinations" in body
+
+    app = click(app, "Build Parameter Sweep")
+    assert not app.exception
+
+    heads = subheaders(app)
+    assert "Sweep Result" in heads
+    assert "Response Surface" in heads
+    body = text_of(app)
+    # Grid size, affected fields, and the no-optimal / no-execution framing are explicit.
+    assert "Grid size =" in body
+    assert "no parameter is selected as optimal" in body
+    # Mode and direct-launch are badges, not numeric metrics.
+    assert "Mode" not in {str(item.label) for item in app.metric}
+    assert "Grid points" in {str(item.label) for item in app.metric}
+    assert "-badge[" in body
+    assert "no point is selected as an optimal parameter" in body
+
+
 # --- Experiment Planner -----------------------------------------------------
 
 

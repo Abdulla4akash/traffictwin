@@ -7,7 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 from traffictwin.experiments.parameter_sweep import ParameterSweepMode, ParameterSweepResult
-from traffictwin.ui.components.badges import badge_row
+from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
@@ -27,6 +27,10 @@ def render(config: UiConfig) -> None:
 
     render_page_header(UiPage.PARAMETER_SWEEP)
     badge_row(["SYNTHETIC EVALUATION", "BOUNDED GRID", "NO DIRECT LAUNCH"])
+    st.markdown(
+        f"{badge_markdown('bounded grid')} **1 Choose parameter** → **2 Define bounded values** → "
+        "**3 Preview combinations** → **4 Export / register**"
+    )
     st.info(
         "Compose up to four declared axes. Local mode generates labelled TrafficTwin synthetic "
         "bundles and computes ordinary metrics; external-request mode only writes coordination "
@@ -145,12 +149,26 @@ def render(config: UiConfig) -> None:
 
 def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
     section_header("Sweep Result", "Typed point provenance and response-surface artifacts.")
-    columns = st.columns(4)
+    affected_fields = sorted(
+        {
+            item.parameter_path.value
+            for point in result.points
+            for item in point.parameter_provenance
+        }
+    )
+    columns = st.columns(3)
     columns[0].metric("Grid points", result.point_count)
     columns[1].metric("Response rows", result.response_row_count)
-    columns[2].metric("Mode", _mode_label(result.mode.value))
-    columns[3].metric("Direct launch", "Unsupported")
-    st.caption(f"Output: {output_dir}")
+    columns[2].metric("Affected fields", len(affected_fields))
+    st.markdown(
+        f"**Mode:** {badge_markdown(_mode_label(result.mode.value))} · "
+        f"**Direct launch:** {badge_markdown('unsupported')}"
+    )
+    st.caption(
+        f"Output: {output_dir}. Grid size = {result.point_count} bounded combinations over "
+        f"{len(affected_fields)} configuration field(s): {', '.join(affected_fields) or 'none'}. "
+        "A sweep is composed here, never executed, and no parameter is selected as optimal."
+    )
     st.dataframe(
         [
             {
@@ -190,6 +208,7 @@ def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
             hide_index=True,
             width="stretch",
         )
+        _render_response_chart(result)
     else:
         st.warning("No response values were computed in this non-executing mode.")
     for warning in result.warnings:
@@ -208,6 +227,29 @@ def _render_result(result: ParameterSweepResult, output_dir: str) -> None:
         file_name=f"{result.sweep_id}-response.csv",
         mime="text/csv",
         width="stretch",
+    )
+
+
+def _render_response_chart(result: ParameterSweepResult) -> None:
+    """Chart one available response metric across grid points, descriptively."""
+
+    metric_keys = [row.metric_key for row in result.response_surface]
+    if not metric_keys:
+        return
+    chosen = metric_keys[0]
+    chart_rows = [
+        {"point": row.point_id, chosen: float(row.response_value)}
+        for row in result.response_surface
+        if row.metric_key == chosen
+        and isinstance(row.response_value, int | float)
+        and not isinstance(row.response_value, bool)
+    ]
+    if len(chart_rows) < 2:
+        return
+    st.bar_chart(chart_rows, x="point", y=chosen, x_label="Grid point", y_label=chosen)
+    st.caption(
+        f"Descriptive response of `{chosen}` across the bounded grid points. Bar height is not a "
+        "recommendation, and no point is selected as an optimal parameter."
     )
 
 
