@@ -500,7 +500,22 @@ def write_edgedata_counts(
         )
 
     by_interval: dict[tuple[int, int], list[EdgeHourCount]] = defaultdict(list)
+    seen: set[tuple[int, str]] = set()
     for count in counts:
+        # One count per edge per interval. Several cells for the same edge-hour
+        # would make the target ambiguous, and summing them would fuse survey
+        # dates, which the approved temporal-profile policy forbids. This is a
+        # refusal rather than a silent de-duplication because the caller has a
+        # genuine choice to make about which survey represents the site.
+        key = (count.interval_start_s, count.edge_id)
+        if key in seen:
+            raise DemandReconstructionError(
+                "DUPLICATE_EDGE_INTERVAL_COUNT",
+                f"edge {count.edge_id} already has a count for the interval starting at "
+                f"{count.interval_start_s}s; one edge-hour carries exactly one observed count, "
+                "and fusing survey dates is forbidden by the temporal-profile policy",
+            )
+        seen.add(key)
         by_interval[(count.interval_start_s, count.interval_end_s)].append(count)
 
     written: dict[str, int] = {}

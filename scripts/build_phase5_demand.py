@@ -17,15 +17,11 @@ from collections import defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-from traffictwin.integration.manchester.dft_acquisition import open_accepted_dft_snapshot
-from traffictwin.integration.manchester.dft_temporal_profile import open_real_raw_count_evidence
 from traffictwin.integration.manchester.demand_reconstruction import (
     ACCEPTANCE_BASIS,
     DEMAND_CAPABILITY_ID,
     DEMAND_LABEL,
-    DEMAND_METHOD_VERSION,
     RESEARCH_STATUS,
-    CountConstrainedDemandInput,
     DemandInputLedger,
     DirectionResolution,
     EdgeHourCount,
@@ -35,6 +31,8 @@ from traffictwin.integration.manchester.demand_reconstruction import (
     site_is_in_survey_window,
     write_edgedata_counts,
 )
+from traffictwin.integration.manchester.dft_acquisition import open_accepted_dft_snapshot
+from traffictwin.integration.manchester.dft_temporal_profile import open_real_raw_count_evidence
 from traffictwin.integration.manchester.network_geometry import build_edge_index
 from traffictwin.integration.manchester.observation_matching_v11 import (
     ManchesterMapMatchPolicyV11,
@@ -67,9 +65,7 @@ def find_sumo_tools() -> Path:
         if candidate.is_dir():
             return candidate
 
-    raise RuntimeError(
-        "SUMO tools directory not found. Please set SUMO_HOME environment variable to your SUMO installation."
-    )
+    raise RuntimeError("SUMO tools directory not found. Set SUMO_HOME to your SUMO installation.")
 
 
 def compute_file_sha256(file_path: Path) -> str:
@@ -84,9 +80,6 @@ def compute_file_sha256(file_path: Path) -> str:
 def find_default_workspace() -> Path:
     """Auto-discover recent v0.7 workspace directory if available."""
     candidates = [
-        Path(
-            "/private/tmp/claude-501/-Users-akashx-AntigravityTest-diss-integration/e146814a-31a7-4666-ab14-d4ee7ab9cd10/scratchpad/v07ws"
-        ),
         Path("./data/workspace"),
     ]
     for c in candidates:
@@ -98,9 +91,6 @@ def find_default_workspace() -> Path:
 def find_default_network() -> Path:
     """Auto-discover study network file if available."""
     candidates = [
-        Path(
-            "/private/tmp/claude-501/-Users-akashx/c7135b6f-3ad2-4452-b970-4a0f4a010026/scratchpad/studynet/study.net.xml"
-        ),
         Path("./data/networks/study.net.xml"),
     ]
     for c in candidates:
@@ -176,7 +166,8 @@ def main() -> None:
         if site_is_in_survey_window(latest_date)
     }
     print(
-        f"Total sites in raw counts: {len(site_dates)}. Sites in Option A window: {len(admitted_sites)}"
+        f"Total sites in raw counts: {len(site_dates)}. "
+        f"Sites in Option A window: {len(admitted_sites)}"
     )
 
     # 3. Load study network index and compute hash dynamically
@@ -228,7 +219,8 @@ def main() -> None:
             site_directions[(rec.count_point_id, rec.direction_of_travel)].append(rec)
 
     print(
-        f"Processing {len(site_directions)} site-directions across {len(accepted_member_edges)} accepted sites..."
+        f"Processing {len(site_directions)} site-directions "
+        f"across {len(accepted_member_edges)} accepted sites..."
     )
 
     # Map edge ids to ordinals
@@ -282,10 +274,13 @@ def main() -> None:
 
     total_bound = directions_bound + directions_collinear
     print(
-        f"Direction resolution summary: {total_bound} bound ({directions_bound} single + {directions_collinear} collinear), {directions_combined} combined, {directions_unresolved} unresolved."
+        f"Direction resolution summary: {total_bound} bound "
+        f"({directions_bound} single + {directions_collinear} collinear), "
+        f"{directions_combined} combined, {directions_unresolved} unresolved."
     )
     print(
-        f"Generated {len(edge_counts)} EdgeHourCount entries on {len(bound_edge_ids)} distinct edges."
+        f"Generated {len(edge_counts)} EdgeHourCount entries "
+        f"on {len(bound_edge_ids)} distinct edges."
     )
 
     # 6. Write SUMO edgeData XML counts file
@@ -302,7 +297,8 @@ def main() -> None:
     print("Generating candidate route pool with randomTrips.py...")
     if candidate_routes_path.is_file() and candidate_routes_path.stat().st_size > 1000000:
         print(
-            f"Reusing existing candidate route pool: {candidate_routes_path} ({candidate_routes_path.stat().st_size // (1024 * 1024)} MB)"
+            f"Reusing existing candidate route pool: {candidate_routes_path} "
+            f"({candidate_routes_path.stat().st_size // (1024 * 1024)} MB)"
         )
     else:
         cmd_trips = [
@@ -321,7 +317,9 @@ def main() -> None:
             "--fringe-junctions",
             "--validate",
         ]
-        res_trips = subprocess.run(cmd_trips, capture_output=True, text=True)
+        res_trips = subprocess.run(  # noqa: S603 - fixed argv, no shell
+            cmd_trips, capture_output=True, text=True, check=False
+        )
         if res_trips.returncode == 0:
             print(f"Successfully generated candidate routes: {candidate_routes_path}")
         else:
@@ -350,7 +348,9 @@ def main() -> None:
         "-f",
         "number",
     ]
-    res_sampler = subprocess.run(cmd_sampler, capture_output=True, text=True)
+    res_sampler = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        cmd_sampler, capture_output=True, text=True, check=False
+    )
     if res_sampler.returncode == 0:
         print(f"Successfully generated candidate demand flows: {candidate_demand_path}")
         print(f"Mismatch report saved to: {mismatch_output_path}")

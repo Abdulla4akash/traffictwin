@@ -498,3 +498,61 @@ class TestEdgeDataWriting:
         write_edgedata_counts(target, [self._count("E2", 7, 5), self._count("E1", 7, 5)])
         body = target.read_text(encoding="utf-8")
         assert body.index('id="E1"') < body.index('id="E2"')
+
+
+class TestDuplicateEdgeIntervalCountsAreRefused:
+    """One edge-hour carries exactly one observed count.
+
+    Emitting a cell per survey date for the same edge-hour fuses surveys that
+    the temporal-profile policy keeps separate, and inflates the count target
+    that route sampling is measured against. The writer refuses rather than
+    silently de-duplicating, because which survey represents the site is a
+    decision the caller has to make.
+    """
+
+    def _cell(self, edge_id: str, vehicles: int) -> EdgeHourCount:
+        return EdgeHourCount(
+            edge_id=edge_id,
+            count_point_id=1,
+            direction_of_travel="N",
+            hour=7,
+            interval_start_s=0,
+            interval_end_s=3600,
+            all_motor_vehicles=vehicles,
+            measured_zero=vehicles == 0,
+        )
+
+    def test_two_surveys_for_one_edge_hour_are_refused(self, tmp_path: Path) -> None:
+        with pytest.raises(DemandReconstructionError, match="DUPLICATE_EDGE_INTERVAL_COUNT"):
+            write_edgedata_counts(
+                tmp_path / "counts.xml", [self._cell("E1", 100), self._cell("E1", 120)]
+            )
+
+    def test_the_refusal_names_the_offending_edge_and_interval(self, tmp_path: Path) -> None:
+        with pytest.raises(DemandReconstructionError) as caught:
+            write_edgedata_counts(
+                tmp_path / "counts.xml", [self._cell("E9", 10), self._cell("E9", 20)]
+            )
+        message = str(caught.value)
+        assert "E9" in message
+        assert "0s" in message
+
+    def test_different_edges_in_one_interval_are_fine(self, tmp_path: Path) -> None:
+        written = write_edgedata_counts(
+            tmp_path / "counts.xml", [self._cell("E1", 100), self._cell("E2", 120)]
+        )
+        assert written == {"h00": 2}
+
+    def test_the_same_edge_in_different_intervals_is_fine(self, tmp_path: Path) -> None:
+        later = EdgeHourCount(
+            edge_id="E1",
+            count_point_id=1,
+            direction_of_travel="N",
+            hour=8,
+            interval_start_s=3600,
+            interval_end_s=7200,
+            all_motor_vehicles=90,
+            measured_zero=False,
+        )
+        written = write_edgedata_counts(tmp_path / "counts.xml", [self._cell("E1", 100), later])
+        assert written == {"h00": 1, "h01": 1}
