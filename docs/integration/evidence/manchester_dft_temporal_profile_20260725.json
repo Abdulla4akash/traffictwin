@@ -1,0 +1,130 @@
+{
+  "record_type": "real_dft_temporal_profile_candidate_run",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 6 (build temporal profile), candidate construction only",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "accepted_real_snapshot",
+  "exploratory_candidate_software_evidence": true,
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "supervisor_note": "docs/evaluation/supervisor_contract_decision_form.md is unsigned; no supervisor approval is claimed or implied",
+  "policy": {
+    "policy_id": "manchester-dft-temporal-profile-owner-candidate-1.0",
+    "method_version": "manchester-dft-temporal-profile-1.0",
+    "policy_fingerprint": "a9aaca030e9e43a68699aa6beff659f02bde9e4f6f804a7a7f5ef445e804b4c5",
+    "scope": {"ons_code": "E08000003", "dft_local_authority_id": 85, "both_enforced": true},
+    "measure": "all_motor_vehicles",
+    "unit": "vehicles_per_hour_interval",
+    "time_basis": "local_clock_hour",
+    "utc_projection_available": false,
+    "dft_hour_timezone_blocker": "GA-DFT-1",
+    "simulation_origin": "07:00 local = simulation second 0",
+    "interval_seconds": 3600,
+    "interval_convention": "half_open_start_inclusive_end_exclusive",
+    "profile_hours": [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    "series_key": "count_point_id + direction_of_travel + count_date",
+    "missing_as_zero": false,
+    "measured_zero_preserved": true,
+    "aadf_admitted": false,
+    "webtris_admitted": false,
+    "webtris_blocker": "GA-WT-1",
+    "split_unit": "count_point_site",
+    "split_rule": "sha256_site_identity_v1",
+    "held_out_basis_points": 2000,
+    "minimum_partition_coverage": "0.800"
+  },
+  "source_binding": {
+    "snapshot_id": "dft_raw_counts-20260725T063354Z-61965dc5c182",
+    "dataset": "raw_counts",
+    "synthetic": false,
+    "evidence_class": "accepted_real_snapshot",
+    "parser_status": "accepted",
+    "records_accepted": 39072,
+    "raw_fingerprint": "61965dc5c182ae335a4bc266664fc808bea35bd35bc9d30740897d8c2b39a33c",
+    "manifest_fingerprint": "d91b917595e3a15be78f192417d7f0710ffaf8bbc7397b95a854b76d6d85a973",
+    "snapshot_receipt_fingerprint": "adc8afb2b4d663f89dbe6b4bd2ddc3df919d5ad77afe7a5dc79e886ed931abb0",
+    "parser_report_fingerprint": "7b6b8708c2f21d1d2855b8a212e7f3d9a6cd2de05b7e372a417bac8dd1f28c42",
+    "lineage_fingerprint": "3e7ef2612a5f41f381948a465b69e9be0c9c52ae3df3ea14b7a798a06e9203e9",
+    "note": "opened through the existing open_accepted_dft_snapshot boundary, which re-verifies manifest, receipt, and raw tree before a byte is parsed. A synthetic snapshot is refused outright, and every row must agree with this binding on snapshot id and synthetic flag."
+  },
+  "window_measured_not_assumed": {
+    "hours_present_in_the_real_data": {
+      "7": 3256, "8": 3256, "9": 3256, "10": 3256, "11": 3256, "12": 3256,
+      "13": 3256, "14": 3256, "15": 3256, "16": 3256, "17": 3256, "18": 3256
+    },
+    "declared_window": [7, 18],
+    "interpretation": "the real acquisition contains exactly hours 7 through 18, each with the same 3,256 rows. The declared window is confirmed by the data rather than defining it, and the population is perfectly rectangular."
+  },
+  "outcome": {
+    "admission": "admitted_candidate",
+    "offered_rows": 39072,
+    "admitted_rows": 39072,
+    "excluded_rows": 0,
+    "exclusion_ledger_entries": 0,
+    "sites": 305,
+    "series": 3256,
+    "expected_cells": 39072,
+    "observed_cells": 39072,
+    "missing_cells": 0,
+    "measured_zero_cells": 166,
+    "coverage": "1.000000",
+    "input_lineage_fingerprint": "3af528e7b8488e3d0e85cf1f5c415336dd59fbe280721ffd2d3ebfbf2af96852",
+    "artifact_bytes": 7190051,
+    "artifact_location": "private workspace only; never committed"
+  },
+  "partitions": {
+    "rule": "sha256 of the fixed salt and the count-point id, bucketed over 10,000, held out below 2,000",
+    "development": {
+      "sites": 238, "series": 2544, "expected_cells": 30528, "observed_cells": 30528,
+      "missing_cells": 0, "excluded_cells": 0, "measured_zero_cells": 162,
+      "coverage": "1.000000", "meets_minimum_coverage": true
+    },
+    "held_out": {
+      "sites": 67, "series": 712, "expected_cells": 8544, "observed_cells": 8544,
+      "missing_cells": 0, "excluded_cells": 0, "measured_zero_cells": 4,
+      "coverage": "1.000000", "meets_minimum_coverage": true
+    },
+    "realised_held_out_site_share": 0.2197,
+    "share_note": "the rule is a hash bucket, so the realised share is near 20% rather than exactly it. The published site counts are the truth; 20% is the target, not a claim about the outcome.",
+    "site_coherence": "every hour, direction, and survey date from one site shares that site's partition, so a held-out score cannot be measuring memorisation of a road already seen in development"
+  },
+  "measured_zeros": {
+    "count": 166,
+    "development": 162,
+    "held_out": 4,
+    "why_it_matters": "these are hours the survey observed and recorded as zero. They are admitted as zero and flagged measured_zero. Dropping them would bias every mean computed downstream, and filling a missing hour with zero would invent a measurement; the two cases are typed separately and never merge."
+  },
+  "recorded_but_never_fused": {
+    "directions": {"N": 877, "S": 860, "W": 762, "E": 757},
+    "road_types": {"Major": 1716, "Minor": 1540},
+    "day_types": {"weekday": 3256},
+    "seasons": {"spring": 1275, "autumn": 1066, "summer": 915},
+    "distinct_survey_dates": 1244,
+    "note": "season and day type are attributes of a series, never keys it is aggregated over. Every one of the 3,256 series is one site, one direction, one date. No winter dates appear, consistent with DfT's neutral-day survey design."
+  },
+  "boundaries_held": {
+    "no_utc": "the DfT hour is a local clock label under ADR-055 and GA-DFT-1 is open; no instant is produced anywhere in the artifact",
+    "simulation_clock_is_declared": "07:00 local maps to simulation second zero as a modelling convention the operator chose, and the artifact labels it as one rather than presenting it as a discovered instant",
+    "aadf": "refused as a profile input with its own reason; AADF is an annual statistical estimate and the Counted/Estimated marker exists only on it, so using raw counts preserves that distinction structurally",
+    "webtris": "excluded while GA-WT-1 leaves its clock basis undeclared; mixing an undeclared clock into an hourly profile would produce rows that look comparable and are not",
+    "no_fetch": "the profile is built by an operator-invoked CLI over accepted local snapshots, and the read-only service summarises an already-built artifact, so an ordinary UI rerun cannot reach a provider",
+    "raw_inputs_unchanged": "the accepted raw tree is read and re-verified, never modified"
+  },
+  "guards_not_exercised_by_this_data": [
+    "hour_outside_declared_window",
+    "null_all_motor_vehicles",
+    "conflicting_duplicate_rows",
+    "not_admitted_insufficient_coverage",
+    "not_admitted_empty_partition"
+  ],
+  "guards_note": "the real Manchester data is complete and rectangular, so no exclusion or coverage refusal fired. Each guard is implemented and adversarially tested; their silence here is a property of this data, not evidence that they are unnecessary.",
+  "explicit_non_claims": [
+    "a temporal profile is not calibration, demand, a baseline, or a simulation input",
+    "coverage of 1.000000 measures completeness of the observed window, not accuracy or representativeness",
+    "the 80/20 split is a partition of sites, not a validated experimental design",
+    "no supervisor approval is claimed; the contract decision form remains unsigned",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}

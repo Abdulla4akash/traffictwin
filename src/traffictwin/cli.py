@@ -191,6 +191,17 @@ from traffictwin.integration.external import (
     external_source_catalogue,
     inspect_external_source,
 )
+from traffictwin.integration.manchester.dft_acquisition import DftAcquisitionError
+from traffictwin.integration.manchester.dft_temporal_profile import (
+    MAX_PROFILE_ARTIFACT_BYTES,
+    DftTemporalProfileError,
+    DftTemporalProfilePolicy,
+    ManchesterDftTemporalProfile,
+    build_dft_temporal_profile,
+    open_real_raw_count_evidence,
+    profile_service_status,
+    write_profile_record,
+)
 from traffictwin.integration.manchester.models import (
     ManchesterSnapshotPolicy,
     sha256_hex,
@@ -522,6 +533,10 @@ manchester_network_app = typer.Typer(
     no_args_is_help=True,
     help="Operator-invoked Greater Manchester baseline-network commands (MAN-09, planned).",
 )
+manchester_profile_app = typer.Typer(
+    no_args_is_help=True,
+    help="Read-only DfT temporal-profile candidate commands (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -551,6 +566,7 @@ integration_app.add_typer(external_app, name="external")
 integration_app.add_typer(vec_app, name="vec")
 integration_app.add_typer(manchester_app, name="manchester")
 manchester_app.add_typer(manchester_network_app, name="network")
+manchester_app.add_typer(manchester_profile_app, name="profile")
 
 
 @vec_app.command("contract")
@@ -6721,3 +6737,176 @@ def manchester_network_verify_decode_command(
     typer.echo("network_access_performed: false")
     typer.echo("decoder_invoked: false")
     typer.echo(f"capability_status: {receipt.capability_status}")
+
+
+# --- Manchester DfT temporal-profile commands (MAN-09, planned) ---------------
+# Read-only over accepted local snapshots. Nothing here fetches, and the service
+# a UI reads is a pure summariser, so an ordinary rerun cannot reach a provider.
+
+
+@manchester_profile_app.command("policy")
+def manchester_profile_policy_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Print the declared temporal-profile policy without reading any evidence."""
+
+    policy = DftTemporalProfilePolicy()
+    if output_format == "json":
+        _echo_json(policy.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"policy_id: {policy.policy_id}")
+    typer.echo(f"policy_fingerprint: {policy.fingerprint()}")
+    typer.echo(f"measure: {policy.measure} ({policy.unit})")
+    typer.echo(f"time_basis: {policy.time_basis}")
+    typer.echo(f"utc_projection_available: {str(policy.utc_projection_available).lower()}")
+    typer.echo(
+        f"simulation_origin: {policy.simulation_origin_local_hour}:00 local = second 0, "
+        f"{policy.interval_seconds}s {policy.interval_convention}"
+    )
+    typer.echo(f"profile_hours: {', '.join(str(hour) for hour in policy.profile_hours)}")
+    typer.echo(f"series_key: {policy.series_key}")
+    typer.echo(f"missing_as_zero: {str(policy.missing_as_zero).lower()}")
+    typer.echo(f"aadf_admitted: {str(policy.aadf_admitted).lower()}")
+    typer.echo(
+        f"webtris_admitted: {str(policy.webtris_admitted).lower()} "
+        f"(blocker {policy.webtris_blocker})"
+    )
+    typer.echo(f"dft_hour_timezone_blocker: {policy.dft_hour_timezone_blocker}")
+    typer.echo(
+        f"split: {policy.split_rule} over {policy.split_unit}, "
+        f"held_out_basis_points={policy.held_out_basis_points}"
+    )
+    typer.echo(f"minimum_partition_coverage: {policy.minimum_partition_coverage}")
+    typer.echo(f"research_status: {policy.research_status}")
+    typer.echo("capability_status: planned")
+
+
+@manchester_profile_app.command("build")
+def manchester_profile_build_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    snapshot_id: Annotated[str, typer.Option("--snapshot-id")],
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+    overwrite: Annotated[bool, typer.Option("--overwrite/--no-overwrite")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Build the temporal-profile candidate from one accepted raw-counts snapshot.
+
+    The snapshot is re-verified through the MAN-01 contract before a byte is
+    parsed, and a synthetic snapshot is refused. Nothing is fetched and the raw
+    tree is never modified.
+    """
+
+    if output_format != "json":
+        _require_text_format(output_format)
+    if output is not None and output.exists() and not output.is_symlink() and not overwrite:
+        # A profile is evidence. Replacing one silently would destroy a record
+        # somebody may already have cited.
+        typer.echo(
+            f"{output} already exists; pass --overwrite to replace it",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    try:
+        records, source = open_real_raw_count_evidence(workspace, snapshot_id)
+        profile = build_dft_temporal_profile(records, source)
+        if output is not None:
+            write_profile_record(output, profile)
+    except (DftAcquisitionError, DftTemporalProfileError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(profile.model_dump(mode="json"))
+        return
+    _echo_profile_text(profile)
+
+
+@manchester_profile_app.command("inspect")
+def manchester_profile_inspect_command(
+    profile_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Reopen a stored profile and report its status without rebuilding it."""
+
+    if output_format != "json":
+        _require_text_format(output_format)
+    # Bounded before reading: a stored profile is a few megabytes, and an
+    # unbounded read of an arbitrary path is how a large or hostile file
+    # becomes a memory problem.
+    if profile_path.is_symlink():
+        typer.echo("the profile path is a symlink, which is refused", err=True)
+        raise typer.Exit(code=1)
+    if not profile_path.is_file():
+        typer.echo("the profile path is not a regular file", err=True)
+        raise typer.Exit(code=1)
+    if profile_path.stat().st_size > MAX_PROFILE_ARTIFACT_BYTES:
+        typer.echo(
+            f"the profile exceeds the {MAX_PROFILE_ARTIFACT_BYTES}-byte bound and was not read",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    try:
+        profile = ManchesterDftTemporalProfile.model_validate_json(
+            profile_path.read_text(encoding="utf-8")
+        )
+    except (OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    status = profile_service_status(profile)
+    if output_format == "json":
+        _echo_json(status.model_dump(mode="json"))
+        return
+    typer.echo(f"profile_available: {str(status.profile_available).lower()}")
+    typer.echo(f"evidence_class: {status.evidence_class}")
+    typer.echo(f"admission: {status.admission}")
+    typer.echo(f"sites_total: {status.sites_total}")
+    typer.echo(f"series_total: {status.series_total}")
+    typer.echo(f"coverage: {status.coverage}")
+    typer.echo(f"performs_network_access: {str(status.performs_network_access).lower()}")
+    for reason in status.unavailable_reasons:
+        typer.echo(f"unavailable: {reason}")
+    typer.echo(f"capability_status: {status.capability_status}")
+
+
+def _echo_profile_text(profile: ManchesterDftTemporalProfile) -> None:
+    """Render one profile as text, leading with its denominators."""
+
+    typer.echo(f"policy_id: {profile.policy.policy_id}")
+    typer.echo(f"policy_fingerprint: {profile.policy_fingerprint}")
+    typer.echo(f"source_snapshot_id: {profile.source.snapshot_id}")
+    typer.echo(f"source_raw_fingerprint: {profile.source.raw_fingerprint}")
+    typer.echo(f"source_parser_report_fingerprint: {profile.source.parser_report_fingerprint}")
+    typer.echo(f"evidence_class: {profile.evidence_class}")
+    typer.echo(f"source_synthetic: {str(profile.source.synthetic).lower()}")
+    typer.echo(f"input_lineage_fingerprint: {profile.fingerprint_of_inputs()}")
+    typer.echo(f"admission: {profile.admission}")
+    typer.echo(
+        f"rows: offered={profile.offered_rows} admitted={profile.admitted_rows} "
+        f"excluded={profile.excluded_rows}"
+    )
+    typer.echo(f"sites: {profile.sites_total} series: {profile.series_total}")
+    typer.echo(
+        f"cells: expected={profile.expected_cells} observed={profile.observed_cells} "
+        f"missing={profile.missing_cells} measured_zero={profile.measured_zero_cells}"
+    )
+    typer.echo(f"coverage: {profile.coverage}")
+    for summary in profile.partitions:
+        typer.echo(
+            f"partition {summary.partition}: sites={summary.sites} series={summary.series} "
+            f"expected={summary.expected_cells} observed={summary.observed_cells} "
+            f"missing={summary.missing_cells} excluded={summary.excluded_cells} "
+            f"measured_zero={summary.measured_zero_cells} coverage={summary.coverage} "
+            f"meets_minimum={str(summary.meets_minimum_coverage).lower()}"
+        )
+    reasons: dict[str, int] = {}
+    for item in profile.exclusions:
+        reasons[item.reason] = reasons.get(item.reason, 0) + 1
+    for reason in sorted(reasons):
+        typer.echo(f"exclusion {reason}: {reasons[reason]}")
+    if not reasons:
+        typer.echo("exclusion: none")
+    typer.echo(f"utc_instant_available: {str(profile.utc_instant_available).lower()}")
+    typer.echo(f"calibration_use_available: {str(profile.calibration_use_available).lower()}")
+    typer.echo(f"aadf_fused: {str(profile.aadf_fused).lower()}")
+    typer.echo(f"webtris_included: {str(profile.webtris_included).lower()}")
+    typer.echo(f"capability_status: {profile.capability_status}")
