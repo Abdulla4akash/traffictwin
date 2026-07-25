@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `cf33888`
+- Working head at last update: `6b38d8b`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -37,7 +37,7 @@ analyst, human, or supervisor has reviewed any row**, and no downstream artifact
 | 8 | Comparison contract | **built, not registered** | fingerprint `b1d31a1b122be3a5…`; registry lives in `comparison.py`, outside the agent grant |
 | 9 | SUMO-to-VEC chain | **to do** | depends on an accepted FCD/network pair |
 | 10 | CLI, service and thin UI integration | **done (CLI); UI pending** | 33 commands, seven families; remaining workflows are blocked, not unwritten |
-| 11 | Gate B, C and F closure | **to do** | independent of the demand blocker |
+| 11 | Gate B, C and F closure | **in progress** | accessibility, release and time-basis reconciliation added |
 | 12 | Remaining UI presentation | **to do, last** | deliberately after the research chain |
 | 13 | Final verified alpha checkpoint | **to do** | not a release; no final `v0.7.0` tag |
 
@@ -108,15 +108,29 @@ workflow through thin service calls only.
 
 ### Phase 11 — Gate B, C and F closure
 
-- **Gate B.** Reconcile the real DfT evidence now in use; preserve the unresolved DfT timezone
-  semantics outside local-clock simulation; reconcile eligible TfGM, WebTRIS, BODS and National
-  Highways evidence. Do not invent provider replies or legal terms.
-- **Gate C.** Run the route, AppTest and browser matrices; add automated keyboard-order, label,
-  contrast and zoom checks where possible; prepare the manual accessibility checklist. Do not
-  fabricate a screen-reader user or a participant study.
-- **Gate F / REL-01.** Clean-checkout v0.6/v0.7 side-by-side verification; migration preview, backup,
-  interruption, rollback and refusal tests; reconcile versions, schemas, generated references, CLI,
-  documentation and CI. Preserve v0.6 workspaces. Do not create a final `v0.7.0` tag.
+**In progress.**
+
+- **Gate B.** The DfT hour stays a local clock label and is asserted never to be converted:
+  `tests/unit/test_gate_b_dft_time_basis.py` pins that the profile module performs no timezone
+  conversion, that the basis is fixed rather than configurable, and that the simulation mapping is a
+  declared offset with contiguous non-overlapping windows. `GA-DFT-1` stays **open** — it needs a
+  provider answer or an owner decision, and no automated check can close it. Remaining: reconcile
+  eligible TfGM, WebTRIS, BODS and National Highways evidence.
+- **Gate C.** `tests/ui/test_accessibility.py` covers all 34 pages for control labelling and heading
+  structure. It found a real defect: `home.py` renders two buttons both labelled *Plan an
+  Experiment*, recorded as a **strict** expected failure so the suite fails when it is fixed.
+  Contrast, zoom, keyboard order and screen-reader announcement cannot be established from the
+  element tree and are in [the manual checklist](evaluation/manual_accessibility_checklist.md),
+  shipping unticked. Remaining: a person to work that checklist.
+- **Gate F / REL-01.** Migration preview, backup, activation, receipt, rollback, tamper refusal,
+  crash-resume and path-traversal refusal were already covered by 17 tests.
+  `tests/unit/test_release_reconciliation_v07.py` adds what was missing: package, pyproject and
+  citation versions must agree, every documented CLI command must have exited cleanly, the
+  Manchester surface must be documented, the package must not carry the final `v0.7.0` version while
+  gates are incomplete, and no final `v0.7.0` tag may exist. Remaining: clean-checkout v0.6/v0.7
+  side-by-side verification on a real second checkout.
+
+No gate is accepted by any of this. These are automated candidate checks.
 
 ### Phases 12 and 13
 
