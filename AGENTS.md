@@ -817,6 +817,35 @@ claims. Those are read and imported only.
 - Simulating a demand is not calibrating it and not comparing it. `MAN-09` stays `planned`, Gate D
   and Gate E stay `foundation_only`.
 
+### Phase 10 claim: CLI and service integration
+
+Claimed 25 July 2026 from the clean pushed head `6f27735`, under the same mandate and standing
+terms. No capability moves off `planned`, no gate is accepted, the unsigned supervisor form is
+untouched.
+
+**Why.** Thirteen Manchester modules are built and only `network` and `profile` have CLI surface, so
+everything from map matching onward is reachable only by writing Python. That is a library, not a
+product.
+
+**Exclusive new source file.** `src/traffictwin/integration/manchester/workflow_service.py`.
+**Exclusive new tests.** `tests/unit/test_manchester_workflow_service.py` and
+`tests/unit/test_manchester_workflow_cli.py`.
+**Additionally edited** under the shared-surface transfer: `src/traffictwin/cli.py` for new bounded
+`integration manchester` command families only, the generated reference output, and the shared
+project records.
+
+**Substantive boundaries.**
+
+- The service is **read-only and offline**: it never fetches, never runs a subprocess, never computes
+  a scientific metric. Acquisition, building, and simulation stay in the CLI where an operator
+  authorises them explicitly.
+- **Unavailable states are shown, never hidden.** A blocked stage reports its exact blocker and the
+  decision it waits on. Absence of a result is never rendered as zero, empty, or success.
+- Research status and acceptance basis propagate into every rendered view:
+  `owner_approved_candidate`, and `owner_policy_accepted_candidate` for rows the written policy
+  accepted rather than a person.
+- No CLI command may accept an executable path, an argument vector, a threshold, or a shell string.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
