@@ -19,13 +19,27 @@ that way: reference matching first identifies an *undirected* road group, and
 the raw count's direction is applied afterwards to the underlying directed SUMO
 edges. Policy v1.1 therefore leaves ``bearing_degrees`` unset, and this module
 computes each edge's bearing from its own geometry and applies the approved 45°
-tolerance. Three outcomes are kept distinct and never merged:
+tolerance. Four outcomes are kept distinct and never merged:
 
 *   exactly one direction-compatible edge — the count binds to it;
-*   several compatible edges — both remain plausible, so the policy keeps both
-    and requires confirmation; the count is **not** bound and is queued;
+*   several compatible edges whose bearings agree with **each other** to within
+    the same approved tolerance — these are one carriageway that SUMO split at
+    junctions, not opposing directions, so the owner ruled on 25 July 2026 that
+    they count as **one binding target**. The count binds to the fragment
+    nearest the count point, because a point count constrains the edge the
+    count point physically sits on; binding it to every fragment would assert
+    the same flow across intervening junctions. The whole collapsed set and the
+    measured spread are recorded, so edge-level lineage survives;
+*   several compatible edges whose bearings genuinely **diverge** — still
+    ambiguous, so the policy keeps them and requires confirmation;
 *   none compatible — ``direction_unresolved``. Direction is never reversed or
     invented to force a binding.
+
+The collinearity bound deliberately **reuses the approved 45° direction
+tolerance** applied pairwise, rather than introducing a second threshold. It was
+measured before it was chosen: across the 163 real cases the median pairwise
+spread is 2.09° and 76.1% agree to within 10°, so the population really is
+dominated by split carriageways.
 
 ``C`` (combined directions) is never forced onto one directed edge.
 
@@ -76,11 +90,18 @@ ADMISSIBLE_DISPOSITION = "owner_policy_accepted_candidate"
 
 DirectionBinding: TypeAlias = Literal[
     "bound_to_single_edge",
+    "bound_to_collinear_fragment_group",
     "several_compatible_edges_require_confirmation",
     "direction_unresolved",
     "combined_direction_not_forced",
     "direction_absent",
 ]
+
+#: Bindings that produced a usable edge. Kept as one place so a reader cannot
+#: accidentally count one population and forget the other.
+BOUND_BINDINGS: frozenset[str] = frozenset(
+    {"bound_to_single_edge", "bound_to_collinear_fragment_group"}
+)
 
 
 class DemandReconstructionError(ValueError):
@@ -107,12 +128,30 @@ class DirectionResolution(DemandModel):
     considered: tuple[tuple[str, Decimal | None], ...] = ()
     target_bearing_degrees: Decimal | None = Field(default=None, ge=0, lt=360)
     tolerance_degrees: Decimal = Field(ge=0, le=180)
-    reason: str = Field(min_length=1, max_length=200)
+    #: Maximum pairwise circular difference among the compatible bearings.
+    #: Recorded whenever more than one edge was compatible, so a reader can see
+    #: how collinear the fragments actually were rather than trusting the label.
+    collinear_spread_degrees: Decimal | None = Field(default=None, ge=0, le=180)
+    #: The whole fragment set a collinear binding collapsed, kept so edge-level
+    #: lineage survives the collapse.
+    collinear_group: tuple[str, ...] = ()
+    reason: str = Field(min_length=1, max_length=300)
 
     @model_validator(mode="after")
     def validate_resolution(self) -> DirectionResolution:
-        if (self.binding == "bound_to_single_edge") != (self.edge_id is not None):
-            raise ValueError("an edge id is recorded exactly when the direction bound to one edge")
+        if (self.binding in BOUND_BINDINGS) != (self.edge_id is not None):
+            raise ValueError("an edge id is recorded exactly when the direction bound")
+        if self.binding == "bound_to_collinear_fragment_group":
+            if len(self.collinear_group) < 2:
+                raise ValueError("a collinear binding must record the fragment set it collapsed")
+            if self.edge_id not in self.collinear_group:
+                raise ValueError("the bound edge must be one of the collapsed fragments")
+            if self.collinear_spread_degrees is None:
+                raise ValueError("a collinear binding must record the measured spread")
+            if self.collinear_spread_degrees > self.tolerance_degrees:
+                raise ValueError("a collinear binding cannot exceed the approved tolerance")
+        elif self.collinear_group:
+            raise ValueError("only a collinear binding records a collapsed fragment set")
         return self
 
 
@@ -226,6 +265,7 @@ def resolve_direction(
     index: EdgeSpatialIndex,
     ordinals_by_edge: Mapping[str, int],
     tolerance_degrees: Decimal,
+    distance_by_edge: Mapping[str, Decimal] | None = None,
 ) -> DirectionResolution:
     """Apply one raw-count direction to a road group's directed edges.
 
@@ -263,7 +303,7 @@ def resolve_direction(
         )
 
     compatible = [
-        edge_id
+        (edge_id, bearing)
         for edge_id, bearing in frozen
         if bearing is not None and angular_difference(bearing, target) <= tolerance_degrees
     ]
@@ -272,13 +312,48 @@ def resolve_direction(
             count_point_id=count_point_id,
             direction_of_travel=direction_of_travel,
             binding="bound_to_single_edge",
-            edge_id=compatible[0],
+            edge_id=compatible[0][0],
             considered=frozen,
             target_bearing_degrees=target,
             tolerance_degrees=tolerance_degrees,
             reason="exactly one member edge lies within the approved bearing tolerance",
         )
     if len(compatible) > 1:
+        spread = max_pairwise_spread([bearing for _edge_id, bearing in compatible])
+        if spread <= tolerance_degrees:
+            nearest = _nearest_fragment(
+                [edge_id for edge_id, _bearing in compatible], distance_by_edge
+            )
+            if nearest is None:
+                return DirectionResolution(
+                    count_point_id=count_point_id,
+                    direction_of_travel=direction_of_travel,
+                    binding="several_compatible_edges_require_confirmation",
+                    considered=frozen,
+                    target_bearing_degrees=target,
+                    tolerance_degrees=tolerance_degrees,
+                    collinear_spread_degrees=spread,
+                    reason=(
+                        "the compatible edges are collinear but no distance to the count point "
+                        "is available, so the fragment carrying the count cannot be identified"
+                    ),
+                )
+            return DirectionResolution(
+                count_point_id=count_point_id,
+                direction_of_travel=direction_of_travel,
+                binding="bound_to_collinear_fragment_group",
+                edge_id=nearest,
+                considered=frozen,
+                target_bearing_degrees=target,
+                tolerance_degrees=tolerance_degrees,
+                collinear_spread_degrees=spread,
+                collinear_group=tuple(sorted(edge_id for edge_id, _bearing in compatible)),
+                reason=(
+                    f"{len(compatible)} compatible edges lie within {tolerance_degrees} degrees "
+                    "of each other, so they are one carriageway split at junctions rather than "
+                    "opposing directions; the count binds to the fragment nearest the count point"
+                ),
+            )
         return DirectionResolution(
             count_point_id=count_point_id,
             direction_of_travel=direction_of_travel,
@@ -286,9 +361,11 @@ def resolve_direction(
             considered=frozen,
             target_bearing_degrees=target,
             tolerance_degrees=tolerance_degrees,
+            collinear_spread_degrees=spread,
             reason=(
-                f"{len(compatible)} member edges lie within the tolerance; the approved policy "
-                "keeps both and requires confirmation rather than choosing one"
+                f"{len(compatible)} member edges lie within the tolerance and their bearings "
+                f"diverge by {spread} degrees, so they are not one carriageway; the approved "
+                "policy keeps them and requires confirmation rather than choosing one"
             ),
         )
     return DirectionResolution(
@@ -300,6 +377,40 @@ def resolve_direction(
         tolerance_degrees=tolerance_degrees,
         reason="no member edge lies within the tolerance; direction is not reversed or invented",
     )
+
+
+def max_pairwise_spread(bearings: Sequence[Decimal]) -> Decimal:
+    """Largest circular difference between any two bearings.
+
+    Computed pairwise rather than as ``max - min``: bearings are circular, so
+    two edges either side of north (``0.2`` and ``359.7``) are half a degree
+    apart while a naive range calls them 359.5 apart. That mistake was made once
+    while measuring this data and is prevented here.
+    """
+
+    return max(
+        (angular_difference(first, second) for first in bearings for second in bearings),
+        default=Decimal("0"),
+    )
+
+
+def _nearest_fragment(
+    edge_ids: Sequence[str], distance_by_edge: Mapping[str, Decimal] | None
+) -> str | None:
+    """The fragment closest to the count point.
+
+    A point count constrains the edge the count point physically sits on, so
+    when one carriageway is split into fragments the count belongs to the
+    nearest fragment rather than to all of them. Binding it to every fragment
+    would assert the same flow on edges separated by junctions.
+    """
+
+    if not distance_by_edge:
+        return None
+    known = [edge_id for edge_id in edge_ids if edge_id in distance_by_edge]
+    if not known:
+        return None
+    return min(known, key=lambda edge_id: (distance_by_edge[edge_id], edge_id))
 
 
 def ordinals_by_edge_id(index: EdgeSpatialIndex, edge_ids: Iterable[str]) -> dict[str, int]:

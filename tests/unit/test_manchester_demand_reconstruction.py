@@ -64,6 +64,22 @@ def _straight_network(tmp_path: Path) -> EdgeSpatialIndex:
     return _index(tmp_path, edges, junctions)
 
 
+def _collinear_fragments(tmp_path: Path) -> EdgeSpatialIndex:
+    """Two northbound fragments of one carriageway, split at a junction."""
+
+    junctions = (
+        '  <junction id="A" type="priority" x="31000.00" y="16000.00" incLanes="" intLanes=""/>\n'
+        '  <junction id="B" type="priority" x="31000.00" y="16400.00" incLanes="" intLanes=""/>'
+    )
+    edges = (
+        '  <edge id="N1" from="A" to="B" type="highway.primary" '
+        'shape="31000.00,16000.00 31000.00,16200.00">\n  </edge>\n'
+        '  <edge id="N2" from="A" to="B" type="highway.primary" '
+        'shape="31000.00,16200.00 31000.00,16400.00">\n  </edge>'
+    )
+    return _index(tmp_path, edges, junctions)
+
+
 class TestDirectionApplication:
     def test_a_single_compatible_edge_binds(self, tmp_path: Path) -> None:
         index = _straight_network(tmp_path)
@@ -95,20 +111,47 @@ class TestDirectionApplication:
         assert result.binding == "bound_to_single_edge"
         assert result.edge_id == "NB"
 
-    def test_several_compatible_edges_require_confirmation(self, tmp_path: Path) -> None:
-        junctions = (
-            '  <junction id="A" type="priority" x="31000.00" y="16000.00" '
-            'incLanes="" intLanes=""/>\n'
-            '  <junction id="B" type="priority" x="31000.00" y="16400.00" '
-            'incLanes="" intLanes=""/>'
+    def test_collinear_fragments_count_as_one_binding_target(self, tmp_path: Path) -> None:
+        # Owner ruling, 25 July 2026. SUMO splits one carriageway at every
+        # junction, so several fragments run within a couple of degrees of each
+        # other and all satisfy the 45 deg tolerance. They are one road, not
+        # opposing directions.
+        index = _collinear_fragments(tmp_path)
+        ordinals = ordinals_by_edge_id(index, ["N1", "N2"])
+        result = resolve_direction(
+            count_point_id=1,
+            direction_of_travel="N",
+            member_edge_ids=["N1", "N2"],
+            index=index,
+            ordinals_by_edge=ordinals,
+            tolerance_degrees=TOLERANCE,
+            distance_by_edge={"N1": Decimal("3.0"), "N2": Decimal("80.0")},
         )
-        edges = (
-            '  <edge id="N1" from="A" to="B" type="highway.primary" '
-            'shape="31000.00,16000.00 31000.00,16200.00">\n  </edge>\n'
-            '  <edge id="N2" from="A" to="B" type="highway.primary" '
-            'shape="31000.00,16200.00 31000.00,16400.00">\n  </edge>'
+        assert result.binding == "bound_to_collinear_fragment_group"
+        assert result.edge_id == "N1", "a point count binds to the fragment it sits on"
+        assert result.collinear_group == ("N1", "N2")
+        assert result.collinear_spread_degrees is not None
+
+    def test_the_collapsed_fragment_set_is_kept(self, tmp_path: Path) -> None:
+        index = _collinear_fragments(tmp_path)
+        ordinals = ordinals_by_edge_id(index, ["N1", "N2"])
+        result = resolve_direction(
+            count_point_id=1,
+            direction_of_travel="N",
+            member_edge_ids=["N1", "N2"],
+            index=index,
+            ordinals_by_edge=ordinals,
+            tolerance_degrees=TOLERANCE,
+            distance_by_edge={"N1": Decimal("3.0"), "N2": Decimal("80.0")},
         )
-        index = _index(tmp_path, edges, junctions)
+        # Collapsing is a review convenience; edge-level lineage must survive it.
+        assert set(result.collinear_group) == {"N1", "N2"}
+        assert {edge_id for edge_id, _ in result.considered} == {"N1", "N2"}
+
+    def test_collinear_fragments_without_distances_still_defer(self, tmp_path: Path) -> None:
+        # Without a distance the fragment carrying the count cannot be
+        # identified, so the count is not bound to an arbitrary one.
+        index = _collinear_fragments(tmp_path)
         ordinals = ordinals_by_edge_id(index, ["N1", "N2"])
         result = resolve_direction(
             count_point_id=1,
@@ -119,7 +162,38 @@ class TestDirectionApplication:
             tolerance_degrees=TOLERANCE,
         )
         assert result.binding == "several_compatible_edges_require_confirmation"
-        assert result.edge_id is None, "the policy keeps both rather than choosing one"
+        assert result.edge_id is None
+
+    def test_genuinely_divergent_bearings_still_require_confirmation(self, tmp_path: Path) -> None:
+        # Two compatible edges 60 deg apart are not one carriageway, so the
+        # ruling does not reach them and the approved policy still defers.
+        junctions = (
+            '  <junction id="A" type="priority" x="31000.00" y="16000.00" '
+            'incLanes="" intLanes=""/>\n'
+            '  <junction id="B" type="priority" x="31400.00" y="16400.00" '
+            'incLanes="" intLanes=""/>'
+        )
+        edges = (
+            '  <edge id="NNW" from="A" to="B" type="highway.primary" '
+            'shape="31000.00,16000.00 30800.00,16346.41">\n  </edge>\n'
+            '  <edge id="NNE" from="A" to="B" type="highway.primary" '
+            'shape="31000.00,16000.00 31200.00,16346.41">\n  </edge>'
+        )
+        index = _index(tmp_path, edges, junctions)
+        ordinals = ordinals_by_edge_id(index, ["NNW", "NNE"])
+        result = resolve_direction(
+            count_point_id=1,
+            direction_of_travel="N",
+            member_edge_ids=["NNW", "NNE"],
+            index=index,
+            ordinals_by_edge=ordinals,
+            tolerance_degrees=TOLERANCE,
+            distance_by_edge={"NNW": Decimal("3.0"), "NNE": Decimal("4.0")},
+        )
+        assert result.binding == "several_compatible_edges_require_confirmation"
+        assert result.edge_id is None
+        assert result.collinear_spread_degrees is not None
+        assert result.collinear_spread_degrees > TOLERANCE
 
     def test_no_compatible_edge_is_unresolved_not_reversed(self, tmp_path: Path) -> None:
         index = _straight_network(tmp_path)
