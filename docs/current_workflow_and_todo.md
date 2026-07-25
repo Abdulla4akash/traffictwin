@@ -2,7 +2,7 @@
 
 - Last updated: 25 July 2026
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `c628e66`
+- Working head at last update: `c4a1644`
 - **Current task: phases 9 to 13**
 
 This is the working status document for the v0.7 integration effort. It records what is built,
@@ -70,25 +70,26 @@ Phase 9 cannot start until an accepted FCD/network pair exists, which decision 1
 
 ### Phase 10 — CLI, service and thin UI integration
 
-**In progress.** A read-only `workflow_service` now reports every phase and its blocker, and four
-command families exist: `network`, `profile`, `workflow`, `observation`, `match`. Nine workflows
-still have no CLI.
+**In progress.** A read-only `workflow_service` reports every phase and its blocker, and six command
+families exist: `network`, `profile`, `workflow`, `observation`, `match`, `run`. Nine workflows still
+have no CLI, and most of those are waiting on a decision rather than on unwritten code.
 
 Required workflows, from the brief:
 
 | Workflow | CLI today |
 |---|---|
 | inspect workflow status and blockers | `workflow status`, `workflow decisions` |
+| acquire DfT evidence | `observation acquire` (refuses without `--confirm`) |
 | inspect DfT snapshots | `observation snapshots` |
 | show the map-match policy | `match policy` |
+| measure matching ambiguity | `match ambiguity` |
+| generate map-match candidates | `match candidates` |
+| review matches | `match review` (read-only; cannot accept or reject) |
 | build temporal profiles | `profile build`, `profile inspect`, `profile policy` |
-| acquire and build the network | `network acquire`, `network decode`, `network build`, and five more |
-| acquire DfT evidence | **missing** — module exists, needs an operator-confirmed command |
-| measure matching ambiguity | **missing** |
-| generate map-match candidates | **missing** |
-| review and resume matches | **missing** — must stay non-automatable |
+| acquire and build the network | `network` family, nine commands |
+| check the SUMO toolchain | `run preflight` |
 | build candidate demand | **missing** |
-| run SUMO | **missing** — runner exists, run is blocked on decision 1 |
+| run SUMO | **missing** — runner exists, blocked on decision 1 |
 | validate FCD and network | **missing** — no FCD exists yet |
 | run calibration | **missing** — contract blocked |
 | run held-out evaluation | **missing** — contract blocked |
@@ -96,6 +97,8 @@ Required workflows, from the brief:
 | execute eligible VEC stages | **missing** — no FCD pair |
 | inspect lineage | **missing** |
 | export permission-safe evidence | **missing** |
+
+The documented Manchester command surface is now 28 commands across six families.
 
 Constraints: no Streamlit page may compute a scientific metric, fetch implicitly, launch a process,
 mutate raw evidence, or hide an unavailable state. Manchester Operations and Guided Demo expose the
