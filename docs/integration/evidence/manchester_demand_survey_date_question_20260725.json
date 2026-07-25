@@ -1,0 +1,52 @@
+{
+  "record_type": "blocking_scientific_question_survey_date_grouping_for_demand",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 5 (demand reconstruction), blocked pending an owner decision",
+  "research_status": "owner_approved_candidate",
+  "supervisor_approved": false,
+  "status": "awaiting_owner_decision",
+  "why_this_blocks": {
+    "summary": "a route sampler needs one set of hourly edge counts, and the source does not supply one",
+    "detail": "The approved temporal-profile policy fixes fuses_across_dates false, so each series is one site, one direction, one survey date. Producing a single demand artifact therefore requires choosing which survey date represents each site, and no rule for that choice is declared anywhere.",
+    "not_decided_here": "no date-selection rule has been chosen or implemented. This record exists so the owner can decide from measurement."
+  },
+  "measured_properties_of_the_source": {
+    "character": "the DfT Manchester raw counts are a 25-year archive of one-off manual surveys, not a synchronised network-wide count",
+    "count_date_range": ["2000-03-21", "2025-10-14"],
+    "survey_dates_per_site": {"1": 93, "2": 4, "3": 29, "4": 29, "5": 19, "6": 22, "7": 28, "8": 7, "9": 8, "10": 28, "11": 18, "12": 2, "13": 5, "14": 2, "15": 2, "16": 1, "18": 4, "20": 2, "22": 1, "24": 1},
+    "no_common_date": "the most widely shared single count_date is 2006-10-03, covering only 6 of 305 sites. There is no date on which even ten sites were surveyed together, so a synchronised network-wide snapshot does not exist in this source.",
+    "latest_survey_year_distribution": {"2000": 1, "2001": 1, "2004": 1, "2008": 30, "2009": 42, "2010": 2, "2011": 1, "2012": 1, "2015": 1, "2018": 29, "2019": 63, "2020": 13, "2021": 13, "2022": 15, "2023": 7, "2024": 21, "2025": 64},
+    "weekday_of_latest_survey": {"Mon": 48, "Tue": 59, "Wed": 66, "Thu": 66, "Fri": 66},
+    "weekday_note": "every site's latest survey falls on a weekday, so no weekend contamination arises from a latest-survey rule"
+  },
+  "covid_observation": {
+    "concern": "13 sites were last surveyed in 2020 and 13 in 2021. Those counts reflect pandemic-restricted traffic rather than normal conditions.",
+    "consequence": "any window that includes 2020 or 2021 mixes restricted-traffic surveys with normal ones, which would bias a calibration target in a direction the calibration cannot detect.",
+    "not_decided_here": "whether to exclude those years is part of the decision below"
+  },
+  "decision_table": {
+    "note": "sites and directions here are those that already have a bound edge, so these are the observations demand could actually use. The full bound set is 126 sites and 241 site-directions across 233 distinct edges.",
+    "options": [
+      {"window": "2025 only", "sites": 31, "site_directions": 60, "distinct_edges": 60, "date_span": "2025-03-25 to 2025-10-14", "covid_years_included": false},
+      {"window": "2024 and later", "sites": 48, "site_directions": 93, "distinct_edges": 93, "covid_years_included": false},
+      {"window": "2022 and later (post-COVID)", "sites": 65, "site_directions": 127, "distinct_edges": 127, "covid_years_included": false},
+      {"window": "2019, or 2022 and later (skip COVID years)", "sites": 78, "site_directions": 151, "distinct_edges": 151, "covid_years_included": false},
+      {"window": "2019 and later (includes 2020 and 2021)", "sites": 97, "site_directions": 186, "distinct_edges": 184, "covid_years_included": true},
+      {"window": "all dates, 2000 and later", "sites": 126, "site_directions": 241, "distinct_edges": 233, "date_span": "2000-04-04 to 2025-10-14", "covid_years_included": true, "caution": "fuses surveys spanning 25 years into one demand target, which the temporal-profile policy forbids and which would treat 2008 traffic as contemporaneous with 2025 traffic"}
+    ]
+  },
+  "what_is_ready_and_waiting": {
+    "study_subnetwork": "built, 285,794 real edges, all 233 bound edges present",
+    "direction_binding": "settled after the owner's collinear-fragment ruling: 241 of 311 site-directions bound",
+    "route_sampler_tooling": "SUMO 1.27.1 tools/routeSampler.py and tools/randomTrips.py verified present; dfrouter deliberately unused",
+    "remaining_work_once_decided": "write the edgeData counts file for the chosen window, generate the fixed route pool, run routeSampler, and preserve its mismatch output"
+  },
+  "explicit_non_claims": [
+    "no demand artifact has been produced",
+    "no date-selection rule has been chosen, proposed as preferable, or implemented",
+    "no calibration or comparison was performed",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}
