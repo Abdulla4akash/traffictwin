@@ -1,0 +1,82 @@
+{
+  "record_type": "controlled_manchester_sumo_run_boundary_and_scale_pilot",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 7 / Gate-E entry; boundary built and scale measured, full run not performed",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "acceptance_basis": "owner_policy_accepted_candidate",
+  "why_a_separate_boundary": {
+    "finding": "the existing controlled runner cannot express this run and refuses it by construction",
+    "detail": "integration/sumo_execution fixes scenario_directory and config_file as literals, bounds vehicle_count at 1000, and fixes manchester_traffic false. Those are deliberate refusals, so they were left intact and a Manchester boundary was built beside them rather than widening them.",
+    "new_module": "integration/manchester/sumo_run.py"
+  },
+  "frozen_command": {
+    "executable": "sumo",
+    "reported_version": "1.27.1",
+    "step_length_s": 1,
+    "fcd_period_s": 1,
+    "outputs": ["fcd", "summary", "tripinfo"],
+    "seeded": true,
+    "shell_used": false,
+    "caller_supplied_arguments": false,
+    "note": "paths are substituted into placeholders at run time and never appear in evidence"
+  },
+  "scale_pilot": {
+    "purpose": "measure whether one-second FCD is tractable at this demand before committing to a full run",
+    "inputs": {
+      "network": "Manchester local-authority study subnetwork, 285,794 real edges",
+      "demand": "count-constrained candidate demand, 748,589 vehicles across 212,666 flows"
+    },
+    "simulated_window_s": 600,
+    "wall_clock_s": 48,
+    "fcd_bytes_for_600s": 508816400,
+    "observations": {
+      "steps_recorded": 600,
+      "vehicles_inserted": 10968,
+      "vehicles_running_final": 10715,
+      "vehicles_halting_final": 5349,
+      "halting_share_final": 0.4992,
+      "teleports": 102,
+      "reached_steady_state": false,
+      "running_growth": [2779, 5517, 8129, 10715]
+    },
+    "projection": {
+      "target_window_s": 43200,
+      "projected_fcd_bytes_floor": 36634780800,
+      "projected_fcd_gb_floor": 37,
+      "why_a_floor": "the FCD rate scales with vehicles resident in the network, not with elapsed time. The pilot never reached a steady state, so the true total for the full window is materially higher than this linear projection.",
+      "reviewed_bound_bytes": 250000000000
+    }
+  },
+  "substantive_finding_for_the_owner": {
+    "summary": "the candidate demand does not simulate cleanly at full scale",
+    "detail": "By t=600 half the resident vehicles were halted (49.92%) and 102 teleports had occurred, while the network was still filling. That is congestion forming well before the demand is fully inserted.",
+    "interpretation": "This is a finding about the demand, not a defect in the run. Possible contributors include route concentration from the fixed pool, the absence of any departure-time shaping, and uncalibrated traffic signals. None has been investigated, and the demand has not been adjusted to produce a cleaner picture.",
+    "why_it_was_not_corrected": "tuning the demand until it simulated smoothly would hide exactly what a controlled run exists to reveal, and no such adjustment is authorised",
+    "options_for_the_owner": [
+      "run the full 12-hour window and accept the FCD volume and runtime",
+      "run a bounded window, for example one peak hour, for the VEC chain",
+      "investigate the saturation before running further"
+    ],
+    "not_decided_here": "no option has been chosen; the full run was not performed"
+  },
+  "boundaries_held": {
+    "operator_confirmation_required": true,
+    "failed_run_never_replaces_accepted_output": "outputs are promoted atomically from private staging only after a zero exit and a digested FCD",
+    "fcd_bound_enforced": true,
+    "logs_bounded_and_path_free": true,
+    "run_is_not_observed_traffic": true,
+    "run_is_not_calibration_or_comparison": true
+  },
+  "explicit_non_claims": [
+    "no full-window simulation was performed",
+    "simulated traffic under a candidate demand is not observed traffic",
+    "no calibration, comparison, or VEC stage was executed",
+    "the pilot is a scale measurement, not a result",
+    "MAN-09 remains planned; Gate D and Gate E remain foundation_only"
+  ]
+}
