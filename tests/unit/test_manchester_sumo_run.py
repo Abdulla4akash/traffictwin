@@ -102,9 +102,15 @@ class TestFcdProjectionIsAFloor:
         projected = projected_fcd_bytes(508_816_400, 600, 43_200)
         assert projected == pytest.approx(36_634_780_800, rel=1e-6)
 
-    def test_a_projection_over_the_bound_refuses_before_anything_runs(self) -> None:
+    def test_a_projection_over_the_bound_refuses_before_anything_runs(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # A per-second rate large enough to blow the bound must stop at
         # preflight, not after gigabytes have been written.
+        monkeypatch.setattr(
+            "traffictwin.integration.manchester.sumo_run.discover_sumo",
+            lambda: pytest.fail("the toolchain must not be probed after the size refusal"),
+        )
         rate = (MAX_FCD_BYTES // 43_200) + 1_000
         with pytest.raises(ManchesterSumoRunError, match="FCD_PROJECTION_EXCEEDS_BOUND"):
             preflight_run(_request(), measured_fcd_rate=rate)

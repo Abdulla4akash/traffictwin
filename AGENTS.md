@@ -920,6 +920,20 @@ not:
   No implementation, test, generated reference, capability manifest, existing progress record, or
   external repository is edited in this slice.
 
+### Completed lead ownership: alpha.7 merge-verification repair (26 July 2026)
+
+- During the owner-requested alpha.7 integration check, a clean environment without SUMO exposed
+  that `preflight_run` probed the optional toolchain before enforcing its caller-supplied FCD-size
+  bound. The integrating lead owns the narrow fail-fast ordering repair and its deterministic
+  regression test before the official branch is advanced.
+- The exclusive implementation/test files are
+  `src/traffictwin/integration/manchester/sumo_run.py` and
+  `tests/unit/test_manchester_sumo_run.py`, plus this ownership record. No scientific threshold,
+  executable boundary, capability status, evidence record, or external repository is changed.
+- Verification: the focused module has 21 passing tests; the complete suite has 3,138 passing and
+  24 environment-dependent SUMO/netconvert skips in the merge process, with no failures; Ruff,
+  format checking, and strict mypy over 728 source files pass.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,

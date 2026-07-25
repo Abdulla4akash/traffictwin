@@ -373,10 +373,6 @@ def projected_fcd_bytes(measured_bytes: int, measured_s: int, target_s: int) -> 
 def preflight_run(request: SumoRunRequest, *, measured_fcd_rate: int | None = None) -> None:
     """Refuse a run that cannot complete safely, before anything is written."""
 
-    if discover_sumo() is None:
-        raise ManchesterSumoRunError(
-            "SUMO_TOOLCHAIN_UNAVAILABLE", "no `sumo` executable was found on PATH"
-        )
     if measured_fcd_rate is not None:
         projected = projected_fcd_bytes(measured_fcd_rate, 1, request.end_s - request.begin_s)
         if projected > MAX_FCD_BYTES:
@@ -386,6 +382,10 @@ def preflight_run(request: SumoRunRequest, *, measured_fcd_rate: int | None = No
                 f"above the reviewed bound of {MAX_FCD_BYTES:,}. The projection is a floor, "
                 "because the FCD rate grows with the resident vehicle population.",
             )
+    if discover_sumo() is None:
+        raise ManchesterSumoRunError(
+            "SUMO_TOOLCHAIN_UNAVAILABLE", "no `sumo` executable was found on PATH"
+        )
 
 
 def _utc_now(clock: Callable[[], datetime] | None) -> datetime:
