@@ -480,6 +480,57 @@ widths in both themes. No generated artifact or registry outside an isolated tem
 changed, and no historical source evidence or protected tag changed. Awaiting repository-owner
 acceptance.
 
+### Active parallel ownership grant: Greater Manchester baseline-network foundation (Gate-D step 1)
+
+- The repository owner granted the deterministic OpenStreetMap-to-SUMO baseline-network foundation
+  on 25 July 2026 from the clean pushed integration head `9c1a988` on `claude/complete-v0.7`,
+  verified in sync with `origin/claude/complete-v0.7`. General UI-presentation work stops; this
+  slice is core functionality.
+- **Capability and gate mapping, derived from the canonical design rather than assumed.** The
+  canonical design's Gate D (§21, "SUMO mapping, calibration, and comparison") lists as its step 1
+  "Bind one reviewed Manchester SUMO network and licence", and §20 gives `MAN-09`
+  (Observation-to-SUMO baseline) the acceptance boundary "Network binding, map-match candidates,
+  manual ambiguity review, temporal profile, bounded calibration, residuals, and fail-closed
+  acceptance". This slice therefore delivers **only the first of `MAN-09`'s seven acceptance
+  components — Gate-D step 1, network binding** — and additionally exercises the existing `MAN-01`
+  snapshot/acquisition contract. It delivers no map matching, no analyst ambiguity review, no
+  temporal profile, no calibration, no residuals, and no baseline acceptance. `MAN-09` therefore
+  stays formally `planned` and practically `foundation_only`; Gate D stays `foundation_only`.
+  `MAN-10`, `MAN-11`, and Gate E are untouched. This grant cannot accept a gate.
+- The exclusive new source files are exactly
+  `src/traffictwin/integration/manchester/{network_scope.py,network_acquisition.py,network_build.py,network_service.py}`.
+  The exclusive new tests are named `tests/unit/test_manchester_network_*.py`. The exclusive new
+  documents are `docs/integration/manchester_baseline_network.md` and
+  `docs/decisions/ADR-059-greater-manchester-baseline-network.md`.
+- Claude may additionally edit `docs/integration/manchester_network_decision_worksheet.md` (the
+  worksheet exists to be filled by this decision), `src/traffictwin/cli.py` for a new bounded
+  `integration manchester network` command family only, and the shared project records
+  `docs/implementation-status.md`, `docs/current_progress_v0_7.md`, `docs/architecture.md`,
+  `docs/assumption-register.md`, `docs/open-questions.md`, `docs/index.md`, and this `AGENTS.md`.
+  The CLI and shared-record allowance is an explicit owner transfer of normally lead-owned merge
+  surfaces, limited to this slice's additions.
+- **Disjointness.** Claude must not edit `src/traffictwin/integration/manchester/__init__.py`,
+  which both active lead slices claim; new modules are imported directly from their submodule
+  paths instead. Claude must not edit `transport.py`, `spatial.py`, `freshness.py`,
+  `map_layers.py`, `map_matching.py`, `boundary_reference.py`, any `bods*`/`bee_network`/
+  `national_highways*` module, any Manchester Operations file, any UI page, or any other file
+  claimed by an in-flight lead slice. Those modules may be imported and read, never modified.
+- Substantive boundaries: Greater Manchester is the primary baseline scope and Manchester local
+  authority remains a selectable sub-area filter, never a second baseline network. The packaged ONS
+  boundary assets are display-only generalised geometry and must not become a scientific clipping
+  boundary; a derived extract envelope is recorded explicitly as derived. Network acquisition is
+  operator-invoked and bounded, never triggered by a Streamlit rerun. DfT calibration evidence
+  covers Manchester local authority only; Greater Manchester locations without observations are
+  labelled uncovered and are never filled with zero. No matching threshold, calibration objective,
+  uncertainty rule, or comparison metric is invented, and a network build is never described as
+  calibration, validation, live traffic, or VEC execution.
+- Handoff requires the exact changed-file inventory, source identities/dates/licences/checksums,
+  boundary and CRS decisions, the exact `netconvert` version and controlled command shape, focused
+  new tests, all `tests/unit`, all `tests/ui`, the affected integration tests, Ruff and format
+  checks, strict mypy, `git diff --check`, and real-build evidence if one was safely performed.
+  Commit in small reviewed commits and push to `origin/claude/complete-v0.7`; never create or move
+  a release tag and never force-push.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
