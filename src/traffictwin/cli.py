@@ -213,6 +213,15 @@ from traffictwin.integration.manchester.network_build import (
     build_baseline_network,
     check_builder_input_format,
 )
+from traffictwin.integration.manchester.network_connectivity import (
+    DEFAULT_CONTRAST_PROBES,
+    DEFAULT_ROUTE_PROBES,
+    ELIGIBILITIES,
+    MAX_ROUTE_PROBES,
+    Eligibility,
+    NetworkConnectivityError,
+    review_network_connectivity,
+)
 from traffictwin.integration.manchester.network_decode import (
     NetworkDecodeError,
     decode_pbf_to_osm_xml,
@@ -225,6 +234,7 @@ from traffictwin.integration.manchester.network_service import (
     baseline_network_status,
     inspect_network_candidate,
     list_network_candidates,
+    write_connectivity_record,
 )
 from traffictwin.integration.sumo import (
     compute_metrics_for_sumo,
@@ -6488,6 +6498,94 @@ def manchester_network_verify_command(
     typer.echo(f"network_sha256: {binding.network_sha256}")
     typer.echo(f"network_identity_sha256: {binding.network_identity_sha256}")
     typer.echo(f"capability_status: {binding.capability_status}")
+
+
+def _eligibility(value: str) -> Eligibility:
+    """Narrow a validated CLI string to the typed subgraph selector."""
+
+    for candidate in ELIGIBILITIES:
+        if candidate == value:
+            return candidate
+    raise typer.BadParameter(f"--probe-subgraph must be one of {', '.join(ELIGIBILITIES)}")
+
+
+@manchester_network_app.command("connectivity")
+def manchester_network_connectivity_command(
+    workspace: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    network_id: Annotated[str, typer.Option("--network-id")],
+    probes: Annotated[int, typer.Option("--probes", min=1, max=MAX_ROUTE_PROBES)] = (
+        DEFAULT_ROUTE_PROBES
+    ),
+    contrast_probes: Annotated[
+        int, typer.Option("--contrast-probes", min=0, max=MAX_ROUTE_PROBES)
+    ] = DEFAULT_CONTRAST_PROBES,
+    probe_subgraph: Annotated[str, typer.Option("--probe-subgraph")] = "passenger_car",
+    save: Annotated[bool, typer.Option("--save/--no-save")] = True,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Review one accepted network's motor-eligible connectivity and routability.
+
+    Bounded probes establish reachability for the pairs they run. They are not
+    evidence of universal routability, and no number of them would be.
+    """
+
+    # Every argument is validated before the network is touched: a review
+    # streams the whole file and walks the graph, and a run that is going to be
+    # rejected for its output format must not do that work or leave a record.
+    eligibility = _eligibility(probe_subgraph)
+    if output_format != "json":
+        _require_text_format(output_format)
+    directory = _networks_root(workspace) / network_id
+    try:
+        report = review_network_connectivity(
+            directory,
+            probe_count=probes,
+            contrast_probe_count=contrast_probes,
+            probe_eligibility=eligibility,
+        )
+        if save:
+            write_connectivity_record(directory, report)
+    except (NetworkBuildError, NetworkConnectivityError, OSError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(report.model_dump(mode="json"))
+        return
+    access = report.access
+    typer.echo(f"network_id: {report.network_id}")
+    typer.echo(f"network_identity_sha256: {report.network_identity_sha256}")
+    typer.echo(
+        f"edge_elements: {access.total_edge_elements} "
+        f"internal_excluded: {access.internal_edges_excluded} "
+        f"real: {access.real_edges} dangling_excluded: {access.dangling_edges_excluded}"
+    )
+    typer.echo(
+        f"passenger_car_edges: {access.passenger_car_edges} "
+        f"motor_no_car_edges: {access.motor_vehicle_no_car_edges} "
+        f"no_motor_edges: {access.no_motor_vehicle_edges} "
+        f"unreadable_edges: {access.permissions_unreadable_edges}"
+    )
+    for summary in report.components:
+        typer.echo(
+            f"{summary.kind}/{summary.eligibility}: "
+            f"edges={summary.eligible_edges} components={summary.component_count} "
+            f"largest_edge_share={summary.largest_component_edge_share} "
+            f"largest_length_share={summary.largest_component_length_share} "
+            f"between_components={summary.edges_between_components} "
+            f"fragments={summary.isolated.fragment_components} "
+            f"fragment_edges={summary.isolated.fragment_edges} "
+            f"untouched_junctions={summary.junctions_untouched}"
+        )
+    outcomes: dict[str, int] = {}
+    for probe in report.probes:
+        key = f"{probe.selection}/{probe.outcome}"
+        outcomes[key] = outcomes.get(key, 0) + 1
+    for key in sorted(outcomes):
+        typer.echo(f"probe {key}: {outcomes[key]}")
+    for note in report.exclusion_notes:
+        typer.echo(f"exclusion: {note}")
+    typer.echo(f"proves_universal_routability: {str(report.proves_universal_routability).lower()}")
+    typer.echo(f"capability_status: {report.capability_status}")
 
 
 @manchester_network_app.command("status")

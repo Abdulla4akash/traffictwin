@@ -15,10 +15,12 @@ building stay in the CLI, where an operator authorises them explicitly.
 
 from __future__ import annotations
 
+import os
+import tempfile
 from pathlib import Path
-from typing import Literal
+from typing import Literal, NamedTuple, TypeAlias
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from traffictwin.integration.manchester.map_matching import (
     ManchesterMapMatchingPreflight,
@@ -32,6 +34,9 @@ from traffictwin.integration.manchester.network_build import (
     discover_netconvert,
     load_binding,
     netconvert_identity,
+)
+from traffictwin.integration.manchester.network_connectivity import (
+    ManchesterNetworkConnectivityReport,
 )
 from traffictwin.integration.manchester.network_decode import (
     SUPPORTED_OSMIUM_MAJOR,
@@ -55,6 +60,25 @@ NETWORK_SERVICE_METHOD_VERSION: Literal["manchester-baseline-network-service-1.0
 NETWORKS_DIRECTORY_NAME: Literal["networks"] = "networks"
 
 MAX_LISTED_NETWORKS = 200
+
+#: Where the CLI persists a completed connectivity review, beside the binding.
+#: The service **reads** this file and never computes a review: a review streams
+#: the whole network and walks the graph, which an ordinary Streamlit rerun must
+#: never trigger.
+CONNECTIVITY_RECORD_NAME: Literal["connectivity.json"] = "connectivity.json"
+
+#: Bound on a stored review, so a hostile or corrupt record cannot be read into
+#: memory.  A real Greater Manchester review is well under a megabyte.
+MAX_CONNECTIVITY_RECORD_BYTES = 8_000_000
+
+ConnectivityRecordState: TypeAlias = Literal[
+    "available",
+    "absent",
+    "stale",
+    "unreadable",
+    "refused_symlink",
+    "refused_oversized",
+]
 
 
 class NetworkServiceModel(ManchesterSnapshotModel):
@@ -222,6 +246,196 @@ def inspect_network_candidate(network_dir: str | Path) -> ManchesterBaselineNetw
     """Reopen and fully re-verify one accepted candidate."""
 
     return load_binding(network_dir)
+
+
+class ConnectivityReviewAvailability(NetworkServiceModel):
+    """Whether a persisted connectivity review exists, and whether it still fits.
+
+    A review is only meaningful for the network it was computed from, so the
+    recorded identity is compared against the candidate's current identity.  A
+    review whose identity no longer matches is reported ``stale`` rather than
+    shown: it describes a different network.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    network_id: str
+    state: ConnectivityRecordState
+    network_identity_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    review_identity_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    review_network_id: str | None = Field(default=None, max_length=64)
+    reason: str | None = Field(default=None, max_length=300)
+    review: ManchesterNetworkConnectivityReport | None = None
+    #: Reading a stored review never recomputes one, and never runs a probe.
+    performs_network_traversal: Literal[False] = False
+    proves_universal_routability: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_availability(self) -> ConnectivityReviewAvailability:
+        if (self.review is not None) != (self.state == "available"):
+            raise ValueError("a review is published only when the record is available")
+        if self.review is not None and (
+            self.review.network_identity_sha256 != self.network_identity_sha256
+            or self.review.network_id != self.network_id
+        ):
+            # The binding is re-checked on the model itself, not only where the
+            # record was read. Otherwise a caller could assemble an "available"
+            # view whose embedded review describes a different network.
+            raise ValueError(
+                "an available review must name the same network id and identity "
+                "as the candidate it is published against"
+            )
+        return self
+
+
+class ConnectivityRecordRead(NamedTuple):
+    """The outcome of reading one stored review, with failures kept distinct.
+
+    Collapsing "no record yet" and "the record is corrupt" into one absent
+    answer would report a damaged file as merely missing, and the operator
+    would re-run a review instead of investigating a file that failed to
+    parse.  Each failure therefore keeps its own state.
+    """
+
+    state: ConnectivityRecordState
+    review: ManchesterNetworkConnectivityReport | None
+    reason: str | None
+
+
+def read_connectivity_record(network_dir: str | Path) -> ConnectivityRecordRead:
+    """Read a persisted connectivity review, distinguishing every failure."""
+
+    record = Path(network_dir) / CONNECTIVITY_RECORD_NAME
+    if record.is_symlink():
+        return ConnectivityRecordRead(
+            "refused_symlink",
+            None,
+            "The stored review is a symlink, which is refused rather than followed.",
+        )
+    if not record.is_file():
+        return ConnectivityRecordRead(
+            "absent",
+            None,
+            "No connectivity review is stored for this candidate. Run "
+            "`integration manchester network connectivity` to produce one.",
+        )
+    try:
+        # The bound is enforced by the read itself rather than by a prior
+        # stat(): a file that grows between the two calls would pass the check
+        # and then be read in full. One byte past the bound is enough to know
+        # the record is oversized without holding the oversized content.
+        with record.open("rb") as handle:
+            raw = handle.read(MAX_CONNECTIVITY_RECORD_BYTES + 1)
+    except OSError:
+        return ConnectivityRecordRead(
+            "unreadable", None, "The stored review could not be read from disk."
+        )
+    if len(raw) > MAX_CONNECTIVITY_RECORD_BYTES:
+        return ConnectivityRecordRead(
+            "refused_oversized",
+            None,
+            "The stored review is larger than the reviewed bound admits and was not read.",
+        )
+    try:
+        payload = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return ConnectivityRecordRead(
+            "unreadable", None, "The stored review is not valid UTF-8 and is not shown."
+        )
+    try:
+        review = ManchesterNetworkConnectivityReport.model_validate_json(payload)
+    except ValueError:
+        return ConnectivityRecordRead(
+            "unreadable",
+            None,
+            "The stored review did not parse as a connectivity report and is not shown.",
+        )
+    return ConnectivityRecordRead("available", review, None)
+
+
+def write_connectivity_record(
+    network_dir: str | Path, review: ManchesterNetworkConnectivityReport
+) -> Path:
+    """Persist one review atomically, so a partial record is never left behind."""
+
+    target = Path(network_dir) / CONNECTIVITY_RECORD_NAME
+    if target.is_symlink():
+        raise NetworkBuildError(
+            "CONNECTIVITY_RECORD_SYMLINK", "the connectivity record path is a symlink"
+        )
+    payload = review.canonical_json().encode("utf-8")
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{target.stem}-", dir=target.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return target
+
+
+def connectivity_record_matches(
+    review: ManchesterNetworkConnectivityReport,
+    *,
+    network_id: str,
+    network_identity_sha256: str,
+) -> bool:
+    """Whether a stored review actually describes this candidate.
+
+    Both the semantic identity **and** the network id must agree.  A matching
+    digest under a different id is not the same artifact, and publishing it
+    would attribute one network's connectivity to another.
+    """
+
+    return (
+        review.network_identity_sha256 == network_identity_sha256
+        and review.network_id == network_id
+    )
+
+
+def connectivity_review_availability(
+    networks_root: str | Path,
+) -> tuple[ConnectivityReviewAvailability, ...]:
+    """Report, per candidate, whether a usable connectivity review is on disk."""
+
+    root = Path(networks_root)
+    if root.is_symlink() or not root.is_dir():
+        return ()
+    results: list[ConnectivityReviewAvailability] = []
+    for child in sorted(root.iterdir())[:MAX_LISTED_NETWORKS]:
+        if child.is_symlink() or not child.is_dir() or child.name.startswith("."):
+            continue
+        try:
+            binding = load_binding(child)
+        except (NetworkBuildError, ValueError):
+            continue
+        state, review, reason = read_connectivity_record(child)
+        if review is not None and not connectivity_record_matches(
+            review,
+            network_id=binding.network_id,
+            network_identity_sha256=binding.network_identity_sha256,
+        ):
+            state = "stale"
+            reason = (
+                "The stored review does not name the same network identity and id as "
+                "this candidate, so it describes a different network and is not shown."
+            )
+        results.append(
+            ConnectivityReviewAvailability(
+                network_id=binding.network_id,
+                state=state,
+                network_identity_sha256=binding.network_identity_sha256,
+                review_identity_sha256=(
+                    review.network_identity_sha256 if review is not None else None
+                ),
+                review_network_id=review.network_id if review is not None else None,
+                reason=reason,
+                review=review if state == "available" else None,
+            )
+        )
+    return tuple(results)
 
 
 def baseline_network_status(networks_root: str | Path | None = None) -> BaselineNetworkStatus:

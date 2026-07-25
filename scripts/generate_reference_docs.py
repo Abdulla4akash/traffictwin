@@ -1370,6 +1370,7 @@ CLI_COMMANDS = [
     ["integration", "manchester", "network", "verify"],
     ["integration", "manchester", "network", "verify-decode"],
     ["integration", "manchester", "network", "status"],
+    ["integration", "manchester", "network", "connectivity"],
 ]
 
 

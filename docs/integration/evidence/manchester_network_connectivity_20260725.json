@@ -1,0 +1,100 @@
+{
+  "record_type": "motor_eligible_network_connectivity_and_bounded_routability_review",
+  "record_date": "2026-07-25",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D step 1 review (network binding); no matching, calibration, or comparison",
+  "research_status": "owner_approved_candidate",
+  "supervisor_approved": false,
+  "supervisor_note": "docs/evaluation/supervisor_contract_decision_form.md is unsigned; no supervisor approval is claimed or implied",
+  "network": {
+    "network_id": "gm-baseline-260724",
+    "network_identity_sha256": "ce285f85d07fee24414cc3318cf85ea1ca0cb967e2eadb2ac7bcb3f96bde2577",
+    "decision_records": ["ADR-059", "ADR-060"],
+    "note": "the binding is reopened and both recorded digests re-verified before any connectivity claim is computed"
+  },
+  "method": {
+    "method_version": "manchester-network-connectivity-1.0",
+    "weak_components": "union-find with path halving and union by size",
+    "strong_components": "iterative Tarjan; recursion is not viable at this junction count",
+    "route_probes": "bounded breadth-first reachability; hop count is the true minimum and needs no travel-cost model, and no cost contract is approved",
+    "component_ranking": "canonical by (edges desc, junctions desc, smallest junction id), so the report is a property of the network rather than of the order it was streamed"
+  },
+  "motor_eligibility_decision": {
+    "summary": "'permits a motor vehicle' and 'permits a car' are different networks in this build, so both are computed and both are published",
+    "measured_basis": "netconvert 1.27.1 builds highway.service with allow='pedestrian delivery bicycle'; 126,991 service lanes admit a delivery van and exclude a private car",
+    "consequence": "collapsing the two would overstate the drivable network by every driveway, alley, and parking aisle in Greater Manchester",
+    "undefined_classes_excluded": ["custom1", "custom2"],
+    "undefined_class_reason": "unnamed placeholders with no defined meaning; admitting an edge on their evidence alone would be a guess",
+    "lane_permission_survey": "of 2,157,380 <lane> elements every one carries exactly one of allow or disallow - never both, never neither. The permit-all and unreadable fallbacks therefore never fired on this network"
+  },
+  "edge_accounting": {
+    "total_edge_elements": 2106404,
+    "internal_edges_excluded": 1301793,
+    "real_edges": 804611,
+    "dangling_edges_excluded": 0,
+    "no_lane_edges": 0,
+    "graph_edges": 804611,
+    "passenger_car_edges": 351813,
+    "motor_vehicle_no_car_edges": 234126,
+    "no_motor_vehicle_edges": 218672,
+    "permissions_unreadable_edges": 0,
+    "self_loop_edges": 0,
+    "junctions_referenced_by_real_edges": 359402,
+    "reconciliation": "internal + real = total, and graph + dangling = real, both by construction rather than by subtraction. The recorded binding edge count is checked against the streamed count and a disagreement refuses the review",
+    "cross_check": "the independently written geometry reader counts the same 2,106,404 / 1,301,793 / 804,611 split"
+  },
+  "components": {
+    "weak_any_motor_vehicle": {
+      "eligible_edges": 585939, "eligible_edge_length_km": 23358.7, "components": 510,
+      "largest_component_edges": 583325, "largest_component_edge_share": 0.995539,
+      "largest_component_length_share": 0.989066, "edges_between_components": 0,
+      "fragment_components": 388, "fragment_edges": 888, "fragment_junctions": 836,
+      "singleton_junction_components": 22, "junctions_untouched": 90961
+    },
+    "strong_any_motor_vehicle": {
+      "eligible_edges": 585939, "components": 892,
+      "largest_component_edges": 582755, "largest_component_edge_share": 0.994566,
+      "largest_component_length_share": 0.985358, "edges_between_components": 404,
+      "length_between_components_m": 75634.511,
+      "fragment_components": 759, "fragment_edges": 910, "junctions_untouched": 90961
+    },
+    "weak_passenger_car": {
+      "eligible_edges": 351813, "eligible_edge_length_km": 14901.9, "components": 131,
+      "largest_component_edges": 351012, "largest_component_edge_share": 0.997723,
+      "largest_component_length_share": 0.996543, "edges_between_components": 0,
+      "fragment_components": 87, "fragment_edges": 183, "fragment_junctions": 193,
+      "fragment_length_m": 12694.060, "singleton_junction_components": 24,
+      "junctions_untouched": 192940
+    },
+    "strong_passenger_car": {
+      "eligible_edges": 351813, "components": 435,
+      "largest_component_edges": 350618, "largest_component_edge_share": 0.996603,
+      "largest_component_length_share": 0.989789, "edges_between_components": 323,
+      "length_between_components_m": 99201.641,
+      "fragment_components": 383, "fragment_edges": 178, "junctions_untouched": 192940
+    },
+    "note": "shares are unrounded to six decimal places on purpose: a coverage figure that rounded up to 1 would read as complete coverage of a network that is not complete"
+  },
+  "largest_alternative_car_components": [
+    {"rank": 2, "edges": 112, "junctions": 56, "length_m": 5517.730},
+    {"rank": 3, "edges": 48, "junctions": 22, "length_m": 2580.940},
+    {"rank": 4, "edges": 34, "junctions": 18, "length_m": 1555.380}
+  ],
+  "route_probes": {
+    "probe_subgraph": "passenger_car",
+    "expansion_limit_junctions": 400000,
+    "deterministic_spread": {"count": 32, "routed": 32, "hop_range": [70, 343]},
+    "largest_to_fragment": {"count": 8, "unreachable": 7, "routed": 1},
+    "contrast_probe_rationale": "a probe set drawn only from a component holding 99.7% of the edges would succeed every time and read as evidence that the network is routable. Contrast pairs deliberately target components outside the largest one, so the probe set has to demonstrate that it can detect unreachability",
+    "the_one_routed_contrast_probe": "one rank-2 strong component is reachable from the largest component without being strongly connected to it. Strong connectivity requires both directions, so this is a correct and expected outcome rather than a contradiction",
+    "outcome_separation": "probe_limit_reached is kept distinct from unreachable, because failing to find a path is not the same as proving none exists"
+  },
+  "explicit_non_claims": [
+    "bounded probes establish reachability only for the pairs they ran; they are not evidence of universal routability, and no number of them would be",
+    "proves_universal_routability is structurally false on the artifact, not only stated in prose",
+    "a connectivity review is not map matching, calibration, comparison, demand, or simulation",
+    "the review does not accept the network for real matching and lifts no blocker",
+    "MAN-09 remains planned and Gate D remains foundation_only"
+  ]
+}
