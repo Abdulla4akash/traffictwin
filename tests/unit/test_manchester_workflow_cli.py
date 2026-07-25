@@ -162,3 +162,85 @@ class TestObservationSnapshotsCommand:
             str(tmp_path / "ws"),
         )
         assert "acquisition is operator-invoked" in output
+
+
+class TestObservationAcquireIsOperatorInvoked:
+    def test_it_refuses_without_confirmation(self, tmp_path: Path) -> None:
+        # Acquisition performs a real request; it must never be a side effect.
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "acquire",
+            "--workspace",
+            str(tmp_path),
+            "--dataset",
+            "raw_counts",
+        )
+        assert code == 2
+        assert "--confirm" in output
+
+    def test_it_refuses_an_unknown_dataset(self, tmp_path: Path) -> None:
+        code, output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "acquire",
+            "--workspace",
+            str(tmp_path),
+            "--dataset",
+            "everything",
+        )
+        assert code == 2
+        assert "count_points or raw_counts" in output
+
+    def test_an_unknown_dataset_is_refused_before_confirmation_matters(
+        self, tmp_path: Path
+    ) -> None:
+        # The dataset check must not be reachable only after --confirm, or a
+        # typo plus a confirm would still reach the provider.
+        code, _output = _invoke(
+            "integration",
+            "manchester",
+            "observation",
+            "acquire",
+            "--workspace",
+            str(tmp_path),
+            "--dataset",
+            "everything",
+            "--confirm",
+        )
+        assert code == 2
+
+
+class TestRunPreflight:
+    def test_it_reports_the_frozen_step_and_fcd_period(self) -> None:
+        code, output = _invoke("integration", "manchester", "run", "preflight")
+        assert code == 0
+        assert "step_length_s: 1" in output
+        assert "fcd_period_s: 1" in output
+
+    def test_it_warns_that_the_current_demand_gridlocks(self) -> None:
+        _code, output = _invoke("integration", "manchester", "run", "preflight")
+        assert "gridlocks" in output
+
+    def test_json_output_is_machine_readable(self) -> None:
+        code, output = _invoke("integration", "manchester", "run", "preflight", "--format", "json")
+        assert code == 0
+        assert "sumo_available" in json.loads(output)
+
+
+class TestTheReviewQueueCannotBeCleared:
+    def test_no_accept_or_reject_option_exists(self) -> None:
+        # Policy 1.1 requires a person for every unaccepted row. A command that
+        # could clear the queue would let an agent stand in for one.
+        _code, output = _invoke("integration", "manchester", "match", "review", "--help")
+        lowered = output.lower()
+        for forbidden in ("--accept", "--reject", "--approve", "--bulk", "--auto"):
+            assert forbidden not in lowered
+
+    def test_the_candidates_command_offers_no_acceptance_either(self) -> None:
+        _code, output = _invoke("integration", "manchester", "match", "candidates", "--help")
+        lowered = output.lower()
+        for forbidden in ("--accept", "--approve", "--auto"):
+            assert forbidden not in lowered

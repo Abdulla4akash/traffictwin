@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections import Counter
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, cast
 
 import typer
 import yaml
@@ -193,7 +194,11 @@ from traffictwin.integration.external import (
 )
 from traffictwin.integration.manchester.dft_acquisition import (
     DftAcquisitionError,
+    DftAcquisitionRequest,
+    DftDataset,
+    acquire_dft_snapshot,
     catalogue_accepted_dft_snapshots,
+    open_accepted_dft_snapshot,
 )
 from traffictwin.integration.manchester.dft_temporal_profile import (
     MAX_PROFILE_ARTIFACT_BYTES,
@@ -206,6 +211,7 @@ from traffictwin.integration.manchester.dft_temporal_profile import (
     write_profile_record,
 )
 from traffictwin.integration.manchester.models import (
+    ManchesterPublicationClass,
     ManchesterSnapshotPolicy,
     sha256_hex,
 )
@@ -235,12 +241,17 @@ from traffictwin.integration.manchester.network_connectivity import (
     Eligibility,
     NetworkConnectivityError,
     review_network_connectivity,
+    stream_network_edges,
 )
 from traffictwin.integration.manchester.network_decode import (
     NetworkDecodeError,
     decode_pbf_to_osm_xml,
     pinned_source_expectation,
     verify_decoded_artifact,
+)
+from traffictwin.integration.manchester.network_geometry import (
+    NetworkGeometryError,
+    build_edge_index,
 )
 from traffictwin.integration.manchester.network_scope import baseline_scope_decision
 from traffictwin.integration.manchester.network_service import (
@@ -250,8 +261,20 @@ from traffictwin.integration.manchester.network_service import (
     list_network_candidates,
     write_connectivity_record,
 )
+from traffictwin.integration.manchester.observation_matching import (
+    ObservationMatchingError,
+    dft_road_reference,
+)
 from traffictwin.integration.manchester.observation_matching_v11 import (
+    MAP_MATCH_POLICY_V11_ID,
     ManchesterMapMatchPolicyV11,
+    ObservationMatchV11,
+    build_manual_review_queue,
+    match_observation_v11,
+)
+from traffictwin.integration.manchester.sumo_run import (
+    ManchesterSumoRunError,
+    sumo_identity,
 )
 from traffictwin.integration.manchester.workflow_service import (
     manchester_workflow_status,
@@ -558,6 +581,14 @@ manchester_match_app = typer.Typer(
     no_args_is_help=True,
     help="Read-only observation-to-network map-match views (MAN-09, planned).",
 )
+manchester_demand_app = typer.Typer(
+    no_args_is_help=True,
+    help="Count-constrained candidate demand views (MAN-09, planned).",
+)
+manchester_run_app = typer.Typer(
+    no_args_is_help=True,
+    help="Operator-invoked controlled SUMO execution (MAN-09, planned).",
+)
 manifest_app = typer.Typer(
     no_args_is_help=True,
     help="Deterministic, confirmation-gated CSV manifest inference.",
@@ -591,6 +622,8 @@ manchester_app.add_typer(manchester_profile_app, name="profile")
 manchester_app.add_typer(manchester_workflow_app, name="workflow")
 manchester_app.add_typer(manchester_observation_app, name="observation")
 manchester_app.add_typer(manchester_match_app, name="match")
+manchester_app.add_typer(manchester_demand_app, name="demand")
+manchester_app.add_typer(manchester_run_app, name="run")
 
 
 @vec_app.command("contract")
@@ -7079,4 +7112,302 @@ def manchester_match_policy_command(
     typer.echo(
         "acceptance_note: rows this policy accepts are owner_policy_accepted_candidate; "
         "no analyst, human, or supervisor has reviewed any row"
+    )
+
+
+def _manchester_match_results(
+    workspace: Path,
+    network: Path,
+    raw_snapshot_id: str,
+    count_point_snapshot_id: str,
+) -> list[ObservationMatchV11]:
+    """Reproduce the v1.1 match run from accepted snapshots.
+
+    Deliberately recomputed rather than read from a cached artifact: a stale
+    cache would let the CLI report a match set that no longer follows from the
+    accepted evidence.
+    """
+
+    records, _binding = open_real_raw_count_evidence(workspace, raw_snapshot_id)
+    load = open_accepted_dft_snapshot(workspace, count_point_snapshot_id)
+    report = load.report
+    points = getattr(report, "records", ())
+    sites_with_counts = {record.count_point_id for record in records}
+    index = build_edge_index(network)
+    access = {edge.edge_id: edge.access for edge in stream_network_edges(network)}
+    policy = ManchesterMapMatchPolicyV11()
+    results: list[ObservationMatchV11] = []
+    for point in points:
+        if point.count_point_id not in sites_with_counts:
+            continue
+        location = point.location
+        if location.easting is None or location.northing is None:
+            continue
+        results.append(
+            match_observation_v11(
+                count_point_id=point.count_point_id,
+                easting=float(location.easting),
+                northing=float(location.northing),
+                dft_road_type=location.road_type,
+                dft_road_name=location.road_name,
+                dft_road_ref=dft_road_reference(location.road_name),
+                index=index,
+                policy=policy,
+                motor_access=access,
+            )
+        )
+    return results
+
+
+@manchester_match_app.command("candidates")
+def manchester_match_candidates_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    network: Annotated[Path, typer.Option("--network", help="reviewed study or baseline network")],
+    raw_snapshot_id: Annotated[str, typer.Option("--raw-snapshot-id")],
+    count_point_snapshot_id: Annotated[str, typer.Option("--count-point-snapshot-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Generate map-match candidates for every real count point.
+
+    Recomputed from accepted snapshots, so the result always follows from the
+    evidence. Rows the policy accepts are `owner_policy_accepted_candidate`; no
+    person has reviewed any of them. MAN-09 remains planned.
+    """
+
+    try:
+        results = _manchester_match_results(
+            workspace, network, raw_snapshot_id, count_point_snapshot_id
+        )
+    except (DftAcquisitionError, ObservationMatchingError, NetworkGeometryError) as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    dispositions = Counter(result.disposition for result in results)
+    payload = {
+        "policy_id": MAP_MATCH_POLICY_V11_ID,
+        "observations": len(results),
+        "dispositions": dict(sorted(dispositions.items())),
+        "acceptance_basis": "owner_policy_accepted_candidate",
+        "analyst_reviewed": False,
+        "supervisor_approved": False,
+    }
+    if output_format == "json":
+        _echo_json(payload)
+        return
+    _require_text_format(output_format)
+    typer.echo(f"policy_id: {MAP_MATCH_POLICY_V11_ID}")
+    typer.echo(f"observations: {len(results)}")
+    for disposition, count in sorted(dispositions.items()):
+        typer.echo(f"disposition: {disposition} = {count}")
+    typer.echo("acceptance_basis: owner_policy_accepted_candidate")
+    typer.echo("analyst_reviewed: false")
+    typer.echo("note: an accepted row was accepted by the owner's written policy, not by a person")
+
+
+@manchester_match_app.command("review")
+def manchester_match_review_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    network: Annotated[Path, typer.Option("--network")],
+    raw_snapshot_id: Annotated[str, typer.Option("--raw-snapshot-id")],
+    count_point_snapshot_id: Annotated[str, typer.Option("--count-point-snapshot-id")],
+    limit: Annotated[int, typer.Option("--limit", min=1, max=500)] = 20,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the manual-review queue.
+
+    Read-only by design. There is deliberately no accept, reject, or bulk
+    option: policy 1.1 requires a person for every unaccepted row, and a command
+    that could clear the queue would let an agent stand in for one.
+    """
+
+    try:
+        results = _manchester_match_results(
+            workspace, network, raw_snapshot_id, count_point_snapshot_id
+        )
+    except (DftAcquisitionError, ObservationMatchingError, NetworkGeometryError) as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    queue = build_manual_review_queue(results)
+    if output_format == "json":
+        _echo_json(queue.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"observations_total: {queue.observations_total}")
+    typer.echo(f"accepted_total: {queue.accepted_total}")
+    typer.echo(f"queued_total: {queue.queued_total}")
+    typer.echo(f"queue_preserved: {str(queue.queue_preserved).lower()}")
+    for entry in queue.entries[:limit]:
+        typer.echo(
+            f"queued: count_point={entry.count_point_id} "
+            f"road_type={entry.dft_road_type} confidence={entry.confidence} "
+            f"groups={entry.eligible_group_count}"
+        )
+        for reason in entry.review_reasons:
+            typer.echo(f"    reason: {reason}")
+    if queue.queued_total > limit:
+        typer.echo(f"shown {limit} of {queue.queued_total}; raise --limit to see more")
+    typer.echo("note: this command cannot accept or reject a row; every queued row needs a person")
+
+
+@manchester_observation_app.command("acquire")
+def manchester_observation_acquire_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    dataset: Annotated[str, typer.Option("--dataset", help="count_points or raw_counts")],
+    confirm: Annotated[
+        bool, typer.Option("--confirm", help="required: this performs a real request")
+    ] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Acquire one audited DfT dataset for Manchester local authority 85.
+
+    Operator-invoked and never a side effect: without --confirm nothing is
+    requested. Manchester scope is bound as a literal, so no caller can widen it,
+    and the result is historical evidence that is never live traffic.
+    """
+
+    if dataset not in {"count_points", "raw_counts"}:
+        typer.secho("--dataset must be count_points or raw_counts", err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=2)
+    if not confirm:
+        typer.secho(
+            "refusing to acquire without --confirm: this performs a real request to "
+            "roadtraffic.dft.gov.uk and promotes a snapshot",
+            err=True,
+            fg=typer.colors.YELLOW,
+        )
+        raise typer.Exit(code=2)
+
+    request = DftAcquisitionRequest(
+        dataset=cast("DftDataset", dataset),
+        page_size=500,
+        max_pages=4 if dataset == "count_points" else 100,
+        max_rows=2_000 if dataset == "count_points" else 60_000,
+        policy=ManchesterSnapshotPolicy(
+            max_member_count=120, max_member_bytes=20_000_000, max_total_bytes=400_000_000
+        ),
+        publication_class=ManchesterPublicationClass.PRIVATE,
+        accept_with_warnings=False,
+        synthetic=False,
+    )
+    try:
+        result = acquire_dft_snapshot(workspace, request)
+    except DftAcquisitionError as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        _echo_json(result.model_dump(mode="json"))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"snapshot_id: {result.snapshot_id}")
+    typer.echo(f"dataset: {result.dataset}")
+    typer.echo(f"endpoint: {result.endpoint_host}{result.endpoint_path}")
+    typer.echo(f"pages: {result.pages}")
+    typer.echo(f"rows_seen: {result.rows_seen}")
+    typer.echo(f"records_accepted: {result.records_accepted}")
+    typer.echo(f"parser_status: {result.parser_status}")
+    typer.echo(f"synthetic: {str(result.synthetic).lower()}")
+    typer.echo(f"raw_fingerprint: {result.raw_fingerprint}")
+    typer.echo("note: DfT evidence is historical and is never live traffic")
+
+
+@manchester_match_app.command("ambiguity")
+def manchester_match_ambiguity_command(
+    workspace: Annotated[Path, typer.Option("--workspace")],
+    network: Annotated[Path, typer.Option("--network")],
+    raw_snapshot_id: Annotated[str, typer.Option("--raw-snapshot-id")],
+    count_point_snapshot_id: Annotated[str, typer.Option("--count-point-snapshot-id")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Measure how ambiguous matching is at each sensitivity radius.
+
+    Distance barely discriminates on this data; ambiguity does. The radii are
+    the approved sensitivity set and are not acceptance thresholds.
+    """
+
+    try:
+        records, _binding = open_real_raw_count_evidence(workspace, raw_snapshot_id)
+        load = open_accepted_dft_snapshot(workspace, count_point_snapshot_id)
+        index = build_edge_index(network)
+    except (DftAcquisitionError, NetworkGeometryError) as exc:
+        typer.secho(str(exc), err=True, fg=typer.colors.RED)
+        raise typer.Exit(code=1) from exc
+
+    sites_with_counts = {record.count_point_id for record in records}
+    points = [
+        point
+        for point in getattr(load.report, "records", ())
+        if point.count_point_id in sites_with_counts
+        and point.location.easting is not None
+        and point.location.northing is not None
+    ]
+    rows: list[dict[str, object]] = []
+    for radius in (10.0, 20.0, 30.0, 50.0, 100.0):
+        counts: list[int] = []
+        with_any = 0
+        for point in points:
+            hits = index.edges_within(
+                float(point.location.easting),
+                float(point.location.northing),
+                radius_m=radius,
+            )
+            counts.append(len(hits))
+            if hits:
+                with_any += 1
+        counts.sort()
+        rows.append(
+            {
+                "radius_m": radius,
+                "sites": len(points),
+                "sites_with_a_candidate": with_any,
+                "mean_candidates": round(sum(counts) / max(len(counts), 1), 2),
+                "median_candidates": counts[len(counts) // 2] if counts else 0,
+                "max_candidates": max(counts) if counts else 0,
+            }
+        )
+    if output_format == "json":
+        _echo_json({"sensitivity": rows, "thresholds_applied": False})
+        return
+    _require_text_format(output_format)
+    typer.echo(f"sites: {len(points)}")
+    for row in rows:
+        typer.echo(
+            f"radius_m={row['radius_m']} "
+            f"sites_with_a_candidate={row['sites_with_a_candidate']} "
+            f"mean={row['mean_candidates']} median={row['median_candidates']} "
+            f"max={row['max_candidates']}"
+        )
+    typer.echo("note: these radii are a sensitivity set, not acceptance thresholds")
+
+
+@manchester_run_app.command("preflight")
+def manchester_run_preflight_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Report whether a controlled SUMO run can proceed, without running one.
+
+    Checks the toolchain only. Whether the current candidate demand should be
+    simulated at all is a separate, measured question; see the workflow status.
+    """
+
+    payload: dict[str, object] = {"sumo_available": False, "reported_version": None}
+    try:
+        tool = sumo_identity()
+        payload = {"sumo_available": True, "reported_version": tool.reported_version}
+    except ManchesterSumoRunError as exc:
+        payload["blocker"] = exc.code
+    if output_format == "json":
+        _echo_json(payload)
+        return
+    _require_text_format(output_format)
+    typer.echo(f"sumo_available: {str(payload['sumo_available']).lower()}")
+    if payload.get("reported_version"):
+        typer.echo(f"reported_version: {payload['reported_version']}")
+    if payload.get("blocker"):
+        typer.echo(f"blocker: {payload['blocker']}")
+    typer.echo("step_length_s: 1")
+    typer.echo("fcd_period_s: 1")
+    typer.echo(
+        "note: the current candidate demand gridlocks in simulation; see "
+        "`integration manchester workflow status --show blocked`"
     )
