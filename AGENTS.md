@@ -339,6 +339,45 @@ pre-existing integration failures (Statistical Study ×4, VEC Workbench ×1, and
 source-hash probe) fail identically at the base commit `e8bf792`, exercise no Tier 4 page, touch no
 module Tier 4 changed, and are outside this grant. Awaiting repository-owner acceptance.
 
+### Active parallel ownership grant: integration-regression repair slice
+
+- The repository owner independently reproduced the six pre-existing integration failures and, on
+  25 July 2026, granted a repair slice from the pushed head `8fe2301` on `claude/complete-v0.7`. No
+  presentation work proceeds until all six failures are resolved honestly. No capability moves off
+  `planned`.
+- The exclusive owned surfaces are exactly `tests/integration/test_equivalence_ui.py`,
+  `tests/integration/test_n_way_ranking_ui.py`, `tests/integration/test_power_analysis_ui.py`,
+  `tests/integration/test_regression_gate_ui.py`, `tests/integration/test_vec_interface.py`,
+  `tests/integration/test_manchester_dft_gate_b_probe.py`, the DfT Gate-B probe documentation, and a
+  new immutable dated evidence record if required.
+- Grouped-navigation repair: migrate the four Statistical Study tests and the one VEC Workbench test
+  from legacy `app.radio[0]` navigation to the normal v0.7 AppTest mechanism
+  `app.switch_page(page_script_for(UiPage...))`, following existing grouped-navigation conventions.
+  Legacy navigation is not enabled to hide the failures. Every scientific, interaction, registry, and
+  execution-gating assertion is preserved, and the tests exercise the direct Statistical Study and VEC
+  Workbench pages under normal v0.7 routing.
+- DfT source-hash repair: diagnose exactly which recorded implementation file changed after the
+  23 July probe and why. The historical `manchester_dft_gate_b_probe_20260723.json` is immutable
+  evidence — never overwrite it, never replace its recorded hash, never claim current code executed
+  the old probe. One new minimal, anonymous, bounded, read-only DfT probe against the same three
+  audited endpoints in an isolated temporary v0.7 workspace is authorised if necessary; it must use
+  current bounded transport/acquisition/parser code, request only the minimum one-row evidence,
+  record the exact clean branch commit and implementation hashes, preserve quarantine-before-parse and
+  immutable promotion, contain no private path/credential/uncontrolled raw payload, keep capability
+  `planned`, retain all timezone/rate-limit/SLA blockers, and create a new dated evidence record
+  rather than changing historical evidence. Raw responses stay outside Git; only reviewed
+  permission-safe evidence/fixtures are committed. If the provider is unavailable, the failure is
+  recorded honestly without fabricating a successful probe or silently weakening the integrity
+  assertion. The offline integrity test is updated so historical records remain historical and the
+  newest accepted probe binds the current executed implementation.
+- Validation: run the six previously failing tests first; run the complete `tests/integration` suite
+  and require zero failures (the documented optional real-SUMO skip is acceptable only when SUMO is
+  truly unavailable in that process); run all `tests/unit` and `tests/ui`; run Ruff, format check,
+  strict mypy, and `git diff --check`; re-run the affected Statistical Study and VEC Workbench
+  AppTests under grouped navigation; confirm no old evidence file or protected tag changed. Commit the
+  navigation repair and the DfT evidence repair separately, inspect both staged diffs, push to
+  `claude/complete-v0.7`, and never create or move a release tag.
+
 ### Active lead ownership: MAN-05/MAN-08 live-bus completion slice
 
 - The lead owns the identifier-only Bee Network verification/classification slice for `MAN-05`,
