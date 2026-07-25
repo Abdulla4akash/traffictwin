@@ -389,6 +389,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Implemented baseline design v0.5](traffictwin-design-v0_5.md)
 - [Historical design proposal v0.4](traffictwin-design-v0_4.md)
 - [Implementation status](implementation-status.md)
+- [Current workflow and to-do](current_workflow_and_todo.md)
 - [Assumption register](assumption-register.md)
 - [Open questions](open-questions.md)
 - [Viva guide](viva_guide.md)
