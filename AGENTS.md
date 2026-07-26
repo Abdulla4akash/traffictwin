@@ -909,6 +909,38 @@ not:
   page tidier must never make a blocked thing look available.
 - The 375 existing UI tests are the contract. None is weakened to accommodate a redesign.
 
+### Phase 14 claim: VEC fresh-run scientific admission (owner-directed, 26 July 2026)
+
+The owner directed implementation of the experiment-readiness repair identified in
+`origin/feature-suggestions:research_directions_codex_review.md` §5 amendment 1 and ranked first in
+`codex_review_completed_possibility_rubric_v1.md` §5: make one fresh VEC-07 execution's metrics
+scientifically admissible so that fresh runs can reach the STA-01 paired-study tooling. Claimed
+from the clean pushed head `1dbc748` on `claude/complete-v0.7`, under the standing
+integration-agent mandate terms above.
+
+**Exclusive new files (all new; no existing file transferred):**
+`src/traffictwin/integration/vec_fresh_admission/{__init__.py,models.py,service.py}`,
+`tests/unit/test_vec_fresh_admission.py`, `tests/integration/test_vec_fresh_admission_chain.py`,
+`docs/integration/vec_fresh_run_admission.md`,
+`docs/decisions/ADR-061-vec-fresh-run-scientific-admission.md`, plus this ownership record.
+
+**Boundaries.**
+
+- New versioned policy `vec-fresh-run-scientific-admission-1.0`, labelled
+  `owner_approved_candidate`. It is not supervisor approval, not analyst review, and never uses a
+  forbidden label.
+- The accepted VEC-09 `_s102` admission artifact, the VEC-10 `VecExecutionImportRecord` (whose
+  `scientific_admission_status` stays literally `"unavailable"`), the runner, and every generated
+  reference remain unmodified. The new module only consumes their public APIs.
+- Fresh-run metrics never claim VEC-08 numerical-equivalence, reproduction grade, physical
+  completion, per-task energy, or any of the eight VEC-09 unavailable metrics; those stay typed
+  `unavailable` with the same blockers.
+- Admission fails closed on any receipt/output/trace/identity mismatch, re-verifying published
+  bytes with the same discipline as `import_vec_execution`.
+- Shared surfaces (`cli.py`, navigation, `docs/index.md`, changelog, capability manifests,
+  generated references, project records) are not edited; wiring them is a follow-on lead-reviewed
+  slice.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
