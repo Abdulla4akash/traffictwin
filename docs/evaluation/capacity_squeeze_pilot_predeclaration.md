@@ -1,9 +1,11 @@
-# Capacity-Squeeze Pilot — Predeclaration (PROPOSED, UNSIGNED)
+# Capacity-Squeeze Pilot — Predeclaration (PILOT APPROVED BY OWNER DELEGATION)
 
-**Status: PROPOSED. Not approved, not executed.** No run described here has been performed.
-This document must be signed by the repository owner before any sweep executes; it exists so the
-design is fixed *before* results are visible, which is the only thing that makes the eventual
-finding defensible rather than selected.
+**Status: pilot phase approved by owner delegation on 26 July 2026; held-out phase remains
+unauthorised.** The design was fixed and committed *before* any pilot result was visible. The
+owner's approval was given as an interactive session instruction — "take reasonable decisions in
+each of them" — delegating decisions D1–D6 to the proposed defaults; the provenance is recorded
+verbatim in the sign-off section, which was written by the session agent to document that
+instruction, not typed by the owner.
 
 - Proposed: 26 July 2026
 - Policy label if approved: `owner_approved_candidate` (not supervisor approval; the
@@ -98,10 +100,14 @@ confirmatory claim**, which is exactly why the split exists.
 
 Pilot = 4 arms × 3 pilot seeds = **12 full-length `inc` executions**.
 
-The per-run cost must come from measurement, not assumption. Reference points already
-measured on this machine: the full 32,400-step weekend run took **225.7 s**; the first
-full-length `inc` run is the timing probe required by ADR-062 and its elapsed time fills the
-table below before this document is signed.
+The per-run cost must come from measurement, not assumption. Measured on this machine: the
+full 32,400-step weekend run took **225.7 s**, and the first full-length `inc` run — the
+timing probe required by ADR-062 — completed in **3,555.96 s (59.3 minutes, 49.4% of the
+7,200 s ceiling, ~100 MB of outputs)**. The applicable action row below is therefore
+**30–60 minutes**: the 12-run pilot proceeds locally overnight (~12 h serial), and the
+confirmatory design must be re-costed against this measurement before it is signed. The
+probe also surfaced and fixed a verification-precision defect (float32 reconciliation
+arithmetic at incident magnitudes); the probe run itself now admits end-to-end.
 
 | Measured `inc` run time | 12-run pilot wall-clock (serial) | Action |
 |---|---|---|
@@ -146,18 +152,26 @@ cover the weekend trace).
 
 ## 11. Owner decisions required before execution
 
-| # | Decision | Proposed default |
+| # | Decision | Resolved (26 July 2026, owner delegation) |
 |---|---|---|
-| D1 | Capacity grid | `{2.5, 1.5, 1.0, 0.75}` — four arms; drop or add a level? |
+| D1 | Capacity grid | `{2.5, 1.5, 1.0, 0.75}` — four arms |
 | D2 | Actor for the pilot | `ukfleettrain_mappo_model_c_17` |
 | D3 | Pilot seeds / held-out seeds | `{0,1,2}` / `{10,11,12,13,14}` |
 | D4 | Primary endpoint | `tos.task.deadline_success.rate` |
-| D5 | Crossover approach for the later actor comparison (§3) | N-way ranking per capacity level |
-| D6 | Escalation if runtime nears the 7,200 s ceiling | Stop and ask, never raise the bound |
+| D5 | Crossover approach for the later actor comparison (§3) | N-way ranking per capacity level, in its own predeclaration after the pilot |
+| D6 | Escalation if runtime nears the 7,200 s ceiling | Stop and ask the owner; never raise the bound |
 
-**Sign-off (to be completed by a person, never by an agent):**
+**Sign-off and provenance:**
 
-- Approved by: ______________________
-- Role: ______________________
-- Date: ______________________
-- Deviations from the proposed defaults: ______________________
+- Decisions D1–D6: resolved to the proposed defaults, none amended.
+- Approval provenance: the repository owner instructed the working session on 26 July 2026 —
+  "take reasonable decisions in each of them" — delegating all six decisions to the proposed
+  defaults. This block was written by the session agent to record that instruction faithfully;
+  the owner did not personally type it, and no stronger approval than the owner's delegated
+  session instruction is claimed.
+- Scope of this approval: the **pilot phase only** (seeds `{0,1,2}`). The held-out cohort
+  `{10,11,12,13,14}` remains unauthorised until a separately approved confirmatory protocol
+  exists, and campaign tooling refuses it structurally without that authorisation.
+- Supervisor approval is not claimed;
+  [the supervisor contract decision form](supervisor_contract_decision_form.md) remains
+  unsigned and untouched.
