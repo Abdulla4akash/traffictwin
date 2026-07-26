@@ -97,6 +97,26 @@ Headway regularity and delay distributions for Bee services from session snapsho
 quick, but connects to no current research question; worth doing only as a by-product of B1/B2
 sessions, not as its own experiment.
 
+## 3a. Structural constraint discovered in the accepted models (changes B1's prerequisites)
+
+The accepted scene artifacts **deliberately prevent cross-snapshot vehicle linking**: each
+observation's `vehicle_token` is derived from the raw vehicle reference *plus its own
+`recorded_at_utc`*, and the model pins `identity_scope: "snapshot_only"`. The same bus in two
+snapshots carries two unrelated tokens. This is a privacy design of the accepted MAN-05
+boundary, not an accident — and it means the cadence probe and B1's trajectory derivation
+cannot be built on published scenes as they stand.
+
+The honest remedy is a small, explicitly reviewed identity-policy extension: a
+**session-scoped pseudonym** — an HMAC of the raw vehicle reference under a random per-session
+salt, computed inside the accepted parsing boundary, discarded with the salt when the session
+ends. Vehicles become linkable *within one declared observation session only*; raw references
+still never leave quarantine; cross-session tracking stays impossible. This touches the
+lead-owned MAN-05 surface (or needs an owner-approved layered policy over the private
+snapshots), so it is a recorded owner/lead decision — **F0 below — and it gates everything
+else in the B1 sequence.** The rich per-observation fields already retained
+(`bearing_degrees`, `velocity_mps`, `line_ref`, `direction_ref`, `vehicle_journey_ref`) mean
+that once linking exists, no further schema change is needed.
+
 ## 4. Recommended sequence
 
 1. **Cadence probe first (one short attended session):** 10–15 snapshots at the 60 s bound,
@@ -113,7 +133,8 @@ sessions, not as its own experiment.
 
 | # | Decision | Proposed default |
 |---|---|---|
-| F1 | Run the cadence probe session? | yes — one attended 15-minute session at 60 s cadence |
+| F0 | Approve the session-scoped pseudonym extension (§3a)? | yes — per-session salted HMAC inside the accepted boundary; salt discarded at session end; requires a lead-owned MAN-05 change or an owner-approved layered policy |
+| F1 | Run the cadence probe session? | yes — one attended 15-minute session at 60 s cadence, after F0 |
 | F2 | Session window for B1, if pursued | weekday 08:00–09:30 local (peak service density) |
 | F3 | Which experiment(s) | B1 primary; B2 as by-product; B4 only as by-product; B3 unchanged |
 | F4 | Where B1 sits against the existing programme | after the capacity pilot's confirmatory protocol is signed, before the corridor stretch |
