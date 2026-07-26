@@ -1018,6 +1018,13 @@ deterministic report whose exploratory status is a type-level literal: `confirma
 fingerprint mismatch and passes STA-01's own insufficient/incompatible statuses through rather
 than papering over them.
 
+**Second amendment (26 July 2026): durable pilot launcher.** The claim additionally covers
+`scripts/capacity_pilot_campaign.py`, the single canonical construction of the approved pilot
+design (fingerprint `de474e038523e5e7…`, value-identical to the launched campaign's). It exists so
+resuming an interrupted campaign or analysing a completed one never depends on session-temporary
+files; editing the design block requires re-approval because the fingerprint covers the approval
+bytes.
+
 ### Phase 18 claim: task-join verification-precision repair (owner-directed, 26 July 2026)
 
 The first real full-length `inc` execution (3,555.96 s, completed, hash-verified) was refused by
