@@ -1078,6 +1078,35 @@ accepted evidence (implementation-status, integration docs, ADRs) and claim noth
 this record. No capability, gate, or scientific status changes; forbidden labels stay absent;
 pilot evidence is described as exploratory owner-approved candidate material only.
 
+### Phase 20 claim: analyst map-match review ledger (owner-directed, 26 July 2026)
+
+Implements the decision half of beta Phase B (`BETA-D-01`). The presentation half exists
+(`ManualReviewQueue`); what was missing is a typed, sealed record of a *person's* per-row
+decisions. Per the backlog: the tooling is finished and the rows stay visibly pending until a
+human decides them — no decision is fabricated by this slice, and the ledger built here starts
+empty.
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/observation_review.py`,
+`tests/unit/test_manchester_observation_review.py`,
+`docs/integration/manchester_match_review.md`,
+`docs/decisions/ADR-064-analyst-map-match-review-ledger.md`, plus this record and the
+`docs/index.md` row.
+
+**Boundaries.**
+
+- A decision requires a named reviewer identity and role (placeholders refused), an explicit
+  per-row action, and a written reason; the API accepts exactly one decision at a time and no
+  bulk operation exists anywhere in the module.
+- Accepting a candidate group requires the full match row so the group key is validated against
+  the row's actual groups; ledger and decisions bind the queue and policy fingerprints and
+  refuse mismatches.
+- Decisions are append-only: a change of mind supersedes by fingerprint reference, never
+  overwrites; the frozen `ObservationMatchV11` artifacts (with their `human_accepted: False`
+  literals) are never modified.
+- The strongest label a decided row carries is `analyst_reviewed_candidate`;
+  `supervisor_approved` and `scientifically_validated` are type-level `False`.
+- Ledgers are two-pass sealed; an unsealed or tampered ledger refuses to load.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
