@@ -1041,6 +1041,15 @@ regression test added to `tests/unit/test_vec_task_join.py`, and this record. Th
 constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
 this strictly tightens the verifier's own accuracy.
 
+#### Phase 16 second amendment: confirmatory protocol skeleton (26 July 2026)
+
+The claim additionally covers `docs/evaluation/capacity_confirmatory_protocol_draft.md` and its
+`docs/index.md` row. The draft is structurally unsignable: its `FILL-FROM-PILOT` fields require
+measured pilot values, the knee rule that will select the primary contrast is fixed *before* any
+pilot cell completed, and held-out execution stays refused until an approval binds the completed
+document's final digest with `held_out_authorised = true`. No pilot or held-out result exists at
+the time of this record.
+
 #### Phase 16 amendment: owner delegated the pilot decisions (26 July 2026)
 
 The owner instructed in session: "take reasonable decisions in each of them." Decisions D1–D6
