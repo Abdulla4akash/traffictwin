@@ -64,6 +64,7 @@
 | [ADR-060](ADR-060-controlled-osm-pbf-decode-boundary.md) | Controlled OSM PBF decode boundary (`osmium-tool`) | accepted |
 | [ADR-061](ADR-061-vec-fresh-run-scientific-admission.md) | Fresh-run scientific admission as a separate candidate policy | accepted |
 | [ADR-062](ADR-062-inc-trace-allowlist-extension.md) | Reviewed admission of the `inc` trace | accepted |
+| [ADR-063](ADR-063-bounded-vec-campaign-execution.md) | Bounded, approval-gated VEC campaign execution | accepted |
 
 Related documents:
 

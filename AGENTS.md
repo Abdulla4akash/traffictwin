@@ -981,6 +981,34 @@ single `algorithm`, so actor-versus-actor crossover is not an STA-01 paired stud
 reported as one. The runner's 7,200-second ceiling is an escalation trigger, never a bound to
 raise. `docs/evaluation/supervisor_contract_decision_form.md` remains untouched and unsigned.
 
+### Phase 17 claim: bounded VEC campaign execution (owner-directed, 26 July 2026)
+
+Closes the last experiment-blocking gap the independent review named: "campaign orchestration,
+timeout, disk, memory, concurrency and failure-recovery budgets" did not exist, so a predeclared
+multi-cell design could only be executed by hand. This slice adds a deterministic, resumable,
+sequential campaign service over the already-accepted VEC-07 runner and ADR-061 admission.
+
+**Exclusive new files:** `src/traffictwin/integration/vec_campaign/{__init__.py,models.py,service.py}`,
+`tests/unit/test_vec_campaign.py`,
+`docs/integration/vec_campaign_execution.md`,
+`docs/decisions/ADR-063-bounded-vec-campaign-execution.md`, plus the matching `docs/index.md`
+and `docs/decisions/index.md` rows and this record.
+
+**Boundaries.**
+
+- **Fails closed without a recorded approval.** A campaign cannot be constructed without a typed
+  approval that names a human approver and binds the exact predeclaration file digest. Code
+  cannot verify that a person really approved; it can refuse to proceed silently and can refuse
+  to run if the predeclaration bytes changed after approval. There is no default approval.
+- **Held-out seeds need explicit separate authorisation** (`held_out_authorised`), so an
+  exploratory campaign cannot silently consume the reserved confirmatory seeds.
+- Sequential foreground execution only: no background job, detached process, persistent queue,
+  SLURM, or concurrency — the VEC-10 prohibitions are preserved literally.
+- Bounded by declared maximum cell count and total output bytes; a failed cell halts by default
+  and is recorded with its reason. A failure is never retried with altered controls.
+- The service composes existing services and computes no metric of its own; it never relabels a
+  candidate policy, and it never writes a scientific conclusion.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
