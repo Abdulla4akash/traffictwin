@@ -62,6 +62,8 @@
 | [ADR-058](ADR-058-v06-producer-attestation.md) | Operator clean-checkout attestation for v0.6 registry provenance | accepted |
 | [ADR-059](ADR-059-greater-manchester-baseline-network.md) | Greater Manchester OpenStreetMap-to-SUMO baseline network | accepted |
 | [ADR-060](ADR-060-controlled-osm-pbf-decode-boundary.md) | Controlled OSM PBF decode boundary (`osmium-tool`) | accepted |
+| [ADR-061](ADR-061-vec-fresh-run-scientific-admission.md) | Fresh-run scientific admission as a separate candidate policy | accepted |
+| [ADR-062](ADR-062-inc-trace-allowlist-extension.md) | Reviewed admission of the `inc` trace | accepted |
 
 Related documents:
 

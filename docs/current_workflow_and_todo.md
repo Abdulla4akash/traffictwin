@@ -1,9 +1,35 @@
 # Current workflow and to-do
 
-- Last updated: 25 July 2026
+- Last updated: 26 July 2026 (dated addendum below; full record reconciliation remains
+  `BETA-REC-01`, lead-owned)
 - Branch: `claude/complete-v0.7`
-- Working head at last update: `b50f27d`
-- **Current task: phases 9 to 13**
+- Working head at last update: the `v0.7.0-alpha.8` checkpoint commit
+- **Current task: experiment readiness → predeclared capacity pilot**
+
+## Addendum: 26 July 2026 — experiment-readiness slices (checkpoint `v0.7.0-alpha.8`)
+
+Owner-directed slices `066d0bf` and `f24edf4` closed the gap between controlled VEC execution
+and the statistical workflow; nothing below advances a gate or capability row:
+
+- **Fresh-run scientific admission** (`vec-fresh-run-scientific-admission-1.0`, ADR-061,
+  `owner_approved_candidate`): a completed VEC-07 execution's re-verified outputs become
+  registry metrics that pair in STA-01 under a declared study context. Reproduction stays
+  ungraded (`reproduction_graded: False`); smoke/unreviewed-trace requests refuse with typed
+  codes; the VEC-07/VEC-10 literals and the accepted VEC-09 artifact are untouched.
+- **`inc` trace admitted** (ADR-062) by reviewed allowlist extension after a measured
+  identity-reconciliation probe at the audited tos-data commit; `wd_am`, `wd_pm`, `ev`
+  remain refused. A real `inc` preflight returns `accepted`.
+- **Measured**: full 32,400-step `we` protocol run 225.7 s locally via one-click; its
+  published result admitted end-to-end in 5.4 s (3/3 real-artifact chain tests). The first
+  full `inc` execution is an in-flight timing measurement against the 7,200 s request
+  ceiling (historical source maximum 15,305.9 s).
+- **Next**: predeclare the capacity-squeeze pilot (capacities, seeds, primary endpoint,
+  pilot/held-out split) before any sweep; register its `Experiment` plan (Python API only —
+  no CLI exists to register an experiment); then the tiny pilot, then the frozen
+  confirmatory protocol.
+
+The phase-state sections below this line predate the alpha.7 merge and the addendum above;
+their reconciliation is `BETA-REC-01` and stays with the lead.
 
 This is the working status document for the v0.7 integration effort. It records what is built,
 what is blocked and on whom, and what is being worked next. It is not a capability claim: capability

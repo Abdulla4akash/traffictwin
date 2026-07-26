@@ -2,6 +2,26 @@
 
 ## v0.7.0 - In development
 
+Closed the experiment-readiness gap between controlled VEC execution and the statistical
+workflow (ADR-061, ADR-062; checkpoint `v0.7.0-alpha.8`):
+
+- fresh-run scientific admission (`vec-fresh-run-scientific-admission-1.0`, an owner-approved
+  candidate policy): one completed VEC-07 execution's byte-re-verified outputs become registry
+  metrics that pair in the STA-01 common-seed study tooling under a declared study context,
+  while the VEC-07 receipt literal, the VEC-10 structural import record, and the accepted
+  VEC-09 source-run admission stay unchanged and reproduction stays explicitly ungraded;
+- truncated (smoke) executions and unreviewed traces refuse with typed codes, trip metrics
+  remain trace-level and excluded, and the eight VEC-09 unavailable metrics keep their exact
+  blockers under a value-parity drift-guard test;
+- the Gate-A-audited incident trace joined the reviewed VEC-07 allowlist only after a measured
+  identity-reconciliation probe at the audited tos-data commit (T=3,600, maxN=2,488,
+  8,747,692 masked vehicle-seconds, 5,307 occupancy spans); `wd_am`, `wd_pm`, and `ev` remain
+  refused and a test pins the allowlist to exactly the two admitted identities; and
+- measured locally: the full 32,400-step weekend protocol run completed in 225.7 s through the
+  one-click workflow and its published result admitted end-to-end in 5.4 s, so the planned
+  capacity study is hours of local compute rather than cluster work; the first full incident
+  execution is a separate in-flight timing measurement.
+
 Replaced Guided Demo's per-stage page-opening catalogue with an action-aware workflow assistant:
 
 - one start/resume action opens the current real task and persistent guidance follows across pages;
