@@ -1131,6 +1131,31 @@ polling — is carried unchanged.
 **Exclusive files:** `docs/evaluation/bus_data_experiment_options.md`, its `docs/index.md` row,
 and this record.
 
+### Phase 23 claim: session-scoped bus identity (F0, owner-approved, 27 July 2026)
+
+The owner approved decision F0 from the bus-experiment options assessment and directed
+implementation. This is a **layered owner-approved candidate policy over the quarantined private
+snapshots** — the accepted MAN-05 parser, its snapshot-only pseudonyms, and every lead-claimed
+file are untouched (deliberately including `integration/manchester/__init__.py`, which the lead's
+live-bus slice claims; the module is imported by its full path).
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/bods_session_identity.py`,
+`tests/unit/test_bods_session_identity.py`, `scripts/bus_cadence_probe_session.py`, plus this
+record and the F0 status row in `docs/evaluation/bus_data_experiment_options.md`.
+
+**Boundaries.**
+
+- Session tokens are HMAC-SHA256 of the raw vehicle reference under a random per-session salt
+  generated in process; the salt is never persisted, logged, or returned, so linkage dies with
+  the session and cross-session tracking stays impossible.
+- Raw vehicle references never leave the extraction function; published measurement artifacts
+  are aggregates only, and tests assert raw references are absent from every serialised output.
+- Extraction verifies the quarantine receipt and the member's SHA-256 before parsing a byte, and
+  refuses synthetic/real mismatches; buses remain bus evidence, never general traffic.
+- The probe-session runner composes the accepted `coordinated_bods_live_refresh` (60-second
+  minimum, one-at-a-time, attended) and reads the key only from `BODS_API_KEY`, refusing without
+  echoing anything.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

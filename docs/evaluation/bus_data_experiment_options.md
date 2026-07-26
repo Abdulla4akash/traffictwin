@@ -133,8 +133,8 @@ that once linking exists, no further schema change is needed.
 
 | # | Decision | Proposed default |
 |---|---|---|
-| F0 | Approve the session-scoped pseudonym extension (§3a)? | yes — per-session salted HMAC inside the accepted boundary; salt discarded at session end; requires a lead-owned MAN-05 change or an owner-approved layered policy |
-| F1 | Run the cadence probe session? | yes — one attended 15-minute session at 60 s cadence, after F0 |
+| F0 | Approve the session-scoped pseudonym extension (§3a)? | **APPROVED and implemented, 27 July 2026** ("okay do it") as the owner-approved layered policy `manchester-bods-session-identity-1.0` over the private quarantine — accepted parser and lead-owned files untouched; salt in-process only; tests assert raw references and tokens never appear in any serialised output |
+| F1 | Run the cadence probe session? | ready — `scripts/bus_cadence_probe_session.py`, attended, needs `BODS_API_KEY`; 15 snapshots at 65 s |
 | F2 | Session window for B1, if pursued | weekday 08:00–09:30 local (peak service density) |
 | F3 | Which experiment(s) | B1 primary; B2 as by-product; B4 only as by-product; B3 unchanged |
 | F4 | Where B1 sits against the existing programme | after the capacity pilot's confirmatory protocol is signed, before the corridor stretch |
