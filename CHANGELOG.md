@@ -2,6 +2,28 @@
 
 ## v0.7.0 - In development
 
+Completed the experiment instrument and the review-workflow decision half after the alpha.8
+checkpoint (ADR-063, ADR-064):
+
+- bounded, approval-gated, resumable VEC campaign execution: a design cannot exist without a
+  typed byte-bound human approval, held-out seeds need separate authorisation, execution is
+  sequential seed-major foreground with declared cell/byte budgets, and the first capacity-pilot
+  campaign is executing under it;
+- a deterministic exploratory analysis harness whose non-confirmatory status is type-level
+  (`confirmatory: False`, `significance_claimed: False`), evaluating exactly the predeclared
+  STA-01 comparisons and stating the uncorrected shared-baseline multiplicity;
+- a sealed append-only analyst map-match review ledger (`BETA-D-01` decision half): named
+  reviewers only, one decision per call with no bulk operation anywhere, accept-group validated
+  against the row's real evidence, explicit fingerprint supersession, two-pass sealed export —
+  shipped empty, with all 165 queued rows visibly pending until a person decides them;
+- a verification-precision repair found by the first full-length incident run: the task-join
+  latency reconciliation sum now runs in float64 because the float32 verification arithmetic
+  rejected evidence that reconciles exactly, at unchanged tolerances; and
+- predeclaration discipline extended across the research programme: capacity pilot (approved by
+  owner delegation and executing), confirmatory protocol and actor-crossover skeletons with
+  their selection rules fixed before results exist, and the demand-rebuild variants
+  predeclaration with a fail-closed viability contract proposed for `BETA-D-02`.
+
 Closed the experiment-readiness gap between controlled VEC execution and the statistical
 workflow (ADR-061, ADR-062; checkpoint `v0.7.0-alpha.8`):
 

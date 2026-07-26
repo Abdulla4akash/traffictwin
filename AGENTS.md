@@ -1107,6 +1107,17 @@ empty.
   `supervisor_approved` and `scientifically_validated` are type-level `False`.
 - Ledgers are two-pass sealed; an unsealed or tampered ledger refuses to load.
 
+### Phase 21 claim: demand-rebuild variants predeclaration (owner-directed, 27 July 2026)
+
+Documentation-only preparation for beta Phase C (`BETA-D-02`), whose own requirements demand that
+variants and the selection rule be predeclared before outcomes are inspected. Nothing executes:
+the alpha.7 candidate and its gridlock diagnostic stay untouched, no route pool is generated, no
+simulation runs, and every threshold in the draft is a proposal awaiting the owner.
+
+**Exclusive files:** `docs/evaluation/demand_rebuild_predeclaration.md`, its `docs/index.md` row,
+a changelog block for the experiment-instrument slices under the v0.7.0 in-development section,
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
