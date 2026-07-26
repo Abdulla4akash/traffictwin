@@ -1041,6 +1041,15 @@ regression test added to `tests/unit/test_vec_task_join.py`, and this record. Th
 constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
 this strictly tightens the verifier's own accuracy.
 
+#### Phase 16 third amendment: actor crossover study skeleton (26 July 2026)
+
+The claim additionally covers `docs/evaluation/actor_crossover_study_draft.md` and its index
+row. Same structural-draft discipline: the crossover rule and publishable null are fixed before
+any actor-ordering evidence exists, the capacity levels are `FILL-FROM-PILOT`, seeds are fresh
+and disjoint from both existing cohorts, and the recorded STA-01 single-algorithm constraint is
+the stated reason the method is N-way ranking. Nothing is signable or executable from this
+skeleton.
+
 #### Phase 16 second amendment: confirmatory protocol skeleton (26 July 2026)
 
 The claim additionally covers `docs/evaluation/capacity_confirmatory_protocol_draft.md` and its
