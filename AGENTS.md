@@ -964,6 +964,23 @@ runner control, preflight rule, timeout bound, or capability state changes; the 
 request ceiling versus the 15,305.9-second historical source maximum stays an open measured risk
 recorded in ADR-062, not silently widened.
 
+### Phase 16 claim: capacity-squeeze pilot predeclaration (owner-directed, 26 July 2026)
+
+Documentation-only slice that fixes the first experiment's design before any result is visible,
+per the review's amendment 2 ("freeze a confirmatory protocol after a development pilot") and the
+rubric's step 3. It proposes; it does not approve, and it executes nothing.
+
+**Exclusive file set:** `docs/evaluation/capacity_squeeze_pilot_predeclaration.md`, the matching
+`docs/index.md` entry, and this record.
+
+**Boundaries.** The document ships **PROPOSED and UNSIGNED** with an empty sign-off block; an
+agent must never complete it. No sweep, no seed set, and no threshold is authorised by its
+existence. Held-out seeds `{10,11,12,13,14}` stay untouched until a separately signed
+confirmatory protocol. The design records the measured tooling constraint that STA-01 carries a
+single `algorithm`, so actor-versus-actor crossover is not an STA-01 paired study and must not be
+reported as one. The runner's 7,200-second ceiling is an escalation trigger, never a bound to
+raise. `docs/evaluation/supervisor_contract_decision_form.md` remains untouched and unsigned.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
