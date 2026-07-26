@@ -1118,6 +1118,19 @@ simulation runs, and every threshold in the draft is a proposal awaiting the own
 a changelog block for the experiment-instrument slices under the v0.7.0 in-development section,
 and this record.
 
+### Phase 22 claim: live-bus experiment options assessment (owner-directed, 27 July 2026)
+
+The owner directed that the BODS live-bus capability must be used for experiments. This slice is
+the honest feasibility assessment: four candidate experiment designs grounded in the measured
+probe evidence (304 concurrent live vehicles, 27 operators, 60-second minimum acquisition
+interval, one-at-a-time human-triggered refresh), each with its boundaries, costs, and open
+decisions. Documentation only; no acquisition runs, no design is signed, and every recorded
+boundary — buses are never general traffic, import-first, private snapshots, no background
+polling — is carried unchanged.
+
+**Exclusive files:** `docs/evaluation/bus_data_experiment_options.md`, its `docs/index.md` row,
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
