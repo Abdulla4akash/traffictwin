@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from traffictwin.ui.components.cards import fingerprint_summary, section_header
+from traffictwin.ui.components.first_run import first_run_guidance
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.services import (
@@ -23,6 +24,21 @@ def render(config: UiConfig) -> None:
 
     render_page_header(st.session_state.get("_active_ui_page", UiPage.EXPERIMENT_MANAGER))
     view = load_experiment_manager_view(config.registry_path, config.workspace_path)
+
+    if not (view.experiments or view.runs or view.seeds or view.reports or view.comparisons):
+        first_run_guidance(
+            actions=[
+                ("Start Guided Demo", UiPage.GUIDED_DEMO),
+                ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
+            ],
+            message=(
+                "This workspace has no experiments, runs, seeds, reports, or comparisons "
+                "yet. The guided demo builds a complete synthetic example end to end, or "
+                "import an existing run bundle. Nothing is hidden below — there are "
+                "simply no records to show."
+            ),
+            key_prefix="experiment_manager_first_run",
+        )
 
     navigation_button(
         st.button,

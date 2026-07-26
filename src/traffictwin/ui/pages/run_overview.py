@@ -7,8 +7,14 @@ import streamlit as st
 from traffictwin.metrics.results import MetricStatus, MetricValue
 from traffictwin.ui.charts import bar_figure, line_figure, metric_status_counts, task_event_series
 from traffictwin.ui.components.cards import fingerprint_summary, metric_card
+from traffictwin.ui.components.first_run import first_run_guidance
 from traffictwin.ui.components.provenance import render_run_provenance
-from traffictwin.ui.pages.helpers import load_selected_analysis, render_source_caption
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.pages.helpers import (
+    load_selected_analysis,
+    render_source_caption,
+    selected_bundle_path,
+)
 from traffictwin.ui.tables import metric_rows, table_column_config
 
 KPI_KEYS = {
@@ -62,6 +68,21 @@ def render() -> None:
     st.title("Run Overview")
     analysis = load_selected_analysis()
     if analysis is None or analysis.metrics is None:
+        # A missing selection on a fresh workspace deserves directions, not
+        # only the error above; a rejected bundle keeps its error unadorned.
+        if not selected_bundle_path().exists():
+            first_run_guidance(
+                actions=[
+                    ("Start Guided Demo", UiPage.GUIDED_DEMO),
+                    ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
+                ],
+                message=(
+                    "No run bundle is selected yet. The guided demo creates and "
+                    "analyses a synthetic run end to end, or import an existing "
+                    "bundle to open it here."
+                ),
+                key_prefix="run_overview_first_run",
+            )
         return
     render_source_caption(analysis)
     metrics = analysis.metrics.by_key()
