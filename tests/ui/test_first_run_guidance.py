@@ -76,3 +76,32 @@ def test_run_overview_shows_no_guidance_for_a_rejected_existing_bundle(
     assert "Start Guided Demo" not in labels, (
         "a rejected bundle is a validation finding, not a first-run state"
     )
+
+
+def test_compare_offers_directions_when_bundle_paths_are_missing(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    app = _page(monkeypatch, tmp_path, UiPage.COMPARE)
+    app.session_state["selected_baseline_run"] = str(tmp_path / "missing-baseline")
+    app.session_state["selected_variation_run"] = str(tmp_path / "missing-variation")
+    app.run(timeout=15)
+
+    assert not app.exception
+    labels = [button.label for button in app.button]
+    assert "Start Guided Demo" in labels
+    assert "Import a Run Bundle" in labels
+    assert any("must exist" in str(error.value) for error in app.error)
+
+
+def test_statistical_study_offers_directions_without_registered_experiments(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    app = _page(monkeypatch, tmp_path, UiPage.STATISTICAL_STUDY)
+    app.run(timeout=15)
+
+    assert not app.exception
+    labels = [button.label for button in app.button]
+    assert "Start Guided Demo" in labels
+    assert "Plan an Experiment" in labels
+    info_values = " ".join(str(info.value) for info in app.info)
+    assert "No registered experiment" in info_values

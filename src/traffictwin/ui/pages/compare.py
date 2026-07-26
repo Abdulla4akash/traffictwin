@@ -10,6 +10,8 @@ from traffictwin.metrics.comparison import ComparisonReport
 from traffictwin.provenance.completeness import provenance_completeness_report_to_csv
 from traffictwin.provenance.differences import difference_contribution_report_to_csv
 from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.first_run import first_run_guidance
+from traffictwin.ui.labels import UiPage
 from traffictwin.ui.services import (
     BundleAnalysis,
     ServiceError,
@@ -58,6 +60,18 @@ def render() -> None:
 
     if not baseline_path.exists() or not variation_path.exists():
         st.error("Both baseline and variation bundle paths must exist.")
+        first_run_guidance(
+            actions=[
+                ("Start Guided Demo", UiPage.GUIDED_DEMO),
+                ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
+            ],
+            message=(
+                "A comparison needs two existing run bundles. The guided demo creates "
+                "a baseline and a stressed variation to compare, or import your own "
+                "bundles and enter their paths above."
+            ),
+            key_prefix="compare_first_run",
+        )
         return
 
     baseline = validate_bundle_for_ui(baseline_path)

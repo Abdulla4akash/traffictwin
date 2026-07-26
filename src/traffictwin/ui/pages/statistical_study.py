@@ -46,6 +46,7 @@ from traffictwin.experiments.statistical_study import (
 )
 from traffictwin.ui.charts import bar_figure
 from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.first_run import first_run_guidance
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.services import (
@@ -100,6 +101,18 @@ def render(config: UiConfig) -> None:
         st.info(
             "No registered experiment currently has stored MetricCollections. Import and compute "
             "the predeclared common-seed runs first."
+        )
+        first_run_guidance(
+            actions=[
+                ("Start Guided Demo", UiPage.GUIDED_DEMO),
+                ("Plan an Experiment", UiPage.EXPERIMENT_PLANNER),
+            ],
+            message=(
+                "A paired study needs a registered experiment plan whose runs carry "
+                "stored metrics. The guided demo builds a complete worked example, or "
+                "register your own plan in the Experiment Planner."
+            ),
+            key_prefix="statistical_study_first_run",
         )
         return
     if analysis_type.startswith("N-way"):
