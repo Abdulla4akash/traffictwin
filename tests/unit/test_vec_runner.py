@@ -24,11 +24,19 @@ from traffictwin.integration.vec_runner import (
     vec_runner_contract,
 )
 from traffictwin.integration.vec_runner.models import (
+    PINNED_REVIEWED_TRACES,
     VecRunnerFileEvidence,
     VecRuntimeEvidence,
 )
 
 TRACE_HASH = "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be"
+INC_TRACE_HASH = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+
+
+def test_reviewed_allowlist_holds_exactly_the_two_admitted_gate_a_traces() -> None:
+    assert PINNED_REVIEWED_TRACES[TRACE_HASH] == "traces/trace_we_fullrsu.npz"
+    assert PINNED_REVIEWED_TRACES[INC_TRACE_HASH] == "traces/trace_inc_fullrsu.npz"
+    assert len(PINNED_REVIEWED_TRACES) == 2
 
 
 def _request(**changes: object) -> VecRunRequest:

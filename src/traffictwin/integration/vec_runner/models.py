@@ -37,7 +37,12 @@ PINNED_ACTORS = {
 PINNED_REVIEWED_TRACES = {
     "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be": (
         "traces/trace_we_fullrsu.npz"
-    )
+    ),
+    # Gate-A-audited incident trace, admitted by ADR-062 after the identity
+    # snapshot was measured to reconcile at the audited tos-data commit.
+    "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056": (
+        "traces/trace_inc_fullrsu.npz"
+    ),
 }
 
 _LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$")

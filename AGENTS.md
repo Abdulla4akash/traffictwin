@@ -941,6 +941,29 @@ integration-agent mandate terms above.
   generated references, project records) are not edited; wiring them is a follow-on lead-reviewed
   slice.
 
+### Phase 15 claim: reviewed `inc` trace admission (owner-directed, 26 July 2026)
+
+The owner directed the next experiment-readiness slice: the capacity-squeeze design targets the
+`inc` trace, which VEC-07 refuses because only the weekend trace is pinned. The independent review
+named the remedy — "an accepted VEC-06 receipt or a reviewed extension of the allowlist" — and
+`inc` is already a Gate-A-audited source trace, satisfying the recorded VEC-07 boundary wording
+("an exact Gate-A-reviewed trace"). Measured before extending: both `inc` blobs at the audited
+tos-data commit match the Gate-A hashes exactly and the vehicle identity snapshot reconciles
+(T=3,600, maxN=2,488, 8,747,692 masked vehicle-seconds, 5,307 occupancy spans, 1.14 s).
+
+**Exclusive files:** the one-entry `PINNED_REVIEWED_TRACES` extension in
+`src/traffictwin/integration/vec_runner/models.py`; the scenario-map entry in the Phase 14-owned
+`src/traffictwin/integration/vec_fresh_admission/service.py`; focused test additions in
+`tests/unit/test_vec_runner.py` and the Phase 14-owned `tests/unit/test_vec_fresh_admission.py`;
+new `docs/decisions/ADR-062-inc-trace-allowlist-extension.md`; new
+`docs/integration/evidence/vec_inc_trace_admission_probe_20260726.json`; the trace-scope wording
+in the Phase 14-owned `docs/integration/vec_fresh_run_admission.md`; plus this record.
+
+**Boundaries.** The other three audited traces (`wd_am`, `wd_pm`, `ev`) remain refused; no
+runner control, preflight rule, timeout bound, or capability state changes; the 7,200-second
+request ceiling versus the 15,305.9-second historical source maximum stays an open measured risk
+recorded in ADR-062, not silently widened.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
