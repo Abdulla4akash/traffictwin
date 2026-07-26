@@ -1033,6 +1033,17 @@ are therefore resolved to the predeclaration's proposed defaults, and the approv
 how the approval was given. The held-out cohort remains unauthorised; only the pilot phase may
 run.
 
+### Phase 19 claim: dissertation evidence-map reconciliation (owner-directed, 26 July 2026)
+
+Documentation-only repair of the two dissertation evidence maps the independent review flagged as
+stale: they still described accepted v0.6 VEC capabilities as blocked and contained no rows for
+the v0.7 Manchester research core or the experiment instrument. Updates draw only on recorded
+accepted evidence (implementation-status, integration docs, ADRs) and claim nothing beyond it.
+
+**Exclusive files:** `docs/dissertation_mapping.md`, `docs/dissertation_evaluation_plan.md`, and
+this record. No capability, gate, or scientific status changes; forbidden labels stay absent;
+pilot evidence is described as exploratory owner-approved candidate material only.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
