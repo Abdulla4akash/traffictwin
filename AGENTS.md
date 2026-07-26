@@ -1156,6 +1156,11 @@ record and the F0 status row in `docs/evaluation/bus_data_experiment_options.md`
   minimum, one-at-a-time, attended) and reads the key only from `BODS_API_KEY`, refusing without
   echoing anything.
 
+**Amendment (27 July 2026): B1 predeclaration skeleton.** The claim additionally covers
+`docs/evaluation/bus_fleet_experiment_predeclaration_draft.md` and its `docs/index.md` row — the
+structurally unsignable draft for the real-bus-fleet experiment, whose `FILL-FROM-PROBE` fields
+await the attended cadence session's measured values. Nothing executes from it.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

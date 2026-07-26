@@ -33,6 +33,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)
+- [Real bus-fleet experiment draft (not signable yet)](evaluation/bus_fleet_experiment_predeclaration_draft.md)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
