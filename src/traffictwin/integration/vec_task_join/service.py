@@ -102,7 +102,10 @@ def build_task_join_report(
     if not np.array_equal((task_met & task_active).sum(axis=(1, 2)), perstep["done"]):
         raise VecTaskJoinError("per-task deadline successes do not match the per-step stream")
     task_latency = np.where(task_active, pertask["task_lat_ms"], np.float32(0.0))
-    latency_by_step = task_latency.sum(axis=(1, 2), dtype=np.float32)
+    # The verification sum runs in float64: a float32 reduction's own rounding at
+    # wide-trace magnitudes (thousands of active tasks per step) exceeds the
+    # tolerance and would reject evidence whose float64 sum reconciles exactly.
+    latency_by_step = task_latency.astype(np.float64).sum(axis=(1, 2))
     for index, (observed, expected) in enumerate(
         zip(latency_by_step, perstep["lat_sum"], strict=True)
     ):

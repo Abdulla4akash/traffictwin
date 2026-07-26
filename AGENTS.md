@@ -1009,6 +1009,30 @@ and `docs/decisions/index.md` rows and this record.
 - The service composes existing services and computes no metric of its own; it never relabels a
   candidate policy, and it never writes a scientific conclusion.
 
+### Phase 18 claim: task-join verification-precision repair (owner-directed, 26 July 2026)
+
+The first real full-length `inc` execution (3,555.96 s, completed, hash-verified) was refused by
+VEC-04 task-join reconciliation: "per-task latency does not reconcile at time index 2824."
+Measured cause, not assumed: the join's *verification-side* summation ran in float32, whose
+accumulation error at `inc` magnitudes (up to 3,649 active tasks per step, sums ≈ 3.9e7 ms)
+exceeds the accepted tolerance, while a float64 verification sum passes the **unchanged**
+tolerance on all 3,600 steps (worst relative error 2.4e-7 < 3e-7). The evaluator's published
+data reconciles; the verifier's arithmetic was the defect.
+
+**Exclusive files:** the one-word `dtype` correction in
+`src/traffictwin/integration/vec_task_join/service.py` (verification sum float32 → float64), a
+regression test added to `tests/unit/test_vec_task_join.py`, and this record. The tolerance
+constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
+this strictly tightens the verifier's own accuracy.
+
+#### Phase 16 amendment: owner delegated the pilot decisions (26 July 2026)
+
+The owner instructed in session: "take reasonable decisions in each of them." Decisions D1–D6
+are therefore resolved to the predeclaration's proposed defaults, and the approval is recorded
+**as relayed provenance, not as an owner-typed signature** — the sign-off block states exactly
+how the approval was given. The held-out cohort remains unauthorised; only the pilot phase may
+run.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
