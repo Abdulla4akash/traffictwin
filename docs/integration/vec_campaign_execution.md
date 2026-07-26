@@ -83,6 +83,22 @@ receipt = execute_campaign(
 `EXPERIMENT_PLAN_CONFLICT` if an existing plan under the same identifier differs from the
 design. This closes the gap where no interface existed to register an `Experiment` at all.
 
+## Analysing a completed campaign
+
+`analyze_campaign(design, receipt, registry_path)` evaluates exactly the comparisons the design
+predeclared — each variation arm against the single baseline on the single primary endpoint —
+with the accepted STA-01 evaluator at its tool defaults, and
+`render_campaign_analysis_markdown` produces one deterministic report.
+
+The analysis artifact is structurally exploratory: `confirmatory: False`,
+`significance_claimed: False`, and `owner_approved_candidate` are type-level literals, so the
+output cannot be represented as a confirmed finding. It refuses a design/receipt fingerprint
+mismatch (`ANALYSIS_DESIGN_MISMATCH`), passes STA-01's own `insufficient`/`incompatible`
+statuses through untouched, reports secondary metrics descriptively without promotion, and
+states — rather than hides — that the comparisons share one baseline without multiplicity
+correction. Interval and randomisation outputs appear verbatim as diagnostics of the
+exploratory pilot, never as accepted thresholds.
+
 ## What a completed campaign is, and is not
 
 A completed campaign means every declared cell executed and was admitted. It is **not** a

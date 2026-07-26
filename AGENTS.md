@@ -1009,6 +1009,15 @@ and `docs/decisions/index.md` rows and this record.
 - The service composes existing services and computes no metric of its own; it never relabels a
   candidate policy, and it never writes a scientific conclusion.
 
+**Amendment (26 July 2026): campaign analysis harness.** The claim additionally covers new files
+`src/traffictwin/integration/vec_campaign/analysis.py`, `tests/unit/test_vec_campaign_analysis.py`,
+and an analysis section in `docs/integration/vec_campaign_execution.md`. The harness evaluates the
+predeclared STA-01 comparisons over a completed campaign's admitted registry evidence and renders a
+deterministic report whose exploratory status is a type-level literal: `confirmatory: False`,
+`significance_claimed: False`, `owner_approved_candidate` only. It refuses a design/receipt
+fingerprint mismatch and passes STA-01's own insufficient/incompatible statuses through rather
+than papering over them.
+
 ### Phase 18 claim: task-join verification-precision repair (owner-directed, 26 July 2026)
 
 The first real full-length `inc` execution (3,555.96 s, completed, hash-verified) was refused by
