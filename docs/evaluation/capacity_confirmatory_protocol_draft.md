@@ -19,8 +19,19 @@ predeclared structure rather than a design written while looking at results.
 One primary contrast, fixed here in structure and fixed in value at signing:
 
 - **Primary comparison:** baseline `cap-2.5` versus **one** variation capacity level,
-  `FILL-FROM-PILOT` (the level nearest the pilot's largest adjacent-step drop, chosen by the
-  predeclared knee rule below — not the level with the most favourable statistics).
+  selected by the knee rule below. **Measured 27 July 2026, pilot complete (12/12 admitted):
+  the knee rule selects NOTHING.** Adjacent-step changes in mean deadline-success rate are
+  +0.000110 (2.5→1.5), +0.000069 (1.5→1.0), +0.000146 (1.0→0.75) — every step *rises*
+  slightly; no drop exists anywhere on the grid. The pilot therefore lands on this protocol's
+  predeclared fallback fork, an owner decision at signing:
+  **(a)** publish the null as the finding — capacity squeeze does not reduce deadline
+  attainment on the collapse-hour trace — with a descriptive held-out confirmation; or
+  **(b)** declare a *new* primary endpoint for this separate protocol before any held-out data
+  exists: `task.latency.mean_ms` (minimise), where the pilot measured a monotone 3.2×
+  collapse (9,799 → 3,084 ms mean) with non-overlapping per-arm ranges across all seeds while
+  offloading decisions stayed bit-identical across capacities. Naming latency here is
+  methodologically defensible precisely because it happens before held-out execution; it must
+  be recorded as pilot-informed, never as the pilot's own primary.
 - **Knee rule (fixed now):** rank adjacent capacity steps by absolute drop in mean pilot
   deadline-success rate; the confirmatory variation level is the lower capacity of the
   top-ranked step. Ties resolve to the higher capacity (the more conservative squeeze).
