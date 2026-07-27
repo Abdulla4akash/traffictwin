@@ -2070,6 +2070,49 @@ this record.
 - The generation timestamp and the commit are recorded together, and a dirty working tree is
   reported as dirty — a snapshot taken over uncommitted changes says so on its face.
 
+### Phase 62 claim: job-pack CLI wrapper (parallel session, 27 July 2026)
+
+Feature 23 of the batch-5 prompt: the operational entry point for the Phase 56 job-pack
+contract, so the day CSF access arrives the contract is reachable from a terminal without
+the lead-owned `cli.py` being touched.
+
+**Exclusive new files:** `scripts/vec_job_pack.py`, `tests/unit/test_vec_job_pack_cli.py`,
+and this record.
+
+**Boundaries.**
+
+- **Still no executor.** `export` writes a JSON file a person carries; `verify` reads a
+  directory a person carried back. No SSH, no network call, no scheduler, no submission, no
+  transfer, and no registry — the script is a mouth for the library, not a new capability.
+- **Library refusals are passed through verbatim.** `JobPackError` reaches the operator in
+  the library's own words rather than being reworded into something friendlier, because a
+  provenance refusal softened on its way to a terminal is a refusal somebody talks past.
+- **No clock.** `--created-at-utc` is required, matching the library's caller-supplied
+  timestamp, so the same design and checkout always produce the same pack bytes. A test
+  asserts two exports of the same arguments are byte-identical.
+- **Hashes are the audited pins; only sizes are measured.** The manifest is assembled from
+  the design's reviewed trace identity plus `PINNED_ACTORS`/`PINNED_EVALUATOR_FILES`, so the
+  command line cannot introduce an input or launder a local file into an identity — the
+  library refuses any manifest that names anything else. The checkout's HEAD commit is read
+  (`git rev-parse`, read-only, no fetch) and must equal the audited commit for that
+  repository; a checkout at any other commit is refused rather than silently packed.
+  `--verify-input-hashes` re-hashes every declared input and is **off by default**, because
+  re-reading multi-gigabyte traces is the sustained I/O that must not run beside the live
+  campaign.
+- **Only a `verified` import exits 0.** `partial` and `refused` both exit 1: a script that
+  exited 0 on a partial import is the thing that lets a half-returned campaign be read as a
+  whole one. Every summary states that a verified import is not a scientific admission, and
+  the written report carries the library's type-level `admission_granted` /
+  `scientific_admission` / `registry_write_performed` falses.
+- Fixtures are tiny synthetic checkouts and receipts under `tmp_path`. No test touches an
+  external repository, `data/vec-fresh/**`, a registry, or the network.
+
+**Gates.** 29 focused tests green; 2,794 `tests/unit` green; `ruff check src tests scripts`
+clean; `ruff format --check` clean on both touched files; `mypy src tests` clean over 798
+files (the standalone-script `import-untyped` notes are the same pre-existing ones every
+`scripts/` file produces); `git diff --check` clean. No UI file touched, so `tests/ui` was
+not required.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
