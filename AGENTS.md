@@ -2457,6 +2457,17 @@ touched.
   `docs/project_guide.md`, its Getting Started index row, and this note; no code, runtime data,
   external clone, generated artifact, capability state, or digest-bound evidence changed.
 
+### Phase 80 claim: detailed capacity-finding narrative (owner-directed, 27 July 2026)
+
+The owner directed a long-form public record of the capacity finding — environment,
+instrument, knob semantics, execution record, per-seed results tables, mechanism, and
+interpretation — as the narrative companion to the concise results record. Interpretive
+content is explicitly confidence-labelled (the tail-truncation reading is marked
+checkable-but-unchecked); every number traces to committed or hash-verified artifacts;
+all ceilings and the range-overlap correction are carried. Exclusive files:
+`docs/evaluation/capacity_study_detailed_findings.md`, its `docs/index.md` row, and this
+record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
