@@ -1181,12 +1181,15 @@ values, not exceptions.
 `tests/unit/ui/test_review_services.py`, plus this record. `services.py` is deliberately not
 grown.
 
-**Recorded next slice (not started): page wiring.** Adding the page touches the counted
-navigation inventories; the measured touch-list is exactly: a `UiPage` entry plus description in
-`labels.py`, one `V07PageSpec`, a four-line `app_pages` shim, the page module, the three literal
-`34` counts in `tests/ui/test_navigation_v07.py:28-31`, and the group record in
-`docs/v07_navigation.md`. Everything else derives from `len(UiPage)`. That slice lands as one
-commit with the full UI suite green, or not at all.
+**Page slice executed (27 July 2026) via the additive-route mechanism instead.** Discovery:
+`V07AdditivePageSpec` exists precisely for v0.7-only routes outside the counted 34-page
+inventory (Manchester Operations precedent), so the page landed with **zero** enum or count
+edits: an additive spec at `/match-review` under Source evidence, a runtime hook, a two-line
+shim, the thin page, and AppTest coverage of the full decide-persist-resume-seal flow. The
+claim extends to `src/traffictwin/ui/pages/match_review.py`,
+`src/traffictwin/ui/app_pages/match_review.py`, the additive-spec and hook edits in
+`navigation_v07.py`/`page_runtime.py`, `tests/ui/test_match_review_page.py`, the additive-route
+sentences in `docs/v07_navigation.md`, and the `docs/index.md` row.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 

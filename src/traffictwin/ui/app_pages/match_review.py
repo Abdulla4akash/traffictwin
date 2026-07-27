@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_match_review_page_script
+
+run_match_review_page_script()

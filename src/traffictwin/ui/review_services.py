@@ -60,18 +60,31 @@ class LoadedReviewContext:
 def load_review_context(
     match_results_path: str | Path,
     ledger_path: str | Path,
-    policy_fingerprint: str,
+    policy_fingerprint: str | None = None,
 ) -> LoadedReviewContext | ReviewServiceError:
     """Load match rows, derive the queue, and open or continue the ledger.
 
     The queue is always rebuilt from the match rows so it cannot drift from
     them; an existing working ledger must belong to exactly that queue and
-    policy or loading refuses.
+    policy or loading refuses. When ``policy_fingerprint`` is omitted it is
+    derived from the rows, which must all share one policy.
     """
 
     rows = _load_match_rows(Path(match_results_path))
     if isinstance(rows, ReviewServiceError):
         return rows
+    fingerprints = {row.policy_fingerprint for row in rows.values()}
+    if policy_fingerprint is None:
+        if len(fingerprints) != 1:
+            return ReviewServiceError(
+                "The match rows mix more than one policy fingerprint; review them "
+                "as separate artifacts."
+            )
+        policy_fingerprint = next(iter(fingerprints))
+    elif fingerprints != {policy_fingerprint}:
+        return ReviewServiceError(
+            "The match rows were produced under a different policy than requested."
+        )
     queue = build_manual_review_queue(list(rows.values()))
     ledger_file = Path(ledger_path)
     if ledger_file.exists():

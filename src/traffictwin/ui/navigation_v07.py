@@ -52,6 +52,14 @@ class V07AdditivePageSpec:
     icon: str
 
 
+MATCH_REVIEW_PAGE_SPEC = V07AdditivePageSpec(
+    title="Match Review",
+    group="Source evidence",
+    script="app_pages/match_review.py",
+    url_path="match-review",
+    icon=":material/checklist:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -350,12 +358,20 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         raise ValueError("v0.7 navigation groups or ordering do not match the design")
     source_root = base or Path(__file__).parent
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
-    if MANCHESTER_PAGE_SPEC.group not in V07_NAVIGATION_GROUPS:
-        raise ValueError("the additive Manchester page must use a registered navigation group")
-    if MANCHESTER_PAGE_SPEC.url_path in paths or MANCHESTER_PAGE_SPEC.script in scripts:
-        raise ValueError("the additive Manchester route must not replace a v0.6 destination")
-    if not (source_root / MANCHESTER_PAGE_SPEC.script).is_file():
-        missing.append(MANCHESTER_PAGE_SPEC.script)
+    additive_specs = (MANCHESTER_PAGE_SPEC, MATCH_REVIEW_PAGE_SPEC)
+    additive_paths = [spec.url_path for spec in additive_specs]
+    additive_scripts = [spec.script for spec in additive_specs]
+    if len(set(additive_paths)) != len(additive_paths) or len(set(additive_scripts)) != len(
+        additive_scripts
+    ):
+        raise ValueError("additive routes must not collide with each other")
+    for spec in additive_specs:
+        if spec.group not in V07_NAVIGATION_GROUPS:
+            raise ValueError("an additive page must use a registered navigation group")
+        if spec.url_path in paths or spec.script in scripts:
+            raise ValueError("an additive route must not replace a v0.6 destination")
+        if not (source_root / spec.script).is_file():
+            missing.append(spec.script)
     if missing:
         raise ValueError(f"v0.7 navigation page scripts are missing: {sorted(missing)}")
 
@@ -397,5 +413,14 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                         url_path=MANCHESTER_PAGE_SPEC.url_path,
                     )
                 )
+        if group == MATCH_REVIEW_PAGE_SPEC.group:
+            group_pages.append(
+                st.Page(
+                    MATCH_REVIEW_PAGE_SPEC.script,
+                    title=MATCH_REVIEW_PAGE_SPEC.title,
+                    icon=MATCH_REVIEW_PAGE_SPEC.icon,
+                    url_path=MATCH_REVIEW_PAGE_SPEC.url_path,
+                )
+            )
         pages[group] = group_pages
     return pages

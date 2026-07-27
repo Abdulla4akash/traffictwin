@@ -24,6 +24,7 @@ from traffictwin.ui.pages import (
     journey_time,
     manchester_operations,
     manifest_inference,
+    match_review,
     operations,
     parameter_sweep,
     participant_evaluation,
@@ -103,6 +104,16 @@ def run_page_script(page: UiPage) -> None:
     st.session_state["_active_ui_page"] = page
     render_sidebar_context(page)
     render_registered_page(page, load_ui_config())
+
+
+def run_match_review_page_script() -> None:
+    """Execute the additive Match Review page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "match-review"
+    st.sidebar.caption(
+        "Record one named analyst decision at a time; pending rows stay visibly pending."
+    )
+    match_review.render(load_ui_config())
 
 
 def run_manchester_page_script() -> None:

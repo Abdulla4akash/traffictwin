@@ -170,7 +170,7 @@ def test_foreign_and_sealed_ledgers_refuse_to_open(tmp_path: Path) -> None:
 
     wrong_policy = load_review_context(artifact, ledger_path, "f" * 64)
     assert isinstance(wrong_policy, ReviewServiceError)
-    assert "different matching policy" in wrong_policy.message
+    assert "different policy" in wrong_policy.message
 
     sealed_path = tmp_path / "sealed.json"
     assert isinstance(seal_ledger_for_export(updated, sealed_path), Path)
