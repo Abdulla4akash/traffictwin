@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import csv
+import shutil
+import subprocess
 import zipfile
 from datetime import UTC, datetime
 from pathlib import Path
@@ -286,3 +288,69 @@ def test_instrumented_run_listing_is_stable(tmp_path: Path) -> None:
         "baseline_uk2030_wd_am_fs0",
         "caps_mappo_uk2030_wd_am_fs0",
     ]
+
+
+def test_package_git_commit_stays_off_the_forking_spawn_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The git lookup must keep CPython on ``posix_spawn`` rather than ``fork``.
+
+    This asserts the call shape rather than an outcome, deliberately. The defect
+    it guards (``docs/integration/tos_reader_fork_diagnosis.md``) faults a
+    transient child process on macOS while the parent survives with its normal
+    return value, so there is no behavioural assertion that can catch a
+    regression — only the spawn conditions that cause it.
+    """
+
+    from traffictwin.integration.tos import readers
+
+    recorded: dict[str, object] = {}
+    completed = subprocess.CompletedProcess(
+        args=["git"], returncode=0, stdout=f"{'a' * 40}\n", stderr=""
+    )
+
+    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        recorded["command"] = command
+        recorded.update(kwargs)
+        return completed
+
+    # ``readers`` calls ``subprocess.run`` through the module, so patching the
+    # stdlib attribute reaches it without asserting on a private binding.
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    assert readers.package_git_commit(tmp_path) == "a" * 40
+
+    # CPython's posix_spawn conditions (subprocess.py, Popen._execute_child):
+    # close_fds false, no preexec_fn, no pass_fds, no cwd, and an executable
+    # carrying a directory component.
+    assert recorded["close_fds"] is False
+    assert "preexec_fn" not in recorded
+    assert "pass_fds" not in recorded
+    assert "cwd" not in recorded
+    command = recorded["command"]
+    assert isinstance(command, list)
+    assert Path(command[0]).is_absolute()
+    # The package is addressed with `git -C`, never by changing directory.
+    assert command[1:] == ["-C", str(tmp_path.resolve()), "rev-parse", "HEAD"]
+
+
+def test_package_git_commit_return_values_are_unchanged(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Both branches still answer exactly as they did before the spawn repair."""
+
+    from traffictwin.integration.tos import readers
+
+    def refusing_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        raise subprocess.CalledProcessError(128, command)
+
+    monkeypatch.setattr(subprocess, "run", refusing_run)
+    assert readers.package_git_commit(tmp_path) is None
+
+    def noisy_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(args=command, returncode=0, stdout="not-a-sha\n")
+
+    monkeypatch.setattr(subprocess, "run", noisy_run)
+    assert readers.package_git_commit(tmp_path) is None
+
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
+    assert readers.package_git_commit(tmp_path) is None

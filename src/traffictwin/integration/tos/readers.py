@@ -259,6 +259,15 @@ def package_git_commit(root: str | Path) -> str | None:
             capture_output=True,
             text=True,
             timeout=5,
+            # macOS forks rather than posix_spawns when close_fds is true, and
+            # this lookup runs on a Streamlit script-runner thread: forking a
+            # multithreaded process there segfaults the child, which the parent
+            # then swallows as a failed lookup. close_fds=False keeps CPython on
+            # the non-forking posix_spawn path. It is not an fd-safety relaxation
+            # in practice — PEP 446 makes Python-created descriptors
+            # non-inheritable, so the child receives the same descriptors either
+            # way. See docs/integration/tos_reader_fork_diagnosis.md.
+            close_fds=False,
         )
     except (OSError, subprocess.SubprocessError):
         return None

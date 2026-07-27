@@ -385,6 +385,7 @@ This index points only to documentation and repository paths that exist in the c
 - [TOS Data read-only integration](integration/tos_data_adapter.md)
 - [TOS Results Workbench](integration/tos_results_workbench.md)
 - [TOS integration readiness gates](integration/readiness_gates.md)
+- [TOS reader forked-child segfault diagnosis and repair](integration/tos_reader_fork_diagnosis.md)
 - [Generated TOS/vec_env source contract](reference/generated/tos_source_contract.json)
 - [Generated TOS source-analysis catalogue](reference/generated/tos_analysis_catalogue.json)
 

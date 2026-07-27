@@ -1720,6 +1720,64 @@ video storyboard. No code, no test, no capability, and no gate changes.
 - The generated appendix files and the appendix generator are untouched; a run of the
   Phase 44 generator test confirms the new hand-written sibling does not disturb it.
 
+### Phase 50 claim: TOS reader forked-child segfault (parallel session, 27 July 2026)
+
+Feature 11 of the batch-2 prompt: diagnose first, then repair only if the honest repair is
+bounded. It was, so both landed.
+
+**Exclusive files:** `docs/integration/tos_reader_fork_diagnosis.md`, its `docs/index.md`
+row, the one-keyword change in `src/traffictwin/integration/tos/readers.py`, two regression
+tests appended to `tests/unit/test_tos_integration.py`, and this record.
+
+**Measured, not assumed.**
+
+- **Reproduced:** 14 baseline runs of `tests/ui/test_tos_analysis_pages.py`. Six printed
+  **exactly 13** segfault dumps; eight printed zero. Never any other count — the behaviour is
+  bimodal per process. Every run exited `0` with `4 passed`, which is why it survived.
+- **Localised:** all 13 dumps in a captured run carry the same innermost project frame,
+  `readers.py:256` — the `subprocess.run` inside `package_git_commit` — reached by three
+  routes (`package_fingerprint` ×8, `validation.py` ×3, `audit.py` ×2) from three pages.
+- **Mechanism:** `capture_output=True` leaves `close_fds` at its default `True`, which
+  disqualifies CPython's `posix_spawn` fast path, so the call takes `_fork_exec`. That fork
+  happens on a Streamlit script-runner thread in a multithreaded process; on macOS the child
+  faults, and pytest's inherited faulthandler prints the shared thread state, which is why
+  each dump shows the parent's frames.
+- **Ruled out by measurement:** disabling CPython's vfork fast path still produced 13 dumps
+  on 3 of 6 runs. It is plain fork-after-threads, not the vfork variant.
+- **Not established, recorded as open:** why the 0-or-13 pattern is decided per process. The
+  repair removes both branches, but the condition was not identified and is not guessed at.
+
+**Impact was looked for and not found, and the document says so.** The parent swallows child
+failures (`except (OSError, subprocess.SubprocessError): return None`), so a silent wrong
+answer is structurally possible. A probe ran 600 pre-fix lookups against a real checkout from
+a thread pool with eight further live threads: zero `None` results, one distinct commit, no
+faults. The failing tests' package has no `.git`, so `None` was correct there either way. The
+record therefore states that the observed defect is the dump noise and that no lost return
+value was reproduced — the silent-failure shape is a latent risk the repair also removes, not
+a bug caught misbehaving.
+
+**The repair, and the three alternatives rejected with reasons.** `close_fds=False` on that
+one call, which satisfies every `posix_spawn` condition CPython requires (darwin, absolute
+executable, no `preexec_fn`, no `pass_fds`, no `cwd` — the command uses `git -C` — capture
+pipes above fd 2, no session/group/uid/gid/umask option). PEP 446 makes Python-created
+descriptors non-inheritable, so the child receives the same descriptors either way. Command,
+arguments, parsing, timeout, exception handling, and return values are untouched. Rejected:
+disabling `_USE_VFORK` (measured ineffective, and mutating a CPython private global is worse
+than the problem); a `.git` existence guard (**changes returned values** — `git -C` walks up
+to an enclosing repository, so a package nested inside a checkout currently reports that
+repository's commit); and reading `.git/HEAD` directly (reimplements git plumbing —
+`packed-refs`, detached HEAD, worktree indirection — far past the Phase 18 scale).
+
+**Verification.** Ten consecutive runs of the file with zero dumps against a required three,
+then three more at the end of the slice. Full suites after the repair: 3,126 passed across
+`tests/unit` and `tests/ui`, with Ruff, format, strict mypy over 790 files, and
+`git diff --check` clean.
+
+**The regression test asserts the call shape deliberately, and says why in its docstring.**
+The fault kills only a transient child while the parent returns normally, so no behavioural
+assertion can catch a regression; the test pins the `posix_spawn` conditions instead, and a
+second test pins both return branches unchanged.
+
 ### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
 
 Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
