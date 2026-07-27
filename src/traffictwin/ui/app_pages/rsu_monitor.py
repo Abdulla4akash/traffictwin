@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_rsu_monitor_page_script
+
+run_rsu_monitor_page_script()

@@ -26,8 +26,10 @@ The candidate uses `st.navigation(..., position="sidebar")` and `st.Page`. Its f
 are **Overview**, **Build & run**, **Analyse**, **Evidence**, and **Advanced**. A hidden root route
 renders Home while the visible Home page retains the stable `/home` route. The additive
 Manchester Operations candidate appears under Overview at `/manchester`, and the additive
-Match Review candidate appears under Source evidence at `/match-review`; both are outside the
-normative 34-page migration inventory and cannot replace any v0.6 destination.
+Match Review candidate appears under Source evidence at `/match-review`; the additive RSU
+Monitor candidate also appears under Source evidence, at `/rsu-monitor`, drilling into one
+imported run's per-RSU load. All three are outside the normative 34-page migration inventory
+and cannot replace any v0.6 destination.
 
 ## Page preservation
 
@@ -49,7 +51,7 @@ Automated checks currently prove:
 - exact group and URL mapping against Appendix D of the v0.7 design;
 - unique script and URL paths;
 - existence of every direct page script;
-- each additive route (Manchester, Match Review) is unique and its direct script exists;
+- each additive route (Manchester, Match Review, RSU Monitor) is unique and its script exists;
 - complete renderer coverage;
 - Material icons and navigation construction accepted by the locked Streamlit runtime;
 - default grouped hidden-root Home rendering without the legacy radio;

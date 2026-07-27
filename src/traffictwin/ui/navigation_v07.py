@@ -60,6 +60,14 @@ MATCH_REVIEW_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/checklist:",
 )
 
+RSU_MONITOR_PAGE_SPEC = V07AdditivePageSpec(
+    title="RSU Monitor",
+    group="Source evidence",
+    script="app_pages/rsu_monitor.py",
+    url_path="rsu-monitor",
+    icon=":material/cell_tower:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -358,7 +366,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         raise ValueError("v0.7 navigation groups or ordering do not match the design")
     source_root = base or Path(__file__).parent
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
-    additive_specs = (MANCHESTER_PAGE_SPEC, MATCH_REVIEW_PAGE_SPEC)
+    additive_specs = (MANCHESTER_PAGE_SPEC, MATCH_REVIEW_PAGE_SPEC, RSU_MONITOR_PAGE_SPEC)
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
     if len(set(additive_paths)) != len(additive_paths) or len(set(additive_scripts)) != len(
@@ -420,6 +428,15 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                     title=MATCH_REVIEW_PAGE_SPEC.title,
                     icon=MATCH_REVIEW_PAGE_SPEC.icon,
                     url_path=MATCH_REVIEW_PAGE_SPEC.url_path,
+                )
+            )
+        if group == RSU_MONITOR_PAGE_SPEC.group:
+            group_pages.append(
+                st.Page(
+                    RSU_MONITOR_PAGE_SPEC.script,
+                    title=RSU_MONITOR_PAGE_SPEC.title,
+                    icon=RSU_MONITOR_PAGE_SPEC.icon,
+                    url_path=RSU_MONITOR_PAGE_SPEC.url_path,
                 )
             )
         pages[group] = group_pages

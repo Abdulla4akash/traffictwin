@@ -30,6 +30,7 @@ from traffictwin.ui.pages import (
     participant_evaluation,
     provenance_explorer,
     reports,
+    rsu_monitor,
     run_overview,
     scenario_builder,
     scenario_mutation,
@@ -114,6 +115,16 @@ def run_match_review_page_script() -> None:
         "Record one named analyst decision at a time; pending rows stay visibly pending."
     )
     match_review.render(load_ui_config())
+
+
+def run_rsu_monitor_page_script() -> None:
+    """Execute the additive RSU Monitor page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "rsu-monitor"
+    st.sidebar.caption(
+        "Per-RSU load over one imported run's window; historical replay, never live."
+    )
+    rsu_monitor.render(load_ui_config())
 
 
 def run_manchester_page_script() -> None:

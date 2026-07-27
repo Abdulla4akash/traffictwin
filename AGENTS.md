@@ -1356,6 +1356,39 @@ live-campaign compute hazard, the shared-branch verification discipline, and all
 boundaries. Parallel claims start at Phase 40; the primary session owns numbers below 40.
 Exclusive files: that prompt and this record.
 
+### Phase 40 claim: RSU monitor page (parallel session, 27 July 2026)
+
+Feature 1 of the Phase 34 master prompt: the per-RSU drill-down that answers the
+supervisor-relayed Study Case 1 question "which RSU is overwhelmed, and how overwhelmed",
+over an already-imported TOS run. The existing TOS Replay page carries an all-RSU pressure
+expander; this route adds the single-RSU window view and the cross-RSU load-asymmetry
+measures, with every derived quantity computed in a unit-tested service module rather than
+in the page.
+
+**Exclusive new files:** `src/traffictwin/ui/rsu_monitor_services.py`,
+`src/traffictwin/ui/pages/rsu_monitor.py`, `src/traffictwin/ui/app_pages/rsu_monitor.py`,
+`tests/unit/ui/test_rsu_monitor_services.py`, `tests/ui/test_rsu_monitor_page.py`, plus the
+additive-spec and runtime-hook lines in `navigation_v07.py`/`page_runtime.py`, one
+`docs/v07_navigation.md` sentence, and one `docs/index.md` row.
+
+**Boundaries.**
+
+- Read-only through the existing accepted loaders `load_tos_rsu_series_for_ui`,
+  `tos_rsu_summary_for_ui`, and `tos_task_summary_for_ui`. No raw artifact is parsed here and
+  no accepted loader is edited.
+- Measured before building, and carried as explicit unavailable states rather than filled in:
+  the source RSU history exposes in-flight task count, remaining compute backlog, and the
+  concurrency-pressure fraction only. **Per-RSU energy does not exist** in any accepted RSU
+  loader (`avg_energy_j_per_task` is a run-level summary field), and **per-RSU processed-task
+  counts do not exist** either — the per-task arrays carry no RSU attribution. Both are shown
+  as typed unavailable reasons; the run-level figures appear only under an explicit
+  run-level, not-per-RSU label.
+- Pressure is in-flight tasks divided by recorded maximum concurrent tasks; it is never CPU
+  utilisation, and the page never implies live monitoring — every series is labelled with its
+  run key, source file, and window bounds.
+- Additive route only, via `V07AdditivePageSpec` (the Phase 25 match-review precedent), so
+  the counted 34-page `UiPage` inventory is untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
