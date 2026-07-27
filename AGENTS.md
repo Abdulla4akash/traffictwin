@@ -1592,6 +1592,51 @@ is read or written, and no snapshot reaches this module.
   the six named rules, and the window threshold is a further `FILL-AT-SIGNING` value. The
   window is selected over this module's output, not inside it.
 
+### Phase 47 claim: confirmatory-mode campaign report renderer (parallel session, 27 July 2026)
+
+Feature 8 of the batch-2 prompt: the analysis harness is type-level exploratory
+(`confirmatory: False`), correctly — running it is not what makes a result confirmatory. The
+signed predeclaration, the bound approval digest, the authorised held-out cohort, and a
+completed declared matrix are. This is the separate renderer that verifies all of those and
+then presents **exactly one** contrast as the confirmatory result.
+
+**Exclusive new files:** `src/traffictwin/integration/vec_campaign/confirmatory_report.py`,
+`tests/unit/test_vec_confirmatory_report.py`, plus this record.
+
+**Boundaries.**
+
+- **Fails closed with typed codes.** `render_confirmatory_report` refuses unless the design
+  phase is held-out, `held_out_authorised` is set, the approval digest equals the digest the
+  caller passed, the receipt's fingerprint/identity/approval match the design and it records
+  the predeclaration verified unchanged, the campaign status is `completed` with zero failed
+  and zero skipped cells, and the analysis binds to the same design fingerprint, experiment,
+  campaign status, primary endpoint, and baseline arm. There is no override, flag, or partial
+  mode. The digest is a required argument rather than read from the design, so a design
+  cannot vouch for itself.
+- **"Exactly one contrast" is true by construction, not by selection.** A design declaring
+  more than one variation arm is refused outright; choosing one after the evidence exists is
+  the failure mode the refusal exists to prevent.
+- **Two additions to the prompt's gate list, both strictly stricter, recorded rather than
+  assumed:** `predeclaration_verified_unchanged` must be true (otherwise the report would
+  cite a digest it cannot stand behind), and the receipt's approval must equal the design's.
+- **Measured limitation, recorded rather than papered over:** `VecCampaignAnalysis` carries
+  no receipt fingerprint, so the strongest analysis-to-receipt binding the recorded models
+  support is the shared design fingerprint plus the campaign status the analysis copied from
+  its receipt. The module states that in place rather than implying a stronger link.
+- An STA-01 study that could not be evaluated **renders** with its status shown and its
+  values marked unavailable; it is not a refusal. Hiding an unevaluable primary endpoint is
+  the one outcome the publishable-null commitment cannot tolerate.
+- **The null renders identically.** A test asserts the section headings and the
+  confirmatory-section offset are byte-identical between a signal, a null, a reversed, and an
+  unevaluable result.
+- Every number outside the single contrast is labelled descriptive context. Effect direction
+  is the sign of the estimate and explicitly nothing more. No significance language beyond
+  STA-01's own outputs; label ceiling `owner_approved_candidate`; supervisor approval,
+  ethics approval, validation, and causality are each explicitly disclaimed.
+- Imports the models and analysis modules only — no campaign service, no registry, no live
+  campaign data. Tests build synthetic designs, receipts, and analyses in memory and use
+  ordinary integer fleet seeds; the reserved confirmatory cohort is never named in code.
+
 ### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
 
 Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
