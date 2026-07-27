@@ -2528,6 +2528,17 @@ layer, sensor validation). Nothing executes from it; every direction requires it
 predeclaration and approval. Exclusive files: `docs/research_directions_v2.md`, its
 `docs/index.md` row, and this record.
 
+### Phase 82 claim: Codex GPU-track technical recommendation (owner-directed, 27 July 2026)
+
+The owner directed Codex to incorporate its read-only GPU-track audit into the v2 research
+directions and push the result. This documentation-only amendment corrects the meaning of the
+producer's `capscalar` variant, distinguishes aggregate-rate equality from unmeasured keyed
+action-sequence equality, reconciles the newer start-now coding brief with the earlier sequencing,
+and records a matched B-CAP design, implementation prerequisites, execution route, and B-BUS
+boundaries. Nothing in the amendment approves an experiment, moves producer/bus assets, admits a
+checkpoint, or changes a capability, pin, scientific result, or evidence label. Exclusive files:
+`docs/research_directions_v2.md` and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
