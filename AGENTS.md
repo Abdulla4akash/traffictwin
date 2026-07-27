@@ -1049,6 +1049,13 @@ regression test added to `tests/unit/test_vec_task_join.py`, and this record. Th
 constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
 this strictly tightens the verifier's own accuracy.
 
+#### Phase 16 fourth amendment: pilot results record (27 July 2026)
+
+The claim additionally covers `docs/evaluation/capacity_pilot_results_20260727.md` and its
+index row — the committed exploratory results of the completed 12/12 pilot, reported under the
+predeclaration's own null-publication commitment, with the producer's trace provenance cited
+and every limitation carried.
+
 #### Phase 16 third amendment: actor crossover study skeleton (26 July 2026)
 
 The claim additionally covers `docs/evaluation/actor_crossover_study_draft.md` and its index
