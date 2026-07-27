@@ -36,6 +36,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
 - [Stadium event-night study draft (not signable yet)](evaluation/stadium_event_study_draft.md)
 - [Dissertation appendices (generated: capability catalogue, software versions)](dissertation_appendices/appendix_a_capability_catalogue.md)
+- [Trace provenance appendix (five source trace/occupancy pairs)](dissertation_appendices/trace_provenance.md)
+- [Dissertation video storyboard (6–8 minutes)](video_storyboard.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)
 - [Real bus-fleet experiment draft (not signable yet)](evaluation/bus_fleet_experiment_predeclaration_draft.md)

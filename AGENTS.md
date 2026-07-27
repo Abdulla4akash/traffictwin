@@ -1676,6 +1676,50 @@ additive-spec and hook lines in `navigation_v07.py`/`page_runtime.py`, the
 - Additive route only, via `V07AdditivePageSpec`; the counted 34-page `UiPage` inventory is
   untouched, and the navigation edits extend the same additive tuple batch 1 extended.
 
+### Phase 49 claim: dissertation docs pack (parallel session, 27 July 2026)
+
+Feature 10 of the batch-2 prompt, documentation-only: the trace-provenance appendix and the
+video storyboard. No code, no test, no capability, and no gate changes.
+
+**Exclusive files:** `docs/dissertation_appendices/trace_provenance.md`,
+`docs/video_storyboard.md`, their two `docs/index.md` rows, and this record.
+
+**Boundaries.**
+
+- Every number in the appendix is copied from a committed machine record — the Gate-A
+  `vec_source_snapshot_audit.json` and the two admission-probe evidence JSONs. Nothing is
+  retyped from memory, recomputed by hand, or carried over from another trace.
+- **Two recorded deviations, both because the honest answer is smaller than the brief's:**
+  1. The brief expected *three* probe evidence files (we/inc/ev). **Only two exist.** `we`
+     was the originally pinned reviewed trace, so admitting it needed no allowlist extension
+     and produced no probe document; its shape and reconciliation numbers come from the
+     Gate-A record, and its identity-snapshot fingerprint and build time are recorded as
+     not separately measured rather than borrowed from another trace.
+  2. The rationale column is **not fully filled.** Only `inc` and `ev` rationales are
+     recorded anywhere in this repository. The producer's sidecar `traces/PROVENANCE.md` at
+     upstream commit `6e56393` is cited as the brief requires, but that commit is **not
+     present in the local pinned clone** (`git cat-file` on it fails) and reaching it would
+     need a fetch, which is forbidden. The `we`/`wd_am`/`wd_pm` rationales are therefore
+     marked "not restated here — read from the cited sidecar", which a person can complete
+     and no agent may invent.
+- `wd_am` and `wd_pm` carry audit-table values only and are marked **not admitted**, with
+  the reason: outside the reviewed allowlist, no probe run, no identity snapshot built.
+- Appendix lettering is left to the write-up: batch 1's generated
+  `appendix_b_software_versions.md` already holds `B`, so the trace table is referenced by
+  name and says so rather than colliding on a letter.
+- The storyboard **states no scientific result and contains no result number**. The shot
+  that needs one points the camera at the committed results record and instructs the speaker
+  to name the record, not read from it.
+- The rubric split is stated as recorded (Use of Medium 40%, Complementing the Report 40%),
+  and the remaining 20% is explicitly *not guessed* — the storyboard says the note does not
+  itemise it.
+- The un-reported shots are named and justified (replay animation, RSU Monitor drill-down,
+  provenance DAG click-through, Match Review decide-persist-seal), each mapped to its
+  demo-script step or additive route, and the spoken-caveats checklist reuses
+  `docs/demo_checklist.md`'s required caveats verbatim plus two the recorded medium needs.
+- The generated appendix files and the appendix generator are untouched; a run of the
+  Phase 44 generator test confirms the new hand-written sibling does not disturb it.
+
 ### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
 
 Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
