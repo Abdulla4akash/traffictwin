@@ -22,6 +22,16 @@ The predeclared method is therefore the accepted **N-way ranking** machinery eva
 separately at each capacity level, with actors as the ranked policies and fleet seeds as the
 common replicates.
 
+**Second constraint, measured 27 July 2026.** The accepted N-way selection also requires a
+*single checkpoint* across every ranked algorithm (`context.checkpoint != config.checkpoint`
+excludes a collection), while the two audited actors necessarily carry different checkpoint
+identities in their admitted metrics. Cross-actor ranking therefore needs one of two things,
+chosen at signing: **(i)** a small reviewed extension of the accepted STA-02 module allowing
+per-algorithm checkpoints (consistent within each algorithm), or **(ii)** this draft's
+already-named alternative — descriptive comparison of the two actors' separately estimated
+capacity-degradation slopes, which the accepted tooling supports today. Neither is assumed
+here; the choice is an explicit signing decision (G6).
+
 **Crossover rule (fixed now).** A crossover is claimed only if, on the study's own seeds, the
 winner-map order of the two actors at the **highest** studied capacity is the reverse of the
 order at the **lowest** studied capacity, and each of those two rankings is supported by its
