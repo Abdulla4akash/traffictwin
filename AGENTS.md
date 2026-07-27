@@ -1966,6 +1966,18 @@ record.
 - Objective wording is carried from the owner's dissertation skeleton rather than reworded,
   so the appendix and Chapter 1 cannot drift apart.
 
+### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
+
+Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
+unit 2,703 and strict mypy 793 during the same window; artifacts spot-checked: appendix
+documents, SVG/TeX figures, and the mechanism exhibit with correct exploratory labels).
+`PARALLEL_FEATURES_MASTER_PROMPT_4.md` (repo root) specifies batch 4 — Phases 56–60: the
+CSF job-pack contract (models and design doc, no executor), the bus-versus-DfT comparison
+report script, the quality-gate snapshot generator, and two features hard-gated on the
+detached confirmatory campaign completing first (page figure capture; the single ev timing
+probe measuring ADR-065's open risk, timing evidence only, no admission). Exclusive files:
+that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
