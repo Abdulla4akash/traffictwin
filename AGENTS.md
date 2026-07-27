@@ -1490,6 +1490,38 @@ and this record.
   cell is a timing probe that re-costs the campaign, and the 7,200-second ceiling stays an
   escalation trigger and never a bound to raise.
 
+### Phase 44 claim: dissertation appendix generators (parallel session, 27 July 2026)
+
+Feature 5 of the Phase 34 master prompt: deterministic generators for the dissertation's
+appendix payload, so the write-up never retypes a capability state or a dependency version by
+hand.
+
+**Exclusive new files:** `scripts/generate_dissertation_appendices.py`, the generated
+`docs/dissertation_appendices/{appendix_a_capability_catalogue,appendix_b_software_versions}.md`,
+`tests/unit/test_dissertation_appendices.py`, the `docs/index.md` row, and this record.
+
+**Boundaries.**
+
+- Sources are read through existing public APIs and committed files only: the capability
+  states through `traffictwin.config.capabilities`, the ADR register from the committed
+  `docs/decisions/index.md` table, and versions from `pyproject.toml` and `uv.lock` via
+  `tomllib`. No manifest, generated reference, or capability state is written or changed.
+- Deterministic by construction — no timestamps, no environment paths, every collection
+  sorted — so regeneration on an unchanged tree is byte-identical and never shows up as commit
+  churn. A test asserts that, and another asserts the committed files match a fresh run.
+- The three-valued capability state is preserved; `unknown` is never collapsed into `false`.
+
+**Recorded deviation, and the reason.** The master prompt specified a capability table
+carrying `family` and `ADR refs`. **Neither exists in machine-readable form:** `CapabilitySet`
+declares no family taxonomy, and no per-capability ADR mapping is recorded anywhere in the
+repository. Grouping the rows by eye or guessing which decision governs which capability would
+put fabricated structure into a dissertation appendix, so the generator emits the two
+registers it can source honestly — the capability catalogue and the complete ADR register —
+and the document itself states in §A.1.1 that the join is unavailable and why. A test asserts
+no fabricated family column appears. **Handoff for the owner:** if the join is wanted for the
+write-up, the fix is to record capability→family→ADR in the manifest, which is a lead-claimed
+surface this session did not touch.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
