@@ -1792,6 +1792,18 @@ it, never applied to it. `PARALLEL_FEATURES_MASTER_PROMPT_2.md` (repo root) spec
 campaigns browser page, dissertation docs pack, tos-reader fork-segfault diagnosis.
 Exclusive files: that prompt, the two corrected evaluation documents, and this record.
 
+### Phase 36 claim: batch-3 parallel feature prompt (27 July 2026)
+
+Batch 2 (Phases 46–50) was independently re-verified by the primary session (ruff clean,
+strict mypy 790 files, 2,652 unit + 476 UI green; the Phase 50 fork-segfault repair held
+across the verification runs). `PARALLEL_FEATURES_MASTER_PROMPT_3.md` (repo root) specifies
+batch 3 — Phases 51–55: capacity-study research figures through the accepted export
+machinery, the user-evaluation instrument draft, the bus post-session report script, the
+mechanism-report CLI with the committed pilot exhibit, and the objectives-traceability and
+abbreviations appendices. It grants one read-only carve-out: the completed pilot's local
+analysis JSON; the live confirmatory directory stays untouchable. Exclusive files: that
+prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
