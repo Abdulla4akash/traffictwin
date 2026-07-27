@@ -1,14 +1,10 @@
 # Appendix — Quality-gate snapshot
 
-Generated 2026-07-27T17:44:40+00:00 by `uv run python scripts/generate_quality_snapshot.py`.
+Generated 2026-07-27T17:47:37+00:00 by `uv run python scripts/generate_quality_snapshot.py`.
 
 Every number below is printed beside the exact command that reproduces it. Nothing
 here was retyped from a terminal, and no test was executed to collect it — the
 suites are inventoried with `--collect-only`, never run.
-
-## Gaps in this snapshot
-
-- The working tree carried 4 uncommitted path(s) when this snapshot was taken, so the figures describe that tree rather than the named commit alone.
 
 ## Test inventory
 
@@ -46,9 +42,9 @@ Supplied by the operator from a run of the command beside it. A full type-check 
 
 | Measure | Value | Reproduce with |
 |---|---|---|
-| Commit | `49209fb25254c99a8138dd0345f0177356b45f40` | `git rev-parse HEAD` |
+| Commit | `7b3d8c3b6ab9bd2d1504b91acc854798b2a5b38c` | `git rev-parse HEAD` |
 | Branch | claude/complete-v0.7 | `git rev-parse --abbrev-ref HEAD` |
-| Working tree | dirty — 4 uncommitted path(s) | `git status --porcelain` |
+| Working tree | clean | `git status --porcelain` |
 
 ## How to read this appendix
 
