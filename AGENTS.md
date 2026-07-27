@@ -2599,6 +2599,19 @@ invariant). Evidence: `docs/integration/evidence/vec_pilot_observability_gap_202
 dated mechanism addendum in the detailed findings record. Exclusive files: those two plus
 this record.
 
+### Phase 85 claim: producer code-permission record (28 July 2026)
+
+The owner relayed the producer's statement permitting use of his code with citation. The
+record keeps the conservative scope split — code (covered, any venue, cited) versus data
+blobs off-machine and publication of data-derived aggregates (still the drafted email's
+open asks) — states the citation obligations, and lists what it unlocks (B-CAP on real
+code on Colab; B-BUS on our own bus data) versus what stays local/CSF-only. Relayed
+provenance, to be superseded by the producer's written form. This claim also records
+ownership of `CODEX_GPU_TRACK_BRIEF.md` (committed `d718eb5` under the same owner
+delegation, record omitted at the time). Exclusive files: 
+`docs/integration/randy_code_permission_20260728.md`, its `docs/index.md` row, the brief,
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
