@@ -59,7 +59,7 @@ from traffictwin.metrics.results import (
     MetricValue,
     UnavailableReason,
 )
-from traffictwin.storage.registry import Registry
+from traffictwin.storage.registry import Registry, RegistryNotFoundError
 
 REVIEWED_TRACE_SCENARIOS = {
     "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be": "we",
@@ -223,6 +223,49 @@ def register_fresh_run_admission(
         updated_at=now,
     )
     registry = Registry(registry_file)
+    try:
+        existing_run = registry.get_run(record.registry_run_id)
+    except RegistryNotFoundError:
+        existing_run = None
+    if existing_run is not None:
+        # The run and bundle ids embed the receipt content fingerprint that this
+        # admission just re-verified byte-by-byte, so an existing row under the
+        # same identity is a confirmation of the earlier admission, not a
+        # conflict. The record's stable fingerprint cannot serve as the
+        # idempotency key because the metric collection's computed_at stamp is
+        # minted per admission. Confirmation still requires the declared study
+        # context to match exactly; the same receipt under a different context
+        # refuses.
+        if (
+            existing_run.source_bundle != record.registry_bundle_id
+            or existing_run.experiment_id != record.study.experiment_id
+            or existing_run.seed_id != record.study.seed_id
+            or existing_run.algorithm != record.request.actor_id
+            or existing_run.random_seed != record.pairing_random_seed
+        ):
+            raise VecFreshAdmissionError(
+                "an existing registry run under this receipt identity does not "
+                "match the declared study context; refusing to confirm"
+            )
+        try:
+            registry.get_metric_collection_json(record.metric_collection_run_id)
+            metrics_created = False
+        except RegistryNotFoundError:
+            metrics_created = registry.store_metric_collection(
+                run_id=record.metric_collection_run_id,
+                metric_version=record.metric_version,
+                source_fingerprint=record.task_join_report_fingerprint,
+                payload_json=collection.model_dump_json(),
+            )
+        return VecFreshAdmissionOutcome(
+            run_created=False,
+            run_idempotent=True,
+            metrics_created=metrics_created,
+            registry_run_id=existing_run.run_id,
+            registry_bundle_id=record.registry_bundle_id,
+            stable_fingerprint=record.stable_fingerprint(),
+            registry_reference=registry_file.name,
+        )
     import_result = registry.register_bundle_import(
         run=run,
         bundle_id=record.registry_bundle_id,

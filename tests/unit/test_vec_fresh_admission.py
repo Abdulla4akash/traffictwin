@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -345,6 +345,46 @@ def test_registry_roundtrip_reaches_sta01_paired_study(tmp_path: Path) -> None:
     assert study.pairing_audit.eligible_pair_count == 3
     assert study.estimate.mean_paired_difference is not None
     assert study.estimate.mean_paired_difference < 0
+
+
+def test_repeat_admission_of_same_receipt_confirms_idempotently(tmp_path: Path) -> None:
+    registry_path = tmp_path / "registry.sqlite"
+    trace, perstep, pertask, identity = _arrays()
+    receipt = _receipt()
+    first, first_collection = build_fresh_run_admission(
+        trace, perstep, pertask, identity, receipt, _study(), computed_at=NOW
+    )
+    created = register_fresh_run_admission(first, first_collection, registry_path)
+    assert created.run_created is True
+
+    later = NOW + timedelta(minutes=7)
+    second, second_collection = build_fresh_run_admission(
+        trace, perstep, pertask, identity, receipt, _study(), computed_at=later
+    )
+    # The resume defect's trigger: the admission clock leaks into the metric
+    # collection, so the stable fingerprints of two admissions of the SAME
+    # receipt differ — confirmation must not depend on them matching.
+    assert second.stable_fingerprint() != first.stable_fingerprint()
+    outcome = register_fresh_run_admission(second, second_collection, registry_path)
+    assert outcome.run_created is False
+    assert outcome.run_idempotent is True
+    assert outcome.metrics_created is False
+    assert outcome.registry_run_id == created.registry_run_id
+
+
+def test_repeat_admission_under_different_study_context_refuses(tmp_path: Path) -> None:
+    registry_path = tmp_path / "registry.sqlite"
+    trace, perstep, pertask, identity = _arrays()
+    receipt = _receipt()
+    record, collection = build_fresh_run_admission(
+        trace, perstep, pertask, identity, receipt, _study(), computed_at=NOW
+    )
+    register_fresh_run_admission(record, collection, registry_path)
+    other, other_collection = build_fresh_run_admission(
+        trace, perstep, pertask, identity, receipt, _study(seed_id="cap-1.0"), computed_at=NOW
+    )
+    with pytest.raises(VecFreshAdmissionError, match="declared study context"):
+        register_fresh_run_admission(other, other_collection, registry_path)
 
 
 def test_inc_and_ev_are_reviewed_and_weekday_traces_stay_refused() -> None:

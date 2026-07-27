@@ -909,6 +909,22 @@ not:
   page tidier must never make a blocked thing look available.
 - The 375 existing UI tests are the contract. None is weakened to accommodate a redesign.
 
+#### Phase 14 amendment: repeat-admission confirmation repair (27 July 2026)
+
+The confirmatory campaign's first real resume exposed a structural defect the pilot never
+exercised: re-admitting a reused, byte-re-verified receipt could never match its stored
+registry row, because the admission clock leaks into the metric collection's
+`computed_at`, hence into the record's stable fingerprint, so `register_bundle_import`
+refused "bundle_id already exists with different content" and the campaign halted with
+zero data loss (fail-closed held; the registry stayed uncontaminated).
+`register_fresh_run_admission` now treats an existing run under the same receipt-derived
+identity as a confirmation — gated on the declared study context (experiment, seed label,
+actor, pairing seed) matching exactly, refusing otherwise — and completes a missing metric
+collection if the earlier write pair was interrupted. Two regression tests pin the repair,
+including one asserting the volatile-fingerprint trigger is really present. Files: the
+bounded extension in `vec_fresh_admission/service.py`, tests in
+`tests/unit/test_vec_fresh_admission.py`, and this record.
+
 ### Phase 14 claim: VEC fresh-run scientific admission (owner-directed, 26 July 2026)
 
 The owner directed implementation of the experiment-readiness repair identified in
