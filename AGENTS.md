@@ -1804,6 +1804,29 @@ abbreviations appendices. It grants one read-only carve-out: the completed pilot
 analysis JSON; the live confirmatory directory stays untouchable. Exclusive files: that
 prompt and this record.
 
+### Phase 51 claim: capacity-study research figures (parallel session, 27 July 2026)
+
+Feature 12 of the `PARALLEL_FEATURES_MASTER_PROMPT_3.md` batch: the dissertation's static
+capacity-study figures, generated **only** through the accepted REP-01 export machinery in
+`src/traffictwin/reporting/latex.py`, which is read and imported and never modified.
+
+**Exclusive new files:** `scripts/generate_capacity_figures.py`,
+`tests/unit/test_capacity_figures_script.py`, the generated
+`docs/dissertation_appendices/figures/*`, the `docs/index.md` row, and this record.
+
+**Boundaries.**
+
+- The analysis-JSON path is a **required positional argument with no default**, so the script
+  can never reach for a campaign directory on its own. The committed figures were rendered
+  from the completed pilot's `campaign_analysis.json` under the batch-3 read-only carve-out;
+  nothing under `data/vec-fresh/**` was written, and the live confirmatory directory was
+  never opened.
+- Re-presentation only. Every rendered number is a value the accepted analysis already
+  recorded; the script computes no metric, no difference, and no summary of its own.
+- `exploratory`, `owner_approved_candidate`, and `descriptive non-causal` appear in each
+  figure's **rendered** text, carried in the projection title so they survive into the SVG
+  as well as the LaTeX caption.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
