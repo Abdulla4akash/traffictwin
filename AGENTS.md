@@ -1009,6 +1009,14 @@ and `docs/decisions/index.md` rows and this record.
 - The service composes existing services and computes no metric of its own; it never relabels a
   candidate policy, and it never writes a scientific conclusion.
 
+**Third amendment (27 July 2026): cross-actor slope comparison.** The claim additionally
+covers `src/traffictwin/integration/vec_campaign/slope_comparison.py` and
+`tests/unit/test_vec_slope_comparison.py` — the crossover draft's method (ii), implemented
+because the accepted paired and ranking tools structurally cannot compare the two audited
+actors (single algorithm; single checkpoint). Entirely descriptive: per-actor OLS capacity
+slopes, per-level winners, and the predeclared binary crossover rule gated on complete seed
+support; `confirmatory` and `significance_claimed` are type-level False.
+
 **Amendment (26 July 2026): campaign analysis harness.** The claim additionally covers new files
 `src/traffictwin/integration/vec_campaign/analysis.py`, `tests/unit/test_vec_campaign_analysis.py`,
 and an analysis section in `docs/integration/vec_campaign_execution.md`. The harness evaluates the

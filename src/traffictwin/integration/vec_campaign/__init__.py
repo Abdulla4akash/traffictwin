@@ -30,8 +30,15 @@ from traffictwin.integration.vec_campaign.service import (
     register_campaign_experiment,
     verify_predeclaration,
 )
+from traffictwin.integration.vec_campaign.slope_comparison import (
+    ActorCapacityCurve,
+    ActorSlopeComparison,
+    compare_actor_capacity_slopes,
+)
 
 __all__ = [
+    "ActorCapacityCurve",
+    "ActorSlopeComparison",
     "MAX_CAMPAIGN_CELLS",
     "STANDING_ANALYSIS_LIMITATIONS",
     "STANDING_CAMPAIGN_LIMITATIONS",
@@ -52,6 +59,7 @@ __all__ = [
     "VecCampaignReceipt",
     "VecCampaignStatus",
     "analyze_campaign",
+    "compare_actor_capacity_slopes",
     "execute_campaign",
     "register_campaign_experiment",
     "render_campaign_analysis_markdown",
