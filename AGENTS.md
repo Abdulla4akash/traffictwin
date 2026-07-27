@@ -1902,6 +1902,32 @@ session is reading a report rather than assembling one.
 - The B1 block emits **candidate values a person confirms at signing**. It never writes into
   the predeclaration draft and never converts a measurement into a chosen threshold.
 
+### Phase 54 claim: mechanism-report CLI and the committed pilot exhibit (parallel session, 27 July 2026)
+
+Feature 15 of the batch-3 prompt: the command line over the Phase 42 mechanism report, and
+the one rendered exhibit it produced from the completed pilot.
+
+**Exclusive new files:** `scripts/render_mechanism_report.py`,
+`tests/unit/test_render_mechanism_report_script.py`,
+`docs/evaluation/capacity_pilot_mechanism_report_20260727.md`, the `docs/index.md` row, and
+this record.
+
+**Boundaries.**
+
+- Both the analysis-JSON path and the output path are **required positional arguments with no
+  defaults**, and an existing output is kept unless `--overwrite` is passed.
+- The accepted `render_mechanism_report_markdown` body is emitted **verbatim**. The script
+  adds a provenance header and a reading note around it and changes not one byte of what the
+  accepted renderer produced.
+- **The corrected range-overlap wording only.** The header states the distinction in its
+  general form — pooled per-arm ranges can overlap while every seed still ranks the pair the
+  same way, and the paired within-seed contrast is what the machinery uses. The superseded
+  "ranges that do not overlap between adjacent arms at any seed" sentence is never
+  reintroduced, and a test asserts it cannot appear in any rendered output.
+- The exhibit is a **new** file. `capacity_pilot_results_20260727.md` is cited and not
+  edited, and `capacity_confirmatory_candidate_b_latency_primary.md` — byte-frozen by the
+  live approval digest — is neither read into nor touched by this feature.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
