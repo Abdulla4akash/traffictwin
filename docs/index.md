@@ -122,6 +122,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Match Review page route (additive, /match-review)](v07_navigation.md)
 - [RSU Monitor page route (additive, /rsu-monitor)](v07_navigation.md)
 - [Bus Sessions page route (additive, /bus-sessions)](v07_navigation.md)
+- [Campaigns receipt browser page route (additive, /campaigns)](v07_navigation.md)
 - [Analyst review ledger decision](decisions/ADR-064-analyst-map-match-review-ledger.md)
 - [Manchester count-constrained candidate demand](integration/manchester_demand_reconstruction.md)
 - [Greater Manchester network build evidence](integration/evidence/manchester_greater_manchester_network_20260725.json)

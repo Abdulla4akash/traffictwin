@@ -76,6 +76,14 @@ RSU_MONITOR_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/cell_tower:",
 )
 
+CAMPAIGNS_PAGE_SPEC = V07AdditivePageSpec(
+    title="Campaigns",
+    group="Source evidence",
+    script="app_pages/campaigns.py",
+    url_path="campaigns",
+    icon=":material/inventory_2:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -379,6 +387,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         MATCH_REVIEW_PAGE_SPEC,
         RSU_MONITOR_PAGE_SPEC,
         BUS_SESSIONS_PAGE_SPEC,
+        CAMPAIGNS_PAGE_SPEC,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -459,6 +468,15 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                     title=BUS_SESSIONS_PAGE_SPEC.title,
                     icon=BUS_SESSIONS_PAGE_SPEC.icon,
                     url_path=BUS_SESSIONS_PAGE_SPEC.url_path,
+                )
+            )
+        if group == CAMPAIGNS_PAGE_SPEC.group:
+            group_pages.append(
+                st.Page(
+                    CAMPAIGNS_PAGE_SPEC.script,
+                    title=CAMPAIGNS_PAGE_SPEC.title,
+                    icon=CAMPAIGNS_PAGE_SPEC.icon,
+                    url_path=CAMPAIGNS_PAGE_SPEC.url_path,
                 )
             )
         pages[group] = group_pages

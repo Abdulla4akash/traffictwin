@@ -29,8 +29,11 @@ Manchester Operations candidate appears under Overview at `/manchester`, and the
 Match Review candidate appears under Source evidence at `/match-review`; the additive RSU
 Monitor candidate also appears under Source evidence, at `/rsu-monitor`, drilling into one
 imported run's per-RSU load, and the additive Bus Sessions candidate appears there too, at
-`/bus-sessions`, rendering aggregate-only attended-session measurements. All four are outside
-the normative 34-page migration inventory and cannot replace any v0.6 destination.
+`/bus-sessions`, rendering aggregate-only attended-session measurements. The additive Campaigns
+candidate also appears under Source evidence, at `/campaigns`, rendering one explicitly named
+campaign receipt file at a time — it never scans a directory, so no campaign is opened unless a
+person types its path. All five are outside the normative 34-page migration inventory and cannot
+replace any v0.6 destination.
 
 ## Page preservation
 
@@ -52,8 +55,8 @@ Automated checks currently prove:
 - exact group and URL mapping against Appendix D of the v0.7 design;
 - unique script and URL paths;
 - existence of every direct page script;
-- each additive route (Manchester, Match Review, RSU Monitor, Bus Sessions) is unique and its
-  direct script exists;
+- each additive route (Manchester, Match Review, RSU Monitor, Bus Sessions, Campaigns) is unique
+  and its direct script exists;
 - complete renderer coverage;
 - Material icons and navigation construction accepted by the locked Streamlit runtime;
 - default grouped hidden-root Home rendering without the legacy radio;

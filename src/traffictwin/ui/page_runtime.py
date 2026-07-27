@@ -13,6 +13,7 @@ from traffictwin.ui.pages import (
     about,
     bundle_import,
     bus_sessions,
+    campaigns,
     compare,
     energy,
     evidence_readiness,
@@ -126,6 +127,16 @@ def run_bus_sessions_page_script() -> None:
         "Aggregate-only measurements from attended bus sessions; buses are never general traffic."
     )
     bus_sessions.render(load_ui_config())
+
+
+def run_campaigns_page_script() -> None:
+    """Execute the additive Campaigns page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "campaigns"
+    st.sidebar.caption(
+        "One named campaign receipt at a time; a terminal record, never a live campaign."
+    )
+    campaigns.render(load_ui_config())
 
 
 def run_rsu_monitor_page_script() -> None:

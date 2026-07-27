@@ -1637,6 +1637,45 @@ then presents **exactly one** contrast as the confirmatory result.
   campaign data. Tests build synthetic designs, receipts, and analyses in memory and use
   ordinary integer fleet seeds; the reserved confirmatory cohort is never named in code.
 
+### Phase 48 claim: campaigns receipt browser page (parallel session, 27 July 2026)
+
+Feature 9 of the batch-2 prompt: the additive `/campaigns` route rendering one campaign
+receipt file at a time, so a completed campaign's declared matrix, approval provenance, and
+resource usage can be read without opening a registry or a terminal.
+
+**Exclusive new files:** `src/traffictwin/ui/campaigns_services.py`,
+`src/traffictwin/ui/pages/campaigns.py`, `src/traffictwin/ui/app_pages/campaigns.py`,
+`tests/unit/ui/test_campaigns_services.py`, `tests/ui/test_campaigns_page.py`, plus the
+additive-spec and hook lines in `navigation_v07.py`/`page_runtime.py`, the
+`docs/v07_navigation.md` sentences, the `docs/index.md` row, and this record.
+
+**Boundaries.**
+
+- **It never goes looking.** No default path, no directory scan, no glob, no recent-files
+  list: a text input with an empty value is the only way in, and a directory path is refused
+  rather than searched. That is the property keeping this page away from the campaign
+  directory of a campaign that is executing.
+- **A receipt is a terminal record, and the page says so.** It is written when a campaign
+  stops; nothing polls, refreshes, or reports current state. A test asserts that every
+  rendered fragment mentioning liveness or running state is *denying* it — a bare mention
+  would be the implication to avoid — and that the page addresses it rather than staying
+  silent.
+- Receipts only. No registry access, no analysis computation, no scientific number: states,
+  elapsed seconds, and byte counts are the only quantities surfaced, and a test asserts no
+  metric key reaches any row. Phase and approval fields, including `held_out_authorised`,
+  are displayed verbatim with badges in both directions.
+- Honest typed errors as values rather than exceptions: nothing supplied, directory, missing
+  file, unreadable bytes, oversize, invalid JSON, non-object JSON, no method version,
+  *another* artifact kind named by its own method version, and a receipt that fails
+  validation.
+- **Recorded gap:** `VecCampaignReceipt` carries budget *usage* but not the declared ceilings
+  — `max_cells` and `max_total_output_bytes` live in the design document, which the receipt
+  does not embed. The page reports usage and states the ceilings are absent rather than
+  rendering a percentage of something it cannot see. Arms and seeds are likewise read back
+  from the recorded cells, which the page says on the surface.
+- Additive route only, via `V07AdditivePageSpec`; the counted 34-page `UiPage` inventory is
+  untouched, and the navigation edits extend the same additive tuple batch 1 extended.
+
 ### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
 
 Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
