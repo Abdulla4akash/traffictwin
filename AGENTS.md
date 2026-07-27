@@ -2037,6 +2037,39 @@ writes the comparison out as a JSON artifact and a markdown report.
 - No acquisition, no API key, no network, no snapshot read, no quarantine access. Both output
   paths are supplied; an existing output is kept unless `--overwrite` is passed.
 
+### Phase 58 claim: quality-gate snapshot appendix generator (parallel session, 27 July 2026)
+
+Feature 19 of the batch-4 prompt: the dissertation's §3.2 quality table as a generated
+artifact, so the figures in the write-up are collected by a command rather than retyped from
+a terminal scrollback that has since scrolled away.
+
+**Exclusive new files:** `scripts/generate_quality_snapshot.py`,
+`tests/unit/test_quality_snapshot_script.py`,
+`docs/dissertation_appendices/quality_snapshot.md` (generated), the `docs/index.md` row, and
+this record.
+
+**Boundaries.**
+
+- **No test is executed.** Every pytest invocation carries `--collect-only -q`, and a test
+  asserts that property over the generated command list rather than trusting the author.
+  Collection is cheap and is explicitly permitted while the confirmatory campaign runs; the
+  campaign, `data/vec-fresh/**`, and the registries are untouched.
+- **Collected counts are reported as collected, not as passed.** The document says so in
+  the row itself, because a collected count is an inventory and a passed count is a result,
+  and the dissertation must not blur them.
+- **The mypy file count is a supplied value, not a measured one.** A full `mypy src tests`
+  run is exactly the kind of sustained compute the live campaign forbids, so the generator
+  takes `--mypy-file-count` and, when it is absent, prints the row as not collected together
+  with the command a reader runs. It never guesses the number and never leaves a stale one
+  in place silently.
+- Ruff check and ruff format are run because they are seconds of single-process work, and
+  their status strings are recorded verbatim rather than reduced to a pass/fail bit.
+- **Every row carries the exact command that reproduces it.** A number in this appendix that
+  a reader cannot re-derive is not evidence, so the command column is required by the
+  renderer rather than optional.
+- The generation timestamp and the commit are recorded together, and a dirty working tree is
+  reported as dirty — a snapshot taken over uncommitted changes says so on its face.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
