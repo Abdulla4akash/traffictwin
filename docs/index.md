@@ -34,6 +34,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Confirmatory candidate (b): latency primary (proposed, unsigned)](evaluation/capacity_confirmatory_candidate_b_latency_primary.md)
 - [Capacity pilot exploratory results, 27 July 2026](evaluation/capacity_pilot_results_20260727.md)
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
+- [Stadium event-night study draft (not signable yet)](evaluation/stadium_event_study_draft.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)
 - [Real bus-fleet experiment draft (not signable yet)](evaluation/bus_fleet_experiment_predeclaration_draft.md)

@@ -1460,6 +1460,36 @@ the plain range reading. That file is outside this session's claim and was not e
 lead may want to tighten the wording to "no seed inverts the ordering" before the
 dissertation quotes it.
 
+### Phase 43 claim: stadium event-study predeclaration skeleton (parallel session, 27 July 2026)
+
+Feature 4 of the Phase 34 master prompt, documentation-only: the structural draft for the
+supervisor's own stadium what-if on the admitted `ev` trace, in the same discipline as the
+crossover draft. Nothing executes from it, and no `ev` execution has ever been run.
+
+**Exclusive files:** `docs/evaluation/stadium_event_study_draft.md`, its `docs/index.md` row,
+and this record.
+
+**Boundaries.**
+
+- Ships **UNSIGNED** with an empty sign-off block an agent never completes. The control,
+  levels, actors, and primary endpoint are all `FILL-AT-SIGNING`, so the document is
+  structurally unsignable until a person fills them.
+- Fresh seeds `{40–44}` are proposed and confirmed disjoint from pilot `{0–2}`, held-out
+  `{10–14}`, crossover `{20–24}`, and bus-fleet `{30–34}`.
+- The publishable null is fixed before any evidence exists, and the pilot's honoured null is
+  cited as the precedent.
+- **Method constraint made explicit rather than discovered later:** `ev` and `inc` differ in
+  duration, density, and scenario at once, so they are not exchangeable units. A cross-trace
+  contrast is therefore *not* an STA-01 paired study and the draft forbids reporting one; any
+  tested contrast lives within `ev`, and the pilot's numbers enter only as cited descriptive
+  context, never pooled. The STA-02 per-algorithm checkpoint extension (Phase 28) is named as
+  what would make multi-actor ranking possible if D2 chooses it.
+- The runtime section carries ADR-065's recorded risk unchanged rather than substituting new
+  arithmetic: no `ev` run has been timed, the recorded slot-scaling evidence (139 slots →
+  225.7 s; 2,488 slots → 3,555.96 s) is labelled an extrapolation from two points, the first
+  cell is a timing probe that re-costs the campaign, and the 7,200-second ceiling stays an
+  escalation trigger and never a bound to raise.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
