@@ -2552,7 +2552,7 @@ measured-upgrade addenda in the detailed findings record and the v2 research dir
 Nothing was written to campaign directories or registries. Exclusive files: the evidence
 record, the two addenda, and this record.
 
-### Phase 84 claim: first Colab B-CAP synthetic smoke (owner-directed, 28 July 2026)
+### Phase 86 claim: first Colab B-CAP synthetic smoke (owner-directed, 28 July 2026)
 
 The owner directed Codex to write the first Google Colab experiment. This slice owns a
 synthetic-only B-CAP engineering smoke: a testable pure-JAX driver, a Colab notebook wrapper,
@@ -2568,7 +2568,7 @@ test may run locally. Exclusive files: new `gpu/__init__.py`, `gpu/README.md`,
 record. No external repository, project pin, evaluator, campaign, registry, evidence artifact,
 generated reference, or shared documentation index is edited.
 
-### Phase 85 claim: second Colab B-BUS synthetic trace-replay smoke (owner-directed, 28 July 2026)
+### Phase 87 claim: second Colab B-BUS synthetic trace-replay smoke (owner-directed, 28 July 2026)
 
 The owner directed Codex to do the second Google Colab experiment. This slice owns the
 permission-safe B-BUS precursor: a pure-JAX synthetic trace-replay driver, Colab notebook,
@@ -2610,6 +2610,20 @@ provenance, to be superseded by the producer's written form. This claim also rec
 ownership of `CODEX_GPU_TRACK_BRIEF.md` (committed `d718eb5` under the same owner
 delegation, record omitted at the time). Exclusive files: 
 `docs/integration/randy_code_permission_20260728.md`, its `docs/index.md` row, the brief,
+and this record.
+
+### Phase 86 claim: confirmatory results record (28 July 2026)
+
+The held-out campaign completed 10/10 (7 admitted + 3 resume-confirmed, zero failures,
+design fingerprint verified). The confirmatory primary — mean paired latency difference
+−8,310.9 ms, bootstrap [−9,097.5, −7,524.3], all five held-out seeds in the predeclared
+direction, randomisation p at the n=5 floor — is recorded under the signed candidate (b)
+digest, rendered through the gated confirmatory renderer (all refusal checks passed),
+with the deadline null and capacity-invariance replications reported descriptively and
+the interruption/repair history preserved as reproducibility evidence. Held-out seeds
+{10–14} are recorded as spent for capacity studies. Exclusive files:
+`docs/evaluation/capacity_confirmatory_results_20260728.md`, the committed render
+`docs/evaluation/capacity_confirmatory_report_20260728.md`, their `docs/index.md` rows,
 and this record.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
