@@ -1966,6 +1966,41 @@ record.
 - Objective wording is carried from the owner's dissertation skeleton rather than reworded,
   so the appendix and Chapter 1 cannot drift apart.
 
+### Phase 56 claim: CSF job-pack contract (parallel session, 27 July 2026)
+
+Feature 17 of the batch-4 prompt: the import-first contract for the day university compute
+becomes available. One approved campaign design is *exported* as a fingerprinted job pack
+naming its inputs by identity; a returned cell-receipt set is *verified* against that pack
+before anything downstream may read it.
+
+**Exclusive new files:** `src/traffictwin/integration/vec_campaign/job_pack.py`,
+`tests/unit/test_vec_job_pack.py`, `docs/integration/csf_job_pack_contract.md`, the
+`docs/index.md` row, and this record.
+
+**Boundaries.**
+
+- **Contract only — there is no executor.** No SSH, no network, no scheduler, no SLURM
+  submission, no file transfer, no clock. Every function is pure over supplied models, and
+  the pack's `created_at_utc` is a caller-supplied argument rather than a read clock, so a
+  pack is byte-reproducible.
+- **Input identity, never input bytes.** `VecJobPackInputRef` carries repository, audited
+  commit, path, SHA-256, and size for each declared input; `external_repository_bytes_included`
+  is type-level `False` and a validator refuses any pack whose refs name a repository outside
+  the audited `vec_env`/`tos-data` pair. The pinned tos-data commit is recorded so a remote
+  site can be told exactly what to check out — the packs never carry the checkout.
+- **A verified import is NOT an admission.** `admission_granted`, `scientific_admission`, and
+  `registry_write_performed` are type-level `False` on the verification result, and the
+  verification's own docstring points at the ADR-061 path, which stays local and unchanged.
+  Verification answers one question — are these receipts the ones this pack asked for, intact
+  — and hands the answer to a person.
+- Verification is **complete before it is favourable**: design-fingerprint match, every
+  receipt's `request_fingerprint` ∈ the pack's declared cells, no duplicate and no unexpected
+  cell, per-file `sha256` present on every published output plus a recomputed
+  `output_fingerprint` match, and unfulfilled cells reported by name. Missing cells make an
+  import `partial`, never `verified`; any mismatch makes it `refused`.
+- Imports models from `vec_campaign.models` and `vec_runner.models` only. No campaign
+  service, no registry, no admission module.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
