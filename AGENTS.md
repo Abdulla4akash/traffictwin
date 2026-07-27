@@ -2113,6 +2113,44 @@ files (the standalone-script `import-untyped` notes are the same pre-existing on
 `scripts/` file produces); `git diff --check` clean. No UI file touched, so `tests/ui` was
 not required.
 
+### Phase 63 claim: single-command gate battery (parallel session, 27 July 2026)
+
+Feature 24 of the batch-5 prompt: the handoff gate list, which currently lives in `AGENTS.md`,
+four batch prompts, a checklist, and terminal scrollback, written down once as a command that
+runs it.
+
+**Exclusive new files:** `scripts/run_all_gates.py`,
+`tests/unit/test_run_all_gates_script.py`, and this record.
+
+**Boundaries.**
+
+- **The battery never modifies anything.** `ruff check` without `--fix`, `ruff format` with
+  `--check`, `mypy`, `pytest`, and `git diff --check`, which reports whitespace damage rather
+  than repairing it. A test asserts the read-only property over the declared command list
+  against a `MUTATING_ARGUMENTS` table, so a future gate that would write something fails the
+  suite rather than the reviewer's attention.
+- **A gate that did not run is never reported as passed.** Gates after a stopping failure
+  render as `NOT RUN`, `--skip`ped gates render as `SKIP`, and both are visible rows with a
+  named summary line. The exit code is 0 only when every declared gate passed — a skipped or
+  unreached gate exits 1, because the table's whole purpose is to be pasted into a handoff.
+- **No new dependency and no parallelism.** Standard library only; each command runs to
+  completion one at a time in declared order. `--skip` exists so a suite that must not run
+  right now — the integration suite while a campaign holds the machine — is excluded
+  explicitly and shows as excluded. An unknown `--skip` name is refused (exit 2) rather than
+  silently ignored.
+- **The tests never run a real gate.** The runner and the clock are injected; every command is
+  answered from a table. Running the real suites from a unit test would take longer than the
+  suites and would prove nothing about the battery. Only `--list` and the unknown-skip refusal
+  were exercised as real invocations, neither of which executes a gate.
+- `ruff format --check` is repository-wide in the battery. The per-feature gate checks only a
+  feature's touched files; a battery cannot know what "touched" means, and the wider check is
+  the stricter one — recorded here so the two are not read as contradicting each other.
+
+**Gates.** 25 focused tests green; 2,819 `tests/unit` green; `ruff check src tests scripts`
+clean; `ruff format --check` clean on both touched files; `mypy src tests` clean over 799
+files and clean on the script itself; `git diff --check` clean. No UI file touched, so
+`tests/ui` was not required.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
