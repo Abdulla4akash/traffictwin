@@ -28,8 +28,8 @@ deliberately omitted — the owner fills them at send time.
 > are bit-for-bit identical across all capacity levels (zero differences across ~9 million
 > per-second decisions), because its observation space contains no capacity-dependent
 > signal — the policy is blind to capacity *by observation design*, not by learned
-> indifference. That is, I believe, exactly the kind of non-obvious, explainable result
-> you asked for in our first meeting: the expected loser won, and the instrument shows
+> indifference. That is, I believe, exactly the kind of non-obvious result you asked for
+> in our first meeting: the expected outcome did not happen, and the instrument shows
 > precisely why.
 >
 > The full records are in the repository: `docs/current_progress_week4.md` (progress
@@ -37,15 +37,12 @@ deliberately omitted — the owner fills them at send time.
 > (the confirmed result with all limitations stated — one actor, one district trace,
 > internal predeclaration discipline, not external validation).
 >
-> Three questions I'd value your steer on:
+> Two questions I'd value your steer on:
 >
 > 1. Task offloading vs journey-time prediction — you left this open; the built programme
 >    is offloading-centred and the confirmed result strengthens that direction.
 > 2. The algorithm-combination idea from our second meeting — in-scope contribution, or
 >    recorded future work?
-> 3. Framing: anchoring the dissertation gap in explainability/trustworthy ML (Randy's
->    suggestion). With the mechanism now located, the capacity result reads naturally as
->    an explainability finding. Are you comfortable with that as the headline framing?
 >
 > Also in motion: I am submitting the ethics application for the user evaluation this
 > week per the proposed values; Randy has agreed to use of his code with citation (his
