@@ -2082,6 +2082,17 @@ detached confirmatory campaign completing first (page figure capture; the single
 probe measuring ADR-065's open risk, timing evidence only, no admission). Exclusive files:
 that prompt and this record.
 
+### Phase 38 claim: batch-5 parallel feature prompt (27 July 2026)
+
+Batch 4's Features 17–19 verified on the live tree (2,765 unit + 476 UI green, ruff,
+strict mypy 797). `PARALLEL_FEATURES_MASTER_PROMPT_5.md` (repo root) specifies batch 5 —
+carried Features 20–21 (Phases 59–60, unchanged specs, campaign-completion gated) plus
+Phases 61–65: confirmatory figures through the existing generator (gated on the committed
+confirmatory results record), the job-pack CLI wrapper, the single-command gate battery,
+the stadium fill-in candidate (gated on the ev timing probe), and the printable
+participant documents. Adds the post-completion read-only carve-out for the confirmatory
+analysis artifacts. Exclusive files: that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
