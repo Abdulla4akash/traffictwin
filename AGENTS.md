@@ -1347,6 +1347,15 @@ to-do. All are explicitly DRAFTS the owner reviews and sends personally; no agen
 external communications; recipient addresses are omitted. Exclusive files: that document,
 its `docs/index.md` row, and this record.
 
+### Phase 34 claim: parallel-agent feature master prompt (owner-directed, 27 July 2026)
+
+The owner directed a buildable-feature batch for a second agent session to execute while
+the confirmatory campaign and external replies are pending. `PARALLEL_FEATURES_MASTER_PROMPT.md`
+(repo root) carries six fully-specified features with exact disjoint new-file sets, the
+live-campaign compute hazard, the shared-branch verification discipline, and all standing
+boundaries. Parallel claims start at Phase 40; the primary session owns numbers below 40.
+Exclusive files: that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
