@@ -11,9 +11,12 @@ note (branch `feature-suggestions`) in the light of what is now measured.
 [the full narrative record](evaluation/capacity_study_detailed_findings.md)): across a
 3.3× RSU capacity squeeze on the collapse-hour trace, the trained MAPPO actor's recorded
 aggregate offload and no-target rates are exactly equal within each seed, deadline
-attainment is flat (~79.1%), and mean latency falls 3.2×. A keyed, per-task comparison
-has not yet established that the complete action sequences are bit-identical. The policy
-is **capacity-invariant at the recorded aggregate-action level on this grid**, and
+attainment is flat (~79.1%), and mean latency falls 3.2×. **Update, 28 July 2026:** the
+keyed comparison this paragraph called for has now been run on the admitted artifacts —
+per-vehicle-slot action arrays including RSU/V2V targets are element-wise identical
+across all four arms in every seed (0 mismatches in 8,956,800 cells × 9 pairs;
+[evidence](integration/evidence/vec_pilot_keyed_action_comparison_20260728.json)). The
+policy is **capacity-invariant at the keyed action level on this grid**, and
 aggregate latency revealed the performance contrast, but aggregate summaries alone could
 not distinguish unchanged decisions from changed downstream queueing consequences. Every
 direction below either widens, explains, or exploits that result.

@@ -123,10 +123,20 @@ record.) Paired differences versus baseline average **−3,769 / −5,709 / −6
 
 Offload rates are **bit-identical across all four capacities within every seed**
 (0.402608 / 0.406349 / 0.414181 by seed), and the no-eligible-target rate is constant
-(~0.0024%). The trained actor's decisions never respond to the capacity control — the
-knob changes only the queueing consequences downstream of an unchanged decision stream.
-The committed [mechanism exhibit](capacity_pilot_mechanism_report_20260727.md) re-presents
-this from the analysis artifacts.
+(~0.0024%). The committed
+[mechanism exhibit](capacity_pilot_mechanism_report_20260727.md) re-presents this from the
+analysis artifacts.
+
+**Measured upgrade (28 July 2026).** The Phase 82 GPU-track audit correctly noted that
+aggregate-rate equality does not by itself prove identical action *sequences*. The keyed
+comparison has now been run on the admitted artifacts
+([evidence](../integration/evidence/vec_pilot_keyed_action_comparison_20260728.json)):
+within every fleet seed, the complete per-second per-vehicle-slot action arrays —
+including the chosen RSU and V2V targets — are element-wise identical across all four
+capacity arms: **0 mismatches in 8,956,800 cells for every one of the nine arm pairs**.
+The invariance therefore holds at the keyed action level, not only in aggregate: the knob
+changes only the queueing consequences downstream of a literally unchanged decision
+stream.
 
 ## 7. Interpretation — labelled by confidence
 

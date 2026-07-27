@@ -2539,6 +2539,19 @@ boundaries. Nothing in the amendment approves an experiment, moves producer/bus 
 checkpoint, or changes a capability, pin, scientific result, or evidence label. Exclusive files:
 `docs/research_directions_v2.md` and this record.
 
+### Phase 83 claim: keyed action-sequence comparison (28 July 2026)
+
+The Phase 82 audit correctly distinguished measured aggregate-rate equality from
+unmeasured action-sequence equality. The keyed comparison was run read-only over the
+twelve admitted pilot cells' published per-step arrays: within every fleet seed, the
+per-second per-vehicle-slot actions and their RSU/V2V targets are element-wise identical
+across all four capacity arms — zero mismatches in 8,956,800 cells for each of the nine
+arm pairs. Evidence:
+`docs/integration/evidence/vec_pilot_keyed_action_comparison_20260728.json`; dated
+measured-upgrade addenda in the detailed findings record and the v2 research directions.
+Nothing was written to campaign directories or registries. Exclusive files: the evidence
+record, the two addenda, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

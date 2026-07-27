@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "probe": "vec-pilot-keyed-action-comparison",
+  "date": "2026-07-28",
+  "purpose": "Settle the distinction raised in the Phase 82 GPU-track audit: aggregate offload-rate equality across capacity arms had been measured, but complete per-task action-sequence equality had not. This probe compares the admitted pilot cells' per-step action arrays element-wise across all capacity arms within each fleet seed.",
+  "method": "For each fleet seed {0,1,2}, the published per-step.npz of cap-2.5 was compared element-wise against cap-1.5, cap-1.0, and cap-0.75 on three arrays: veh_action (3600 x 2488 int8), veh_best_rsu (int16), veh_best_v2v (int16). Inputs are the hash-verified outputs of the 12 admitted pilot cells under data/vec-fresh/capacity-pilot/.",
+  "measured": {
+    "cells_compared_per_pair": 8956800,
+    "arm_pairs_per_seed": 3,
+    "seeds": [0, 1, 2],
+    "veh_action_mismatches_total": 0,
+    "veh_best_rsu_mismatches_total": 0,
+    "veh_best_v2v_mismatches_total": 0
+  },
+  "conclusion": "Within every fleet seed, the complete per-second per-vehicle-slot action sequences, including chosen RSU and V2V targets, are bit-identical across all four capacity arms. The capacity-invariance finding holds at the keyed action level, not only at the aggregate-rate level.",
+  "interpretation_limits": [
+    "Exploratory, owner_approved_candidate; descriptive and non-causal; scope is the pilot grid (one actor, one trace, four capacity levels, three seeds).",
+    "Identity of action sequences does not by itself establish why the policy is capacity-insensitive; observation-content analysis remains future work.",
+    "The arrays compared are the admitted published artifacts; this probe wrote nothing and admitted nothing."
+  ]
+}
