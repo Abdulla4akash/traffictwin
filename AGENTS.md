@@ -2516,6 +2516,18 @@ all ceilings and the range-overlap correction are carried. Exclusive files:
 `docs/evaluation/capacity_study_detailed_findings.md`, its `docs/index.md` row, and this
 record.
 
+### Phase 81 claim: future research directions v2 (owner-directed, 27 July 2026)
+
+Proposals-only strategy document tiered by cost and gating: within-dissertation options
+(three-trace grid, crossover, stadium, the latency-tail analysis, RSU asymmetry), the GPU
+track (capacity-aware retraining via the producer's capacity-scalar observation variant,
+bus-native trace-replay training, reward-engineering variants, the train-×-evaluate
+matrix) with its venue and permission constraints stated, and platform directions
+(own-network experiments, the methodological claim, multi-city, the separated agentic
+layer, sensor validation). Nothing executes from it; every direction requires its own
+predeclaration and approval. Exclusive files: `docs/research_directions_v2.md`, its
+`docs/index.md` row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
