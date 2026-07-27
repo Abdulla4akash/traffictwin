@@ -2216,6 +2216,18 @@ the stadium fill-in candidate (gated on the ev timing probe), and the printable
 participant documents. Adds the post-completion read-only carve-out for the confirmatory
 analysis artifacts. Exclusive files: that prompt and this record.
 
+### Phase 39 claim: batch-6 parallel feature prompt (27 July 2026)
+
+`PARALLEL_FEATURES_MASTER_PROMPT_6.md` (repo root) specifies batch 6 — Phases 66–71: the
+read-only campaign offline verifier, dissertation results tables through the accepted
+export machinery, the B1 bridge from derived bus trajectories to the VEC-06 request shape
+(construction only, never an accepted receipt), the crossover fill-in candidate (gated on
+the confirmatory results record; notes that G6 option (i) became available with the
+Phase 28 STA-02 extension), methodology diagram drafts, and the video narration script.
+Batch 6 must not start until batch 5's end report exists. Phase numbering: 66–71 for this
+batch, 72–79 reserved unused, and the primary session moves to Phase 80+ hereafter (this
+is the last below-40 primary claim). Exclusive files: that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
