@@ -2228,6 +2228,65 @@ Batch 6 must not start until batch 5's end report exists. Phase numbering: 66–
 batch, 72–79 reserved unused, and the primary session moves to Phase 80+ hereafter (this
 is the last below-40 primary claim). Exclusive files: that prompt and this record.
 
+### Phase 66 claim: campaign offline verifier (parallel session, 27 July 2026)
+
+Feature 27 of the batch-6 prompt: the examiner-facing "campaign doctor" that re-derives a
+completed campaign's own claims from the artifacts on disk and reports every disagreement.
+
+**Exclusive new files:** `src/traffictwin/integration/vec_campaign/verify.py`,
+`scripts/verify_campaign.py`, `tests/unit/test_vec_campaign_verify.py`,
+`docs/integration/vec_campaign_verification.md`, its one `docs/index.md` row, and this record.
+
+**What it re-derives.** Six named check groups: the design fingerprint (plus experiment id and
+seed cohort) recomputed from the supplied design against `campaign_receipt.json`; the full
+(arm, seed) grid with each cell's run id and request fingerprint recomposed from the design's
+controls; each executed cell's `execution_receipt.json` re-read and its request fingerprint,
+run id, terminal status, and own fingerprint re-compared; every published output file re-hashed
+and re-sized on disk; every admitted cell looked up under the receipt-derived registry identity
+`vec:fresh:<receipt[:16]>` with its run's experiment/arm/pairing seed, its metric collection,
+and the registered experiment plan; and the approval block with its predeclaration digest
+re-hashed against the document on disk.
+
+**Boundaries.**
+
+- **Read-only with no repair path.** No `--fix`, no reconciliation, no default output location;
+  `repairs_performed` and `writes_performed` are type-level `False`. A test snapshots every
+  campaign file's size and digest, the predeclaration bytes, and the registry run count across a
+  full verification pass and asserts all three unchanged. The one honest caveat is recorded in
+  the module, the docs page, and here: the public `Registry` read methods apply their own
+  idempotent schema migration on open, exactly as any other reader does; no run, metric
+  collection, experiment, annotation, bundle record, or evidence pack is ever written.
+- **PASS is a consistency statement, never a scientific one.** Five standing limitations carried
+  in every report: not a finding/accepted result/reproduction/approval; read-only; the design is
+  the caller's and verification cannot prove it is the one a person approved; re-hashing proves
+  unchanged bytes and never numerical reproduction; and a halted campaign verifies cleanly when
+  its receipt records the halt faithfully, so PASS never means the campaign succeeded.
+- **Absent evidence is a finding, never a pass.** Missing cell directories, deleted payloads, an
+  unreachable registry, and an absent predeclaration each produce a WARNING finding. Checks the
+  caller declined (no registry supplied, `--skip-output-hashes`) are listed in `checks_not_run`
+  so a skipped check can never read as a passed one. Exit codes separate the three cases: `0`
+  passed, `1` a check failed, `2` verification could not be performed at all.
+- **No live campaign was touched.** Every fixture is synthetic under `tmp_path`; the module,
+  script, and tests never read a committed campaign directory, open a real registry, or import a
+  `scripts/capacity_*.py` design constructor, and the verifier was not run against the pilot or
+  confirmatory directories. The docs page warns that re-hashing a real campaign reads ~100 MB
+  per cell and must not be aimed at an executing directory.
+- The design constructor is imported, which executes the module's top level; the module docstring,
+  the script docstring, and the docs page all state that only a trusted repository script may be
+  passed, never a Python file that arrived with the campaign being verified.
+
+**Gates.** 29 focused tests green; 2,848 `tests/unit` green; `ruff check src tests scripts`
+clean; `ruff format --check` clean on the three touched Python files; `mypy src tests` clean over
+801 source files; `git diff --check` clean. No UI file was touched, so `tests/ui` does not apply.
+
+**Observed pre-existing flake (not from this claim).** On the first full-unit run,
+`tests/unit/test_manchester_tfgm_acquisition.py::test_failures_never_replace_accepted_and_repeat_is_refused`
+failed with `DID NOT RAISE ManchesterSnapshotError`. Its `snapshot_id` carries a one-second
+timestamp (`tfgm_traffic_signals-\d{8}T\d{6}Z-<hash>`), so the two back-to-back acquisitions only
+collide into `DESTINATION_EXISTS` when they land in the same wall-clock second. It passes in
+isolation, in its own module, and on the immediate re-run of the full suite (2,848 passed). No
+file in this claim touches Manchester code; recorded for the primary session, not repaired here.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

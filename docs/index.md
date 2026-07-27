@@ -259,6 +259,7 @@ This index points only to documentation and repository paths that exist in the c
 - [`inc` trace admission decision](decisions/ADR-062-inc-trace-allowlist-extension.md)
 - [`ev` trace admission decision](decisions/ADR-065-ev-trace-allowlist-extension.md)
 - [Bounded VEC campaign execution](integration/vec_campaign_execution.md)
+- [Campaign offline verification](integration/vec_campaign_verification.md)
 - [Campaign execution decision](decisions/ADR-063-bounded-vec-campaign-execution.md)
 - [Registry-migration decision](decisions/ADR-044-versioned-transactional-registry-migrations.md)
 - [Generated registry-migration contract](reference/generated/registry_migration_contract.json)
