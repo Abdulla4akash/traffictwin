@@ -10,7 +10,7 @@ predeclaration needing its diagnosis inputs. Session-scoped scratchpad workspace
 | Artifact | Where | State |
 |---|---|---|
 | Option-A edgeData counts (1,788 cells / 149 edges) | `docs/integration/evidence/manchester_edgedata_counts_option_a.xml` | committed, 77 KB — the demand stage's observation-side input is fully preserved |
-| Candidate demand (746,440 vehicles) | `docs/integration/evidence/manchester_candidate_demand.rou.xml` | **local only, gitignored, 6.17 GB** — survives on this machine; never in Git |
+| Candidate demand (746,440 vehicles) | `docs/integration/evidence/manchester_candidate_demand.rou.xml` | **local only, gitignored, 6.17 GB — and measured TRUNCATED** (parse ends at line 10,652,017 with no closing element; the copy was interrupted mid-write). The intact demand therefore survives nowhere; it is regenerable deterministically by re-running routeSampler with the recorded seed over the rebuilt pool and the surviving edgeData counts. The truncated file still yields a large honest sample for the route-distribution diagnosis, reported as a sample |
 | Candidate demand flows | same directory | local only, gitignored, 437 MB |
 | DfT count points (342 rows) | workspace quarantine `dft_count_points-20260723T231609Z…` | complete single-member acquisition |
 | BODS sessions (20 snapshots incl. the cadence probe) | workspace quarantine | complete, receipted |
