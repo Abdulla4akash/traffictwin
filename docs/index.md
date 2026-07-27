@@ -30,6 +30,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md)
 - [Capacity-squeeze pilot predeclaration (pilot approved by owner delegation)](evaluation/capacity_squeeze_pilot_predeclaration.md)
 - [Capacity confirmatory protocol draft (not signable yet)](evaluation/capacity_confirmatory_protocol_draft.md)
+- [Confirmatory candidate (a): descriptive null confirmation (proposed, unsigned)](evaluation/capacity_confirmatory_candidate_a_null_descriptive.md)
+- [Confirmatory candidate (b): latency primary (proposed, unsigned)](evaluation/capacity_confirmatory_candidate_b_latency_primary.md)
 - [Capacity pilot exploratory results, 27 July 2026](evaluation/capacity_pilot_results_20260727.md)
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)

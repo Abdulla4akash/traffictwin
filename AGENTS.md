@@ -1049,6 +1049,20 @@ regression test added to `tests/unit/test_vec_task_join.py`, and this record. Th
 constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
 this strictly tightens the verifier's own accuracy.
 
+#### Phase 16 fifth amendment: confirmatory fill-in candidates (27 July 2026)
+
+The claim additionally covers
+`docs/evaluation/capacity_confirmatory_candidate_a_null_descriptive.md`,
+`docs/evaluation/capacity_confirmatory_candidate_b_latency_primary.md`, their `docs/index.md`
+rows, and the candidate pointer added to the confirmatory draft. Both candidates are prepared
+fill-ins of the draft's predeclared structure using only measured pilot artifacts and the
+draft's own §3 STA-05 procedure (run 27 July: deadline endpoint requires 17–42 seeds versus
+the 5 held out, so candidate (a) records the §3 descriptive downgrade; the latency endpoint
+requires 3 seeds at every level, so candidate (b) is signable with the existing cohort). Both
+ship PROPOSED and UNSIGNED with empty sign-off blocks an agent never completes; the person
+chooses exactly one, and approval binds the chosen file's final SHA-256 with
+`held_out_authorised = true`. Held-out seeds remain untouched and unauthorised.
+
 #### Phase 16 fourth amendment: pilot results record (27 July 2026)
 
 The claim additionally covers `docs/evaluation/capacity_pilot_results_20260727.md` and its
