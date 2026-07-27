@@ -113,6 +113,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Greater Manchester baseline network foundation](integration/manchester_baseline_network.md)
 - [Manchester map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md)
 - [Analyst map-match review ledger](integration/manchester_match_review.md)
+- [Workspace continuity audit and recovery (27 July 2026)](integration/manchester_workspace_continuity_20260727.md)
 - [Match Review page route (additive, /match-review)](v07_navigation.md)
 - [Analyst review ledger decision](decisions/ADR-064-analyst-map-match-review-ledger.md)
 - [Manchester count-constrained candidate demand](integration/manchester_demand_reconstruction.md)

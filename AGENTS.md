@@ -1191,6 +1191,18 @@ claim extends to `src/traffictwin/ui/pages/match_review.py`,
 `navigation_v07.py`/`page_runtime.py`, `tests/ui/test_match_review_page.py`, the additive-route
 sentences in `docs/v07_navigation.md`, and the `docs/index.md` row.
 
+### Phase 26 claim: workspace continuity audit and network-chain recovery (27 July 2026)
+
+Read-only audit of surviving research artifacts plus the deterministic recovery of the dead
+network chain from committed pins. Recovery consumes only recorded identities (the pinned
+Geofabrik extract verified against sha `233af3fa…` before use, the frozen v1.1 policy, seed 42
+and the recorded pool envelope) and reconciles every regenerated artifact against its recorded
+counts — a difference is reported as a finding, never silently adopted.
+
+**Exclusive files:** `docs/integration/manchester_workspace_continuity_20260727.md`, its
+`docs/index.md` row, this record, and recovery outputs under the gitignored
+`data/network-recovery/` only.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
