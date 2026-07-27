@@ -307,3 +307,90 @@ def test_config_rejects_ambiguous_or_unbounded_plans() -> None:
         _config(tie_tolerance=float("inf"))
     with pytest.raises(ValidationError, match="greater than or equal to 1000"):
         _config(bootstrap_repetitions=999)
+
+
+class TestPerAlgorithmCheckpoints:
+    """Reviewed extension: distinct trained actors carry distinct checkpoints."""
+
+    def test_two_actors_with_distinct_checkpoints_rank_together(self) -> None:
+        from datetime import UTC, datetime
+
+        from traffictwin.metrics.results import (
+            MetricCollection,
+            MetricStatus,
+            MetricValue,
+        )
+
+        now = datetime(2026, 7, 27, 9, 0, tzinfo=UTC)
+        collections = []
+        for algorithm, checkpoint, base in (
+            ("actor_a", "checkpoints/a.npz", 0.8),
+            ("actor_b", "checkpoints/b.npz", 0.7),
+        ):
+            for seed in (0, 1, 2):
+                metric = MetricValue(
+                    metric_key="tos.task.deadline_success.rate",
+                    status=MetricStatus.AVAILABLE,
+                    value=base + seed * 1e-3,
+                    unit="ratio",
+                    scope="run",
+                    implementation_version="test-1.0",
+                    run_id=f"{algorithm}-{seed}",
+                    experiment_id="per-ckpt-unit",
+                    seed_id="scenario-x",
+                    algorithm=algorithm,
+                    checkpoint=checkpoint,
+                    random_seed=seed,
+                    synthetic=True,
+                    environment="randy-vec",
+                    environment_version="v2",
+                    environment_commit="0" * 40,
+                    computed_at=now,
+                )
+                collections.append(
+                    MetricCollection(
+                        run_id=f"{algorithm}-{seed}",
+                        metric_version="test-1.0",
+                        results=[metric],
+                        unavailable_count=0,
+                        partial_count=0,
+                        generated_at=now,
+                        input_fingerprint="f" * 64,
+                    )
+                )
+        config = NWayRankingConfig(
+            experiment_id="per-ckpt-unit",
+            seed_ids=["scenario-x"],
+            algorithms=["actor_a", "actor_b"],
+            checkpoint_by_algorithm={
+                "actor_a": "checkpoints/a.npz",
+                "actor_b": "checkpoints/b.npz",
+            },
+            metric_key="tos.task.deadline_success.rate",
+            bootstrap_repetitions=1_000,
+            expected_random_seeds=[0, 1, 2],
+        )
+        study = evaluate_n_way_ranking(collections, config)
+        entry = study.winner_map.entries[0]
+        assert entry.winner_algorithms == ["actor_a"]
+
+    def test_mutual_exclusion_and_key_coverage_refuse(self) -> None:
+        import pytest as _pytest
+
+        with _pytest.raises(ValueError, match="mutually exclusive"):
+            NWayRankingConfig(
+                experiment_id="x",
+                seed_ids=["s"],
+                algorithms=["a", "b"],
+                checkpoint="one.npz",
+                checkpoint_by_algorithm={"a": "a.npz", "b": "b.npz"},
+                metric_key="m",
+            )
+        with _pytest.raises(ValueError, match="keys must equal"):
+            NWayRankingConfig(
+                experiment_id="x",
+                seed_ids=["s"],
+                algorithms=["a", "b"],
+                checkpoint_by_algorithm={"a": "a.npz"},
+                metric_key="m",
+            )

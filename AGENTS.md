@@ -1226,6 +1226,23 @@ note for the demand-rebuild signing.
 **Exclusive new files:** `src/traffictwin/integration/manchester/bus_profile_comparison.py`,
 `tests/unit/test_bus_profile_comparison.py`, plus this record.
 
+### Phase 28 claim: STA-02 per-algorithm checkpoint extension (owner-directed, 27 July 2026)
+
+The reviewed extension the crossover's G6 option (i) names: `NWayRankingConfig` gains an
+optional `checkpoint_by_algorithm` mapping — mutually exclusive with the single `checkpoint`,
+keys required to equal the declared algorithms — so distinct trained actors, whose checkpoints
+necessarily differ, can be ranked together. Selection and context reconciliation use the
+per-algorithm expectation; the default single-checkpoint path is behaviourally unchanged and
+its tests still pass untouched. The generated STA-02 contract's compatibility wording was
+regenerated accordingly. Recorded consequence: adding the optional field changes the canonical
+JSON of every `NWayRankingConfig`, so config fingerprints differ from pre-extension values; no
+stored artifact pins one, and the study schema version is unchanged.
+
+**Files:** `src/traffictwin/experiments/n_way_ranking.py` (bounded extension),
+`tests/unit/test_n_way_ranking.py` (additions), the regenerated
+`docs/reference/generated/n_way_ranking_contract.json` and `pydantic_schemas.json`, and this
+record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

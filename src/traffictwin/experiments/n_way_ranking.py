@@ -77,6 +77,11 @@ class NWayRankingConfig(BaseModel):
     seed_ids: list[str] = Field(min_length=1)
     algorithms: list[str] = Field(min_length=2)
     checkpoint: str | None = None
+    #: Reviewed per-algorithm extension: when comparing policies whose
+    #: checkpoints necessarily differ (distinct trained actors), declare each
+    #: algorithm's exact checkpoint here instead of the single ``checkpoint``.
+    #: Mutually exclusive with ``checkpoint``; keys must equal ``algorithms``.
+    checkpoint_by_algorithm: dict[str, str] | None = None
     metric_key: str = Field(min_length=1)
     objective: ObjectiveDirection = ObjectiveDirection.MAXIMISE
     pairing_key: Literal["random_seed"] = "random_seed"
@@ -122,7 +127,22 @@ class NWayRankingConfig(BaseModel):
     def validate_finite_tolerance(self) -> NWayRankingConfig:
         if not math.isfinite(self.tie_tolerance):
             raise ValueError("tie_tolerance must be finite")
+        if self.checkpoint_by_algorithm is not None:
+            if self.checkpoint is not None:
+                raise ValueError("checkpoint and checkpoint_by_algorithm are mutually exclusive")
+            if set(self.checkpoint_by_algorithm) != set(self.algorithms):
+                raise ValueError("checkpoint_by_algorithm keys must equal the declared algorithms")
+            for value in self.checkpoint_by_algorithm.values():
+                if not value or len(value) > 300:
+                    raise ValueError("each per-algorithm checkpoint must be 1-300 characters")
         return self
+
+    def expected_checkpoint(self, algorithm: str) -> str | None:
+        """Return the declared checkpoint for one algorithm."""
+
+        if self.checkpoint_by_algorithm is not None:
+            return self.checkpoint_by_algorithm.get(algorithm)
+        return self.checkpoint
 
     def fingerprint(self) -> str:
         """Return the stable identity of the complete analysis plan."""
@@ -344,7 +364,8 @@ def n_way_ranking_contract() -> NWayRankingContract:
         },
         multiple_comparison_policy=("not_applicable_joint_descriptive_ranking_no_hypothesis_tests"),
         compatibility_requirements=[
-            "experiment, declared scenario family, selected policy, checkpoint, and common seed",
+            "experiment, declared scenario family, selected policy, checkpoint (single, or "
+            "declared per algorithm for distinct trained actors), and common seed",
             "metric collection and implementation versions, finite scalar status, and unit",
             "synthetic label and exact environment identity/version-or-commit",
             "immutable source fingerprint for every admitted endpoint",
@@ -397,7 +418,7 @@ def evaluate_n_way_ranking(
             context.experiment_id != config.experiment_id
             or family_id not in config.seed_ids
             or context.algorithm not in config.algorithms
-            or context.checkpoint != config.checkpoint
+            or context.checkpoint != config.expected_checkpoint(context.algorithm)
             or (expected_set and context.random_seed not in expected_set)
         ):
             continue
@@ -1006,7 +1027,7 @@ def _candidate_from_collection(
         config.experiment_id,
         context.seed_id,
         context.algorithm,
-        config.checkpoint,
+        config.expected_checkpoint(context.algorithm),
         context.random_seed,
     )
     actual_context = (

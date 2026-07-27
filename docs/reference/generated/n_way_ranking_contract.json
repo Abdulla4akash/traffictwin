@@ -9,7 +9,7 @@
   "bootstrap_method": "joint_paired_seed_percentile_bootstrap_v1",
   "comparison_scope": "Policies are ranked independently within each declared scenario-seed family; scenario and policy effects are not conflated.",
   "compatibility_requirements": [
-    "experiment, declared scenario family, selected policy, checkpoint, and common seed",
+    "experiment, declared scenario family, selected policy, checkpoint (single, or declared per algorithm for distinct trained actors), and common seed",
     "metric collection and implementation versions, finite scalar status, and unit",
     "synthetic label and exact environment identity/version-or-commit",
     "immutable source fingerprint for every admitted endpoint",

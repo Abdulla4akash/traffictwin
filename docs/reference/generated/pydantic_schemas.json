@@ -48822,6 +48822,21 @@
           "default": null,
           "title": "Checkpoint"
         },
+        "checkpoint_by_algorithm": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checkpoint By Algorithm"
+        },
         "confidence_level": {
           "default": 0.95,
           "maximum": 0.99,
@@ -50077,6 +50092,21 @@
               ],
               "default": null,
               "title": "Checkpoint"
+            },
+            "checkpoint_by_algorithm": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Checkpoint By Algorithm"
             },
             "confidence_level": {
               "default": 0.95,
