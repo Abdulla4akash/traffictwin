@@ -1860,6 +1860,25 @@ file's SHA-256 beside the design fingerprint and every projection fingerprint, w
 only link a later reader has between a committed figure and the payload that produced it.
 The tests assert determinism on synthetic payloads instead.
 
+### Phase 52 claim: user-evaluation instrument draft (parallel session, 27 July 2026)
+
+Feature 13 of the batch-3 prompt, documentation-only: the survey instrument the ethics
+application references, drafted so submission is attach-and-send.
+
+**Exclusive files:** `docs/evaluation/user_evaluation_instrument_draft.md`, its
+`docs/index.md` row, and this record.
+
+**Boundaries.**
+
+- Ships **PROPOSED and unsigned**. Every value carried from the ethics draft's proposed-value
+  table is marked as a proposal a person confirms at submission, and the bracketed fields
+  only a person can supply — contacts, storage service, ethics reference, session dates —
+  stay bracketed. No approval, signature, reference number, or participant response is
+  invented, and none ever will be by an agent.
+- Composes the existing instrument documents rather than replacing them. `survey.md`,
+  `consent_and_privacy.md`, `participant_task_script.md`, and `interview_guide.md` are read
+  and cited; none is edited, and none is outside this claim by accident.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
