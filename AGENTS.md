@@ -1389,6 +1389,40 @@ additive-spec and runtime-hook lines in `navigation_v07.py`/`page_runtime.py`, o
 - Additive route only, via `V07AdditivePageSpec` (the Phase 25 match-review precedent), so
   the counted 34-page `UiPage` inventory is untouched.
 
+### Phase 41 claim: demand-diagnosis library (parallel session, 27 July 2026)
+
+Feature 2 of the Phase 34 master prompt: the §2 measurements of
+`docs/evaluation/demand_rebuild_predeclaration.md` implemented as a tested library so the
+signed rebuild's diagnosis step is execution-ready. **It runs on no real data.** No route
+pool is generated, no simulation runs, and the alpha.7 candidate demand and its gridlock
+diagnostic stay untouched.
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/demand_diagnosis.py`,
+`tests/unit/test_manchester_demand_diagnosis.py`, plus this record.
+
+**Boundaries.**
+
+- Measurements only. `purpose` is the type-level literal `measurements_only`, and
+  `viability_verdict_included`, `threshold_applied`, and `variant_selected` are type-level
+  `False`. The §4 thresholds are owner decision E3 and appear nowhere in this module; the
+  library reports distributions and lets the person compare them.
+- The library never loads a route file into memory. `iter_route_pool` streams with
+  `defusedxml`'s hardened `iterparse` — streaming *and* entity/external-reference safe, the
+  parser family the Manchester adapters already use — and clears both the element and the
+  document root after every route, so peak memory is bounded by one route regardless of file
+  size. That is the 1.28 GB lesson, and a test asserts the iterator really is lazy rather
+  than reading ahead.
+- **Recorded deviation from the master prompt's wording:** the prompt asked for line
+  iteration; XML attributes may legally span lines, so a line-regex would silently drop
+  routes, and a diagnosis that silently under-counts is worse than one that is slower.
+  Streaming `iterparse` meets the actual constraint (never load the whole file) without that
+  failure mode, and a test asserts a multi-line route is still parsed.
+- Unmeasurable routes are recorded, never dropped silently: a route referencing an edge
+  absent from the supplied mapping is counted in `routes_with_unknown_edges` and excluded
+  from the length and residence-time distributions, whose own `n` is reported.
+- Percentiles reuse the accepted deterministic `percentile_linear` helper rather than a new
+  convention.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
