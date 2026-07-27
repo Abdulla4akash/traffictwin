@@ -1423,6 +1423,43 @@ diagnostic stay untouched.
 - Percentiles reuse the accepted deterministic `percentile_linear` helper rather than a new
   convention.
 
+### Phase 42 claim: campaign mechanism report (parallel session, 27 July 2026)
+
+Feature 3 of the Phase 34 master prompt: the explainability exhibit that sits beside the
+exploratory campaign analysis. Given a completed analysis (parsed model or the plain dict of
+one), it renders the per-seed evidence for *how* the arms differ — the full seed × arm
+matrix for primary and secondary metrics, an invariance check naming the metrics the control
+never moved, and an adjacent-arm range comparison.
+
+**Exclusive new files:** `src/traffictwin/integration/vec_campaign/mechanism_report.py`,
+`tests/unit/test_vec_mechanism_report.py`, plus this record.
+
+**Boundaries.**
+
+- Re-presentation only: it computes no metric, reads no registry, launches nothing, and
+  imports no campaign service — only the models and analysis modules. `descriptive_non_causal`
+  and `exploratory` are type-level `True`; `confirmatory`, `significance_claimed`, and
+  `causal_claim` are type-level `False`.
+- Invariance is stated precisely as *exact equality of the recorded values across arms within
+  a seed*, and the report says so rather than leaning on the looser word "bit-identical"
+  alone. A single-arm metric is never called invariant across arms.
+- The report deliberately separates two questions that are easy to collapse: arm-level range
+  overlap (across seeds) and per-seed ordering consistency. Reporting only the first
+  understates the evidence; reporting only the second overstates it.
+
+**Measured finding for the lead, recorded rather than acted on.** Run read-only against the
+pilot's `campaign_analysis.json`, the report reproduces the pilot's mechanism finding exactly
+— `task.offload.rate` is invariant across all four arms in every seed, and
+`tos.task.no_eligible_target.rate_among_offload` is too. It also shows that for
+`task.latency.mean_ms` the adjacent-arm **ranges overlap** at every step (e.g. `cap-2.5`
+spans [6277.9, 13176.0] against `cap-1.5`'s [3961.8, 8065.2]) while the **per-seed ordering
+is perfectly consistent** (0 of 3 seeds invert at any step). The sentence in
+`docs/evaluation/capacity_pilot_results_20260727.md` — "per-arm ranges that do not overlap
+between adjacent arms at any seed" — is true on the per-seed-ordering reading and false on
+the plain range reading. That file is outside this session's claim and was not edited; the
+lead may want to tighten the wording to "no seed inverts the ordering" before the
+dissertation quotes it.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
