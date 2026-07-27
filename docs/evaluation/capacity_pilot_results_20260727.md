@@ -37,9 +37,17 @@ differences of +0.000111 / +0.000180 / +0.000325 with bootstrap intervals [0.000
 holds: on this collapse-hour trace, capacity squeeze did not reduce deadline attainment.**
 
 **2. Mean task latency collapses monotonically, 3.2×.** 9,798.8 → 6,029.6 → 4,089.9 →
-3,083.6 ms by descending capacity, with per-arm ranges that do not overlap between adjacent
-arms at any seed. A tighter per-vehicle concurrency bound shortens effective queues for the
-same deadline outcomes.
+3,083.6 ms by descending capacity. **Within every seed, every adjacent capacity step reduces
+mean latency — 0 of 3 seeds invert at any step.** (Correction, 27 July 2026: this record
+originally said "per-arm ranges that do not overlap between adjacent arms at any seed" —
+that is true of the within-seed paired ordering but false of the pooled per-arm ranges,
+which do overlap because between-seed variation exceeds adjacent-arm separation, e.g.
+cap-2.5 spans [6,277.9, 13,176.0] ms against cap-1.5's [3,961.8, 8,065.2] ms. The paired
+within-seed contrasts are what the statistical machinery uses, and those are uniformly
+negative. The same imprecise sentence appears in the chosen confirmatory candidate (b),
+whose bytes are frozen by the campaign approval digest and therefore corrected here, not
+there.) A tighter per-vehicle concurrency bound shortens effective queues for the same
+deadline outcomes.
 
 **3. The mechanism is visible: the policy is capacity-invariant.** Offload rates are
 bit-identical across all four capacities within every seed (0.402608 / 0.406349 / 0.414181 by

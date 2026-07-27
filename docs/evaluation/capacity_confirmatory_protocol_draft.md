@@ -37,7 +37,9 @@ One primary contrast, fixed here in structure and fixed in value at signing:
   attainment on the collapse-hour trace — with a descriptive held-out confirmation; or
   **(b)** declare a *new* primary endpoint for this separate protocol before any held-out data
   exists: `task.latency.mean_ms` (minimise), where the pilot measured a monotone 3.2×
-  collapse (9,799 → 3,084 ms mean) with non-overlapping per-arm ranges across all seeds while
+  collapse (9,799 → 3,084 ms mean) with strictly consistent within-seed ordering — no seed
+  inverts at any adjacent step; pooled per-arm ranges overlap (see the corrected results
+  record) — while
   offloading decisions stayed bit-identical across capacities. Naming latency here is
   methodologically defensible precisely because it happens before held-out execution; it must
   be recorded as pilot-informed, never as the pilot's own primary.
