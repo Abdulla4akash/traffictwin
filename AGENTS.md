@@ -2287,6 +2287,63 @@ collide into `DESTINATION_EXISTS` when they land in the same wall-clock second. 
 isolation, in its own module, and on the immediate re-run of the full suite (2,848 passed). No
 file in this claim touches Manchester code; recorded for the primary session, not repaired here.
 
+### Phase 67 claim: dissertation results tables (parallel session, 27 July 2026)
+
+Feature 28 of the batch-6 prompt: the two results tables the write-up quotes, generated only
+through the accepted REP-01 exporter so no number is ever retyped by hand.
+
+**Exclusive new files:** `scripts/generate_results_tables.py`,
+`tests/unit/test_results_tables_script.py`, the generated
+`docs/dissertation_appendices/tables/vec_capacity_squeeze_pilot_{arm_descriptives.tex,
+predeclared_comparisons.tex,predeclared_comparisons.svg,provenance.md}`, its one `docs/index.md`
+row, and this record. `src/traffictwin/reporting/latex.py` was read and not modified.
+
+**What ships.** Per-arm descriptives (every arm × primary and secondary metric, with mean,
+minimum, maximum and the per-seed values, each row labelled primary or secondary by which list of
+the analysis it came from) and the predeclared comparisons (mean paired difference, bootstrap
+interval with its confidence level, randomisation p-value, admitted pair count, and the estimate's
+own interpretation). Both are `ResearchExportProjection` models rendered by
+`write_projection_exports`; the script computes nothing.
+
+**Boundaries.**
+
+- **Values are copied at full round-trip precision.** Cells use `repr` of the recorded float, so
+  a dissertation quote loses nothing. A test pins the choice by asserting that the six-significant-
+  figure form of a fixture value differs from the emitted form and does not appear in the output.
+  Absent statistics render as `unavailable`, never as `0`.
+- **Labels are read from the artifacts, never inferred.** The exploratory/confirmatory stance and
+  the research status come from the analysis payload's own type-level fields; the seed cohort comes
+  from the sibling `campaign_receipt.json` and is reported as `undeclared` when no receipt is
+  present. Recorded in the script, the provenance note, and here: the accepted analysis module
+  fixes `confirmatory` to `False` for **every** campaign it analyses, so a held-out cohort is
+  reported as a held-out cohort while the statistical stance still reads exploratory. Consuming a
+  reserved cohort does not promote a result; signing the confirmatory protocol does.
+- **The descriptives table ships without a figure, on purpose.** Its rows mix a success ratio with
+  a latency in milliseconds, and the accepted exporter draws numeric entries on one shared linear
+  scale, so a combined figure would misrepresent them. The provenance note states this and points
+  at the per-metric figures under `dissertation_appendices/figures/`. The comparisons table does
+  carry a figure: every paired difference it plots is in the primary endpoint's single unit.
+- **Deterministic and non-clobbering.** No timestamp and no local path reaches any output;
+  regeneration on unchanged input rewrote byte-identical files (verified against the committed
+  set). Existing outputs are never replaced without `--overwrite`, and the analysis path is a
+  required argument with no default, so the script cannot wander into an executing campaign.
+- The exporter's 160-character caption/cell bound is handled by an explicit fit that truncates
+  **and** records the truncation in the projection's own warnings, so a long experiment identifier
+  can neither crash the run nor silently lose characters.
+
+**Confirmatory half: PENDING, not skipped.** The precondition is a confirmatory results record
+under `docs/evaluation/`; only `capacity_confirmatory_{candidate_a_null_descriptive,
+candidate_b_latency_primary,protocol_draft}.md` exist, and the held-out campaign was still
+executing during this batch (launcher alive, cell `cap-2.5-fs14` running, on-disk receipt still the
+superseded `halted_on_failure` one from 16:39). The generator is phase-agnostic and needs no change
+to run for the confirmatory payload: `uv run python scripts/generate_results_tables.py
+<confirmatory>/campaign_analysis.json`. Nothing under `data/vec-fresh/capacity-confirmatory/` was
+written, and no `capacity_*` evaluation document was touched.
+
+**Gates.** 18 focused tests green; 2,866 `tests/unit` green; `ruff check src tests scripts` clean;
+`ruff format --check` clean on both touched Python files; `mypy src tests` clean over 802 source
+files; `git diff --check` clean. No UI file was touched, so `tests/ui` does not apply.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

@@ -39,6 +39,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Dissertation appendices (generated: capability catalogue, software versions)](dissertation_appendices/appendix_a_capability_catalogue.md)
 - [Trace provenance appendix (five source trace/occupancy pairs)](dissertation_appendices/trace_provenance.md)
 - [Capacity-study figures and their provenance (exploratory)](dissertation_appendices/figures/provenance.md)
+- [Capacity-pilot results tables and their provenance (exploratory)](dissertation_appendices/tables/vec_capacity_squeeze_pilot_provenance.md)
 - [Objectives traceability appendix (O1–O7 spine)](dissertation_appendices/objectives_traceability.md)
 - [Abbreviations and house terms appendix](dissertation_appendices/abbreviations.md)
 - [Quality-gate snapshot appendix (generated)](dissertation_appendices/quality_snapshot.md)

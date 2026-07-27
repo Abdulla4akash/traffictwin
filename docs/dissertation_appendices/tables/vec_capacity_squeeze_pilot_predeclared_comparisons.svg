@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="264" viewBox="0 0 1000 264" role="img">
+  <title>Predeclared paired comparisons</title>
+  <desc>Deterministic TrafficTwin figure; source mode imported or non-synthetic; projection 3c9bb74e8bae.</desc>
+  <rect x="0" y="0" width="1000" height="100%" fill="#ffffff"/>
+  <text x="40" y="42" font-family="Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#17324d">Predeclared paired comparisons</text>
+  <text x="40" y="70" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#526473">Source: vec-capacity-squeeze-pilot; exploratory; owner_approved_candidate; cohort pilot | Mode: imported or non-synthetic | Projection: 3c9bb74e8bae</text>
+  <line x1="439.23" y1="115" x2="439.23" y2="239" stroke="#526473" stroke-width="1"/>
+  <text x="40" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">cap-0.75 vs cap-2.5</text>
+  <rect x="439.23" y="122" width="480.77" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">0.000324839</text>
+  <text x="40" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">cap-1.0 vs cap-2.5</text>
+  <rect x="439.23" y="160" width="265.79" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">0.000179588</text>
+  <text x="40" y="213" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">cap-1.5 vs cap-2.5</text>
+  <rect x="439.23" y="198" width="163.59" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="213" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">0.000110531</text>
+  <text x="40" y="100" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">Signed linear scale; direction does not imply favourability.</text>
+</svg>
