@@ -2001,6 +2001,42 @@ before anything downstream may read it.
 - Imports models from `vec_campaign.models` and `vec_runner.models` only. No campaign
   service, no registry, no admission module.
 
+### Phase 57 claim: bus-versus-DfT comparison report script (parallel session, 27 July 2026)
+
+Feature 18 of the batch-4 prompt: one command over an explicit workspace path that runs the
+accepted `bus_profile_comparison` machinery against the committed Option-A edgeData file and
+writes the comparison out as a JSON artifact and a markdown report.
+
+**Exclusive new files:** `scripts/bus_dft_comparison_report.py`,
+`tests/unit/test_bus_dft_comparison_report_script.py`, plus this record.
+
+**Boundaries.**
+
+- Composes the accepted `bods_session_identity` and `bus_profile_comparison` modules
+  **read-only and by full module path** (the Manchester package `__init__` is lead-claimed).
+  Neither module is edited and no measurement is recomputed — the alignment, the support gate,
+  and the rank correlation are all the accepted functions' own output.
+- **The UTC-to-local offset is a required argument with no default.** The session artifacts
+  record UTC hours and the DfT profile records local clock-hour labels; a defaulted offset
+  would silently misalign two independent real sources by an hour, so the script refuses to
+  run without one.
+- **Aggregates only, and snapshot ids do not travel.** The workspace artifact must declare
+  `aggregates_only` and must not claim `raw_identifiers_published` or it is refused. A
+  snapshot id is a locator into the quarantine directory, so the written report publishes
+  `session_snapshot_count` and sets `session_snapshot_ids_published` to a type-level `False`;
+  the ids stay in the workspace artifact. Neither written file contains an absolute path.
+- **Support-gated hours are reported with their counts.** The accepted comparison records only
+  which hours it excluded; the report looks each excluded hour's segment count back up in the
+  progression measurement, so a reader sees how much support an excluded hour actually had
+  rather than only that it was dropped.
+- Bus speed is never road speed and road counts are never bus counts, both carried as
+  type-level literals. The Spearman value is reported as a rank correlation between two
+  observed shapes with no significance test, no threshold, and no causal reading;
+  `significance_claimed` is type-level `False` and a test pins a causal-vocabulary ban over
+  the rendered markdown.
+- No acquisition, no API key, no network, no snapshot read, no quarantine access. Both output
+  paths are supplied; an existing output is kept unless `--overwrite` is passed.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,
