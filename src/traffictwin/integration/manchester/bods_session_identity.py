@@ -398,3 +398,97 @@ def measurement_to_json(measurement: SessionCadenceMeasurement) -> str:
     return json.dumps(
         measurement.model_dump(mode="json"), indent=2, sort_keys=True, allow_nan=False
     )
+
+
+class SessionProgressionMeasurement(ManchesterSnapshotModel):
+    """Aggregate-only hourly bus-progression evidence for one session (B2).
+
+    Progression speed is displacement over update interval for linked
+    vehicles — explicitly **bus** progression, never road-traffic speed, and
+    aggregated per UTC hour so sessions across contrasting hours can later sit
+    beside the DfT hourly profile as two independent real sources.
+    """
+
+    schema_version: Literal["1.0"] = "1.0"
+    policy_id: Literal["manchester-bods-session-identity-1.0"] = SESSION_IDENTITY_POLICY_ID
+    research_status: Literal["owner_approved_candidate"] = "owner_approved_candidate"
+    snapshot_ids: tuple[str, ...] = Field(min_length=2)
+    hour_utc: tuple[int, ...] = Field(min_length=1)
+    segment_count_by_hour: tuple[int, ...] = Field(min_length=1)
+    speed_mps_median_by_hour: tuple[float, ...] = Field(min_length=1)
+    speed_mps_p90_by_hour: tuple[float, ...] = Field(min_length=1)
+    vehicles_contributing_by_hour: tuple[int, ...] = Field(min_length=1)
+    aggregates_only: Literal[True] = True
+    raw_identifiers_published: Literal[False] = False
+    bus_progression_only: Literal[True] = True
+    road_traffic_speed_available: Literal[False] = False
+    dft_comparison_performed: Literal[False] = False
+
+    @model_validator(mode="after")
+    def validate_alignment(self) -> SessionProgressionMeasurement:
+        lengths = {
+            len(self.hour_utc),
+            len(self.segment_count_by_hour),
+            len(self.speed_mps_median_by_hour),
+            len(self.speed_mps_p90_by_hour),
+            len(self.vehicles_contributing_by_hour),
+        }
+        if lengths != {len(self.hour_utc)}:
+            raise ValueError("every hourly series must align with the hour axis")
+        if any(hour < 0 or hour > 23 for hour in self.hour_utc):
+            raise ValueError("hours are UTC clock hours")
+        return self
+
+
+def measure_session_progression(
+    results: list[SessionExtractionResult],
+) -> SessionProgressionMeasurement:
+    """Reduce one session to hourly bus-progression aggregates (B2 primitive)."""
+
+    snapshot_ids = [result.snapshot_id for result in results]
+    if len(snapshot_ids) != len(set(snapshot_ids)):
+        raise BodsSessionIdentityError(
+            "DUPLICATE_SNAPSHOT", "each snapshot enters the session exactly once"
+        )
+    if len(snapshot_ids) < 2:
+        raise BodsSessionIdentityError(
+            "SESSION_TOO_SHORT", "progression needs at least two snapshots"
+        )
+    by_token: dict[str, list[SessionObservation]] = defaultdict(list)
+    for result in results:
+        for observation in result.observations:
+            by_token[observation.session_token].append(observation)
+
+    speeds_by_hour: dict[int, list[float]] = defaultdict(list)
+    vehicles_by_hour: dict[int, set[str]] = defaultdict(set)
+    for token, observations in by_token.items():
+        distinct = sorted(
+            {(obs.recorded_at_utc, obs.longitude, obs.latitude) for obs in observations},
+            key=lambda item: item[0],
+        )
+        for earlier, later in zip(distinct, distinct[1:], strict=False):
+            delta = (later[0] - earlier[0]).total_seconds()
+            if delta <= 0:
+                continue
+            speed = _haversine_m(earlier[1], earlier[2], later[1], later[2]) / delta
+            hour = earlier[0].hour
+            speeds_by_hour[hour].append(speed)
+            vehicles_by_hour[hour].add(token)
+
+    if not speeds_by_hour:
+        raise BodsSessionIdentityError(
+            "NO_PROGRESSION", "no linked vehicle moved between snapshots"
+        )
+    hours = sorted(speeds_by_hour)
+    return SessionProgressionMeasurement(
+        snapshot_ids=tuple(snapshot_ids),
+        hour_utc=tuple(hours),
+        segment_count_by_hour=tuple(len(speeds_by_hour[hour]) for hour in hours),
+        speed_mps_median_by_hour=tuple(
+            _percentile(speeds_by_hour[hour], 0.5) or 0.0 for hour in hours
+        ),
+        speed_mps_p90_by_hour=tuple(
+            _percentile(speeds_by_hour[hour], 0.9) or 0.0 for hour in hours
+        ),
+        vehicles_contributing_by_hour=tuple(len(vehicles_by_hour[hour]) for hour in hours),
+    )

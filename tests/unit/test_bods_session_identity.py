@@ -161,3 +161,51 @@ def test_gzip_wire_members_decompress_after_hash_verification() -> None:
     )
     assert result.activities_seen == 2
     assert result.observations_extracted == 2
+
+
+def test_progression_aggregates_by_hour_and_stays_bus_only() -> None:
+    from traffictwin.integration.manchester.bods_session_identity import (
+        measure_session_progression,
+    )
+
+    results = [
+        extract_session_observations_from_member(
+            _member(), snapshot_id="snap-a", session_salt=SALT
+        ),
+        extract_session_observations_from_member(
+            _member(recorded_shift_s=60, lon_shift="2380"),
+            snapshot_id="snap-b",
+            session_salt=SALT,
+        ),
+    ]
+
+    progression = measure_session_progression(results)
+
+    assert progression.hour_utc == (12,) or progression.hour_utc == (11, 12)
+    assert sum(progression.segment_count_by_hour) == 2
+    # One vehicle moves and one dwells; a zero-speed segment is honest dwell,
+    # not an error, so only the moving vehicle's bucket must be positive.
+    assert any(speed > 0 for speed in progression.speed_mps_median_by_hour)
+    assert progression.bus_progression_only is True
+    assert progression.road_traffic_speed_available is False
+    assert progression.dft_comparison_performed is False
+    rendered = progression.canonical_json()
+    assert "synthetic-vehicle" not in rendered
+    assert "session_token" not in rendered
+
+
+def test_progression_refuses_a_motionless_session() -> None:
+    from traffictwin.integration.manchester.bods_session_identity import (
+        measure_session_progression,
+    )
+
+    results = [
+        extract_session_observations_from_member(
+            _member(), snapshot_id="snap-a", session_salt=SALT
+        ),
+        extract_session_observations_from_member(
+            _member(), snapshot_id="snap-b", session_salt=SALT
+        ),
+    ]
+    with pytest.raises(BodsSessionIdentityError, match="NO_PROGRESSION"):
+        measure_session_progression(results)

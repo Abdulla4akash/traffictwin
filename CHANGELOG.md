@@ -2,6 +2,22 @@
 
 ## v0.7.0 - In development
 
+Opened the live-bus experiment track under owner direction, with measured evidence first:
+
+- an options assessment grounded in the accepted probe (304 concurrent live vehicles; 60-second
+  one-at-a-time attended acquisition bound), recommending the real-bus-fleet offloading
+  experiment and recording the structural constraint that published scenes deliberately prevent
+  cross-snapshot vehicle linking;
+- the owner-approved session-scoped identity policy: HMAC session tokens under an in-process
+  salt that dies with the session, extraction gated on quarantine receipt and member hash,
+  raw references and tokens asserted absent from every serialised output;
+- the first attended fifteen-snapshot session, which exposed and fixed two real-wire extraction
+  defects (raw/-prefixed members, gzip wire bytes) and measured per-vehicle update cadence at
+  median 68 s / p90 75 s — filling the bus-fleet draft's probe fields and correcting its
+  proposed viability speed bound against a legitimate 28.4 m/s motorway coach; and
+- aggregate-only hourly bus-progression measurement as the cross-source (B2) primitive,
+  explicitly bus-only and never road-traffic speed.
+
 Completed the experiment instrument and the review-workflow decision half after the alpha.8
 checkpoint (ADR-063, ADR-064):
 
