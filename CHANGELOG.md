@@ -2,6 +2,16 @@
 
 ## v0.7.0 - In development
 
+Continued the autonomous build-out on 27 July: the Match Review page landed as an additive
+v0.7 route with the full decide-persist-resume-seal flow under AppTest; a workspace continuity
+audit found the network chain dead in expired session workspaces and the Geofabrik dated-file
+pin **mutated upstream** (recovery halted at the verification gate as owner decision N1, and a
+reproducibility finding in its own right); the surviving demand artifact measured truncated and
+provenance-uncertain; the B2 bus-versus-DfT hourly shape comparison shipped from committed
+artifacts with a +3,152 edgeData reconciliation note; and the crossover's descriptive
+cross-actor slope comparison shipped with its rendered report, because the accepted paired and
+ranking tools structurally cannot compare the two audited actors.
+
 Opened the live-bus experiment track under owner direction, with measured evidence first:
 
 - an options assessment grounded in the accepted probe (304 concurrent live vehicles; 60-second

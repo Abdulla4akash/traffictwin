@@ -185,3 +185,47 @@ def _ols_slope(x_values: tuple[float, ...], y_values: tuple[float, ...]) -> floa
         sum((x - mean_x) * (y - mean_y) for x, y in zip(x_values, y_values, strict=True))
         / denominator
     )
+
+
+def render_slope_comparison_markdown(comparison: ActorSlopeComparison) -> str:
+    """Render one deterministic descriptive cross-actor report."""
+
+    first, second = comparison.curves
+    lines = [
+        "# Cross-actor capacity-slope comparison (descriptive)",
+        "",
+        "**Owner-approved candidate evidence. Descriptive and non-causal; no "
+        "confirmatory or significance claim is made by this report.**",
+        "",
+        f"- Method: `{comparison.method_version}`",
+        f"- Primary endpoint: `{comparison.primary_metric_key}`",
+        f"- Crossover rule: `{comparison.crossover_rule}`",
+        f"- Rule applicable: {comparison.crossover_rule_applicable} — "
+        f"crossover detected: **{comparison.crossover_detected}**",
+        "",
+        "## Per-level means and winners",
+        "",
+        f"| Capacity | `{first.actor_id}` | `{second.actor_id}` | Δ (first − second) "
+        "| Winner | Support |",
+        "|---:|---:|---:|---:|---|---|",
+    ]
+    for index, level in enumerate(comparison.shared_capacity_levels):
+        lines.append(
+            f"| {level} | {first.mean_by_level[index]:.6f} "
+            f"| {second.mean_by_level[index]:.6f} "
+            f"| {comparison.delta_by_level_first_minus_second[index]:+.6f} "
+            f"| {comparison.winner_by_level[index]} "
+            f"| {first.seed_support_by_level[index]}/{second.seed_support_by_level[index]} |"
+        )
+    lines += [
+        "",
+        "## Slopes (ordinary least squares over capacity)",
+        "",
+        f"- `{first.actor_id}`: {first.ols_slope_per_capacity_unit:+.6f} per capacity unit"
+        f" (complete support: {first.complete_support})",
+        f"- `{second.actor_id}`: {second.ols_slope_per_capacity_unit:+.6f} per capacity unit"
+        f" (complete support: {second.complete_support})",
+        f"- Difference (first − second): {comparison.slope_difference_first_minus_second:+.6f}",
+        "",
+    ]
+    return "\n".join(lines)

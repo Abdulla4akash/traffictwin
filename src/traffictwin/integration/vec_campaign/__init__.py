@@ -34,6 +34,7 @@ from traffictwin.integration.vec_campaign.slope_comparison import (
     ActorCapacityCurve,
     ActorSlopeComparison,
     compare_actor_capacity_slopes,
+    render_slope_comparison_markdown,
 )
 
 __all__ = [
@@ -63,5 +64,6 @@ __all__ = [
     "execute_campaign",
     "register_campaign_experiment",
     "render_campaign_analysis_markdown",
+    "render_slope_comparison_markdown",
     "verify_predeclaration",
 ]

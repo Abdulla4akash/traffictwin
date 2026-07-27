@@ -176,3 +176,26 @@ def test_mismatched_levels_and_identical_actors_refuse() -> None:
             second_actor_id="actor_a",
             expected_seed_count=3,
         )
+
+
+def test_rendered_report_is_deterministic_and_descriptive() -> None:
+    from traffictwin.integration.vec_campaign.slope_comparison import (
+        render_slope_comparison_markdown,
+    )
+
+    first = _analysis("actor_a", {"cap-2.5": 0.80, "cap-1.0": 0.60})
+    second = _analysis("actor_b", {"cap-2.5": 0.75, "cap-1.0": 0.70})
+    comparison = compare_actor_capacity_slopes(
+        first,
+        second,
+        first_actor_id="actor_a",
+        second_actor_id="actor_b",
+        expected_seed_count=3,
+    )
+
+    report = render_slope_comparison_markdown(comparison)
+
+    assert "Descriptive and non-causal" in report
+    assert "crossover detected: **True**" in report
+    assert "actor_a" in report and "actor_b" in report
+    assert render_slope_comparison_markdown(comparison) == report
