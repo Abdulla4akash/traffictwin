@@ -1169,6 +1169,25 @@ confirm-and-send. Nothing is submitted, approved, or represented as such; every 
 proposal a person must confirm, and the supervisor/ethics reference fields stay explicitly
 assigned-at-submission. Exclusive files: that draft and this record.
 
+### Phase 25 claim: match-review UI service layer (owner-directed, 27 July 2026)
+
+The page-independent 70% of the Match Review screen: load match rows and rebuild the queue from
+the artifact (so the queue can never drift from its rows), open or continue a working ledger
+with queue/policy binding enforced, record exactly one decision per call through the fail-closed
+library, and seal for export beside the untouched working copy. All errors are user-facing
+values, not exceptions.
+
+**Exclusive new files:** `src/traffictwin/ui/review_services.py`,
+`tests/unit/ui/test_review_services.py`, plus this record. `services.py` is deliberately not
+grown.
+
+**Recorded next slice (not started): page wiring.** Adding the page touches the counted
+navigation inventories; the measured touch-list is exactly: a `UiPage` entry plus description in
+`labels.py`, one `V07PageSpec`, a four-line `app_pages` shim, the page module, the three literal
+`34` counts in `tests/ui/test_navigation_v07.py:28-31`, and the group record in
+`docs/v07_navigation.md`. Everything else derives from `len(UiPage)`. That slice lands as one
+commit with the full UI suite green, or not at all.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
