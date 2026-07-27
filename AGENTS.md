@@ -1338,6 +1338,15 @@ invocation now uses the repository's actual `uv sync` / `uv run` workflow. No fl
 caveat, boundary statement, or capability wording changed. Exclusive files:
 `docs/demo_script.md`, `docs/demo_checklist.md`, `docs/standalone_demo.md`, and this record.
 
+### Phase 33 claim: owner action pack (owner-directed, 27 July 2026)
+
+The owner asked for the pending communications and the next-day plan to be committed:
+`docs/owner_action_pack_20260727.md` carries the three send drafts (supervisor progress
+email, Randy provenance/baseline/permission email, CSF access request) and the Monday
+to-do. All are explicitly DRAFTS the owner reviews and sends personally; no agent sends
+external communications; recipient addresses are omitted. Exclusive files: that document,
+its `docs/index.md` row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

@@ -406,6 +406,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [Week 4 supervisor-expectation progress checklist, 27 July 2026](current_progress_week4.md)
+- [Owner action pack: send drafts and Monday to-do, 27 July 2026](owner_action_pack_20260727.md)
 - [Implemented Randy/VEC integration design v0.6](traffictwin-design-v0_6.md)
 - [Implemented baseline design v0.5](traffictwin-design-v0_5.md)
 - [Historical design proposal v0.4](traffictwin-design-v0_4.md)
