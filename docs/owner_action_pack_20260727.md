@@ -8,34 +8,51 @@ deliberately omitted — the owner fills them at send time.
 
 ## 1. Email to Dr Sandra Sampaio (Monday progress cycle)
 
-> **Subject:** Week 4 progress — first experimental result, and three scoping questions
+> **Subject:** Week 4 progress — a confirmed finding overnight, and three scoping questions
 >
 > Dear Dr Sampaio,
 >
-> A short update ahead of Monday. The platform's experiment instrument is complete and
-> produced its first predeclared result this weekend: on the incident-hour Manchester trace,
-> tightening per-vehicle edge capacity 3.3× left deadline attainment unchanged (~79%) while
-> cutting mean task latency by two-thirds — because the trained policy's offloading
-> decisions turn out to be capacity-invariant. The expected degradation cliff did not
-> appear; the null was predeclared as publishable, and a powered confirmatory run on
-> held-out seeds is executing now with mean latency as its declared primary. A full written
-> progress checklist against our meeting notes is in the repository
-> (`docs/current_progress_week4.md`).
+> A short update ahead of our meeting, with a result that landed overnight.
+>
+> The platform's experiment instrument is complete and has now produced a **confirmed,
+> predeclared finding**. In the exploratory pilot on the incident-hour Manchester trace,
+> tightening per-vehicle edge capacity 3.3× left deadline attainment unchanged while
+> cutting mean task latency by two-thirds — the expected degradation cliff did not
+> appear. Following the predeclared protocol, mean latency was then declared the
+> confirmatory endpoint *before* any reserved data was touched, and last night's held-out
+> campaign confirmed it: across five untouched seeds, the squeeze reduced mean task
+> latency by 8.3 seconds (bootstrap interval −9.1 to −7.5 s), with **all five seeds
+> agreeing in the predeclared direction** and deadline attainment again flat.
+>
+> We can also now show the mechanism, not just the effect: the trained policy's decisions
+> are bit-for-bit identical across all capacity levels (zero differences across ~9 million
+> per-second decisions), because its observation space contains no capacity-dependent
+> signal — the policy is blind to capacity *by observation design*, not by learned
+> indifference. That is, I believe, exactly the kind of non-obvious, explainable result
+> you asked for in our first meeting: the expected loser won, and the instrument shows
+> precisely why.
+>
+> The full records are in the repository: `docs/current_progress_week4.md` (progress
+> against our meeting notes) and `docs/evaluation/capacity_confirmatory_results_20260728.md`
+> (the confirmed result with all limitations stated — one actor, one district trace,
+> internal predeclaration discipline, not external validation).
 >
 > Three questions I'd value your steer on:
 >
-> 1. Task offloading vs journey-time prediction — you left this open; the latency result
->    above gives the journey-time angle measured weight, but the built programme is
->    offloading-centred.
+> 1. Task offloading vs journey-time prediction — you left this open; the built programme
+>    is offloading-centred and the confirmed result strengthens that direction.
 > 2. The algorithm-combination idea from our second meeting — in-scope contribution, or
 >    recorded future work?
-> 3. Framing: Randy suggested anchoring the dissertation gap in explainability/trustworthy
->    ML; the capacity result reads naturally as an explainability finding (the instrument
->    showed *why* the cliff didn't happen). Are you comfortable with that as the headline
->    framing?
+> 3. Framing: anchoring the dissertation gap in explainability/trustworthy ML (Randy's
+>    suggestion). With the mechanism now located, the capacity result reads naturally as
+>    an explainability finding. Are you comfortable with that as the headline framing?
 >
-> I am also submitting the ethics application for the user evaluation this week per the
-> proposed values, and the data/baseline request to Randy is ready to go.
+> Also in motion: I am submitting the ethics application for the user evaluation this
+> week per the proposed values; Randy has agreed to use of his code with citation (his
+> data-use permission for published aggregates is being confirmed in writing); a
+> follow-up study training a capacity-aware variant of the policy is being prepared; and
+> my CSF access request is going in — I would be grateful for your confirmation as
+> supervisor when it arrives.
 >
 > Best regards,
 > Abdulla
@@ -64,18 +81,29 @@ deliberately omitted — the owner fills them at send time.
 > clearly labelled, and reproducible end to end from receipts. A held-out confirmatory run
 > is executing tonight.
 >
-> Two asks:
+> Also: the held-out confirmation completed last night — the latency effect held on all
+> five reserved seeds (−8.3 s mean paired difference, interval −9.1 to −7.5), and we
+> traced the mechanism: the policy's observation space carries no capacity-dependent
+> signal, so its decisions are literally identical across capacity levels. That makes a
+> capacity-aware observation variant the obvious next training experiment — which brings
+> me to the asks.
+>
+> Three asks:
 >
 > 1. **Baseline actor.** For the predeclared actor-crossover study I plan to run
 >    `baseline_model_c_17` against `ukfleettrain_mappo_model_c_17` on identical seeds and
 >    capacity levels. Can you confirm that checkpoint is the right baseline for that
 >    contrast (and that the seed-100 training identity in `checkpoints/` is the one to
 >    cite)?
-> 2. **Written permission.** My dissertation would include derived aggregates from tos-data
->    (per-arm metric means, paired differences, the analysis tables above) with full
->    provenance and your repos cited. Could you confirm in writing that this use is fine —
->    or tell me what constraints you'd like? Nothing derived from your data is published
->    anywhere until then.
+> 2. **Written permission — data.** My dissertation would include derived aggregates from
+>    tos-data (per-arm metric means, paired differences, the analysis tables above) with
+>    full provenance and your repos cited. Could you confirm in writing that this use is
+>    fine — or tell me what constraints you'd like? Nothing derived from your data is
+>    published anywhere until then.
+> 3. **Written confirmation — code.** Thank you for agreeing that I can use your code
+>    with citation — could you confirm that in one line by reply, so my records carry it
+>    in writing? Related: is running your training code on Colab (my compute units,
+>    synthetic environment only, no tos-data) within that permission?
 >
 > Happy to walk you through the dashboard against your own data whenever useful — that
 > session would also count toward the user evaluation once ethics approval lands.
