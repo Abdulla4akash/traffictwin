@@ -1250,6 +1250,17 @@ stored artifact pins one, and the study schema version is unchanged.
 `docs/reference/generated/n_way_ranking_contract.json` and `pydantic_schemas.json`, and this
 record.
 
+### Phase 29 claim: week-4 supervisor-expectation progress record (owner-directed, 27 July 2026)
+
+Documentation-only: the owner directed a checklist of the supervisor's expectations
+(reconstructed from the owner's private notes of the two July supervision meetings and Randy's
+Year-1 report) with per-item status and next steps. The record claims no supervisor approval,
+takes no queued owner decision, and keeps every referenced result at its recorded exploratory
+`owner_approved_candidate` ceiling. The private meeting notes themselves stay outside the
+repository.
+
+**Exclusive files:** `docs/current_progress_week4.md`, its `docs/index.md` row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
