@@ -1305,6 +1305,31 @@ mypy.
 **Exclusive files:** `src/traffictwin/ui/services.py` (replaced) and the new
 `src/traffictwin/ui/services/` package modules, plus this record.
 
+### Phase 31 claim: reviewed `ev` trace admission (owner-delegated, 27 July 2026)
+
+Under the standing in-session delegation ("take reasonable choices and keep working"), the
+next readiness slice repeats the ADR-062 pattern for the Gate-A-audited event-night trace
+`ev` — the supervisor's own stadium what-if scenario. Measured before any edit (read-only
+probe, 27 July): both `ev` blobs match the Gate-A hashes exactly at the audited tos-data
+commit via local `git cat-file` (never a fetch), and the identity snapshot reconciles with
+the production code path — T=23,400, maxN=175, 1,898,428 masked vehicle-seconds, 9,130
+spans, zero missing/inactive cells, 1.51 s.
+
+**Exclusive files:** the one-entry `PINNED_REVIEWED_TRACES` extension in
+`src/traffictwin/integration/vec_runner/models.py`; the scenario-map entry in
+`src/traffictwin/integration/vec_fresh_admission/service.py`; focused test updates in
+`tests/unit/test_vec_runner.py` and `tests/unit/test_vec_fresh_admission.py`; new
+`docs/decisions/ADR-065-ev-trace-allowlist-extension.md`; new
+`docs/integration/evidence/vec_ev_trace_admission_probe_20260727.json`; the trace-scope
+wording in `docs/integration/vec_fresh_run_admission.md`; index rows; plus this record.
+
+**Boundaries.** `wd_am` and `wd_pm` remain refused; a test pins the allowlist to exactly
+three entries. No runner control, preflight rule, timeout bound, or capability changes. The
+admission enables no experiment by itself — any `ev` study needs its own predeclaration and
+approval-gated campaign. Scenario identity (Champions League night) cites the producer's
+provenance sidecar at upstream commit `6e56393`, read via a blob-less scratchpad peek; the
+pinned clones stay unfetched pending R1.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

@@ -31,12 +31,14 @@ from traffictwin.integration.vec_runner.models import (
 
 TRACE_HASH = "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be"
 INC_TRACE_HASH = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+EV_TRACE_HASH = "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208"
 
 
-def test_reviewed_allowlist_holds_exactly_the_two_admitted_gate_a_traces() -> None:
+def test_reviewed_allowlist_holds_exactly_the_three_admitted_gate_a_traces() -> None:
     assert PINNED_REVIEWED_TRACES[TRACE_HASH] == "traces/trace_we_fullrsu.npz"
     assert PINNED_REVIEWED_TRACES[INC_TRACE_HASH] == "traces/trace_inc_fullrsu.npz"
-    assert len(PINNED_REVIEWED_TRACES) == 2
+    assert PINNED_REVIEWED_TRACES[EV_TRACE_HASH] == "traces/trace_ev_fullrsu.npz"
+    assert len(PINNED_REVIEWED_TRACES) == 3
 
 
 def _request(**changes: object) -> VecRunRequest:

@@ -347,14 +347,16 @@ def test_registry_roundtrip_reaches_sta01_paired_study(tmp_path: Path) -> None:
     assert study.estimate.mean_paired_difference < 0
 
 
-def test_inc_trace_is_reviewed_and_other_audited_traces_stay_refused() -> None:
+def test_inc_and_ev_are_reviewed_and_weekday_traces_stay_refused() -> None:
     inc_sha = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    ev_sha = "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208"
     assert REVIEWED_TRACE_SCENARIOS[inc_sha] == "inc"
     assert PINNED_REVIEWED_TRACES[inc_sha] == "traces/trace_inc_fullrsu.npz"
+    assert REVIEWED_TRACE_SCENARIOS[ev_sha] == "ev"
+    assert PINNED_REVIEWED_TRACES[ev_sha] == "traces/trace_ev_fullrsu.npz"
     refused = (
         "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
         "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
-        "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
     )
     for audited_but_unreviewed in refused:
         assert audited_but_unreviewed not in PINNED_REVIEWED_TRACES

@@ -64,6 +64,7 @@ from traffictwin.storage.registry import Registry
 REVIEWED_TRACE_SCENARIOS = {
     "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be": "we",
     "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056": "inc",
+    "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208": "ev",
 }
 _ENVIRONMENT = "randy-vec"
 _ENVIRONMENT_VERSION = "v2_post_nrsus_fix"

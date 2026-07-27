@@ -43,6 +43,11 @@ PINNED_REVIEWED_TRACES = {
     "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056": (
         "traces/trace_inc_fullrsu.npz"
     ),
+    # Gate-A-audited event-night trace, admitted by ADR-065 after the identity
+    # snapshot was measured to reconcile at the audited tos-data commit.
+    "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208": (
+        "traces/trace_ev_fullrsu.npz"
+    ),
 }
 
 _LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$")

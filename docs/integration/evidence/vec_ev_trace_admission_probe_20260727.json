@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "probe": "vec-ev-trace-admission-probe",
+  "date": "2026-07-27",
+  "decision_record": "docs/decisions/ADR-065-ev-trace-allowlist-extension.md",
+  "purpose": "Measure, before extending the VEC-07 reviewed-trace allowlist, that the Gate-A-audited ev trace/occupancy pair reconciles into a vehicle identity snapshot at the audited tos-data commit.",
+  "tos_data_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "traces/trace_ev_fullrsu.npz",
+      "sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+      "size_bytes": 19000923,
+      "matches_gate_a_audit": true
+    },
+    {
+      "path": "occupancy/occupancy_ev.csv",
+      "sha256": "88a2ff15dd0612fe00ea71d4537d44b85e2e00feed4905fba4aaa4bb3e6c8d2f",
+      "matches_gate_a_audit": true
+    }
+  ],
+  "measured": {
+    "trace_steps": 23400,
+    "trace_slots": 175,
+    "masked_vehicle_seconds": 1898428,
+    "occupancy_spans": 9130,
+    "distinct_vehicles": 9129,
+    "missing_identity_cells": 0,
+    "inactive_identity_cells": 0,
+    "identity_snapshot_fingerprint": "2221bfac986aef04349efc7d3a28c3090e2768edcfcd61ed65db8862ca596a72",
+    "snapshot_build_elapsed_seconds": 1.51
+  },
+  "interpretation_limits": [
+    "Reconciliation proves the trace/occupancy identity is joinable; it is not an execution timing, reproduction grade, or scientific result.",
+    "The wd_am and wd_pm traces remain outside the reviewed allowlist.",
+    "The blobs were read from the local pinned clone at the audited commit via git cat-file; no fetch touched the pinned clones.",
+    "No full ev execution has been timed. The 23,400-step window is 6.5 hours of trace at 175 slots; cost is expected minutes-scale because slot width dominates runtime (weekend 139-slot full run measured 225.7 s), but the first ev execution must be treated as a timing measurement against the 7,200-second request ceiling.",
+    "Scenario identity (Champions League event night, 17:30-24:00 window) cites the producer's provenance sidecar at upstream commit 6e56393, whose only change over the audited commit is that documentation file; the pinned clones remain unfetched pending the R1 re-pin decision."
+  ]
+}
