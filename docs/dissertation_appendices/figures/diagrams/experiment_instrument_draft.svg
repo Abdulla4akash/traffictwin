@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="840" viewBox="0 0 1000 840" role="img">
+  <title>DRAFT: the experiment instrument</title>
+  <desc>Illustrative hand-authored draft. Predeclaration through byte-bound approval, campaign
+  cells, fresh admission, registry and STA-01 to a results record, with the fail-closed points
+  marked.</desc>
+
+  <rect x="0" y="0" width="1000" height="840" fill="#e6e8eb"/>
+
+  <text x="40" y="46" font-family="Helvetica,Arial,sans-serif" font-size="26" font-weight="700"
+        fill="#1f2328">DRAFT: the experiment instrument</text>
+  <text x="40" y="72" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Illustrative draft for the dissertation. Hand-authored, not a generated artifact.
+  </text>
+
+  <!-- Stage 1: predeclaration -->
+  <rect x="60" y="96" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="126" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Predeclaration</text>
+  <text x="84" y="150" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Arms, seed cohort, primary endpoint and publishable null, fixed before results.
+  </text>
+
+  <line x1="370" y1="168" x2="370" y2="186" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,186 376,186 370,194" fill="#545b64"/>
+
+  <!-- Stage 2: approval -->
+  <rect x="60" y="194" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="224" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Byte-bound approval</text>
+  <text x="84" y="248" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    A named person, a role, a time, and the SHA-256 of the exact approved document.
+  </text>
+  <rect x="712" y="206" width="228" height="48" rx="8" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="826" y="226" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">FAIL-CLOSED</text>
+  <text x="826" y="244" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" fill="#4a5058">digest changed → refuse</text>
+  <line x1="680" y1="230" x2="706" y2="230" stroke="#6b7480" stroke-width="1.5"
+        stroke-dasharray="6 4"/>
+
+  <line x1="370" y1="266" x2="370" y2="284" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,284 376,284 370,292" fill="#545b64"/>
+
+  <!-- Stage 3: campaign cells -->
+  <rect x="60" y="292" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="322" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Campaign cells</text>
+  <text x="84" y="346" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    One evaluator run per (arm, seed). Foreground, seed-major, never concurrent.
+  </text>
+  <rect x="712" y="304" width="228" height="48" rx="8" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="826" y="324" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">FAIL-CLOSED</text>
+  <text x="826" y="342" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" fill="#4a5058">a failed cell halts, never retried</text>
+  <line x1="680" y1="328" x2="706" y2="328" stroke="#6b7480" stroke-width="1.5"
+        stroke-dasharray="6 4"/>
+
+  <line x1="370" y1="364" x2="370" y2="382" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,382 376,382 370,390" fill="#545b64"/>
+
+  <!-- Stage 4: fresh admission -->
+  <rect x="60" y="390" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="420" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Fresh-run admission</text>
+  <text x="84" y="444" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Reviewed trace and reconciled identities re-checked before any metric is stored.
+  </text>
+  <rect x="712" y="402" width="228" height="48" rx="8" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="826" y="422" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">FAIL-CLOSED</text>
+  <text x="826" y="440" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" fill="#4a5058">unreviewed trace → refuse</text>
+  <line x1="680" y1="426" x2="706" y2="426" stroke="#6b7480" stroke-width="1.5"
+        stroke-dasharray="6 4"/>
+
+  <line x1="370" y1="462" x2="370" y2="480" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,480 376,480 370,488" fill="#545b64"/>
+
+  <!-- Stage 5: registry -->
+  <rect x="60" y="488" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="518" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Registry</text>
+  <text x="84" y="542" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Runs and metric collections under receipt-derived identities. Append-only.
+  </text>
+
+  <line x1="370" y1="560" x2="370" y2="578" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,578 376,578 370,586" fill="#545b64"/>
+
+  <!-- Stage 6: STA-01 -->
+  <rect x="60" y="586" width="620" height="72" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="616" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">STA-01 paired evaluation</text>
+  <text x="84" y="640" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Common-seed pairing, bootstrap interval and randomisation test on the endpoint.
+  </text>
+  <rect x="712" y="598" width="228" height="48" rx="8" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="826" y="618" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">FAIL-CLOSED</text>
+  <text x="826" y="636" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" fill="#4a5058">too few pairs → unavailable</text>
+  <line x1="680" y1="622" x2="706" y2="622" stroke="#6b7480" stroke-width="1.5"
+        stroke-dasharray="6 4"/>
+
+  <line x1="370" y1="658" x2="370" y2="676" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="364,676 376,676 370,684" fill="#545b64"/>
+
+  <!-- Stage 7: results record -->
+  <rect x="60" y="684" width="620" height="72" rx="8" fill="#b6bdc5" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="714" font-family="Helvetica,Arial,sans-serif" font-size="17" font-weight="600"
+        fill="#1f2328">Results record</text>
+  <text x="84" y="738" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Values reported verbatim beside their limitations, labelled by their stance.
+  </text>
+
+  <text x="40" y="790" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Dashed boxes are fail-closed points: the instrument refuses and records the refusal rather
+    than continuing with a weaker guarantee.
+  </text>
+  <text x="40" y="810" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Completing the chain is software evidence, not a scientific finding.
+  </text>
+  <text x="40" y="828" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Promotion from exploratory to confirmatory is a signed human decision, never an output of
+    this pipeline.
+  </text>
+</svg>

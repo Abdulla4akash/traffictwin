@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="726" viewBox="0 0 1000 726" role="img">
+  <title>DRAFT: Manchester evidence chain</title>
+  <desc>Illustrative hand-authored draft. Raw sources through quarantine and accepted snapshots
+  into matching and demand work, ending in evidence records.</desc>
+
+  <rect x="0" y="0" width="1000" height="726" fill="#e6e8eb"/>
+
+  <text x="40" y="46" font-family="Helvetica,Arial,sans-serif" font-size="26" font-weight="700"
+        fill="#1f2328">DRAFT: Manchester evidence chain</text>
+  <text x="40" y="72" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Illustrative draft for the dissertation. Hand-authored, not a generated artifact.
+  </text>
+
+  <!-- Stage 1: raw sources -->
+  <rect x="60" y="96" width="880" height="86" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="126" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Raw sources</text>
+  <text x="84" y="150" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    BODS bus feeds, National Highways operational products, DfT historical counts, TfGM signals,
+  </text>
+  <text x="84" y="168" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    WebTRIS observations. Fetched under bounded transport; the bytes are never edited.
+  </text>
+
+  <line x1="500" y1="182" x2="500" y2="200" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,200 506,200 500,208" fill="#545b64"/>
+
+  <!-- Stage 2: quarantine -->
+  <rect x="60" y="208" width="880" height="86" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="238" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Quarantine</text>
+  <text x="84" y="262" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Every fetch lands here first, hashed and manifested. Parsing is hardened and schema-exact.
+  </text>
+  <text x="84" y="280" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    A payload that fails validation stays quarantined and is recorded, not discarded or repaired.
+  </text>
+  <rect x="700" y="222" width="216" height="26" rx="6" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="808" y="240" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">nothing leaves unvalidated</text>
+
+  <line x1="500" y1="294" x2="500" y2="312" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,312 506,312 500,320" fill="#545b64"/>
+
+  <!-- Stage 3: accepted snapshots -->
+  <rect x="60" y="320" width="880" height="86" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="350" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Accepted snapshots</text>
+  <text x="84" y="374" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Published by atomic new-only rename and then made read-only. Each carries its own freshness
+  </text>
+  <text x="84" y="392" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    and truth state: live, near-live, historical, stale, synthetic or unavailable — never merged.
+  </text>
+  <rect x="700" y="334" width="216" height="26" rx="6" fill="#e6e8eb" stroke="#6b7480"
+        stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="808" y="352" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="12" font-weight="600" fill="#1f2328">immutable, never replaced</text>
+
+  <line x1="500" y1="406" x2="500" y2="424" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,424 506,424 500,432" fill="#545b64"/>
+
+  <!-- Stage 4: matching and demand -->
+  <rect x="60" y="432" width="880" height="86" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="462" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Map matching and demand reconstruction</text>
+  <text x="84" y="486" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Network build and scope, observation matching with an analyst review ledger, candidate demand
+  </text>
+  <text x="84" y="504" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    under declared count constraints. Reads accepted snapshots only; writes no source back.
+  </text>
+
+  <line x1="500" y1="518" x2="500" y2="536" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,536 506,536 500,544" fill="#545b64"/>
+
+  <!-- Stage 5: evidence records -->
+  <rect x="60" y="544" width="880" height="86" rx="8" fill="#b6bdc5" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="574" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Evidence records</text>
+  <text x="84" y="598" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Typed, fingerprinted records of what was matched, measured and left unavailable, with their
+  </text>
+  <text x="84" y="616" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    limitations attached. These are what the write-up and the UI cite.
+  </text>
+
+  <text x="40" y="668" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Dashed boxes mark the two places the chain fails closed rather than continuing on doubtful
+    bytes.
+  </text>
+  <text x="40" y="690" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Bus observations describe buses. They are never relabelled as general Manchester road
+    traffic at any stage.
+  </text>
+  <text x="40" y="712" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Coverage is partial by source and by time; an absent measure stays explicitly unavailable
+    rather than being filled.
+  </text>
+</svg>

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="726" viewBox="0 0 1000 726" role="img">
+  <title>DRAFT: TrafficTwin layered architecture</title>
+  <desc>Illustrative hand-authored draft. Ingestion, canonical, measurement, provenance and
+  reporting layers, with the boundary above which no scientific computation happens.</desc>
+
+  <rect x="0" y="0" width="1000" height="726" fill="#e6e8eb"/>
+
+  <text x="40" y="46" font-family="Helvetica,Arial,sans-serif" font-size="26" font-weight="700"
+        fill="#1f2328">DRAFT: TrafficTwin layered architecture</text>
+  <text x="40" y="72" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Illustrative draft for the dissertation. Hand-authored, not a generated artifact.
+  </text>
+
+  <!-- Layer 1: ingestion -->
+  <rect x="60" y="96" width="880" height="70" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="126" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Ingestion and source adapters</text>
+  <text x="84" y="150" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Bounded transport, hardened parsing, immutable snapshots. Never computes a result.
+  </text>
+  <text x="916" y="126" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">ingestion · integration</text>
+
+  <line x1="500" y1="166" x2="500" y2="184" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,184 506,184 500,192" fill="#545b64"/>
+
+  <!-- Layer 2: canonical -->
+  <rect x="60" y="192" width="880" height="70" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="222" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Canonical model</text>
+  <text x="84" y="246" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    One typed representation every later layer reads. Units, time basis and identity fixed here.
+  </text>
+  <text x="916" y="222" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">canonical · domain</text>
+
+  <line x1="500" y1="262" x2="500" y2="280" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,280 506,280 500,288" fill="#545b64"/>
+
+  <!-- Layer 3: measurement -->
+  <rect x="60" y="288" width="880" height="70" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="318" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Metrics · Diagnostics · Statistics</text>
+  <text x="84" y="342" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Every scientific calculation lives here, with an explicit unavailable state per measure.
+  </text>
+  <text x="916" y="318" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">metrics · diagnostics · experiments</text>
+
+  <line x1="500" y1="358" x2="500" y2="376" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,376 506,376 500,384" fill="#545b64"/>
+
+  <!-- Layer 4: provenance -->
+  <rect x="60" y="384" width="880" height="70" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="414" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Provenance and registry</text>
+  <text x="84" y="438" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Receipts, fingerprints and append-only records. What was computed, from exactly which bytes.
+  </text>
+  <text x="916" y="414" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">provenance · storage</text>
+
+  <line x1="500" y1="454" x2="500" y2="472" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,472 506,472 500,480" fill="#545b64"/>
+
+  <!-- Layer 5: reporting -->
+  <rect x="60" y="480" width="880" height="70" rx="8" fill="#cdd2d8" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="510" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">Reporting and export</text>
+  <text x="84" y="534" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Deterministic renderings of values the layers below already recorded. Adds no number.
+  </text>
+  <text x="916" y="510" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">reporting · rendering</text>
+
+  <!-- The boundary -->
+  <line x1="40" y1="580" x2="960" y2="580" stroke="#6b7480" stroke-width="2"
+        stroke-dasharray="10 6"/>
+  <rect x="330" y="566" width="340" height="28" rx="6" fill="#e6e8eb"/>
+  <text x="500" y="586" text-anchor="middle" font-family="Helvetica,Arial,sans-serif"
+        font-size="14" font-weight="600" fill="#1f2328">Boundary: the UI never computes</text>
+
+  <line x1="500" y1="594" x2="500" y2="612" stroke="#545b64" stroke-width="1.5"/>
+  <polygon points="494,612 506,612 500,620" fill="#545b64"/>
+
+  <!-- Layer 6: presentation -->
+  <rect x="60" y="620" width="880" height="70" rx="8" fill="#b6bdc5" stroke="#545b64"
+        stroke-width="1.5"/>
+  <text x="84" y="650" font-family="Helvetica,Arial,sans-serif" font-size="18" font-weight="600"
+        fill="#1f2328">UI · CLI</text>
+  <text x="84" y="674" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#4a5058">
+    Presentation only. Reads through services; implements no formula and fetches no source.
+  </text>
+  <text x="916" y="650" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12"
+        fill="#4a5058">ui · cli</text>
+
+  <text x="40" y="714" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#4a5058">
+    Arrows show what each layer is built on. A layer may read the ones below it and never the
+    ones above.
+  </text>
+</svg>

@@ -2403,6 +2403,54 @@ the two raw-input digests.
 in the working tree during this commit. Only `AGENTS.md` content equal to `HEAD` plus this claim
 was staged, so the lead's in-flight edits stayed uncommitted and untouched in the working tree.
 
+### Phase 70 claim: methodology diagram drafts (parallel session, 27 July 2026)
+
+Feature 31 of the batch-6 prompt, documentation-only: three hand-authored schematics for the
+dissertation's methodology chapter, each labelled DRAFT on its face.
+
+**Exclusive new files:** `docs/dissertation_appendices/figures/diagrams/`
+`{architecture_layers_draft.svg,manchester_data_flow_draft.svg,experiment_instrument_draft.svg,
+README.md}`, its one `docs/index.md` row, and this record.
+
+**What they show.** (a) The layered architecture — ingestion → canonical →
+metrics/diagnostics/statistics → provenance → reporting → UI/CLI — with the "the UI never
+computes" boundary drawn as an explicit labelled line between reporting and presentation. (b) The
+Manchester chain — raw sources → quarantine → accepted snapshots → matching/demand → evidence
+records — marking the two places it fails closed (nothing leaves quarantine unvalidated; accepted
+snapshots are immutable and never replaced). (c) The experiment instrument — predeclaration →
+byte-bound approval → campaign cells → fresh admission → registry → STA-01 → results record —
+with four fail-closed points marked (digest changed, failed cell halts, unreviewed trace refused,
+too few pairs → unavailable). Layer and stage names were checked against the actual packages and
+the accepted contracts rather than drawn from memory.
+
+**Boundaries.**
+
+- **Illustrative drafts, and the README says so plainly.** No generator produced them, no script
+  regenerates them, and no value in them was read from a receipt, an analysis payload, or the
+  registry. The README draws the contrast with the neighbouring `figures/` and `tables/` output,
+  which are generated through the accepted exporter and carry provenance notes naming a source
+  digest; these carry none because there is no source payload to name. It also records that they
+  are unreviewed, are not accepted documentation, and that where a diagram and the code disagree
+  the code is right.
+- **Self-contained and theme-neutral.** Plain rectangles, lines, polygons and text only. No
+  external font file, stylesheet, script, image, or network reference — verified by parsing all
+  three and asserting the SVG namespace is the only URL. Each paints its own light-neutral panel
+  so it stays legible on a light or dark page; no fill is pure white or pure black (darkest ink
+  `#1f2328`, lightest fill `#e6e8eb`). Boundaries and refusals are marked with dashed outlines
+  rather than colour, so the meaning survives greyscale and colour-blind viewing.
+- **No new scientific claim.** The diagrams assert structure and refusal points, not results. (c)
+  ends by stating that completing the chain is software evidence rather than a finding, and that
+  promotion from exploratory to confirmatory is a signed human decision and never a pipeline
+  output. (b) states that bus observations are never relabelled as general road traffic and that
+  absent measures stay explicitly unavailable.
+- Every file was checked to be well-formed XML, and every text run was measured against the
+  canvas so no label overflows its box or the viewBox.
+
+**Gates.** Documentation-only, so no focused test applies; 2,895 `tests/unit` green;
+`ruff check src tests scripts` clean; `mypy src tests` clean over 804 source files;
+`git diff --check` clean. `ruff format` does not apply to SVG or markdown, and no UI file was
+touched.
+
 ### Completed lead ownership: repository owner project guide (27 July 2026)
 
 - The lead completed the read-only repository and local-context audit and owns only
