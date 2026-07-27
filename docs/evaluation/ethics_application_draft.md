@@ -62,3 +62,20 @@ metrics, codes participant findings, or invents conclusions.
 - retention period and storage location;
 - withdrawal cutoff;
 - supervisor and ethics reference numbers.
+
+## Proposed values for the open fields (owner to confirm at submission; not approved)
+
+Drafted 27 July 2026 so submission becomes a confirmation step. **Every value below is a
+proposal**: the applicant confirms or amends each one at submission, and nothing here claims or
+implies supervisor or ethics approval.
+
+| Open field | Proposed value | Note |
+|---|---|---|
+| Submission date | as soon as the supervisor confirms — target the next working day | the ~1-week review clock starts at submission and is the longest external lead time |
+| Study dates | sessions 11–22 August 2026 | after expected approval, before write-up freeze |
+| Recruitment route | research-group colleagues and supervisor-suggested business-school contacts, invited by the supervisor or a neutral third party | avoids the recruiting-anyone-the-researcher-assesses conflict already listed under risks |
+| Survey versus interview | **survey** (the drafted questionnaire), with optional free-text comments | lighter review burden; matches the drafted task script; interviews remain a possible follow-up application |
+| Recording | **none** — screen and audio recording stay disabled | the draft's default; simplifies approval and consent |
+| Retention and storage | until degree award plus 12 months, University-approved encrypted storage; participant-code key stored separately as already specified | insert the University's standard wording for the storage service at submission |
+| Withdrawal cutoff | 14 days after each participant's session, after which responses are anonymised and no longer attributable for deletion | concrete date to be written per session at submission |
+| Supervisor / ethics references | assigned at submission | never pre-filled; the supervisor's confirmation is itself the trigger to submit |

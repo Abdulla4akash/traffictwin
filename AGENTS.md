@@ -1161,6 +1161,14 @@ record and the F0 status row in `docs/evaluation/bus_data_experiment_options.md`
 structurally unsignable draft for the real-bus-fleet experiment, whose `FILL-FROM-PROBE` fields
 await the attended cadence session's measured values. Nothing executes from it.
 
+### Phase 24 claim: ethics-draft proposed values (owner-directed, 27 July 2026)
+
+Documentation-only: append clearly-labelled **proposed** values for the seven open approval
+fields in `docs/evaluation/ethics_application_draft.md`, so the owner's submission step is
+confirm-and-send. Nothing is submitted, approved, or represented as such; every value remains a
+proposal a person must confirm, and the supervisor/ethics reference fields stay explicitly
+assigned-at-submission. Exclusive files: that draft and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
