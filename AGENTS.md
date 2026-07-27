@@ -2552,6 +2552,53 @@ measured-upgrade addenda in the detailed findings record and the v2 research dir
 Nothing was written to campaign directories or registries. Exclusive files: the evidence
 record, the two addenda, and this record.
 
+### Phase 84 claim: first Colab B-CAP synthetic smoke (owner-directed, 28 July 2026)
+
+The owner directed Codex to write the first Google Colab experiment. This slice owns a
+synthetic-only B-CAP engineering smoke: a testable pure-JAX driver, a Colab notebook wrapper,
+operator documentation, and focused unit tests. It randomizes the pilot capacity grid and compares
+matched 17-D hidden-capacity versus 19-D explicit-capacity/load toy policies over five model seeds,
+but it is deliberately not MAPPO, not producer-environment execution, and not scientific evidence.
+It refuses to consume Randy's repositories, TOS checkpoints, real traces, bus artifacts, or any
+local campaign bytes; its manifests make those exclusions and the non-admissible diagnostic status
+machine-readable. The live confirmatory launcher remains untouched and only a tiny bounded CPU
+test may run locally. Exclusive files: new `gpu/__init__.py`, `gpu/README.md`,
+`gpu/colab/__init__.py`, `gpu/colab/bcap_synthetic_smoke.py`,
+`gpu/colab/bcap_synthetic_smoke.ipynb`, `tests/unit/test_bcap_synthetic_smoke.py`, and this
+record. No external repository, project pin, evaluator, campaign, registry, evidence artifact,
+generated reference, or shared documentation index is edited.
+
+### Phase 85 claim: second Colab B-BUS synthetic trace-replay smoke (owner-directed, 28 July 2026)
+
+The owner directed Codex to do the second Google Colab experiment. This slice owns the
+permission-safe B-BUS precursor: a pure-JAX synthetic trace-replay driver, Colab notebook,
+operator documentation, and focused tests. It generates deterministic bus-like and general-traffic
+motion fixtures in memory, trains matched toy policies on each synthetic domain over at least five
+model seeds, and evaluates the resulting checkpoints on a common two-domain matrix. It is not
+MAPPO, not real-bus training, not producer-environment execution, and not scientific evidence.
+It refuses real traces, uploads, Drive mounts, Randy's repositories, BODS or derived bus bytes,
+local campaign artifacts, and quarantine material; outputs permanently record their synthetic,
+diagnostic, non-admissible status. The live confirmatory launcher remains untouched and only a tiny
+bounded CPU fixture may run locally. Exclusive files: new
+`gpu/colab/bbus_synthetic_trace_smoke.py`,
+`gpu/colab/bbus_synthetic_trace_smoke.ipynb`,
+`tests/unit/test_bbus_synthetic_trace_smoke.py`, additions to `gpu/README.md`, and this record.
+No external repository, project pin, evaluator, campaign, registry, evidence artifact, generated
+reference, or shared documentation index is edited.
+
+### Phase 84 claim: observability-gap probe (28 July 2026)
+
+Read-only mechanism probe answering the "could the invariance be a quirk" challenge:
+across all seeds and arm pairs, RSU-side state differs in 134,278 of 324,000 RSU-second
+cells while the vehicle-side arrays the observation draws on show zero mismatches —
+combined with the documented observation content (no RSU-load input), the
+capacity-invariance is structural observation-space blindness, with the code-level
+observation-builder confirmation recorded as the remaining check and a falsifiable
+prediction recorded for the crossover study (the baseline actor should be equally
+invariant). Evidence: `docs/integration/evidence/vec_pilot_observability_gap_20260728.json`;
+dated mechanism addendum in the detailed findings record. Exclusive files: those two plus
+this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

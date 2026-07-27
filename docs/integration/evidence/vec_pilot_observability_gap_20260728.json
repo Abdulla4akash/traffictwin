@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "probe": "vec-pilot-observability-gap",
+  "date": "2026-07-28",
+  "purpose": "Answer the 'could the capacity-invariance be a random quirk' challenge by locating its mechanism: does the policy ignore capacity effects it can see, or can it not see them at all?",
+  "method": "Element-wise comparison of the admitted pilot cells' published per-step state arrays across all four capacity arms within each fleet seed {0,1,2}: vehicle-side arrays the policy's observation can draw on (veh_queue_ms, veh_k) versus RSU-side arrays (rsu_load, rsu_busy_ms). Read-only over hash-verified artifacts under data/vec-fresh/capacity-pilot/.",
+  "measured": {
+    "veh_queue_ms_mismatches_all_seeds_all_pairs": 0,
+    "veh_k_mismatches_all_seeds_all_pairs": 0,
+    "rsu_load_diff_cells_all_seeds_all_pairs": 134278,
+    "rsu_cells_compared_all_seeds_all_pairs": 324000,
+    "note": "Vehicle positions are trace-fixed by construction; V2I/V2V channel quality derives from positions; veh_done differs only as completion timing shifts (3,838-8,170 cells per pair at seed 0)."
+  },
+  "conclusion": "The capacity knob changes RSU-side state pervasively (~41% of RSU-seconds) while every published vehicle-side quantity the observation could draw on is bit-identical across arms. Combined with the documented observation content (compute tier, EV flag/SoC, task type/deadline, own queues, V2I channel quality, V2V target tier - no RSU load or backlog input), the capacity-invariance is structural: the policy's observed world is identical across arms, so a deterministic policy necessarily acts identically. The invariance is an observation-space gap, not learned indifference and not randomness.",
+  "prediction": "Because the observation-space design is shared by both audited actors, the baseline actor should be equally capacity-invariant on this grid. The predeclared crossover study can test this as a falsifiable prediction.",
+  "interpretation_limits": [
+    "The observation vector itself is not among the published arrays; this conclusion combines identical published vehicle-side state with the documented observation content. Confirming from the evaluator's observation-builder source is the remaining code-level check (GPU-track lead).",
+    "Exploratory, owner_approved_candidate, descriptive non-causal; pilot grid scope only.",
+    "Read-only probe; nothing written to campaign directories or registries."
+  ]
+}

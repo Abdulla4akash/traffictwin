@@ -153,6 +153,22 @@ mean collapses while deadline attainment stands still. The per-task logs exist; 
 the latency distribution per arm is the natural next figure and would settle this
 reading. Until then it is interpretation, clearly so.
 
+**Mechanism located (28 July 2026): an observation-space gap, not learned indifference.**
+Challenged with "could this be a quirk?", the published state arrays answered
+([evidence](../integration/evidence/vec_pilot_observability_gap_20260728.json)): the
+capacity knob changes RSU-side state pervasively (~41% of RSU-second cells differ across
+arms) while **every published vehicle-side quantity the policy's observation draws on is
+bit-identical across arms** — own queue state, tasks in flight, positions (trace-fixed),
+and therefore channel quality. The documented observation contains no RSU-load input. A
+deterministic policy whose observed world is identical must act identically: the
+invariance is **structural blindness by observation design**, fully explaining the
+bit-identical action sequences. This yields a falsifiable prediction — the baseline
+actor shares the observation design, so it should be equally capacity-invariant, which
+the predeclared crossover study can test — and it makes the capacity-aware retraining
+direction (B-CAP) a surgical fix rather than a fishing expedition. One code-level
+confirmation remains open: verifying from the evaluator's observation-builder source
+that no capacity-dependent term enters the vector.
+
 **Why this matters beyond the number:** the result is a worked example of the
 explainability gap the Year-1 report points at — an aggregate-reward-trained policy whose
 behaviour under a changed resource regime is invisible until an instrument makes the
