@@ -5,6 +5,7 @@ This index points only to documentation and repository paths that exist in the c
 ## Getting Started
 
 - [Root README](../README.md)
+- [Repository owner project guide](project_guide.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [System overview](system_overview.md)
 - [Standalone demo](standalone_demo.md)

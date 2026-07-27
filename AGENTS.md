@@ -2403,6 +2403,12 @@ the two raw-input digests.
 in the working tree during this commit. Only `AGENTS.md` content equal to `HEAD` plus this claim
 was staged, so the lead's in-flight edits stayed uncommitted and untouched in the working tree.
 
+### Completed lead ownership: repository owner project guide (27 July 2026)
+
+- The lead completed the read-only repository and local-context audit and owns only
+  `docs/project_guide.md`, its Getting Started index row, and this note; no code, runtime data,
+  external clone, generated artifact, capability state, or digest-bound evidence changed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
