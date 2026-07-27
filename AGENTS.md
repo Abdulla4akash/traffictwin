@@ -1928,6 +1928,28 @@ this record.
   edited, and `capacity_confirmatory_candidate_b_latency_primary.md` — byte-frozen by the
   live approval digest — is neither read into nor touched by this feature.
 
+### Phase 55 claim: objectives traceability and abbreviations appendices (parallel session, 27 July 2026)
+
+Feature 16 of the batch-3 prompt, documentation-only: the O1–O7 traceability spine and the
+abbreviation list, both written for the dissertation to cite directly.
+
+**Exclusive files:** `docs/dissertation_appendices/objectives_traceability.md`,
+`docs/dissertation_appendices/abbreviations.md`, their two `docs/index.md` rows, and this
+record.
+
+**Boundaries.**
+
+- **Statuses are honest, including where they are unflattering.** O7's user-evaluation strand
+  is `pending ethics` with zero participants and no data; the Manchester confirmatory
+  campaign is `in execution`, not complete and not accepted. Nothing is recorded as achieved
+  because it is nearly achieved.
+- **Every count was re-measured rather than copied.** The working evidence map's "35-route
+  UI" and "3,167 tests" are both stale; the verified figures at this commit are 34 `UiPage`
+  values plus 5 additive routes, and 3,454 collected tests (2,701 unit, 476 UI, 214
+  integration, 63 golden). Collected counts are reported as collected, not as passed.
+- Objective wording is carried from the owner's dissertation skeleton rather than reworded,
+  so the appendix and Chapter 1 cannot drift apart.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
