@@ -1554,6 +1554,44 @@ additive-spec and hook lines in `navigation_v07.py`/`page_runtime.py`, a
   implying a session failed to record it.
 - Additive route only, via `V07AdditivePageSpec`; the counted 34-page inventory is untouched.
 
+### Phase 46 claim: bus-trajectory derivation library (parallel session, 27 July 2026)
+
+Feature 7 of the `PARALLEL_FEATURES_MASTER_PROMPT_2.md` batch: the §3 trace-construction
+rules of `docs/evaluation/bus_fleet_experiment_predeclaration_draft.md` implemented as a
+tested library so the B1 execution step is ready before the document is signable. **It runs
+on no real data.** No quarantine member is opened, no BODS call is made, no session artifact
+is read or written, and no snapshot reaches this module.
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/bus_trajectory.py`,
+`tests/unit/test_manchester_bus_trajectory.py`, plus this record.
+
+**Boundaries.**
+
+- The four §3/§5 parameters — gap ceiling (s), dwell radius (m), matched-share floor,
+  implied-speed bound (m/s) — are **required keyword arguments with no defaults anywhere in
+  the module**. They are owner decision G2 and the library refuses to imply one. The tests
+  pass `120 / 15 / 0.8 / 32` as *test* values only, never as a recommendation.
+- Type-level labels on every output: `derived_scenario` is `True`, `observed_fcd` is `False`,
+  `buses_only` is `True`. The derived trace is never observed FCD and never general traffic.
+- Interpolation follows the **caller-supplied matched path** only. A segment with no matched
+  path is dropped and counted; the module contains no straight-line fallback, because a
+  straight line through buildings is exactly what §3 forbids. A supplied path that does not
+  connect the two fixes it spans is a matcher defect and is refused, not repaired.
+- **Ordering recorded rather than left implicit:** the gap ceiling is applied *before* dwell
+  detection. The probe's stale vehicles emit repeated identical fixes hours apart, so a
+  dwell-first reading would convert 3.2-hour staleness into 3.2 hours of fabricated
+  stationary occupancy. The ceiling drops those by design, as §5 states.
+- Implied-speed screening **flags and never drops**: a segment over the bound is retained,
+  counted, and reported with its measured value, so the person sees what the screen caught
+  rather than a silently thinned trace.
+- Vehicles below the matched-share floor are excluded whole, with counts; dropped seconds,
+  dwell seconds, unmatched segments, and the per-vehicle interpolated-versus-observed share
+  are all reported. Nothing is defaulted to zero and nothing is invented.
+- **Deliberately out of scope, recorded:** §3's trace-window rule ("longest contiguous span
+  with ≥ N linked vehicles") is not implemented — the feature brief scopes this library to
+  the six named rules, and the window threshold is a further `FILL-AT-SIGNING` value. The
+  window is selected over this module's output, not inside it.
+
 ### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
 
 Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
