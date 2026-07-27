@@ -16,8 +16,8 @@ or Randy's VEC environment.
 ## Initialise
 
 ```bash
-traffictwin demo initialise .demo
-traffictwin demo status .demo
+uv run traffictwin demo initialise .demo
+uv run traffictwin demo status .demo
 ```
 
 This creates:
@@ -42,13 +42,13 @@ Use `--force` only when you intentionally want to replace an existing workspace.
 ## Launch
 
 ```bash
-traffictwin demo launch .demo
+uv run traffictwin demo launch .demo
 ```
 
 For a non-blocking command preview:
 
 ```bash
-traffictwin demo launch .demo --dry-run
+uv run traffictwin demo launch .demo --dry-run
 ```
 
 The launcher sets:
@@ -74,13 +74,13 @@ and starts `streamlit run src/traffictwin/ui/app.py`.
 ## CLI Demonstration
 
 ```bash
-traffictwin bundle validate .demo/bundles/baseline
-traffictwin metrics compute .demo/bundles/baseline
-traffictwin diagnose bundle .demo/bundles/under_offloading
-traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
-traffictwin compare .demo/bundles/baseline .demo/bundles/stressed_demand
-traffictwin provenance metric .demo/bundles/baseline task.completion.rate
-traffictwin report full .demo/bundles/stressed_demand \
+uv run traffictwin bundle validate .demo/bundles/baseline
+uv run traffictwin metrics compute .demo/bundles/baseline
+uv run traffictwin diagnose bundle .demo/bundles/under_offloading
+uv run traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
+uv run traffictwin compare .demo/bundles/baseline .demo/bundles/stressed_demand
+uv run traffictwin provenance metric .demo/bundles/baseline task.completion.rate
+uv run traffictwin report full .demo/bundles/stressed_demand \
   --comparison-baseline .demo/bundles/baseline \
   --output .demo/reports/stressed_full.html
 ```
@@ -100,7 +100,7 @@ traffictwin report full .demo/bundles/stressed_demand \
 ## Reset
 
 ```bash
-traffictwin demo reset .demo --yes
+uv run traffictwin demo reset .demo --yes
 ```
 
 Reset only operates on a marked TrafficTwin standalone workspace. It will not delete arbitrary

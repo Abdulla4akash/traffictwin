@@ -5,17 +5,15 @@ This supervisor-ready demonstration uses repository synthetic fixtures only. It 
 ## Pre-Demo Setup
 
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
-.venv/bin/python -m pytest
-traffictwin demo initialise .demo
+uv sync
+uv run pytest
+uv run traffictwin demo initialise .demo
 ```
 
 Launch:
 
 ```bash
-traffictwin demo launch .demo
+uv run traffictwin demo launch .demo
 ```
 
 ## Fixture Paths
@@ -107,7 +105,7 @@ traffictwin demo launch .demo
     - Use `.demo/exports/trivial_multi_algorithm_evidence.json` via CLI to show R3:
 
 ```bash
-traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
+uv run traffictwin diagnose evidence .demo/exports/trivial_multi_algorithm_evidence.json
 ```
 
     - Download DiagnosticReport JSON if needed.
@@ -184,15 +182,15 @@ See [integration/tos_results_workbench.md](integration/tos_results_workbench.md)
 Run the CLI demonstration:
 
 ```bash
-traffictwin bundle validate tests/fixtures/bundles/baseline_valid
-traffictwin metrics compute tests/fixtures/bundles/baseline_valid
-traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
-traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
-traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
-traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
-traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid \
+uv run traffictwin bundle validate tests/fixtures/bundles/baseline_valid
+uv run traffictwin metrics compute tests/fixtures/bundles/baseline_valid
+uv run traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
+uv run traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+uv run traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+uv run traffictwin provenance source tests/fixtures/bundles/baseline_valid tasks.csv 2
+uv run traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid \
   tests/fixtures/bundles/variation_valid task.completion.rate --format json
-traffictwin provenance export tests/fixtures/bundles/baseline_valid \
+uv run traffictwin provenance export tests/fixtures/bundles/baseline_valid \
   --root-type metric --root-id task.completion.rate \
   --format graphml --redaction structure_only \
   --max-nodes 80 --max-edges 160 --output completion-provenance.graphml

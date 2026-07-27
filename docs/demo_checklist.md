@@ -4,8 +4,8 @@ Use this checklist immediately before a supervisor or viva demonstration.
 
 ## Pre-Demo
 
-- [ ] Install dependencies with `python -m pip install -e ".[dev]"`.
-- [ ] Run `.venv/bin/python -m pytest`.
+- [ ] Install dependencies with `uv sync`.
+- [ ] Run `uv run pytest`.
 - [ ] Confirm `git status --short` has no unintended changes.
 - [ ] Confirm fixture paths exist:
   - [ ] `tests/fixtures/bundles/baseline_valid`
@@ -15,14 +15,14 @@ Use this checklist immediately before a supervisor or viva demonstration.
 - [ ] Or initialise a standalone workspace:
 
 ```bash
-traffictwin demo initialise .demo
-traffictwin demo status .demo
+uv run traffictwin demo initialise .demo
+uv run traffictwin demo status .demo
 ```
 
 - [ ] Start Streamlit:
 
 ```bash
-traffictwin demo launch .demo
+uv run traffictwin demo launch .demo
 ```
 
 ## UI Flow
@@ -76,17 +76,17 @@ traffictwin demo launch .demo
 ## CLI Fallback
 
 ```bash
-traffictwin capabilities
-traffictwin bundle validate tests/fixtures/bundles/baseline_valid
-traffictwin metrics compute tests/fixtures/bundles/baseline_valid
-traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
-traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
-traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
-traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
-traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format graphml --redaction structure_only --max-nodes 80 --max-edges 160
-traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid task.completion.rate --format json
-traffictwin report full .demo/bundles/stressed_demand --comparison-baseline .demo/bundles/baseline --output .demo/reports/stressed_full.html
-traffictwin experiment protocol --registry .demo/registry.sqlite --experiment-id EXPERIMENT_ID --format yaml
+uv run traffictwin capabilities
+uv run traffictwin bundle validate tests/fixtures/bundles/baseline_valid
+uv run traffictwin metrics compute tests/fixtures/bundles/baseline_valid
+uv run traffictwin compare tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid
+uv run traffictwin diagnose bundle tests/fixtures/bundles/baseline_valid
+uv run traffictwin provenance metric tests/fixtures/bundles/baseline_valid task.completion.rate
+uv run traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format markdown
+uv run traffictwin provenance export tests/fixtures/bundles/baseline_valid --root-type metric --root-id task.completion.rate --format graphml --redaction structure_only --max-nodes 80 --max-edges 160
+uv run traffictwin provenance difference-contributors tests/fixtures/bundles/baseline_valid tests/fixtures/bundles/variation_valid task.completion.rate --format json
+uv run traffictwin report full .demo/bundles/stressed_demand --comparison-baseline .demo/bundles/baseline --output .demo/reports/stressed_full.html
+uv run traffictwin experiment protocol --registry .demo/registry.sqlite --experiment-id EXPERIMENT_ID --format yaml
 ```
 
 ## Post-Demo Cleanup

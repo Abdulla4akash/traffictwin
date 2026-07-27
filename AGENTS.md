@@ -1330,6 +1330,14 @@ approval-gated campaign. Scenario identity (Champions League night) cites the pr
 provenance sidecar at upstream commit `6e56393`, read via a blob-less scratchpad peek; the
 pinned clones stay unfetched pending R1.
 
+### Phase 32 claim: demo-docs command refresh (owner-delegated, 27 July 2026)
+
+Documentation-only: the three demo documents still instructed the retired
+`python3.12 -m venv` / `pip install -e` / `.venv/bin/python` setup; every setup and CLI
+invocation now uses the repository's actual `uv sync` / `uv run` workflow. No flow step,
+caveat, boundary statement, or capability wording changed. Exclusive files:
+`docs/demo_script.md`, `docs/demo_checklist.md`, `docs/standalone_demo.md`, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
