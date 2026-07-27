@@ -39,7 +39,29 @@ acquisition — so the re-download verifies against the recorded identity
 dated file; that would be a new network identity requiring a fresh ADR-059-style pin decision,
 not a silent substitution.
 
-## Recovery plan (running)
+## Recovery halted at step 1: the pin failed, measured
+
+The re-downloaded `greater-manchester-260724.osm.pbf` is **50,502,348 bytes with
+sha256 `38f18e98441e89f7376678eab72d1245454547ffad4df80b76a5ac1c9ccfef3e`** — neither the
+recorded 996,913,352 bytes nor the recorded `233af3fa…`. Geofabrik's dated files are therefore
+**mutable**: the file was regenerated on 25 July after our acquisition. The acquisition-time
+record already contained the early warning — the locally computed md5 (`b7fa4a2a…`) did not
+match the provider-published md5 (`c73b16ec…`) even then.
+
+Consequences, none of them silently adopted:
+
+1. The original 997 MB input can no longer be obtained from the provider; the recorded network
+   identity is not re-derivable externally.
+2. Building from today's 50 MB file produces a **different network identity**, breaking the
+   binding of the 233 bound edge ids, the match rows, and the subnetwork identity. That is a
+   new pin decision of exactly the ADR-059 class — owner/lead territory, recorded here as
+   **required decision N1**, not taken by this audit.
+3. The dated-extract pin failed as a reproducibility anchor. For the dissertation's
+   reproducibility chapter this is a *finding*: external dated artifacts need local retention
+   (as the ADR already required for the raw member — whose retention died with the session
+   workspace) or checksummed third-party archives.
+
+## Recovery plan (halted after step 1; steps 2–6 await decision N1)
 
 1. Re-download the pinned extract; verify sha256 against the recorded identity (in progress).
 2. `osmium` decode under the ADR-060 boundary (conversion only, sealed receipt).
