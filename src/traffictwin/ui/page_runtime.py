@@ -12,6 +12,7 @@ from traffictwin.ui.navigation import redirect_pending_v07_page, render_sidebar_
 from traffictwin.ui.pages import (
     about,
     bundle_import,
+    bus_sessions,
     compare,
     energy,
     evidence_readiness,
@@ -115,6 +116,16 @@ def run_match_review_page_script() -> None:
         "Record one named analyst decision at a time; pending rows stay visibly pending."
     )
     match_review.render(load_ui_config())
+
+
+def run_bus_sessions_page_script() -> None:
+    """Execute the additive Bus Sessions page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "bus-sessions"
+    st.sidebar.caption(
+        "Aggregate-only measurements from attended bus sessions; buses are never general traffic."
+    )
+    bus_sessions.render(load_ui_config())
 
 
 def run_rsu_monitor_page_script() -> None:

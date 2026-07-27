@@ -1522,6 +1522,38 @@ no fabricated family column appears. **Handoff for the owner:** if the join is w
 write-up, the fix is to record capability→family→ADR in the manifest, which is a lead-claimed
 surface this session did not touch.
 
+### Phase 45 claim: bus-session aggregates page (parallel session, 27 July 2026)
+
+Feature 6 of the Phase 34 master prompt: the additive Bus Sessions route rendering the
+aggregate-only measurement artifacts an attended live-bus session leaves in a workspace.
+
+**Exclusive new files:** `src/traffictwin/ui/bus_sessions_services.py`,
+`src/traffictwin/ui/pages/bus_sessions.py`, `src/traffictwin/ui/app_pages/bus_sessions.py`,
+`tests/unit/ui/test_bus_sessions_services.py`, `tests/ui/test_bus_sessions_page.py`, plus the
+additive-spec and hook lines in `navigation_v07.py`/`page_runtime.py`, a
+`docs/v07_navigation.md` sentence, and one `docs/index.md` row.
+
+**Boundaries.**
+
+- Read-only over the Phase 23 measurement models. No acquisition is triggered, no snapshot is
+  opened, and the accepted session-identity module is imported by full path and never edited.
+- Aggregates only. The artifacts carry `aggregates_only: True` and
+  `raw_identifiers_published: False` as type-level literals, so a tampered artifact fails
+  validation before it loads; the loader keeps its own belt-and-braces check for the same
+  condition, and tests exercise both paths. Further tests assert no token, salt, raw vehicle
+  reference, or snapshot id reaches any rendered row.
+- Buses stay buses: bus progression speed is never road speed, road-traffic volume is not
+  available from this source, and both statements are on the page rather than implied.
+- Absent workspace, absent Manchester directory, and absent artifact are three distinct
+  explicit unavailable states, each carrying its reason. Nothing is defaulted to zero.
+- **Recorded state of the world:** only the cadence artifact has a producer today
+  (`scripts/bus_cadence_probe_session.py` writes
+  `<workspace>/manchester/bus_cadence_probe_measurement.json`). The progression measurement
+  primitive exists but **no runner publishes it**, so the page declares the sibling filename
+  convention and reports the artifact's normal absence with exactly that reason rather than
+  implying a session failed to record it.
+- Additive route only, via `V07AdditivePageSpec`; the counted 34-page inventory is untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

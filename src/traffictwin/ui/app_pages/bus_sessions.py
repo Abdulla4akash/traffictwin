@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_bus_sessions_page_script
+
+run_bus_sessions_page_script()
