@@ -1554,6 +1554,20 @@ additive-spec and hook lines in `navigation_v07.py`/`page_runtime.py`, a
   implying a session failed to record it.
 - Additive route only, via `V07AdditivePageSpec`; the counted 34-page inventory is untouched.
 
+### Phase 35 claim: batch-2 parallel feature prompt + range-wording correction (27 July 2026)
+
+Batch 1 (Phases 40–45) was independently re-verified by the primary session (ruff clean,
+strict mypy 781 files, 2,579 unit + 467 UI green — matching the batch's own report), and
+its pilot-results finding was confirmed against the analysis JSON and corrected: pooled
+per-arm latency ranges DO overlap between adjacent arms; the true statement is the
+within-seed ordering (0 of 3 seeds invert at any step). The correction lands in the results
+record and the confirmatory draft; candidate (b) carries the same sentence but is
+byte-frozen by the running campaign's approval digest, so its correction is recorded beside
+it, never applied to it. `PARALLEL_FEATURES_MASTER_PROMPT_2.md` (repo root) specifies batch
+2 — Phases 46–50: bus-trajectory derivation library, confirmatory-mode report renderer,
+campaigns browser page, dissertation docs pack, tos-reader fork-segfault diagnosis.
+Exclusive files: that prompt, the two corrected evaluation documents, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
