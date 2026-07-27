@@ -1261,6 +1261,22 @@ repository.
 
 **Exclusive files:** `docs/current_progress_week4.md`, its `docs/index.md` row, and this record.
 
+### Phase 30 claim: services.py facade split (owner-directed, 27 July 2026)
+
+The owner directed the deferred hygiene slice: the 3,127-line `src/traffictwin/ui/services.py`
+god module becomes the `src/traffictwin/ui/services/` package — an `__init__.py` facade
+re-exporting every existing public name from cohesive submodules, so all 59 consumer files
+keep their `from traffictwin.ui.services import X` imports unchanged. Measured before
+claiming: no consumer imports the module object, no test patches a `traffictwin.ui.services.*`
+string target, no consumer imports a private name, and no scripts reference the module — the
+public surface is exactly the from-import name set. Behaviour, signatures, and values are
+unchanged; no page, test assertion, scientific library, or shared record is edited. Lands as
+one commit gated on the full UI suite, full unit suite, repository Ruff/format, and strict
+mypy.
+
+**Exclusive files:** `src/traffictwin/ui/services.py` (replaced) and the new
+`src/traffictwin/ui/services/` package modules, plus this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
