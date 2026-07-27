@@ -23,6 +23,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from traffictwin.experiments.statistical_study import statistical_study_to_markdown
 from traffictwin.integration.vec_campaign import (
     VecCampaignApproval,
     VecCampaignArm,
@@ -130,6 +131,13 @@ def _analyze() -> int:
     analysis = analyze_campaign(pilot_design(), receipt, REGISTRY_PATH)
     Path(ANALYSIS_JSON_PATH).write_text(analysis.model_dump_json(indent=2), encoding="utf-8")
     report = render_campaign_analysis_markdown(analysis)
+    appendices = [
+        "\n---\n\n# Appendix: full STA-01 study reports (exploratory)\n",
+    ]
+    for row in analysis.comparisons:
+        appendices.append(f"\n## {row.variation_label} versus {analysis.baseline_label}\n")
+        appendices.append(statistical_study_to_markdown(row.study))
+    report = report + "\n".join(appendices)
     Path(ANALYSIS_REPORT_PATH).write_text(report, encoding="utf-8")
     print(report)
     print("analysis written to", ANALYSIS_JSON_PATH, "and", ANALYSIS_REPORT_PATH)
