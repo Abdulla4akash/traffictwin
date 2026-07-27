@@ -2451,6 +2451,54 @@ the accepted contracts rather than drawn from memory.
 `git diff --check` clean. `ruff format` does not apply to SVG or markdown, and no UI file was
 touched.
 
+### Phase 71 claim: video narration script (parallel session, 27 July 2026)
+
+Feature 32 of the batch-6 prompt, documentation-only: the spoken text for the committed
+storyboard, so the recording is read rather than improvised.
+
+**Exclusive new files:** `docs/video_narration_script.md`, its one `docs/index.md` row, and this
+record. `video_storyboard.md`, `demo_checklist.md`, and the results record were read and none was
+edited.
+
+**What ships.** One narration block per storyboard shot, in shot order, each with an explicit
+`[SCREEN: …]` cue — 12 cues against the storyboard's 12 shots, verified to match. A timing table
+budgeted at 140 words per minute with per-shot word counts, speech length, and headroom, plus a
+caveat-placement table.
+
+**Boundaries.**
+
+- **Every measurement in the file was computed, not estimated.** Word counts, per-shot speech
+  lengths, headroom, and the total were derived by counting the blocks programmatically and
+  written back into the document, so the table cannot drift from the text above it. Total spoken
+  is **837 words ≈ 5:58** under the storyboard's 7:00 picture — inside the ≤ 8-minute ceiling.
+- **The nine required spoken caveats appear word for word**, verified by string comparison against
+  the `Required Spoken Caveats` section of `demo_checklist.md`, at their storyboard positions
+  (shots 2, 3, 6, 8, 9, 11, and the two conditional ones held back as conditional). Two initially
+  read with a lowercased first letter to fit mid-sentence; the sentences were restructured so the
+  checklist wording is reproduced exactly. Where the storyboard paraphrases a caveat in its own
+  list, the file records that the checklist wording is the authority.
+- **The one-sentence pilot framing is quoted exactly** from `capacity_pilot_results_20260727.md`,
+  including the correction that record carries, verified by string comparison.
+- **No new scientific claim, and numbers appear in exactly one place.** The framing quotation in
+  shot 12 is the only spoken number anywhere in the script, read as an attributed quotation with
+  the record on screen. Everywhere else the speaker names a record. The storyboard's shot-11 rule
+  ("name the records; do not read their numbers") is honoured — the quotation was placed at shot
+  12 instead, and the file explains why.
+
+**One unresolved conflict, flagged rather than papered over.** Shot 12 does not fit its slot. The
+storyboard allots the wrap 0:25; the mandatory verbatim framing sentence is about 0:20 by itself
+and still needs an attribution phrase and the closing limitation the storyboard says to end on.
+Trimmed to the minimum that keeps all three, the block measures **0:28 — three seconds over**, and
+the timing table shows it as `−0:03` rather than rounding it away. Two resolutions are laid out as
+owner decisions (give shot 12 five seconds from shot 8 or 10, which carry +0:10 each; or drop the
+closing limitation, which is the worse trade), because `video_storyboard.md` is outside this
+feature's file set and was not edited. The file states that speaking faster or paraphrasing the
+quotation are not acceptable fixes.
+
+**Gates.** Documentation-only, so no focused test applies; 2,895 `tests/unit` green;
+`ruff check src tests scripts` clean; `mypy src tests` clean over 804 source files;
+`git diff --check` clean. `ruff format` does not apply to markdown, and no UI file was touched.
+
 ### Completed lead ownership: repository owner project guide (27 July 2026)
 
 - The lead completed the read-only repository and local-context audit and owns only

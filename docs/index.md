@@ -50,6 +50,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Participant information sheet draft (PROPOSED, unsigned)](evaluation/participant_information_sheet_draft.md)
 - [Consent form draft (PROPOSED, unsigned; no consent recorded)](evaluation/consent_form_draft.md)
 - [Dissertation video storyboard (6–8 minutes)](video_storyboard.md)
+- [Dissertation video narration script (spoken text, timed per shot)](video_narration_script.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)
 - [Real bus-fleet experiment draft (not signable yet)](evaluation/bus_fleet_experiment_predeclaration_draft.md)
