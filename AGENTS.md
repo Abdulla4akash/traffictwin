@@ -2151,6 +2151,48 @@ clean; `ruff format --check` clean on both touched files; `mypy src tests` clean
 files and clean on the script itself; `git diff --check` clean. No UI file touched, so
 `tests/ui` was not required.
 
+### Phase 65 claim: printable participant documents (parallel session, 27 July 2026)
+
+Feature 26 of the batch-5 prompt, documentation-only: the two documents an ethics submission
+attaches as separate files, split out of the Phase 52 instrument so the submission step is
+attach-and-send rather than a writing task.
+
+**Exclusive new files:** `docs/evaluation/participant_information_sheet_draft.md`,
+`docs/evaluation/consent_form_draft.md`, their two `docs/index.md` rows, and this record.
+
+**Boundaries.**
+
+- **Ships PROPOSED and unsigned, and no consent exists.** No committee has seen either
+  document, no supervisor has signed one, and no reference number exists — the ethics reference
+  is stated as assigned-at-submission in both files and is never pre-filled. No participant,
+  participant code, response, quotation, approval, or signature is invented, and the consent
+  form says on its face that an agent never completes, signs, dates, or witnesses it.
+- **Aligned to the ethics draft's proposed values, which remain the authority.** Survey not
+  interview, no recording, random participant code only, University-approved encrypted storage,
+  retention until degree award plus 12 months, a 14-day withdrawal cutoff, and
+  supervisor-mediated recruitment. Both documents state that if they ever disagree with
+  `ethics_application_draft.md`, the ethics draft wins and the file is wrong.
+- **No recording-consent item appears.** The earlier combined draft carried an optional
+  recording statement; recording is proposed as none, so including the item would misdescribe
+  the study. The form says why it is absent and that recording would need its own application.
+- **The consent format is not chosen.** The Phase 52 instrument records that wet signature,
+  tick-box return, and recorded verbal consent are an approval decision an agent does not make;
+  the attestation block is a labelled placeholder rather than a signature line, and rebuilding
+  it to match the chosen format is on the person's checklist.
+- The proposal that a completed consent record, if the format captures a name, is stored
+  separately from response data is **marked as a proposal**. It is a faithful reading of the
+  ethics draft's separate participant-code-key rule, not a new policy, and
+  `anonymised_result_schema.json` still has no name field.
+- **The existing drafts are untouched.** `user_evaluation_instrument_draft.md`,
+  `consent_and_privacy.md`, `survey.md`, `participant_task_script.md`, and
+  `ethics_application_draft.md` are read and cited, none is edited, and `docs/index.md` gained
+  exactly the two permitted rows.
+
+**Gates.** Documentation-only, so no focused test applies; 2,819 `tests/unit` green;
+`ruff check src tests scripts` clean; `mypy src tests` clean over 799 files; `git diff --check`
+clean. Every `docs/index.md` link and every sibling document reference in the two new files was
+resolved against the tree. `ruff format` does not apply to markdown, and no UI file was touched.
+
 ### Phase 37 claim: batch-4 parallel feature prompt (27 July 2026)
 
 Batch 3 (Phases 51–55) fully verified by the primary session (ruff clean, UI 476 green,

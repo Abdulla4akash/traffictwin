@@ -43,6 +43,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Abbreviations and house terms appendix](dissertation_appendices/abbreviations.md)
 - [Quality-gate snapshot appendix (generated)](dissertation_appendices/quality_snapshot.md)
 - [User evaluation instrument draft (PROPOSED, unsigned)](evaluation/user_evaluation_instrument_draft.md)
+- [Participant information sheet draft (PROPOSED, unsigned)](evaluation/participant_information_sheet_draft.md)
+- [Consent form draft (PROPOSED, unsigned; no consent recorded)](evaluation/consent_form_draft.md)
 - [Dissertation video storyboard (6–8 minutes)](video_storyboard.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)
