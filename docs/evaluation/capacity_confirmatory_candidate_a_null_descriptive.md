@@ -1,8 +1,11 @@
-# Capacity Confirmatory — CANDIDATE (a): Descriptive Null Confirmation — PROPOSED, UNSIGNED
+# Capacity Confirmatory — CANDIDATE (a): Descriptive Null Confirmation — NOT CHOSEN
 
-**Status: prepared fill-in candidate of
-[the confirmatory protocol draft](capacity_confirmatory_protocol_draft.md). NOT signed, NOT
-approved, NOT executable.** An agent filled every value below from measured pilot artifacts so
+**Status: NOT CHOSEN. On 27 July 2026 the owner delegated the fork decision in session
+("take reasonable choices and keep working") and
+[candidate (b)](capacity_confirmatory_candidate_b_latency_primary.md) was selected under that
+delegation — see its decision record. This candidate is retained unexecuted as the predeclared
+alternative. Originally a prepared fill-in candidate of
+[the confirmatory protocol draft](capacity_confirmatory_protocol_draft.md).** An agent filled every value below from measured pilot artifacts so
 that signing is a read-and-pick; a person chooses exactly one candidate — this one or
 [candidate (b)](capacity_confirmatory_candidate_b_latency_primary.md) — completes its sign-off,
 and the recorded approval binds **that file's final SHA-256** with `held_out_authorised = true`.

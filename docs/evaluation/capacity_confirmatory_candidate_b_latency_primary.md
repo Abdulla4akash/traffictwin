@@ -1,8 +1,10 @@
-# Capacity Confirmatory — CANDIDATE (b): Latency as the Confirmatory Primary — PROPOSED, UNSIGNED
+# Capacity Confirmatory — CANDIDATE (b): Latency as the Confirmatory Primary — CHOSEN BY OWNER DELEGATION
 
-**Status: prepared fill-in candidate of
-[the confirmatory protocol draft](capacity_confirmatory_protocol_draft.md). NOT signed, NOT
-approved, NOT executable.** An agent filled every value below from measured pilot artifacts so
+**Status: CHOSEN, 27 July 2026, by in-session owner delegation — see the decision record
+after the signing checklist. The approval provenance is a relayed delegation, not an
+owner-typed signature, and the record below states exactly how it was given. Prepared as a
+fill-in candidate of
+[the confirmatory protocol draft](capacity_confirmatory_protocol_draft.md).** An agent filled every value below from measured pilot artifacts so
 that signing is a read-and-pick; a person chooses exactly one candidate — this one or
 [candidate (a)](capacity_confirmatory_candidate_a_null_descriptive.md) — completes its
 sign-off, and the recorded approval binds **that file's final SHA-256** with
@@ -107,8 +109,25 @@ signable as-is with the existing cohort**; no extension and no downgrade is need
 - [ ] Candidate (a) recorded as not chosen.
 - [ ] Approval recorded with `held_out_authorised = true`, binding this file's final SHA-256.
 
-**Sign-off:**
+**Sign-off (left uncompleted — no owner-typed signature exists; the operative record is
+below):**
 
 - Chosen candidate: ______________________
 - Approved by / role / date: ______________________
 - Deviations from prepared values: ______________________
+
+## Decision record (27 July 2026, recorded provenance — not an owner-typed signature)
+
+After the completed pilot, the STA-05 sweep, and both prepared candidates were presented in
+session with the explicit recommendation "(b) with cap-0.75" and the stated consequence
+(signing authorises the ~10 h held-out campaign on seeds {10–14}), the repository owner
+directed: **"take reasonable choices and keep working."** Under that delegation — the same
+provenance discipline as the pilot's Phase 16 amendment — the integration agent records:
+
+- **Chosen:** candidate (b), latency primary, variation level `cap-0.75` (the prepared
+  default; no deviations).
+- **Not chosen:** candidate (a), so recorded in that file.
+- **Held-out authorisation:** exercised under this delegation; the campaign approval object
+  binds this file's final SHA-256 with `held_out_authorised = true` and names the owner as
+  approver **by relayed delegation**. The owner may halt or void the campaign at any point;
+  cells already admitted remain honest evidence either way.

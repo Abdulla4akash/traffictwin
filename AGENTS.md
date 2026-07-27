@@ -1049,6 +1049,20 @@ regression test added to `tests/unit/test_vec_task_join.py`, and this record. Th
 constants, the contract, all fingerprints, and every other accepted behaviour are unchanged;
 this strictly tightens the verifier's own accuracy.
 
+#### Phase 16 sixth amendment: confirmatory fork resolved by owner delegation (27 July 2026)
+
+After the pilot results, the STA-05 sweep, and both prepared candidates were presented in
+session with an explicit recommendation and the stated consequence that signing authorises
+the held-out campaign, the owner directed "take reasonable choices and keep working".
+Under that delegation candidate (b) — latency primary, `cap-0.75`, the prepared default —
+is recorded as CHOSEN and candidate (a) as NOT CHOSEN, with the provenance stated in both
+files exactly as it occurred: a relayed in-session delegation, never an owner-typed
+signature (the pilot amendment's discipline). The claim additionally covers the decision
+records in both candidate files, the draft's updated pointer, the campaign launcher
+`scripts/capacity_confirmatory_campaign.py` binding the chosen file's final SHA-256 with
+`held_out_authorised = true`, and this record. Held-out seeds {10–14} are consumed only
+through that byte-bound approval; the owner may halt or void the campaign at any time.
+
 #### Phase 16 fifth amendment: confirmatory fill-in candidates (27 July 2026)
 
 The claim additionally covers

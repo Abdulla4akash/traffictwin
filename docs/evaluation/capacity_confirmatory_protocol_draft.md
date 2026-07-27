@@ -7,14 +7,15 @@ this document's final digest. It exists now so the confirmatory decision is a fi
 predeclared structure rather than a design written while looking at results.
 
 - Drafted: 26 July 2026, before any pilot cell completed
-- **Fill-in candidates prepared 27 July 2026** (both PROPOSED, UNSIGNED; a person chooses and
-  signs exactly one): [candidate (a) — descriptive null
-  confirmation](capacity_confirmatory_candidate_a_null_descriptive.md) ·
-  [candidate (b) — latency as the confirmatory
-  primary](capacity_confirmatory_candidate_b_latency_primary.md). The §3 STA-05 procedure was
-  run on the pilot values: the deadline endpoint needs 17–42 seeds (vs 5 held out → the §3
-  descriptive downgrade governs candidate (a)); the latency endpoint needs 3 at every level
-  (candidate (b) is signable as-is).
+- **Fork resolved 27 July 2026 by in-session owner delegation** ("take reasonable choices
+  and keep working"): [candidate (b) — latency as the confirmatory
+  primary](capacity_confirmatory_candidate_b_latency_primary.md) is **CHOSEN** (see its
+  decision record for the exact provenance — relayed delegation, not an owner-typed
+  signature); [candidate (a) — descriptive null
+  confirmation](capacity_confirmatory_candidate_a_null_descriptive.md) is retained
+  unexecuted. The §3 STA-05 procedure, run on the pilot values, drove the choice: the
+  deadline endpoint needs 17–42 seeds against the 5 held out (power ≈0.16–0.34 at n = 5),
+  while the latency endpoint needs 3 at every level (power ≈0.995 at n = 5).
 - Prerequisite: the completed pilot campaign for
   [the pilot predeclaration](capacity_squeeze_pilot_predeclaration.md) and its exploratory
   analysis report
