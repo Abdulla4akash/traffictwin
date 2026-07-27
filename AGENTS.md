@@ -1879,6 +1879,29 @@ application references, drafted so submission is attach-and-send.
   `consent_and_privacy.md`, `participant_task_script.md`, and `interview_guide.md` are read
   and cited; none is edited, and none is outside this claim by accident.
 
+### Phase 53 claim: bus-session post-session report script (parallel session, 27 July 2026)
+
+Feature 14 of the batch-3 prompt: the one command that turns an attended session's workspace
+artifacts into the numbers the B1 draft needs, so the post-session step after tomorrow's peak
+session is reading a report rather than assembling one.
+
+**Exclusive new files:** `scripts/bus_session_report.py`,
+`tests/unit/test_bus_session_report_script.py`, plus this record.
+
+**Boundaries.**
+
+- Composes the accepted `bods_session_identity` and `bus_profile_comparison` modules
+  **read-only and by full module path**, because the Manchester package `__init__` is
+  lead-claimed. Neither module is edited and neither measurement is recomputed.
+- **No acquisition, no API key, no network, no snapshot.** The script reads two JSON
+  measurement artifacts from an explicit workspace path and, optionally, one committed
+  edgeData file. There is no default workspace.
+- Aggregates only. The artifacts must declare `aggregates_only` and not
+  `raw_identifiers_published` or they are refused, and no session token, salt, raw vehicle
+  reference, or snapshot id reaches the rendered report.
+- The B1 block emits **candidate values a person confirms at signing**. It never writes into
+  the predeclaration draft and never converts a measurement into a chosen threshold.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
