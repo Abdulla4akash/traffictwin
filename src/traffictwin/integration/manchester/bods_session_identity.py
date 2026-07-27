@@ -24,6 +24,7 @@ count.
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import hmac
 import json
@@ -39,6 +40,7 @@ from pydantic import Field, model_validator
 
 from traffictwin.integration.manchester.models import (
     QUARANTINE_MANIFEST_FILE_NAME,
+    RAW_DIRECTORY_NAME,
     ManchesterQuarantineManifest,
     ManchesterSnapshotModel,
 )
@@ -164,6 +166,19 @@ def extract_session_observations_from_member(
         raise BodsSessionIdentityError(
             "MEMBER_TOO_LARGE", "the raw member exceeds the bounded size"
         )
+    if member_bytes[:2] == b"\x1f\x8b":
+        # The quarantine preserves the exact wire bytes, which BODS serves
+        # gzip-compressed; integrity was verified over the stored bytes above.
+        try:
+            member_bytes = gzip.decompress(member_bytes)
+        except OSError as exc:
+            raise BodsSessionIdentityError(
+                "MEMBER_NOT_XML", "the gzip member could not be decompressed"
+            ) from exc
+        if len(member_bytes) > _MAX_MEMBER_BYTES:
+            raise BodsSessionIdentityError(
+                "MEMBER_TOO_LARGE", "the decompressed member exceeds the bounded size"
+            )
     try:
         root = fromstring(member_bytes.decode("utf-8"))  # noqa: S314 - hash-verified quarantined bytes from the accepted acquisition boundary
     except (UnicodeDecodeError, ParseError, ValueError) as exc:
@@ -224,7 +239,7 @@ def extract_session_observations(
             "MEMBER_COUNT_INVALID", "BODS quarantines hold exactly one member"
         )
     member = manifest.members[0]
-    member_path = snapshot_dir / member.relative_path
+    member_path = snapshot_dir / RAW_DIRECTORY_NAME / member.relative_path
     if member_path.is_symlink() or not member_path.is_file():
         raise BodsSessionIdentityError("MEMBER_MISSING", "the raw member file is missing or unsafe")
     member_bytes = member_path.read_bytes()

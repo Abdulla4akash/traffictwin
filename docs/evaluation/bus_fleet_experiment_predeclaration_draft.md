@@ -41,7 +41,7 @@ reportable robustness result of equal standing.
 | Rule | Value |
 |---|---|
 | Observation session | `FILL-AT-SIGNING` (proposed F2 default: weekday 08:00–09:30 local, ~85 snapshots at 65 s) |
-| Measured per-vehicle update interval | `FILL-FROM-PROBE` (median / p90 seconds) |
+| Measured per-vehicle update interval | **median 68 s / p90 75 s** (first attended probe, 15 snapshots, 26–27 July 2026 night service; actively-updating vehicles refresh at or inside the 65 s sampling cadence, so the true feed interval is ≤ the sampling interval) |
 | Interpolation | along the map-matched road path between successive fixes, constant progression between fix times; never straight-line through buildings |
 | Gap ceiling | drop a vehicle's segment when successive fixes exceed `FILL-AT-SIGNING` s (proposed F5 default 120 s); dropped coverage is reported, never invented |
 | Dwell handling | fixes within `FILL-AT-SIGNING` m (proposed 15 m) treated as dwell at the matched stop location |
@@ -65,9 +65,18 @@ reportable robustness result of equal standing.
 ## 5. Viability gate before any campaign
 
 The derived trace must pass VEC-06's own validation and a predeclared sanity check: implied
-speeds within `FILL-AT-SIGNING` m/s (proposed 25), monotone per-vehicle timestamps, occupancy
-reconciliation, and a published interpolated-versus-observed share per vehicle. A trace
-failing any check is a published refusal, not a tuning exercise.
+speeds within `FILL-AT-SIGNING` m/s (proposed 32, because the night probe measured a
+legitimate 28.4 m/s maximum — plausibly a motorway coach — so the earlier 25 m/s idea would
+have rejected real service), monotone per-vehicle timestamps, occupancy reconciliation, and a
+published interpolated-versus-observed share per vehicle. A trace failing any check is a
+published refusal, not a tuning exercise.
+
+**Probe facts informing the gates (night session, 15 snapshots):** 872 vehicles seen, 41
+actively updating (median displacement 418 m per ~68 s update ≈ 22 km/h); 11,672 of 12,960
+observations were repeated identical fixes from stale vehicles, which the gap ceiling drops by
+design; one stale vehicle resumed after 3.2 hours, confirming the ceiling is necessary. The
+thin night fleet is exactly why G1 proposes a weekday peak session (~300 concurrent live
+vehicles per the accepted evening probe).
 
 ## 6. Owner decisions at signing
 

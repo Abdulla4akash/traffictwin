@@ -150,3 +150,14 @@ def test_workspace_extraction_refuses_an_unverifiable_quarantine(tmp_path: Path)
     (fake / "member.xml").write_bytes(_member())
     with pytest.raises(Exception, match=r"(?i)snapshot_invalid|quarantine|receipt|manifest"):
         extract_session_observations(tmp_path, "bods_siri_vm-fake", session_salt=SALT)
+
+
+def test_gzip_wire_members_decompress_after_hash_verification() -> None:
+    import gzip
+
+    compressed = gzip.compress(_member(), mtime=0)
+    result = extract_session_observations_from_member(
+        compressed, snapshot_id="snap-gz", session_salt=SALT
+    )
+    assert result.activities_seen == 2
+    assert result.observations_extracted == 2
