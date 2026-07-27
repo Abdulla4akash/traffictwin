@@ -1824,8 +1824,41 @@ capacity-study figures, generated **only** through the accepted REP-01 export ma
 - Re-presentation only. Every rendered number is a value the accepted analysis already
   recorded; the script computes no metric, no difference, and no summary of its own.
 - `exploratory`, `owner_approved_candidate`, and `descriptive non-causal` appear in each
-  figure's **rendered** text, carried in the projection title so they survive into the SVG
-  as well as the LaTeX caption.
+  figure's **rendered** text. The two renderers draw different fields — the SVG draws the
+  title and source line, the LaTeX fragment draws the caption — so the labels are carried in
+  the source id *and* the caption to reach both, and a test asserts their presence in every
+  published file of both kinds.
+
+**Three properties of the accepted renderer, measured and recorded rather than worked
+around.**
+
+1. **Its numeric figures are horizontal bar series, not polylines.** The brief asked for
+   per-seed latency *curves*. `ResearchExportProjection` carries a flat label/value entry
+   list, and `projection_to_svg` draws it as bars on a shared signed scale; there is no
+   polyline path in the accepted exporter. Adding one would mean editing `latex.py`, which
+   this feature is explicitly forbidden to modify. The curve is therefore published as an
+   ordered bar series — one contiguous run per fleet seed, in capacity order — with the
+   exact values in the companion table, and a test pins the seed-major ordering. If the
+   write-up wants true polylines, that is a `latex.py` change and a lead decision.
+2. **Its numeric scale is zero-anchored by construction** (`_numeric_scale` takes
+   `min(0, …)`/`max(0, …)`), so there is no zoom to state in the caption: the zero-anchored
+   chart is the only thing the machinery produces. The `~0.79` deadline-success band is
+   published at true size, which is what makes the flatness visible as flatness, and the
+   analysis's **own recorded** paired differences are published beside it as the readable
+   companion. No deviation, deviation-from-baseline, or rescaled value is computed here.
+3. **A title long enough to carry the status labels overflows the canvas.** Measured with
+   the renderer's own font metrics: the labelled titles ran 1,238–1,324 px against a 920 px
+   drawable width at the fixed 24 px title size, and the exporter neither wraps nor rejects
+   them — the viewport would have silently clipped them. The labels moved to the 13 px
+   source line, which measures 890–903 px, and a test asserts every published title and
+   source line fits, since nothing else in the pipeline would catch a regression.
+
+**Recorded state of the world.** `data/vec-fresh/capacity-pilot/campaign_analysis.json` is
+**not tracked by git**, so the committed figures cannot be regenerated from a fresh clone
+and no test asserts committed-equals-fresh. The provenance note therefore records the source
+file's SHA-256 beside the design fingerprint and every projection fingerprint, which is the
+only link a later reader has between a committed figure and the payload that produced it.
+The tests assert determinism on synthetic payloads instead.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 

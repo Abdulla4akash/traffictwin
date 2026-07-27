@@ -37,6 +37,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Stadium event-night study draft (not signable yet)](evaluation/stadium_event_study_draft.md)
 - [Dissertation appendices (generated: capability catalogue, software versions)](dissertation_appendices/appendix_a_capability_catalogue.md)
 - [Trace provenance appendix (five source trace/occupancy pairs)](dissertation_appendices/trace_provenance.md)
+- [Capacity-study figures and their provenance (exploratory)](dissertation_appendices/figures/provenance.md)
 - [Dissertation video storyboard (6–8 minutes)](video_storyboard.md)
 - [Demand rebuild variants predeclaration (proposed, unsigned)](evaluation/demand_rebuild_predeclaration.md)
 - [Live bus data experiment options (proposed)](evaluation/bus_data_experiment_options.md)

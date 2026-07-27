@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="606" viewBox="0 0 1000 606" role="img">
+  <title>Capacity pilot mean task latency by fleet seed and capacity arm</title>
+  <desc>Deterministic TrafficTwin figure; source mode imported or non-synthetic; projection fec39a3f4d19.</desc>
+  <rect x="0" y="0" width="1000" height="100%" fill="#ffffff"/>
+  <text x="40" y="42" font-family="Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#17324d">Capacity pilot mean task latency by fleet seed and capacity arm</text>
+  <text x="40" y="70" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#526473">Source: de474e038523e5e7 (exploratory, owner_approved_candidate, descriptive non-causal) | Mode: imported or non-synthetic | Projection: fec39a3f4d19</text>
+  <line x1="439.23" y1="115" x2="439.23" y2="581" stroke="#526473" stroke-width="1"/>
+  <text x="40" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 0 at cap-2.5</text>
+  <rect x="439.23" y="122" width="362.79" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">9942.56</text>
+  <text x="40" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 0 at cap-1.5</text>
+  <rect x="439.23" y="160" width="221.18" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="175" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">6061.69</text>
+  <text x="40" y="213" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 0 at cap-1.0</text>
+  <rect x="439.23" y="198" width="148.43" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="213" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">4067.96</text>
+  <text x="40" y="251" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 0 at cap-0.75</text>
+  <rect x="439.23" y="236" width="111.68" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="251" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">3060.75</text>
+  <text x="40" y="289" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 1 at cap-2.5</text>
+  <rect x="439.23" y="274" width="229.07" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="289" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">6277.91</text>
+  <text x="40" y="327" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 1 at cap-1.5</text>
+  <rect x="439.23" y="312" width="144.56" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="327" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">3961.82</text>
+  <text x="40" y="365" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 1 at cap-1.0</text>
+  <rect x="439.23" y="350" width="101.14" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="365" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">2771.94</text>
+  <text x="40" y="403" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 1 at cap-0.75</text>
+  <rect x="439.23" y="388" width="76.54" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="403" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">2097.71</text>
+  <text x="40" y="441" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 2 at cap-2.5</text>
+  <rect x="439.23" y="426" width="480.77" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="441" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">13176</text>
+  <text x="40" y="479" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 2 at cap-1.5</text>
+  <rect x="439.23" y="464" width="294.29" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="479" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">8065.25</text>
+  <text x="40" y="517" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 2 at cap-1.0</text>
+  <rect x="439.23" y="502" width="198.12" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="517" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">5429.71</text>
+  <text x="40" y="555" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">seed 2 at cap-0.75</text>
+  <rect x="439.23" y="540" width="149.32" height="20" fill="#0b7285" rx="2"/>
+  <text x="930" y="555" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">4092.35</text>
+  <text x="40" y="100" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">Signed linear scale; direction does not imply favourability.</text>
+</svg>
