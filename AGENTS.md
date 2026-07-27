@@ -1203,6 +1203,21 @@ counts — a difference is reported as a finding, never silently adopted.
 `docs/index.md` row, this record, and recovery outputs under the gitignored
 `data/network-recovery/` only.
 
+### Phase 27 claim: bus-versus-DfT hourly shape comparison (owner-directed, 27 July 2026)
+
+The declared B2 comparison step, built entirely from committed artifacts: the surviving
+Option-A edgeData counts reduce to an hourly road-demand shape (local clock-hour labels under
+the unresolved GA-DFT-1 blocker, carried as literals), and attended-session bus progression
+aligns against it descriptively — support-gated hours, an explicit declared UTC-to-local
+offset, tie-aware Spearman rank correlation reported verbatim, and type-level guards that bus
+speed is never road speed, road counts are never bus counts, and nothing is causal. Measured
+during construction and recorded rather than adopted: the surviving edgeData file totals
+2,027,275 entered vehicles against the demand record's 2,024,123 — an open reconciliation
+note for the demand-rebuild signing.
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/bus_profile_comparison.py`,
+`tests/unit/test_bus_profile_comparison.py`, plus this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
