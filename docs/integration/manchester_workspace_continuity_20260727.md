@@ -75,9 +75,20 @@ Consequences, none of them silently adopted:
    not a correction.
 6. Regenerate the route pool (seed 42, recorded envelope) for the demand-rebuild diagnosis.
 
-Meanwhile the surviving 6.17 GB demand file is being stream-measured for its route
-edge-count distribution — the demand-side half of the predeclared diagnosis that needs no
-network.
+## Demand-survivor measurement — with a provenance finding
+
+The truncated survivor yielded **3,550,666 parsed vehicles** with route edge counts of
+median 134 / p90 261 / p99 363 / max 488 and departs spanning 0–17,999.99 s. Two conclusions,
+kept separate:
+
+1. **Provenance is not established.** The corrected alpha.7 demand holds 746,440 vehicles;
+   a 3.55M-vehicle prefix means this file is almost certainly the *discredited
+   parallel-session artifact* (the 10.4×-inflated construction), not the corrected demand.
+   No receipt sits beside it. Its stats must never be attributed to the alpha.7 candidate.
+2. **The route-length signal is still informative about the generation policy**: routes of
+   median 134 edges (p99 363) through an urban subnetwork are long cross-network paths,
+   consistent with the recorded gridlock hypothesis — evidence about the *pool policy* that
+   both demand constructions shared, reported as exactly that and nothing more.
 
 ## Lesson recorded
 
