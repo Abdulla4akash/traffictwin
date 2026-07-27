@@ -2344,6 +2344,65 @@ written, and no `capacity_*` evaluation document was touched.
 `ruff format --check` clean on both touched Python files; `mypy src tests` clean over 802 source
 files; `git diff --check` clean. No UI file was touched, so `tests/ui` does not apply.
 
+### Phase 68 claim: B1 bridge to the VEC-06 request shape (parallel session, 27 July 2026)
+
+Feature 29 of the batch-6 prompt: the join between batch 2's `bus_trajectory` derivation and
+VEC-06 preprocessing, so the B1 execution step has its input ready before signing.
+
+**Exclusive new files:** `src/traffictwin/integration/manchester/bus_vec_bridge.py`,
+`tests/unit/test_manchester_bus_vec_bridge.py`, and this record. `bus_trajectory` and the VEC-06
+models are imported by full module path and neither is modified; no `docs/index.md` row was
+added because the batch brief names none for this feature.
+
+**What it assembles.** The dense motion arrays in the accepted `(T, maxN)` shape (`pos_x`,
+`pos_y`, `speed`, `mask`, `times`, `dt`, `maxN`, `T` at the contract's exact dtypes), the
+occupancy span table under the accepted header `sumo_vehicle_id, slot, t_enter, t_exit`, and a
+`BusVecRequestDraft` that composes the accepted `VecFcdPreprocessRequest` once the caller supplies
+the two raw-input digests.
+
+**Boundaries.**
+
+- **Construction only, and the type says so.** `vec06_admitted` is `Literal[False]` on both the
+  draft and the result, with no code path that sets it otherwise; a test asserts the model refuses
+  `True`. The composition literals ride through unchanged: `derived_scenario=True`,
+  `observed_fcd=False`, `buses_only=True`. The output is an input FOR the accepted machinery,
+  never a preprocessing receipt, an accepted trace, or admitted evidence.
+- **RSU placement is not fabricated.** The accepted bundle also carries `rsu_xy`, `window`, and
+  `sumo_seed`; `rsu_xy` is VEC-06's own reviewed placement stage's output, so the bridge emits the
+  motion subset, names the three keys it does not emit in `UNBRIDGED_TRACE_KEYS`, and states why.
+  A test asserts the emitted mapping and the unbridged keys are disjoint and together equal the
+  full contract key set.
+- **Two coordinate spaces kept visibly separate.** Occupancy `t_enter`/`t_exit` are **row indices**
+  into the arrays (VEC-06 reconciles by `mask[t_enter : t_exit + 1, slot]`, inclusive), not
+  absolute seconds; emitting seconds would corrupt every identity join by exactly
+  `window_start_s`. Relatedly, `times` is `[0, 1, ..., T-1]` because the contract stores it as
+  `float32`, which cannot separate consecutive epoch-scale seconds — a test makes that hazard
+  explicit by asserting `float32(1_784_000_000) == float32(1_784_000_001)` and then showing the
+  bridge loses nothing. The absolute base is recorded in `window_start_s` on both the arrays and
+  the draft.
+- **Slot assignment is deterministic and documented.** Each vehicle's track splits into contiguous
+  runs (a dropped gap ends one run and starts another), runs are ordered by
+  `(t_enter, vehicle_key, t_exit)`, and each takes the lowest slot free at its start second, with
+  a slot freeing at `t_exit + 1`. Tests cover slot reuse after release, refusal to reuse while
+  occupied, order-independence across input permutations, gap-dropped vehicles yielding one span
+  per run, a third vehicle borrowing a slot inside another's gap, and exact mask/span
+  reconciliation including both rejection directions (active cell without identity, identity on an
+  inactive cell) and a double-claimed slot-second.
+- **Sizes are checked before allocation** against the contract's timestep, concurrency, dense-cell,
+  and observation ceilings, so an over-sized fleet is refused rather than allocated (the 1.28 GB
+  lesson). An empty derivation and duplicate seconds for one vehicle are refused too.
+- Session tokens are the vehicle ids, carried through unchanged; no raw reference, operator id, or
+  vehicle registration is introduced anywhere. Nothing reads a file, opens a session artifact,
+  calls BODS, touches a snapshot, or executes any part of VEC-06.
+
+**Gates.** 29 focused tests green; 2,895 `tests/unit` green; `ruff check src tests scripts` clean;
+`ruff format --check` clean on both touched files; `mypy src tests` clean over 804 source files;
+`git diff --check` clean. No UI file was touched, so `tests/ui` does not apply.
+
+**Shared-checkout note.** The lead's uncommitted `docs/project_guide.md` claim and index row were
+in the working tree during this commit. Only `AGENTS.md` content equal to `HEAD` plus this claim
+was staged, so the lead's in-flight edits stayed uncommitted and untouched in the working tree.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
