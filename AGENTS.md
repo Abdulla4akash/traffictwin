@@ -2648,6 +2648,17 @@ copied from volatile /tmp to data/gpu-track/ and its SHA-256 re-verified
 (885f6914…). Exclusive files: docs/integration/evidence/bcap_engineering_smoke_20260728.json
 and this record.
 
+### Phase 89 claim: three-trace capacity grid + ev timing probe (owner-directed, 28 July 2026)
+
+Under the standing delegation, reaffirmed in session ("I want to do some experimenting
+now"): the A1 grid predeclaration (we + ev, pilot-mirroring arms, fresh seeds {50-52},
+exploratory, mechanism predictions recorded in advance as falsifiable), the single ev
+timing probe answering ADR-065's open risk (timing evidence only, no admission), and the
+grid campaign launcher binding the predeclaration digest with held_out_authorised=False.
+Exclusive files: docs/evaluation/capacity_grid_predeclaration.md and its docs/index.md
+row, scripts/ev_timing_probe.py, docs/integration/evidence/vec_ev_timing_probe_20260728.json,
+scripts/capacity_grid_campaign.py, plus this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
