@@ -387,20 +387,20 @@ def test_repeat_admission_under_different_study_context_refuses(tmp_path: Path) 
         register_fresh_run_admission(other, other_collection, registry_path)
 
 
-def test_inc_and_ev_are_reviewed_and_weekday_traces_stay_refused() -> None:
-    inc_sha = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
-    ev_sha = "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208"
-    assert REVIEWED_TRACE_SCENARIOS[inc_sha] == "inc"
-    assert PINNED_REVIEWED_TRACES[inc_sha] == "traces/trace_inc_fullrsu.npz"
-    assert REVIEWED_TRACE_SCENARIOS[ev_sha] == "ev"
-    assert PINNED_REVIEWED_TRACES[ev_sha] == "traces/trace_ev_fullrsu.npz"
-    refused = (
-        "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
-        "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
-    )
-    for audited_but_unreviewed in refused:
-        assert audited_but_unreviewed not in PINNED_REVIEWED_TRACES
-        assert audited_but_unreviewed not in REVIEWED_TRACE_SCENARIOS
+def test_all_five_audited_traces_are_reviewed_and_unknown_hashes_stay_refused() -> None:
+    reviewed = {
+        "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056": "inc",
+        "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208": "ev",
+        "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee": "wd_am",
+        "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f": "wd_pm",
+    }
+    for sha, scenario in reviewed.items():
+        assert REVIEWED_TRACE_SCENARIOS[sha] == scenario
+        assert sha in PINNED_REVIEWED_TRACES
+    unknown = "0" * 63 + "1"
+    assert unknown not in PINNED_REVIEWED_TRACES
+    assert unknown not in REVIEWED_TRACE_SCENARIOS
+    assert len(REVIEWED_TRACE_SCENARIOS) == 5
 
 
 def test_register_is_idempotent(tmp_path: Path) -> None:

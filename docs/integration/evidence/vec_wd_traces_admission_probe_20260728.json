@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0",
+  "probe": "vec-wd-traces-admission-probe",
+  "date": "2026-07-28",
+  "decision_record": "docs/decisions/ADR-066-weekday-trace-allowlist-extension.md",
+  "purpose": "Measure, before extending the VEC-07 reviewed-trace allowlist, that both Gate-A-audited weekday peak trace/occupancy pairs reconcile at the audited tos-data commit.",
+  "tos_data_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+  "sources": [
+    {
+      "path": "traces/trace_wd_am_fullrsu.npz",
+      "sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+      "size_bytes": 10965874,
+      "matches_gate_a_audit": true
+    },
+    {
+      "path": "occupancy/occupancy_wd_am.csv",
+      "sha256_prefix": "203172baab0785a5",
+      "matches_gate_a_audit": true
+    },
+    {
+      "path": "traces/trace_wd_pm_fullrsu.npz",
+      "sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+      "size_bytes": 23900327,
+      "matches_gate_a_audit": true
+    },
+    {
+      "path": "occupancy/occupancy_wd_pm.csv",
+      "sha256_prefix": "7f45a3e924a5f149",
+      "matches_gate_a_audit": true
+    }
+  ],
+  "measured": {
+    "wd_am": {
+      "trace_steps": 10800,
+      "trace_slots": 215,
+      "masked_vehicle_seconds": 1166439,
+      "occupancy_spans": 5381,
+      "distinct_vehicles": 5377,
+      "missing_identity_cells": 0,
+      "inactive_identity_cells": 0,
+      "identity_snapshot_fingerprint": "c33ad5f883fc47c997774371a8584b5e44229ef148146ebf9557fd54a8e4ec24",
+      "snapshot_build_elapsed_seconds": 0.89
+    },
+    "wd_pm": {
+      "trace_steps": 25200,
+      "trace_slots": 163,
+      "masked_vehicle_seconds": 2621666,
+      "occupancy_spans": 12232,
+      "distinct_vehicles": 12232,
+      "missing_identity_cells": 0,
+      "inactive_identity_cells": 0,
+      "identity_snapshot_fingerprint": "b9b8c8b9736220c2528fc4e97999abfdd70a986c2151bfb145422f5c1004d983",
+      "snapshot_build_elapsed_seconds": 4.21
+    }
+  },
+  "interpretation_limits": [
+    "Reconciliation proves joinability; it is not an execution timing or scientific result.",
+    "Both peaks measured LOW density (163-215 slots) - the same band as we/ev, not intermediate toward the collapse hour's 2,488; recorded as a district-trace-set finding.",
+    "Read via git cat-file at the audited commit; the pinned clones were not fetched."
+  ]
+}

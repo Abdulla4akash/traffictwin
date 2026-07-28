@@ -2710,6 +2710,19 @@ procedure, and the untouched owner decision queue. The changelog's in-developmen
 gains the 27-28 July research-arc block. Exclusive files: the handoff document,
 CHANGELOG.md's new block, and this record.
 
+### Phase 92 claim: weekday admissions + sweep completion + deep-squeeze onset (28 July 2026)
+
+Under the standing delegation: both weekday peak pairs probed (read-only, exact Gate-A
+match, snapshots reconcile: wd_am T=10,800/maxN=215, wd_pm T=25,200/maxN=163 — both LOW
+density, itself a district-trace-set finding) and admitted as ADR-066 with the allowlist
+pinned to exactly five; the sweep-completion + deep-squeeze predeclaration fixes
+predictions in advance (peaks inert like we/ev; ev-deep arms {0.5, 0.25, 0.1} measure the
+binding onset or its absence); launcher specs added with per-spec arms. Exclusive files:
+the two allowlist maps and their tests, the campaign-test unknown-hash literal, ADR-066 +
+probe evidence + index rows, the vec_fresh_run_admission.md wording,
+docs/evaluation/capacity_sweep_completion_predeclaration.md + index row, the
+scripts/capacity_grid_campaign.py extensions, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

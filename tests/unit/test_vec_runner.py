@@ -32,13 +32,17 @@ from traffictwin.integration.vec_runner.models import (
 TRACE_HASH = "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be"
 INC_TRACE_HASH = "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
 EV_TRACE_HASH = "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208"
+WD_AM_TRACE_HASH = "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee"
+WD_PM_TRACE_HASH = "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f"
 
 
-def test_reviewed_allowlist_holds_exactly_the_three_admitted_gate_a_traces() -> None:
+def test_reviewed_allowlist_holds_exactly_the_five_admitted_gate_a_traces() -> None:
     assert PINNED_REVIEWED_TRACES[TRACE_HASH] == "traces/trace_we_fullrsu.npz"
     assert PINNED_REVIEWED_TRACES[INC_TRACE_HASH] == "traces/trace_inc_fullrsu.npz"
     assert PINNED_REVIEWED_TRACES[EV_TRACE_HASH] == "traces/trace_ev_fullrsu.npz"
-    assert len(PINNED_REVIEWED_TRACES) == 3
+    assert PINNED_REVIEWED_TRACES[WD_AM_TRACE_HASH] == "traces/trace_wd_am_fullrsu.npz"
+    assert PINNED_REVIEWED_TRACES[WD_PM_TRACE_HASH] == "traces/trace_wd_pm_fullrsu.npz"
+    assert len(PINNED_REVIEWED_TRACES) == 5
 
 
 def _request(**changes: object) -> VecRunRequest:

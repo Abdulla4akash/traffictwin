@@ -67,6 +67,7 @@
 | [ADR-063](ADR-063-bounded-vec-campaign-execution.md) | Bounded, approval-gated VEC campaign execution | accepted |
 | [ADR-064](ADR-064-analyst-map-match-review-ledger.md) | Sealed append-only ledger for analyst map-match review | accepted |
 | [ADR-065](ADR-065-ev-trace-allowlist-extension.md) | Reviewed admission of the `ev` trace | accepted |
+| [ADR-066](ADR-066-weekday-trace-allowlist-extension.md) | Reviewed admission of the weekday peak traces | accepted |
 
 Related documents:
 

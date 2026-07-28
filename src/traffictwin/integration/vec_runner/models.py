@@ -48,6 +48,14 @@ PINNED_REVIEWED_TRACES = {
     "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208": (
         "traces/trace_ev_fullrsu.npz"
     ),
+    # Gate-A-audited weekday peak traces, admitted by ADR-066 after both identity
+    # snapshots were measured to reconcile at the audited tos-data commit.
+    "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee": (
+        "traces/trace_wd_am_fullrsu.npz"
+    ),
+    "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f": (
+        "traces/trace_wd_pm_fullrsu.npz"
+    ),
 }
 
 _LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,95}$")

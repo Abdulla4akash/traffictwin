@@ -23,9 +23,9 @@ Library: `traffictwin.integration.vec_fresh_admission`
 3. Refuses a truncated execution (`TRUNCATED_EXECUTION_REFUSED`): a smoke run's arrays can
    never reconcile against the trace identity and are never scientific evidence.
 4. Refuses any trace outside the pinned reviewed set (`UNREVIEWED_TRACE_REFUSED`). The set
-   holds the weekend trace and, per the measured probes of ADR-062 and ADR-065, the `inc`
-   incident trace and the `ev` event-night trace; `wd_am` and `wd_pm` stay refused until
-   their own reviewed extensions.
+   holds all five Gate-A-audited pairs, each admitted only after its own measured
+   identity-reconciliation probe: the weekend trace (v0.6), `inc` (ADR-062), `ev`
+   (ADR-065), and the weekday peaks `wd_am` and `wd_pm` (ADR-066).
 5. Reads the trace and occupancy identity evidence as exact Git blobs from the audited
    `tos-data` commit — the clone must be clean with `origin/main` at that commit — and
    verifies the trace hash against the executed request.

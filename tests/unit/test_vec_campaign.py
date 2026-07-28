@@ -141,7 +141,7 @@ def test_unreviewed_trace_and_duplicate_arms_are_refused(tmp_path: Path) -> None
             phase=VecCampaignPhase.PILOT,
             approval=_approval(digest),
             trace_file="traces/trace_ev_fullrsu.npz",
-            trace_sha256="5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+            trace_sha256="0" * 63 + "1",
             actor_id="baseline_model_c_17",
             fleet=VecFleet.UK_2030,
             evaluator_seed=0,
