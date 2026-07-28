@@ -3040,6 +3040,17 @@ question descriptively; placement remains VEC-06 generated and is never presente
 verified Manchester infrastructure. Exclusive files:
 `docs/evaluation/rsu_load_asymmetry_20260728.md`, its `docs/index.md` row, and this record.
 
+### Phase 112 claim: session context prompt v5 and register refresh (owner-directed, 28 July 2026)
+
+Resume set for a fresh session: `CLAUDE_SESSION_CONTEXT_PROMPT_V5.md` supersedes V4 and
+carries the closed capacity mechanism (including the measured latency-tail result and the
+"mean latency is ~99% tail mass" caution), the withdrawn N1 with its explicit prohibition
+on repeating the provider-mutation claim, the rebuilt durable network and the two recorded
+decode defects, the bus track with Codex's ownership and the map-matching deviation flag,
+and the queue with owner-gated items marked. The consolidated register gains the
+latency-tail, RSU-asymmetry, and N1/concurrency entries. Exclusive files: that prompt, the
+register rows, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

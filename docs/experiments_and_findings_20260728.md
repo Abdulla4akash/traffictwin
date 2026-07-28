@@ -18,6 +18,10 @@ approved or externally validated. Each row links its full record.**
 | 8 | **Deep-squeeze onset** (`ev`, arms 0.5/0.25/0.1) | extend squeeze 25× | **Onset located between cap-0.25 and cap-0.1**: inert at 10×; at 25× the collapse-hour signature appears in miniature (deadlines faintly up, latency down); decisions invariant throughout. [Record](evaluation/capacity_sweep_completion_results_20260728.md) |
 | 9 | **ev timing probe** | one full run | 265.9 s/run, 6,934 s ceiling margin — ADR-065 risk closed. [Evidence](integration/evidence/vec_ev_timing_probe_20260728.json) |
 
+| 9b | **Latency-tail analysis** (analysis-only, 39.2M active tasks/arm) | per-arm distribution | **The mechanism, measured**: p50 is 44.3 ms at every capacity (−0.10% over the 3.3× squeeze), the >1 s population moves −0.07 pp, but p99 falls 69.9% and 97.9–99.4% of latency mass is tail. The squeeze moves latency only within the already-deadline-failed population. [Record](evaluation/latency_tail_analysis_20260728.md) |
+| 9c | **Per-RSU load asymmetry** (analysis-only) | 10 RSUs, 2 arms | **3 of 10 RSUs carry exactly zero load** at every capacity, a fourth under 5%, busiest ~24%; Gini 0.486→0.467 — the squeeze does not redistribute. Placement, not capacity, binds. [Record](evaluation/rsu_load_asymmetry_20260728.md) |
+| 9d | **N1 re-examination + peak concurrency** (offline) | identity forensics; 52 quarantines | **N1 withdrawn** — no provider mutation; the "lost" source identity was the decoded XML's, and the network rebuild reproduces the original canonical identity exactly. Peak bus concurrency **1,216 max**, inside the capacity sweep's unresolved band. [Evidence](integration/evidence/n1_reexamination_and_peak_concurrency_20260728.json) |
+
 **One-sentence synthesis:** the trained policies cannot see capacity (structural
 observation gap), this costs nothing in any normal traffic regime, and capacity only
 shapes outcomes where load saturates the concurrency bound — with the confirmed effect
