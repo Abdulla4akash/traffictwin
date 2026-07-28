@@ -1,0 +1,18 @@
+{
+  "approval_recorded_at_utc": "2026-07-28T05:29:57Z",
+  "approved": true,
+  "approved_by": "repository_owner_via_active_codex_session",
+  "campaign": "bdomain-full-training-v1",
+  "direction_quote": "do the next experiment",
+  "harness_sha256": {
+    "gpu/real_bcap/prepare_source.py": "c5ae34f154985580e69c5b4036684d0834691d31fc73234d06be3d89125d863c",
+    "gpu/real_bdomain/evaluate_domain_matrix.py": "fb53386e2b078f0699cf230abcb60d6419726455c047acd6923cccd303d7dec2",
+    "gpu/real_bdomain/run_campaign.py": "d0afcc0ddf662ffc97330a72d9e1a96c4743359680dcc058df5f146a4a9722f9"
+  },
+  "held_out_authorised": false,
+  "label_ceiling": "owner_approved_candidate",
+  "predeclaration_path": "docs/evaluation/bdomain_training_predeclaration_20260728.md",
+  "predeclaration_sha256": "84088d51b64bd58e9efea461d7b62b74baf591eddf24f6c96aea80ed608fcc2c",
+  "producer_data_authorised_for_colab": false,
+  "scientific_evidence_authorised": false
+}

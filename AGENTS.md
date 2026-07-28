@@ -2749,6 +2749,23 @@ are non-admitted `owner_approved_candidate` diagnostics. Exclusive files:
 `docs/evaluation/bmask_training_{predeclaration_20260728.md,approval_20260728.json}`, and this
 claim.
 
+### Phase 95 claim: full B-DOMAIN G4 training campaign (owner-directed, 28 July 2026)
+
+The owner directed Codex to execute the next data-free experiment after B-MASK. The literal B4
+trace matrix remains Colab-blocked by producer trace-data permission, so Codex owns a code-only
+procedural distribution-shift precursor using the producer's built-in task-mixture variants:
+default, safety-dominant, and pilot-inspired. The frozen matrix trains five fresh capacity-aware,
+unmasked, balanced-reward MAPPO checkpoints per domain (seeds {400–404}; 15 full jobs) and
+evaluates every checkpoint on all three domains at baseline and squeezed RSU capacity with common
+keys. Uniform is excluded before outcomes to preserve five-seed replication and full budgets
+within the compute envelope. Producer data, traces, bus bytes, checkpoints, external clones,
+scientific campaigns, registries, and held-out cohorts remain untouched. Outputs are non-admitted
+`owner_approved_candidate` diagnostics. Exclusive files:
+`gpu/real_bdomain/{__init__.py,evaluate_domain_matrix.py,run_campaign.py,README.md}`,
+`tests/unit/test_bdomain_real_campaign.py`,
+`docs/evaluation/bdomain_training_{predeclaration_20260728.md,approval_20260728.json}`, and this
+claim.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
