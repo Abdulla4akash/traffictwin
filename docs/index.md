@@ -88,6 +88,8 @@ This index points only to documentation and repository paths that exist in the c
 - [BETA-D-02 §2 demand diagnosis evidence, 28 July 2026](integration/evidence/manchester_demand_diagnosis_20260728.json)
 - [MAN-05 rush-hour refusal diagnosis (all five 28 July refusals), 28 July 2026](integration/evidence/man05_refusal_diagnosis_20260728.json)
 - [Evening-peak bus session results, 28 July 2026](evaluation/bus_evening_peak_session_20260728.md)
+- [Capacity-pilot dynamics: the mechanism in closed form, 28 July 2026](evaluation/pilot_dynamics_analysis_20260728.md)
+- [Bus progression speed against fleet size, 28 July 2026](evaluation/bus_speed_density_20260728.md)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)

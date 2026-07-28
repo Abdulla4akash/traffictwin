@@ -3203,6 +3203,55 @@ traces or either Colab pack. Exclusive files:
 `docs/evaluation/bus_evening_peak_session_20260728.md`, the extended
 `man05_refusal_diagnosis_20260728.json`, their `docs/index.md` rows, and the register rows.
 
+### Phase 118 claim: pilot dynamics analysis — the mechanism in closed form (28 July 2026)
+
+Analysis-only over all 12 admitted pilot cells; no run executed. **The tail-latency ceiling
+is linear in per-vehicle capacity**: p95 latency of missed tasks divided by capacity is
+39,959 ms with standard deviation 166 ms — a 0.41% relative spread across all 36
+(cell x class) pairs, i.e. 100 s at cap-2.5, 60 s at cap-1.5, 40 s at cap-1.0, 30 s at
+cap-0.75. Since ~99% of latency mass sits at that ceiling, mean latency is linear in
+capacity too (predicted arm ratio 3.33, confirmatory measured 3.24), and every deadline is
+60-300x below the ceiling at every capacity, so attainment cannot move. **That closes the
+confirmed finding's mechanism as a functional form rather than a narrative.**
+
+Two further results. **The policy is bimodal, not probabilistic**: counting only steps where
+a slot carries tasks, 1,413/988/87 slots never/always/sometimes offload at seed 0
+(1,393/992/103 and 1,384/1,018/86 at seeds 1-2), identical across all four capacities, so
+only ~3.5% of slots ever switch behaviour and the ~0.40 aggregate is a partition rather than
+a per-situation rate. **Deadline failure is concentrated and not by workload**: failure-rate
+Gini 0.616-0.627 with the worst decile carrying 34-36% of all failures, while task-count
+Gini is 0.028. Also: the three task classes fail in qualitatively different ways (T1 misses
+are 3.7x near-misses barely moved by the squeeze, T2 misses sit at the ceiling and fall 71%),
+and saturation is immediate rather than gradual - the capacity ratio is reached by ~10% into
+the run and offload share is flat at 0.398-0.407 throughout.
+
+Exclusive files: `scripts/analyse_pilot_dynamics.py`,
+`docs/evaluation/pilot_dynamics_analysis_20260728.md`, its `docs/index.md` row, the register
+row, and this record. Arrays stay in gitignored `data/`.
+
+### Phase 119 claim: bus speed-density series (28 July 2026)
+
+The four attended sessions span a 36x fleet range under one boundary and one identity
+policy, so they form a speed-density series measured end to end from live open data. Speed
+is per-segment via the accepted B2 primitive, never median-displacement over median-interval.
+**Buses at peak move 44% slower than at night** (6.290 -> 3.518 m/s), and resolving the
+evening session into its two UTC hours turns four session points into six hour points that
+fall essentially monotonically with fleet size (6.290 / 4.523 / 4.358 / 3.850 / 3.518 /
+3.369 m/s), with the single inversion sitting between two dawn hours of near-identical fleet
+and very unequal support.
+
+The hourly split also dissolves an apparent contradiction: at session level the evening peak
+looks faster than the morning peak despite carrying more vehicles, but hour for hour the
+evening crest (1,462 vehicles, 3.369 m/s) is both denser and slower than the morning peak
+(1,429, 3.518) - the session average merely mixed the crest with the recovery.
+
+Explicitly non-causal: fleet size and time of day covary and general congestion is an
+unmeasured common cause. Sessions are bounded by explicit UTC stamp ranges, not hour
+prefixes, because a prefix folds the aborted 07:57 BST attempt's single promotion into dawn;
+session sizes reconcile exactly with the recorded three-session results. Exclusive files:
+`scripts/analyse_bus_speed_density.py`, `docs/evaluation/bus_speed_density_20260728.md`, its
+`docs/index.md` row, the register row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
