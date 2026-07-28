@@ -175,6 +175,29 @@ behaviour under a changed resource regime is invisible until an instrument makes
 decision stream itself inspectable. The finding was reachable *because* admission
 preserves per-decision evidence, not just averages.
 
+## 7a. The programme since (28 July 2026) — confirmation, mechanism, and breadth
+
+The pilot finding above was extended the same night, each step under its own record:
+
+- **Held-out confirmation** ([results](capacity_confirmatory_results_20260728.md)): under
+  the signed latency-primary protocol, all five reserved seeds agreed — mean paired
+  difference −8,310.9 ms, bootstrap [−9,097.5, −7,524.3], deadline null replicated.
+- **Keyed action identity** ([evidence](../integration/evidence/vec_pilot_keyed_action_comparison_20260728.json)):
+  zero mismatches in 8,956,800 per-vehicle-slot actions × 9 arm pairs — invariance holds
+  at the literal action-sequence level.
+- **Mechanism located** ([evidence](../integration/evidence/vec_pilot_observability_gap_20260728.json)):
+  structural observation-space blindness; independently reproduced in a from-scratch
+  17-D policy on GPU, while a 19-D capacity-observation variant demonstrably responds
+  ([smoke record](../integration/evidence/bcap_engineering_smoke_20260728.json)).
+- **Breadth across regimes** ([grid results](capacity_grid_results_20260728.md)): on the
+  weekend and event-night traces, every metric is exactly identical across all capacity
+  arms — the knob is inert off-saturation. The three regimes separate policy blindness
+  (everywhere, structural) from outcome sensitivity (only the 2,488-slot collapse hour
+  saturates the bound; the threshold is bracketed between 175 and 2,488 slots).
+- The event-night regime measured ≈ the weekend at the VEC layer (~93.5% deadlines,
+  ~51 ms mean latency): **the stress in this district's traces is the incident, not the
+  event** — a scoping fact for any stadium-scenario study.
+
 ## 8. What followed from it (programme consequences)
 
 - The confirmatory protocol's knee rule — largest adjacent-step *drop* in deadline

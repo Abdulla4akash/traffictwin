@@ -40,6 +40,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Future research directions v2 (proposals after the capacity finding)](research_directions_v2.md)
 - [Three-trace capacity grid predeclaration (exploratory, delegated)](evaluation/capacity_grid_predeclaration.md)
 - [Three-trace capacity grid results, 28 July 2026 (exploratory)](evaluation/capacity_grid_results_20260728.md)
+- [Baseline-actor invariance prediction test predeclaration (B0, exploratory)](evaluation/baseline_invariance_prediction_predeclaration.md)
 - [Producer code-use permission, recorded provenance (28 July 2026)](integration/randy_code_permission_20260728.md)
 - [Capacity pilot mechanism exhibit, 27 July 2026 (exploratory)](evaluation/capacity_pilot_mechanism_report_20260727.md)
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
