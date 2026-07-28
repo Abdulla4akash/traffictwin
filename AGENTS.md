@@ -3294,6 +3294,36 @@ queue including the GPU track's gate state; and the paste-ready prompt.
 
 Exclusive files: that prompt and this record.
 
+### Phase 122 claim: pre-registered ceiling-law verdict computation (28 July 2026)
+
+The `inc-deep` campaign tests a prediction whose pass band and verdict rule were frozen before
+any cell ran. This slice commits the code that computes that verdict **before the tested data
+exists**, so the rule cannot be adjusted once the arms are visible — the same argument the
+register already makes about digests (*a digest is only evidence if the code that computes it
+is committed beside it*), applied to a pre-registered outcome.
+
+`scripts/verify_ceiling_law_prediction.py` re-hashes
+`docs/evaluation/ceiling_law_prediction_predeclaration.md` and refuses on
+`PREDECLARATION_CHANGED_AFTER_APPROVAL`; it also checks its own transcribed literals against
+the law they encode (the ±5% band and each per-arm ceiling are re-derived from K = 39,959 and
+must equal the predeclared values). The frozen rule is applied in the precedence the
+predeclaration implies — HELD when every deep arm × class pair is inside the band, else
+BOUNDED when cap-0.5 is clean, else REFUTED — and a pair with no missed tasks is reported as
+**INCOMPLETE** rather than silently counted as a pass. cap-2.5 is measured but excluded from
+the verdict and labelled a replication check, because it is one of the capacities the law was
+fitted on.
+
+A `selftest` mode recomputes K from the already-published pilot dynamics JSON, reading no
+arrays, and it earned its place immediately: the first run reproduced K (39,959.07) and the
+0.41% spread but not the published σ of 166 ms, because the original statistic is the
+**sample** standard deviation — the population estimator gives 163.4 over these 36 pairs. The
+recipe was corrected to match the one that produced the law and the discrepancy is recorded in
+the code rather than reconciled away. Selftest now passes on all three statistics.
+
+Exclusive files: `scripts/verify_ceiling_law_prediction.py` and this record. No campaign
+design, launcher, fingerprint, predeclaration or admitted artifact is touched, and the `verify`
+mode is deliberately not run while cells are timed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
