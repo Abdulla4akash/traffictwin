@@ -31,6 +31,33 @@ observation gap), this costs nothing in any normal traffic regime, and capacity 
 shapes outcomes where load saturates the concurrency bound — with the confirmed effect
 being a large latency *reduction* under squeeze, not the hypothesised deadline cliff.
 
+**The mechanism, in closed form (28 July).** The above is now a quantitative statement
+rather than a narrative:
+
+> **L(c) ≈ 39,959 ms × c** — the tail-latency ceiling is linear in per-vehicle capacity,
+> to 0.41% across all 36 (cell × task-class) pairs.
+
+Everything follows from that one relation and two facts already measured. Because ~99% of
+latency mass sits *at* the ceiling, mean latency is linear in capacity — predicting the 3.33
+arm ratio against the confirmed 3.24. Because every deadline (100 ms, 500 ms) lies 60–300×
+*below* the ceiling at every capacity, a task at the ceiling misses at cap-2.5 and still
+misses at cap-0.75. **The squeeze compresses the failed population without ever moving a
+task across a deadline**, so the large confirmed latency effect and the flat deadline null
+were never in tension.
+
+Two structural findings sit beneath it. The policy is **bimodal, not probabilistic** — the
+~0.40 offload rate is a fixed partition of vehicles (never / always / ~3.5% ever switching),
+identical at every capacity — so on this trace it barely makes a situational decision at
+all. And deadline failure is **concentrated by identity, not workload**: failure Gini ~0.62
+with the worst decile carrying ~35% of failures, while tasks are spread almost perfectly
+evenly (Gini 0.028). "79% attainment" is near-perfect service for most vehicles and
+near-total failure for a persistent minority.
+
+*The law is currently an interpolation across a 3.3× range. A pre-registered test of its
+extrapolation 7.5× below that floor is running ([predeclaration](evaluation/ceiling_law_prediction_predeclaration.md),
+digest `78dcd3ce…`), with the predicted ceilings and a ±5% pass band frozen before any cell
+ran.*
+
 ## B. GPU training track (Codex, Colab G4, real producer code under recorded citation permission; all outputs non-admitted diagnostics)
 
 | # | Campaign | Design | Finding |
