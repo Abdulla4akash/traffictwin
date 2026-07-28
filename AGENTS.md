@@ -3084,6 +3084,40 @@ row, the restoration section of
 `docs/experiments_and_findings_20260728.md`, and this record. Derived networks, indexes,
 and match rows stay in gitignored `data/` and the private workspace, never committed.
 
+### Phase 114 claim: BETA-D-02 §2 demand diagnosis (owner-directed, 28 July 2026)
+
+The four predeclared §2 measurements ran over the restored study subnetwork, published as
+§2 requires regardless of outcome. The alpha.7 envelope reproduces faithfully — 43,200
+trips, 43,200 pool routes at 88,163,681 B against the recorded 88,163,497 B, 91.72% count
+achievement against 91.32%, zero overflow, and the same two dominant shortfall edges.
+
+**The recorded hypothesis is half refuted and half beside the point.** Fringe entry is
+**0.06% of pool routes and 0.38% of demand vehicles**, below what no weighting at all would
+produce against a 1.88% entry-fringe edge share — published beside the broader 4.03%
+`sumolib`-style definition so the result cannot be dismissed as definitional. Route length
+is genuinely long (demand median 8.17 km / 134 edges, the latter reproducing the truncated
+survivor's median exactly). But the binding constraint is neither: **four counted edges are
+traversed by no pool route and are 100% unmet, and the two edges carrying 61.4% of the
+shortfall are traversed by exactly two routes each against a median of 395. Six of 150
+counted edges carry coverage ≤2 and account for 72.8% of all unmet vehicles.** That is
+structural reachability, not weighting or sizing.
+
+Consequently all three predeclared variants target non-binding mechanisms, and §2's own
+rule returns the variant order to the owner. Three options are tabled in the results record;
+none is taken, no variant ran, no threshold was applied, and the predeclaration is unedited.
+
+Also closed: the open +3,152 B2 reconciliation note. The committed Option-A artifact holds
+150 edges / 1,800 cells / 2,027,275 vehicles against the record's 149 / 1,788 / 2,024,123,
+the 11 measured-zero cells match exactly, and no single edge totals the missing 3,152 — so
+no 149-edge subset reproduces the recorded total and the committed artifact is not
+byte-exactly what alpha.7 consumed. Quantified, not resolved.
+
+Exclusive files: `scripts/run_demand_diagnosis.py`,
+`docs/evaluation/demand_diagnosis_results_20260728.md`,
+`docs/integration/evidence/manchester_demand_diagnosis_20260728.json`, their `docs/index.md`
+rows, the demand-diagnosis row in `docs/experiments_and_findings_20260728.md`, and this
+record. Pool, trips and the 1.28 GB demand stay in gitignored `data/`, never committed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

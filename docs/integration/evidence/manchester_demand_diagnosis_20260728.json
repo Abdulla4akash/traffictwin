@@ -1,0 +1,391 @@
+{
+  "analyst_accepted": false,
+  "artifacts": {
+    "demand": {
+      "bytes": 1283154973,
+      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/demand.rou.xml"
+    },
+    "pool": {
+      "bytes": 88163681,
+      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.rou.xml",
+      "sha256": "ca040353334afdc972d824b877af54123a703e8866dee48561799ebcc222828c"
+    },
+    "storage_note": "private workspace only; never committed",
+    "trips": {
+      "bytes": 3932145,
+      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml"
+    }
+  },
+  "capability_id": "MAN-09",
+  "coverage_finding": {
+    "counted_edges_with_zero_pool_coverage": [
+      {
+        "edge_id": "1544129757",
+        "observed": 7289,
+        "pool_routes": 0,
+        "unmet": 7289
+      },
+      {
+        "edge_id": "1544096242",
+        "observed": 6317,
+        "pool_routes": 0,
+        "unmet": 6317
+      },
+      {
+        "edge_id": "1544067340",
+        "observed": 5484,
+        "pool_routes": 0,
+        "unmet": 5484
+      },
+      {
+        "edge_id": "1544105506",
+        "observed": 1,
+        "pool_routes": 0,
+        "unmet": 1
+      }
+    ],
+    "dominant_shortfall_edges_are_near_unreachable": [
+      {
+        "edge_id": "1544431771",
+        "observed": 54857,
+        "pool_routes": 2,
+        "unmet": 53272
+      },
+      {
+        "edge_id": "1544380919",
+        "observed": 52234,
+        "pool_routes": 2,
+        "unmet": 49872
+      }
+    ],
+    "edges_with_coverage_at_most_2": 6,
+    "median_pool_routes_per_counted_edge": 395,
+    "share_of_all_unmet_percent": 72.79,
+    "summary": "the binding constraint is structural reachability of specific counted edges, not fringe weighting or pool size",
+    "unmet_on_those_edges": 122235
+  },
+  "demand_diagnosis": {
+    "counted_edge_count": 150,
+    "counted_edge_multiplicity": {
+      "maximum": 68279.0,
+      "mean": 12395.626666666667,
+      "minimum": 0.0,
+      "n": 150,
+      "p05": 1789.3000000000002,
+      "p25": 5342.75,
+      "p50": 8318.5,
+      "p75": 13206.5,
+      "p95": 37821.14999999997,
+      "schema_version": "1.0"
+    },
+    "counted_edges_with_zero_coverage": 4,
+    "free_flow_residence_time_s": {
+      "maximum": 1537.5951538373574,
+      "mean": 534.4750538018149,
+      "minimum": 40.106106947685795,
+      "n": 749267,
+      "p05": 210.17845471691123,
+      "p25": 351.40809759188585,
+      "p50": 502.555437233286,
+      "p75": 676.6058309927623,
+      "p95": 986.7338222864529,
+      "schema_version": "1.0"
+    },
+    "fringe_denominator": 749267,
+    "fringe_entry_route_count": 2810,
+    "fringe_share": 0.003750331991132667,
+    "measured_route_count": 749267,
+    "method_version": "manchester-demand-diagnosis-1.0",
+    "pool_label": "alpha7_sampled_demand_reproduced_seed42",
+    "purpose": "measurements_only",
+    "research_status": "owner_approved_candidate",
+    "route_count": 749267,
+    "route_edge_count": {
+      "maximum": 514.0,
+      "mean": 149.55333946376925,
+      "minimum": 13.0,
+      "n": 749267,
+      "p05": 54.0,
+      "p25": 92.0,
+      "p50": 134.0,
+      "p75": 193.0,
+      "p95": 296.0,
+      "schema_version": "1.0"
+    },
+    "route_length_km": {
+      "maximum": 27.86385,
+      "mean": 9.124449924299348,
+      "minimum": 0.37562,
+      "n": 749267,
+      "p05": 2.80916,
+      "p25": 5.33923,
+      "p50": 8.17106,
+      "p75": 12.34059,
+      "p95": 18.27013,
+      "schema_version": "1.0"
+    },
+    "routes_with_unknown_edges": 0,
+    "schema_version": "1.0",
+    "threshold_applied": false,
+    "unknown_edge_reference_count": 0,
+    "variant_selected": false,
+    "viability_verdict_included": false
+  },
+  "durations_s": {
+    "demand_diagnosis_s": 31.5,
+    "demand_s": 200.03,
+    "edge_attributes_s": 1.75,
+    "pool_diagnosis_s": 2.21,
+    "pool_s": 594.5,
+    "trips_s": 774.16
+  },
+  "edge_attributes": {
+    "edges_measured": 285794,
+    "edges_seen": 285794,
+    "edges_with_nonpositive_speed": 0,
+    "edges_without_junctions": 0,
+    "edges_without_lane_geometry": 0,
+    "entry_fringe_edges": 5371,
+    "entry_fringe_rule": "an edge whose from-junction receives no real edge, so a route starting there entered at the clip boundary rather than from modelled upstream traffic",
+    "length_rule": "maximum lane length on the edge",
+    "speed_rule": "maximum lane free-flow speed on the edge"
+  },
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "explicit_non_claims": [
+    "no viability verdict is stated and nothing is compared against the \u00a74 thresholds",
+    "a reproduced pool is not a calibrated or validated demand",
+    "reconstructed routes are never observed journeys",
+    "GEH appears nowhere here; the routeSampler mismatch is reported verbatim as a diagnostic"
+  ],
+  "fringe_definitions_measured": {
+    "either_fringe_share_of_edges": 0.0403,
+    "either_sumolib_style_is_fringe_edges": 11526,
+    "entry_fringe_edges": 5371,
+    "entry_fringe_share_of_edges": 0.0188,
+    "exit_fringe_edges": 6661,
+    "real_edges": 285794,
+    "why_both_are_published": "the predeclaration asks about routes ENTERING at the boundary, which is the entry definition; the broader definition is published so the near-zero result cannot be dismissed as a definitional artifact"
+  },
+  "gate": "BETA-D-02 \u00a72, diagnosis before any variant",
+  "inputs": {
+    "counted_edge_source": "docs/integration/evidence/manchester_edgedata_counts_option_a.xml",
+    "counted_edges": 150,
+    "envelope": {
+      "note": "trip generation and routing are separate invocations: the 25-July combined call was interrupted and left a truncated pool",
+      "pool_argv": [
+        "-n",
+        "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+        "-r",
+        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml",
+        "-o",
+        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.rou.xml",
+        "--seed",
+        "42",
+        "--ignore-errors",
+        "--no-step-log",
+        "--xml-validation",
+        "never"
+      ],
+      "recorded_demand_vehicles_20260725": 746440,
+      "recorded_pool_routes_20260725": 43200,
+      "recorded_trips_20260725": 43200,
+      "seed": "42",
+      "trips_argv": [
+        "/Library/Frameworks/EclipseSUMO.framework/Versions/Current/EclipseSUMO/share/sumo/tools/randomTrips.py",
+        "-n",
+        "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+        "-o",
+        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml",
+        "-b",
+        "0",
+        "-e",
+        "43200",
+        "-p",
+        "1.0",
+        "--seed",
+        "42",
+        "--fringe-factor",
+        "5",
+        "--min-distance",
+        "300",
+        "--validate",
+        "--vehicle-class",
+        "passenger"
+      ],
+      "window_s": [
+        0,
+        43200
+      ]
+    },
+    "study_network": {
+      "canonical_sha256": "005604353501d5b95dde58b64892bd4cc61f801e8de10d67c2cdc768bd6e0813",
+      "network_id": "gm-study-manchester-la-20260728",
+      "path": "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+      "raw_sha256": "0cad330885844857831644bd6642cec0e4e330d05aa5060b608796c33a91e551",
+      "real_edges": 285794
+    }
+  },
+  "mismatch": {
+    "achieved_percent_of_observed": 91.72,
+    "achieved_vehicles": 1859344,
+    "cells": 1800,
+    "cells_matched_exactly": 1658,
+    "edges_with_any_underflow": 16,
+    "observed_total": 2027275,
+    "overflow_cells": 0,
+    "overflow_vehicles": 0,
+    "underflow_cells": 142,
+    "underflow_vehicles": 167931
+  },
+  "observation_side_reconciliation": {
+    "alpha7_record": {
+      "cells": 1788,
+      "counted_edges": 149,
+      "measured_zero_cells": 11,
+      "total_observed_vehicles": 2024123
+    },
+    "closes": "the open +3,152 reconciliation note raised by the 27-July B2 comparison",
+    "committed_artifact": {
+      "cells": 1800,
+      "counted_edges": 150,
+      "intervals": 12,
+      "measured_zero_cells": 11,
+      "total_entered": 2027275
+    },
+    "conclusion": "the committed artifact is not byte-exactly the input the alpha.7 demand consumed; the discrepancy is quantified and is not resolvable from committed evidence alone",
+    "decomposition_tested": "no single edge in the committed artifact totals 3,152, so no 149-edge subset reproduces the recorded total",
+    "difference": {
+      "cells": 12,
+      "edges": 1,
+      "vehicles": 3152
+    },
+    "effect_on_this_diagnosis": "none for \u00a7\u00a72-4, which measure pool structure rather than count totals; the recorded run independently found the same two dominant shortfall edges"
+  },
+  "owner_decision_presented_not_taken": {
+    "not_taken": "no variant was run, no threshold applied, no predeclaration edited",
+    "options": [
+      "amend the predeclaration with a coverage-targeted variant, re-freeze, then proceed",
+      "run V1-V3 as written with the \u00a72 prediction recorded in advance, as a publishable negative result about the predeclared remedies",
+      "publish \u00a72 alone and treat the rebuild as blocked on a design conversation, the outcome \u00a74 already reserves"
+    ],
+    "trigger": "predeclaration \u00a72: a contradicted hypothesis re-opens the variant order rather than continuing silently",
+    "why": "V1 targets a 0.06% population, V2 shortens routes that already fail to reach distant counted edges, and V3 doubles a coverage of zero"
+  },
+  "pool_diagnosis": {
+    "counted_edge_count": 150,
+    "counted_edge_multiplicity": {
+      "maximum": 3107.0,
+      "mean": 670.2333333333333,
+      "minimum": 0.0,
+      "n": 150,
+      "p05": 20.8,
+      "p25": 135.0,
+      "p50": 394.5,
+      "p75": 983.25,
+      "p95": 2268.399999999998,
+      "schema_version": "1.0"
+    },
+    "counted_edges_with_zero_coverage": 4,
+    "free_flow_residence_time_s": {
+      "maximum": 1537.5951538373574,
+      "mean": 565.3714191279938,
+      "minimum": 20.173546384745595,
+      "n": 43200,
+      "p05": 174.1938552378583,
+      "p25": 362.6178098907779,
+      "p50": 535.5196825519936,
+      "p75": 738.4260664825285,
+      "p95": 1068.0281784542615,
+      "schema_version": "1.0"
+    },
+    "fringe_denominator": 43200,
+    "fringe_entry_route_count": 28,
+    "fringe_share": 0.0006481481481481481,
+    "measured_route_count": 43200,
+    "method_version": "manchester-demand-diagnosis-1.0",
+    "pool_label": "alpha7_pool_reproduced_seed42",
+    "purpose": "measurements_only",
+    "research_status": "owner_approved_candidate",
+    "route_count": 43200,
+    "route_edge_count": {
+      "maximum": 562.0,
+      "mean": 177.98518518518517,
+      "minimum": 7.0,
+      "n": 43200,
+      "p05": 58.0,
+      "p25": 113.0,
+      "p50": 165.0,
+      "p75": 233.0,
+      "p95": 339.0,
+      "schema_version": "1.0"
+    },
+    "route_length_km": {
+      "maximum": 27.86385,
+      "mean": 8.581853996296296,
+      "minimum": 0.25004,
+      "n": 43200,
+      "p05": 2.1998010000000003,
+      "p25": 4.948650000000001,
+      "p50": 7.85145,
+      "p75": 11.54629,
+      "p95": 17.464148499999986,
+      "schema_version": "1.0"
+    },
+    "routes_with_unknown_edges": 0,
+    "schema_version": "1.0",
+    "threshold_applied": false,
+    "unknown_edge_reference_count": 0,
+    "variant_selected": false,
+    "viability_verdict_included": false
+  },
+  "predeclaration": "docs/evaluation/demand_rebuild_predeclaration.md (unsigned; \u00a72 publishes regardless of outcome)",
+  "purpose": "measurements_only",
+  "record_date": "2026-07-28",
+  "record_type": "manchester_demand_diagnosis_section_2",
+  "reproduction_fidelity": {
+    "cells_matched_exactly": {
+      "observed": 1658,
+      "of": 1800,
+      "recorded_20260725": 1629,
+      "recorded_of": 1788
+    },
+    "count_achievement_percent": {
+      "observed": 91.72,
+      "recorded_20260725": 91.32
+    },
+    "demand_vehicles": {
+      "difference": 2827,
+      "observed": 749267,
+      "recorded_20260725": 746440
+    },
+    "dominant_shortfall_edges_same_as_record": [
+      "1544431771",
+      "1544380919"
+    ],
+    "edges_with_any_underflow": {
+      "observed": 16,
+      "recorded_20260725": 18
+    },
+    "overflow_vehicles": {
+      "observed": 0,
+      "recorded_20260725": 0
+    },
+    "pool_bytes": {
+      "difference_explained": "generation banner",
+      "observed": 88163681,
+      "recorded_20260725": 88163497
+    },
+    "pool_routes": {
+      "observed": 43200,
+      "recorded_20260725": 43200
+    },
+    "trips": {
+      "observed": 43200,
+      "recorded_20260725": 43200
+    }
+  },
+  "research_status": "owner_approved_candidate",
+  "results_record": "docs/evaluation/demand_diagnosis_results_20260728.md",
+  "scientifically_validated": false,
+  "supervisor_approved": false
+}

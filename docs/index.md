@@ -84,6 +84,8 @@ This index points only to documentation and repository paths that exist in the c
 - [B-MASK full G4 private-archive preservation record, 28 July 2026](integration/evidence/bmask_full_campaign_preservation_20260728.json)
 - [B-DOMAIN full G4 private-archive preservation record, 28 July 2026](integration/evidence/bdomain_full_campaign_preservation_20260728.json)
 - [Manchester observation chain restoration (subnetwork, index, 305 match rows), 28 July 2026](integration/evidence/manchester_chain_restoration_20260728.json)
+- [BETA-D-02 §2 demand diagnosis results, 28 July 2026](evaluation/demand_diagnosis_results_20260728.md)
+- [BETA-D-02 §2 demand diagnosis evidence, 28 July 2026](integration/evidence/manchester_demand_diagnosis_20260728.json)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
