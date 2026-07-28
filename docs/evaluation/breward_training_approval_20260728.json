@@ -1,0 +1,20 @@
+{
+  "approval_recorded_at_utc": "2026-07-28T02:38:48Z",
+  "approval_rebound_at_utc": "2026-07-28T02:44:23Z",
+  "approval_rebound_reason": "seed-0 smoke corrected named-tuple state update before declared seeds",
+  "approved": true,
+  "approved_by": "repository_owner_via_active_codex_session",
+  "campaign": "breward-full-training-v1",
+  "direction_quote": "do the next one",
+  "harness_sha256": {
+    "gpu/real_bcap/prepare_source.py": "c5ae34f154985580e69c5b4036684d0834691d31fc73234d06be3d89125d863c",
+    "gpu/real_breward/evaluate_fixed_grid.py": "31d3383e4dc65e989b21adfce8f099f7acf23f5a586b89f1f67bddcec35c096b",
+    "gpu/real_breward/run_campaign.py": "d5151061f2987c9840d6bf87dcd5830c5f79b26f6e08c9ce8beedfa65e61623c"
+  },
+  "held_out_authorised": false,
+  "label_ceiling": "owner_approved_candidate",
+  "predeclaration_path": "docs/evaluation/breward_training_predeclaration_20260728.md",
+  "predeclaration_sha256": "489b0f169af70aef3de9650f9ba650eb0e9c944f5b76051fc5465fe6aaf073fe",
+  "producer_data_authorised_for_colab": false,
+  "scientific_evidence_authorised": false
+}

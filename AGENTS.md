@@ -2665,6 +2665,21 @@ checkpoint homecoming and separately admitted local evaluation. Exclusive files:
 `docs/evaluation/bcap_training_predeclaration_20260728.md`,
 `docs/evaluation/bcap_training_approval_20260728.json`, and this claim.
 
+### Phase 91 claim: full B-REWARD G4 training campaign (owner-directed, 28 July 2026)
+
+The owner directed Codex to execute the next runnable GPU experiment after B-CAP. B2 remains
+blocked by the attended bus session and signed bus-data gates, so Codex owns the data-free B3
+reward-ablation slice: two matched 19-D capacity-aware from-scratch MAPPO treatments using the
+producer's documented constant-alpha values 0.7 and 1.0, fresh model seeds {200–204}, five million
+requested steps per job, and a common 32-episode x four-capacity fixed-grid diagnostic. The exact
+design and harness are byte-bound before outcomes. Producer data, bus bytes, checkpoints, external
+clones, local scientific campaigns, registries, and the confirmatory digest-bound candidate remain
+untouched. Returned actors and diagnostics are non-admitted `owner_approved_candidate` outputs.
+Exclusive files: `gpu/real_breward/{__init__.py,evaluate_fixed_grid.py,run_campaign.py,README.md}`,
+`tests/unit/test_breward_real_campaign.py`,
+`docs/evaluation/breward_training_{predeclaration_20260728.md,approval_20260728.json}`, and this
+claim.
+
 ### Phase 89 claim: three-trace capacity grid + ev timing probe (owner-directed, 28 July 2026)
 
 Under the standing delegation, reaffirmed in session ("I want to do some experimenting
