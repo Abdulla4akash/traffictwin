@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "approval_scope": "bcap-full-training-v1",
+  "approved": true,
+  "approved_at_date": "2026-07-28",
+  "approved_by": "Abdulla (repository owner)",
+  "approval_provenance": "Explicit in-session owner direction after presentation of the complete two-treatment, five-seed, five-million-step design: 'okay do it and please use colab g4 gpu if u need gpu'",
+  "owner_typed_signature": false,
+  "recording_method": "Relayed owner delegation recorded by the Codex GPU-track lead; this field must not be represented as a handwritten or cryptographic signature.",
+  "predeclaration_path": "docs/evaluation/bcap_training_predeclaration_20260728.md",
+  "predeclaration_sha256": "70aae140b383d504a5e35254ee420cd0e1e72f9fd8e491e5ddb7c063cc59730f",
+  "held_out_authorised": false,
+  "producer_data_authorised_for_colab": false,
+  "producer_code_authorised_with_citation": true,
+  "requested_accelerator": "Colab G4 GPU",
+  "model_seeds": [
+    100,
+    101,
+    102,
+    103,
+    104
+  ],
+  "treatments": [
+    "random_capacity_hidden17",
+    "capacity_aware19"
+  ],
+  "requested_timesteps_per_job": 5000000,
+  "harness_sha256": {
+    "gpu/real_bcap/prepare_source.py": "a4ed2f49df1731f03413d4c3b8424095d6a1e266beef83bf9ce9a6ce3426c15c",
+    "gpu/real_bcap/run_campaign.py": "b90457209acc5b3d7912bd30dfd08a1b12701767d198b597e3f3b89747ddd95c"
+  },
+  "label_ceiling": "owner_approved_candidate",
+  "scientific_evidence_at_training_stage": false,
+  "actor_admission_eligible_at_training_stage": false
+}

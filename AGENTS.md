@@ -2648,6 +2648,23 @@ copied from volatile /tmp to data/gpu-track/ and its SHA-256 re-verified
 (885f6914…). Exclusive files: docs/integration/evidence/bcap_engineering_smoke_20260728.json
 and this record.
 
+### Phase 90 claim: full B-CAP G4 training campaign (owner-directed, 28 July 2026)
+
+The owner explicitly directed Codex to execute the full data-free B-CAP training experiment and
+requested a Colab G4 GPU. Codex owns an isolated, code-only campaign slice: a fail-closed
+transformation of the audited producer JAX environment, the matched 17-D hidden-capacity and 19-D
+capacity/headroom MAPPO launch matrix (five model seeds each, five million requested timesteps),
+deterministic manifests and resumable status, a predeclaration frozen before outcomes, its
+byte-bound owner-delegation receipt, focused tests, and this record. Producer data, traces,
+checkpoints, the pinned external clones, local scientific campaign directories, registries, and
+the byte-frozen confirmatory candidate remain untouched. Training curves are diagnostics; returned
+actors remain non-admitted and the label ceiling is `owner_approved_candidate` pending reviewed
+checkpoint homecoming and separately admitted local evaluation. Exclusive files:
+`gpu/real_bcap/{__init__.py,prepare_source.py,run_campaign.py,README.md}`,
+`tests/unit/test_bcap_real_campaign.py`,
+`docs/evaluation/bcap_training_predeclaration_20260728.md`,
+`docs/evaluation/bcap_training_approval_20260728.json`, and this claim.
+
 ### Phase 89 claim: three-trace capacity grid + ev timing probe (owner-directed, 28 July 2026)
 
 Under the standing delegation, reaffirmed in session ("I want to do some experimenting
