@@ -2784,6 +2784,13 @@ hour's direction, with decisions invariant throughout. Exclusive files:
 docs/evaluation/capacity_sweep_completion_results_20260728.md, its docs/index.md row,
 and this record.
 
+### Phase 97 claim: consolidated experiments-and-findings register (owner-directed, 28 July 2026)
+
+One register of every experiment across the capacity programme, the GPU training track,
+and the bus sessions, each row linking its full record and carrying its ceiling.
+Exclusive files: docs/experiments_and_findings_20260728.md, its docs/index.md row, and
+this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
