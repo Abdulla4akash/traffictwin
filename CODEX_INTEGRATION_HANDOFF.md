@@ -46,9 +46,10 @@ Use the per-slice gates in AGENTS.md rather than the older clean-tree count. Mos
 the bus slice has 49 focused tests with focused Ruff/mypy clean and 3/3 exact artifact-hash
 checks; the cross-regime figure has six focused tests with focused Ruff/format/mypy clean,
 valid SVG XML, visual inspection, and exact source-value checks. The latest broad unit run
-had 2,916 passing plus one stale generated-appendix failure; repository-wide Ruff and mypy
-also expose recorded pre-existing findings outside these slices. Review those honestly and
-do not restate the range as globally clean without a fresh gate run.
+after mechanically regenerating the ADR-066 appendix is green: **2,923 passed in 128.16 s**.
+Repository-wide Ruff and mypy still expose recorded pre-existing findings outside these
+slices. Review those honestly and do not restate the range as globally clean without fresh
+lint/type gates.
 
 ## Hazards — absolute, regardless of review outcome
 

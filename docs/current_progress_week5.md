@@ -99,11 +99,12 @@ has six focused tests passing, focused Ruff/format and strict mypy clean, valid 
 visual inspection, and exact agreement with all source-analysis hashes, maxN values, and
 paired differences.
 
-The broader tree is not represented as newly clean:
+The stale dissertation appendix was mechanically regenerated after ADR-066 (the only delta
+was its missing row and count 65→66). The resulting full unit suite is current and green:
+**2,923 passed in 128.16 s**.
 
-- the full unit run at the bus checkpoint had **2,916 passing and one failure** caused by a
-  stale generated dissertation appendix (65 entries versus the 66-entry ADR source); with
-  that known case deselected, 2,916 passed;
+The broader tree is still not represented as globally clean:
+
 - repository-wide Ruff reports five pre-existing findings in notebook subprocess calls and
   `scripts/ev_timing_probe.py`; and
 - repository-wide strict mypy reports 71 pre-existing findings in unclaimed GPU/script files.
