@@ -2732,6 +2732,23 @@ four independent legs. The identical-fleet descriptive actor contrast is recorde
 any ranking claim. Exclusive files: docs/evaluation/baseline_invariance_results_20260728.md,
 its docs/index.md row, and this record.
 
+### Phase 94 claim: full B-MASK G4 training campaign (owner-directed, 28 July 2026)
+
+The owner directed Codex to execute the next runnable data-free training experiment after
+B-REWARD. B4 remains Colab-blocked because recorded producer permission covers code but not
+producer trace bytes. Codex therefore owns the separately predeclared action-masking factor from
+the B-CAP recommendation: capacity-aware MAPPO trained with the producer feasibility mask off/on,
+fresh paired model seeds {300–304}, five million requested steps per job, and a common two-mode ×
+four-capacity diagnostic that evaluates every checkpoint both with and without deployment
+masking. The design distinguishes learned-policy effects from runtime enforcement, and fails if a
+masked deployment selects any infeasible action. Producer data, bus bytes, checkpoints, external
+clones, local scientific campaigns, registries, and held-out cohorts remain untouched. Outputs
+are non-admitted `owner_approved_candidate` diagnostics. Exclusive files:
+`gpu/real_bmask/{__init__.py,evaluate_mask_grid.py,run_campaign.py,README.md}`,
+`tests/unit/test_bmask_real_campaign.py`,
+`docs/evaluation/bmask_training_{predeclaration_20260728.md,approval_20260728.json}`, and this
+claim.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
