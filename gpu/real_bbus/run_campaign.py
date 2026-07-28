@@ -34,6 +34,7 @@ EFFECTIVE_TIMESTEPS = (REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)) * (NUM_E
 EXPECTED_UPDATES = REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)
 LEARNING_RATE = 3e-3
 EVALUATION_TASK_SEED_OFFSET = 700_000
+JAX_PLATFORM = "cuda"
 
 EXPECTED_RUNTIME = {
     "jax": "0.7.2",
@@ -573,7 +574,7 @@ def run_campaign(pack_root: Path, output_root: Path) -> dict[str, Any]:
         "VEC_JAX_STRESS_LANES": "0",
         "VEC_JAX_GREEDY_EVAL": "0",
         "VEC_JAX_SAVE_ACTOR_PARAMS": "1",
-        "JAX_PLATFORMS": "gpu",
+        "JAX_PLATFORMS": JAX_PLATFORM,
         "XLA_PYTHON_CLIENT_PREALLOCATE": "false",
     }
     design = {

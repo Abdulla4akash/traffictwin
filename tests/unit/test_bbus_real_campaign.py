@@ -19,6 +19,7 @@ from gpu.real_bbus.run_campaign import (
     EFFECTIVE_TIMESTEPS,
     EXPECTED_ARM_PROTOCOLS,
     EXPECTED_UPDATES,
+    JAX_PLATFORM,
     MODEL_SEEDS,
     NUM_ENVS,
     REQUESTED_TIMESTEPS,
@@ -41,6 +42,7 @@ def test_campaign_is_two_separate_five_seed_held_out_designs() -> None:
     assert set(ARM_BINDINGS) == set(EXPECTED_ARM_PROTOCOLS) == {"corridor", "sparse64"}
     assert ARM_BINDINGS["corridor"]["vec06_compatible"] is True
     assert ARM_BINDINGS["sparse64"]["vec06_compatible"] is False
+    assert JAX_PLATFORM == "cuda"
 
 
 def test_pack_builder_direct_entrypoint_is_importable() -> None:
