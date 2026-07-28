@@ -3279,6 +3279,21 @@ a target is an owner decision. Exclusive files:
 `docs/integration/evidence/counted_edge_reachability_20260728.json`, its `docs/index.md`
 row, the register row, and this record.
 
+### Phase 121 claim: session context prompt v6 (owner-directed, 28 July 2026)
+
+Resume set for a fresh session. `CLAUDE_SESSION_CONTEXT_PROMPT_V6.md` supersedes V5 and
+leads with the three detached campaigns running unattended, because they survive session
+death and must be checked before anything is relaunched. Carries the closed-form capacity
+mechanism (the tail-latency ceiling law and its two structural findings) and the
+pre-registered prediction test now in flight; the restored observation chain; the demand §2
+diagnosis with both structural causes of the shortfall and the variant order returned to the
+owner; the evening-peak bus session with the length-matched comparison caveat and the
+five-refusal MAN-05 diagnosis; the density gap with both blocked routes recorded untaken and
+the two indirect routes queued; the eight gotchas learned this session; the owner decision
+queue including the GPU track's gate state; and the paste-ready prompt.
+
+Exclusive files: that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
