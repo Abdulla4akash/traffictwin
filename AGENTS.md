@@ -3118,6 +3118,33 @@ Exclusive files: `scripts/run_demand_diagnosis.py`,
 rows, the demand-diagnosis row in `docs/experiments_and_findings_20260728.md`, and this
 record. Pool, trips and the 1.28 GB demand stay in gitignored `data/`, never committed.
 
+### Phase 115 claim: refusal-resilient attended BODS session runner (owner-directed, 28 July 2026)
+
+The owner opened an evening-peak observation window. `bus_cadence_probe_session.py` ended it
+after two snapshots: the MAN-05 parser refused attempt 3 with `PARSE_REJECTED`, and because
+that runner catches only `BodsLiveControlError`, the `BodsAcquisitionError` propagated and
+killed the process. The same refusal cost ~52 snapshots this morning and 2 this evening —
+three refusals across two rush hours, all replaying as the one cross-operator `VehicleRef`
+collision already diagnosed.
+
+`scripts/bus_attended_session.py` keeps the accepted acquisition boundary exactly as it is
+— ≥60 s apart, one at a time, human-triggered, the recorded Greater Manchester box, key
+read from the environment and never echoed, in-process salt, aggregate-only measurement —
+and changes only what happens *after* a fail-closed refusal: the refusal is recorded in a
+ledger with its attempt number, UTC time and the quarantine directory that was written but
+never promoted, and the attended window continues. Eight *consecutive* refusals end the
+session, on the reasoning that a feed refusing that persistently is not a transient shape
+problem.
+
+**Nothing about the parser, the promotion rule, or the evidence boundary moves.** A refused
+snapshot is still refused, is still never measured, and is counted in its own denominator so
+accepted and refused can never blur. MAN-05 stays untouched and lead-owned; this is a
+session-runner change, not a parser change. Prints are flushed so an attended operator can
+watch a redirected log live.
+
+Exclusive files: `scripts/bus_attended_session.py`, its session records under
+`docs/evaluation/`, and this record. The existing probe runner is left in place unchanged.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
