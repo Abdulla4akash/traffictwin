@@ -36,6 +36,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Capacity pilot exploratory results, 27 July 2026](evaluation/capacity_pilot_results_20260727.md)
 - [The capacity finding in full detail: setup, execution, results, interpretation](evaluation/capacity_study_detailed_findings.md)
 - [Latency-tail analysis: the confirmed finding's mechanism, measured](evaluation/latency_tail_analysis_20260728.md)
+- [Per-RSU load asymmetry: Study Case 1 measurement](evaluation/rsu_load_asymmetry_20260728.md)
 - [All experiments and findings — consolidated register, 28 July 2026](experiments_and_findings_20260728.md)
 - [Capacity confirmatory results, 28 July 2026 (signed held-out protocol)](evaluation/capacity_confirmatory_results_20260728.md)
 - [Gated confirmatory report render, 28 July 2026](evaluation/capacity_confirmatory_report_20260728.md)

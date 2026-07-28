@@ -3029,6 +3029,17 @@ tail-share endpoint beside it, without weakening the predeclared confirmed resul
 Exclusive files: `docs/evaluation/latency_tail_analysis_20260728.md`, its `docs/index.md`
 row, and this record.
 
+### Phase 111 claim: per-RSU load asymmetry (owner-directed, 28 July 2026)
+
+Analysis-only over the admitted pilot cells' per-step rsu_load arrays. Three of ten RSUs
+carry exactly zero load at every capacity level and a fourth carries under 5%, while the
+busiest carries ~24%; Gini moves only 0.486 -> 0.467 across the 3.3x squeeze, so the
+control does not redistribute load - consistent with the observation-gap mechanism. Total
+load falls 3.2x, tracking the latency-tail collapse. Answers the producer's Study Case 1
+question descriptively; placement remains VEC-06 generated and is never presented as
+verified Manchester infrastructure. Exclusive files:
+`docs/evaluation/rsu_load_asymmetry_20260728.md`, its `docs/index.md` row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
