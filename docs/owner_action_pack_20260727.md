@@ -1,12 +1,141 @@
-# Owner Action Pack — 27 July 2026 (drafts + to-do)
+# Owner Action Pack — 27 July 2026 (current drafts refreshed 28 July)
 
-**Status: DRAFTS prepared for the owner to review, edit, and send personally. Nothing here
-has been sent; an agent never sends external communications.** The recipient addresses are
-deliberately omitted — the owner fills them at send time.
+**Status: CURRENT DRAFTS are in section A below. The original 27-July drafts are retained
+in section B for provenance and must not be sent because their campaign/session state is
+stale. Nothing has been sent; an agent never sends external communications.** Recipient
+addresses are deliberately omitted and the owner fills them at send time.
 
 ---
 
-## 1. Email to Dr Sandra Sampaio (Monday progress cycle)
+## A. Current send pack — 28 July 2026
+
+### A1. Email to Dr Sandra Sampaio
+
+> **Subject:** Week 4→5 progress — confirmed capacity result and two scope questions
+>
+> Dear Dr Sampaio,
+>
+> A short Week-4-to-5 update: the predeclared capacity programme is now complete and has
+> produced one confirmed, bounded finding.
+>
+> On the modelled traffic-collapse hour in the Etihad/Co-op Live event district,
+> tightening per-vehicle edge capacity from 2.5 to 0.75 reduced mean task latency by
+> 8.3 seconds across five reserved seeds (bootstrap interval −9.1 to −7.5 seconds), with
+> all five seeds in the predeclared direction. Deadline attainment remained flat-to-rising,
+> so the expected degradation cliff did not appear. At the decision level, the trained
+> policy selected identical actions across capacity levels because its vehicle-side input
+> carries no capacity-dependent signal.
+>
+> The wider sweep clarifies the boundary: all four normal traces — weekend, event night,
+> and weekday AM/PM, at 139–215 maximum trace slots — were exactly unchanged across the
+> standard capacity arms. Only the 2,488-slot collapse hour responded. A deep squeeze on
+> the event night stayed exactly inert through cap-0.25 and first changed at cap-0.1. This
+> supports a saturation-governed interpretation without claiming a universal threshold.
+>
+> I have also processed the three attended BODS sessions into aggregate-only records.
+> Active bus support was 41 at night, 1,162 at dawn, and 1,433 at the weekday peak while
+> median cadence stayed at 66–68 seconds. No bus experiment has run; its protocol still
+> needs signing, map matching, a viability check, and an explicit speed-outlier rule.
+>
+> The concise checkpoint and figure provenance are in
+> `docs/current_progress_week5.md` and
+> `docs/dissertation_appendices/figures/cross_regime/provenance.md`. The confirmed result
+> remains bounded to one actor and one audited district trace and is not external validation.
+>
+> Two questions where I would value your steer:
+>
+> 1. Task offloading versus journey-time prediction — you left this open; the completed
+>    evidence programme is now strongly offloading-centred. Should that remain the core?
+> 2. The algorithm-combination idea from our second meeting — should it be an in-scope
+>    contribution, or explicitly recorded as future work?
+>
+> The participant-study ethics application is ready for my review and submission, and my
+> CSF3 request is ready. I would be grateful for your supervisor confirmation if Research
+> IT requests it.
+>
+> Best regards,
+> Abdulla
+
+### A2. Email to Randy
+
+> **Subject:** Capacity-study result, baseline identity, and written permission record
+>
+> Hi Randy,
+>
+> Thank you again for the tos-data provenance sidecar and for talking through code use. I
+> have kept the scope wording to the Etihad/Co-op Live event district rather than Manchester
+> generally.
+>
+> Study Case 2 has now completed its first predeclared programme on the `inc` collapse-hour
+> trace. The exploratory pilot found that a 3.3× capacity squeeze left deadline success flat
+> while mean task latency fell 3.2×. A separately signed held-out run then confirmed the
+> latency direction across all five reserved seeds: −8.3 seconds mean paired difference,
+> interval −9.1 to −7.5 seconds. The policy's actions were bit-identical across capacity
+> arms because the vehicle-side observation has no capacity-dependent signal.
+>
+> The cross-regime checks are equally useful: weekend, event-night, and both weekday-peak
+> traces were exactly inert under the standard squeeze; only the 2,488-slot collapse hour
+> responded. A small baseline-actor prediction test also held — `baseline_model_c_17` was
+> exactly capacity-invariant — while its descriptive actor differences remain unranked.
+>
+> Three asks:
+>
+> 1. For any later formal actor-crossover study, can you confirm that
+>    `baseline_model_c_17` and the seed-100 checkpoint identity are the intended baseline
+>    provenance to cite?
+> 2. My dissertation would include derived tos-data aggregates, paired differences, and
+>    analysis tables with full provenance and your repositories cited. Could you confirm
+>    in writing that this is permitted, and state any publication constraints you want?
+> 3. Could you confirm in writing that using your training code with citation is permitted,
+>    including synthetic-environment Colab runs with no tos-data uploaded? I have kept the
+>    returned checkpoints private and non-admitted.
+>
+> I will not treat silence as permission or externally release third-party material beyond
+> the conditions you confirm. Happy to walk you through the dashboard and results once the
+> participant-study ethics approval is in place.
+>
+> Thanks again,
+> Abdulla
+
+### A3. CSF3 access request
+
+> **Subject:** CSF3 account request — MSc dissertation (supervisor: Dr Sandra Sampaio)
+>
+> Hello,
+>
+> I am an MSc Advanced Computer Science student working on a dissertation supervised by
+> Dr Sandra Sampaio in the Department of Computer Science. I would like to request a CSF3
+> account for GPU-accelerated JAX multi-agent reinforcement-learning training and evaluation
+> for a vehicular-edge-computing task-offloading study.
+>
+> The group's existing repository already includes SLURM launchers and an environment guide
+> (`gitlab.cs.man.ac.uk/e62992rp/vec_env`), and my colleague Randy Putra uses CSF3 for the
+> same workload family. I expect single-GPU batch jobs, tens of gigabytes of scratch space,
+> and no interactive service or public endpoint.
+>
+> My supervisor can confirm the project. Please let me know if a supervisor authorisation
+> form or additional information is required.
+>
+> Kind regards,
+> Abdulla
+> Student ID: **FILL BEFORE SEND**
+
+### A4. Owner sequence
+
+| Priority | Personal action | Do not delegate |
+|---:|---|---|
+| 1 | Review and submit `docs/evaluation/ethics_application_draft.md` | Submission, recruitment, and dates are the owner's |
+| 2 | Review and send A1–A3 | Recipient/address checks and all sends are the owner's |
+| 3 | Record Sandra's actual answers to the two scope questions | Do not infer a verdict from silence or meeting timing |
+| 4 | Trigger Codex review of `CODEX_INTEGRATION_HANDOFF.md` and, if satisfied, the official-branch fast-forward | `main` stays untouched |
+| 5 | Decide B1 G1–G5, especially the 32 m/s drop+count recommendation | No bus experiment or trace construction before signing and viability |
+| 6 | Complete/decide crossover and stadium candidates; decide E1–E5 and N1/R1 | Each remains an owner decision |
+
+---
+
+## B. Archived 27-July drafts — provenance only, DO NOT SEND
+
+### Archived 1. Email to Dr Sandra Sampaio (Monday progress cycle)
 
 > **Subject:** Week 4 progress — a confirmed finding overnight, and three scoping questions
 >
@@ -56,7 +185,7 @@ deliberately omitted — the owner fills them at send time.
 
 ---
 
-## 2. Email to Randy (provenance thanks, Study Case 2, baseline, permission)
+### Archived 2. Email to Randy (provenance thanks, Study Case 2, baseline, permission)
 
 > **Subject:** tos-data provenance — thank you; Study Case 2 first result; two asks
 >
@@ -110,7 +239,7 @@ deliberately omitted — the owner fills them at send time.
 
 ---
 
-## 3. CSF access request (via supervisor / Research IT)
+### Archived 3. CSF access request (via supervisor / Research IT)
 
 > **Subject:** CSF3 account request — MSc dissertation (supervisor: Dr Sandra Sampaio)
 >
@@ -136,7 +265,7 @@ deliberately omitted — the owner fills them at send time.
 
 ---
 
-## 4. To-do — Monday 28 July 2026
+### Archived 4. To-do — Monday 28 July 2026
 
 | When | Action | Notes |
 |---|---|---|
