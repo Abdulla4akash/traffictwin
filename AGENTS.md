@@ -2970,6 +2970,31 @@ record.  This phase does not own or edit `scripts/rebuild_baseline_network.py`;
 it may consume a later committed, verified network artifact from that disjoint
 ownership slice.
 
+### Phase 108 claim: baseline network rebuilt into a durable location (28 July 2026)
+
+Acting on Phase 105 (the chain was always rebuildable) with the Phase 106 guards applied
+before any expensive step. `scripts/rebuild_baseline_network.py` verifies the extract
+against its recorded identity, refuses an ephemeral destination, refuses a source/derived
+identity collision, decodes, and builds.
+
+**Result: the rebuild reproduces the original network exactly.** The decode returns
+996,913,352 bytes / `233af3fa…` byte-for-byte, and the built network's canonical identity
+is `ce285f85d07fee24414cc3318cf85ea1ca0cb967e2eadb2ac7bcb3f96bde2577` — identical to the
+25-July record. Raw bytes differ by 2 (1,248,945,776 vs 1,248,945,774) solely through
+netconvert's generation banner, which is exactly why the canonical comment-stripped digest
+is the recorded identity. The network lives under durable
+`data/network-build/gm-baseline-20260728` with a receipt, not a session scratchpad. N1 no
+longer gates the demand cascade or B1 map matching, and no new network identity was forced.
+
+**Two defects met and recorded, neither fixed here.** (1) `decode_pbf_to_osm_xml` runs
+osmium with `cwd` set to a private staging directory, so a *relative* source path cannot
+resolve; callers must pass absolute paths (the script does, with a comment). (2) After a
+successful decode, the module's receipt handling raises `TypeError: Object of type date is
+not JSON serializable`, so a decode producing a byte-correct artifact still reports
+`DECODE_FAILED`; the caller must reuse the artifact on a second pass. Both are in accepted
+lead-owned `network_decode.py`, left untouched for a lead/Codex slice. Exclusive files:
+`scripts/rebuild_baseline_network.py` (committed at `03f4316`) and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
