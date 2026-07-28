@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
@@ -39,6 +41,16 @@ def test_campaign_is_two_separate_five_seed_held_out_designs() -> None:
     assert set(ARM_BINDINGS) == set(EXPECTED_ARM_PROTOCOLS) == {"corridor", "sparse64"}
     assert ARM_BINDINGS["corridor"]["vec06_compatible"] is True
     assert ARM_BINDINGS["sparse64"]["vec06_compatible"] is False
+
+
+def test_pack_builder_direct_entrypoint_is_importable() -> None:
+    completed = subprocess.run(
+        [sys.executable, "gpu/real_bbus/build_colab_packs.py", "--help"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
 
 
 def test_owner_receipt_and_both_protocol_bytes_match_pack_bindings() -> None:

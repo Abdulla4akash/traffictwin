@@ -5,10 +5,14 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
 from typing import Any
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from gpu.real_bbus.prepare_source import sha256_file, stage_source
 from gpu.real_bbus.run_campaign import verify_pack
