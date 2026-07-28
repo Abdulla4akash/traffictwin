@@ -2944,6 +2944,32 @@ admission. The acquisition path already failed closed on provider-checksum misma
 (`CHECKSUM_IDENTITY_DRIFT`), so no change was needed there. Exclusive files: that module,
 `tests/unit/test_manchester_artifact_integrity.py` (7 tests), and this record.
 
+### Phase 107 claim: approved dawn-to-peak real B-BUS campaign (owner-directed, 28 July 2026)
+
+The primary research/integration agent owns the explicitly approved private-Colab
+B-BUS experiment that derives a bus-only scenario from the two already captured
+Manchester sessions, trains on dawn, and evaluates once on held-out peak.  The
+frozen choices are: 120 s gap ceiling, 15 m dwell radius, 80% matched-fix share,
+32 m/s implied-speed ceiling with violating segments dropped and counted,
+capacities 2.5 and 0.75, and common seeds 30--34.  Only derived,
+pseudonymised trace bytes may leave the local processing boundary for the owner's
+private Colab; raw BODS material, raw identifiers, session salts, and cross-session
+identity links may not.  Buses remain a derived scenario rather than observed FCD
+or general traffic, and returned GPU bytes remain non-admitted diagnostics until
+their hashes, protocol binding, and held-out evaluation are independently checked.
+This claim records owner approval but does not take a supervisor decision, public
+hosting decision, actor-admission decision, or scientific verdict.
+
+**Exclusive files:** new
+`docs/evaluation/bbus_dawn_peak_protocol_20260728.md`, B-BUS dawn/peak evidence
+records under `docs/integration/evidence/`, new campaign-specific bus trace
+preparation code and focused tests, new files under `gpu/real_bbus/`, the focused
+real-B-BUS campaign test, the exact B-BUS dawn/peak row in
+`docs/experiments_and_findings_20260728.md`, its `docs/index.md` entries, and this
+record.  This phase does not own or edit `scripts/rebuild_baseline_network.py`;
+it may consume a later committed, verified network artifact from that disjoint
+ownership slice.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
