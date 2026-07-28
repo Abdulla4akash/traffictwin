@@ -13,6 +13,7 @@ import sys
 import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+from importlib import metadata
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,24 @@ ROLLOUT_LEN = 50
 EFFECTIVE_TIMESTEPS = (REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)) * (NUM_ENVS * ROLLOUT_LEN)
 EXPECTED_UPDATES = REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)
 PREDECLARATION_RELATIVE_PATH = "docs/evaluation/bcap_training_predeclaration_20260728.md"
+EXPECTED_GPU_NAME = "NVIDIA RTX PRO 6000 Blackwell Server Edition"
+EXPECTED_RUNTIME = {
+    "jax": "0.7.2",
+    "jaxlib": "0.7.2",
+    "numpy": "2.0.2",
+    "flax": "0.11.2",
+    "optax": "0.2.8",
+    "chex": "0.1.92",
+    "distrax": "0.1.9",
+    "gymnax": "0.0.9",
+    "brax": "0.14.2",
+    "mujoco": "3.10.0",
+    "mujoco-mjx": "3.10.0",
+    "jaxopt": "0.8.5",
+    "jaxmarl": "0.0.4",
+    "glfw": "2.10.2",
+    "trimesh": "4.12.2",
+}
 
 
 @dataclass(frozen=True)
@@ -69,13 +88,7 @@ def verify_approval(repo_root: Path, receipt_path: Path) -> dict[str, Any]:
 
 
 def _runtime() -> dict[str, Any]:
-    import chex
-    import flax
     import jax
-    import jaxlib
-    import jaxmarl
-    import numpy
-    import optax
 
     nvidia_smi = shutil.which("nvidia-smi")
     if nvidia_smi is None:
@@ -86,17 +99,18 @@ def _runtime() -> dict[str, Any]:
         capture_output=True,
         text=True,
     ).stdout.strip()
+    if gpu_name != EXPECTED_GPU_NAME:
+        raise RuntimeError(f"expected Colab G4 {EXPECTED_GPU_NAME!r}, found {gpu_name!r}")
     if jax.default_backend() != "gpu":
         raise RuntimeError(f"GPU required, found {jax.default_backend()}")
+    observed_runtime = {package: metadata.version(package) for package in EXPECTED_RUNTIME}
+    if observed_runtime != EXPECTED_RUNTIME:
+        raise RuntimeError(
+            f"runtime differs from the frozen Blackwell-compatible stack: {observed_runtime}"
+        )
     return {
         "python": platform.python_version(),
-        "jax": jax.__version__,
-        "jaxlib": jaxlib.__version__,
-        "jaxmarl": getattr(jaxmarl, "__version__", "0.0.4"),
-        "numpy": numpy.__version__,
-        "flax": flax.__version__,
-        "optax": optax.__version__,
-        "chex": chex.__version__,
+        **observed_runtime,
         "jax_backend": jax.default_backend(),
         "jax_device": str(jax.devices()[0]),
         "nvidia_gpu_name": gpu_name,

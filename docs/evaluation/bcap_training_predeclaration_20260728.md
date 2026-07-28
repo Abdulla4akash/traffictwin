@@ -42,6 +42,23 @@ match recorded SHA-256 values. The reviewed transformation:
 This is JAX training code only. PyTorch parity and the trace evaluator extension remain checkpoint-
 homecoming gates and are not inferred from a successful training campaign.
 
+## Pre-run G4 platform amendment
+
+Before any producer source was uploaded or model seed was executed, the requested G4's Blackwell
+GPU rejected the producer's pinned JAX/JAXlib 0.4.30 CUDA code: a matrix-multiplication compatibility
+probe failed because its `sm_90a` PTX could not target the future architecture. That disposable VM
+was terminated with no experiment output. The clean replacement G4 passed the same probe under the
+following exact stack, which is frozen for all ten matched jobs and enforced by the launcher:
+
+`jax==0.7.2`, `jaxlib==0.7.2`, `numpy==2.0.2`, `flax==0.11.2`, `optax==0.2.8`,
+`chex==0.1.92`, `distrax==0.1.9`, `gymnax==0.0.9`, `brax==0.14.2`,
+`mujoco==3.10.0`, `mujoco-mjx==3.10.0`, `jaxopt==0.8.5`, `jaxmarl==0.0.4`,
+`glfw==2.10.2`, and `trimesh==4.12.2` on an
+`NVIDIA RTX PRO 6000 Blackwell Server Edition` G4. This deliberate platform deviation from the
+producer's 0.4.30 environment is a standing limitation and makes the already-required CPU/GPU and
+software-version reconciliation part of checkpoint homecoming. Both treatments use identical
+runtime bytes, so the matched training contrast is not confounded by software version.
+
 ## Training matrix and hyperparameters
 
 | Factor | Frozen value |

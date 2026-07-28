@@ -7,8 +7,9 @@
   "approval_provenance": "Explicit in-session owner direction after presentation of the complete two-treatment, five-seed, five-million-step design: 'okay do it and please use colab g4 gpu if u need gpu'",
   "owner_typed_signature": false,
   "recording_method": "Relayed owner delegation recorded by the Codex GPU-track lead; this field must not be represented as a handwritten or cryptographic signature.",
+  "pre_run_platform_amendment": "The exact Blackwell-compatible runtime recorded in the predeclaration replaced JAX 0.4.30 only after a hardware compatibility probe failed and before producer source upload or execution of model seeds 100-104; the approval digest was rebound after that amendment.",
   "predeclaration_path": "docs/evaluation/bcap_training_predeclaration_20260728.md",
-  "predeclaration_sha256": "70aae140b383d504a5e35254ee420cd0e1e72f9fd8e491e5ddb7c063cc59730f",
+  "predeclaration_sha256": "584c35277f6025f3dbe1379ed04283b2ac500c6c429be489f9ee28142d12475f",
   "held_out_authorised": false,
   "producer_data_authorised_for_colab": false,
   "producer_code_authorised_with_citation": true,
@@ -27,7 +28,7 @@
   "requested_timesteps_per_job": 5000000,
   "harness_sha256": {
     "gpu/real_bcap/prepare_source.py": "a4ed2f49df1731f03413d4c3b8424095d6a1e266beef83bf9ce9a6ce3426c15c",
-    "gpu/real_bcap/run_campaign.py": "b90457209acc5b3d7912bd30dfd08a1b12701767d198b597e3f3b89747ddd95c"
+    "gpu/real_bcap/run_campaign.py": "a5cafa2b9bdf3f63225b610d0df79e09466386fe35cf9adac549546f4efff906"
   },
   "label_ceiling": "owner_approved_candidate",
   "scientific_evidence_at_training_stage": false,
