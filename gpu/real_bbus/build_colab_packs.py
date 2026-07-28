@@ -17,7 +17,7 @@ if __package__ in {None, ""}:
 from gpu.real_bbus.prepare_source import sha256_file, stage_source
 from gpu.real_bbus.run_campaign import verify_pack
 
-METHOD_VERSION = "bbus-private-colab-pack-1.0"
+METHOD_VERSION = "bbus-private-colab-pack-1.1"
 DEFAULT_TRACE_ROOT = "data/bbus-successors-20260728"
 DEFAULT_SOURCE_ROOT = "../external/vec_env"
 DEFAULT_OUTPUT_ROOT = "data/bbus-colab-packs-20260728"
@@ -95,10 +95,14 @@ brax==0.14.2
 mujoco==3.10.0
 mujoco-mjx==3.10.0
 jaxopt==0.8.5
-jaxmarl==0.0.4
 glfw==2.10.2
 trimesh==4.12.2
 """
+
+# JaxMARL 0.0.4 declares its historical JAX 0.4 dependency family even though the
+# pack runs the separately staged producer source on the frozen JAX 0.7 stack.
+# Install only its distribution metadata so pip does not replace the frozen stack.
+NO_DEPS_REQUIREMENTS = "jaxmarl==0.0.4\n"
 
 
 def build_packs(
@@ -134,12 +138,16 @@ def build_packs(
             shutil.copyfile(root / APPROVAL_PATH, pack / "evidence" / approval_name)
             shutil.copyfile(root / design["protocol_path"], pack / "evidence" / protocol_name)
             (pack / "requirements-colab.txt").write_text(REQUIREMENTS, encoding="utf-8")
+            (pack / "requirements-colab-no-deps.txt").write_text(
+                NO_DEPS_REQUIREMENTS, encoding="utf-8"
+            )
             (pack / "RUN.txt").write_text(
                 "1. Use a Colab GPU runtime.\n"
                 "2. Install requirements-colab.txt exactly.\n"
-                f"3. python runner/run_campaign.py --pack-root . "
+                "3. Install requirements-colab-no-deps.txt with --no-deps.\n"
+                f"4. python runner/run_campaign.py --pack-root . "
                 f"--output-root /content/bbus_{arm}_results\n"
-                "4. Download the resulting sibling ZIP; do not publish it.\n",
+                "5. Download the resulting sibling ZIP; do not publish it.\n",
                 encoding="utf-8",
             )
             file_inventory = {

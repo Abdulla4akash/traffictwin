@@ -11,6 +11,8 @@ from gpu.real_bbus.build_colab_packs import (
     APPROVAL_PATH,
     APPROVAL_SHA256,
     ARM_BINDINGS,
+    NO_DEPS_REQUIREMENTS,
+    REQUIREMENTS,
     _deterministic_zip,
 )
 from gpu.real_bbus.prepare_source import PATCHED_TRAIN_SHA256, _patch_train_text
@@ -53,6 +55,11 @@ def test_pack_builder_direct_entrypoint_is_importable() -> None:
         text=True,
     )
     assert completed.returncode == 0, completed.stderr
+
+
+def test_legacy_jaxmarl_metadata_is_installed_without_dependencies() -> None:
+    assert "jaxmarl" not in REQUIREMENTS
+    assert NO_DEPS_REQUIREMENTS == "jaxmarl==0.0.4\n"
 
 
 def test_owner_receipt_and_both_protocol_bytes_match_pack_bindings() -> None:
