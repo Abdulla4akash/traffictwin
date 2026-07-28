@@ -3145,6 +3145,34 @@ watch a redirected log live.
 Exclusive files: `scripts/bus_attended_session.py`, its session records under
 `docs/evaluation/`, and this record. The existing probe runner is left in place unchanged.
 
+### Phase 116 claim: MAN-05 rush-hour refusal diagnosis (owner-directed, 28 July 2026)
+
+Offline read-only replay of **every** fail-closed MAN-05 refusal recorded on 28 July — two
+this morning and two this evening — each member re-read from quarantine, hashed, and
+verified against its quarantine manifest before parsing (all four verified; the manifest
+hash covers the stored gzip bytes and is checked before decompression).
+
+**All four are one defect.** Every refused snapshot has exactly one conflicting identity
+group holding exactly two vehicle activities, the two always belong to *different
+operators*, and grouping by `(OperatorRef, VehicleRef, RecordedAtTime)` instead of
+`(VehicleRef, RecordedAtTime)` leaves **zero** conflicts. That is the whole fix, and it is a
+one-line reproduction.
+
+Three things the earlier note did not have. The colliding refs are 5204, 3051, 3042 and 3042
+— **three distinct values, so this is a family of overlapping numbering ranges, not one bad
+vehicle**. The two evening refusals are the *same* ref 22 minutes apart (ANWE line 2 vs BNGN
+line 582), so a collision persists while both vehicles stay in service, which is why
+retrying does not escape it. And the overlap is **asymmetric**: BNGN appears in all four,
+ANWE in three, HIPK in one. All four struck at 1,588–1,620 activities per snapshot while the
+41-vehicle night probe never triggered one — a refusal needs two overlapping-numbered
+vehicles reporting in the same second, so the hazard scales with fleet size and is
+structurally a rush-hour defect.
+
+MAN-05 stays lead-owned and untouched; every refusal stays a refusal, and no refused
+snapshot was promoted, measured, or admitted. Exclusive files:
+`docs/integration/evidence/man05_refusal_diagnosis_20260728.json`, its `docs/index.md` row,
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
