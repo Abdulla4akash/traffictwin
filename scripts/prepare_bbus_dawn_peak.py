@@ -404,8 +404,8 @@ def _prepare_session(
     }
     report_path = session_dir / "trace_preparation_report.json"
     _write_json(report_path, report)
-    for path in (motion_path, occupancy_path, request_path, route_path, report_path):
-        _assert_private_output(path)
+    for output_path in (motion_path, occupancy_path, request_path, route_path, report_path):
+        _assert_private_output(output_path)
     return {
         "label": spec.label,
         "report_path": f"{spec.label}/{report_path.name}",

@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 
 from traffictwin.integration.manchester.bbus_successors import (
     CORRIDOR_END_XY_M,
@@ -70,11 +71,11 @@ def test_corridor_membership_includes_capsule_boundary_and_endpoint_discs() -> N
 
 
 def test_corridor_filter_splits_runs_compacts_slots_and_reconciles() -> None:
-    inside = np.asarray(CORRIDOR_START_XY_M, dtype=np.float32)
+    inside: npt.NDArray[np.float32] = np.asarray(CORRIDOR_START_XY_M, dtype=np.float32)
     outside = inside + np.asarray((2_000.0, 2_000.0), dtype=np.float32)
-    pos_x = np.zeros((5, 2), dtype=np.float32)
-    pos_y = np.zeros((5, 2), dtype=np.float32)
-    mask = np.zeros((5, 2), dtype=bool)
+    pos_x: npt.NDArray[np.float32] = np.zeros((5, 2), dtype=np.float32)
+    pos_y: npt.NDArray[np.float32] = np.zeros((5, 2), dtype=np.float32)
+    mask: npt.NDArray[np.bool_] = np.zeros((5, 2), dtype=bool)
     for t, point in enumerate((inside, inside, outside, inside, inside)):
         pos_x[t, 0], pos_y[t, 0] = point
         mask[t, 0] = True

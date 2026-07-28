@@ -68,9 +68,7 @@ TRACES = {
         "trace_sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
         "max_steps": 10_800,
         "output_root": "data/vec-fresh/capacity-grid-wd-am",
-        "predeclaration_path": (
-            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
-        ),
+        "predeclaration_path": ("docs/evaluation/capacity_sweep_completion_predeclaration.md"),
         "predeclaration_sha256": (
             "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
         ),
@@ -86,9 +84,7 @@ TRACES = {
         "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
         "max_steps": 25_200,
         "output_root": "data/vec-fresh/capacity-grid-wd-pm",
-        "predeclaration_path": (
-            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
-        ),
+        "predeclaration_path": ("docs/evaluation/capacity_sweep_completion_predeclaration.md"),
         "predeclaration_sha256": (
             "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
         ),
@@ -105,9 +101,7 @@ TRACES = {
         "max_steps": 23_400,
         "output_root": "data/vec-fresh/capacity-deep-ev",
         "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
-        "predeclaration_path": (
-            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
-        ),
+        "predeclaration_path": ("docs/evaluation/capacity_sweep_completion_predeclaration.md"),
         "predeclaration_sha256": (
             "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
         ),
@@ -124,9 +118,7 @@ TRACES = {
         "max_steps": 23_400,
         "output_root": "data/vec-fresh/baseline-invariance-ev",
         "actor_id": "baseline_model_c_17",
-        "predeclaration_path": (
-            "docs/evaluation/baseline_invariance_prediction_predeclaration.md"
-        ),
+        "predeclaration_path": ("docs/evaluation/baseline_invariance_prediction_predeclaration.md"),
         "predeclaration_sha256": (
             "fe3db75311d3f7c89d3492fd4cf283fd36fcaad8919e51cd62bcf8673978c030"
         ),

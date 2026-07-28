@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Literal
 
 import pytest
 
@@ -18,7 +19,9 @@ PBF_BYTES = b"pbf-source-payload"
 XML_BYTES = b"decoded-xml-payload-which-is-longer"
 
 
-def _identity(role: str, payload: bytes, representation: str) -> ArtifactIdentity:
+def _identity(
+    role: Literal["source", "derived"], payload: bytes, representation: str
+) -> ArtifactIdentity:
     return ArtifactIdentity(
         role=role,
         representation=representation,

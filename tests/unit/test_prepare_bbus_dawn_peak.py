@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 from scripts.prepare_bbus_dawn_peak import (
     PROTOCOL_PATH,
@@ -112,8 +113,8 @@ def test_output_is_new_only_and_confined_to_named_data_child(tmp_path: Path) -> 
 def test_placement_preflight_refuses_cell_overflow_without_generating_sites() -> None:
     count = 2_001
     pos_x = np.arange(count, dtype=np.float32)[None, :] * np.float32(50.0)
-    pos_y = np.zeros((1, count), dtype=np.float32)
-    mask = np.ones((1, count), dtype=bool)
+    pos_y: npt.NDArray[np.float32] = np.zeros((1, count), dtype=np.float32)
+    mask: npt.NDArray[np.bool_] = np.ones((1, count), dtype=bool)
 
     result = _placement_preflight(pos_x, pos_y, mask)
 
