@@ -2841,6 +2841,23 @@ for 3/3 sessions.
 record. Private workspace measurements and reports are untracked aggregate evidence;
 their hashes are recorded in the committed evidence JSON.
 
+### Phase 100 claim: B-MASK/B-DOMAIN volatile campaign preservation (owner-directed, 28 July 2026)
+
+The primary integration agent owns the narrow preservation and provenance reconciliation
+for Codex's completed B-MASK and B-DOMAIN full G4 campaign archives. The exact volatile
+`/private/tmp` ZIP bytes are copied into the gitignored `data/gpu-track/` workspace,
+verified by SHA-256 and ZIP integrity, and described by committed evidence records. The
+archives and checkpoints remain private, non-admitted diagnostics: preservation does not
+authorise a scientific verdict, actor admission, producer-data use, the literal trace B4
+experiment, an external send, or any owner decision.
+
+**Exclusive files:**
+`docs/integration/evidence/bmask_full_campaign_preservation_20260728.json`,
+`docs/integration/evidence/bdomain_full_campaign_preservation_20260728.json`, the B-MASK
+and B-DOMAIN rows in `docs/experiments_and_findings_20260728.md`, their `docs/index.md`
+entries, and this record. The copied ZIPs under `data/gpu-track/` are gitignored private
+workspace artifacts and are not repository evidence bytes.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
