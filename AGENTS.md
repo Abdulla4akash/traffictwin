@@ -3173,6 +3173,36 @@ snapshot was promoted, measured, or admitted. Exclusive files:
 `docs/integration/evidence/man05_refusal_diagnosis_20260728.json`, its `docs/index.md` row,
 and this record.
 
+### Phase 117 claim: evening-peak bus session (owner-attended, 28 July 2026)
+
+Owner-triggered at 17:13 BST. **83 accepted / 2 refused of 85**, 16:16:43Z–17:49:40Z — the
+longest clean rush-hour window captured to date, and the fourth density point.
+
+**1,741 seen / 1,522 active** over the full session. The support figure is *not* directly
+comparable with the morning's 1,433, because `vehicles_linked_across_snapshots` grows with
+session length, so it is also re-measured over a length-matched 52-snapshot prefix:
+**1,481 against 1,433, +3.3%**. Per-snapshot concurrency, which needs no such correction, is
+**1,250 max / 1,215 median against morning's 1,216 / 1,192**. The evening fleet is
+marginally denser than the morning one and sits inside the capacity sweep's unresolved
+(215, 2488] band. The window caught the crest at 17:41 BST and a clean monotonic taper to
+999 by 18:47 — a curve a single-point sample cannot show.
+
+Cadence is **66 s median / 75 s p90**, identical to the morning peak and stable at 66–68 s
+across all four sessions, so feed cadence does not degrade with fleet size.
+`implied_speed_mps_max` is 66.79 m/s, again over the proposed 32 m/s B1 ceiling, reinforcing
+the standing keep-32-and-drop-and-count recommendation on a second peak window; still a
+recommendation, not a taken G2 decision.
+
+Both refusals were absorbed by the Phase-115 runner. Without it the session would have
+ended at 19 snapshots and no evening density point would exist. The five-refusal diagnosis
+is extended to cover them: BNGN now appears in all five, ANWE in four, and three of the four
+distinct colliding refs sit in the 3000 series where ANWE and BNGN numbering overlaps.
+
+No B1 experiment ran; G1–G5 stay unsigned. This session does not alter the frozen B-BUS
+traces or either Colab pack. Exclusive files:
+`docs/evaluation/bus_evening_peak_session_20260728.md`, the extended
+`man05_refusal_diagnosis_20260728.json`, their `docs/index.md` rows, and the register rows.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

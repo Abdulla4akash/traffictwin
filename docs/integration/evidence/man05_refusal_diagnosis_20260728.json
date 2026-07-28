@@ -12,7 +12,8 @@
       "5204",
       "3051",
       "3042",
-      "3042"
+      "3042",
+      "3106"
     ],
     "density_dependence": {
       "mechanism": "a refusal requires two overlapping-numbered vehicles to report in the same snapshot second, so the hazard rises with fleet size \u2014 which is why it strikes rush hour and never struck the night probe",
@@ -22,7 +23,8 @@
         1593,
         1588,
         1620,
-        1620
+        1620,
+        1607
       ]
     },
     "invariant_across_all_four": [
@@ -31,14 +33,14 @@
       "the two activities always belong to DIFFERENT operators",
       "grouping by (OperatorRef, VehicleRef, RecordedAtTime) leaves ZERO conflicts"
     ],
-    "not_a_single_persistent_pair": "four refusals name three distinct VehicleRef values, so this is a family of overlapping numbering ranges rather than one bad vehicle",
+    "not_a_single_persistent_pair": "five refusals name four distinct VehicleRef values, so this is a family of overlapping numbering ranges rather than one bad vehicle",
     "one_line_reproduction": "group VehicleActivity by (OperatorRef, VehicleRef, RecordedAtTime) instead of (VehicleRef, RecordedAtTime)",
     "operator_appearances_across_refusals": {
-      "ANWE": 3,
-      "BNGN": 4,
+      "ANWE": 4,
+      "BNGN": 5,
       "HIPK": 1
     },
-    "operator_asymmetry": "BNGN appears in all four refusals, ANWE in three, HIPK in one; the overlap is not symmetric noise",
+    "operator_asymmetry": "BNGN appears in all five refusals, ANWE in four, HIPK in one. Three of the four distinct colliding refs (3042, 3051, 3106) sit in the 3000 series, where ANWE and BNGN numbering overlaps; the fourth (5204) is a BNGN/HIPK overlap.",
     "same_collision_recurs_within_a_window": "the two evening refusals are the same VehicleRef 3042 (ANWE line 2 vs BNGN line 582) 22 minutes apart, so a collision persists while both vehicles stay in service \u2014 which is why simply retrying does not escape it",
     "summary": "all four refusals are the same defect: a bare VehicleRef identity collides across operators"
   },
@@ -50,14 +52,14 @@
     "parser_touched": false
   },
   "operational_cost_measured": {
-    "after_the_resilient_runner": "the evening session absorbed its refusal at attempt 20 and continued; see the session record",
+    "after_the_resilient_runner": "the evening session absorbed refusals at attempts 20 and 65 and completed 83 of 85 snapshots \u2014 the longest clean rush-hour window captured to date",
     "why_it_matters": "an owner-attended rush-hour window is not reproducible on demand, and a single fail-closed refusal was discarding the whole window",
     "windows_lost_before_the_resilient_runner": [
       "morning peak retry ended after 51 promotions",
       "evening run 1 ended after 2 promotions"
     ]
   },
-  "population": "every fail-closed MAN-05 refusal recorded on 28 July 2026, across four attended windows",
+  "population": "every fail-closed MAN-05 refusal recorded on 28 July 2026, across five attended windows",
   "record_date": "2026-07-28",
   "record_type": "man05_rush_hour_refusal_diagnosis",
   "refusals": [
@@ -82,7 +84,7 @@
       "member_sha256": "6a95aa020961ff9902693abc5e1d7f95213d2e35447ad1491c0163567bb0c9ba",
       "member_sha256_verified_against_manifest": true,
       "operator_scoped_conflicting_activities": 0,
-      "session": "shallow_dawn",
+      "session": "shallow_dawn 06:58Z",
       "snapshot_id": "bods_siri_vm-20260728T065849Z-d09dcdebb950",
       "vehicle_activities": 1593
     },
@@ -107,7 +109,7 @@
       "member_sha256": "b479cc62e751509e9d52c8933bb25c9e0cb22827b6a37c8bb92514308d705ce0",
       "member_sha256_verified_against_manifest": true,
       "operator_scoped_conflicting_activities": 0,
-      "session": "morning_peak",
+      "session": "morning_peak 07:58Z",
       "snapshot_id": "bods_siri_vm-20260728T075851Z-57bf1f00cfa6",
       "vehicle_activities": 1588
     },
@@ -132,7 +134,7 @@
       "member_sha256": "d0d788a1870fbf01f2f7853a82d91f8dec3a8a42d9ccf41ab71387114e1fc954",
       "member_sha256_verified_against_manifest": true,
       "operator_scoped_conflicting_activities": 0,
-      "session": "evening_peak_run1",
+      "session": "evening_peak run1 16:15Z",
       "snapshot_id": "bods_siri_vm-20260728T161515Z-3a1a2bcf8e1f",
       "vehicle_activities": 1620
     },
@@ -157,9 +159,34 @@
       "member_sha256": "db307c0aec891bfd34258bad2c7240e6126db327e5323cc77902473f2b48beab",
       "member_sha256_verified_against_manifest": true,
       "operator_scoped_conflicting_activities": 0,
-      "session": "evening_peak_run2",
+      "session": "evening_peak run2 16:37Z",
       "snapshot_id": "bods_siri_vm-20260728T163745Z-62eabe882789",
       "vehicle_activities": 1620
+    },
+    {
+      "bare_identity_conflicting_activities": 2,
+      "bare_identity_conflicting_groups": 1,
+      "collisions": [
+        {
+          "line_refs": [
+            "79C",
+            "163"
+          ],
+          "operators": [
+            "ANWE",
+            "BNGN"
+          ],
+          "recorded_at_utc": "2026-07-28T17:27:20+00:00",
+          "vehicle_ref": "3106"
+        }
+      ],
+      "member_bytes": 258072,
+      "member_sha256": "309713a098a139d4891e8755b6b503f592952c6152ea75f6a728cd63279b5325",
+      "member_sha256_verified_against_manifest": true,
+      "operator_scoped_conflicting_activities": 0,
+      "session": "evening_peak run2 17:27Z",
+      "snapshot_id": "bods_siri_vm-20260728T172733Z-ce903f13c801",
+      "vehicle_activities": 1607
     }
   ],
   "research_status": "owner_approved_candidate",
