@@ -59,6 +59,14 @@ producer's 0.4.30 environment is a standing limitation and makes the already-req
 software-version reconciliation part of checkpoint homecoming. Both treatments use identical
 runtime bytes, so the matched training contrast is not confounded by software version.
 
+The first one-update seed-0 compatibility probe then reached JaxMARL's environment wrapper but
+stopped before optimization because JaxMARL 0.0.4 calls the `jax.tree_map` alias removed in JAX
+0.6. The frozen disposable-source transformation therefore restores that name as
+`jax.tree_util.tree_map` before importing the environment. This is an API compatibility alias to
+the same tree operation, not a numerical or experimental change. The transformed training-script
+hash is recorded beside the transformed environment hash. The failed probe produced no completed
+curve or checkpoint and used none of model seeds `{100–104}`.
+
 ## Training matrix and hyperparameters
 
 | Factor | Frozen value |

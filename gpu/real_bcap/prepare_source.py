@@ -13,7 +13,7 @@ import hashlib
 import json
 from pathlib import Path
 
-METHOD_VERSION = "bcap-random-capacity-observation-v1"
+METHOD_VERSION = "bcap-random-capacity-observation-blackwell-v2"
 
 BASE_SOURCE_SHA256 = {
     "jaxmarl/env/__init__.py": "1ade2d2774b1249d182484cc95195a8c08bf1528de132c13adc1dc09ba198bea",
@@ -164,6 +164,22 @@ def patch_vec_jax_text(source: str) -> str:
     return source
 
 
+def patch_train_mappo_text(source: str) -> str:
+    """Restore the removed JAX tree-map alias used by JaxMARL 0.0.4."""
+
+    return _replace_once(
+        source,
+        "    import jax\n    import jax.numpy as jnp\n",
+        "    import jax\n"
+        "    # JaxMARL 0.0.4 calls the alias removed in JAX 0.6. The operation\n"
+        "    # is unchanged; restore the name for the frozen Blackwell stack.\n"
+        '    if not hasattr(jax, "tree_map"):\n'
+        "        jax.tree_map = jax.tree_util.tree_map\n"
+        "    import jax.numpy as jnp\n",
+        "Blackwell JaxMARL compatibility alias",
+    )
+
+
 def prepare_source(source_root: Path) -> dict[str, object]:
     source_root = source_root.resolve()
     actual = {relative: sha256_file(source_root / relative) for relative in BASE_SOURCE_SHA256}
@@ -172,10 +188,14 @@ def prepare_source(source_root: Path) -> dict[str, object]:
     target = source_root / "jaxmarl/env/vec_jax.py"
     patched = patch_vec_jax_text(target.read_text(encoding="utf-8"))
     target.write_text(patched, encoding="utf-8")
+    train_target = source_root / "jaxmarl/scripts/train_mappo_vec.py"
+    patched_train = patch_train_mappo_text(train_target.read_text(encoding="utf-8"))
+    train_target.write_text(patched_train, encoding="utf-8")
     record = {
         "method_version": METHOD_VERSION,
         "base_source_sha256": BASE_SOURCE_SHA256,
         "patched_vec_jax_sha256": sha256_file(target),
+        "patched_train_mappo_vec_sha256": sha256_file(train_target),
         "producer_clone_modified": False,
         "disposable_copy_only": True,
     }

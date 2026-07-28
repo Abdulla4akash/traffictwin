@@ -239,8 +239,14 @@ def run_campaign(
     )
     if transformation.get("method_version") != METHOD_VERSION:
         raise ValueError("wrong B-CAP source transformation")
+    patched_paths = {
+        "jaxmarl/env/vec_jax.py": "patched_vec_jax_sha256",
+        "jaxmarl/scripts/train_mappo_vec.py": "patched_train_mappo_vec_sha256",
+    }
     for relative, expected in BASE_SOURCE_SHA256.items():
-        if relative == "jaxmarl/env/vec_jax.py":
+        if relative in patched_paths:
+            if sha256_file(source_root / relative) != transformation.get(patched_paths[relative]):
+                raise ValueError(f"transformed source changed after preparation: {relative}")
             continue
         if sha256_file(source_root / relative) != expected:
             raise ValueError(f"producer source changed after transformation: {relative}")
