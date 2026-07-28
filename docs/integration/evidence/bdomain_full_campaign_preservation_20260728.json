@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "record": "bdomain-full-g4-campaign-preservation",
+  "recorded_at_utc": "2026-07-28T12:06:36Z",
+  "purpose": "Preserve Codex's completed B-DOMAIN full G4 campaign archive from volatile storage and bind the private workspace copy to exact bytes without treating the procedural precursor as literal trace B4, admitting an actor, or promoting a scientific claim.",
+  "repository_commit_at_preservation": "627934118b1f3ab8ef714d3a929509f472f296a3",
+  "archive": {
+    "volatile_source_path": "/private/tmp/traffictwin_bdomain_full_g4_training_20260728.zip",
+    "private_workspace_path": "data/gpu-track/traffictwin_bdomain_full_g4_training_20260728.zip",
+    "gitignored_private_artifact": true,
+    "git_tracked": false,
+    "size_bytes": 3519094,
+    "sha256": "0d17154ebfed2d33be3e63485fceabbd6a7d6d5f399569bf94c83aa0a7e119b6",
+    "archive_member_count": 127,
+    "uncompressed_bytes": 5948868,
+    "contains_checkpoint_and_raw_diagnostic_material": true
+  },
+  "preservation_verification": {
+    "source_and_workspace_sha256_equal": true,
+    "source_sha256_verified": true,
+    "workspace_sha256_verified_after_copy": true,
+    "workspace_zip_integrity_test_passed": true,
+    "archive_bytes_modified": false
+  },
+  "sealed_campaign_summary": {
+    "campaign_version": "bdomain-full-training-v1",
+    "status": "completed",
+    "started_at_utc": "2026-07-28T05:34:42.526308+00:00",
+    "completed_at_utc": "2026-07-28T07:07:14.911277+00:00",
+    "jobs_completed": 15,
+    "jobs_failed": 0,
+    "training_domains": ["default", "safety_dominant", "pilot_inspired"],
+    "model_seeds": [400, 401, 402, 403, 404],
+    "requested_training_steps": 75000000,
+    "effective_training_steps": 74976000,
+    "diagnostic_cells": 90,
+    "episode_evaluations": 2880,
+    "recorded_action_decisions": 11520000,
+    "traffictwin_source_commit": "a08e73f41f0fa3e87d2f7bbdad71adb9768f8e10",
+    "classification": "owner_approved_candidate_training_diagnostic",
+    "literal_trace_b4": false,
+    "scientific_evidence": false,
+    "actor_admission_eligible": false,
+    "producer_data_used": false
+  },
+  "provenance_boundary": {
+    "executed_by": "Codex GPU-track lead on a disposable Colab G4 runtime",
+    "preserved_by": "primary research/integration agent",
+    "preservation_is_scientific_review": false,
+    "preservation_is_actor_admission": false,
+    "preservation_is_owner_signing": false,
+    "external_send_performed": false
+  },
+  "interpretation_limits": [
+    "This is a data-free procedural workload-distribution precursor, not the proposed producer-trace B4 experiment.",
+    "The archive summary is reported as sealed campaign provenance; its descriptive rankings and contrasts remain pending independent review.",
+    "No Randy producer trace, bus data, or Manchester observation data was used.",
+    "The actors and checkpoints remain private and non-admitted; no confirmatory, causal, or inferential claim is authorised."
+  ]
+}

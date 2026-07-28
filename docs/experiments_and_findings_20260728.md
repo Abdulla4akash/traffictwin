@@ -1,4 +1,4 @@
-# TrafficTwin — All Experiments and Findings (as of 28 July 2026, 12:30)
+# TrafficTwin — All Experiments and Findings (as of 28 July 2026, 13:05)
 
 **Status: consolidated register. Every entry is `owner_approved_candidate` at most;
 exploratory unless marked CONFIRMED; descriptive, non-causal; nothing is supervisor-
@@ -30,9 +30,9 @@ being a large latency *reduction* under squeeze, not the hypothesised deadline c
 | 10 | **B-CAP engineering smoke** | 17-D control vs 19-D capacity-obs, tiny | Pipeline proven; 17-D invariant, 19-D responds. [Evidence](integration/evidence/bcap_engineering_smoke_20260728.json) |
 | 11 | **B-CAP full** (10 jobs × 5M steps, seeds {100–104}) | matched 17-D vs 19-D from scratch | 17-D controls **exactly invariant** (mechanism reproduced from scratch); 19-D demonstrably changes decisions with capacity. Archive sha `77204c47…` (data/gpu-track/, local) |
 | 12 | **B-REWARD full** (10 jobs, seeds {200–204}) | α=0.7 balanced vs α=1.0 pure-QoS | Pure-QoS: ≈+0.017pp completion, +0.04 J energy, +10pp local execution, slightly lower latency, and **less capacity-conditioned switching** (1.94% vs 3.51%). Archive sha `316092d9…` |
-| 13 | **B-MASK full** (10 jobs, seeds {300–304}) | 2×2: feasibility mask in training × in deployment | Completed 10/10 with the zero-infeasible masked-deployment invariant holding; treatment contrasts sealed in the archive pending review. |
+| 13 | **B-MASK full** (10 jobs, seeds {300–304}) | 2×2: feasibility mask in training × in deployment | Completed 10/10 with the zero-infeasible masked-deployment invariant holding; treatment contrasts sealed in the archive pending review. Archive sha `cf18bedf…` (private, gitignored). [Preservation record](integration/evidence/bmask_full_campaign_preservation_20260728.json) |
 | 14 | **B-BUS synthetic + IPPO smokes** | pipeline proofs | Bus-native training path and second algorithm family verified on stand-ins. |
-| 15 | **B-DOMAIN** | predeclared 28 Jul (commit `a08e73f`) | In progress / pending report. |
+| 15 | **B-DOMAIN full** (15 jobs, seeds {400–404}) | default / safety-dominant / pilot-inspired procedural domains | Completed 15/15; data-free diagnostic precursor only, explicitly not literal trace B4. Descriptive contrasts remain pending independent review. Archive sha `0d17154e…` (private, gitignored). [Preservation record](integration/evidence/bdomain_full_campaign_preservation_20260728.json) |
 
 ## C. Real bus data (BODS, owner-attended sessions, session-scoped identity)
 

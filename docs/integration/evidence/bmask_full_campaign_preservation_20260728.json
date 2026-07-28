@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "record": "bmask-full-g4-campaign-preservation",
+  "recorded_at_utc": "2026-07-28T12:06:36Z",
+  "purpose": "Preserve Codex's completed B-MASK full G4 campaign archive from volatile storage and bind the private workspace copy to exact bytes without admitting an actor or promoting a scientific claim.",
+  "repository_commit_at_preservation": "627934118b1f3ab8ef714d3a929509f472f296a3",
+  "archive": {
+    "volatile_source_path": "/private/tmp/traffictwin_bmask_full_g4_training_20260728.zip",
+    "private_workspace_path": "data/gpu-track/traffictwin_bmask_full_g4_training_20260728.zip",
+    "gitignored_private_artifact": true,
+    "git_tracked": false,
+    "size_bytes": 2491049,
+    "sha256": "cf18bedf2dcb833a6bce072bfa24f23734c3e49f94212d54eb135520deb80dce",
+    "archive_member_count": 87,
+    "uncompressed_bytes": 4192846,
+    "contains_checkpoint_and_raw_diagnostic_material": true
+  },
+  "preservation_verification": {
+    "source_and_workspace_sha256_equal": true,
+    "source_sha256_verified": true,
+    "workspace_sha256_verified_after_copy": true,
+    "workspace_zip_integrity_test_passed": true,
+    "archive_bytes_modified": false
+  },
+  "sealed_campaign_summary": {
+    "campaign_version": "bmask-full-training-v1",
+    "status": "completed",
+    "started_at_utc": "2026-07-28T04:15:29.332643+00:00",
+    "completed_at_utc": "2026-07-28T05:11:33.284681+00:00",
+    "jobs_completed": 10,
+    "jobs_failed": 0,
+    "model_seeds": [300, 301, 302, 303, 304],
+    "requested_training_steps": 50000000,
+    "effective_training_steps": 49984000,
+    "diagnostic_cells": 80,
+    "episode_evaluations": 2560,
+    "recorded_action_decisions": 10240000,
+    "masked_deployment_selected_infeasible_actions": 0,
+    "traffictwin_source_commit": "6a8e26557a4c4c2fb473d8e771abb1dd99dec040",
+    "classification": "owner_approved_candidate_training_diagnostics",
+    "scientific_evidence": false,
+    "actor_admission_eligible": false,
+    "producer_data_used": false
+  },
+  "provenance_boundary": {
+    "executed_by": "Codex GPU-track lead on a disposable Colab G4 runtime",
+    "preserved_by": "primary research/integration agent",
+    "preservation_is_scientific_review": false,
+    "preservation_is_actor_admission": false,
+    "preservation_is_owner_signing": false,
+    "external_send_performed": false
+  },
+  "interpretation_limits": [
+    "The archive summary is reported as sealed campaign provenance; this preservation record does not independently endorse its descriptive contrasts.",
+    "The zero-infeasible count is a runtime invariant reported by the sealed campaign, not an admission decision or a general safety claim.",
+    "The five paired model seeds are the comparison units; no held-out, confirmatory, causal, or inferential claim is authorised.",
+    "The actors and checkpoints remain private and non-admitted."
+  ]
+}

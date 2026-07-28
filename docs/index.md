@@ -67,6 +67,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Real bus-fleet experiment draft (not signable yet)](evaluation/bus_fleet_experiment_predeclaration_draft.md)
 - [Night/dawn/peak bus-session post-hoc results, 28 July 2026](evaluation/bus_session_results_20260728.md)
 - [Aggregate bus-session evidence record, 28 July 2026](integration/evidence/bods_bus_sessions_20260728.json)
+- [B-MASK full G4 private-archive preservation record, 28 July 2026](integration/evidence/bmask_full_campaign_preservation_20260728.json)
+- [B-DOMAIN full G4 private-archive preservation record, 28 July 2026](integration/evidence/bdomain_full_campaign_preservation_20260728.json)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
