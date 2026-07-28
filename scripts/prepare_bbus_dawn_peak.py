@@ -38,7 +38,6 @@ from xml.etree.ElementTree import Element, ElementTree, SubElement, iterparse
 
 import numpy as np
 from pyproj import Transformer
-from scripts.process_bus_session_posthoc import select_snapshot_ids
 
 from traffictwin.integration.manchester.bods_session_identity import (
     SessionObservation,
@@ -268,7 +267,7 @@ def _prepare_session(
 ) -> dict[str, Any]:
     session_dir = output / spec.label
     session_dir.mkdir()
-    snapshot_ids = select_snapshot_ids(
+    snapshot_ids = _select_snapshot_ids(
         workspace / "quarantine",
         first_snapshot_id=spec.first_snapshot_id,
         last_snapshot_id=spec.last_snapshot_id,
@@ -494,6 +493,34 @@ def _match_session(
         "selected_distance_m_p90": _percentile(ordered_distances, 0.9),
         "selected_distance_m_max": max(ordered_distances) if ordered_distances else None,
     }
+
+
+def _select_snapshot_ids(
+    quarantine: Path, *, first_snapshot_id: str, last_snapshot_id: str
+) -> tuple[str, ...]:
+    """Select the same exact inclusive quarantine range as the post-hoc pass."""
+
+    prefix = "bods_siri_vm-"
+    if not quarantine.is_dir():
+        raise BBusPreparationError("quarantine directory is unavailable")
+    for value in (first_snapshot_id, last_snapshot_id):
+        if not value.startswith(prefix) or "/" in value or "\\" in value:
+            raise BBusPreparationError("an exact snapshot bound is unsafe")
+    if first_snapshot_id > last_snapshot_id:
+        raise BBusPreparationError("snapshot bounds are reversed")
+    available = tuple(
+        sorted(
+            path.name
+            for path in quarantine.iterdir()
+            if path.is_dir() and path.name.startswith(prefix)
+        )
+    )
+    if first_snapshot_id not in available or last_snapshot_id not in available:
+        raise BBusPreparationError("both exact snapshot bounds must exist")
+    selected = tuple(item for item in available if first_snapshot_id <= item <= last_snapshot_id)
+    if len(selected) < 2:
+        raise BBusPreparationError("a session requires at least two snapshots")
+    return selected
 
 
 def _route_requests(
