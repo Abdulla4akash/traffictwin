@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import zipfile
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from importlib import metadata
@@ -549,7 +550,11 @@ def _archive_results(output_root: Path) -> Path:
     return archive
 
 
-def run_campaign(pack_root: Path, output_root: Path) -> dict[str, Any]:
+def run_campaign(
+    pack_root: Path, output_root: Path, *, max_workers: int = 1
+) -> dict[str, Any]:
+    if not 1 <= max_workers <= len(MODEL_SEEDS):
+        raise ValueError(f"max_workers must be between 1 and {len(MODEL_SEEDS)}")
     pack = pack_root.resolve()
     binding = verify_pack(pack)
     output = output_root.resolve()
@@ -617,6 +622,8 @@ def run_campaign(pack_root: Path, output_root: Path) -> dict[str, Any]:
     }
     if progress_path.exists():
         progress = json.loads(progress_path.read_text(encoding="utf-8"))
+    progress["execution_max_workers"] = max_workers
+    pending_jobs: list[Job] = []
     for job in campaign_jobs():
         manifest_path = _job_files(output, job)["manifest"]
         if manifest_path.is_file():
@@ -624,27 +631,56 @@ def run_campaign(pack_root: Path, output_root: Path) -> dict[str, Any]:
             progress["jobs"][job.identity] = {"status": "completed", "resumed": True}
             _atomic_json(progress_path, progress)
             continue
+        pending_jobs.append(job)
         progress["jobs"][job.identity] = {
             "status": "running",
             "started_at_utc": datetime.now(UTC).isoformat(),
         }
-        _atomic_json(progress_path, progress)
-        try:
-            manifest = _run_job(pack, output, binding, job, common_env)
-        except Exception as exc:
-            progress["jobs"][job.identity] = {
-                "status": "failed",
-                "failed_at_utc": datetime.now(UTC).isoformat(),
-                "error": f"{type(exc).__name__}: {exc}",
-            }
-            _atomic_json(progress_path, progress)
-            raise
+    _atomic_json(progress_path, progress)
+
+    def record_completed(job: Job, manifest: dict[str, Any]) -> None:
         progress["jobs"][job.identity] = {
             "status": "completed",
             "completed_at_utc": manifest["completed_at_utc"],
             "elapsed_seconds": manifest["elapsed_seconds"],
         }
         _atomic_json(progress_path, progress)
+
+    def record_failed(job: Job, exc: Exception) -> None:
+        progress["jobs"][job.identity] = {
+            "status": "failed",
+            "failed_at_utc": datetime.now(UTC).isoformat(),
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+        _atomic_json(progress_path, progress)
+
+    if max_workers == 1:
+        for job in pending_jobs:
+            try:
+                manifest = _run_job(pack, output, binding, job, common_env)
+            except Exception as exc:
+                record_failed(job, exc)
+                raise
+            record_completed(job, manifest)
+    else:
+        first_error: Exception | None = None
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures: dict[Future[dict[str, Any]], Job] = {
+                executor.submit(_run_job, pack, output, binding, job, common_env): job
+                for job in pending_jobs
+            }
+            for future in as_completed(futures):
+                job = futures[future]
+                try:
+                    manifest = future.result()
+                except Exception as exc:
+                    record_failed(job, exc)
+                    if first_error is None:
+                        first_error = exc
+                else:
+                    record_completed(job, manifest)
+        if first_error is not None:
+            raise first_error
     summary = _summarise(output, binding)
     _atomic_json(output / "campaign_summary.json", summary)
     progress["status"] = "completed"
@@ -668,9 +704,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
+    parser.add_argument(
+        "--max-workers",
+        type=int,
+        default=1,
+        help=f"run up to this many independent seed jobs concurrently (1-{len(MODEL_SEEDS)})",
+    )
     args = parser.parse_args(argv)
     try:
-        result = run_campaign(args.pack_root, args.output_root)
+        result = run_campaign(
+            args.pack_root, args.output_root, max_workers=args.max_workers
+        )
     except Exception as exc:
         print(f"error: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1

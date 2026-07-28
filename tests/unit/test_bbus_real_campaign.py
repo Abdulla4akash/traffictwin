@@ -29,6 +29,7 @@ from gpu.real_bbus.run_campaign import (
     _validate_evaluation,
     _validate_trace,
     campaign_jobs,
+    run_campaign,
     sha256_file,
 )
 
@@ -45,6 +46,13 @@ def test_campaign_is_two_separate_five_seed_held_out_designs() -> None:
     assert ARM_BINDINGS["corridor"]["vec06_compatible"] is True
     assert ARM_BINDINGS["sparse64"]["vec06_compatible"] is False
     assert JAX_PLATFORM == "cuda"
+
+
+def test_parallel_seed_worker_count_is_bounded_before_pack_access(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="between 1 and 5"):
+        run_campaign(tmp_path / "missing-pack", tmp_path / "results", max_workers=0)
+    with pytest.raises(ValueError, match="between 1 and 5"):
+        run_campaign(tmp_path / "missing-pack", tmp_path / "results", max_workers=6)
 
 
 def test_pack_builder_direct_entrypoint_is_importable() -> None:
