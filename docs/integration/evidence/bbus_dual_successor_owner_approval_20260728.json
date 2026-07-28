@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-07-28",
+  "decision_kind": "owner_approval_of_both_presented_successors",
+  "approved": true,
+  "owner_response_verbatim": "cant we do both 1 and 2",
+  "presented_options_source": {
+    "path": "docs/evaluation/bbus_dawn_peak_trace_preparation_20260728.md",
+    "option_1": "bounded geographic/corridor trace under full coverage",
+    "option_2": "whole-fleet sparse-infrastructure scenario"
+  },
+  "approved_experiments": [
+    {
+      "experiment_id": "B-BUS-CORRIDOR-DAWN-PEAK-20260728",
+      "protocol_path": "docs/evaluation/bbus_corridor_dawn_peak_protocol_20260728.md",
+      "protocol_sha256": "cd2e93f926d19a1c8b55d3962a674353be70b8d4fff0f69d80417e666238cde7"
+    },
+    {
+      "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+      "protocol_path": "docs/evaluation/bbus_sparse64_dawn_peak_protocol_20260728.md",
+      "protocol_sha256": "f366f3ba886287150eefcf64268e38df4e2a488372ed738dbbc712573c221efa"
+    }
+  ],
+  "inherited_parent_protocol": {
+    "experiment_id": "B-BUS-DAWN-PEAK-20260728",
+    "path": "docs/evaluation/bbus_dawn_peak_protocol_20260728.md",
+    "sha256": "b0b3522481076e2dfdc7668a34a9e07146a3de78f60e740b49ebf2dce23ce65c"
+  },
+  "scope": {
+    "both_successors_authorised": true,
+    "existing_private_derived_traces_only": true,
+    "new_acquisition_authorised": false,
+    "live_attendance_authorised": false,
+    "derived_pseudonymised_owner_colab_upload_authorised": true,
+    "raw_bods_upload_authorised": false,
+    "public_hosting_authorised": false,
+    "supervisor_approval_granted": false,
+    "actor_admission_granted": false,
+    "scientific_verdict_granted": false
+  },
+  "technical_details_frozen_by_agent_under_standing_delegation": [
+    "fixed 750 m EPSG:27700 landmark-line capsule before corridor counts",
+    "pinned full-coverage placement separately for each corridor session",
+    "exactly 64 dawn-weighted sparse sites reused unchanged at peak"
+  ],
+  "owner_decisions_taken_by_agent": []
+}
