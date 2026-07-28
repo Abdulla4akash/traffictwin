@@ -3390,6 +3390,42 @@ Exclusive files: that addendum, that script, and this record. The accepted compa
 the candidate, every campaign design and every admitted artifact are unchanged; the local OLS
 for the secondary series is a deliberate reimplementation rather than an edit to accepted code.
 
+### Phase 125 claim: B-DENSITY Phase 1 on Colab G4, and its method corrected (owner-directed, 29 July 2026)
+
+The owner directed Colab G4 execution via the CLI, which resolved the open routing decision —
+B-DENSITY had been prepared and deliberately unlaunched because the GPU track is the lead's
+lane. Phase 1 ran on a freshly allocated G4 (RTX PRO 6000 Blackwell, jax 0.7.2, real `gpu`
+backend, not a `--allow-cpu` dry run) and the session was released immediately. The density axis
+responds at both smoke capacities, so the predeclaration's Phase-2 gate is passed; the manifest
+digest was printed on the VM and re-verified byte-exactly against the downloaded artifact.
+
+**The material finding is a correction to the design's own method.** Both the predeclaration §4
+and the handoff specify reaching the density axis "via a reviewed transform of a disposable copy
+of `vec_jax.py`". Reading the producer source instead of assuming shows that is unnecessary:
+`VEC_JAX_N_VEHICLES` and `VEC_JAX_RSU_MAX_CONCURRENT` are already documented producer knobs, and
+the producer's own comment on the latter states its purpose is to "match the eval engine's
+per-RSU concurrency scaling (2.5 × fleet)" — the allowance semantics the handoff insists Phase 2
+must preserve, and the same relation visible in the running campaign's receipt
+(`RSU_MAX_CONCURRENT=6220` at 2,488 slots). Recorded as an explicit deviation, not a silent
+simplification: it is the safer route, since `prepare_source.py` rewrites nine source regions and
+each is a chance to alter semantics, whereas the env-var route leaves the environment unpatched.
+The frozen grid, hypothesis, prediction and verdict rule are untouched and the predeclaration is
+not edited.
+
+Reading the source also bounded what Phase 2 may claim: `N_RSUS = 2` and is **not**
+env-overridable, on a 2,000 m corridor with `EPISODE_LENGTH = 200`. At the top of the frozen grid
+that is 2,048 vehicles served by two RSUs, so no onset capacity from this environment may be
+quoted as a property of `inc` or the Etihad district — already forbidden by §5, now concrete.
+
+A pre-existing orphaned G4 assignment with no local CLI record was visible throughout and was
+**not touched** — the CLI log shows nothing used it between 08:10 and this session while the
+B-BUS track was actively committing Colab work, so it is most likely that track's live browser
+session. Flagged for the owner, not stopped.
+
+Exclusive files: `docs/evaluation/bdensity_phase1_results_20260729.md` and this record. No
+predeclaration, campaign design, launcher, producer clone or admitted artifact is modified;
+Phase 2 is not launched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
