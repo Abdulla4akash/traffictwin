@@ -47,9 +47,7 @@ def main() -> int:
     receipt = run_vec_evaluator(INPUT_ROOT, VEC_REPO, TOS_DATA_REPO, OUTPUT_DIR, request)
     wall = time.perf_counter() - started
 
-    output_bytes = sum(
-        p.stat().st_size for p in OUTPUT_DIR.rglob("*") if p.is_file()
-    )
+    output_bytes = sum(p.stat().st_size for p in OUTPUT_DIR.rglob("*") if p.is_file())
     evidence = {
         "schema_version": "1.0",
         "probe": "vec-ev-timing-probe",
@@ -70,8 +68,10 @@ def main() -> int:
             "ceiling_margin_seconds": round(CEILING_SECONDS - receipt.elapsed_seconds, 1),
         },
         "interpretation_limits": [
-            "One execution at one capacity and one fleet seed; a timing measurement, never a scientific result.",
-            "Outputs remain unadmitted; any scientific use of ev requires a predeclared, approved design.",
+            "One execution at one capacity and one fleet seed; a timing "
+            "measurement, never a scientific result.",
+            "Outputs remain unadmitted; any scientific use of ev requires a "
+            "predeclared, approved design.",
         ],
     }
     EVIDENCE_PATH.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")

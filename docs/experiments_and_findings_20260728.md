@@ -21,6 +21,7 @@ approved or externally validated. Each row links its full record.**
 | 9b | **Latency-tail analysis** (analysis-only, 39.2M active tasks/arm) | per-arm distribution | **The mechanism, measured**: p50 is 44.3 ms at every capacity (−0.10% over the 3.3× squeeze), the >1 s population moves −0.07 pp, but p99 falls 69.9% and 97.9–99.4% of latency mass is tail. The squeeze moves latency only within the already-deadline-failed population. [Record](evaluation/latency_tail_analysis_20260728.md) |
 | 9c | **Per-RSU load asymmetry** (analysis-only) | 10 RSUs, 2 arms | **3 of 10 RSUs carry exactly zero load** at every capacity, a fourth under 5%, busiest ~24%; Gini 0.486→0.467 — the squeeze does not redistribute. Placement, not capacity, binds. [Record](evaluation/rsu_load_asymmetry_20260728.md) |
 | 9d | **N1 re-examination + peak concurrency** (offline) | identity forensics; 52 quarantines | **N1 withdrawn** — no provider mutation; the "lost" source identity was the decoded XML's, and the network rebuild reproduces the original canonical identity exactly. Peak bus concurrency **1,216 max**, inside the capacity sweep's unresolved band. [Evidence](integration/evidence/n1_reexamination_and_peak_concurrency_20260728.json) |
+| 9e | **Observation-chain restoration** (regeneration, not recovery) | clip → index → 305-row v1.1 match, all from committed pins after the session workspace died | **Regenerability held exactly**: 285,794 study edges of 804,611 with every edge id preserved; the match split reproduces 106/178/21 (v1.0) and 131/165/9 (v1.1) including the 51 override and 1,339 refused edge denominators; the Match Review page loads 174 queued rows, all pending. Both DfT datasets re-acquired byte-stable (342 rows / 79 pages / 39,072 rows). [Evidence](integration/evidence/manchester_chain_restoration_20260728.json) |
 
 **One-sentence synthesis:** the trained policies cannot see capacity (structural
 observation gap), this costs nothing in any normal traffic regime, and capacity only
@@ -64,8 +65,11 @@ permission, not a protocol or data change.
   digest-bound design with publishable nulls — and the nulls arrived and were published.
 - **Fail-closed integrity held under fire**: the repeat-admission resume defect (found by
   the first real interruption, fixed with regression tests, registry never contaminated);
-  the float32 verification repair; the rush-hour parser refusals; the Geofabrik dated-file
-  mutation (N1) — each preserved as evidence, not papered over.
+  the float32 verification repair; the rush-hour parser refusals; the N1 identity-recording
+  bug — each preserved as evidence, not papered over. N1 is the sharpest of them, because
+  investigating it **withdrew our own earlier claim**: no provider ever mutated a dated
+  file; a derived artifact's identity had been written into an evidence record's source
+  fields, and the resulting checksum mismatch was rationalised instead of failing closed.
 - **Aggregate metrics hide mechanism**: only decision-level instrumentation (keyed action
   arrays, per-side state comparison) could distinguish "policy adapts" from "queues
   change" — the platform's core justification, demonstrated.
@@ -73,3 +77,11 @@ permission, not a protocol or data change.
   operators (7 dawn / 9 peak values), manufacturing impossible 17–19 km/s jumps and the
   two strict-parser conflicts. Operator scoping removes the false merges while preserving
   the per-session privacy boundary.
+- **Regenerability beats retention, and it was tested rather than asserted**: when the
+  25-July session workspace died it took the network, subnetwork, index, route pool, and
+  match rows with it. The audit claimed all of them were regenerable from committed pins;
+  regenerating them reproduced every reconciled quantity exactly, down to override
+  denominators nobody would have noticed diverging. The one thing that did *not* survive
+  is instructive — a published `reconciliation_fingerprint` whose recipe lived only in the
+  session script, so it can never be checked against anything. **A digest is only evidence
+  if the code that computes it is committed beside it.**

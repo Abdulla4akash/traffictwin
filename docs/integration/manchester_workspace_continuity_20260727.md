@@ -111,6 +111,33 @@ kept separate:
    consistent with the recorded gridlock hypothesis — evidence about the *pool policy* that
    both demand constructions shared, reported as exactly that and nothing more.
 
+## RESOLVED (28 July 2026): the recovery plan ran to completion
+
+Every step above is executed and reconciled; full record in
+[evidence](evidence/manchester_chain_restoration_20260728.json).
+
+| Step | Outcome |
+|---|---|
+| 1–3 parent network | Rebuilt durably on 28 July (Phase 108); canonical identity `ce285f85…` reproduces the 25-July record exactly |
+| 4 study subnetwork | Clipped in 31.46 s: **285,794 study edges of 804,611**, edge ids 100% preserved, all 150 committed Option-A counted edges present (`scripts/clip_study_subnetwork.py`) |
+| 5 edge index + match rows | Index rebuilt over the parent (804,611 real edges, geometry fingerprint `4019252e…`); the 305-row v1.1 artifact **reproduces the recorded dispositions exactly** — 106/178/21 under v1.0, 131/165/9 under v1.1, 106 strict + 25 override acceptances, 51 override edges, 1,339 refused edges (`scripts/regenerate_match_artifact.py`). The Match Review page loads 174 queued rows, all visibly pending |
+| 6 route pool | Not run — it belongs to the demand-diagnosis slice, not to restoration |
+
+**The observation side needed re-acquisition.** Only the single-record probes
+(`page[size]=1`, 1,184 B and 1,550 B) survived in the durable workspace, so the 342-point
+and 79-page / 39,072-row DfT datasets were re-fetched through the accepted bounded
+MAN-01/MAN-02 machinery. Both came back with the **same raw-fingerprint prefix and
+identical page and row counts** as the snapshots they replace — the DfT historical archive
+is externally reproducible. The claim is deliberately limited to prefix equality, because
+the committed 25-July record preserves only the 12 hex characters inside the snapshot id.
+
+**One thing did not survive, and it is the useful finding.** The 25-July record published a
+`reconciliation_fingerprint` (`ae3ecff1…`) that no committed code computes — its recipe
+lived in the session script. It therefore cannot be compared against anything reproducible,
+now or ever. The regeneration publishes an explicitly defined digest beside it rather than
+guessing at a recipe that would manufacture agreement. A digest is only evidence if the
+code that computes it is committed beside it.
+
 ## Lesson recorded
 
 Products of session-scoped workspaces that later phases depend on (network, index, pool,

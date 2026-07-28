@@ -1,0 +1,166 @@
+{
+  "record_type": "manchester_observation_chain_restoration",
+  "record_date": "2026-07-28",
+  "capability_id": "MAN-09",
+  "capability_status": "planned",
+  "gate": "Gate-D steps 2 and 5 prerequisites, restored after session-workspace loss",
+  "research_status": "owner_approved_candidate",
+  "evidence_class": "exploratory_candidate_software_evidence",
+  "supervisor_approved": false,
+  "scientifically_validated": false,
+  "analyst_accepted": false,
+  "why_this_record_exists": {
+    "loss": "the 25-July study subnetwork, edge index, and 305-row v1.1 match artifact lived in a session-scoped workspace that no longer exists (docs/integration/manchester_workspace_continuity_20260727.md)",
+    "claim_tested": "the continuity audit asserted every one of them was regenerable from committed pins rather than recoverable. This record is that assertion executed end to end.",
+    "verdict": "regenerability held exactly. Every reconciled quantity reproduces the 25-July record, including the counts nobody would have noticed diverging."
+  },
+  "step_1_study_subnetwork_clip": {
+    "script": "scripts/clip_study_subnetwork.py",
+    "method": "the durable Phase-108 parent was clipped, not re-derived from OpenStreetMap, so the subnetwork is provably a subset of the reviewed parent",
+    "tool": "netconvert 1.27.1",
+    "parent_network_id": "gm-baseline-20260728",
+    "parent_canonical_sha256": "ce285f85d07fee24414cc3318cf85ea1ca0cb967e2eadb2ac7bcb3f96bde2577",
+    "parent_identity_verified_before_clipping": true,
+    "boundary": "-2.319900,53.340200,-2.146900,53.544600",
+    "boundary_source": "network_scope.sub_area_bounds (packaged generalised display geometry), which reproduces the recorded 25-July clip box exactly",
+    "duration_s": 31.46,
+    "recorded_duration_s_20260725": 32.97,
+    "output": {
+      "network_id": "gm-study-manchester-la-20260728",
+      "location": "data/network-build/gm-study-manchester-la-20260728/ (durable, gitignored, never committed)",
+      "bytes": 424988852,
+      "recorded_bytes_20260725": 424988627,
+      "byte_difference_explained": "225 bytes, netconvert's generation banner, which is exactly why the recorded identity is the comment-stripped canonical digest",
+      "raw_sha256": "see clip_receipt.json beside the network",
+      "receipt": "data/network-build/gm-study-manchester-la-20260728/clip_receipt.json"
+    },
+    "reconciliation": {
+      "study_real_edges": 285794,
+      "recorded_study_real_edges_20260725": 285794,
+      "parent_real_edges": 804611,
+      "recorded_parent_real_edges_20260725": 804611,
+      "edge_ids_preserved": true,
+      "edge_id_check": "measured, not assumed: every one of the 285,794 study edge ids is present in the parent, so the clip renamed nothing and every accepted binding survives",
+      "counted_edge_coverage": {
+        "source": "docs/integration/evidence/manchester_edgedata_counts_option_a.xml",
+        "distinct_counted_edges": 150,
+        "present_in_study_subnetwork": 150,
+        "missing": 0,
+        "note": "these are the edge ids the committed Option-A observation input depends on, so this is the coverage check the demand cascade actually needs"
+      }
+    }
+  },
+  "step_2_edge_index": {
+    "network": "the parent baseline, not the clipped subnetwork",
+    "indexed_real_edges": 804611,
+    "cell_size_m": 200.0,
+    "build_seconds": 9.5,
+    "geometry_summary": {
+      "total_edge_elements": 2106404,
+      "real_edges": 804611,
+      "internal_edges_excluded": 1301793,
+      "edges_with_explicit_shape": 516460,
+      "edges_from_junction_endpoints": 288151,
+      "edges_unresolvable": 0,
+      "junctions_available": 468442,
+      "shape_points_total": 2813791,
+      "max_shape_points": 187
+    },
+    "geometry_fingerprint": "4019252e50e58555f6e9531263b108a42975a118a4cf3c69e02030a4c6cad63d",
+    "fingerprint_binding": "sha256 over the network canonical identity and the geometry summary, so a geometry reading can never be quoted apart from the network it came from",
+    "motor_access_entries": 2106404
+  },
+  "step_3_dft_reacquisition": {
+    "why": "the recorded run consumed dft_count_points-20260725T063353Z-053491696819 and dft_raw_counts-20260725T063354Z-61965dc5c182, both of which died with the session workspace. Only single-record probes (page[size]=1) survived in the durable workspace, so the observation side had to be re-acquired.",
+    "method": "the accepted bounded MAN-01/MAN-02 acquisition through quarantine into accepted storage, operator-invoked with --confirm; Manchester local authority 85 is bound as a literal and no caller can widen it",
+    "count_points": {
+      "snapshot_id": "dft_count_points-20260728T144001Z-053491696819",
+      "pages": 1,
+      "rows_seen": 342,
+      "records_accepted": 342,
+      "parser_status": "accepted"
+    },
+    "raw_counts": {
+      "snapshot_id": "dft_raw_counts-20260728T144010Z-61965dc5c182",
+      "pages": 79,
+      "rows_seen": 39072,
+      "records_accepted": 39072,
+      "parser_status": "accepted",
+      "raw_fingerprint": "61965dc5c182ae335a4bc266664fc808bea35bd35bc9d30740897d8c2b39a33c"
+    },
+    "reproducibility_finding": {
+      "observation": "both snapshot ids carry the same trailing raw-fingerprint prefix as the 25-July snapshots they replace (053491696819 and 61965dc5c182), and the page and row counts are identical (1/342 and 79/39,072)",
+      "interpretation": "the DfT historical archive returned byte-identical content three days later, so the observation side of this chain is externally reproducible",
+      "limit_of_the_claim": "the committed 25-July record preserves only the 12-hex-character fingerprint prefix inside the snapshot id, so this is prefix equality plus identical row and page counts, not a proven full-digest match",
+      "contrast_kept_honest": "this says nothing about any provider mutating a dated file; the N1 mutation claim is withdrawn and must not be repeated"
+    }
+  },
+  "step_4_match_artifact": {
+    "script": "scripts/regenerate_match_artifact.py",
+    "policy_id": "manchester-dft-map-match-owner-policy-1.1",
+    "policy_fingerprint": "f0bc213b02fab2f15b411982b8ad585ec0dda5df05b298d0954b34c0cbe1226c",
+    "policy_fingerprint_matches_record": true,
+    "matching_frame": "the parent Greater Manchester baseline, exactly as the recorded run used. The study subnetwork is the demand workspace, not the matching frame; matching in a clipped frame would silently drop candidate edges just outside the local-authority box.",
+    "sites_matched": 305,
+    "matching_seconds": 0.2,
+    "artifact": {
+      "path": "<workspace>/manchester/match_results_v11_20260728.json",
+      "sha256": "12f1e67246cae4591f33786f745626965e7171b19f12def5ebffec56e3d8ab09",
+      "rows": 305,
+      "shape": "JSON list of ObservationMatchV11 rows, the shape ui/review_services loads",
+      "publication_class": "private",
+      "storage_note": "derived from private DfT snapshots and held in the durable workspace, never committed; the receipt beside it carries its identity"
+    },
+    "exact_reproduction_of_20260725": true,
+    "reconciled_quantities": {
+      "v1_0_clear_candidate": 106,
+      "v1_0_review_required": 178,
+      "v1_0_no_suitable_candidate": 21,
+      "v1_1_owner_policy_accepted_candidate": 131,
+      "v1_1_awaiting_manual_review": 165,
+      "v1_1_no_suitable_candidate": 9,
+      "v1_1_unavailable_missing_evidence": 0,
+      "accepted_by_strict_path": 106,
+      "accepted_by_override_path": 25,
+      "override_accepted_rows": 25,
+      "override_applied_candidate_edges": 51,
+      "candidates_readmitted_edges": 51,
+      "candidates_refused_edges": 1339,
+      "note": "every one of these equals the 25-July record, including the override edge denominators"
+    },
+    "reconciliation_fingerprint_note": {
+      "recorded_20260725": "ae3ecff1ce611d5a646f1681b245ad44e7a650029cd8d661806a36694cf2b959",
+      "comparable": false,
+      "why": "no committed code computes that digest; its recipe lived in the session script that vanished with the workspace, so it is not defined over the same bytes as anything reproducible today. Equality is neither claimed nor refuted.",
+      "published_instead": {
+        "canonical_sha256": "d50ad0dcdc103da3e068edff9701f031ef878915683c62cfc35eb5101707bfe9",
+        "definition": "sha256 over PolicyReconciliation.model_dump_json()"
+      },
+      "lesson": "a fingerprint published without the code that computes it is not verifiable later. Digest recipes belong in committed modules, not session scripts."
+    }
+  },
+  "step_5_review_surface_restored": {
+    "verified_through": "traffictwin.ui.review_services.load_review_context over the regenerated artifact",
+    "queued_total": 174,
+    "recorded_queued_total_20260725": 174,
+    "pending_total": 174,
+    "decided_total": 0,
+    "no_candidate_preserved_total": 9,
+    "meaning": "the Match Review page now loads real evidence instead of an absent artifact, with every row visibly pending and no decision fabricated"
+  },
+  "what_this_unblocks": [
+    "the Match Review page's real data (analyst review remains a human act; no decision is created here)",
+    "the demand cascade, whose route pool and diagnosis run over the restored subnetwork"
+  ],
+  "what_this_does_not_do": [
+    "it does not review, accept, or reject any match row",
+    "it does not regenerate the route pool or any demand artifact",
+    "it does not promote any label: rows the policy accepts remain owner_policy_accepted_candidate",
+    "it makes no claim about Greater Manchester outside the local authority"
+  ],
+  "explicit_non_claims": [
+    "a clipped subnetwork is geometry, not calibration, comparison, or validation",
+    "candidate generation is not acceptance; policy 1.1 disables automatic final acceptance",
+    "reproducing a prior result is evidence about this pipeline's determinism, not about the correctness of the policy it encodes"
+  ]
+}

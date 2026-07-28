@@ -3051,6 +3051,39 @@ and the queue with owner-gated items marked. The consolidated register gains the
 latency-tail, RSU-asymmetry, and N1/concurrency entries. Exclusive files: that prompt, the
 register rows, and this record.
 
+### Phase 113 claim: observation chain restored end to end (owner-directed, 28 July 2026)
+
+The three artifacts the 27-July continuity audit declared dead-but-regenerable — the study
+subnetwork, the edge index, and the 305-row v1.1 match artifact — are regenerated from
+committed pins, and **regenerability held exactly**. The clip of the durable Phase-108
+parent returns 285,794 study edges against 804,611 parent edges in 31.46 s with every edge
+id preserved and all 150 committed Option-A counted edges present. The rebuilt index over
+the parent carries 804,611 real edges with geometry fingerprint
+`4019252e50e58555f6e9531263b108a42975a118a4cf3c69e02030a4c6cad63d`. The regenerated match
+artifact reproduces the 25-July split exactly — 106/178/21 under v1.0, 131/165/9 under
+v1.1, 106 strict plus 25 override acceptances, 51 override edges, 1,339 refused edges — and
+the Match Review page loads it with 174 queued rows, every one visibly pending.
+
+The observation side had to be re-acquired: only single-record probes (`page[size]=1`)
+survived in the durable workspace, so the 342-point and 79-page/39,072-row DfT datasets
+were re-fetched through the accepted bounded MAN-01/MAN-02 machinery. **Both returned the
+same raw-fingerprint prefix and identical page and row counts as the 25-July snapshots they
+replace**, so the DfT historical archive is externally reproducible — a claim deliberately
+limited to prefix equality, because the committed record preserves only 12 hex characters.
+
+One recorded defect, not fixed here: the 25-July `reconciliation_fingerprint`
+(`ae3ecff1…`) is computed by no committed code, so it cannot be verified against anything
+reproducible; this run publishes an explicitly defined digest beside it and records that a
+fingerprint published without the code that computes it is not verifiable later.
+
+Exclusive files: `scripts/clip_study_subnetwork.py`,
+`scripts/regenerate_match_artifact.py`,
+`docs/integration/evidence/manchester_chain_restoration_20260728.json`, its `docs/index.md`
+row, the restoration section of
+`docs/integration/manchester_workspace_continuity_20260727.md`, the restored-chain row in
+`docs/experiments_and_findings_20260728.md`, and this record. Derived networks, indexes,
+and match rows stay in gitignored `data/` and the private workspace, never committed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

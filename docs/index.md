@@ -83,6 +83,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Aggregate B-BUS private-Colab pack evidence, 28 July 2026](integration/evidence/bbus_colab_pack_preparation_20260728.json)
 - [B-MASK full G4 private-archive preservation record, 28 July 2026](integration/evidence/bmask_full_campaign_preservation_20260728.json)
 - [B-DOMAIN full G4 private-archive preservation record, 28 July 2026](integration/evidence/bdomain_full_campaign_preservation_20260728.json)
+- [Manchester observation chain restoration (subnetwork, index, 305 match rows), 28 July 2026](integration/evidence/manchester_chain_restoration_20260728.json)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
