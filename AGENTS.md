@@ -2874,6 +2874,21 @@ test, `docs/integration/evidence/vec_cross_regime_capacity_projection_20260728.j
 files under `docs/dissertation_appendices/figures/cross_regime/`, the corresponding
 `docs/index.md` entry, and this record.
 
+### Phase 102 claim: Week-4→5 owner checkpoint and integration handoff refresh (owner-directed, 28 July 2026)
+
+The primary research/integration agent owns a documentation-only reconciliation of the
+Week-4 checklist, owner action drafts, and Codex fast-forward handoff after completion of
+the capacity programme, bus-session processing, GPU archive preservation, and cross-regime
+figure. The checkpoint may present recommendations and exact branch state, but it cannot
+send communications, sign a protocol, approve a re-pin, fast-forward the official branch,
+or record a supervisor decision that has not been received.
+
+**Exclusive files:** `docs/current_progress_week5.md`, amendments to
+`docs/owner_action_pack_20260727.md` and `CODEX_INTEGRATION_HANDOFF.md`, their
+`docs/index.md` entries, and this record. No experiment design, evidence bytes, source
+contract, generated reference, campaign artifact, registry, or external repository is
+changed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
