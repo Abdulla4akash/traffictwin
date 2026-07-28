@@ -2858,6 +2858,22 @@ and B-DOMAIN rows in `docs/experiments_and_findings_20260728.md`, their `docs/in
 entries, and this record. The copied ZIPs under `data/gpu-track/` are gitignored private
 workspace artifacts and are not repository evidence bytes.
 
+### Phase 101 claim: cross-regime capacity-response dissertation figure (owner-directed, 28 July 2026)
+
+The primary research/integration agent owns one deterministic dissertation figure that
+places the completed five-regime capacity results on aligned density and latency-response
+axes, with the event-night deep-squeeze onset shown separately at its true smaller scale.
+The projection is bound to the six completed campaign-analysis hashes and the generated
+trace-audit hash; it may derive only transparent paired mean differences from recorded
+per-seed values. It remains descriptive, non-causal, and `owner_approved_candidate`; the
+figure does not turn exploratory regimes into confirmatory evidence or imply a city-wide
+Manchester result.
+
+**Exclusive files:** `scripts/generate_cross_regime_capacity_figure.py`, its focused unit
+test, `docs/integration/evidence/vec_cross_regime_capacity_projection_20260728.json`, new
+files under `docs/dissertation_appendices/figures/cross_regime/`, the corresponding
+`docs/index.md` entry, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
