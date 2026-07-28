@@ -2995,6 +2995,27 @@ not JSON serializable`, so a decode producing a byte-correct artifact still repo
 lead-owned `network_decode.py`, left untouched for a lead/Codex slice. Exclusive files:
 `scripts/rebuild_baseline_network.py` (committed at `03f4316`) and this record.
 
+### Phase 109 claim: approved paired B-BUS successor campaigns (owner-directed, 28 July 2026)
+
+After the full-region VEC-06 placement refusal, the owner explicitly chose **both** offered
+successors. The primary research/integration agent owns two separately labelled dawn-to-peak
+campaigns: (1) a fixed 750 m capsule around the pre-existing St Peter's Square--University of
+Manchester landmark line, with deterministic full-coverage placement separately verified for
+both windows; and (2) the unchanged whole-fleet trace with exactly 64 sparse analysis sites
+selected from dawn vehicle-seconds only and reused unchanged at peak. The corridor is frozen
+before inspecting its bus counts. The sparse arm is exploratory and outside accepted VEC-06;
+it cannot inherit the corridor arm's contract status. Both preserve the Phase-107 trajectory,
+privacy, seed, capacity, training, held-out, hardware, and claim ceilings. No new acquisition
+or attendance is authorised, and neither campaign takes a supervisor verdict, actor admission,
+public-hosting decision, or scientific conclusion.
+
+**Exclusive files:** new paired-successor protocols and owner-approval evidence under
+`docs/evaluation/` and `docs/integration/evidence/`; new successor transformation/placement
+code and focused tests; `scripts/prepare_bbus_successors.py`; new files under
+`gpu/real_bbus/`; the exact paired-result rows in
+`docs/experiments_and_findings_20260728.md`; related `docs/index.md` entries; and this record.
+Private derived outputs remain below gitignored `data/` and are never committed.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
