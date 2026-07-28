@@ -10,6 +10,7 @@ import pytest
 
 from traffictwin.integration.manchester.bods_session_identity import (
     BodsSessionIdentityError,
+    SessionCadenceMeasurement,
     extract_session_observations,
     extract_session_observations_from_member,
     measure_session_cadence,
@@ -72,6 +73,39 @@ def test_a_different_session_salt_breaks_linkage_by_construction() -> None:
     assert {o.session_token for o in one.observations}.isdisjoint(
         {o.session_token for o in other.observations}
     )
+
+
+def test_vehicle_refs_are_scoped_by_operator_before_session_tokenisation() -> None:
+    """Real long sessions proved VehicleRef alone is not feed-global."""
+
+    shared_raw_ref = _member().replace(
+        b"<VehicleRef>synthetic-vehicle-beta</VehicleRef>",
+        b"<VehicleRef>synthetic-vehicle-alpha</VehicleRef>",
+    )
+    result = extract_session_observations_from_member(
+        shared_raw_ref, snapshot_id="snap-a", session_salt=SALT
+    )
+
+    assert result.observations_extracted == 2
+    assert len({observation.session_token for observation in result.observations}) == 2
+    assert {observation.policy_id for observation in result.observations} == {
+        "manchester-bods-session-identity-1.1"
+    }
+    assert "synthetic-vehicle-alpha" not in result.canonical_json()
+
+
+def test_historical_v1_measurements_remain_readable_after_v11_correction() -> None:
+    historical = SessionCadenceMeasurement(
+        policy_id="manchester-bods-session-identity-1.0",
+        snapshot_ids=("snap-a", "snap-b"),
+        snapshot_count=2,
+        vehicles_seen_total=1,
+        vehicles_linked_across_snapshots=1,
+        observation_count=2,
+        repeated_identical_fix_count=0,
+    )
+
+    assert historical.policy_id == "manchester-bods-session-identity-1.0"
 
 
 def test_short_salt_and_non_xml_members_refuse() -> None:

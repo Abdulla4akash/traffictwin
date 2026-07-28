@@ -10,9 +10,10 @@ untouched.
 
 The privacy contract, enforced structurally rather than by promise:
 
-- a session token is an HMAC of the raw vehicle reference under a random
-  per-session salt that exists only in process memory — linkage is possible
-  within one declared session and impossible across sessions;
+- a session token is an HMAC of the operator-scoped raw vehicle reference
+  under a random per-session salt that exists only in process memory —
+  linkage is possible within one declared session and impossible across
+  sessions;
 - raw vehicle references never leave the extraction function, and published
   measurements are aggregates only;
 - extraction refuses to parse a byte before the quarantine receipt and the
@@ -49,8 +50,13 @@ from traffictwin.integration.manchester.snapshots import (
     verify_manchester_quarantine,
 )
 
-SESSION_IDENTITY_POLICY_ID: Literal["manchester-bods-session-identity-1.0"] = (
-    "manchester-bods-session-identity-1.0"
+SessionIdentityPolicyId = Literal[
+    "manchester-bods-session-identity-1.0",
+    "manchester-bods-session-identity-1.1",
+]
+
+SESSION_IDENTITY_POLICY_ID: Literal["manchester-bods-session-identity-1.1"] = (
+    "manchester-bods-session-identity-1.1"
 )
 
 _EARTH_RADIUS_M = 6_371_008.8
@@ -70,7 +76,7 @@ class BodsSessionIdentityError(RuntimeError):
 class SessionObservation(ManchesterSnapshotModel):
     """One position fix carrying a session-scoped pseudonym, never a raw ref."""
 
-    policy_id: Literal["manchester-bods-session-identity-1.0"] = SESSION_IDENTITY_POLICY_ID
+    policy_id: Literal["manchester-bods-session-identity-1.1"] = SESSION_IDENTITY_POLICY_ID
     snapshot_id: str = Field(min_length=1, max_length=200)
     session_token: str = Field(pattern=r"^[0-9a-f]{24}$")
     recorded_at_utc: datetime
@@ -114,7 +120,7 @@ class SessionCadenceMeasurement(ManchesterSnapshotModel):
     """Aggregate-only cadence evidence for one attended observation session."""
 
     schema_version: Literal["1.0"] = "1.0"
-    policy_id: Literal["manchester-bods-session-identity-1.0"] = SESSION_IDENTITY_POLICY_ID
+    policy_id: SessionIdentityPolicyId = SESSION_IDENTITY_POLICY_ID
     research_status: Literal["owner_approved_candidate"] = "owner_approved_candidate"
     snapshot_ids: tuple[str, ...] = Field(min_length=2)
     snapshot_count: int = Field(ge=2)
@@ -317,7 +323,8 @@ def _observation_from_activity(
         return None
     location = _first(journey, "VehicleLocation")
     raw_reference = _text(_first(journey, "VehicleRef"))
-    if location is None or raw_reference is None:
+    operator_reference = _text(_first(journey, "OperatorRef"))
+    if location is None or raw_reference is None or operator_reference is None:
         return None
     longitude = _text(_first(location, "Longitude"))
     latitude = _text(_first(location, "Latitude"))
@@ -328,7 +335,9 @@ def _observation_from_activity(
         observation = SessionObservation(
             snapshot_id=snapshot_id,
             session_token=hmac.new(
-                session_salt, raw_reference.encode("utf-8"), hashlib.sha256
+                session_salt,
+                f"{operator_reference}\0{raw_reference}".encode(),
+                hashlib.sha256,
             ).hexdigest()[:_TOKEN_HEX_LENGTH],
             recorded_at_utc=recorded_at,
             longitude=Decimal(longitude),
@@ -410,7 +419,7 @@ class SessionProgressionMeasurement(ManchesterSnapshotModel):
     """
 
     schema_version: Literal["1.0"] = "1.0"
-    policy_id: Literal["manchester-bods-session-identity-1.0"] = SESSION_IDENTITY_POLICY_ID
+    policy_id: SessionIdentityPolicyId = SESSION_IDENTITY_POLICY_ID
     research_status: Literal["owner_approved_candidate"] = "owner_approved_candidate"
     snapshot_ids: tuple[str, ...] = Field(min_length=2)
     hour_utc: tuple[int, ...] = Field(min_length=1)
