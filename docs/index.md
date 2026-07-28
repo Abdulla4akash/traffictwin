@@ -79,6 +79,8 @@ This index points only to documentation and repository paths that exist in the c
 - [B-BUS dual-successor owner approval receipt, 28 July 2026](integration/evidence/bbus_dual_successor_owner_approval_20260728.json)
 - [B-BUS paired successor trace preparation result, 28 July 2026](evaluation/bbus_successor_trace_preparation_20260728.md)
 - [Aggregate B-BUS paired successor preparation evidence, 28 July 2026](integration/evidence/bbus_successor_trace_preparation_20260728.json)
+- [B-BUS paired private-Colab pack preparation, 28 July 2026](evaluation/bbus_colab_pack_preparation_20260728.md)
+- [Aggregate B-BUS private-Colab pack evidence, 28 July 2026](integration/evidence/bbus_colab_pack_preparation_20260728.json)
 - [B-MASK full G4 private-archive preservation record, 28 July 2026](integration/evidence/bmask_full_campaign_preservation_20260728.json)
 - [B-DOMAIN full G4 private-archive preservation record, 28 July 2026](integration/evidence/bdomain_full_campaign_preservation_20260728.json)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)

@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "method_version": "bbus-private-colab-pack-1.0",
+  "date": "2026-07-28",
+  "research_status": "owner_approved_candidate",
+  "outcome": "TWO_PRIVATE_COLAB_PACKS_VERIFIED__UPLOAD_PENDING_LOCAL_CHROME_PERMISSION",
+  "implementation": {
+    "commit": "651da83526751fb06bed767c35be5dc0d183149d",
+    "runner_path": "gpu/real_bbus/run_campaign.py",
+    "runner_sha256": "af0b37e4801a21d4f0cdf83638a91538b3273830910a61944614b82d2bf0b24f",
+    "builder_path": "gpu/real_bbus/build_colab_packs.py",
+    "builder_sha256": "640b17ed77e24fac9e4a83773713b93fc798a56b60435b134edb7783ed1f168f",
+    "source_stager_path": "gpu/real_bbus/prepare_source.py",
+    "source_stager_sha256": "ba4d55bdd83e2ed26425c9493a4346018de8ac2697660b58dee92341ab8b88a8",
+    "private_pack_manifest_sha256": "eaae62ced27322818de3080dc4d1407fc00a05643e362b6f859c4846f01da07b",
+    "private_pack_bytes_are_committed": false
+  },
+  "common_campaign_design": {
+    "algorithm": "producer_trace_replay_MAPPO_Model_C",
+    "observation_dimension": 17,
+    "model_seeds": [30, 31, 32, 33, 34],
+    "num_envs": 64,
+    "rollout_len": 50,
+    "requested_timesteps_per_seed": 5000000,
+    "effective_timesteps_per_seed": 4998400,
+    "learning_rate": 0.003,
+    "training_trace": "dawn_only",
+    "training_capacity_per_slot": 2.5,
+    "held_out_trace": "peak_only_after_actor_frozen",
+    "evaluation_capacity_per_slot": [2.5, 0.75],
+    "common_evaluation_keys_between_capacity_levels": true,
+    "gpu_required": true,
+    "cpu_fallback_refused": true
+  },
+  "packs": [
+    {
+      "arm": "corridor",
+      "experiment_id": "B-BUS-CORRIDOR-DAWN-PEAK-20260728",
+      "filename": "traffictwin_bbus_corridor_colab_20260728.zip",
+      "bytes": 2187939,
+      "sha256": "8aa1b5545e0d46f2f83377af12dbf5f60589d1011976d8bf4b67777a0052c562",
+      "binding_sha256": "5487e0ac89ac018429c7baaa4c60293df332f95457284432284151b968ce7646",
+      "zip_member_count": 14,
+      "zip_integrity_test_passed": true,
+      "extracted_pack_verification_passed": true,
+      "vec06_placement_contract_compatible": true,
+      "vec06_receipt_created": false
+    },
+    {
+      "arm": "sparse64",
+      "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+      "filename": "traffictwin_bbus_sparse64_colab_20260728.zip",
+      "bytes": 28147413,
+      "sha256": "04e8f5dbd8e6d4de0c10006762d8bd7d5eb111fc29c8ca46df1efa89d2f193ef",
+      "binding_sha256": "f06a15372bafefabe2e15bc5e3b5af7f4122e7a0ff6d4329bd42dca70c417114",
+      "zip_member_count": 14,
+      "zip_integrity_test_passed": true,
+      "extracted_pack_verification_passed": true,
+      "vec06_compatible": false
+    }
+  ],
+  "allowlist": {
+    "separate_packs": true,
+    "derived_trace_npz_included": true,
+    "arm_protocol_and_owner_receipt_included": true,
+    "permitted_producer_code_included": true,
+    "producer_data_included": false,
+    "occupancy_csv_included": false,
+    "session_tokens_included": false,
+    "raw_bods_material_included": false,
+    "raw_identifiers_included": false,
+    "session_salts_included": false,
+    "checkpoints_included": false
+  },
+  "colab_handoff": {
+    "signed_in_owner_colab_opened": true,
+    "runtime_selected": "G4_GPU_HIGH_RAM",
+    "runtime_connected": true,
+    "upload_attempted": true,
+    "upload_performed": false,
+    "bytes_transmitted": false,
+    "blocker_code": "CHROME_EXTENSION_FILE_URL_ACCESS_DISABLED",
+    "protocol_or_data_failure": false,
+    "resume_requires_rederivation": false
+  },
+  "execution": {
+    "gpu_training_performed": false,
+    "held_out_peak_evaluation_performed": false,
+    "checkpoint_returned": false,
+    "scientific_verdict_exists": false
+  },
+  "privacy": {
+    "private_owner_colab_only": true,
+    "public_hosting_authorised": false,
+    "cross_session_linkage_performed": false
+  },
+  "owner_decisions_taken_by_agent": [],
+  "next_action": "Enable Allow access to file URLs for the ChatGPT Chrome Extension, then resume the already-open G4 Colab upload and run corridor followed by Sparse-64."
+}
