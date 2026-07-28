@@ -7,6 +7,7 @@ import csv
 import json
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -159,7 +160,11 @@ def _validate_completed_job(output_root: Path, job: Job) -> dict[str, Any]:
 
 
 def _run_job(
-    source_root: Path, output_root: Path, job: Job, common_env: dict[str, str]
+    source_root: Path,
+    output_root: Path,
+    job: Job,
+    common_env: dict[str, str],
+    traffictwin_commit: str,
 ) -> dict[str, Any]:
     paths = _job_files(output_root, job)
     env = dict(os.environ)
@@ -204,6 +209,7 @@ def _run_job(
     validation = _validate_completed_job(output_root, job)
     manifest = {
         "campaign_version": CAMPAIGN_VERSION,
+        "traffictwin_commit": traffictwin_commit,
         "job": asdict(job),
         "started_at_utc": started,
         "completed_at_utc": datetime.now(UTC).isoformat(),
@@ -218,7 +224,15 @@ def _run_job(
     return manifest
 
 
-def run_campaign(repo_root: Path, source_root: Path, output_root: Path, receipt_path: Path) -> None:
+def run_campaign(
+    repo_root: Path,
+    source_root: Path,
+    output_root: Path,
+    receipt_path: Path,
+    traffictwin_commit: str,
+) -> None:
+    if re.fullmatch(r"[0-9a-f]{40}", traffictwin_commit) is None:
+        raise ValueError("TrafficTwin source commit must be a full lowercase Git SHA")
     receipt = verify_approval(repo_root, receipt_path)
     transformation = json.loads(
         (source_root / "bcap_source_transformation.json").read_text(encoding="utf-8")
@@ -244,6 +258,7 @@ def run_campaign(repo_root: Path, source_root: Path, output_root: Path, receipt_
     }
     design = {
         "campaign_version": CAMPAIGN_VERSION,
+        "traffictwin_commit": traffictwin_commit,
         "status": "owner_approved_candidate_training_diagnostics",
         "scientific_evidence": False,
         "actor_admission_eligible": False,
@@ -273,6 +288,7 @@ def run_campaign(repo_root: Path, source_root: Path, output_root: Path, receipt_
             "learning_rate",
             "approval",
             "source_transformation",
+            "traffictwin_commit",
         ):
             if existing.get(key) != design.get(key):
                 raise ValueError(f"resume design mismatch: {key}")
@@ -299,7 +315,7 @@ def run_campaign(repo_root: Path, source_root: Path, output_root: Path, receipt_
         }
         _atomic_json(progress_path, progress)
         try:
-            manifest = _run_job(source_root, output_root, job, common_env)
+            manifest = _run_job(source_root, output_root, job, common_env, traffictwin_commit)
         except Exception as exc:
             progress["jobs"][job.identity] = {
                 "status": "failed",
@@ -325,12 +341,14 @@ def main() -> None:
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--approval-receipt", type=Path, required=True)
+    parser.add_argument("--traffictwin-commit", required=True)
     args = parser.parse_args()
     run_campaign(
         args.repo_root.resolve(),
         args.source_root.resolve(),
         args.output_root.resolve(),
         args.approval_receipt.resolve(),
+        args.traffictwin_commit,
     )
 
 

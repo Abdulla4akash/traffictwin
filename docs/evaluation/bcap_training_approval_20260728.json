@@ -28,7 +28,7 @@
   "requested_timesteps_per_job": 5000000,
   "harness_sha256": {
     "gpu/real_bcap/prepare_source.py": "a4ed2f49df1731f03413d4c3b8424095d6a1e266beef83bf9ce9a6ce3426c15c",
-    "gpu/real_bcap/run_campaign.py": "a5cafa2b9bdf3f63225b610d0df79e09466386fe35cf9adac549546f4efff906"
+    "gpu/real_bcap/run_campaign.py": "4393d59545090035d769d4d394a5bb14ef302bfb514ff4c5eff53e5253856da0"
   },
   "label_ceiling": "owner_approved_candidate",
   "scientific_evidence_at_training_stage": false,
