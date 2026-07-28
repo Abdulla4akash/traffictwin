@@ -1,4 +1,4 @@
-# TrafficTwin — All Experiments and Findings (as of 28 July 2026, 13:05)
+# TrafficTwin — All Experiments and Findings (as of 28 July 2026, 14:44)
 
 **Status: consolidated register. Every entry is `owner_approved_candidate` at most;
 exploratory unless marked CONFIRMED; descriptive, non-causal; nothing is supervisor-
@@ -41,10 +41,14 @@ being a large latency *reduction* under squeeze, not the hypothesised deadline c
 | 16 | Night cadence probe (27 Jul, 15 snaps) | Median 68 s / p90 75 s update cadence; 872 seen / **41 active**; 28.4 m/s maximum. Reprocessed under corrected v1.1 identity with the same numbers. [Three-session record](evaluation/bus_session_results_20260728.md) |
 | 17 | Shallow dawn session (28 Jul, 52 snapshots) | **1,676 seen / 1,162 active**; median 67 s / p90 76 s. Dawn already reaches 81.1% of peak active support. [Record](evaluation/bus_session_results_20260728.md) |
 | 18 | Rush-hour session (28 Jul, 52 verified quarantines; 51 promoted) | **1,677 seen / 1,433 active**; median 66 s / p90 75 s. Peak is 35.0× night and 23.3% above dawn. Both fail-closed refusals are one two-activity cross-operator `VehicleRef` conflict (`CONFLICTING_ACTIVITY`); MAN-05 remains untouched. [Record](evaluation/bus_session_results_20260728.md) |
+| 19 | **B-BUS dawn→peak trace preparation** (approved; no new acquisition) | Both private motion traces completed: **961 dawn / 1,212 peak retained vehicles**, peak concurrency 827 / 1,000; 1,394 / 1,757 speed-violating segments dropped under the frozen 32 m/s rule. VEC-06 placement then refused at **66,291 / 72,208 occupied cells vs 2,000 bound**. No Colab pack, GPU run, checkpoint, or held-out verdict exists. [Result and refusal](evaluation/bbus_dawn_peak_trace_preparation_20260728.md) |
 
 **Bus status:** all three density points are processed under aggregate-only, operator-scoped
-session identity. No bus experiment has run; B1 still awaits G1–G5 signing, an explicit
-speed-outlier rule, map matching, and trace viability.
+session identity. The owner approved dawn training and peak held-out evaluation with the
+120 s / 15 m / 80% / 32 m/s drop-and-count rules, capacities 2.5/0.75, and seeds 30–34.
+Map matching and both motion traces are complete, but the accepted full-coverage placement
+contract refuses the region-wide fleet. No bus GPU experiment has run; a bounded-geography
+full-coverage trace or a whole-fleet sparse-infrastructure successor needs an owner choice.
 
 ## D. Methodological findings (dissertation-grade in their own right)
 
