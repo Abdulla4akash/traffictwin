@@ -2723,6 +2723,15 @@ probe evidence + index rows, the vec_fresh_run_admission.md wording,
 docs/evaluation/capacity_sweep_completion_predeclaration.md + index row, the
 scripts/capacity_grid_campaign.py extensions, and this record.
 
+### Phase 93 claim: B0 verdict record (28 July 2026)
+
+B0 completed 12/12: the baseline actor is exactly as capacity-invariant as the
+ukfleettrain actor on the event-night trace (all metrics identical across arms in every
+seed), so the predeclared prediction HOLDS and the observability-gap mechanism stands on
+four independent legs. The identical-fleet descriptive actor contrast is recorded without
+any ranking claim. Exclusive files: docs/evaluation/baseline_invariance_results_20260728.md,
+its docs/index.md row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
