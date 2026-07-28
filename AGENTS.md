@@ -3324,6 +3324,38 @@ Exclusive files: `scripts/verify_ceiling_law_prediction.py` and this record. No 
 design, launcher, fingerprint, predeclaration or admitted artifact is touched, and the `verify`
 mode is deliberately not run while cells are timed.
 
+### Phase 123 claim: onset-scaling prediction operationalised before its data (28 July 2026)
+
+The three queued onset legs (`we-deep`, `wd-am-deep`, `wd-pm-deep`) are bound to
+`density_gap_options_20260728.md`, which states their hypothesis — *onset capacity scales with
+concurrent density* — as a direction with **no definition of what counts as onset**. Without
+one the threshold could be chosen after the arms were visible. All three output directories
+were still empty when this slice was written, so the rule was fixed first.
+
+`docs/evaluation/onset_scaling_prediction_predeclaration.md` is an addendum, not an edit: the
+memo stays byte-frozen at `00681a14…` because three launched campaign designs bind that digest
+and moving it would break their approval check and their resume. The onset rule is
+**transcribed** from the committed five-regime and deep-squeeze records, which already judge
+response by exact identity ("paired diffs literally 0.000000") — an arm is inert when every
+metric at every seed equals the baseline exactly, and there is no tolerance parameter to tune.
+The one measured onset bracket, `c_onset(ev) ∈ (0.1, 0.25]`, is propagated as a **band** rather
+than collapsed to a midpoint, which yields six decidable predictions and three cells the sweep
+resolves rather than tests. The addendum states plainly that five of the six are inert
+predictions and near-free, and that the load-bearing claim is the single prediction **`wd_am`
+binds at cap-0.1** — so a reader does not have to notice that asymmetry independently.
+
+`scripts/verify_onset_scaling_prediction.py` re-hashes both documents, re-derives the whole
+prediction table from the propagated band and refuses if it disagrees with the transcribed
+literals, and reports INCOMPLETE — naming the missing legs — rather than reading absent data as
+a passed prediction. Verdict is binary (HELD/REFUTED) with two descriptive qualifiers reported
+alongside it, never in place of it: whether measured onsets stay ordered by density, and
+whether every arm was inert at the grid floor. Its selftest reproduces the published `ev`
+result exactly (inert at 0.5 and 0.25, binding at 0.1, onset 0.1). Both modes read only
+campaign-analysis JSON, so the verdict costs no CPU and is safe to run beside timed cells.
+
+Exclusive files: that addendum, that script, and this record. No campaign design, launcher,
+fingerprint, existing predeclaration or admitted artifact is touched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
