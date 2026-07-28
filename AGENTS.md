@@ -2775,6 +2775,15 @@ with preserved artifacts, the live attended bus sessions and their processing st
 morning queue, and the Phase-91 numbering collision note. Supersedes V2. Exclusive files:
 that prompt and this record.
 
+### Phase 96 claim: sweep-completion results record (28 July 2026)
+
+All three legs 12/12, zero failures. Weekday peaks exactly inert (predictions held);
+the deep-squeeze leg located the binding onset between cap-0.25 and cap-0.1 on the
+event regime — the first non-identical outcomes in a normal regime, in the collapse
+hour's direction, with decisions invariant throughout. Exclusive files:
+docs/evaluation/capacity_sweep_completion_results_20260728.md, its docs/index.md row,
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

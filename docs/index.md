@@ -40,6 +40,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Future research directions v2 (proposals after the capacity finding)](research_directions_v2.md)
 - [Three-trace capacity grid predeclaration (exploratory, delegated)](evaluation/capacity_grid_predeclaration.md)
 - [Three-trace capacity grid results, 28 July 2026 (exploratory)](evaluation/capacity_grid_results_20260728.md)
+- [Five-regime completion + deep-squeeze onset results, 28 July 2026](evaluation/capacity_sweep_completion_results_20260728.md)
 - [Baseline-actor invariance prediction test predeclaration (B0, exploratory)](evaluation/baseline_invariance_prediction_predeclaration.md)
 - [Baseline-actor invariance results, 28 July 2026: the prediction holds](evaluation/baseline_invariance_results_20260728.md)
 - [Five-regime completion + deep-squeeze onset predeclaration (exploratory)](evaluation/capacity_sweep_completion_predeclaration.md)
