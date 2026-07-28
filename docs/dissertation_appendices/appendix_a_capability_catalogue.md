@@ -138,5 +138,6 @@ Parsed from the committed `docs/decisions/index.md` table, sorted by ADR identif
 | `ADR-063` | Bounded, approval-gated VEC campaign execution | accepted |
 | `ADR-064` | Sealed append-only ledger for analyst map-match review | accepted |
 | `ADR-065` | Reviewed admission of the `ev` trace | accepted |
+| `ADR-066` | Reviewed admission of the weekday peak traces | accepted |
 
-Total decision records: 65.
+Total decision records: 66.
