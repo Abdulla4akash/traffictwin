@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "probe": "vec-ev-timing-probe",
+  "date": "2026-07-28",
+  "purpose": "Measure the first full-length ev execution against the 7,200 s request ceiling (the open risk recorded in ADR-065). Timing evidence only: no admission, no registry write, no metric claim.",
+  "request_fingerprint": "3a5c0149d6b31eca4f9cefa26a4edd71d7cbd2e9ef3953f7f61d1000f2b74a0b",
+  "receipt_status": "completed",
+  "receipt_fingerprint": "905c0153e23b03902726f69bf9cc79f076290d1889c4d088a860a7a290e6c152",
+  "measured": {
+    "wall_clock_seconds": 266.5,
+    "receipt_elapsed_seconds": 265.9,
+    "output_bytes": 27965881,
+    "ceiling_seconds": 7200,
+    "ceiling_margin_seconds": 6934.1
+  },
+  "interpretation_limits": [
+    "One execution at one capacity and one fleet seed; a timing measurement, never a scientific result.",
+    "Outputs remain unadmitted; any scientific use of ev requires a predeclared, approved design."
+  ]
+}
