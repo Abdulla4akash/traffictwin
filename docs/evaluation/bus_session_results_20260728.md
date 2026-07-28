@@ -88,6 +88,83 @@ strict parser halted it. It has ample linked support for attempting trajectory d
 but that is not itself a viability verdict. G1–G5, the outlier response, map-matching
 coverage, VEC-06 admission, and the B1 campaign remain future, separately gated steps.
 
+## What these measurements mean (interpretation, confidence-labelled)
+
+Added 28 July 2026 as an owner-directed reading of the measurements above. Every claim
+here is descriptive and inherits the record's ceilings; the labels below say explicitly
+which statements are measured, which are inference, and which are open.
+
+### 1. The observed fleet may populate the capacity study's unresolved density band
+
+**Measured elsewhere:** the completed capacity sweep found the control inert in all four
+normal traces (139, 163, 175, 215 maximum concurrent slots) and outcome-active only in
+the 2,488-slot collapse hour, leaving the binding threshold bracketed in `(215, 2488]`
+([sweep results](capacity_sweep_completion_results_20260728.md)).
+
+**Measured here and in the accepted probe:** the evening probe recorded **304
+concurrently live vehicles in a single snapshot**
+([options assessment](bus_data_experiment_options.md) §1); this peak session recorded
+**1,433 active session-support vehicles** across ~56 minutes.
+
+**Inference, not yet measured:** peak *concurrency* has not been computed — 1,433 is a
+window-total, not a simultaneous count, and the two quantities are not interchangeable.
+But the evening probe's 304 already exceeds every normal trace's maximum concurrency, and
+a weekday peak is not plausibly sparser than a Wednesday evening. A derived bus-fleet
+trace therefore looks likely to sit **above the inert regimes and below the collapse
+hour** — inside the exact band no audited trace occupies.
+
+**Cheap next step that would settle it:** count distinct linked vehicles reporting within
+each single snapshot of the peak range and take the maximum. That is offline, aggregate,
+and needs no acquisition. Until it is run, this subsection is a hypothesis about where B1
+would land, not a property of the data.
+
+If it holds, B1 stops being only a distribution-shift study and becomes a candidate route
+to locating the saturation boundary with observed vehicles rather than synthetic ones.
+
+### 2. Cadence stability closes B1's largest methodological unknown
+
+Median update interval is **66–68 s and p90 75–76 s from an empty night to full rush
+hour** — measured. The practical reading: the update cadence is a property of the feed,
+not of traffic load, so the interpolation policy the B1 draft predeclares behaves the
+same regardless of when a session is collected. One major "does this assumption survive
+peak conditions?" risk is answered, and the answer is yes.
+
+### 3. Displacement falling with density is a real-world consistency signal
+
+Median displacement per update falls **417.9 m → 300.9 m → 231.4 m** across night, dawn,
+and peak — measured. At the measured cadences that is roughly **22 km/h at night against
+12.6 km/h at peak**: buses progress more slowly when the road is busier, which is the
+direction any congestion account predicts. This is evidence that the pipeline measures
+something real about Manchester rather than an artifact, and it is the natural quantity
+for the declared B2 comparison. It remains bus progression, never road speed.
+
+### 4. The identity defect was a silent-corruption risk, not a nuisance
+
+Had v1.0's bare-`VehicleRef` tokenisation survived into trajectory derivation, merged
+vehicles would have produced kilometre-per-second "buses" inside a trace that still
+looked plausible in aggregate — the failure mode that is hardest to catch downstream.
+It surfaced only because sessions ran long enough for cross-operator collisions to
+appear; the 15-snapshot night probe could not have exposed it. Recorded as an
+integration finding: **provider identifiers are not necessarily globally unique, and
+identity scope must be verified on data dense enough to collide.**
+
+### 5. The parser refusals constrain collection, and share the defect's root cause
+
+Both refusals reduce to the same cross-operator identity-scope gap, in the accepted
+MAN-05 parser rather than the session layer. Two consequences, both measured: the
+boundary behaved correctly (refusing rather than silently merging), and **a full
+90-minute peak session is not currently collectable** — the run halts near 51 promoted
+snapshots. B1's declared session length must either accept ~56-minute windows or wait on
+a lead-owned parser correction. This is a scheduling fact, not a scientific result.
+
+### 6. What the session cannot support
+
+No hypothesis was tested; no trace, admission, or campaign exists. The density comparison
+describes captured bus-session support, never road traffic volume. Session pseudonyms are
+incomparable across sessions by construction. The 64.7 m/s maximum shows outliers survive
+the identity correction, so any viability gate needs an explicit predeclared outlier rule
+before it can pass or fail honestly.
+
 ## Boundaries
 
 - Aggregate-only measurements; no session token, salt, or raw vehicle reference is

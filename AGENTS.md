@@ -2900,6 +2900,20 @@ scientific or owner decision.
 **Exclusive file:** `docs/dissertation_appendices/appendix_a_capability_catalogue.md` and
 this record.
 
+### Phase 104 claim: bus-session interpretation section (owner-directed, 28 July 2026)
+
+The owner directed that the meaning of the processed bus measurements be recorded beside
+them. An interpretation section was appended to the Phase-99 results record: the
+possible placement of an observed bus fleet inside the capacity study's unresolved
+density band (explicitly an inference, with the offline concurrency computation named as
+the step that would settle it), cadence stability closing B1's interpolation risk, the
+displacement-versus-density consistency signal, the identity defect framed as an averted
+silent corruption, the collection constraint the parser refusals impose, and the
+statements the sessions cannot support. Measured, inferred, and open claims are labelled
+separately; no measurement, ceiling, or boundary in the original record was altered.
+Exclusive files: the appended section in
+`docs/evaluation/bus_session_results_20260728.md` and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
