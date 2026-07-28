@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="220" viewBox="0 0 1000 220" role="img">
+  <title>Capacity pilot recorded paired deadline-success differences</title>
+  <desc>Deterministic TrafficTwin figure; source mode imported or non-synthetic; projection 3791158360b9.</desc>
+  <rect x="0" y="0" width="1000" height="100%" fill="#ffffff"/>
+  <text x="40" y="42" font-family="Helvetica,Arial,sans-serif" font-size="24" font-weight="700" fill="#17324d">Capacity pilot recorded paired deadline-success differences</text>
+  <text x="40" y="70" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#526473">Source: f289db31ce28b636 (exploratory, owner_approved_candidate, descriptive non-causal) | Mode: imported or non-synthetic | Projection: 3791158360b9</text>
+  <line x1="900.77" y1="115" x2="900.77" y2="163" stroke="#526473" stroke-width="1"/>
+  <text x="40" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">cap-0.75 vs cap-2.5</text>
+  <rect x="420.00" y="122" width="480.77" height="20" fill="#d97706" rx="2"/>
+  <text x="930" y="137" font-family="Helvetica,Arial,sans-serif" font-size="12" text-anchor="end" fill="#243444">-8310.9</text>
+  <text x="40" y="100" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">Signed linear scale; direction does not imply favourability.</text>
+</svg>
