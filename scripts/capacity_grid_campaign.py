@@ -61,6 +61,61 @@ TRACES = {
             "incident trace replicate on the event-night trace?"
         ),
     },
+    "wd-am": {
+        "experiment_id": "vec-capacity-grid-wd-am",
+        "run_id_prefix": "gridam",
+        "trace_file": "traces/trace_wd_am_fullrsu.npz",
+        "trace_sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+        "max_steps": 10_800,
+        "output_root": "data/vec-fresh/capacity-grid-wd-am",
+        "predeclaration_path": (
+            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
+        ),
+        "predeclaration_sha256": (
+            "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
+        ),
+        "question": (
+            "Does capacity inertness replicate on the morning-peak trace, completing "
+            "the five-regime sweep?"
+        ),
+    },
+    "wd-pm": {
+        "experiment_id": "vec-capacity-grid-wd-pm",
+        "run_id_prefix": "gridpm",
+        "trace_file": "traces/trace_wd_pm_fullrsu.npz",
+        "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+        "max_steps": 25_200,
+        "output_root": "data/vec-fresh/capacity-grid-wd-pm",
+        "predeclaration_path": (
+            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
+        ),
+        "predeclaration_sha256": (
+            "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
+        ),
+        "question": (
+            "Does capacity inertness replicate on the evening-peak trace, completing "
+            "the five-regime sweep?"
+        ),
+    },
+    "ev-deep": {
+        "experiment_id": "vec-capacity-deep-ev",
+        "run_id_prefix": "deepev",
+        "trace_file": "traces/trace_ev_fullrsu.npz",
+        "trace_sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+        "max_steps": 23_400,
+        "output_root": "data/vec-fresh/capacity-deep-ev",
+        "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
+        "predeclaration_path": (
+            "docs/evaluation/capacity_sweep_completion_predeclaration.md"
+        ),
+        "predeclaration_sha256": (
+            "a2cb0e3d1dbfd01dbf8629842f79977435eb00087fb68e412dc08361652305ed"
+        ),
+        "question": (
+            "At what deep-squeeze level, if any above cap-0.1, does the event-night "
+            "regime's outcome sensitivity switch on?"
+        ),
+    },
     "ev-baseline": {
         "experiment_id": "vec-baseline-invariance-ev",
         "run_id_prefix": "b0ev",
@@ -119,9 +174,11 @@ def grid_design(trace_key: str) -> VecCampaignDesign:
         timeout_seconds=7_200,
         baseline_arm=VecCampaignArm(label="cap-2.5", rsu_capacity_per_vehicle=2.5),
         variation_arms=[
-            VecCampaignArm(label="cap-1.5", rsu_capacity_per_vehicle=1.5),
-            VecCampaignArm(label="cap-1.0", rsu_capacity_per_vehicle=1.0),
-            VecCampaignArm(label="cap-0.75", rsu_capacity_per_vehicle=0.75),
+            VecCampaignArm(label=label, rsu_capacity_per_vehicle=cap)
+            for label, cap in spec.get(
+                "variation_arms",
+                [("cap-1.5", 1.5), ("cap-1.0", 1.0), ("cap-0.75", 0.75)],
+            )
         ],
         pairing_seed_source=VecPairingSeedSource.FLEET_SEED,
         fleet_seeds=[50, 51, 52],
