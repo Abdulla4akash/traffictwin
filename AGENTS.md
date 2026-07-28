@@ -3016,6 +3016,19 @@ code and focused tests; `scripts/prepare_bbus_successors.py`; new files under
 `docs/experiments_and_findings_20260728.md`; related `docs/index.md` entries; and this record.
 Private derived outputs remain below gitignored `data/` and are never committed.
 
+### Phase 110 claim: latency-tail analysis (owner-directed, 28 July 2026)
+
+Analysis-only over the 12 admitted pilot cells' per-task arrays (39.2M active tasks per
+arm). Settles the previously unverified tail-truncation interpretation: p50 is 44.3 ms at
+every capacity level (-0.10% across the 3.3x squeeze), the >1 s population moves only
+-0.07 pp, but p99 falls 69.9% and 97.9-99.4% of latency mass sits above 1 s. The squeeze
+moves latency only within the already-deadline-failed population, which is precisely why
+the confirmed -8.3 s mean effect coexists with a flat deadline rate. Records that mean
+latency is ~99% tail mass and that future protocols should predeclare a percentile or
+tail-share endpoint beside it, without weakening the predeclared confirmed result.
+Exclusive files: `docs/evaluation/latency_tail_analysis_20260728.md`, its `docs/index.md`
+row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
