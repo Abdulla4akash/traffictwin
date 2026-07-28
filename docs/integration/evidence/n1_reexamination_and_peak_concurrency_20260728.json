@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "probe": "n1-pin-reexamination-and-peak-concurrency",
+  "date": "2026-07-28",
+  "purpose": "Two owner-directed offline checks: (a) re-examine the recorded N1 'Geofabrik mutated its dated extract' finding; (b) measure peak bus-session concurrency to test the interpretation section's density-band inference.",
+  "n1_reexamination": {
+    "verdict": "N1 AS RECORDED IS WITHDRAWN: no provider mutation occurred and the pin never failed.",
+    "file_on_disk": {
+      "path": "data/network-recovery/greater-manchester-260724.osm.pbf",
+      "bytes": 50502348,
+      "md5": "c73b16ec7da303c1dfd331dc914bd5bc"
+    },
+    "matches_first_acquisition_record": {
+      "record": "docs/integration/evidence/manchester_baseline_network_build_20260725.json",
+      "recorded_bytes": 50502348,
+      "recorded_md5_observed": "c73b16ec7da303c1dfd331dc914bd5bc",
+      "recorded_md5_published_by_provider": "c73b16ec7da303c1dfd331dc914bd5bc",
+      "recorded_md5_reconciled": true
+    },
+    "root_cause_of_the_false_finding": {
+      "record": "docs/integration/evidence/manchester_greater_manchester_network_20260725.json",
+      "observation": "source_extract.bytes (996913352) and the 233af3fa sha are byte-identical to decode.decoded_bytes and decode.decoded_sha256; the record therefore stored the DECODED XML's identity in the source-extract fields.",
+      "consequence": "The recorded source md5 (b7fa4a2a, computed over decoded XML) was compared against the provider's published md5 for the COMPRESSED pbf (c73b16ec) and necessarily mismatched. The mismatch was recorded as a warning rather than failing closed, and on 27 July the smaller correct file was misread as evidence of upstream mutation."
+    },
+    "decisive_confirmation": {
+      "method": "osmium cat -f osm over the on-disk 50.5 MB pbf, 2.665 s",
+      "decoded_bytes": 996913352,
+      "decoded_sha256": "233af3fa6dd34b1541ec022f0139a543f44355fe1748fd9d609ed653c8c9edf1",
+      "matches_recorded_decode_identity": true,
+      "meaning": "The artifact the continuity audit called 'not re-derivable externally' is deterministically re-derived from the file currently on disk."
+    },
+    "consequences": [
+      "The Greater Manchester network chain is rebuildable now from a verified-correct, provider-checksum-matching input; no new network identity is forced.",
+      "The demand cascade's dependency on N1 is released; N1 is no longer a blocker of the recorded kind.",
+      "No public claim that Geofabrik mutated a dated file may be made; the superseded claim is retained in the continuity audit with a dated correction."
+    ]
+  },
+  "peak_concurrency_measurement": {
+    "purpose": "Settle the density-band inference in the bus results interpretation section.",
+    "method": "Offline extraction over the 52 verified peak quarantines (2026-07-28T07Z range) under a fresh in-process session salt; distinct session pseudonyms counted per snapshot; 'concurrently live' requires a fix within 120 s of that snapshot's latest recorded time. Aggregates only.",
+    "snapshots_processed": 52,
+    "distinct_vehicles_per_snapshot": {
+      "max": 1602,
+      "median": 1591,
+      "min": 1582
+    },
+    "concurrently_live_per_snapshot": {
+      "max": 1216,
+      "median": 1192,
+      "min": 1168
+    },
+    "comparison_context": {
+      "normal_trace_max_concurrent_slots": {
+        "we": 139,
+        "wd_pm": 163,
+        "ev": 175,
+        "wd_am": 215
+      },
+      "collapse_hour_max_concurrent_slots": 2488,
+      "unresolved_band_from_capacity_sweep": "(215, 2488]"
+    },
+    "verdict": "MEASURED AND CONFIRMED: peak bus concurrency (~1,192-1,216) falls inside the capacity sweep's unresolved band - about 5.6x the densest normal trace and about 48% of the collapse hour.",
+    "limits": [
+      "Session pseudonyms are session-scoped; counts are not comparable across sessions.",
+      "Concurrency of a derived B1 trace is not identical to feed concurrency; slot construction is a separate step.",
+      "This is bus-fleet support, never road traffic volume, and no experiment is implied."
+    ]
+  }
+}

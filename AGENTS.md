@@ -2914,6 +2914,22 @@ separately; no measurement, ceiling, or boundary in the original record was alte
 Exclusive files: the appended section in
 `docs/evaluation/bus_session_results_20260728.md` and this record.
 
+### Phase 105 claim: N1 re-examination and peak-concurrency measurement (owner-directed, 28 July 2026)
+
+Two offline checks. (1) **N1 as recorded is withdrawn**: the on-disk dated extract is
+50,502,348 bytes / md5 `c73b16ec…`, matching the provider's published checksum and the
+first acquisition record exactly; the 996.9 MB / `233af3fa…` identity was the *decoded
+XML*, stored in the second record's source fields, so its md5 was compared against the
+compressed file's checksum and could never reconcile. Decoding the on-disk file today
+reproduces the recorded decode identity byte-exactly (2.665 s). No provider mutation
+occurred, the network chain is rebuildable without a forced identity change, and no
+Geofabrik-mutation claim may be published. (2) **Peak concurrency measured**: 1,216 max /
+1,192 median concurrently live over 52 quarantines, placing the observed fleet inside the
+capacity sweep's unresolved band. Exclusive files:
+`docs/integration/evidence/n1_reexamination_and_peak_concurrency_20260728.json`, the dated
+correction in `docs/integration/manchester_workspace_continuity_20260727.md`, the promoted
+subsection in `docs/evaluation/bus_session_results_20260728.md`, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

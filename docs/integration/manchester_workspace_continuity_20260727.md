@@ -39,6 +39,27 @@ acquisition — so the re-download verifies against the recorded identity
 dated file; that would be a new network identity requiring a fresh ADR-059-style pin decision,
 not a silent substitution.
 
+## CORRECTION (28 July 2026): the pin did not fail — this section is superseded
+
+**The section below is retained for provenance and is wrong.** Re-examination on 28 July
+([evidence](evidence/n1_reexamination_and_peak_concurrency_20260728.json)) established:
+the dated Geofabrik extract is, and always was, **50,502,348 bytes with md5
+`c73b16ec…`** — exactly what the *first* acquisition record
+(`evidence/manchester_baseline_network_build_20260725.json`) recorded with
+`md5_reconciled: true`. The 996,913,352-byte / `233af3fa…` identity treated below as the
+"source extract" is byte-identical to that same record's **decoded XML** output: the
+second evidence record stored a derived artifact's identity in its source fields, so its
+md5 was computed over decoded XML and compared against the provider's checksum for the
+compressed file — a comparison that could never match. Decoding the on-disk file today
+reproduces 996,913,352 bytes / `233af3fa…` **exactly** (2.665 s), so the artifact called
+"not re-derivable externally" below is deterministically re-derivable right now.
+
+**Consequences:** no provider mutation occurred; N1 as recorded is withdrawn; the network
+chain is rebuildable from a verified input without forcing a new network identity; and no
+claim that Geofabrik mutates dated files may appear in any output. The real findings are
+ours: an identity-recording bug conflated derived output with source input, and a
+checksum mismatch was rationalised as a provider warning instead of failing closed.
+
 ## Recovery halted at step 1: the pin failed, measured
 
 The re-downloaded `greater-manchester-260724.osm.pbf` is **50,502,348 bytes with

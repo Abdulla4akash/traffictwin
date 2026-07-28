@@ -113,7 +113,17 @@ a weekday peak is not plausibly sparser than a Wednesday evening. A derived bus-
 trace therefore looks likely to sit **above the inert regimes and below the collapse
 hour** — inside the exact band no audited trace occupies.
 
-**Cheap next step that would settle it:** count distinct linked vehicles reporting within
+**SETTLED 28 July 2026 — measured, inference promoted:** the offline count was run over
+all 52 peak quarantines. Peak **concurrently live** support (fix within 120 s) is **max
+1,216, median 1,192**; distinct vehicles per snapshot max 1,602. That is **~5.6× the
+densest normal trace (215) and ~48% of the collapse hour (2,488)** — the observed peak
+bus fleet does sit inside the previously unresolved band `(215, 2488]`
+([evidence](../integration/evidence/n1_reexamination_and_peak_concurrency_20260728.json)).
+A derived B1 trace's slot concurrency is a separate construction step and is not
+guaranteed equal to feed concurrency, so the band placement is now measured for the feed
+and remains to be confirmed for the trace.
+
+**Superseded next step:** count distinct linked vehicles reporting within
 each single snapshot of the peak range and take the maximum. That is offline, aggregate,
 and needs no acquisition. Until it is run, this subsection is a hypothesis about where B1
 would land, not a property of the data.
