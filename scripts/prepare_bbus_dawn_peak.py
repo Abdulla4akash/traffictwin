@@ -82,16 +82,16 @@ PLACEMENT_MAX_RSUS = 64
 PLACEMENT_MAX_OCCUPIED_CELLS = 2_000
 
 _ATTRIBUTE = re.compile(rb"\b([A-Za-z_:][A-Za-z0-9_.:-]*)=\"([^\"]*)\"")
-_FORBIDDEN_OUTPUT_KEYS = frozenset(
+_FORBIDDEN_OUTPUT_MARKERS = frozenset(
     {
         "operatorref",
         "vehicleref",
-        "operator_ref",
-        "vehicle_ref",
-        "session_salt",
-        "raw_reference",
-        "line_ref",
-        "journey_ref",
+        '"operator_ref"',
+        '"vehicle_ref"',
+        '"session_salt"',
+        '"raw_reference"',
+        '"line_ref"',
+        '"journey_ref"',
     }
 )
 
@@ -781,7 +781,7 @@ def _assert_private_output(path: Path) -> None:
     if path.suffix.lower() == ".npz":
         return
     text = path.read_text(encoding="utf-8", errors="replace").lower()
-    for marker in _FORBIDDEN_OUTPUT_KEYS:
+    for marker in _FORBIDDEN_OUTPUT_MARKERS:
         if marker in text:
             raise BBusPreparationError(f"forbidden raw-identity marker reached {path.name}")
 

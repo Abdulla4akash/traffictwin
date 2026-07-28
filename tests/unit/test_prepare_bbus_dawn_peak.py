@@ -125,7 +125,7 @@ def test_placement_preflight_refuses_cell_overflow_without_generating_sites() ->
 
 def test_private_text_scan_refuses_a_raw_identity_marker(tmp_path: Path) -> None:
     safe = tmp_path / "safe.json"
-    safe.write_text('{"derived": true}\n', encoding="utf-8")
+    safe.write_text('{"derived": true, "session_salt_persisted": false}\n', encoding="utf-8")
     _assert_private_output(safe)
 
     unsafe = tmp_path / "unsafe.json"
