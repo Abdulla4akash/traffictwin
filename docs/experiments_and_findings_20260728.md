@@ -38,12 +38,13 @@ being a large latency *reduction* under squeeze, not the hypothesised deadline c
 
 | # | Session | Result |
 |---|---|---|
-| 16 | Night cadence probe (27 Jul, 15 snaps) | Median 68 s / p90 75 s update cadence; 872 seen / 41 active; 28.4 m/s legit coach → B1 speed bound corrected. |
-| 17 | Shallow dawn session (28 Jul, 52 receipted snapshots) | Captured; aggregation pending (session interrupted before its final step; data durable). |
-| 18 | Rush-hour session (28 Jul, ~52 receipted snapshots) | Captured 08:03–09:00; **halted twice by fail-closed `PARSE_REJECTED`** — a recurring rush-hour feed-shape gap in the strict parser, preserved as a data-quality finding. Aggregation pending. |
+| 16 | Night cadence probe (27 Jul, 15 snaps) | Median 68 s / p90 75 s update cadence; 872 seen / **41 active**; 28.4 m/s maximum. Reprocessed under corrected v1.1 identity with the same numbers. [Three-session record](evaluation/bus_session_results_20260728.md) |
+| 17 | Shallow dawn session (28 Jul, 52 snapshots) | **1,676 seen / 1,162 active**; median 67 s / p90 76 s. Dawn already reaches 81.1% of peak active support. [Record](evaluation/bus_session_results_20260728.md) |
+| 18 | Rush-hour session (28 Jul, 52 verified quarantines; 51 promoted) | **1,677 seen / 1,433 active**; median 66 s / p90 75 s. Peak is 35.0× night and 23.3% above dawn. Both fail-closed refusals are one two-activity cross-operator `VehicleRef` conflict (`CONFLICTING_ACTIVITY`); MAN-05 remains untouched. [Record](evaluation/bus_session_results_20260728.md) |
 
-**Bus status:** three density points captured (night/dawn/peak); processing pending; no
-bus experiment run yet (B1 awaits G1–G5 signing after processing).
+**Bus status:** all three density points are processed under aggregate-only, operator-scoped
+session identity. No bus experiment has run; B1 still awaits G1–G5 signing, an explicit
+speed-outlier rule, map matching, and trace viability.
 
 ## D. Methodological findings (dissertation-grade in their own right)
 
@@ -56,3 +57,7 @@ bus experiment run yet (B1 awaits G1–G5 signing after processing).
 - **Aggregate metrics hide mechanism**: only decision-level instrumentation (keyed action
   arrays, per-side state comparison) could distinguish "policy adapts" from "queues
   change" — the platform's core justification, demonstrated.
+- **Long sessions found an identity-scope defect**: bare `VehicleRef` is reused across
+  operators (7 dawn / 9 peak values), manufacturing impossible 17–19 km/s jumps and the
+  two strict-parser conflicts. Operator scoping removes the false merges while preserving
+  the per-session privacy boundary.

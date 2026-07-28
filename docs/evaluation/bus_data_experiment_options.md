@@ -107,10 +107,12 @@ boundary, not an accident — and it means the cadence probe and B1's trajectory
 cannot be built on published scenes as they stand.
 
 The honest remedy is a small, explicitly reviewed identity-policy extension: a
-**session-scoped pseudonym** — an HMAC of the raw vehicle reference under a random per-session
-salt, computed inside the accepted parsing boundary, discarded with the salt when the session
-ends. Vehicles become linkable *within one declared observation session only*; raw references
-still never leave quarantine; cross-session tracking stays impossible. This touches the
+**session-scoped pseudonym** — an HMAC of the operator-scoped raw vehicle reference under a
+random per-session salt, computed inside the accepted parsing boundary, discarded with the
+salt when the session ends. (The 28-July long sessions proved that bare `VehicleRef` is reused
+across operators, so v1.1 binds `OperatorRef` as scope.) Vehicles become linkable *within one
+declared observation session only*; raw references still never leave quarantine;
+cross-session tracking stays impossible. This touches the
 lead-owned MAN-05 surface (or needs an owner-approved layered policy over the private
 snapshots), so it is a recorded owner/lead decision — **F0 below — and it gates everything
 else in the B1 sequence.** The rich per-observation fields already retained
@@ -133,12 +135,20 @@ that once linking exists, no further schema change is needed.
 
 | # | Decision | Proposed default |
 |---|---|---|
-| F0 | Approve the session-scoped pseudonym extension (§3a)? | **APPROVED and implemented, 27 July 2026** ("okay do it") as the owner-approved layered policy `manchester-bods-session-identity-1.0` over the private quarantine — accepted parser and lead-owned files untouched; salt in-process only; tests assert raw references and tokens never appear in any serialised output |
-| F1 | Run the cadence probe session? | ready — `scripts/bus_cadence_probe_session.py`, attended, needs `BODS_API_KEY`; 15 snapshots at 65 s |
-| F2 | Session window for B1, if pursued | weekday 08:00–09:30 local (peak service density) |
+| F0 | Approve the session-scoped pseudonym extension (§3a)? | **APPROVED and implemented, 27 July 2026** ("okay do it"); data-driven v1.1 correction scopes `VehicleRef` by `OperatorRef`, preserves v1.0 aggregate readability, and leaves accepted MAN-05 untouched |
+| F1 | Run the cadence probe session? | **complete** — night 15 snapshots plus dawn/peak 52-snapshot sessions, processed aggregate-only |
+| F2 | Session window for B1, if pursued | measured candidate: 28 July 08:02–08:58 BST (52 verified quarantines); person confirms at B1 signing |
 | F3 | Which experiment(s) | B1 primary; B2 as by-product; B4 only as by-product; B3 unchanged |
 | F4 | Where B1 sits against the existing programme | after the capacity pilot's confirmatory protocol is signed, before the corridor stretch |
 | F5 | Interpolation gap ceiling for B1 | drop a vehicle's segment when successive fixes exceed 120 s apart, rather than inventing it |
+
+**Measured addendum (28 July 2026):** night/dawn/peak active session support is
+41 / 1,162 / 1,433 with stable update cadence (median 66–68 s, p90 75–76 s). The peak
+contains a 64.7 m/s implied-speed maximum, so B1 additionally needs an explicit owner choice
+for speed outliers; the recorded recommendation is to retain the proposed 32 m/s plausibility
+ceiling and drop+count violations, not raise the ceiling after seeing them. Two rush-hour
+MAN-05 refusals are the same cross-operator `VehicleRef` conflict. Full record:
+[bus_session_results_20260728.md](bus_session_results_20260728.md). No bus experiment has run.
 
 **Sign-off (a person completes this; an agent never does):**
 

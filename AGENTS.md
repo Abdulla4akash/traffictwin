@@ -2821,6 +2821,15 @@ record compares night/dawn/peak density, maps measured values onto B1 as **propo
 and records both `PARSE_REJECTED` events as a data-quality finding; no B1 experiment runs,
 no G1–G5 decision is taken, and buses remain buses.
 
+**Measured outcome:** all three views verified against their committed hashes. Active
+session support is night/dawn/peak **41 / 1,162 / 1,433** (dawn 28.3× night; peak
+35.0× night and 23.3% above dawn), while cadence stays stable at median 66–68 s / p90
+75–76 s. Peak contains 52 verified quarantines (51 MAN-05 promotions + the final
+refusal). Its corrected 64.7 m/s maximum means the proposed 32 m/s B1 gate needs an
+owner-signed outlier rule; the recommendation is recorded, not taken. Focused gates:
+49 tests, ruff clean, strict mypy clean, and evidence-to-private-artifact hashes exact
+for 3/3 sessions.
+
 **Exclusive files:** amendment to
 `src/traffictwin/integration/manchester/bods_session_identity.py` and its unit test;
 `scripts/process_bus_session_posthoc.py` and its unit test;
