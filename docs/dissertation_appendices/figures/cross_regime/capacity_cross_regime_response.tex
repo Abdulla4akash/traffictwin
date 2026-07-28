@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\centering
+\caption{Exploratory, owner\_approved\_candidate, descriptive non-causal cross-regime capacity response in the Etihad/Co-op Live event district. Negative differences mean lower latency under squeeze.}
+\label{tab:capacity-cross-regime-response}
+\begin{tabular}{lrrrr}
+\toprule
+Regime & maxN & Seeds & Contrast & Mean paired $\Delta$ latency (ms) \\
+\midrule
+Weekend (we) & 139 & 50,51,52 & 0.75--2.5 & 0.000000000 \\
+Weekday PM (wd\_pm) & 163 & 50,51,52 & 0.75--2.5 & 0.000000000 \\
+Event night (ev) & 175 & 50,51,52 & 0.75--2.5 & 0.000000000 \\
+Weekday AM (wd\_am) & 215 & 50,51,52 & 0.75--2.5 & 0.000000000 \\
+Collapse hour (inc) & 2488 & 0,1,2 & 0.75--2.5 & -6715.239015976 \\
+\midrule
+Event-night deep squeeze & 175 & 50,51,52 & --- & --- \\
+\quad variation cap-0.5 & & & 0.5--2.5 & 0.000000000 \\
+\quad variation cap-0.25 & & & 0.25--2.5 & 0.000000000 \\
+\quad variation cap-0.1 & & & 0.1--2.5 & -0.024342325 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Cross-regime capacity response in the Etihad event district</title>
+  <desc id="desc">Five trace regimes ordered by maximum vehicle-slot width. Four normal regimes show exactly zero mean paired latency change under the standard capacity squeeze; only the 2488-slot collapse hour responds. A separate magnifier records the much smaller event-night deep-squeeze onset.</desc>
+  <text x="40" y="42" font-family="Helvetica,Arial,sans-serif" font-size="25" font-weight="700" fill="#17324d">Cross-regime capacity response</text>
+  <text x="40" y="70" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#526473">Etihad/Co-op Live event district · standard squeeze cap-2.5 → cap-0.75 · mean of three paired fleet seeds</text>
+  <text x="285" y="112" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#17324d">A. Maximum trace width (maxN, log scale)</text>
+  <text x="735" y="112" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#17324d">B. Mean paired latency change (ms)</text>
+  <line x1="285.00" y1="142" x2="285.00" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="285.00" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">100</text>
+  <line x1="365.82" y1="142" x2="365.82" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="365.82" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">250</text>
+  <line x1="426.96" y1="142" x2="426.96" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="426.96" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">500</text>
+  <line x1="488.10" y1="142" x2="488.10" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="488.10" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">1,000</text>
+  <line x1="568.92" y1="142" x2="568.92" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="568.92" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">2,500</text>
+  <line x1="735.00" y1="142" x2="735.00" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="735.00" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">-7,000</text>
+  <line x1="932.50" y1="142" x2="932.50" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="932.50" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">-3,500</text>
+  <line x1="1130.00" y1="142" x2="1130.00" y2="470" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="1130.00" y="492" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#526473">0</text>
+  <line x1="40" y1="209" x2="1130" y2="209" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="40" y="190" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#243444">Weekend (we)</text>
+  <circle cx="314.05" cy="185" r="7" fill="none" stroke="#0b7285" stroke-width="3"/>
+  <text x="327.05" y="190" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">139</text>
+  <circle cx="1130" cy="185" r="5" fill="#0b7285"/>
+  <text x="1117" y="190" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">0.000 (exact)</text>
+  <line x1="40" y1="274" x2="1130" y2="274" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="40" y="255" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#243444">Weekday PM (wd_pm)</text>
+  <circle cx="328.09" cy="250" r="7" fill="none" stroke="#0b7285" stroke-width="3"/>
+  <text x="341.09" y="255" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">163</text>
+  <circle cx="1130" cy="250" r="5" fill="#0b7285"/>
+  <text x="1117" y="255" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">0.000 (exact)</text>
+  <line x1="40" y1="339" x2="1130" y2="339" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="40" y="320" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#243444">Event night (ev)</text>
+  <circle cx="334.36" cy="315" r="7" fill="none" stroke="#0b7285" stroke-width="3"/>
+  <text x="347.36" y="320" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">175</text>
+  <circle cx="1130" cy="315" r="5" fill="#0b7285"/>
+  <text x="1117" y="320" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">0.000 (exact)</text>
+  <line x1="40" y1="404" x2="1130" y2="404" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="40" y="385" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#243444">Weekday AM (wd_am)</text>
+  <circle cx="352.52" cy="380" r="7" fill="none" stroke="#0b7285" stroke-width="3"/>
+  <text x="365.52" y="385" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">215</text>
+  <circle cx="1130" cy="380" r="5" fill="#0b7285"/>
+  <text x="1117" y="385" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">0.000 (exact)</text>
+  <line x1="40" y1="469" x2="1130" y2="469" stroke="#d9e2e8" stroke-width="1"/>
+  <text x="40" y="450" font-family="Helvetica,Arial,sans-serif" font-size="14" fill="#243444">Collapse hour (inc)</text>
+  <circle cx="568.49" cy="445" r="7" fill="#c24156" stroke="#c24156" stroke-width="3"/>
+  <text x="581.49" y="450" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#243444">2,488</text>
+  <rect x="751.07" y="435" width="378.93" height="20" fill="#c24156" rx="2"/>
+  <text x="759.07" y="450" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#ffffff">−6,715.239</text>
+  <text x="735" y="520" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">Negative = lower mean task latency under squeeze.</text>
+  <rect x="40" y="545" width="1090" height="92" rx="4" fill="#f1f5f7"/>
+  <text x="60" y="574" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#17324d">Event-night deep-squeeze magnifier (175 slots)</text>
+  <text x="60" y="601" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#243444">cap-0.5: 0.000 ms · cap-0.25: 0.000 ms · cap-0.1: -0.024 ms</text>
+  <text x="60" y="624" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#526473">First non-zero latency response appears at cap-0.1 (−0.024 ms); offloading decisions remain invariant. This brackets a mechanism, not a universal slot threshold.</text>
+</svg>

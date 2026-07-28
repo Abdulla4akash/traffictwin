@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0",
+  "projection_id": "vec-cross-regime-capacity-response-20260728",
+  "recorded_at_utc": "2026-07-28T12:12:26Z",
+  "research_status": "owner_approved_candidate",
+  "confirmatory": false,
+  "causal": false,
+  "scope": "Five audited Etihad/Co-op Live event-district traces evaluated with one ukfleettrain MAPPO actor. The incident-hour held-out confirmation is reported elsewhere and is not pooled into this exploratory cross-regime projection.",
+  "metric": {
+    "key": "task.latency.mean_ms",
+    "unit": "ms",
+    "estimand": "mean of paired per-seed differences, variation minus cap-2.5 baseline",
+    "standard_squeeze": {
+      "baseline_arm": "cap-2.5",
+      "variation_arm": "cap-0.75"
+    }
+  },
+  "trace_audit_source": {
+    "path": "docs/reference/generated/vec_source_snapshot_audit.json",
+    "sha256": "20704a05c7db0bbbf92e7f8c51ae0b72560fa91acbea2968d3531a1fe8c1b659"
+  },
+  "standard_squeeze_regimes": [
+    {
+      "trace_id": "we",
+      "display_label": "Weekend",
+      "max_vehicle_slots": 139,
+      "campaign_analysis_path": "data/vec-fresh/capacity-grid-we/campaign_analysis.json",
+      "campaign_analysis_sha256": "b6464fde837e7f6e0933eb5b68027690daf9ae2d6fb3b02e9757bef2cc5984c0",
+      "experiment_id": "vec-capacity-grid-we",
+      "design_fingerprint": "b4da3a5ba9b4dd100c3dd041b7bc7a19e35da2b4e8b673fa4733c0203a308312",
+      "seed_ids": [50, 51, 52],
+      "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+      "mean_paired_latency_difference_ms": 0.0,
+      "response_class": "exactly_inert"
+    },
+    {
+      "trace_id": "wd_pm",
+      "display_label": "Weekday PM",
+      "max_vehicle_slots": 163,
+      "campaign_analysis_path": "data/vec-fresh/capacity-grid-wd-pm/campaign_analysis.json",
+      "campaign_analysis_sha256": "338e0951ae43f6ec01a16c072fe24afe96aa69de6d81d941daed5bc35bf04494",
+      "experiment_id": "vec-capacity-grid-wd-pm",
+      "design_fingerprint": "635a2cbefd94b75773fcb608d71f4c0c8a2cbc3df447934980655fe75bdf8df5",
+      "seed_ids": [50, 51, 52],
+      "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+      "mean_paired_latency_difference_ms": 0.0,
+      "response_class": "exactly_inert"
+    },
+    {
+      "trace_id": "ev",
+      "display_label": "Event night",
+      "max_vehicle_slots": 175,
+      "campaign_analysis_path": "data/vec-fresh/capacity-grid-ev/campaign_analysis.json",
+      "campaign_analysis_sha256": "06b148ace10eab4603f68079f4eaa5c81c8c1164d57e2dd7fca7fc53e61dac9e",
+      "experiment_id": "vec-capacity-grid-ev",
+      "design_fingerprint": "efa83a78c8518861cde62191c2a8c6975b5e616c6770f309496c955883a8245b",
+      "seed_ids": [50, 51, 52],
+      "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+      "mean_paired_latency_difference_ms": 0.0,
+      "response_class": "exactly_inert"
+    },
+    {
+      "trace_id": "wd_am",
+      "display_label": "Weekday AM",
+      "max_vehicle_slots": 215,
+      "campaign_analysis_path": "data/vec-fresh/capacity-grid-wd-am/campaign_analysis.json",
+      "campaign_analysis_sha256": "3ebda792418ed804389f1dd9e35acdca90b64675292ce76ce51ed149924dee06",
+      "experiment_id": "vec-capacity-grid-wd-am",
+      "design_fingerprint": "2844fde2c38ec22664357865c528006a1cbad62f3ddb659fbd20a38c920f8df6",
+      "seed_ids": [50, 51, 52],
+      "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+      "mean_paired_latency_difference_ms": 0.0,
+      "response_class": "exactly_inert"
+    },
+    {
+      "trace_id": "inc",
+      "display_label": "Collapse hour",
+      "max_vehicle_slots": 2488,
+      "campaign_analysis_path": "data/vec-fresh/capacity-pilot/campaign_analysis.json",
+      "campaign_analysis_sha256": "7507639a41ad8b287e5a6f4103ba3739a323adf5382a772d29e13849e9421ac9",
+      "experiment_id": "vec-capacity-squeeze-pilot",
+      "design_fingerprint": "de474e038523e5e79e2d167364f312dc7c2ea273e610f2d26ec1cf253f41bb90",
+      "seed_ids": [0, 1, 2],
+      "paired_latency_differences_ms": [
+        -6881.816437253368,
+        -4180.206653362665,
+        -9083.693957313273
+      ],
+      "mean_paired_latency_difference_ms": -6715.239015976435,
+      "response_class": "outcome_sensitive"
+    }
+  ],
+  "event_night_deep_squeeze": {
+    "max_vehicle_slots": 175,
+    "campaign_analysis_path": "data/vec-fresh/capacity-deep-ev/campaign_analysis.json",
+    "campaign_analysis_sha256": "415e7c9c5c167cbd76f811eb603800c66141cb433504711b97743fa4adb05699",
+    "experiment_id": "vec-capacity-deep-ev",
+    "design_fingerprint": "727745441c5e43c1cb95ea76b337716629cf528319b534e756bc9c140192109d",
+    "seed_ids": [50, 51, 52],
+    "baseline_arm": "cap-2.5",
+    "comparisons": [
+      {
+        "variation_arm": "cap-0.5",
+        "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+        "mean_paired_latency_difference_ms": 0.0
+      },
+      {
+        "variation_arm": "cap-0.25",
+        "paired_latency_differences_ms": [0.0, 0.0, 0.0],
+        "mean_paired_latency_difference_ms": 0.0
+      },
+      {
+        "variation_arm": "cap-0.1",
+        "paired_latency_differences_ms": [
+          -0.03406619083477125,
+          -0.0023301721724919844,
+          -0.036630610529527985
+        ],
+        "mean_paired_latency_difference_ms": -0.02434232451226374,
+        "mean_deadline_difference_percentage_points": 0.0011035245752966105
+      }
+    ],
+    "offloading_decisions_invariant": true
+  },
+  "derivation_policy": {
+    "mean_paired_difference": "Arithmetic mean of the three recorded variation-minus-baseline per-seed differences.",
+    "max_vehicle_slots": "Copied from the hash-bound generated source-snapshot audit; maxN is array width, not a count of simultaneous observed vehicles at every step.",
+    "display_rounding": "Labels are rounded for legibility; the companion TeX table carries 9 decimal places and this JSON retains source precision.",
+    "pooling": "No regimes are pooled and no cross-regime inferential test is performed."
+  },
+  "interpretation_limits": [
+    "Descriptive, non-causal owner-approved-candidate projection only.",
+    "The standard-squeeze contrast is exploratory in this five-regime view; the separately signed incident-hour confirmation is not substituted into it.",
+    "The regimes differ in duration, scenario, fleet seeds, and slot width and are not exchangeable statistical units.",
+    "The figure supports a saturation-governed interpretation but does not identify a universal slot-count threshold.",
+    "All traces describe the Etihad/Co-op Live event district, not Manchester city-wide.",
+    "Policy decision invariance and outcome sensitivity are separate observations."
+  ]
+}
