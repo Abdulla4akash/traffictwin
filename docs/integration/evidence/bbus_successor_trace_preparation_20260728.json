@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "method_version": "bbus-dual-successor-1.0",
+  "date": "2026-07-28",
+  "research_status": "owner_approved_candidate",
+  "outcome": "BOTH_SUCCESSOR_TRACES_READY__COLAB_PACK_PENDING",
+  "owner_approval": {
+    "path": "docs/integration/evidence/bbus_dual_successor_owner_approval_20260728.json",
+    "sha256": "e165619566249c9b7f6cb2a531e486cfda3e61e306ab6b2d6821577432dd3764",
+    "both_successors_authorised": true
+  },
+  "parent": {
+    "experiment_id": "B-BUS-DAWN-PEAK-20260728",
+    "successful_private_manifest_sha256": "032696ea05f47edbb4e264bdc498bb41f1d08e7958bb143278cecea70cbfa193",
+    "dawn_motion_sha256": "38371ea6d7bc0f6752fb40de31767f4d49c234b517f3046145b11f12e07e9ae8",
+    "peak_motion_sha256": "4a0573192c2b6cd9a498fe414c8b3158954046ccf9194cdab53aa9ace9130eb0"
+  },
+  "implementation": {
+    "processing_commit": "65b37e684ae6e5acb76881b4e33c8b0d4a22ed6b",
+    "runner": "scripts/prepare_bbus_successors.py",
+    "runner_sha256": "7077a2b92f1bd5a3ab623e90a440994e859aa7c3798e67549a7c055cc67ddc34",
+    "library": "src/traffictwin/integration/manchester/bbus_successors.py",
+    "library_sha256": "9c9c76c93b5662540e4f2760f16fa2a1bbbf528142353964e18881edfc8104a2",
+    "pinned_placement_script_sha256": "33928f4113988ee39f75ff06d99f2c01061182f9d0f17092e051a159a42840a0",
+    "private_manifest_sha256": "aef118b65975ff1d8c5929b958865ee8a2df6e6978c985380257bbd73e8f183c",
+    "private_output_bytes": 33774233,
+    "private_output_committed": false
+  },
+  "corridor": {
+    "experiment_id": "B-BUS-CORRIDOR-DAWN-PEAK-20260728",
+    "protocol_sha256": "cd2e93f926d19a1c8b55d3962a674353be70b8d4fff0f69d80417e666238cde7",
+    "capsule_half_width_m": 750.0,
+    "placement_radius_m": 500.0,
+    "placement_cell_m": 50.0,
+    "max_rsus": 64,
+    "max_occupied_cells": 2000,
+    "vec06_receipt_created": false,
+    "sessions": {
+      "dawn-20260728": {
+        "source_vehicle_seconds": 2174120,
+        "retained_vehicle_seconds": 161654,
+        "excluded_vehicle_seconds": 2012466,
+        "retained_share": 0.07435376152190311,
+        "retained_session_tokens": 273,
+        "retained_occupancy_spans": 621,
+        "peak_concurrent_vehicles": 67,
+        "occupied_cells": 831,
+        "rsu_count": 12,
+        "covered_vehicle_seconds": 161654,
+        "coverage_share": 1.0,
+        "trace_sha256": "d92cfb0c5144cc646e1ed30bec76484af3b38d1ce9e94e1b714e86d4098af4a4",
+        "occupancy_sha256": "ff878c9e58f28204ee008b2344d63958de2c5ac63a0693f902793f766447831f"
+      },
+      "peak-20260728": {
+        "source_vehicle_seconds": 3170599,
+        "retained_vehicle_seconds": 281265,
+        "excluded_vehicle_seconds": 2889334,
+        "retained_share": 0.08871036671619463,
+        "retained_session_tokens": 395,
+        "retained_occupancy_spans": 1043,
+        "peak_concurrent_vehicles": 98,
+        "occupied_cells": 893,
+        "rsu_count": 12,
+        "covered_vehicle_seconds": 281265,
+        "coverage_share": 1.0,
+        "trace_sha256": "5ed9b123531f55c70c5209e1799f9c55bbb479ba57045b20ed996b9cbfcf4d02",
+        "occupancy_sha256": "793e332267fdc8df7b5ed07add4a6496a07dfce6fadc425215bc43628e295d6f"
+      }
+    },
+    "status": "PLACEMENT_CONTRACT_COMPATIBLE__NOT_VEC06_ADMITTED"
+  },
+  "sparse64": {
+    "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+    "protocol_sha256": "f366f3ba886287150eefcf64268e38df4e2a488372ed738dbbc712573c221efa",
+    "site_count": 64,
+    "site_selection_session": "dawn-20260728",
+    "peak_influenced_site_selection": false,
+    "site_array_sha256": "e744e26a6e79e4282494f9a5e42bf978384eab85c4ab5d77dd538f2add75c166",
+    "dawn_occupied_cells": 66291,
+    "safely_covered_dawn_cells": 7427,
+    "sessions": {
+      "dawn-20260728": {
+        "vehicle_seconds": 2174120,
+        "covered_vehicle_seconds": 978660,
+        "uncovered_vehicle_seconds": 1195460,
+        "coverage_share": 0.45014074660092357,
+        "peak_concurrent_vehicles": 827,
+        "trace_sha256": "c08a69da7b29bee50a3f110c27d1947774c20e491982075bc8e154c84434b15b",
+        "occupancy_sha256": "83e32a09c73ed2d77cfffc08340aac44c48b3666c80f0cb93d44c1bc871f56be"
+      },
+      "peak-20260728": {
+        "vehicle_seconds": 3170599,
+        "covered_vehicle_seconds": 1458349,
+        "uncovered_vehicle_seconds": 1712250,
+        "coverage_share": 0.4599600895603638,
+        "peak_concurrent_vehicles": 1000,
+        "trace_sha256": "9125b32c9b869cb6d09d9c1d595e44558468fcff797a6b5d2e3e3e6ea8dc284f",
+        "occupancy_sha256": "809645fc7ca6d8fe5a7b915a68fecf6ea2d4fbe0b5ca5deedde89a4beb650d5a"
+      }
+    },
+    "vec06_compatible": false,
+    "status": "WHOLE_FLEET_SPARSE_INFRASTRUCTURE_EXPLORATORY"
+  },
+  "independent_checks": {
+    "corridor_occupancy_reconstructed_cell_for_cell": true,
+    "corridor_exact_full_coverage_remeasured": true,
+    "sparse_motion_arrays_equal_parent_arrays": true,
+    "sparse_site_array_identical_between_sessions": true
+  },
+  "execution": {
+    "colab_pack_created": false,
+    "colab_upload_performed": false,
+    "gpu_training_performed": false,
+    "held_out_peak_evaluation_performed": false,
+    "checkpoint_returned": false
+  },
+  "privacy": {
+    "acquisition_performed": false,
+    "raw_bods_material_included": false,
+    "raw_identifiers_included": false,
+    "session_salts_included": false,
+    "cross_session_linkage_performed": false,
+    "private_trace_contains_session_tokens": true,
+    "public_hosting_authorised": false
+  },
+  "claim_ceiling": {
+    "derived_scenario": true,
+    "observed_fcd": false,
+    "buses_only": true,
+    "buses_are_general_traffic": false,
+    "scientific_evidence": false,
+    "actor_admission_eligible": false,
+    "supervisor_approved": false
+  },
+  "owner_decisions_taken_by_agent": [],
+  "next_action": "Build and verify two separately bound private Colab packs; do not pool their results or status."
+}
