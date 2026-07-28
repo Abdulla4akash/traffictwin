@@ -110,6 +110,42 @@ TRACES = {
             "regime's outcome sensitivity switch on?"
         ),
     },
+    "inc-deep": {
+        "experiment_id": "vec-capacity-deep-inc",
+        "run_id_prefix": "deepinc",
+        "trace_file": "traces/trace_inc_fullrsu.npz",
+        "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+        "max_steps": 3_600,
+        "output_root": "data/vec-fresh/capacity-deep-inc",
+        "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
+        "fleet_seeds": [60, 61, 62],
+        "predeclaration_path": ("docs/evaluation/ceiling_law_prediction_predeclaration.md"),
+        "predeclaration_sha256": (
+            "78dcd3ce3004d31edae87e8534a0a6e2dfb945e601649d7ac6cc26e3ffca7d4b"
+        ),
+        "question": (
+            "Does the tail-latency ceiling law L(c) = 39,959 ms x c, fitted across the "
+            "pilot's 3.3x range, predict the ceiling 7.5x below that range's floor?"
+        ),
+    },
+    "inc-baseline": {
+        "experiment_id": "vec-crossover-inc-baseline",
+        "run_id_prefix": "xoverinc",
+        "trace_file": "traces/trace_inc_fullrsu.npz",
+        "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+        "max_steps": 3_600,
+        "output_root": "data/vec-fresh/crossover-inc-baseline",
+        "actor_id": "baseline_model_c_17",
+        "fleet_seeds": [0, 1, 2],
+        "predeclaration_path": ("docs/evaluation/actor_crossover_candidate_inc_20260728.md"),
+        "predeclaration_sha256": (
+            "b8f0efa29f4c41210b44447595a53b2975e47af913f3057c1ac1e1540c885492"
+        ),
+        "question": (
+            "Does the actor that wins at comfortable capacity lose under squeeze on the "
+            "one trace where capacity moves outcomes at all?"
+        ),
+    },
     "ev-baseline": {
         "experiment_id": "vec-baseline-invariance-ev",
         "run_id_prefix": "b0ev",
@@ -173,7 +209,7 @@ def grid_design(trace_key: str) -> VecCampaignDesign:
             )
         ],
         pairing_seed_source=VecPairingSeedSource.FLEET_SEED,
-        fleet_seeds=[50, 51, 52],
+        fleet_seeds=spec.get("fleet_seeds", [50, 51, 52]),
         primary_metric_key="tos.task.deadline_success.rate",
         budget=VecCampaignBudget(
             max_cells=12,
