@@ -2889,6 +2889,17 @@ or record a supervisor decision that has not been received.
 contract, generated reference, campaign artifact, registry, or external repository is
 changed.
 
+### Phase 103 claim: ADR-066 dissertation-appendix regeneration (28 July 2026)
+
+The primary integration agent owns the mechanical regeneration of Appendix A after the
+committed ADR register gained accepted ADR-066. The existing generator and its inputs are
+unchanged; the only authorised output delta is the missing ADR-066 row and decision count
+65→66. This hygiene slice makes the focused appendix freshness gate current and takes no
+scientific or owner decision.
+
+**Exclusive file:** `docs/dissertation_appendices/appendix_a_capability_catalogue.md` and
+this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
