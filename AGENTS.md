@@ -3356,6 +3356,40 @@ campaign-analysis JSON, so the verdict costs no CPU and is safe to run beside ti
 Exclusive files: that addendum, that script, and this record. No campaign design, launcher,
 fingerprint, existing predeclaration or admitted artifact is touched.
 
+### Phase 124 claim: actor-crossover runner and prediction (3) made decidable (28 July 2026)
+
+The crossover study had a complete, tested rule in the accepted
+`vec_campaign/slope_comparison.py` and **no way to run it** — no script anywhere loads two
+campaign analyses and applies it. Without this, the `inc-baseline` campaign would have landed
+and its analysis would have been written after its results were visible.
+
+`scripts/analyse_actor_crossover.py` applies the accepted module **unchanged** to the admitted
+capacity pilot (`ukfleettrain_mappo_model_c_17`) against the `inc-baseline` campaign
+(`baseline_model_c_17`), reads only campaign-analysis JSON, and carries the fleet-preset
+asymmetry into every output rather than leaving a reader to rediscover it. Nothing about the
+pilot is re-run or altered; it is read as one arm of the contrast.
+
+`docs/evaluation/crossover_slope_prediction_addendum.md` makes the candidate's §5 prediction
+(3) decidable. The candidate names it as *the interesting outcome* but states it as "the slope
+contrast should be small", which is not a decidable claim, so the threshold would otherwise
+have been chosen after both curves were visible. The statistic is the relative contrast between
+the two actors' OLS mean-latency slopes over capacity; the ±5% band is **transcribed** from the
+ceiling-law predeclaration's tolerance for the same underlying quantity rather than chosen
+here. The addendum also fixes, in advance, what a refutation would *not* establish: the preset
+matches one actor's training distribution and not the other's, so an actor-dependent slope has
+two live explanations that this comparison cannot separate. The candidate itself is untouched —
+it is byte-bound at `b8f0efa2…` into the launched design.
+
+Exercised end to end on the real `ev` actor pair (grid-ev against B0), which is the candidate's
+own inert-regime control: no crossover, rule applicable, both slopes exactly zero — and
+prediction (3) correctly returns INCOMPLETE rather than manufacturing a pass out of a 0/0
+contrast. That degenerate case is the one a naive implementation would have scored as a perfect
+0% agreement.
+
+Exclusive files: that addendum, that script, and this record. The accepted comparison module,
+the candidate, every campaign design and every admitted artifact are unchanged; the local OLS
+for the secondary series is a deliberate reimplementation rather than an edit to accepted code.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
