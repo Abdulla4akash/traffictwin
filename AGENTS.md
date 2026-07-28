@@ -2626,6 +2626,16 @@ the interruption/repair history preserved as reproducibility evidence. Held-out 
 `docs/evaluation/capacity_confirmatory_report_20260728.md`, their `docs/index.md` rows,
 and this record.
 
+### Phase 87 claim: session context prompt v2 (owner-directed, 28 July 2026)
+
+The owner asked for the complete current context in one agent-bootstrap document so a
+fresh session can continue everything — including running the attended peak bus session
+on the owner's word — as this session's context fills. `CLAUDE_SESSION_CONTEXT_PROMPT_V2.md`
+(repo root) carries the confirmed finding and mechanism, the framing and scope decisions,
+the attended-session procedure with the attendance rule stated as unbreakable, the
+unblocked work queue, the decision queue, boundaries, and gotchas; it supersedes the v1
+prompt. Exclusive files: that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
