@@ -2799,6 +2799,39 @@ exact post-hoc processing recipe, Codex's B-MASK completion and B-DOMAIN start, 
 consolidated experiments register, and the afternoon queue. Exclusive files:
 CLAUDE_SESSION_CONTEXT_PROMPT_V4.md and this record.
 
+### Phase 99 claim: post-hoc bus-session measurement + identity-scope correction (owner-directed, 28 July 2026)
+
+The owner directed the primary integration agent to process, without new acquisition or
+attendance, the durable 28-July dawn and rush-hour BODS snapshot sets into B1's measured
+numbers. The first read-only reduction exposed a real long-session defect hidden by the
+15-snapshot probe: `VehicleRef` is not globally unique across operators, so the v1.0
+session token merged 7 dawn and 9 peak cross-operator references and manufactured
+17–19 km/s maxima. The two rush-hour MAN-05 refusals have the same root shape: one
+raw-ref/time group contains two conflicting activities from different operators; the
+conflict disappears when identity is operator-scoped. This slice therefore amends only
+the layered session-identity policy to v1.1 (`HMAC(salt, OperatorRef || NUL ||
+VehicleRef)`), retains read compatibility for the historical v1.0 aggregate, and leaves
+the lead-owned MAN-05 parser and both rejected quarantines untouched.
+
+The new post-hoc command selects an explicit inclusive snapshot-id range, generates one
+fresh in-process salt, verifies every quarantine member before extraction, and writes
+only cadence/progression aggregate JSONs into a session-specific private workspace view.
+The accepted report command then renders each view without opening snapshots. The result
+record compares night/dawn/peak density, maps measured values onto B1 as **proposals only**,
+and records both `PARSE_REJECTED` events as a data-quality finding; no B1 experiment runs,
+no G1–G5 decision is taken, and buses remain buses.
+
+**Exclusive files:** amendment to
+`src/traffictwin/integration/manchester/bods_session_identity.py` and its unit test;
+`scripts/process_bus_session_posthoc.py` and its unit test;
+`docs/integration/evidence/bods_bus_sessions_20260728.json`;
+`docs/evaluation/bus_session_results_20260728.md`; proposed-value amendments to
+`docs/evaluation/bus_fleet_experiment_predeclaration_draft.md` and
+`docs/evaluation/bus_data_experiment_options.md`; the bus rows in
+`docs/experiments_and_findings_20260728.md`; their `docs/index.md` entries; and this
+record. Private workspace measurements and reports are untracked aggregate evidence;
+their hashes are recorded in the committed evidence JSON.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
