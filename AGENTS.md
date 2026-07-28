@@ -2791,6 +2791,14 @@ and the bus sessions, each row linking its full record and carrying its ceiling.
 Exclusive files: docs/experiments_and_findings_20260728.md, its docs/index.md row, and
 this record.
 
+### Phase 98 claim: session context prompt v4 (owner-directed, 28 July 2026)
+
+Afternoon handoff superseding V3: the completed capacity programme, both captured-but-
+unprocessed bus sessions with the recurring rush-hour PARSE_REJECTED finding and the
+exact post-hoc processing recipe, Codex's B-MASK completion and B-DOMAIN start, the
+consolidated experiments register, and the afternoon queue. Exclusive files:
+CLAUDE_SESSION_CONTEXT_PROMPT_V4.md and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
