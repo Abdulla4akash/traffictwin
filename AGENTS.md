@@ -2691,6 +2691,16 @@ Exclusive files: docs/evaluation/capacity_grid_predeclaration.md and its docs/in
 row, scripts/ev_timing_probe.py, docs/integration/evidence/vec_ev_timing_probe_20260728.json,
 scripts/capacity_grid_campaign.py, plus this record.
 
+### Phase 90 claim: three-trace grid results record (28 July 2026)
+
+Both grid campaigns completed 12/12 with zero failures. On the weekend and event-night
+traces every metric is exactly identical across all four capacity arms in every seed
+(paired differences literally zero) — the predeclared mechanism predictions held, and the
+three regimes now separate policy blindness (everywhere, structural) from outcome
+sensitivity (only where load saturates the concurrency bound: 2,488-slot collapse hour
+yes; 139/175-slot regimes no; threshold bracketed, not located). Exclusive files:
+docs/evaluation/capacity_grid_results_20260728.md, its docs/index.md row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
