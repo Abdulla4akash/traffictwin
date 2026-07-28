@@ -2766,6 +2766,15 @@ scientific campaigns, registries, and held-out cohorts remain untouched. Outputs
 `docs/evaluation/bdomain_training_{predeclaration_20260728.md,approval_20260728.json}`, and this
 claim.
 
+### Phase 95 claim: session context prompt v3 (owner-directed, 28 July 2026)
+
+Context-full handoff: `CLAUDE_SESSION_CONTEXT_PROMPT_V3.md` (repo root) carries the
+morning-of-28-July state — the confirmed finding, the four-legged mechanism, the
+unanimous five-regime sweep, the in-flight ev-deep onset leg, Codex's four GPU campaigns
+with preserved artifacts, the live attended bus sessions and their processing steps, the
+morning queue, and the Phase-91 numbering collision note. Supersedes V2. Exclusive files:
+that prompt and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
