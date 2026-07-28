@@ -2930,6 +2930,20 @@ capacity sweep's unresolved band. Exclusive files:
 correction in `docs/integration/manchester_workspace_continuity_20260727.md`, the promoted
 subsection in `docs/evaluation/bus_session_results_20260728.md`, and this record.
 
+### Phase 106 claim: artifact-integrity guards (owner-directed, 28 July 2026)
+
+The preventive control for the Phase-105 finding. New
+`src/traffictwin/integration/manchester/artifact_integrity.py` refuses the two shapes
+that let a wrong network identity propagate: a record whose source and derived identities
+coincide (`SOURCE_DERIVED_IDENTITY_COLLISION` / `SOURCE_DERIVED_SIZE_COLLISION` — the
+exact 25-July defect, verified to fire on the real record), and a later-phase dependency
+on a session-scoped or system-temporary path (`EPHEMERAL_DEPENDENCY_REFUSED` — the reason
+the network chain vanished). It also verifies a recorded identity against the on-disk
+file. No acquisition, no decode, no network access; a passing audit is never an
+admission. The acquisition path already failed closed on provider-checksum mismatch
+(`CHECKSUM_IDENTITY_DRIFT`), so no change was needed there. Exclusive files: that module,
+`tests/unit/test_manchester_artifact_integrity.py` (7 tests), and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
