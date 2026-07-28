@@ -146,6 +146,60 @@ TRACES = {
             "one trace where capacity moves outcomes at all?"
         ),
     },
+    "we-deep": {
+        "experiment_id": "vec-capacity-deep-we",
+        "run_id_prefix": "deepwe",
+        "trace_file": "traces/trace_we_fullrsu.npz",
+        "trace_sha256": "a2612865f5e1ef6d066975d6430693225f5d16060f139176548c8ae020e428be",
+        "max_steps": 32_400,
+        "output_root": "data/vec-fresh/capacity-deep-we",
+        "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
+        "fleet_seeds": [60, 61, 62],
+        "predeclaration_path": ("docs/evaluation/density_gap_options_20260728.md"),
+        "predeclaration_sha256": (
+            "00681a14efb5b7134fb81abae0f365c27148972723d6ae3140deecfd2254ef3a"
+        ),
+        "question": (
+            "Where does binding onset sit on this density, and does onset capacity scale "
+            "with concurrent density as the low-end hypothesis predicts?"
+        ),
+    },
+    "wd-am-deep": {
+        "experiment_id": "vec-capacity-deep-wd-am",
+        "run_id_prefix": "deepam",
+        "trace_file": "traces/trace_wd_am_fullrsu.npz",
+        "trace_sha256": "5e36a7cb8b49afa9929574c9627216b7479a28ee0cbd83cc81ff852e647fd7ee",
+        "max_steps": 10_800,
+        "output_root": "data/vec-fresh/capacity-deep-wd-am",
+        "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
+        "fleet_seeds": [60, 61, 62],
+        "predeclaration_path": ("docs/evaluation/density_gap_options_20260728.md"),
+        "predeclaration_sha256": (
+            "00681a14efb5b7134fb81abae0f365c27148972723d6ae3140deecfd2254ef3a"
+        ),
+        "question": (
+            "Where does binding onset sit on this density, and does onset capacity scale "
+            "with concurrent density as the low-end hypothesis predicts?"
+        ),
+    },
+    "wd-pm-deep": {
+        "experiment_id": "vec-capacity-deep-wd-pm",
+        "run_id_prefix": "deeppm",
+        "trace_file": "traces/trace_wd_pm_fullrsu.npz",
+        "trace_sha256": "848ba3cf278515f6a628bfb575892373454fae60ea6edf717da3b7683051ba9f",
+        "max_steps": 25_200,
+        "output_root": "data/vec-fresh/capacity-deep-wd-pm",
+        "variation_arms": [("cap-0.5", 0.5), ("cap-0.25", 0.25), ("cap-0.1", 0.1)],
+        "fleet_seeds": [60, 61, 62],
+        "predeclaration_path": ("docs/evaluation/density_gap_options_20260728.md"),
+        "predeclaration_sha256": (
+            "00681a14efb5b7134fb81abae0f365c27148972723d6ae3140deecfd2254ef3a"
+        ),
+        "question": (
+            "Where does binding onset sit on this density, and does onset capacity scale "
+            "with concurrent density as the low-end hypothesis predicts?"
+        ),
+    },
     "ev-baseline": {
         "experiment_id": "vec-baseline-invariance-ev",
         "run_id_prefix": "b0ev",
