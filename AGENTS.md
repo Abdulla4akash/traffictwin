@@ -2636,6 +2636,18 @@ the attended-session procedure with the attendance rule stated as unbreakable, t
 unblocked work queue, the decision queue, boundaries, and gotchas; it supersedes the v1
 prompt. Exclusive files: that prompt and this record.
 
+### Phase 88 claim: B-CAP smoke artifact preservation (28 July 2026)
+
+Codex's Colab engineering smoke (real producer code under the recorded citation
+permission; producer data never moved; VM terminated) proved the B-CAP plumbing: a 17-D
+control trained with capacity hidden is exactly invariant across capacity levels —
+independently reproducing the observability-gap mechanism in a from-scratch policy —
+while the 19-D capacity-observation variant demonstrably changes decisions with capacity.
+The short-run performance numbers are explicitly non-evidence. The artifact zip was
+copied from volatile /tmp to data/gpu-track/ and its SHA-256 re-verified
+(885f6914…). Exclusive files: docs/integration/evidence/bcap_engineering_smoke_20260728.json
+and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

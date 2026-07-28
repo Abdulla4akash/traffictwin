@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "probe": "bcap-real-code-engineering-smoke",
+  "date": "2026-07-28",
+  "purpose": "Engineering de-risk of B-CAP on real producer code (Colab T4, code-with-citation permission): prove the capacity observation extension trains and reaches the policy. NOT a scientific result.",
+  "executed_by": "Codex GPU-track lead on a disposable Colab VM, terminated after the run; producer data never moved; producer source neither archived nor modified locally; repository and external clones unchanged.",
+  "design": {
+    "treatments": [
+      "17-D control: randomized RSU capacity hidden from the actor",
+      "19-D B-CAP: explicit normalized capacity plus selected-RSU headroom in the observation"
+    ],
+    "scale": "4,992 steps / 312 MAPPO updates per treatment; one seed; two episodes per capacity level in diagnostics",
+    "environment": "producer synthetic training environment (not Manchester traces; its completion/latency numbers are not comparable to trace-evaluation numbers)"
+  },
+  "measured": {
+    "control_17d_fixed_capacity_diagnostic": "exactly invariant across all four capacity levels",
+    "bcap_19d_fixed_capacity_diagnostic": "local/V2I decisions change with capacity — the new observations reach the policy",
+    "bcap_19d_short_run_performance": "no improvement at this scale: ~98.86% completion / 37.5 ms latency vs 99.24% / 33.44 ms control"
+  },
+  "artifact": {
+    "path": "data/gpu-track/traffictwin_bcap_real_code_engineering_smoke_20260728.zip (local, gitignored)",
+    "sha256": "885f6914a8965eb29993b7a007defa7dc3488e7888a5a8571ada5419363a5580",
+    "size_bytes_approx": 81920,
+    "verified_after_copy_from_tmp": true
+  },
+  "interpretation_limits": [
+    "Engineering smoke only: one seed, minutes-scale training, synthetic environment — not a scientific null, not dissertation evidence, no admission performed.",
+    "The 17-D invariance under randomized-but-hidden capacity independently reproduces the observability-gap mechanism in a from-scratch policy: blindness follows from the observation design, not from one checkpoint.",
+    "The 19-D behavioural response proves plumbing, not benefit; the real B-CAP experiment requires its own predeclaration, full-scale training, checkpoint homecoming through the pinned-actor review, and instrument evaluation."
+  ]
+}
