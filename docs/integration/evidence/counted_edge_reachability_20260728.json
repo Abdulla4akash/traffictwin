@@ -1,0 +1,105 @@
+{
+  "analysis_only": true,
+  "capability_id": "MAN-09",
+  "cause_1_vehicle_class_exclusion": {
+    "edges": [
+      {
+        "allow": "bus bicycle",
+        "edge_id": "1544067340",
+        "observed": 5484,
+        "ref": "A665",
+        "type": "highway.trunk"
+      },
+      {
+        "allow": "bus bicycle",
+        "edge_id": "1544096242",
+        "observed": 6317,
+        "ref": "A56",
+        "type": "highway.trunk"
+      },
+      {
+        "allow": "bus bicycle",
+        "edge_id": "1544129757",
+        "observed": 7289,
+        "ref": "A6",
+        "type": "highway.trunk"
+      },
+      {
+        "allow": "bus bicycle",
+        "edge_id": "1544105506",
+        "observed": 1,
+        "ref": "A6",
+        "type": "highway.primary"
+      }
+    ],
+    "finding": "exactly 4 of 150 counted edges forbid passenger vehicles, and they are exactly the 4 edges no pool route traverses - a 1:1 match with no false positives or negatives",
+    "mechanism": "the route pool was generated with randomTrips --vehicle-class passenger, so a passenger trip can never traverse a bus/bicycle-only lane. Their counts are unmet by construction, at any pool size.",
+    "observed_vehicles": 19091,
+    "share_of_all_observed_percent": 0.94,
+    "upstream_reachability_is_normal": "these four have 259-522 upstream edges within 8 hops against a typical-edge median of 208, so topology is not their problem - permission is",
+    "why_it_is_a_modelling_mismatch_not_a_pool_defect": "DfT raw counts count motor vehicles including buses; the pool is passenger-only. A passenger-only demand can never reproduce a count taken on a bus lane, so these targets are unattainable rather than under-supplied."
+  },
+  "cause_2_boundary_truncated_motorway": {
+    "already_recorded_as_a_limitation": "the 25-July subnetwork record states that routes in a clipped network necessarily start and end at the boundary; this quantifies what that costs",
+    "edges": [
+      {
+        "edge_id": "1544431771",
+        "observed": 54857,
+        "ref": "M56",
+        "type": "highway.motorway",
+        "unmet": 53272,
+        "upstream_within_8_hops": 120
+      },
+      {
+        "edge_id": "1544380919",
+        "observed": 52234,
+        "type": "highway.motorway",
+        "unmet": 49872,
+        "upstream_within_8_hops": 1
+      }
+    ],
+    "finding": "the two edges carrying 61.4% of the entire shortfall are M56 motorway segments at the southern clip boundary, traversed by exactly 2 pool routes each against a median of 395",
+    "geographic_confirmation": {
+      "counted_edge_northing_range_m": [
+        3652,
+        23325
+      ],
+      "edge_1544380919_northing_m": 3682,
+      "edge_1544431771_northing_m": 3692,
+      "note": "the two edges carrying most of the shortfall are the two southernmost counted edges in the study area, sitting within 40 m of the extreme of the counted-edge extent",
+      "rank_from_southern_edge": "1st and 2nd of 150 counted edges"
+    },
+    "mechanism": "clipping the parent at the local-authority boundary truncates through-traffic on the motorway. One of the pair is near-isolated (a single upstream edge within 8 hops against a typical 208); both sit off the natural path structure between interior origins and destinations, so a shortest-path pool almost never uses them.",
+    "typical_edge_upstream_within_8_hops_median": 208
+  },
+  "combined": {
+    "edges": 6,
+    "of_counted_edges": 150,
+    "share_of_all_unmet_percent": 72.79,
+    "unmet_vehicles": 122235
+  },
+  "consequence_for_the_predeclared_variants": {
+    "V1_remove_fringe_weighting": "changes neither cause",
+    "V2_trip_length_envelope": "changes neither cause, and shortening routes can only reduce the chance of reaching a boundary motorway",
+    "V3_double_the_pool": "cannot help: twice zero routes is zero, and a permission ban is not a sampling problem",
+    "conclusion": "the shortfall is dominated by two structural causes that no predeclared variant addresses"
+  },
+  "explicit_non_claims": [
+    "no variant was run and no threshold applied",
+    "excluding a target is an owner decision, not taken here",
+    "this diagnoses the pool's structure and says nothing about whether any demand is valid"
+  ],
+  "method": "read-only topology and permission audit of the restored study subnetwork; upstream reachability by bounded backward breadth-first search over real edges",
+  "options_presented_not_taken": [
+    "exclude the 4 passenger-forbidden counted edges from the demand target set, recording them as observations a passenger-only demand cannot represent",
+    "treat the boundary motorway pair as boundary-truncated and exclude or down-weight them, consistent with the already-recorded clipping limitation",
+    "generate a multi-class demand so bus-lane counts become representable - a substantially larger design change",
+    "widen the clip so the motorway is not truncated, which changes the study area and its identity"
+  ],
+  "question": "why do 6 of 150 counted edges carry pool coverage of at most 2 routes, holding 72.8% of the demand shortfall",
+  "record_date": "2026-07-28",
+  "record_type": "counted_edge_reachability_diagnosis",
+  "research_status": "owner_approved_candidate",
+  "scientifically_validated": false,
+  "supervisor_approved": false
+}

@@ -3252,6 +3252,33 @@ session sizes reconcile exactly with the recorded three-session results. Exclusi
 `scripts/analyse_bus_speed_density.py`, `docs/evaluation/bus_speed_density_20260728.md`, its
 `docs/index.md` row, the register row, and this record.
 
+### Phase 120 claim: counted-edge reachability diagnosis (28 July 2026)
+
+Read-only topology and permission audit of the restored study subnetwork, answering why six
+of 150 counted edges hold 72.8% of the demand shortfall. **Two structural causes, cleanly
+separated, and no predeclared variant addresses either.**
+
+(a) **Vehicle-class exclusion.** Exactly four counted edges carry `allow="bus bicycle"`
+lanes - on the A6, A56 and A665 - and they are **exactly** the four edges no pool route
+traverses, a 1:1 match with no false positives or negatives. The pool was generated with
+`randomTrips --vehicle-class passenger`, so their 19,091 observed vehicles are unmet by
+construction at any pool size. Their upstream reachability is normal (259-522 edges within
+8 hops against a typical median of 208), so this is permission, not topology. It is a
+modelling mismatch: DfT counts motor vehicles including buses, the pool is passenger-only,
+and a passenger-only demand cannot reproduce a count taken on a bus lane.
+
+(b) **Boundary truncation.** The two edges carrying 61.4% of the entire shortfall are M56
+motorway segments at the southern clip boundary - the 1st and 2nd southernmost of all 150
+counted edges, at 3,682 m and 3,692 m against a counted-edge range of 3,652-23,325 m. One
+has a **single** upstream edge within 8 hops against a typical 208. This quantifies the
+clipping limitation the 25-July subnetwork record already stated in words.
+
+Four options are tabled (exclude the passenger-forbidden targets; exclude or down-weight the
+truncated pair; generate a multi-class demand; widen the clip) and none is taken - excluding
+a target is an owner decision. Exclusive files:
+`docs/integration/evidence/counted_edge_reachability_20260728.json`, its `docs/index.md`
+row, the register row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
