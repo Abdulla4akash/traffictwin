@@ -61,6 +61,26 @@ TRACES = {
             "incident trace replicate on the event-night trace?"
         ),
     },
+    "ev-baseline": {
+        "experiment_id": "vec-baseline-invariance-ev",
+        "run_id_prefix": "b0ev",
+        "trace_file": "traces/trace_ev_fullrsu.npz",
+        "trace_sha256": "70d6d12f3004b08c8a17e450df04ea70e74723c7a25149d3f5e1629903d01208",
+        "max_steps": 23_400,
+        "output_root": "data/vec-fresh/baseline-invariance-ev",
+        "actor_id": "baseline_model_c_17",
+        "predeclaration_path": (
+            "docs/evaluation/baseline_invariance_prediction_predeclaration.md"
+        ),
+        "predeclaration_sha256": (
+            "fe3db75311d3f7c89d3492fd4cf283fd36fcaad8919e51cd62bcf8673978c030"
+        ),
+        "question": (
+            "Is the baseline actor exactly as capacity-invariant as the ukfleettrain "
+            "actor on the event-night trace, as the observability-gap mechanism "
+            "predicts?"
+        ),
+    },
 }
 
 
@@ -74,9 +94,12 @@ def grid_design(trace_key: str) -> VecCampaignDesign:
         run_id_prefix=spec["run_id_prefix"],
         phase=VecCampaignPhase.PILOT,
         approval=VecCampaignApproval(
-            predeclaration_path="docs/evaluation/capacity_grid_predeclaration.md",
-            predeclaration_sha256=(
-                "93384588f9f1158b94e708138e3f0000da9b3be8ca109334bc38d27aec3561e1"
+            predeclaration_path=spec.get(
+                "predeclaration_path", "docs/evaluation/capacity_grid_predeclaration.md"
+            ),
+            predeclaration_sha256=spec.get(
+                "predeclaration_sha256",
+                "93384588f9f1158b94e708138e3f0000da9b3be8ca109334bc38d27aec3561e1",
             ),
             approved_by=(
                 "Abdulla (repository owner; delegation relayed in session, 27-28 July "
@@ -89,7 +112,7 @@ def grid_design(trace_key: str) -> VecCampaignDesign:
         ),
         trace_file=spec["trace_file"],
         trace_sha256=spec["trace_sha256"],
-        actor_id="ukfleettrain_mappo_model_c_17",
+        actor_id=spec.get("actor_id", "ukfleettrain_mappo_model_c_17"),
         fleet=VecFleet.UK_2030,
         evaluator_seed=0,
         max_steps=spec["max_steps"],
