@@ -2,6 +2,39 @@
 
 ## v0.7.0 - In development
 
+Completed the capacity research programme's first full arc (27–28 July):
+
+- the predeclared exploratory pilot (12/12 cells on the incident trace) refuted the
+  degradation-cliff hypothesis — deadline success flat across a 3.3× squeeze, mean
+  latency collapsing 3.2×, offloading decisions bit-identical across arms;
+- the signed held-out confirmatory campaign (10/10 cells, seeds {10–14}, latency primary
+  declared before any held-out data) confirmed the effect on every reserved seed
+  (−8,310.9 ms mean paired difference, bootstrap [−9,097.5, −7,524.3]);
+- the mechanism was located and independently reproduced: per-vehicle observation state
+  is bit-identical across capacity arms while RSU-side state differs pervasively, and
+  the observation design carries no capacity signal — structural blindness, confirmed by
+  a keyed comparison (zero mismatches over 8.9M action cells × 9 pairs) and by a
+  from-scratch GPU-trained control; a 19-D capacity-observation variant demonstrably
+  responds (B-CAP engineering smoke, real producer code under recorded citation-scoped
+  permission);
+- the three-trace grid (24 cells, fresh seeds) showed the capacity control completely
+  inert off-saturation — every metric exactly identical across arms on the weekend and
+  event-night traces — bracketing the outcome-sensitivity threshold between 175 and
+  2,488 concurrent slots; the ev trace joined the reviewed allowlist (ADR-065) after a
+  measured probe, and its first full execution measured 265.9 s against the 7,200 s
+  ceiling;
+- the first real campaign interruption exposed and repaired a repeat-admission
+  confirmation defect (fail-closed held; registry uncontaminated; regression tests pin
+  the repair), and long campaigns now launch detached with recorded pid files;
+- six parallel feature batches (Phases 40–71) delivered the RSU Monitor page, the
+  demand-diagnosis and bus-trajectory libraries with the VEC-06 bridge, the
+  confirmatory-mode renderer, the campaigns browser, the CSF job-pack contract and CLI,
+  the gate battery, participant documents, dissertation appendices/figures/tables
+  generators, diagrams, the narration script, and a tos-reader fork repair; and
+- the dissertation support surface (detailed findings narrative, results records,
+  research directions v2, owner action pack, project guide, session/handoff prompts)
+  was committed alongside, with the XAI framing removed by owner decision.
+
 Continued the autonomous build-out on 27 July: the Match Review page landed as an additive
 v0.7 route with the full decide-persist-resume-seal flow under AppTest; a workspace continuity
 audit found the network chain dead in expired session workspaces and the Geofabrik dated-file

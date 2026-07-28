@@ -2701,6 +2701,15 @@ sensitivity (only where load saturates the concurrency bound: 2,488-slot collaps
 yes; 139/175-slot regimes no; threshold bracketed, not located). Exclusive files:
 docs/evaluation/capacity_grid_results_20260728.md, its docs/index.md row, and this record.
 
+### Phase 91 claim: integration handoff + changelog reconciliation (28 July 2026)
+
+`CODEX_INTEGRATION_HANDOFF.md` (repo root) gives the lead the review range, claim map,
+gate evidence, absolute hazards (external clones never fetched; the byte-frozen signed
+candidate; evidence stores read-only; a B0 campaign possibly in flight), the fast-forward
+procedure, and the untouched owner decision queue. The changelog's in-development section
+gains the 27-28 July research-arc block. Exclusive files: the handoff document,
+CHANGELOG.md's new block, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
