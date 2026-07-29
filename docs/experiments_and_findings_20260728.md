@@ -69,6 +69,8 @@ ran.*
 | 14 | **B-BUS synthetic + IPPO smokes** | pipeline proofs | Bus-native training path and second algorithm family verified on stand-ins. |
 | 15 | **B-DOMAIN full** (15 jobs, seeds {400–404}) | default / safety-dominant / pilot-inspired procedural domains | Completed 15/15; data-free diagnostic precursor only, explicitly not literal trace B4. Descriptive contrasts remain pending independent review. Archive sha `0d17154e…` (private, gitignored). [Preservation record](integration/evidence/bdomain_full_campaign_preservation_20260728.json) |
 
+| 15b | **B-DENSITY Phase 1 + Phase 2 cost probe** (owner-directed Colab G4 via the CLI, 29 July) | engineering smoke, then a timed sweep of the frozen density grid on unpatched producer code | **Phase 1 gate passed** — density axis responds at both smoke capacities on a real GPU backend; manifest digest printed on the VM re-verified byte-exactly after download. **Two findings beyond the gate.** (a) *The frozen design's method is unnecessary*: `VEC_JAX_N_VEHICLES` and `VEC_JAX_RSU_MAX_CONCURRENT` are already documented producer knobs, and the producer's own comment says the latter exists to "match the eval engine's per-RSU concurrency scaling (2.5 × fleet)" — the allowance semantics the design demands — so no source transform is needed and the environment runs unpatched. Recorded as an explicit deviation. (b) *The grid is unaffordable as frozen*: steady-state cost decomposes to **5.92 s/update at N=512 and 31.08 s/update at N=2048** (compile 35.1 s / 71.2 s), scaling as ≈N^1.2, so 6 densities × 3 seeds at B-CAP's 5M timesteps is **≈99 GPU-hours** — several times the whole Colab balance. N=1536 and N=2048 alone are 70% of that cost. Also bounded what the environment can claim: `N_RSUS = 2`, not overridable, on a 2,000 m corridor. [Record](evaluation/bdensity_phase1_results_20260729.md) |
+
 ## C. Real bus data (BODS, owner-attended sessions, session-scoped identity)
 
 | # | Session | Result |
@@ -119,3 +121,22 @@ permission, not a protocol or data change.
   is instructive — a published `reconciliation_fingerprint` whose recipe lived only in the
   session script, so it can never be checked against anything. **A digest is only evidence
   if the code that computes it is committed beside it.**
+- **The same argument applied to verdicts, not just digests.** For the three campaigns running
+  overnight on 28–29 July, the code that computes each pre-registered verdict was committed
+  *before its data existed* — while `inc-deep` was 2 of 12 cells in and both other legs were
+  still queued at zero. Each re-hashes its frozen predeclaration and refuses on a mismatch, and
+  each re-derives its transcribed constants from the law they encode so a typo cannot widen a
+  pass band. Two gaps were closed the same way rather than left to be filled after the arms
+  were visible: the onset-scaling hypothesis had **no operational definition of onset**, and
+  the crossover candidate named prediction (3) as *the* interesting outcome while stating it as
+  "the slope contrast should be small" — neither decidable. Both thresholds were fixed in
+  advance and transcribed from tolerances the project had already committed to elsewhere, never
+  chosen for the comparison at hand.
+- **A self-test caught the author, which is the point of having one.** The ceiling-law verdict
+  code recomputes the fitted constant from the published pilot analysis before it is allowed to
+  judge new data. Its first run reproduced K (39,959.07) and the 0.41% relative spread but not
+  the published σ of 166 ms — because the original statistic is the **sample** standard
+  deviation, and the population estimator gives 163.4 over those 36 pairs. A transcription that
+  looked right was wrong, and only an executable check against the published numbers exposed
+  it. The recipe was corrected to the one that produced the law, with the reason recorded in
+  the code rather than reconciled away.
