@@ -3567,6 +3567,32 @@ worth having either way: a prediction is only evidence if it is dated before the
 
 Exclusive files: that predeclaration and this record.
 
+### Phase 131 claim: ceiling-law prediction test result — HELD (29 July 2026)
+
+`vec-capacity-deep-inc` completed 12/12 admitted, 18.4 h compute, design fingerprint
+`5331e5207ef2eae2…` as launched. The pre-registered verdict is **HELD: 27 of 27 pairs inside the
+±5% band, none outside**, with the prediction frozen before any cell ran and the verdict code
+committed while the campaign stood at 2 of 12. Mean observed K is 40,157 / 40,309 / 40,716
+against a fitted 39,959, at capacities 7.5× below the law's fitted floor.
+
+The informative part is the residual structure, which repeats on all three seeds: error grows
+monotonically as capacity falls, T2 carries the largest error in all nine arm×seed combinations,
+and seeds order 60>61>62 in every row. So the law **sags rather than fails**, and the predeclared
+BOUNDED outcome sits just below the tested range. One correction to an earlier in-session
+statement: the ordering is **not** T2>T1>T3 at every arm — T3 exceeds T1 at cap-0.5 and inverts
+below it, so only the T2 result is claimable.
+
+Secondaries recorded honestly: partition identical on all three seeds; attainment moved upward on
+all three, the direction fixed in advance; p50 a **partial miss** — 44.6–44.9 ms on seeds 60 and
+62 but 45.7–46.2 ms on seed 61, ~4% above the predicted value.
+
+Scope is bound by the effect decomposition: the ceiling is an RSU-queue property, absent from
+locally-executing traffic, so this is a confirmed law about one subsystem exercised by ~40% of the
+fleet rather than about the system.
+
+Exclusive files: `docs/evaluation/ceiling_law_prediction_results_20260729.md`, the register row,
+and this record. The crossover leg started automatically on completion.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
