@@ -3498,6 +3498,16 @@ Explicitly not established: whether offloading *helps* the vehicles that do it. 
 counterfactual needs a different actor on the same trace, which is the already-queued crossover
 campaign — reframing that leg from marginal to decisive.
 
+Extended the same slice with the effect decomposition (§6): over a 25x squeeze the never-offload
+population's mean latency, p50, p95-of-missed and attainment are **bit-identical**, while the
+always-offload population carries the entire effect (-24,564 ms seed 60, -26,364 ms seed 61).
+Three consequences: the confirmed fleet-mean -8,310.9 ms **describes no vehicle**, since it
+averages a bimodal population where ~60% moved by exactly zero; the ceiling law is an
+**RSU-queue** law rather than a system property, absent entirely from locally-executing traffic
+and recovered by the pooled measurement only because ~92% of missed tasks are offloaded ones;
+and the earlier seed-difference puzzle resolves as the tier-0 gain diluted by tier-0 share
+(0.0102 x 0.41 = 0.0042 against a measured 0.00416).
+
 Exclusive files: `scripts/analyse_offload_partition.py`,
 `docs/evaluation/offload_partition_analysis_20260729.md`, the register row, and this record.
 

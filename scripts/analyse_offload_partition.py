@@ -78,6 +78,7 @@ def analyse_cell(cell: Path) -> dict[str, Any]:
     task_active = task["task_active"]
     task_met = task["task_met"]
     task_type = task["task_type"]
+    task_lat = task["task_lat_ms"]
     tasks_per_slot = task_active.sum(axis=(0, 1)).astype(np.float64)
     met_per_slot = (task_met & task_active).sum(axis=(0, 1)).astype(np.float64)
     has_tasks = tasks_per_slot > 0
@@ -111,7 +112,23 @@ def analyse_cell(cell: Path) -> dict[str, Any]:
                 "failure_rate": missed / n,
             }
         del sub_active, sub_met, sub_type
+        # Per-group latency: the capacity effect is decomposed by population,
+        # because a fleet mean over a bimodal population describes nobody.
+        sub_a = task_active[:, :, mask]
+        sub_m = task_met[:, :, mask]
+        sub_l = task_lat[:, :, mask]
+        active_lat = sub_l[sub_a]
+        missed_lat = sub_l[sub_a & ~sub_m]
+        latency = {
+            "mean_ms": float(active_lat.mean()) if active_lat.size else None,
+            "p50_ms": float(np.percentile(active_lat, 50)) if active_lat.size else None,
+            "p95_missed_ms": float(np.percentile(missed_lat, 95)) if missed_lat.size else None,
+            "attainment": float((sub_m & sub_a).sum() / sub_a.sum()) if sub_a.sum() else None,
+        }
+        del sub_a, sub_m, sub_l, active_lat, missed_lat
+
         groups[name] = {
+            "latency": latency,
             "slots": int(selected.sum()),
             "share_of_slots": float(selected.sum() / has_tasks.sum()),
             "tier_composition": {

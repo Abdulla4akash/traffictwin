@@ -96,7 +96,45 @@ is currently known.
 two variables that are both determined by tier. Tier is the common cause; this analysis
 separates it from workload and task mix, and stops there.
 
-## 6. Limits
+## 6. The confirmed capacity effect, decomposed by population
+
+If the partition is real, the capacity effect should live entirely in the offloading population.
+It does — and the other population's numbers are not merely stable, they are **bit-identical**.
+
+Same seed, capacity 2.5 against 0.1 (a 25× squeeze):
+
+| Seed | Group | mean latency | p50 | p95 of missed | attainment |
+|---|---|---|---|---|---|
+| 60 | never-offload | 39.6 → **39.6 ms** | 25.3 → 25.3 | 265.1 → 265.1 | 0.9720 → 0.9720 |
+| 60 | always-offload | 25,625.5 → 1,061.3 ms | 169.6 → 168.4 | 100,190.1 → 4,097.4 | 0.5103 → 0.5116 |
+| 61 | never-offload | 39.6 → **39.6 ms** | 25.0 → 25.0 | 287.0 → 287.0 | 0.9715 → 0.9715 |
+| 61 | always-offload | 27,438.3 → 1,074.1 ms | 194.9 → 181.8 | 99,948.5 → 4,079.0 | 0.4926 → 0.5028 |
+
+**Δ mean latency: +0.0 ms (never-offload) against −24,564.2 ms (seed 60) and −26,364.1 ms
+(seed 61).**
+
+Three consequences.
+
+**The confirmed fleet-mean effect describes no vehicle.** The headline −8,310.9 ms is an average
+over a bimodal population: roughly 40% of the fleet experienced a reduction an order of
+magnitude larger, and roughly 60% experienced *exactly none*. No vehicle experienced −8.3 s. A
+mean over a bimodal population is a number about the mixture, not about any member of it.
+
+**The ceiling law is an RSU-queue law.** Computed on the offloading population alone, p95 of
+missed ÷ capacity gives 40,076 and 40,974 (seed 60) and 39,979 and 40,790 (seed 61) — the same
+constant. Computed on the never-offload population it has no capacity relationship at all: 265.1
+ms at both capacities on seed 60, 287.0 at both on seed 61. `L(c) ≈ K·c` was never a property of
+the system; it is a property of the RSU queue, and it applies only to traffic that enters it.
+The pooled measurement recovered it because ~92% of all missed tasks belong to the offloading
+population.
+
+**It resolves the seed-difference puzzle.** Fleet attainment moved 8.5× more at seed 61 than at
+seed 60. Decomposed: tier-0 attainment moved +0.0013 (seed 60) and +0.0102 (seed 61), and the
+fleet figure is that movement diluted by the tier-0 share (~0.41). 0.0102 × 0.41 ≈ 0.0042
+against a measured fleet change of 0.00416. The seeds differ in how much the offloading
+population gained, not in anything structural.
+
+## 7. Limits
 
 - One trace (`inc`, the modelled collapse hour), one producer environment, one actor.
 - Five cells were analysed, not all twelve of each campaign; the pattern is identical in all
@@ -107,4 +145,5 @@ separates it from workload and task mix, and stops there.
   reading of existing artifacts rather than a tested hypothesis.
 
 Reproduced by `scripts/analyse_offload_partition.py`; evidence at
-`data/offload-partition-20260729/offload_partition.json`.
+`data/offload-partition-20260729/offload_partition.json` (§2–§5) and
+`data/offload-partition-20260729/effect-decomposition/offload_partition.json` (§6).
