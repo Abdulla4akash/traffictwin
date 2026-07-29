@@ -3426,6 +3426,30 @@ Exclusive files: `docs/evaluation/bdensity_phase1_results_20260729.md` and this 
 predeclaration, campaign design, launcher, producer clone or admitted artifact is modified;
 Phase 2 is not launched.
 
+### Phase 126 claim: producer data and publication permission recorded (owner-relayed, 29 July 2026)
+
+The owner stated that the producer has granted permission covering **code, data and
+publication** in writing, i.e. all three items the 28 July record listed as open asks.
+`docs/integration/randy_data_and_publication_permission_20260729.md` records it and the earlier
+document carries a superseded-in-scope banner rather than being edited or removed, because
+several frozen predeclarations link to it by path and it records the state under which those
+campaigns were approved. No digest binds either file, so nothing frozen is disturbed.
+
+**The consequential change is publication, not compute.** The confirmed latency result, the
+ceiling law and every figure in the experiments register were previously outside the recorded
+permission for public output, so this gates the dissertation write-up. The Colab question that
+surfaced it is the lesser half, and is still blocked on budget regardless: the remaining queue
+is ~460 compute units against a ~196.6 balance.
+
+Recorded honestly as second-hand: the written artifact is not in the repository and this agent
+has not seen it. Filing the message text or a dated quoted excerpt is left as a small open
+action, worth closing before the dissertation cites any producer-derived number. Label ceilings,
+the non-admitted status of third-party-venue outputs, citation obligations, the
+never-fetch rule and per-experiment predeclaration all stand unchanged — this permission
+concerns intellectual property and data use, not scientific validation.
+
+Exclusive files: the new permission record, the banner on the 28 July record, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

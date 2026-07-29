@@ -1,5 +1,13 @@
 # Producer Code-Use Permission — Recorded Provenance (28 July 2026)
 
+> **SUPERSEDED IN SCOPE, 29 July 2026.** The three items listed below as *NOT covered* — data
+> blobs leaving the machine, publication of data-derived aggregates, and republication of
+> repository content — are now recorded as covered by a written producer permission relayed by
+> the owner. See
+> [`randy_data_and_publication_permission_20260729.md`](randy_data_and_publication_permission_20260729.md).
+> **This document is retained unchanged below** because frozen predeclarations link to it by
+> path and it records the state under which those campaigns were approved.
+
 **Status: relayed permission, recorded exactly as received; not yet a written contract.**
 Shortly after midnight on 28 July 2026 the owner relayed the producer's (Randy Putra's)
 statement, given directly to the owner: **"okay — [the owner] can use all the code as
