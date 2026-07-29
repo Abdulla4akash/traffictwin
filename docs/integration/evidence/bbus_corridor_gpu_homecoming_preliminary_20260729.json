@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0",
+  "method_version": "bbus-corridor-local-homecoming-review-1.0",
+  "reviewed_at_local": "2026-07-29T04:00:00+01:00",
+  "experiment_id": "B-BUS-CORRIDOR-DAWN-PEAK-20260728",
+  "arm": "corridor",
+  "status": "RETURNED_ARCHIVE_LOCALLY_INTEGRITY_RECHECKED__INDEPENDENT_HOMECOMING_PENDING",
+  "returned_archive": {
+    "compressed_bytes": 1412372,
+    "uncompressed_member_bytes": 2829488,
+    "sha256": "a84b5a16a3ccfee55e50699f5e81de549086b4f3fcb043f610165ca5caa4d07f",
+    "duplicate_local_downloads_checked": 4,
+    "duplicate_downloads_byte_identical": true,
+    "zip_members": 49,
+    "inventoried_payload_members": 48
+  },
+  "bindings": {
+    "campaign_version": "bbus-dawn-peak-colab-1.0",
+    "campaign_binding_sha256": "5487e0ac89ac018429c7baaa4c60293df332f95457284432284151b968ce7646",
+    "protocol_sha256": "cd2e93f926d19a1c8b55d3962a674353be70b8d4fff0f69d80417e666238cde7",
+    "binding_matches_frozen_pack": true,
+    "protocol_matches_frozen_pack": true,
+    "peak_used_for_training_or_selection": false
+  },
+  "local_checks": {
+    "unique_safe_zip_paths": true,
+    "symlink_members_absent": true,
+    "inventory_member_set_exact": true,
+    "all_inventoried_sizes_match": true,
+    "all_inventoried_sha256_match": true,
+    "campaign_progress_completed": true,
+    "completed_jobs": 5,
+    "expected_jobs": 5,
+    "per_seed_evaluation_metadata_checked": true,
+    "per_seed_action_shares_sum_to_one": true,
+    "summary_means_recomputed_exactly": true
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "jax": "0.7.2",
+    "jaxlib": "0.7.2",
+    "jax_backend": "gpu",
+    "jax_device": "cuda:0",
+    "nvidia_gpu_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition"
+  },
+  "primary_endpoint": {
+    "name": "held_out_peak_completion_capacity_0.75_equal_weight_seed_mean",
+    "value": 0.8098405089732191,
+    "sample_sd_across_five_seeds": 0.05343611190024306,
+    "minimum": 0.7469317080257896,
+    "maximum": 0.854757671610104,
+    "status": "preliminary_non_admitted"
+  },
+  "capacity_0p75_equal_weight_means": {
+    "completion": 0.8098405089732191,
+    "t1_completion": 0.6230843566057394,
+    "t2_completion": 0.9444265828806868,
+    "t3_completion": 0.8036511979379387,
+    "avg_latency_ms_per_task": 108.4449896607222,
+    "avg_energy_j_per_task": 0.3258334492857533,
+    "p_local": 0.43895290752692057,
+    "p_v2i": 0.48143363818178003,
+    "p_v2v": 0.0796134542912994
+  },
+  "capacity_2p5_equal_weight_means": {
+    "completion": 0.8096717707076584,
+    "t1_completion": 0.6229295762747474,
+    "t2_completion": 0.944227510306094,
+    "t3_completion": 0.8034951508764288,
+    "avg_latency_ms_per_task": 108.65552368168376,
+    "avg_energy_j_per_task": 0.3258334492857533,
+    "p_local": 0.43895290752692057,
+    "p_v2i": 0.48143363818178003,
+    "p_v2v": 0.0796134542912994
+  },
+  "per_seed_capacity_0p75": [
+    {
+      "model_seed": 30,
+      "total_tasks": 420770,
+      "completion": 0.7566746678708083,
+      "avg_latency_ms_per_task": 134.20040402119923,
+      "avg_energy_j_per_task": 0.14277808392946265,
+      "p_local": 0.16654229151317823,
+      "p_v2i": 0.7779071701879887,
+      "p_v2v": 0.055550538298833094
+    },
+    {
+      "model_seed": 31,
+      "total_tasks": 419859,
+      "completion": 0.7469317080257896,
+      "avg_latency_ms_per_task": 152.19017813122977,
+      "avg_energy_j_per_task": 0.6107960127685723,
+      "p_local": 0.7576376831269546,
+      "p_v2i": 0.24236231687304546,
+      "p_v2v": 0.0
+    },
+    {
+      "model_seed": 32,
+      "total_tasks": 420195,
+      "completion": 0.8520639227025548,
+      "avg_latency_ms_per_task": 82.47931555587287,
+      "avg_energy_j_per_task": 0.2896000666357286,
+      "p_local": 0.41809160032841897,
+      "p_v2i": 0.4670783802758243,
+      "p_v2v": 0.11483001939575674
+    },
+    {
+      "model_seed": 33,
+      "total_tasks": 420153,
+      "completion": 0.854757671610104,
+      "avg_latency_ms_per_task": 83.11385614288129,
+      "avg_energy_j_per_task": 0.29795016636796595,
+      "p_local": 0.4367670824675773,
+      "p_v2i": 0.42245800934421507,
+      "p_v2v": 0.14077490818820762
+    },
+    {
+      "model_seed": 34,
+      "total_tasks": 421013,
+      "completion": 0.8387745746568396,
+      "avg_latency_ms_per_task": 90.24119445242783,
+      "avg_energy_j_per_task": 0.2880429167270369,
+      "p_local": 0.4157258801984737,
+      "p_v2i": 0.4973623142278267,
+      "p_v2v": 0.08691180557369962
+    }
+  ],
+  "descriptive_observations": {
+    "capacity_2p5_minus_0p75_completion": -0.0001687382655607117,
+    "capacity_difference_percentage_points": -0.01687382655607117,
+    "four_of_five_seeds_identical_across_capacities": true,
+    "seed_variability_material": true,
+    "t1_completion_lowest_class_mean": true,
+    "dawn_frozen_actor_evaluation_available": false,
+    "causal_rush_hour_claim_available": false
+  },
+  "sparse64_execution_observation": {
+    "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+    "started_at_utc": "2026-07-28T23:48:39.673735+00:00",
+    "last_preserved_update_index_by_seed": {
+      "30": 352,
+      "31": 351,
+      "32": 349,
+      "33": 353,
+      "34": 352
+    },
+    "expected_updates_per_seed": 1562,
+    "session_terminated_at_local": "2026-07-29T02:53:24+01:00",
+    "termination_cause_known": false,
+    "completed_actor_available": false,
+    "held_out_evaluation_available": false,
+    "result_archive_available": false,
+    "scientific_result_available": false
+  },
+  "claim_ceiling": {
+    "scientific_evidence": false,
+    "actor_admission_eligible": false,
+    "independent_homecoming_completed": false,
+    "supervisor_approved": false,
+    "real_computing_tasks_observed": false,
+    "observed_rsus": false,
+    "general_manchester_claim": false
+  },
+  "owner_decisions_taken_by_agent": [],
+  "next_actions": [
+    "independent review of the corridor returned archive and actors",
+    "complete a frozen-protocol Sparse-64 execution",
+    "publish the two arms separately and retain their different coverage and admission labels"
+  ]
+}
