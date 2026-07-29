@@ -283,14 +283,29 @@ session. Another identical ephemeral retry therefore has a clear loss risk. A ch
 resumable execution under the already approved frozen scientific protocol—or a sufficiently
 durable GPU allocation—is still required.
 
-## 12. Remaining gates
+## 12. Checkpointed Sparse-64 successor execution
+
+The owner approved the execution-only repair. A private derived trainer now saves complete,
+atomic state every 50 completed PPO updates while retaining every scientific setting above.
+An actual-source/actual-trace G4 smoke verified exact checkpoint-state restoration and exact
+reported scientific-curve equality. It also showed that subsequent float32 work in an
+independently compiled G4 process is not bitwise identical (maximum actor difference 0.00598
+after two more smoke updates); no post-hoc tolerance was applied or hidden.
+
+The new five-seed run started at approximately 10:29:54 UTC on 29 July under a browser-
+independent macOS supervisor. At this cutoff it is live but has returned no held-out result.
+The supervisor mirrors checkpoints off-runtime, restarts from validated boundaries after a
+loss, retrieves the final private ZIP and releases its exact finished allocation. Full design,
+hashes, cleanup and limitation details are in the
+[checkpointed execution record](bbus_sparse64_checkpointed_execution_20260729.md).
+
+## 13. Remaining gates
 
 1. Preserve/review the corridor returned archive through the independent homecoming and actor
    admission process; do not promote the preliminary numbers merely because local integrity
    checks passed.
-2. Add a reviewed checkpoint/resume boundary or use a durable GPU allocation, then re-run
-   Sparse-64 without changing its trace, 64-site array, scientific settings, seeds or held-out
-   discipline; record every execution-only change.
+2. Let the checkpointed Sparse-64 run finish; then independently verify the returned archive,
+   every resume disclosure and all held-out metrics before promoting any number.
 3. When Sparse-64 returns, publish its settings and results beside—not pooled with—the corridor
    arm, always carrying its 45.01%/46.00% coverage diagnostic.
 4. Owner/supervisor decisions remain decisions to present, never decisions for an agent to

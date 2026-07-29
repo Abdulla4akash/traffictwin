@@ -1,0 +1,49 @@
+{
+  "actor_admission_eligible": false,
+  "campaign_started_at_utc_approx": "2026-07-29T10:29:54Z",
+  "checkpoint_execution": {
+    "boundary": "completed_ppo_update",
+    "every_environment_steps": 160000,
+    "every_updates": 50,
+    "local_mirror_poll_seconds": 30,
+    "restored_state_values_exactly_verified": true,
+    "scientific_settings_changed": false,
+    "trainer_sha256": "1f8b46eb621c7b01fe313a6a0a8dd7cbab254c8a2c682e9cf2d2a23fc4f0f035"
+  },
+  "colab": {
+    "active_session_name": "bbus-sparse64-20260729-a1",
+    "accelerator": "G4",
+    "browser_required_after_launch": false,
+    "cli_only": true,
+    "status_at_record_cutoff": "busy",
+    "supervisor_service": "com.traffictwin.bbus.sparse64.20260729"
+  },
+  "commit": "78728d8118672a8560bdbe9109e4761066fda856",
+  "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+  "final_pack": {
+    "manifest_sha256": "fe3d09cc90a872b9fa540953b79adef6ac8ce20ca95e8933442fb3232237250a",
+    "sparse64_zip_sha256": "0ef9ea359d985e25393ba2a80022fdf73265f1d0bb8fa5c34dff87cb8ce89d7b"
+  },
+  "held_out_result_available": false,
+  "owner_authorised_execution_repair": true,
+  "protocol_sha256": "f366f3ba886287150eefcf64268e38df4e2a488372ed738dbbc712573c221efa",
+  "raw_bods_uploaded": false,
+  "schema_version": "1.0",
+  "scientific_evidence": false,
+  "smoke": {
+    "actor_max_absolute_difference_after_two_further_cross_process_updates": 0.005979523062705994,
+    "actor_parameters_bitwise_equal_after_further_gpu_updates": false,
+    "checkpoint_restore_state_values_exact": true,
+    "full_device_state_bitwise_equal_after_further_gpu_updates": false,
+    "no_post_hoc_numerical_tolerance": true,
+    "record_sha256": "b0399421db3bb86047643f09267513d02763e5177cfb69906534bf30341c9049",
+    "resume_execution_gate_passed": true,
+    "scientific_curve_columns_exactly_equal": true
+  },
+  "stale_colab_cleanup": {
+    "orphan_assignment_unassigned": true,
+    "reason": "server assignment remained after local session record was cleared following 404/401",
+    "server_assignment_count_after_cleanup": 0
+  },
+  "status": "running_checkpointed_sparse64_no_result_yet"
+}
