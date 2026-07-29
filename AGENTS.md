@@ -3593,6 +3593,26 @@ fleet rather than about the system.
 Exclusive files: `docs/evaluation/ceiling_law_prediction_results_20260729.md`, the register row,
 and this record. The crossover leg started automatically on completion.
 
+### Phase 132 claim: session context prompt v7 + B-DENSITY cost-probe script committed (29-30 July 2026)
+
+Resume set for a fresh session or another agent. `CLAUDE_SESSION_CONTEXT_PROMPT_V7.md` supersedes
+V6 and leads with the running work — the crossover at 5/12 cells with its committed,
+digest-guarded analysis runner ready, and the onset sweep queued with its verdict code likewise
+committed — so a resuming agent executes scripts rather than reconstructing analyses. It carries
+the 29-July findings (ceiling law HELD 27/27 with the sag structure; the tier-partition finding;
+the effect decomposition showing the confirmed mean describes no vehicle; the same-day 9j
+withdrawal with the wrong-units lesson), the reframed write-up headline the owner agreed to, the
+changed permission state with its one open action, the Colab operational facts (kernel-vs-GPU
+status, shared sessions.json, the .pth shim, the --no-deps runtime recipe, the budget arithmetic),
+and the owner queue with ethics first.
+
+Also commits `gpu/colab/bdensity_cost_probe.py`, which ran on the G4 and produced the Phase-2
+cost measurement cited in register row 15b but had been left untracked — the register's own rule
+is that a number is only evidence if the code that computed it is committed beside it, and this
+closes that gap for the 5.92→31.08 s/update figures.
+
+Exclusive files: that prompt, that script, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
