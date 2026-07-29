@@ -3511,6 +3511,34 @@ and the earlier seed-difference puzzle resolves as the tier-0 gain diluted by ti
 Exclusive files: `scripts/analyse_offload_partition.py`,
 `docs/evaluation/offload_partition_analysis_20260729.md`, the register row, and this record.
 
+### Phase 129 claim: RSU association is load-blind (29 July 2026)
+
+Two array fields nothing had touched — `veh_best_rsu` and `rsu_load` — revise the interpretation
+of the per-RSU asymmetry. The measurement there stands; "placement, not capacity, binds" does
+not. The idle RSUs are **selected** as best hundreds of thousands of times, so they are in range,
+and sit at **0.0%** of the concurrency bound, so they are not full. RSU 3 is chosen more often
+than RSUs 1, 2 or 6 while carrying 2.8% of their load; RSU 8 takes 22,939 `v2i` sends and holds a
+load of exactly zero. Four RSUs run at 95.8–97.9% of bound and carry 99.1% of all load.
+
+An intermediate hypothesis — that idleness follows the tier partition — was tested and
+**rejected** before the current one was adopted: tier-0's share of selectors is 0.375–0.435
+across all ten RSUs, correlating +0.31 with load over ten points.
+
+Mechanism read from producer source rather than inferred: `best_rsu_idx = jnp.argmax(all_v2i_q)`
+selects on link quality with no load term, while the environment computes `best_rsu_load_frac`
+for the observation and never consults it in the association. Work therefore concentrates on the
+best-signal RSUs and stays there after they saturate. The same four saturate across a 25× squeeze
+and a different seed, which explains the earlier non-redistribution result.
+
+Two consequences recorded: the remedy is a load-aware association rule — software, testable in
+the existing environment, with 60% of infrastructure already in range and idle — rather than
+moving masts; and every capacity number in this project is a statement about **four** RSUs, since
+the ceiling law lives in a queue that is effectively four deep, not ten.
+
+Exclusive files: `scripts/analyse_rsu_association.py`,
+`docs/evaluation/rsu_association_analysis_20260729.md`, the register rows 9c and 9j, and this
+record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
