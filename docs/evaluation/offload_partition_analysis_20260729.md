@@ -38,6 +38,26 @@ tier 0 is roughly **13× weaker** than tier 2.
 The worst-failing decile of slots is **100% always-offload in every cell**; the best decile is
 ~99.6% never-offload.
 
+### 2b. The rule, fully specified
+
+Characterising the ~3.5% "mixed" slots completes it. At `cap-2.5-fs60` the mixed group is
+**50 tier-1 and 33 tier-2 slots — no tier-0 vehicle at all**. So:
+
+| Tier | Capability | Offload rate |
+|---|---|---|
+| 0 | 0.0751 | **exactly 1.0** — group minimum is 1.0000, i.e. unconditional |
+| 1, 2 | 0.4847, 1.0 | **exactly 0.0** for 1,410 of 1,493 slots; 83 exceptions spanning 0.0004–0.7459 (median 0.066) |
+
+The weak vehicles receive no decision at all. Whatever situational behaviour the policy retains
+exists only among the strong vehicles, in 5.6% of them, and never changes the outcome for the
+population that actually fails.
+
+The partition is also identical **element-wise** across a 25× capacity change — same vehicles in
+the same groups, and every per-slot offload rate equal to the last bit. This is a
+re-confirmation at vehicle granularity rather than an independent result: it follows from the
+previously published keyed action comparison, which found 0 mismatches in 8,956,800 per-vehicle
+actions. It is recorded here because it locates *why* that comparison found what it did.
+
 ## 3. Two confounds, eliminated rather than assumed
 
 A raw failure gap between two groups can be manufactured by either of these, so both were
