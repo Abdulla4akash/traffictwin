@@ -164,6 +164,8 @@ def supervise(
             )
             attempt_log = local_root / f"{session}.exec.log"
             with attempt_log.open("a", encoding="utf-8") as log:
+                remote_output_seen = False
+                consecutive_missing_output = 0
                 execution = subprocess.Popen(
                     [
                         str(colab),
@@ -193,6 +195,19 @@ def supervise(
                             f"the live training session: {exc}"
                         )
                         mirrored = {"downloaded": [], "available": True}
+                    if mirrored["available"]:
+                        remote_output_seen = True
+                        consecutive_missing_output = 0
+                    elif remote_output_seen:
+                        consecutive_missing_output += 1
+                        _event(
+                            "remote campaign output missing after it was observed: "
+                            f"consecutive_checks={consecutive_missing_output}"
+                        )
+                        if consecutive_missing_output >= 3:
+                            raise RuntimeError(
+                                "remote campaign output disappeared for three checks"
+                            )
                     for item in mirrored["downloaded"]:
                         _event(
                             f"mirrored seed={item['seed']} "
