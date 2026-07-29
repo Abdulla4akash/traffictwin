@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import io
 import json
 import math
 import os
@@ -24,7 +25,11 @@ from typing import Any
 
 import numpy as np
 
-CAMPAIGN_VERSION = "bbus-dawn-peak-colab-1.0"
+CAMPAIGN_VERSION = "bbus-dawn-peak-colab-1.1"
+CHECKPOINT_SCHEMA_VERSION = "bbus-update-checkpoint-1.0"
+CHECKPOINT_STATUS_SCHEMA_VERSION = "bbus-update-checkpoint-status-1.0"
+CHECKPOINT_TRANSFORM_VERSION = "bbus-update-checkpoint-transform-1.0"
+CHECKPOINT_EVERY_UPDATES = 50
 MODEL_SEEDS = (30, 31, 32, 33, 34)
 CAPACITY_PER_SLOT = (2.5, 0.75)
 TRAINING_CAPACITY_PER_SLOT = 2.5
@@ -180,6 +185,24 @@ def verify_pack(pack_root: Path) -> dict[str, Any]:
         if sha256_file(root / "source" / relative) != digest:
             raise ValueError(f"staged producer source changed: {relative}")
 
+    checkpoint_execution = binding.get("checkpoint_execution")
+    if not isinstance(checkpoint_execution, dict):
+        raise ValueError("campaign binding has no checkpoint execution provenance")
+    expected_checkpoint_execution = {
+        "method_version": CHECKPOINT_TRANSFORM_VERSION,
+        "upstream_path": "train_mappo_vec.py",
+        "upstream_sha256": EXPECTED_STAGED_SOURCE["jaxmarl/scripts/train_mappo_vec.py"],
+        "derived_path": "train_mappo_vec_checkpointed.py",
+        "scientific_settings_changed": False,
+        "checkpoint_boundary": "completed_ppo_update",
+    }
+    for key, value in expected_checkpoint_execution.items():
+        if checkpoint_execution.get(key) != value:
+            raise ValueError(f"checkpoint execution binding mismatch for {key}")
+    derived_trainer = root / "source/jaxmarl/scripts/train_mappo_vec_checkpointed.py"
+    if sha256_file(derived_trainer) != checkpoint_execution.get("derived_sha256"):
+        raise ValueError("checkpointed trainer differs from its provenance binding")
+
     dawn = _validate_trace(root / "inputs/dawn_trace.npz", binding["traces"]["dawn"])
     peak = _validate_trace(root / "inputs/peak_trace.npz", binding["traces"]["peak"])
     if arm == "sparse64":
@@ -254,6 +277,8 @@ def _job_files(output_root: Path, job: Job) -> dict[str, Path]:
         "actor": Path(f"{base}_actor_params.npz"),
         "timing": Path(f"{base}_decision_ms_raw.npz"),
         "train_log": Path(f"{base}_train.log"),
+        "checkpoint": Path(f"{base}.checkpoint.zip"),
+        "checkpoint_status": Path(f"{base}.checkpoint.zip.json"),
         "manifest": Path(f"{base}_run_manifest.json"),
     }
     for capacity in CAPACITY_PER_SLOT:
@@ -261,6 +286,88 @@ def _job_files(output_root: Path, job: Job) -> dict[str, Path]:
         files[f"eval_{slug}"] = Path(f"{base}_peak_cap-{slug}.json")
         files[f"eval_log_{slug}"] = Path(f"{base}_peak_cap-{slug}.log")
     return files
+
+
+def _checkpoint_status(path: Path) -> Path:
+    return Path(str(path) + ".json")
+
+
+def _validate_checkpoint(
+    checkpoint: Path,
+    *,
+    binding: dict[str, Any],
+    job: Job,
+    expected_next_update: int | None = None,
+) -> dict[str, Any]:
+    """Validate an execution checkpoint without deserialising model state."""
+
+    if not checkpoint.is_file():
+        raise ValueError(f"{job.identity}: checkpoint is missing")
+    with zipfile.ZipFile(checkpoint) as archive:
+        expected_names = {"device.msgpack", "host.npz", "curve.csv", "manifest.json"}
+        if set(archive.namelist()) != expected_names or archive.testzip() is not None:
+            raise ValueError(f"{job.identity}: checkpoint ZIP inventory or CRC differs")
+        components = {name: archive.read(name) for name in expected_names}
+    manifest = json.loads(components["manifest.json"])
+    if manifest.get("schema_version") != CHECKPOINT_SCHEMA_VERSION:
+        raise ValueError(f"{job.identity}: checkpoint schema differs")
+    settings = manifest.get("settings", {})
+    exact_settings = {
+        "seed": job.model_seed,
+        "total_timesteps": REQUESTED_TIMESTEPS,
+        "num_envs": NUM_ENVS,
+        "rollout_len": ROLLOUT_LEN,
+        "updates_per_total": EXPECTED_UPDATES,
+        "lr": LEARNING_RATE,
+        "ippo": False,
+        "use_mask": False,
+        "init_actor": None,
+        "task_dist": None,
+        "stress_config": None,
+        "trace_sha256": binding["traces"]["dawn"]["sha256"],
+        "trainer_sha256": binding["checkpoint_execution"]["derived_sha256"],
+    }
+    for key, value in exact_settings.items():
+        if settings.get(key) != value:
+            raise ValueError(f"{job.identity}: checkpoint setting differs for {key}")
+    next_update = manifest.get("next_update")
+    if not isinstance(next_update, int) or not 0 < next_update <= EXPECTED_UPDATES:
+        raise ValueError(f"{job.identity}: checkpoint update is outside the frozen run")
+    if expected_next_update is not None and next_update != expected_next_update:
+        raise ValueError(f"{job.identity}: final checkpoint update differs")
+    if manifest.get("total_env_steps") != next_update * NUM_ENVS * ROLLOUT_LEN:
+        raise ValueError(f"{job.identity}: checkpoint environment-step count differs")
+    for name in ("device.msgpack", "host.npz", "curve.csv"):
+        value = components[name]
+        observed = {"bytes": len(value), "sha256": hashlib.sha256(value).hexdigest()}
+        if manifest.get("components", {}).get(name) != observed:
+            raise ValueError(f"{job.identity}: checkpoint component changed: {name}")
+    with np.load(io.BytesIO(components["host.npz"]), allow_pickle=False) as host:
+        if int(host["next_update"].item()) != next_update:
+            raise ValueError(f"{job.identity}: checkpoint host update differs")
+    curve_text = components["curve.csv"].decode("utf-8")
+    rows = list(csv.DictReader(curve_text.splitlines()))
+    if len(rows) != next_update or int(rows[-1]["update"]) != next_update - 1:
+        raise ValueError(f"{job.identity}: checkpoint curve boundary differs")
+    status_path = _checkpoint_status(checkpoint)
+    if status_path.is_file():
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        expected_status = {
+            "schema_version": CHECKPOINT_STATUS_SCHEMA_VERSION,
+            "checkpoint_filename": checkpoint.name,
+            "checkpoint_bytes": checkpoint.stat().st_size,
+            "checkpoint_sha256": sha256_file(checkpoint),
+            "next_update": next_update,
+            "total_env_steps": next_update * NUM_ENVS * ROLLOUT_LEN,
+        }
+        if status != expected_status:
+            raise ValueError(f"{job.identity}: checkpoint status sidecar differs")
+    return {
+        "next_update": next_update,
+        "total_env_steps": manifest["total_env_steps"],
+        "bytes": checkpoint.stat().st_size,
+        "sha256": sha256_file(checkpoint),
+    }
 
 
 def _validate_evaluation(
@@ -318,6 +425,16 @@ def _validate_completed_job(output_root: Path, job: Job, binding: dict[str, Any]
             raise ValueError(f"{job.identity}: timing agent count differs from dawn")
         if len(timing["decision_ms"]) != EXPECTED_UPDATES * ROLLOUT_LEN:
             raise ValueError(f"{job.identity}: timing series length differs")
+    checkpoint = _validate_checkpoint(
+        paths["checkpoint"],
+        binding=binding,
+        job=job,
+        expected_next_update=EXPECTED_UPDATES,
+    )
+    with zipfile.ZipFile(paths["checkpoint"]) as archive:
+        checkpoint_curve = archive.read("curve.csv")
+    if hashlib.sha256(checkpoint_curve).hexdigest() != sha256_file(paths["csv"]):
+        raise ValueError(f"{job.identity}: final curve differs from its checkpoint")
     evaluations: dict[str, Any] = {}
     for capacity in CAPACITY_PER_SLOT:
         slug = _capacity_slug(capacity)
@@ -334,6 +451,7 @@ def _validate_completed_job(output_root: Path, job: Job, binding: dict[str, Any]
         "effective_timesteps": int(rows[-1]["env_step"]),
         "last_training_row": rows[-1],
         "actor_input_shape": actor_shape,
+        "final_execution_checkpoint": checkpoint,
         "held_out_peak": evaluations,
         "files": {
             key: {"path": path.name, "bytes": path.stat().st_size, "sha256": sha256_file(path)}
@@ -351,8 +469,29 @@ def _run_job(
     common_env: dict[str, str],
 ) -> dict[str, Any]:
     paths = _job_files(output_root, job)
-    if any(path.exists() for key, path in paths.items() if key != "manifest"):
-        raise ValueError(f"{job.identity}: partial files exist without a validated manifest")
+    resume = paths["checkpoint"].is_file()
+    if resume:
+        _validate_checkpoint(paths["checkpoint"], binding=binding, job=job)
+        forbidden_partial = {
+            key: path
+            for key, path in paths.items()
+            if key
+            not in {
+                "csv",
+                "train_log",
+                "checkpoint",
+                "checkpoint_status",
+                "manifest",
+            }
+            and path.exists()
+        }
+        if forbidden_partial:
+            raise ValueError(
+                f"{job.identity}: post-training partial files exist beside a checkpoint: "
+                f"{sorted(forbidden_partial)}"
+            )
+    elif any(path.exists() for key, path in paths.items() if key != "manifest"):
+        raise ValueError(f"{job.identity}: partial files exist without a validated checkpoint")
     source_root = pack_root / "source"
     dawn_trace = pack_root / "inputs/dawn_trace.npz"
     peak_trace = pack_root / "inputs/peak_trace.npz"
@@ -360,12 +499,13 @@ def _run_job(
     env.update(common_env)
     env["PYTHONPATH"] = str(source_root / "jaxmarl")
     env["VEC_JAX_TRACE_REPLAY"] = str(dawn_trace)
+    env["VEC_JAX_TRACE_SHA256"] = binding["traces"]["dawn"]["sha256"]
     env["VEC_JAX_RSU_MAX_CONCURRENT"] = str(
         int(round(TRAINING_CAPACITY_PER_SLOT * binding["traces"]["dawn"]["maxN"]))
     )
     train_command = [
         sys.executable,
-        "scripts/train_mappo_vec.py",
+        "scripts/train_mappo_vec_checkpointed.py",
         "--total-timesteps",
         str(REQUESTED_TIMESTEPS),
         "--num-envs",
@@ -380,10 +520,16 @@ def _run_job(
         str(paths["csv"]),
         "--tag",
         f"{binding['arm']}__{job.identity}",
+        "--checkpoint-path",
+        str(paths["checkpoint"]),
+        "--checkpoint-every-updates",
+        str(CHECKPOINT_EVERY_UPDATES),
     ]
+    if resume:
+        train_command.extend(["--resume-checkpoint", str(paths["checkpoint"])])
     started = datetime.now(UTC).isoformat()
     started_clock = time.monotonic()
-    with paths["train_log"].open("w", encoding="utf-8") as log:
+    with paths["train_log"].open("a" if resume else "w", encoding="utf-8") as log:
         log.write("COMMAND " + " ".join(train_command) + "\n")
         log.flush()
         trained = subprocess.run(
@@ -454,8 +600,10 @@ def _run_job(
         "environment": {
             **common_env,
             "VEC_JAX_TRACE_REPLAY": "inputs/dawn_trace.npz",
+            "VEC_JAX_TRACE_SHA256": env["VEC_JAX_TRACE_SHA256"],
             "VEC_JAX_RSU_MAX_CONCURRENT": env["VEC_JAX_RSU_MAX_CONCURRENT"],
         },
+        "resumed_from_update_checkpoint": resume,
         "validation": validation,
         "scientific_evidence": False,
         "actor_admission_eligible": False,
@@ -543,7 +691,7 @@ def _archive_results(output_root: Path) -> Path:
             if not path.is_file():
                 continue
             relative = Path(output_root.name) / path.relative_to(output_root)
-            info = zipfile.ZipInfo(relative.as_posix(), date_time=(2026, 7, 28, 0, 0, 0))
+            info = zipfile.ZipInfo(relative.as_posix(), date_time=(2026, 7, 29, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             out.writestr(info, path.read_bytes())
@@ -560,12 +708,23 @@ def run_campaign(
     output = output_root.resolve()
     if output.exists() and not output.is_dir():
         raise ValueError("output root exists but is not a directory")
-    if (
-        output.exists()
-        and any(output.iterdir())
-        and not (output / "campaign_design.json").is_file()
-    ):
-        raise ValueError("non-empty output without a campaign design is never overwritten")
+    if output.exists() and any(output.iterdir()) and not (
+        output / "campaign_design.json"
+    ).is_file():
+        bootstrap_names = {
+            path.name
+            for job in campaign_jobs()
+            for path in (
+                _job_files(output, job)["checkpoint"],
+                _job_files(output, job)["checkpoint_status"],
+            )
+        }
+        observed_names = {path.name for path in output.iterdir()}
+        if not observed_names <= bootstrap_names:
+            raise ValueError(
+                "non-empty output without a campaign design contains more than "
+                "checkpoint bootstrap files"
+            )
     output.mkdir(parents=True, exist_ok=True)
     runtime = _runtime()
     common_env = {
@@ -601,6 +760,11 @@ def run_campaign(
         "num_envs": NUM_ENVS,
         "rollout_len": ROLLOUT_LEN,
         "learning_rate": LEARNING_RATE,
+        "checkpoint_schema_version": CHECKPOINT_SCHEMA_VERSION,
+        "checkpoint_transform": binding["checkpoint_execution"],
+        "checkpoint_every_updates": CHECKPOINT_EVERY_UPDATES,
+        "checkpoint_boundary": "completed_ppo_update",
+        "checkpointing_changes_scientific_settings": False,
         "common_environment": common_env,
         "peak_used_for_training_or_selection": False,
         "scientific_evidence": False,

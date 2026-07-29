@@ -14,13 +14,14 @@ from typing import Any
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from gpu.real_bbus.checkpoint_source import write_checkpointed_trainer
 from gpu.real_bbus.prepare_source import sha256_file, stage_source
 from gpu.real_bbus.run_campaign import verify_pack
 
-METHOD_VERSION = "bbus-private-colab-pack-1.1"
+METHOD_VERSION = "bbus-private-colab-pack-1.2"
 DEFAULT_TRACE_ROOT = "data/bbus-successors-20260728"
 DEFAULT_SOURCE_ROOT = "../external/vec_env"
-DEFAULT_OUTPUT_ROOT = "data/bbus-colab-packs-20260728"
+DEFAULT_OUTPUT_ROOT = "data/bbus-colab-packs-checkpointed-20260729"
 APPROVAL_PATH = "docs/integration/evidence/bbus_dual_successor_owner_approval_20260728.json"
 APPROVAL_SHA256 = "e165619566249c9b7f6cb2a531e486cfda3e61e306ab6b2d6821577432dd3764"
 
@@ -123,6 +124,10 @@ def build_packs(
             pack = work / pack_name
             pack.mkdir()
             stage_source(source, pack / "source")
+            checkpoint_execution = write_checkpointed_trainer(
+                pack / "source/jaxmarl/scripts/train_mappo_vec.py",
+                pack / "source/jaxmarl/scripts/train_mappo_vec_checkpointed.py",
+            )
             (pack / "runner").mkdir()
             shutil.copyfile(harness, pack / "runner/run_campaign.py")
             (pack / "inputs").mkdir()
@@ -146,8 +151,9 @@ def build_packs(
                 "2. Install requirements-colab.txt exactly.\n"
                 "3. Install requirements-colab-no-deps.txt with --no-deps.\n"
                 f"4. python runner/run_campaign.py --pack-root . "
-                f"--output-root /content/bbus_{arm}_results\n"
-                "5. Download the resulting sibling ZIP; do not publish it.\n",
+                f"--output-root /content/bbus_{arm}_results --max-workers 5\n"
+                "5. Mirror the atomic *.checkpoint.zip files off-runtime while it runs.\n"
+                "6. Download the resulting sibling ZIP; do not publish it.\n",
                 encoding="utf-8",
             )
             file_inventory = {
@@ -158,7 +164,7 @@ def build_packs(
             binding = {
                 "schema_version": "1.0",
                 "method_version": METHOD_VERSION,
-                "date": "2026-07-28",
+                "date": "2026-07-29",
                 "arm": arm,
                 "experiment_id": design["experiment_id"],
                 "protocol_path": f"evidence/{protocol_name}",
@@ -188,6 +194,7 @@ def build_packs(
                     "docs/integration/randy_code_permission_20260728.md"
                 ),
                 "files": file_inventory,
+                "checkpoint_execution": checkpoint_execution,
                 "scientific_evidence": False,
                 "actor_admission_eligible": False,
             }
@@ -196,7 +203,7 @@ def build_packs(
                 json.dumps(binding, indent=2, sort_keys=True) + "\n", encoding="utf-8"
             )
             verify_pack(pack)
-            archive = output / f"traffictwin_bbus_{arm}_colab_20260728.zip"
+            archive = output / f"traffictwin_bbus_{arm}_checkpointed_colab_20260729.zip"
             _deterministic_zip(pack, archive)
             with tempfile.TemporaryDirectory(prefix=f"verify-{arm}-") as verification:
                 with zipfile.ZipFile(archive) as zipped:
@@ -219,7 +226,7 @@ def build_packs(
     manifest = {
         "schema_version": "1.0",
         "method_version": METHOD_VERSION,
-        "date": "2026-07-28",
+        "date": "2026-07-29",
         "packs": packs,
         "separate_campaigns": True,
         "raw_bods_material_included": False,
@@ -271,7 +278,7 @@ def _deterministic_zip(root: Path, archive: Path) -> None:
             if not path.is_file():
                 continue
             relative = Path(root.name) / path.relative_to(root)
-            info = zipfile.ZipInfo(relative.as_posix(), date_time=(2026, 7, 28, 0, 0, 0))
+            info = zipfile.ZipInfo(relative.as_posix(), date_time=(2026, 7, 29, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             out.writestr(info, path.read_bytes())
