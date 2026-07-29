@@ -180,12 +180,19 @@ def supervise(
                     text=True,
                 )
                 while execution.poll() is None:
-                    mirrored = mirror_once(
-                        colab=colab,
-                        session=session,
-                        remote_output=remote_output,
-                        local_root=local_root,
-                    )
+                    try:
+                        mirrored = mirror_once(
+                            colab=colab,
+                            session=session,
+                            remote_output=remote_output,
+                            local_root=local_root,
+                        )
+                    except ValueError as exc:
+                        _event(
+                            "checkpoint transfer validation failed without stopping "
+                            f"the live training session: {exc}"
+                        )
+                        mirrored = {"downloaded": [], "available": True}
                     for item in mirrored["downloaded"]:
                         _event(
                             f"mirrored seed={item['seed']} "

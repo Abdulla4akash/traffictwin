@@ -91,3 +91,12 @@ def test_checkpoint_download_has_archive_component_and_sidecar_hash_layers(
     checkpoint.write_bytes(checkpoint.read_bytes() + b"changed")
     with pytest.raises(ValueError, match="byte count"):
         validate_download(checkpoint, status)
+
+
+def test_checkpoint_download_accepts_atomic_temporary_suffix(tmp_path: Path) -> None:
+    checkpoint, status = _checkpoint_pair(tmp_path)
+    temporary_checkpoint = Path(str(checkpoint) + ".download")
+    checkpoint.rename(temporary_checkpoint)
+    temporary_status = Path(str(status) + ".download")
+    status.rename(temporary_status)
+    assert validate_download(temporary_checkpoint, temporary_status)["next_update"] == 1

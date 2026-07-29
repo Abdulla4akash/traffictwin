@@ -40,7 +40,8 @@ def validate_download(checkpoint: Path, status_path: Path) -> dict[str, Any]:
     }
     if set(status) != expected_status_keys or status["schema_version"] != STATUS_SCHEMA:
         raise ValueError("checkpoint status schema or keys differ")
-    if status["checkpoint_filename"] != checkpoint.name:
+    observed_name = checkpoint.name.removesuffix(".download")
+    if status["checkpoint_filename"] != observed_name:
         raise ValueError("checkpoint status names a different archive")
     if status["checkpoint_bytes"] != checkpoint.stat().st_size:
         raise ValueError("checkpoint byte count differs from its status")
