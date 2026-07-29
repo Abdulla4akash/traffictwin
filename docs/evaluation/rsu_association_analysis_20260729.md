@@ -1,4 +1,21 @@
-# Why most deployed RSU capacity is unusable — the association rule is load-blind
+# RSU load asymmetry — quantified; cause undetermined
+
+> **PARTIALLY WITHDRAWN, 29 July 2026, same day.** This document originally concluded that the
+> association rule rather than placement causes the asymmetry. **That conclusion is withdrawn.**
+> It rested on counting `veh_best_rsu` per vehicle-step as "sends", which is the wrong unit —
+> the environment reports `n_v2i = 2,191,339` against that count's 1,139,481 — and which
+> attributes 22,939 sends to RSU 8, whose `rsu_busy_ms` is exactly 0.00 at every step. A method
+> that assigns traffic to an RSU that provably did no work cannot support an inference about
+> why other RSUs are idle.
+>
+> **What still stands** is §2's utilisation measurement and §4, both taken directly from
+> `rsu_load`/`rsu_busy_ms`, and the source reading in §3 that the association carries no load
+> term. What does **not** stand is that the idle RSUs are in range and chosen, and therefore
+> everything that followed from it. The placement reading in the earlier asymmetry record is
+> restored as the standing interpretation, and the cause is recorded as **undetermined**.
+>
+> Correctly resolving this needs per-task attribution, not per-vehicle-step counts.
+
 
 **Status: exploratory, analysis-only, `owner_approved_candidate` ceiling. Descriptive and
 non-causal. Not supervisor-approved, not confirmatory, no significance claimed. No run executed.**
