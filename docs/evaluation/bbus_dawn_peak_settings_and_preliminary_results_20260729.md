@@ -1,11 +1,12 @@
 # B-BUS Dawn-to-Peak — Detailed Settings, Available Results and Interpretation
 
-**Status at 29 July 2026 04:00 BST:** the corridor campaign completed 5/5 seed jobs and its
+**Status updated 29 July 2026 10:37 BST:** the corridor campaign completed 5/5 seed jobs and its
 returned archive passed a local byte-level integrity and binding recheck. Its metrics below are
 **available, preliminary and non-admitted** pending the separately required independent
-homecoming/actor review. The whole-fleet Sparse-64 campaign did not complete: the Colab
-session terminated before any actor, held-out evaluation or result archive existed. The two
-arms therefore do not yet have comparable result status and are never pooled.
+homecoming/actor review. The whole-fleet Sparse-64 campaign did not complete: two Colab
+sessions were lost before any actor, held-out evaluation or result archive was durably
+returned. The two arms therefore do not yet have comparable result status and are never
+pooled.
 
 - Corridor experiment: `B-BUS-CORRIDOR-DAWN-PEAK-20260728`
 - Sparse-64 experiment: `B-BUS-SPARSE64-DAWN-PEAK-20260728`
@@ -249,28 +250,47 @@ mechanism to that small reversal.
    pass/fail verdict after seeing 80.98%. The publishable null remains viable, especially given
    seed instability and T1 performance.
 
-## 11. Sparse-64 execution status — no result
+## 11. Sparse-64 execution status, duration estimate and second loss — no result
 
-The whole-fleet run began at 23:48:39 UTC with five seed jobs executing concurrently. The last
-preserved progress sample at 02:44 BST showed last update indices 349–353 of 0–1,561
-(350–354 updates completed) and 1.120–1.133 million of 4.9984 million environment steps per
-seed (roughly 22–23%). The Colab service recorded
-`session_terminated` at 02:53:24 BST and now reports no active session. No completed job
-manifest, actor, peak evaluation, campaign summary or archive was returned. The termination
-event does not state a cause, so this record does not invent one.
+The first whole-fleet run began at 23:48:39 UTC (00:48:39 BST) with five seed jobs executing
+concurrently. The last preserved progress sample at 01:44 UTC (02:44 BST) showed last update
+indices 349–353 of 0–1,561 (350–354 updates completed) and 1.120–1.133 million of 4.9984
+million environment steps per seed (roughly 22–23%). The Colab service recorded
+`session_terminated` at **02:53:24 UTC (03:53:24 BST)**. No completed job manifest, actor,
+peak evaluation, campaign summary or archive was returned. The termination event does not
+state a cause, so this record does not invent one.
+
+Those five last rows provide the best measured runtime basis. Each process sustained
+162–164 environment steps/second (mean 163) after 6,919–6,934 elapsed seconds. Linear
+extrapolation to all 1,562 updates gives **8.49–8.59 hours, mean 8.53 hours**, for the five
+seeds when run concurrently on the observed G4. Setup, compilation, two peak evaluations per
+seed, archiving and download add several minutes, so the operational planning estimate is
+**about 8.5–9 hours of uninterrupted G4 availability**. It is an extrapolation from 22–23%,
+not a completion guarantee.
+
+A clean CLI-managed retry was created at 03:06:18 UTC (04:06:18 BST). The original private
+pack was reverified; the frozen dependency stack was installed using the already recorded
+JaxMARL `--no-deps` resolution; and the external scheduling-only runner launched the same five
+scientific jobs concurrently. A live check observed all five processes, JAX 0.7.2/CUDA,
+65,867 MiB of 97,887 MiB GPU memory and 94% GPU utilisation. By 09:37 UTC (10:37 BST), the
+CLI received `404/401`, classified the session as lost and found that `/content` no longer
+existed. No durable completed seed or result archive was recovered from this retry either.
 
 Partial training curves are operational diagnostics only. They are not valid checkpoints,
 cannot answer the held-out question and must not be compared with the completed corridor
-metrics. A new or safely resumable Sparse-64 execution under the already approved frozen
-protocol is still required.
+metrics. The measured 8.53-hour duration exceeds the roughly 6.5 hours survived by the second
+session. Another identical ephemeral retry therefore has a clear loss risk. A checkpointed,
+resumable execution under the already approved frozen scientific protocol—or a sufficiently
+durable GPU allocation—is still required.
 
 ## 12. Remaining gates
 
 1. Preserve/review the corridor returned archive through the independent homecoming and actor
    admission process; do not promote the preliminary numbers merely because local integrity
    checks passed.
-2. Re-run Sparse-64 without changing its trace, 64-site array, scientific settings, seeds or
-   held-out discipline; record any execution-only scheduling change.
+2. Add a reviewed checkpoint/resume boundary or use a durable GPU allocation, then re-run
+   Sparse-64 without changing its trace, 64-site array, scientific settings, seeds or held-out
+   discipline; record every execution-only change.
 3. When Sparse-64 returns, publish its settings and results beside—not pooled with—the corridor
    arm, always carrying its 45.01%/46.00% coverage diagnostic.
 4. Owner/supervisor decisions remain decisions to present, never decisions for an agent to

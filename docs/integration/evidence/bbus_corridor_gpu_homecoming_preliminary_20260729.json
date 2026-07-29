@@ -2,9 +2,11 @@
   "schema_version": "1.0",
   "method_version": "bbus-corridor-local-homecoming-review-1.0",
   "reviewed_at_local": "2026-07-29T04:00:00+01:00",
+  "updated_at_utc": "2026-07-29T09:37:33Z",
+  "updated_at_local": "2026-07-29T10:37:33+01:00",
   "experiment_id": "B-BUS-CORRIDOR-DAWN-PEAK-20260728",
   "arm": "corridor",
-  "status": "RETURNED_ARCHIVE_LOCALLY_INTEGRITY_RECHECKED__INDEPENDENT_HOMECOMING_PENDING",
+  "status": "CORRIDOR_RETURNED_ARCHIVE_LOCALLY_RECHECKED__SPARSE64_TWO_ATTEMPTS_LOST__INDEPENDENT_HOMECOMING_PENDING",
   "returned_archive": {
     "compressed_bytes": 1412372,
     "uncompressed_member_bytes": 2829488,
@@ -145,12 +147,51 @@
       "34": 352
     },
     "expected_updates_per_seed": 1562,
-    "session_terminated_at_local": "2026-07-29T02:53:24+01:00",
+    "session_terminated_at_utc": "2026-07-29T02:53:24Z",
+    "session_terminated_at_local": "2026-07-29T03:53:24+01:00",
     "termination_cause_known": false,
     "completed_actor_available": false,
     "held_out_evaluation_available": false,
     "result_archive_available": false,
-    "scientific_result_available": false
+    "scientific_result_available": false,
+    "runtime_estimate": {
+      "basis": "linear extrapolation from the last preserved row of all five concurrent G4 seed processes",
+      "observed_elapsed_seconds_range": [
+        6919.05,
+        6934.45
+      ],
+      "observed_sps_range": [
+        162.0,
+        164.0
+      ],
+      "observed_mean_sps": 163.0,
+      "projected_hours_range": [
+        8.489060624607658,
+        8.589995857142856
+      ],
+      "projected_mean_hours": 8.529568313091525,
+      "operational_planning_hours": "8.5-9.0 uninterrupted G4 hours including setup/evaluation/archive overhead",
+      "guarantee": false
+    },
+    "clean_rerun": {
+      "session_created_at_utc": "2026-07-29T03:06:18Z",
+      "session_created_at_local": "2026-07-29T04:06:18+01:00",
+      "venue": "owner Colab G4 controlled through CLI",
+      "external_scheduling_runner_sha256": "893737ed0af143f352a12906c2db61af1434c7f2d43fb9a159b647bf5b487000",
+      "scientific_settings_changed": false,
+      "concurrent_seed_processes_observed": 5,
+      "jax_version": "0.7.2",
+      "gpu_utilisation_percent_observed": 94,
+      "gpu_memory_used_mib_observed": 65867,
+      "gpu_memory_total_mib_observed": 97887,
+      "session_loss_detected_at_utc": "2026-07-29T09:37:33Z",
+      "session_loss_detected_at_local": "2026-07-29T10:37:33+01:00",
+      "cli_loss_status": "404/401",
+      "remote_content_available_after_loss": false,
+      "completed_actor_recovered": false,
+      "held_out_evaluation_recovered": false,
+      "result_archive_recovered": false
+    }
   },
   "claim_ceiling": {
     "scientific_evidence": false,
@@ -164,7 +205,7 @@
   "owner_decisions_taken_by_agent": [],
   "next_actions": [
     "independent review of the corridor returned archive and actors",
-    "complete a frozen-protocol Sparse-64 execution",
+    "add checkpoint/resume or use a sufficiently durable GPU allocation, then complete the frozen-protocol Sparse-64 execution",
     "publish the two arms separately and retain their different coverage and admission labels"
   ]
 }
