@@ -3474,6 +3474,33 @@ committing the Year-1 PDF or any producer data blob.
 
 Exclusive files: that document and this record.
 
+### Phase 128 claim: what the offload decision is a function of (29 July 2026)
+
+The pilot dynamics analysis established the decision is bimodal but never asked what decides
+which side a vehicle falls on. It is **vehicle compute tier, and nothing else measured**: across
+five admitted cells spanning two campaigns, four seeds and capacities 2.5 down to 0.1, the
+always-offload group is **exactly** the tier-0 population (100.0% every cell) and the
+never-offload group contains **no tier-0 vehicle in any cell**. Tier 0 is ~13x weaker than tier
+2 by the producer's own capability scalars. The worst-failing decile is 100% always-offload in
+every cell.
+
+Both obvious confounds were measured rather than assumed: workload is even (5,263 vs 5,243 tasks
+per slot) and task mix is identical (20/30/50), with failure diverging *within* every class —
+tier-1/2 vehicles miss a 500 ms deadline literally never.
+
+Two consequences for the write-up. The ~79% attainment figure is a **fleet-composition
+artifact**, not a property of the algorithm — it is 40% of the fleet failing about half the time
+averaged against 60% succeeding ~97%. And capacity invariance gains a simpler explanation than
+the observation gap: the decision does not vary on anything a run changes, because it is fixed
+by hardware.
+
+Explicitly not established: whether offloading *helps* the vehicles that do it. That
+counterfactual needs a different actor on the same trace, which is the already-queued crossover
+campaign — reframing that leg from marginal to decisive.
+
+Exclusive files: `scripts/analyse_offload_partition.py`,
+`docs/evaluation/offload_partition_analysis_20260729.md`, the register row, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
