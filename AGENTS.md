@@ -3539,6 +3539,34 @@ Exclusive files: `scripts/analyse_rsu_association.py`,
 `docs/evaluation/rsu_association_analysis_20260729.md`, the register rows 9c and 9j, and this
 record.
 
+### Phase 130 claim: fleet-composition prediction predeclared (29 July 2026)
+
+The offload-partition analysis concluded that the ~79% attainment headline is a
+fleet-composition artifact. That conclusion came from decomposing the very data that produced
+it, so it deserves a prediction test rather than another pass over the same arrays.
+
+`docs/evaluation/fleet_composition_prediction_predeclaration.md` records the prediction **before
+any such run exists and before any decision to run it**: the evaluator implements seven fleet
+presets, every campaign to date used `uk2030` (tier-0 share 0.40), and `synthetic` carries 0.70.
+From measured per-group attainment (tier-0 ≈ 0.50, tier-1/2 ≈ 0.97 across both available seeds)
+the mixture model predicts **≈0.65** against a measured `uk2030` 0.787 — a ~14 point drop from
+composition alone, with the algorithm untouched. Pass band ±0.03, set wider than the ~0.02
+seed-to-seed variation in the per-tier rates so the model is not credited for a lucky point
+estimate.
+
+Two properties worth noting. It needs **no code change** — `fleet` is a parameter of
+`VecRunRequest`, an accepted interface — so it would run through the admitted pipeline rather
+than as a patched diagnostic. And `synthetic` is the actor's **training** fleet, so the same
+three cells also probe the distribution-shift concern inherited from the producer's Year-1
+report; the predeclaration names in advance that a better-than-predicted result would refute the
+mixture model for an interesting reason, rather than leaving that as an after-the-fact
+explanation.
+
+No decision to run has been taken and the sign-off records that explicitly. The document is
+worth having either way: a prediction is only evidence if it is dated before the data.
+
+Exclusive files: that predeclaration and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
