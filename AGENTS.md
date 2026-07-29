@@ -3450,6 +3450,30 @@ concerns intellectual property and data use, not scientific validation.
 
 Exclusive files: the new permission record, the banner on the 28 July record, and this record.
 
+### Phase 127 claim: producer citation requirements (29 July 2026)
+
+The producer's permission is granted **on condition of citation**, and it now binds more output
+than before because every capacity number in the dissertation is producer-derived. No citation
+apparatus existed anywhere in the repository. `docs/producer_citation_requirements.md` assembles
+it: both pinned commits verified read-only against the clones
+(`068b4ea3…` vec_env, `f6c67acb…` tos-data), the engine version `v2_post_nrsus_fix`, the Year-1
+report, SUMO, and the per-trace provenance table.
+
+Two corrections it carries forward into the write-up. The network is the Manchester **Etihad /
+Co-op Live event district**, not city-wide, so any wording implying a city-scale VEC twin is
+wrong. And every confirmed capacity result is on `inc` alone — the modelled collapse hour, the
+only one of five regimes where capacity moves outcomes at all.
+
+The document states plainly that its entries are assembled from the repository and local files
+rather than a bibliographic database, and must be verified against sources before submission;
+the supervisor's standard makes citation failure a degree risk, so an unverified reference
+string presented as checked would be worse than none. Two items are flagged as needing external
+confirmation rather than guessed: the SUMO reference details and the Lourenço demand
+calibration. Also records what remains impermissible — rehosting repository content, and
+committing the Year-1 PDF or any producer data blob.
+
+Exclusive files: that document and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
