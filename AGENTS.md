@@ -3684,6 +3684,23 @@ Exclusive files: `docs/evaluation/onset_scaling_prediction_results_20260730.md`,
 consolidated register row, the documentation index link, and this record. Existing
 predeclarations and admitted artifacts remain byte-unchanged; generated analyses stay local.
 
+### Phase 136 claim: data-platform v1 plan (30 July 2026)
+
+Owner directive (30 July): the data platform the supervisor sketched in meeting 3 is in scope
+for this cycle. `docs/traffictwin-data-platform-v1-plan.md` converts that into three buildable
+slices — an LLM-assisted what-if scenario composer that only ever *drafts* (execution stays
+behind signed predeclarations and the unmodified campaign instrument), a small honest
+prediction layer over the measured bus/DfT series, and a platform dashboard section
+(inventory / forecast / composer pages, strictly additive) — plus one deliberate non-build:
+streaming ingestion is documented and *proven unnecessary for this source* by the measured
+66–68 s feed cadence. Open decisions P-D1–P-D3 (API key, BODS boundary, ethics scope of
+platform pages) are named, defaulting conservative. Timeline freezes the platform before the
+proposed 11–22 August evaluation window and stops all feature work by 22 August for the
+report. Binding rule restated: no LLM output is ever evidence.
+
+Exclusive files: that plan, the documentation index link, and this record. Implementation
+slices will claim their own phases with disjoint new files.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
