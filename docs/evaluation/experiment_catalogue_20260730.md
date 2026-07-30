@@ -9,9 +9,9 @@ CONFIRMED; descriptive and non-causal; nothing is supervisor-approved or externa
 validated. Producer code/data use is under recorded permission with citation
 ([requirements](../producer_citation_requirements.md)).**
 
-Work that was in flight and uncommitted at this catalogue's cutoff (the lead's B-BUS
-Sparse-64 homecoming review; the onset-scaling sweep) is marked as such and is *not*
-summarised from unpushed material.
+The lead's B-BUS Sparse-64 homecoming review and the onset-scaling verdict landed in
+commits contemporaneous with this catalogue's first commit; both are reflected below from
+their committed records.
 
 ---
 
@@ -225,13 +225,25 @@ pid files, surviving session death; every run is admitted to a registry before a
   level is a near-constant 1.67–1.70× multiple of the trained actor's at every capacity.
 - **Record:** [crossover results](actor_crossover_results_20260730.md)
 
-### A17. Onset-scaling sweep — IN FLIGHT, no results
+### A17. Onset-scaling sweep — pre-registered exact-identity verdict: REFUTED
 
-Legs `we`-deep / `wd_am`-deep / `wd_pm`-deep (36 cells, fingerprints `0759b31f…` /
-`1897f9f4…` / `1d1c6ce6…`) under a pre-data exact-identity onset rule; the verdict code
-(`scripts/verify_onset_scaling_prediction.py`) is committed and reports INCOMPLETE until
-all three legs have a campaign analysis. Running as the third leg of the detached chain
-at this catalogue's cutoff. No numbers exist yet and none are claimed.
+- **Design:** hypothesis `c_onset = κ × N`, propagated from the `ev` bracket
+  (0.1, 0.25] without collapsing it to a point; onset rule = an arm is inert only when
+  *every* admitted metric at *every* seed equals cap-2.5 exactly, any nonzero difference
+  binds. Legs `we` / `wd_pm` / `wd_am`, 12 cells each, caps 2.5/0.5/0.25/0.1, seeds
+  {60–62} (fingerprints `0759b31f…` / `1897f9f4…` / `1d1c6ce6…`); six sharp checks and a
+  binary verdict frozen pre-data, verdict code committed before the data existed.
+- **Result:** **REFUTED — four of six sharp checks correct.** The load-bearing
+  wd_am-binds-at-0.1 prediction held, but `we` and `wd_pm` each broke exact identity at
+  cap-0.25 in one seed — by **0.243 and 0.024 microseconds** of latency — and the
+  ordering qualifier is false: measured onsets are 0.25 / 0.25 / 0.1 / 0.1 for
+  `we`/`wd_pm`/`ev`/`wd_am`, not increasing with slot count (139/163/175/215). Recorded
+  narrowly, as the record insists: the exact-identity prediction is refuted; the
+  sub-microsecond magnitudes mean the coarse grid and brittle equality rule do **not**
+  establish that density is irrelevant. At cap-0.1 all four traces show the familiar
+  faint signature (completion +0.0011–0.0043 pp, latency −0.024 to −0.205 ms) with
+  offload decisions exactly unchanged.
+- **Record:** [onset results](onset_scaling_prediction_results_20260730.md)
 
 ---
 
@@ -251,7 +263,7 @@ preservation records; nothing here has passed admission or independent review.
 | **B-DOMAIN full** | 15 jobs, seeds {400–404}; default / safety-dominant / pilot-inspired procedural domains | 15/15 complete; data-free diagnostic precursor, explicitly not literal trace B4; contrasts pending review. Archive `0d17154e…` |
 | **B-DENSITY Phase 1 + cost probe** | engineering gate, then a timed sweep on unpatched producer code (29 Jul) | Gate passed. (a) The frozen design's source transform is **unnecessary** — `VEC_JAX_N_VEHICLES` / `VEC_JAX_RSU_MAX_CONCURRENT` are documented producer knobs with the required allowance semantics; recorded as a deviation. (b) The grid is **unaffordable as frozen**: 5.92 s/update at N=512 → 31.08 at N=2048 (≈N^1.2) → ≈99 GPU-h for 6 densities × 3 seeds at 5M steps — several times the Colab balance. `N_RSUS=2`, not overridable, bounds all claims. [Record](bdensity_phase1_results_20260729.md) |
 | **B-BUS corridor dawn→peak** | frozen 750 m landmark-line capsule, 5 seeds | 5/5 on GPU; archive locally integrity-rechecked (`a84b5a16…`), independent homecoming pending. Preliminary non-admitted held-out peak completion: cap-0.75 mean 0.809841 vs cap-2.5 0.809672 — practically invariant. [Settings & preliminaries](bbus_dawn_peak_settings_and_preliminary_results_20260729.md) |
-| **B-BUS Sparse-64 dawn→peak** | whole observed fleet, explicitly outside VEC-06 | Checkpointed rerun executed via the browser-independent supervisor; **the lead's homecoming review was in flight and uncommitted at this catalogue's cutoff** — its record supersedes this row when it lands. [Checkpointed execution](bbus_sparse64_checkpointed_execution_20260729.md) |
+| **B-BUS Sparse-64 dawn→peak** | whole observed fleet, explicitly outside VEC-06 | **GPU compute completed 5/5 through checkpoint recovery; result NON-ADMITTED on an execution deviation.** Retained cap-0.75 peak completion 0.519215 mean (SD 0.088806; T1/T2/T3 0.337793/0.595472/0.545997); cap-2.5 0.519108 — again practically capacity-invariant. After the first return, `launchd` relaunched the supervisor and repeated the fixed peak evaluation **147 times**, overwriting prior archives: no metric selection occurred, but repeat identity is unverifiable and the literal peak-once rule failed. [Homecoming](bbus_sparse64_homecoming_results_20260730.md) · [checkpointed execution](bbus_sparse64_checkpointed_execution_20260729.md) |
 
 ---
 
@@ -350,9 +362,9 @@ corrected, not instead of them.
 
 The trained policies cannot see capacity (structural observation gap, A4), which costs
 nothing in any normal traffic regime (A6, A7) and is shared by an untrained baseline (A5,
-A16). Capacity shapes outcomes only where load saturates the concurrency bound (A1, A8),
-and there its confirmed effect is a large *improvement* in mean latency under degradation
-(A2) — an improvement that obeys a closed-form ceiling law (A12) validated by
+A16). Capacity shapes outcomes only where load saturates the concurrency bound (A1, A8) — and
+where that onset sits does not follow slot count proportionally (A17) — and there its
+confirmed effect is a large *improvement* in mean latency under degradation (A2) — an improvement that obeys a closed-form ceiling law (A12) validated by
 pre-registered extrapolation (A15), that lives entirely inside the already-failed tail
 (A10), and that **describes no actual vehicle** (A13). The dissertation headline this
 grounds: *standard VEC QoS metrics can be improved by degrading the system* — with
