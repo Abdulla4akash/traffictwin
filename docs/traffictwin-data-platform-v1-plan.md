@@ -29,19 +29,30 @@ states; (5) a what-if scenario agent with a user interface ("what if capacity is
 
 ## 3. What v1 builds — three slices
 
-### P-1. What-if scenario composer (LLM-assisted)
+### P-1. What-if engine — predict, then verify (owner design decision, 30 July)
 
-Natural language → a **draft** scenario: a campaign design (trace, arms, seeds, metrics)
-plus a draft predeclaration in the house format. A human reviews and signs; execution then
-flows through the **existing, unmodified** campaign instrument and admission chain; the
-composer finally renders an evidence-cited summary of the completed analysis.
+Two tiers, so the platform answers fast *and* honestly:
 
-Guardrails, type-level where possible: the agent **drafts and never approves** (approval
-fields refuse agent identities, as the campaign instrument already enforces); no execution
-without a signed predeclaration digest; summaries may only cite numbers present in
-committed analyses; the composer cannot touch held-out seeds. Model: Claude via the
-Anthropic API (the supervisor's explicit suggestion). One worked example ships with the
-slice: the 3.3× capacity scenario reproduced end-to-end through the composer.
+**Tier 1 — the outcome predictor (the model we build).** A small surrogate fitted on the
+project's own admitted cells (~154 across 5 traces, capacities 0.1–2.5, two actors), with
+the validated ceiling law as its mechanistic backbone rather than a black box —
+uncertainty from seed spread, validity domain declared (studied traces, capacity range,
+fleet preset), and a **refusal outside the measured envelope** instead of a silent
+extrapolation. Every output is typed `prediction`, never evidence. The precedent that
+this can extrapolate honestly is already in the register: the ceiling-law prediction test
+HELD 27/27 at 7.5× below its fitted range — that experiment *was* a validated what-if.
+
+**Tier 2 — verification by the twin.** One action escalates a prediction to a real
+predeclared campaign: the composer drafts the design + predeclaration in house format, a
+human signs (the agent **drafts and never approves**; approval fields already refuse
+agent identities), the **unmodified** campaign instrument executes, and the completed
+analysis lands beside the prediction it tests. Verified predictions become new fit data.
+
+Interface: a structured form is the baseline (works with zero external dependencies); a
+natural-language front end activates when a funded `ANTHROPIC_API_KEY` is present
+(P-D1 — coding-tool subscriptions do not cover runtime API calls). Summaries may only
+cite numbers present in committed analyses; held-out seeds are untouchable. One worked
+example ships: the 3.3× capacity scenario — prediction vs its already-confirmed answer.
 
 ### P-2. Prediction layer — small and honest
 
@@ -85,11 +96,17 @@ participants can exercise platform pages (subject to P-D3). That makes the platf
 
 ## 7. Open decisions and dependencies
 
-- **P-D1 (owner):** an Anthropic API key and a small spend for P-1. Without it, P-1 ships
-  with a deterministic template-based composer and the LLM socket documented.
-- **P-D2 (owner):** unattended/continuous BODS acquisition — default NO; boundary stands.
-- **P-D3 (owner + ethics):** whether the approved study script covers platform pages; if
-  not, the platform is demonstrated to the supervisor instead of evaluated by participants.
+- **P-D1 (owner, clarified 30 Jul):** the owner's Claude Max / Codex Max / Google Ultra
+  subscriptions cover the *coding tools*, not runtime API calls from the deployed app. P-1
+  therefore ships form-first; the NL layer activates when a funded `ANTHROPIC_API_KEY`
+  appears in the environment. No blocker.
+- **P-D2 (owner, 30 Jul): tentative YES to unattended BODS.** Implemented as a
+  *scheduled session runner* — same accepted rules (≥60 s spacing, one-at-a-time lock, GM
+  box, quarantine + receipts, session-scoped identity, aggregate-only outputs), the
+  change being only who triggers it. Each scheduled session is recorded like an attended
+  one; the boundary change is recorded as this owner decision. Feeds P-2 more hours.
+- **P-D3 (owner, 30 Jul): RESOLVED YES** — the submitted ethics script covers platform
+  pages, so participants evaluate the platform in the 11–22 Aug window.
 - **Coordination:** all new files (platform modules + new UI pages) are disjoint from
   lead-claimed surfaces; the lead may reassign per AGENTS.md work coordination.
 
