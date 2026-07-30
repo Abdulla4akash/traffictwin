@@ -2,15 +2,18 @@
 
 ## Status
 
-**Running; no held-out result is available.** The owner approved an execution-only
+**Historical launch record; the campaign has returned.** The owner approved an execution-only
 checkpoint/resume repair and a new Sparse-64 run after two non-checkpointed Colab G4 sessions
-were lost before any seed completed. The new five-seed campaign started through the Colab CLI
-at approximately **10:29:54 UTC (11:29:54 BST) on 29 July 2026**. At this record's cutoff the
-named G4 session was BUSY, the campaign design/progress files existed, and training logs existed
-for seeds 30–34. No actor, peak evaluation, campaign summary or result archive had returned.
+were lost before any seed completed. The five-seed campaign started through the Colab CLI at
+approximately **10:29:54 UTC (11:29:54 BST) on 29 July 2026** and all five seeds ultimately
+reached their frozen terminal update through checkpoint recovery.
 
-This is an execution record, not a scientific verdict. Returned bytes remain non-admitted and
-must pass the independent homecoming review before any result is promoted.
+The returned archive passed local homecoming integrity review, but the review also found that
+the successful supervisor was relaunched and repeated the fixed held-out evaluation 147 times.
+The retained output is therefore execution-deviated and non-admitted. See the
+[30 July homecoming result](bbus_sparse64_homecoming_results_20260730.md) for the exact metrics,
+archive identities and claim boundary. This historical record preserves what was known at
+launch; it is not a scientific verdict.
 
 ## Frozen scientific design retained
 
@@ -110,9 +113,15 @@ Closing the browser does not stop this service. Sleeping, powering off or discon
 can interrupt local checkpoint mirroring; the remote Colab execution may continue, but that is
 not claimed as a durable guarantee. No Google Drive mount or public hosting is used.
 
-## Interpretation boundary
+## Interpretation boundary and final execution status
 
-There is still no Sparse-64 held-out number at this cutoff. The arm remains explicitly outside
-VEC-06 because 64 sparse sites cover less than half of vehicle-seconds. Any returned result will
-describe the frozen simulator, synthetic fleet/tasks and two captured windows; it will not
-establish real deployment coverage, a causal rush-hour effect or an owner/supervisor verdict.
+The computation completed 5/5 seeds and the retained archive contains both frozen-capacity peak
+evaluations for all five actors. The server now reports no active Colab sessions and the macOS
+service is stopped. A tested terminal-result check prevents the same supervisor from allocating
+another session after a valid result exists.
+
+The arm remains explicitly outside VEC-06 because 64 sparse sites cover less than half of
+vehicle-seconds. The returned result describes the frozen simulator, synthetic fleet/tasks and
+two captured windows; it does not establish real deployment coverage, a causal rush-hour effect
+or an owner/supervisor verdict. The repeated-evaluation deviation additionally prevents treating
+the retained archive as the literal one-shot held-out execution required by the protocol.

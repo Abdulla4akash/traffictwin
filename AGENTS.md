@@ -3613,6 +3613,37 @@ closes that gap for the 5.92→31.08 s/update figures.
 
 Exclusive files: that prompt, that script, and this record.
 
+### Phase 133 claim: B-BUS Sparse-64 homecoming and repeated-evaluation deviation (30 July 2026)
+
+The whole-fleet Sparse-64 GPU computation completed all five frozen seeds through durable
+checkpoint recovery. Every seed reached update 1,562 / 4,998,400 effective steps; the retained
+50,294,048-byte archive passes CRC, path, inventory, digest, design, manifest, checkpoint and
+exact summary-recomputation checks. Its retained cap-0.75 descriptive completion is 0.519215
+(sample SD 0.088806, range 0.427187–0.618675), with T1/T2/T3 means
+0.337793/0.595472/0.545997. Cap-2.5 is 0.519108. Coverage remains 45.01% dawn / 46.00% peak,
+the sites are generated and the compute workload/fleet is synthetic, so the arm remains outside
+VEC-06 and no real-deployment or causal claim is available.
+
+Homecoming found an execution defect that the completion marker alone concealed. After the
+first successful return, `launchd` relaunched the supervisor; without a terminal-result guard it
+uploaded the already-terminal checkpoints, repeated both fixed peak evaluations, repackaged and
+overwrote the archive. The supervisor log contains 148 complete return records — one intended
+and 147 unintended repeats — with 148 distinct archive hashes. Actors and scientific settings
+did not change, and the supervisor never read metrics or selected an archive, but only the final
+archive survives, so metric identity across repeats cannot be verified and the literal
+evaluate-peak-once rule failed. The result is explicitly execution-deviated, descriptive and
+non-admitted, never silently promoted.
+
+`gpu/real_bbus/review_homecoming.py` makes the local review executable and emits the
+machine-readable evidence. `supervise_colab_campaign.py` now validates and reuses an existing
+terminal result before any GPU allocation; tests cover idempotent reuse, tamper refusal and ZIP
+path/symlink refusal. The old service is absent and the Colab server lists no active sessions.
+No rerun, actor admission, supervisor approval or owner decision is taken.
+
+Exclusive files: the Sparse-64 homecoming review script/evidence/result record, the narrow
+supervisor idempotence repair and tests, the B-BUS execution/settings status updates, the
+consolidated register row, the documentation index links, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

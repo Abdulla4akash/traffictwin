@@ -29,9 +29,7 @@ def _event(message: str) -> None:
     print(f"[{datetime.now(UTC).isoformat()}] {message}", flush=True)
 
 
-def _run(
-    command: list[str], *, timeout: float = 900.0
-) -> subprocess.CompletedProcess[str]:
+def _run(command: list[str], *, timeout: float = 900.0) -> subprocess.CompletedProcess[str]:
     completed = subprocess.run(
         command,
         check=False,
@@ -63,9 +61,39 @@ def _progress(local_root: Path) -> dict[int, int]:
     return progress
 
 
-def _upload_bootstrap(
-    *, colab: Path, session: str, pack: Path, local_root: Path
-) -> None:
+def _validated_returned_result(local_root: Path) -> dict[str, object] | None:
+    """Return an already downloaded result without allocating another GPU."""
+
+    status_path = local_root / "supervisor_result.json"
+    if not status_path.is_file():
+        return None
+    value = json.loads(status_path.read_text(encoding="utf-8"))
+    required = {
+        "status",
+        "attempt",
+        "result",
+        "result_bytes",
+        "result_sha256",
+        "initial_checkpoint_progress",
+        "final_checkpoint_progress",
+    }
+    if set(value) != required or value.get("status") != "returned":
+        raise ValueError("existing supervisor result is not a returned campaign record")
+    result = Path(str(value["result"])).resolve()
+    if result.parent != local_root.resolve() or not result.is_file():
+        raise ValueError("existing supervisor result points outside the local run root")
+    if result.stat().st_size != value["result_bytes"]:
+        raise ValueError("existing returned campaign byte count differs")
+    digest = hashlib.sha256(result.read_bytes()).hexdigest()
+    if digest != value["result_sha256"]:
+        raise ValueError("existing returned campaign digest differs")
+    with zipfile.ZipFile(result) as archive:
+        if archive.testzip() is not None:
+            raise ValueError("existing returned campaign ZIP failed CRC verification")
+    return value
+
+
+def _upload_bootstrap(*, colab: Path, session: str, pack: Path, local_root: Path) -> None:
     uploads = [(pack, f"/content/{pack.name}")]
     for seed in MODEL_SEEDS:
         checkpoint = local_root / f"model-seed-{seed}.checkpoint.zip"
@@ -142,6 +170,10 @@ def supervise(
     max_attempts: int,
 ) -> dict[str, object]:
     local_root.mkdir(parents=True, exist_ok=True)
+    returned = _validated_returned_result(local_root)
+    if returned is not None:
+        _event("existing validated campaign result reused; no Colab session created")
+        return returned
     initial_progress = _progress(local_root)
     stagnant_attempts = 0
     for attempt in range(1, max_attempts + 1):
@@ -266,9 +298,7 @@ def supervise(
         else:
             stagnant_attempts = 0
         if stagnant_attempts >= 2:
-            raise RuntimeError(
-                "two consecutive attempts ended without any new durable checkpoint"
-            )
+            raise RuntimeError("two consecutive attempts ended without any new durable checkpoint")
     raise RuntimeError(f"campaign did not return within {max_attempts} G4 attempts")
 
 
@@ -280,9 +310,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--session-prefix", required=True)
     parser.add_argument("--remote-output", required=True)
     parser.add_argument("--remote-result", required=True)
-    parser.add_argument(
-        "--colab", type=Path, default=Path.home() / ".local/bin/colab"
-    )
+    parser.add_argument("--colab", type=Path, default=Path.home() / ".local/bin/colab")
     parser.add_argument("--poll-seconds", type=float, default=30.0)
     parser.add_argument("--max-attempts", type=int, default=5)
     args = parser.parse_args(argv)
@@ -304,9 +332,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
     result_path = args.local_root.resolve() / "supervisor_result.json"
-    result_path.write_text(
-        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 

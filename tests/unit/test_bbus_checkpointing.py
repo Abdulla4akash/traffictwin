@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import stat
 import zipfile
 from pathlib import Path
 
@@ -15,11 +16,16 @@ from gpu.real_bbus.checkpoint_source import (
     checkpointed_train_text,
 )
 from gpu.real_bbus.monitor_colab_checkpoints import validate_download
+from gpu.real_bbus.review_homecoming import _checked_members
 from gpu.real_bbus.run_campaign import (
     CHECKPOINT_EVERY_UPDATES,
     CHECKPOINT_SCHEMA_VERSION,
     CHECKPOINT_STATUS_SCHEMA_VERSION,
     CHECKPOINT_TRANSFORM_VERSION,
+)
+from gpu.real_bbus.supervise_colab_campaign import (
+    _validated_returned_result,
+    supervise,
 )
 
 
@@ -45,13 +51,10 @@ def _checkpoint_pair(root: Path) -> tuple[Path, Path]:
         "total_env_steps": 3200,
         "settings": {},
         "components": {
-            name: {"bytes": len(value), "sha256": _digest(value)}
-            for name, value in values.items()
+            name: {"bytes": len(value), "sha256": _digest(value)} for name, value in values.items()
         },
     }
-    values["manifest.json"] = (
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-    ).encode()
+    values["manifest.json"] = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
     checkpoint = root / "model-seed-30.checkpoint.zip"
     with zipfile.ZipFile(checkpoint, "w") as archive:
         for name, value in values.items():
@@ -100,3 +103,74 @@ def test_checkpoint_download_accepts_atomic_temporary_suffix(tmp_path: Path) -> 
     temporary_status = Path(str(status) + ".download")
     status.rename(temporary_status)
     assert validate_download(temporary_checkpoint, temporary_status)["next_update"] == 1
+
+
+def test_supervisor_reuses_a_validated_terminal_result_without_colab(tmp_path: Path) -> None:
+    result = tmp_path / "results.zip"
+    with zipfile.ZipFile(result, "w") as archive:
+        archive.writestr("results/complete.txt", "complete\n")
+    status = {
+        "status": "returned",
+        "attempt": 5,
+        "result": str(result),
+        "result_bytes": result.stat().st_size,
+        "result_sha256": _digest(result.read_bytes()),
+        "initial_checkpoint_progress": {},
+        "final_checkpoint_progress": {},
+    }
+    (tmp_path / "supervisor_result.json").write_text(json.dumps(status), encoding="utf-8")
+
+    assert _validated_returned_result(tmp_path) == status
+    observed = supervise(
+        colab=tmp_path / "missing-colab",
+        pack=tmp_path / "missing-pack.zip",
+        entrypoint=tmp_path / "missing-entrypoint.py",
+        local_root=tmp_path,
+        session_prefix="must-not-launch",
+        remote_output="/content/results",
+        remote_result="/content/results.zip",
+        poll_seconds=1,
+        max_attempts=1,
+    )
+    assert observed == status
+
+
+def test_supervisor_refuses_a_tampered_terminal_result(tmp_path: Path) -> None:
+    result = tmp_path / "results.zip"
+    with zipfile.ZipFile(result, "w") as archive:
+        archive.writestr("results/complete.txt", "complete\n")
+    status = {
+        "status": "returned",
+        "attempt": 1,
+        "result": str(result),
+        "result_bytes": result.stat().st_size,
+        "result_sha256": "0" * 64,
+        "initial_checkpoint_progress": {},
+        "final_checkpoint_progress": {},
+    }
+    (tmp_path / "supervisor_result.json").write_text(json.dumps(status), encoding="utf-8")
+    with pytest.raises(ValueError, match="digest differs"):
+        _validated_returned_result(tmp_path)
+
+
+def test_homecoming_zip_guard_refuses_traversal_and_symlinks(tmp_path: Path) -> None:
+    traversal = tmp_path / "traversal.zip"
+    with zipfile.ZipFile(traversal, "w") as archive:
+        archive.writestr("root/../escape.txt", "bad\n")
+    with (
+        zipfile.ZipFile(traversal) as archive,
+        pytest.raises(ValueError, match="escapes"),
+    ):
+        _checked_members(archive, "root")
+
+    symlink = tmp_path / "symlink.zip"
+    info = zipfile.ZipInfo("root/link")
+    info.create_system = 3
+    info.external_attr = (stat.S_IFLNK | 0o777) << 16
+    with zipfile.ZipFile(symlink, "w") as archive:
+        archive.writestr(info, "target")
+    with (
+        zipfile.ZipFile(symlink) as archive,
+        pytest.raises(ValueError, match="symbolic link"),
+    ):
+        _checked_members(archive, "root")

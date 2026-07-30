@@ -1,12 +1,12 @@
 # B-BUS Dawn-to-Peak — Detailed Settings, Available Results and Interpretation
 
-**Status updated 29 July 2026 10:37 BST:** the corridor campaign completed 5/5 seed jobs and its
-returned archive passed a local byte-level integrity and binding recheck. Its metrics below are
-**available, preliminary and non-admitted** pending the separately required independent
-homecoming/actor review. The whole-fleet Sparse-64 campaign did not complete: two Colab
-sessions were lost before any actor, held-out evaluation or result archive was durably
-returned. The two arms therefore do not yet have comparable result status and are never
-pooled.
+**Status updated 30 July 2026:** both GPU computations completed 5/5 seed jobs. The corridor
+archive passed its preliminary local review and remains non-admitted pending independent actor
+review. The Sparse-64 retained archive passed a complete local homecoming review, but the
+supervisor was relaunched after its first successful return and repeated fixed peak evaluation
+147 times. Its retained metrics are therefore **execution-deviated, descriptive and
+non-admitted**, not a clean one-shot held-out verdict. The two arms are always reported
+separately and never pooled.
 
 - Corridor experiment: `B-BUS-CORRIDOR-DAWN-PEAK-20260728`
 - Sparse-64 experiment: `B-BUS-SPARSE64-DAWN-PEAK-20260728`
@@ -16,6 +16,9 @@ pooled.
   bytes); sha256 `a84b5a16…`
 - Machine-readable local review:
   [corridor homecoming evidence](../integration/evidence/bbus_corridor_gpu_homecoming_preliminary_20260729.json)
+- Sparse-64 result and review:
+  [homecoming record](bbus_sparse64_homecoming_results_20260730.md) ·
+  [machine-readable evidence](../integration/evidence/bbus_sparse64_gpu_homecoming_20260730.json)
 
 This record adds detail; it does not change either approved protocol, adopt a checkpoint,
 make a supervisor decision, or turn a synthetic computing workload into observed bus demand.
@@ -250,7 +253,7 @@ mechanism to that small reversal.
    pass/fail verdict after seeing 80.98%. The publishable null remains viable, especially given
    seed instability and T1 performance.
 
-## 11. Sparse-64 execution status, duration estimate and second loss — no result
+## 11. Sparse-64 earlier losses and duration estimate — historical
 
 The first whole-fleet run began at 23:48:39 UTC (00:48:39 BST) with five seed jobs executing
 concurrently. The last preserved progress sample at 01:44 UTC (02:44 BST) showed last update
@@ -283,7 +286,7 @@ session. Another identical ephemeral retry therefore has a clear loss risk. A ch
 resumable execution under the already approved frozen scientific protocol—or a sufficiently
 durable GPU allocation—is still required.
 
-## 12. Checkpointed Sparse-64 successor execution
+## 12. Checkpointed Sparse-64 successor execution and retained result
 
 The owner approved the execution-only repair. A private derived trainer now saves complete,
 atomic state every 50 completed PPO updates while retaining every scientific setting above.
@@ -293,20 +296,30 @@ independently compiled G4 process is not bitwise identical (maximum actor differ
 after two more smoke updates); no post-hoc tolerance was applied or hidden.
 
 The new five-seed run started at approximately 10:29:54 UTC on 29 July under a browser-
-independent macOS supervisor. At this cutoff it is live but has returned no held-out result.
-The supervisor mirrors checkpoints off-runtime, restarts from validated boundaries after a
-loss, retrieves the final private ZIP and releases its exact finished allocation. Full design,
-hashes, cleanup and limitation details are in the
-[checkpointed execution record](bbus_sparse64_checkpointed_execution_20260729.md).
+independent macOS supervisor. It completed through checkpoint recovery: every seed reached
+update 1,562 and 4,998,400 effective environment steps, and all five actors plus two peak
+evaluations per actor returned. The retained output's primary capacity-0.75 completion is
+**0.519215** (sample SD 0.088806, range 0.427187–0.618675). Its T1/T2/T3 means are
+0.337793/0.595472/0.545997; capacity 2.5 completion is 0.519108.
+
+Homecoming found that the successful supervisor was repeatedly relaunched: the log contains
+148 complete returned campaigns, one intended and 147 unintended repeats of evaluation and
+packaging after the actors were already terminal. No actor or scientific setting changed and
+no metric-based selection occurred, but earlier result archives were overwritten, so repeat
+metric identity cannot be checked and the one-shot peak requirement is not satisfied. The
+result is non-admitted. Full metrics, hashes, cleanup, recovery history and interpretation are
+in the [homecoming result](bbus_sparse64_homecoming_results_20260730.md); checkpoint design is
+preserved in the [execution record](bbus_sparse64_checkpointed_execution_20260729.md).
 
 ## 13. Remaining gates
 
 1. Preserve/review the corridor returned archive through the independent homecoming and actor
    admission process; do not promote the preliminary numbers merely because local integrity
    checks passed.
-2. Let the checkpointed Sparse-64 run finish; then independently verify the returned archive,
-   every resume disclosure and all held-out metrics before promoting any number.
-3. When Sparse-64 returns, publish its settings and results beside—not pooled with—the corridor
-   arm, always carrying its 45.01%/46.00% coverage diagnostic.
+2. Keep the Sparse-64 retained output explicitly execution-deviated and non-admitted unless an
+   owner/supervisor decision establishes a new permitted use; do not silently substitute it for
+   the one-shot held-out run.
+3. Continue publishing Sparse-64 beside—not pooled with—the corridor arm, always carrying its
+   45.01%/46.00% coverage diagnostic and the non-causal comparison boundary.
 4. Owner/supervisor decisions remain decisions to present, never decisions for an agent to
    take.
