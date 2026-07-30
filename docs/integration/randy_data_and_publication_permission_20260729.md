@@ -25,15 +25,16 @@ The three previously-excluded items, now covered:
 recorded here is the owner's relay that a written permission exists, which is one step stronger
 than the 28 July verbal relay but is still second-hand at the point of recording.
 
-**Open action, and it is small:** paste the message text — or a quoted excerpt with its date and
-channel — into this document. That converts it from a relayed claim into citable evidence. It is
-worth doing **before the dissertation cites any producer-derived number**, because the
-dissertation's provenance chain is exactly the sort of thing an examiner may probe, and "the
-owner said there was an email" is weaker than the email.
+**Disposition (30 July 2026, owner decision — this closes the open action):** the owner holds
+the written permission text and has **decided not to file it in this repository**; private
+correspondence stays private. The owner confirms possession of the written grant covering the
+three items above and can produce it directly if the provenance chain is ever probed (by an
+examiner or otherwise). No further filing action is pending; this is the final disposition.
 
-Until that happens, this record is `owner_approved_candidate` provenance like every other
-approval in this project: relayed delegation, **never an owner-typed signature** and never a
-producer signature.
+This record therefore remains what it honestly is: `owner_approved_candidate` provenance like
+every other approval in this project — owner-attested, **never an owner-typed signature** and
+never a producer signature — with the underlying written artifact retained by the owner rather
+than the repository.
 
 ## What this unblocks
 
