@@ -50,6 +50,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Producer code-use permission, recorded provenance (28 July 2026)](integration/randy_code_permission_20260728.md)
 - [Capacity pilot mechanism exhibit, 27 July 2026 (exploratory)](evaluation/capacity_pilot_mechanism_report_20260727.md)
 - [Actor crossover study draft (not signable yet)](evaluation/actor_crossover_study_draft.md)
+- [Actor crossover result: no reversal, latency-slope prediction refuted, 30 July 2026](evaluation/actor_crossover_results_20260730.md)
+- [Normal-regime onset-scaling prediction result: refuted, 30 July 2026](evaluation/onset_scaling_prediction_results_20260730.md)
 - [Stadium event-night study draft (not signable yet)](evaluation/stadium_event_study_draft.md)
 - [Dissertation appendices (generated: capability catalogue, software versions)](dissertation_appendices/appendix_a_capability_catalogue.md)
 - [Trace provenance appendix (five source trace/occupancy pairs)](dissertation_appendices/trace_provenance.md)

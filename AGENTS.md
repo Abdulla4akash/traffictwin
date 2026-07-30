@@ -3644,6 +3644,46 @@ Exclusive files: the Sparse-64 homecoming review script/evidence/result record, 
 supervisor idempotence repair and tests, the B-BUS execution/settings status updates, the
 consolidated register row, the documentation index links, and this record.
 
+### Phase 134 claim: actor crossover absent, latency-slope prediction refuted (30 July 2026)
+
+The queued `inc-baseline` campaign completed 12/12 cells and the already-committed,
+digest-guarded crossover runner applied the two rules frozen before its data. The trained
+`ukfleettrain_mappo_model_c_17` checkpoint wins on deadline completion at all four capacities by
+6.0835–6.0946 percentage points, so the highest-capacity winner remains the lowest-capacity
+winner: **no crossover**.
+
+The candidate's separately operationalised prediction (3) is **REFUTED**. Mean-latency slopes
+are 3,828.2 and 6,555.4 ms per capacity unit for trained and baseline actors, a 52.53% symmetric
+relative contrast against the predeclared ≤5% band. The ceiling response is therefore not
+actor-invariant under this design. The `uk2030` fleet preset matches the trained actor's
+training distribution and not the baseline actor's; checkpoint policy and preset mismatch are
+live inseparable explanations, so this is never promoted to an algorithm-family or causal
+result. Held-out seeds remain untouched.
+
+Exclusive files: `docs/evaluation/actor_crossover_results_20260730.md`, the consolidated
+register row, the documentation index link, and this record. Campaign arrays and generated
+verdict outputs stay local; no admitted pilot artifact is modified or rerun.
+
+### Phase 135 claim: exact-identity onset-scaling prediction refuted (30 July 2026)
+
+All three queued onset legs completed 12/12 cells, and the precommitted verdict code re-hashed
+its frozen source memo/addendum before applying the exact-equality rule. Verdict: **REFUTED,
+four of six sharp predictions correct and two wrong**. The load-bearing prediction that
+`wd_am` binds at cap-0.1 held. The misses are the predicted-inert cap-0.25 arms on `we` and
+`wd_pm`; each differs only in mean latency at one seed, by 0.000242979 ms and 0.000024348 ms,
+while completion and both other metrics remain exactly identical.
+
+Those sub-microsecond values still fail the rule that was frozen — no post-hoc tolerance is
+substituted — but they are not inflated into operational effects. The measured onset ordering
+also fails on the coarse grid (0.25/0.25/0.1/0.1 for 139/163/175/215 slots). At cap-0.1 all four
+normal regimes show the same faint direction: completion +0.0011–0.0043 percentage points and
+latency −0.024–0.205 ms, with offload decisions unchanged. The exact proportional prediction is
+refuted; the grid and brittle equality rule do not establish that density is irrelevant.
+
+Exclusive files: `docs/evaluation/onset_scaling_prediction_results_20260730.md`, the
+consolidated register row, the documentation index link, and this record. Existing
+predeclarations and admitted artifacts remain byte-unchanged; generated analyses stay local.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
