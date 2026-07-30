@@ -16,7 +16,7 @@ from gpu.real_bbus.checkpoint_source import (
     checkpointed_train_text,
 )
 from gpu.real_bbus.monitor_colab_checkpoints import validate_download
-from gpu.real_bbus.review_homecoming import _checked_members
+from gpu.real_bbus.review_homecoming import _checked_members, _return_event_counts
 from gpu.real_bbus.run_campaign import (
     CHECKPOINT_EVERY_UPDATES,
     CHECKPOINT_SCHEMA_VERSION,
@@ -24,6 +24,7 @@ from gpu.real_bbus.run_campaign import (
     CHECKPOINT_TRANSFORM_VERSION,
 )
 from gpu.real_bbus.supervise_colab_campaign import (
+    _record_returned_result,
     _validated_returned_result,
     supervise,
 )
@@ -135,6 +136,23 @@ def test_supervisor_reuses_a_validated_terminal_result_without_colab(tmp_path: P
     assert observed == status
 
 
+def test_supervisor_persists_terminal_result_before_cleanup(tmp_path: Path) -> None:
+    result = tmp_path / "results.zip"
+    with zipfile.ZipFile(result, "w") as archive:
+        archive.writestr("results/complete.txt", "complete\n")
+
+    observed = _record_returned_result(
+        local_root=tmp_path,
+        result=result,
+        attempt=2,
+        initial_progress={30: 1550},
+    )
+
+    assert observed["status"] == "returned"
+    assert observed["result_sha256"] == _digest(result.read_bytes())
+    assert _validated_returned_result(tmp_path) == observed
+
+
 def test_supervisor_refuses_a_tampered_terminal_result(tmp_path: Path) -> None:
     result = tmp_path / "results.zip"
     with zipfile.ZipFile(result, "w") as archive:
@@ -151,6 +169,43 @@ def test_supervisor_refuses_a_tampered_terminal_result(tmp_path: Path) -> None:
     (tmp_path / "supervisor_result.json").write_text(json.dumps(status), encoding="utf-8")
     with pytest.raises(ValueError, match="digest differs"):
         _validated_returned_result(tmp_path)
+
+
+def test_homecoming_counts_a_result_download_before_terminal_wait_timeout() -> None:
+    digest = "a" * 64
+    text = "\n".join(
+        (
+            "[colab] Downloaded '/content/bbus_sparse64_results.zip' to "
+            "'/private/run/bbus_sparse64_results.zip.download'",
+            "error: TimeoutExpired: Command ['colab', 'exec'] timed out after 120.0 seconds",
+            "[colab] Downloaded '/content/bbus_sparse64_results.zip' to "
+            "'/private/run/bbus_sparse64_results.zip.download'",
+            f'  "result_sha256": "{digest}",',
+        )
+    )
+
+    observed = _return_event_counts(text)
+
+    assert observed["successful_result_downloads"] == 2
+    assert observed["terminal_return_records"] == 1
+    assert observed["complete_returned_campaigns"] == 2
+    assert observed["post_download_timeout_events"] == 1
+
+
+def test_homecoming_one_shot_return_has_no_hidden_repeat() -> None:
+    digest = "b" * 64
+    text = "\n".join(
+        (
+            "[colab] Downloaded '/content/bbus_sparse64_results.zip' to "
+            "'/private/run/bbus_sparse64_results.zip.download'",
+            f'  "result_sha256": "{digest}",',
+        )
+    )
+
+    observed = _return_event_counts(text)
+
+    assert observed["complete_returned_campaigns"] == 1
+    assert observed["post_download_timeout_events"] == 0
 
 
 def test_homecoming_zip_guard_refuses_traversal_and_symlinks(tmp_path: Path) -> None:

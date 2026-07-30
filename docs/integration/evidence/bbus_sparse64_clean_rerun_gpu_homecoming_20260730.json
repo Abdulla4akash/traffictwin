@@ -1,0 +1,299 @@
+{
+  "arm": "sparse64",
+  "checkpoint_execution": {
+    "boundary": "completed_ppo_update",
+    "cross_process_float32_trajectory_claimed_bitwise_identical": false,
+    "every_updates": 50,
+    "scientific_settings_changed": false,
+    "transform": {
+      "checkpoint_boundary": "completed_ppo_update",
+      "derived_path": "train_mappo_vec_checkpointed.py",
+      "derived_sha256": "1f8b46eb621c7b01fe313a6a0a8dd7cbab254c8a2c682e9cf2d2a23fc4f0f035",
+      "method_version": "bbus-update-checkpoint-transform-1.0",
+      "scientific_settings_changed": false,
+      "upstream_path": "train_mappo_vec.py",
+      "upstream_sha256": "d19453529babb1c1691fdc9da5188aa0e3e233e3dcf6a65ac84ada2ef25355e1"
+    }
+  },
+  "claim_ceiling": {
+    "actor_admission_eligible": false,
+    "causal_rush_hour_claim": false,
+    "general_manchester_claim": false,
+    "independent_actor_admission_completed": false,
+    "local_archive_homecoming_review_completed": true,
+    "observed_rsus": false,
+    "real_computing_tasks_observed": false,
+    "scientific_evidence": false,
+    "supervisor_approved": false
+  },
+  "coverage_diagnostics": {
+    "analysis_sites": 64,
+    "dawn_vehicle_second_share": 0.45014074660092357,
+    "peak_vehicle_second_share": 0.4599600895603638,
+    "vec06_compatible": false
+  },
+  "execution_deviation": {
+    "actor_or_scientific_setting_changed_after_terminal_checkpoint": false,
+    "cause": "the supervisor downloaded and CRC-checked a complete archive, then timed out waiting for the already-terminal foreground Colab RPC; launchd restarted before terminal state was written and caused a second held-out evaluation/return",
+    "cross_repeat_metric_identity_verifiable_from_preserved_archives": false,
+    "effect": "current archive can be reported only as execution-deviated, non-admitted descriptive output; it does not satisfy the literal one-shot held-out run",
+    "metric_based_selection_performed_by_supervisor": false,
+    "observed_complete_returned_campaigns": 2,
+    "requirement": "each frozen actor evaluates the held-out peak once"
+  },
+  "experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+  "frozen_pack": {
+    "campaign_binding_sha256": "0c1136bc4611a458bbc5ffec5b7fca68eb56b3c17f8d38d69e45d450e18d148d",
+    "compressed_bytes": 28163173,
+    "filename": "traffictwin_bbus_sparse64_checkpointed_colab_20260729.zip",
+    "protocol_sha256": "f366f3ba886287150eefcf64268e38df4e2a488372ed738dbbc712573c221efa",
+    "sha256": "0ef9ea359d985e25393ba2a80022fdf73265f1d0bb8fa5c34dff87cb8ce89d7b",
+    "uncompressed_member_bytes": 29359119,
+    "zip_members": 16
+  },
+  "held_out_peak": {
+    "0p75": {
+      "avg_energy_j_per_task": 0.3059888692510569,
+      "avg_latency_ms_per_task": 895.5612563790755,
+      "completion": 0.5013548606299859,
+      "completion_maximum": 0.6342287340998547,
+      "completion_minimum": 0.4005271090375839,
+      "completion_sample_sd": 0.08867681274220374,
+      "p_local": 0.3251382611616056,
+      "p_v2i": 0.5149706330326395,
+      "p_v2v": 0.15989110580575497,
+      "per_seed": [
+        {
+          "avg_energy_j_per_task": 0.13779705542347465,
+          "avg_latency_ms_per_task": 1319.5753516065029,
+          "completion": 0.4005271090375839,
+          "model_seed": 30,
+          "p_local": 0.14923297172755778,
+          "p_v2i": 0.8507670282724422,
+          "p_v2v": 0.0,
+          "t1_completion": 0.25228271968539817,
+          "t2_completion": 0.5143344419581816,
+          "t3_completion": 0.3915099339034703,
+          "total_tasks": 4738678
+        },
+        {
+          "avg_energy_j_per_task": 0.5570105246269516,
+          "avg_latency_ms_per_task": 548.921888500808,
+          "completion": 0.6342287340998547,
+          "model_seed": 31,
+          "p_local": 0.7602084448230256,
+          "p_v2i": 0.037258509368300725,
+          "p_v2v": 0.20253304580867365,
+          "t1_completion": 0.41864338090956293,
+          "t2_completion": 0.696176117873591,
+          "t3_completion": 0.6833105274512875,
+          "total_tasks": 4736985
+        },
+        {
+          "avg_energy_j_per_task": 0.26369245173139433,
+          "avg_latency_ms_per_task": 966.8935326677497,
+          "completion": 0.4588141119712561,
+          "model_seed": 32,
+          "p_local": 0.32552903422247204,
+          "p_v2i": 0.673733407039938,
+          "p_v2v": 0.0007375587375899882,
+          "t1_completion": 0.2987897245343369,
+          "t2_completion": 0.5380491446529442,
+          "t3_completion": 0.4753510697278782,
+          "total_tasks": 4735894
+        },
+        {
+          "avg_energy_j_per_task": 0.43513568898835,
+          "avg_latency_ms_per_task": 786.8258571783522,
+          "completion": 0.4768715262113837,
+          "model_seed": 33,
+          "p_local": 0.12059151169612185,
+          "p_v2i": 0.3419042900451607,
+          "p_v2v": 0.5375041982587174,
+          "t1_completion": 0.1713490148688675,
+          "t2_completion": 0.5823937987902964,
+          "t3_completion": 0.5356783538032233,
+          "total_tasks": 4737083
+        },
+        {
+          "avg_energy_j_per_task": 0.13630862548511402,
+          "avg_latency_ms_per_task": 855.589651941965,
+          "completion": 0.5363328218298514,
+          "model_seed": 34,
+          "p_local": 0.27012934333885075,
+          "p_v2i": 0.6711899304373555,
+          "p_v2v": 0.058680726223793715,
+          "t1_completion": 0.43301447028532924,
+          "t2_completion": 0.6291870598066134,
+          "t3_completion": 0.5218016299423441,
+          "total_tasks": 4738319
+        }
+      ],
+      "t1_completion": 0.3148158620566989,
+      "t2_completion": 0.5920281126163254,
+      "t3_completion": 0.5215303029656406,
+      "total_tasks": 23686959
+    },
+    "2p5": {
+      "avg_energy_j_per_task": 0.3059888692510569,
+      "avg_latency_ms_per_task": 1055.8136065656486,
+      "completion": 0.5012329266189048,
+      "completion_maximum": 0.6342287340998547,
+      "completion_minimum": 0.4000012239700608,
+      "completion_sample_sd": 0.0888182189499637,
+      "p_local": 0.3251382611616056,
+      "p_v2i": 0.5149706330326395,
+      "p_v2v": 0.15989110580575497,
+      "per_seed": [
+        {
+          "avg_energy_j_per_task": 0.13779705542347465,
+          "avg_latency_ms_per_task": 2109.184213825037,
+          "completion": 0.4000012239700608,
+          "model_seed": 30,
+          "p_local": 0.14923297172755778,
+          "p_v2i": 0.8507670282724422,
+          "p_v2v": 0.0,
+          "t1_completion": 0.25189558561675623,
+          "t2_completion": 0.5136145739527291,
+          "t3_completion": 0.39104502443413847,
+          "total_tasks": 4738678
+        },
+        {
+          "avg_energy_j_per_task": 0.5570105246269516,
+          "avg_latency_ms_per_task": 548.921888500808,
+          "completion": 0.6342287340998547,
+          "model_seed": 31,
+          "p_local": 0.7602084448230256,
+          "p_v2i": 0.037258509368300725,
+          "p_v2v": 0.20253304580867365,
+          "t1_completion": 0.41864338090956293,
+          "t2_completion": 0.696176117873591,
+          "t3_completion": 0.6833105274512875,
+          "total_tasks": 4736985
+        },
+        {
+          "avg_energy_j_per_task": 0.26369245173139433,
+          "avg_latency_ms_per_task": 966.8935326677497,
+          "completion": 0.4588141119712561,
+          "model_seed": 32,
+          "p_local": 0.32552903422247204,
+          "p_v2i": 0.673733407039938,
+          "p_v2v": 0.0007375587375899882,
+          "t1_completion": 0.2987897245343369,
+          "t2_completion": 0.5380491446529442,
+          "t3_completion": 0.4753510697278782,
+          "total_tasks": 4735894
+        },
+        {
+          "avg_energy_j_per_task": 0.43513568898835,
+          "avg_latency_ms_per_task": 786.8258571783522,
+          "completion": 0.4768715262113837,
+          "model_seed": 33,
+          "p_local": 0.12059151169612185,
+          "p_v2i": 0.3419042900451607,
+          "p_v2v": 0.5375041982587174,
+          "t1_completion": 0.1713490148688675,
+          "t2_completion": 0.5823937987902964,
+          "t3_completion": 0.5356783538032233,
+          "total_tasks": 4737083
+        },
+        {
+          "avg_energy_j_per_task": 0.13630862548511402,
+          "avg_latency_ms_per_task": 867.242540656296,
+          "completion": 0.5362490368419687,
+          "model_seed": 34,
+          "p_local": 0.27012934333885075,
+          "p_v2i": 0.6711899304373555,
+          "p_v2v": 0.058680726223793715,
+          "t1_completion": 0.4329278724604132,
+          "t2_completion": 0.6290761117625993,
+          "t3_completion": 0.5217353103061981,
+          "total_tasks": 4738319
+        }
+      ],
+      "t1_completion": 0.31472111567798733,
+      "t2_completion": 0.591861949406432,
+      "t3_completion": 0.5214240571445451,
+      "total_tasks": 23686959
+    },
+    "difference_2p5_minus_0p75": {
+      "avg_energy_j_per_task": 0.0,
+      "avg_latency_ms_per_task": 160.25235018657304,
+      "completion": -0.00012193401108107071,
+      "p_local": 0.0,
+      "p_v2i": 0.0,
+      "p_v2v": 0.0
+    }
+  },
+  "local_checks": {
+    "all_actor_input_shapes": [
+      17,
+      64
+    ],
+    "all_effective_timesteps": 4998400,
+    "all_evaluation_metadata_and_action_shares_checked": true,
+    "all_resume_disclosures_present": true,
+    "all_terminal_checkpoints_at_update": 1562,
+    "all_zip_crc_checks_pass": true,
+    "campaign_progress_completed": true,
+    "completed_jobs": 5,
+    "expected_jobs": 5,
+    "inventory_member_set_size_and_sha256_exact": true,
+    "safe_unique_non_symlink_zip_paths": true,
+    "summary_recomputed_exactly": true
+  },
+  "method_version": "bbus-checkpointed-local-homecoming-review-1.0",
+  "owner_decisions_taken_by_agent": [],
+  "returned_archive": {
+    "compressed_bytes": 50203691,
+    "filename": "bbus_sparse64_results.zip",
+    "inventoried_payload_members": 58,
+    "sha256": "18e774bbe656920ce16407d23c30bae41e4bdd0f8761043b8beb4945c2adf19a",
+    "uncompressed_member_bytes": 51710631,
+    "zip_members": 59
+  },
+  "reviewed_at_utc": "2026-07-30T20:19:42Z",
+  "runtime": {
+    "brax": "0.14.2",
+    "chex": "0.1.92",
+    "distrax": "0.1.9",
+    "flax": "0.11.2",
+    "glfw": "2.10.2",
+    "gymnax": "0.0.9",
+    "jax": "0.7.2",
+    "jax_backend": "gpu",
+    "jax_device": "cuda:0",
+    "jaxlib": "0.7.2",
+    "jaxmarl": "0.0.4",
+    "jaxopt": "0.8.5",
+    "mujoco": "3.10.0",
+    "mujoco-mjx": "3.10.0",
+    "numpy": "2.0.2",
+    "nvidia_gpu_name": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "optax": "0.2.8",
+    "python": "3.12.13",
+    "trimesh": "4.12.2"
+  },
+  "schema_version": "1.0",
+  "status": "RETURNED_ARCHIVE_INTEGRITY_PASS__HELD_OUT_REPEAT_DEVIATION__NON_ADMITTED",
+  "supervision_history": {
+    "complete_returned_campaigns": 2,
+    "held_out_peak_one_shot_execution_observed": false,
+    "post_download_timeout_events": 1,
+    "retained_archive_is_last_return": true,
+    "runtime_loss_events_before_completion": 4,
+    "successful_result_downloads": 2,
+    "supervisor_log_sha256": "5ae384274bb78680244ecac4b8a3f5dfdce79049cf92757af872477a781f4c02",
+    "supervisor_result_sha256": "c3b6bb2edb404a915a0b6d15673f834b8fb2106252cb97101ff901bd2ee8e2b3",
+    "terminal_checkpoint_matches_local_mirror": {
+      "30": true,
+      "31": true,
+      "32": true,
+      "33": true,
+      "34": true
+    },
+    "terminal_return_records": 1,
+    "unintended_complete_repeats_after_the_first": 1,
+    "unique_returned_archive_hashes": 1
+  }
+}

@@ -86,6 +86,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Aggregate B-BUS private-Colab pack evidence, 28 July 2026](integration/evidence/bbus_colab_pack_preparation_20260728.json)
 - [B-BUS Sparse-64 GPU homecoming result and execution deviation, 30 July 2026](evaluation/bbus_sparse64_homecoming_results_20260730.md)
 - [B-BUS Sparse-64 machine-readable homecoming evidence, 30 July 2026](integration/evidence/bbus_sparse64_gpu_homecoming_20260730.json)
+- [B-BUS Sparse-64 full fresh-rerun result and execution record, 30 July 2026](evaluation/bbus_sparse64_clean_rerun_results_20260730.md)
+- [B-BUS Sparse-64 fresh-rerun machine-readable review, 30 July 2026](integration/evidence/bbus_sparse64_clean_rerun_gpu_homecoming_20260730.json)
 - [B-MASK full G4 private-archive preservation record, 28 July 2026](integration/evidence/bmask_full_campaign_preservation_20260728.json)
 - [B-DOMAIN full G4 private-archive preservation record, 28 July 2026](integration/evidence/bdomain_full_campaign_preservation_20260728.json)
 - [Manchester observation chain restoration (subnetwork, index, 305 match rows), 28 July 2026](integration/evidence/manchester_chain_restoration_20260728.json)

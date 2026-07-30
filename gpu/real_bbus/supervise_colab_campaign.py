@@ -61,6 +61,45 @@ def _progress(local_root: Path) -> dict[int, int]:
     return progress
 
 
+def _atomic_json(path: Path, value: dict[str, object]) -> None:
+    temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    try:
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(value, indent=2, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _record_returned_result(
+    *,
+    local_root: Path,
+    result: Path,
+    attempt: int,
+    initial_progress: dict[int, int],
+) -> dict[str, object]:
+    """Persist terminal state before any fallible remote-process cleanup."""
+
+    digest = hashlib.sha256(result.read_bytes()).hexdigest()
+    record: dict[str, object] = {
+        "status": "returned",
+        "attempt": attempt,
+        "result": str(result),
+        "result_bytes": result.stat().st_size,
+        "result_sha256": digest,
+        "initial_checkpoint_progress": {
+            str(seed): next_update for seed, next_update in initial_progress.items()
+        },
+        "final_checkpoint_progress": {
+            str(seed): next_update for seed, next_update in _progress(local_root).items()
+        },
+    }
+    _atomic_json(local_root / "supervisor_result.json", record)
+    return record
+
+
 def _validated_returned_result(local_root: Path) -> dict[str, object] | None:
     """Return an already downloaded result without allocating another GPU."""
 
@@ -252,18 +291,16 @@ def supervise(
                         local_root=local_root,
                     )
                     if result is not None:
-                        execution.wait(timeout=120.0)
-                        digest = hashlib.sha256(result.read_bytes()).hexdigest()
-                        _event(f"campaign result returned: {result} sha256={digest}")
-                        return {
-                            "status": "returned",
-                            "attempt": attempt,
-                            "result": str(result),
-                            "result_bytes": result.stat().st_size,
-                            "result_sha256": digest,
-                            "initial_checkpoint_progress": initial_progress,
-                            "final_checkpoint_progress": _progress(local_root),
-                        }
+                        returned = _record_returned_result(
+                            local_root=local_root,
+                            result=result,
+                            attempt=attempt,
+                            initial_progress=initial_progress,
+                        )
+                        _event(
+                            f"campaign result returned: {result} sha256={returned['result_sha256']}"
+                        )
+                        return returned
                     time.sleep(poll_seconds)
             result = _download_result(
                 colab=colab,
@@ -272,16 +309,12 @@ def supervise(
                 local_root=local_root,
             )
             if result is not None:
-                digest = hashlib.sha256(result.read_bytes()).hexdigest()
-                return {
-                    "status": "returned",
-                    "attempt": attempt,
-                    "result": str(result),
-                    "result_bytes": result.stat().st_size,
-                    "result_sha256": digest,
-                    "initial_checkpoint_progress": initial_progress,
-                    "final_checkpoint_progress": _progress(local_root),
-                }
+                return _record_returned_result(
+                    local_root=local_root,
+                    result=result,
+                    attempt=attempt,
+                    initial_progress=initial_progress,
+                )
         except RuntimeError as exc:
             _event(f"attempt ended: {type(exc).__name__}: {exc}")
         finally:
@@ -332,7 +365,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1
     result_path = args.local_root.resolve() / "supervisor_result.json"
-    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    _atomic_json(result_path, result)
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 

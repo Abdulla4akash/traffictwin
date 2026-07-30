@@ -3701,6 +3701,34 @@ report. Binding rule restated: no LLM output is ever evidence.
 Exclusive files: that plan, the documentation index link, and this record. Implementation
 slices will claim their own phases with disjoint new files.
 
+### Phase 137 claim: B-BUS Sparse-64 full fresh rerun and terminal-state ordering repair (30 July 2026)
+
+The owner-approved full fresh rerun of the unchanged frozen Sparse-64 pack completed all five
+seeds at update 1,562 / 4,998,400 effective steps. The retained 50,203,691-byte archive passes
+the executable homecoming review, including exact summary recomputation. Its retained cap-0.75
+completion is 0.501355 (sample SD 0.088677, range 0.400527–0.634229), T1/T2/T3 are
+0.314816/0.592028/0.521530, and cap-2.5 is 0.501233. The arm remains outside VEC-06 and uses
+synthetic compute tasks/equipment and generated analysis sites; all scientific, admission,
+deployment and causal claim ceilings remain false.
+
+The apparent four hourly runtime losses were traced to the installed Colab CLI retaining an
+expired one-hour runtime-proxy credential, rather than demonstrated GPU failure; durable
+checkpoint recovery preserved completed training. At terminal completion, the supervisor
+downloaded and CRC-checked the result, then timed out waiting for the already-terminal foreground
+RPC before writing terminal state. `launchd` restarted it and caused one unintended second fixed
+held-out evaluation/return. Only the last archive survives. No actor/setting changed and no
+metric selection occurred, but cross-return identity is unverifiable and the literal one-shot
+rule failed. The result is recorded as execution-deviated, descriptive and non-admitted.
+
+The supervisor now writes the validated terminal record atomically before fallible remote
+cleanup, and homecoming counts successful result downloads that precede a missing terminal JSON
+record. Focused tests cover the ordering guard and hidden-repeat detection. All Colab services and
+sessions are stopped; no additional compute is initiated and no owner decision is taken.
+
+Exclusive files: `gpu/real_bbus/{review_homecoming.py,supervise_colab_campaign.py}`, the focused
+checkpointing tests, the fresh-rerun result/evidence, the consolidated register/catalogue/index
+updates, and this record.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

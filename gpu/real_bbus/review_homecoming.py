@@ -266,11 +266,41 @@ def _metric_summary(validations: dict[int, dict[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _return_event_counts(text: str) -> dict[str, Any]:
+    """Count completed result returns, including a download before a wait timeout.
+
+    The supervisor moves a CRC-checked result download into place before waiting for
+    the foreground ``colab exec`` RPC to exit.  If that wait times out, the terminal
+    JSON is never written even though a complete campaign archive was returned.
+    Counting only terminal JSON would therefore conceal a repeated held-out run.
+    """
+
+    returned_hashes = re.findall(r'^  "result_sha256": "([0-9a-f]{64})",$', text, re.MULTILINE)
+    successful_downloads = len(
+        re.findall(
+            r"\[colab\] Downloaded '/content/bbus_sparse64_results\.zip' "
+            r"to '[^']+bbus_sparse64_results\.zip\.download'",
+            text,
+        )
+    )
+    complete_returns = max(len(returned_hashes), successful_downloads)
+    return {
+        "returned_hashes": returned_hashes,
+        "terminal_return_records": len(returned_hashes),
+        "successful_result_downloads": successful_downloads,
+        "complete_returned_campaigns": complete_returns,
+        "post_download_timeout_events": len(
+            re.findall(r"error: TimeoutExpired: Command .* timed out after", text)
+        ),
+    }
+
+
 def _supervision_history(
     *, supervisor_log: Path, supervisor_result: Path, archive: Path, output_root: Path
 ) -> dict[str, Any]:
     text = supervisor_log.read_text(encoding="utf-8")
-    returned_hashes = re.findall(r'^  "result_sha256": "([0-9a-f]{64})",$', text, re.MULTILINE)
+    events = _return_event_counts(text)
+    returned_hashes = events["returned_hashes"]
     if not returned_hashes:
         raise ValueError("supervisor log contains no returned campaign record")
     current_digest = sha256_file(archive)
@@ -291,18 +321,22 @@ def _supervision_history(
         )
     if not all(checkpoint_matches.values()):
         raise ValueError("returned terminal checkpoints differ from the local mirror")
+    complete_returns = int(events["complete_returned_campaigns"])
     return {
         "supervisor_log_sha256": sha256_file(supervisor_log),
         "supervisor_result_sha256": sha256_file(supervisor_result),
-        "complete_returned_campaigns": len(returned_hashes),
-        "unintended_complete_repeats_after_the_first": len(returned_hashes) - 1,
+        "complete_returned_campaigns": complete_returns,
+        "unintended_complete_repeats_after_the_first": complete_returns - 1,
+        "successful_result_downloads": events["successful_result_downloads"],
+        "terminal_return_records": events["terminal_return_records"],
+        "post_download_timeout_events": events["post_download_timeout_events"],
         "unique_returned_archive_hashes": len(set(returned_hashes)),
         "retained_archive_is_last_return": True,
         "runtime_loss_events_before_completion": len(
             re.findall(r"attempt ended: RuntimeError: remote campaign output disappeared", text)
         ),
         "terminal_checkpoint_matches_local_mirror": checkpoint_matches,
-        "held_out_peak_one_shot_execution_observed": len(returned_hashes) == 1,
+        "held_out_peak_one_shot_execution_observed": complete_returns == 1,
     }
 
 
@@ -342,13 +376,32 @@ def review_homecoming(
             output_root=output_root,
         )
         metrics = _metric_summary(validations)
+    one_shot = history["held_out_peak_one_shot_execution_observed"]
+    if history["post_download_timeout_events"]:
+        deviation_cause = (
+            "the supervisor downloaded and CRC-checked a complete archive, then timed out "
+            "waiting for the already-terminal foreground Colab RPC; launchd restarted before "
+            "terminal state was written and caused a second held-out evaluation/return"
+        )
+    elif not one_shot:
+        deviation_cause = (
+            "launchd relaunched the successful supervisor because no terminal-result "
+            "idempotence guard existed"
+        )
+    else:
+        deviation_cause = None
     return {
         "schema_version": "1.0",
         "method_version": METHOD_VERSION,
         "reviewed_at_utc": reviewed_at_utc,
         "experiment_id": binding["experiment_id"],
         "arm": "sparse64",
-        "status": ("RETURNED_ARCHIVE_INTEGRITY_PASS__HELD_OUT_REPEAT_DEVIATION__NON_ADMITTED"),
+        "status": (
+            "RETURNED_ARCHIVE_INTEGRITY_PASS__ONE_SHOT_HELD_OUT_EXECUTION_OBSERVED__"
+            "NON_ADMITTED_PENDING_INDEPENDENT_ADMISSION"
+            if one_shot
+            else "RETURNED_ARCHIVE_INTEGRITY_PASS__HELD_OUT_REPEAT_DEVIATION__NON_ADMITTED"
+        ),
         "returned_archive": {
             "filename": result_archive.name,
             "compressed_bytes": result_archive.stat().st_size,
@@ -390,15 +443,15 @@ def review_homecoming(
         "execution_deviation": {
             "requirement": "each frozen actor evaluates the held-out peak once",
             "observed_complete_returned_campaigns": history["complete_returned_campaigns"],
-            "cause": (
-                "launchd relaunched the successful supervisor because no terminal-result "
-                "idempotence guard existed"
-            ),
+            "cause": deviation_cause,
             "actor_or_scientific_setting_changed_after_terminal_checkpoint": False,
             "metric_based_selection_performed_by_supervisor": False,
-            "cross_repeat_metric_identity_verifiable_from_preserved_archives": False,
+            "cross_repeat_metric_identity_verifiable_from_preserved_archives": one_shot,
             "effect": (
-                "current archive can be reported only as execution-deviated, non-admitted "
+                "no held-out repeat deviation was observed; actor admission and supervisor "
+                "approval remain separate and incomplete"
+                if one_shot
+                else "current archive can be reported only as execution-deviated, non-admitted "
                 "descriptive output; it does not satisfy the literal one-shot held-out run"
             ),
         },
