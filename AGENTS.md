@@ -3886,6 +3886,30 @@ empty), the changelog entry in `CHANGELOG.md`, and this record. `bods_session_id
 is imported, not modified; MAN-05 and all lead surfaces untouched; no live acquisition,
 no raw BODS bytes in tests.
 
+### Phase 144 claim: meeting-3 post-v1 design suite (1 August 2026)
+
+Documentation-only design work for eight possible platform extensions identified from
+Sandra meeting 3 and the live post-Phase-143 repository state: an aggregate historical
+store and feature registry, incremental analytics and data-quality monitoring, a mechanism
+and policy observatory, an experiment evidence matrix, a scenario and run registry, a
+decision-safety layer, a controlled live-twin adapter, and a capacity-aware multi-algorithm
+benchmark. These are separate post-v1 proposals, not an expansion of the committed v1
+build order and not authority to implement, acquire data, run experiments, spend compute,
+or involve participants. Each design must preserve evidence standing, require genuine
+owner decisions where scope changes, keep forecasts and drafts `evidence: false`, and leave
+the Sparse-64 bus/GPU work outside the admitted VEC chain.
+
+Exclusive files: `docs/platform/historical_store_feature_registry_design.md`,
+`docs/platform/incremental_analytics_monitor_design.md`,
+`docs/platform/mechanism_policy_observatory_design.md`,
+`docs/platform/experiment_evidence_matrix_design.md`,
+`docs/platform/scenario_run_registry_design.md`,
+`docs/platform/decision_safety_layer_design.md`,
+`docs/platform/controlled_live_twin_adapter_design.md`,
+`docs/platform/capacity_aware_benchmark_design.md`, and this AGENTS record. No production
+code, tests, existing platform design, changelog, evidence register, manuscript, raw/private
+data, acquisition surface, experiment instrument, dashboard, or shared navigation is owned.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
