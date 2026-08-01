@@ -4408,3 +4408,16 @@ mypy and `git diff --check` passed; a base-only isolated install imported the fu
 `pyproj` 3.7.2 and successfully initialised the 62-bundle synthetic standalone demo. Docker is
 not installed on the local host, so the locked GitHub Actions Python 3.12 container build remains
 the authoritative image gate. No live or scientific action was performed.
+
+### Phase 164 claim: dependency appendix reconciliation (1 August 2026)
+
+The integrating lead owns the deterministic generated-document drift exposed by the Phase 163
+CI run: `docs/dissertation_appendices/appendix_b_software_versions.md`, its existing generator and
+self-test, this phase record and the locked CI rerun. The appendix must be regenerated from the
+committed `pyproject.toml` and `uv.lock` so that `pyproj` appears once in the runtime group rather
+than in optional groups. No hand-authored scientific content, evidence or approval may change.
+
+Phase 164 local verification passed on 1 August 2026: all 17 appendix tests passed under Python
+3.11, the exact committed-versus-fresh drift test passed under Python 3.12, a second generator run
+was byte-stable, `uv lock --check` passed and `git diff --check` passed. Only Appendix B's declared
+dependency rows changed; scientific and policy content did not.

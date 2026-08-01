@@ -22,6 +22,7 @@ The constraints the project declares, exactly as written in `pyproject.toml`. Pi
 | `runtime` | `plotly>=5` |
 | `runtime` | `pyarrow>=18` |
 | `runtime` | `pydeck>=0.9.1,<1` |
+| `runtime` | `pyproj>=3.6,<4` |
 | `runtime` | `pypdf>=5` |
 | `runtime` | `PyYAML>=6` |
 | `runtime` | `reportlab>=4` |
@@ -32,7 +33,6 @@ The constraints the project declares, exactly as written in `pyproject.toml`. Pi
 | `dev` | `playwright>=1.48` |
 | `dev` | `pytest>=8` |
 | `dev` | `pytest-cov>=5` |
-| `dev` | `pyproj>=3.6,<4` |
 | `dev` | `ruff>=0.5` |
 | `dev` | `sumolib==1.27.0` |
 | `dev` | `mypy>=1.10` |
@@ -40,7 +40,6 @@ The constraints the project declares, exactly as written in `pyproject.toml`. Pi
 | `dev` | `types-PyYAML>=6` |
 | `tos` | `numpy>=1.26` |
 | `vec` | `numpy>=1.26` |
-| `vec` | `pyproj>=3.6,<4` |
 | `vec` | `sumolib==1.27.0` |
 | `vec-runner` | `jax==0.4.30` |
 | `vec-runner` | `jaxlib==0.4.30` |
