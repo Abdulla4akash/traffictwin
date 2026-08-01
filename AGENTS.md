@@ -3834,6 +3834,23 @@ runtime draft artifacts; none committed by this phase), the changelog entry in
 `CHANGELOG.md`, and this record. The campaign instrument, its models, the outcome
 predictor, and all evidence artifacts remain byte-unchanged.
 
+**Amendment (1 August, same day): reconciled to the Phase-141 reviewed designs**, which
+landed concurrently with the first Phase-142 commit. Composer: the complete registered
+seed ledger is checked (pilot/grid/deep/drafted cohorts, typed `COMPOSER_SEED_COLLISION`;
+fresh seeds proposed, human fixes them at signing); the form carries fleet preset and
+optional fleet size through to the predictor; the result renderer is
+cite-only-admitted-and-committed (registry + pinned design fingerprint + completed status
++ NON_ADMITTED refusal); `metrics_unavailable` propagates into the predeclaration;
+budgets carry runtime context and the estimates-not-permission note; drafts write only to
+an explicit owner-selected path (the composer never dirties the repository); artifacts
+carry the producer/SUMO citation bundle. Predictor (review-conformance, closing the named
+gap in the reviewed outcome-predictor design): new `ACTOR_CAPACITY_NOT_MEASURED` refusal
+— per-(trace, actor) measured capacity ranges are stored in the regenerated fit artifact
+and a capacity below the pair's own admitted arms refuses instead of line-extrapolating
+(notably baseline inc below cap-0.75); prediction records and the fit artifact carry the
+citation reference. The `docs/evaluation/drafts/` directory is NOT created by the
+composer anymore; the exclusive-files list otherwise stands, plus this amendment.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

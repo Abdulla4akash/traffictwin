@@ -220,6 +220,11 @@ def test_every_refusal_row_fires_with_its_code(loaded: LoadedFit) -> None:
         (_scenario("we", 1.0, fleet_size=2488), "TRACE_NOT_MEASURED"),
         (_scenario("we", 1.0, "some_other_checkpoint"), "ACTOR_NOT_MEASURED"),
         (_scenario("we", 1.0, BASELINE_ACTOR), "ACTOR_NOT_MEASURED"),
+        # Review-conformance (1 August): inside the global envelope but below
+        # the pair's own admitted arms — refuse, never line-extrapolate.
+        (_scenario("inc", 0.5, BASELINE_ACTOR), "ACTOR_CAPACITY_NOT_MEASURED"),
+        (_scenario("inc", 0.25, BASELINE_ACTOR), "ACTOR_CAPACITY_NOT_MEASURED"),
+        (_scenario("ev", 0.5, BASELINE_ACTOR), "ACTOR_CAPACITY_NOT_MEASURED"),
     ]
     for scenario, expected in cases:
         outcome = predict(scenario, loaded)
@@ -280,6 +285,7 @@ def test_no_input_emerges_unlabelled(loaded: LoadedFit) -> None:
                                 "FLEET_PRESET_NOT_MEASURED",
                                 "DENSITY_GAP",
                                 "ACTOR_NOT_MEASURED",
+                                "ACTOR_CAPACITY_NOT_MEASURED",
                             }
 
 

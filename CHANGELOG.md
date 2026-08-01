@@ -19,9 +19,22 @@ Added the what-if scenario composer (1 August, data-platform v1 slice 3, platfor
 - the prediction-beside-measurement honesty exhibit and a dormant LLM socket: natural
   language is a typed `LLM_SOCKET_DORMANT` refusal until a funded key exists (P-D1), with
   the template path producing the complete artifacts; and
-- drafts land dated and bannered DRAFT/UNSIGNED under `docs/evaluation/drafts/`; the
-  instrument's byte-bound approval (typed approver, placeholder identities refused,
-  re-hashed at run time) remains the only route from draft to execution.
+- drafts land dated and bannered DRAFT/UNSIGNED at an explicit owner-selected path (the
+  composer never dirties the repository; an owner may later deliberately place a reviewed
+  draft under `docs/evaluation/drafts/`); the instrument's byte-bound approval (typed
+  approver, placeholder identities refused, re-hashed at run time) remains the only route
+  from draft to execution.
+
+Reconciled both platform code slices to the Phase-141 six-design review (same day):
+the composer checks the complete registered seed ledger (not one hard-coded set), passes
+fleet preset/size through to the predictor, renders results only from registered admitted
+analyses (pinned design fingerprint, NON_ADMITTED refused), propagates
+`metrics_unavailable` into predeclarations, and stamps the producer/SUMO citation bundle
+on every producer-derived artifact; the outcome predictor gains the review-required
+`ACTOR_CAPACITY_NOT_MEASURED` refusal — per-(trace, actor) measured capacity ranges are
+stored in the regenerated fit artifact, and a capacity inside the global envelope but
+below the pair's own admitted arms (notably baseline inc under cap-0.75) now refuses
+instead of line-extrapolating.
 
 Added the VEC outcome predictor (1 August, data-platform v1 slice 2, platform P-1 tier 1):
 

@@ -13,17 +13,28 @@ The guardrails are structural, not politeness:
   executor; execution happens through the unmodified human-run instrument,
   whose byte-bound approval (typed approver + predeclaration digest,
   placeholders refused) no draft can satisfy.
-- **Seed protection** — a draft naming any spent held-out seed {10-14}
-  refuses; the instrument's ``held_out_authorised`` gate backstops it.
-- **Cite-only-committed** — the result-card renderer verifies that every
-  decimal number it emits appears textually in the committed campaign
-  analysis it cites; an invented number is a typed failure, not a card.
+- **Seed protection** — the spent held-out seeds {10-14} refuse outright, and
+  the COMPLETE registered seed ledger (pilot, grid, deep, drafted cohorts) is
+  checked for collisions; a draft proposes fresh seeds and a human fixes them
+  at signing. The instrument's ``held_out_authorised`` gate is a backstop,
+  not the whole rule.
+- **Cite-only-admitted-and-committed** — the result-card renderer answers
+  only from analyses in the admitted experiment registry with their pinned
+  design fingerprints, refuses NON_ADMITTED records, and verifies that every
+  decimal number it emits appears textually in the cited file; an invented
+  number is a typed failure, not a card.
 - **No silent envelope escape** — a scenario the predictor refuses is still
   draftable (that is the point of tier 2); the draft carries
   ``prediction_available: false`` and the refusal, never an invented
-  expectation.
-- **Budget honesty** — drafted designs embed the measured per-cell cost so a
-  signer sees the price before signing.
+  expectation. Unavailable means unavailable: ``metrics_unavailable`` reasons
+  propagate into the predeclaration and no value is substituted from another
+  actor.
+- **Budget honesty** — drafted designs embed the observed per-cell runtime
+  with its provenance and hardware context; the figures are planning
+  estimates, not quotas, guarantees, or permission to launch.
+- **Citation and standing** — producer-derived prediction, draft and summary
+  artifacts carry the mandatory producer/SUMO citation bundle
+  (``docs/producer_citation_requirements.md``).
 
 The LLM socket is DORMANT (P-D1): natural language routes to a typed refusal
 until a funded ``ANTHROPIC_API_KEY`` exists — the owner's Max subscriptions
@@ -47,7 +58,10 @@ from traffictwin.integration.vec_campaign.models import (
     VecCampaignBudget,
 )
 from traffictwin.platform.outcome_predictor import (
+    EXPERIMENT_REGISTRY,
     MEASURED_FLEET_PRESET,
+    PRODUCER_CITATION_BUNDLE,
+    PRODUCER_CITATION_REFERENCE,
     TRAINED_ACTOR,
     LoadedFit,
     PredictionRecord,
@@ -65,10 +79,22 @@ COMPOSER_DESIGN_REFERENCE: Literal["docs/platform/whatif_composer_design.md"] = 
 #: The reference capacity every measured campaign used as its baseline arm.
 BASELINE_REFERENCE_CAPACITY = 2.5
 
-#: The spent confirmatory cohort; no draft may name these (design §2).
+#: The spent confirmatory cohort; no draft may name these, ever (design §2).
 HELD_OUT_SEEDS = frozenset({10, 11, 12, 13, 14})
 
-#: Where drafts land (design §4), relative to the repo root.
+#: The complete registered seed ledger (reviewed design §2): the drafter
+#: refuses collisions with EVERY registered cohort, not one hard-coded set.
+#: A draft proposes fresh seeds; a human fixes them at signing.
+REGISTERED_SEED_COHORTS: dict[str, frozenset[int]] = {
+    "capacity-study held-out cohort (SPENT — never reusable)": HELD_OUT_SEEDS,
+    "pilot and crossover-baseline exploratory cohort": frozenset({0, 1, 2}),
+    "grid and baseline-invariance cohort": frozenset({50, 51, 52}),
+    "deep-sweep cohort": frozenset({60, 61, 62}),
+    "proposed in the actor-crossover study draft": frozenset({20, 21, 22, 23, 24}),
+}
+
+#: Where an owner may later DELIBERATELY place a reviewed draft (design §4).
+#: The composer itself writes only to an explicit owner-selected path.
 DRAFTS_DIRECTORY = Path("docs") / "evaluation" / "drafts"
 
 DRAFT_BANNER = (
@@ -161,7 +187,9 @@ class ComposerForm(PredictorModel):
     capacity: float | None = None
     reduce_factor: float | None = None
     actor: str = TRAINED_ACTOR
-    fleet_seeds: tuple[int, ...] = (0, 1, 2)
+    fleet_preset: str = MEASURED_FLEET_PRESET
+    fleet_size: int | None = None
+    fleet_seeds: tuple[int, ...] = (30, 31, 32)
     comparison_capacity: float | None = None
     question: str | None = None
 
@@ -191,14 +219,20 @@ class ComposerForm(PredictorModel):
 
 
 class DraftCost(PredictorModel):
-    """The measured price of the drafted campaign, shown before signing."""
+    """The observed price of the drafted campaign, shown before signing.
+
+    Planning estimates, not quotas, guarantees, or permission to launch —
+    the reviewed design's budget-honesty wording, carried verbatim.
+    """
 
     cells: int
     per_cell_seconds: float
     per_cell_seconds_provenance: str
+    runtime_context: str
     total_seconds: float
     total_hours: float
     max_total_output_bytes: int
+    estimate_note: str
 
 
 class ComposerDraft(PredictorModel):
@@ -241,8 +275,10 @@ def llm_socket_status() -> dict[str, object]:
         "available": False,
         "mode": "template",
         "reason": (
-            "dormant until the owner funds an ANTHROPIC_API_KEY (P-D1); the form "
-            "path produces the complete draft artifacts"
+            "dormant until the owner funds an ANTHROPIC_API_KEY AND explicitly "
+            "configures activation (P-D1); key presence alone must never silently "
+            "enable an external transfer. The form path produces the complete "
+            "draft artifacts."
         ),
     }
 
@@ -272,6 +308,19 @@ def compose_scenario(
             "capacity confirmatory and its reuse requires the instrument's "
             "held_out_authorised approval, which no draft can grant",
         )
+    collisions = {
+        cohort: sorted(set(form.fleet_seeds) & seeds)
+        for cohort, seeds in REGISTERED_SEED_COHORTS.items()
+        if set(form.fleet_seeds) & seeds
+    }
+    if collisions:
+        fresh = suggest_fresh_seeds(len(form.fleet_seeds))
+        raise WhatifComposerError(
+            "COMPOSER_SEED_COLLISION",
+            f"the proposed seeds collide with registered cohorts {collisions}; a draft "
+            f"proposes fresh seeds (for example {fresh}) and a human fixes them at "
+            "signing — the complete registered ledger is checked, not one hard-coded set",
+        )
     if len(form.fleet_seeds) < 3:
         raise WhatifComposerError(
             "COMPOSER_SEEDS_INSUFFICIENT",
@@ -296,7 +345,8 @@ def compose_scenario(
         trace=form.trace,
         capacity=requested,
         actor=form.actor,
-        fleet_preset=MEASURED_FLEET_PRESET,
+        fleet_preset=form.fleet_preset,
+        fleet_size=form.fleet_size,
     )
     outcome = predict(scenario, loaded)
     prediction: PredictionRecord | None = None
@@ -327,6 +377,19 @@ def compose_scenario(
     )
 
 
+def suggest_fresh_seeds(count: int) -> tuple[int, ...]:
+    """The lowest seeds colliding with no registered cohort, starting at 30."""
+
+    registered = frozenset().union(*REGISTERED_SEED_COHORTS.values())
+    fresh: list[int] = []
+    candidate = 30
+    while len(fresh) < count:
+        if candidate not in registered:
+            fresh.append(candidate)
+        candidate += 1
+    return tuple(fresh)
+
+
 def _slug(form: ComposerForm, generated_at_utc: str) -> str:
     capacity_text = f"{form.requested_capacity:g}".replace(".", "p")
     date_text = generated_at_utc[:10].replace("-", "")
@@ -343,9 +406,14 @@ def _draft_cost(form: ComposerForm, spec: TraceExecutionSpec) -> DraftCost:
         cells=cells,
         per_cell_seconds=spec.per_cell_seconds,
         per_cell_seconds_provenance=spec.per_cell_seconds_provenance,
+        runtime_context=(
+            "observed on the owner's local Apple-silicon machine, single evaluator "
+            "process at ~390% CPU with no competing heavy load"
+        ),
         total_seconds=total_seconds,
         total_hours=total_seconds / 3600.0,
         max_total_output_bytes=3 * cells * spec.per_cell_output_bytes,
+        estimate_note=("planning estimates, not quotas, guarantees, or permission to launch"),
     )
 
 
@@ -434,6 +502,15 @@ def _prediction_section(
                 f"| {metric.metric} | {metric.point!r} | {metric.interval_low!r} "
                 f"| {metric.interval_high!r} |"
             )
+        if prediction.metrics_unavailable:
+            lines.append("")
+            lines.append(
+                "**Unavailable means unavailable** — these metrics carry no predicted "
+                "value, the verdict rule does not apply to them, and no value is "
+                "invented or substituted from another actor:"
+            )
+            for name, reason in sorted(prediction.metrics_unavailable.items()):
+                lines.append(f"- {name}: {reason}")
         lines.extend(
             [
                 "",
@@ -503,8 +580,9 @@ def _predeclaration_markdown(
         "",
         f"- baseline arm: cap-{form.baseline_capacity:g}",
         f"- variation arm: cap-{requested:g}",
-        f"- pairing: fleet_seed; seeds {{{seeds_text}}} "
-        "(held-out {10-14} excluded by construction)",
+        f"- pairing: fleet_seed; PROPOSED seeds {{{seeds_text}}} — checked against the "
+        "complete registered seed ledger (held-out {10-14} and every used cohort "
+        "excluded); the signer fixes the final seeds",
         "",
         "## 5. Endpoints",
         "",
@@ -514,10 +592,12 @@ def _predeclaration_markdown(
         "## 6. Scope and compute budget",
         "",
         f"- cells: {cost.cells} ({2} arms x {len(form.fleet_seeds)} seeds)",
-        f"- measured per-cell cost: {cost.per_cell_seconds:g} s "
+        f"- observed per-cell runtime: {cost.per_cell_seconds:g} s "
         f"({cost.per_cell_seconds_provenance})",
-        f"- total: {cost.total_seconds:g} s ~= {cost.total_hours:.1f} h serial",
+        f"- runtime context: {cost.runtime_context}",
+        f"- arithmetic total: {cost.total_seconds:g} s ~= {cost.total_hours:.1f} h serial",
         f"- output budget: {cost.max_total_output_bytes} bytes, halt on failure",
+        f"- these figures are {cost.estimate_note}",
         "",
         "## 7. Analysis plan, fixed before results",
         "",
@@ -538,7 +618,14 @@ def _predeclaration_markdown(
         "- A prediction is never evidence; the tier-1 record beside this draft stays "
         "`evidence: false` whatever the campaign measures.",
         "",
-        "## 10. Sign-off (EMPTY — a human must complete this)",
+        "## 10. Citation and standing",
+        "",
+        "Every number here derives from producer code/data and carries the mandatory "
+        f"citation set in `{PRODUCER_CITATION_REFERENCE}`:",
+        "",
+        *(f"- {key}: `{value}`" for key, value in sorted(PRODUCER_CITATION_BUNDLE.items())),
+        "",
+        "## 11. Sign-off (EMPTY — a human must complete this)",
         "",
         "| field | value |",
         "|---|---|",
@@ -549,16 +636,24 @@ def _predeclaration_markdown(
         "| held_out_authorised | false |",
         "",
         "The campaign instrument refuses placeholder identities and re-hashes this "
-        "document at run time; approval binds the exact final bytes.",
+        "document at run time; approval binds the exact final bytes. Seeds are a "
+        "PROPOSAL: the signer fixes them, and the complete registered seed ledger "
+        "must be re-checked at signing.",
         "",
     ]
     return "\n".join(lines)
 
 
-def write_draft(draft: ComposerDraft, repo_root: Path) -> tuple[Path, Path]:
-    """Write the dated draft pair under ``docs/evaluation/drafts/``."""
+def write_draft(draft: ComposerDraft, destination_directory: Path) -> tuple[Path, Path]:
+    """Write the dated draft pair to an EXPLICIT owner-selected directory.
 
-    directory = repo_root / DRAFTS_DIRECTORY
+    The reviewed design (§4) forbids the composer from dirtying the
+    repository on its own: generation never commits or approves anything,
+    and an owner may later deliberately move a reviewed draft under
+    ``docs/evaluation/drafts/`` (`DRAFTS_DIRECTORY`).
+    """
+
+    directory = destination_directory
     directory.mkdir(parents=True, exist_ok=True)
     design_path = directory / f"{draft.slug}_design_draft.json"
     predeclaration_path = directory / f"{draft.slug}_predeclaration_draft.md"
@@ -592,6 +687,12 @@ def render_prediction_card(outcome: PredictionRecord | PredictionRefusal) -> str
             )
         for name, reason in sorted(outcome.metrics_unavailable.items()):
             lines.append(f"- {name}: unavailable — {reason}")
+        lines.append("")
+        lines.append(
+            f"producer-derived; citation set: `{PRODUCER_CITATION_REFERENCE}` "
+            f"(engine `{PRODUCER_CITATION_BUNDLE['engine_version']}`, author "
+            f"{PRODUCER_CITATION_BUNDLE['author']})"
+        )
         return "\n".join(lines)
     return "\n".join(
         [
@@ -605,8 +706,13 @@ def render_prediction_card(outcome: PredictionRecord | PredictionRefusal) -> str
 
 
 def render_result_card(analysis_path: Path) -> str:
-    """The measurement card, citing ONLY numbers present in the committed
-    analysis — verified against the file's own bytes, not trusted."""
+    """The measurement card — cite-only-admitted-and-committed (reviewed §2).
+
+    The analysis must belong to the admitted experiment registry with its
+    pinned design fingerprint, be a completed campaign, and carry no
+    NON_ADMITTED marker; every decimal number in the card is then verified
+    against the file's own bytes, not trusted.
+    """
 
     try:
         raw = analysis_path.read_text(encoding="utf-8")
@@ -614,6 +720,12 @@ def render_result_card(analysis_path: Path) -> str:
         raise WhatifComposerError(
             "ANALYSIS_UNREADABLE", f"analysis {analysis_path.name} could not be read"
         ) from exc
+    if "NON_ADMITTED" in raw:
+        raise WhatifComposerError(
+            "NON_ADMITTED_SOURCE_REFUSED",
+            f"{analysis_path.name} carries a NON_ADMITTED marker; such records may be "
+            "inventoried but are never rendered as measurement answers",
+        )
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -625,13 +737,34 @@ def render_result_card(analysis_path: Path) -> str:
             "ANALYSIS_INVALID",
             f"analysis {analysis_path.name} carries no primary descriptives",
         )
+    experiment_id = str(payload.get("experiment_id"))
+    registered = EXPERIMENT_REGISTRY.get(experiment_id)
+    if registered is None:
+        raise WhatifComposerError(
+            "ANALYSIS_NOT_REGISTERED",
+            f"experiment '{experiment_id}' is not in the admitted registry; the "
+            "renderer answers only from admitted, registered analyses",
+        )
+    if str(payload.get("design_fingerprint")) != registered.design_fingerprint:
+        raise WhatifComposerError(
+            "ANALYSIS_FINGERPRINT_MISMATCH",
+            f"{analysis_path.name} does not carry the registered design fingerprint "
+            f"for '{experiment_id}'",
+        )
+    if str(payload.get("campaign_status")) != "completed":
+        raise WhatifComposerError(
+            "ANALYSIS_NOT_COMPLETED",
+            f"{analysis_path.name} is not a completed campaign analysis",
+        )
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
     lines = [
         "**MEASURED — committed campaign analysis**",
         f"source: `{analysis_path.name}` (sha256 `{digest}`)",
-        f"experiment: `{payload.get('experiment_id')}`; campaign status: "
+        f"experiment: `{experiment_id}` (registered design fingerprint "
+        f"`{registered.design_fingerprint[:16]}…`); campaign status: "
         f"`{payload.get('campaign_status')}`; research status: "
         f"`{payload.get('research_status')}`",
+        f"citation set: `{PRODUCER_CITATION_REFERENCE}`",
         "",
     ]
     for row in payload.get("primary_descriptives", []) + payload.get("secondary_descriptives", []):

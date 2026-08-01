@@ -18,6 +18,7 @@ import pytest
 import traffictwin.platform.whatif_composer as composer_module
 from traffictwin.platform.outcome_predictor import (
     BASELINE_ACTOR,
+    EXPERIMENT_REGISTRY,
     TRAINED_ACTOR,
     LoadedFit,
     load_outcome_predictor_fit,
@@ -34,6 +35,7 @@ from traffictwin.platform.whatif_composer import (
     render_honesty_exhibit,
     render_prediction_card,
     render_result_card,
+    suggest_fresh_seeds,
     verify_card_numbers,
     write_draft,
 )
@@ -58,7 +60,7 @@ def _form(
     *,
     reduce_factor: float | None = None,
     actor: str = TRAINED_ACTOR,
-    fleet_seeds: tuple[int, ...] = (0, 1, 2),
+    fleet_seeds: tuple[int, ...] = (30, 31, 32),
     comparison_capacity: float | None = None,
 ) -> ComposerForm:
     return ComposerForm(
@@ -87,11 +89,24 @@ def test_the_executor_is_never_imported_or_referenced() -> None:
 
 
 def test_held_out_seeds_are_refused_in_any_mixture(loaded: LoadedFit) -> None:
-    for seeds in ((10, 11, 12), (0, 1, 10), (0, 1, 2, 14)):
+    for seeds in ((10, 11, 12), (30, 31, 10), (30, 31, 32, 14)):
         with pytest.raises(WhatifComposerError) as excinfo:
             compose_scenario(_form(fleet_seeds=seeds), loaded, generated_at_utc=GENERATED_AT)
         assert excinfo.value.code == "COMPOSER_HELD_OUT_REFUSED"
     assert frozenset({10, 11, 12, 13, 14}) == HELD_OUT_SEEDS
+
+
+def test_the_complete_registered_seed_ledger_is_checked(loaded: LoadedFit) -> None:
+    # Not one hard-coded set: pilot, grid, deep and drafted cohorts all refuse.
+    for seeds in ((0, 1, 2), (50, 51, 52), (60, 61, 62), (20, 21, 22), (30, 31, 50)):
+        with pytest.raises(WhatifComposerError) as excinfo:
+            compose_scenario(_form(fleet_seeds=seeds), loaded, generated_at_utc=GENERATED_AT)
+        assert excinfo.value.code == "COMPOSER_SEED_COLLISION"
+    assert suggest_fresh_seeds(3) == (30, 31, 32)
+    draft = compose_scenario(
+        _form(fleet_seeds=suggest_fresh_seeds(3)), loaded, generated_at_utc=GENERATED_AT
+    )
+    assert draft.design_draft["fleet_seeds"] == [30, 31, 32]
 
 
 # --- form validation ---------------------------------------------------------
@@ -111,10 +126,10 @@ def test_composer_refuses_identical_arms_and_bad_seed_sets(loaded: LoadedFit) ->
         compose_scenario(_form(capacity=2.5), loaded, generated_at_utc=GENERATED_AT)
     assert identical.value.code == "COMPOSER_ARMS_IDENTICAL"
     with pytest.raises(WhatifComposerError) as short:
-        compose_scenario(_form(fleet_seeds=(0, 1)), loaded, generated_at_utc=GENERATED_AT)
+        compose_scenario(_form(fleet_seeds=(30, 31)), loaded, generated_at_utc=GENERATED_AT)
     assert short.value.code == "COMPOSER_SEEDS_INSUFFICIENT"
     with pytest.raises(WhatifComposerError) as duplicated:
-        compose_scenario(_form(fleet_seeds=(0, 1, 1)), loaded, generated_at_utc=GENERATED_AT)
+        compose_scenario(_form(fleet_seeds=(30, 30, 31)), loaded, generated_at_utc=GENERATED_AT)
     assert duplicated.value.code == "COMPOSER_SEEDS_DUPLICATED"
     with pytest.raises(WhatifComposerError) as unknown:
         compose_scenario(_form(trace="berlin"), loaded, generated_at_utc=GENERATED_AT)
@@ -141,7 +156,7 @@ def test_worked_example_drafts_the_pilot_squeeze_end_to_end(loaded: LoadedFit) -
     assert isinstance(variation, list)
     assert baseline["label"] == "cap-2.5"
     assert variation[0]["label"] == "cap-0.75"
-    assert design["fleet_seeds"] == [0, 1, 2]
+    assert design["fleet_seeds"] == [30, 31, 32]
     approval = design["approval"]
     assert isinstance(approval, dict)
     assert approval["status"] == "UNSIGNED"
@@ -241,7 +256,8 @@ def test_drafted_budgets_embed_the_measured_per_cell_cost(loaded: LoadedFit) -> 
 
 def _analysis_payload() -> dict[str, object]:
     return {
-        "experiment_id": "vec-example",
+        "experiment_id": "vec-capacity-squeeze-pilot",
+        "design_fingerprint": EXPERIMENT_REGISTRY["vec-capacity-squeeze-pilot"].design_fingerprint,
         "campaign_status": "completed",
         "research_status": "owner_approved_candidate",
         "primary_descriptives": [
@@ -325,8 +341,9 @@ def test_prediction_card_banners_and_refusal_card_names_the_gap(
 
 def test_write_draft_lands_dated_bannered_files(loaded: LoadedFit, tmp_path: Path) -> None:
     draft = compose_scenario(_form(), loaded, generated_at_utc=GENERATED_AT)
-    design_path, predeclaration_path = write_draft(draft, tmp_path)
-    assert design_path.parent == tmp_path / "docs" / "evaluation" / "drafts"
+    destination = tmp_path / "owner-selected-drafts"
+    design_path, predeclaration_path = write_draft(draft, destination)
+    assert design_path.parent == destination
     assert design_path.name == "whatif_inc_cap0p75_20260801_design_draft.json"
     assert predeclaration_path.name == "whatif_inc_cap0p75_20260801_predeclaration_draft.md"
     payload = json.loads(design_path.read_text(encoding="utf-8"))
@@ -345,3 +362,103 @@ def test_the_llm_socket_is_dormant_and_typed(loaded: LoadedFit) -> None:
     status = llm_socket_status()
     assert status["available"] is False
     assert status["mode"] == "template"
+
+
+# --- review conformance (1 August design review) -----------------------------
+
+
+def test_renderer_refuses_unregistered_and_tampered_analyses(tmp_path: Path) -> None:
+    unregistered = _analysis_payload()
+    unregistered["experiment_id"] = "vec-something-else"
+    path = tmp_path / "unregistered.json"
+    path.write_text(json.dumps(unregistered), encoding="utf-8")
+    with pytest.raises(WhatifComposerError) as not_registered:
+        render_result_card(path)
+    assert not_registered.value.code == "ANALYSIS_NOT_REGISTERED"
+
+    drifted = _analysis_payload()
+    drifted["design_fingerprint"] = "0" * 64
+    drifted_path = tmp_path / "drifted.json"
+    drifted_path.write_text(json.dumps(drifted), encoding="utf-8")
+    with pytest.raises(WhatifComposerError) as mismatch:
+        render_result_card(drifted_path)
+    assert mismatch.value.code == "ANALYSIS_FINGERPRINT_MISMATCH"
+
+    non_admitted = _analysis_payload()
+    non_admitted["note"] = "NON_ADMITTED diagnostic"
+    non_admitted_path = tmp_path / "non_admitted.json"
+    non_admitted_path.write_text(json.dumps(non_admitted), encoding="utf-8")
+    with pytest.raises(WhatifComposerError) as refused:
+        render_result_card(non_admitted_path)
+    assert refused.value.code == "NON_ADMITTED_SOURCE_REFUSED"
+
+
+def test_unavailable_metrics_propagate_into_the_predeclaration(
+    loaded: LoadedFit,
+) -> None:
+    draft = compose_scenario(
+        _form(trace="inc", capacity=1.0, actor=BASELINE_ACTOR),
+        loaded,
+        generated_at_utc=GENERATED_AT,
+    )
+    assert draft.prediction_available
+    assert draft.prediction is not None
+    assert "latency_p50_ms" in draft.prediction.metrics_unavailable
+    assert "Unavailable means unavailable" in draft.predeclaration_markdown
+    assert "latency_p50_ms" in draft.predeclaration_markdown
+    assert "tail_ceiling_ms" in draft.predeclaration_markdown
+
+
+def test_baseline_below_its_measured_range_refuses_through_the_composer(
+    loaded: LoadedFit,
+) -> None:
+    draft = compose_scenario(
+        _form(trace="inc", capacity=0.5, actor=BASELINE_ACTOR),
+        loaded,
+        generated_at_utc=GENERATED_AT,
+    )
+    assert not draft.prediction_available
+    assert draft.prediction_refusal is not None
+    assert draft.prediction_refusal.code == "ACTOR_CAPACITY_NOT_MEASURED"
+    assert "ACTOR_CAPACITY_NOT_MEASURED" in draft.predeclaration_markdown
+
+
+def test_artifacts_carry_the_producer_citation_bundle(loaded: LoadedFit, tmp_path: Path) -> None:
+    from traffictwin.platform.outcome_predictor import VecScenario, predict
+
+    draft = compose_scenario(_form(), loaded, generated_at_utc=GENERATED_AT)
+    assert "Citation and standing" in draft.predeclaration_markdown
+    assert "producer_citation_requirements.md" in draft.predeclaration_markdown
+    assert "vec_env" in draft.predeclaration_markdown
+    record = predict(VecScenario(trace="we", capacity=1.0, actor=TRAINED_ACTOR), loaded)
+    card = render_prediction_card(record)
+    assert "producer_citation_requirements.md" in card
+    path = tmp_path / "campaign_analysis.json"
+    path.write_text(json.dumps(_analysis_payload()), encoding="utf-8")
+    assert "producer_citation_requirements.md" in render_result_card(path)
+
+
+def test_budget_context_and_estimate_note_are_carried(loaded: LoadedFit) -> None:
+    draft = compose_scenario(_form(), loaded, generated_at_utc=GENERATED_AT)
+    assert "Apple-silicon" in draft.cost.runtime_context
+    assert "not quotas" in draft.cost.estimate_note
+    assert "planning estimates" in draft.predeclaration_markdown
+
+
+def test_fleet_fields_pass_through_to_the_predictor(loaded: LoadedFit) -> None:
+    gap = compose_scenario(
+        _form(fleet_seeds=(30, 31, 32)).model_copy(update={"fleet_size": 1216}),
+        loaded,
+        generated_at_utc=GENERATED_AT,
+    )
+    assert not gap.prediction_available
+    assert gap.prediction_refusal is not None
+    assert gap.prediction_refusal.code == "DENSITY_GAP"
+    preset = compose_scenario(
+        _form().model_copy(update={"fleet_preset": "synthetic"}),
+        loaded,
+        generated_at_utc=GENERATED_AT,
+    )
+    assert not preset.prediction_available
+    assert preset.prediction_refusal is not None
+    assert preset.prediction_refusal.code == "FLEET_PRESET_NOT_MEASURED"

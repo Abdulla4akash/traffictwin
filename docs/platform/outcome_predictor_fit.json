@@ -13,15 +13,27 @@
       "0.5": 0.010757111277944612
     }
   },
+  "citation_bundle": {
+    "author": "Randy Prasetia Putra, University of Manchester",
+    "engine_version": "v2_post_nrsus_fix",
+    "environment_pinned_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+    "environment_repository": "gitlab.cs.man.ac.uk/e62992rp/vec_env",
+    "requirements_record": "docs/producer_citation_requirements.md",
+    "trace_data_audited_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+    "trace_data_repository": "gitlab.cs.man.ac.uk/e62992rp/tos-data"
+  },
+  "citation_reference": "docs/producer_citation_requirements.md",
   "design_reference": "docs/platform/outcome_predictor_design.md",
   "evidence": false,
   "fleet_preset": "uk2030",
-  "generated_at_utc": "2026-08-01T15:43:25.831407+00:00",
+  "generated_at_utc": "2026-08-01T16:10:12.379351+00:00",
   "inert": [
     {
       "actor": "baseline_model_c_17",
       "arm_label": "cap-2.5",
       "experiment_id": "vec-baseline-invariance-ev",
+      "measured_capacity_maximum": 2.5,
+      "measured_capacity_minimum": 0.75,
       "metrics": {
         "deadline_attainment": {
           "maximum": 0.9415042753946539,
@@ -60,6 +72,8 @@
       "actor": "ukfleettrain_mappo_model_c_17",
       "arm_label": "cap-2.5",
       "experiment_id": "vec-capacity-grid-ev",
+      "measured_capacity_maximum": 2.5,
+      "measured_capacity_minimum": 0.1,
       "metrics": {
         "deadline_attainment": {
           "maximum": 0.947047021064758,
@@ -98,6 +112,8 @@
       "actor": "ukfleettrain_mappo_model_c_17",
       "arm_label": "cap-2.5",
       "experiment_id": "vec-capacity-grid-wd-am",
+      "measured_capacity_maximum": 2.5,
+      "measured_capacity_minimum": 0.1,
       "metrics": {
         "deadline_attainment": {
           "maximum": 0.9301961823509877,
@@ -136,6 +152,8 @@
       "actor": "ukfleettrain_mappo_model_c_17",
       "arm_label": "cap-2.5",
       "experiment_id": "vec-capacity-grid-wd-pm",
+      "measured_capacity_maximum": 2.5,
+      "measured_capacity_minimum": 0.1,
       "metrics": {
         "deadline_attainment": {
           "maximum": 0.9344561934923166,
@@ -174,6 +192,8 @@
       "actor": "ukfleettrain_mappo_model_c_17",
       "arm_label": "cap-2.5",
       "experiment_id": "vec-capacity-grid-we",
+      "measured_capacity_maximum": 2.5,
+      "measured_capacity_minimum": 0.1,
       "metrics": {
         "deadline_attainment": {
           "maximum": 0.9413520392411121,

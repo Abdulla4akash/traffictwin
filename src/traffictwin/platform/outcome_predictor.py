@@ -229,7 +229,23 @@ _REFUSAL_CODES = (
     "FLEET_PRESET_NOT_MEASURED",
     "DENSITY_GAP",
     "ACTOR_NOT_MEASURED",
+    "ACTOR_CAPACITY_NOT_MEASURED",
 )
+
+#: The mandatory producer/SUMO citation set (the permission's condition);
+#: every published prediction card and the fit documentation carry it.
+PRODUCER_CITATION_REFERENCE: Literal["docs/producer_citation_requirements.md"] = (
+    "docs/producer_citation_requirements.md"
+)
+PRODUCER_CITATION_BUNDLE: dict[str, str] = {
+    "environment_repository": "gitlab.cs.man.ac.uk/e62992rp/vec_env",
+    "environment_pinned_commit": "068b4ea33e640f206ce6a7d04f3d6fae2ac831f4",
+    "trace_data_repository": "gitlab.cs.man.ac.uk/e62992rp/tos-data",
+    "trace_data_audited_commit": "f6c67acbed3360dba3a0d5c8d1fd557caa99ecff",
+    "engine_version": "v2_post_nrsus_fix",
+    "author": "Randy Prasetia Putra, University of Manchester",
+    "requirements_record": "docs/producer_citation_requirements.md",
+}
 
 _STANDING_CAVEATS = (
     "prediction from a surrogate fit on admitted exploratory campaign analyses; "
@@ -304,6 +320,9 @@ class PredictionRecord(PredictorModel):
     sources: tuple[str, ...]
     fit_digest: str
     caveats: tuple[str, ...]
+    citation_reference: Literal["docs/producer_citation_requirements.md"] = (
+        PRODUCER_CITATION_REFERENCE
+    )
 
 
 class PredictionRefusal(PredictorModel):
@@ -321,13 +340,21 @@ class PredictionRefusal(PredictorModel):
 
 
 class InertLookup(PredictorModel):
-    """Regime-1 table: the measured top-capacity descriptives per trace/actor."""
+    """Regime-1 table: the measured top-capacity descriptives per trace/actor.
+
+    ``measured_capacity_minimum``/``maximum`` bound this trace/actor pair's
+    OWN measured envelope — the measured domain is not a Cartesian product,
+    and a capacity below the pair's smallest admitted arm refuses rather
+    than extrapolating (review-conformance, 1 August).
+    """
 
     trace: str
     actor: str
     experiment_id: str
     arm_label: str
     metrics: dict[str, SeedStat]
+    measured_capacity_minimum: float
+    measured_capacity_maximum: float
 
 
 class NearOnsetArm(PredictorModel):
@@ -429,6 +456,10 @@ class OutcomePredictorFit(PredictorModel):
     ceiling: CeilingFit
     p50: P50Fit
     self_test: SelfTestReport
+    citation_reference: Literal["docs/producer_citation_requirements.md"] = (
+        PRODUCER_CITATION_REFERENCE
+    )
+    citation_bundle: dict[str, str] = Field(default_factory=lambda: dict(PRODUCER_CITATION_BUNDLE))
 
 
 @dataclass(frozen=True)
@@ -746,6 +777,7 @@ def _build_inert_lookups(
         if registered.role not in ("grid", "baseline_grid"):
             continue
         top_label, metrics = _top_arm_stats(analysis)
+        low, high = _measured_capacity_range(analyses, registered.trace, registered.actor)
         lookups.append(
             InertLookup(
                 trace=registered.trace,
@@ -753,9 +785,28 @@ def _build_inert_lookups(
                 experiment_id=experiment_id,
                 arm_label=top_label,
                 metrics=metrics,
+                measured_capacity_minimum=low,
+                measured_capacity_maximum=high,
             )
         )
     return tuple(lookups)
+
+
+def _measured_capacity_range(
+    analyses: dict[str, tuple[VecCampaignAnalysis, FitSource]],
+    trace: str,
+    actor: str,
+) -> tuple[float, float]:
+    """The union of admitted arm capacities for one (trace, actor) pair."""
+
+    capacities: list[float] = []
+    for experiment_id, (analysis, _) in analyses.items():
+        registered = EXPERIMENT_REGISTRY[experiment_id]
+        if registered.trace != trace or registered.actor != actor:
+            continue
+        for row in [*analysis.primary_descriptives, *analysis.secondary_descriptives]:
+            capacities.append(_arm_capacity(row.arm_label))
+    return min(capacities), max(capacities)
 
 
 def _build_near_onset_arms(
@@ -1133,6 +1184,18 @@ def predict(scenario: VecScenario, loaded: LoadedFit) -> PredictionRecord | Pred
             f"a baseline-actor grid leg on '{scenario.trace}' mirroring vec-baseline-invariance-ev",
             digest,
         )
+    if scenario.capacity < lookup.measured_capacity_minimum:
+        return _refusal(
+            "ACTOR_CAPACITY_NOT_MEASURED",
+            f"capacity {scenario.capacity:g} is below actor '{scenario.actor}''s "
+            f"measured range [{lookup.measured_capacity_minimum:g}, "
+            f"{lookup.measured_capacity_maximum:g}] on trace '{scenario.trace}' — "
+            "inside the global envelope but outside this pair's admitted cells; "
+            "the measured domain is not a Cartesian product",
+            f"a deep capacity leg on '{scenario.trace}' for actor "
+            f"'{scenario.actor}' extending its admitted arms",
+            digest,
+        )
     onset = fit.trace_onsets[scenario.trace]
     if scenario.capacity > onset:
         return _predict_inert(scenario, fit, lookup, digest)
@@ -1260,6 +1323,19 @@ def _predict_saturated(
         )
     capacity = scenario.capacity
     arms_by_capacity = {arm.capacity: arm for arm in actor_fit.arms}
+    smallest_arm = min(arms_by_capacity)
+    if capacity < smallest_arm:
+        # Review-conformance (1 August): inside the global envelope but below
+        # this actor's smallest admitted inc arm — refuse, never line-extrapolate.
+        return _refusal(
+            "ACTOR_CAPACITY_NOT_MEASURED",
+            f"capacity {capacity:g} is below actor '{scenario.actor}''s measured "
+            f"inc range [{smallest_arm:g}, {max(arms_by_capacity):g}] — inside the "
+            "global envelope but outside this pair's admitted cells; the measured "
+            "domain is not a Cartesian product",
+            f"a deep-inc capacity leg for actor '{scenario.actor}' mirroring vec-capacity-deep-inc",
+            digest,
+        )
     nearest_capacity = min(arms_by_capacity, key=lambda value: abs(value - capacity))
     nearest = arms_by_capacity[nearest_capacity]
     exact = math.isclose(nearest_capacity, capacity, rel_tol=0.0, abs_tol=1e-9)
@@ -1390,13 +1466,6 @@ def _predict_saturated(
             "p50 latency was measured on the trained actor's admitted cells only; "
             "a baseline latency-tail analysis would close this"
         )
-        if capacity < 0.75:
-            caveats.append(
-                "no admitted baseline cells exist below cap-0.75; the latency line is "
-                "extrapolating inside the envelope measured only for the trained actor "
-                "— a baseline deep-inc leg would close this"
-            )
-
     return PredictionRecord(
         scenario=scenario,
         regime="saturated",
