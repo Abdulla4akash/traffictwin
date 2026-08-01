@@ -3961,11 +3961,44 @@ build script stages acquire/clip/decode/build/validate behind `--confirm-network
 writer-written stage markers. Stop rule honoured: one corridor, one pinned extract, no
 city-wide expansion, no observation acquisition, no simulation.
 
+**Amendment (1 August, same day): BD-D1/BD-D2 answered and the feasibility build
+executed.** The owner selected the Airport road corridor and authorised the download
+interactively in session; the dated `bangladesh-260731.osm.pbf` was pinned (provider md5
+verified) and the build ran end to end: ACCEPTED, 24,642 real edges / 24,347 junctions,
+UTM 46N validated against all four landmarks (12–64 m), containment measured true, zero
+feasibility gaps. Two contract corrections landed with the run: containment is measured
+against the landmark hull (a clipped network never touches the clip-bbox corners), and
+canonical identity strips multi-line comment BLOCKS (netconvert's banner carries absolute
+paths; the single-line matcher was a measured no-op on the first real build). Additional
+exclusive files: `docs/integration/dhaka_corridor_feasibility_20260801.md` and the three
+publication-safe `docs/integration/evidence/dhaka_corridor_*_20260801.json` records; raw
+and derived bytes stay in the owner workspace.
+
 Exclusive files: `src/traffictwin/integration/corridor_network.py`,
 `scripts/build_dhaka_corridor_network.py`, `tests/unit/test_corridor_network.py`,
 `docs/integration/dhaka_corridor_decision_worksheet.md` (BD-D1/BD-D2 worksheet,
 decisions EMPTY), the changelog entry in `CHANGELOG.md`, and this record. Manchester
 scope, bindings, evidence, and every lead surface remain byte-unchanged.
+
+### Phase 147 claim: aggregate historical store and feature registry — post-v1 slice 1 (1 August 2026)
+
+Implements the safe, engine-neutral contract in
+`docs/platform/historical_store_feature_registry_design.md` under the owner's post-v1 build
+directive. The persistent engine, workspace location, retention/backup policy, licence allowlist
+and committed-catalogue policy remain explicit owner decisions: this phase supplies a strict
+transactional in-memory reference backend and synthetic migration dry-run surface, and records no
+persistent choice as approved. The store accepts only aggregate/safe payload classes, never raw
+BODS bytes, salts, credentials, participant data, private absolute paths, raw/operator/vehicle
+identifiers or cross-session identities. Registration cannot strengthen evidence standing;
+Sparse-64 records remain segregated `NON_ADMITTED` metadata and never enter the admitted VEC
+feature namespace.
+
+Exclusive files: `src/traffictwin/platform/historical_store.py`,
+`tests/unit/test_historical_store.py`,
+`docs/platform/historical_store_feature_registry_design.md`, and this record. Existing registry,
+workspace, migration, platform, campaign, acquisition, dashboard, evidence and source artifacts
+are read-only and remain byte-unchanged. No acquisition, experiment, cloud service, participant
+activity, persistent database, retention deletion, approval or admission decision is authorised.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 

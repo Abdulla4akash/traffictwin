@@ -17,8 +17,17 @@ Bangladesh tier 2; implemented up to the design's own authority line):
   absolute paths;
 - a resumable owner-run build script staging acquire/clip/decode/build/validate, with the
   acquisition gated behind `--confirm-network` and pin verification before promotion; and
-- a BD-D1/BD-D2 decision worksheet with EMPTY decisions: the corridor choice and the
-  dated-extract pin remain genuine owner decisions, and no download or build has run.
+- BD-D1/BD-D2 answered by the owner in session (Airport road corridor; download
+  authorised): the pinned dated `bangladesh-260731.osm.pbf` (350,592,973 bytes, provider
+  md5 verified) was retrieved and the feasibility build ran and was ACCEPTED — 24,642
+  real edges, 24,347 junctions, UTM 46N chosen by netconvert and validated against all
+  four owner landmarks (12-64 m), corridor containment measured true, 36.6% no-shape
+  share (matching Manchester's 36% as comparison context), 6.8 s of tool time; the
+  publication-safe receipt, frozen scope, and extract pin are committed under
+  `docs/integration/evidence/`, raw and derived bytes stay in the owner workspace; and
+- the first real run caught and fixed a canonical-identity defect (netconvert's banner is
+  a multi-line comment carrying absolute paths; single-line stripping was a no-op), so
+  the committed receipt carries a banner-independent canonical identity.
 
 Added the platform dashboard (1 August, data-platform v1 slice 5, platform P-3): three
 strictly additive Streamlit pages in one new "Platform" navigation group appended after the

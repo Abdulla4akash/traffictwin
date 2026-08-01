@@ -1,0 +1,108 @@
+{
+  "accepted": true,
+  "attribution": "\u00a9 OpenStreetMap contributors, ODbL 1.0",
+  "derived_canonical_identity": "1c9943f8e9b7d1a32f99f1b3033f4ac1bdcbf39b1f526fa7d755de83a54bf58c",
+  "derived_network_sha256": "19a1b1ab1010254e3d0fe6707280718a8333c13e2c506680a54fdc7b7c5fddce",
+  "design_reference": "docs/platform/dhaka_corridor_design.md",
+  "excluded_claims": [
+    "no observations, demand, routes, calibration, behavioural model, VEC execution or scientific validation are carried by this artifact",
+    "this is a network-layer engineering feasibility artifact, not a twin",
+    "the corridor role never implies a city baseline"
+  ],
+  "extent": {
+    "conv_boundary": "0.00,0.00,10357.66,14390.64",
+    "landmark_reconciliation": [
+      {
+        "name": "Mohakhali flyover",
+        "nearest_junction_distance_m": 12.193125405306379
+      },
+      {
+        "name": "Banani Kakoli intersection",
+        "nearest_junction_distance_m": 27.70478717646525
+      },
+      {
+        "name": "Kurmitola General Hospital",
+        "nearest_junction_distance_m": 63.91498192120325
+      },
+      {
+        "name": "HSIA terminal approach",
+        "nearest_junction_distance_m": 14.987910187294807
+      }
+    ],
+    "landmark_tolerance_m": 150.0,
+    "net_offset": "-231431.33,-2629147.96",
+    "network_max_latitude": 23.881583795847938,
+    "network_max_longitude": 90.46460418569973,
+    "network_min_latitude": 23.751569474189548,
+    "network_min_longitude": 90.36323243030247,
+    "proj_parameter": "+proj=utm +zone=46 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+    "requested_corridor_contained": true
+  },
+  "extract_pin": {
+    "attribution": "\u00a9 OpenStreetMap contributors, ODbL 1.0",
+    "byte_size": 350592973,
+    "licence": "ODbL-1.0",
+    "provider_checksum": "md5:7408d0ea8e0711d61244b54a5b650114",
+    "reference_date": "2026-07-31",
+    "retrieved_at_utc": "2026-08-01T19:03:30+00:00",
+    "sha256": "9ba6545de309a0222303bfe3ad9eaba766434d589b9ea83a01c641ef20cfc067",
+    "url": "https://download.geofabrik.de/asia/bangladesh-260731.osm.pbf"
+  },
+  "extract_verified": true,
+  "feasibility_gaps": [],
+  "generated_at_utc": "2026-08-01T19:05:06.822484+00:00",
+  "licence": "ODbL-1.0",
+  "method_version": "corridor-network-build-1.0",
+  "network_artifact_name": "dhaka-corridor.net.xml",
+  "observation_status": "unavailable",
+  "research_status": "owner_approved_candidate",
+  "role": "corridor_network_candidate",
+  "schema_version": "1.0",
+  "scope": {
+    "corridor_name": "Dhaka-Airport road (Mohakhali to Hazrat Shahjalal International)",
+    "decided_by": "Abdulla (owner) - BD-D1 answered in session, 1 August 2026: Airport road corridor (the design's proposed default)",
+    "decision_provenance": "owner selection via interactive session prompt; landmark coordinates are approximate OSM-derived points along the corridor, subject to owner review at the 150 m reconciliation tolerance",
+    "landmarks": [
+      {
+        "latitude": 23.7779,
+        "longitude": 90.4046,
+        "name": "Mohakhali flyover"
+      },
+      {
+        "latitude": 23.7937,
+        "longitude": 90.4033,
+        "name": "Banani Kakoli intersection"
+      },
+      {
+        "latitude": 23.8223,
+        "longitude": 90.3986,
+        "name": "Kurmitola General Hospital"
+      },
+      {
+        "latitude": 23.848,
+        "longitude": 90.406,
+        "name": "HSIA terminal approach"
+      }
+    ],
+    "max_latitude": 23.865,
+    "max_longitude": 90.435,
+    "min_latitude": 23.765,
+    "min_longitude": 90.37,
+    "region": "Dhaka, Bangladesh"
+  },
+  "source_sha256": "9ba6545de309a0222303bfe3ad9eaba766434d589b9ea83a01c641ef20cfc067",
+  "stage_durations_seconds": {
+    "validate": 0.19106175005435944
+  },
+  "structure": {
+    "edge_count_internal": 81789,
+    "edge_count_real": 24642,
+    "edge_count_total": 106431,
+    "junction_count": 24347,
+    "no_shape_edge_share": 0.3659199740280822
+  },
+  "tool_versions": {
+    "netconvert": "Eclipse SUMO netconvert 1.27.1",
+    "osmium": "osmium version 1.19.1"
+  }
+}

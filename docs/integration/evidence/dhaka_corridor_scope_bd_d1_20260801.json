@@ -1,0 +1,16 @@
+{
+  "region": "Dhaka, Bangladesh",
+  "corridor_name": "Dhaka-Airport road (Mohakhali to Hazrat Shahjalal International)",
+  "min_longitude": 90.37,
+  "min_latitude": 23.765,
+  "max_longitude": 90.435,
+  "max_latitude": 23.865,
+  "landmarks": [
+    {"name": "Mohakhali flyover", "longitude": 90.4046, "latitude": 23.7779},
+    {"name": "Banani Kakoli intersection", "longitude": 90.4033, "latitude": 23.7937},
+    {"name": "Kurmitola General Hospital", "longitude": 90.3986, "latitude": 23.8223},
+    {"name": "HSIA terminal approach", "longitude": 90.4060, "latitude": 23.8480}
+  ],
+  "decided_by": "Abdulla (owner) - BD-D1 answered in session, 1 August 2026: Airport road corridor (the design's proposed default)",
+  "decision_provenance": "owner selection via interactive session prompt; landmark coordinates are approximate OSM-derived points along the corridor, subject to owner review at the 150 m reconciliation tolerance"
+}

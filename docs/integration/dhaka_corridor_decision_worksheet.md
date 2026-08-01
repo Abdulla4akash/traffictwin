@@ -1,9 +1,11 @@
-# Dhaka corridor — BD-D1 / BD-D2 decision worksheet (DECISIONS EMPTY)
+# Dhaka corridor — BD-D1 / BD-D2 decision worksheet (DECIDED 1 August 2026)
 
-**Status: the build contract (Phase 146) is implemented and offline-tested, but the
-reviewed design keeps these two decisions with the owner, and the download/build runs
-only after both are answered AND `--confirm-network` is passed explicitly. Nothing below
-is decided by this document's existence.**
+**Status: DECIDED. The owner answered both decisions interactively in session on
+1 August 2026 (BD-D1: Airport road corridor; BD-D2: download authorised), the pinned
+extract was retrieved and verified, and the feasibility build ran and was ACCEPTED. See
+[`dhaka_corridor_feasibility_20260801.md`](dhaka_corridor_feasibility_20260801.md) for
+the measured result; the frozen scope and pin are committed beside the receipt in
+`evidence/`. The original empty template is preserved below for the record.**
 
 Design: [`docs/platform/dhaka_corridor_design.md`](../platform/dhaka_corridor_design.md)
 (REVIEWED). Contract: `traffictwin.integration.corridor_network`

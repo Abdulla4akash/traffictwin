@@ -27,7 +27,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import re
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
@@ -357,11 +356,18 @@ def classify_extent(
     lats = [lat for _, lat in junctions_lonlat]
     network_min_lon, network_max_lon = min(lons), max(lons)
     network_min_lat, network_max_lat = min(lats), max(lats)
+    # Containment is measured against the LANDMARK HULL — the corridor as the
+    # owner froze it — not the clip bbox: a clipped network never touches the
+    # bbox corners, so bbox-superset would fail every honest build.
+    landmark_min_lon = min(landmark.longitude for landmark in scope.landmarks)
+    landmark_max_lon = max(landmark.longitude for landmark in scope.landmarks)
+    landmark_min_lat = min(landmark.latitude for landmark in scope.landmarks)
+    landmark_max_lat = max(landmark.latitude for landmark in scope.landmarks)
     contained = (
-        network_min_lon <= scope.min_longitude
-        and network_max_lon >= scope.max_longitude
-        and network_min_lat <= scope.min_latitude
-        and network_max_lat >= scope.max_latitude
+        network_min_lon <= landmark_min_lon
+        and network_max_lon >= landmark_max_lon
+        and network_min_lat <= landmark_min_lat
+        and network_max_lat >= landmark_max_lat
     )
     reconciliation = []
     for landmark in scope.landmarks:
@@ -474,18 +480,27 @@ def receipt_to_json(receipt: CorridorBuildReceipt) -> str:
 
 
 def canonical_network_identity(path: Path) -> str:
-    """Digest with XML comment lines stripped — the netconvert-banner lesson.
+    """Digest with XML comment BLOCKS stripped — the netconvert-banner lesson.
 
     ``netconvert`` embeds a timestamped banner (and absolute input paths) in
-    an XML comment, so raw bytes differ across identical builds; identity is
-    the digest of every non-comment line.
+    a MULTI-LINE XML comment, so raw bytes differ across identical builds and
+    carry private paths; identity is the digest of every line outside a
+    comment block. A single-line matcher missed the block entirely — caught
+    on the first real Dhaka build when canonical equalled the raw digest.
     """
 
     digest = hashlib.sha256()
-    comment = re.compile(rb"^\s*<!--.*-->\s*$")
+    inside_comment = False
     with path.open("rb") as handle:
         for line in handle:
-            if comment.match(line):
+            stripped = line.strip()
+            if inside_comment:
+                if b"-->" in stripped:
+                    inside_comment = False
+                continue
+            if stripped.startswith(b"<!--"):
+                if b"-->" not in stripped:
+                    inside_comment = True
                 continue
             digest.update(line)
     return digest.hexdigest()
