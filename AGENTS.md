@@ -3797,6 +3797,23 @@ one-word variable rename in the Phase-139 file `scripts/bods_scheduled_runner.py
 artifacts, and all existing evidence remain byte-unchanged; `integration/vec_campaign/`
 is imported, not modified.
 
+### Phase 141 claim: six-slice platform design review (1 August 2026)
+
+Documentation-only cross-contract review of the six data-platform v1 slice designs after
+the scheduled runner and outcome predictor landed. The review reconciles implemented truth,
+downstream data contracts, evidence/prediction separation, actor-specific measured envelopes,
+privacy and citation boundaries, ethics-gated evaluation language, and the optional Dhaka
+scope with the existing Manchester-specific network contracts. It launches no acquisition,
+experiment, model training, cloud compute, or participant activity and changes no executable
+code or evidence artifact.
+
+Exclusive files: `docs/platform/bods_scheduled_runner_design.md`,
+`docs/platform/outcome_predictor_design.md`, `docs/platform/whatif_composer_design.md`,
+`docs/platform/bus_prediction_design.md`, `docs/platform/dashboard_design.md`,
+`docs/platform/dhaka_corridor_design.md`, and this record. `CHANGELOG.md`, platform code,
+fit artifacts, campaign/evaluation records, shared UI/navigation surfaces, and all raw or
+private data remain untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

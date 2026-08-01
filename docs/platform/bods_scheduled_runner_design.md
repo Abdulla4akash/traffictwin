@@ -1,16 +1,20 @@
 # Design — Scheduled BODS session runner (implements platform decision P-D2)
 
-**Status: PROPOSED design, `owner_approved_candidate` ceiling. Implements the owner's
-tentative-yes to unattended acquisition (30 July,
+**Status: IMPLEMENTED in Phase 139 (`de66002`), at the
+`owner_approved_candidate` ceiling. The owner-attended one-snapshot smoke and the owner's
+separate unattended launch remain outstanding; no scheduled acquisition has been claimed.
+This implements the owner's tentative-yes to unattended acquisition (30 July,
 [platform plan](../traffictwin-data-platform-v1-plan.md) §7). The accepted acquisition
-rules are UNCHANGED — the only thing this slice changes is who triggers a session.**
+rules are UNCHANGED — the only boundary this slice changes is who triggers a session.**
 
 ## 1. Purpose
 
-Turn the four hand-run observation sessions into a continuous archive. Every unattended
-day adds training data for the [bus prediction layer](bus_prediction_design.md) and
-freshness to the [platform inventory](dashboard_design.md). The measured 66–68 s feed
-cadence fixes the sampling design; nothing new is learned by polling faster.
+Provide the capability to extend the four hand-run observation sessions into a scheduled
+archive. A successfully captured unattended day can add aggregate inputs for the
+[bus prediction layer](bus_prediction_design.md) and freshness to the
+[platform inventory](dashboard_design.md). The measured 66–68 s feed cadence fixes the
+sampling design; nothing new is learned by polling faster. Implementation alone does not
+create a new session, and the owner smoke/launch boundary is intentionally visible.
 
 ## 2. Boundary — inherited verbatim, none of it relaxed
 
@@ -40,6 +44,13 @@ The four windows mirror the four measured density points so scheduled data exten
 existing series rather than starting a new one. ~204 snapshots/day ≈ well inside any
 rate concern at one request/65 s.
 
+**Clock boundary:** `start_local` is interpreted in the supervisor host's local timezone.
+Before both the attended smoke and the unattended launch, the owner must verify that the
+host is using `Europe/London` and that the displayed UTC offset is correct for BST/GMT.
+The current implementation does not pin an IANA timezone in the schedule, so moving the
+supervisor to another host without this check is a recorded portability limitation, not
+permission to shift the observation windows.
+
 **Trigger:** a single long-lived detached supervisor (`start_new_session` +
 `caffeinate -i` + pid file — the pattern proven by the campaign chain), started once by
 the owner, which sleeps until the next window. **Not launchd.** The Sparse-64 homecoming
@@ -64,31 +75,45 @@ data would silently shift the density point the window exists to measure.
 
 ## 4. Provenance and outputs
 
-Each scheduled session produces exactly what an attended one does — quarantine dir,
-refusal ledger, measurement JSON, session record — plus `triggered_by: "schedule"` and
-the schedule digest in the session record, so scheduled and attended sessions are never
-conflatable. Outputs land under `<workspace>/manchester/scheduled/<date>/<label>/`;
-nothing ever writes to the attended sessions' paths (the 28-July default-path clobber
-near-miss is the precedent). Daily disk ≈ 204 snapshots × ~250 KB ≈ 50 MB/day; a
-declared retention rule (raw quarantine pruned after N days once aggregates are
-committed, N owner-decided, default 14) keeps the archive bounded.
+Each scheduled session produces a completion marker before fallible post-processing, then
+a refusal ledger, aggregate cadence measurement where at least two snapshots were accepted,
+and a session record. The records carry `triggered_by: "schedule"` and the schedule digest,
+so scheduled and attended sessions are never conflatable. Outputs land under
+`<workspace>/manchester/scheduled/<date>/<label>/`; nothing ever writes to the attended
+sessions' paths (the 28-July default-path clobber near-miss is the precedent).
+
+Daily raw quarantine growth is estimated at ~204 snapshots × ~250 KB ≈ 50 MB/day. The
+implemented `retention_report_days` value (default 14) only identifies scheduled snapshots
+that are old enough and have an aggregate cadence measurement. It deletes nothing. Private
+raw bytes may be removed only through the existing owner-invoked, confirmation-gated
+retention flow. Consequently the archive is not automatically bounded; the inventory must
+surface both the eligibility count and the fact that owner action is pending.
 
 ## 5. Failure policy
 
 A session that hits the 8-consecutive-refusal stop ends and is ledgered; the supervisor
-moves to the next window — it never retries a window. A missing/invalid API key refuses
-at supervisor start, not mid-window. Machine asleep or supervisor dead = windows
-silently skipped; the inventory page surfaces gaps (freshness), which is the monitoring
-— no alerting subsystem in v1.
+moves to the next window — it never retries a window. A missing API key refuses at
+supervisor start; an invalid key fails closed through the acquisition refusal path. A
+same-day window found beyond the five-minute tolerance is skip-marked and never run late.
+Windows from earlier dates leave an absence rather than retroactive markers, so the
+inventory must infer those gaps from schedule-versus-record reconciliation. This freshness
+view is the monitoring; no alerting subsystem exists in v1.
 
 ## 6. Testing
 
-Unit tests with an injected clock and fake acquisition function: window selection,
-skip-late rule, completion-marker idempotency, singleton refusal, ledger contents,
-schedule-digest stamping. No live network in tests. One owner-attended smoke of a real
-1-snapshot scheduled window before first unattended day.
+Implemented unit tests use an injected clock and fake acquisition function for window
+selection, skip-late behaviour, completion-marker idempotency, singleton refusal, ledger
+contents, schedule-digest stamping, shared attended/scheduled refusal semantics, and the
+delete-nothing retention report. Phase 139 recorded 22 focused passes; no test opens the
+network. One owner-attended smoke of a real one-snapshot scheduled window is still required
+before the first unattended day, followed by an explicit owner launch. Neither is delegated
+to an agent by this design.
 
 ## 7. Out of scope
 
 Streaming (proven unnecessary — plan §4); schedule UI editing; multi-region boxes;
-retention automation beyond the single rule above.
+automatic retention deletion; hourly progression aggregation for forecasting. The last
+item is a real downstream gap: Phase 139 emits cadence aggregates, not the
+`measure_session_progression` hourly series. The bus-prediction slice must close that
+aggregate-only contract before scheduled sessions can be claimed as progression-speed
+training data.
