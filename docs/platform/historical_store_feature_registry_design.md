@@ -1,8 +1,8 @@
 # Design — Aggregate historical store and feature registry (post-v1 H-1)
 
-**Status: IMPLEMENTED in Phase 147 for the engine-neutral contracts, transactional in-memory
-reference backend and synthetic migration dry run. Persistent activation remains unimplemented
-and pending the owner decisions in Section 10. The maximum policy ceiling is
+**Status: IMPLEMENTED in Phase 147 for the engine-neutral contract and in Phase 160 for the
+owner-delegated local SQLite persistence contract. No existing data has been migrated and the store
+is not a production or scientific dependency. The maximum policy ceiling is
 `owner_approved_candidate`. This document does not authorise acquisition, migration of raw BODS
 material, experiment execution, cloud services, production deployment, approval or admission.**
 
@@ -69,11 +69,13 @@ The persistent implementation should remain local and dependency-light:
   the backend contract and privacy tests pass.
 
 Phase 147 implements the engine-neutral records and operations in
-`src/traffictwin/platform/historical_store.py`. Its transactional reference backend is deliberately
-in memory: it selects no persistent engine, workspace or retention behaviour. DuckDB plus Parquet
-remains one implementation candidate, not an architectural requirement. The owner must choose the
-storage engine and retention location before a persistent adapter is implemented. No network
-service, warehouse account or object-store spend is implied.
+`src/traffictwin/platform/historical_store.py`. Phase 160 implements the selected local adapter in
+`src/traffictwin/platform/historical_store_sqlite.py`: Python's embedded SQLite is the
+transactional catalogue and receipt store, while immutable aggregate JSON uses digest-addressed
+relative handles beneath `<owner-workspace>/historical-store/payloads/sha256/`. The sibling
+`staging/` and `backups/` areas support atomic publication and explicit verified backup bundles.
+The adapter refuses a workspace inside the repository and never serialises the private workspace
+path. No network service, warehouse account or object-store spend is implied.
 
 ## 5. Core records
 
@@ -131,8 +133,13 @@ Minimum library surface:
   separate filterable fields, not prose collapsed into one confidence label.
 - An aggregate with fewer supporting dates or seeds than a consumer requires is returned
   with its real support; the store never imputes support.
-- Deletion and retention are owner policy decisions. Any future garbage collection must be
-  receipt-driven, target exact payload digests and preserve catalogue tombstones.
+- Retention is indefinite until an owner-confirmed, receipt-driven operation targets exact payload
+  digests and preserves catalogue tombstones. Phase 160 exposes no deletion operation and performs
+  no automatic pruning.
+- Backups are explicit integrity-verified bundles containing the SQLite catalogue, every referenced
+  payload and a digest-bound manifest. A backup is required before any later authorised migration;
+  an active store should also receive one verified backup per active local day. Scheduling and
+  deletion remain absent.
 
 ## 8. Typed refusals
 
@@ -140,6 +147,11 @@ At minimum: `RAW_SOURCE_FORBIDDEN`, `PRIVATE_PATH_DETECTED`, `IDENTIFIER_FIELD_F
 `SCHEMA_UNSUPPORTED`, `DIGEST_MISMATCH`, `LOGICAL_ID_CONFLICT`, `FEATURE_INCOMPATIBLE`,
 `STANDING_ESCALATION`, `LICENCE_METADATA_MISSING`, `PARTIAL_COMMIT` and
 `SOURCE_RECORD_MISSING`.
+
+The persistent adapter adds typed refusals for an in-repository or unavailable workspace, policy
+or contract mismatch, incompatible SQLite schema version, catalogue corruption, missing/corrupt
+payloads, persistence failure and invalid backup labels. Refusal messages never include the
+workspace path.
 
 ## 9. Verification and acceptance
 
@@ -176,23 +188,44 @@ Sparse-64 segregation, safe query filtering, complete provenance and a non-mutat
 run. Adversarial fixtures contain marker strings only; they contain no real BODS, credential,
 identity, participant or private-path material.
 
-The first four acceptance conditions are met for this reference contract. The recovery/backup
-condition remains an explicit activation gate: no persistent adapter exists, no catalogue or
-payload has been migrated, and this store has not become a platform dependency. Phase 147 is not
+The first four acceptance conditions are met for this reference contract. Phase 147 is not
 production readiness, scientific evidence, approval or admission.
+
+### Phase 160 persistence implementation and verification
+
+`SQLiteHistoricalStore` binds the exact schema bundle, authoritative-source bundle, storage policy
+and versioned licence allowlist digest when a workspace is created. It refreshes and deterministically
+replays the Phase-147 core before reads and SQLite-serialised writes; publishes payload, catalogue
+row and receipt through a fail-closed transaction; and preserves exact retry semantics across
+process restarts. A failed transaction removes only its own uncommitted staged payload. An
+unexpected process exit may leave a content-addressed orphan, which recovery reports but never
+deletes. Missing, corrupt, mislocated or unexpected payloads refuse reopening.
+
+The synthetic persistence suite in `tests/unit/test_historical_store_sqlite.py` covers external
+workspace enforcement, restart/replay, byte-stable queries and provenance, two-instance refresh,
+all-write crash-before-commit rollback and retry, fail-closed licence and contract mismatches,
+non-mutating migration dry runs, orphan preservation, missing/corrupt payload refusal, future
+SQLite-version refusal without rewrite, and complete verified backup bundles. No runtime catalogue,
+payload or backup is committed and no existing data is migrated.
+
+The recovery and backup mechanisms now exist, but the store has deliberately not become a platform
+dependency: no real workspace has been selected or populated, no restore has been executed against
+real safe artifacts, and no operational backup schedule is running. Those are activation steps,
+not evidence or production approval.
 
 ## 10. Owner decisions and stop conditions
 
-The owner must choose the storage engine/location, retention period, backup policy, licence
-allowlist and whether any catalogue metadata may be committed. No answer to those questions is
-recorded by Phase 147:
+On 1 August 2026 the owner explicitly delegated these remaining implementation choices to the
+agent using reasonable conservative defaults. Phase 160 records the resulting local engineering
+policy; delegation is not scientific, ethics, production or supervisor approval:
 
-| Decision | Phase 147 state |
+| Decision | Phase 160 selected policy |
 |---|---|
-| Persistent engine and workspace | **PENDING** — the delivered backend is in memory only |
-| Retention and backup procedure | **PENDING** — no deletion, garbage collection or backup behaviour exists |
-| Licence allowlist | **PENDING** — the caller must supply an explicit non-empty test allowlist |
-| Committed catalogue metadata | **PENDING** — no runtime catalogue metadata is committed |
+| Persistent engine and workspace | **SELECTED** — embedded SQLite plus digest-addressed aggregate JSON under an external `<owner-workspace>/historical-store/`; no specific live path is recorded |
+| Retention | **SELECTED** — retain indefinitely; no automatic deletion; any future collection must be owner-confirmed, digest-targeted and tombstone-preserving |
+| Backup | **SELECTED** — explicit complete verified bundles before migration and recommended once per active local day; no automatic scheduling or pruning |
+| Licence allowlist | **SELECTED BEHAVIOUR** — exact, versioned, non-empty and fail-closed; the workspace binds its digest and stores no private permission text; actual live licence classes require explicit input |
+| Committed catalogue metadata | **SELECTED** — no runtime catalogue, payload, receipt or backup metadata is committed |
 
 Stop if satisfying a consumer would require raw BODS retention, cross-session identity,
 participant data, unreviewed cloud spend, or an evidence-standing upgrade. Those are new scopes,

@@ -4145,6 +4145,33 @@ Exclusive files: `src/traffictwin/platform/live_twin.py`,
 `tests/unit/test_live_twin.py`, the changelog entry in `CHANGELOG.md`, and this record.
 The campaign instrument, admission chain, and VEC-10 boundary are untouched.
 
+### Phase 154 claim: capacity-aware benchmark tooling — post-v1 B-1, gates 1–2 only (1 August 2026)
+
+Implements `docs/platform/capacity_aware_benchmark_design.md` STRICTLY to its §6 gates 1–2
+(owner build approval for tooling given in session; `owner_approved_candidate` ceiling):
+the versioned protocol schema, actor-compatibility checking, capacity-representation
+freezing, the synthetic end-to-end dry run, and the UNSIGNED predeclaration draft
+renderer. No experiment or compute campaign can start from this code: there is no
+execution path, no cloud submission, no credential use (test-pinned), and
+`request_execution` exists only to refuse with the missing gates
+(`OWNER_DECISION_MISSING`, `PREDECLARATION_UNSIGNED`, `COMPUTE_AUTHORITY_MISSING`).
+Structural rules: an algorithm name is not a baseline — unmatched contracts report
+`INCOMPATIBLE`, never ranked; observation-dimension changes refuse silent checkpoint
+padding; capacity representations must freeze their kind/units/normalisation from
+training-design information only (evaluation-arm normalisation refuses); seed namespaces
+must be disjoint and clean against the registered ledger and spent held-out {10–14}
+(`SEED_NAMESPACE_CONTAMINATED`); training budgets must match; checkpoint-selection rules
+naming evaluation performance refuse as leakage; five paired seeds force the exact
+p=0.0625 floor statement into the draft; latency-only primaries refuse
+(`PRIMARY_ENDPOINT_MISSING` — outcome coherence is the endpoint); the B-CAP/Sparse-64
+diagnostics may be cited as motivation only (`EXISTING_NON_ADMITTED_REUSE` otherwise);
+and the synthetic dry run proves the frozen analysis yields a publishable null with
+deviations retained. Typed refusals per design §8.
+
+Exclusive files: `src/traffictwin/platform/benchmark_protocol.py`,
+`tests/unit/test_benchmark_protocol.py`, the changelog entry in `CHANGELOG.md`, and this
+record. No training, evaluation, cloud compute, or VEC-06 surface is touched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

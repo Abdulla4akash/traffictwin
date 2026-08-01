@@ -2,6 +2,20 @@
 
 ## v0.7.0 - In development
 
+Added the capacity-aware benchmark tooling (1 August, post-v1 B-1, design §6 gates 1-2
+ONLY; owner build approval for tooling in session): the versioned protocol schema with
+actor-compatibility checking (unmatched contracts report INCOMPATIBLE, never ranked),
+frozen capacity representations normalised from training-design information only,
+disjoint seed namespaces checked against the registered ledger and spent held-out seeds,
+matched training budgets, checkpoint-selection leakage refusal, outcome-coherence
+endpoints (latency-only primaries refuse — the confirmed study's own trap), the exact
+five-pair p=0.0625 floor forced into the draft, non-admitted diagnostics acceptable as
+motivation but never as evidence, a synthetic end-to-end dry run proving the frozen
+analysis yields a publishable null with deviations retained, and an UNSIGNED
+predeclaration draft renderer. No experiment or compute campaign can start from this
+code: `request_execution` refuses at every gate and the module has no compute surface
+(test-pinned).
+
 Added the controlled live-twin adapter (1 August, post-v1 L-1; owner build approval in
 session; observe-only first, deterministic fake control process in tests, no live process
 spawned by this slice): session specs bind network/scenario digests, tool versions, seed,
