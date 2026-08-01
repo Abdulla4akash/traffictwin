@@ -2,6 +2,18 @@
 
 ## v0.7.0 - In development
 
+Added the incremental analytics and data-quality monitor (1 August, post-v1 A-1; owner
+build approval in session; prototype dependency path, no parallel catalogue): exactly-once
+micro-batches keyed by (source digest, schema version, analytics version) with separate
+reserve/commit checkpoint lines (crash-before-commit stays retryable; identical items
+replay their receipt; changed bytes under a logical id refuse); the declared small measure
+set only, computed order-independently (concurrency medians/maxima per local hour with the
+linking-count metric trap excluded by test, progression summaries with support,
+freshness/readiness cells); quality observations with rule versions and operational-only
+severity; missing shown as not-observed, never zero; local-time metadata required rather
+than re-derived from UTC; outputs inherit the weakest standing with `STANDING_ESCALATION`
+refusal; and no raw-quarantine, salt, identity, or runner surface exists in the module.
+
 Added the decision-safety layer (1 August, post-v1 D-1; owner build approval in session):
 the guardrail and refusal layer that detects unsafe interpretation instead of selecting
 anything. Eight deterministic code-versioned rules (envelope, standing, proxy-inversion,

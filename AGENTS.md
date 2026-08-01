@@ -4039,7 +4039,7 @@ Exclusive files: `src/traffictwin/platform/scenario_registry.py`,
 `tests/unit/test_scenario_registry.py`, the changelog entry in `CHANGELOG.md`, and this
 record. The campaign instrument, admission chain, and composer remain byte-unchanged.
 
-### Phase 151 claim: persistent aggregate store defaults — post-v1 H-1 amendment (1 August 2026)
+### Phase 160 claim: persistent aggregate store defaults — post-v1 H-1 amendment (1 August 2026)
 
 The owner explicitly delegated the remaining Slice-1 implementation choices in session. This
 phase adopts conservative local defaults: Python's embedded SQLite for the transactional
@@ -4098,6 +4098,28 @@ change the ruleset digest.
 Exclusive files: `src/traffictwin/platform/decision_safety.py`,
 `tests/unit/test_decision_safety.py`, the changelog entry in `CHANGELOG.md`, and this
 record. No approval, execution, or admission surface exists or is touched.
+
+### Phase 152 claim: incremental analytics and data-quality monitor — post-v1 A-1 (1 August 2026)
+
+Implements `docs/platform/incremental_analytics_monitor_design.md` (owner build approval
+given in session; `owner_approved_candidate` ceiling) on the design's PROTOTYPE path: an
+explicit list of digest-pinned activity aggregates in, no parallel persistent catalogue
+invented (the historical store is the lead's Phase-147 surface and is untouched). Each
+accepted aggregate becomes one immutable work item keyed by (source digest, schema
+version, analytics version); reservation and commit are separate checkpoint lines so a
+crash before commit stays retryable; identical items replay their receipt; changed bytes
+under the same logical id refuse; materialisations are the declared small set only
+(concurrency and progression summaries with support, freshness/gaps, eligible-date and
+readiness cells) computed order-independently; `vehicles_linked_across_snapshots` never
+substitutes for concurrency; quality observations carry rule version, severity as
+operational-not-scientific, and missing is never zero; outputs inherit the weakest input
+standing with `STANDING_ESCALATION` refusing anything stronger; the monitor never opens
+raw quarantine, creates a salt, joins identities, or starts the runner. Typed refusals
+per design §8.
+
+Exclusive files: `src/traffictwin/platform/analytics_monitor.py`,
+`tests/unit/test_analytics_monitor.py`, the changelog entry in `CHANGELOG.md`, and this
+record. `bus_prediction.py` is imported, not modified; the historical store untouched.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
