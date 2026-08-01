@@ -4172,6 +4172,20 @@ Exclusive files: `src/traffictwin/platform/benchmark_protocol.py`,
 `tests/unit/test_benchmark_protocol.py`, the changelog entry in `CHANGELOG.md`, and this
 record. No training, evaluation, cloud compute, or VEC-06 surface is touched.
 
+### Phase 154 sweep note: lead's staged Phase-147 increment carried in `08592c4` (1 August 2026)
+
+The Phase-154 commit was made without a pathspec while the integrating lead had STAGED
+its next Phase-147 historical-store increment in the shared index
+(`src/traffictwin/platform/historical_store_sqlite.py`,
+`tests/unit/test_historical_store_sqlite.py`, and the design-doc status update). Those
+files therefore landed inside `08592c4` rather than in the lead's own commit. Verified
+after the fact: the swept test file passes standalone, ruff is clean on both files, and
+the full-suite and mypy gates that ran before the commit already included them (3,937
+passed; all 55 mypy errors remain gpu-track). Per the 28-July precedent the pushed
+history is not rewritten; authorship of that increment remains the lead's (Phase 147),
+recorded here honestly. Process lesson re-recorded: verify `git status` staging COLUMNS,
+not just paths, immediately before any no-pathspec commit in this shared worktree.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
