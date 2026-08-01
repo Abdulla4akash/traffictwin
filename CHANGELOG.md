@@ -2,6 +2,31 @@
 
 ## v0.7.0 - In development
 
+Added the platform dashboard (1 August, data-platform v1 slice 5, platform P-3): three
+strictly additive Streamlit pages in one new "Platform" navigation group appended after the
+seven normative groups, every existing route and group unchanged (validation now pins the
+normative seven separately and refuses non-appended additions):
+
+- **Data Inventory** — an allowlisted read-only schema reader over scheduled session
+  markers, activity aggregates, the retention report, and the committed publication-safe
+  GPU preservation records (standing verbatim, including `NON_ADMITTED`; their metrics
+  never enter forecasts or evidence headlines); freshness reconciles the committed
+  schedule (same-day skips from their markers, older missing days inferred as absences);
+  retention shows prune-eligible counts with owner action pending; absolute/private paths
+  are refused at the service boundary and no raw quarantine byte is opened;
+- **Forecasts** — the bus prediction layer rendered honestly: support counts on every
+  cell, `insufficient_support` shown as exactly that, `FORECAST — NOT EVIDENCE` and
+  `BUS PROGRESSION — NOT ROAD SPEED` banners, and the progression-speed target shown as
+  unavailable rather than derived from cadence; and
+- **What-If Composer** — scenario form → prediction/refusal card → deterministic
+  DRAFT/UNSIGNED downloads; signing and execution are instructions for a human outside
+  the app; the page writes no repository, workspace or registry file; the external-LLM
+  field is absent; and the predictions-versus-measurements table is empty at launch and
+  visibly so.
+
+No participant activity, evaluation result, or session window is claimed: ethics approval
+is pending and participant use requires an explicit owner release (P-D3).
+
 Added the bus prediction layer (1 August, data-platform v1 slice 4, platform P-2 — the
 producer-independent study; zero VEC producer data, code, parameters or results, pinned by
 test):

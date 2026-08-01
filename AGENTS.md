@@ -3910,6 +3910,38 @@ Exclusive files: `docs/platform/historical_store_feature_registry_design.md`,
 code, tests, existing platform design, changelog, evidence register, manuscript, raw/private
 data, acquisition surface, experiment instrument, dashboard, or shared navigation is owned.
 
+### Phase 145 claim: platform dashboard — platform slice 5 (1 August 2026)
+
+Implements the REVIEWED `docs/platform/dashboard_design.md` (platform P-3,
+`owner_approved_candidate` ceiling): three strictly ADDITIVE Streamlit pages —
+Data Inventory (allowlisted schema reader over workspace session records, scheduled
+markers, activity aggregates, the retention report, and the committed publication-safe
+GPU preservation records with `NON_ADMITTED`/deviation standing verbatim; refuses
+absolute/private paths at the service boundary; never opens raw quarantine bytes),
+Forecasts (the bus prediction layer rendered honestly: support counts on every cell,
+`insufficient_support` shown as exactly that, `FORECAST — NOT EVIDENCE` and
+`BUS PROGRESSION — NOT ROAD SPEED` banners, progression target unavailable until the
+aggregate contract yields data), and What-If Composer (form → prediction/refusal card →
+deterministic download of the DRAFT/UNSIGNED pair; signing and execution are
+instructions for a human outside the app; the page writes no repository, workspace or
+registry file; the external-LLM field is absent; the predictions-vs-measurements table
+is empty at launch and visibly so). One new "Platform" navigation group is APPENDED to
+the seven existing groups; every current route and group is unchanged. No participant
+activity, evaluation result, or fixed session window is claimed — ethics approval is
+pending and participant use needs an explicit owner release (P-D3).
+
+Exclusive files: `src/traffictwin/ui/platform_services.py`,
+`src/traffictwin/ui/pages/platform_inventory.py`,
+`src/traffictwin/ui/pages/platform_forecasts.py`,
+`src/traffictwin/ui/pages/platform_composer.py`, the three matching shims in
+`src/traffictwin/ui/app_pages/`, additive runner functions in
+`src/traffictwin/ui/page_runtime.py`, the additive "Platform" group + three page specs
+in `src/traffictwin/ui/navigation_v07.py` (with the normative-groups validation split so
+the seven-group normative inventory stays pinned), the additive expectations in
+`tests/ui/test_navigation_v07.py`, `tests/ui/test_platform_pages.py`, the changelog
+entry in `CHANGELOG.md`, and this record. No existing page, route, label, or service is
+modified; MAN-05 and all lead surfaces untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

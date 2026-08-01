@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_platform_forecasts_page_script
+
+run_platform_forecasts_page_script()

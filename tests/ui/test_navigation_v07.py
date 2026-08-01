@@ -9,8 +9,12 @@ import streamlit as st
 import traffictwin.ui.navigation as legacy_navigation
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation_v07 import (
+    PLATFORM_COMPOSER_PAGE_SPEC,
+    PLATFORM_FORECASTS_PAGE_SPEC,
+    PLATFORM_INVENTORY_PAGE_SPEC,
     V07_NAVIGATION_ENV,
     V07_NAVIGATION_GROUPS,
+    V07_NORMATIVE_GROUPS,
     V07_PAGE_SPECS,
     V07PageSpec,
     legacy_navigation_requested,
@@ -29,8 +33,31 @@ def test_candidate_inventory_covers_every_current_page_once() -> None:
     assert {spec.page for spec in V07_PAGE_SPECS} == set(UiPage)
     assert len({spec.script for spec in V07_PAGE_SPECS}) == 34
     assert len({spec.url_path for spec in V07_PAGE_SPECS}) == 34
-    assert tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) == V07_NAVIGATION_GROUPS
+    assert tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) == V07_NORMATIVE_GROUPS
     assert set(PAGE_RENDERERS) == set(UiPage)
+
+
+def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
+    # The platform dashboard adds ONE group at the end; the seven normative
+    # groups and every existing route are unchanged (dashboard design §4).
+    assert (*V07_NORMATIVE_GROUPS, "Platform") == V07_NAVIGATION_GROUPS
+    assert len(V07_NORMATIVE_GROUPS) == 7
+    platform_specs = (
+        PLATFORM_INVENTORY_PAGE_SPEC,
+        PLATFORM_FORECASTS_PAGE_SPEC,
+        PLATFORM_COMPOSER_PAGE_SPEC,
+    )
+    assert [spec.title for spec in platform_specs] == [
+        "Data Inventory",
+        "Forecasts",
+        "What-If Composer",
+    ]
+    assert all(spec.group == "Platform" for spec in platform_specs)
+    normative_paths = {spec.url_path for spec in V07_PAGE_SPECS}
+    normative_scripts = {spec.script for spec in V07_PAGE_SPECS}
+    for spec in platform_specs:
+        assert spec.url_path not in normative_paths
+        assert spec.script not in normative_scripts
 
 
 def test_candidate_inventory_matches_normative_routes_and_groups() -> None:

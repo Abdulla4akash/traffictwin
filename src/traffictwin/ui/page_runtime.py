@@ -30,6 +30,9 @@ from traffictwin.ui.pages import (
     operations,
     parameter_sweep,
     participant_evaluation,
+    platform_composer,
+    platform_forecasts,
+    platform_inventory,
     provenance_explorer,
     reports,
     rsu_monitor,
@@ -157,3 +160,31 @@ def run_manchester_page_script() -> None:
         "Explore validated local Manchester evidence without hidden external source access."
     )
     manchester_operations.render(load_ui_config())
+
+
+def run_platform_inventory_page_script() -> None:
+    """Execute the additive Data Inventory page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-inventory"
+    st.sidebar.caption(
+        "Allowlisted read-only inventory of recorded datasets; no raw quarantine byte is opened."
+    )
+    platform_inventory.render(load_ui_config())
+
+
+def run_platform_forecasts_page_script() -> None:
+    """Execute the additive Forecasts page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-forecasts"
+    st.sidebar.caption("Bus-fleet climatology with support counts; a forecast is never evidence.")
+    platform_forecasts.render(load_ui_config())
+
+
+def run_platform_composer_page_script() -> None:
+    """Execute the additive What-If Composer page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-composer"
+    st.sidebar.caption(
+        "Draft-only what-if scenarios; signing and execution are human acts outside this app."
+    )
+    platform_composer.render(load_ui_config())

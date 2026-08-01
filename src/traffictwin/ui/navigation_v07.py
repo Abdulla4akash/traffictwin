@@ -19,7 +19,7 @@ V07_LEGACY_ROUTER_VALUES = frozenset({"0", "false", "no", "legacy"})
 #: scan past replay and training pages to find it. Splitting by question keeps
 #: every group scannable and puts configuration last, where it is reached
 #: deliberately rather than stumbled into.
-V07_NAVIGATION_GROUPS: tuple[str, ...] = (
+V07_NORMATIVE_GROUPS: tuple[str, ...] = (
     "Overview",
     "Build & run",
     "Results",
@@ -28,6 +28,9 @@ V07_NAVIGATION_GROUPS: tuple[str, ...] = (
     "Evidence & reports",
     "Advanced",
 )
+#: The platform dashboard (P-3) appends ONE additive group after the seven
+#: normative groups; every normative group and route is unchanged.
+V07_NAVIGATION_GROUPS: tuple[str, ...] = (*V07_NORMATIVE_GROUPS, "Platform")
 
 
 @dataclass(frozen=True)
@@ -82,6 +85,30 @@ CAMPAIGNS_PAGE_SPEC = V07AdditivePageSpec(
     script="app_pages/campaigns.py",
     url_path="campaigns",
     icon=":material/inventory_2:",
+)
+
+PLATFORM_INVENTORY_PAGE_SPEC = V07AdditivePageSpec(
+    title="Data Inventory",
+    group="Platform",
+    script="app_pages/platform_inventory.py",
+    url_path="platform-inventory",
+    icon=":material/inventory:",
+)
+
+PLATFORM_FORECASTS_PAGE_SPEC = V07AdditivePageSpec(
+    title="Forecasts",
+    group="Platform",
+    script="app_pages/platform_forecasts.py",
+    url_path="platform-forecasts",
+    icon=":material/timeline:",
+)
+
+PLATFORM_COMPOSER_PAGE_SPEC = V07AdditivePageSpec(
+    title="What-If Composer",
+    group="Platform",
+    script="app_pages/platform_composer.py",
+    url_path="platform-composer",
+    icon=":material/tune:",
 )
 
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
@@ -378,8 +405,10 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         raise ValueError("v0.7 navigation page membership is incomplete or duplicated")
     if len(set(paths)) != len(paths) or len(set(scripts)) != len(scripts):
         raise ValueError("v0.7 navigation paths and scripts must be unique")
-    if tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) != V07_NAVIGATION_GROUPS:
+    if tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) != V07_NORMATIVE_GROUPS:
         raise ValueError("v0.7 navigation groups or ordering do not match the design")
+    if V07_NAVIGATION_GROUPS[: len(V07_NORMATIVE_GROUPS)] != V07_NORMATIVE_GROUPS:
+        raise ValueError("additive groups may only be appended after the normative seven")
     source_root = base or Path(__file__).parent
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
     additive_specs = (
@@ -388,6 +417,9 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         RSU_MONITOR_PAGE_SPEC,
         BUS_SESSIONS_PAGE_SPEC,
         CAMPAIGNS_PAGE_SPEC,
+        PLATFORM_INVENTORY_PAGE_SPEC,
+        PLATFORM_FORECASTS_PAGE_SPEC,
+        PLATFORM_COMPOSER_PAGE_SPEC,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -479,5 +511,19 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                     url_path=CAMPAIGNS_PAGE_SPEC.url_path,
                 )
             )
+        if group == "Platform":
+            for platform_spec in (
+                PLATFORM_INVENTORY_PAGE_SPEC,
+                PLATFORM_FORECASTS_PAGE_SPEC,
+                PLATFORM_COMPOSER_PAGE_SPEC,
+            ):
+                group_pages.append(
+                    st.Page(
+                        platform_spec.script,
+                        title=platform_spec.title,
+                        icon=platform_spec.icon,
+                        url_path=platform_spec.url_path,
+                    )
+                )
         pages[group] = group_pages
     return pages
