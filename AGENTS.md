@@ -4039,7 +4039,7 @@ Exclusive files: `src/traffictwin/platform/scenario_registry.py`,
 `tests/unit/test_scenario_registry.py`, the changelog entry in `CHANGELOG.md`, and this
 record. The campaign instrument, admission chain, and composer remain byte-unchanged.
 
-### Phase 150 claim: persistent aggregate store defaults — post-v1 H-1 amendment (1 August 2026)
+### Phase 151 claim: persistent aggregate store defaults — post-v1 H-1 amendment (1 August 2026)
 
 The owner explicitly delegated the remaining Slice-1 implementation choices in session. This
 phase adopts conservative local defaults: Python's embedded SQLite for the transactional
@@ -4078,6 +4078,26 @@ limitation on the placement card. Typed refusals per design §5.
 Exclusive files: `src/traffictwin/platform/observatory.py`,
 `tests/unit/test_observatory.py`, the changelog entry in `CHANGELOG.md`, and this record.
 No source analysis, campaign code, actor, evidence record or manuscript is modified.
+
+### Phase 151 claim: decision-safety layer — post-v1 D-1 (1 August 2026)
+
+Implements `docs/platform/decision_safety_layer_design.md` (owner build approval given in
+session; `owner_approved_candidate` ceiling): the guardrail and refusal layer that
+detects unsafe interpretation instead of selecting anything. Deterministic
+code-versioned rules (envelope, standing, proxy-inversion, support, uncertainty,
+deviation, causality, actionability) over typed inputs only; every assessment is
+`recommendation: false` / `evidence: false` / `causal: false`; there is no ranking,
+winner, default, or deployment signal, and output order is the input order; the required
+confirmed-capacity safety notice is emitted only while the pinned confirmatory record
+digest matches (stale bytes refuse rather than reproduce headline numbers); non-admitted
+inputs refuse outright; mixed prediction/admitted comparisons refuse as incompatible;
+headline-improvement claims demand their deadline/action/locus companions; causal and
+recommendation wording refuses by name. Typed refusals per design §7; ruleset changes
+change the ruleset digest.
+
+Exclusive files: `src/traffictwin/platform/decision_safety.py`,
+`tests/unit/test_decision_safety.py`, the changelog entry in `CHANGELOG.md`, and this
+record. No approval, execution, or admission surface exists or is touched.
 
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 

@@ -2,6 +2,19 @@
 
 ## v0.7.0 - In development
 
+Added the decision-safety layer (1 August, post-v1 D-1; owner build approval in session):
+the guardrail and refusal layer that detects unsafe interpretation instead of selecting
+anything. Eight deterministic code-versioned rules (envelope, standing, proxy-inversion,
+support, uncertainty, deviation, causality, actionability) over typed inputs only; every
+assessment is `recommendation: false`/`evidence: false`/`causal: false` with output in
+input order (no ranking, winner, default, or deployment signal exists); non-admitted
+inputs refuse outright and predictions never merge with admitted evidence; a claimed
+headline improvement demands its deadline/action-change/failure-locus companions; causal
+and recommendation wording refuses by name; deviations propagate as first-class notices
+and undisclosed ones refuse; and the required confirmed-capacity notice is emitted only
+while the pinned confirmatory record digest matches — stale bytes refuse rather than
+reproduce headline numbers.
+
 Added the mechanism and policy observatory (1 August, post-v1 O-1; owner build approval in
 session): a read-only, evidence-bound bundle over the mechanism programme. Cards bind
 committed records by content digest and recalculate nothing; forbidden language
