@@ -43,16 +43,24 @@ rate concern at one request/65 s.
 **Trigger:** a single long-lived detached supervisor (`start_new_session` +
 `caffeinate -i` + pid file — the pattern proven by the campaign chain), started once by
 the owner, which sleeps until the next window. **Not launchd.** The Sparse-64 homecoming
-deviation (a launchd relaunch re-ran a completed step 147 times) is the direct design
-input here: this project's own evidence says launchd relaunch semantics violate
-run-once guarantees.
+deviations are the direct design input, and there are now **two** of them: the first
+launchd relaunch re-ran a completed step 147 times, and — after that supervisor was
+repaired — a second relaunch still produced one more repeat, because the terminal record
+was written *after* a fallible cleanup step that a restart could interrupt. This
+project's own evidence therefore says two things: launchd relaunch semantics violate
+run-once guarantees, and a repaired wrapper is not a guarantee either — only completion
+state written *before* anything fallible is.
 
 **Run-once guards, three layers:** (1) a pid-file singleton — a second supervisor
 refuses to start; (2) a per-(date, window) completion marker written by the session
 writer itself (the `randomTrips --validate` lesson: the writer writes the marker, not
-the wrapper); (3) a window that is already past its start when the supervisor wakes is
-**skipped and ledgered**, never run late — late data would silently shift the density
-point the window exists to measure.
+the wrapper), and written **atomically before any fallible post-step** — aggregation,
+report rendering, retention pruning all happen strictly after the marker exists, so an
+interruption at any point can only lose post-processing (recoverable from quarantine),
+never the ran-once fact (the Sparse-64 terminal-write ordering lesson, adopted here
+from the start rather than after our own deviation); (3) a window that is already past
+its start when the supervisor wakes is **skipped and ledgered**, never run late — late
+data would silently shift the density point the window exists to measure.
 
 ## 4. Provenance and outputs
 

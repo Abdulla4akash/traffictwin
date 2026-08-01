@@ -57,13 +57,18 @@ A refusal is a success mode: the composer's response to one is the tier-2 offer.
 
 ## 5. Fit provenance and the self-test gate
 
-The fit reads only **committed campaign analyses** (never raw cells), records each
-source digest into the fit artifact, and — before the model is allowed to predict — a
-self-test must reproduce the published constants: K = 39,959 (sample σ 166, the
-estimator-choice lesson from the verdict-code self-test applies), both latency slopes,
-the +6.09 pp crossover margin, p50 = 44.3 ms. Mismatch ⇒ the module refuses to load the
-fit. Same pattern as the verdict scripts: the code checks itself against the published
-record before judging anything new.
+The fit reads only **committed analyses of admitted campaigns** (never raw cells), and
+the admission boundary is inherited, not re-decided: **non-admitted diagnostics never
+enter the fit** — no GPU-track output, no execution-deviated run (both Sparse-64
+returns carry `NON_ADMITTED` status in their own evidence records), nothing whose
+label ceiling is below admitted evidence. The fit routine enforces this by accepting
+only analysis files whose campaign status is completed-and-admitted, refusing others
+by name. Each accepted source digest is recorded into the fit artifact, and — before
+the model is allowed to predict — a self-test must reproduce the published constants:
+K = 39,959 (sample σ 166, the estimator-choice lesson from the verdict-code self-test
+applies), both latency slopes, the +6.09 pp crossover margin, p50 = 44.3 ms.
+Mismatch ⇒ the module refuses to load the fit. Same pattern as the verdict scripts:
+the code checks itself against the published record before judging anything new.
 
 ## 6. API and integration
 

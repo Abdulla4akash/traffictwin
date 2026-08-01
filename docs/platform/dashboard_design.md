@@ -12,8 +12,13 @@ exists on disk — workspace receipts, quarantine manifests, registry rows, sess
 records — with per-dataset: source, acquisition mode (attended / scheduled / archive),
 row-or-snapshot count, last-updated, receipt digest, and a freshness cell. Freshness is
 the scheduled runner's de-facto monitor: a missed window shows as a gap, in the open,
-rather than an alert nobody reads. Read-only; no acquisition can be triggered from the
-page (the acquisition boundary stays where it is).
+rather than an alert nobody reads. The inventory also lists the **private diagnostic
+archives** (the GPU-track preservation records and homecoming evidence) by their
+committed records — sha, date, and status string verbatim, including `NON_ADMITTED`
+and deviation labels — because an inventory that omits the non-admitted work would
+understate what exists, and one that showed it unlabelled would overstate what it
+proves. Read-only; no acquisition can be triggered from the page (the acquisition
+boundary stays where it is).
 
 ## 2. Page: Forecasts
 
