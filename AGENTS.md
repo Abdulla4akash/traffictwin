@@ -4378,3 +4378,18 @@ performed. Incremental analytics remains scheduled local micro-batch scaffolding
 choices for cadence, thresholds, notifications, and retention; the live-twin surface remains
 observe-only; benchmark research remains PROPOSED/UNSIGNED. The maximum policy ceiling remains
 `owner_approved_candidate`.
+
+### Phase 162 claim: Python 3.11 CI compatibility repair (1 August 2026)
+
+The integrating lead owns the two exact compatibility failures exposed by the Phase 161 locked
+GitHub Actions run: the Manchester BODS retention deletion callback in
+`src/traffictwin/integration/manchester/bods_retention.py` and ANSI-normalisation in
+`tests/unit/test_manchester_network_connectivity.py`, plus their focused tests, this phase record
+and the locked CI rerun. This repair may preserve existing deletion safeguards and CLI refusal
+semantics across supported Python versions; it may not broaden deletion targets, acquire data,
+execute an experiment, or change evidence standing.
+
+Phase 162 verification passed on 1 August 2026: all 99 Manchester retention/connectivity tests
+passed under Python 3.11; both exact regressions passed under Python 3.12; focused Ruff lint,
+format, strict mypy and `git diff --check` passed. The repair changes no retention selection,
+confirmation, path-safety, CLI refusal, evidence or policy behavior.

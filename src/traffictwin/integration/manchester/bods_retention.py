@@ -507,7 +507,10 @@ def _delete_verified_directory(target: Path, expected_parent: Path) -> None:
         function(path)
 
     try:
-        shutil.rmtree(target, onexc=make_writable_and_retry)
+        # ``onerror`` is supported throughout the project's Python 3.11+
+        # range. Python 3.12's newer ``onexc`` spelling is not available on
+        # the still-supported 3.11 CI runner.
+        shutil.rmtree(target, onerror=make_writable_and_retry)
     except OSError as exc:
         raise BodsRetentionError(
             "DELETE_FAILED", "a verified private snapshot directory could not be deleted"

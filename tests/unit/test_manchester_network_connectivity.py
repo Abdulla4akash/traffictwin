@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from click import unstyle
 from pydantic import ValidationError
 from typer.testing import CliRunner, Result
 
@@ -91,7 +92,7 @@ def _cli_output(result: Result) -> str:
     streams = [result.stdout]
     with contextlib.suppress(ValueError):  # stderr may not be captured separately
         streams.append(result.stderr)
-    return " ".join("".join(stream for stream in streams if stream).split())
+    return " ".join(unstyle("".join(stream for stream in streams if stream)).split())
 
 
 def _junctions_for_cli() -> str:
