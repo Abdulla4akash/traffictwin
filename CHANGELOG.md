@@ -2,6 +2,19 @@
 
 ## v0.7.0 - In development
 
+Added the controlled live-twin adapter (1 August, post-v1 L-1; owner build approval in
+session; observe-only first, deterministic fake control process in tests, no live process
+spawned by this slice): session specs bind network/scenario digests, tool versions, seed,
+mode, allowlist and REQUIRED budgets before startup, attended-only (no detach surface
+exists in the module — test-pinned); a mutation allowlist exists only behind a
+policy-valid human approval; exactly one controller owns a session; the state machine
+emits a typed receipt on every terminal path (heartbeat loss, budget breach, protocol
+mismatch, aggregate-key leak, clean stop); commands enforce allowlist, scenario digest and
+monotonic sequence; treatment-changing commands record deviations and invalidate
+experiment use; snapshots are aggregate-only and identifier-screened; capacity-named
+commands refuse (TraCI traffic state is never VEC RSU compute capacity); and scientific
+use is structurally not the adapter's to grant.
+
 Added the incremental analytics and data-quality monitor (1 August, post-v1 A-1; owner
 build approval in session; prototype dependency path, no parallel catalogue): exactly-once
 micro-batches keyed by (source digest, schema version, analytics version) with separate

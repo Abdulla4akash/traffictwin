@@ -4121,6 +4121,30 @@ Exclusive files: `src/traffictwin/platform/analytics_monitor.py`,
 `tests/unit/test_analytics_monitor.py`, the changelog entry in `CHANGELOG.md`, and this
 record. `bus_prediction.py` is imported, not modified; the historical store untouched.
 
+### Phase 153 claim: controlled live-twin adapter — post-v1 L-1 (1 August 2026)
+
+Implements `docs/platform/controlled_live_twin_adapter_design.md` (owner build approval
+given in session; `owner_approved_candidate` ceiling) to the design's own boundary:
+observe-only is the first deliverable, tests run against a deterministic FAKE control
+process, and a real session stays owner-attended foreground (no daemon, no public
+endpoint, no unattended queue — the module contains no detach surface). The session spec
+binds network/scenario digests, tool versions, seed, mode, allowlist, and REQUIRED
+budgets before startup; a mutation allowlist exists only behind a policy-valid human
+approval (agent identities refuse); one controller owns a session; the state machine is
+prepared → running → stopping → completed/refused with a typed receipt on EVERY terminal
+path (heartbeat loss, budget breach, protocol mismatch, clean stop); snapshots are
+aggregate-only with identifier screening; commands carry scenario digest and monotonic
+sequence, stale ones refuse; treatment-changing commands record a deviation and
+invalidate experiment use; TraCI traffic state is never described as VEC RSU compute
+capacity (a capacity-named command refuses by name); sessions are engineering
+demonstrations, `evidence: false`, and `SCIENTIFIC_USE_UNAUTHORISED` refuses anything
+stronger. The real SUMO argv builder ships bounded and shell-free; no live process, BODS
+bridge, or experiment runs in this slice. Typed refusals per design §7.
+
+Exclusive files: `src/traffictwin/platform/live_twin.py`,
+`tests/unit/test_live_twin.py`, the changelog entry in `CHANGELOG.md`, and this record.
+The campaign instrument, admission chain, and VEC-10 boundary are untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
