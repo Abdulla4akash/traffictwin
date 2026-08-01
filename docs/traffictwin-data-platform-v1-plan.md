@@ -85,7 +85,17 @@ participants can exercise platform pages (subject to P-D3). That makes the platf
 *evaluated artifact* rather than a described program — the difference the supervisor's own
 "we don't care about programs" remark draws.
 
-## 6. Timeline (hard stop: 4 September)
+## 6. Timeline
+
+**Amendment (1 August, owner):** the owner intends to seek a deadline extension and has
+directed that scope not be cut for time. Until an extension is *granted*, the dates
+below remain the working plan (an intent is not an approval — the same rule this
+project applies to every other pending decision); if granted, the freeze and stop dates
+shift with the new deadline while the ordering is preserved. Per-slice design docs now
+live in `docs/platform/` (runner, predictor, composer, bus prediction, dashboard, and
+the optional Dhaka corridor).
+
+Original schedule (hard stop 4 September):
 
 | Window | Work |
 |---|---|
