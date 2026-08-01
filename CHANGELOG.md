@@ -2,6 +2,17 @@
 
 ## v0.7.0 - In development
 
+Added the mechanism and policy observatory (1 August, post-v1 O-1; owner build approval in
+session): a read-only, evidence-bound bundle over the mechanism programme. Cards bind
+committed records by content digest and recalculate nothing; forbidden language
+(`ground_truth`/`causal`/`validated_policy`/`optimal`/`production_ready`) refuses at the
+model boundary; the confirmed five-seed headline is coherence-checked — the −8,310.9 ms
+delta renders only beside its bootstrap interval, the unanimous direction with the exact
+p=0.0625 sign-test floor, the flat-deadline fact, the inside-already-failed-tasks fact,
+and the bit-identical-actions companion; roles never pool; the Sparse-64 appendix stays
+descriptive-only with typed promotion refusal; and the withdrawn RSU-association
+attribution remains a first-class limitation on the placement card.
+
 Added the scenario and run registry (1 August, post-v1 R-1; owner build approval in
 session): the append-only lifecycle event log linking composer drafts to approvals,
 executions, deviations, analyses and copied admission standing. Every write chains on the

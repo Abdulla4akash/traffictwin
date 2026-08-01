@@ -4058,6 +4058,27 @@ all existing data/workspaces, acquisition, evidence, campaign, registry and Phas
 read-only. No raw BODS access, live migration, retention deletion, cloud service or participant
 activity is authorised.
 
+### Phase 150 claim: mechanism and policy observatory — post-v1 O-1 (1 August 2026)
+
+Implements `docs/platform/mechanism_policy_observatory_design.md` (owner build approval
+given in session; `owner_approved_candidate` ceiling): the read-only, evidence-bound
+bundle builder over the mechanism programme. Cards (study / mechanism / policy-contract /
+action-invariance) derive from a code-registered table binding committed records by
+content digest; no scientific endpoint is recalculated; forbidden language
+(`ground_truth`, `causal`, `validated_policy`, `optimal`, `production_ready`) refuses at
+the model boundary; the confirmed five-seed headline is a COHERENCE-CHECKED template —
+the −8,310.9 ms delta renders only beside its bootstrap interval, the unanimous-direction
+fact, the exact p=0.0625 sign-test floor, the flat-deadline fact, and the
+inside-already-failed-tasks fact, and refuses otherwise; missing action logs report
+`unavailable`, never "unchanged"; protocol-confirmed, post-hoc, exploratory and
+descriptive roles never pool; `NON_ADMITTED` Sparse-64 cards live only in a separately
+labelled appendix view; the withdrawn RSU-association attribution stays a first-class
+limitation on the placement card. Typed refusals per design §5.
+
+Exclusive files: `src/traffictwin/platform/observatory.py`,
+`tests/unit/test_observatory.py`, the changelog entry in `CHANGELOG.md`, and this record.
+No source analysis, campaign code, actor, evidence record or manuscript is modified.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
