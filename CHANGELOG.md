@@ -2,6 +2,19 @@
 
 ## v0.7.0 - In development
 
+Added the scenario and run registry (1 August, post-v1 R-1; owner build approval in
+session): the append-only lifecycle event log linking composer drafts to approvals,
+executions, deviations, analyses and copied admission standing. Every write chains on the
+prior event digest (optimistic concurrency), identical events replay idempotently, and the
+whole timeline rebuilds deterministically from the log bytes; the seven event types follow
+a strict transition machine; approval refuses agent/placeholder identities and binds the
+exact draft digest (a changed draft is a new revision); execution needs a prior bound
+approval and a matching design fingerprint; admission standing is copied from
+authoritative records only; non-admitted timelines stay complete but outside every
+admitted view with typed promotion refusal; predictions stay `evidence: false` after their
+scenario runs; deviations stay visible on all later states; and no run endpoint exists
+anywhere (test-pinned, including no subprocess import).
+
 Added the experiment evidence matrix (1 August, post-v1 E-1; owner build approval in
 session): one typed provenance/coverage row per executed or proposed comparison, derived
 only from a code-registered extraction over committed records with content digests bound

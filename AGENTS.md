@@ -4019,6 +4019,45 @@ Exclusive files: `src/traffictwin/platform/evidence_matrix.py`,
 `tests/unit/test_evidence_matrix.py`, the changelog entry in `CHANGELOG.md`, and this
 record. The catalogue, register, results records, and all analyses remain byte-unchanged.
 
+### Phase 149 claim: scenario and run registry — post-v1 R-1 (1 August 2026)
+
+Implements `docs/platform/scenario_run_registry_design.md` (owner build approval given in
+session; `owner_approved_candidate` ceiling): the append-only lifecycle event log linking
+composer drafts to approvals, executions, deviations, analyses, and copied admission
+standing. Every write chains on `prior_digest` (optimistic concurrency), is idempotent by
+event digest, and replays deterministically; the seven event types follow a strict
+transition machine; approval events refuse agent/placeholder identities and bind the
+exact draft digest (a changed draft is a new revision, never an edit); execution events
+need a prior bound approval and a matching design fingerprint; admission standing is
+COPIED from authoritative records only; non-admitted timelines stay complete but outside
+every admitted view; predictions stay `evidence: false` after their scenario runs;
+deviations stay visible on all later states; no run endpoint exists anywhere. Typed
+refusals per design §7; privacy screening on every string field; the log stores no
+private approval text, credential, raw output, or absolute path.
+
+Exclusive files: `src/traffictwin/platform/scenario_registry.py`,
+`tests/unit/test_scenario_registry.py`, the changelog entry in `CHANGELOG.md`, and this
+record. The campaign instrument, admission chain, and composer remain byte-unchanged.
+
+### Phase 150 claim: persistent aggregate store defaults — post-v1 H-1 amendment (1 August 2026)
+
+The owner explicitly delegated the remaining Slice-1 implementation choices in session. This
+phase adopts conservative local defaults: Python's embedded SQLite for the transactional
+catalogue; immutable digest-addressed aggregate JSON beneath an external
+`<owner-workspace>/historical-store/` root; exact, versioned, fail-closed licence allowlists; no
+automatic retention deletion; explicit integrity-verified SQLite backups; and no committed
+runtime catalogue metadata. It implements restart/replay, corruption and orphan reporting, and
+atomic catalogue/payload recovery using synthetic fixtures only. These are local engineering
+defaults, not scientific, production, ethics, approval or admission decisions, and they do not
+authorise migration of any existing data.
+
+Exclusive files: `src/traffictwin/platform/historical_store_sqlite.py`,
+`tests/unit/test_historical_store_sqlite.py`,
+`docs/platform/historical_store_feature_registry_design.md`, and this record. The Phase-147 core,
+all existing data/workspaces, acquisition, evidence, campaign, registry and Phase-149 files remain
+read-only. No raw BODS access, live migration, retention deletion, cloud service or participant
+activity is authorised.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
