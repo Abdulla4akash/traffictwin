@@ -3814,6 +3814,26 @@ Exclusive files: `docs/platform/bods_scheduled_runner_design.md`,
 fit artifacts, campaign/evaluation records, shared UI/navigation surfaces, and all raw or
 private data remain untouched.
 
+### Phase 142 claim: what-if scenario composer — platform slice 3 (1 August 2026)
+
+Implements `docs/platform/whatif_composer_design.md` (platform P-1 tier 2,
+`owner_approved_candidate` ceiling): the draft-only predict-then-verify composer.
+Structured form in, tier-1 prediction (or its typed refusal, embedded verbatim —
+`prediction_available: false`, never an invented expectation) plus a campaign-design
+draft in the house schema and a predeclaration draft with the sign-off EMPTY out. The
+composer never imports `execute_campaign` (tested); drafted designs may not name the
+spent held-out seeds {10–14} (typed refusal; the instrument's `held_out_authorised` gate
+backstops); the result-card renderer verifies every decimal number it emits appears in
+the committed campaign analysis it cites; drafted budgets embed the measured per-cell
+costs. The LLM socket ships dormant as a typed refusal (P-D1: form-first; the owner's
+Max subscriptions are not runtime API) — the template path produces the full artifacts.
+
+Exclusive files: `src/traffictwin/platform/whatif_composer.py`,
+`tests/unit/test_whatif_composer.py`, `docs/evaluation/drafts/` (new directory for
+runtime draft artifacts; none committed by this phase), the changelog entry in
+`CHANGELOG.md`, and this record. The campaign instrument, its models, the outcome
+predictor, and all evidence artifacts remain byte-unchanged.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

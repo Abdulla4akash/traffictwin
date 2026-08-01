@@ -2,6 +2,27 @@
 
 ## v0.7.0 - In development
 
+Added the what-if scenario composer (1 August, data-platform v1 slice 3, platform P-1 tier 2):
+
+- the predict-then-verify front end (`traffictwin.platform.whatif_composer`): a structured
+  form yields the tier-1 prediction (or the predictor's typed refusal embedded verbatim,
+  `prediction_available: false`, never an invented expectation) plus a one-action
+  escalation — a campaign-design draft mirroring the house schema with the approval block
+  explicitly UNSIGNED, and a predeclaration draft in the house section structure with
+  prediction, interval band, and verdict rule pre-filled and the sign-off table empty;
+- structural guardrails, each tested: the composer never imports the campaign executor;
+  drafted designs may not name the spent held-out seeds {10–14}; the result-card renderer
+  verifies every decimal number it emits appears in the committed campaign analysis it
+  cites (an invented number is a typed failure, not a card); and drafted budgets embed the
+  measured per-cell costs with provenance (3,555.96 s inc, 265.9 s ev, 225.7 s we,
+  estimates labelled ESTIMATE for the unprobed weekday traces);
+- the prediction-beside-measurement honesty exhibit and a dormant LLM socket: natural
+  language is a typed `LLM_SOCKET_DORMANT` refusal until a funded key exists (P-D1), with
+  the template path producing the complete artifacts; and
+- drafts land dated and bannered DRAFT/UNSIGNED under `docs/evaluation/drafts/`; the
+  instrument's byte-bound approval (typed approver, placeholder identities refused,
+  re-hashed at run time) remains the only route from draft to execution.
+
 Added the VEC outcome predictor (1 August, data-platform v1 slice 2, platform P-1 tier 1):
 
 - a three-regime closed-form surrogate (`traffictwin.platform.outcome_predictor`) packaging
