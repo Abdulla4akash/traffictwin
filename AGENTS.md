@@ -3776,6 +3776,27 @@ Exclusive files: `src/traffictwin/integration/manchester/bods_scheduled_sessions
 entry in `CHANGELOG.md`, and this record. MAN-05 (`bods.py`), `bods_acquisition.py`,
 `bods_live_control.py`, `bods_retention.py`, and the manchester `__init__` are untouched.
 
+### Phase 140 claim: VEC outcome predictor — platform slice 2 (1 August 2026)
+
+Implements `docs/platform/outcome_predictor_design.md` (platform P-1 tier 1,
+`owner_approved_candidate` ceiling): the three-regime closed-form surrogate fit only from
+admitted campaign analyses, with typed refusals as first-class outputs (including
+`DENSITY_GAP` for the unmeasured (215, 2488] band) and every output typed
+`evidence: False`/`prediction: True`. The fit pins each source by content digest and
+registered design fingerprint; non-admitted and GPU-track sources are refused by name;
+and a self-test gate must reproduce the published constants (K = 39,959, sample σ 166,
+latency slopes 3,828.2/6,555.4 ms per capacity unit, +6.09 pp crossover margin,
+p50 = 44.3 ms) before either fitting or loading — mismatch refuses.
+
+Exclusive files: `src/traffictwin/platform/__init__.py`,
+`src/traffictwin/platform/outcome_predictor.py`, `scripts/fit_outcome_predictor.py`,
+`docs/platform/outcome_predictor_fit.json` (the committed fit artifact),
+`tests/unit/test_outcome_predictor.py`, the changelog entry in `CHANGELOG.md`, a
+one-word variable rename in the Phase-139 file `scripts/bods_scheduled_runner.py`
+(shadowed loop name; behaviour unchanged), and this record. Campaign analyses, verdict
+artifacts, and all existing evidence remain byte-unchanged; `integration/vec_campaign/`
+is imported, not modified.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

@@ -2,6 +2,27 @@
 
 ## v0.7.0 - In development
 
+Added the VEC outcome predictor (1 August, data-platform v1 slice 2, platform P-1 tier 1):
+
+- a three-regime closed-form surrogate (`traffictwin.platform.outcome_predictor`) packaging
+  the measured laws — off-saturation lookup declared as one, per-trace near-onset
+  corrections that never interpolate across traces (the onset-scaling REFUTED verdict is
+  the reason), and the saturated inc regime (ceiling law K × capacity, per-actor latency
+  lines, pinned p50, constant offload partition);
+- typed refusals as first-class outputs (`TRACE_NOT_MEASURED`, `CAPACITY_OUT_OF_ENVELOPE`,
+  `FLEET_PRESET_NOT_MEASURED`, `DENSITY_GAP` for the unmeasured (215, 2488] band where the
+  real bus fleet lives, `ACTOR_NOT_MEASURED`), each naming the campaign that would close
+  its gap; every prediction is type-level `evidence: False` and `confirmatory: False`;
+- fit provenance inherited, never re-decided: only completed admitted campaign analyses
+  enter (registered by experiment id and pinned design fingerprint; GPU-track and
+  Sparse-64 sources refused by name), every accepted source digest is recorded in the
+  committed fit artifact (`docs/platform/outcome_predictor_fit.json`, 16 sources,
+  ~154 admitted cells), and a self-test gate must reproduce the published constants
+  (K = 39,959 ms/unit, sample σ 166, latency slopes 3,828.2/6,555.4 ms per capacity unit,
+  +6.09 pp crossover margin, p50 = 44.3 ms) before the fit is written or loaded; and
+- intervals from seed spread (min/max ∪ 95% t-interval per measured point), widened below
+  cap-0.5 by the ceiling law's own measured sag trend (+1.1 → +3.4%).
+
 Added the scheduled BODS session runner (1 August, data-platform v1 slice 1, decision P-D2):
 
 - a committed four-window daily schedule (`docs/platform/bods_schedule.json`) mirroring the

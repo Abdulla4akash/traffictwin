@@ -139,7 +139,7 @@ def _launch(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for name, handler in (("run", _run), ("launch", _launch)):
+    for name, command in (("run", _run), ("launch", _launch)):
         sub = subparsers.add_parser(name)
         sub.add_argument("--workspace", required=True, type=Path)
         sub.add_argument("--schedule", type=Path, default=DEFAULT_SCHEDULE)
@@ -149,7 +149,7 @@ def main() -> int:
                 action="store_true",
                 help="exit after the first completed session (owner-attended smoke)",
             )
-        sub.set_defaults(handler=handler)
+        sub.set_defaults(handler=command)
     args = parser.parse_args()
     handler: Callable[[argparse.Namespace], int] = args.handler
     return handler(args)

@@ -1,0 +1,1134 @@
+{
+  "capacity_envelope": [
+    0.1,
+    2.5
+  ],
+  "ceiling": {
+    "k_ms_per_unit_capacity": 39959.072489872684,
+    "k_sample_sigma": 165.74491246337377,
+    "pair_count": 36,
+    "sag_widening_by_capacity": {
+      "0.1": 0.03416107350840424,
+      "0.25": 0.01725491767809476,
+      "0.5": 0.010757111277944612
+    }
+  },
+  "design_reference": "docs/platform/outcome_predictor_design.md",
+  "evidence": false,
+  "fleet_preset": "uk2030",
+  "generated_at_utc": "2026-08-01T15:43:25.831407+00:00",
+  "inert": [
+    {
+      "actor": "baseline_model_c_17",
+      "arm_label": "cap-2.5",
+      "experiment_id": "vec-baseline-invariance-ev",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9415042753946539,
+          "mean": 0.9286505620168485,
+          "minimum": 0.9191660030844686,
+          "seed_values": {
+            "50": 0.9191660030844686,
+            "51": 0.9415042753946539,
+            "52": 0.925281407571423
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 55.822944277804325,
+          "mean": 53.02953862073699,
+          "minimum": 49.24722401982321,
+          "seed_values": {
+            "50": 55.822944277804325,
+            "51": 49.24722401982321,
+            "52": 54.01844756458346
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.47508458691964145,
+          "mean": 0.4265165920202729,
+          "minimum": 0.364306450652905,
+          "seed_values": {
+            "50": 0.47508458691964145,
+            "51": 0.364306450652905,
+            "52": 0.4401587384882723
+          }
+        }
+      },
+      "trace": "ev"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "arm_label": "cap-2.5",
+      "experiment_id": "vec-capacity-grid-ev",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.947047021064758,
+          "mean": 0.9348652837155814,
+          "minimum": 0.9255265309026209,
+          "seed_values": {
+            "50": 0.9255265309026209,
+            "51": 0.947047021064758,
+            "52": 0.9320222991793651
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 53.865937022544465,
+          "mean": 51.20519042024307,
+          "minimum": 47.764612787446914,
+          "seed_values": {
+            "50": 53.865937022544465,
+            "51": 47.764612787446914,
+            "52": 51.985021450737825
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.44232645990138014,
+          "mean": 0.3868453531225813,
+          "minimum": 0.3160537820311215,
+          "seed_values": {
+            "50": 0.44232645990138014,
+            "51": 0.3160537820311215,
+            "52": 0.4021558174352422
+          }
+        }
+      },
+      "trace": "ev"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "arm_label": "cap-2.5",
+      "experiment_id": "vec-capacity-grid-wd-am",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9301961823509877,
+          "mean": 0.9264747804470387,
+          "minimum": 0.9240393500394911,
+          "seed_values": {
+            "50": 0.9240393500394911,
+            "51": 0.9301961823509877,
+            "52": 0.9251888089506369
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 54.70151689070566,
+          "mean": 53.79880838317678,
+          "minimum": 52.40683669513766,
+          "seed_values": {
+            "50": 54.70151689070566,
+            "51": 52.40683669513766,
+            "52": 54.288071563687
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.3953157828623936,
+          "mean": 0.39300424622970026,
+          "minimum": 0.38880505027735573,
+          "seed_values": {
+            "50": 0.39489190554935133,
+            "51": 0.38880505027735573,
+            "52": 0.3953157828623936
+          }
+        }
+      },
+      "trace": "wd_am"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "arm_label": "cap-2.5",
+      "experiment_id": "vec-capacity-grid-wd-pm",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9344561934923166,
+          "mean": 0.9264950334344042,
+          "minimum": 0.9211991960628321,
+          "seed_values": {
+            "50": 0.9211991960628321,
+            "51": 0.9344561934923166,
+            "52": 0.923829710748064
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 55.2353715844886,
+          "mean": 53.62721933924981,
+          "minimum": 51.18601163033017,
+          "seed_values": {
+            "50": 55.2353715844886,
+            "51": 51.18601163033017,
+            "52": 54.46027480293065
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.4255124946256106,
+          "mean": 0.40625601055031363,
+          "minimum": 0.3744864330496609,
+          "seed_values": {
+            "50": 0.4255124946256106,
+            "51": 0.3744864330496609,
+            "52": 0.41876910397566947
+          }
+        }
+      },
+      "trace": "wd_pm"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "arm_label": "cap-2.5",
+      "experiment_id": "vec-capacity-grid-we",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9413520392411121,
+          "mean": 0.9316236100176498,
+          "minimum": 0.9220800240046929,
+          "seed_values": {
+            "50": 0.9413520392411121,
+            "51": 0.9314387668071443,
+            "52": 0.9220800240046929
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 55.63309865547573,
+          "mean": 52.021975063071544,
+          "minimum": 48.94715370580642,
+          "seed_values": {
+            "50": 48.94715370580642,
+            "51": 51.48567282793248,
+            "52": 55.63309865547573
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.4261978708377715,
+          "mean": 0.3999342154350433,
+          "minimum": 0.3576853609966193,
+          "seed_values": {
+            "50": 0.3576853609966193,
+            "51": 0.415919414470739,
+            "52": 0.4261978708377715
+          }
+        }
+      },
+      "trace": "we"
+    }
+  ],
+  "method_version": "vec-outcome-predictor-1.0",
+  "near_onset": [
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.1,
+      "deltas_vs_top": {
+        "deadline_attainment": 1.1035245753151143e-05,
+        "latency_mean_ms": -0.02434232451226374,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-ev",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9470477254421464,
+          "mean": 0.9348763189613344,
+          "minimum": 0.9255409706390851,
+          "seed_values": {
+            "50": 0.9255409706390851,
+            "51": 0.9470477254421464,
+            "52": 0.9320402608027719
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 53.83187083170969,
+          "mean": 51.1808480957308,
+          "minimum": 47.76228261527442,
+          "seed_values": {
+            "50": 53.83187083170969,
+            "51": 47.76228261527442,
+            "52": 51.9483908402083
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.44232645990138014,
+          "mean": 0.3868453531225813,
+          "minimum": 0.3160537820311215,
+          "seed_values": {
+            "50": 0.44232645990138014,
+            "51": 0.3160537820311215,
+            "52": 0.4021558174352422
+          }
+        }
+      },
+      "trace": "ev"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.1,
+      "deltas_vs_top": {
+        "deadline_attainment": 4.263628363032623e-05,
+        "latency_mean_ms": -0.04247532955384988,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-wd-am",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9283779264885464,
+          "mean": 0.922525283985372,
+          "minimum": 0.9191380893629738,
+          "seed_values": {
+            "60": 0.9200598361045962,
+            "61": 0.9191380893629738,
+            "62": 0.9283779264885464
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 56.32503496511136,
+          "mean": 55.032406449204814,
+          "minimum": 53.11494611839602,
+          "seed_values": {
+            "60": 55.657238264107065,
+            "61": 56.32503496511136,
+            "62": 53.11494611839602
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.41566590896446026,
+          "mean": 0.39997556539440376,
+          "minimum": 0.38183946693556203,
+          "seed_values": {
+            "60": 0.41566590896446026,
+            "61": 0.40242132028318905,
+            "62": 0.38183946693556203
+          }
+        }
+      },
+      "trace": "wd_am"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.1,
+      "deltas_vs_top": {
+        "deadline_attainment": 3.676541926367349e-05,
+        "latency_mean_ms": -0.12568231880775235,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-wd-pm",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9242734489333433,
+          "mean": 0.9184417896180584,
+          "minimum": 0.9138182828302428,
+          "seed_values": {
+            "60": 0.9138182828302428,
+            "61": 0.9242734489333433,
+            "62": 0.917233637090589
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 57.61611148536795,
+          "mean": 55.96468698261018,
+          "minimum": 54.22669303144165,
+          "seed_values": {
+            "60": 57.61611148536795,
+            "61": 54.22669303144165,
+            "62": 56.05125643102094
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.44852203014560127,
+          "mean": 0.4339771366751057,
+          "minimum": 0.4116325275919365,
+          "seed_values": {
+            "60": 0.4417768522877793,
+            "61": 0.4116325275919365,
+            "62": 0.44852203014560127
+          }
+        }
+      },
+      "trace": "wd_pm"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.25,
+      "deltas_vs_top": {
+        "deadline_attainment": 0.0,
+        "latency_mean_ms": -8.115905134313076e-06,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-wd-pm",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9242565981161808,
+          "mean": 0.9184050241987948,
+          "minimum": 0.9137705388482824,
+          "seed_values": {
+            "60": 0.9137705388482824,
+            "61": 0.9242565981161808,
+            "62": 0.9171879356319209
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 57.7812189365101,
+          "mean": 56.0903611855128,
+          "minimum": 54.300413116183186,
+          "seed_values": {
+            "60": 57.7812189365101,
+            "61": 54.300413116183186,
+            "62": 56.189451503845106
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.44852203014560127,
+          "mean": 0.4339771366751057,
+          "minimum": 0.4116325275919365,
+          "seed_values": {
+            "60": 0.4417768522877793,
+            "61": 0.4116325275919365,
+            "62": 0.44852203014560127
+          }
+        }
+      },
+      "trace": "wd_pm"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.1,
+      "deltas_vs_top": {
+        "deadline_attainment": 3.14370140528745e-05,
+        "latency_mean_ms": -0.20479186693470552,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-we",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.9303844610136001,
+          "mean": 0.9203968171269495,
+          "minimum": 0.9007061509131046,
+          "seed_values": {
+            "60": 0.9300998394541441,
+            "61": 0.9303844610136001,
+            "62": 0.9007061509131046
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 60.50124676817289,
+          "mean": 55.14911152837815,
+          "minimum": 51.63365166060527,
+          "seed_values": {
+            "60": 53.31243615635631,
+            "61": 51.63365166060527,
+            "62": 60.50124676817289
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.5059734346779049,
+          "mean": 0.4367432604187571,
+          "minimum": 0.39067806503650876,
+          "seed_values": {
+            "60": 0.39067806503650876,
+            "61": 0.4135782815418577,
+            "62": 0.5059734346779049
+          }
+        }
+      },
+      "trace": "we"
+    },
+    {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "capacity": 0.25,
+      "deltas_vs_top": {
+        "deadline_attainment": 0.0,
+        "latency_mean_ms": -8.099311383347185e-05,
+        "offload_rate": 0.0
+      },
+      "experiment_id": "vec-capacity-deep-we",
+      "metrics": {
+        "deadline_attainment": {
+          "maximum": 0.930373606801587,
+          "mean": 0.9203653801128967,
+          "minimum": 0.9006258297442072,
+          "seed_values": {
+            "60": 0.9300967037928959,
+            "61": 0.930373606801587,
+            "62": 0.9006258297442072
+          }
+        },
+        "latency_mean_ms": {
+          "maximum": 60.99593309493593,
+          "mean": 55.35382240219903,
+          "minimum": 51.710906011196734,
+          "seed_values": {
+            "60": 53.354628100464424,
+            "61": 51.710906011196734,
+            "62": 60.99593309493593
+          }
+        },
+        "offload_rate": {
+          "maximum": 0.5059734346779049,
+          "mean": 0.4367432604187571,
+          "minimum": 0.39067806503650876,
+          "seed_values": {
+            "60": 0.39067806503650876,
+            "61": 0.4135782815418577,
+            "62": 0.5059734346779049
+          }
+        }
+      },
+      "trace": "we"
+    }
+  ],
+  "p50": {
+    "deep_cell_maximum_ms": 46.16692352294922,
+    "deep_cell_minimum_ms": 44.59760284423828,
+    "pilot_arm_values_ms": {
+      "0.75": 44.3,
+      "1.0": 44.3,
+      "1.5": 44.3,
+      "2.5": 44.3
+    },
+    "pinned_ms": 44.3
+  },
+  "research_status": "owner_approved_candidate",
+  "saturated": {
+    "baseline_model_c_17": {
+      "actor": "baseline_model_c_17",
+      "arms": [
+        {
+          "capacity": 0.75,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7416760054921012,
+              "mean": 0.7298067369142114,
+              "minimum": 0.718684141014913,
+              "seed_values": {
+                "0": 0.7290600642356201,
+                "1": 0.7416760054921012,
+                "2": 0.718684141014913
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 5611.59512646708,
+              "mean": 5138.898459847332,
+              "minimum": 4490.269827995017,
+              "seed_values": {
+                "0": 5314.830425079898,
+                "1": 4490.269827995017,
+                "2": 5611.59512646708
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4766460282065922,
+              "mean": 0.46999653468014313,
+              "minimum": 0.4650314455981745,
+              "seed_values": {
+                "0": 0.4650314455981745,
+                "1": 0.46831213023566265,
+                "2": 0.4766460282065922
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-crossover-inc-baseline"
+          ]
+        },
+        {
+          "capacity": 1.0,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7415025610584821,
+              "mean": 0.729693885869586,
+              "minimum": 0.718684141014913,
+              "seed_values": {
+                "0": 0.7288949555353629,
+                "1": 0.7415025610584821,
+                "2": 0.718684141014913
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 7472.1128541481885,
+              "mean": 6840.603358045196,
+              "minimum": 5981.27284772783,
+              "seed_values": {
+                "0": 7068.424372259569,
+                "1": 5981.27284772783,
+                "2": 7472.1128541481885
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4766460282065922,
+              "mean": 0.46999653468014313,
+              "minimum": 0.4650314455981745,
+              "seed_values": {
+                "0": 0.4650314455981745,
+                "1": 0.46831213023566265,
+                "2": 0.4766460282065922
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-crossover-inc-baseline"
+          ]
+        },
+        {
+          "capacity": 1.5,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7413876961822494,
+              "mean": 0.7295763698732628,
+              "minimum": 0.718684141014913,
+              "seed_values": {
+                "0": 0.7286572724226257,
+                "1": 0.7413876961822494,
+                "2": 0.718684141014913
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 11156.262893409357,
+              "mean": 10177.82017729189,
+              "minimum": 8871.825531747078,
+              "seed_values": {
+                "0": 10505.372106719231,
+                "1": 8871.825531747078,
+                "2": 11156.262893409357
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4766460282065922,
+              "mean": 0.46999653468014313,
+              "minimum": 0.4650314455981745,
+              "seed_values": {
+                "0": 0.4650314455981745,
+                "1": 0.46831213023566265,
+                "2": 0.4766460282065922
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-crossover-inc-baseline"
+          ]
+        },
+        {
+          "capacity": 2.5,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7413876961822494,
+              "mean": 0.7295763698732628,
+              "minimum": 0.718684141014913,
+              "seed_values": {
+                "0": 0.7286572724226257,
+                "1": 0.7413876961822494,
+                "2": 0.718684141014913
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 18405.87455591812,
+              "mean": 16629.511767576165,
+              "minimum": 14366.088775547361,
+              "seed_values": {
+                "0": 17116.571971263016,
+                "1": 14366.088775547361,
+                "2": 18405.87455591812
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4766460282065922,
+              "mean": 0.46999653468014313,
+              "minimum": 0.4650314455981745,
+              "seed_values": {
+                "0": 0.4650314455981745,
+                "1": 0.46831213023566265,
+                "2": 0.4766460282065922
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-crossover-inc-baseline"
+          ]
+        }
+      ],
+      "latency_intercept_ms": 273.3377576176608,
+      "latency_slope_ms_per_unit": 6555.388301267815,
+      "offload_rate_constant": 0.46999653468014313,
+      "offload_rate_maximum": 0.4766460282065922,
+      "offload_rate_minimum": 0.4650314455981745,
+      "slope_source_experiment": "vec-crossover-inc-baseline"
+    },
+    "ukfleettrain_mappo_model_c_17": {
+      "actor": "ukfleettrain_mappo_model_c_17",
+      "arms": [
+        {
+          "capacity": 0.1,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7877083723035241,
+              "mean": 0.7853671018735211,
+              "minimum": 0.780791396054858,
+              "seed_values": {
+                "60": 0.7877083723035241,
+                "61": 0.780791396054858,
+                "62": 0.7876015372621812
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 459.335600249431,
+              "mean": 442.80622573077056,
+              "minimum": 421.45542506244743,
+              "seed_values": {
+                "60": 447.6276518804331,
+                "61": 459.335600249431,
+                "62": 421.45542506244743
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4096461565310012,
+              "mean": 0.40643715410211634,
+              "minimum": 0.4035805722045048,
+              "seed_values": {
+                "60": 0.4035805722045048,
+                "61": 0.4096461565310012,
+                "62": 0.4060847335708431
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-deep-inc"
+          ]
+        },
+        {
+          "capacity": 0.25,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.7874036974254208,
+              "mean": 0.7847366196312078,
+              "minimum": 0.7799645524850657,
+              "seed_values": {
+                "60": 0.7874036974254208,
+                "61": 0.7799645524850657,
+                "62": 0.7868416089831369
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 1137.8983071022744,
+              "mean": 1081.869829826828,
+              "minimum": 1017.1310805145795,
+              "seed_values": {
+                "60": 1090.58010186363,
+                "61": 1137.8983071022744,
+                "62": 1017.1310805145795
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4096461565310012,
+              "mean": 0.40643715410211634,
+              "minimum": 0.4035805722045048,
+              "seed_values": {
+                "60": 0.4035805722045048,
+                "61": 0.4096461565310012,
+                "62": 0.4060847335708431
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-deep-inc"
+          ]
+        },
+        {
+          "capacity": 0.5,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.78722077013917,
+              "mean": 0.7842287516930844,
+              "minimum": 0.7792362082232545,
+              "seed_values": {
+                "60": 0.78722077013917,
+                "61": 0.7792362082232545,
+                "62": 0.7862292767168284
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 2292.778800558454,
+              "mean": 2160.7595597616764,
+              "minimum": 2038.6461314380426,
+              "seed_values": {
+                "60": 2150.8537472885323,
+                "61": 2292.778800558454,
+                "62": 2038.6461314380426
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.4096461565310012,
+              "mean": 0.40643715410211634,
+              "minimum": 0.4035805722045048,
+              "seed_values": {
+                "60": 0.4035805722045048,
+                "61": 0.4096461565310012,
+                "62": 0.4060847335708431
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-deep-inc"
+          ]
+        },
+        {
+          "capacity": 0.75,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.8130743912964543,
+              "mean": 0.7907366397185408,
+              "minimum": 0.7659568496556425,
+              "seed_values": {
+                "0": 0.7931786782035256,
+                "1": 0.8130743912964543,
+                "2": 0.7659568496556425
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 4182.427359883324,
+              "mean": 3479.220208080972,
+              "minimum": 2097.7063730937098,
+              "seed_values": {
+                "0": 3060.7473606984245,
+                "1": 2097.7063730937098,
+                "10": 3718.855060110323,
+                "11": 3437.8235814129835,
+                "12": 4182.427359883324,
+                "13": 3283.10771645229,
+                "14": 3960.7392604129136,
+                "2": 4092.3549525838084
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.41488956223940315,
+              "mean": 0.40718224949171145,
+              "minimum": 0.39896295829517886,
+              "seed_values": {
+                "0": 0.4026077385889546,
+                "1": 0.4063497181222055,
+                "10": 0.4037053023064592,
+                "11": 0.41488956223940315,
+                "12": 0.39896295829517886,
+                "13": 0.4027152619018595,
+                "14": 0.4140466589998313,
+                "2": 0.41418079547979947
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-confirmatory",
+            "vec-capacity-squeeze-pilot"
+          ]
+        },
+        {
+          "capacity": 1.0,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.8127939588722564,
+              "mean": 0.7905913889274236,
+              "minimum": 0.7659568496556425,
+              "seed_values": {
+                "0": 0.793023358254372,
+                "1": 0.8127939588722564,
+                "2": 0.7659568496556425
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 5429.7062705739945,
+              "mean": 4089.8679079482667,
+              "minimum": 2771.9387810405124,
+              "seed_values": {
+                "0": 4067.9586722302943,
+                "1": 2771.9387810405124,
+                "2": 5429.7062705739945
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.41418079547979947,
+              "mean": 0.4077127507303198,
+              "minimum": 0.4026077385889546,
+              "seed_values": {
+                "0": 0.4026077385889546,
+                "1": 0.4063497181222055,
+                "2": 0.41418079547979947
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-squeeze-pilot"
+          ]
+        },
+        {
+          "capacity": 1.5,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.8127939588722564,
+              "mean": 0.7905223323473716,
+              "minimum": 0.7659568496556425,
+              "seed_values": {
+                "0": 0.792816188514216,
+                "1": 0.8127939588722564,
+                "2": 0.7659568496556425
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 8065.249629842364,
+              "mean": 6029.586605547763,
+              "minimum": 3961.8236678520807,
+              "seed_values": {
+                "0": 6061.686518948843,
+                "1": 3961.8236678520807,
+                "2": 8065.249629842364
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.41418079547979947,
+              "mean": 0.4077127507303198,
+              "minimum": 0.4026077385889546,
+              "seed_values": {
+                "0": 0.4026077385889546,
+                "1": 0.4063497181222055,
+                "2": 0.41418079547979947
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-squeeze-pilot"
+          ]
+        },
+        {
+          "capacity": 2.5,
+          "metrics": {
+            "deadline_attainment": {
+              "maximum": 0.8127939588722564,
+              "mean": 0.7868066728284816,
+              "minimum": 0.7659568496556425,
+              "seed_values": {
+                "0": 0.7924845945705774,
+                "1": 0.8127939588722564,
+                "2": 0.7659568496556425,
+                "60": 0.78722077013917,
+                "61": 0.776630106191125,
+                "62": 0.785753757542118
+              }
+            },
+            "latency_mean_ms": {
+              "maximum": 13446.381829676484,
+              "mean": 10933.612337436005,
+              "minimum": 6277.913026456375,
+              "seed_values": {
+                "0": 9942.563797951792,
+                "1": 6277.913026456375,
+                "10": 11849.334522176763,
+                "11": 11093.99561831301,
+                "12": 13446.381829676484,
+                "13": 10372.393341271349,
+                "14": 13375.359652214873,
+                "2": 13176.048909897081,
+                "60": 10251.097646980546,
+                "61": 11149.31651969009,
+                "62": 9335.330847167692
+              }
+            },
+            "offload_rate": {
+              "maximum": 0.41488956223940315,
+              "mean": 0.4069790416581855,
+              "minimum": 0.39896295829517886,
+              "seed_values": {
+                "0": 0.4026077385889546,
+                "1": 0.4063497181222055,
+                "10": 0.4037053023064592,
+                "11": 0.41488956223940315,
+                "12": 0.39896295829517886,
+                "13": 0.4027152619018595,
+                "14": 0.4140466589998313,
+                "2": 0.41418079547979947,
+                "60": 0.4035805722045048,
+                "61": 0.4096461565310012,
+                "62": 0.4060847335708431
+              }
+            }
+          },
+          "source_experiments": [
+            "vec-capacity-confirmatory",
+            "vec-capacity-deep-inc",
+            "vec-capacity-squeeze-pilot"
+          ]
+        }
+      ],
+      "latency_intercept_ms": 247.41523538438105,
+      "latency_slope_ms_per_unit": 3828.215370235171,
+      "offload_rate_constant": 0.4070128925139618,
+      "offload_rate_maximum": 0.41488956223940315,
+      "offload_rate_minimum": 0.39896295829517886,
+      "slope_source_experiment": "vec-capacity-squeeze-pilot"
+    }
+  },
+  "schema_version": "1.0",
+  "self_test": {
+    "checks": [
+      {
+        "computed": 39959.072489872684,
+        "name": "k_ms_per_unit_capacity",
+        "passed": true,
+        "published": 39959.0,
+        "tolerance": 0.5
+      },
+      {
+        "computed": 165.74491246337377,
+        "name": "k_sample_sigma",
+        "passed": true,
+        "published": 166.0,
+        "tolerance": 0.5
+      },
+      {
+        "computed": 3828.215370235171,
+        "name": "latency_slope_trained_ms_per_unit",
+        "passed": true,
+        "published": 3828.2,
+        "tolerance": 0.05
+      },
+      {
+        "computed": 6555.388301267815,
+        "name": "latency_slope_baseline_ms_per_unit",
+        "passed": true,
+        "published": 6555.4,
+        "tolerance": 0.05
+      },
+      {
+        "computed": 6.090219987395964,
+        "name": "crossover_margin_pp",
+        "passed": true,
+        "published": 6.09,
+        "tolerance": 0.005
+      },
+      {
+        "computed": 44.3,
+        "name": "p50_latency_ms",
+        "passed": true,
+        "published": 44.3,
+        "tolerance": 0.05
+      }
+    ],
+    "passed": true
+  },
+  "sources": [
+    {
+      "design_fingerprint": "de474e038523e5e79e2d167364f312dc7c2ea273e610f2d26ec1cf253f41bb90",
+      "experiment_id": "vec-capacity-squeeze-pilot",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-pilot/campaign_analysis.json",
+      "sha256": "7507639a41ad8b287e5a6f4103ba3739a323adf5382a772d29e13849e9421ac9"
+    },
+    {
+      "design_fingerprint": "f289db31ce28b6361f91911485c36483b068fdee1ed73aa1d4ef0a8b57bc1754",
+      "experiment_id": "vec-capacity-confirmatory",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-confirmatory/campaign_analysis.json",
+      "sha256": "a62e3e50f8d3f3124a8fbb4bfa9a3a48efb3eb2d400fcda90b5a722e318ff8da"
+    },
+    {
+      "design_fingerprint": "5331e5207ef2eae2dfde301522cc6ce76e3283419075e22ee79049226430e25e",
+      "experiment_id": "vec-capacity-deep-inc",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-deep-inc/campaign_analysis.json",
+      "sha256": "a04e803a6e1aadf4aae5b2caa571374204214ca752a44688d26228a73b642c6e"
+    },
+    {
+      "design_fingerprint": "4784f5fc3055831091aca52def5497b3cd3f715de469a33fb023917bde108e11",
+      "experiment_id": "vec-crossover-inc-baseline",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/crossover-inc-baseline/campaign_analysis.json",
+      "sha256": "a87c613125f2bbcb8d39b71245dbfaf26beda7bab3665d6689a0b642ce2156df"
+    },
+    {
+      "design_fingerprint": "b4da3a5ba9b4dd100c3dd041b7bc7a19e35da2b4e8b673fa4733c0203a308312",
+      "experiment_id": "vec-capacity-grid-we",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-grid-we/campaign_analysis.json",
+      "sha256": "b6464fde837e7f6e0933eb5b68027690daf9ae2d6fb3b02e9757bef2cc5984c0"
+    },
+    {
+      "design_fingerprint": "efa83a78c8518861cde62191c2a8c6975b5e616c6770f309496c955883a8245b",
+      "experiment_id": "vec-capacity-grid-ev",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-grid-ev/campaign_analysis.json",
+      "sha256": "06b148ace10eab4603f68079f4eaa5c81c8c1164d57e2dd7fca7fc53e61dac9e"
+    },
+    {
+      "design_fingerprint": "2844fde2c38ec22664357865c528006a1cbad62f3ddb659fbd20a38c920f8df6",
+      "experiment_id": "vec-capacity-grid-wd-am",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-grid-wd-am/campaign_analysis.json",
+      "sha256": "3ebda792418ed804389f1dd9e35acdca90b64675292ce76ce51ed149924dee06"
+    },
+    {
+      "design_fingerprint": "635a2cbefd94b75773fcb608d71f4c0c8a2cbc3df447934980655fe75bdf8df5",
+      "experiment_id": "vec-capacity-grid-wd-pm",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-grid-wd-pm/campaign_analysis.json",
+      "sha256": "338e0951ae43f6ec01a16c072fe24afe96aa69de6d81d941daed5bc35bf04494"
+    },
+    {
+      "design_fingerprint": "0759b31f4cae4afbb59027fec7ebc0e408b033391219d2c4fc85946648465605",
+      "experiment_id": "vec-capacity-deep-we",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-deep-we/campaign_analysis.json",
+      "sha256": "4ef05218e815e7a9a8e67adff6d6d7ac413b54c60341884860c8fde2b597fa04"
+    },
+    {
+      "design_fingerprint": "727745441c5e43c1cb95ea76b337716629cf528319b534e756bc9c140192109d",
+      "experiment_id": "vec-capacity-deep-ev",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-deep-ev/campaign_analysis.json",
+      "sha256": "415e7c9c5c167cbd76f811eb603800c66141cb433504711b97743fa4adb05699"
+    },
+    {
+      "design_fingerprint": "1897f9f4a6a4e2a985a0b539cc199d85a6a0cb091ba628d7e70fe332c2d9222d",
+      "experiment_id": "vec-capacity-deep-wd-am",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-deep-wd-am/campaign_analysis.json",
+      "sha256": "479d84d15f3e5e53e6e40038e32c348a669527f50f5afa1103f771d1920f40ae"
+    },
+    {
+      "design_fingerprint": "1d1c6ce65a17db27a93dedd86648f8f89a0a031e220b7b9985d1cce71aa7febd",
+      "experiment_id": "vec-capacity-deep-wd-pm",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/capacity-deep-wd-pm/campaign_analysis.json",
+      "sha256": "0c9f40fdf0ebedbea0872bf5f17833050b26e73fcc0ce5632280508a6182b496"
+    },
+    {
+      "design_fingerprint": "2f4e371b7769fde3cf7a6efe9d14e92fecb100cff9d971ec36fa23164ff1fd6a",
+      "experiment_id": "vec-baseline-invariance-ev",
+      "kind": "campaign_analysis",
+      "path": "data/vec-fresh/baseline-invariance-ev/campaign_analysis.json",
+      "sha256": "8a517998b97bc45a33f6a72510cc63dfd6aef12b3c3a2d74c21255df80e41d62"
+    },
+    {
+      "design_fingerprint": null,
+      "experiment_id": null,
+      "kind": "pilot_dynamics",
+      "path": "data/pilot-dynamics-20260728/pilot_dynamics.json",
+      "sha256": "e1e00b72eb0d6435d4941c1687daed28cb6f1523324d7ced07c3bb6123c0260b"
+    },
+    {
+      "design_fingerprint": null,
+      "experiment_id": null,
+      "kind": "ceiling_law_verdict",
+      "path": "data/ceiling-law-verdict-20260729/final/ceiling_law_verdict.json",
+      "sha256": "b0452421e04b33bc8f8bd9a1315bb94bab167023867943af7aa3508735bf7d84"
+    },
+    {
+      "design_fingerprint": null,
+      "experiment_id": null,
+      "kind": "latency_tail_record",
+      "path": "docs/evaluation/latency_tail_analysis_20260728.md",
+      "sha256": "e2ca014469ed853c52c0eccea1f74d2a07f0dc33e8f6898b70a4d6b5d471488e"
+    }
+  ],
+  "trace_onsets": {
+    "ev": 0.1,
+    "wd_am": 0.1,
+    "wd_pm": 0.25,
+    "we": 0.25
+  },
+  "trace_slots": {
+    "ev": 175,
+    "inc": 2488,
+    "wd_am": 215,
+    "wd_pm": 163,
+    "we": 139
+  }
+}
