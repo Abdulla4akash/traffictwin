@@ -66,8 +66,9 @@ state written *before* anything fallible is.
 refuses to start; (2) a per-(date, window) completion marker written by the session
 writer itself (the `randomTrips --validate` lesson: the writer writes the marker, not
 the wrapper), and written **atomically before any fallible post-step** — aggregation,
-report rendering, retention pruning all happen strictly after the marker exists, so an
-interruption at any point can only lose post-processing (recoverable from quarantine),
+report rendering and the retention-eligibility report all happen strictly after the
+marker exists, so an interruption at any point can only lose post-processing (recoverable
+from quarantine),
 never the ran-once fact (the Sparse-64 terminal-write ordering lesson, adopted here
 from the start rather than after our own deviation); (3) a window that is already past
 its start when the supervisor wakes is **skipped and ledgered**, never run late — late

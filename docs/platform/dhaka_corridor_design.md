@@ -1,51 +1,98 @@
 # Design — Dhaka corridor network build (Bangladesh tier 2, optional)
 
-**Status: PROPOSED design, `owner_approved_candidate` ceiling. The one cheap artifact of
-the Bangladesh direction: a receipted "the twin already runs on Dhaka roads" proof,
-built through the EXISTING pipeline with zero new algorithmic work. Scheduled strictly
-after the platform slices; it exists to strengthen the funding narrative, not the
-dissertation's science.**
+**Status: REVIEWED OPTIONAL design, `owner_approved_candidate` ceiling; not approved for
+execution and not implemented. BD-D1/BD-D2 remain genuine owner decisions. It is scheduled
+strictly after the five platform slices and only after explicit owner authority for the
+download/build. The honest artifact is a receipted Dhaka-corridor *network-build
+feasibility result*, not proof that a calibrated or operational twin runs in Dhaka. It is
+for the transferability/funding discussion, not the admitted dissertation evidence chain.**
 
 ## 1. What is built
 
-One Dhaka corridor network (not city-wide): pinned dated Geofabrik Bangladesh extract →
-osmium clip to a declared corridor box → the committed decode → netconvert 1.27.1 build
-→ streaming validation → durable storage with canonical identity digest + receipts —
-the exact Manchester chain (`rebuild_baseline_network.py` pattern) with a new scope
-config.
+One Dhaka corridor network (not city-wide): pinned dated Bangladesh extract → bounded
+`osmium` clip to an owner-selected corridor → controlled PBF decode → pinned `netconvert`
+build → streaming structural/extent validation → durable storage with source/derived
+identity separation, digests, licence and receipts.
+
+This reuses lower-level Manchester patterns, not the exact Manchester contract.
+`rebuild_baseline_network.py`, `ManchesterBaselineNetworkBinding`,
+`BaselineScopeDecision` and `SubAreaCoverage` hard-code Greater Manchester, Manchester
+local-authority code `E08000003`, and the Manchester method version. Passing Dhaka bytes
+through them unchanged would create false provenance. The slice therefore needs either a
+small region-neutral network-build contract in a disjoint module, regression-tested against
+Manchester fixtures, or a new Dhaka-specific binding. Either option reuses only the generic
+integrity/decode/streaming primitives. Existing Manchester bindings and evidence remain
+byte-unchanged.
 
 ## 2. Scope decisions (owner, before build)
 
 - **BD-D1 — the corridor.** Proposed default: the Dhaka–Airport road corridor
-  (Mohakhali → Hazrat Shahjalal International), one of the canonical congestion
-  corridors and plausibly the BRTC pilot alignment the concept note sketches. The
-  alternative is Mirpur Road. One corridor only.
-- **BD-D2 — the dated extract.** Pin the newest dated Geofabrik `bangladesh` file at
-  build time (the `-latest`-redirect lesson applies verbatim); record URL, date, md5.
+  (Mohakhali → Hazrat Shahjalal International); the alternative named in the planning
+  discussion is Mirpur Road. Any congestion, operational or BRTC-alignment rationale must
+  be independently sourced before the owner decides — the current proposal text is not
+  traffic or BRTC evidence. The owner selects one corridor and freezes its polygon and
+  landmarks before acquisition.
+- **BD-D2 — the dated extract and acquisition.** After explicit owner authority, resolve a
+  dated provider artifact rather than retaining a `-latest` redirect; record the final URL,
+  reference/publication date, byte size, SHA-256, provider checksum where available,
+  retrieval time, licence and attribution. Download/build is not authorised merely because
+  this design exists.
 
 ## 3. Known transfers and known unknowns
 
-Transfers: the whole toolchain, the workspace-containment and identity-digest rules,
-`admissible_role` semantics (the corridor is `sub_area_probe_only` by construction —
-measured containment, same as the city-centre probe rule). Unknowns to MEASURE, not
-assume, and record in the build receipt: OSM completeness/tagging quality for Dhaka
-(expect sparser `shape`, more unclassified ways than the 36% no-shape / class mix
-Manchester measured — the per-edge `geometry_source` recording carries over); UTM zone
-45N/46N boundary (Dhaka sits near 90°E — verify netconvert's projection choice against
-landmarks, the 4-landmark validation recipe); no count or live-bus data exists on this
-side — the network ships **observation-empty**, and saying so is the point: it is the
-funding ask made concrete.
+Transfers: workspace containment, explicit network access confirmation, source/derived
+identity separation, bounded external processes, PBF sniff/decode, pinned executable
+versions, streaming inspection, geometry-source accounting, private-path rejection,
+licence/attribution carriage and durable receipts.
+
+Does **not** transfer unchanged: Manchester scope literals, official-area containment,
+baseline identity, acceptance thresholds, calibration, observation coverage, or the
+`sub_area_probe_only` label. The Dhaka role follows from a new declared target corridor and
+measured network extent. A corridor may be called `corridor_network_candidate`; whether it
+contains its requested corridor is a measured field. It is not a city baseline either way.
+
+Unknowns to measure and record, not assume: OSM road/tag/geometry completeness inside the
+frozen corridor; connected components and routability; warning classes; projection chosen
+by `netconvert` near the UTM 45N/46N boundary, checked against at least four owner-approved
+landmarks; extent and clipping artefacts; and build resource use. Manchester's observed
+36% no-shape/class mix is comparison context, not a prior claim about Dhaka.
+
+This repository currently holds no admitted Dhaka counts, demand, live-bus observations or
+calibration. That is a project data gap, not a claim that such data does not exist. The
+network ships `observation_status: unavailable`, never zero; it cannot produce traffic,
+congestion or VEC findings without separately governed data and protocols.
 
 ## 4. Governance
 
-New scope config + build script additions are new files; the Manchester scope config is
-untouched. The build record states plainly that this artifact carries no observations,
-no demand, no calibration — a network-layer transferability proof only, produced for
-the transferability section (report tier 1) and the concept note (tier 3).
+New scope/binding + build script additions use a disjoint namespace; Manchester scope,
+bindings and evidence remain untouched. The build record states plainly that this artifact
+carries no observations, demand, routes, calibration, behavioural model, VEC execution or
+scientific validation. It is a network-layer engineering feasibility artifact only.
 
-## 5. Effort
+OSM-derived bytes retain ODbL 1.0 metadata and visible
+`© OpenStreetMap contributors, ODbL 1.0` attribution through the receipt and any rendered
+map. Raw PBF/XML/network outputs remain in the owner workspace unless their publication
+basis is explicitly reviewed; a public source is not automatic permission to publish every
+derived bundle. No private paths enter committed records.
 
-~1 day: extract download + clip (minutes), build (the corridor is far smaller than the
-GM 2.11M-edge parent), validation + receipts + record. Effort is real but bounded; if
-the OSM quality unknowns bite, the honest outcome is a *measured* quality report of the
-gap — which serves the funding narrative just as well.
+## 5. Acceptance and tests
+
+Offline fixtures cover the generic/Dhaka scope schema, Manchester-literal rejection,
+source/derived identity separation, unsafe destination/private-path refusal, checksum and
+licence drift, bounded subprocess arguments, measured extent/role classification, projection
+and landmark reconciliation, no-observation labels, and deterministic receipts. A real build
+requires explicit network confirmation and owner authority, then records exact tool versions,
+resource use and warnings. It runs no traffic simulation, campaign, training or cloud compute.
+
+Acceptance means the pinned input was verified, the requested corridor containment and
+structural/routability checks were measured, receipts contain no private path, and the
+artifact stays observation-empty. A failed build or incomplete network yields a typed,
+reviewable feasibility-gap report; it is not silently repaired or described as a twin.
+
+## 6. Effort and stop rule
+
+Earlier notes estimated ~one day because a corridor is smaller than the 2.11M-edge Greater
+Manchester parent. The contract-generalisation and unknown data quality make that an estimate,
+not a commitment. Stop after one selected corridor and one pinned extract. Do not expand to a
+city-wide build, acquire observations, tune thresholds or launch experiments without a new
+owner decision.
