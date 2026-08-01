@@ -3942,6 +3942,31 @@ the seven-group normative inventory stays pinned), the additive expectations in
 entry in `CHANGELOG.md`, and this record. No existing page, route, label, or service is
 modified; MAN-05 and all lead surfaces untouched.
 
+### Phase 146 claim: Dhaka corridor build contract — platform slice 6, optional (1 August 2026)
+
+Implements the REVIEWED `docs/platform/dhaka_corridor_design.md` up to its own authority
+line: everything offline-testable ships now, and the real download/build still requires
+the owner's BD-D1 (frozen corridor) and BD-D2 (pinned dated extract) answers plus an
+explicit network confirmation — a download is not authorised merely because this code
+exists. Delivered: a region-neutral corridor network-build contract in a DISJOINT module
+(`corridor_network.py`, zero Manchester-binding imports) — scope schema with
+Manchester-literal rejection (false-provenance guard), dated-extract pin refusing
+`-latest`, checksum/licence drift refusals, workspace containment and private-path
+refusal, bounded subprocess argv builders (fixed executables, never a shell), the
+network's-own-projParameter landmark reconciliation (>=4 landmarks), measured
+extent/containment classification with role capped at `corridor_network_candidate`,
+`observation_status: "unavailable"` as a type-level literal, ODbL attribution carriage,
+typed feasibility-gap reports, and deterministic receipts with no absolute path. A gated
+build script stages acquire/clip/decode/build/validate behind `--confirm-network` with
+writer-written stage markers. Stop rule honoured: one corridor, one pinned extract, no
+city-wide expansion, no observation acquisition, no simulation.
+
+Exclusive files: `src/traffictwin/integration/corridor_network.py`,
+`scripts/build_dhaka_corridor_network.py`, `tests/unit/test_corridor_network.py`,
+`docs/integration/dhaka_corridor_decision_worksheet.md` (BD-D1/BD-D2 worksheet,
+decisions EMPTY), the changelog entry in `CHANGELOG.md`, and this record. Manchester
+scope, bindings, evidence, and every lead surface remain byte-unchanged.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

@@ -2,6 +2,24 @@
 
 ## v0.7.0 - In development
 
+Added the Dhaka corridor build contract (1 August, data-platform v1 slice 6 — OPTIONAL,
+Bangladesh tier 2; implemented up to the design's own authority line):
+
+- a region-neutral corridor network-build contract in a module disjoint from every
+  Manchester binding (`traffictwin.integration.corridor_network`): scope schema refusing
+  Manchester identity literals by name (the false-provenance guard), dated-extract pins
+  refusing `-latest` redirects, checksum/licence drift refusals, workspace containment
+  with private-path refusal, bounded shell-free tool argv, extent and ≥4-landmark
+  reconciliation through the network's OWN projParameter, measured corridor containment
+  with the role capped at `corridor_network_candidate`, type-level
+  `observation_status: "unavailable"` (never zero), ODbL attribution carriage, typed
+  feasibility-gap reports (never silent repair), and deterministic receipts free of
+  absolute paths;
+- a resumable owner-run build script staging acquire/clip/decode/build/validate, with the
+  acquisition gated behind `--confirm-network` and pin verification before promotion; and
+- a BD-D1/BD-D2 decision worksheet with EMPTY decisions: the corridor choice and the
+  dated-extract pin remain genuine owner decisions, and no download or build has run.
+
 Added the platform dashboard (1 August, data-platform v1 slice 5, platform P-3): three
 strictly additive Streamlit pages in one new "Platform" navigation group appended after the
 seven normative groups, every existing route and group unchanged (validation now pins the
