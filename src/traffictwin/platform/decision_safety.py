@@ -69,14 +69,16 @@ _PRIVATE_MARKERS = ("/Users/", "/home/", "\\Users\\")
 
 #: The versioned ruleset. Changing ANY value changes the ruleset digest and
 #: needs owner review (design §4).
+MINIMUM_SUPPORT = 3
+REQUIRED_COMPANIONS: tuple[str, ...] = (
+    "deadline_attainment",
+    "action_change",
+    "failure_locus",
+)
 RULESET: dict[str, object] = {
     "version": "1.0",
-    "minimum_support": 3,
-    "required_companions_on_headline_improvement": [
-        "deadline_attainment",
-        "action_change",
-        "failure_locus",
-    ],
+    "minimum_support": MINIMUM_SUPPORT,
+    "required_companions_on_headline_improvement": list(REQUIRED_COMPANIONS),
     "rules": [
         "envelope",
         "standing",
@@ -212,11 +214,8 @@ def assess(
     for option in options:
         _screen_wording(option)
 
-    minimum_support = int(str(RULESET["minimum_support"]))
-    required_companions = tuple(
-        str(item)
-        for item in list(RULESET["required_companions_on_headline_improvement"])  # type: ignore[arg-type]
-    )
+    minimum_support = MINIMUM_SUPPORT
+    required_companions = REQUIRED_COMPANIONS
     notices: list[SafetyNotice] = []
     exclusions: dict[str, str] = {}
     compatible: list[str] = []
