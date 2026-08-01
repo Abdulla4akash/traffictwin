@@ -4393,3 +4393,18 @@ Phase 162 verification passed on 1 August 2026: all 99 Manchester retention/conn
 passed under Python 3.11; both exact regressions passed under Python 3.12; focused Ruff lint,
 format, strict mypy and `git diff --check` passed. The repair changes no retention selection,
 confirmation, path-safety, CLI refusal, evidence or policy behavior.
+
+### Phase 163 claim: standalone runtime dependency repair (1 August 2026)
+
+The integrating lead owns the final Phase 162 CI failure in `pyproject.toml`, `uv.lock`, the
+standalone `Dockerfile`, focused packaging/container verification, this phase record and the
+locked CI rerun. The base CLI imports Manchester spatial modules at startup, so its existing
+`pyproj` runtime requirement must be declared as a base dependency rather than hidden in test or
+VEC extras. This phase may reconcile that package contract and verify the existing container; it
+may not add live acquisition, participant activity, control, scientific execution or evidence.
+
+Phase 163 local verification passed on 1 August 2026: `uv lock --check`, Ruff, focused strict
+mypy and `git diff --check` passed; a base-only isolated install imported the full CLI with
+`pyproj` 3.7.2 and successfully initialised the 62-bundle synthetic standalone demo. Docker is
+not installed on the local host, so the locked GitHub Actions Python 3.12 container build remains
+the authoritative image gate. No live or scientific action was performed.
