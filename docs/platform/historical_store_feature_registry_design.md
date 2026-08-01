@@ -1,9 +1,10 @@
 # Design — Aggregate historical store and feature registry (post-v1 H-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
-The maximum policy ceiling is `owner_approved_candidate`. Building this slice requires an
-owner scope decision. This document does not authorise acquisition, migration of raw BODS
-material, experiment execution, cloud services, or production deployment.**
+**Status: IMPLEMENTED in Phase 147 for the engine-neutral contracts, transactional in-memory
+reference backend and synthetic migration dry run. Persistent activation remains unimplemented
+and pending the owner decisions in Section 10. The maximum policy ceiling is
+`owner_approved_candidate`. This document does not authorise acquisition, migration of raw BODS
+material, experiment execution, cloud services, production deployment, approval or admission.**
 
 ## 1. Purpose
 
@@ -56,7 +57,7 @@ remain segregated from the admitted VEC feature namespace.
 
 ## 4. Logical architecture
 
-The first implementation should remain local and dependency-light:
+The persistent implementation should remain local and dependency-light:
 
 - **Payload area:** immutable, content-addressed aggregate JSON or Parquet artifacts in an
   owner-selected workspace outside the repository.
@@ -67,9 +68,12 @@ The first implementation should remain local and dependency-light:
 - **Read service:** a typed library API first. A dashboard adapter may be added only after
   the backend contract and privacy tests pass.
 
-DuckDB plus Parquet is one implementation candidate, not an architectural requirement.
-The owner must choose the storage engine and retention location before implementation.
-No network service, warehouse account or object-store spend is implied.
+Phase 147 implements the engine-neutral records and operations in
+`src/traffictwin/platform/historical_store.py`. Its transactional reference backend is deliberately
+in memory: it selects no persistent engine, workspace or retention behaviour. DuckDB plus Parquet
+remains one implementation candidate, not an architectural requirement. The owner must choose the
+storage engine and retention location before a persistent adapter is implemented. No network
+service, warehouse account or object-store spend is implied.
 
 ## 5. Core records
 
@@ -153,10 +157,43 @@ Acceptance requires:
 - a provenance walk from a snapshot to every source digest and definition version; and
 - an owner-reviewed recovery/backup procedure before the store becomes a dependency.
 
+### Phase 147 implementation and verification
+
+The engine-neutral portion is implemented through immutable strict records for
+`HistoricalDatasetRecord`, `FeatureDefinition` and `FeatureSnapshot`; digest-pinned source and
+dataset bindings; typed receipts, refusals, queries, provenance walks and migration dry-run
+reports; and `InMemoryHistoricalStore`. The reference backend provides copy-on-write atomic
+registration, gap-free feature versioning, immutable snapshot materialisation, exact-retry
+idempotency and deterministic safe catalogue queries. It accepts only schema-registered aggregate
+JSON and safe metadata. It screens record, definition, request and payload values for secrets,
+absolute paths, raw identifiers, participant markers and raw-feed forms before publication.
+
+The synthetic contract suite in `tests/unit/test_historical_store.py` covers deterministic and
+self-validating digests, schema/source/licence checks, byte-stable pinned retrieval, retry,
+crash-before-commit recovery for all three write operations, schema evolution, incompatible
+features, missing support, evidence-standing monotonicity, execution-deviation propagation,
+Sparse-64 segregation, safe query filtering, complete provenance and a non-mutating migration dry
+run. Adversarial fixtures contain marker strings only; they contain no real BODS, credential,
+identity, participant or private-path material.
+
+The first four acceptance conditions are met for this reference contract. The recovery/backup
+condition remains an explicit activation gate: no persistent adapter exists, no catalogue or
+payload has been migrated, and this store has not become a platform dependency. Phase 147 is not
+production readiness, scientific evidence, approval or admission.
+
 ## 10. Owner decisions and stop conditions
 
-The owner must choose the storage engine/location, retention period, backup policy,
-licence allowlist and whether any catalogue metadata may be committed. Stop if satisfying
-a consumer would require raw BODS retention, cross-session identity, participant data,
-unreviewed cloud spend, or an evidence-standing upgrade. Those are new scopes, not hidden
-implementation details.
+The owner must choose the storage engine/location, retention period, backup policy, licence
+allowlist and whether any catalogue metadata may be committed. No answer to those questions is
+recorded by Phase 147:
+
+| Decision | Phase 147 state |
+|---|---|
+| Persistent engine and workspace | **PENDING** — the delivered backend is in memory only |
+| Retention and backup procedure | **PENDING** — no deletion, garbage collection or backup behaviour exists |
+| Licence allowlist | **PENDING** — the caller must supply an explicit non-empty test allowlist |
+| Committed catalogue metadata | **PENDING** — no runtime catalogue metadata is committed |
+
+Stop if satisfying a consumer would require raw BODS retention, cross-session identity,
+participant data, unreviewed cloud spend, or an evidence-standing upgrade. Those are new scopes,
+not hidden implementation details.
