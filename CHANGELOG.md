@@ -2,6 +2,18 @@
 
 ## v0.7.0 - In development
 
+Added the experiment evidence matrix (1 August, post-v1 E-1; owner build approval in
+session): one typed provenance/coverage row per executed or proposed comparison, derived
+only from a code-registered extraction over committed records with content digests bound
+at build (hand-entered rows structurally impossible); completion and admission are
+separate axes (the Sparse-64 returns stay `non_admitted` outside every admitted view, and
+requesting admitted standing plus non-admitted rows is a typed promotion refusal);
+`not_applicable`/`not_recorded`/`not_tested` stay distinct from zero; grouping needs a
+versioned compatibility rule and defaults to separation with mixed-role refusal; the
+confirmed capacity row carries the exact five-seed sign-test floor (p=0.0625) as a binding
+display note; summaries are deterministic counts carrying row ids and the build digest,
+never pooled effect estimates; and `explain_cell` names gaps as coverage gaps, not zeros.
+
 Added the Dhaka corridor build contract (1 August, data-platform v1 slice 6 — OPTIONAL,
 Bangladesh tier 2; implemented up to the design's own authority line):
 

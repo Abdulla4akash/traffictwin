@@ -4000,6 +4000,25 @@ workspace, migration, platform, campaign, acquisition, dashboard, evidence and s
 are read-only and remain byte-unchanged. No acquisition, experiment, cloud service, participant
 activity, persistent database, retention deletion, approval or admission decision is authorised.
 
+### Phase 148 claim: experiment evidence matrix — post-v1 E-1 (1 August 2026)
+
+Implements `docs/platform/experiment_evidence_matrix_design.md` (owner build approval
+given in session, 1 August; `owner_approved_candidate` ceiling): the typed provenance and
+coverage index over every executed or proposed comparison. Rows derive ONLY from a
+code-registered extraction over committed records (catalogue, results records, analyses)
+with content digests bound at build — hand-entered rows are structurally impossible.
+Completion and admission are separate axes; the Sparse-64 returns stay `non_admitted`
+rows outside every admitted view; `not_applicable`/`not_recorded`/`not_tested` are
+distinct from zero; grouping needs a versioned compatibility rule and defaults to
+separation; the confirmed capacity row carries the exact five-seed sign-test floor
+(p=0.0625) as a binding display note; summaries are deterministic counts carrying their
+included row ids and build digest, never pooled effect estimates. Typed refusals per
+design §7; no admission mutation; no UI in this slice (the dashboard consumes it later).
+
+Exclusive files: `src/traffictwin/platform/evidence_matrix.py`,
+`tests/unit/test_evidence_matrix.py`, the changelog entry in `CHANGELOG.md`, and this
+record. The catalogue, register, results records, and all analyses remain byte-unchanged.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate
