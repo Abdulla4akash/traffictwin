@@ -3757,6 +3757,25 @@ Manchester export refusal caused by `manchester_demand_diagnosis_20260728.json` 
 absolute path. Full-repository Ruff also remains red on three pre-existing notebook subprocess
 rules and 13 pre-existing formatting candidates. No failing code path is touched by Phase 138.
 
+### Phase 139 claim: scheduled BODS session runner — platform slice 1 (1 August 2026)
+
+Implements `docs/platform/bods_scheduled_runner_design.md` (platform decision P-D2,
+`owner_approved_candidate` ceiling): a detached supervisor that runs the four measured
+observation windows on a committed schedule. The accepted acquisition boundary is inherited
+verbatim and unrelaxed; the refusal-tolerant session loop is the attended runner's semantics
+extracted into a shared implementation, not a second copy. Run-once is guarded three ways
+(pid singleton, writer-written atomic completion marker before any fallible post-step,
+skip-late-never-run-late). Retention in this slice is a prune-eligibility report only —
+the accepted `bods_retention` boundary makes deletion owner-confirmed, never automatic,
+and this slice does not relax that.
+
+Exclusive files: `src/traffictwin/integration/manchester/bods_scheduled_sessions.py`,
+`scripts/bods_scheduled_runner.py`, `docs/platform/bods_schedule.json`,
+`tests/unit/test_bods_scheduled_sessions.py`, the loop-delegation edit in
+`scripts/bus_attended_session.py` (a Phase 115 file; behaviour preserved), the changelog
+entry in `CHANGELOG.md`, and this record. MAN-05 (`bods.py`), `bods_acquisition.py`,
+`bods_live_control.py`, `bods_retention.py`, and the manchester `__init__` are untouched.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

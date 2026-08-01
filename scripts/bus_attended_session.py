@@ -38,10 +38,10 @@ from decimal import Decimal
 from pathlib import Path
 
 from traffictwin.integration.manchester.bods import BodsBoundingBox
-from traffictwin.integration.manchester.bods_acquisition import BodsAcquisitionError
-from traffictwin.integration.manchester.bods_live_control import (
-    BodsLiveControlError,
-    coordinated_bods_live_refresh,
+from traffictwin.integration.manchester.bods_live_control import coordinated_bods_live_refresh
+from traffictwin.integration.manchester.bods_scheduled_sessions import (
+    AcquiredSnapshot,
+    run_refusal_tolerant_session_loop,
 )
 from traffictwin.integration.manchester.bods_session_identity import (
     SessionExtractionResult,
@@ -96,10 +96,6 @@ def main() -> int:
 
     workspace = args.workspace.expanduser().resolve()
     session_salt = secrets.token_bytes(32)
-    snapshot_ids: list[str] = []
-    refusals: list[dict[str, object]] = []
-    consecutive = 0
-    started_at = datetime.now(UTC).isoformat()
 
     print(
         f"attended session '{args.label}': {args.snapshots} snapshots at "
@@ -107,89 +103,31 @@ def main() -> int:
         flush=True,
     )
 
-    for index in range(args.snapshots):
-        before = _quarantine_ids(workspace)
-        attempted_at = datetime.now(UTC).isoformat()
-        try:
-            refresh = coordinated_bods_live_refresh(
-                workspace, GREATER_MANCHESTER_BOX, api_key=api_key
-            )
-        except BodsLiveControlError as error:
-            if error.code == "REFRESH_TOO_SOON":
-                print("  interval not yet elapsed; waiting 30 s and retrying once", flush=True)
-                time.sleep(30)
-                try:
-                    refresh = coordinated_bods_live_refresh(
-                        workspace, GREATER_MANCHESTER_BOX, api_key=api_key
-                    )
-                except (BodsLiveControlError, BodsAcquisitionError) as retry_error:
-                    consecutive += 1
-                    appeared = sorted(_quarantine_ids(workspace) - before)
-                    refusals.append(
-                        {
-                            "attempt": index + 1,
-                            "attempted_at_utc": attempted_at,
-                            "error": str(retry_error)[:300],
-                            "quarantined_but_not_promoted": appeared,
-                        }
-                    )
-                    print(f"  [{index + 1}] refused: {retry_error}", flush=True)
-                    if consecutive >= _CONSECUTIVE_REFUSAL_LIMIT:
-                        print("  refusal limit reached; ending session", flush=True)
-                        break
-                    if index + 1 < args.snapshots:
-                        time.sleep(args.interval_seconds)
-                    continue
-            else:
-                consecutive += 1
-                refusals.append(
-                    {
-                        "attempt": index + 1,
-                        "attempted_at_utc": attempted_at,
-                        "error": str(error)[:300],
-                        "quarantined_but_not_promoted": sorted(_quarantine_ids(workspace) - before),
-                    }
-                )
-                print(f"  [{index + 1}] refused: {error}", flush=True)
-                if consecutive >= _CONSECUTIVE_REFUSAL_LIMIT:
-                    print("  refusal limit reached; ending session", flush=True)
-                    break
-                if index + 1 < args.snapshots:
-                    time.sleep(args.interval_seconds)
-                continue
-        except BodsAcquisitionError as error:
-            # A fail-closed parser or validation refusal. The snapshot is not
-            # promoted and its bytes stay in quarantine; the session continues.
-            consecutive += 1
-            appeared = sorted(_quarantine_ids(workspace) - before)
-            refusals.append(
-                {
-                    "attempt": index + 1,
-                    "attempted_at_utc": attempted_at,
-                    "error": str(error)[:300],
-                    "quarantined_but_not_promoted": appeared,
-                }
-            )
-            print(f"  [{index + 1}] refused: {error}", flush=True)
-            if consecutive >= _CONSECUTIVE_REFUSAL_LIMIT:
-                print("  refusal limit reached; ending session", flush=True)
-                break
-            if index + 1 < args.snapshots:
-                time.sleep(args.interval_seconds)
-            continue
-
-        consecutive = 0
+    def _acquire() -> AcquiredSnapshot:
+        refresh = coordinated_bods_live_refresh(workspace, GREATER_MANCHESTER_BOX, api_key=api_key)
         summary = refresh.refresh.summary
-        snapshot_ids.append(summary.snapshot_id)
-        print(
-            f"  [{index + 1}/{args.snapshots}] {summary.snapshot_id} "
-            f"(accepted={summary.records_accepted}, live={summary.live_vehicle})",
-            flush=True,
+        return AcquiredSnapshot(
+            snapshot_id=summary.snapshot_id,
+            records_accepted=summary.records_accepted,
+            live_vehicle=summary.live_vehicle,
         )
-        if index + 1 < args.snapshots:
-            time.sleep(args.interval_seconds)
 
-    finished_at = datetime.now(UTC).isoformat()
+    # The refusal-tolerant loop this script introduced now lives in
+    # bods_scheduled_sessions as the single shared implementation.
+    result = run_refusal_tolerant_session_loop(
+        snapshots=args.snapshots,
+        interval_seconds=args.interval_seconds,
+        acquire=_acquire,
+        quarantine_ids=lambda: _quarantine_ids(workspace),
+        utc_now=lambda: datetime.now(UTC),
+        sleep=time.sleep,
+        report=lambda message: print(message, flush=True),
+        consecutive_refusal_limit=_CONSECUTIVE_REFUSAL_LIMIT,
+    )
+    snapshot_ids = list(result.accepted_snapshot_ids)
+    refusals = [refusal.as_payload() for refusal in result.refusals]
+    started_at = result.started_at_utc
+    finished_at = result.finished_at_utc
     print(
         f"session complete: {len(snapshot_ids)} accepted, {len(refusals)} refused",
         flush=True,

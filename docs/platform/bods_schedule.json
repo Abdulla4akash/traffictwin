@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "sessions": [
+    { "label": "night", "start_local": "23:30", "snapshots": 15 },
+    { "label": "dawn", "start_local": "05:30", "snapshots": 52 },
+    { "label": "am_peak", "start_local": "08:00", "snapshots": 52 },
+    { "label": "pm_peak", "start_local": "16:30", "snapshots": 85 }
+  ],
+  "interval_seconds": 65,
+  "late_tolerance_seconds": 300,
+  "retention_report_days": 14
+}

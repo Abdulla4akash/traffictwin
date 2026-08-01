@@ -2,6 +2,23 @@
 
 ## v0.7.0 - In development
 
+Added the scheduled BODS session runner (1 August, data-platform v1 slice 1, decision P-D2):
+
+- a committed four-window daily schedule (`docs/platform/bods_schedule.json`) mirroring the
+  measured night/dawn/am-peak/pm-peak density points, consumed as data by a long-lived
+  supervisor (`scripts/bods_scheduled_runner.py`) started once by the owner as a detached
+  process — deliberately not launchd, whose relaunch semantics produced both recorded
+  Sparse-64 run-once deviations;
+- run-once guarded three ways: a pid-file singleton, a per-(date, window) completion marker
+  written atomically by the session writer before any fallible post-step, and a
+  skip-late-never-run-late rule with a ledgered skip marker;
+- the accepted acquisition boundary inherited verbatim (≥60 s spacing, one request in
+  flight, quarantine-with-manifest, environment-only API key, per-session in-process salt,
+  aggregate-only outputs), with the attended runner's refusal-tolerant session loop
+  extracted into one shared implementation used by both runners; and
+- retention delivered as a prune-eligibility report only, because the accepted
+  `bods_retention` boundary makes deletion owner-confirmed and never automatic.
+
 Completed the capacity research programme's first full arc (27–28 July):
 
 - the predeclared exploratory pilot (12/12 cells on the incident trace) refuted the
