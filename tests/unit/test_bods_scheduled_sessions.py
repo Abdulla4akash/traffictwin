@@ -351,7 +351,7 @@ def test_scheduled_session_writes_the_marker_before_fallible_post_steps(
     directory = outcome.marker_path.parent
     assert outcome.marker_path.is_file()
     assert not outcome.measurement_written
-    assert any(error.startswith("cadence_measurement:") for error in outcome.post_step_errors)
+    assert any(error.startswith("session_extraction:") for error in outcome.post_step_errors)
     assert not (directory / "cadence_measurement.json").exists()
     ledger = json.loads((directory / "refusal_ledger.json").read_text(encoding="utf-8"))
     assert ledger["schedule_digest"] == _DIGEST
@@ -388,9 +388,19 @@ def test_scheduled_session_full_post_processing_with_a_fresh_salt_per_session(
     def _fake_to_json(measurement: dict[str, int]) -> str:
         return json.dumps({"stub_measurement": measurement}, sort_keys=True)
 
+    def _fake_progression(results: list[SimpleNamespace]) -> SimpleNamespace:
+        return SimpleNamespace(
+            hour_utc=(5, 6),
+            segment_count_by_hour=(4, 2),
+            speed_mps_median_by_hour=(3.5, 4.25),
+            speed_mps_p90_by_hour=(6.5, 7.75),
+            vehicles_contributing_by_hour=(3, 2),
+        )
+
     monkeypatch.setattr(scheduled_module, "extract_session_observations", _fake_extract)
     monkeypatch.setattr(scheduled_module, "measure_session_cadence", _fake_measure)
     monkeypatch.setattr(scheduled_module, "measurement_to_json", _fake_to_json)
+    monkeypatch.setattr(scheduled_module, "measure_session_progression", _fake_progression)
 
     schedule = _schedule()
     for day in (date(2026, 8, 1), date(2026, 8, 2)):
@@ -711,3 +721,139 @@ def test_retention_report_lists_only_eligible_sessions_and_deletes_nothing(
     # Deletes nothing — every quarantine directory is untouched.
     for present in ("bods_siri_vm-old-0001", "bods_siri_vm-young-0001", "bods_siri_vm-nomeas-0001"):
         assert (quarantine / present).is_dir()
+
+
+# --- the §4 activity aggregate (bus-prediction design boundary) --------------
+
+
+def test_activity_aggregate_carries_concurrency_and_progression(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def _fake_extract(
+        workspace_root: object, snapshot_id: str, *, session_salt: bytes
+    ) -> SimpleNamespace:
+        del workspace_root, session_salt
+        return SimpleNamespace(
+            observations_extracted=3,
+            activities_seen=3,
+            malformed_skipped=0,
+            snapshot_id=snapshot_id,
+        )
+
+    def _fake_progression(results: list[SimpleNamespace]) -> SimpleNamespace:
+        del results
+        return SimpleNamespace(
+            hour_utc=(5,),
+            segment_count_by_hour=(7,),
+            speed_mps_median_by_hour=(3.5,),
+            speed_mps_p90_by_hour=(6.5,),
+            vehicles_contributing_by_hour=(4,),
+        )
+
+    monkeypatch.setattr(scheduled_module, "extract_session_observations", _fake_extract)
+    monkeypatch.setattr(
+        scheduled_module, "measure_session_cadence", lambda results: SimpleNamespace()
+    )
+    monkeypatch.setattr(scheduled_module, "measurement_to_json", lambda measurement: "{}")
+    monkeypatch.setattr(scheduled_module, "measure_session_progression", _fake_progression)
+
+    schedule = _schedule()
+    acquire = ScriptedAcquire(
+        [
+            AcquiredSnapshot(
+                snapshot_id="bods_siri_vm-20260801T053012Z", records_accepted=9, live_vehicle=41
+            ),
+            AcquiredSnapshot(
+                snapshot_id="bods_siri_vm-20260801T053117Z", records_accepted=11, live_vehicle=43
+            ),
+        ]
+    )
+    outcome = run_scheduled_session(
+        tmp_path,
+        _occurrence(schedule, date(2026, 8, 1)),
+        schedule,
+        _DIGEST,
+        acquire=acquire,
+        utc_now=lambda: datetime(2026, 8, 1, 5, 30, tzinfo=UTC),
+        sleep=lambda seconds: None,
+        report=_silent,
+        local_now=lambda: datetime(2026, 8, 1, 6, 30, tzinfo=TZ),
+    )
+    assert outcome.post_step_errors == ()
+    aggregate = json.loads(
+        (outcome.marker_path.parent / "activity_aggregate.json").read_text(encoding="utf-8")
+    )
+    assert aggregate["record_type"] == "bods_session_activity_aggregate"
+    assert aggregate["session_kind"] == "scheduled"
+    assert aggregate["concurrency_source"] == "parser_live_vehicle"
+    assert aggregate["aggregates_only"] is True
+    assert aggregate["raw_identifiers_published"] is False
+    assert aggregate["session_salt_discarded"] is True
+    assert aggregate["utc_offset_seconds_applied"] == 3600
+    per_snapshot = aggregate["per_snapshot_live_vehicle"]
+    assert [row["live_vehicle"] for row in per_snapshot] == [41, 43]
+    # UTC 05:xx stamps become local hour 6 under the +1 h offset.
+    assert [row["hour_utc"] for row in per_snapshot] == [5, 5]
+    assert [row["hour_local"] for row in per_snapshot] == [6, 6]
+    assert aggregate["progression_available"] is True
+    row = aggregate["hourly_progression"][0]
+    assert row["hour_utc"] == 5
+    assert row["hour_local"] == 6
+    assert row["speed_mps_median"] == 3.5
+    assert row["segment_count"] == 7
+    record = json.loads(
+        (outcome.marker_path.parent / "session_record.json").read_text(encoding="utf-8")
+    )
+    assert record["activity_aggregate_written"] is True
+
+
+def test_activity_aggregate_survives_a_no_progression_session(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from traffictwin.integration.manchester.bods_session_identity import (
+        BodsSessionIdentityError,
+    )
+
+    def _fake_extract(
+        workspace_root: object, snapshot_id: str, *, session_salt: bytes
+    ) -> SimpleNamespace:
+        del workspace_root, session_salt
+        return SimpleNamespace(
+            observations_extracted=1,
+            activities_seen=1,
+            malformed_skipped=0,
+            snapshot_id=snapshot_id,
+        )
+
+    def _no_progression(results: list[SimpleNamespace]) -> SimpleNamespace:
+        raise BodsSessionIdentityError(
+            "NO_PROGRESSION", "no linked vehicle moved between snapshots"
+        )
+
+    monkeypatch.setattr(scheduled_module, "extract_session_observations", _fake_extract)
+    monkeypatch.setattr(
+        scheduled_module, "measure_session_cadence", lambda results: SimpleNamespace()
+    )
+    monkeypatch.setattr(scheduled_module, "measurement_to_json", lambda measurement: "{}")
+    monkeypatch.setattr(scheduled_module, "measure_session_progression", _no_progression)
+
+    schedule = _schedule()
+    acquire = ScriptedAcquire([_snapshot(1), _snapshot(2)])
+    outcome = run_scheduled_session(
+        tmp_path,
+        _occurrence(schedule, date(2026, 8, 1)),
+        schedule,
+        _DIGEST,
+        acquire=acquire,
+        utc_now=lambda: datetime(2026, 8, 1, 5, 30, tzinfo=UTC),
+        sleep=lambda seconds: None,
+        report=_silent,
+        local_now=lambda: datetime(2026, 8, 1, 6, 30, tzinfo=TZ),
+    )
+    assert outcome.post_step_errors == ()
+    aggregate = json.loads(
+        (outcome.marker_path.parent / "activity_aggregate.json").read_text(encoding="utf-8")
+    )
+    assert aggregate["progression_available"] is False
+    assert "NO_PROGRESSION" in aggregate["progression_unavailable_reason"]
+    assert aggregate["hourly_progression"] == []

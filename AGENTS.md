@@ -3851,6 +3851,41 @@ and a capacity below the pair's own admitted arms refuses instead of line-extrap
 citation reference. The `docs/evaluation/drafts/` directory is NOT created by the
 composer anymore; the exclusive-files list otherwise stands, plus this amendment.
 
+### Phase 143 claim: bus prediction layer — platform slice 4 (1 August 2026)
+
+Implements the REVIEWED `docs/platform/bus_prediction_design.md` (platform P-2, the
+producer-independent study; `owner_approved_candidate` ceiling; zero VEC producer data,
+code, parameters or results enter this slice). Two deliverable groups:
+
+1. **The §4 progression-aggregate boundary, assigned to this phase:** scheduled sessions
+   now write a `bods_session_activity_aggregate` beside the cadence measurement —
+   per-snapshot `live_vehicle` concurrency plus the hourly
+   `measure_session_progression` series, computed inside the same single in-process
+   session salt and discarded with it; aggregate-only, raw identifiers never published.
+   A thin owner-run script produces the same artifact post-hoc for the stored attended
+   sessions (attended rule unchanged; quarantine reopened only through the reviewed
+   identity boundary with a fresh salt).
+2. **`bus_prediction.py`:** schema-validated digest-recorded aggregate ingestion with
+   eligibility and privacy gates; per-(day-type, local hour) dataset build with
+   whole-local-service-date chronological splitting; climatology + persistence blend
+   (α least-squares, clamped [0,1]; unsupported ratio cells refuse); per-cell empirical
+   residual intervals only at ≥5 support dates, `insufficient_support` otherwise;
+   forecasts typed `forecast: true` / `evidence: false` / `causal: false`; MAE
+   validation beside persistence-only and climatology-only baselines with the
+   predeclared publishable null; verdict self-test that runs on fit dates only; and a
+   readiness report that refuses speed fitting where only Phase-139 cadence artifacts
+   exist. No real fit is claimed — four attended windows on two dates are recorded as
+   insufficient by the design's own §4.
+
+Exclusive files: `src/traffictwin/platform/bus_prediction.py`,
+`tests/unit/test_bus_prediction.py`, the activity-aggregate extension in the Phase-139
+files `src/traffictwin/integration/manchester/bods_scheduled_sessions.py` and
+`tests/unit/test_bods_scheduled_sessions.py`, `scripts/build_bus_activity_aggregates.py`,
+`docs/evaluation/bus_prediction_predeclaration_draft.md` (PROPOSED/UNSIGNED, sign-off
+empty), the changelog entry in `CHANGELOG.md`, and this record. `bods_session_identity.py`
+is imported, not modified; MAN-05 and all lead surfaces untouched; no live acquisition,
+no raw BODS bytes in tests.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

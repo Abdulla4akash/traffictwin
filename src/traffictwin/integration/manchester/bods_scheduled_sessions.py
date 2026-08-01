@@ -51,9 +51,11 @@ from pydantic import Field, ValidationError, model_validator
 from traffictwin.integration.manchester.bods_acquisition import BodsAcquisitionError
 from traffictwin.integration.manchester.bods_live_control import BodsLiveControlError
 from traffictwin.integration.manchester.bods_session_identity import (
+    BodsSessionIdentityError,
     SessionExtractionResult,
     extract_session_observations,
     measure_session_cadence,
+    measure_session_progression,
     measurement_to_json,
 )
 from traffictwin.integration.manchester.models import ManchesterSnapshotModel
@@ -68,6 +70,7 @@ CONSECUTIVE_REFUSAL_LIMIT = 8
 COMPLETION_MARKER_NAME = "completed.json"
 SKIP_MARKER_NAME = "skipped.json"
 CADENCE_MEASUREMENT_NAME = "cadence_measurement.json"
+ACTIVITY_AGGREGATE_NAME = "activity_aggregate.json"
 REFUSAL_LEDGER_NAME = "refusal_ledger.json"
 SESSION_RECORD_NAME = "session_record.json"
 RETENTION_REPORT_NAME = "retention_report.json"
@@ -440,6 +443,7 @@ def run_scheduled_session(
     utc_now: Callable[[], datetime],
     sleep: Callable[[float], None],
     report: Callable[[str], None],
+    local_now: Callable[[], datetime] | None = None,
 ) -> ScheduledSessionOutcome:
     """Run one window: acquire, mark completion atomically, then post-process.
 
@@ -528,24 +532,97 @@ def run_scheduled_session(
 
     measurement_written = False
     measurement_skipped_reason: str | None = None
+    aggregate_written = False
+    extraction_results: list[SessionExtractionResult] = []
 
-    def _write_measurement() -> None:
-        nonlocal measurement_written
-        results: list[SessionExtractionResult] = []
+    def _extract_all() -> None:
         for snapshot_id in loop.accepted_snapshot_ids:
             result = extract_session_observations(
                 workspace_root, snapshot_id, session_salt=session_salt
             )
-            results.append(result)
+            extraction_results.append(result)
             report(
                 f"  extracted {result.observations_extracted}/{result.activities_seen} "
                 f"({result.malformed_skipped} malformed) from {snapshot_id}"
             )
-        measurement = measure_session_cadence(results)
+
+    def _write_measurement() -> None:
+        nonlocal measurement_written
+        measurement = measure_session_cadence(extraction_results)
         path = directory / CADENCE_MEASUREMENT_NAME
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(measurement_to_json(measurement) + "\n", encoding="utf-8")
         measurement_written = True
+
+    def _write_activity_aggregate() -> None:
+        # The reviewed bus-prediction design's §4 boundary: concurrency and
+        # hourly progression are computed inside the SAME single session salt
+        # as the cadence measurement, published aggregate-only, and the salt
+        # dies with this function's scope. The forecaster never reopens raw
+        # BODS data.
+        nonlocal aggregate_written
+        offset_seconds = _local_offset_seconds(local_now)
+        per_snapshot = [
+            {
+                "snapshot_id": snapshot.snapshot_id,
+                "hour_utc": _snapshot_hour_utc(snapshot.snapshot_id),
+                "hour_local": _to_local_hour(
+                    _snapshot_hour_utc(snapshot.snapshot_id), offset_seconds
+                ),
+                "live_vehicle": snapshot.live_vehicle,
+            }
+            for snapshot in loop.accepted
+        ]
+        progression_rows: list[dict[str, object]] = []
+        progression_available = False
+        progression_unavailable_reason: str | None = None
+        try:
+            progression = measure_session_progression(extraction_results)
+        except BodsSessionIdentityError as error:
+            progression_unavailable_reason = str(error)[:_ERROR_TEXT_LIMIT]
+        else:
+            progression_available = True
+            for index, hour_utc in enumerate(progression.hour_utc):
+                progression_rows.append(
+                    {
+                        "hour_utc": hour_utc,
+                        "hour_local": _to_local_hour(hour_utc, offset_seconds),
+                        "segment_count": progression.segment_count_by_hour[index],
+                        "speed_mps_median": progression.speed_mps_median_by_hour[index],
+                        "speed_mps_p90": progression.speed_mps_p90_by_hour[index],
+                        "vehicles_contributing": (progression.vehicles_contributing_by_hour[index]),
+                    }
+                )
+        _write_json_atomic(
+            directory / ACTIVITY_AGGREGATE_NAME,
+            {
+                "record_type": "bods_session_activity_aggregate",
+                "schema_version": "1.0",
+                "design_reference": "docs/platform/bus_prediction_design.md",
+                "session_kind": "scheduled",
+                "label": window.label,
+                "session_date_local": occurrence.session_date.isoformat(),
+                "utc_offset_seconds_applied": offset_seconds,
+                "timezone_note": (
+                    "session_date_local and hour_local are the supervisor host's "
+                    "local service date/hours (Europe/London expected; the runner "
+                    "design's clock boundary applies)"
+                ),
+                "schedule_digest": schedule_digest,
+                "snapshot_count": len(loop.accepted),
+                "concurrency_source": "parser_live_vehicle",
+                "per_snapshot_live_vehicle": per_snapshot,
+                "progression_available": progression_available,
+                "progression_unavailable_reason": progression_unavailable_reason,
+                "hourly_progression": progression_rows,
+                "aggregates_only": True,
+                "raw_identifiers_published": False,
+                "bus_progression_only": True,
+                "road_traffic_speed_available": False,
+                "session_salt_discarded": True,
+            },
+        )
+        aggregate_written = True
 
     def _write_record() -> None:
         _write_json_atomic(
@@ -567,6 +644,7 @@ def run_scheduled_session(
                 "ended_by_refusal_limit": loop.ended_by_refusal_limit,
                 "measurement_written": measurement_written,
                 "measurement_skipped_reason": measurement_skipped_reason,
+                "activity_aggregate_written": aggregate_written,
                 "post_step_errors": list(post_step_errors),
                 "artifacts": {
                     "completion_marker": COMPLETION_MARKER_NAME,
@@ -574,13 +652,17 @@ def run_scheduled_session(
                     "cadence_measurement": (
                         CADENCE_MEASUREMENT_NAME if measurement_written else None
                     ),
+                    "activity_aggregate": (ACTIVITY_AGGREGATE_NAME if aggregate_written else None),
                 },
             },
         )
 
     _post_step("refusal_ledger", _write_ledger)
     if len(loop.accepted) >= 2:
-        _post_step("cadence_measurement", _write_measurement)
+        _post_step("session_extraction", _extract_all)
+        if extraction_results:
+            _post_step("cadence_measurement", _write_measurement)
+            _post_step("activity_aggregate", _write_activity_aggregate)
     else:
         measurement_skipped_reason = "fewer than two accepted snapshots"
         report("  fewer than two accepted snapshots; no cadence measurement")
@@ -594,6 +676,34 @@ def run_scheduled_session(
         measurement_skipped_reason=measurement_skipped_reason,
         post_step_errors=tuple(post_step_errors),
     )
+
+
+def _snapshot_hour_utc(snapshot_id: str) -> int | None:
+    """The UTC clock hour from a quarantine snapshot id's timestamp segment."""
+
+    parts = snapshot_id.split("-")
+    if len(parts) < 2:
+        return None
+    stamp = parts[1]
+    if len(stamp) < 11 or "T" not in stamp:
+        return None
+    try:
+        hour = int(stamp[9:11])
+    except ValueError:
+        return None
+    return hour if 0 <= hour <= 23 else None
+
+
+def _to_local_hour(hour_utc: int | None, offset_seconds: int) -> int | None:
+    if hour_utc is None:
+        return None
+    return (hour_utc + offset_seconds // 3600) % 24
+
+
+def _local_offset_seconds(local_now: Callable[[], datetime] | None) -> int:
+    clock = local_now if local_now is not None else _default_local_now
+    offset = clock().utcoffset()
+    return 0 if offset is None else int(offset.total_seconds())
 
 
 def build_retention_report(
@@ -768,6 +878,7 @@ def run_supervisor(
                     utc_now=utc_clock,
                     sleep=sleeper,
                     report=reporter,
+                    local_now=local_clock,
                 )
                 sessions_run += 1
                 try:

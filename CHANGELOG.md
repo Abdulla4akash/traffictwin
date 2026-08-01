@@ -2,6 +2,31 @@
 
 ## v0.7.0 - In development
 
+Added the bus prediction layer (1 August, data-platform v1 slice 4, platform P-2 — the
+producer-independent study; zero VEC producer data, code, parameters or results, pinned by
+test):
+
+- closed the reviewed design's §4 boundary: scheduled sessions now write a
+  `bods_session_activity_aggregate` beside the cadence measurement — per-snapshot
+  `live_vehicle` concurrency plus the hourly progression series, computed inside the same
+  single session salt and discarded with it — and an owner-run script builds the identical
+  artifact post-hoc for stored attended sessions (labelled `extracted_observation_count`);
+- `traffictwin.platform.bus_prediction`: schema-validated, digest-recorded,
+  private-content-screened aggregate ingestion with duplicate refusal; per-(day-type,
+  local-hour) climatology + persistence blend (α least-squares clamped [0,1]; unsupported
+  ratio cells refuse rather than divide or borrow a day type; no cross-midnight nowcast);
+  per-cell empirical residual intervals only at ≥5 support dates, `insufficient_support`
+  otherwise; forecasts typed `forecast: true` / `evidence: false` / `causal: false`;
+- whole-local-service-date chronological validation with typed `DATE_OVERLAP` and
+  `SPLIT_VIOLATION` refusals, MAE per cell beside persistence-only and climatology-only
+  baselines, the predeclared publishable null as a complete outcome, a verdict self-test
+  that runs on fit dates only, and a readiness report counting eligible distinct dates —
+  never wall-clock days — that names the cadence-only gap when speed fitting is refused
+  (`PROGRESSION_AGGREGATES_MISSING`); and
+- a PROPOSED/UNSIGNED held-out validation predeclaration draft
+  (`docs/evaluation/bus_prediction_predeclaration_draft.md`) fixing the split rule,
+  horizon, endpoints, and verdict rule, with four owner decisions and an empty sign-off.
+
 Added the what-if scenario composer (1 August, data-platform v1 slice 3, platform P-1 tier 2):
 
 - the predict-then-verify front end (`traffictwin.platform.whatif_composer`): a structured
