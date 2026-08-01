@@ -477,6 +477,8 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Dissertation Support
 
+- [Complete dissertation manuscript: auditable QoS metric reversal (1 August 2026)](dissertation_manuscript_20260801.md)
+- [Dissertation literature and claim matrix (1 August 2026)](dissertation_literature_matrix_20260801.md)
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [Week 4 supervisor-expectation progress checklist, 27 July 2026](current_progress_week4.md)

@@ -1,286 +1,157 @@
-# Dissertation video narration script
+# Dissertation video narration — metric-to-mechanism cut
 
-The spoken text for [the storyboard](video_storyboard.md), one block per shot, in shot order.
-Record narration separately against these words and lay it under the picture, as the storyboard's
-audio note directs.
-
-**This document makes no scientific claim of its own.** Every number spoken aloud appears in
-exactly one place — the verbatim framing sentence in shot 12, quoted from the committed results
-record and attributed on camera. Everywhere else the speaker names a record and lets the screen
-carry it.
+This script follows `video_storyboard.md`. Bracketed directions are not spoken. Record each block
+separately and leave the planned visual pauses intact. The result records remain the numerical
+authority; if a number changes there, this script must be re-audited before recording.
 
 ## Timing budget
 
-Budgeted at **140 words per minute**, the rate the storyboard's separately-recorded narration
-assumes. Every block but one is sized to finish inside its shot with headroom, because narration
-that exactly fills a shot leaves no room to breathe and reliably overruns on the take.
-
-| # | Shot | Length | Words | Speech | Headroom |
-|---:|---|---:|---:|---:|---:|
-| 1 | Hook | 0:40 | 84 | 0:36 | +0:04 |
-| 2 | Home / Project Status | 0:30 | 62 | 0:26 | +0:03 |
-| 3 | Guided Demo | 0:30 | 59 | 0:25 | +0:05 |
-| 4 | Bundle Import | 0:35 | 72 | 0:30 | +0:04 |
-| 5 | Run Overview | 0:30 | 58 | 0:24 | +0:05 |
-| 6 | Replay animation | 0:40 (0:04 silent) | 65 | 0:27 | +0:08 |
-| 7 | RSU Monitor | 0:35 | 72 | 0:30 | +0:04 |
-| 8 | Diagnostics | 0:40 | 70 | 0:30 | +0:10 |
-| 9 | Provenance DAG | 0:45 | 95 | 0:40 | +0:04 |
-| 10 | Match Review | 0:40 | 69 | 0:29 | +0:10 |
-| 11 | Experiment instrument | 0:30 | 65 | 0:27 | +0:02 |
-| 12 | Wrap | 0:25 | 66 | 0:28 | −0:03 |
+| # | Shot | Picture time | Spoken words | Approximate speech at 140 wpm |
+|---:|---|---:|---:|---:|
+| 1 | Hook | 0:30 | 55 | 0:24 |
+| 2 | Scope/source | 0:30 | 54 | 0:23 |
+| 3 | Signed experiment | 0:40 | 73 | 0:31 |
+| 4 | Paired result | 0:40 | 89 | 0:38 |
+| 5 | Metric reversal | 0:40 | 79 | 0:34 |
+| 6 | Actions/observations | 0:45 | 88 | 0:38 |
+| 7 | Vehicle partition | 0:50 | 95 | 0:41 |
+| 8 | RSU monitor | 0:35 | 65 | 0:28 |
+| 9 | Provenance walk | 0:40 | 74 | 0:32 |
+| 10 | Predictions | 0:30 | 62 | 0:27 |
+| 11 | Buses | 0:20 | 45 | 0:19 |
+| 12 | Conclusion | 0:20 | 44 | 0:19 |
 
-**Total spoken: 837 words ≈ 5:58 of speech under a 7:00 picture — inside the 8-minute ceiling with 2:01 to spare.** The gap is deliberate: pauses, the four silent seconds in shot 6, and the
-cuts between shots.
+**Total:** approximately 823 spoken words, leaving about one minute for visual silence, cuts and
+breathing inside the seven-minute picture.
 
-**Shot 12 does not fit its slot, and this is a real conflict rather than an oversight.** The
-storyboard allots the wrap 0:25. The framing sentence must be quoted verbatim from the results
-record — that alone is about 0:20 at this rate — and it still needs an attribution phrase in
-front of it and the limitation the storyboard says to end on behind it. The block is trimmed to
-the minimum that keeps all three and still measures **0:28, three seconds over**.
+## Shot 1 — Hook
 
-Two ways to resolve it, both the owner's call, because the storyboard is not this document's to
-edit:
+**[Capacity 2.5 shrinks to 0.75; mean latency falls; deadline line stays flat.]**
 
-- **Give shot 12 five more seconds** and take them from shot 8 or shot 10, which carry +0:10 of
-  headroom each. This is the recommended fix; the total picture stays at 7:00.
-- **Drop the closing limitation** and end on the quotation. Cheaper, but it loses the storyboard's
-  stated intent of ending on the limitation rather than burying it, so it is the worse trade.
+> I made the edge resource worse, and the usual performance number said the system got better.
+> Reducing this RSU capacity control cut mean task latency by more than eight seconds, but it did
+> not improve deadline attainment. That is not a recommendation to remove infrastructure. It is
+> the problem: what exactly did the average reward?
 
-What must not happen is speaking shot 12 faster to make it fit, or paraphrasing the quoted
-sentence to shorten it.
+## Shot 2 — Scope and source
 
-## Where the required caveats land
+**[Event-district extent and pinned source card.]**
 
-The *Required Spoken Caveats* in [the demo checklist](demo_checklist.md) are quoted **word for
-word** below, at the storyboard positions that carry them. Where the storyboard paraphrases one
-in its own checklist, the checklist's wording is the authority and is what appears here.
+> The central trace is one modelled collapse hour, from eight to nine in Manchester's Etihad and
+> Co-op Live event district. It is not city-wide traffic. SUMO generated the mobility with seed
+> forty-three. Randy Prasetia Putra produced the pinned environment, trace repository and trained
+> checkpoint; TrafficTwin evaluates and audits those artifacts under permission with citation.
 
-| Caveat | Shot |
-|---|---:|
-| Synthetic fixtures are not real Manchester data. | 2 |
-| Direct launch is intentionally disabled. | 2 |
-| Read-only TOS inspection … SUMO FCD also remains unavailable. | 3 |
-| Historical replay is not live data. | 6 |
-| Diagnostic hypotheses are not proven root causes. | 8 |
-| Provenance supports traceability and auditability, not proof of correctness or causality. | 9 |
-| Unknown TOS publication permission remains visible as an integration gate. | 11 |
-| The supervisor ZIP is labelled private research material. | conditional — see below |
-| Any public demonstration uses only the standalone synthetic static site. | conditional — see below |
+## Shot 3 — Signed experiment
 
-The last two are conditional in the checklist and stay conditional here. Optional lines for both
-are given after shot 12; speak them only when the condition holds, and re-record the shot rather
-than captioning it afterwards.
+**[Protocol digest flows to ten-cell campaign receipt, then result record.]**
 
----
+> The pilot generated the hypothesis, so I did not call it confirmation. Before touching the
+> reserved seeds, the owner approved this latency-primary protocol. Its exact bytes are hashed;
+> edit the design and the runner refuses the approval. Five held-out seeds, two capacity arms,
+> ten completed cells. The receipt and result are committed whatever the direction. This is
+> confirmed within that signed project protocol—not supervisor approval, external validation or a
+> claim about deployed Manchester.
 
-## Shot 1 — Hook (0:00–0:40)
+## Shot 4 — Paired result
 
-**[SCREEN: Manchester Operations map, talking-head overlay.]**
+**[Highlight paired seeds 10–14, then show estimate and interval.]**
 
-> Vehicular edge computing promises to offload work from cars to roadside infrastructure. The
-> policies that decide what to offload are trained in simulation, on synthetic fleets. So here is
-> the question this project asks: when one of those trained policies is put in front of evidence
-> you can actually trace, does its behaviour hold up — and can you tell? TrafficTwin is the
-> instrument I built to answer that honestly. Where buses appear in this video, they are transit
-> vehicles, never general road traffic.
+> Each line is one seed evaluated twice. All five point in the same direction. Mean latency falls
+> from twelve thousand and twenty-seven point five milliseconds to three thousand seven hundred
+> and sixteen point six. The paired estimate is minus eight thousand three hundred and ten point
+> nine milliseconds; the bootstrap interval runs from minus nine thousand ninety-seven point five
+> to minus seven thousand five hundred and twenty-four point three. With only five pairs, the
+> exact two-sided sign-test floor is zero point zero six two five, and I report it.
 
-*84 words ≈ 0:36.* Do not preview a result.
+## Shot 5 — Metric reversal
 
----
+**[Deadline stays flat; p50, p99 and tail mass appear.]**
 
-## Shot 2 — Home / Project Status (0:40–1:10)
+> Now watch the distribution instead of the mean. Deadline attainment stays at about seventy-nine
+> percent. Median latency stays forty-four point three milliseconds at every pilot capacity. The
+> ninety-ninth percentile falls by sixty-nine point nine percent, and between ninety-seven point
+> nine and ninety-nine point four percent of all latency mass sits above one second. The resource
+> squeeze is not helping the middle. It is compressing an already-late tail, so the average looks
+> dramatically better while the deadline outcome stays flat.
 
-**[SCREEN: Home, capability status list.]**
+## Shot 6 — Actions and observations
 
-> This is the honesty discipline everything else rests on. What the system cannot support is
-> shown as unsupported; what nobody has established is shown as unknown — not as a blank, and not
-> as a zero. Synthetic fixtures are not real Manchester data. Direct launch is intentionally
-> disabled. If you do not believe these states are real, nothing later should convince you.
+**[Action-invariance plot, then actor observation fields.]**
 
-*62 words ≈ 0:26.* Both caveats are verbatim from the demo checklist.
+> Perhaps the policy adapts cleverly to scarcity. It does not. For each of nine pilot arm pairs I
+> aligned eight million nine hundred and fifty-six thousand eight hundred vehicle-slot decisions,
+> including their targets. There were zero mismatches. The RSU state changes, but the vehicle-side
+> actor inputs are identical across these arms and contain no RSU-load term. Capacity changes the
+> downstream queue while this fixed checkpoint chooses the same action. That explains why it does
+> not adapt; it does not prove that adding a load field would improve it.
 
----
+## Shot 7 — Vehicle partition
 
-## Shot 3 — Guided Demo and the evidence boundary (1:10–1:40)
+**[Split-screen never-offload and always-offload groups; animate cap 2.5 → 0.1.]**
 
-**[SCREEN: Guided Demo, standalone synthetic track.]**
+> The post-hoc vehicle audit gives the mechanism. About three-fifths of vehicles never offload.
+> Across a twenty-five-fold squeeze, their mean latency is bit-identical at thirty-nine point six
+> milliseconds. The always-offloading group is exactly the weakest compute tier in every analysed
+> cell. Its mean falls from roughly twenty-six seconds to roughly one point one seconds, yet this
+> group still carries about ninety-two percent of missed tasks. Put the fleet mean between those
+> groups and nobody experiences it: most vehicles receive exactly no change; the rest receive a
+> huge reduction inside failure. The headline average describes neither population.
 
-> The guided track separates three things that are easy to blur: simulation artifacts, the
-> deterministic pipeline over them, and my interpretation at the end. Now the integration
-> boundary. Read-only TOS inspection and bounded SUMO tripinfo/summary import are available, but
-> full Randy/VEC conversion and launch stay blocked by missing producer/checkpoint/writer,
-> identity/outcome/trip evidence, and fixture permission; SUMO FCD also remains unavailable.
+## Shot 8 — RSU monitor
 
-*59 words ≈ 0:25.* The long sentence is verbatim; rehearse it. Do not enter the imported track
-unless the authorised package is configured on the recording machine.
+**[Select saturated and idle RSUs; show 99.1% load concentration.]**
 
----
+> Four roadside units run close to the recorded concurrency bound and carry ninety-nine point one
+> percent of load; four are almost idle. Pressure here means in-flight work against that bound,
+> not CPU utilisation. I initially blamed the association rule, then found that analysis used the
+> wrong counting unit and contradicted busy-time evidence. I withdrew the causal explanation. The
+> asymmetry is measured; its cause is undetermined.
 
-## Shot 4 — Bundle Import (1:40–2:15)
+## Shot 9 — Provenance walk
 
-**[SCREEN: Bundle Import validating `.demo/bundles/baseline`, then `.demo/bundles/stressed_demand`.]**
+**[One continuous take: metric → definition → canonical row → source row.]**
 
-> Two runs come in through the same import path. Validation is not a formality here — the declared
-> files, their record counts, and their hashes are all checked before anything is accepted, and a
-> bundle that fails is rejected rather than partly loaded. Watch the accepted status and the file
-> list. In a few minutes I am going to trace a number all the way back to one row inside this
-> bundle.
+> This is why TrafficTwin exists. I start at the reported metric, open its definition, follow the
+> canonical table and land beside the bounded source row from which it was computed. The campaign
+> record also pins the trace, checkpoint, environment and configuration. One chain, no hidden
+> spreadsheet. But the limit matters: provenance supports traceability and auditability, not proof
+> of correctness or causality. It shows where a number came from. It cannot make the source true.
 
-*72 words ≈ 0:30.* Hold the accepted status on screen long enough to read.
+## Shot 10 — Predictions and refutations
 
----
+**[Three equal cards: held, refuted, refuted.]**
 
-## Shot 5 — Run Overview (2:15–2:45)
+> A useful method must be able to say wrong. The inverse-capacity ceiling prediction held in all
+> twenty-seven new checks. The prediction that two actors would have similar latency slopes was
+> refuted by a fifty-two point five three percent contrast. Exact onset scaling was also refuted:
+> four of six checks passed, and two failed by disclosed sub-microsecond differences. I keep all
+> three outcomes.
 
-**[SCREEN: Run Overview, an optional metric showing unavailable.]**
+## Shot 11 — Captured buses
 
-> Here is the run's metric set — and here is a metric marked unavailable. Unavailable is not zero.
-> That metric could not be computed from the evidence this run actually carries, so the system
-> says so and refuses to substitute a default. A dashboard that quietly showed zero here would be
-> easier to read and would be lying.
+**[Dawn/peak paths with full-shot `DESCRIPTIVE / NON-ADMITTED` banner.]**
 
-*58 words ≈ 0:24.* "Unavailable is not zero" is worth landing cleanly.
+> These dawn and peak paths are captured public-transport buses, not general traffic. The VEC
+> tasks, equipment and sixty-four sites are synthetic and cover only about forty-five percent of
+> occupied cells. A duplicate return broke the one-shot rule. The similar direction is
+> descriptive and non-admitted—not confirmation.
 
----
+## Shot 12 — Conclusion
 
-## Shot 6 — Replay animation (2:45–3:25) — UN-REPORTED
+**[Return to opening contrast; evidence labels collapse into conclusion.]**
 
-**[SCREEN: Replay, `HISTORICAL REPLAY` badge visible for the whole shot.]**
+> The contribution is not that less infrastructure is better. A QoS average can reward degradation
+> when improvement sits entirely in tasks that fail either way. A signed test found the reversal;
+> vehicle audit explained it; refutations and non-admitted transfer show where the claim stops.
 
-> *(Four seconds of silence — let the animation read.)*
->
-> This is a recorded window being replayed, not a live feed. Historical replay is not live data.
-> The badge stays on screen for exactly that reason, and there is no wall-clock source behind it.
-> I am changing the playback speed, and jumping the scrubber. A written report can print a
-> snapshot of this; it cannot show you the motion, which is why the shot exists.
+## Pre-record audit
 
-*65 words ≈ 0:27 spoken over the remaining 36 seconds.* Keep the badge in frame throughout.
-
----
-
-## Shot 7 — RSU Monitor drill-down (3:25–4:00) — UN-REPORTED
-
-**[SCREEN: `/rsu-monitor`, one RSU selected, then the cross-RSU asymmetry table.]**
-
-> My supervisor asked a direct question: which roadside unit is overwhelmed, and how overwhelmed?
-> This is the answer. I select one unit and its queue and in-flight series redraw across the run
-> window. Pressure here means in-flight tasks against recorded maximum concurrency. It is not CPU
-> utilisation, and per-unit energy does not exist in the accepted loaders, so it is not shown. The
-> comparison itself is the part a report cannot carry.
-
-*72 words ≈ 0:30.* Say what the page says; claim nothing beyond it.
-
----
-
-## Shot 8 — Diagnostics and Evidence (4:00–4:40)
-
-**[SCREEN: Diagnostics over `.demo/bundles/under_offloading`, a rule firing.]**
-
-> A rule has fired. Read what it says carefully: this is a candidate explanation, not a cause.
-> Diagnostic hypotheses are not proven root causes. And notice the rules that did not fire — they
-> are still listed, marked insufficient, rather than hidden. A system that only showed you its
-> confident answers would look far more impressive than this one, and would tell you far less
-> about what it actually knows.
-
-*70 words ≈ 0:30.* Never say "cause". The verbatim caveat is the third sentence.
-
----
-
-## Shot 9 — Provenance DAG click-through (4:40–5:25) — UN-REPORTED
-
-**[SCREEN: one continuous take — metric → definition → canonical table → row sample → source-row
-mode → `tasks.csv` row 2.]**
-
-> This is the shot I would keep if I could keep only one. I start at a computed metric and walk
-> backwards: its definition, the canonical table behind it, the sample of rows in that table, and
-> then into source-row mode — landing on row two of `tasks.csv`, the raw imported row beside its
-> canonical record. One continuous chain, no cuts. Now the honest limit of it. Provenance supports
-> traceability and auditability, not proof of correctness or causality. It tells you where a
-> number came from. It does not tell you the number is right.
-
-*95 words ≈ 0:40.* Do not cut inside this shot.
-
----
-
-## Shot 10 — Match Review: decide, persist, seal (5:25–6:05) — UN-REPORTED
-
-**[SCREEN: `/match-review` — record a decision with reviewer and reason, reload, then seal.]**
-
-> These candidate matches are pending, and they stay pending until a person decides them. I record
-> a decision with my name and a written reason. The row changes state. I reload the page — it
-> persisted. Then I seal the ledger for export, and it becomes append-only: a later decision adds
-> a record, it never rewrites this one. This is a human judgement boundary being used, rather than
-> described.
-
-*69 words ≈ 0:29.*
-
----
-
-## Shot 11 — Experiment instrument (6:05–6:35)
-
-**[SCREEN: the predeclaration document, then `/campaigns` reading the campaign receipt, then the
-committed results record.]**
-
-> The design was fixed before any result existed. The approval binds this document's exact bytes,
-> so it cannot be edited afterwards and still run. The receipt records every cell. The results
-> record was published under a commitment made in advance to publish it whatever it said. This is
-> owner-approved-candidate evidence — not supervisor-approved, not validated. Unknown TOS
-> publication permission remains visible as an integration gate.
-
-*65 words ≈ 0:27.* Name the records; read no number here. The final sentence is verbatim.
-
----
-
-## Shot 12 — Wrap (6:35–7:00)
-
-**[SCREEN: objectives summary, then the committed results record's framing sentence on screen as
-it is spoken.]**
-
-> The record's framing, verbatim: "During a modeled traffic-collapse hour in the Etihad event
-> district, tightening per-vehicle edge capacity 3.3× left deadline attainment unchanged (~79.1%)
-> while cutting mean task latency by two-thirds — because the trained offloading policy's
-> decisions are capacity-invariant." One anomalous hour, three seeds. Exploratory, never more.
-
-*66 words ≈ 0:28.*
-
-**Why the quotation sits here and not in shot 11.** The storyboard forbids reading numbers at
-shot 11, and this script keeps that rule. The framing sentence is quoted here instead, read as a
-quotation, with the record it comes from on screen — so the only numbers in the whole narration
-are the committed record's own words, attributed as such. Read it exactly; it is copied verbatim
-from
-[`capacity_pilot_results_20260727.md`](evaluation/capacity_pilot_results_20260727.md),
-including the correction that record carries. Do not paraphrase it, do not round it, and do not
-extend it into a claim the record does not make.
-
----
-
-## Conditional lines
-
-Speak these only when the condition in the demo checklist actually holds, and re-record the shot
-rather than adding a caption.
-
-**If the supervisor ZIP appears on screen at any point** — add to that shot:
-
-> The supervisor ZIP is labelled private research material.
-
-**If the video will be shared beyond the marker** — add to shot 12:
-
-> Any public demonstration uses only the standalone synthetic static site.
-
-## Before you record
-
-- Read the whole script aloud once, timed. If any block runs past its shot, cut words from that
-  block — do not speed up, and do not let a shot run long into the next one.
-- Check every verbatim caveat against [the demo checklist](demo_checklist.md) and the framing
-  sentence against the results record. Both are the authority; if this file has drifted from
-  either, this file is wrong.
-- After recording, watch once at full speed with the storyboard's caveat checklist in hand and
-  tick each box against the moment it is actually spoken.
-
-Related documents:
-
-- [Dissertation video storyboard](video_storyboard.md)
-- [Demo script](demo_script.md)
-- [Demo checklist](demo_checklist.md)
-- [Capacity pilot exploratory results](evaluation/capacity_pilot_results_20260727.md)
+- Check every number against the committed result named in the storyboard.
+- Keep the evidence-state label on screen for every results shot.
+- Verify Putra environment/trace and SUMO credits on producer-derived frames.
+- Rehearse decimal numbers slowly; never accelerate a shot to force the timing.
+- If an authorised producer-derived UI is not available on the recording machine, use committed
+  aggregate figures rather than showing a private path or repository.
+- Watch the final export once with the narration muted and confirm that the central mechanism is
+  still understandable.

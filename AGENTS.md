@@ -3729,6 +3729,34 @@ Exclusive files: `gpu/real_bbus/{review_homecoming.py,supervise_colab_campaign.p
 checkpointing tests, the fresh-rerun result/evidence, the consolidated register/catalogue/index
 updates, and this record.
 
+### Phase 138 claim: dissertation synthesis and submission-support reconciliation (1 August 2026)
+
+The integrating lead owns the owner-requested dissertation synthesis: one focused manuscript
+whose central result is the signed held-out capacity study, a primary-source literature and claim
+audit, and reconciliation of the objectives/evaluation/video records with the experiments that
+are now complete. The manuscript must keep protocol-confirmed, post-hoc, exploratory and
+execution-deviated evidence visibly separate; the bus arm remains descriptive and non-admitted.
+It may report the owner's ethics-submission status but cannot infer approval, participant data,
+supervisor endorsement, external validation or a final mark.
+
+Exclusive files: `docs/dissertation_manuscript_20260801.md`,
+`docs/dissertation_literature_matrix_20260801.md`,
+`docs/dissertation_appendices/objectives_traceability.md`,
+`docs/dissertation_evaluation_plan.md`, `docs/dissertation_mapping.md`, `docs/video_storyboard.md`,
+`docs/video_narration_script.md`, the narrow dissertation links in `docs/index.md`, and this
+record. Existing experiment protocols, evidence, results, generated figures and private source
+material remain byte-unchanged.
+
+Verification for this documentation slice: the COMP60060 skeleton constraints are satisfied
+(four chapters, literature inside Chapter 1, 235-word abstract, 8,110 words from Abstract through
+Conclusion); all changed-document links resolve; all 17 numbered citations are referenced; and
+the audited headline values are present in their controlling committed records. Mypy strict over
+436 source files and `uv lock --check` pass. The full suite records 3,724 passed / 2 skipped / 2
+failed: the failures reproduce in isolation in the pre-existing N-way golden fingerprint and a
+Manchester export refusal caused by `manchester_demand_diagnosis_20260728.json` carrying a private
+absolute path. Full-repository Ruff also remains red on three pre-existing notebook subprocess
+rules and 13 pre-existing formatting candidates. No failing code path is touched by Phase 138.
+
 ### Completed lead ownership: v0.7 beta goal consolidation (25 July 2026)
 
 - The integrating lead owns a documentation-only consolidation of every v0.7 capability and gate

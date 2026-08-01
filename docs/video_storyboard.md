@@ -1,184 +1,158 @@
-# Dissertation video storyboard (6–8 minutes)
+# Dissertation video storyboard — metric-to-mechanism cut (7 minutes)
 
-A planned shot list for the submitted video, built on the existing
-[demo script](demo_script.md) and [demo checklist](demo_checklist.md) rather than beside them.
-Every shot names the demo-script step it executes, so the rehearsal and the recording follow
-one path.
+**Reconciled:** 1 August 2026
+**Companion:** `video_narration_script.md`
+**Target:** 7:00 inside the recorded 6–8 minute submission window.
 
-**This document makes no scientific claim.** Where a shot needs a result, it points the camera
-at the committed results record and the speaker names the record — it never reads a number
-into the narration, and no number appears in this file.
+The report explains the complete method. The video uses motion and interaction to make one result
+understandable: reducing an RSU capacity control makes mean latency look better without improving
+deadline attainment. It then walks from the aggregate to the vehicles and evidence that explain
+it. This replaces the earlier feature-tour emphasis.
 
-## Why the shots are ordered this way
+## Editorial rules
 
-The recorded rubric note for this component splits the marks as **Use of Medium 40%** and
-**Complementing the Report 40%**, with the remaining 20% not itemised in the note. This
-storyboard optimises the two named components and does not guess at the rest:
-
-- *Use of Medium* is served by planning: fixed timings, a written narration beat per shot, no
-  improvised navigation, and a single continuous screen capture per section so cuts land on
-  intent rather than on a mis-click.
-- *Complementing the Report* is served by spending the middle four minutes on material the
-  written report structurally cannot carry — motion, interaction, and click-through. Those
-  shots are marked **UN-REPORTED** below.
-
-The video is 15% of the grade in the recorded note, which is why it is storyboarded rather
-than improvised, and why the total runs to 7:00 inside the 6–8 minute window with room to
-breathe.
+- Use one central claim, not a catalogue of 39 routes.
+- Put the limitation beside each result, not in a final disclaimer montage.
+- Keep protocol-confirmed, post-hoc, exploratory and non-admitted evidence visually distinct.
+- Any result frame must name its committed record and carry the Putra/SUMO source credit.
+- Buses are labelled public-transport vehicles; never use them as general-traffic footage.
+- Screen captures must contain no raw vehicle reference, API key, session token, private path or
+  producer repository content.
 
 ## Shot list
 
-| # | Time | Length | Shot | Demo-script step | Un-reported? |
-|---:|---|---:|---|---|---|
-| 1 | 0:00–0:40 | 0:40 | Hook: talking head over the Manchester Operations map | — (opening) | partly |
-| 2 | 0:40–1:10 | 0:30 | Home / Project Status, capability honesty | step 1 | no |
-| 3 | 1:10–1:40 | 0:30 | Guided Demo track and the evidence boundary | step 2 | no |
-| 4 | 1:40–2:15 | 0:35 | Bundle Import validating baseline, then variation | steps 5–6 | no |
-| 5 | 2:15–2:45 | 0:30 | Run Overview: unavailable is not zero | step 7 | no |
-| 6 | 2:45–3:25 | 0:40 | **Replay animation** with the `HISTORICAL REPLAY` badge | step 8 | **UN-REPORTED** |
-| 7 | 3:25–4:00 | 0:35 | **RSU Monitor drill-down** into one RSU's window | additive `/rsu-monitor` | **UN-REPORTED** |
-| 8 | 4:00–4:40 | 0:40 | Diagnostics & Evidence: a rule fires | step 12 | no |
-| 9 | 4:40–5:25 | 0:45 | **Provenance DAG click-through** to the source row | step 16 | **UN-REPORTED** |
-| 10 | 5:25–6:05 | 0:40 | **Match Review: decide → persist → seal** | additive `/match-review` | **UN-REPORTED** |
-| 11 | 6:05–6:35 | 0:30 | Experiment instrument: predeclaration, campaign receipt, results record | — (new surfaces) | partly |
-| 12 | 6:35–7:00 | 0:25 | Wrap: objectives, one honest limitation, future work | — (closing) | no |
+| # | Time | Length | Picture | Purpose only video can serve |
+|---:|---|---:|---|---|
+| 1 | 0:00–0:30 | 0:30 | Talking head over a two-line animated contrast: capacity 2.5 → 0.75; latency ↓; deadlines flat | Immediate intellectual hook |
+| 2 | 0:30–1:00 | 0:30 | Event-district trace extent, then source/provenance card | Establish the exact, non-city-wide scope visually |
+| 3 | 1:00–1:40 | 0:40 | Signed protocol digest → `/campaigns` receipt → held-out result | Demonstrate pre-result commitment and complete cells |
+| 4 | 1:40–2:20 | 0:40 | Paired latency-by-seed figure, one seed highlighted at a time | Show that all five paired directions agree |
+| 5 | 2:20–3:00 | 0:40 | Deadline plot stays flat while mean/p99/p50 layers appear | Make the metric reversal visible |
+| 6 | 3:00–3:45 | 0:45 | Action-invariance figure → actor observation fields | Show why the policy did not adapt |
+| 7 | 3:45–4:35 | 0:50 | Split-screen vehicle partition: never-offload vs always-offload; animate 2.5 → 0.1 | Reveal that the aggregate describes neither population |
+| 8 | 4:35–5:10 | 0:35 | `/rsu-monitor`, saturated four versus idle four | Show queue concentration while refusing a causal story |
+| 9 | 5:10–5:50 | 0:40 | One continuous provenance walk: metric → definition → canonical row → source row | Demonstrate auditability rather than asserting it |
+| 10 | 5:50–6:20 | 0:30 | Three cards: 27/27 held; actor slope refuted; onset 4/6 refuted | Show falsifiability and limits |
+| 11 | 6:20–6:40 | 0:20 | Dawn/peak bus paths with `DESCRIPTIVE / NON-ADMITTED` banner | Bound the captured-mobility successor |
+| 12 | 6:40–7:00 | 0:20 | Talking head; four evidence labels collapse into the conclusion | State contribution and stop |
 
-Total **7:00**.
+Total: **7:00**.
 
-### Shot-by-shot notes
+## Shot directions
 
-**1 — Hook (0:00–0:40).** Open on the Manchester Operations map with a talking-head overlay;
-the rubric note explicitly encourages the talking head. State the problem in one sentence:
-vehicular-edge offloading policies are trained on synthetic fleets, and the question is
-whether their behaviour is trustworthy on evidence you can trace. Do not preview a result.
+### 1 — Hook
 
-**2 — Home (0:40–1:10).** Demo-script step 1. Show that direct launch is unsupported and that
-unknown capabilities stay unknown. This is the shot that establishes the honesty discipline
-the rest of the video relies on; if the audience does not believe the unavailable states are
-real, nothing later lands.
+Open with the question, not the platform name. Animate the capacity setting shrinking from 2.5 to
+0.75. Mean latency moves down; deadline attainment remains a horizontal line. Do not say “less
+capacity is better”. Say that the ordinary mean *looks* better and the experiment asks why.
 
-**3 — Guided Demo (1:10–1:40).** Demo-script step 2. Show the standalone synthetic track and
-say the separation aloud: simulation artifacts, deterministic pipeline, researcher
-interpretation. Do not click into the imported track unless the authorised package is
-configured on the recording machine.
+### 2 — Scope and source
 
-**4 — Bundle Import (1:40–2:15).** Demo-script steps 5 and 6. Validate `.demo/bundles/baseline`
-and then `.demo/bundles/stressed_demand`. Keep the accepted status, declared files, and record
-counts on screen long enough to read. This shot exists so the later provenance click-through
-has something the viewer has already seen validated.
+Show the Etihad/Co-op Live event-district extent and the `inc` trace label. Keep “modelled collapse
+hour”, “20:00–21:00”, “SUMO seed 43” and “not city-wide Manchester” simultaneously readable.
+Transition to a source card naming Randy Prasetia Putra, the pinned environment/trace commits and
+SUMO. Do not show private repository contents.
 
-**5 — Run Overview (2:15–2:45).** Demo-script step 7. Point at an unavailable optional metric
-and say "unavailable is not zero" — one of the few narration lines worth scripting verbatim.
+### 3 — Experiment instrument
 
-**6 — Replay animation (2:45–3:25) — UN-REPORTED.** Demo-script step 8. This is motion, and a
-report cannot carry motion. Play, then use one speed preset and one scrubber jump. Keep the
-`HISTORICAL REPLAY` badge visible in frame for the whole shot and say there is no wall-clock
-live source. Do not narrate over the first four seconds; let the animation read.
+Use one continuous motion from the signed candidate-B protocol digest to the campaign receipt and
+its ten terminal cells, then to the results record. The point is not blockchain theatre; the
+digest shows that changing the design after approval would invalidate execution. Say “confirmed
+within this signed project protocol”, never “scientifically validated” or “supervisor-approved”.
 
-**7 — RSU Monitor drill-down (3:25–4:00) — UN-REPORTED.** The additive `/rsu-monitor` route.
-Select one RSU and show its queue and in-flight series across the run window, then the
-cross-RSU asymmetry table. Say what the page says: pressure is in-flight tasks over recorded
-maximum concurrency, it is not CPU utilisation, and per-RSU energy does not exist in the
-accepted loaders. The interaction — choosing an RSU and watching the window change — is the
-un-reported part; a report can print one table, not the act of comparing.
+### 4 — Paired result
 
-**8 — Diagnostics (4:00–4:40).** Demo-script step 12. Use `.demo/bundles/under_offloading` so a
-rule fires on camera. Say "candidate explanation", never "cause". Show that the insufficient
-rules stay insufficient rather than being hidden.
+Use the committed paired/latency figure. Highlight seeds 10–14 sequentially so the viewer sees five
+negative differences instead of being asked to trust an average. Finish with the −8,310.9 ms
+estimate and interval. Put `n=5; exact two-sided sign p=0.0625` in the lower third; do not hide it.
 
-**9 — Provenance DAG click-through (4:40–5:25) — UN-REPORTED.** Demo-script step 16, and the
-single highest-value shot in the video. Start at a metric, click through the definition, the
-canonical table, and the row sample, then switch to source-row mode and land on `tasks.csv`
-row 2 — the raw row beside its canonical record. A report can print the endpoints of that
-chain; only video can show a person walking it in one continuous take. Do not cut inside this
-shot. Say that lineage depth is traceability, not correctness and not causality.
+### 5 — Metric reversal
 
-**10 — Match Review decide-persist-seal (5:25–6:05) — UN-REPORTED.** The additive
-`/match-review` route. Record one decision with a named reviewer and a written reason, show
-the row change state, reload to show it persisted, then seal for export. This is the shot that
-demonstrates a *human* decision boundary rather than describing one: the rows were visibly
-pending until a person decided them, and the ledger is append-only.
+Hold the deadline series still. Layer p50 at 44.3 ms, then p99 falling 69.9%, then the
+97.9–99.4% tail-mass annotation. The animation should make the logic spatial: the middle does not
+move; the already-late tail compresses; the mean follows the tail.
 
-**11 — Experiment instrument (6:05–6:35).** Show the signed predeclaration document, then the
-additive `/campaigns` route reading that campaign's receipt, then open the committed results
-record. **Name the records; do not read their numbers.** The narration line is that the design
-was fixed before any result was visible, the approval binds the document's bytes, and the
-result — whatever it says — is published under a null-publication commitment recorded in
-advance.
+### 6 — Decisions and observations
 
-**12 — Wrap (6:35–7:00).** Objectives met, one honest limitation stated plainly, and the named
-next step. End on the limitation rather than burying it; the rubric rewards the medium being
-used well, and a clean, unhedged closing limitation is a better use of thirty seconds than a
-montage.
+Start on the exact action comparison: zero mismatches, with “8,956,800 keyed decisions per pilot
+pair; nine pairs” visible. Move to the actor observation field list and highlight the absence of
+RSU load. Do not infer that adding load would improve the policy; only show why this actor could
+not respond to this intervention through that field.
 
-## Spoken-caveats checklist
+### 7 — Vehicle partition
 
-The checklist's *Required Spoken Caveats* apply to the video exactly as they apply to a live
-demonstration. Tick each one against the shot that carries it, and re-record the shot rather
-than adding a caption afterwards.
+This is the explanatory centre of the film. Split the screen into `never offload ≈60%` and
+`always offload ≈40% / tier 0`. Animate capacity 2.5 to 0.1. The left latency remains 39.6 ms; the
+right falls from about 26 seconds to about 1.1 seconds. Then place the fleet mean between them and
+cross it out as “experienced by neither group”. Keep “post-hoc mechanism” visible.
 
-- [ ] Synthetic fixtures are not real Manchester data. *(shots 2–5)*
-- [ ] Historical replay is not live data. *(shot 6 — the badge must also be visible)*
-- [ ] Diagnostic hypotheses are not proven root causes. *(shot 8)*
-- [ ] Provenance supports traceability and auditability, not proof of correctness or
-  causality. *(shot 9)*
-- [ ] Read-only TOS inspection and bounded SUMO import are available, but full Randy/VEC
-  conversion and launch stay blocked. *(shot 2 or 3)*
-- [ ] Direct launch is intentionally disabled. *(shot 2)*
-- [ ] Unknown TOS publication permission remains visible as an integration gate. *(shot 2 or
-  11)*
-- [ ] The supervisor ZIP is labelled private research material. *(only if it appears on
-  screen)*
-- [ ] Any public demonstration uses only the standalone synthetic static site. *(shot 12, if
-  the video will be shared beyond the marker)*
+### 8 — RSU monitor
 
-Two further caveats this video needs that a live demo does not, because a recording is
-re-watched and paused:
+Select a saturated RSU and then an idle one. Define pressure as in-flight tasks relative to the
+recorded concurrency bound, not CPU utilisation. Show four RSUs carrying 99.1% of load. End the
+shot with “cause undetermined”: the earlier association explanation was withdrawn after a counting
+unit failed cross-checks.
 
-- [ ] Anything shown from the experiment instrument is `owner_approved_candidate` evidence —
-  not supervisor-approved, not validated. *(shot 11)*
-- [ ] Buses, where they appear, are transit vehicles and never general road traffic. *(shot 1
-  or 7, if a bus surface is on screen)*
+### 9 — Provenance walk
 
-## Recording and equipment notes
+One take, no cut: result metric, definition, canonical table, bounded row sample and source-row
+view. Speak the limit exactly: provenance supports traceability and auditability, not proof of
+correctness or causality. This is the highest-value use-of-medium shot.
 
-**Before recording.** Run the demo checklist's pre-demo section in full — `uv sync`,
-`uv run pytest`, a clean `git status --short`, and `uv run traffictwin demo initialise .demo`.
-A failed fixture mid-take costs more than the setup does.
+### 10 — Predictions and refutations
 
-**Capture.**
+Use three equal cards, not a victory list. Card one: ceiling prediction held 27/27 within ±5%.
+Card two: actor latency-slope prediction refuted (52.53% contrast). Card three: exact onset scaling
+refuted (4/6), with the sub-microsecond misses disclosed. The viewer should see that the workflow
+can say “wrong”.
 
-- Record at 1920×1080 and keep the browser at a fixed window size for every screen shot; a
-  resized window between takes is the most visible avoidable defect.
-- Use the light theme throughout unless the whole video is dark — mixing them reads as
-  carelessness, and the theme is a `.streamlit/config.toml` setting, not something to toggle
-  mid-recording.
-- Increase the browser zoom one step before recording. Text that is comfortable on a 27-inch
-  monitor is unreadable in a downscaled video.
-- Hide bookmarks, notifications, and any window title carrying a real path or identifier.
-- One continuous take per shot. Cut between shots, never inside shot 9.
+### 11 — Captured buses
 
-**Audio.** Record narration separately from the screen capture against the written beat for
-each shot, then lay it under the picture. Scripted narration is what the *Use of Medium*
-component is measuring; live commentary over a live demo reliably runs long and hedges.
+Show dawn and peak paths or replay for no more than twenty seconds. Overlay the retained counts
+961/1,212 and the Sparse-64 coverage of about 45%. Keep `DESCRIPTIVE / NON-ADMITTED` on screen for
+the full shot. State that mobility is observed but tasks, equipment and sites are synthetic, and
+that a duplicate-return deviation prevents admission.
 
-**Screen hygiene.** Nothing on screen may show a real vehicle reference, a session token, an
-API key, or a private path. The surfaces used here publish aggregates only by construction,
-but the terminal and the window title are not covered by that guarantee — check both frames
-before recording.
+### 12 — Conclusion
 
-**After recording.** Watch once at full speed with the caveat checklist in hand and tick each
-box against the moment it is actually spoken. A caveat that is only in the storyboard is not a
-caveat.
+Return to the opening contrast and collapse the four labels—confirmed result, post-hoc mechanism,
+refuted extensions, non-admitted transfer—into one sentence: aggregate QoS can reward resource
+degradation unless the affected population is audited. End on the contribution, then stop; do not
+add a feature montage.
 
-**Fallback.** If Streamlit will not start on the recording machine, the demo script's CLI
-fallback covers the same evidence chain, but it cannot carry shots 6, 7, 9, or 10 — the
-un-reported material is exactly the part that needs the UI. Fix the launch rather than
-recording the fallback.
+## Spoken/visible caveat checklist
 
-Related documents:
+- [ ] Central trace is one modelled event-district collapse hour, not city-wide Manchester.
+- [ ] Deadline completion is a source-defined compute-task threshold, not physical completion.
+- [ ] Held-out finding is confirmed only within the signed project protocol.
+- [ ] n=5 and exact sign-test p=0.0625 are visible.
+- [ ] Tail and vehicle decomposition is labelled post-hoc.
+- [ ] RSU pressure is not CPU utilisation; the asymmetry's cause is undetermined.
+- [ ] Provenance is traceability, not truth or causality.
+- [ ] Failed predictions are shown with the same prominence as the held prediction.
+- [ ] Buses are transit vehicles; the VEC overlay is synthetic and non-admitted.
+- [ ] No supervisor approval, ethics approval, participant finding or external validation is
+  claimed.
+- [ ] Producer/environment/trace and SUMO citations are visible on result frames.
 
-- [Demo script](demo_script.md)
-- [Demo checklist](demo_checklist.md)
-- [v0.7 navigation and additive routes](v07_navigation.md)
-- [Screenshot checklist](assets/screenshots/README.md)
+## Recording notes
+
+- Capture at 1920×1080 with fixed zoom, theme and window size.
+- Record narration separately and leave short silences for the paired-seed and provenance motion.
+- Use one continuous take for shot 9 and no more than one deliberate interaction per other shot.
+- Hide terminal paths, browser profiles, notifications, raw identifiers and credentials.
+- If the video will be public beyond assessment, use only sanitised/static result artifacts and
+  the authorised public demonstration track.
+- Watch the export once at full speed and once muted. The first checks pace/audio; the second
+  checks whether the evidence hierarchy is visually understandable.
+
+## Required assets
+
+- `docs/dissertation_appendices/figures/capacity_latency_by_seed.svg`
+- `docs/dissertation_appendices/figures/capacity_deadline_success_by_seed.svg`
+- `docs/dissertation_appendices/figures/capacity_offload_invariance.svg`
+- `docs/evaluation/capacity_confirmatory_results_20260728.md`
+- `docs/evaluation/latency_tail_analysis_20260728.md`
+- `docs/evaluation/offload_partition_analysis_20260729.md`
+- `/campaigns`, `/rsu-monitor` and the provenance route in the local app
+- B-BUS aggregate/session visuals only; no raw payloads
