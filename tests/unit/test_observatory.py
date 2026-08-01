@@ -8,6 +8,7 @@ companions. The observatory recalculates nothing and upgrades nothing.
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -140,9 +141,25 @@ def test_every_card_binds_committed_sources_and_builds_deterministically(
     again = build_observatory_bundle(REPO_ROOT)
     assert bundle_to_json(again) == bundle_to_json(bundle)
     assert again.bundle_digest == bundle.bundle_digest
+    assert bundle.studies[0].admission_status == "admitted"
+    assert bundle.coherence_checks[0].state == "supported"
+    assert set(bundle.coherence_checks[0].required_metrics) == set(
+        bundle.coherence_checks[0].present_metrics
+    )
 
 
 def test_missing_sources_refuse(tmp_path: Path) -> None:
+    with pytest.raises(ObservatoryError) as excinfo:
+        build_observatory_bundle(tmp_path)
+    assert excinfo.value.code == "SOURCE_DIGEST_MISMATCH"
+
+
+def test_changed_source_bytes_refuse_instead_of_rendering_stale_numbers(tmp_path: Path) -> None:
+    source = REPO_ROOT / "docs/evaluation/capacity_confirmatory_results_20260728.md"
+    target = tmp_path / "docs/evaluation/capacity_confirmatory_results_20260728.md"
+    target.parent.mkdir(parents=True)
+    shutil.copyfile(source, target)
+    target.write_text(target.read_text(encoding="utf-8") + "\nchanged\n", encoding="utf-8")
     with pytest.raises(ObservatoryError) as excinfo:
         build_observatory_bundle(tmp_path)
     assert excinfo.value.code == "SOURCE_DIGEST_MISMATCH"

@@ -44,12 +44,8 @@ def test_synthetic_domains_are_deterministic_distinct_and_seventeen_wide() -> No
     np.testing.assert_array_equal(
         np.asarray(bus_first.observations), np.asarray(bus_second.observations)
     )
-    assert not np.array_equal(
-        np.asarray(bus_first.observations), np.asarray(traffic.observations)
-    )
-    assert float(np.mean(np.asarray(bus_first.dwell))) > float(
-        np.mean(np.asarray(traffic.dwell))
-    )
+    assert not np.array_equal(np.asarray(bus_first.observations), np.asarray(traffic.observations))
+    assert float(np.mean(np.asarray(bus_first.dwell))) > float(np.mean(np.asarray(traffic.dwell)))
 
 
 def test_tiny_smoke_writes_labeled_trace_matrix_and_checkpoints(tmp_path: Path) -> None:

@@ -191,9 +191,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--session", required=True)
     parser.add_argument("--remote-output", required=True)
     parser.add_argument("--local-root", type=Path, required=True)
-    parser.add_argument(
-        "--colab", type=Path, default=Path.home() / ".local/bin/colab"
-    )
+    parser.add_argument("--colab", type=Path, default=Path.home() / ".local/bin/colab")
     parser.add_argument("--poll-seconds", type=float, default=30.0)
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args(argv)

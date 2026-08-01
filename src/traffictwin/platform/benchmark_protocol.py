@@ -93,6 +93,97 @@ class CapacityRepresentation(ProtocolModel):
     represents: Literal["provisioned", "remaining", "both"]
     visibility_timing_rule: str
     added_dimensions: int = Field(ge=1)
+    training_min_value: float
+    training_max_value: float
+
+    @model_validator(mode="after")
+    def validate_training_scale(self) -> CapacityRepresentation:
+        if self.training_max_value <= self.training_min_value:
+            raise ValueError(
+                "CAPACITY_REPRESENTATION_UNFROZEN: training maximum must exceed training minimum"
+            )
+        return self
+
+    def digest(self) -> str:
+        material = json.dumps(self.model_dump(mode="json"), sort_keys=True)
+        return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+class CapacityFeature(ProtocolModel):
+    """Capacity values transformed only by the frozen training-design scale."""
+
+    representation_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    values: tuple[float, ...] = Field(min_length=1)
+    visible_before_action: Literal[True] = True
+
+
+class MatchedBudgetAccount(ProtocolModel):
+    """Structural budget equality; resource figures remain non-authoritative estimates."""
+
+    reference_interactions: int = Field(ge=1)
+    candidate_interactions: int = Field(ge=1)
+    wall_clock_ceiling_hours_estimate: float = Field(gt=0.0)
+    gpu_ceiling_hours_estimate: float = Field(gt=0.0)
+    estimate_only: Literal[True] = True
+    authority: Literal[False] = False
+
+
+def construct_capacity_feature(
+    representation: CapacityRepresentation,
+    *,
+    provisioned_values: tuple[float, ...],
+    remaining_values: tuple[float, ...] | None = None,
+) -> CapacityFeature:
+    """Build the capacity feature without consulting evaluation-arm statistics."""
+
+    if not provisioned_values:
+        raise BenchmarkProtocolError(
+            "CAPACITY_REPRESENTATION_UNFROZEN", "at least one provisioned value is required"
+        )
+    if representation.represents in {"remaining", "both"} and remaining_values is None:
+        raise BenchmarkProtocolError(
+            "CAPACITY_REPRESENTATION_UNFROZEN",
+            "the frozen representation requires remaining-capacity values",
+        )
+    if remaining_values is not None and len(remaining_values) != len(provisioned_values):
+        raise BenchmarkProtocolError(
+            "OBSERVATION_DIMENSION_MISMATCH",
+            "provisioned and remaining capacity vectors must have the same length",
+        )
+    raw_values = {
+        "provisioned": provisioned_values,
+        "remaining": remaining_values or (),
+        "both": provisioned_values + (remaining_values or ()),
+    }[representation.represents]
+    if len(raw_values) != representation.added_dimensions:
+        raise BenchmarkProtocolError(
+            "OBSERVATION_DIMENSION_MISMATCH",
+            f"frozen feature expects {representation.added_dimensions} values, got "
+            f"{len(raw_values)}",
+        )
+    low = representation.training_min_value
+    high = representation.training_max_value
+    if any(value < low or value > high for value in raw_values):
+        raise BenchmarkProtocolError(
+            "CAPACITY_REPRESENTATION_UNFROZEN",
+            "capacity lies outside the frozen training-design scale; evaluation values "
+            "are never used to rescale it",
+        )
+    return CapacityFeature(
+        representation_digest=representation.digest(),
+        values=tuple((value - low) / (high - low) for value in raw_values),
+    )
+
+
+def account_matched_budget(protocol: BenchmarkProtocol) -> MatchedBudgetAccount:
+    """Expose equality and bounded estimates without granting compute authority."""
+
+    return MatchedBudgetAccount(
+        reference_interactions=protocol.reference_actor.training_interaction_budget,
+        candidate_interactions=protocol.candidate_actor.training_interaction_budget,
+        wall_clock_ceiling_hours_estimate=protocol.wall_clock_ceiling_hours,
+        gpu_ceiling_hours_estimate=protocol.gpu_ceiling_hours,
+    )
 
 
 class SeedNamespaces(ProtocolModel):
@@ -291,10 +382,21 @@ def analyse_benchmark(
     results: tuple[PairedSyntheticResult, ...],
     *,
     deviations: tuple[str, ...],
-    synthetic: bool,
+    synthetic: Literal[True],
 ) -> BenchmarkAnalysis:
     """The frozen analysis: paired differences, verdict, deviations retained."""
 
+    if synthetic is not True:
+        raise BenchmarkProtocolError(
+            "COMPUTE_AUTHORITY_MISSING",
+            "this gate-1 analysis surface accepts synthetic fixtures only",
+        )
+    seeds = [item.seed for item in results]
+    if len(seeds) != len(set(seeds)) or not set(seeds).issubset(protocol.seeds.dry_run):
+        raise BenchmarkProtocolError(
+            "SEED_NAMESPACE_CONTAMINATED",
+            "synthetic results must use unique seeds from the declared dry-run namespace",
+        )
     if len(results) < protocol.minimum_successful_pairs:
         return BenchmarkAnalysis(
             protocol_digest=protocol.digest(),

@@ -1,7 +1,11 @@
 # Design — Controlled live-twin adapter (post-v1 L-1)
 
-**Status: PROPOSED optional post-v1 design; owner review pending, unimplemented and not approved for
-build. Maximum policy ceiling: `owner_approved_candidate`. "Live" means an owner-attended,
+**Status: IMPLEMENTED only for the authorised observe-only backend contract in Phase 153 and
+corrected in Phase 161. The delivered surface is the deterministic fake-process state machine,
+aggregate snapshots, process-local single-owner locking, heartbeat/budget shutdown and terminal
+engineering receipts. Mutation/control commands, live BODS ingestion, public or unattended
+execution, scientific campaigns and production use are absent. A real pinned SUMO smoke remains
+optional and unexecuted. Maximum policy ceiling: `owner_approved_candidate`. "Live" means an owner-attended,
 process-backed SUMO session with controlled state exchange. It does not mean a live city
 replica, production traffic control, continuous sensor synchronisation or authority to run
 an experiment.**
@@ -43,7 +47,7 @@ rate-limited `TwinSnapshot` records: simulation time, aggregate vehicle count, m
 queue indicators and session health where supported. No vehicle identifiers leave the
 adapter; the UI receives aggregates.
 
-### 3.2 Controlled intervention (separate opt-in)
+### 3.2 Controlled intervention (not implemented; separate future opt-in)
 
 Only after owner approval, accept a versioned allowlist such as pause/resume, simulation
 step and predeclared signal-program or demand-scenario selection. Each command carries a

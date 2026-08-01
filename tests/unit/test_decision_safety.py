@@ -165,11 +165,14 @@ def test_causal_wording_and_private_content_refuse() -> None:
 def test_the_confirmed_notice_is_digest_pinned() -> None:
     notice = confirmed_capacity_notice(REPO_ROOT)
     assert "8,310.9" in notice.text
-    assert "[-9,097.5, -7,524.3]" in notice.text
+    assert "[−9,097.5, −7,524.3]" in notice.text
     assert "p=0.0625" in notice.text
     assert "effectively flat" in notice.text
     assert "already-failed tasks" in notice.text
     assert "not a reason to degrade capacity" in notice.text
+    assert notice.recommendation is False
+    assert notice.evidence is False
+    assert notice.causal is False
     assert (REPO_ROOT / CONFIRMATORY_RECORD_PATH).is_file()
 
 

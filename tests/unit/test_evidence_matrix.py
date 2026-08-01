@@ -60,6 +60,16 @@ def test_missing_source_records_refuse(tmp_path: Path) -> None:
     assert excinfo.value.code == "SOURCE_RECORD_MISSING"
 
 
+def test_changed_source_bytes_refuse_instead_of_accepting_stale_rows(tmp_path: Path) -> None:
+    source = REPO_ROOT / "docs/evaluation/experiment_catalogue_20260730.md"
+    target = tmp_path / "docs/evaluation/experiment_catalogue_20260730.md"
+    target.parent.mkdir(parents=True)
+    target.write_bytes(source.read_bytes() + b"\nchanged\n")
+    with pytest.raises(EvidenceMatrixError) as excinfo:
+        build_evidence_matrix(tmp_path)
+    assert excinfo.value.code == "DIGEST_MISMATCH"
+
+
 def test_completion_is_not_admission_for_the_sparse64_rows(
     matrix: EvidenceMatrix,
 ) -> None:

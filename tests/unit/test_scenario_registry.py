@@ -23,6 +23,20 @@ from traffictwin.platform.scenario_registry import (
 )
 
 NOW = "2026-08-01T22:00:00+00:00"
+APPROVAL_ARTIFACT_DIGEST = "d" * 64
+ADMISSION_ARTIFACT_DIGEST = "e" * 64
+
+
+def _approval_validator(record: ScenarioRecord, payload: dict[str, str]) -> bool:
+    return (
+        payload.get("approval_artifact_digest") == APPROVAL_ARTIFACT_DIGEST
+        and payload.get("draft_design_digest") == record.draft_design_digest
+    )
+
+
+def _admission_validator(record: ScenarioRecord, payload: dict[str, str]) -> bool:
+    del record
+    return payload.get("admission_artifact_digest") == ADMISSION_ARTIFACT_DIGEST
 
 
 def _record() -> ScenarioRecord:
@@ -42,7 +56,11 @@ def _record() -> ScenarioRecord:
 
 
 def _registry(tmp_path: Path) -> tuple[ScenarioRunRegistry, ScenarioRecord, str]:
-    registry = ScenarioRunRegistry(tmp_path / "registry.jsonl")
+    registry = ScenarioRunRegistry(
+        tmp_path / "registry.jsonl",
+        approval_validator=_approval_validator,
+        admission_validator=_admission_validator,
+    )
     record = _record()
     receipt = registry.register_scenario(record)
     return registry, record, receipt.event_digest
@@ -71,6 +89,7 @@ def _approval(record: ScenarioRecord, prior: str) -> RegistryEvent:
         {
             "approved_by": "Abdulla (repository owner)",
             "draft_design_digest": record.draft_design_digest,
+            "approval_artifact_digest": APPROVAL_ARTIFACT_DIGEST,
         },
     )
 
@@ -110,7 +129,11 @@ def test_the_happy_path_keeps_every_standing_distinct(tmp_path: Path) -> None:
             record,
             "admission_recorded",
             r4.event_digest,
-            {"record_kind": "vec_fresh_admission_record", "status": "admitted"},
+            {
+                "record_kind": "vec_fresh_admission_record",
+                "status": "admitted",
+                "admission_artifact_digest": ADMISSION_ARTIFACT_DIGEST,
+            },
         )
     )
     timeline = registry.get_timeline(record.scenario_id)
@@ -227,7 +250,11 @@ def test_admission_is_copied_from_authoritative_records_only(tmp_path: Path) -> 
             record,
             "admission_recorded",
             executed.event_digest,
-            {"record_kind": "evidence_record", "status": "non_admitted"},
+            {
+                "record_kind": "evidence_record",
+                "status": "non_admitted",
+                "admission_artifact_digest": ADMISSION_ARTIFACT_DIGEST,
+            },
         )
     )
     timeline = registry.get_timeline(record.scenario_id)
@@ -241,6 +268,46 @@ def test_admission_is_copied_from_authoritative_records_only(tmp_path: Path) -> 
     assert promoted.value.code == "NON_ADMITTED_PROMOTION"
 
 
+def test_asserted_approval_or_admission_kind_is_not_proof(tmp_path: Path) -> None:
+    registry, record, genesis = _registry(tmp_path)
+    forged_approval = _approval(record, genesis).model_copy(
+        update={
+            "payload": {
+                "approved_by": "Abdulla (repository owner)",
+                "draft_design_digest": record.draft_design_digest,
+                "approval_artifact_digest": "f" * 64,
+            }
+        }
+    )
+    with pytest.raises(ScenarioRegistryError) as approval:
+        registry.append_event(forged_approval)
+    assert approval.value.code == "APPROVAL_DIGEST_MISMATCH"
+
+    approved = registry.append_event(_approval(record, genesis))
+    executed = registry.append_event(
+        _event(
+            record,
+            "execution_receipted",
+            approved.event_digest,
+            {"design_fingerprint": record.draft_design_digest},
+        )
+    )
+    with pytest.raises(ScenarioRegistryError) as admission:
+        registry.append_event(
+            _event(
+                record,
+                "admission_recorded",
+                executed.event_digest,
+                {
+                    "record_kind": "evidence_record",
+                    "status": "admitted",
+                    "admission_artifact_digest": "f" * 64,
+                },
+            )
+        )
+    assert admission.value.code == "ADMISSION_RECORD_UNAUTHORISED"
+
+
 def test_replay_rebuilds_identical_timelines_from_log_bytes(tmp_path: Path) -> None:
     registry, record, genesis = _registry(tmp_path)
     approved = registry.append_event(_approval(record, genesis))
@@ -252,7 +319,11 @@ def test_replay_rebuilds_identical_timelines_from_log_bytes(tmp_path: Path) -> N
             {"design_fingerprint": record.draft_design_digest},
         )
     )
-    reloaded = ScenarioRunRegistry(tmp_path / "registry.jsonl")
+    reloaded = ScenarioRunRegistry(
+        tmp_path / "registry.jsonl",
+        approval_validator=_approval_validator,
+        admission_validator=_admission_validator,
+    )
     original = registry.get_timeline(record.scenario_id)
     replayed = reloaded.get_timeline(record.scenario_id)
     assert replayed.head_digest == original.head_digest

@@ -1,9 +1,9 @@
 """Experiment evidence matrix (post-v1 E-1): provenance and coverage, typed.
 
 Implements ``docs/platform/experiment_evidence_matrix_design.md``: one typed
-row per executed or proposed comparison, derived ONLY from a code-registered
-extraction over committed records whose content digests are bound at build
-time — hand-entered rows are structurally impossible. The matrix answers
+row per executed or proposed comparison, derived through a reviewed
+code-registered adapter over committed records whose expected content digests
+and design fingerprints are verified at build time. The matrix answers
 "what has been run, on what, with which seeds, at what standing" and makes
 gaps visible; it is a coverage index, never a meta-analysis, never an
 admission authority, and it cannot change any row's standing.
@@ -136,6 +136,41 @@ _BASELINE = "baseline (audited checkpoint model_c_17 family)"
 _DEADLINE = "tos.task.deadline_success.rate"
 _CATALOGUE = "docs/evaluation/experiment_catalogue_20260730.md"
 _REGISTER = "docs/experiments_and_findings_20260728.md"
+
+EXPECTED_SOURCE_DIGESTS: dict[str, str] = {
+    "docs/evaluation/actor_crossover_results_20260730.md": (
+        "2802fa01102f73005b223dbc26536b4e7381c1677a4d612641a77396ebea1fbf"
+    ),
+    "docs/evaluation/baseline_invariance_results_20260728.md": (
+        "8c3d9ea0001c8e0d55c9209137610ff2d61131c2e89c93f36cf24639e09eae3f"
+    ),
+    "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md": (
+        "052b1e295675a68052f90b081195c836810c53133232640b0d1b0c2ec788dfb6"
+    ),
+    "docs/evaluation/bbus_sparse64_homecoming_results_20260730.md": (
+        "4bd46731ebf24f5ca3145aea767dcb99d066e4e2d234be7bcf0d50f59c013b3e"
+    ),
+    "docs/evaluation/capacity_confirmatory_results_20260728.md": (
+        "5659be5530dc0dce97123206e35359c6a1d7bf84e95a7ebaee54a4a69600ed76"
+    ),
+    "docs/evaluation/capacity_grid_results_20260728.md": (
+        "42aff2650ae295e95aea3dc7c29a2e49b3dfb216f8351d5c684044551e42c1c7"
+    ),
+    "docs/evaluation/capacity_pilot_results_20260727.md": (
+        "80da75aeb00523d67a6116421165afdac2b2894a003c2affa9fa5740f1e02366"
+    ),
+    "docs/evaluation/capacity_sweep_completion_results_20260728.md": (
+        "e3cad6ad4ee819901252d5b6341cac3413dbf27dea92af017cf9b121a952af73"
+    ),
+    "docs/evaluation/ceiling_law_prediction_results_20260729.md": (
+        "5f3349c64e9171331ac5de1c89ca9ec4b375c472904095be4d9dc06176885575"
+    ),
+    _CATALOGUE: "3e21aa4e47c36c7f42d7e9d3d14489f40165e8ee2f17a59c7404dc32b3e65434",
+    "docs/evaluation/onset_scaling_prediction_results_20260730.md": (
+        "53b2f931d4a8d51e21bda824ccb5b476c9f0feced6e7310bb921234555919188"
+    ),
+    _REGISTER: "0a0f4123cfe40e2397e2e22cd5facf7c7190e7a901356080d308d99ca0d9a3bc",
+}
 
 #: Every row the matrix carries, bound to the committed records it derives
 #: from. Adding a row means editing THIS table in a reviewed commit — there
@@ -419,6 +454,7 @@ def build_evidence_matrix(repo_root: Path) -> EvidenceMatrix:
             )
         seen_ids.add(registered.design_id)
         bindings: list[SourceBinding] = []
+        source_texts: list[str] = []
         for source_path in registered.source_paths:
             for marker in _PRIVATE_MARKERS:
                 if marker in source_path:
@@ -432,9 +468,33 @@ def build_evidence_matrix(repo_root: Path) -> EvidenceMatrix:
                     "SOURCE_RECORD_MISSING",
                     f"row '{registered.design_id}' derives from missing record '{source_path}'",
                 )
-            digest = hashlib.sha256(absolute.read_bytes()).hexdigest()
+            raw = absolute.read_bytes()
+            digest = hashlib.sha256(raw).hexdigest()
+            expected = EXPECTED_SOURCE_DIGESTS.get(source_path)
+            if expected is None or digest != expected:
+                raise EvidenceMatrixError(
+                    "DIGEST_MISMATCH",
+                    f"row '{registered.design_id}' source '{source_path}' no longer "
+                    "matches its reviewed digest",
+                )
             bindings.append(SourceBinding(path=source_path, sha256=digest))
+            source_texts.append(raw.decode("utf-8"))
             digest_material.append(f"{registered.design_id}:{source_path}:{digest}")
+        joined_sources = "\n".join(source_texts)
+        if (
+            registered.design_fingerprint != NOT_RECORDED
+            and registered.design_fingerprint[:8] not in joined_sources
+        ):
+            raise EvidenceMatrixError(
+                "DIGEST_MISMATCH",
+                f"row '{registered.design_id}' fingerprint prefix is not present in "
+                "its authoritative source records",
+            )
+        if registered.status == "non_admitted" and "non-admitted" not in joined_sources.lower():
+            raise EvidenceMatrixError(
+                "STATUS_TRANSITION_UNPROVEN",
+                f"row '{registered.design_id}' has no non-admission statement in its source",
+            )
         if (
             registered.citation_bundle is None
             and registered.status in ("admitted", "analysed")

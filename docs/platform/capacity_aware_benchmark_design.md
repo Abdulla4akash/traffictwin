@@ -1,7 +1,11 @@
 # Design — Capacity-aware and multi-algorithm benchmark (post-v1 B-1)
 
-**Status: PROPOSED research design; owner review pending, unsigned, unimplemented and not authorised
-for execution. Maximum policy ceiling: `owner_approved_candidate`. No experiment or compute
+**Status: IMPLEMENTED for gates 1–2 tooling only in Phase 154 and completed/reconciled in Phase
+161: schemas, compatibility checks, frozen training-design capacity features, seed namespaces,
+matched-budget estimates, synthetic-only frozen analysis and an unsigned predeclaration renderer.
+The research design remains PROPOSED/UNSIGNED and is not authorised for scientific execution.
+Actor/trace/endpoint/seed/hardware choices, sign-off, training, evaluation and admission remain
+owner-controlled later gates. Maximum policy ceiling: `owner_approved_candidate`. No experiment or compute
 campaign may start from this document. Actor families, budgets, seeds, endpoints and
 admission protocol require explicit owner decisions and a frozen predeclaration first.**
 

@@ -21,44 +21,43 @@ jobs:
 
       - name: Install
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
           python -m pip install uv
+          uv sync --locked --extra dev --extra vec-runner
 
       - name: Dependency lock consistency
         run: uv lock --check
 
       - name: Ruff format check
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Ruff lint
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: Mypy
-        run: mypy
+        run: uv run mypy
 
       - name: Tests
-        run: python -m pytest --cov=traffictwin --cov-report=term-missing
+        run: uv run python -m pytest --cov=traffictwin --cov-report=term-missing
 
       - name: Generated reference consistency
         run: |
-          python scripts/generate_reference_docs.py
+          uv run python scripts/generate_reference_docs.py
           git diff --exit-code -- docs/reference/generated
 
       - name: Standalone demo smoke
         run: |
-          traffictwin demo initialise .ci-demo
-          traffictwin synthetic verify .ci-demo
-          traffictwin provenance export .ci-demo/bundles/baseline --root-type metric --root-id task.completion.rate --format json --output .ci-demo/exports/ci_provenance.json
-          traffictwin report run .ci-demo/bundles/baseline --output .ci-demo/reports/ci_run.md
-          traffictwin report full .ci-demo/bundles/stressed_demand --comparison-baseline .ci-demo/bundles/baseline --output .ci-demo/reports/ci_full.html
-          traffictwin release stage-demo-site .ci-demo --output .ci-public
+          uv run traffictwin demo initialise .ci-demo
+          uv run traffictwin synthetic verify .ci-demo
+          uv run traffictwin provenance export .ci-demo/bundles/baseline --root-type metric --root-id task.completion.rate --format json --output .ci-demo/exports/ci_provenance.json
+          uv run traffictwin report run .ci-demo/bundles/baseline --output .ci-demo/reports/ci_run.md
+          uv run traffictwin report full .ci-demo/bundles/stressed_demand --comparison-baseline .ci-demo/bundles/baseline --output .ci-demo/reports/ci_full.html
+          uv run traffictwin release stage-demo-site .ci-demo --output .ci-public
 
       - name: Fixture immutability check
         run: git diff --exit-code -- tests/fixtures examples
 
       - name: Build package
-        run: python -m build
+        run: uv run python -m build
 
       - name: Build standalone Streamlit container
         if: matrix.python-version == '3.12'

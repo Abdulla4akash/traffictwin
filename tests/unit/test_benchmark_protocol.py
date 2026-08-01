@@ -19,7 +19,9 @@ from traffictwin.platform.benchmark_protocol import (
     ActorCompatibilityRecord,
     BenchmarkProtocol,
     BenchmarkProtocolError,
+    account_matched_budget,
     check_compatibility,
+    construct_capacity_feature,
     render_predeclaration_draft,
     request_execution,
     synthetic_dry_run,
@@ -57,6 +59,8 @@ def _protocol(**overrides: object) -> BenchmarkProtocol:
             "represents": "provisioned",
             "visibility_timing_rule": "capacity visible before each action, same tick",
             "added_dimensions": 2,
+            "training_min_value": 0.0,
+            "training_max_value": 2.5,
         },
         "single_intended_difference": (
             "one reviewed capacity feature added to the observation; everything else matched"
@@ -127,8 +131,33 @@ def test_capacity_representation_freezes_from_training_design_only() -> None:
                 "represents": "provisioned",
                 "visibility_timing_rule": "before each action",
                 "added_dimensions": 1,
+                "training_min_value": 0.0,
+                "training_max_value": 2.5,
             }
         )
+
+
+def test_capacity_feature_uses_only_the_frozen_training_scale() -> None:
+    protocol = _protocol()
+    feature = construct_capacity_feature(
+        protocol.capacity_representation,
+        provisioned_values=(2.5, 0.75),
+    )
+    assert feature.values == (1.0, 0.3)
+    assert feature.visible_before_action is True
+    with pytest.raises(BenchmarkProtocolError) as outside:
+        construct_capacity_feature(
+            protocol.capacity_representation,
+            provisioned_values=(2.5, 3.0),
+        )
+    assert outside.value.code == "CAPACITY_REPRESENTATION_UNFROZEN"
+
+
+def test_budget_accounting_is_matched_and_never_compute_authority() -> None:
+    account = account_matched_budget(_protocol())
+    assert account.reference_interactions == account.candidate_interactions
+    assert account.estimate_only is True
+    assert account.authority is False
 
 
 def test_seed_namespaces_must_be_disjoint_and_clean() -> None:

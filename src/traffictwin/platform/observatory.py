@@ -89,6 +89,21 @@ class SourceBinding(ObservatoryModel):
     sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
+class StudyCard(ObservatoryModel):
+    """One study boundary; execution and admission remain explicit fields."""
+
+    study_id: str
+    design_fingerprint: str
+    trace_family: str
+    actor_family: str
+    capacity_arms: tuple[str, ...]
+    seed_set: tuple[int, ...]
+    evidence_role: EvidenceRole
+    admission_status: Literal["admitted", "non_admitted"]
+    execution_deviations: tuple[str, ...] = ()
+    sources: tuple[SourceBinding, ...] = Field(min_length=1)
+
+
 class MechanismCard(ObservatoryModel):
     """One mechanism statistic with its role, support and limitations."""
 
@@ -151,6 +166,17 @@ class ConfirmedHeadlineCard(ObservatoryModel):
         return self
 
 
+class CoherenceCheck(ObservatoryModel):
+    """Presence check only; it never recomputes the companion metrics."""
+
+    check_id: str
+    state: SupportState
+    required_metrics: tuple[str, ...] = Field(min_length=1)
+    present_metrics: tuple[str, ...]
+    limitation: str
+    sources: tuple[SourceBinding, ...] = Field(min_length=1)
+
+
 class ObservatoryBundle(ObservatoryModel):
     schema_version: Literal["1.0"] = "1.0"
     method_version: Literal["mechanism-observatory-1.0"] = METHOD_VERSION
@@ -159,10 +185,12 @@ class ObservatoryBundle(ObservatoryModel):
     )
     research_status: Literal["owner_approved_candidate"] = "owner_approved_candidate"
     evidence: Literal[False] = False
+    studies: tuple[StudyCard, ...] = Field(min_length=1)
     headline: ConfirmedHeadlineCard
     mechanism_cards: tuple[MechanismCard, ...]
     policy_contracts: tuple[PolicyContractCard, ...]
     action_invariance: ActionInvarianceCard
+    coherence_checks: tuple[CoherenceCheck, ...] = Field(min_length=1)
     appendix_non_admitted: tuple[MechanismCard, ...]
     citation_reference: Literal["docs/producer_citation_requirements.md"] = CITATION_REFERENCE
     bundle_digest: str
@@ -176,9 +204,14 @@ def _bind(repo_root: Path, paths: tuple[str, ...]) -> tuple[SourceBinding, ...]:
             raise ObservatoryError(
                 "SOURCE_DIGEST_MISMATCH", f"committed record '{path}' is missing"
             )
-        bindings.append(
-            SourceBinding(path=path, sha256=hashlib.sha256(absolute.read_bytes()).hexdigest())
-        )
+        digest = hashlib.sha256(absolute.read_bytes()).hexdigest()
+        expected = EXPECTED_SOURCE_DIGESTS.get(path)
+        if expected is None or digest != expected:
+            raise ObservatoryError(
+                "SOURCE_DIGEST_MISMATCH",
+                f"committed record '{path}' no longer matches the reviewed source digest",
+            )
+        bindings.append(SourceBinding(path=path, sha256=digest))
     return tuple(bindings)
 
 
@@ -190,10 +223,39 @@ _CROSSOVER = "docs/evaluation/actor_crossover_results_20260730.md"
 _CEILING = "docs/evaluation/ceiling_law_prediction_results_20260729.md"
 _CATALOGUE = "docs/evaluation/experiment_catalogue_20260730.md"
 
+EXPECTED_SOURCE_DIGESTS: dict[str, str] = {
+    _CONFIRMATORY: "5659be5530dc0dce97123206e35359c6a1d7bf84e95a7ebaee54a4a69600ed76",
+    _TAIL: "e2ca014469ed853c52c0eccea1f74d2a07f0dc33e8f6898b70a4d6b5d471488e",
+    _DYNAMICS: "7f5b5fb6574fdcf2cfa05d8220bf0ea3792ea9c4b782186dbe3105f0ff571687",
+    _FINDINGS: "18dc5b64799235253d49880cd8c96fa645038bc24727512315d8eb461d77b54a",
+    _CROSSOVER: "2802fa01102f73005b223dbc26536b4e7381c1677a4d612641a77396ebea1fbf",
+    _CEILING: "5f3349c64e9171331ac5de1c89ca9ec4b375c472904095be4d9dc06176885575",
+    _CATALOGUE: "3e21aa4e47c36c7f42d7e9d3d14489f40165e8ee2f17a59c7404dc32b3e65434",
+    "docs/evaluation/rsu_association_analysis_20260729.md": (
+        "13e2de44ef8a1a67a6d29f63944aa84a6c0d3597f6c3be922f3d64ff28bd2b14"
+    ),
+    "docs/evaluation/bbus_sparse64_homecoming_results_20260730.md": (
+        "4bd46731ebf24f5ca3145aea767dcb99d066e4e2d234be7bcf0d50f59c013b3e"
+    ),
+}
+
 
 def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
     """Bind every card to its committed sources; refuse anything missing."""
 
+    studies = (
+        StudyCard(
+            study_id="vec-capacity-confirmatory",
+            design_fingerprint="f289db31ce28b636",
+            trace_family="inc",
+            actor_family="ukfleettrain_mappo",
+            capacity_arms=("cap-2.5", "cap-0.75"),
+            seed_set=(10, 11, 12, 13, 14),
+            evidence_role="protocol_confirmed",
+            admission_status="admitted",
+            sources=_bind(repo_root, (_CONFIRMATORY, _CATALOGUE)),
+        ),
+    )
     headline = ConfirmedHeadlineCard(
         mean_latency_delta_ms=-8310.9,
         bootstrap_low_ms=-9097.5,
@@ -335,6 +397,31 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
         evidence_role="post_hoc",
         sources=_bind(repo_root, (_FINDINGS, _CATALOGUE)),
     )
+    coherence_checks = (
+        CoherenceCheck(
+            check_id="confirmed-capacity-outcome-coherence",
+            state="supported",
+            required_metrics=(
+                "mean_latency",
+                "bootstrap_interval",
+                "deadline_attainment",
+                "action_change",
+                "failure_locus",
+            ),
+            present_metrics=(
+                "mean_latency",
+                "bootstrap_interval",
+                "deadline_attainment",
+                "action_change",
+                "failure_locus",
+            ),
+            limitation=(
+                "five paired held-out seeds bound exact-test resolution; conventional "
+                "significance is not claimed"
+            ),
+            sources=_bind(repo_root, (_CONFIRMATORY, _TAIL, _FINDINGS)),
+        ),
+    )
     appendix = (
         MechanismCard(
             card_id="sparse64-appendix",
@@ -357,19 +444,23 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
     )
     material = json.dumps(
         {
+            "studies": [card.model_dump(mode="json") for card in studies],
             "headline": headline.model_dump(mode="json"),
             "mechanisms": [card.model_dump(mode="json") for card in mechanism_cards],
             "contracts": [card.model_dump(mode="json") for card in policy_contracts],
             "invariance": action_invariance.model_dump(mode="json"),
+            "coherence": [check.model_dump(mode="json") for check in coherence_checks],
             "appendix": [card.model_dump(mode="json") for card in appendix],
         },
         sort_keys=True,
     )
     return ObservatoryBundle(
+        studies=studies,
         headline=headline,
         mechanism_cards=mechanism_cards,
         policy_contracts=policy_contracts,
         action_invariance=action_invariance,
+        coherence_checks=coherence_checks,
         appendix_non_admitted=appendix,
         bundle_digest=hashlib.sha256(material.encode("utf-8")).hexdigest(),
     )

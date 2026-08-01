@@ -2,10 +2,10 @@
 
 A deterministic fake control process throughout — no SUMO, no network, no
 acquisition. Tested: spec binding with required budgets and attended-only
-rule, approval-gated mutation scope, single-owner locking, state
-transitions with a receipt on every terminal path, allowlist and stale
-command refusal, heartbeat loss, budget stop, aggregate-only snapshot
-screening, the capacity-conflation refusal, and the scientific-use wall.
+rule, the hard observe-only boundary, single-owner locking, state
+transitions with a receipt on every terminal path, heartbeat loss, budget
+stop, aggregate-only snapshot screening, the capacity-conflation refusal,
+and the scientific-use wall.
 """
 
 from __future__ import annotations
@@ -19,7 +19,6 @@ from traffictwin.platform.live_twin import (
     LiveTwinController,
     LiveTwinError,
     LiveTwinSessionSpec,
-    TwinCommand,
     mark_scientific_use,
     sumo_argument_vector,
 )
@@ -88,37 +87,22 @@ def _controller(
     return LiveTwinController(spec, lambda: process, wall_clock=clock)
 
 
-def test_spec_binds_budgets_attendance_and_approval() -> None:
+def test_spec_binds_budgets_attendance_and_observe_only_scope() -> None:
     with pytest.raises(ValidationError, match="OWNER_PRESENCE_REQUIRED"):
         _spec(owner_attended=False)
     with pytest.raises(ValidationError):
         _spec(max_wall_clock_seconds=0)
-    with pytest.raises(ValidationError, match="no command allowlist"):
+    with pytest.raises(ValidationError, match="Extra inputs"):
         _spec(command_allowlist=("pause",))
-    with pytest.raises(ValidationError, match="APPROVAL_MISSING"):
+    with pytest.raises(ValidationError, match="observe_only"):
         _spec(mode="controlled_intervention", command_allowlist=("pause", "resume"))
-    with pytest.raises(ValidationError, match="never approval"):
-        _spec(
-            mode="controlled_intervention",
-            command_allowlist=("pause",),
-            mutation_approval={
-                "approved_by": "agent",
-                "approved_at_utc": "2026-08-01T22:00:00+00:00",
-                "scope_note": "x",
-            },
-        )
 
 
 def test_capacity_conflation_refuses_by_name() -> None:
-    with pytest.raises(ValidationError, match="different"):
+    with pytest.raises(ValidationError):
         _spec(
             mode="controlled_intervention",
             command_allowlist=("set_rsu_capacity",),
-            mutation_approval={
-                "approved_by": "Abdulla (owner)",
-                "approved_at_utc": "2026-08-01T22:00:00+00:00",
-                "scope_note": "probe",
-            },
         )
 
 
@@ -135,79 +119,23 @@ def test_observe_only_happy_path_emits_receipt() -> None:
     assert receipt.commands_applied == 0
     assert receipt.evidence is False
     assert receipt.scientific_use is False
+    assert receipt.production_ready is False
     assert receipt.engineering_label == "engineering demonstration only"
     assert process.terminated
 
 
 def test_single_owner_locking() -> None:
-    controller = _controller(_spec(), FakeProcess(), Clock())
-    controller.start()
+    first = _controller(_spec(), FakeProcess(), Clock())
+    second = _controller(_spec(), FakeProcess(), Clock())
+    first.start()
     with pytest.raises(LiveTwinError) as excinfo:
-        controller.start()
+        second.start()
     assert excinfo.value.code == "SESSION_ALREADY_OWNED"
+    first.stop("lock test complete")
 
 
 def test_observe_only_accepts_no_command_at_all() -> None:
-    controller = _controller(_spec(), FakeProcess(), Clock())
-    controller.start()
-    with pytest.raises(LiveTwinError) as excinfo:
-        controller.apply_command(
-            TwinCommand(name="pause", scenario_digest="b" * 64, expected_sequence=1)
-        )
-    assert excinfo.value.code == "COMMAND_NOT_ALLOWLISTED"
-
-
-def _intervention_spec() -> LiveTwinSessionSpec:
-    return _spec(
-        mode="controlled_intervention",
-        command_allowlist=("pause", "resume", "select_demand_scenario"),
-        mutation_approval={
-            "approved_by": "Abdulla (repository owner)",
-            "approved_at_utc": "2026-08-01T22:00:00+00:00",
-            "scope_note": "pause/resume and predeclared scenario selection only",
-        },
-    )
-
-
-def test_intervention_commands_enforce_allowlist_digest_and_sequence() -> None:
-    controller = _controller(_intervention_spec(), FakeProcess(), Clock())
-    controller.start()
-    with pytest.raises(LiveTwinError) as unlisted:
-        controller.apply_command(
-            TwinCommand(name="teleport", scenario_digest="b" * 64, expected_sequence=1)
-        )
-    assert unlisted.value.code == "COMMAND_NOT_ALLOWLISTED"
-    with pytest.raises(LiveTwinError) as drifted:
-        controller.apply_command(
-            TwinCommand(name="pause", scenario_digest="0" * 64, expected_sequence=1)
-        )
-    assert drifted.value.code == "DIGEST_MISMATCH"
-    first = controller.apply_command(
-        TwinCommand(name="pause", scenario_digest="b" * 64, expected_sequence=1)
-    )
-    assert first.sequence == 1
-    with pytest.raises(LiveTwinError) as stale:
-        controller.apply_command(
-            TwinCommand(name="resume", scenario_digest="b" * 64, expected_sequence=1)
-        )
-    assert stale.value.code == "STATE_SEQUENCE_MISMATCH"
-
-
-def test_treatment_changes_record_deviations_and_invalidate_experiment_use() -> None:
-    controller = _controller(_intervention_spec(), FakeProcess(), Clock())
-    controller.start()
-    receipt = controller.apply_command(
-        TwinCommand(
-            name="select_demand_scenario",
-            scenario_digest="b" * 64,
-            expected_sequence=1,
-            changes_treatment=True,
-        )
-    )
-    assert receipt.deviation_recorded
-    final = controller.stop("done")
-    assert final.experiment_use_invalidated
-    assert any("invalidated" in deviation for deviation in final.deviations)
+    assert not hasattr(LiveTwinController, "apply_command")
 
 
 def test_heartbeat_loss_fails_safe_with_a_receipt() -> None:

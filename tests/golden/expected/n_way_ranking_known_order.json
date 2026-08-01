@@ -21,10 +21,10 @@
     3,
     4
   ],
-  "config_fingerprint": "a6f2cb1b1ee37bca6bcdc2e47619aff23437ebc2d84ed9858233bdb9026b6a27",
+  "config_fingerprint": "3597b869f0f10663dc68f91582da10b8b24b5cc6714ab080355ba0f57c0dd110",
   "exclusion_count": 0,
   "family_status": "available",
-  "fingerprint": "c4971a1dc7975e89ec2c558188e14910a85b29c6157b1f8836573c871b753558",
+  "fingerprint": "0ae0a58f3e3e2d4c15a1531e3fdee93a3ce4f56928588a15960d4bfe20ff598d",
   "missing_expected_random_seeds": [],
   "policy_ranks": [
     {
@@ -92,11 +92,11 @@
     "admitted_complete_collection_count": 12,
     "available_family_count": 1,
     "input_collection_count": 12,
-    "method_contract_fingerprint": "1e0b28449169ea535bfd354f672614ed7799d86eccac6d18ee5d4fecbd2ae097",
+    "method_contract_fingerprint": "2217b9460b6bdca11105912018ebccd5eaaf34155585d0b8e10e83e31bec8014",
     "source_collection_sequence_fingerprint": "b2c25b306550b02872c254f64c7731fbd96b4701da99d793444b697f7c2ea85c"
   },
   "status": "available",
-  "study_id": "nway-e52addd135112548",
+  "study_id": "nway-b21185575a1d9282",
   "warnings": [
     "The rankings use labelled synthetic policy profiles and are not external validation.",
     "Winner-map results use synthetic policy profiles and do not compare trained algorithms."

@@ -76,7 +76,7 @@ def checkpointed_train_text(source: str, *, verify_upstream: bool = True) -> str
         label="serialization import",
     )
 
-    old_state_block = '''    # --- init envs ---
+    old_state_block = """    # --- init envs ---
     key, rk = jax.random.split(key)
     reset_keys = jax.random.split(rk, num_envs)
     obs, env_state = reset_batch(reset_keys)
@@ -126,8 +126,8 @@ def checkpointed_train_text(source: str, *, verify_upstream: bool = True) -> str
     _global_step = 0
 
     for upd in range(updates_per_total):
-'''
-    new_state_block = '''    # --- init envs ---
+"""
+    new_state_block = """    # --- init envs ---
     key, rk = jax.random.split(key)
     reset_keys = jax.random.split(rk, num_envs)
     obs, env_state = reset_batch(reset_keys)
@@ -397,7 +397,7 @@ def checkpointed_train_text(source: str, *, verify_upstream: bool = True) -> str
     t_start = time.perf_counter()
 
     for upd in range(start_update, updates_per_total):
-'''
+"""
     transformed = _replace_once(
         transformed,
         old_state_block,
@@ -431,7 +431,7 @@ def checkpointed_train_text(source: str, *, verify_upstream: bool = True) -> str
         "        if args.stop_after_update is not None and next_update >= args.stop_after_update:\n"
         "            f.close()\n"
         "            print(\n"
-        "                f\"[stop] execution test stopped after update {next_update}\",\n"
+        '                f"[stop] execution test stopped after update {next_update}",\n'
         "                flush=True,\n"
         "            )\n"
         "            return\n"

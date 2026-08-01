@@ -101,6 +101,54 @@ def test_apply_is_exactly_once_with_idempotent_replay(tmp_path: Path) -> None:
     assert first.evidence is False
 
 
+def test_restart_replays_materialisation_and_logical_digest_state(tmp_path: Path) -> None:
+    checkpoint = tmp_path / "checkpoint.jsonl"
+    item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night"))
+    first = IncrementalAnalyticsMonitor(checkpoint)
+    receipt = first.apply_increment(item)  # type: ignore[arg-type]
+
+    replayed = IncrementalAnalyticsMonitor(checkpoint)
+    assert replayed.materialisation_digests() == first.materialisation_digests()
+    assert replayed.materialisation("2026-08-03/night") is not None
+    assert (
+        replayed.apply_increment(item).model_copy(  # type: ignore[arg-type]
+            update={"idempotent_replay": False}
+        )
+        == receipt
+    )
+
+    changed = _load_one(
+        tmp_path / "changed",
+        "a.json",
+        _payload("2026-08-03", "night", live={5: [41, 43, 45]}),
+    )
+    with pytest.raises(AnalyticsMonitorError) as excinfo:
+        replayed.apply_increment(changed)  # type: ignore[arg-type]
+    assert excinfo.value.code == "DUPLICATE_LOGICAL_SOURCE"
+
+
+def test_corrupt_or_legacy_commit_cannot_silently_replay(tmp_path: Path) -> None:
+    checkpoint = tmp_path / "checkpoint.jsonl"
+    checkpoint.write_text(
+        json.dumps(
+            {
+                "_kind": "commit",
+                "work_key": "0" * 64,
+                "logical_id": "2026-08-03/night",
+                "materialisation_digest": "1" * 64,
+                "analytics_version": "incremental-analytics-1.0",
+                "evidence": False,
+                "idempotent_replay": False,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(AnalyticsMonitorError) as excinfo:
+        IncrementalAnalyticsMonitor(checkpoint)
+    assert excinfo.value.code == "CHECKPOINT_CONFLICT"
+
+
 def test_crash_before_commit_stays_retryable(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

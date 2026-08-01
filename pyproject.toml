@@ -109,5 +109,10 @@ module = [
 ignore_missing_imports = true
 follow_imports = "skip"
 
+[[tool.mypy.overrides]]
+module = ["gpu.*"]
+ignore_errors = true
+follow_imports = "skip"
+
 [tool.coverage.run]
 source = ["traffictwin"]

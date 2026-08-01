@@ -26,6 +26,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Literal
 
@@ -78,6 +81,7 @@ _AUTHORITATIVE_ADMISSION_KINDS = (
 )
 
 _PRIVATE_MARKERS = ("/Users/", "/home/", "\\Users\\", "BODS_API_KEY", "ANTHROPIC_API_KEY")
+_DIGEST_PATTERN = re.compile(r"^[0-9a-f]{64}$")
 
 
 class ScenarioRegistryError(RuntimeError):
@@ -170,8 +174,16 @@ class ScenarioTimeline(RegistryModel):
 class ScenarioRunRegistry:
     """Append-only registry over one explicit local event-log file."""
 
-    def __init__(self, log_path: Path) -> None:
+    def __init__(
+        self,
+        log_path: Path,
+        *,
+        approval_validator: Callable[[ScenarioRecord, dict[str, str]], bool] | None = None,
+        admission_validator: Callable[[ScenarioRecord, dict[str, str]], bool] | None = None,
+    ) -> None:
         self._log_path = log_path
+        self._approval_validator = approval_validator
+        self._admission_validator = admission_validator
         self._scenarios: dict[str, ScenarioRecord] = {}
         self._events: dict[str, list[RegistryEvent]] = {}
         self._digests: dict[str, list[str]] = {}
@@ -181,26 +193,65 @@ class ScenarioRunRegistry:
     # -- persistence ---------------------------------------------------------
 
     def _replay(self, raw: str) -> None:
-        for line in raw.splitlines():
+        for line_number, line in enumerate(raw.splitlines(), start=1):
             if not line.strip():
                 continue
-            entry = json.loads(line)
-            kind = entry.pop("_kind")
+            try:
+                entry = json.loads(line)
+                kind = entry.pop("_kind")
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                raise ScenarioRegistryError(
+                    "PRIOR_EVENT_MISMATCH",
+                    f"registry line {line_number} is incomplete or invalid",
+                ) from exc
             if kind == "scenario":
                 record = ScenarioRecord.model_validate_json(json.dumps(entry))
+                if record.scenario_id in self._scenarios:
+                    raise ScenarioRegistryError(
+                        "SCENARIO_DIGEST_CONFLICT",
+                        f"registry line {line_number} repeats scenario '{record.scenario_id}'",
+                    )
                 self._scenarios[record.scenario_id] = record
                 self._events.setdefault(record.scenario_id, [])
                 self._digests.setdefault(record.scenario_id, [_scenario_genesis_digest(record)])
-            else:
+            elif kind == "event":
                 event = RegistryEvent.model_validate_json(json.dumps(entry))
+                event_record = self._scenarios.get(event.scenario_id)
+                if event_record is None:
+                    raise ScenarioRegistryError(
+                        "SCENARIO_DIGEST_CONFLICT",
+                        f"registry line {line_number} references an unknown scenario",
+                    )
+                events = self._events[event.scenario_id]
+                chain = self._digests[event.scenario_id]
+                if event.prior_digest != chain[-1]:
+                    raise ScenarioRegistryError(
+                        "PRIOR_EVENT_MISMATCH",
+                        f"registry line {line_number} breaks the prior-event digest chain",
+                    )
+                head_type: EventType = events[-1].event_type if events else "scenario_drafted"
+                if event.event_type not in _VALID_TRANSITIONS[head_type]:
+                    raise ScenarioRegistryError(
+                        "INVALID_TRANSITION",
+                        f"registry line {line_number} has invalid transition "
+                        f"'{head_type}' -> '{event.event_type}'",
+                    )
+                self._validate_event_proof(event_record, events, event)
                 self._events[event.scenario_id].append(event)
                 self._digests[event.scenario_id].append(event.digest())
+            else:
+                raise ScenarioRegistryError(
+                    "INVALID_TRANSITION",
+                    f"registry line {line_number} has unknown record kind '{kind}'",
+                )
 
     def _append_line(self, kind: str, payload: dict[str, object]) -> None:
         line = json.dumps({"_kind": kind, **payload}, sort_keys=True)
         self._log_path.parent.mkdir(parents=True, exist_ok=True)
         with self._log_path.open("a", encoding="utf-8") as handle:
             handle.write(line + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
 
     # -- API -----------------------------------------------------------------
 
@@ -222,10 +273,10 @@ class ScenarioRunRegistry:
                 f"scenario '{record.scenario_id}' exists with different content; a "
                 "changed draft is a new revision, never an edit",
             )
+        self._append_line("scenario", record.model_dump(mode="json"))
         self._scenarios[record.scenario_id] = record
         self._events[record.scenario_id] = []
         self._digests[record.scenario_id] = [_scenario_genesis_digest(record)]
-        self._append_line("scenario", record.model_dump(mode="json"))
         return EventReceipt(
             scenario_id=record.scenario_id,
             event_type="scenario_drafted",
@@ -264,9 +315,9 @@ class ScenarioRunRegistry:
                 f"'{event.event_type}' may not follow '{head_type}'",
             )
         self._validate_event_proof(record, events, event)
+        self._append_line("event", event.model_dump(mode="json"))
         events.append(event)
         chain.append(event.digest())
-        self._append_line("event", event.model_dump(mode="json"))
         return EventReceipt(
             scenario_id=event.scenario_id,
             event_type=event.event_type,
@@ -296,6 +347,18 @@ class ScenarioRunRegistry:
                     "the approval binds a different draft digest; a changed draft "
                     "needs a new scenario revision (REVISION_REQUIRED)",
                 )
+            artifact_digest = payload.get("approval_artifact_digest", "")
+            if not _DIGEST_PATTERN.fullmatch(artifact_digest):
+                raise ScenarioRegistryError(
+                    "APPROVAL_DIGEST_MISMATCH",
+                    "approval must bind a SHA-256 digest for an existing external artifact",
+                )
+            if self._approval_validator is None or not self._approval_validator(record, payload):
+                raise ScenarioRegistryError(
+                    "APPROVAL_DIGEST_MISMATCH",
+                    "the configured policy validator did not accept the external approval "
+                    "artifact; the registry cannot create or infer approval",
+                )
         if event.event_type == "execution_receipted":
             if not any(item.event_type == "approval_bound" for item in events):
                 raise ScenarioRegistryError(
@@ -308,15 +371,30 @@ class ScenarioRunRegistry:
                     "DESIGN_FINGERPRINT_MISMATCH",
                     "the executed design fingerprint differs from the approved draft",
                 )
-        if (
-            event.event_type == "admission_recorded"
-            and payload.get("record_kind") not in _AUTHORITATIVE_ADMISSION_KINDS
-        ):
-            raise ScenarioRegistryError(
-                "ADMISSION_RECORD_UNAUTHORISED",
-                "admission standing is copied from the authoritative admission "
-                f"chain only ({', '.join(_AUTHORITATIVE_ADMISSION_KINDS)})",
-            )
+        if event.event_type == "admission_recorded":
+            if payload.get("record_kind") not in _AUTHORITATIVE_ADMISSION_KINDS:
+                raise ScenarioRegistryError(
+                    "ADMISSION_RECORD_UNAUTHORISED",
+                    "admission standing is copied from the authoritative admission "
+                    f"chain only ({', '.join(_AUTHORITATIVE_ADMISSION_KINDS)})",
+                )
+            artifact_digest = payload.get("admission_artifact_digest", "")
+            if not _DIGEST_PATTERN.fullmatch(artifact_digest):
+                raise ScenarioRegistryError(
+                    "ADMISSION_RECORD_UNAUTHORISED",
+                    "admission must bind a SHA-256 digest for an existing authoritative record",
+                )
+            if payload.get("status") not in {"admitted", "non_admitted", "refused"}:
+                raise ScenarioRegistryError(
+                    "ADMISSION_RECORD_UNAUTHORISED",
+                    "the authoritative admission status is missing or unsupported",
+                )
+            if self._admission_validator is None or not self._admission_validator(record, payload):
+                raise ScenarioRegistryError(
+                    "ADMISSION_RECORD_UNAUTHORISED",
+                    "the configured admission validator did not accept the external record; "
+                    "the registry cannot create or promote standing",
+                )
         if event.event_type == "scenario_closed":
             author = payload.get("closed_by", "").lower()
             if not author or any(marker in author for marker in _FORBIDDEN_IDENTITY_MARKERS):

@@ -4347,3 +4347,34 @@ not just paths, immediately before any no-pathspec commit in this shared worktre
 
 The historical `../XITS/` notes are preserved as research material. They are not active
 implementation blockers for the approved TrafficTwin design.
+
+### Phase 161 claim: post-v1 merge-safety repair and main integration (1 August 2026)
+
+The integrating lead owns the bounded repair of defects found while reviewing Phases 147–154
+before the owner-requested fast-forward to `main`. The phase may correct post-v1 replay and
+provenance validation, restore the authorised observe-only live-twin boundary, reconcile the
+eight design documents and phase records with implementation truth, repair branch-owned full-gate
+failures, and make CI use the committed dependency lock. It does not authorise live acquisition,
+mutation/control, experiment execution, cloud/GPU work, evidence promotion, approval creation,
+admission decisions, or changes to scientific findings.
+
+Exclusive repair paths: `.github/workflows/ci.yml`, `pyproject.toml`, `uv.lock`, the nine
+`src/traffictwin/platform/{historical_store,historical_store_sqlite,analytics_monitor,evidence_matrix,scenario_registry,observatory,decision_safety,live_twin,benchmark_protocol}.py`
+modules, their focused `tests/unit/test_*.py` suites, the eight post-v1 platform design documents,
+`tests/golden/expected/n_way_ranking_known_order.json`, the permission-safe Manchester evidence
+export implementation/tests and the unsafe aggregate evidence record it identifies, `CHANGELOG.md`,
+the twelve Ruff-identified GPU helper/notebook paths introduced on this feature branch, and this
+phase record. GPU changes are formatting/security-lint-only; no campaign or scientific logic is
+authorised. Other writers' files and all external/private data remain read-only.
+
+Phase 161 verification completed locally on 1 August 2026. The repaired post-v1 focused suites
+passed with 113 tests; repository Ruff lint and format checks passed; strict mypy passed for 859
+source files; `uv lock --check`, JSON/privacy validation, generated-reference drift checks, the
+standalone-demo verification/provenance/report/release path, isolated package builds, and fixture
+drift checks passed. The full locked-environment suite passed with 3,944 tests and two expected
+environment-gated skips. No live acquisition, participant activity, mutation/control, cloud/GPU
+campaign, scientific execution, approval creation, admission decision, or evidence promotion was
+performed. Incremental analytics remains scheduled local micro-batch scaffolding pending owner
+choices for cadence, thresholds, notifications, and retention; the live-twin surface remains
+observe-only; benchmark research remains PROPOSED/UNSIGNED. The maximum policy ceiling remains
+`owner_approved_candidate`.

@@ -1,6 +1,11 @@
 # Design — Incremental analytics and data-quality monitor (post-v1 A-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
+**Status: PARTIALLY IMPLEMENTED in Phase 152 and corrected in Phase 161. The aggregate-only
+prototype path now has digest/version work keys, durable replay of receipts and materialisations,
+idempotent retry, crash-before-commit recovery, deterministic concurrency/progression summaries,
+local-service-date readiness and explicit missingness. Cadence freshness, cross-source overlap,
+schema-distribution alerts, retention, notifications and scheduling remain unimplemented pending
+their owner decisions; this is not accepted as a continuous or production monitor.
 Maximum policy ceiling: `owner_approved_candidate`. This is aggregate micro-batch
 analytics, not a claim of continuous streaming, real-time control or production
 monitoring.**

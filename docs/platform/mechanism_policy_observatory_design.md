@@ -1,6 +1,10 @@
 # Design — Mechanism and policy observatory (post-v1 O-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
+**Status: IMPLEMENTED as a read-only backend bundle in Phase 150 and source-pinned in Phase 161.
+Delivered contracts include `StudyCard`, `MechanismCard`, `PolicyContractCard`, action-invariance,
+`CoherenceCheck`, complete source bindings and deterministic templates. Reviewed source digests
+must match before fixed scientific values render. No UI or scientific recalculation is included;
+public studies, fixed display order and any non-admitted appendix remain owner decisions.
 Maximum policy ceiling: `owner_approved_candidate`. The observatory is read-only and
 evidence-bound. It does not diagnose causality, recommend a policy, execute an experiment,
 or upgrade any result's standing.**

@@ -3,17 +3,17 @@
   "artifacts": {
     "demand": {
       "bytes": 1283154973,
-      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/demand.rou.xml"
+      "path": "private-workspace/data/demand-diagnosis-20260728/demand.rou.xml"
     },
     "pool": {
       "bytes": 88163681,
-      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.rou.xml",
+      "path": "private-workspace/data/demand-diagnosis-20260728/pool.rou.xml",
       "sha256": "ca040353334afdc972d824b877af54123a703e8866dee48561799ebcc222828c"
     },
-    "storage_note": "private workspace only; never committed",
+    "storage_note": "logical private-workspace-relative labels only; files never committed",
     "trips": {
       "bytes": 3932145,
-      "path": "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml"
+      "path": "private-workspace/data/demand-diagnosis-20260728/pool.trips.xml"
     }
   },
   "capability_id": "MAN-09",
@@ -174,11 +174,11 @@
       "note": "trip generation and routing are separate invocations: the 25-July combined call was interrupted and left a truncated pool",
       "pool_argv": [
         "-n",
-        "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+        "private-workspace/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
         "-r",
-        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml",
+        "private-workspace/data/demand-diagnosis-20260728/pool.trips.xml",
         "-o",
-        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.rou.xml",
+        "private-workspace/data/demand-diagnosis-20260728/pool.rou.xml",
         "--seed",
         "42",
         "--ignore-errors",
@@ -191,11 +191,11 @@
       "recorded_trips_20260725": 43200,
       "seed": "42",
       "trips_argv": [
-        "/Library/Frameworks/EclipseSUMO.framework/Versions/Current/EclipseSUMO/share/sumo/tools/randomTrips.py",
+        "sumo-tools/randomTrips.py",
         "-n",
-        "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+        "private-workspace/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
         "-o",
-        "/Users/akashx/AntigravityTest/diss-integration/data/demand-diagnosis-20260728/pool.trips.xml",
+        "private-workspace/data/demand-diagnosis-20260728/pool.trips.xml",
         "-b",
         "0",
         "-e",
@@ -220,7 +220,7 @@
     "study_network": {
       "canonical_sha256": "005604353501d5b95dde58b64892bd4cc61f801e8de10d67c2cdc768bd6e0813",
       "network_id": "gm-study-manchester-la-20260728",
-      "path": "/Users/akashx/AntigravityTest/diss-integration/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
+      "path": "private-workspace/data/network-build/gm-study-manchester-la-20260728/gm-study-manchester-la-20260728.net.xml",
       "raw_sha256": "0cad330885844857831644bd6642cec0e4e330d05aa5060b608796c33a91e551",
       "real_edges": 285794
     }

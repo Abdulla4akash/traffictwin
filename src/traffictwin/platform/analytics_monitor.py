@@ -31,11 +31,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import statistics
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from traffictwin.platform.bus_prediction import (
     BuildRules,
@@ -104,6 +105,8 @@ class MaterialisationSnapshot(MonitorModel):
 class IncrementalAnalyticsReceipt(MonitorModel):
     work_key: str
     logical_id: str
+    source_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    source_schema_version: str
     materialisation_digest: str
     analytics_version: Literal["incremental-analytics-1.0"] = ANALYTICS_VERSION
     evidence: Literal[False] = False
@@ -162,22 +165,79 @@ class IncrementalAnalyticsMonitor:
             self._replay(checkpoint_path.read_text(encoding="utf-8"))
 
     def _replay(self, raw: str) -> None:
-        for line in raw.splitlines():
+        for line_number, line in enumerate(raw.splitlines(), start=1):
             if not line.strip():
                 continue
-            entry = json.loads(line)
-            kind = entry.pop("_kind")
+            try:
+                entry = json.loads(line)
+                kind = entry.pop("_kind")
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                raise AnalyticsMonitorError(
+                    "CHECKPOINT_CONFLICT",
+                    f"checkpoint line {line_number} is incomplete or invalid",
+                ) from exc
             if kind == "reserve":
-                self._reserved.add(entry["work_key"])
+                work_key = entry.get("work_key")
+                if not isinstance(work_key, str):
+                    raise AnalyticsMonitorError(
+                        "CHECKPOINT_CONFLICT",
+                        f"checkpoint reservation at line {line_number} has no work key",
+                    )
+                self._reserved.add(work_key)
             elif kind == "commit":
-                receipt = IncrementalAnalyticsReceipt.model_validate_json(json.dumps(entry))
+                try:
+                    receipt = IncrementalAnalyticsReceipt.model_validate_json(
+                        json.dumps(entry["receipt"])
+                    )
+                    snapshot = MaterialisationSnapshot.model_validate_json(
+                        json.dumps(entry["materialisation"])
+                    )
+                except (KeyError, ValidationError) as exc:
+                    raise AnalyticsMonitorError(
+                        "CHECKPOINT_CONFLICT",
+                        "a committed checkpoint lacks the source and materialisation state "
+                        "needed for deterministic replay",
+                    ) from exc
+                expected_work_key = hashlib.sha256(
+                    (
+                        f"{receipt.source_sha256}:{receipt.source_schema_version}:"
+                        f"{receipt.analytics_version}"
+                    ).encode()
+                ).hexdigest()
+                if expected_work_key != receipt.work_key:
+                    raise AnalyticsMonitorError(
+                        "CHECKPOINT_CONFLICT",
+                        f"commit at line {line_number} has an invalid work key",
+                    )
+                if snapshot.logical_id != receipt.logical_id or snapshot.digest() != (
+                    receipt.materialisation_digest
+                ):
+                    raise AnalyticsMonitorError(
+                        "CHECKPOINT_CONFLICT",
+                        f"commit at line {line_number} does not bind its materialisation",
+                    )
+                known = self._logical_digests.get(receipt.logical_id)
+                if known is not None and known != receipt.source_sha256:
+                    raise AnalyticsMonitorError(
+                        "DUPLICATE_LOGICAL_SOURCE",
+                        f"checkpoint contains conflicting bytes for '{receipt.logical_id}'",
+                    )
                 self._committed[receipt.work_key] = receipt
+                self._logical_digests[receipt.logical_id] = receipt.source_sha256
+                self._materialisations[receipt.logical_id] = snapshot
                 self._reserved.discard(receipt.work_key)
+            else:
+                raise AnalyticsMonitorError(
+                    "CHECKPOINT_CONFLICT",
+                    f"checkpoint line {line_number} has unknown kind '{kind}'",
+                )
 
     def _append(self, kind: str, payload: dict[str, object]) -> None:
         self._checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
         with self._checkpoint_path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps({"_kind": kind, **payload}, sort_keys=True) + "\n")
+            handle.flush()
+            os.fsync(handle.fileno())
 
     def retryable_reservations(self) -> tuple[str, ...]:
         """Reserved-but-uncommitted keys — a crash left these retryable."""
@@ -196,19 +256,27 @@ class IncrementalAnalyticsMonitor:
                 f"logical id '{work.logical_id}' was processed with different bytes; "
                 "changed sources refuse rather than silently supersede",
             )
-        self._reserved.add(work.work_key)
         self._append("reserve", {"work_key": work.work_key})
+        self._reserved.add(work.work_key)
         snapshot = materialise(item)
         receipt = IncrementalAnalyticsReceipt(
             work_key=work.work_key,
             logical_id=work.logical_id,
+            source_sha256=work.source_sha256,
+            source_schema_version=work.schema_version,
             materialisation_digest=snapshot.digest(),
+        )
+        self._append(
+            "commit",
+            {
+                "receipt": receipt.model_dump(mode="json"),
+                "materialisation": snapshot.model_dump(mode="json"),
+            },
         )
         self._materialisations[work.logical_id] = snapshot
         self._logical_digests[work.logical_id] = work.source_sha256
         self._committed[work.work_key] = receipt
         self._reserved.discard(work.work_key)
-        self._append("commit", receipt.model_dump(mode="json"))
         return receipt
 
     def materialisation(self, logical_id: str) -> MaterialisationSnapshot | None:

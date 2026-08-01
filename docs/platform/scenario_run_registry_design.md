@@ -1,6 +1,10 @@
 # Design — Scenario and run registry (post-v1 R-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
+**Status: IMPLEMENTED as a local append-only backend in Phase 149 and hardened in Phase 161.
+Approval and admission events now require external caller-supplied policy validators plus exact
+artifact digests; the registry cannot create those artifacts or accept an asserted record kind as
+proof. Deterministic replay revalidates the digest chain and transition proofs. Retention,
+authoritative-validator selection and local-only deployment remain owner decisions.
 Maximum policy ceiling: `owner_approved_candidate`. The registry records lifecycle and
 provenance; it does not approve, schedule, launch, admit or scientifically interpret a
 run.**

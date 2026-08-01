@@ -1,6 +1,10 @@
 # Design — Decision-safety layer (post-v1 D-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
+**Status: IMPLEMENTED as a deterministic backend guardrail in Phase 151 and reconciled in Phase
+161. Assessments and notices are source/ruleset bound and all carry `recommendation: false`,
+`evidence: false` and `causal: false`; there is no ranking, execution or deployment surface. The
+current conservative rules are local engineering defaults, not a scientific or policy approval;
+future domain thresholds and display order remain owner decisions.
 Maximum policy ceiling: `owner_approved_candidate`. This is a guardrail and refusal layer,
 not an optimiser, autonomous decision-maker, policy recommendation service or production
 control system. Every generated assessment is `evidence: false`.**

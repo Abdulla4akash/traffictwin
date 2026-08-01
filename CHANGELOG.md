@@ -2,6 +2,26 @@
 
 ## v0.7.0 - In development
 
+Merge-safety correction (1 August, Phase 161): hardened the post-v1 backend before the
+owner-requested main integration. Analytics checkpoints now persist and revalidate source,
+receipt and materialisation state across restart; scenario approval/admission requires an
+external policy validator and exact artifact digest; evidence-matrix and observatory builders
+refuse changed authoritative source bytes; the observatory now exposes explicit study and
+coherence contracts; safety notices carry the same false recommendation/evidence/causal flags as
+assessments; and benchmark gates 1–2 now include frozen training-scale feature construction,
+matched-budget estimates and synthetic-namespace analysis enforcement. The live-twin adapter is
+corrected to the authorised observe-only boundary: mutation/control contracts and command methods
+are absent, and terminal receipts remain `evidence: false`, `scientific_use: false` and
+`production_ready: false`. Seven design statuses now record delivered surfaces and residual owner
+decisions instead of saying implemented code is unimplemented.
+
+CI now installs and invokes the committed `uv.lock` environment rather than resolving latest
+unbounded development tools. The branch-owned Ruff formatting/security findings, stale N-way
+golden fingerprints and one private absolute path in an aggregate evidence record were repaired;
+the evidence record retains the same scientific values and now uses logical private-workspace
+labels only. These corrections create no approval, admission, experiment, live acquisition,
+control authority or scientific evidence.
+
 Added the capacity-aware benchmark tooling (1 August, post-v1 B-1, design §6 gates 1-2
 ONLY; owner build approval for tooling in session): the versioned protocol schema with
 actor-compatibility checking (unmatched contracts report INCOMPATIBLE, never ranked),

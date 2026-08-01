@@ -133,6 +133,9 @@ class DecisionOption(SafetyModel):
 class SafetyNotice(SafetyModel):
     code: str
     text: str
+    recommendation: Literal[False] = False
+    evidence: Literal[False] = False
+    causal: Literal[False] = False
 
 
 class DecisionSupportAssessment(SafetyModel):
@@ -322,12 +325,14 @@ def confirmed_capacity_notice(repo_root: Path) -> SafetyNotice:
     return SafetyNotice(
         code="CONFIRMED_CAPACITY_CONTEXT",
         text=(
-            "the lower-capacity arm reduced mean latency by 8,310.9 ms (bootstrap "
-            "[-9,097.5, -7,524.3] ms) across five same-direction held-out seeds; the "
-            "exact two-sided sign-test floor is p=0.0625; deadline attainment was "
-            "effectively flat; actions were invariant; and the latency change occurred "
-            "in already-failed tasks. This is not an individual vehicle improvement "
-            "and not a reason to degrade capacity."
+            "Lowering RSU capacity from 2.5 to 0.75 reduced mean latency by 8,310.9 ms. "
+            "Bootstrap interval: [−9,097.5, −7,524.3] ms. All five held-out seeds moved "
+            "in the same direction. The exact two-sided sign-test floor is p=0.0625. "
+            "Do not claim conventional statistical significance. Deadline attainment "
+            "remained effectively flat. Actions/offloading decisions were invariant "
+            "across capacity arms. The latency change occurred within already-failed "
+            "tasks and was not an improvement experienced by an individual vehicle. "
+            "This is not a reason to degrade capacity."
         ),
     )
 

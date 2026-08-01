@@ -62,4 +62,3 @@ def test_breward_approval_binds_design_and_harness(tmp_path: Path) -> None:
     harness.write_text("changed harness\n", encoding="utf-8")
     with pytest.raises(ValueError, match="approved harness bytes changed"):
         verify_approval(repo, receipt)
-

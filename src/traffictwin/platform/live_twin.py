@@ -11,9 +11,8 @@ The non-negotiables are structural:
 
 - the session spec binds network/scenario digests, tool versions, seed,
   mode, allowlist and REQUIRED resource budgets before anything starts;
-- default mode is observe-only; a mutation allowlist exists only behind a
-  policy-valid human approval, and every command carries the scenario digest
-  and a monotonic sequence — stale or unlisted commands refuse;
+- the implemented mode is observe-only; mutation/control is deliberately
+  absent until a separate owner decision authorises a later phase;
 - exactly one controller owns a session; the state machine is
   ``prepared -> running -> stopping -> completed/refused`` and EVERY
   terminal path emits a typed receipt (heartbeat loss, budget breach,
@@ -41,7 +40,7 @@ DESIGN_REFERENCE: Literal["docs/platform/controlled_live_twin_adapter_design.md"
     "docs/platform/controlled_live_twin_adapter_design.md"
 )
 
-SessionMode = Literal["observe_only", "controlled_intervention"]
+SessionMode = Literal["observe_only"]
 SessionState = Literal["prepared", "running", "stopping", "completed", "refused"]
 
 #: Snapshot keys the adapter may emit — aggregates only.
@@ -54,9 +53,7 @@ ALLOWED_SNAPSHOT_KEYS = (
 )
 #: Key fragments that would leak identity or private content.
 _FORBIDDEN_SNAPSHOT_MARKERS = ("vehicle_id", "ref", "token", "/Users/", "/home/")
-_FORBIDDEN_IDENTITY_MARKERS = ("agent", "tbd", "n/a", "claude", "codex", "llm", "auto")
-#: Command names that would conflate traffic state with VEC compute capacity.
-_CAPACITY_CONFLATION_MARKERS = ("rsu_capacity", "compute_capacity", "vec_capacity")
+_ACTIVE_SESSION_DIGESTS: set[str] = set()
 
 
 class LiveTwinError(RuntimeError):
@@ -71,25 +68,6 @@ class TwinModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True, allow_inf_nan=False)
 
 
-class MutationApproval(TwinModel):
-    """The separate owner opt-in a mutation allowlist requires."""
-
-    approved_by: str = Field(min_length=1, max_length=200)
-    approved_at_utc: str
-    scope_note: str
-
-    @model_validator(mode="after")
-    def refuse_agent_identities(self) -> MutationApproval:
-        lowered = self.approved_by.lower()
-        for marker in _FORBIDDEN_IDENTITY_MARKERS:
-            if marker in lowered:
-                raise ValueError(
-                    "mutation scope needs a policy-valid human approval; agent "
-                    "identities and placeholders are never approval"
-                )
-        return self
-
-
 class LiveTwinSessionSpec(TwinModel):
     """Everything bound BEFORE startup; budgets are required, not optional."""
 
@@ -98,8 +76,6 @@ class LiveTwinSessionSpec(TwinModel):
     tool_versions: dict[str, str]
     seed: int = Field(ge=0)
     mode: SessionMode = "observe_only"
-    command_allowlist: tuple[str, ...] = ()
-    mutation_approval: MutationApproval | None = None
     max_simulation_seconds: int = Field(ge=1)
     max_wall_clock_seconds: int = Field(ge=1)
     owner_attended: bool
@@ -111,25 +87,6 @@ class LiveTwinSessionSpec(TwinModel):
             raise ValueError(
                 "OWNER_PRESENCE_REQUIRED: live-twin sessions are owner-attended foreground only"
             )
-        if self.mode == "observe_only" and self.command_allowlist:
-            raise ValueError("observe-only sessions carry no command allowlist")
-        if self.mode == "controlled_intervention":
-            if not self.command_allowlist:
-                raise ValueError("controlled intervention needs a versioned allowlist")
-            if self.mutation_approval is None:
-                raise ValueError(
-                    "APPROVAL_MISSING: a mutation allowlist exists only behind a "
-                    "separate owner approval"
-                )
-        for command in self.command_allowlist:
-            lowered = command.lower()
-            for marker in _CAPACITY_CONFLATION_MARKERS:
-                if marker in lowered:
-                    raise ValueError(
-                        f"command '{command}' conflates traffic state with VEC RSU "
-                        "compute capacity; the variables are different and no "
-                        "reviewed integration model maps them"
-                    )
         return self
 
     def digest(self) -> str:
@@ -143,20 +100,6 @@ class TwinSnapshot(TwinModel):
     snapshot_index: int = Field(ge=1)
     values: dict[str, float]
     evidence: Literal[False] = False
-
-
-class TwinCommand(TwinModel):
-    name: str
-    scenario_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
-    expected_sequence: int = Field(ge=1)
-    changes_treatment: bool = False
-    actor_class: Literal["owner_ui"] = "owner_ui"
-
-
-class CommandReceipt(TwinModel):
-    name: str
-    sequence: int
-    deviation_recorded: bool
 
 
 class LiveTwinReceipt(TwinModel):
@@ -177,6 +120,7 @@ class LiveTwinReceipt(TwinModel):
     experiment_use_invalidated: bool
     evidence: Literal[False] = False
     scientific_use: Literal[False] = False
+    production_ready: Literal[False] = False
     engineering_label: Literal["engineering demonstration only"] = "engineering demonstration only"
 
 
@@ -239,6 +183,7 @@ class LiveTwinController:
         self._deviations: list[str] = []
         self._receipt: LiveTwinReceipt | None = None
         self._owned = False
+        self._session_digest = spec.digest()
 
     @property
     def state(self) -> SessionState:
@@ -249,13 +194,26 @@ class LiveTwinController:
         return self._receipt
 
     def start(self) -> str:
-        if self._owned or self._state != "prepared":
+        if (
+            self._owned
+            or self._state != "prepared"
+            or self._session_digest in _ACTIVE_SESSION_DIGESTS
+        ):
             raise LiveTwinError(
                 "SESSION_ALREADY_OWNED",
                 "exactly one controller owns a session; this one already started",
             )
+        _ACTIVE_SESSION_DIGESTS.add(self._session_digest)
         self._owned = True
-        self._process = self._factory()
+        try:
+            self._process = self._factory()
+        except Exception as exc:
+            _ACTIVE_SESSION_DIGESTS.discard(self._session_digest)
+            self._state = "refused"
+            self._emit_receipt("refused", "CONTROL_PROTOCOL_LOST: process startup failed")
+            raise LiveTwinError(
+                "CONTROL_PROTOCOL_LOST", "the control process failed to start"
+            ) from exc
         self._started_at = self._clock()
         self._state = "running"
         return self._spec.digest()
@@ -298,48 +256,11 @@ class LiveTwinController:
         self._snapshots += 1
         return TwinSnapshot(snapshot_index=self._snapshots, values=raw)
 
-    def apply_command(self, command: TwinCommand) -> CommandReceipt:
-        process = self._require_running()
-        self._check_health(process)
-        if self._spec.mode == "observe_only":
-            raise LiveTwinError(
-                "COMMAND_NOT_ALLOWLISTED",
-                "observe-only sessions accept no command at all; mutation is a "
-                "separate owner opt-in",
-            )
-        if command.name not in self._spec.command_allowlist:
-            raise LiveTwinError(
-                "COMMAND_NOT_ALLOWLISTED",
-                f"'{command.name}' is not on the approved allowlist",
-            )
-        if command.scenario_digest != self._spec.scenario_digest:
-            raise LiveTwinError(
-                "DIGEST_MISMATCH",
-                "the command binds a different scenario digest than this session",
-            )
-        if command.expected_sequence != self._sequence + 1:
-            raise LiveTwinError(
-                "STATE_SEQUENCE_MISMATCH",
-                f"expected sequence {self._sequence + 1}, got "
-                f"{command.expected_sequence}; stale commands refuse",
-            )
-        self._sequence += 1
-        deviation = False
-        if command.changes_treatment:
-            deviation = True
-            self._deviations.append(
-                f"treatment-changing command '{command.name}' at sequence "
-                f"{self._sequence}: experiment use invalidated"
-            )
-        self._ledger.append(f"{self._sequence}:{command.name}")
-        return CommandReceipt(
-            name=command.name, sequence=self._sequence, deviation_recorded=deviation
-        )
-
     def _fail_safe_stop(self, reason: str) -> None:
         if self._process is not None:
             self._process.terminate()
         self._state = "refused"
+        _ACTIVE_SESSION_DIGESTS.discard(self._session_digest)
         self._emit_receipt("refused", reason)
 
     def stop(self, reason: str) -> LiveTwinReceipt:
@@ -347,6 +268,7 @@ class LiveTwinController:
             self._state = "stopping"
             self._process.terminate()
             self._state = "completed"
+            _ACTIVE_SESSION_DIGESTS.discard(self._session_digest)
             self._emit_receipt("completed", reason)
         if self._receipt is None:
             raise LiveTwinError("CONTROL_PROTOCOL_LOST", "no session ran; nothing to receipt")

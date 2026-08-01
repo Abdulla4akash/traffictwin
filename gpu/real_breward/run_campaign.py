@@ -28,9 +28,7 @@ TREATMENTS = (("capacity_aware_alpha_0_7", 0.7), ("capacity_aware_alpha_1_0", 1.
 REQUESTED_TIMESTEPS = 5_000_000
 NUM_ENVS = 128
 ROLLOUT_LEN = 50
-EFFECTIVE_TIMESTEPS = (REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)) * (
-    NUM_ENVS * ROLLOUT_LEN
-)
+EFFECTIVE_TIMESTEPS = (REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)) * (NUM_ENVS * ROLLOUT_LEN)
 EXPECTED_UPDATES = REQUESTED_TIMESTEPS // (NUM_ENVS * ROLLOUT_LEN)
 PREDECLARATION_RELATIVE_PATH = "docs/evaluation/breward_training_predeclaration_20260728.md"
 EXPECTED_GPU_NAME = "NVIDIA RTX PRO 6000 Blackwell Server Edition"
@@ -67,9 +65,7 @@ class Job:
 
 def campaign_jobs() -> tuple[Job, ...]:
     return tuple(
-        Job(treatment, alpha, 19, seed)
-        for treatment, alpha in TREATMENTS
-        for seed in MODEL_SEEDS
+        Job(treatment, alpha, 19, seed) for treatment, alpha in TREATMENTS for seed in MODEL_SEEDS
     )
 
 
@@ -294,9 +290,7 @@ def run_campaign(
     for relative, expected in BASE_SOURCE_SHA256.items():
         observed = sha256_file(source_root / relative)
         required = (
-            transformation.get(patched_paths[relative])
-            if relative in patched_paths
-            else expected
+            transformation.get(patched_paths[relative]) if relative in patched_paths else expected
         )
         if observed != required:
             raise ValueError(f"campaign source changed after preparation: {relative}")

@@ -252,9 +252,7 @@ def _synthetic_trace(key: Array, size: int, domain: TraceDomain) -> TraceBatch:
     local_capability = jax.random.uniform(keys[6], (size,), minval=0.2, maxval=1.0)
     local_queue = jax.random.uniform(keys[7], (size,), minval=0.0, maxval=1.0)
     v2i_quality = jnp.clip(
-        0.30
-        + 0.48 * (1.0 - normalized_speed)
-        + 0.18 * jax.random.uniform(keys[8], (size,)),
+        0.30 + 0.48 * (1.0 - normalized_speed) + 0.18 * jax.random.uniform(keys[8], (size,)),
         0.0,
         1.0,
     )
@@ -296,9 +294,7 @@ def _synthetic_trace(key: Array, size: int, domain: TraceDomain) -> TraceBatch:
         ]
     )
 
-    local_reward = (
-        1.20 * local_capability - 0.82 * task_size - 0.62 * local_queue - 0.28 * urgency
-    )
+    local_reward = 1.20 * local_capability - 0.82 * task_size - 0.62 * local_queue - 0.28 * urgency
     v2i_reward = (
         1.45 * v2i_quality
         - 0.48 * task_size
@@ -386,8 +382,10 @@ def _adam_update(
     updated = cast(
         Params,
         jax.tree_util.tree_map(
-            lambda parameter, m_one, m_two: parameter
-            - learning_rate * (m_one / first_scale) / (jnp.sqrt(m_two / second_scale) + epsilon),
+            lambda parameter, m_one, m_two: (
+                parameter
+                - learning_rate * (m_one / first_scale) / (jnp.sqrt(m_two / second_scale) + epsilon)
+            ),
             params,
             first,
             second,
@@ -544,9 +542,7 @@ def _summarize_models(model_matrices: list[dict[str, Any]]) -> dict[str, Any]:
         domain: {
             metric: {
                 "mean": fmean(float(matrix[domain][metric]) for matrix in model_matrices),
-                "population_sd": pstdev(
-                    float(matrix[domain][metric]) for matrix in model_matrices
-                ),
+                "population_sd": pstdev(float(matrix[domain][metric]) for matrix in model_matrices),
             }
             for metric in ("mean_reward", "optimal_action_accuracy", "p_local", "p_v2i", "p_v2v")
         }

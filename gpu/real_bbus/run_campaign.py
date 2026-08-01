@@ -698,9 +698,7 @@ def _archive_results(output_root: Path) -> Path:
     return archive
 
 
-def run_campaign(
-    pack_root: Path, output_root: Path, *, max_workers: int = 1
-) -> dict[str, Any]:
+def run_campaign(pack_root: Path, output_root: Path, *, max_workers: int = 1) -> dict[str, Any]:
     if not 1 <= max_workers <= len(MODEL_SEEDS):
         raise ValueError(f"max_workers must be between 1 and {len(MODEL_SEEDS)}")
     pack = pack_root.resolve()
@@ -708,9 +706,11 @@ def run_campaign(
     output = output_root.resolve()
     if output.exists() and not output.is_dir():
         raise ValueError("output root exists but is not a directory")
-    if output.exists() and any(output.iterdir()) and not (
-        output / "campaign_design.json"
-    ).is_file():
+    if (
+        output.exists()
+        and any(output.iterdir())
+        and not (output / "campaign_design.json").is_file()
+    ):
         bootstrap_names = {
             path.name
             for job in campaign_jobs()
@@ -876,9 +876,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     try:
-        result = run_campaign(
-            args.pack_root, args.output_root, max_workers=args.max_workers
-        )
+        result = run_campaign(args.pack_root, args.output_root, max_workers=args.max_workers)
     except Exception as exc:
         print(f"error: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 1

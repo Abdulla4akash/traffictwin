@@ -125,9 +125,7 @@ def verify(pack_root: Path, output_root: Path) -> dict[str, object]:
         "--tag",
         "resumed",
     ]
-    _run(
-        [*interrupted, "--stop-after-update", "2"], cwd=source, env=env
-    )
+    _run([*interrupted, "--stop-after-update", "2"], cwd=source, env=env)
     _run(
         [*interrupted, "--resume-checkpoint", str(resumed_checkpoint)],
         cwd=source,
@@ -158,9 +156,7 @@ def verify(pack_root: Path, output_root: Path) -> dict[str, object]:
     ):
         left_rows = list(csv.DictReader(left_handle))
         right_rows = list(csv.DictReader(right_handle))
-    left_science = [
-        tuple(row[column] for column in SCIENTIFIC_CURVE_COLUMNS) for row in left_rows
-    ]
+    left_science = [tuple(row[column] for column in SCIENTIFIC_CURVE_COLUMNS) for row in left_rows]
     right_science = [
         tuple(row[column] for column in SCIENTIFIC_CURVE_COLUMNS) for row in right_rows
     ]
@@ -175,9 +171,7 @@ def verify(pack_root: Path, output_root: Path) -> dict[str, object]:
         "checkpoint_restore_state_values_exact": True,
         "actor_parameters_bitwise_equal_after_further_gpu_updates": actor_exact,
         "actor_max_absolute_difference": actor_max_abs_difference,
-        "full_device_state_bitwise_equal_after_further_gpu_updates": (
-            full_device_state_exact
-        ),
+        "full_device_state_bitwise_equal_after_further_gpu_updates": (full_device_state_exact),
         "scientific_curve_columns_exactly_equal": True,
         "excluded_from_equivalence": ["elapsed_s", "sps", "decision_ms"],
         "interpretation": (
@@ -193,9 +187,7 @@ def verify(pack_root: Path, output_root: Path) -> dict[str, object]:
         "trainer_sha256": binding["checkpoint_execution"]["derived_sha256"],
     }
     result_path = output / "checkpoint_equivalence.json"
-    result_path.write_text(
-        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
-    )
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return result
 
 

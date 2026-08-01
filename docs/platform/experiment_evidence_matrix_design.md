@@ -1,6 +1,10 @@
 # Design — Experiment evidence matrix (post-v1 E-1)
 
-**Status: PROPOSED post-v1 design; owner review pending, unimplemented and not approved for build.
+**Status: IMPLEMENTED as a read-only backend coverage index in Phase 148, with reviewed source
+digests and design-fingerprint reconciliation made fail-closed in Phase 161. The delivered surface
+is a code-registered adapter over the committed catalogue/register/results, deterministic filters,
+coverage counts and typed grouping refusals. Public/default facets, abandoned-proposal treatment,
+automatic ingestion of future record formats and UI presentation remain owner/integration work.
 Maximum policy ceiling: `owner_approved_candidate`. This is a provenance and coverage
 index, not a meta-analysis, evidence-admission authority or claim that every matrix cell is
 scientifically comparable.**
