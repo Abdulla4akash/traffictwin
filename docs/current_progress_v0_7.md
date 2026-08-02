@@ -2,13 +2,13 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 173 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 175 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173 operational
-aggregate-store activation tooling. This tracker distinguishes implemented libraries/pages from
-activated schedulers, deployed services, completed studies and accepted scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–175 operational
+store, lifecycle and console integration. This tracker distinguishes implemented libraries/pages
+from activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -68,7 +68,10 @@ At the latest proportional verification points:
 - Phase 173 passed 22 focused activation tests and 98 aggregate-store/bus-adapter regression tests,
   plus Ruff, formatting, strict mypy, lock, exact-source-byte and path-leakage gates; and
 - Phase 174 passed 11 focused lifecycle integration tests and a 157-test adjacent post-v1
-  regression, plus Ruff, formatting, strict mypy, lock and privacy/diff gates.
+  regression, plus Ruff, formatting, strict mypy, lock and privacy/diff gates; and
+- Phase 175 passed 63 focused/adjacent console and navigation AppTests and a 116-test console plus
+  backend-contract regression, plus Ruff, formatting, strict mypy, lock and privacy/no-action
+  gates.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -80,9 +83,9 @@ or research-usability acceptance claim.
 
 | Group | Practical state | What is built | What remains |
 |---|---|---|---|
-| v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, three platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
-| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic incremental analytics, evidence matrix, append-only registry and exact artifact-revalidating composer lifecycle service | Select real store/lifecycle authority roots and genuine authority/licence artifacts, bind the dashboard feed and add matrix/lifecycle UI |
-| Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded decision assessments | Dashboard presentation and consumer integration; still no execution authority |
+| v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, seven Platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
+| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic analytics feed and evidence-matrix console, append-only registry and exact artifact-revalidating composer lifecycle service | Select real store/lifecycle authority roots and genuine authority/licence artifacts; lifecycle UI remains absent |
+| Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded assessments with read-only console presentation | Still no execution authority, overall-service recommendation or evidence creation |
 | Controlled live twin | `foundation_only` | Maximum-coverage schemas, policies, state machine and deterministic fake | Concrete local SUMO/public/cloud/operator transports and deployment-supplied authority |
 | Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
 
@@ -175,8 +178,8 @@ next section.
 
 ### 6.4 Post-v1 integration work that is buildable without new external evidence
 
-1. Add read-only dashboard pages/services for the analytics quality feed, experiment evidence
-   matrix, mechanism observatory and Decision-Safety assessments.
+1. ~~Add read-only dashboard pages/services for the analytics quality feed, experiment evidence
+   matrix, mechanism observatory and Decision-Safety assessments.~~ Completed in Phase 175.
 2. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
    fixture, retaining engineering-only receipts and launching no scientific campaign.
 3. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
@@ -199,6 +202,13 @@ approval/execution/deviation/analysis/admission adapters are revalidated on appe
 Admission also requires a caller-supplied owner-policy validator; schema validity alone refuses.
 There is no run, signature, approval creation or automatic admission surface, and no real authority
 artifact was imported.
+
+Completed in Phase 175: four additive unique Platform routes now present the immutable analytics
+quality feed, filtered evidence matrix, coherence-checked observatory and Ruleset v2 assessment.
+The pages retain roles, exclusions, uncertainty, deviations, citation digests and explicit
+non-admitted separation; the instruction draft is review-only and non-executable. The service has
+no recursive browser, write, network or launch surface, and no real report, authority, participant
+result or new evidence was created.
 
 ## 7. Decisions or evidence required before acceptance
 

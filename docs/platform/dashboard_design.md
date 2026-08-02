@@ -2,11 +2,11 @@
 
 **Status: IMPLEMENTED in Phase 145 (`45ed8fb`) as three additive Streamlit pages at the
 `owner_approved_candidate` ceiling; Phase 170 (`7a661e8`) activated the bounded DeepSeek
-scenario-entry panel. Nothing existing was hidden or moved, and label uniqueness and
-AppTest coverage are enforced. P-D3 says the submitted ethics materials cover these pages;
-ethics approval is still pending, so no participant activity, evaluation result or fixed
-11–22 August session is claimed. Participant use requires both ethics approval and an
-explicit owner release.**
+scenario-entry panel; Phase 175 added four read-only post-v1 console pages. Nothing existing was
+hidden or moved, and label uniqueness and AppTest coverage are enforced. P-D3 says the submitted
+ethics materials cover the original pages; any participant use of the enlarged console requires
+ethics reconciliation, approval and an explicit owner release. No participant activity,
+evaluation result or fixed 11–22 August session is claimed.**
 
 ## 1. Page: Data Inventory
 
@@ -66,7 +66,8 @@ side's type and standing. It is empty at launch and visibly so. Execution-deviat
 
 One new "Platform" group is appended to the existing seven-group navigation; the seven
 groups and every current route remain unchanged. Pages are ordered Inventory → Forecasts
-→ What-If with unique scripts, URL paths and labels. Each page opens with a one-line scope
+→ What-If → Analytics Quality → Evidence Matrix → Mechanism Observatory → Decision Safety with
+unique scripts, URL paths and labels. Each page opens with a one-line scope
 banner naming what is and is not claimed — the user-facing articulation of the label
 ceilings the project already enforces internally. Producer-derived prediction/measurement
 cards carry the mandatory
@@ -89,8 +90,8 @@ There are currently no participant results.
 
 ## 6. Residual limits
 
-The Decision-Safety Ruleset v2 backend was implemented separately in Phase 167, but this
-three-page dashboard slice has no decision-safety page, automatic default application or
-execution control. Editing schedules from the UI, writes against repositories/workspaces/
+The Phase-175 console now presents analytics quality, evidence coverage, observatory contracts and
+Decision-Safety Ruleset v2 output, but it has no automatic default application or execution
+control. Editing schedules from the UI, writes against repositories/workspaces/
 registries, API acquisition, campaign approval/execution, authentication and public hosting
 remain outside this slice. There are no participant results.

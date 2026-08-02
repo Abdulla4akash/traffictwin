@@ -4678,3 +4678,32 @@ symlinks and mutated authority artifacts fail closed. All 11 focused tests and t
 adjacent post-v1 regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy/no-run
 screening and `git diff --check` passed. No real artifact was imported; no approval, execution,
 analysis, admission, evidence, network or external action occurred.
+
+### Phase 175 claim: post-v1 Platform Console (2 August 2026)
+
+The owner-directed integrating lead owns the third post-meeting build slice in
+`docs/platform/post_v1_platform_console_design.md`, the bounded Phase-145 status amendment in
+`docs/platform/dashboard_design.md`, `src/traffictwin/ui/platform_console_services.py`, the four
+new `src/traffictwin/ui/pages/platform_{analytics,evidence_matrix,observatory,decision_safety}.py`
+pages and matching `src/traffictwin/ui/app_pages/` wrappers, the additive route changes in
+`src/traffictwin/ui/navigation_v07.py` and `src/traffictwin/ui/page_runtime.py`,
+`tests/ui/test_platform_console.py`, the narrow additive assertions in
+`tests/ui/test_navigation_v07.py`, the bounded status updates in `docs/implementation-status.md`
+and `docs/current_progress_v0_7.md`, the narrow `CHANGELOG.md` entry, and this phase record. The
+phase may render the immutable analytics quality feed, evidence-matrix coverage, mechanism/policy
+cards and Decision-Safety Ruleset v2 assessments through unique read-only routes. It may not browse
+arbitrary files, expose private paths or raw artifacts, write source/workspace state, call external
+services, launch work, infer standing, suppress uncertainty/deviations, or turn advice or an
+instruction draft into execution authority.
+
+Phase 175 completed locally on 2 August 2026. Four additive unique Platform routes now render the
+immutable analytics quality feed, evidence-matrix coverage, the owner-ordered coherence-checked
+observatory and Decision-Safety Ruleset v2. The single allowlisted service exposes no arbitrary
+browser, write, network or launch surface; it screens private content, pins repository citations,
+keeps all evidence roles/exclusions/deviations/uncertainty visible, and requires explicit separate
+views for non-admitted material. Decision advice remains confined to the validated
+confirmed-capacity latency comparison and its instruction draft is review-required,
+non-executable and without authority. All 63 focused/adjacent AppTests and the 116-test console plus
+backend-contract regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy,
+no-write/no-network/no-action and `git diff --check` gates passed. No real report, participant
+activity/result, approval, admission, evidence, execution or external request occurred.

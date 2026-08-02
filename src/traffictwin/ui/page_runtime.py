@@ -30,9 +30,13 @@ from traffictwin.ui.pages import (
     operations,
     parameter_sweep,
     participant_evaluation,
+    platform_analytics,
     platform_composer,
+    platform_decision_safety,
+    platform_evidence_matrix,
     platform_forecasts,
     platform_inventory,
+    platform_observatory,
     provenance_explorer,
     reports,
     rsu_monitor,
@@ -188,3 +192,43 @@ def run_platform_composer_page_script() -> None:
         "Draft-only what-if scenarios; signing and execution are human acts outside this app."
     )
     platform_composer.render(load_ui_config())
+
+
+def run_platform_analytics_page_script() -> None:
+    """Execute the additive Analytics Quality page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-analytics-quality"
+    st.sidebar.caption(
+        "Immutable operational-quality reports; readiness is never scientific confidence."
+    )
+    platform_analytics.render(load_ui_config())
+
+
+def run_platform_evidence_matrix_page_script() -> None:
+    """Execute the additive Evidence Matrix page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-evidence-matrix"
+    st.sidebar.caption(
+        "Digest-bound coverage and exclusions; standing is read-only and effects are not pooled."
+    )
+    platform_evidence_matrix.render(load_ui_config())
+
+
+def run_platform_observatory_page_script() -> None:
+    """Execute the additive Mechanism Observatory outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-mechanism-observatory"
+    st.sidebar.caption(
+        "Role-labelled mechanism cards with support, limitations, deviations and citations."
+    )
+    platform_observatory.render(load_ui_config())
+
+
+def run_platform_decision_safety_page_script() -> None:
+    """Execute the additive Decision Safety page outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-decision-safety"
+    st.sidebar.caption(
+        "Metric-specific Ruleset v2 advice and non-executable drafts; no execution authority."
+    )
+    platform_decision_safety.render(load_ui_config())

@@ -111,6 +111,38 @@ PLATFORM_COMPOSER_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/tune:",
 )
 
+PLATFORM_ANALYTICS_PAGE_SPEC = V07AdditivePageSpec(
+    title="Analytics Quality",
+    group="Platform",
+    script="app_pages/platform_analytics.py",
+    url_path="platform-analytics-quality",
+    icon=":material/monitoring:",
+)
+
+PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC = V07AdditivePageSpec(
+    title="Evidence Matrix",
+    group="Platform",
+    script="app_pages/platform_evidence_matrix.py",
+    url_path="platform-evidence-matrix",
+    icon=":material/grid_view:",
+)
+
+PLATFORM_OBSERVATORY_PAGE_SPEC = V07AdditivePageSpec(
+    title="Mechanism Observatory",
+    group="Platform",
+    script="app_pages/platform_observatory.py",
+    url_path="platform-mechanism-observatory",
+    icon=":material/account_tree:",
+)
+
+PLATFORM_DECISION_SAFETY_PAGE_SPEC = V07AdditivePageSpec(
+    title="Decision Safety",
+    group="Platform",
+    script="app_pages/platform_decision_safety.py",
+    url_path="platform-decision-safety",
+    icon=":material/policy:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -420,6 +452,10 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_INVENTORY_PAGE_SPEC,
         PLATFORM_FORECASTS_PAGE_SPEC,
         PLATFORM_COMPOSER_PAGE_SPEC,
+        PLATFORM_ANALYTICS_PAGE_SPEC,
+        PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC,
+        PLATFORM_OBSERVATORY_PAGE_SPEC,
+        PLATFORM_DECISION_SAFETY_PAGE_SPEC,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -516,6 +552,10 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 PLATFORM_INVENTORY_PAGE_SPEC,
                 PLATFORM_FORECASTS_PAGE_SPEC,
                 PLATFORM_COMPOSER_PAGE_SPEC,
+                PLATFORM_ANALYTICS_PAGE_SPEC,
+                PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC,
+                PLATFORM_OBSERVATORY_PAGE_SPEC,
+                PLATFORM_DECISION_SAFETY_PAGE_SPEC,
             ):
                 group_pages.append(
                     st.Page(

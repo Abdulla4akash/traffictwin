@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Added the post-v1 Platform Console (2 August, Phase 175): four unique read-only routes now present
+the immutable analytics quality feed, evidence-matrix coverage, coherence-checked mechanism and
+policy cards, and Decision-Safety Ruleset v2 output. Evidence roles, exclusions, uncertainty,
+execution deviations, source digests and citations remain visible; non-admitted records require
+explicit separate views. Decision advice is limited to the validated confirmed-capacity latency
+comparison, and every instruction draft remains review-required, non-executable and without
+execution authority. The allowlisted service cannot recursively browse, write, call a provider or
+launch work; it created no report, approval, admission, participant result or evidence.
+
 Added exact scenario lifecycle integration (2 August, Phase 174): canonical composer drafts,
 unsigned design/predeclaration bytes, prediction or refusal, executable-design projection and
 explicit revision lineage now bind into the append-only registry. DeepSeek-origin records retain
