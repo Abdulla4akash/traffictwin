@@ -9,6 +9,7 @@ import streamlit as st
 import traffictwin.ui.navigation as legacy_navigation
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation_v07 import (
+    MANCHESTER_GATE_D_PAGE_SPEC,
     PLATFORM_ANALYTICS_PAGE_SPEC,
     PLATFORM_COMPOSER_PAGE_SPEC,
     PLATFORM_DECISION_SAFETY_PAGE_SPEC,
@@ -56,6 +57,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         PLATFORM_OBSERVATORY_PAGE_SPEC,
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
+        MANCHESTER_GATE_D_PAGE_SPEC,
     )
     assert [spec.title for spec in platform_specs] == [
         "Data Inventory",
@@ -66,6 +68,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         "Mechanism Observatory",
         "Decision Safety",
         "Decision Audit",
+        "Manchester Gate-D",
     ]
     assert all(spec.group == "Platform" for spec in platform_specs)
     normative_paths = {spec.url_path for spec in V07_PAGE_SPECS}

@@ -182,16 +182,21 @@ permission, or provenance boundaries.
 
 ## What Is Not Implemented
 
-- No real Manchester data ingestion.
+- No accepted end-to-end Manchester calibration workflow. Bounded real source acquisitions and
+  candidate derivatives exist, but formal `MAN-*` capability acceptance remains planned.
 - No Randy/VEC schema mapping.
-- No SUMO FCD, detector, or network parser; tripinfo and summary support is bounded to 1.27.x.
-- No live dashboard.
+- No accepted Manchester FCD/comparison result. Network, tripinfo, summary and bounded controlled
+  local-SUMO components do not create an accepted Manchester baseline.
+- No continuous live-twin dashboard; Manchester refreshes are explicit bounded snapshot actions.
 - No launch button that runs external simulation.
 - No LLM-generated recommendations.
 - No real-actor XAI attribution. A bounded synthetic Decision Audit now proves snapshot, baseline
   replay, disagreement, behavioural-fingerprint and attribution-artifact contracts while keeping
   real SHAP/Integrated Gradients unavailable until producer hooks, model access and application
   validation exist.
+- No completed Manchester Gate D. The read-only Gate-D page integrates exact candidate mapping,
+  temporal-profile, calibration/baseline readiness, comparison-contract and lineage truth while
+  keeping human review, scientific decisions, contract registration, runs and results unavailable.
 - No uploaded, remote, automatically discovered, or sandboxed custom metric execution; the
   implemented extension API is explicit trusted local application code only.
 - No trained or externally calibrated portfolio selector; the available ruleset is a transparent

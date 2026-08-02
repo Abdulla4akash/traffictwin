@@ -49,8 +49,10 @@ Open:
    [map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md):
    on the accepted Greater Manchester network a point known to be on an A road already draws a
    median of 6 candidate edges within 10 m, and nearest-edge alone would attribute about 19% of
-   such points to a service road, residential street, path, or footway. Real candidate generation
-   fails closed on `MAP_MATCH_POLICY_UNAPPROVED` until this is decided.
+   such points to a service road, residential street, path, or footway. The owner has answered this
+   at the `owner_approved_candidate` ceiling through policy v1.1, and real candidate generation now
+   reconciles all 305 sites. Scientific/supervisor acceptance remains open; 174 rows still require
+   a named person's decision and no candidate result is silently promoted.
 7. Which deterministic calibration objective, parameter bounds, uncertainty treatment, and
    development/held-out evaluation design should be used?
 8. Which BODS identifiers may be retained, rendered, exported, and published, and for how long?

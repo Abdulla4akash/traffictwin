@@ -24,6 +24,7 @@ from traffictwin.ui.pages import (
     home,
     infrastructure,
     journey_time,
+    manchester_gate_d,
     manchester_operations,
     manifest_inference,
     match_review,
@@ -243,3 +244,13 @@ def run_platform_xai_audit_page_script() -> None:
         "Synthetic decision audit only; no causal, faithful, validated or optimality claim."
     )
     platform_xai_audit.render(load_ui_config())
+
+
+def run_manchester_gate_d_page_script() -> None:
+    """Execute the additive read-only Manchester Gate-D integration page."""
+
+    st.session_state["_active_ui_route"] = "manchester-gate-d"
+    st.sidebar.caption(
+        "Gate-D candidate integration only; no review, run, baseline or comparison result."
+    )
+    manchester_gate_d.render(load_ui_config())

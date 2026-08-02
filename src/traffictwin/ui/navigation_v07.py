@@ -151,6 +151,14 @@ PLATFORM_XAI_AUDIT_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/troubleshoot:",
 )
 
+MANCHESTER_GATE_D_PAGE_SPEC = V07AdditivePageSpec(
+    title="Manchester Gate-D",
+    group="Platform",
+    script="app_pages/manchester_gate_d.py",
+    url_path="manchester-gate-d",
+    icon=":material/route:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -465,6 +473,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_OBSERVATORY_PAGE_SPEC,
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
         PLATFORM_XAI_AUDIT_PAGE_SPEC,
+        MANCHESTER_GATE_D_PAGE_SPEC,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -566,6 +575,7 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 PLATFORM_OBSERVATORY_PAGE_SPEC,
                 PLATFORM_DECISION_SAFETY_PAGE_SPEC,
                 PLATFORM_XAI_AUDIT_PAGE_SPEC,
+                MANCHESTER_GATE_D_PAGE_SPEC,
             ):
                 group_pages.append(
                     st.Page(

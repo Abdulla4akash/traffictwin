@@ -128,6 +128,7 @@ not be used to make safety-critical or public-infrastructure decisions.
 | Real participant evaluation | Not performed | Requires ethics and supervisory approval first |
 | LLM diagnosis or recommendations | Not implemented | The available prose renderer only restates computed findings |
 | XAI decision instrumentation | Implemented, synthetic-only | Exact-binding snapshots, two engineering-baseline replays, disagreement/fingerprint views and attribution-shaped integrity fixtures; no real actor attribution, faithfulness, causality or evidence |
+| Manchester Gate-D decision audit | Implemented, read-only foundation | Exact committed mapping/profile/contract readiness and lineage; no human review, calibration, baseline, registered production contract or real comparison |
 | Trained portfolio selection | Not implemented | Requires suitable actor results, a frozen selection protocol and research evaluation |
 
 ## How The System Works

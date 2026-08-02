@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 178. It does not alter the strict
+This section records the additive platform truth through Phase 179. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -47,6 +47,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Controlled live twin | Phases 153/168 implemented maximum-coverage contracts/fake; Phase 176 added a fixed-argv, loopback-only local SUMO 1.27.x/TraCI transport over the pinned synthetic square | No BODS/public/cloud/operator transport, generic scenario, scientific campaign, production service or road actuation |
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol tooling; Phase 177 added contract-only manifests, compatible adapters, deterministic unsigned 240-cell/2,400-job and estimate-only resource exports, plus a 21-job synthetic worker and return/resume/freeze gates | `PROPOSED / UNSIGNED`; no real actor/runtime/checkpoint binding, training, evaluation, cloud use, evidence or admission |
 | XAI decision instrumentation | Phase 178 implemented exact-binding synthetic snapshots, two pure replay baselines, disagreement browsing, load-bin fingerprints, attribution-shaped integrity fixtures, real-method unavailable states and a read-only Decision Audit | No compatible producer snapshot hook, authorised real actor/checkpoint access or validated application method; no real attribution, causality, faithfulness, evidence or optimality claim |
+| Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -110,6 +111,14 @@ fixture stability and digest lineage. The read-only Decision Audit displays ever
 limitation and source role and keeps real attribution unavailable. No real actor/checkpoint was
 opened; no causal influence, faithfulness, model validation, best action, evidence, execution or
 admission was inferred.
+
+Phase 179 closes only the Gate-D contract-integration and read-only presentation gap. The packet
+reconciles the two measured map-radius populations, all 305 v1.1 dispositions, the empty 174-row
+human-review ledger, exact real DfT profile denominators, calibration prerequisites, an
+unavailable versioned baseline workflow, the existing unregistered owner-candidate comparison
+contract and every downstream lineage gap. It reads only five fixed committed records and opens no
+private workspace artifact. No threshold, reviewer decision, registration, SUMO run, calibration,
+baseline, metric, evidence or capability acceptance was created.
 
 Phase 0 status: approved and committed.
 
@@ -406,14 +415,11 @@ also re-evaluates preserved BODS timestamps at the current UTC instant, so forme
 become stale-cached titles, filters, warnings, and badges without mutating the stored scene. Therefore
 `MAN-05` and `MAN-08` remain `planned`.
 
-The candidate `MAN-09` map-matching foundation provides a deterministic synthetic-only
-site-to-edge harness and typed analyst-review record. It transforms bounded synthetic WGS84
-fixtures into EPSG:27700, retains and reconciles the complete point-by-edge candidate product,
-records distance, direction, and optional road-class gates, selects nothing automatically, and
-requires one explicit typed decision per observation. Its real-source preflight remains
-unavailable because no reviewed Manchester SUMO network/licence, matching policy, or accepted
-real-source projection dependency exists. The harness does not parse a real network, accept a
-Manchester mapping, construct demand, calibrate, or run SUMO, so `MAN-09` remains planned.
+The original synthetic `MAN-09` matching harness remains available, and later work extended it to
+the reviewed Greater Manchester network under owner-policy v1.1. The real candidate record covers
+all 305 DfT sites: 131 owner-policy accepted candidates, 165 awaiting manual review and nine with
+no suitable candidate. Owner-policy acceptance is not human acceptance. The sealed review ledger
+starts with all 174 queued rows pending, so `MAN-09` remains planned.
 A thin analyst-review demonstration now renders that synthetic harness inside Manchester
 Operations next to the disabled baseline action: a deterministic labelled synthetic fixture
 covers the one-eligible, ambiguous, and no-suitable-candidate situations, the complete Cartesian
@@ -440,7 +446,12 @@ production policy registry is intentionally empty; reports re-derive their compl
 reload and fix calibration-use, SUMO-demand, and baseline availability to false. This is
 foundation evidence only, so `MAN-09` remains planned.
 
-On 25 July 2026 the **network half of Gate-D step 2** was added: real directed edge geometry is read from the accepted Greater Manchester network with per-edge provenance, and a spatial index over all 804,611 real road edges supports candidate lookup. Reading geometry is not matching: real candidate generation fails closed on `MAP_MATCH_POLICY_UNAPPROVED` because open question 6 — the distance, direction, road-class, and confidence rules — is undecided, and no threshold exists in the code, not even as a default. Measured evidence for that decision is in the [map-matching decision worksheet](integration/manchester_map_matching_decision_worksheet.md). `MAN-09` remains planned and Gate D remains `foundation_only`.
+On 25 July 2026 real directed edge geometry and a spatial index over all 804,611 road edges enabled
+the measured policy work. The owner subsequently froze candidate policy v1.1, including its
+distance, direction, class, exact-reference override and manual-review rules. Phase 179 exposes the
+unchanged 10/20/30/50/100 m sensitivity tables rather than turning them into a threshold selector.
+Supervisor scientific review, named-person row decisions and downstream projection/mapping
+admission remain open, so `MAN-09` stays planned and Gate D stays `foundation_only`.
 
 The candidate `MAN-09` calibration evaluator now consumes only caller-supplied completed interval
 evidence under one versioned source/scope/time/measure/unit/objective/coverage/parameter contract.

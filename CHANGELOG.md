@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Added Manchester Gate-D contract integration and its read-only audit page (2 August, Phase 179):
+five exact committed records now feed typed map-policy sensitivity/reconciliation, empty-ledger
+human-review, real DfT temporal-profile, calibration-readiness, baseline-candidate,
+comparison-contract and complete-lineage views. The existing owner-candidate comparison contract
+is displayed under its exact fingerprint but remains unregistered; calibration, baseline and
+comparison values are unavailable. No private artifact was opened, no person was impersonated, no
+threshold was invented, and no contract, run, baseline, result, evidence or capability was
+accepted.
+
 Added fenced XAI instrumentation and the read-only Decision Audit (2 August, Phase 178): typed
 aggregate decision-time snapshots bind exact synthetic source/actor/checkpoint contracts; two
 pure engineering baselines produce digest-checked replay and descriptive disagreement rows; and

@@ -4807,3 +4807,37 @@ read-only/no-network service. All 27 focused backend tests and the 88-test backe
 adjacent-console regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy/
 language/no-model/no-action and `git diff --check` gates passed. No real actor/checkpoint,
 attribution, external request, evidence, execution or admission occurred.
+
+### Phase 179 claim: Manchester Gate-D integration (2 August 2026)
+
+The owner-directed integrating lead owns the seventh post-meeting build slice in
+`docs/integration/manchester_gate_d_integration.md`; the narrow Gate-D truth amendments in
+`docs/full_product_guide.md`, `docs/system_overview.md` and `docs/open-questions.md`;
+`src/traffictwin/integration/manchester/gate_d_integration.py`;
+`src/traffictwin/ui/manchester_gate_d_services.py`;
+`src/traffictwin/ui/pages/manchester_gate_d.py` and its
+`src/traffictwin/ui/app_pages/manchester_gate_d.py` wrapper; the additive route changes in
+`src/traffictwin/ui/navigation_v07.py` and `src/traffictwin/ui/page_runtime.py`;
+`tests/unit/test_manchester_gate_d_integration.py`, `tests/ui/test_manchester_gate_d.py`, the
+narrow additive assertions in `tests/ui/test_navigation_v07.py`; the bounded status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the narrow `CHANGELOG.md`
+entry; and this phase record. The phase may bind committed Gate-D measurement records into typed
+map-policy sensitivity/reconciliation, pending analyst-review, temporal-profile, calibration,
+baseline-candidate, comparison-contract and complete-lineage readiness views, plus a read-only
+comparison-contract browser. It may not inspect private match/profile/network artifacts; act for a
+human reviewer; resolve DfT/WebTRIS time semantics; invent a calibration parameter, threshold or
+uncertainty rule; register a production contract; run SUMO; accept a baseline; calculate a real
+comparison; create scientific evidence; or change any formal capability/admission standing.
+
+Phase 179 completed locally on 2 August 2026. Five allowlisted committed records now feed one
+strict, deterministic Gate-D packet: two measured 10/20/30/50/100 m sensitivity populations, the
+exact owner-policy v1.1 305-site reconciliation, an empty 174-row named-person review ledger, the
+39,072-cell real DfT temporal-profile candidate, dependency-bound calibration orchestration, a
+versioned unavailable baseline-candidate workflow, the existing unregistered `b1d31a1b…`
+comparison contract and a complete gaps-first lineage. The additive Manchester Gate-D page has no
+input or action controls and opens no private artifacts. All 15 focused backend tests, the 66-test
+focused/UI/navigation suite and the 387-test adjacent Manchester mapping/review/profile/
+calibration/comparison/lineage/UI regression passed; Ruff lint/format, strict mypy, `uv lock
+--check`, exact-source/privacy/no-network/no-write/no-execution and `git diff --check` gates passed.
+No person was impersonated, no time semantics or scientific rule was invented, and no registry,
+SUMO run, calibration, baseline, metric, evidence or capability acceptance was created.
