@@ -2,6 +2,13 @@
 
 ## v0.7.0 - In development
 
+Completed the committed-input and submission/release handoff audit (2 August, Phase 186). Nine
+existing artifacts are bound by exact digest; the 8,396-word, 100-reference manuscript and
+four-slide sourced deck were revalidated with no duplicate long prose. The external-decision pack
+now treats the Greater Manchester network and ADR-058 attestation policy as resolved inputs and
+lists only their genuine downstream human/external residuals. No ignored/private workspace,
+manuscript result, package/CITATION version, tag, release, approval, evidence or capability changed.
+
 Re-audited seven authoritative DfT, National Highways and BODS sources (2 August, Phase 185).
 Official DfT metadata and WebTRIS FAQ/API schema still do not state their clock bases, so their
 typed exclusions remain. The BODS guide documents general copy/adapt/publish/distribute/transmit

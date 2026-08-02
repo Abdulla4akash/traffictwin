@@ -101,3 +101,14 @@ literature numbers.
   table and video frame.
 - Do not add the unverified Lourenço calibration reference or make a calibration-quality claim
   until the producer supplies the exact publication metadata.
+
+## 7. Phase-186 committed-input integrity check
+
+The 2 August 2026
+[local-input and handoff audit](quality/v07_local_input_and_handoff_audit_20260802.md) re-hashed the
+committed manuscript, BibTeX source, editable deck, rendered deck and claim/source audit. It
+reconfirmed 8,396 counted manuscript words, exactly 100 numbered and cited references, 100 BibTeX
+records, four slides and four source-note blocks. A fresh exact scan found no duplicated manuscript
+paragraph of at least 120 characters and no duplicated normalised line of at least 60 characters;
+the manuscript therefore required no speculative prose edit. The human submission checks above
+remain unchanged.

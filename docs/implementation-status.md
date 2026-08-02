@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 185. It does not alter the strict
+This section records the additive platform truth through Phase 186. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -174,6 +174,15 @@ registration requirement, closing `GA-BODS-6` as a source fact. It does not docu
 duration or multi-day `VehicleRef` persistence, and it cannot approve TrafficTwin privacy,
 data-management, public row-level output, complete Bee scope, or release acceptance. No account,
 credential, provider contact, capability acceptance, or release authority was created.
+
+Phase 186 closes the remaining safe committed-input and handoff audit, not a product gate. It binds
+nine existing submission, Gate-D/source and release-engineering artifacts by exact digest,
+reconfirms the 8,396-word manuscript's 100 numbered/cited references and the four-slide sourced
+deck, and records that no duplicate long manuscript prose exists. It also removes stale wording
+that still presented the built Greater Manchester network and approved ADR-058 attestation policy
+as missing inputs. The residual ledger now names the exact human, provider, privacy, private-source,
+operational and release authorities required next. No ignored/private workspace was inspected; no
+manuscript result, package/CITATION version, tag, approval, evidence or capability changed.
 
 Phase 0 status: approved and committed.
 

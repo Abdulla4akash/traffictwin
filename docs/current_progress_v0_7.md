@@ -2,7 +2,7 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 185 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 186 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -10,8 +10,9 @@ data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 1
 store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
 supervisor-communication/literature completion, the Phase-181 repository-wide strict-mypy
 reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
-accessibility engineering QA, Phase-184 Manchester Gate-D decision support and Phase-185
-authoritative DfT/WebTRIS/BODS source re-audit. This tracker
+accessibility engineering QA, Phase-184 Manchester Gate-D decision support, Phase-185 authoritative
+DfT/WebTRIS/BODS source re-audit and Phase-186 committed-input/submission-release handoff audit.
+This tracker
 distinguishes
 implemented libraries/pages and communication artifacts from activated schedulers, deployed
 services, completed studies and accepted scientific evidence.
@@ -121,6 +122,13 @@ At the latest proportional verification points:
   time-basis regression passed all 412 tests; Ruff and repository-wide strict mypy across 892
   configured files pass. No provider contact, account, credential, operational fetch, capability
   acceptance or release authority was created.
+- Phase 186 bound nine committed submission, decision-support, source-audit and release-engineering
+  artifacts by exact digest; reconfirmed the 8,396-word/100-reference manuscript and four-slide
+  sourced deck; found no duplicate long prose; and reconciled the already-resolved network and
+  producer-attestation policy in the decision pack. Its six-file submission/release regression
+  passed all 68 tests; Ruff, lock validation and repository-wide strict mypy across 893 configured
+  files pass. It inspected no ignored/private workspace and changed no manuscript result,
+  package/CITATION version, tag, approval, evidence or capability.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -330,7 +338,7 @@ acceptance evidence, in the [v0.7 external decision pack](v07_external_decision_
 | Manchester-wide live private-vehicle counts, measured speeds, density, or congestion | `unavailable` | No authorised, audited city-road telemetry source has been supplied; BODS buses and National Highways operational events cannot substitute for it |
 | Live traffic-signal phase, timing, queue, or controller state | `unavailable` | The TfGM source is a dated infrastructure-location archive only |
 | Guaranteed complete Bee Network fleet/service coverage | `unavailable` | Complete membership, NOC/service reference rights, and feed completeness are unresolved |
-| Public live/raw scene hosting | `unavailable` | BODS retention/publication, National Highways release review, other source licences, and complete gate acceptance remain open |
+| Public live/raw scene hosting | `unavailable` | General BODS reuse/publication is documented, but identifier privacy/retention and project row-level output approval, National Highways release review, other source licences, and complete gate acceptance remain open |
 | External online road basemap | `unavailable` by current decision | The current map deliberately uses no tile provider to avoid hidden network and licensing claims; official ONS boundaries provide offline context |
 | Running always-on daemon or cloud scheduler | `unavailable` | Phase 168 implements bounded unattended/cloud contracts, but no deployment account, funded authority, concrete transport or running service exists |
 

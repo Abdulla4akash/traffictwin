@@ -1,43 +1,33 @@
 # v0.7 External Decision Pack
 
-Five recorded decisions block the remaining v0.7 dependency chain. None of them is an
-engineering task: each needs repository-owner approval, a provider/legal fact, supervisor or
-ethics authority, or a human evaluation. This pack makes each decision ready to take by listing
-the concrete options, an engineering recommendation, and the exact acceptance evidence the
-canonical design requires. A recommendation here is not an approval; nothing in this document
-changes capability truth.
+This pack separates the active external decisions that block the remaining v0.7 dependency chain
+from two inputs already resolved in the repository. The active items need repository-owner
+approval, a provider/legal fact, supervisor or ethics authority, or a human evaluation; none is a
+generic engineering task. A prepared recommendation, draft or form is not an approval, and nothing
+in this document changes capability truth.
 
-## 1. Manchester SUMO network, licence, CRS, and date (blocks MAN-09 → MAN-11, Gates D–E)
+## 1. Resolved input: Manchester SUMO network
 
-Decision needed: which exact Manchester SUMO network is bound for map matching and calibration,
-under which licence, construction method, projection, and data date.
+Resolved on 25 July 2026 by
+[ADR-059](decisions/ADR-059-greater-manchester-baseline-network.md): the Greater
+Manchester OSM/Geofabrik baseline, Manchester local-authority study filter, ODbL 1.0 source class,
+SUMO/netconvert 1.27.1 and network-declared UTM 30N projection are bound. The controlled
+`osmium-tool` decode and full network build are complete, and Phase 179 integrates the exact
+305-site candidate population.
 
-Options:
+This no longer blocks candidate generation. Gate D still needs the 174 named-person review
+decisions, an explicit treatment for nine unmatched sites and the scientific contracts in §2; the
+resolved network does not supply those decisions or accept a baseline.
 
-- **A (recommended): OpenStreetMap-derived network.** Generate with SUMO `netconvert` from an
-  OSM extract of the approved study boundary. Source data is ODbL-licensed; attribution and
-  share-alike terms must be recorded in the network's source/licence record before binding.
-  Deterministic regeneration requires pinning the extract date, boundary polygon, netconvert
-  version, and options.
-- **B: A supplied/authorised network** (for example from Randy or TfGM), if one exists with
-  documented provenance and reuse terms. None has been supplied to date.
-- **C: Defer** and keep MAN-09 real-source matching unavailable (the current state).
+## 2. Scientific/human inputs: mapping review, calibration and comparison (blocks MAN-09/MAN-10 production registries)
 
-To approve option A, fill in the
-[Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md):
-the study boundary (Manchester local authority vs Greater Manchester — open question 1), the
-extract date to pin, CRS, SUMO/netconvert versions, ODbL attribution, and deterministic
-regeneration recipe. Implementation then produces the network under a reviewed ADR with exact
-hashes before any matching runs.
+Decision needed: the remaining predeclared study-specific values and human reviews — the design
+explicitly refuses software defaults for these.
 
-## 2. Scientific contracts: matching thresholds, calibration objective/uncertainty, comparison metric (blocks MAN-09/MAN-10 production registries)
-
-Decision needed: predeclared study-specific values — the design explicitly refuses software
-defaults for these.
-
-- **Map matching:** maximum distance (m), direction tolerance (degrees), road-class rule, and
-  which cases force manual confirmation. The synthetic harness demonstrates the mechanics; the
-  real thresholds are a research choice to predeclare.
+- **Map matching:** owner-policy v1.1 has frozen the distance/direction/road-class/confidence
+  candidate rule and generated all 305 rows. The remaining inputs are the 174 named-person review
+  decisions, an explicit treatment for nine no-candidate sites, and any supervisor acceptance
+  required before scientific use.
 - **Calibration:** one objective (MAE or RMSE are implemented), parameter grid/bounds,
   uncertainty treatment, and the development/held-out window design.
 - **Comparison:** one versioned `ManchesterComparisonMetricContract` (pairing keys, interval,
@@ -51,12 +41,13 @@ enters its registry through a reviewed fingerprinted contract.
 
 ## 3. Source facts: DfT/WebTRIS timezone and BODS identifier/privacy residual (blocks Gate B closure, full MAN-02/MAN-03/MAN-05)
 
-Decision needed: provider-documented facts, not choices.
+Decision needed: provider-documented time/identifier facts plus a separate project privacy/output
+decision, not software defaults.
 
 - **DfT raw-count hour timezone (`GA-DFT-1`)** and **WebTRIS clock semantics**: a bounded
-  documentation probe of the official DfT and WebTRIS references can be run on request; if the
-  documentation is silent, the honest outcome is a recorded provider enquiry, and the rows keep
-  their typed source-local exclusions.
+  official-source re-audit is complete and both source families remain silent. The next possible
+  step is a recorded provider enquiry; until a source fact arrives, the rows keep their typed
+  source-local exclusions.
 - **BODS identifier persistence and project privacy/public-output treatment**: general consumer
   reuse/publication and API account/email registration are documented. No official source found
   by the bounded audit defines a retention duration or multi-day `VehicleRef` persistence, so
@@ -72,10 +63,10 @@ narrowed BODS identifier/retention draft are in
 [provider enquiry drafts](integration/provider_enquiry_drafts.md). Until the residuals are
 answered, typed source-local time exclusions and precautionary BODS privacy controls remain.
 
-## 4. v0.6 producer attestation (blocks REL-01 migration and activation)
+## 4. Resolved policy: v0.6 producer attestation
 
-Decision needed (open question 15): what evidence proves a registry was produced by the exact
-`v0.6.0` release before compatibility migration is allowed.
+Resolved question 15: what evidence proves a registry was produced by the exact `v0.6.0` release
+before compatibility migration is allowed.
 
 **Approved on 24 July 2026** and recorded in
 [ADR-058](decisions/ADR-058-v06-producer-attestation.md): only an operator clean-checkout
@@ -105,10 +96,10 @@ Decision needed: human execution and authority — automation cannot substitute.
 
 | Approval given | Work unblocked |
 |---|---|
-| 1 (network) + 2 (matching policy) | Real map-matching candidates and analyst review |
-| + 2 (calibration) | Calibration orchestration, first reviewable baseline (Gate D) |
+| 1 (network) + owner-candidate matching policy | **Resolved/built:** real candidate generation and the sealed analyst-review queue |
+| Human review + 2 (calibration) | Calibration orchestration and the first reviewable baseline (Gate D) |
 | + 2 (comparison contract) | Production goodness-of-fit metrics (MAN-10) |
 | Gate D baseline accepted | Controlled SUMO → FCD → VEC chain (Gate E, MAN-11) |
 | 3 (source facts) | Gate B closure for the affected adapters; canonical time projection |
-| 4 (attestation policy) | REL-01 migration preview→backup→activation→rollback build-out |
+| 4 (attestation policy) | **Resolved/built:** REL-01 migration preview→backup→activation→rollback tooling; a real operator attestation/activation remains separate |
 | 5 (manual/participant) | Final Gate C acceptance and RQ16 evidence |

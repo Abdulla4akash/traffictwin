@@ -3,6 +3,13 @@
 TrafficTwin `0.6.0` is a research prototype release candidate with import-first analysis,
 audited Randy/VEC integration, and controlled source-specific VEC and SUMO execution.
 
+> **v0.7 development boundary:** this file still describes the immutable `v0.6.0` release. On the
+> `claude/complete-v0.7` development branch, do not run the tag commands below as a v0.7 release
+> procedure. Phase 182 passed the safe technical build/install/coexistence checks and Phase 186
+> confirmed the committed handoff inputs, but package/CITATION version, licence/publication
+> reconciliation, capability decisions and explicit release authority remain open. No final
+> `v0.7.0` tag is authorised.
+
 ## Release Status
 
 - Package version: `0.6.0`
@@ -84,6 +91,8 @@ git push origin v0.6.0
 
 Related documents:
 
+- [v0.7 technical release-readiness audit](quality/v07_release_readiness_audit_20260802.md)
+- [v0.7 local-input and handoff audit](quality/v07_local_input_and_handoff_audit_20260802.md)
 - [Standalone demo](standalone_demo.md)
 - [Testing strategy](testing_strategy.md)
 - [Reproducibility](reproducibility.md)

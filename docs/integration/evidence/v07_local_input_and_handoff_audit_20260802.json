@@ -1,0 +1,63 @@
+{
+  "schema_version": "traffictwin.v07_local_input_and_handoff_audit.v1",
+  "phase": 186,
+  "record_date": "2026-08-02",
+  "audit_parent_commit": "57f4b174ea44953f2e83427608864248f16634de",
+  "scope": "git_tracked_repository_inputs_only",
+  "ignored_or_private_workspace_inspected": false,
+  "programme_slices": [
+    {"phase": 173, "commit": "45ad484", "slice": "operational_aggregate_store_activation"},
+    {"phase": 174, "commit": "fb3e0b4", "slice": "scenario_lifecycle_integration"},
+    {"phase": 175, "commit": "f12a8aa", "slice": "post_v1_platform_console"},
+    {"phase": 176, "commit": "515213b", "slice": "concrete_local_sumo_transport"},
+    {"phase": 177, "commit": "5a6395e", "slice": "benchmark_execution_infrastructure"},
+    {"phase": 178, "commit": "dbc5b0d", "slice": "xai_instrumentation"},
+    {"phase": 179, "commit": "fe26881", "slice": "manchester_gate_d_integration"},
+    {"phase": 180, "commit": "4bec8e5", "slice": "supervisor_deck_and_bibliography"}
+  ],
+  "bound_artifacts": [
+    {"path": "docs/dissertation_manuscript_20260801.md", "sha256": "e5dcc19bc27e0c95b34d00da57271572b4b77da5232e365c658ce3d1a5c8743c", "bytes": 86526, "class": "submission_draft"},
+    {"path": "docs/dissertation_references_20260802.bib", "sha256": "734ffcbac653b0df376b2d8b418cc400d599fb6826fba5e65a011e4fb191daed", "bytes": 46014, "class": "bibliography_source"},
+    {"path": "docs/presentations/traffictwin_supervisor_checkpoint_20260802.mjs", "sha256": "dfe6d34662964965cf0682cecd5ece5016491204e6f2755ae5a2679371240094", "bytes": 17138, "class": "editable_deck_source"},
+    {"path": "docs/presentations/traffictwin_supervisor_checkpoint_20260802.pptx", "sha256": "c885e46eddb1dac4eede3594a6c505c3b6313ebecb04749821635d4ba45cd1e2", "bytes": 28043, "class": "editable_deck"},
+    {"path": "docs/presentations/traffictwin_supervisor_checkpoint_20260802.pdf", "sha256": "72166975aa7e108de50f02a525048f529bbc7532f4ed7f30fe437632fe658851", "bytes": 564658, "class": "visually_verified_rendition"},
+    {"path": "docs/presentations/traffictwin_supervisor_checkpoint_20260802_sources.md", "sha256": "3b9e6e2aa4865767dde61bd12a78303244a36ae4e480ef4630960395789028da", "bytes": 7386, "class": "claim_source_audit"},
+    {"path": "docs/integration/evidence/manchester_gate_d_decision_support_20260802.json", "sha256": "481b015cb113f6cfa8c91437478ce92b82bfa4273c5f0d680d1d509cdf9c298c", "bytes": 7519, "class": "engineering_decision_support"},
+    {"path": "docs/integration/evidence/manchester_authoritative_source_reaudit_20260802.json", "sha256": "e69ee22dc7e1d75654444c1450c49df15f048854747d0094f5a3bf1ce748ba62", "bytes": 4152, "class": "official_source_contract_audit"},
+    {"path": "docs/integration/evidence/side_by_side_check_20260802_phase182.json", "sha256": "3dc8c908fe3170542e003678850ab1478108e3df513ff00b364dfe0b2863972d", "bytes": 1148, "class": "release_engineering_receipt"}
+  ],
+  "submission_integrity": {
+    "counted_manuscript_words": 8396,
+    "numbered_references": 100,
+    "body_references_cited": 100,
+    "bibtex_entries": 100,
+    "deck_slides": 4,
+    "deck_source_note_blocks": 4,
+    "duplicate_paragraphs_min_120_chars": 0,
+    "duplicate_normalized_lines_min_60_chars": 0,
+    "manuscript_changed_by_phase": false
+  },
+  "release_boundary": {
+    "package_version": "0.6.0",
+    "citation_version": "0.6.0",
+    "final_v070_tag_present": false,
+    "version_change_authorized": false,
+    "tag_or_release_created_by_phase": false
+  },
+  "external_state": {
+    "network_decision_missing": false,
+    "producer_attestation_policy_missing": false,
+    "human_review_complete": false,
+    "scientific_contracts_approved": false,
+    "provider_time_semantics_received": false,
+    "privacy_or_public_row_output_approved": false,
+    "manual_accessibility_accepted": false,
+    "participant_evidence_exists": false,
+    "real_benchmark_evidence_exists": false,
+    "real_xai_evidence_exists": false,
+    "final_release_authorized": false
+  },
+  "capability_accepted": false,
+  "scientific_evidence_created": false,
+  "supervisor_or_ethics_approval_created": false
+}

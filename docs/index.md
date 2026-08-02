@@ -107,6 +107,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Manchester Gate-D decision-support pack, 2 August 2026](integration/manchester_gate_d_decision_support_20260802.md)
 - [Authoritative DfT/WebTRIS/BODS source re-audit, 2 August 2026](integration/manchester_authoritative_source_reaudit_20260802.md)
+- [v0.7 local-input and submission/release handoff audit, 2 August 2026](quality/v07_local_input_and_handoff_audit_20260802.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
 - [Workspace setup and side-by-side operation](workspace_setup.md)

@@ -67,3 +67,10 @@ The path-free coexistence receipt is
 [`side_by_side_check_20260802_phase182.json`](../integration/evidence/side_by_side_check_20260802_phase182.json).
 It binds the immutable v0.6.0 commit and Phase-181 v0.7 parent. No real registry, workspace,
 migration, tag, package publication or deployment was touched.
+
+Phase 186 subsequently re-bound this receipt and the committed dissertation/supervisor handoff
+artifacts in the
+[local-input and handoff audit](v07_local_input_and_handoff_audit_20260802.md). That audit found no
+missing generic build input and did not change this release result: package/CITATION remain `0.6.0`,
+while licence/publication reconciliation, capability decisions, explicit version authority and a
+final `v0.7.0` tag/release remain absent.
