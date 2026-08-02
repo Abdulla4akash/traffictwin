@@ -4492,3 +4492,26 @@ unbound cause wording, private paths and global superlatives. Positive tests cov
 ties, metric winners, evidence-backed advice, owner defaults, non-executable drafts, and both
 simulation-internal and allowlisted real-world cause scopes. The code performed no execution,
 external request, scientific calculation or standing change.
+
+### Phase 168 claim: maximum-coverage controlled live-twin contracts (2 August 2026)
+
+The integrating lead owns the broad owner-directed live-twin amendment in
+`src/traffictwin/platform/live_twin.py`, `tests/unit/test_live_twin.py`,
+`docs/platform/controlled_live_twin_adapter_design.md`, and this phase record. The phase may add
+unattended observe and closed-loop simulation modes, a preauthorised operator-site mode,
+authenticated public-API contracts, aggregate upstream-compliant BODS bridge contracts, local and
+cloud execution policies, allowlisted traffic/RSU/actor/scenario/streaming/sweep/checkpoint/fault
+operations, policy-bound autonomous commands and full fake-process receipts. It may not acquire
+live data, contact a public endpoint, allocate cloud resources, spend funds, start a scientific
+campaign, actuate a real road, invent operator authority or credentials, publish identities/raw
+bytes, or conflate road capacity with RSU compute capacity. Tests remain deterministic and local.
+
+Phase 168 verification passed on 2 August 2026: all 56 focused and adjacent live-twin,
+scenario-registry, decision-safety and what-if tests passed. Ruff lint and formatting, strict mypy,
+`uv lock --check`, external-client absence screening and owned-path `git diff --check` passed.
+Synthetic tests cover unattended/local/public/cloud/operator policy validation, single ownership,
+heartbeat and time/command/cost budgets, aggregate privacy, distinct road/RSU capacity commands,
+idempotent command and BODS-update retries, treatment deviations, plugins, fake operator effects,
+authenticated request role/age/proof checks, upstream-compliant aggregate BODS semantics,
+webhook-digest events, terminal receipts and scientific-use refusal. No socket, BODS request,
+cloud allocation, spend, SUMO launch, scientific campaign or infrastructure actuation occurred.

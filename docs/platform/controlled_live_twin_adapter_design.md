@@ -1,122 +1,140 @@
 # Design — Controlled live-twin adapter (post-v1 L-1)
 
-**Status: IMPLEMENTED only for the authorised observe-only backend contract in Phase 153 and
-corrected in Phase 161. The delivered surface is the deterministic fake-process state machine,
-aggregate snapshots, process-local single-owner locking, heartbeat/budget shutdown and terminal
-engineering receipts. Mutation/control commands, live BODS ingestion, public or unattended
-execution, scientific campaigns and production use are absent. A real pinned SUMO smoke remains
-optional and unexecuted. Maximum policy ceiling: `owner_approved_candidate`. "Live" means an owner-attended,
-process-backed SUMO session with controlled state exchange. It does not mean a live city
-replica, production traffic control, continuous sensor synchronisation or authority to run
-an experiment.**
+**Status: IMPLEMENTED in Phase 168 as maximum-coverage backend contracts and a deterministic fake
+control adapter. Delivered modes are observe-only, unattended closed-loop simulation and
+preauthorised operator-site closed loop; supporting contracts cover authenticated public access,
+local SUMO, GCP/AWS scheduling, aggregate BODS updates, plugins, streams/webhooks, command/cost
+budgets and terminal receipts. No live BODS request, public service, cloud allocation, SUMO process
+or real-road actuation was executed. Real transports/processes still require deployment-supplied
+accounts, endpoints, credentials and operator authority. Maximum policy ceiling:
+`owner_approved_candidate`; receipts create no scientific evidence or production certification.**
 
-## 1. Purpose
+## 1. Purpose and coverage
 
-Meeting 3 described a what-if interface backed by SUMO. The v1 composer deliberately stops
-at a prediction and reviewable campaign draft; execution remains behind human approval and
-the existing instrument. This optional adapter would add a tightly bounded interactive
-engineering session for observing a running simulation and, if separately approved,
-applying allowlisted scenario changes.
+The adapter provides a single typed control plane for local/fake simulation, local SUMO, scheduled
+cloud simulation and operator-authorised infrastructure. It supports lifecycle, scenario,
+vehicle/route policy, incidents, signals, speeds, lanes, road capacity, RSU compute capacity,
+actors, observation/action/reward contracts, seed namespaces, budgets, metrics, streams/webhooks,
+recommendations, defaults, instruction drafts, sweeps, replay/checkpoints, fault injection and
+digest-pinned plugins.
 
-The adapter is not needed for v1. It should be considered only after the dashboard,
-[scenario/run registry](scenario_run_registry_design.md) and decision guardrails are stable.
+Capability does not manufacture deployment inputs. This repository can validate a supplied cloud
+or operator policy, but it does not create an account, credential, endpoint, spending authority or
+site-control authority.
 
-## 2. Non-negotiable boundary
+## 2. Session modes and backends
 
-- Owner-attended foreground process only; no daemon, public endpoint or unattended queue.
-- Exact reviewed network/scenario, seed, tool versions and resource budget are bound before
-  startup.
-- No arbitrary shell, Python, TraCI command or filesystem path from a UI.
-- Default mode is observe-only. Mutating commands require a separate owner-approved
-  allowlist and exact scenario approval.
-- Closing the UI stops or detaches according to an owner-selected fail-safe policy and emits
-  a terminal receipt.
-- The adapter does not modify the campaign instrument, admission chain or VEC-10 boundary.
+`LiveTwinSessionSpec` binds the complete mode, backend, access surface and budget before startup:
 
-TraCI controls traffic-simulation state. It must not be described as directly changing VEC
-RSU compute capacity unless a reviewed integration model explicitly maps such a scenario to
-the compute simulator. Traffic capacity, signal control and RSU compute capacity are
-different variables.
+- `observe_only` accepts aggregate snapshots and no commands;
+- `simulation_closed_loop` accepts exact allowlisted simulation/platform commands and may run
+  attended or unattended on a fake, local SUMO, GCP Batch or AWS Batch adapter; and
+- `operator_site_closed_loop` accepts allowlisted real-infrastructure commands only when exact
+  operator authority and operator-policy digests are bound.
 
-## 3. Session modes
+Backends are `local_fake`, `local_sumo`, `gcp_batch`, `aws_batch` and `operator_site`. Access is by
+`local_library`, `cloud_scheduler` or `authenticated_public_api`. Public access requires TLS,
+authentication, signed requests, roles, age bounds and idempotency in `PublicApiPolicy`.
+`AuthenticatedControlAdapter` is the backend authorization boundary; a web framework/transport is
+not started by this phase.
 
-### 3.1 Observe-only (first deliverable)
+Unattended operation does not require per-command human approval when the exact session command
+allowlist and authority policy already preauthorise it. Heartbeat, wall-clock, simulation-time,
+command-count and estimated-cost limits remain mandatory.
 
-Start a pinned simulation, subscribe to an allowlist of aggregate variables and emit
-rate-limited `TwinSnapshot` records: simulation time, aggregate vehicle count, mean speed,
-queue indicators and session health where supported. No vehicle identifiers leave the
-adapter; the UI receives aggregates.
+## 3. Aggregate BODS bridge
 
-### 3.2 Controlled intervention (not implemented; separate future opt-in)
+`BodsBridgePolicy` permits unattended inputs without a separate self-imposed request rate while
+requiring compliance with the upstream provider's policy, `Retry-After` and exponential backoff.
+It binds terms, licence and aggregate-schema digests and a staleness ceiling. It requires
+`raw_bytes_retained: false` and `identifiers_retained: false`.
 
-Only after owner approval, accept a versioned allowlist such as pause/resume, simulation
-step and predeclared signal-program or demand-scenario selection. Each command carries a
-scenario digest, expected current state, monotonic sequence and actor class. Commands that
-change scientific treatment after a run begins invalidate experiment use and record a
-deviation.
+`AggregateMobilityUpdate` accepts only aggregate vehicle count, speed, queue, incident and route
+demand fields plus a source-receipt digest. Updates are sequenced, schema-bound and idempotent;
+stale, changed or identity-bearing updates refuse. Phase 168 used synthetic updates only and
+contains no downloader or credential.
 
-## 4. Startup, runtime and shutdown
+## 4. Command model
 
-`LiveTwinSessionSpec` binds network/scenario digests, toolchain versions, seed, mode,
-allowlist, maximum simulation duration, wall-clock/runtime budget and output policy.
-Startup performs the existing compatibility and provenance checks before spawning a
-process. The process uses a private ephemeral control port and an argument vector, never a
-shell string.
+`CommandGrant` binds a command kind and surface. `TwinCommand` additionally binds the session
+digest, monotonic sequence, idempotency key, expected state, target, typed parameter keys, estimated
+cost and whether it changes a scientific treatment. Real-infrastructure commands also bind the
+session's operator-authority digest.
 
-Runtime is a single state machine: `prepared -> running -> stopping -> completed/refused`.
-Exactly one controller owns a session. A heartbeat timeout, protocol mismatch, unexpected
-process exit or budget breach triggers fail-safe stop and a typed receipt.
+The allowlist includes:
 
-The terminal `LiveTwinReceipt` records intended/observed configuration, start/end times,
-tool versions, command ledger digest, aggregate-output digests, resource use, deviations and
-exit status. It contains no private path, credential or raw identity.
+- pause/resume/step and lifecycle support;
+- signal programs, speed limits, lane open/close, incidents and route/demand policy;
+- explicitly separate `set_road_capacity` (`road_traffic`) and
+  `set_rsu_compute_capacity` (`rsu_compute`) commands;
+- actor family and observation/action/reward/seed contracts;
+- scenario revisions, budgets, checkpoints/restores, sweeps and fault injection;
+- recommendation publication, owner-default selection and application of a digest-bound
+  instruction draft; and
+- digest-bound plugin invocation.
 
-## 5. Relationship to evidence
+There is no arbitrary shell, executable, script, path or request-provided plugin code. Treatment
+changes become immutable deviations and invalidate scientific use of the engineering receipt.
 
-An interactive session is an engineering demonstration by default: `evidence: false`.
-Scientific use requires a separate frozen protocol, accepted human approval, unmodified
-instrument boundary and admission decision. The adapter never labels a session validated,
-causal, ground truth or production-ready.
+## 5. State, locking, events and shutdown
 
-No current BODS session is fed directly into SUMO by this design. A real-time data-to-twin
-bridge would require a new data contract, licence/privacy review, temporal alignment study
-and owner decision.
+The state machine is `prepared -> running <-> paused -> stopping -> completed/refused`. An exact
+spec digest has one process-local controller owner. Commands and aggregate updates are idempotent;
+changed retries refuse. Heartbeat/protocol loss, wall/simulation/command/cost budget breach,
+private output or stale live input triggers fail-safe termination and a terminal receipt.
 
-## 6. API
+`TwinSnapshot` exposes only approved aggregate fields. `EventSubscription` covers session,
+snapshot, command, mobility, heartbeat and terminal events through local streams or authenticated
+webhook bindings; payloads are digests rather than raw data. Delivery failures become deviations.
 
-Minimum backend surface:
+`LiveTwinReceipt` records command/update counts, ledger digest, estimated cost, deviations and
+whether the injected process reported an external effect. It always states:
 
-- `prepare_session(spec) -> PreparedSession | LiveTwinRefusal`
-- `start_session(prepared_digest) -> SessionHandle | LiveTwinRefusal`
-- `read_snapshot(handle) -> TwinSnapshot | LiveTwinRefusal`
-- `apply_command(handle, command) -> CommandReceipt | LiveTwinRefusal`
-- `stop_session(handle, reason) -> LiveTwinReceipt`
+- `evidence: false`;
+- `scientific_use: false`;
+- `production_ready: false`; and
+- `execution_authority_created: false`.
 
-The dashboard receives only opaque handles and aggregate snapshots. It cannot supply an
-executable, port, path or free-form command.
+An operator adapter may report a real external effect only when deployment supplied the authority;
+the fake used by tests reports no external effect except in an explicit receipt-path simulation.
+
+## 6. Cloud and plugin contracts
+
+`CloudExecutionPolicy` binds GCP or AWS, external account-scope digest, region allowlist, maximum
+instances and cost authority. The provider must match the selected backend and the session budget
+cannot exceed the supplied external authority. The model does not allocate a resource or spend.
+
+`PluginContract` binds id, content digest, kind and command grants and forbids arbitrary
+request-provided code. Plugin kinds cover traffic/vehicle-edge models, controllers, metrics and
+event sinks. Actual plugin loading remains an injected adapter responsibility.
 
 ## 7. Typed refusals
 
-At minimum: `OWNER_PRESENCE_REQUIRED`, `APPROVAL_MISSING`, `DIGEST_MISMATCH`,
-`TOOL_VERSION_MISMATCH`, `RESOURCE_BUDGET_MISSING`, `SESSION_ALREADY_OWNED`,
-`COMMAND_NOT_ALLOWLISTED`, `STATE_SEQUENCE_MISMATCH`, `CONTROL_PROTOCOL_LOST`,
-`BUDGET_EXCEEDED`, `SCIENTIFIC_USE_UNAUTHORISED` and `PRIVATE_CONTENT_DETECTED`.
+Implemented refusal paths include `SESSION_ALREADY_OWNED`, `DIGEST_MISMATCH`,
+`COMMAND_NOT_ALLOWLISTED`, `STATE_SEQUENCE_MISMATCH`, `IDEMPOTENCY_CONFLICT`,
+`AUTHORITY_MISSING`, `AUTHENTICATION_FAILED`, `REQUEST_EXPIRED`, `CONTROL_PROTOCOL_LOST`,
+`BUDGET_EXCEEDED`, `PLUGIN_NOT_ALLOWLISTED`, `BODS_BRIDGE_NOT_CONFIGURED`, `LIVE_INPUT_STALE`,
+`BACKEND_MISMATCH`, `PUBLIC_API_NOT_CONFIGURED`, `SCIENTIFIC_USE_UNAUTHORISED` and
+`PRIVATE_CONTENT_DETECTED`. Pydantic model refusals cover inconsistent backends, unbound public or
+operator modes, command/capacity conflation, undeclared treatment change and arbitrary parameters.
 
 ## 8. Verification and acceptance
 
-Tests use a deterministic fake control process first, then a pinned local SUMO smoke test
-where available. They cover argument-vector construction, port isolation, state transitions,
-single-owner locking, allowlist enforcement, stale command rejection, heartbeat loss,
-budget stop, process cleanup, aggregate-only snapshots and receipts after every terminal
-path. No network acquisition or experiment campaign runs in tests.
+All tests use a deterministic in-process fake. They cover every mode/policy family, process-local
+single ownership, heartbeat and budget stops, snapshot privacy, separate road/RSU capacity domains,
+sequenced/idempotent commands, pause/resume, treatment deviations, plugin and command allowlists,
+operator authority, fake external-effect receipts, authenticated public requests, aggregate BODS
+idempotency/staleness/privacy, webhook event digests, scientific-use refusal and bounded SUMO argv.
 
-Acceptance requires observe-only mode before mutation, zero arbitrary command surface,
-deterministic terminal receipts, bounded cleanup, explicit engineering-only labelling and
-no change to existing evidence/admission records.
+No test launches SUMO, fetches BODS, opens a socket, contacts a cloud provider, spends money,
+executes a scientific campaign or actuates infrastructure.
 
-## 9. Owner decisions and stop conditions
+## 9. Owner decisions and deployment inputs
 
-The owner must explicitly decide whether to build this optional slice, observe-only versus
-mutation scope, approved variables/commands, session budgets and fail-safe shutdown policy.
-Stop if safe implementation would need unattended execution, public control access, live
-BODS ingestion, an unfrozen intervention, new cloud compute, or a relaxation of VEC-10.
+On 2 August 2026 the owner selected maximum coverage: unattended operation, closed loop, public
+authenticated access, cloud orchestration and preauthorised operator-site control are enabled by
+the contracts above without per-command human approval. Activation still requires concrete inputs
+that code cannot invent: BODS access/licence configuration, GCP/AWS account scope and funded budget,
+public authentication/TLS deployment, and operator endpoint/authority/site policy. Supplying those
+inputs and choosing to start an external adapter are separate deployment actions; none occurred in
+Phase 168.
