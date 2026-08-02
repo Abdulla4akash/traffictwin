@@ -41,7 +41,7 @@ No row is marked `accepted`; all 15 capability rows remain `planned` under the c
 | MAN-02 | DfT adapter | INA/BX | Real acquisition + parser + replay tested; raw-count hour timezone **BX** (provider enquiry) |
 | MAN-03 | WebTRIS adapter | INA/BX | Real site/day/quality tested; timezone **BX**; near-live correctly refused |
 | MAN-04 | TfGM reference layer | INA | Real 2,529-row archive tested; final licence/release reconciliation open |
-| MAN-05 | BODS live transit | INA/BX | Real acquisition + Bee scope tested; retention/registration terms + `BNVB` + full coverage **BX** |
+| MAN-05 | BODS live transit | INA/BX | Real acquisition + Bee scope tested; general reuse/publication and API registration documented; identifier privacy/retention + `BNVB` + full coverage **BX** |
 | MAN-06 | Randy bridge | INA | Permission-safe panel tested; full workflow acceptance open |
 | MAN-07 | Projection/freshness | INA/BX | Time-basis, freshness, spatial admission tested; DfT/WebTRIS canonical time **BX** (timezone) |
 | MAN-08 | Manchester Operations | INA | Modes, maps, source cards, stale fallback tested; broad acceptance + manual accessibility open |
@@ -77,7 +77,7 @@ No row is marked `accepted`; all 15 capability rows remain `planned` under the c
 
 | Decision | Blocks | Prepared artifact |
 |---|---|---|
-| DfT/WebTRIS timezone, BODS terms | MAN-02/03/05/07 canonical time, Gate B | `provider_enquiry_drafts.md` |
+| DfT/WebTRIS timezone, BODS identifier/privacy residual | MAN-02/03/05/07 canonical time, Gate B | `provider_enquiry_drafts.md` |
 | Manchester SUMO network + licence | MAN-09/11, Gate D/E | `manchester_network_decision_worksheet.md` |
 | Map-matching/calibration/comparison contracts | MAN-09/10 production registries | `supervisor_contract_decision_form.md` |
 | First real v0.6 attestation | REL-01 real activation | `v06_attestation_procedure.md` |

@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 184. It does not alter the strict
+This section records the additive platform truth through Phase 185. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -165,6 +165,15 @@ pool. It preserves the non-reconciling 149-edge/1,788-cell and 150-edge/1,800-ce
 and the measured gridlock refusal. No reviewer, protocol amendment, objective, parameter,
 uncertainty rule, contract registration, run, baseline, comparison or scientific evidence was
 created; `MAN-09`–`MAN-11` and Gate D remain unchanged.
+
+Phase 185 re-audits seven authoritative DfT, National Highways, and BODS sources without making an
+operational request. The DfT raw-count hour timezone and WebTRIS clock basis remain open because
+their official metadata, FAQ, and API schema do not state them. The BODS implementation guide now
+documents general copy/adapt/publish/distribute/transmit rights and the API account/email
+registration requirement, closing `GA-BODS-6` as a source fact. It does not document a retention
+duration or multi-day `VehicleRef` persistence, and it cannot approve TrafficTwin privacy,
+data-management, public row-level output, complete Bee scope, or release acceptance. No account,
+credential, provider contact, capability acceptance, or release authority was created.
 
 Phase 0 status: approved and committed.
 

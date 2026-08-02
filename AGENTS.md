@@ -4977,3 +4977,34 @@ The seven-file decision-support/Gate-D/review/calibration/demand regression pass
 Ruff format/check, repository-wide strict mypy across 891 files, JSON parse, privacy and diff gates
 passed. No reviewer, row decision, protocol amendment, scientific selection, contract registration,
 demand/SUMO run, baseline, comparison or evidence was created; Gate D remains `foundation_only`.
+
+### Phase 185 claim: authoritative Manchester source re-audit (2 August 2026)
+
+The owner-directed integrating lead owns the official-source design/audit in
+`docs/integration/manchester_authoritative_source_reaudit_20260802.md`; its path-free structured
+record at `docs/integration/evidence/manchester_authoritative_source_reaudit_20260802.json`; the
+narrow reconciliation in `docs/integration/provider_enquiry_drafts.md`,
+`docs/integration/manchester_bods_retention.md`, `docs/open-questions.md`,
+`docs/integration/manchester_bods_acquisition.md`,
+`docs/integration/manchester_bods_gate_b_probe.md`,
+`docs/integration/manchester_live_feature_matrix.md`,
+`docs/integration/manchester-source-gate-a-audit-v0_7.md`, `docs/v07_external_decision_pack.md`
+and `docs/v07_requirement_matrix.md`; the integrity assertions
+in `tests/unit/test_manchester_authoritative_source_reaudit.py`; the additive `docs/index.md` link;
+the bounded status updates in `docs/implementation-status.md` and
+`docs/current_progress_v0_7.md`; the `CHANGELOG.md` entry; and this phase record. The phase may
+read current official DfT/GOV.UK, National Highways/WebTRIS and BODS sources, preserve official
+URLs and source silence, close only explicitly documented BODS consumer-use/registration terms,
+and narrow provider enquiries. It may not contact a provider, register an account, create/use a
+credential, infer DfT/WebTRIS timezone semantics, invent a retention limit, grant publication or
+privacy approval, weaken identifier controls, fetch operational data or change capability standing.
+
+Phase 185 completed locally on 2 August 2026. Seven official sources document general BODS
+copy/adapt/publish/distribute/transmit rights, API account/email registration and the accompanying
+attribution/non-endorsement/source-quality conditions, so `GA-BODS-6` is closed as a source fact.
+The DfT/WebTRIS clock bases, BODS retention duration and multi-day `VehicleRef` persistence remain
+undocumented; project privacy/data-management and row-level public output remain unapproved. The
+19-file adjacent source-contract/acquisition/freshness/retention/time-basis regression passed all
+412 tests; the six focused integrity tests, Ruff format/check, repository-wide strict mypy across
+892 configured files, JSON parse and diff gates passed. No account, credential, provider contact,
+operational fetch, capability/gate acceptance or release authority was created.

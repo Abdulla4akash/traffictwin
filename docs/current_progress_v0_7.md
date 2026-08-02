@@ -2,7 +2,7 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 184 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 185 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -10,7 +10,8 @@ data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 1
 store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
 supervisor-communication/literature completion, the Phase-181 repository-wide strict-mypy
 reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
-accessibility engineering QA and Phase-184 Manchester Gate-D decision support. This tracker
+accessibility engineering QA, Phase-184 Manchester Gate-D decision support and Phase-185
+authoritative DfT/WebTRIS/BODS source re-audit. This tracker
 distinguishes
 implemented libraries/pages and communication artifacts from activated schedulers, deployed
 services, completed studies and accepted scientific evidence.
@@ -113,6 +114,13 @@ At the latest proportional verification points:
   packet. Its seven-file adjacent Manchester suite passed all 198 tests; Ruff and repository-wide
   strict mypy across 891 configured files pass. It made no human row decision, scientific choice,
   protocol amendment, demand/SUMO run, contract registration, baseline or comparison.
+- Phase 185 re-audited seven official DfT, National Highways, and BODS sources. DfT/WebTRIS clock
+  bases remain undocumented; BODS general reuse/publication and API registration are now
+  documented, while retention duration, multi-day identifier persistence, project privacy and
+  public row-level output remain open. Its 19-file source-contract/acquisition/freshness/retention/
+  time-basis regression passed all 412 tests; Ruff and repository-wide strict mypy across 892
+  configured files pass. No provider contact, account, credential, operational fetch, capability
+  acceptance or release authority was created.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -162,7 +170,7 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-02` DfT historical road counts | `working_bounded` | Real count-point/raw-count/AADF acquisition, exact parsing, replay, catalogue, survey filters/charts, and Manchester reference scene | Full Manchester bulk acceptance, raw-count hour timezone, provider rate-limit/SLA, calibration-profile approval, and final UI acceptance remain |
 | `MAN-03` WebTRIS strategic-road evidence | `working_bounded` | Real site/day/quality acquisition, exact historical replay, missing-value preservation, charts, and selected-site scene | Provider-wide/multi-site acceptance and source timezone remain open; real probing confirmed that WebTRIS must be refused as near-live |
 | `MAN-04` TfGM signal reference layer | `working_bounded` | Real 2,529-row archive, exact parser, coordinate conversion, attribution, spatial admission, and static map layer | Final common Gate-B/licence/release reconciliation remains; an overwritten future archive must be re-audited |
-| `MAN-05` BODS live transit | `working_bounded` | Real authenticated acquisition, safe SIRI-VM parsing, live/stale classification, local map, outage fallback, five verified Bee operator identifiers, rate limiting, aggregate history, and precautionary cleanup | Complete Bee service/fleet scope, `BNVB`, registration/retention/publication terms, and complete provider acceptance remain unresolved |
+| `MAN-05` BODS live transit | `working_bounded` | Real authenticated acquisition, safe SIRI-VM parsing, live/stale classification, local map, outage fallback, five verified Bee operator identifiers, rate limiting, aggregate history, precautionary cleanup, and documented general BODS reuse/publication plus API-registration terms | Complete Bee service/fleet scope, `BNVB`, identifier privacy/retention, project public-output treatment, and complete provider acceptance remain unresolved |
 | `MAN-06` Randy Manchester bridge | `working_bounded` | Permission-safe local panel over accepted sanitised VEC-11 evidence, aggregates, citations, fingerprints, and limitations | Full workflow acceptance remains; source limits deliberately prohibit raw identity, geographic/live relabelling, and public hosting |
 | `MAN-07` projection/freshness service | `working_bounded` | UTC time-basis contract, source truth states, BODS and National Highways freshness, spatial admission, exclusions, and ONS display boundaries | Real canonical time projection for DfT/WebTRIS is blocked by unresolved source-time semantics; broad real-source projection acceptance remains |
 | `MAN-08` Manchester Operations | `working_bounded` | Historical/latest/live-vehicle modes, source-separated maps, BODS and National Highways refreshes, TfGM/DfT/WebTRIS views, filters, source cards, stale fallback, Randy panel, and metadata-only download | Broad/multi-site acceptance, upstream capability acceptance, public-export decisions, and manual accessibility/participant acceptance remain |
@@ -306,7 +314,7 @@ created.
 | Approved production comparison metric contract | `MAN-10` |
 | WebTRIS source timezone semantics | Full `MAN-03`/`MAN-07` canonical time projection |
 | DfT raw-count hour timezone and defensible profile policy | Full `MAN-02`/`MAN-09` use |
-| BODS identifier retention, display, export, publication, and registration terms | Full `MAN-05` and any public live output |
+| BODS multi-day identifier persistence plus project privacy/data-management and public row-level output treatment; general reuse/publication and API registration were documented in Phase 185 | Full `MAN-05` and any public live output |
 | Complete versioned Bee Network service/operator/NOC membership evidence | Complete Bee Network claim in `MAN-05` |
 | Final publication classes and licence reconciliation for all source/reference/network artifacts | Gate B, Gate F, public release |
 | Decision on participant usability study and any ethics/supervisor approval | RQ16 and final UX research acceptance |

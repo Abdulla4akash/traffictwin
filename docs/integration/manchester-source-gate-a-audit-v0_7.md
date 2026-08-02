@@ -679,7 +679,7 @@ Each blocker blocks only its dependent capability/claim, per the v0.7 design §2
 | `GA-BEE-3` | TfGM GTFS/TXC schedule dataset is ODbL v1.0 (not OGL); derived-join publication class unresolved | Publishing any artifact derived from a schedule join (`MAN-05`, `MAN-08` exports) |
 | `GA-BEE-4` | Traveline NOC database licence not confirmed on travelinedata.org.uk | Redistributing NOC-derived reference tables; local lookup use only until resolved |
 | `GA-MAP-1` | Carto keyless-basemap grantee terms and exact attribution text unconfirmed | Enabling any Carto basemap (ADR-056 keeps `map_provider=None`) |
-| `GA-BODS-6` | BODS account registration terms not reviewed (account creation was out of audit scope) | Account creation and key issuance at Gate B |
+| `GA-BODS-6` | **Closed as a source fact by the Phase-185 authoritative re-audit:** API consumers must register an account with an email; no account or credential was created | Any actual account creation and key issuance still require separate Gate-B authority |
 
 ## 14. What this audit does and does not establish
 

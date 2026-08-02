@@ -1,0 +1,78 @@
+{
+  "schema_version": "traffictwin.manchester_authoritative_source_reaudit.v1",
+  "phase": 185,
+  "record_date": "2026-08-02",
+  "record_type": "official_documentation_reaudit",
+  "evidence_class": "source_contract_documentation",
+  "official_sources": [
+    {"id": "dft_metadata", "url": "https://storage.googleapis.com/dft-statistics/road-traffic/all-traffic-data-metadata.pdf", "finding": "Hour is defined by clock range; no timezone, UTC, GMT or British Summer Time basis is stated."},
+    {"id": "dft_api", "url": "https://roadtraffic.dft.gov.uk/api-documentation", "finding": "The raw-count hour field/filter has no documented timezone basis."},
+    {"id": "webtris_faq", "url": "https://webtris.nationalhighways.co.uk/Home/Faqs", "finding": "The FAQ documents month-in-arrears publication and quality calculation but no timezone basis."},
+    {"id": "webtris_swagger", "url": "https://webtris.nationalhighways.co.uk/api/swagger/docs/v1", "finding": "The current API definition contains no timezone, UTC, GMT or BST statement for report intervals."},
+    {"id": "bods_implementation", "url": "https://www.gov.uk/government/publications/bus-open-data-implementation-guide/bus-open-data-implementation-guide", "finding": "Consumers may copy, adapt, publish, distribute and transmit bus open data; API use requires registration/email; attribution, non-endorsement and source-quality disclaimers apply."},
+    {"id": "bods_consumer", "url": "https://www.gov.uk/guidance/find-and-use-bus-open-data", "finding": "Timetable, vehicle-location and fares data are freely available for commercial, non-commercial and academic use."},
+    {"id": "bods_siri", "url": "https://www.gov.uk/government/publications/technical-guidance-publishing-location-data-using-the-bus-open-data-service-siri-vm/technical-guidance-siri-vm", "finding": "Bus positions are open to all; timestamps are UTC; national archive requests are limited to once per five seconds; VehicleRef is consistent through the day."}
+  ],
+  "dft_raw_count_hour": {
+    "blocker_id": "GA-DFT-1",
+    "status": "open_official_sources_silent",
+    "hour_range_documented": true,
+    "timezone_documented": false,
+    "utc_projection_permitted": false,
+    "retained_basis": "local_clock_hour_label"
+  },
+  "webtris_report_time": {
+    "blocker_id": "GA-WT-1",
+    "status": "open_official_sources_silent",
+    "interval_minutes_observed": 15,
+    "timezone_documented": false,
+    "utc_projection_permitted": false,
+    "retained_basis": "source_string_undeclared",
+    "near_live_permitted": false
+  },
+  "bods_consumer_contract": {
+    "general_reuse_and_publication": {
+      "status": "documented",
+      "commercial_and_noncommercial_use": true,
+      "academic_research": true,
+      "copy": true,
+      "adapt": true,
+      "publish": true,
+      "distribute": true,
+      "transmit": true
+    },
+    "api_registration": {
+      "status": "documented",
+      "account_required_for_api": true,
+      "email_required": true,
+      "account_created_by_phase": false,
+      "credential_created_or_used_by_phase": false,
+      "ga_bods_6_closed": true
+    },
+    "conditions": {
+      "attribute_bods": true,
+      "no_implied_dft_or_operator_endorsement": true,
+      "state_source_accuracy_and_quality_not_warranted": true,
+      "access_may_be_removed_for_illegal_use_misuse_or_overload": true
+    },
+    "source_specific_retention": {
+      "retention_duration_documented": false,
+      "consumer_retention_cap_found": false,
+      "vehicleref_same_day_consistency_documented": true,
+      "vehicleref_multi_day_persistence_documented": false
+    }
+  },
+  "traffictwin_disposition": {
+    "generic_bods_source_reuse_blocker_closed": true,
+    "generic_bods_api_registration_fact_closed": true,
+    "precautionary_private_retention_remains": true,
+    "identifier_redaction_remains": true,
+    "longitudinal_trace_privacy_approved": false,
+    "public_row_level_positions_approved": false,
+    "public_identifier_export_approved": false,
+    "complete_bee_membership_accepted": false,
+    "provider_contacted": false,
+    "operational_data_fetched": false,
+    "capability_accepted": false
+  }
+}

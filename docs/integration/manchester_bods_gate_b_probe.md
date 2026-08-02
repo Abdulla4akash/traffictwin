@@ -59,7 +59,8 @@ verify five operator references without exposing private rows. It does not close
   longitudinal use, backup/secure-erasure, and publication approval). A separate precautionary
   local control now previews 24-hour/240-family cleanup and requires exact confirmation, but it
   does not resolve those external terms;
-- `GA-BODS-3` and `GA-BODS-6` (general consumer limits and registration terms); or
+- `GA-BODS-3` (general consumer rate limits); Phase 185 subsequently documented API account/email
+  registration and closed `GA-BODS-6` as a source fact; or
 - complete Gate-B, browser/accessibility, outage, longitudinal-retention, and release acceptance.
 
 Accordingly, the live slice works locally while `MAN-01`, `MAN-05`, `MAN-07`, and `MAN-08` remain

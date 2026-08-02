@@ -28,7 +28,7 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | Continuous traffic flow, measured speed, density, or congestion | **Unavailable** | The integrated National Highways products are operational-event/sign feeds, not continuous telemetry; WebTRIS remains historical |
 | Live traffic-signal phase/timing state | **Unavailable** | TfGM source is a dated signal-location reference only; no phase, timing, queue, or controller-state feed exists |
 | Complete Bee Network fleet/service claim | **Unavailable** | `BNVB`, branding-versus-franchise scope, NOC/schedule reference rights, and complete feed coverage remain unresolved |
-| Public live-data hosting/export | **Unavailable** | A local metadata-only status download contains no positions or identifiers but does not accept public hosting. BODS terms, identifier retention/publication basis, National Highways release review, reference-data licences, and complete gate acceptance still block public metadata/raw/scene hosting |
+| Public live-data hosting/export | **Unavailable** | A local metadata-only status download contains no positions or identifiers but does not accept public hosting. General BODS reuse/publication and API registration are documented; identifier privacy/retention, project public-output approval, National Highways release review, reference-data licences, and complete gate acceptance still block public metadata/raw/scene hosting |
 | Always-on background source scheduler | Deliberately out of v0.7 scope | Streamlit reruns read local state only; a daemon/cloud scheduler would require a separate deployment/governance design |
 
 ## Current acceptance position

@@ -79,14 +79,15 @@ Open:
     the bounded National Highways operational REST slice can contribute to formal MAN-01/MAN-07/
     MAN-08 capability acceptance?
 
-A 24 July 2026 documentation probe
-([machine record](integration/evidence/manchester_source_docs_probe_20260724.json)) checked the
-official DfT API documentation, both WebTRIS Swagger surfaces, and the BODS guidance and SIRI-VM
-technical-guidance landing pages for the open source facts. Every probed page is silent on the
-DfT raw-count hour timezone, the WebTRIS clock basis, and BODS consumer
-retention/republication/identifier terms; the BODS guidance footer confirms only Open Government
-Licence v3.0 for the page content itself. Closing these blockers therefore requires direct
-provider enquiries or deeper authoritative documents, not further implementation. No capability
+The 2 August 2026
+[authoritative-source re-audit](integration/manchester_authoritative_source_reaudit_20260802.md)
+keeps the DfT raw-count hour timezone and WebTRIS clock basis open because the official metadata,
+FAQ, and API schema are silent. The official BODS implementation guide now closes the general
+consumer-use facts: consumers may copy, adapt, publish, distribute, and transmit the data, while
+API use requires an account and email plus attribution, non-endorsement, and source-quality
+conditions. `GA-BODS-6` is therefore closed as a documented registration fact. No official source
+located by the audit defines a retention duration or multi-day `VehicleRef` persistence, so
+project privacy/data-management and public row-level output decisions remain open. No capability
 status changed.
 
 Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questions:

@@ -8,6 +8,13 @@ vehicle identifiers even though parser outputs replace `VehicleRef` with snapsho
 The control is a precautionary local engineering default, not an assertion that the project's
 legal or research data-management retention basis has been approved.
 
+The 2 August 2026
+[authoritative-source re-audit](manchester_authoritative_source_reaudit_20260802.md) documents the
+general BODS consumer rights to copy, adapt, publish, distribute, and transmit the data, together
+with the API account/email registration requirement. It does not document an official retention
+duration or multi-day `VehicleRef` persistence. The limits below therefore remain a project
+privacy safeguard; they are not presented as a BODS licence ban or an official 24-hour rule.
+
 ## Default bounds
 
 The versioned `bods-private-retention-v1` policy proposes:
@@ -47,8 +54,10 @@ The UI never removes data during ordinary reruns or live fetches.
 
 Portable filesystem deletion does not guarantee physical secure erasure, particularly on SSDs,
 copy-on-write filesystems, backups, or snapshots. The control does not delete published aggregate
-evidence, infer a lawful basis, authorize public hosting, approve longitudinal analysis, or relax
-the BODS registration/terms blockers. Until those decisions are recorded, retention remains a
+evidence, infer a lawful basis, authorize public hosting, or approve longitudinal analysis.
+General BODS reuse and registration facts are now documented, but identifier persistence,
+project privacy/data-management approval, complete Bee membership/licence reconciliation, and
+release acceptance remain unresolved. Until those decisions are recorded, retention remains a
 visible residual MAN-05 acceptance condition.
 
 Offline tests in `tests/unit/test_manchester_bods_retention.py` prove read-only preview, newest and

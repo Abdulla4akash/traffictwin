@@ -49,7 +49,7 @@ carry scientific weight. Capture them in the
 [supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md); each
 enters its registry through a reviewed fingerprinted contract.
 
-## 3. Source facts: DfT/WebTRIS timezone semantics and BODS terms (blocks Gate B closure, full MAN-02/MAN-03/MAN-05)
+## 3. Source facts: DfT/WebTRIS timezone and BODS identifier/privacy residual (blocks Gate B closure, full MAN-02/MAN-03/MAN-05)
 
 Decision needed: provider-documented facts, not choices.
 
@@ -57,17 +57,20 @@ Decision needed: provider-documented facts, not choices.
   documentation probe of the official DfT and WebTRIS references can be run on request; if the
   documentation is silent, the honest outcome is a recorded provider enquiry, and the rows keep
   their typed source-local exclusions.
-- **BODS identifier retention/display/publication and registration terms**: requires reading the
-  current BODS service terms against the intended research use; any longitudinal retention or
-  public output additionally needs your decision as data controller for this project.
+- **BODS identifier persistence and project privacy/public-output treatment**: general consumer
+  reuse/publication and API account/email registration are documented. No official source found
+  by the bounded audit defines a retention duration or multi-day `VehicleRef` persistence, so
+  longitudinal retention and row-level public output still require a project data-management
+  decision.
 
-Probed on 24 July 2026
-([machine record](integration/evidence/manchester_source_docs_probe_20260724.json)): every
-official reference page checked is silent on these facts, so the honest closing step is a
-direct provider enquiry (DfT road traffic statistics team, National Highways WebTRIS support,
-BODS service) or their deeper authoritative documents. Ready-to-send drafts are in
-[provider enquiry drafts](integration/provider_enquiry_drafts.md). Until answered, the typed
-source-local exclusions and precautionary BODS retention controls remain.
+Re-audited on 2 August 2026
+([human-readable record](integration/manchester_authoritative_source_reaudit_20260802.md),
+[machine record](integration/evidence/manchester_authoritative_source_reaudit_20260802.json)):
+DfT and WebTRIS remain silent on their clock bases, while the BODS implementation guide closes
+general reuse/publication and API-registration facts. Ready-to-send DfT/WebTRIS drafts and a
+narrowed BODS identifier/retention draft are in
+[provider enquiry drafts](integration/provider_enquiry_drafts.md). Until the residuals are
+answered, typed source-local time exclusions and precautionary BODS privacy controls remain.
 
 ## 4. v0.6 producer attestation (blocks REL-01 migration and activation)
 

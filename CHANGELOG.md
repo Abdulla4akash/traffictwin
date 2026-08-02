@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Re-audited seven authoritative DfT, National Highways and BODS sources (2 August, Phase 185).
+Official DfT metadata and WebTRIS FAQ/API schema still do not state their clock bases, so their
+typed exclusions remain. The BODS guide documents general copy/adapt/publish/distribute/transmit
+rights and API account/email registration, closing those source facts without inventing an
+official retention limit or multi-day identifier guarantee. Project privacy/data-management,
+public row-level output, complete Bee scope and provider/release acceptance remain open; no
+account, credential, provider contact, operational fetch, capability acceptance or release
+authority was created.
+
 Added a source-bound Manchester Gate-D decision-support pack (2 August, Phase 184). Fifteen exact
 committed records now reconcile the empty 174-row analyst-review ledger, separate fixed calibration
 mechanics from six open scientific/authority choices, preserve both non-reconciling demand-input

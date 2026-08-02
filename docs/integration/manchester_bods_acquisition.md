@@ -179,15 +179,16 @@ passing.
 
 - The scoped `GA-BEE-1` live-feed check now verifies five policy-v1 operator references in the
   downstream classifier; `BNVB` remains pending. `GA-BODS-4` (VehicleRef persistence → retention
-  decision), `GA-BODS-3` (consumer rate limits), `GA-BODS-6` (registration terms),
-  `GA-BEE-2`–`GA-BEE-4`, and the legal/governance part of design §18.2 remain open. The
+  decision), `GA-BODS-3` (consumer rate limits), `GA-BEE-2`–`GA-BEE-4`, and the legal/governance
+  part of design §18.2 remain open. Phase 185 documents the API account/email registration
+  requirement and closes `GA-BODS-6` as a source fact. The
   precautionary local retention preview/apply control limits accumulation without claiming to
   settle those terms;
   public export stays unavailable.
 - A controlled real-source probe on 23 July 2026 passed the fetch, quarantine, gzip decoding,
   parser, promotion, privacy-safe projection, and local-scene publication slice. Its exact safe
   evidence is recorded in [the BODS Gate-B probe](manchester_bods_gate_b_probe.md). This does not
-  close the retention, terms, reference-licence, pending-operator, or complete Gate-B acceptance
-  blockers.
+  close the identifier-retention/privacy, reference-licence, pending-operator, or complete Gate-B
+  acceptance blockers.
 - `MAN-01` and `MAN-05` remain `planned`; lead reconciliation (exports, generated schemas, docs
   index, capability truth) still gates any claim.

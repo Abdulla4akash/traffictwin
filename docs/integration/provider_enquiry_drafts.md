@@ -1,9 +1,12 @@
 # Provider Enquiry Drafts (DfT, WebTRIS, BODS)
 
 The 24 July 2026 documentation probe
-([machine record](evidence/manchester_source_docs_probe_20260724.json)) found the official
-reference pages silent on three source facts that block Gate-B closure and full canonical time
-projection. These drafts are ready to send; they ask only for documented facts and assert nothing.
+([machine record](evidence/manchester_source_docs_probe_20260724.json)) found the then-probed
+reference pages silent on three source facts. The deeper 2 August
+[authoritative-source re-audit](manchester_authoritative_source_reaudit_20260802.md) leaves both
+timezone questions open but closes the generic BODS reuse/publication and API-registration facts
+from the official implementation guide. These narrowed drafts ask only for facts still absent.
+They are ready to send if the project chooses to contact the providers.
 Send from the project account, then record each reply as dated evidence under
 `docs/integration/evidence/` and reconcile the affected open questions and capability rows.
 
@@ -61,29 +64,30 @@ Note: the separate 24 July 2026 recency probe already confirmed WebTRIS is **not
 
 ---
 
-## 3. Bus Open Data Service — retention, republication, and identifier terms
+## 3. Bus Open Data Service — residual identifier persistence and retention semantics
 
 **To:** BODS service (bus open data service support route from
 https://www.gov.uk/guidance/find-and-use-bus-open-data)
-**Subject:** Retention and republication terms for SIRI-VM vehicle-location data
+**Subject:** Multi-day `VehicleRef` persistence and SIRI-VM snapshot retention guidance
 
 > I am using the Bus Open Data Service SIRI-VM location feed for academic research on Bee Network
-> vehicles in Manchester. The guidance pages state Open Government Licence v3.0 for the site
-> content, but I cannot find explicit consumer-side terms for the live location data itself.
+> vehicles in Manchester. The official BODS implementation guide permits consumers to copy,
+> adapt, publish, distribute and transmit the open data, documents API registration/attribution,
+> and the SIRI-VM profile requires `VehicleRef` to be consistent through the day.
 >
-> Could you confirm, for a data consumer:
-> 1. What licence and terms govern reuse of the SIRI-VM vehicle-location payload (as distinct from
->    the guidance pages)?
-> 2. Are there retention or storage limits on downloaded vehicle-position snapshots that include
->    `VehicleRef`/`BlockRef` identifiers?
-> 3. What may be republished — for example aggregate counts versus individual positions or
->    identifiers — in an academic dissertation or a public demonstration?
-> 4. Are the operator/NOC reference tables (used to identify Bee Network services) covered by the
->    same terms, and may they be redistributed?
+> I cannot find a statement of whether `VehicleRef` is expected to persist across service days or
+> any source-specific retention guidance for downloaded SIRI-VM snapshots. Could you confirm:
+> 1. May a publisher reuse the same `VehicleRef` across days, or is its defined consistency scope
+>    limited to one service day?
+> 2. Does BODS publish any consumer retention/deletion guidance specifically for stored location
+>    snapshots containing `VehicleRef`/`BlockRef`?
+> 3. Is there an authoritative privacy or data-management note for longitudinal use of these
+>    identifiers, distinct from the general open-data reuse rights?
 >
 > I currently retain snapshots privately with a precautionary time/space-bounded cleanup and make
 > no public export; I want to confirm the actual permitted basis. Thank you.
 
-**Unblocks:** BODS retention/registration/publication open question; complete `MAN-05` scope and
-any public live/aggregate output. Until answered, the precautionary private-retention controls and
-identifier-only Bee Network scope remain.
+**Unblocks:** the residual project privacy/data-management treatment of longitudinal identifiers.
+It no longer asks for generic reuse/publication or API-registration rights: those are documented.
+Until answered or separately approved by the project data controller, precautionary private
+retention and identifier redaction remain.
