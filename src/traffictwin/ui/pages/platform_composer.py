@@ -4,8 +4,9 @@ The composer UI over :mod:`traffictwin.platform.whatif_composer`. The page
 writes no repository, workspace, or registry file and spends no compute:
 drafts leave only as deterministic downloads, and signing and execution are
 instructions for a human outside the app — never buttons or background
-calls. The external-LLM field is absent (the socket is dormant, P-D1); the
-form/template path is complete without it.
+calls. The optional DeepSeek field requires explicit per-request consent and
+only translates bounded prose into the same strict form; the form/template
+path remains complete without it.
 """
 
 from __future__ import annotations
@@ -25,9 +26,12 @@ from traffictwin.platform.outcome_predictor import (
     load_outcome_predictor_fit,
 )
 from traffictwin.platform.whatif_composer import (
+    ComposerDraft,
     ComposerForm,
     WhatifComposerError,
+    compose_from_natural_language,
     compose_scenario,
+    llm_socket_status,
     render_prediction_card,
 )
 from traffictwin.ui.components.badges import badge_row
@@ -68,6 +72,11 @@ def render(config: UiConfig) -> None:
         )
         return
 
+    if _render_deepseek_composer(loaded):
+        _render_honesty_table()
+        return
+
+    st.subheader("Structured scenario")
     with st.form("whatif-scenario-form"):
         trace = st.selectbox("Trace", sorted(TRACE_SLOTS), index=sorted(TRACE_SLOTS).index("inc"))
         capacity = st.number_input(
@@ -104,6 +113,64 @@ def render(config: UiConfig) -> None:
         _render_honesty_table()
         return
 
+    _render_draft(draft)
+    _render_honesty_table()
+
+
+def _render_deepseek_composer(loaded: LoadedFit) -> bool:
+    st.subheader("Natural-language scenario agent")
+    status = llm_socket_status()
+    configured = status["configured"] is True
+    if configured:
+        st.success("DeepSeek is configured locally; no request is sent until you consent below.")
+    else:
+        st.info(
+            "DeepSeek is not configured in this process. Source the ignored `.env.local` before "
+            "launching the dashboard; the structured form remains fully available."
+        )
+    st.caption(
+        "Only the scenario text below is sent to DeepSeek for JSON form extraction. No evidence, "
+        "repository files, BODS data, participant material or credentials are included. DeepSeek "
+        "does not calculate the prediction and cannot approve or execute anything."
+    )
+    consent = st.checkbox(
+        "Allow this scenario text to be sent to DeepSeek for this request only",
+        value=False,
+    )
+    text = st.text_area(
+        "Natural-language what-if scenario",
+        placeholder="What if RSU capacity is 0.75 on the incident trace?",
+        max_chars=1_000,
+    )
+    submitted = st.button("Translate, predict and draft")
+    if not submitted:
+        return False
+    if not consent:
+        st.warning("Explicit DeepSeek consent is required; no external request was sent.")
+        return True
+    if not configured:
+        st.warning("DEEPSEEK_API_KEY is unavailable in this dashboard process; nothing was sent.")
+        return True
+    try:
+        translation = compose_from_natural_language(text, activation_enabled=True)
+        draft = compose_scenario(
+            translation.form,
+            loaded,
+            generated_at_utc=datetime.now(UTC).isoformat(),
+            translation=translation,
+        )
+    except (WhatifComposerError, ValueError) as error:
+        st.warning(f"The natural-language composer refused: {error}")
+        return True
+    st.caption(
+        f"Validated `{translation.model}` form extraction; prompt/input/response digests are "
+        "recorded without retaining the prose transcript or key."
+    )
+    _render_draft(draft)
+    return True
+
+
+def _render_draft(draft: ComposerDraft) -> None:
     outcome = draft.prediction if draft.prediction is not None else draft.prediction_refusal
     assert outcome is not None
     st.markdown(render_prediction_card(outcome))
@@ -126,7 +193,6 @@ def render(config: UiConfig) -> None:
         file_name=f"{draft.slug}_predeclaration_draft.md",
         mime="text/markdown",
     )
-    _render_honesty_table()
 
 
 def _render_honesty_table() -> None:

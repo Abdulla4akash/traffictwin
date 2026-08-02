@@ -48,11 +48,12 @@ human signs (the agent **drafts and never approves**; approval fields already re
 agent identities), the **unmodified** campaign instrument executes, and the completed
 analysis lands beside the prediction it tests. Verified predictions become new fit data.
 
-Interface: a structured form is the baseline (works with zero external dependencies); a
-natural-language front end activates when a funded `ANTHROPIC_API_KEY` is present
-(P-D1 — coding-tool subscriptions do not cover runtime API calls). Summaries may only
-cite numbers present in committed analyses; held-out seeds are untouchable. One worked
-example ships: the 3.3× capacity scenario — prediction vs its already-confirmed answer.
+Interface: a structured form is the baseline (works with zero external dependencies). Phase 170
+activated bounded DeepSeek JSON form extraction with an owner-funded `DEEPSEEK_API_KEY` and visible
+per-request consent. The LLM only fills the strict form; the local predictor calculates every
+number. Summaries may only cite numbers present in committed analyses; held-out seeds are
+untouchable. One worked example ships: the 3.3× capacity scenario — prediction versus its
+already-confirmed answer.
 
 ### P-2. Prediction layer — small and honest
 
@@ -106,10 +107,11 @@ Original schedule (hard stop 4 September):
 
 ## 7. Open decisions and dependencies
 
-- **P-D1 (owner, clarified 30 Jul):** the owner's Claude Max / Codex Max / Google Ultra
-  subscriptions cover the *coding tools*, not runtime API calls from the deployed app. P-1
-  therefore ships form-first; the NL layer activates when a funded `ANTHROPIC_API_KEY`
-  appears in the environment. No blocker.
+- **P-D1 (owner, resolved 2 Aug):** form-first remains the zero-dependency baseline. The owner
+  supplied a funded DeepSeek runtime key and explicitly activated the NL layer in Phase 170.
+  External transfer requires visible consent on each request; key presence alone is inert. The
+  returned JSON passes the same strict form and can neither create prediction values nor approve or
+  execute a campaign.
 - **P-D2 (owner, 30 Jul): tentative YES to unattended BODS.** Implemented as a
   *scheduled session runner* — same accepted rules (≥60 s spacing, one-at-a-time lock, GM
   box, quarantine + receipts, session-scoped identity, aggregate-only outputs), the

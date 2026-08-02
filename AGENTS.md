@@ -4543,3 +4543,31 @@ non-admitting rule-eligibility receipts. Focused verification: 33 benchmark test
 eight-slice platform regression set passed 143 tests; `uv lock --check`, Ruff, Ruff format, strict
 mypy, owned-path diff checks, link existence and privacy scans passed. No training, evaluation,
 cloud contact, spend, signature, evidence or admission occurred.
+
+### Phase 170 claim: activate bounded DeepSeek natural-language composition (2 August 2026)
+
+The integrating lead owns the owner-directed activation of the What-If Composer's natural-language
+socket in `src/traffictwin/platform/whatif_composer.py`,
+`src/traffictwin/ui/pages/platform_composer.py`, `tests/unit/test_whatif_composer.py`,
+`tests/ui/test_platform_pages.py`, `docs/platform/whatif_composer_design.md`,
+`docs/traffictwin-data-platform-v1-plan.md`, the narrow `CHANGELOG.md` entry, and this phase record.
+The phase may use the owner-provided local `DEEPSEEK_API_KEY` with DeepSeek's current official
+JSON-output chat-completions interface to translate explicitly submitted, privacy-screened natural
+language into the existing strict `ComposerForm`, then run the unchanged local predictor/drafter.
+The key remains in ignored `.env.local` only and may never be logged, persisted, sent as prompt
+content or committed. The adapter may send only bounded owner-entered scenario prose after visible
+UI consent; it may not send repository/evidence/raw BODS/participant/private content, create facts
+or evidence, approve or execute a campaign, or silently activate merely because a key exists.
+
+Phase 170 completed on 2 August 2026. The composer now offers `deepseek-v4-flash` JSON form
+extraction behind explicit per-request UI consent, with 1,000-character privacy-screened input,
+strict response/finish/schema/trace/actor/fleet validation, typed provider refusals, bounded
+transport, token accounting and digest-only translation provenance. The unchanged local outcome
+predictor calculates all numerical outputs; DeepSeek cannot create prediction values, evidence,
+approval or execution. A minimal live request sent only the owner-entered scenario sentence and
+returned the validated `inc` / capacity 0.75 form (297 prompt tokens, 69 completion tokens). Focused
+verification passed 43 tests and the adjacent predictor/composer/registry/safety/live-twin/
+benchmark/UI gate passed 129 tests; `uv lock --check`, Ruff, Ruff format, strict mypy, diff checks
+and secret screening passed. The local key remains ignored, untracked, owner-readable only and
+absent from every staged/trackable artifact. No campaign, participant activity or infrastructure
+action occurred.

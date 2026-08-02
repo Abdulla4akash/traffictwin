@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Activated bounded DeepSeek natural-language composition (2 August, Phase 170): explicitly
+consented owner-entered scenario prose is translated through the official JSON-output API into the
+existing strict `ComposerForm`; the unchanged local predictor then predicts or refuses and drafts
+the unsigned campaign. Inputs are size/privacy screened, all returned fields are allowlisted and
+Pydantic validated, receipts retain digests/token counts rather than transcripts, and the key never
+enters request content, logs, artifacts or Git. Provider failures are typed, the structured form
+always remains available, and LLM outputs remain `evidence: false`, `approval: false` and
+`execution: false`.
+
 Merge-safety correction (1 August, Phase 161): hardened the post-v1 backend before the
 owner-requested main integration. Analytics checkpoints now persist and revalidate source,
 receipt and materialisation state across restart; scenario approval/admission requires an

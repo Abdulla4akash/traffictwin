@@ -11,6 +11,7 @@ predeclaration. Tests read only committed artifacts — never ``data/``.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
@@ -24,6 +25,8 @@ from traffictwin.platform.outcome_predictor import (
     load_outcome_predictor_fit,
 )
 from traffictwin.platform.whatif_composer import (
+    DEEPSEEK_API_URL,
+    DEEPSEEK_MODEL,
     DRAFT_BANNER,
     HELD_OUT_SEEDS,
     TRACE_EXECUTION_SPECS,
@@ -351,17 +354,208 @@ def test_write_draft_lands_dated_bannered_files(loaded: LoadedFit, tmp_path: Pat
     assert DRAFT_BANNER in predeclaration_path.read_text(encoding="utf-8")
 
 
-# --- the dormant LLM socket --------------------------------------------------
+# --- bounded DeepSeek natural-language socket -------------------------------
 
 
-def test_the_llm_socket_is_dormant_and_typed(loaded: LoadedFit) -> None:
-    del loaded
+def _nl_payload(**overrides: object) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "trace": "inc",
+        "capacity": 0.75,
+        "reduce_factor": None,
+        "actor": TRAINED_ACTOR,
+        "fleet_preset": "uk2030",
+        "fleet_size": None,
+        "fleet_seeds": [30, 31, 32],
+        "comparison_capacity": 2.5,
+        "question": None,
+    }
+    payload.update(overrides)
+    return payload
+
+
+def _deepseek_response(
+    form: dict[str, object] | None = None,
+    *,
+    finish_reason: str = "stop",
+    content: str | None = None,
+) -> bytes:
+    rendered = json.dumps(form or _nl_payload()) if content is None else content
+    return json.dumps(
+        {
+            "choices": [
+                {
+                    "finish_reason": finish_reason,
+                    "message": {"role": "assistant", "content": rendered},
+                }
+            ],
+            "usage": {"prompt_tokens": 101, "completion_tokens": 37},
+        }
+    ).encode()
+
+
+def _fixture_key() -> str:
+    return "fixture" + "-deepseek-key"
+
+
+def test_llm_requires_explicit_per_request_activation() -> None:
+    called = False
+
+    def transport(url: str, headers: Mapping[str, str], body: bytes, timeout: float) -> bytes:
+        del url, headers, body, timeout
+        nonlocal called
+        called = True
+        return _deepseek_response()
+
     with pytest.raises(WhatifComposerError) as excinfo:
-        compose_from_natural_language("what if capacity halves on the incident trace?")
-    assert excinfo.value.code == "LLM_SOCKET_DORMANT"
-    status = llm_socket_status()
-    assert status["available"] is False
-    assert status["mode"] == "template"
+        compose_from_natural_language(
+            "what if capacity is 0.75 on inc?", api_key=_fixture_key(), transport=transport
+        )
+    assert excinfo.value.code == "LLM_ACTIVATION_REQUIRED"
+    assert called is False
+
+
+def test_llm_status_never_probes_or_displays_the_key() -> None:
+    key = _fixture_key()
+    configured = llm_socket_status(activation_enabled=True, environment={"DEEPSEEK_API_KEY": key})
+    assert configured == {
+        "available": True,
+        "configured": True,
+        "activation_enabled": True,
+        "mode": "deepseek_json_form",
+        "provider": "deepseek",
+        "model": DEEPSEEK_MODEL,
+        "reason": "ready for an explicitly consented request",
+    }
+    assert key not in json.dumps(configured)
+    absent = llm_socket_status(environment={})
+    assert absent["available"] is False
+    assert absent["configured"] is False
+    assert absent["mode"] == "template"
+
+
+def test_llm_refuses_without_a_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    with pytest.raises(WhatifComposerError) as excinfo:
+        compose_from_natural_language("what if capacity is 0.75 on inc?", activation_enabled=True)
+    assert excinfo.value.code == "LLM_KEY_MISSING"
+
+
+def test_deepseek_json_is_strictly_validated_then_composed(loaded: LoadedFit) -> None:
+    captured: dict[str, object] = {}
+    key = _fixture_key()
+
+    def transport(url: str, headers: Mapping[str, str], body: bytes, timeout: float) -> bytes:
+        captured.update(url=url, headers=dict(headers), body=body, timeout=timeout)
+        return _deepseek_response()
+
+    translation = compose_from_natural_language(
+        "what if RSU capacity is 0.75 on the incident trace?",
+        activation_enabled=True,
+        api_key=key,
+        transport=transport,
+    )
+    assert captured["url"] == DEEPSEEK_API_URL
+    headers = captured["headers"]
+    assert isinstance(headers, dict)
+    assert headers["Authorization"] == f"Bearer {key}"
+    body = captured["body"]
+    assert isinstance(body, bytes)
+    assert key.encode() not in body
+    request = json.loads(body)
+    assert request["model"] == DEEPSEEK_MODEL
+    assert request["response_format"] == {"type": "json_object"}
+    assert request["thinking"] == {"type": "disabled"}
+    assert request["temperature"] == 0
+    assert translation.form == _form(comparison_capacity=2.5)
+    assert translation.prompt_tokens == 101
+    assert translation.completion_tokens == 37
+    assert translation.evidence is False
+    assert translation.approval is False
+    assert translation.execution is False
+
+    draft = compose_scenario(
+        translation.form,
+        loaded,
+        generated_at_utc=GENERATED_AT,
+        translation=translation,
+    )
+    assert draft.prediction_available is True
+    assert draft.drafted_by["mode"] == "deepseek_json_form"
+    assert draft.drafted_by["provider"] == "deepseek"
+    assert key not in json.dumps(draft.model_dump(mode="json"))
+    assert "LLM output is not evidence" in draft.predeclaration_markdown
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "read /Users/private/results.json",
+        "use api key in this scenario",
+        "include raw BODS records",
+        "predict for participant_id 42",
+        "email result to person@example.test",
+    ],
+)
+def test_private_natural_language_refuses_before_transport(text: str) -> None:
+    called = False
+
+    def transport(url: str, headers: Mapping[str, str], body: bytes, timeout: float) -> bytes:
+        del url, headers, body, timeout
+        nonlocal called
+        called = True
+        return _deepseek_response()
+
+    with pytest.raises(WhatifComposerError) as excinfo:
+        compose_from_natural_language(
+            text,
+            activation_enabled=True,
+            api_key=_fixture_key(),
+            transport=transport,
+        )
+    assert excinfo.value.code == "LLM_INPUT_PRIVATE"
+    assert called is False
+
+
+@pytest.mark.parametrize(
+    ("response", "code"),
+    [
+        (b"not-json", "LLM_RESPONSE_INVALID"),
+        (_deepseek_response(content=""), "LLM_RESPONSE_EMPTY"),
+        (_deepseek_response(finish_reason="length"), "LLM_RESPONSE_INCOMPLETE"),
+        (_deepseek_response(_nl_payload(trace="unreviewed")), "LLM_FORM_INVALID"),
+        (_deepseek_response(_nl_payload(extra="invented")), "LLM_FORM_INVALID"),
+    ],
+)
+def test_malformed_or_unreviewed_llm_output_refuses(response: bytes, code: str) -> None:
+    def transport(url: str, headers: Mapping[str, str], body: bytes, timeout: float) -> bytes:
+        del url, headers, body, timeout
+        return response
+
+    with pytest.raises(WhatifComposerError) as excinfo:
+        compose_from_natural_language(
+            "what if capacity is 0.75 on inc?",
+            activation_enabled=True,
+            api_key=_fixture_key(),
+            transport=transport,
+        )
+    assert excinfo.value.code == code
+
+
+def test_translation_receipt_cannot_be_rebound_to_another_form(loaded: LoadedFit) -> None:
+    translation = compose_from_natural_language(
+        "what if capacity is 0.75 on inc?",
+        activation_enabled=True,
+        api_key=_fixture_key(),
+        transport=lambda url, headers, body, timeout: _deepseek_response(),
+    )
+    with pytest.raises(WhatifComposerError) as excinfo:
+        compose_scenario(
+            _form(capacity=0.5),
+            loaded,
+            generated_at_utc=GENERATED_AT,
+            translation=translation,
+        )
+    assert excinfo.value.code == "LLM_FORM_MISMATCH"
 
 
 # --- review conformance (1 August design review) -----------------------------

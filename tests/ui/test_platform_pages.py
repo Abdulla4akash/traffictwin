@@ -20,7 +20,14 @@ from traffictwin.ui.state import default_session_state, load_ui_config
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
-_LABEL_KINDS = ("button", "selectbox", "number_input", "text_input")
+_LABEL_KINDS = (
+    "button",
+    "checkbox",
+    "selectbox",
+    "number_input",
+    "text_area",
+    "text_input",
+)
 
 
 def _app(monkeypatch: MonkeyPatch, workspace: Path, script: str) -> Any:  # noqa: ANN401 - AppTest is loaded dynamically
@@ -214,6 +221,7 @@ def test_forecasts_render_support_counts_and_the_unavailable_speed_target(
 def test_composer_renders_the_form_and_the_empty_honesty_table(
     tmp_path: Path, monkeypatch: MonkeyPatch
 ) -> None:
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
     app = _app(monkeypatch, tmp_path / "workspace", "platform_composer.py")
     app.run(timeout=20)
     assert not app.exception
@@ -226,10 +234,31 @@ def test_composer_renders_the_form_and_the_empty_honesty_table(
     assert "Empty, and visibly so" in captions
     assert "NON_ADMITTED bus/GPU results never populate it" in captions
     assert "producer_citation_requirements.md" in captions
-    # The external-LLM field is absent: only the four declared form controls.
+    assert "Only the scenario text below is sent to DeepSeek" in captions
     assert len(app.text_input) == 1
+    assert len(app.text_area) == 1
+    assert len(app.checkbox) == 1
     assert len(app.selectbox) == 2
+    info = " ".join(str(item.value) for item in app.info)
+    assert "DeepSeek is not configured" in info
     _assert_labels_unique(app)
+
+
+def test_composer_requires_visible_deepseek_consent_before_any_request(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "fixture" + "-key")
+    app = _app(monkeypatch, tmp_path / "workspace", "platform_composer.py")
+    app.run(timeout=20)
+    assert not app.exception
+    app.text_area[0].set_value("What if capacity is 0.75 on the incident trace?")
+    translate = next(
+        button for button in app.button if button.label == "Translate, predict and draft"
+    )
+    translate.click().run(timeout=20)
+    assert not app.exception
+    warnings = " ".join(str(item.value) for item in app.warning)
+    assert "Explicit DeepSeek consent is required" in warnings
 
 
 def test_composer_writes_nothing_into_the_repository(

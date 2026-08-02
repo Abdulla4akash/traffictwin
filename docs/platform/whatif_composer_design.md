@@ -1,18 +1,18 @@
 # Design — What-if scenario composer (platform P-1, tier 2)
 
-**Status: REVIEWED PROPOSED design, `owner_approved_candidate` ceiling; not implemented.
-It depends on the [outcome predictor](outcome_predictor_design.md) completing its
-actor-specific envelope and publication-provenance review gates. This is a
-predict-then-draft front end, not one-action execution. The template or LLM DRAFTS AND
-NEVER APPROVES; no LLM output is ever evidence.**
+**Status: IMPLEMENTED. Phase 142 delivered the reviewed form-first composer and Phase 170
+activated bounded DeepSeek natural-language form extraction after the owner supplied a funded
+key. Maximum policy ceiling: `owner_approved_candidate`. This remains a predict-then-draft front
+end, not one-action execution. The template or LLM DRAFTS AND NEVER APPROVES; no LLM output is
+ever evidence.**
 
 ## 1. The loop
 
 1. **Compose** — structured form: trace, capacity (or "reduce ×N"), actor, fleet preset,
    optional fleet size, proposed fresh seeds, and optional comparison arm. Form-first is
-   the baseline; a natural-language box appears
-   only when a funded `ANTHROPIC_API_KEY` is present (P-D1) and only *fills the same
-   form* — NL never bypasses the structured schema.
+   the baseline. The optional natural-language box requires a funded `DEEPSEEK_API_KEY`
+   plus visible per-request consent and only *fills the same form* — NL never bypasses
+   the structured schema.
 2. **Predict** — tier-1 answer rendered immediately, intervals shown, `PREDICTION — NOT
    EVIDENCE` banner. A refusal renders the gap it names.
 3. **Draft** — "Draft the campaign that would verify/measure this": the composer
@@ -62,24 +62,34 @@ NEVER APPROVES; no LLM output is ever evidence.**
   remain visibly separate; prediction/LLM text remains `evidence: false` even beside an
   admitted measurement.
 
-## 3. The LLM socket (dormant until funded)
+## 3. The DeepSeek socket (implemented in Phase 170)
 
-Claude via the Anthropic API. Scope: parse NL → form fields; propose the
-predeclaration's prose sections; explain a refusal. Hard bounds: temperature-0 JSON
-extraction against the form schema, output validated by the same pydantic models as the
-form, no tool use, and no filesystem. The API key is read from the environment and never
-displayed, logged or stored. Only the bounded scenario fields and owner-entered prose may
-leave the machine: no raw/private data, producer repository bytes, campaign files,
-credentials, participant material, private paths or identities are sent. Inputs are
-screened and size-bounded before any request; returned prose remains untrusted and typed
-`evidence: false`.
+The adapter uses DeepSeek's official OpenAI-compatible `POST /chat/completions` JSON-output
+interface with `deepseek-v4-flash`, thinking disabled, temperature zero, a 256-token output cap and
+a 20-second timeout. It performs one task only: bounded natural-language → `ComposerForm`. The
+unchanged local outcome predictor calculates the prediction after the returned form passes strict
+Pydantic validation. DeepSeek cannot supply predicted values, evidence, approval or execution.
 
-The draft stores `drafted_by: {provider, model, prompt_template_digest}` plus a digest of
-the validated structured input, not an unredacted secret-bearing transcript by default.
-Runtime activation requires explicit configuration as well as a funded key; key presence
-alone must not silently enable an external transfer. If the key/config is absent, fails,
-or is refused, the local template path produces the same structured artifact without prose
-polish — the socket is an enhancement, never a dependency.
+The user must tick a visible consent control for each request. Key presence alone never sends
+anything. Input is trimmed, limited to 1,000 characters and screened before transport for private
+paths, credentials, secret-like values, raw BODS material, participant material and identities.
+Only the owner-entered scenario text and a fixed form-extraction instruction leave the machine; no
+repository file, evidence artifact, campaign record or fit data is included. The API key is read
+from the process environment, placed only in the authorization header and never displayed, logged,
+hashed into an artifact or placed in request content.
+
+The response must contain exactly one cleanly finished choice with non-empty JSON content. The
+existing strict form refuses extra keys, invalid dimensions and inconsistent capacity expressions;
+an additional allowlist pins trace, actor and fleet. The translation receipt stores provider/model,
+prompt/input/response digests and token counts, never the prose transcript. It is structurally
+`evidence: false`, `approval: false` and `execution: false`. The resulting draft records those
+digests in `drafted_by` and retains an empty sign-off.
+
+Provider authentication, billing, rate, timeout, truncation, empty-content, malformed-response,
+private-input and schema failures are typed refusals. The local structured form remains available
+after every refusal. The official references are the
+[DeepSeek JSON-output guide](https://api-docs.deepseek.com/guides/json_mode/) and
+[chat-completions API](https://api-docs.deepseek.com/api/create-chat-completion/).
 
 ## 4. Placement
 
@@ -100,8 +110,11 @@ the module has no execution launcher dependency. Integration: the worked example
 3.3× `inc` scenario drafted end-to-end and structurally compared with the actual signed
 pilot predeclaration; a summary card is rendered only from the committed admitted analysis.
 External-API tests use an injected fake and assert no secret/private field crosses the
-boundary. UI AppTests belong to the dashboard slice and include a11y labels and a
-no-repository-write assertion.
+boundary. They cover explicit consent, configuration status, request shape, response validation,
+allowlists, receipt binding and adversarial inputs. UI AppTests pin the visible consent boundary,
+a11y labels and the no-repository-write invariant. Phase 170 also completed one minimal live
+connectivity check using owner-entered scenario prose only; it returned the validated `inc` / 0.75
+form and created no prediction evidence, approval, execution or repository artifact.
 
 ## 6. Out of scope for v1
 

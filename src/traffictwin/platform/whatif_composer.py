@@ -36,21 +36,25 @@ The guardrails are structural, not politeness:
   artifacts carry the mandatory producer/SUMO citation bundle
   (``docs/producer_citation_requirements.md``).
 
-The LLM socket is DORMANT (P-D1): natural language routes to a typed refusal
-until a funded ``ANTHROPIC_API_KEY`` exists — the owner's Max subscriptions
-are coding tools, not runtime API. The template path below produces the
-complete artifacts; the socket is an enhancement, never a dependency.
+The optional DeepSeek socket translates explicitly submitted, privacy-screened
+natural language into the same strict form.  It receives no repository data,
+cannot predict or execute, and is never activated merely by key presence.  The
+template path remains complete without it.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+from collections.abc import Callable, Mapping
 from pathlib import Path
-from typing import Literal, NoReturn
+from typing import Literal, cast
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
-from pydantic import model_validator
+from pydantic import Field, ValidationError, model_validator
 
 from traffictwin.integration.vec_campaign.models import (
     MAX_CAMPAIGN_CELLS,
@@ -58,6 +62,7 @@ from traffictwin.integration.vec_campaign.models import (
     VecCampaignBudget,
 )
 from traffictwin.platform.outcome_predictor import (
+    BASELINE_ACTOR,
     EXPERIMENT_REGISTRY,
     MEASURED_FLEET_PRESET,
     PRODUCER_CITATION_BUNDLE,
@@ -71,10 +76,17 @@ from traffictwin.platform.outcome_predictor import (
     predict,
 )
 
-COMPOSER_METHOD_VERSION: Literal["vec-whatif-composer-1.0"] = "vec-whatif-composer-1.0"
+COMPOSER_METHOD_VERSION: Literal["vec-whatif-composer-1.1"] = "vec-whatif-composer-1.1"
 COMPOSER_DESIGN_REFERENCE: Literal["docs/platform/whatif_composer_design.md"] = (
     "docs/platform/whatif_composer_design.md"
 )
+DEEPSEEK_API_URL: Literal["https://api.deepseek.com/chat/completions"] = (
+    "https://api.deepseek.com/chat/completions"
+)
+DEEPSEEK_MODEL: Literal["deepseek-v4-flash"] = "deepseek-v4-flash"
+DEEPSEEK_MAX_INPUT_CHARACTERS = 1_000
+DEEPSEEK_MAX_RESPONSE_BYTES = 16_384
+DEEPSEEK_TIMEOUT_SECONDS = 20.0
 
 #: The reference capacity every measured campaign used as its baseline arm.
 BASELINE_REFERENCE_CAPACITY = 2.5
@@ -108,6 +120,34 @@ _PREDICTION_BANNER = "PREDICTION — NOT EVIDENCE"
 
 _SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,80}$")
 _CARD_DECIMAL_RE = re.compile(r"\d+\.\d+(?:[eE][+-]?\d+)?")
+_NL_PRIVATE_PATTERNS = (
+    re.compile(r"/(?:Users|home)/", re.IGNORECASE),
+    re.compile(r"[A-Za-z]:\\Users\\", re.IGNORECASE),
+    re.compile(r"\b(?:api[_ -]?key|password|credential|bearer|private[_ -]?key)\b", re.IGNORECASE),
+    re.compile(r"\bsk-[A-Za-z0-9_-]{12,}\b", re.IGNORECASE),
+    re.compile(r"\braw\s+BODS\b", re.IGNORECASE),
+    re.compile(r"\bparticipant(?:[_ -]?(?:id|code|response|data))?\b", re.IGNORECASE),
+    re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
+)
+
+_DEEPSEEK_SYSTEM_PROMPT = f"""Translate one TrafficTwin what-if request into JSON only.
+Return exactly these keys: trace, capacity, reduce_factor, actor, fleet_preset,
+fleet_size, fleet_seeds, comparison_capacity, question. Allowed traces are
+we, ev, wd_am, wd_pm, inc. Allowed actors are {TRAINED_ACTOR} and
+{BASELINE_ACTOR}. fleet_preset must be {MEASURED_FLEET_PRESET}. Use exactly one
+of capacity or reduce_factor; use null for the other. Defaults when omitted:
+actor={TRAINED_ACTOR}, fleet_preset={MEASURED_FLEET_PRESET}, fleet_size=null,
+fleet_seeds=[30,31,32], comparison_capacity=2.5, question=null. Do not infer
+facts, outcomes, evidence, approval or execution. Example JSON:
+{{"trace":"inc","capacity":0.75,"reduce_factor":null,
+"actor":"{TRAINED_ACTOR}","fleet_preset":"{MEASURED_FLEET_PRESET}",
+"fleet_size":null,"fleet_seeds":[30,31,32],"comparison_capacity":2.5,
+"question":null}}"""
+DEEPSEEK_PROMPT_TEMPLATE_DIGEST = hashlib.sha256(
+    _DEEPSEEK_SYSTEM_PROMPT.encode("utf-8")
+).hexdigest()
+
+DeepSeekTransport = Callable[[str, Mapping[str, str], bytes, float], bytes]
 
 
 class WhatifComposerError(RuntimeError):
@@ -239,7 +279,7 @@ class ComposerDraft(PredictorModel):
     """One composed scenario: tier-1 answer plus the tier-2 escalation pair."""
 
     record_type: Literal["whatif_scenario_draft"] = "whatif_scenario_draft"
-    method_version: Literal["vec-whatif-composer-1.0"] = COMPOSER_METHOD_VERSION
+    method_version: Literal["vec-whatif-composer-1.1"] = COMPOSER_METHOD_VERSION
     design_reference: Literal["docs/platform/whatif_composer_design.md"] = COMPOSER_DESIGN_REFERENCE
     status: Literal["DRAFT_UNSIGNED"] = "DRAFT_UNSIGNED"
     generated_at_utc: str
@@ -255,30 +295,182 @@ class ComposerDraft(PredictorModel):
     drafted_by: dict[str, str]
 
 
-def compose_from_natural_language(text: str) -> NoReturn:
-    """The LLM socket. Dormant until a funded key exists (P-D1) — refuses."""
+class NaturalLanguageTranslation(PredictorModel):
+    provider: Literal["deepseek"] = "deepseek"
+    model: Literal["deepseek-v4-flash"] = DEEPSEEK_MODEL
+    prompt_template_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    input_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    response_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    form: ComposerForm
+    prompt_tokens: int | None = Field(default=None, ge=0)
+    completion_tokens: int | None = Field(default=None, ge=0)
+    llm_output: Literal[True] = True
+    evidence: Literal[False] = False
+    approval: Literal[False] = False
+    execution: Literal[False] = False
+    external_transfer: Literal[True] = True
 
-    del text
-    raise WhatifComposerError(
-        "LLM_SOCKET_DORMANT",
-        "the natural-language socket activates only when a funded ANTHROPIC_API_KEY "
-        "exists (owner decision P-D1: form-first; the owner's Max subscriptions are "
-        "coding tools, not runtime API). The structured form produces the identical "
-        "artifacts — the socket is an enhancement, never a dependency.",
+
+def _screen_natural_language(text: str) -> str:
+    cleaned = text.strip()
+    if not cleaned:
+        raise WhatifComposerError("LLM_INPUT_EMPTY", "enter a scenario before translation")
+    if len(cleaned) > DEEPSEEK_MAX_INPUT_CHARACTERS:
+        raise WhatifComposerError(
+            "LLM_INPUT_TOO_LARGE",
+            f"scenario text exceeds {DEEPSEEK_MAX_INPUT_CHARACTERS} characters",
+        )
+    if any(pattern.search(cleaned) for pattern in _NL_PRIVATE_PATTERNS):
+        raise WhatifComposerError(
+            "LLM_INPUT_PRIVATE",
+            "scenario text contains private, credential, participant or raw-data material",
+        )
+    return cleaned
+
+
+def _default_deepseek_transport(
+    url: str, headers: Mapping[str, str], body: bytes, timeout_seconds: float
+) -> bytes:
+    request = Request(url, data=body, headers=dict(headers), method="POST")  # noqa: S310
+    try:
+        with urlopen(request, timeout=timeout_seconds) as response:  # noqa: S310
+            raw = cast(bytes, response.read(DEEPSEEK_MAX_RESPONSE_BYTES + 1))
+    except HTTPError as error:
+        if error.code in {401, 403}:
+            code = "LLM_AUTH_FAILED"
+        elif error.code == 402:
+            code = "LLM_BILLING_UNAVAILABLE"
+        elif error.code == 429:
+            code = "LLM_RATE_LIMITED"
+        else:
+            code = "LLM_PROVIDER_UNAVAILABLE"
+        raise WhatifComposerError(code, f"DeepSeek returned HTTP {error.code}") from error
+    except (TimeoutError, URLError) as error:
+        raise WhatifComposerError(
+            "LLM_PROVIDER_UNAVAILABLE", "DeepSeek could not be reached within the timeout"
+        ) from error
+    if len(raw) > DEEPSEEK_MAX_RESPONSE_BYTES:
+        raise WhatifComposerError("LLM_RESPONSE_TOO_LARGE", "DeepSeek response exceeded the limit")
+    return raw
+
+
+def _response_content(raw: bytes) -> tuple[str, int | None, int | None]:
+    try:
+        decoded = cast(object, json.loads(raw))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise WhatifComposerError(
+            "LLM_RESPONSE_INVALID", "DeepSeek returned invalid JSON"
+        ) from error
+    if not isinstance(decoded, dict):
+        raise WhatifComposerError("LLM_RESPONSE_INVALID", "DeepSeek response is not an object")
+    choices = decoded.get("choices")
+    if not isinstance(choices, list) or len(choices) != 1 or not isinstance(choices[0], dict):
+        raise WhatifComposerError("LLM_RESPONSE_INVALID", "DeepSeek returned no single choice")
+    choice = choices[0]
+    if choice.get("finish_reason") != "stop":
+        raise WhatifComposerError(
+            "LLM_RESPONSE_INCOMPLETE", "DeepSeek output did not finish cleanly"
+        )
+    message = choice.get("message")
+    if not isinstance(message, dict):
+        raise WhatifComposerError("LLM_RESPONSE_INVALID", "DeepSeek returned no message")
+    content = message.get("content")
+    if not isinstance(content, str) or not content.strip():
+        raise WhatifComposerError("LLM_RESPONSE_EMPTY", "DeepSeek returned empty content")
+    usage = decoded.get("usage")
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    if isinstance(usage, dict):
+        raw_prompt_tokens = usage.get("prompt_tokens")
+        raw_completion_tokens = usage.get("completion_tokens")
+        if isinstance(raw_prompt_tokens, int) and raw_prompt_tokens >= 0:
+            prompt_tokens = raw_prompt_tokens
+        if isinstance(raw_completion_tokens, int) and raw_completion_tokens >= 0:
+            completion_tokens = raw_completion_tokens
+    return content, prompt_tokens, completion_tokens
+
+
+def compose_from_natural_language(
+    text: str,
+    *,
+    activation_enabled: bool = False,
+    api_key: str | None = None,
+    transport: DeepSeekTransport = _default_deepseek_transport,
+) -> NaturalLanguageTranslation:
+    """Translate bounded prose into the existing form; never predict or execute here."""
+
+    if not activation_enabled:
+        raise WhatifComposerError(
+            "LLM_ACTIVATION_REQUIRED",
+            "explicit per-request DeepSeek activation is required before external transfer",
+        )
+    cleaned = _screen_natural_language(text)
+    key = api_key or os.environ.get("DEEPSEEK_API_KEY")
+    if not key:
+        raise WhatifComposerError("LLM_KEY_MISSING", "DEEPSEEK_API_KEY is not configured")
+    request_payload = {
+        "model": DEEPSEEK_MODEL,
+        "messages": (
+            {"role": "system", "content": _DEEPSEEK_SYSTEM_PROMPT},
+            {"role": "user", "content": cleaned},
+        ),
+        "response_format": {"type": "json_object"},
+        "thinking": {"type": "disabled"},
+        "temperature": 0,
+        "max_tokens": 256,
+        "stream": False,
+    }
+    body = json.dumps(request_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    raw = transport(
+        DEEPSEEK_API_URL,
+        {"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        body,
+        DEEPSEEK_TIMEOUT_SECONDS,
+    )
+    content, prompt_tokens, completion_tokens = _response_content(raw)
+    try:
+        form = ComposerForm.model_validate_json(content)
+    except ValidationError as error:
+        raise WhatifComposerError(
+            "LLM_FORM_INVALID", "DeepSeek output failed the strict ComposerForm schema"
+        ) from error
+    if form.trace not in TRACE_EXECUTION_SPECS:
+        raise WhatifComposerError("LLM_FORM_INVALID", "DeepSeek selected an unreviewed trace")
+    if form.actor not in {TRAINED_ACTOR, BASELINE_ACTOR}:
+        raise WhatifComposerError("LLM_FORM_INVALID", "DeepSeek selected an unreviewed actor")
+    if form.fleet_preset != MEASURED_FLEET_PRESET:
+        raise WhatifComposerError("LLM_FORM_INVALID", "DeepSeek selected an unreviewed fleet")
+    form = form.model_copy(update={"question": None})
+    return NaturalLanguageTranslation(
+        prompt_template_digest=DEEPSEEK_PROMPT_TEMPLATE_DIGEST,
+        input_digest=hashlib.sha256(cleaned.encode("utf-8")).hexdigest(),
+        response_digest=hashlib.sha256(raw).hexdigest(),
+        form=form,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
     )
 
 
-def llm_socket_status() -> dict[str, object]:
-    """Report the socket's dormancy honestly; nothing here probes a key."""
+def llm_socket_status(
+    *,
+    activation_enabled: bool = False,
+    environment: Mapping[str, str] | None = None,
+) -> dict[str, object]:
+    """Report configuration without probing, displaying or hashing the key."""
 
+    source = environment if environment is not None else os.environ
+    configured = bool(source.get("DEEPSEEK_API_KEY"))
     return {
-        "available": False,
-        "mode": "template",
+        "available": configured and activation_enabled,
+        "configured": configured,
+        "activation_enabled": activation_enabled,
+        "mode": "deepseek_json_form" if configured else "template",
+        "provider": "deepseek",
+        "model": DEEPSEEK_MODEL,
         "reason": (
-            "dormant until the owner funds an ANTHROPIC_API_KEY AND explicitly "
-            "configures activation (P-D1); key presence alone must never silently "
-            "enable an external transfer. The form path produces the complete "
-            "draft artifacts."
+            "ready for an explicitly consented request"
+            if configured and activation_enabled
+            else "local structured form remains available; no external request is automatic"
         ),
     }
 
@@ -288,9 +480,14 @@ def compose_scenario(
     loaded: LoadedFit,
     *,
     generated_at_utc: str,
+    translation: NaturalLanguageTranslation | None = None,
 ) -> ComposerDraft:
     """Form in; prediction (or its refusal) plus the escalation drafts out."""
 
+    if translation is not None and translation.form != form:
+        raise WhatifComposerError(
+            "LLM_FORM_MISMATCH", "translation receipt does not bind the supplied form"
+        )
     spec = TRACE_EXECUTION_SPECS.get(form.trace)
     if spec is None:
         raise WhatifComposerError(
@@ -359,8 +556,26 @@ def compose_scenario(
     slug = _slug(form, generated_at_utc)
     cost = _draft_cost(form, spec)
     design_draft = _design_draft(form, spec, slug, cost, generated_at_utc)
+    drafted_by = (
+        {
+            "mode": "deepseek_json_form",
+            "provider": translation.provider,
+            "model": translation.model,
+            "prompt_template_digest": translation.prompt_template_digest,
+            "input_digest": translation.input_digest,
+            "response_digest": translation.response_digest,
+        }
+        if translation is not None
+        else {"mode": "template", "method_version": COMPOSER_METHOD_VERSION}
+    )
     predeclaration = _predeclaration_markdown(
-        form, spec, prediction, refusal, cost, generated_at_utc
+        form,
+        spec,
+        prediction,
+        refusal,
+        cost,
+        generated_at_utc,
+        drafted_by["mode"],
     )
     return ComposerDraft(
         generated_at_utc=generated_at_utc,
@@ -373,7 +588,7 @@ def compose_scenario(
         design_draft=design_draft,
         predeclaration_markdown=predeclaration,
         cost=cost,
-        drafted_by={"mode": "template", "method_version": COMPOSER_METHOD_VERSION},
+        drafted_by=drafted_by,
     )
 
 
@@ -542,6 +757,7 @@ def _predeclaration_markdown(
     refusal: PredictionRefusal | None,
     cost: DraftCost,
     generated_at_utc: str,
+    draft_mode: str,
 ) -> str:
     requested = form.requested_capacity
     seeds_text = ", ".join(str(seed) for seed in sorted(form.fleet_seeds))
@@ -556,7 +772,7 @@ def _predeclaration_markdown(
         f"**{DRAFT_BANNER}**",
         "",
         f"Drafted {generated_at_utc} by the what-if composer "
-        f"({COMPOSER_METHOD_VERSION}, template path; LLM socket dormant per P-D1). "
+        f"({COMPOSER_METHOD_VERSION}, {draft_mode}; LLM output is not evidence). "
         f"Design reference: {COMPOSER_DESIGN_REFERENCE}.",
         "",
         "## 1. Question and hypothesis",
