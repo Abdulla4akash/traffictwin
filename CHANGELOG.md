@@ -2,6 +2,18 @@
 
 ## v0.7.0 - In development
 
+Added exact scenario lifecycle integration (2 August, Phase 174): canonical composer drafts,
+unsigned design/predeclaration bytes, prediction or refusal, executable-design projection and
+explicit revision lineage now bind into the append-only registry. DeepSeek-origin records retain
+only provider/model and prompt/input/response digests. Existing external campaign approval,
+execution receipt, deviation, campaign analysis and explicit human admission artifacts are
+strictly matched by digest/design/receipt and revalidated on every replay; admission additionally
+requires a caller-supplied owner-policy validator because schema validity is not authority. Retries
+are idempotent,
+stale heads and changed artifacts fail closed, and typed views keep prediction, approval,
+execution, deviations, analysis and standing separate. The service has no execution, signing,
+approval-creation or automatic-admission surface and imported no real authority artifact.
+
 Added operational aggregate-store activation (2 August, Phase 173): a path-free local CLI and
 service discover only digest-bound BODS session-activity aggregates and bus forecast-fit artifacts
 under a private external owner workspace, validate their separate authoritative source records and

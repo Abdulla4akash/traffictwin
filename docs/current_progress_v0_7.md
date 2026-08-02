@@ -66,7 +66,9 @@ At the latest proportional verification points:
   benchmark/UI tests, plus Ruff, formatting, strict mypy, lock and secret checks; and
 - the Phase-171 status audit reran 250 meeting/platform/research-workflow tests successfully; and
 - Phase 173 passed 22 focused activation tests and 98 aggregate-store/bus-adapter regression tests,
-  plus Ruff, formatting, strict mypy, lock, exact-source-byte and path-leakage gates.
+  plus Ruff, formatting, strict mypy, lock, exact-source-byte and path-leakage gates; and
+- Phase 174 passed 11 focused lifecycle integration tests and a 157-test adjacent post-v1
+  regression, plus Ruff, formatting, strict mypy, lock and privacy/diff gates.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -79,7 +81,7 @@ or research-usability acceptance claim.
 | Group | Practical state | What is built | What remains |
 |---|---|---|---|
 | v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, three platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
-| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic incremental analytics, evidence matrix and append-only scenario lifecycle | Select and activate a real owner workspace with authority/licence inputs, bind the dashboard feed, add matrix UI and wire lifecycle consumers |
+| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic incremental analytics, evidence matrix, append-only registry and exact artifact-revalidating composer lifecycle service | Select real store/lifecycle authority roots and genuine authority/licence artifacts, bind the dashboard feed and add matrix/lifecycle UI |
 | Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded decision assessments | Dashboard presentation and consumer integration; still no execution authority |
 | Controlled live twin | `foundation_only` | Maximum-coverage schemas, policies, state machine and deterministic fake | Concrete local SUMO/public/cloud/operator transports and deployment-supplied authority |
 | Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
@@ -175,23 +177,28 @@ next section.
 
 1. Add read-only dashboard pages/services for the analytics quality feed, experiment evidence
    matrix, mechanism observatory and Decision-Safety assessments.
-2. Wire composer drafts into the append-only scenario registry through explicit local lifecycle
-   actions, leaving approval, execution and admission external and digest-bound.
-3. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
+2. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
    fixture, retaining engineering-only receipts and launching no scientific campaign.
-4. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
+3. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
    ingestion and deterministic synthetic workers; real training remains a separately authorised
    action after a signed protocol and concrete resources exist.
-5. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
+4. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
    real attribution remains unavailable until a compatible producer snapshot hook and validation
    method exist.
-6. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
+5. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
    neither artifact creates supervisor approval or research evidence.
 
 Completed in Phase 173: the owner-workspace aggregate SQLite activation command now supplies
 mutation-free preview, exact confirmation, closed safe-artifact adapters, atomic/idempotent
 publication, orphan/corruption reporting, and complete-backup isolated restore verification. No
 real workspace or artifact was activated.
+
+Completed in Phase 174: canonical composer drafts and explicit revision lineage now enter the
+append-only registry through a local service; digest-only DeepSeek provenance and strict external
+approval/execution/deviation/analysis/admission adapters are revalidated on append and replay.
+Admission also requires a caller-supplied owner-policy validator; schema validity alone refuses.
+There is no run, signature, approval creation or automatic admission surface, and no real authority
+artifact was imported.
 
 ## 7. Decisions or evidence required before acceptance
 

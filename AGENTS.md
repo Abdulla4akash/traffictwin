@@ -4647,3 +4647,34 @@ lint/format, strict mypy on the owned service/CLI, `uv lock --check`, source-byt
 path-leakage screening and `git diff --check` passed. No real workspace or artifact was selected,
 imported or activated; no quarantine, network, analysis, evidence, admission or deployment action
 occurred.
+
+### Phase 174 claim: scenario lifecycle integration (2 August 2026)
+
+The owner-directed integrating lead owns the second post-meeting build slice in
+`docs/platform/scenario_lifecycle_integration_design.md`,
+`src/traffictwin/platform/scenario_lifecycle.py`,
+`src/traffictwin/platform/scenario_registry.py`,
+`tests/unit/test_scenario_lifecycle.py`, the bounded status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`, the narrow
+`CHANGELOG.md` entry, and this phase record. The phase may bind exact canonical what-if composer
+drafts and explicit revisions into the append-only registry; retain only DeepSeek provider/model
+and prompt/input/response digests; revalidate existing external approval, execution, deviation,
+analysis and admission artifacts; and expose deterministic typed local replay views. It may not
+create or infer approval/admission, retain submitted or returned LLM prose, create an execution
+endpoint, sign as an agent, launch a campaign, promote a prediction into evidence, conceal a
+deviation, or accept a changed draft, stale prior digest or receipt/design mismatch.
+
+Phase 174 completed locally on 2 August 2026. Canonical composer-draft, unsigned-design,
+predeclaration, prediction/refusal and execution-projection digests now bind explicit single-child
+revision lineage into the append-only registry. DeepSeek lineage retains only provider/model and
+prompt/input/response digests. The local service revalidates existing external campaign approval,
+execution receipt, deviation, campaign analysis and explicit human admission artifacts on append
+and replay; admission additionally needs a caller-supplied owner-policy validator because schema
+validity is not authority. It stores no artifact path or prose, exposes typed lifecycle/admitted
+views and preserves deviations after standing changes. Changed drafts, branched revisions, stale
+heads, altered
+predeclarations, mismatched receipts/analyses/admissions, agent decisions, private content,
+symlinks and mutated authority artifacts fail closed. All 11 focused tests and the 157-test
+adjacent post-v1 regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy/no-run
+screening and `git diff --check` passed. No real artifact was imported; no approval, execution,
+analysis, admission, evidence, network or external action occurred.

@@ -122,6 +122,15 @@ class ScenarioRecord(RegistryModel):
     prediction_available: bool
     draft_design_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     draft_predeclaration_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
+    composer_draft_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    execution_design_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    parent_scenario_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{16}$")
+    draft_mode: Literal["template", "deepseek_json_form"] | None = None
+    llm_provider: str | None = None
+    llm_model: str | None = None
+    llm_prompt_template_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    llm_input_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    llm_response_digest: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     forecast: Literal[False] = False
     prediction: Literal[True] = True
     evidence: Literal[False] = False
@@ -180,10 +189,14 @@ class ScenarioRunRegistry:
         *,
         approval_validator: Callable[[ScenarioRecord, dict[str, str]], bool] | None = None,
         admission_validator: Callable[[ScenarioRecord, dict[str, str]], bool] | None = None,
+        event_validator: (
+            Callable[[ScenarioRecord, tuple[RegistryEvent, ...], RegistryEvent], bool] | None
+        ) = None,
     ) -> None:
         self._log_path = log_path
         self._approval_validator = approval_validator
         self._admission_validator = admission_validator
+        self._event_validator = event_validator
         self._scenarios: dict[str, ScenarioRecord] = {}
         self._events: dict[str, list[RegistryEvent]] = {}
         self._digests: dict[str, list[str]] = {}
@@ -402,6 +415,13 @@ class ScenarioRunRegistry:
                     "AGENT_APPROVAL_FORBIDDEN",
                     "closure is owner-authored; an agent cannot close a scenario",
                 )
+        if self._event_validator is not None and not self._event_validator(
+            record, tuple(events), event
+        ):
+            raise ScenarioRegistryError(
+                "EXTERNAL_PROOF_INVALID",
+                "the configured lifecycle validator did not accept the external artifact",
+            )
 
     def get_timeline(self, scenario_id: str) -> ScenarioTimeline:
         record = self._scenarios.get(scenario_id)
@@ -438,6 +458,11 @@ class ScenarioRunRegistry:
 
         timelines = [self.get_timeline(scenario_id) for scenario_id in self._scenarios]
         return tuple(timeline for timeline in timelines if timeline.admission_status == "admitted")
+
+    def list_timelines(self) -> tuple[ScenarioTimeline, ...]:
+        """Return every timeline in deterministic scenario-id order."""
+
+        return tuple(self.get_timeline(scenario_id) for scenario_id in sorted(self._scenarios))
 
     def require_admitted(self, scenario_id: str) -> ScenarioTimeline:
         timeline = self.get_timeline(scenario_id)

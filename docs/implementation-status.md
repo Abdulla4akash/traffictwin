@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 173. It does not alter the strict
+This section records the additive platform truth through Phase 174. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -42,7 +42,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Platform dashboard | Phase 145 implemented additive Inventory, Forecasts and Composer pages | No participant results; post-v1 backend views are not yet integrated |
 | Dhaka corridor | Phase 146 completed the authorised Airport-road network feasibility build with an ACCEPTED receipt | Network engineering only: no observations, calibration, simulation, VEC result or Dhaka twin claim |
 | Historical store and analytics | Phases 147/160 implemented local aggregate SQLite persistence; Phase 173 added preview-confirmed activation, two closed safe-artifact adapters, atomic publication and backup/restore verification; Phases 152/165 implemented atomic analytics and the 15-minute policy | No real workspace selection, import/migration/population, backup scheduler, OS analytics scheduler or shared-dashboard feed binding |
-| Evidence matrix and scenario registry | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161 | No matrix UI; the registry does not approve, launch or admit |
+| Evidence matrix and scenario lifecycle | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161; Phase 174 bound exact composer revisions and revalidated external lifecycle artifacts | No matrix UI or real authority-root selection; the service does not create approval, launch work, analyse or admit |
 | Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2 | No observatory/safety UI or execution authority; outputs create no evidence |
 | Controlled live twin | Phases 153/168 implemented maximum-coverage control contracts and a deterministic fake adapter | No real process/transport, live BODS, public service, cloud allocation or road actuation |
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol, compatibility, budget, seed and analysis tooling | `PROPOSED / UNSIGNED`; no bound actors, training, evaluation, cloud use, evidence or admission |
@@ -60,6 +60,18 @@ publishes by atomic rename. Exact retries reconcile the marker, contracts, catal
 corrupt or unmanaged targets refuse. Synthetic tests prove source-byte preservation, privacy,
 licence, standing, permission, symlink, crash-resume, corruption, orphan and CLI boundaries. No
 real owner workspace, authority record or aggregate was selected or imported.
+
+Phase 174 closes the composer-to-registry wiring gap without creating an action surface. Canonical
+composer, unsigned-design, predeclaration, prediction/refusal and executable-design-projection
+digests bind every explicit revision; DeepSeek provenance retains only provider/model and three
+digests. Existing external approval designs, execution receipts, deviation records, campaign
+analyses and explicit human admission records are strict-validated on append and every replay.
+Admission additionally requires a caller-supplied owner-policy validator: an asserted identity and
+valid schema are not authority. Only digests and bounded lifecycle codes enter the path-free log.
+Changed drafts, branched
+revisions, stale heads, altered predeclarations, mismatched receipts/analyses/admissions, agent
+decisions, private content and mutated authority artifacts fail closed. No real lifecycle artifact
+was selected or imported.
 
 Phase 0 status: approved and committed.
 
