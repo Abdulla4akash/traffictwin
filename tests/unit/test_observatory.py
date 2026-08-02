@@ -15,6 +15,7 @@ import pytest
 from pydantic import ValidationError
 
 from traffictwin.platform.observatory import (
+    PUBLIC_DISPLAY_ORDER,
     ConfirmedHeadlineCard,
     ObservatoryBundle,
     ObservatoryError,
@@ -108,6 +109,29 @@ def test_roles_never_pool_and_the_appendix_never_promotes(
     assert any(card.card_id == "sparse64-appendix" for card in appendix)
     default_view = select_mechanism_cards(bundle)
     assert not any(card.card_id == "sparse64-appendix" for card in default_view)
+    assert any(card.card_id == "sparse64-clean-rerun" for card in default_view)
+
+
+def test_owner_admitted_sparse64_is_public_but_permanently_deviation_labelled(
+    bundle: ObservatoryBundle,
+) -> None:
+    study = next(item for item in bundle.studies if item.study_id == "bbus-sparse64-clean-rerun")
+    assert study.admission_status == "admitted"
+    assert study.admission_qualifier == "admitted_with_execution_deviation"
+    assert study.execution_deviations
+    clean = next(card for card in bundle.mechanism_cards if card.card_id == "sparse64-clean-rerun")
+    assert "ADMITTED WITH EXECUTION DEVIATION" in clean.title
+    assert "never pooled" in " ".join(clean.limitations)
+    assert {binding.path for binding in clean.sources} == {
+        "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md",
+        "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json",
+    }
+
+
+def test_public_display_order_is_owner_selected_and_digest_bound(
+    bundle: ObservatoryBundle,
+) -> None:
+    assert bundle.public_display_order == PUBLIC_DISPLAY_ORDER
 
 
 def test_the_withdrawn_rsu_attribution_stays_a_first_class_limitation(
@@ -141,7 +165,7 @@ def test_every_card_binds_committed_sources_and_builds_deterministically(
     again = build_observatory_bundle(REPO_ROOT)
     assert bundle_to_json(again) == bundle_to_json(bundle)
     assert again.bundle_digest == bundle.bundle_digest
-    assert bundle.studies[0].admission_status == "admitted"
+    assert all(study.admission_status == "admitted" for study in bundle.studies)
     assert bundle.coherence_checks[0].state == "supported"
     assert set(bundle.coherence_checks[0].required_metrics) == set(
         bundle.coherence_checks[0].present_metrics

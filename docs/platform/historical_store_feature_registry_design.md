@@ -1,8 +1,9 @@
 # Design — Aggregate historical store and feature registry (post-v1 H-1)
 
-**Status: IMPLEMENTED in Phase 147 for the engine-neutral contract and in Phase 160 for the
-owner-delegated local SQLite persistence contract. No existing data has been migrated and the store
-is not a production or scientific dependency. The maximum policy ceiling is
+**Status: IMPLEMENTED in Phase 147 for the engine-neutral contract, Phase 160 for the
+owner-delegated local SQLite persistence contract and Phase 166 for separately namespaced
+owner-admitted execution-deviated Sparse-64 aggregates. No existing data has been migrated and the
+store is not a production or scientific dependency. The maximum policy ceiling is
 `owner_approved_candidate`. This document does not authorise acquisition, migration of raw BODS
 material, experiment execution, cloud services, production deployment, approval or admission.**
 
@@ -51,9 +52,11 @@ Eligible payload classes are deliberately narrow:
 | Scenario metadata | composer draft or later run receipt | Digests and typed state only; no arbitrary prompt or secret material |
 
 Raw BODS bytes, salts, vehicle or operator identifiers, cross-session linkages,
-credentials, private absolute paths and participant data are forbidden. Whole-region
-Sparse-64 artifacts may be indexed only as `NON_ADMITTED` metadata; their results must
-remain segregated from the admitted VEC feature namespace.
+credentials, private absolute paths and participant data are forbidden. The earlier whole-region
+Sparse-64 147-repeat artifact may be indexed only as `NON_ADMITTED` metadata. The clean rerun
+admitted by the owner on 2 August 2026 may be indexed only as a safe aggregate in the separate
+`admitted_sparse64_deviated` namespace, with `admitted_with_execution_deviation` restrictions.
+Both remain segregated from the clean admitted VEC feature namespace and may never be pooled with it.
 
 ## 4. Logical architecture
 
@@ -212,6 +215,15 @@ The recovery and backup mechanisms now exist, but the store has deliberately not
 dependency: no real workspace has been selected or populated, no restore has been executed against
 real safe artifacts, and no operational backup schedule is running. Those are activation steps,
 not evidence or production approval.
+
+### Phase 166 Sparse-64 standing implementation
+
+The schema registry and feature restrictions now distinguish the original `NON_ADMITTED`
+Sparse-64 archive from the owner's later admission of the clean rerun as descriptive evidence with
+an execution deviation. Registration requires the exact namespace, schema compatibility flag,
+standing, role and deviation tuple; a mismatched combination refuses atomically. This does not
+remove the deviation, reclassify the earlier archive, publish private payloads or make the
+Sparse-64 design compatible with admitted corridor VEC evidence.
 
 ## 10. Owner decisions and stop conditions
 

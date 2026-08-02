@@ -1,10 +1,11 @@
 # Design — Experiment evidence matrix (post-v1 E-1)
 
 **Status: IMPLEMENTED as a read-only backend coverage index in Phase 148, with reviewed source
-digests and design-fingerprint reconciliation made fail-closed in Phase 161. The delivered surface
+digests and design-fingerprint reconciliation made fail-closed in Phase 161 and the owner's
+execution-deviated Sparse-64 admission bound in Phase 166. The delivered surface
 is a code-registered adapter over the committed catalogue/register/results, deterministic filters,
-coverage counts and typed grouping refusals. Public/default facets, abandoned-proposal treatment,
-automatic ingestion of future record formats and UI presentation remain owner/integration work.
+coverage counts and typed grouping refusals. Public/default facets and abandoned-proposal treatment
+are selected; automatic ingestion of future record formats and UI presentation remain integration work.
 Maximum policy ceiling: `owner_approved_candidate`. This is a provenance and coverage
 index, not a meta-analysis, evidence-admission authority or claim that every matrix cell is
 scientifically comparable.**
@@ -61,9 +62,12 @@ registry/records, protocol artifacts and digest-pinned analyses. Hand-entered UI
 forbidden. A proposal can appear only as `proposed`/`evidence: false`; execution does not
 automatically change it to admitted.
 
-The current Sparse-64 bus/GPU work remains `NON_ADMITTED` and outside the admitted VEC
-matrix even though all five fresh seeds completed. Completion and admission are separate
-axes. Earlier and fresh execution/provenance deviations remain visible.
+The earlier Sparse-64 bus/GPU 147-repeat return remains `NON_ADMITTED`. On 2 August 2026 the owner
+admitted the clean rerun as descriptive evidence with the qualifier
+`admitted_with_execution_deviation`. Its one repeated fixed evaluation, overwritten first archive
+and other scope limits remain visible. It is included in admitted coverage but remains incompatible
+with and unpooled from admitted corridor VEC evidence. Completion and admission remain separate
+axes; a digest-bound owner record, not completion, establishes the later transition.
 
 ## 5. Derived summaries
 
@@ -110,7 +114,8 @@ source-digest set.
 
 ## 9. Owner decisions and stop conditions
 
-The owner must approve the public/default facets, treatment of abandoned proposals and
-whether non-admitted rows appear by default or behind a separate view. Stop if a requested
-summary requires a new statistical synthesis, unstated compatibility judgement, private
+On 2 August 2026 the owner selected maximum public coverage of citation-complete studies:
+owner-admitted rows appear in default coverage, while `NON_ADMITTED` rows remain behind an explicit
+separate view. Proposed rows remain labelled proposals rather than silently disappearing. Stop if
+a requested summary requires a new statistical synthesis, unstated compatibility judgement, private
 evidence, or reclassification of an experiment's standing.

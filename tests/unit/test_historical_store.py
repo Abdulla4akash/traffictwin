@@ -780,6 +780,102 @@ def test_sparse64_is_metadata_only_non_admitted_and_namespace_segregated() -> No
     assert non_admitted_view == (segregated.record,)
 
 
+def test_owner_admitted_sparse64_keeps_deviation_and_separate_namespace() -> None:
+    schema = DatasetSchemaContract(
+        schema_name="sparse64.admitted.summary",
+        schema_version=1,
+        payload_class=PayloadClass.SAFE_ANALYSIS_SUMMARY,
+        required_top_level_keys=(
+            "record_type",
+            "status",
+            "execution_deviation",
+            "aggregates_only",
+            "completion_mean",
+        ),
+        allowed_top_level_keys=(
+            "record_type",
+            "status",
+            "execution_deviation",
+            "aggregates_only",
+            "completion_mean",
+        ),
+        required_literals=(
+            SchemaLiteral(field="record_type", value="sparse64_admitted_summary"),
+            SchemaLiteral(field="status", value="ADMITTED_WITH_EXECUTION_DEVIATION"),
+            SchemaLiteral(field="execution_deviation", value=True),
+            SchemaLiteral(field="aggregates_only", value=True),
+        ),
+        sparse64_admitted_aggregate_compatible=True,
+    )
+    standing = EvidenceStanding(
+        evidence_role=EvidenceRole.EXECUTION_DEVIATED,
+        admission_status=AdmissionStatus.ADMITTED,
+        evidence=True,
+        execution_deviation=True,
+    )
+    source = _source(
+        source_id="source:sparse64-clean-owner-admission",
+        standing=standing,
+        sparse64=True,
+        metadata_only=True,
+    )
+    store = _store(schemas=(schema,), sources=(source,))
+    candidate = _candidate(
+        schema,
+        source,
+        {
+            "record_type": "sparse64_admitted_summary",
+            "status": "ADMITTED_WITH_EXECUTION_DEVIATION",
+            "execution_deviation": True,
+            "aggregates_only": True,
+            "completion_mean": 0.501355,
+        },
+        dataset_id="dataset:sparse64-clean-admitted-deviated",
+        standing=standing,
+        namespace=CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED,
+        sparse64=True,
+    )
+
+    receipt = store.register_dataset(candidate)
+
+    assert isinstance(receipt, StoreReceipt)
+    sparse_view = store.query_catalogue(
+        CatalogueQuery(
+            schema_name=schema.schema_name,
+            minimum_schema_version=1,
+            maximum_schema_version=1,
+            namespace=CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED,
+        )
+    )
+    assert sparse_view == (candidate.record,)
+    assert sparse_view[0].standing.execution_deviation
+    assert sparse_view[0].standing.admission_status is AdmissionStatus.ADMITTED
+    assert (
+        store.query_catalogue(
+            CatalogueQuery(
+                schema_name=schema.schema_name,
+                minimum_schema_version=1,
+                maximum_schema_version=1,
+                namespace=CatalogueNamespace.ADMITTED_VEC,
+            )
+        )
+        == ()
+    )
+
+    with pytest.raises(ValidationError, match="segregated non-admitted or"):
+        HistoricalDatasetRecord.model_validate(
+            candidate.record.model_dump() | {"content_scope": ContentScope.METADATA_ONLY},
+        )
+    with pytest.raises(ValidationError, match="Sparse-64 namespaces require sparse64=true"):
+        HistoricalDatasetRecord.model_validate(
+            candidate.record.model_dump() | {"sparse64": False},
+        )
+    with pytest.raises(ValidationError, match="exactly one standing namespace"):
+        DatasetSchemaContract(
+            **(schema.model_dump() | {"sparse64_metadata_compatible": True}),
+        )
+
+
 def test_migration_dry_run_changes_neither_sources_store_nor_payload_bytes() -> None:
     schema = _activity_schema()
     source = _source()

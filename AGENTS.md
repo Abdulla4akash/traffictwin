@@ -4443,3 +4443,29 @@ passed. Tests cover the exact selected thresholds, warned-but-usable semantics, 
 overlap refusals, the Europe/London fall-back fold, atomic/idempotent report publication and the
 absence of automatic retention deletion. No live acquisition, external alert, dashboard edit or
 scientific interpretation ran.
+
+### Phase 166 claim: owner admission of the clean Sparse-64 rerun (2 August 2026)
+
+The integrating lead owns the narrow, owner-directed admission amendment for the clean Sparse-64
+rerun only. The 30 July source/result records remain immutable; a new append-only owner-decision
+record binds their reviewed digests and admits the retained clean-rerun archive with its one
+duplicate-return execution deviation permanently visible. The earlier 147-repeat archive remains
+non-admitted. Exclusive paths are the new
+`docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json`,
+`src/traffictwin/platform/{historical_store,evidence_matrix,observatory}.py`, their focused
+`tests/unit/test_{historical_store,evidence_matrix,observatory}.py`,
+`docs/platform/{historical_store_feature_registry,experiment_evidence_matrix,mechanism_policy_observatory}_design.md`,
+and this phase record. The phase may add an admitted-but-execution-deviated Sparse-64 namespace,
+public descriptive card and fixed display order. It may not erase the deviation, pool either
+Sparse-64 return with clean protocol-confirmed VEC evidence, claim real-world causality or
+supervisor approval, admit the earlier archive, expose the private archive, or rerun anything.
+
+Phase 166 verification passed on 2 August 2026: all 60 focused historical-store persistence,
+evidence-matrix and observatory tests passed; Ruff lint and formatting checks passed on all six
+owned Python files; strict mypy passed on the three owned source modules; `uv lock --check`, JSON
+digest verification, private-marker screening and owned-path `git diff --check` passed. The clean
+rerun is now admitted only as descriptive evidence with the immutable
+`admitted_with_execution_deviation` qualifier. Its owner record binds the reviewed result and
+homecoming-evidence digests. The earlier 147-repeat archive remains non-admitted, and neither
+Sparse-64 return is pooled with corridor VEC evidence. No private archive was published and no
+experiment, external service or scientific calculation ran.

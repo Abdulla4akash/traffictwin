@@ -10,8 +10,9 @@ admission authority, and it cannot change any row's standing.
 
 The axes keep the project's hardest-won distinctions type-level:
 
-- completion and admission are SEPARATE axes — the Sparse-64 bus/GPU returns
-  completed 5/5 and remain ``non_admitted``, outside every admitted view;
+- completion and admission are SEPARATE axes — the original Sparse-64 return
+  remains ``non_admitted`` while the clean rerun is admitted only through a
+  later owner record and permanently retains its execution deviation;
 - ``not_applicable`` / ``not_recorded`` / ``not_tested`` are distinct values,
   never interchangeable with zero;
 - grouping requires a versioned compatibility rule and defaults to
@@ -42,6 +43,9 @@ NOT_RECORDED = "not_recorded"
 NOT_TESTED = "not_tested"
 
 RowStatus = Literal["proposed", "executed", "analysed", "admitted", "non_admitted", "refused"]
+AdmissionQualifier = Literal[
+    "clean", "admitted_with_execution_deviation", "non_admitted", "not_applicable"
+]
 EvidenceRole = Literal[
     "protocol_confirmed", "post_hoc", "exploratory", "descriptive", "prediction", "diagnostic"
 ]
@@ -81,6 +85,7 @@ class EvidenceMatrixRow(MatrixModel):
     design_id: str
     design_fingerprint: str
     status: RowStatus
+    admission_qualifier: AdmissionQualifier
     evidence_role: EvidenceRole
     policy_ceiling: Literal["owner_approved_candidate"] = "owner_approved_candidate"
     trace_family: str
@@ -119,6 +124,7 @@ class RegisteredRow:
     held_out_relationship: str
     primary_endpoint: str
     source_paths: tuple[str, ...]
+    admission_qualifier: AdmissionQualifier | None = None
     locality: str = "Etihad district, Manchester (inc trace family)"
     fleet_preset: str = "uk2030"
     demand_treatment: str = NOT_APPLICABLE
@@ -149,6 +155,9 @@ EXPECTED_SOURCE_DIGESTS: dict[str, str] = {
     ),
     "docs/evaluation/bbus_sparse64_homecoming_results_20260730.md": (
         "4bd46731ebf24f5ca3145aea767dcb99d066e4e2d234be7bcf0d50f59c013b3e"
+    ),
+    "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json": (
+        "7e1eb25c156d423db9d6e3608505b8e9b373ec5de07d06dd1f92203b546d3696"
     ),
     "docs/evaluation/capacity_confirmatory_results_20260728.md": (
         "5659be5530dc0dce97123206e35359c6a1d7bf84e95a7ebaee54a4a69600ed76"
@@ -361,24 +370,37 @@ REGISTERED_ROWS: tuple[RegisteredRow, ...] = (
     RegisteredRow(
         design_id="bbus-sparse64-clean-rerun",
         design_fingerprint=NOT_RECORDED,
-        status="non_admitted",
-        evidence_role="diagnostic",
+        status="admitted",
+        admission_qualifier="admitted_with_execution_deviation",
+        evidence_role="descriptive",
         trace_family="derived bus (Sparse-64)",
         locality="Greater Manchester BODS-derived",
         actor_family="GPU-track training returns",
         capacity_arms=("cap-2.5", "cap-0.75"),
-        seed_set="not_recorded",
-        pairing_rule=NOT_APPLICABLE,
-        held_out_relationship=NOT_APPLICABLE,
+        seed_set=(30, 31, 32, 33, 34),
+        pairing_rule="paired evaluation stream by model seed",
+        held_out_relationship=(
+            "peak evaluation was held out from dawn training; owner-admitted retained "
+            "archive has one duplicate-return execution deviation"
+        ),
         execution_deviation=(
             "one repeat evaluation: the terminal record was written after a fallible "
             "cleanup step a relaunch could interrupt (second return); 5/5 compute completed"
         ),
-        primary_endpoint="peak completion (diagnostic only)",
-        secondary_endpoints=(),
-        exclusion_reason="NON_ADMITTED by its own evidence record; completion is not admission",
-        source_paths=("docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md",),
-        citation_bundle=None,
+        primary_endpoint="equal-weight held-out peak deadline completion at cap-0.75",
+        secondary_endpoints=(
+            "cap-2.5 completion",
+            "per-class completion",
+            "latency",
+            "energy",
+            "action shares",
+        ),
+        exclusion_reason=None,
+        source_paths=(
+            "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md",
+            "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json",
+        ),
+        citation_bundle=CITATION_REFERENCE,
     ),
     RegisteredRow(
         design_id="vec-fleet-composition-prediction",
@@ -495,6 +517,23 @@ def build_evidence_matrix(repo_root: Path) -> EvidenceMatrix:
                 "STATUS_TRANSITION_UNPROVEN",
                 f"row '{registered.design_id}' has no non-admission statement in its source",
             )
+        qualifier = registered.admission_qualifier
+        if qualifier is None:
+            if registered.status == "admitted":
+                qualifier = "clean"
+            elif registered.status == "non_admitted":
+                qualifier = "non_admitted"
+            else:
+                qualifier = "not_applicable"
+        if qualifier == "admitted_with_execution_deviation" and (
+            registered.status != "admitted"
+            or registered.execution_deviation is None
+            or "admitted_with_execution_deviation" not in joined_sources
+        ):
+            raise EvidenceMatrixError(
+                "STATUS_TRANSITION_UNPROVEN",
+                f"row '{registered.design_id}' lacks a bound owner admission with deviation",
+            )
         if (
             registered.citation_bundle is None
             and registered.status in ("admitted", "analysed")
@@ -509,6 +548,7 @@ def build_evidence_matrix(repo_root: Path) -> EvidenceMatrix:
                 design_id=registered.design_id,
                 design_fingerprint=registered.design_fingerprint,
                 status=registered.status,
+                admission_qualifier=qualifier,
                 evidence_role=registered.evidence_role,
                 trace_family=registered.trace_family,
                 locality=registered.locality,

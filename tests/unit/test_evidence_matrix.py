@@ -70,19 +70,31 @@ def test_changed_source_bytes_refuse_instead_of_accepting_stale_rows(tmp_path: P
     assert excinfo.value.code == "DIGEST_MISMATCH"
 
 
-def test_completion_is_not_admission_for_the_sparse64_rows(
+def test_owner_admission_keeps_sparse64_standings_and_deviation_separate(
     matrix: EvidenceMatrix,
 ) -> None:
     non_admitted = [row for row in matrix.rows if row.status == "non_admitted"]
-    assert {row.design_id for row in non_admitted} == {
-        "bbus-sparse64-homecoming",
-        "bbus-sparse64-clean-rerun",
-    }
+    assert {row.design_id for row in non_admitted} == {"bbus-sparse64-homecoming"}
     for row in non_admitted:
         assert row.execution_deviation
         assert row.exclusion_reason
-    # Default selections exclude them entirely.
+        assert row.admission_qualifier == "non_admitted"
+
+    clean = next(row for row in matrix.rows if row.design_id == "bbus-sparse64-clean-rerun")
+    assert clean.status == "admitted"
+    assert clean.admission_qualifier == "admitted_with_execution_deviation"
+    assert clean.evidence_role == "descriptive"
+    assert clean.execution_deviation
+    assert clean.exclusion_reason is None
+    assert {binding.path for binding in clean.sources} == {
+        "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md",
+        "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json",
+    }
+
+    # Default selections include the admitted clean rerun and exclude only
+    # the earlier non-admitted return.
     default_selection = filter_rows(matrix)
+    assert clean.design_id in default_selection.row_ids
     assert not any(row.status == "non_admitted" for row in default_selection.rows)
     # And requesting admitted standing plus non-admitted rows is a promotion.
     with pytest.raises(EvidenceMatrixError) as excinfo:
@@ -162,8 +174,8 @@ def test_explain_cell_names_gaps_and_non_admitted_isolation(
         trace_family="derived bus (Sparse-64)",
         actor_family="GPU-track training returns",
     )
+    assert "admitted" in gpu
     assert "non-admitted" in gpu
-    assert "excluded from admitted views" in gpu
 
 
 def test_filters_never_mutate_row_standing(matrix: EvidenceMatrix) -> None:

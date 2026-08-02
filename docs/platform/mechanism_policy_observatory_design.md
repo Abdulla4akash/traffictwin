@@ -1,10 +1,12 @@
 # Design — Mechanism and policy observatory (post-v1 O-1)
 
-**Status: IMPLEMENTED as a read-only backend bundle in Phase 150 and source-pinned in Phase 161.
+**Status: IMPLEMENTED as a read-only backend bundle in Phase 150, source-pinned in Phase 161 and
+updated with the owner's public-view and Sparse-64 admission decisions in Phase 166.
 Delivered contracts include `StudyCard`, `MechanismCard`, `PolicyContractCard`, action-invariance,
 `CoherenceCheck`, complete source bindings and deterministic templates. Reviewed source digests
 must match before fixed scientific values render. No UI or scientific recalculation is included;
-public studies, fixed display order and any non-admitted appendix remain owner decisions.
+The public display contains every citation-complete admitted study, while the earlier non-admitted
+Sparse-64 return remains in an explicit appendix.
 Maximum policy ceiling: `owner_approved_candidate`. The observatory is read-only and
 evidence-bound. It does not diagnose causality, recommend a policy, execute an experiment,
 or upgrade any result's standing.**
@@ -86,8 +88,9 @@ template-based initially and can cite only fields in the bundle.
 ## 4. Evidence separation
 
 - Protocol-confirmed results are never pooled with post-hoc or exploratory results.
-- `NON_ADMITTED` bus/Sparse-64 results are excluded from admitted VEC summaries and may
-  appear only in a separately labelled descriptive appendix view.
+- The earlier 147-repeat Sparse-64 result is `NON_ADMITTED` and may appear only in a separately
+  labelled descriptive appendix. The clean rerun is owner-admitted descriptive evidence with its
+  execution deviation displayed and remains incompatible with and unpooled from corridor VEC.
 - Execution deviations remain first-class warnings.
 - "Supported", "not supported", "not tested" and "incompatible" are distinct states.
 - No card uses `ground_truth`, `causal`, `validated_policy`, `optimal` or
@@ -126,7 +129,9 @@ campaign code, actor, evidence record or manuscript is modified by this slice.
 
 ## 8. Owner decisions and stop conditions
 
-The owner must approve which studies are public-facing, whether the non-admitted appendix is
-shown, and the fixed ordering of headline/context cards. Stop if a requested view needs new
+On 2 August 2026 the owner selected maximum public coverage for citation-complete admitted studies,
+kept the `NON_ADMITTED` appendix explicit, and fixed this order: standing/scope/deviation; primary
+endpoint; uncertainty; companion metrics; mechanisms; limitations; citations. The bundle stores
+and digest-binds that order. Stop if a requested view needs new
 post-hoc computation, unpublished private artifacts, stronger permission wording, new
 experiment execution or a recommendation about operational policy.

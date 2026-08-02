@@ -39,7 +39,18 @@ CITATION_REFERENCE: Literal["docs/producer_citation_requirements.md"] = (
 )
 
 EvidenceRole = Literal["protocol_confirmed", "post_hoc", "exploratory", "descriptive"]
+AdmissionQualifier = Literal["clean", "admitted_with_execution_deviation", "non_admitted"]
 SupportState = Literal["supported", "not_supported", "not_tested", "incompatible", "unavailable"]
+
+PUBLIC_DISPLAY_ORDER = (
+    "standing_scope_deviation",
+    "primary_endpoint",
+    "uncertainty",
+    "companion_metrics",
+    "mechanisms",
+    "limitations",
+    "citations",
+)
 
 #: Language no card may carry, per design §4 — refused at the model boundary.
 FORBIDDEN_LANGUAGE = (
@@ -100,6 +111,7 @@ class StudyCard(ObservatoryModel):
     seed_set: tuple[int, ...]
     evidence_role: EvidenceRole
     admission_status: Literal["admitted", "non_admitted"]
+    admission_qualifier: AdmissionQualifier
     execution_deviations: tuple[str, ...] = ()
     sources: tuple[SourceBinding, ...] = Field(min_length=1)
 
@@ -185,6 +197,7 @@ class ObservatoryBundle(ObservatoryModel):
     )
     research_status: Literal["owner_approved_candidate"] = "owner_approved_candidate"
     evidence: Literal[False] = False
+    public_display_order: tuple[str, ...]
     studies: tuple[StudyCard, ...] = Field(min_length=1)
     headline: ConfirmedHeadlineCard
     mechanism_cards: tuple[MechanismCard, ...]
@@ -194,6 +207,12 @@ class ObservatoryBundle(ObservatoryModel):
     appendix_non_admitted: tuple[MechanismCard, ...]
     citation_reference: Literal["docs/producer_citation_requirements.md"] = CITATION_REFERENCE
     bundle_digest: str
+
+    @model_validator(mode="after")
+    def validate_public_display_order(self) -> ObservatoryBundle:
+        if self.public_display_order != PUBLIC_DISPLAY_ORDER:
+            raise ValueError("public display order must match the owner-selected safe order")
+        return self
 
 
 def _bind(repo_root: Path, paths: tuple[str, ...]) -> tuple[SourceBinding, ...]:
@@ -222,6 +241,9 @@ _FINDINGS = "docs/evaluation/capacity_study_detailed_findings.md"
 _CROSSOVER = "docs/evaluation/actor_crossover_results_20260730.md"
 _CEILING = "docs/evaluation/ceiling_law_prediction_results_20260729.md"
 _CATALOGUE = "docs/evaluation/experiment_catalogue_20260730.md"
+_SPARSE64_CLEAN = "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md"
+_SPARSE64_ADMISSION = "docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json"
+_SPARSE64_EARLIER = "docs/evaluation/bbus_sparse64_homecoming_results_20260730.md"
 
 EXPECTED_SOURCE_DIGESTS: dict[str, str] = {
     _CONFIRMATORY: "5659be5530dc0dce97123206e35359c6a1d7bf84e95a7ebaee54a4a69600ed76",
@@ -234,9 +256,9 @@ EXPECTED_SOURCE_DIGESTS: dict[str, str] = {
     "docs/evaluation/rsu_association_analysis_20260729.md": (
         "13e2de44ef8a1a67a6d29f63944aa84a6c0d3597f6c3be922f3d64ff28bd2b14"
     ),
-    "docs/evaluation/bbus_sparse64_homecoming_results_20260730.md": (
-        "4bd46731ebf24f5ca3145aea767dcb99d066e4e2d234be7bcf0d50f59c013b3e"
-    ),
+    _SPARSE64_CLEAN: "052b1e295675a68052f90b081195c836810c53133232640b0d1b0c2ec788dfb6",
+    _SPARSE64_ADMISSION: ("7e1eb25c156d423db9d6e3608505b8e9b373ec5de07d06dd1f92203b546d3696"),
+    _SPARSE64_EARLIER: ("4bd46731ebf24f5ca3145aea767dcb99d066e4e2d234be7bcf0d50f59c013b3e"),
 }
 
 
@@ -253,7 +275,24 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
             seed_set=(10, 11, 12, 13, 14),
             evidence_role="protocol_confirmed",
             admission_status="admitted",
+            admission_qualifier="clean",
             sources=_bind(repo_root, (_CONFIRMATORY, _CATALOGUE)),
+        ),
+        StudyCard(
+            study_id="bbus-sparse64-clean-rerun",
+            design_fingerprint="not_recorded",
+            trace_family="derived bus (Sparse-64)",
+            actor_family="GPU-track training returns",
+            capacity_arms=("cap-2.5", "cap-0.75"),
+            seed_set=(30, 31, 32, 33, 34),
+            evidence_role="descriptive",
+            admission_status="admitted",
+            admission_qualifier="admitted_with_execution_deviation",
+            execution_deviations=(
+                "one unintended second fixed held-out evaluation and return followed a "
+                "terminal-state ordering timeout; the first complete archive was overwritten",
+            ),
+            sources=_bind(repo_root, (_SPARSE64_CLEAN, _SPARSE64_ADMISSION)),
         ),
     )
     headline = ConfirmedHeadlineCard(
@@ -352,6 +391,27 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
             ),
             sources=_bind(repo_root, ("docs/evaluation/rsu_association_analysis_20260729.md",)),
         ),
+        MechanismCard(
+            card_id="sparse64-clean-rerun",
+            title="Sparse-64 clean rerun — ADMITTED WITH EXECUTION DEVIATION",
+            statistic=(
+                "owner-admitted descriptive return: equal-weight held-out peak deadline "
+                "completion was 0.501355 at capacity 0.75 and 0.501233 at capacity 2.5; "
+                "mean latency was 895.561 and 1,055.814 ms/task respectively"
+            ),
+            support="five model seeds {30,31,32,33,34}; 23,686,959 tasks at capacity 0.75",
+            evidence_role="descriptive",
+            limitations=(
+                "one unintended second fixed evaluation occurred after a terminal-state "
+                "ordering timeout; the first archive was overwritten and cross-return metric "
+                "identity cannot be verified",
+                "dawn-trained and peak-evaluated with simulated task outcomes and 64 generated "
+                "analysis sites; it is outside VEC-06 and is never pooled with corridor evidence",
+                "the owner admission does not establish a general Manchester, observed-RSU, "
+                "real-computing-task, supervisor or production claim",
+            ),
+            sources=_bind(repo_root, (_SPARSE64_CLEAN, _SPARSE64_ADMISSION)),
+        ),
     )
     policy_contracts = (
         PolicyContractCard(
@@ -425,21 +485,19 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
     appendix = (
         MechanismCard(
             card_id="sparse64-appendix",
-            title="Sparse-64 bus/GPU returns (descriptive appendix)",
+            title="Earlier Sparse-64 147-repeat return — NON_ADMITTED appendix",
             statistic=(
-                "both returns completed compute (5/5) and are NON_ADMITTED by their own "
-                "records; peak completion 0.519215 at cap-0.75 vs 0.519108 at cap-2.5 is "
-                "a descriptive observation only"
+                "the earlier retained return completed compute (5/5) but remains "
+                "NON_ADMITTED; peak completion 0.519215 at cap-0.75 vs 0.519108 at "
+                "cap-2.5 is a descriptive observation only"
             ),
-            support="two preserved private archives; execution-deviated",
+            support="one retained archive after 148 returns; execution-deviated",
             evidence_role="descriptive",
             limitations=(
-                "execution deviations (relaunch repeats, terminal-write ordering) are "
-                "first-class; these numbers never join admitted VEC summaries",
+                "147 unintended repeated returns and archive replacement remain first-class; "
+                "these numbers never join admitted views",
             ),
-            sources=_bind(
-                repo_root, ("docs/evaluation/bbus_sparse64_homecoming_results_20260730.md",)
-            ),
+            sources=_bind(repo_root, (_SPARSE64_EARLIER,)),
         ),
     )
     material = json.dumps(
@@ -451,10 +509,12 @@ def build_observatory_bundle(repo_root: Path) -> ObservatoryBundle:
             "invariance": action_invariance.model_dump(mode="json"),
             "coherence": [check.model_dump(mode="json") for check in coherence_checks],
             "appendix": [card.model_dump(mode="json") for card in appendix],
+            "public_display_order": PUBLIC_DISPLAY_ORDER,
         },
         sort_keys=True,
     )
     return ObservatoryBundle(
+        public_display_order=PUBLIC_DISPLAY_ORDER,
         studies=studies,
         headline=headline,
         mechanism_cards=mechanism_cards,

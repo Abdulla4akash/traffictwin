@@ -183,6 +183,7 @@ class CatalogueNamespace(StrEnum):
 
     GENERAL = "general"
     ADMITTED_VEC = "admitted_vec"
+    ADMITTED_SPARSE64_DEVIATED = "admitted_sparse64_deviated"
     NON_ADMITTED_SPARSE64 = "non_admitted_sparse64"
 
 
@@ -198,6 +199,7 @@ class SourceKind(StrEnum):
 
 class EvidenceRestriction(StrEnum):
     ADMITTED_ONLY = "admitted_only"
+    ADMITTED_EXECUTION_DEVIATED_ONLY = "admitted_execution_deviated_only"
     NON_ADMITTED_ONLY = "non_admitted_only"
     ANY_SAFE = "any_safe"
 
@@ -295,13 +297,25 @@ class AuthoritativeSourceRecord(StoreModel):
 
     @model_validator(mode="after")
     def validate_sparse64_standing(self) -> AuthoritativeSourceRecord:
-        if self.sparse64 and (
-            not self.metadata_only
-            or self.standing.admission_status is not AdmissionStatus.NON_ADMITTED
-            or self.standing.evidence
-        ):
-            raise ValueError("Sparse-64 source records must be metadata-only and non-admitted")
-        return self
+        if not self.sparse64:
+            return self
+        if not self.metadata_only:
+            raise ValueError("Sparse-64 authority records must remain metadata-only")
+        if self.standing.admission_status is AdmissionStatus.NON_ADMITTED:
+            if self.standing.evidence:
+                raise ValueError("non-admitted Sparse-64 authority must remain evidence=false")
+            return self
+        if self.standing.admission_status is AdmissionStatus.ADMITTED:
+            if (
+                self.standing.evidence_role is not EvidenceRole.EXECUTION_DEVIATED
+                or not self.standing.execution_deviation
+                or not self.standing.evidence
+            ):
+                raise ValueError(
+                    "admitted Sparse-64 authority must preserve its execution deviation"
+                )
+            return self
+        raise ValueError("Sparse-64 authority requires an explicit admission status")
 
 
 class SchemaLiteral(StoreModel):
@@ -319,6 +333,7 @@ class DatasetSchemaContract(StoreModel):
     allowed_top_level_keys: tuple[str, ...] = ()
     required_literals: tuple[SchemaLiteral, ...] = ()
     sparse64_metadata_compatible: bool = False
+    sparse64_admitted_aggregate_compatible: bool = False
 
     @model_validator(mode="after")
     def validate_keys(self) -> DatasetSchemaContract:
@@ -335,6 +350,8 @@ class DatasetSchemaContract(StoreModel):
             raise ValueError("required literal fields must be unique")
         if allowed and not set(literal_fields) <= allowed:
             raise ValueError("required literal fields must be allowed")
+        if self.sparse64_metadata_compatible and self.sparse64_admitted_aggregate_compatible:
+            raise ValueError("a Sparse-64 schema must target exactly one standing namespace")
         return self
 
 
@@ -415,15 +432,31 @@ class HistoricalDatasetRecord(StoreModel):
             missing = _PRODUCER_CITATION_KEYS - keys
             if missing:
                 raise ValueError(f"producer-derived record lacks citation keys: {sorted(missing)}")
-        if self.sparse64 and (
-            self.namespace is not CatalogueNamespace.NON_ADMITTED_SPARSE64
-            or self.content_scope is not ContentScope.METADATA_ONLY
-            or self.standing.admission_status is not AdmissionStatus.NON_ADMITTED
-            or self.standing.evidence
-        ):
-            raise ValueError(
-                "Sparse-64 records must be metadata-only in the non-admitted namespace"
+        if self.sparse64:
+            non_admitted = (
+                self.namespace is CatalogueNamespace.NON_ADMITTED_SPARSE64
+                and self.content_scope is ContentScope.METADATA_ONLY
+                and self.standing.admission_status is AdmissionStatus.NON_ADMITTED
+                and not self.standing.evidence
             )
+            admitted_with_deviation = (
+                self.namespace is CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED
+                and self.content_scope is ContentScope.AGGREGATE_PAYLOAD
+                and self.standing.admission_status is AdmissionStatus.ADMITTED
+                and self.standing.evidence_role is EvidenceRole.EXECUTION_DEVIATED
+                and self.standing.execution_deviation
+                and self.standing.evidence
+            )
+            if not non_admitted and not admitted_with_deviation:
+                raise ValueError(
+                    "Sparse-64 records must use their segregated non-admitted or "
+                    "admitted-with-deviation namespace"
+                )
+        elif self.namespace in {
+            CatalogueNamespace.NON_ADMITTED_SPARSE64,
+            CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED,
+        }:
+            raise ValueError("Sparse-64 namespaces require sparse64=true")
         if (
             self.namespace is CatalogueNamespace.ADMITTED_VEC
             and self.standing.admission_status is not AdmissionStatus.ADMITTED
@@ -490,6 +523,13 @@ class FeatureDefinition(StoreModel):
             and self.namespace is not CatalogueNamespace.NON_ADMITTED_SPARSE64
         ):
             raise ValueError("non-admitted-only features must use the segregated namespace")
+        if (
+            self.evidence_restriction is EvidenceRestriction.ADMITTED_EXECUTION_DEVIATED_ONLY
+            and self.namespace is not CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED
+        ):
+            raise ValueError(
+                "admitted execution-deviated features must use their segregated namespace"
+            )
         return self
 
     @property
@@ -1026,13 +1066,21 @@ class InMemoryHistoricalStore:
         if sparse_sources and not record.sparse64:
             raise _Rejected(
                 RefusalCode.NON_ADMITTED_PROMOTION,
-                "Sparse-64 source must remain in the segregated non-admitted namespace",
+                "Sparse-64 source must remain in its segregated namespace",
             )
-        if record.sparse64 and not schema.sparse64_metadata_compatible:
-            raise _Rejected(
-                RefusalCode.NON_ADMITTED_PROMOTION,
-                "schema is not approved for Sparse-64 metadata-only indexing",
+        if record.sparse64:
+            schema_allowed = (
+                record.namespace is CatalogueNamespace.NON_ADMITTED_SPARSE64
+                and schema.sparse64_metadata_compatible
+            ) or (
+                record.namespace is CatalogueNamespace.ADMITTED_SPARSE64_DEVIATED
+                and schema.sparse64_admitted_aggregate_compatible
             )
+            if not schema_allowed:
+                raise _Rejected(
+                    RefusalCode.NON_ADMITTED_PROMOTION,
+                    "schema is not approved for the selected Sparse-64 namespace",
+                )
 
     def register_dataset(
         self,
@@ -1242,6 +1290,17 @@ class InMemoryHistoricalStore:
             raise _Rejected(
                 RefusalCode.FEATURE_INCOMPATIBLE,
                 "non-admitted feature requires only non-admitted inputs",
+            )
+        if (
+            definition.evidence_restriction is EvidenceRestriction.ADMITTED_EXECUTION_DEVIATED_ONLY
+            and (
+                statuses != {AdmissionStatus.ADMITTED}
+                or any(not dataset.standing.execution_deviation for dataset in datasets)
+            )
+        ):
+            raise _Rejected(
+                RefusalCode.FEATURE_INCOMPATIBLE,
+                "execution-deviated feature requires admitted inputs retaining deviations",
             )
         return tuple(datasets)
 

@@ -1,0 +1,48 @@
+{
+  "admission": {
+    "admission_qualifier": "admitted_with_execution_deviation",
+    "admission_status": "admitted",
+    "decision_origin": "explicit_human_owner_direction",
+    "decision_date": "2026-08-02",
+    "evidence_role": "descriptive",
+    "policy_ceiling": "owner_approved_candidate"
+  },
+  "decision_id": "bbus-sparse64-clean-rerun-owner-admission-20260802",
+  "execution_deviation": {
+    "classification": "non_fatal_retained_deviation",
+    "cross_return_metric_identity_verifiable": false,
+    "description": "After the first complete archive was downloaded and integrity-checked, a terminal-state ordering timeout caused one unintended second fixed held-out evaluation and return. The first archive was overwritten.",
+    "display_required": true,
+    "metric_based_selection_occurred": false,
+    "scientific_settings_changed": false
+  },
+  "record_kind": "owner_sparse64_admission_record",
+  "schema_version": "1.0",
+  "scope": {
+    "admitted_experiment_id": "B-BUS-SPARSE64-DAWN-PEAK-20260728",
+    "admitted_return": "clean_rerun_retained_archive",
+    "earlier_147_repeat_return_admitted": false,
+    "pool_with_protocol_confirmed_vec": false,
+    "private_archive_publication_authorised": false,
+    "public_descriptive_observatory_display": true
+  },
+  "source_bindings": [
+    {
+      "path": "docs/evaluation/bbus_sparse64_clean_rerun_results_20260730.md",
+      "sha256": "052b1e295675a68052f90b081195c836810c53133232640b0d1b0c2ec788dfb6"
+    },
+    {
+      "path": "docs/integration/evidence/bbus_sparse64_clean_rerun_gpu_homecoming_20260730.json",
+      "sha256": "283ff460fdc7367e421cdbe929eaa1a1ad58d7e99980c39bdf8bc16622f4fce7"
+    }
+  ],
+  "standing_limits": {
+    "causal_rush_hour_claim": false,
+    "general_manchester_claim": false,
+    "observed_rsu_claim": false,
+    "production_ready": false,
+    "real_computing_task_claim": false,
+    "supervisor_approved": false,
+    "vec06_compatible": false
+  }
+}
