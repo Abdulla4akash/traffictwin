@@ -4841,3 +4841,38 @@ calibration/comparison/lineage/UI regression passed; Ruff lint/format, strict my
 --check`, exact-source/privacy/no-network/no-write/no-execution and `git diff --check` gates passed.
 No person was impersonated, no time semantics or scientific rule was invented, and no registry,
 SUMO run, calibration, baseline, metric, evidence or capability acceptance was created.
+
+### Phase 180 claim: supervisor deck and bibliography completion (2 August 2026)
+
+The owner-directed integrating lead owns the eighth post-meeting build slice in
+`docs/presentations/supervisor_deck_and_bibliography_design.md`; the editable/rendered/source-audit
+artifact set at `docs/presentations/traffictwin_supervisor_checkpoint_20260802.{mjs,pptx,pdf}` and
+`docs/presentations/traffictwin_supervisor_checkpoint_20260802_sources.md`; the expanded
+`docs/dissertation_literature_matrix_20260801.md`,
+`docs/dissertation_references_20260802.bib`, the reference/citation-only amendments in
+`docs/dissertation_manuscript_20260801.md` and `docs/dissertation_mapping.md`; the additive link in
+`docs/index.md`; `tests/unit/test_supervisor_deck_and_bibliography.py`; the bounded status updates
+in `docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the narrow `CHANGELOG.md`
+entry; and this phase record. The phase may produce a four-slide supervisor checkpoint, verify its
+editable PowerPoint and rendered PDF visually and structurally, expand the primary-source matrix
+and bibliography to 100 distinct references, verify DOI/publisher/official metadata, and map each
+literature cluster to bounded manuscript claims. It may not use generated prose as a source;
+promote project measurements into literature; hide refutations, deviations, unavailable evidence
+or private-source limits; invent author/title/year/DOI metadata; imply supervisor, ethics,
+publication, production or real-road approval; or turn communication artifacts into evidence.
+
+Phase 180 completed locally on 2 August 2026. The four-slide native-object PowerPoint and
+four-page rendered PDF cover the auditable digital-twin loop, bounded what-if differentiator,
+traffic/VEC lenses, exact signed-capacity result, portfolio/benchmark direction and residual
+decisions; all four slides contain `[Sources]` speaker-note blocks and a companion source audit.
+The literature matrix now classifies 88 DOI-bearing primary records, nine official/standards
+records and three private producer records. Its exact 100-entry BibTeX catalogue maps one-to-one
+to 100 numbered manuscript references, with complete body citation coverage and corrected
+publisher metadata for the bounded DOI audit. The final PPTX/PDF were rendered and inspected at
+full size and montage level, and the overflow gate passed. Five focused artifact/bibliography
+tests and the full 4,128-test repository suite passed with two expected environment-gated skips;
+repository Ruff/format, focused strict mypy, lock, local-link/privacy, citation/source-class and
+diff gates passed. Repository-wide mypy retains eight pre-existing errors in three unowned
+Phase-169/175 test files; this phase did not modify them.
+No supervisor, ethics, publication, production or real-road approval and no new scientific
+evidence was created.

@@ -2,14 +2,15 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 179 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 180 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–179 operational
-store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI and Manchester Gate-D
-contract integration. This tracker distinguishes implemented libraries/pages from activated
-schedulers, deployed services, completed studies and accepted scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
+store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
+supervisor-communication/literature completion. This tracker distinguishes implemented
+libraries/pages and communication artifacts from activated schedulers, deployed services,
+completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -86,6 +87,11 @@ At the latest proportional verification points:
   the 387-test mapping/review/profile/calibration/comparison/lineage/Manchester-UI regression;
   Ruff, formatting, strict mypy, lock, exact-source/privacy/no-write/no-execution and diff gates
   passed.
+- Phase 180 passed five focused artifact/bibliography tests and the full 4,128-test repository
+  regression with two expected environment-gated skips. Repository Ruff/format, focused strict
+  mypy, lock, 100-source/citation coverage, local-link/privacy and
+  four-slide/four-note/four-page structure, full-size visual inspection, overflow and diff gates
+  passed.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -104,6 +110,7 @@ or research-usability acceptance claim.
 | Capacity benchmark | `working_bounded` | Frozen protocol plus contract-only manifests/adapters, deterministic unsigned 240-cell/2,400-job and resource-plan exports, 21-job synthetic worker, receipts/resume/checkpoint/analysis-freeze gates | Signed final protocol, real actor/runtime/checkpoint/domain bindings and separately authorised training/evaluation |
 | XAI decision audit | `working_bounded` | Synthetic exact-binding snapshots, two pure replay baselines, disagreement browser, behavioural fingerprints, attribution-shaped integrity fixtures and read-only UI | Producer snapshot hook, authorised real actor/checkpoint access, literature-grounded application validation and any separately admitted real attribution result |
 | Manchester Gate-D integration | `foundation_only` | Five exact committed records feed typed mapping sensitivity/reconciliation, pending review, temporal profile, calibration/baseline readiness, comparison-contract and lineage views | 174 named-person review decisions, approved calibration/uncertainty design, viable demand and runs, contract registration, human baseline decision and real comparison |
+| Supervisor communication and literature audit | `working_bounded` | Four-slide editable/verified deck with per-slide sources; exact 100-source matrix, BibTeX catalogue, manuscript bibliography and complete body citation coverage | Supervisor interpretation/decision, private-source format/year, final bibliography breadth, University style/template export, ethics and publication decisions remain human |
 
 These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.
 
@@ -206,8 +213,9 @@ next section.
 5. ~~Integrate the safe Manchester Gate-D candidate records, baseline/comparison workflows and
    read-only lineage UI.~~ Completed in Phase 179 without human review, registration, execution,
    baseline or real comparison.
-6. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
-   neither artifact creates supervisor approval or research evidence.
+6. ~~Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation
+   bibliography.~~ Completed in Phase 180; neither artifact creates supervisor approval or
+   research evidence.
 
 Completed in Phase 173: the owner-workspace aggregate SQLite activation command now supplies
 mutation-free preview, exact confirmation, closed safe-artifact adapters, atomic/idempotent
@@ -255,6 +263,16 @@ reconciliation, an empty 174-row human-review ledger, the 39,072-cell real DfT p
 calibration dependencies, an unavailable versioned baseline workflow, the unregistered
 `b1d31a1b…` comparison contract and complete gaps-first lineage. No private artifact, person,
 scientific choice, SUMO run, baseline, metric, evidence or acceptance was created.
+
+Completed in Phase 180: a four-slide editable PowerPoint and visually verified four-page PDF now
+cover the digital-twin loop, bounded what-if differentiator, traffic/VEC lenses, exact signed
+capacity result, portfolio/benchmark direction, status and residual decisions. All slides carry
+`[Sources]` notes and a companion claim/source-class audit. The literature matrix and BibTeX source
+contain exactly 100 distinct candidates—88 DOI-bearing, nine official/standards and three private
+producer records—and the manuscript now has 100 numbered references with complete body citation
+coverage. Literature context, project measurements and LLM drafting remain separate. No
+supervisor, ethics, publication, production or real-road approval or new research evidence was
+created.
 
 ## 7. Decisions or evidence required before acceptance
 

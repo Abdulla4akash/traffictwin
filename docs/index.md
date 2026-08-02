@@ -478,7 +478,10 @@ This index points only to documentation and repository paths that exist in the c
 ## Dissertation Support
 
 - [Complete dissertation manuscript: auditable QoS metric reversal (1 August 2026)](dissertation_manuscript_20260801.md)
-- [Dissertation literature and claim matrix (1 August 2026)](dissertation_literature_matrix_20260801.md)
+- [Dissertation literature and claim matrix (100-source audit, 2 August 2026)](dissertation_literature_matrix_20260801.md)
+- [Dissertation BibTeX source (100 verified candidates, 2 August 2026)](dissertation_references_20260802.bib)
+- [Supervisor checkpoint deck (editable PowerPoint, 2 August 2026)](presentations/traffictwin_supervisor_checkpoint_20260802.pptx)
+- [Supervisor checkpoint deck source audit](presentations/traffictwin_supervisor_checkpoint_20260802_sources.md)
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [Week 4 supervisor-expectation progress checklist, 27 July 2026](current_progress_week4.md)

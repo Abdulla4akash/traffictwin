@@ -2,7 +2,7 @@
 
 **Reconciled:** 1 August 2026
 **Manuscript:** `docs/dissertation_manuscript_20260801.md`
-**Target:** 8,000-word report; current whitespace count is 8,110 from Abstract through Conclusion.
+**Target:** 8,000-word report; current whitespace count is 8,396 from Abstract through Conclusion.
 
 This map replaces the earlier capability-by-capability chapter plan. The current COMP60060 format
 has no standalone Background chapter: the concise literature synthesis sits inside Chapter 1.

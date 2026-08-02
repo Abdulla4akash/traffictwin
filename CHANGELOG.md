@@ -2,6 +2,16 @@
 
 ## v0.7.0 - In development
 
+Completed the supervisor communication and bibliography package (2 August, Phase 180): a
+four-slide editable PowerPoint and visually verified four-page PDF explain the auditable
+digital-twin/what-if loop, traffic and VEC lenses, exact bounded capacity result,
+portfolio/benchmark direction and residual decisions. Every slide carries a `[Sources]` note block
+and a companion claim/source-class audit. The dissertation literature matrix, BibTeX catalogue and
+manuscript now reconcile exactly 100 references—88 DOI-bearing, nine official/standards and three
+private producer records—with complete body citation coverage. Literature, project measurements
+and LLM drafting remain separate; no supervisor, ethics, publication, production or real-road
+approval and no new scientific evidence were created.
+
 Added Manchester Gate-D contract integration and its read-only audit page (2 August, Phase 179):
 five exact committed records now feed typed map-policy sensitivity/reconciliation, empty-ledger
 human-review, real DfT temporal-profile, calibration-readiness, baseline-candidate,

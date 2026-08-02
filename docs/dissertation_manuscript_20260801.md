@@ -6,7 +6,7 @@
 **Evidence cut-off:** 30 July 2026
 **Prepared:** 1 August 2026
 
-**Working report word count:** **8,110** whitespace-delimited words from Abstract through
+**Working report word count:** **8,396** whitespace-delimited words from Abstract through
 Conclusion, including headings and excluding front matter, references and the evidence map. The
 University template's counter and convention remain authoritative.
 
@@ -183,6 +183,12 @@ edge node may avoid slow device compute, but it gains transmission, scheduling a
 components. Shared infrastructure also couples agents: one vehicle's decision changes the
 contention experienced by others.
 
+The wider fog, MEC and VEC literature reaches the same structural conclusion from different
+architectures and optimisation methods: communication, compute, mobility, energy and queue state
+must be reported together rather than collapsed into an “edge is faster” premise [48]–[64]. Those
+studies motivate the variables audited here; their performance results do not transfer to this
+checkpoint or trace.
+
 This coupling creates at least three different notions of success. A policy can minimise average
 latency, increase the proportion of tasks that meet a deadline, or distribute service more
 equitably across vehicles. These objectives need not agree. A one-second reduction on a task that
@@ -212,6 +218,11 @@ two advantages. It makes the study a focused audit of a fixed policy, and it pre
 noise from being confused with the resource intervention. It also constrains the conclusion: the
 result concerns this checkpoint in this environment, not MAPPO as an algorithm family.
 
+Foundational and cooperative deep-RL methods, MARL surveys and evaluation studies show how much
+algorithm, implementation and protocol choices vary [65]–[79]. They support pinning the exact
+actor/observation/environment contract and reporting variability; they do not create an
+algorithm-family comparison where only one compatible trained actor exists.
+
 Gorsane et al. [10] motivate multiple evaluation runs, transparent reporting and standardised
 comparison in cooperative MARL. This project applies those principles through paired seeds,
 predeclared primary outcomes, complete arm publication, exact artifact fingerprints and
@@ -226,6 +237,10 @@ large services. The VEC setting differs from warehouse-scale computing, but the 
 lesson transfers: a mean is sensitive to a heavy tail and does not identify which population
 moved. For that reason, this study reports p50, p95, p99, deadline attainment, the proportion
 above one second, latency-mass shares, task-class results and per-vehicle policy partitions.
+
+Bootstrap, exact-test, equivalence, multiplicity and transparent significance guidance further
+motivate reporting estimands, uncertainty and attainable resolution rather than a binary verdict
+[80]–[84].
 
 The phrase “mean latency improved” is treated as a mathematical statement, not automatically as a
 service-quality statement. Its interpretation requires at least two further questions. Did tasks
@@ -250,6 +265,10 @@ not truth. A deterministic pipeline proves repeatability under the same inputs, 
 validity. A source-row link shows where a number came from, not whether the source measurement is
 correct. TrafficTwin represents these distinctions in both data types and user-facing language.
 
+Work on ML technical debt, FAIR data, dataset/model documentation, reproducibility standards and
+formal provenance reinforces why these artifacts must remain inspectable and role-separated
+[85]–[90].
+
 The evidence hierarchy used in this manuscript has four levels. **Protocol-confirmed** results
 were tested on held-out seeds under a signed design with a pre-specified primary outcome.
 **Post-hoc mechanism** results decompose completed artifacts and generate explanations but do not
@@ -259,6 +278,12 @@ to a new confirmatory study. **Descriptive/non-admitted** results may be useful 
 violate an admission contract or use incompatible inputs and cannot test the central claim.
 
 #### 1.6.5 Traffic simulation and observed buses
+
+Digital-twin literature distinguishes a maintained observed/physical-to-virtual relationship
+from an isolated simulation and identifies synchronisation, calibration, governance and decision
+feedback as continuing challenges [18]–[30]. TrafficTwin therefore uses the digital-twin loop as
+an architectural direction while keeping the evaluated capacity claim labelled as modelled VEC,
+not a deployed or continuously synchronised Manchester twin.
 
 The producer's five mobility traces were generated with the microscopic traffic simulator SUMO
 [13]. The evaluated `inc` trace uses SUMO seed 43 and represents a
@@ -275,6 +300,11 @@ bounded research traces. Those positions improve the mobility provenance relativ
 synthetic vehicle paths. They do not observe compute tasks, RSU placement, radio conditions or
 edge capacity. Any VEC task stream and infrastructure laid over them remains synthetic. The bus
 study is consequently a descriptive transfer probe, not real-world validation of offloading.
+
+Traffic-flow, map-matching and calibration sources show that model structure, candidate policy,
+direction/topology, observed-data binding and validation criteria are separate decisions
+[31]–[47]. They support the fail-closed Gate-D workflow, but they do not choose a threshold,
+review a row, resolve provider clock semantics or accept a Manchester baseline.
 
 #### 1.6.6 Positioning against the producer's work
 
@@ -342,6 +372,11 @@ invalidates the request rather than silently changing the design.
 admission. A working parser can be accepted while a derived scientific claim remains exploratory.
 Similarly, a successfully returned GPU archive can be non-admitted if the execution violated its
 predeclared rule. This separation is essential in the bus case.
+
+The same boundary governs explanation. Local-surrogate, attribution and interpretability research
+distinguishes plausible presentation, arithmetic reconstruction, sensitivity and faithfulness
+[91]–[100]. TrafficTwin's synthetic SHAP/Integrated-Gradients-shaped fixtures test data contracts
+only; they are not explanations of the supplied actor and do not enter this evidence chain.
 
 The platform includes statistical studies, diagnostic rules, scenario mutations, parameter
 sweeps, replay, provenance, report export and human-review ledgers. Those capabilities satisfy
@@ -886,66 +921,205 @@ lesson: new capability is valuable only when its provenance and claim ceiling re
 
 ## References
 
-[1] M. Satyanarayanan, “The Emergence of Edge Computing,” *Computer*, vol. 50, no. 1,
-pp. 30–39, 2017, doi: 10.1109/MC.2017.9.
+[1] M. Satyanarayanan, “The emergence of edge computing,” Computer, vol. 50, no. 1, pp. 30–39, Jan. 2017, doi: 10.1109/mc.2017.9.
 
-[2] W. Shi, J. Cao, Q. Zhang, Y. Li and L. Xu, “Edge Computing: Vision and Challenges,”
-*IEEE Internet of Things Journal*, vol. 3, no. 5, pp. 637–646, 2016,
-doi: 10.1109/JIOT.2016.2579198.
+[2] W. Shi, J. Cao, Q. Zhang, Y. Li, and L. Xu, “Edge computing: Vision and challenges,” IEEE Internet of Things Journal, vol. 3, no. 5, pp. 637–646, Oct. 2016, doi: 10.1109/jiot.2016.2579198.
 
-[3] P. Mach and Z. Becvar, “Mobile Edge Computing: A Survey on Architecture and Computation
-Offloading,” *IEEE Communications Surveys & Tutorials*, vol. 19, pp. 1628–1656, 2017,
-doi: 10.1109/COMST.2017.2682318.
+[3] P. Mach and Z. Becvar, “Mobile edge computing: A survey on architecture and computation offloading,” IEEE Communications Surveys & Tutorials, vol. 19, no. 3, pp. 1628–1656, 2017, doi: 10.1109/comst.2017.2682318.
 
-[4] Y. Mao, C. You, J. Zhang, K. Huang and K. B. Letaief, “A Survey on Mobile Edge Computing:
-The Communication Perspective,” *IEEE Communications Surveys & Tutorials*, vol. 19, no. 4,
-pp. 2322–2358, 2017, doi: 10.1109/COMST.2017.2745201.
+[4] Y. Mao, C. You, J. Zhang, K. Huang, and K. B. Letaief, “A survey on mobile edge computing: The communication perspective,” IEEE Communications Surveys & Tutorials, vol. 19, no. 4, pp. 2322–2358, 2017, doi: 10.1109/comst.2017.2745201.
 
-[5] J. Schulman, F. Wolski, P. Dhariwal, A. Radford and O. Klimov, “Proximal Policy
-Optimization Algorithms,” arXiv:1707.06347, 2017, doi: 10.48550/arXiv.1707.06347.
+[5] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Proximal policy optimization algorithms.” arXiv, 2017. doi: 10.48550/ARXIV.1707.06347.
 
-[6] C. Yu, A. Velu, E. Vinitsky, J. Gao, Y. Wang, A. Bayen and Y. Wu, “The Surprising
-Effectiveness of PPO in Cooperative Multi-Agent Games,” *Advances in Neural Information
-Processing Systems*, vol. 35, 2022, doi: 10.52202/068431-1787.
+[6] C. Yu et al., “The surprising effectiveness of PPO in cooperative multi-agent games,” in Advances in neural information processing systems 35, in NeurIPS 2022. Neural Information Processing Systems Foundation, Inc. (NeurIPS), 2022, pp. 24611–24624. doi: 10.52202/068431-1787.
 
-[7] M. Tang and V. W. S. Wong, “Deep Reinforcement Learning for Task Offloading in Mobile Edge
-Computing Systems,” *IEEE Transactions on Mobile Computing*, vol. 21, no. 6, pp. 1985–1997,
-2022, doi: 10.1109/TMC.2020.3036871.
+[7] M. Tang and V. W. S. Wong, “Deep reinforcement learning for task offloading in mobile edge computing systems,” IEEE Transactions on Mobile Computing, vol. 21, no. 6, pp. 1985–1997, 2022, doi: 10.1109/tmc.2020.3036871.
 
-[8] E. Karimi, Y. Chen and B. Akbari, “Task offloading in vehicular edge computing networks via
-deep reinforcement learning,” *Computer Communications*, vol. 189, pp. 193–204, 2022,
-doi: 10.1016/j.comcom.2022.04.006.
+[8] E. Karimi, Y. Chen, and B. Akbari, “Task offloading in vehicular edge computing networks via deep reinforcement learning,” Computer Communications, vol. 189, pp. 193–204, May 2022, doi: 10.1016/j.comcom.2022.04.006.
 
-[9] J. Dean and L. A. Barroso, “The Tail at Scale,” *Communications of the ACM*, vol. 56,
-pp. 74–80, 2013.
+[9] J. Dean and L. A. Barroso, “The tail at scale,” Communications of the ACM, vol. 56, no. 2, pp. 74–80, Feb. 2013, doi: 10.1145/2408776.2408794.
 
-[10] R. Gorsane, O. Mahjoub, R. J. de Kock, R. Dubb, S. Singh and A. Pretorius, “Towards a
-Standardised Performance Evaluation Protocol for Cooperative MARL,” *Advances in Neural
-Information Processing Systems*, vol. 35, 2022, doi: 10.52202/068431-0398.
+[10] R. Gorsane, O. Mahjoub, R. J. D. Kock, R. Dubb, S. Singh, and A. Pretorius, “Towards a standardised performance evaluation protocol for cooperative MARL,” in Advances in neural information processing systems 35, in NeurIPS 2022. Neural Information Processing Systems Foundation, Inc. (NeurIPS), 2022, pp. 5510–5521. doi: 10.52202/068431-0398.
 
-[11] B. A. Nosek, C. R. Ebersole, A. C. DeHaven and D. T. Mellor, “The preregistration
-revolution,” *Proceedings of the National Academy of Sciences*, vol. 115, no. 11,
-pp. 2600–2606, 2018, doi: 10.1073/pnas.1708274114.
+[11] B. A. Nosek, C. R. Ebersole, A. C. DeHaven, and D. T. Mellor, “The preregistration revolution,” Proceedings of the National Academy of Sciences, vol. 115, no. 11, pp. 2600–2606, Mar. 2018, doi: 10.1073/pnas.1708274114.
 
-[12] J. Pineau *et al.*, “Improving Reproducibility in Machine Learning Research,” *Journal of
-Machine Learning Research*, vol. 22, no. 164, pp. 1–20, 2021.
+[12] J. Pineau et al., “Improving reproducibility in machine learning research,” Journal of Machine Learning Research, vol. 22, no. 164, pp. 1–20, 2021, Available: https://jmlr.org/papers/v22/20-303.html
 
-[13] P. Alvarez Lopez *et al.*, “Microscopic Traffic Simulation using SUMO,” in *2018 21st
-International Conference on Intelligent Transportation Systems (ITSC)*, pp. 2575–2582, 2018,
-doi: 10.1109/ITSC.2018.8569938.
+[13] P. A. Lopez et al., “Microscopic traffic simulation using SUMO,” in 2018 21st international conference on intelligent transportation systems (ITSC), IEEE, Nov. 2018, pp. 2575–2582. doi: 10.1109/itsc.2018.8569938.
 
-[14] Department for Transport, *Technical guidance: publishing location data using the Bus Open
-Data Service (SIRI-VM)*, 2020. [Online]. Available:
-https://www.gov.uk/government/publications/technical-guidance-publishing-location-data-using-the-bus-open-data-service-siri-vm.
+[14] Department for Transport, Technical guidance: Publishing location data using the bus open data service (SIRI-VM). UK Government, 2020. Available: https://www.gov.uk/government/publications/technical-guidance-publishing-location-data-using-the-bus-open-data-service-siri-vm
 
-[15] R. P. Putra, *Intelligent Task Offloading: Current State Limitations and Proposed Potential
-Solutions*. Year-1 PhD report, The University of Manchester, private research material, n.d.
+[15] R. P. Putra, “Intelligent task offloading: Current state limitations and proposed potential solutions,” The University of Manchester, n.d.
 
-[16] R. P. Putra, *VEC environment*, The University of Manchester GitLab, repository commit
-`068b4ea33e640f206ce6a7d04f3d6fae2ac831f4`, 2026.
+[16] R. P. Putra, “VEC environment.” Private University of Manchester GitLab repository, 2026.
 
-[17] R. P. Putra, *TOS trace data*, The University of Manchester GitLab, repository commit
-`f6c67acbed3360dba3a0d5c8d1fd557caa99ecff`, 2026.
+[17] R. P. Putra, “TOS trace data.” Private University of Manchester GitLab repository, 2026.
+
+[18] D. Jones, C. Snider, A. Nassehi, J. Yon, and B. Hicks, “Characterising the digital twin: A systematic literature review,” CIRP Journal of Manufacturing Science and Technology, vol. 29, pp. 36–52, May 2020, doi: 10.1016/j.cirpj.2020.02.002.
+
+[19] A. Fuller, Z. Fan, C. Day, and C. Barlow, “Digital twin: Enabling technologies, challenges and open research,” IEEE Access, vol. 8, pp. 108952–108971, 2020, doi: 10.1109/access.2020.2998358.
+
+[20] A. Rasheed, O. San, and T. Kvamsdal, “Digital twin: Values, challenges and enablers from a modeling perspective,” IEEE Access, vol. 8, pp. 21980–22012, 2020, doi: 10.1109/access.2020.2970143.
+
+[21] B. R. Barricelli, E. Casiraghi, and D. Fogli, “A survey on digital twin: Definitions, characteristics, applications, and design implications,” IEEE Access, vol. 7, pp. 167653–167671, 2019, doi: 10.1109/access.2019.2953499.
+
+[22] W. Kritzinger, M. Karner, G. Traar, J. Henjes, and W. Sihn, “Digital twin in manufacturing: A categorical literature review and classification,” IFAC-PapersOnLine, vol. 51, no. 11, pp. 1016–1022, 2018, doi: 10.1016/j.ifacol.2018.08.474.
+
+[23] F. Tao, J. Cheng, Q. Qi, M. Zhang, H. Zhang, and F. Sui, “Digital twin-driven product design, manufacturing and service with big data,” The International Journal of Advanced Manufacturing Technology, vol. 94, no. 9–12, pp. 3563–3576, Mar. 2017, doi: 10.1007/s00170-017-0233-1.
+
+[24] M. Batty, “Digital twins,” Environment and Planning B: Urban Analytics and City Science, vol. 45, no. 5, pp. 817–820, 2018, doi: 10.1177/2399808318796416.
+
+[25] K. Kušić, R. Schumann, and E. Ivanjko, “A digital twin in transportation: Real-time synergy of traffic data streams and simulation for virtualizing motorway dynamics,” Advanced Engineering Informatics, vol. 55, p. 101858, Jan. 2023, doi: 10.1016/j.aei.2022.101858.
+
+[26] A. Rudskoy, I. Ilin, and A. Prokhorov, “Digital twins in the intelligent transport systems,” Transportation Research Procedia, vol. 54, pp. 927–935, 2021, doi: 10.1016/j.trpro.2021.02.152.
+
+[27] W. Lu, X. Fu, J. Liu, A. Hainen, F. Xia, and O. Chen, “A ‘digital twin’ traffic simulation tool for network-wide real-time traffic monitoring and management,” Journal of Intelligent Transportation Systems, pp. 1–13, Aug. 2025, doi: 10.1080/15472450.2025.2553287.
+
+[28] Y. Wang, H. Wang, W. Wang, S. Song, and X. Fu, “Architecture, application, and prospect of digital twin for highway infrastructure,” Journal of Traffic and Transportation Engineering (English Edition), vol. 11, no. 5, pp. 835–852, Oct. 2024, doi: 10.1016/j.jtte.2024.03.003.
+
+[29] C. Ge and S. Qin, “Digital twin intelligent transportation system (DT‐ITS)—a systematic review,” IET Intelligent Transport Systems, vol. 18, no. 12, pp. 2325–2358, Aug. 2024, doi: 10.1049/itr2.12539.
+
+[30] J. Guo, M. Bilal, Y. Qiu, C. Qian, X. Xu, and K.-K. Raymond Choo, “Survey on digital twins for internet of vehicles: Fundamentals, challenges, and opportunities,” Digital Communications and Networks, vol. 10, no. 2, pp. 237–247, Apr. 2024, doi: 10.1016/j.dcan.2022.05.023.
+
+[31] D. Krajzewicz, J. Erdmann, M. Behrisch, and L. Bieker-Walz, “Recent development and applications of SUMO – simulation of urban MObility,” International Journal On Advances in Systems and Measurements, vol. 5, no. 3–4, pp. 128–138, 2012, Available: https://sumo.dlr.de/docs/Publications.html
+
+[32] M. Treiber, A. Hennecke, and D. Helbing, “Congested traffic states in empirical observations and microscopic simulations,” Physical Review E, vol. 62, no. 2, pp. 1805–1824, Aug. 2000, doi: 10.1103/physreve.62.1805.
+
+[33] M. J. Lighthill and G. B. Whitham, “On kinematic waves II. A theory of traffic flow on long crowded roads,” Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences, vol. 229, no. 1178, pp. 317–345, May 1955, doi: 10.1098/rspa.1955.0089.
+
+[34] P. I. Richards, “Shock waves on the highway,” Operations Research, vol. 4, no. 1, pp. 42–51, Feb. 1956, doi: 10.1287/opre.4.1.42.
+
+[35] C. F. Daganzo, “The cell transmission model: A dynamic representation of highway traffic consistent with the hydrodynamic theory,” Transportation Research Part B: Methodological, vol. 28, no. 4, pp. 269–287, Aug. 1994, doi: 10.1016/0191-2615(94)90002-7.
+
+[36] K. Nagel and M. Schreckenberg, “A cellular automaton model for freeway traffic,” Journal de Physique I, vol. 2, no. 12, pp. 2221–2229, Dec. 1992, doi: 10.1051/jp1:1992277.
+
+[37] M. A. Quddus, W. Y. Ochieng, and R. B. Noland, “Current map-matching algorithms for transport applications: State-of-the art and future research directions,” Transportation Research Part C: Emerging Technologies, vol. 15, no. 5, pp. 312–328, Oct. 2007, doi: 10.1016/j.trc.2007.05.002.
+
+[38] P. Newson and J. Krumm, “Hidden markov map matching through noise and sparseness,” in Proceedings of the 17th ACM SIGSPATIAL international conference on advances in geographic information systems, in GIS ’09. ACM, Nov. 2009, pp. 336–343. doi: 10.1145/1653771.1653818.
+
+[39] Y. Lou, C. Zhang, Y. Zheng, X. Xie, W. Wang, and Y. Huang, “Map-matching for low-sampling-rate GPS trajectories,” in Proceedings of the 17th ACM SIGSPATIAL international conference on advances in geographic information systems, in GIS ’09. ACM, Nov. 2009, pp. 352–361. doi: 10.1145/1653771.1653820.
+
+[40] S. Brakatsoulas, D. Pfoser, R. Salas, and C. Wenk, “On map-matching vehicle tracking data,” in Proceedings of the 31st international conference on very large data bases, VLDB Endowment, 2005, pp. 853–864. Available: https://www.vldb.org/conf/2005/program/paper/fri/p853-brakatsoulas.pdf
+
+[41] M. Hashemi and H. A. Karimi, “A critical review of real-time map-matching algorithms: Current issues and future directions,” Computers, Environment and Urban Systems, vol. 48, pp. 153–165, Nov. 2014, doi: 10.1016/j.compenvurbsys.2014.07.009.
+
+[42] D. Reinke, R. Dowling, R. Hranac, and V. Alexiadis, “Development of a high-level algorithm verification and validation procedure for traffic microsimulation models,” Transportation Research Record: Journal of the Transportation Research Board, vol. 1876, no. 1, pp. 151–158, Jan. 2004, doi: 10.3141/1876-16.
+
+[43] D. Henclewood, W. Suh, M. Rodgers, M. Hunter, and R. Fujimoto, “A case for real-time calibration of data-driven microscopic traffic simulation tools,” in Proceedings title: Proceedings of the 2012 winter simulation conference (WSC), IEEE, Dec. 2012, pp. 1–12. doi: 10.1109/wsc.2012.6465294.
+
+[44] E. T. Cascan, J. Ivanchev, D. Eckhoff, A. Sangiovanni-Vincentelli, and A. Knoll, “Multi-objective calibration of microscopic traffic simulation for highway traffic safety,” in 2019 IEEE intelligent transportation systems conference (ITSC), IEEE, Oct. 2019, pp. 4548–4555. doi: 10.1109/itsc.2019.8917044.
+
+[45] D. Henclewood, W. Suh, M. O. Rodgers, R. Fujimoto, and M. P. Hunter, “A calibration procedure for increasing the accuracy of microscopic traffic simulation models,” SIMULATION, vol. 93, no. 1, pp. 35–47, Oct. 2016, doi: 10.1177/0037549716673723.
+
+[46] Department for Transport, Road traffic statistics. UK Government, 2026. Available: https://roadtraffic.dft.gov.uk/
+
+[47] National Highways, WebTRIS traffic flow data. National Highways, 2026. Available: https://webtris.highwaysengland.co.uk/
+
+[48] A. V. Dastjerdi and R. Buyya, “Fog computing: Helping the internet of things realize its potential,” Computer, vol. 49, no. 8, pp. 112–116, Aug. 2016, doi: 10.1109/mc.2016.245.
+
+[49] F. Bonomi, R. Milito, J. Zhu, and S. Addepalli, “Fog computing and its role in the internet of things,” in Proceedings of the first edition of the MCC workshop on mobile cloud computing, in SIGCOMM ’12. ACM, Aug. 2012, pp. 13–16. doi: 10.1145/2342509.2342513.
+
+[50] N. Abbas, Y. Zhang, A. Taherkordi, and T. Skeie, “Mobile edge computing: A survey,” IEEE Internet of Things Journal, vol. 5, no. 1, pp. 450–465, Feb. 2018, doi: 10.1109/jiot.2017.2750180.
+
+[51] Y. Mao, J. Zhang, and K. B. Letaief, “Dynamic computation offloading for mobile-edge computing with energy harvesting devices,” IEEE Journal on Selected Areas in Communications, vol. 34, no. 12, pp. 3590–3605, Dec. 2016, doi: 10.1109/jsac.2016.2611964.
+
+[52] C. You, K. Huang, H. Chae, and B.-H. Kim, “Energy-efficient resource allocation for mobile-edge computation offloading,” IEEE Transactions on Wireless Communications, vol. 16, no. 3, pp. 1397–1411, Mar. 2017, doi: 10.1109/twc.2016.2633522.
+
+[53] X. Chen, L. Jiao, W. Li, and X. Fu, “Efficient multi-user computation offloading for mobile-edge cloud computing,” IEEE/ACM Transactions on Networking, vol. 24, no. 5, pp. 2795–2808, Oct. 2016, doi: 10.1109/tnet.2015.2487344.
+
+[54] S. Sardellitti, G. Scutari, and S. Barbarossa, “Joint optimization of radio and computational resources for multicell mobile-edge computing,” 2014, doi: 10.48550/ARXIV.1412.8416.
+
+[55] X. Hou, Y. Li, M. Chen, D. Wu, D. Jin, and S. Chen, “Vehicular fog computing: A viewpoint of vehicles as the infrastructures,” IEEE Transactions on Vehicular Technology, vol. 65, no. 6, pp. 3860–3873, 2016, doi: 10.1109/tvt.2016.2532863.
+
+[56] M. A. Javed, S. Zeadally, and E. B. Hamida, “Data analytics for cooperative intelligent transport systems,” Vehicular Communications, vol. 15, pp. 63–72, Jan. 2019, doi: 10.1016/j.vehcom.2018.10.004.
+
+[57] N. Cha, C. Wu, T. Yoshinaga, Y. Ji, and K.-L. A. Yau, “Virtual edge: Exploring computation offloading in collaborative vehicular edge computing,” IEEE Access, vol. 9, pp. 37739–37751, 2021, doi: 10.1109/access.2021.3063246.
+
+[58] X. Gu and G. Zhang, “Energy-efficient computation offloading for vehicular edge computing networks,” Computer Communications, vol. 166, pp. 244–253, Jan. 2021, doi: 10.1016/j.comcom.2020.12.010.
+
+[59] S. Li, G. Zhu, and S. Lin, “Computation offloading with time-varying fading channel in vehicular edge computing,” in 2018 IEEE globecom workshops (GC wkshps), IEEE, Dec. 2018, pp. 1–6. doi: 10.1109/glocomw.2018.8644140.
+
+[60] R. Meneguette, R. De Grande, J. Ueyama, G. P. R. Filho, and E. Madeira, “Vehicular edge computing: Architecture, resource management, security, and challenges,” ACM Computing Surveys, vol. 55, no. 1, pp. 1–46, Nov. 2021, doi: 10.1145/3485129.
+
+[61] R. A. Dziyauddin et al., “Computation offloading and content caching and delivery in vehicular edge network: A survey,” Computer Networks, vol. 197, p. 108228, Oct. 2021, doi: 10.1016/j.comnet.2021.108228.
+
+[62] Z. Zhou, X. Chen, E. Li, L. Zeng, K. Luo, and J. Zhang, “Edge intelligence: Paving the last mile of artificial intelligence with edge computing,” Proceedings of the IEEE, vol. 107, no. 8, pp. 1738–1762, Aug. 2019, doi: 10.1109/jproc.2019.2918951.
+
+[63] J. Chen and X. Ran, “Deep learning with edge computing: A review,” Proceedings of the IEEE, vol. 107, no. 8, pp. 1655–1674, Aug. 2019, doi: 10.1109/jproc.2019.2921977.
+
+[64] ETSI, “Multi-access edge computing (MEC); framework and reference architecture,” European Telecommunications Standards Institute, ETSI GS MEC 003 V4.1.1, 2025. Available: https://www.etsi.org/deliver/etsi_gs/mec/001_099/003/04.01.01_60/gs_mec003v040101p.pdf
+
+[65] C. J. C. H. Watkins and P. Dayan, “Q-learning,” Machine Learning, vol. 8, no. 3–4, pp. 279–292, May 1992, doi: 10.1007/bf00992698.
+
+[66] V. Mnih et al., “Human-level control through deep reinforcement learning,” Nature, vol. 518, no. 7540, pp. 529–533, Feb. 2015, doi: 10.1038/nature14236.
+
+[67] J. Schulman, S. Levine, P. Moritz, M. I. Jordan, and P. Abbeel, “Trust region policy optimization.” arXiv, 2015. doi: 10.48550/ARXIV.1502.05477.
+
+[68] T. P. Lillicrap et al., “Continuous control with deep reinforcement learning.” arXiv, 2015. doi: 10.48550/ARXIV.1509.02971.
+
+[69] T. Haarnoja, A. Zhou, P. Abbeel, and S. Levine, “Soft actor-critic: Off-policy maximum entropy deep reinforcement learning with a stochastic actor.” arXiv, 2018. doi: 10.48550/ARXIV.1801.01290.
+
+[70] J. Foerster, G. Farquhar, T. Afouras, N. Nardelli, and S. Whiteson, “Counterfactual multi-agent policy gradients,” Proceedings of the AAAI Conference on Artificial Intelligence, vol. 32, no. 1, Apr. 2018, doi: 10.1609/aaai.v32i1.11794.
+
+[71] R. Lowe, Y. Wu, A. Tamar, J. Harb, P. Abbeel, and I. Mordatch, “Multi-agent actor-critic for mixed cooperative-competitive environments.” arXiv, 2017. doi: 10.48550/ARXIV.1706.02275.
+
+[72] P. Sunehag et al., “Value-decomposition networks for cooperative multi-agent learning.” arXiv, 2017. doi: 10.48550/ARXIV.1706.05296.
+
+[73] T. Rashid, M. Samvelyan, C. S. de Witt, G. Farquhar, J. Foerster, and S. Whiteson, “QMIX: Monotonic value function factorisation for deep multi-agent reinforcement learning.” arXiv, 2018. doi: 10.48550/ARXIV.1803.11485.
+
+[74] M. Hessel et al., “Rainbow: Combining improvements in deep reinforcement learning.” arXiv, 2017. doi: 10.48550/ARXIV.1710.02298.
+
+[75] P. Hernandez-Leal, B. Kartal, and M. E. Taylor, “A survey and critique of multiagent deep reinforcement learning,” Autonomous Agents and Multi-Agent Systems, vol. 33, no. 6, pp. 750–797, Oct. 2019, doi: 10.1007/s10458-019-09421-1.
+
+[76] G. Papoudakis, F. Christianos, L. Schäfer, and S. V. Albrecht, “Benchmarking multi-agent deep reinforcement learning algorithms in cooperative tasks.” arXiv, 2020. doi: 10.48550/ARXIV.2006.07869.
+
+[77] P. Henderson, R. Islam, P. Bachman, J. Pineau, D. Precup, and D. Meger, “Deep reinforcement learning that matters,” Proceedings of the AAAI Conference on Artificial Intelligence, vol. 32, no. 1, Apr. 2018, doi: 10.1609/aaai.v32i1.11694.
+
+[78] R. Agarwal, M. Schwarzer, P. S. Castro, A. Courville, and M. G. Bellemare, “Deep reinforcement learning at the edge of the statistical precipice.” arXiv, 2021. doi: 10.48550/ARXIV.2108.13264.
+
+[79] G. Dulac-Arnold et al., “Challenges of real-world reinforcement learning: Definitions, benchmarks and analysis,” Machine Learning, vol. 110, no. 9, pp. 2419–2468, Apr. 2021, doi: 10.1007/s10994-021-05961-4.
+
+[80] B. Efron, “Bootstrap methods: Another look at the jackknife,” The Annals of Statistics, vol. 7, no. 1, Jan. 1979, doi: 10.1214/aos/1176344552.
+
+[81] R. L. Wasserstein and N. A. Lazar, “The ASA statement on p-values: Context, process, and purpose,” The American Statistician, vol. 70, no. 2, pp. 129–133, Apr. 2016, doi: 10.1080/00031305.2016.1154108.
+
+[82] D. Lakens, A. M. Scheel, and P. M. Isager, “Equivalence testing for psychological research: A tutorial,” Advances in Methods and Practices in Psychological Science, vol. 1, no. 2, pp. 259–269, 2018, doi: 10.1177/2515245918770963.
+
+[83] Y. Benjamini and Y. Hochberg, “Controlling the false discovery rate: A practical and powerful approach to multiple testing,” Journal of the Royal Statistical Society Series B: Statistical Methodology, vol. 57, no. 1, pp. 289–300, Jan. 1995, doi: 10.1111/j.2517-6161.1995.tb02031.x.
+
+[84] R. Dror, G. Baumer, S. Shlomov, and R. Reichart, “The hitchhiker’s guide to testing statistical significance in natural language processing,” in Proceedings of the 56th annual meeting of the association for computational linguistics (volume 1: Long papers), Association for Computational Linguistics, 2018, pp. 1383–1392. doi: 10.18653/v1/p18-1128.
+
+[85] D. Sculley et al., “Hidden technical debt in machine learning systems,” in Advances in neural information processing systems 28, Neural Information Processing Systems Foundation, 2015. Available: https://proceedings.neurips.cc/paper/2015/hash/86df7dcfd896fcaf2674f757a2463eba-Abstract.html
+
+[86] M. D. Wilkinson et al., “The FAIR guiding principles for scientific data management and stewardship,” Scientific Data, vol. 3, no. 1, Mar. 2016, doi: 10.1038/sdata.2016.18.
+
+[87] T. Gebru et al., “Datasheets for datasets,” Communications of the ACM, vol. 64, no. 12, pp. 86–92, Nov. 2021, doi: 10.1145/3458723.
+
+[88] M. Mitchell et al., “Model cards for model reporting,” in Proceedings of the conference on fairness, accountability, and transparency, in FAT* ’19. ACM, Jan. 2019, pp. 220–229. doi: 10.1145/3287560.3287596.
+
+[89] B. J. Heil, M. M. Hoffman, F. Markowetz, S.-I. Lee, C. S. Greene, and S. C. Hicks, “Reproducibility standards for machine learning in the life sciences,” Nature Methods, vol. 18, no. 10, pp. 1132–1135, Aug. 2021, doi: 10.1038/s41592-021-01256-7.
+
+[90] T. Lebo, S. Sahoo, and D. McGuinness, PROV-o: The PROV ontology. World Wide Web Consortium, 2013. Available: https://www.w3.org/TR/prov-o/
+
+[91] M. T. Ribeiro, S. Singh, and C. Guestrin, “‘Why should i trust you?’: Explaining the predictions of any classifier,” in Proceedings of the 22nd ACM SIGKDD international conference on knowledge discovery and data mining, in KDD ’16. ACM, Aug. 2016, pp. 1135–1144. doi: 10.1145/2939672.2939778.
+
+[92] S. Lundberg and S.-I. Lee, “A unified approach to interpreting model predictions.” arXiv, 2017. doi: 10.48550/ARXIV.1705.07874.
+
+[93] M. Sundararajan, A. Taly, and Q. Yan, “Axiomatic attribution for deep networks.” arXiv, 2017. doi: 10.48550/ARXIV.1703.01365.
+
+[94] J. Adebayo, J. Gilmer, M. Muelly, I. Goodfellow, M. Hardt, and B. Kim, “Sanity checks for saliency maps.” arXiv, 2018. doi: 10.48550/ARXIV.1810.03292.
+
+[95] Z. C. Lipton, “The mythos of model interpretability,” Communications of the ACM, vol. 61, no. 10, pp. 36–43, 2018, doi: 10.1145/3233231.
+
+[96] R. Guidotti, A. Monreale, S. Ruggieri, F. Turini, F. Giannotti, and D. Pedreschi, “A survey of methods for explaining black box models,” ACM Computing Surveys, vol. 51, no. 5, pp. 1–42, Aug. 2018, doi: 10.1145/3236009.
+
+[97] C. Rudin, “Stop explaining black box machine learning models for high stakes decisions and use interpretable models instead,” Nature Machine Intelligence, vol. 1, no. 5, pp. 206–215, May 2019, doi: 10.1038/s42256-019-0048-x.
+
+[98] A. Jacovi and Y. Goldberg, “Towards faithfully interpretable NLP systems: How should we define and evaluate faithfulness?” in Proceedings of the 58th annual meeting of the association for computational linguistics, Association for Computational Linguistics, 2020, pp. 4198–4205. doi: 10.18653/v1/2020.acl-main.386.
+
+[99] F. Doshi-Velez and B. Kim, “Towards a rigorous science of interpretable machine learning.” arXiv, 2017. doi: 10.48550/ARXIV.1702.08608.
+
+[100] C.-K. Yeh, C.-Y. Hsieh, A. S. Suggala, D. I. Inouye, and P. Ravikumar, “On the (in)fidelity and sensitivity for explanations.” arXiv, 2019. doi: 10.48550/ARXIV.1901.09392.
 
 ## Evidence map for final typesetting
 

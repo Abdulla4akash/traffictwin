@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 179. It does not alter the strict
+This section records the additive platform truth through Phase 180. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -48,6 +48,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol tooling; Phase 177 added contract-only manifests, compatible adapters, deterministic unsigned 240-cell/2,400-job and estimate-only resource exports, plus a 21-job synthetic worker and return/resume/freeze gates | `PROPOSED / UNSIGNED`; no real actor/runtime/checkpoint binding, training, evaluation, cloud use, evidence or admission |
 | XAI decision instrumentation | Phase 178 implemented exact-binding synthetic snapshots, two pure replay baselines, disagreement browsing, load-bin fingerprints, attribution-shaped integrity fixtures, real-method unavailable states and a read-only Decision Audit | No compatible producer snapshot hook, authorised real actor/checkpoint access or validated application method; no real attribution, causality, faithfulness, evidence or optimality claim |
 | Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
+| Supervisor communication and literature audit | Phase 180 produced a four-slide editable/verified checkpoint deck, source audit, exact 100-entry BibTeX catalogue and complete manuscript citation coverage | Communication and verified metadata do not create supervisor/ethics/publication approval, project evidence or a final University-style/reference-manager export |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -119,6 +120,17 @@ unavailable versioned baseline workflow, the existing unregistered owner-candida
 contract and every downstream lineage gap. It reads only five fixed committed records and opens no
 private workspace artifact. No threshold, reviewer decision, registration, SUMO run, calibration,
 baseline, metric, evidence or capability acceptance was created.
+
+Phase 180 closes the Meeting-1 supervisor-communication and bibliography gap without changing a
+scientific or capability standing. The four-slide native-object deck explains the digital-twin
+loop, bounded what-if differentiator, traffic/VEC lenses, exact signed-capacity result, benchmark
+direction and residual decisions. Every slide contains a `[Sources]` note block; the PPTX and
+four-page PDF were rendered, inspected and overflow-tested. The literature matrix now classifies
+88 DOI-bearing primary records, nine official/standards records and three private producer
+records; the exact 100-entry BibTeX source maps one-to-one to 100 numbered manuscript references,
+all cited in the body. Literature, project measurements and LLM drafting remain separate. A human
+must still apply the University reference-manager/template convention, confirm private-source
+format/year, choose final breadth and make every supervisor, ethics or publication decision.
 
 Phase 0 status: approved and committed.
 
