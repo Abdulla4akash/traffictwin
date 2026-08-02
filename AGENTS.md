@@ -5038,3 +5038,28 @@ strict mypy across 893 configured files, lock validation, JSON parse, changed-do
 link validation, path/privacy and diff gates passed. No ignored/private workspace was inspected;
 no manuscript result, package/CITATION version, tag, release, approval, scientific evidence or
 capability standing changed.
+
+### Phase 187 claim: bounded v0.7 operator usage documentation (2 August 2026)
+
+The owner-directed integrating lead owns the documentation-only usage runbook in
+`docs/v07_usage.md`; the narrow discoverability and command corrections in `README.md`,
+`docs/index.md`, `docs/workspace_setup.md`, `docs/standalone_demo.md` and
+`docs/cli_reference.md`; and this phase record. The phase may document how to verify and retain a
+populated synthetic demo, how to validate an exact owner-supplied existing v0.7 workspace read-only,
+and how to launch the two workspace kinds on distinct ports without relabelling their evidence. It
+may not inspect ignored/private workspaces to discover a path, initialise or mutate a real workspace,
+fetch source data, use or expose credentials, present synthetic data as Manchester evidence, create
+approval/evidence/capability standing, change package/CITATION versions, or create a tag/release.
+Session-temporary paths and counts remain handoff observations and must not be committed as reusable
+operator defaults.
+
+Phase 187 completed locally on 2 August 2026. The new runbook now gives one fail-closed sequence
+for reusing or creating a synthetic demo, checking the local health endpoint, preserving synthetic
+labels, validating an exact owner-supplied existing v0.7 workspace read-only, and launching the two
+workspace kinds on distinct ports. The existing demo, workspace, README, index and CLI pages now
+agree with the implemented `--port` option and the separate v0.7 registry layout. Twenty-eight
+focused demo/workspace compatibility tests, lock validation, changed-document relative-link,
+privacy/path, CLI-help, live-health, synthetic-status and diff checks passed. The populated
+synthetic process remained healthy and unchanged. No private workspace was searched or opened; no
+source fetch, credential, Manchester evidence, capability acceptance, package/CITATION version,
+tag or release was created.

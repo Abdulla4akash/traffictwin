@@ -24,7 +24,7 @@ audited source scripts, immutable outputs, and a deterministic receipt. The VEC-
 the exact audited Randy evaluator locally through a closed typed request and immutable receipt; it
 does not launch SUMO, expose a product Run control, or establish VEC-08 numerical reproduction.
 
-The in-development `codex/traffictwin-v0.7` branch additionally contains private, operator-triggered
+The v0.7 development tree additionally contains private, operator-triggered
 Manchester evidence workflows. BODS supplies source-timed live bus positions. The current National
 Highways developer REST service supplies source-separated near-live/stale closures and incidents,
 imposed temporary restrictions, and digital VMS status for Strategic Road Network features inside
@@ -39,9 +39,10 @@ Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>.
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
 application and contains no Randy/TOS artifacts or live Manchester data.
 
-For installation, end-to-end workflows, 38 concrete use cases, UI and CLI instructions, output
-interpretation, reporting, deployment, and troubleshooting, start with the
-[complete product and usage guide](docs/full_product_guide.md).
+For the current local synthetic-versus-real-workspace startup procedure, start with the
+[v0.7 local usage runbook](docs/v07_usage.md). For installation, end-to-end workflows, 38 concrete
+use cases, UI and CLI instructions, output interpretation, reporting, deployment, and
+troubleshooting, use the [complete product and usage guide](docs/full_product_guide.md).
 
 ## Current Scope
 
@@ -224,12 +225,10 @@ described above):
 Use Python 3.11 or newer. The examples assume the current directory is this repository root.
 
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
-traffictwin demo initialise .demo
-traffictwin demo status .demo
-traffictwin demo launch .demo
+uv sync
+uv run traffictwin demo initialise .demo
+uv run traffictwin demo status .demo
+uv run traffictwin demo launch .demo --port 8501
 ```
 
 The launch command starts:
@@ -653,6 +652,7 @@ Start at [docs/index.md](docs/index.md). Key documents:
 - [docs/integration/vec_end_to_end_research_artifact.md](docs/integration/vec_end_to_end_research_artifact.md) — VEC-12 archive use, rebuild, verification, and limits
 - [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md) — implemented baseline
 - [docs/full_product_guide.md](docs/full_product_guide.md)
+- [docs/v07_usage.md](docs/v07_usage.md)
 - [docs/standalone_demo.md](docs/standalone_demo.md)
 - [docs/synthetic_data_model.md](docs/synthetic_data_model.md)
 - [docs/report_export.md](docs/report_export.md)

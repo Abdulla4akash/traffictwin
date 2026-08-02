@@ -42,13 +42,24 @@ Use `--force` only when you intentionally want to replace an existing workspace.
 ## Launch
 
 ```bash
-uv run traffictwin demo launch .demo
+uv run traffictwin demo launch .demo --port 8501
 ```
+
+Before restarting the usual local port, reuse a healthy existing process when possible:
+
+```bash
+lsof -nP -iTCP:8501 -sTCP:LISTEN
+curl --fail --silent --show-error http://127.0.0.1:8501/_stcore/health
+```
+
+If the health endpoint prints `ok`, open <http://localhost:8501> rather than starting a duplicate
+server. If the exact existing demo path is known but the process stopped, run `demo status` on that
+path before relaunching it. Do not scan private or ignored locations to guess a workspace path.
 
 For a non-blocking command preview:
 
 ```bash
-uv run traffictwin demo launch .demo --dry-run
+uv run traffictwin demo launch .demo --port 8501 --dry-run
 ```
 
 The launcher sets:
@@ -58,6 +69,10 @@ The launcher sets:
 - `TRAFFICTWIN_FIXTURE_PATH=.demo/bundles`
 
 and starts `streamlit run src/traffictwin/ui/app.py`.
+
+The demo launcher accepts only the standalone `workspace.yaml` layout. It must not be used to
+launch an isolated v0.7 `workspace-v0.7.json` workspace. See the
+[v0.7 local usage runbook](v07_usage.md) for the read-only validation and direct launch procedure.
 
 ## Scenarios
 

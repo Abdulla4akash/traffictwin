@@ -6,6 +6,7 @@ This index points only to documentation and repository paths that exist in the c
 
 - [Root README](../README.md)
 - [Repository owner project guide](project_guide.md)
+- [v0.7 local usage: synthetic demo and existing real workspace](v07_usage.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [System overview](system_overview.md)
 - [Standalone demo](standalone_demo.md)

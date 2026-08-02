@@ -1370,10 +1370,11 @@ does not operate on unmarked arbitrary directories.
 Purpose: show workspace validity, registry path, generated scenarios, imported runs, reports,
 comparisons, diagnostics status, and the synthetic disclaimer.
 
-### `traffictwin demo launch PATH [--dry-run]`
+### `traffictwin demo launch PATH [--dry-run] [--port PORT]`
 
 Purpose: initialise the workspace if absent and start Streamlit with explicit workspace environment
-variables. `--dry-run` prints the command without starting the server.
+variables. `--dry-run` prints the command without starting the server. `--port` accepts an integer
+from 1024 through 65535 and supports side-by-side processes over separate workspaces.
 
 ## Report Commands
 

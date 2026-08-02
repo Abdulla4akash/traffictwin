@@ -5,6 +5,10 @@ truth labels, and different safety rules. This guide explains how to tell them a
 two applications side by side without sharing state, and which diagnostics inspect each kind
 without changing it.
 
+For the current start/reuse/connection sequence, including the rule that an existing real
+workspace path must be supplied rather than discovered, use the
+[v0.7 local usage runbook](v07_usage.md).
+
 ## Workspace kinds
 
 | Kind | Marker | Contents | Truth label |
@@ -40,6 +44,11 @@ traffictwin release v07-workspace-init workspace-v0.7
 traffictwin release v07-workspace-inspect workspace-v0.7
 ```
 
+This creates an empty structural foundation. It does not populate Manchester sources or create
+mapping, calibration, baseline or comparison evidence. Do not run the initialiser merely to make
+Manchester layers appear. To connect existing evidence, obtain the exact existing path from the
+owner and run only `v07-workspace-inspect` before launch.
+
 ## Side-by-side operation
 
 Run the synthetic/v0.6 demonstration and the v0.7 Manchester operations application as two
@@ -57,7 +66,7 @@ Terminal 2 — v0.7 Manchester operations on port 8602 against the isolated work
 ```bash
 TRAFFICTWIN_WORKSPACE_PATH="$PWD/workspace-v0.7" \
 TRAFFICTWIN_REGISTRY_PATH="$PWD/workspace-v0.7/registry/traffictwin.sqlite" \
-python -m streamlit run src/traffictwin/ui/app.py --server.port 8602
+uv run streamlit run src/traffictwin/ui/app.py --server.port 8602
 ```
 
 Notes:
@@ -66,6 +75,10 @@ Notes:
   environment variables for its own process only.
 - The v0.7 process must point at a workspace created by `release v07-workspace-init`; Manchester
   pages fail closed in an unmarked directory.
+- For an existing real workspace, use only an exact owner-supplied path and validate it read-only.
+  Do not scan ignored/private directories to infer one.
+- `demo launch` is for `workspace.yaml` standalone demos only; launch a v0.7 workspace directly
+  with both environment variables shown above.
 - Port values are local operational choices; nothing in either process claims public hosting.
 - To demonstrate the immutable `v0.6.0` release itself, use a separate clean checkout of the
   `v0.6.0` tag with its own workspace; do not point it at the v0.7 workspace.
