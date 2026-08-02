@@ -1,12 +1,13 @@
 # TrafficTwin Data Platform — v1 plan (30 July 2026)
 
-**Status: PROPOSED scope under an owner directive.** On 30 July the owner decided the data
-platform is in scope for this cycle ("non-negotiable"), following the supervisor's meeting-3
-encouragement. This plan converts that directive into buildable slices with the same
-discipline as every other piece of this project: what exists is mapped, what is built is
-scoped, what is *not* built is stated with its reason, and open decisions are named rather
-than assumed. Ceilings unchanged: `owner_approved_candidate` at most, nothing
-supervisor-signed, and — binding on every slice below — **no LLM output is ever evidence**.
+**Status: IMPLEMENTED for the six bounded v1 slices in Phases 139–146 and extended by the
+eight post-v1 backend slices in Phases 147–169; Phase 170 activated bounded DeepSeek form
+extraction.** Deployment and scientific activity remain separate: no OS scheduler is active,
+the aggregate store is not populated as a live dependency, the bus forecast has no held-out
+verdict, the live-twin implementation uses a deterministic fake, the capacity benchmark is
+`PROPOSED / UNSIGNED`, and there are no participant results. Maximum ceiling remains
+`owner_approved_candidate`; nothing is supervisor-signed, and **no LLM output is ever
+evidence**.
 
 ## 1. The vision (supervisor's components, meeting 3)
 
@@ -15,19 +16,19 @@ streams; (2) historical data storage; (3) analytics; (4) prediction models of fu
 states; (5) a what-if scenario agent with a user interface ("what if capacity is reduced
 3–4×?") executed through the twin; (6) a decision layer; (7) a decision-support dashboard.
 
-## 2. What already exists, mapped honestly
+## 2. Current implementation, mapped honestly
 
 | Component | State in TrafficTwin today |
 |---|---|
-| Ingestion | **Exists, batch, receipted**: DfT archive acquisition and live BODS sessions with quarantine, manifests, hash verification. Attended and snapshot-based by accepted policy. |
-| Historical storage | **Exists**: workspaces, registries, sealed receipts, evidence records. |
-| Analytics | **Exists**: the experiments register, STA-01, the analysis modules, the campaign analyses. |
-| Prediction | **Missing.** |
-| What-if scenarios | **Backend exists**: the campaign instrument + admission chain literally answered "what if capacity drops 3.3×". Missing: a conversational front end that composes scenarios. |
-| Decision layer | **Missing** (the platform reports evidence; it does not recommend). |
-| Dashboard | **Partially exists**: the Streamlit evidence UI. Missing: platform-level views (data inventory, forecasts, composer). |
+| Ingestion | **Implemented as receipted batch/micro-batch tooling**: DfT acquisition, attended BODS and the Phase-139 scheduled runner. The OS schedule is not activated and no new acquisition is implied by implementation. |
+| Historical storage | **Implemented**: existing workspaces/registries plus the Phase-147/160 aggregate-only SQLite store and feature registry. No real platform catalogue has been populated or made operational. |
+| Analytics | **Implemented**: experiment/statistical analyses plus the digest-keyed Phase-152/165 incremental monitor and selected 15-minute policy. No OS scheduler or shared-dashboard binding is active. |
+| Prediction | **Implemented**: the Phase-140 actor-envelope VEC outcome predictor and Phase-143 aggregate bus forecast backend. The VEC output remains prediction, not evidence; the bus study lacks enough dates for a held-out verdict. |
+| What-if scenarios | **Implemented**: structured form and bounded DeepSeek prose-to-form translation feed the local predictor and unsigned campaign drafter. The composer does not approve or execute. |
+| Decision layer | **Implemented as bounded backend rules**: Decision-Safety Ruleset v2 supports compatible in-envelope decisions but creates no execution authority or evidence. |
+| Dashboard | **Implemented for v1**: additive Inventory, Forecasts and What-If Composer pages. Post-v1 analytics/matrix/observatory/safety UI integration remains future work. |
 
-## 3. What v1 builds — three slices
+## 3. What v1 delivered — three product capabilities across six phases
 
 ### P-1. What-if engine — predict, then verify (owner design decision, 30 July)
 
@@ -76,17 +77,17 @@ The evening-peak session measured per-vehicle feed cadence at a stable **66–68
 36× fleet range**. A ≥60 s micro-batch poll therefore already operates at the source's
 information rate; a streaming pipeline would idle ~66 of every 67 seconds. The report
 documents the streaming architecture and *proves its non-necessity for this source* — a
-stronger statement than building it. Continuous unattended acquisition would also change
-the accepted owner-attended BODS boundary, which is decision **P-D2** below, default NO.
+stronger statement than building it. The separately implemented scheduled micro-batch runner
+follows decision **P-D2** and the same upstream-safe acquisition rules; it is not a streaming
+broker and has not been activated as an OS service.
 
-## 5. Evaluation synergy
+## 5. Evaluation boundary
 
-P-1 and P-3 are frozen **before** the proposed 11–22 August user-evaluation window so
-participants can exercise platform pages (subject to P-D3). That makes the platform an
-*evaluated artifact* rather than a described program — the difference the supervisor's own
-"we don't care about programs" remark draws.
+The implemented P-1/P-3 pages are ready for an ethics-approved evaluation, but repository state
+does not establish that such an evaluation occurred. The proposed 11–22 August window was a plan,
+not a result: no approval reference, participant session or response dataset is present.
 
-## 6. Timeline
+## 6. Historical timeline and actual delivery
 
 **Amendment (1 August, owner):** the owner intends to seek a deadline extension and has
 directed that scope not be cut for time. Until an extension is *granted*, the dates
@@ -96,7 +97,7 @@ shift with the new deadline while the ordering is preserved. Per-slice design do
 live in `docs/platform/` (runner, predictor, composer, bus prediction, dashboard, and
 the optional Dhaka corridor).
 
-Original schedule (hard stop 4 September):
+The original schedule remains useful planning history, not current capability truth:
 
 | Window | Work |
 |---|---|
@@ -116,9 +117,11 @@ Original schedule (hard stop 4 September):
   *scheduled session runner* — same accepted rules (≥60 s spacing, one-at-a-time lock, GM
   box, quarantine + receipts, session-scoped identity, aggregate-only outputs), the
   change being only who triggers it. Each scheduled session is recorded like an attended
-  one; the boundary change is recorded as this owner decision. Feeds P-2 more hours.
+  one; the boundary change is recorded as this owner decision. The owner smoke and OS-level
+  activation remain outstanding, so no scheduled acquisition is claimed.
 - **P-D3 (owner, 30 Jul): RESOLVED YES** — the submitted ethics script covers platform
-  pages, so participants evaluate the platform in the 11–22 Aug window.
+  pages. Ethics approval and an explicit owner release are still required before participant
+  activity; the proposed window did not itself create a study or results.
 - **Coordination:** all new files (platform modules + new UI pages) are disjoint from
   lead-claimed surfaces; the lead may reassign per AGENTS.md work coordination.
 
@@ -129,3 +132,16 @@ result, produced through receipted ingestion, admission, pre-registered campaign
 statistical gates, that survived adversarial re-derivation. v1 adds the missing front half
 — scenarios in, forecasts out — so the story the report tells is one system, not a finding
 plus an unrelated program.
+
+## 9. Post-v1 extension status
+
+| Extension | Delivered implementation | Residual boundary |
+|---|---|---|
+| Aggregate historical store / feature registry | Engine-neutral contracts plus local SQLite and digest-addressed aggregate JSON | No real migration, populated catalogue or running backup schedule |
+| Incremental analytics / quality monitor | Atomic digest/version work items, deterministic materialisations, 15-minute policy and safe report feed | No OS scheduler or shared-dashboard binding |
+| Experiment evidence matrix | Digest-bound read-only catalogue adapters, coverage and compatibility rules | No UI or automatic future-format ingestion |
+| Scenario/run registry | Local append-only, digest-chained lifecycle backend | Does not approve, schedule, launch or admit |
+| Mechanism/policy observatory | Citation-complete, source-pinned deterministic cards | No UI and no scientific recalculation |
+| Decision-safety layer | Ruleset v2 rankings, scoped winners, advice and non-executing drafts | No execution authority or real-world scope without supporting admitted design |
+| Controlled live-twin adapter | Maximum-coverage contracts and deterministic fake | No real transport, SUMO process, BODS request, cloud allocation, public service or road actuation |
+| Capacity/multi-algorithm benchmark | Maximum-coverage protocol, compatibility, seed/budget/statistical tooling and synthetic dry run | Predeclaration unsigned; no actors bound, training, evaluation, cloud use, evidence or admission |

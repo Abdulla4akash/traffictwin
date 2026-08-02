@@ -1,10 +1,9 @@
 # Design — VEC outcome predictor (platform P-1, tier 1)
 
-**Status: IMPLEMENTED in Phase 140 (`c85538c`) at the
-`owner_approved_candidate` ceiling, with the review-conformance items in §§1, 4 and 7
-still required before the composer may treat every accepted scenario as inside a measured
-actor-specific envelope. The surrogate is fitted on the project's own admitted cells,
-predicts instantly, and refuses outside its declared domain. Every output is typed
+**Status: IMPLEMENTED in Phase 140 (`c85538c`) and reconciled to the reviewed
+actor-specific envelope in the Phase-142 amendment (`bae070b`), at the
+`owner_approved_candidate` ceiling. The surrogate is fitted on the project's own admitted
+cells, predicts instantly, and refuses outside its declared domain. Every output is typed
 `prediction` and is NEVER evidence — binding, type-level.**
 
 ## 1. Scenario coordinates and outputs
@@ -23,9 +22,9 @@ The measured domain is not a Cartesian product. The trained actor has admitted c
 all five traces and the deep `inc` range down to cap-0.1. The baseline actor has an `ev`
 grid and `inc` cells only at cap-0.75/1.0/1.5/2.5. Any other actor/trace pair or baseline
 `inc` capacity below 0.75 is outside that actor's measured envelope even though it lies
-inside the global numeric range. The current Phase-140 implementation already refuses
-unmeasured actor/trace pairs, but still line-extrapolates baseline `inc` below 0.75; that
-case is a review gap and must refuse before composer integration.
+inside the global numeric range. The Phase-142 amendment closed the Phase-140 review gap:
+baseline `inc` below 0.75 now produces `ACTOR_CAPACITY_NOT_MEASURED` and cannot reach the
+composer as a line-extrapolated prediction.
 
 ## 2. Model structure — the measured laws, packaged (three regimes)
 
@@ -74,9 +73,8 @@ Typed, each naming its gap and the campaign that would close it:
 | `ACTOR_CAPACITY_NOT_MEASURED` | a capacity outside that actor/trace pair's measured range, notably baseline `inc` below 0.75 |
 
 A refusal is a success mode: the composer's response to one is the tier-2 draft offer.
-Adding `ACTOR_CAPACITY_NOT_MEASURED` (or an equally specific typed refusal) and its test is
-a review-conformance change; the composer must not work around it with a global-envelope
-check.
+`ACTOR_CAPACITY_NOT_MEASURED` and its coverage tests are implemented; the composer does not
+work around it with a global-envelope check.
 
 ## 5. Fit provenance and the self-test gate
 
@@ -117,12 +115,12 @@ exhibit. New cells join only a separately reviewed refit.
 
 Phase 140 records 19 unit tests against the committed fit artifact: self-test tampering,
 regression pins at measured points, refusal rows, fit-boundary refusals, and the property
-that no input emerges unlabelled (`prediction` xor `refusal`). Review acceptance adds a
-coverage-matrix test: every trace/actor/capacity combination is either backed by that
-combination's measured range or produces the specific actor-capacity refusal. It must pin
-baseline `inc` cap-0.1/0.25/0.5 as refusals and prove unavailable p50/ceiling metrics never
-appear as values. Citation fields and private-path rejection also require tests before the
-predictor is exposed through the dashboard.
+that no input emerges unlabelled (`prediction` xor `refusal`). The Phase-142 amendment added
+the coverage matrix: every trace/actor/capacity combination is either backed by that
+combination's measured range or produces the specific actor-capacity refusal. It pins
+baseline `inc` cap-0.1/0.25/0.5 as refusals, proves unavailable p50/ceiling metrics never
+appear as values, and tests citation fields and private-path rejection. The predictor is
+consumed by the implemented composer and dashboard without weakening those checks.
 
 ## 8. Why not a neural net (recorded for the report)
 

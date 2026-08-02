@@ -1,11 +1,12 @@
 # Design — Platform dashboard section (platform P-3)
 
-**Status: REVIEWED PROPOSED design, `owner_approved_candidate` ceiling; not implemented.
-Three new Streamlit pages are strictly ADDITIVE under the house UI rules (nothing existing
-hidden or moved; a11y label uniqueness; AppTest coverage). P-D3 says the submitted ethics
-materials cover these pages; ethics approval is still pending, so no participant activity,
-evaluation result or fixed 11–22 August session is claimed. Participant use requires both
-ethics approval and an explicit owner release.**
+**Status: IMPLEMENTED in Phase 145 (`45ed8fb`) as three additive Streamlit pages at the
+`owner_approved_candidate` ceiling; Phase 170 (`7a661e8`) activated the bounded DeepSeek
+scenario-entry panel. Nothing existing was hidden or moved, and label uniqueness and
+AppTest coverage are enforced. P-D3 says the submitted ethics materials cover these pages;
+ethics approval is still pending, so no participant activity, evaluation result or fixed
+11–22 August session is claimed. Participant use requires both ethics approval and an
+explicit owner release.**
 
 ## 1. Page: Data Inventory
 
@@ -34,9 +35,9 @@ The [bus prediction layer](bus_prediction_design.md) rendered honestly: hourly
 concurrency and bus-progression climatology with intervals, support counts on every cell,
 `insufficient_support` cells shown exactly as that, exclusions, fit digest, source-date
 count and aggregate schema versions in the caption. `FORECAST — NOT EVIDENCE` and
-`BUS PROGRESSION — NOT ROAD SPEED` remain visible. Until the scheduled progression
-contract closes, the forecast page must show that target as unavailable rather than derive
-it from cadence.
+`BUS PROGRESSION — NOT ROAD SPEED` remain visible. The aggregate progression contract is
+implemented; when eligible aggregates or support are absent, the page shows the target as
+unavailable or `insufficient_support` rather than deriving it from cadence.
 
 Measured aggregates and forecasts use visually and semantically distinct series and
 tables; proximity on a chart is not validation. A predeclared held-out verdict, including
@@ -50,9 +51,12 @@ The [composer](whatif_composer_design.md) UI: scenario form → prediction card 
 banner, intervals, unavailable metrics, regime label) or refusal card (the named gap + a
 tier-2 *draft* offer) → deterministic download of a design + unsigned predeclaration.
 Signing and execution are instructions for a human outside the app, never buttons or
-background calls. The page writes no repository/workspace/registry file and spends no
-compute. The optional external-LLM field is absent unless explicitly configured; the local
-form/template path is complete without it.
+background calls. The page writes no repository/workspace/registry file and launches no
+campaign compute. The optional DeepSeek panel is always visibly bounded and reports whether
+the process is configured. It sends only privacy-screened owner-entered scenario prose after
+explicit per-request consent, validates the returned JSON into the same `ComposerForm`, and
+then invokes the unchanged local predictor. The form/template path remains complete without
+DeepSeek.
 
 A predictions-vs-measurements table grows only from admitted comparisons, preserving each
 side's type and standing. It is empty at launch and visibly so. Execution-deviated
@@ -83,9 +87,10 @@ support; compose a scenario and explain a refusal). They remain a draft owner de
 must be reconciled with the approved ethics materials before recruitment or data collection.
 There are currently no participant results.
 
-## 6. Out of scope for v1
+## 6. Residual limits
 
-A decision layer (recommendations) — the platform reports evidence and predictions;
-recommending is a distinct epistemic act deferred deliberately and recorded in the plan;
-editing schedules from the UI; any write action against repositories, workspaces or
-registries; API acquisition; campaign approval/execution; authentication or public hosting.
+The Decision-Safety Ruleset v2 backend was implemented separately in Phase 167, but this
+three-page dashboard slice has no decision-safety page, automatic default application or
+execution control. Editing schedules from the UI, writes against repositories/workspaces/
+registries, API acquisition, campaign approval/execution, authentication and public hosting
+remain outside this slice. There are no participant results.

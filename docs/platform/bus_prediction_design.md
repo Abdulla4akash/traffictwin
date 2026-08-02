@@ -1,14 +1,17 @@
 # Design — Bus prediction layer (platform P-2, and the producer-independent study)
 
-**Status: REVIEWED PROPOSED design, `owner_approved_candidate` ceiling; not implemented.
-It doubles as the owner's producer-independent study: a forecasting model trained only on
-our aggregate BODS session measurements and validated on held-out service dates under the
-house predeclaration discipline. Zero VEC producer data, code, parameters or results may
-enter this slice. The scheduled-runner progression dependency in §4 is unresolved.**
+**Status: IMPLEMENTED as an aggregate-only forecasting backend in Phase 143 (`9d804f3`) at
+the `owner_approved_candidate` ceiling. The same phase closed the scheduled-runner
+progression-aggregate dependency. It doubles as the owner's producer-independent study: a
+forecasting model trained only on aggregate BODS session measurements and designed for
+held-out service-date validation under the house predeclaration discipline. Zero VEC
+producer data, code, parameters or results enter this slice. The real archive still lacks
+enough eligible service dates for a held-out verdict, so no validated forecast result is
+claimed.**
 
 ## 1. What it predicts
 
-From eligible aggregate session measurements (attended, then scheduled once §4 is closed),
+From eligible aggregate attended or scheduled session measurements,
 per local hour-of-day over the fixed Greater Manchester BODS box:
 
 - **Fleet concurrency** — median/max per-snapshot `live_vehicle` count (the honest
@@ -66,13 +69,14 @@ number of eligible, distinct local service dates and per-cell support after refu
 "~7 days" or "~14 days" of wall-clock operation. In particular, 14 calendar days can
 still leave fewer than five weekend support dates.
 
-The [scheduled runner](bods_scheduled_runner_design.md) currently writes aggregate cadence
-measurements only. It does not persist the hourly `SessionProgressionMeasurement` required
-for the speed target. Before raw quarantine becomes retention-eligible, a reviewed
-aggregate-only step must compute and digest both concurrency-by-snapshot and hourly
-progression using one fresh session-scoped salt, then discard that salt. The forecaster may
-not reopen arbitrary raw BODS data, persist identifiers, infer cross-session identity, or
-claim scheduled progression support until those aggregate artifacts exist.
+Phase 143 extended the [scheduled runner](bods_scheduled_runner_design.md) to write one
+digest-bound `bods_session_activity_aggregate` containing concurrency-by-snapshot and hourly
+`SessionProgressionMeasurement`. It computes both inside the same fresh session-scoped salt
+and discards that salt. A separate owner-run builder can create the identical aggregate for
+stored attended sessions through the reviewed identity boundary. The forecaster still may
+not reopen arbitrary raw BODS data, persist identifiers or infer cross-session identity.
+Operational scheduling has not been activated, and the four measured windows on two dates
+remain insufficient for the predeclared held-out study.
 
 ## 5. Provenance
 
@@ -87,12 +91,12 @@ is untouched because the model consumes aggregates only.
 
 ## 6. Deliverables
 
-`bus_prediction.py` (aggregate dataset build, fit, predict, validate), the missing
-scheduled progression-aggregate boundary if assigned to this phase, a predeclaration draft
-for owner approval, the verdict script, and a results record only after an authorised
-held-out window. The [dashboard](dashboard_design.md) consumes the backend later; this slice
-does not edit shared navigation or claim participant evaluation. A register row is proposed
-only when a real verdict is admitted.
+Delivered surfaces are `bus_prediction.py` (aggregate dataset build, fit, predict,
+validate), the scheduled/attended activity-aggregate boundary and builder, the proposed
+unsigned predeclaration, and the deterministic verdict self-test. Phase 145 connected the
+backend to the [dashboard](dashboard_design.md). No real held-out results record or register
+row exists; either is created only after an authorised analysis is completed and admitted.
+No participant evaluation is claimed.
 
 ## 7. Testing
 

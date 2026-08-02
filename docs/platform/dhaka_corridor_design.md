@@ -1,11 +1,12 @@
 # Design — Dhaka corridor network build (Bangladesh tier 2, optional)
 
-**Status: REVIEWED OPTIONAL design, `owner_approved_candidate` ceiling; not approved for
-execution and not implemented. BD-D1/BD-D2 remain genuine owner decisions. It is scheduled
-strictly after the five platform slices and only after explicit owner authority for the
-download/build. The honest artifact is a receipted Dhaka-corridor *network-build
-feasibility result*, not proof that a calibrated or operational twin runs in Dhaka. It is
-for the transferability/funding discussion, not the admitted dissertation evidence chain.**
+**Status: IMPLEMENTED through the authorised Phase-146 network-build feasibility boundary
+(`b377e0a`, amended by `a2b427e`) at the `owner_approved_candidate` ceiling. The owner
+selected the Dhaka–Airport road corridor and authorised the pinned dated extract; the build
+completed with an ACCEPTED receipt and zero feasibility gaps. The honest artifact remains a
+receipted Dhaka-corridor *network-build feasibility result*, not proof that a calibrated or
+operational twin runs in Dhaka. It is for the transferability/funding discussion, not the
+admitted dissertation evidence chain.**
 
 ## 1. What is built
 
@@ -24,19 +25,18 @@ Manchester fixtures, or a new Dhaka-specific binding. Either option reuses only 
 integrity/decode/streaming primitives. Existing Manchester bindings and evidence remain
 byte-unchanged.
 
-## 2. Scope decisions (owner, before build)
+## 2. Frozen owner decisions and build input
 
-- **BD-D1 — the corridor.** Proposed default: the Dhaka–Airport road corridor
-  (Mohakhali → Hazrat Shahjalal International); the alternative named in the planning
-  discussion is Mirpur Road. Any congestion, operational or BRTC-alignment rationale must
-  be independently sourced before the owner decides — the current proposal text is not
-  traffic or BRTC evidence. The owner selects one corridor and freezes its polygon and
-  landmarks before acquisition.
-- **BD-D2 — the dated extract and acquisition.** After explicit owner authority, resolve a
-  dated provider artifact rather than retaining a `-latest` redirect; record the final URL,
-  reference/publication date, byte size, SHA-256, provider checksum where available,
-  retrieval time, licence and attribution. Download/build is not authorised merely because
-  this design exists.
+- **BD-D1 — DECIDED 1 August 2026.** The owner selected the Dhaka–Airport road corridor
+  (Mohakhali → Hazrat Shahjalal International) and froze its bounding box and four
+  landmarks in the committed scope record.
+- **BD-D2 — DECIDED 1 August 2026.** The owner authorised acquisition of the dated
+  `bangladesh-260731.osm.pbf` Geofabrik artifact. Its reference date, size, SHA-256,
+  provider MD5, retrieval time, licence and attribution are bound in the committed pin.
+
+The exact decisions and measured result are recorded in
+[`dhaka_corridor_feasibility_20260801.md`](../integration/dhaka_corridor_feasibility_20260801.md).
+No traffic, BRTC or congestion rationale was inferred from the network build.
 
 ## 3. Known transfers and known unknowns
 
@@ -80,9 +80,10 @@ derived bundle. No private paths enter committed records.
 Offline fixtures cover the generic/Dhaka scope schema, Manchester-literal rejection,
 source/derived identity separation, unsafe destination/private-path refusal, checksum and
 licence drift, bounded subprocess arguments, measured extent/role classification, projection
-and landmark reconciliation, no-observation labels, and deterministic receipts. A real build
-requires explicit network confirmation and owner authority, then records exact tool versions,
-resource use and warnings. It runs no traffic simulation, campaign, training or cloud compute.
+and landmark reconciliation, no-observation labels, and deterministic receipts. The authorised
+build recorded exact tool versions, resource use and warnings and passed the same deterministic
+contract exercised by the offline fixtures. It ran no traffic simulation, campaign, training or
+cloud compute.
 
 Acceptance means the pinned input was verified, the requested corridor containment and
 structural/routability checks were measured, receipts contain no private path, and the
@@ -91,8 +92,7 @@ reviewable feasibility-gap report; it is not silently repaired or described as a
 
 ## 6. Effort and stop rule
 
-Earlier notes estimated ~one day because a corridor is smaller than the 2.11M-edge Greater
-Manchester parent. The contract-generalisation and unknown data quality make that an estimate,
-not a commitment. Stop after one selected corridor and one pinned extract. Do not expand to a
-city-wide build, acquire observations, tune thresholds or launch experiments without a new
-owner decision.
+Earlier notes estimated approximately one day. The measured build used 6.8 seconds of tool
+time, with contract work recorded separately; the estimate was not authority. The stop rule
+held at one selected corridor and one pinned extract. Do not expand to a city-wide build,
+acquire observations, tune thresholds or launch experiments without a new owner decision.

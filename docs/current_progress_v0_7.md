@@ -1,27 +1,15 @@
 # TrafficTwin v0.7 Current Progress and Build Plan
 
-**Snapshot date:** 24 July 2026
+**Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7` (integration branch created at the protected
-`v0.7.0-alpha.4` checkpoint `4e95a5d7ea4f31895c7648c0e44448724bc5df9d` on `codex/traffictwin-v0.7`).
-Checkpoint tag `v0.7.0-alpha.5` marks commit
-`310117e` (the coexistence-check checkpoint); later verified commits continue on the branch.
+**Development branch:** `claude/complete-v0.7`; through Phase 170 the branch and `origin/main`
+were aligned at `7a661e8a4d980310809436286623458c9adfc399`. The immutable release baseline and
+historical checkpoint tags remain unchanged.
 
-**Snapshot commit:** the head of `claude/complete-v0.7` after the Phase 2B Tier 5 presentation
-harvest, the Tier 4 harvest, and the 25 July 2026 integration-regression repair (see below). Cumulative content since `v0.7.0-alpha.4`: Phase 2B Tier 1 integration, the
-REL-01 workspace CLI, the MAN-09 temporal-profile foundation, the synthetic analyst-review and
-temporal-profile demonstrations, the automated cross-page-state evidence, the external decision
-pack and its 24 July 2026 source-documentation probe, the ADR-058 producer attestation, the
-attested activation/backup/rollback workflow, the side-by-side coexistence check, the 24 July 2026
-requirement-level re-audit fixes (rollback path-traversal fix, crash-safe resumable migration,
-temporal-profile tamper-evidence hardening, CLI graceful-refusal fix, three-state comparison
-provenance badge, side-by-side hardening, requirement matrix, and human-decision preparation
-pack), the Phase 2B Tier 2 presentation harvest over the Statistical Study, VEC Workbench,
-Temporal Metrics, and Threshold Sensitivity pages, the Phase 2B Tier 3 presentation harvest
-over the Diagnostics & Evidence, Provenance Explorer, Operations View (historical replay),
-Triviality & Winner Map, Participant Evaluation, and Manifest Inference pages, and the Phase 2B
-Tier 4 analysis-evidence presentation harvest over the Energy, Fairness, Infrastructure,
-Journey-Time, and Spatial & RSU pages.
+**Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
+data-platform v1, Phase 147–169 post-v1 backend suite and Phase 170 bounded DeepSeek composer
+activation. This tracker distinguishes implemented libraries/pages from activated schedulers,
+deployed services, completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -69,25 +57,33 @@ integrated on `claude/complete-v0.7`. Neither increment by itself accepts any `U
 
 ## 3. Current verified baseline
 
-At the snapshot commit:
+At the latest proportional verification points:
 
-- 686 Manchester-focused unit tests pass;
-- 1,662 unit tests and 169 UI tests pass, 1,831 combined;
-- the complete `tests/integration` suite passes with zero failures, and the full
-  unit+UI+integration suite reports 2,042 passing (the 25 July 2026 integration-regression repair
-  migrated the Statistical Study and VEC Workbench AppTests to grouped navigation and re-bound the
-  DfT Gate-B probe to the current implementation, and the Phase 2B Tier 5 research-workflow harvest
-  restructured the Scenario Builder, Scenario Mutations, Experiment Planner, Parameter Sweep, and
-  Reports pages);
-- repository-wide Ruff formatting and checks pass;
-- strict mypy passes over all 693 configured source and test files;
-- lock validation and package build pass;
-- the built wheel contains the required Manchester boundary assets; and
-- 35 routes across desktop/mobile and light/dark modes produce 140 browser screenshots with zero
-  actionable semantic findings.
+- Phase 161's locked full suite passed 3,944 tests with two expected environment-gated skips;
+- the repaired post-v1 suite passed 113 tests, repository Ruff/format, strict mypy across 859
+  source files, lock validation, generated-reference drift, package and privacy gates;
+- Phase 169's eight-slice platform regression passed 143 tests;
+- Phase 170 passed 43 focused and 129 adjacent predictor/composer/registry/safety/live-twin/
+  benchmark/UI tests, plus Ruff, formatting, strict mypy, lock and secret checks; and
+- the Phase-171 status audit reran 250 meeting/platform/research-workflow tests successfully.
+
+The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
+screenshots with zero actionable semantic findings.
 
 The browser result is automated regression evidence. It is not a WCAG, screen-reader, participant,
 or research-usability acceptance claim.
+
+### 3.1 Data-platform overlay
+
+| Group | Practical state | What is built | What remains |
+|---|---|---|---|
+| v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, three platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
+| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store, deterministic incremental analytics, evidence matrix and append-only scenario lifecycle | Populate a real safe store, bind the dashboard feed, add matrix UI and wire lifecycle consumers |
+| Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded decision assessments | Dashboard presentation and consumer integration; still no execution authority |
+| Controlled live twin | `foundation_only` | Maximum-coverage schemas, policies, state machine and deterministic fake | Concrete local SUMO/public/cloud/operator transports and deployment-supplied authority |
+| Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
+
+These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.
 
 ## 4. Gate progress and planning estimates
 
@@ -174,6 +170,26 @@ next section.
 5. Reconcile CLI, generated schemas/references, capability manifest, documentation, package
    version, CI, and final immutable tag.
 
+### 6.4 Post-v1 integration work that is buildable without new external evidence
+
+1. Add read-only dashboard pages/services for the analytics quality feed, experiment evidence
+   matrix, mechanism observatory and Decision-Safety assessments.
+2. Wire composer drafts into the append-only scenario registry through explicit local lifecycle
+   actions, leaving approval, execution and admission external and digest-bound.
+3. Add an owner-selected ignored-workspace activation command for the aggregate SQLite store,
+   including migration preview, backup/restore drill and import of already-safe aggregate
+   artifacts only; never open raw quarantine.
+4. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
+   fixture, retaining engineering-only receipts and launching no scientific campaign.
+5. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
+   ingestion and deterministic synthetic workers; real training remains a separately authorised
+   action after a signed protocol and concrete resources exist.
+6. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
+   real attribution remains unavailable until a compatible producer snapshot hook and validation
+   method exist.
+7. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
+   neither artifact creates supervisor approval or research evidence.
+
 ## 7. Decisions or evidence required before acceptance
 
 | Required decision/evidence | Blocks |
@@ -203,7 +219,7 @@ acceptance evidence, in the [v0.7 external decision pack](v07_external_decision_
 | Guaranteed complete Bee Network fleet/service coverage | `unavailable` | Complete membership, NOC/service reference rights, and feed completeness are unresolved |
 | Public live/raw scene hosting | `unavailable` | BODS retention/publication, National Highways release review, other source licences, and complete gate acceptance remain open |
 | External online road basemap | `unavailable` by current decision | The current map deliberately uses no tile provider to avoid hidden network and licensing claims; official ONS boundaries provide offline context |
-| Always-on daemon or cloud scheduler | `out_of_scope` | v0.7 defines explicit bounded/operator-triggered acquisition; a persistent service needs a separate deployment and governance design |
+| Running always-on daemon or cloud scheduler | `unavailable` | Phase 168 implements bounded unattended/cloud contracts, but no deployment account, funded authority, concrete transport or running service exists |
 
 WebTRIS remains a useful historical/latest-available source. It is explicitly refused as
 `near_live` after the controlled recency probe and must not be presented as current road telemetry.

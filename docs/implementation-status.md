@@ -28,6 +28,30 @@ Historical design status: v0.6 records the implemented Randy/VEC increment, v0.5
 implemented expansion baseline, and v0.4 remains preserved as the original rationale and
 supervisor-meeting traceability record.
 
+## Data-platform and Meeting-3 implementation status (2 August 2026)
+
+This section records the additive platform truth through Phase 170. It does not alter the strict
+acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
+
+| Surface | Formal implementation truth | Residual boundary |
+|---|---|---|
+| Scheduled BODS sessions | Phase 139 implemented the upstream-safe scheduled micro-batch runner; Phase 143 added aggregate concurrency/progression output | No owner smoke, OS scheduler activation or newly claimed scheduled acquisition |
+| VEC outcome predictor | Phase 140 implemented the admitted-source surrogate; Phase 142 closed actor-specific envelope/citation review gaps | Predictions remain `evidence: false`; no automatic refit or campaign execution |
+| What-if composer and agent | Phases 142/170 implemented structured composition, bounded DeepSeek JSON form extraction and unsigned campaign drafting | Per-request external-transfer consent; no approval, execution or evidence creation |
+| Bus forecast backend | Phase 143 implemented aggregate dataset/fit/predict/validate and verdict self-test contracts | Too few eligible service dates for the predeclared held-out verdict |
+| Platform dashboard | Phase 145 implemented additive Inventory, Forecasts and Composer pages | No participant results; post-v1 backend views are not yet integrated |
+| Dhaka corridor | Phase 146 completed the authorised Airport-road network feasibility build with an ACCEPTED receipt | Network engineering only: no observations, calibration, simulation, VEC result or Dhaka twin claim |
+| Historical store and analytics | Phases 147/160 implemented local aggregate SQLite persistence; Phases 152/165 implemented atomic analytics and the 15-minute policy | No real migration/population, backup scheduler, OS analytics scheduler or shared-dashboard feed binding |
+| Evidence matrix and scenario registry | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161 | No matrix UI; the registry does not approve, launch or admit |
+| Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2 | No observatory/safety UI or execution authority; outputs create no evidence |
+| Controlled live twin | Phases 153/168 implemented maximum-coverage control contracts and a deterministic fake adapter | No real process/transport, live BODS, public service, cloud allocation or road actuation |
+| Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol, compatibility, budget, seed and analysis tooling | `PROPOSED / UNSIGNED`; no bound actors, training, evaluation, cloud use, evidence or admission |
+
+The platform backend suite is therefore implemented, but implementation is not synonymous with a
+running deployment or completed study. Current external/scientific gaps are activation inputs and
+real evidence: participant approval/data, populated live aggregate stores, scheduled operations,
+concrete live-twin transports and the signed/executed benchmark.
+
 Phase 0 status: approved and committed.
 
 Phase 1 status: implemented and committed.

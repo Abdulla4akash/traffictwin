@@ -4571,3 +4571,24 @@ benchmark/UI gate passed 129 tests; `uv lock --check`, Ruff, Ruff format, strict
 and secret screening passed. The local key remains ignored, untracked, owner-readable only and
 absent from every staged/trackable artifact. No campaign, participant activity or infrastructure
 action occurred.
+
+### Phase 171 claim: post-meeting platform status reconciliation (2 August 2026)
+
+The integrating lead owns a documentation-only reconciliation of the live Phase 139–170 platform
+truth in `docs/platform/{outcome_predictor,bus_prediction,dashboard,dhaka_corridor}_design.md`,
+`docs/traffictwin-data-platform-v1-plan.md`, `docs/implementation-status.md`,
+`docs/current_progress_v0_7.md`, and this phase record. The phase may replace stale PROPOSED,
+not-implemented, unresolved-dependency and pre-decision wording with the exact committed delivery
+and residual activation limits. It may not change code, tests, evidence, scientific standing,
+capability acceptance, owner/supervisor/ethics status, deployment state or external activity. In
+particular, backend contracts must not be described as running schedulers, deployed services,
+completed scientific campaigns, participant results or real-road control.
+
+Phase 171 completed on 2 August 2026. All six v1 platform design headers and all eight post-v1
+design headers now report implemented truth with their bounded residuals; the platform plan,
+formal implementation status and working progress tracker now agree on Phase 139–170 delivery.
+The tracker also records the safe next-build queue without treating deployment inputs or research
+activity as completed. Verification passed 250 meeting/platform/research-workflow tests,
+`uv lock --check`, changed-document relative-link validation, private-path screening and
+`git diff --check`. No source code, test, evidence, capability acceptance, external system or
+scientific standing changed.
