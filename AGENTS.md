@@ -4951,3 +4951,29 @@ passed all 371 tests; focused Ruff format/check, strict mypy, JSON parse and dif
 Streamlit framework-name ambiguity, genuine 200%/400% zoom, dark-theme/non-text contrast,
 screen-reader and complete human keyboard acceptance remain explicit. The human checklist is
 unticked and unsigned; no WCAG, UX-03 or Gate-C acceptance was created.
+
+### Phase 184 claim: Manchester Gate-D decision support (2 August 2026)
+
+The owner-directed integrating lead owns the bounded design/reviewer pack in
+`docs/integration/manchester_gate_d_decision_support_20260802.md`; its path-free source-bound
+inventory at `docs/integration/evidence/manchester_gate_d_decision_support_20260802.json`; the
+static integrity assertions in `tests/unit/test_manchester_gate_d_decision_support.py`; the
+additive link in `docs/index.md`; the narrow status updates in `docs/implementation-status.md` and
+`docs/current_progress_v0_7.md`; the `CHANGELOG.md` entry; and this phase record. The phase may
+reconcile exact committed mapping, review, temporal-profile, calibration-contract and demand
+diagnosis facts into one decision-ready packet, define the safe coverage-targeted demand-design
+boundary and test every binding/non-claim. It may not open a private workspace, name or impersonate
+a reviewer, record a row decision, select calibration objectives/parameters/uncertainty, amend or
+sign a protocol, register a production contract, generate or run demand/SUMO, resolve the
+observation-input discrepancy, accept a baseline, calculate a real comparison or create scientific
+evidence.
+
+Phase 184 completed locally on 2 August 2026. The path-free record binds 15 exact committed
+sources, reconciles 305 mapping rows as 131 owner-policy candidates plus an empty 174-row human
+queue, separates fixed calibration mechanics from six unresolved authority/scientific choices,
+and defines a non-executing fail-closed coverage-targeted demand boundary. It preserves both the
+149-edge/1,788-cell and 150-edge/1,800-cell lineages and their unresolved 3,152-vehicle difference.
+The seven-file decision-support/Gate-D/review/calibration/demand regression passed all 198 tests;
+Ruff format/check, repository-wide strict mypy across 891 files, JSON parse, privacy and diff gates
+passed. No reviewer, row decision, protocol amendment, scientific selection, contract registration,
+demand/SUMO run, baseline, comparison or evidence was created; Gate D remains `foundation_only`.

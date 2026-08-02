@@ -1,0 +1,107 @@
+{
+  "schema_version": "traffictwin.manchester_gate_d_decision_support.v1",
+  "phase": 184,
+  "record_date": "2026-08-02",
+  "record_type": "engineering_decision_support",
+  "evidence_class": "committed_record_reconciliation",
+  "source_bindings": [
+    {"path": "docs/integration/manchester_gate_d_integration.md", "sha256": "17ee878aa9c4ae5b19b95f1be4a4074fb36d25a170d08514a19eebf548c11946", "role": "implemented dependency packet design"},
+    {"path": "docs/integration/manchester_map_matching_decision_worksheet.md", "sha256": "732e862d07a4e517ebc92c927f18a9fae304cf5842064f7bfb7aed19439b8f07", "role": "mapping policy and measured sensitivity"},
+    {"path": "docs/integration/evidence/manchester_map_match_candidates_20260725.json", "sha256": "d6fd8f21c4f05084c1db42a3259d8755fbbf181a436601298ebf13766d4a2b28", "role": "policy v1.0 reconciliation"},
+    {"path": "docs/integration/evidence/manchester_map_match_policy_v11_20260725.json", "sha256": "f73f9421f1029ffe9ff1db1fc6c0bb4b5ab2bd83a13b03b8b73e6dc5d4258d29", "role": "policy v1.1 reconciliation and review queue"},
+    {"path": "docs/integration/evidence/manchester_chain_restoration_20260728.json", "sha256": "22dac5bd31a04b00d188ba5d87be98576dd0ac914cec2ffdc193cce49add5c31", "role": "restored review surface status"},
+    {"path": "docs/integration/evidence/manchester_dft_temporal_profile_20260725.json", "sha256": "792ad0f80fe26417bca0f899c16a7408eb2d6d8a5dc167b74f27464dfb5d5048", "role": "real temporal-profile denominators and time basis"},
+    {"path": "docs/integration/manchester_calibration.md", "sha256": "367ea9211a2277df473c2a25e586c5458dfd1cd06a4972af2fa5f0e3b18b7294", "role": "calibration evaluator contract"},
+    {"path": "docs/integration/manchester_demand_reconstruction.md", "sha256": "9ce2705b29403b1c5aaa5f6833706d1916220092ecbb4c45bfa440e9bcb5ebbf", "role": "candidate-demand design and original lineage"},
+    {"path": "docs/integration/evidence/manchester_demand_direction_binding_20260725.json", "sha256": "3b09a3ff103f8d85ff1de257f8cfdca8ea7d6de167f265d678dc15dbd02c2309", "role": "direction-binding evidence"},
+    {"path": "docs/integration/evidence/manchester_candidate_demand_20260725.json", "sha256": "83964e09a0199b58df90700104a6a00981a97b47d5399e29c076f242011847e5", "role": "original candidate demand and mismatch"},
+    {"path": "docs/integration/evidence/manchester_demand_reconstruction_20260725.json", "sha256": "41118a96a2682abf11a017b85e3d39af13133651880e19d41acafce810865d2f", "role": "later committed observation lineage"},
+    {"path": "docs/integration/evidence/manchester_demand_saturation_diagnostic_20260725.json", "sha256": "fc13834126bd20ed17abf475da8047188c9725ff81f0a997f0f6870f72154bf0", "role": "one-hour gridlock refusal"},
+    {"path": "docs/integration/evidence/manchester_demand_diagnosis_20260728.json", "sha256": "4d13d5643e1008317c4dce46b09631c17f0f65a6088e06cd12c41952020a1f85", "role": "route-pool reachability diagnosis"},
+    {"path": "docs/evaluation/demand_rebuild_predeclaration.md", "sha256": "1a5c3f44ecc1aeec09b6ef0c3c302f4a4a7cc8bd88b309a21575335fde920c69", "role": "unsigned demand protocol"},
+    {"path": "docs/evaluation/demand_diagnosis_results_20260728.md", "sha256": "83b411dcd1d421dedd476a1b122143cc1d0a6e6856991866e3b920a43b4cc122", "role": "published diagnosis narrative"}
+  ],
+  "analyst_review": {
+    "policy_id": "manchester-dft-map-match-owner-policy-1.1",
+    "observations_total": 305,
+    "owner_policy_accepted_total": 131,
+    "queued_total": 174,
+    "awaiting_manual_review_total": 165,
+    "no_suitable_candidate_preserved_total": 9,
+    "decided_total": 0,
+    "pending_total": 174,
+    "permitted_decision_kinds": ["accept_group", "reject_all_candidates", "defer"],
+    "named_person_required": true,
+    "bulk_operation_permitted": false,
+    "decision_records_embedded": false
+  },
+  "calibration": {
+    "fixed_contract": {
+      "observed_source": "dft_raw_counts",
+      "measure": "vehicle_count",
+      "unit": "vehicles_per_interval",
+      "interval_seconds": 3600,
+      "time_basis": "local_clock_hour",
+      "utc_projection_available": false,
+      "residual_direction": "simulated_minus_observed",
+      "weighting": "equal_interval",
+      "source_fusion": "none",
+      "missing_as_zero": false,
+      "rounding": "ROUND_HALF_EVEN_0.001"
+    },
+    "source_profile": {
+      "sites": 305,
+      "series": 3256,
+      "observed_cells": 39072,
+      "measured_zero_cells": 166,
+      "development_sites": 238,
+      "held_out_sites": 67,
+      "development_cells": 30528,
+      "held_out_cells": 8544
+    },
+    "open_decisions": [
+      {"id": "C1", "choice": "production objective: MAE or RMSE", "authority": "scientific_lead", "blocks": "production contract admission"},
+      {"id": "C2", "choice": "parameter names, units, bounds and finite grids", "authority": "scientific_lead", "blocks": "candidate generation"},
+      {"id": "C3", "choice": "uncertainty treatment and reporting", "authority": "scientific_lead_or_supervisor", "blocks": "baseline review"},
+      {"id": "C4", "choice": "development and held-out usage", "authority": "scientific_lead", "blocks": "candidate evaluation"},
+      {"id": "C5", "choice": "viability and admission rule", "authority": "scientific_lead", "blocks": "baseline eligibility"},
+      {"id": "C6", "choice": "register exact approved production fingerprint", "authority": "integrating_lead_after_approval", "blocks": "real objective values"}
+    ],
+    "production_registry_empty": true,
+    "contract_registered": false,
+    "objective_selected": false,
+    "parameters_selected": false,
+    "uncertainty_selected": false
+  },
+  "demand": {
+    "original_lineage": {"counted_edges": 149, "cells": 1788, "observed_vehicles": 2024123, "measured_zero_cells": 11, "sampled_vehicles": 746440, "count_achievement_percent": 91.32},
+    "committed_lineage": {"counted_edges": 150, "cells": 1800, "observed_vehicles": 2027275, "measured_zero_cells": 11, "sampled_vehicles": 749267, "count_achievement_percent": 91.72},
+    "unresolved_difference": {"counted_edges": 1, "cells": 12, "observed_vehicles": 3152, "decomposable_by_removing_one_committed_edge": false},
+    "gridlock_refusal": {"inserted_share": 0.081, "final_halting_share": 0.888, "teleports_share_of_inserted": 0.357, "accepted_as_viable": false},
+    "reachability_diagnosis": {"pool_routes": 43200, "entry_fringe_routes": 28, "counted_edges": 150, "zero_coverage_edges": 4, "edges_with_coverage_at_most_two": 6, "unmet_vehicles_on_those_edges": 122235, "share_of_all_unmet_percent": 72.79, "binding_constraint": "structural_counted_edge_reachability"},
+    "coverage_targeted_variant_contract": {
+      "state": "design_only_unsigned",
+      "bind_exact_input_lineage": true,
+      "bind_network_runtime_seed_and_policy": true,
+      "declare_per_counted_edge_support_before_generation": true,
+      "preserve_zero_and_near_zero_coverage_individually": true,
+      "fail_closed_below_declared_support": true,
+      "routes_are_observed_journeys": false,
+      "support_threshold_selected": false,
+      "protocol_amended": false,
+      "variant_executed": false
+    }
+  },
+  "standing": {
+    "analyst_accepted": false,
+    "human_accepted": false,
+    "supervisor_approved": false,
+    "scientifically_validated": false,
+    "production_contract_registered": false,
+    "sumo_executed": false,
+    "baseline_created": false,
+    "baseline_accepted": false,
+    "comparison_calculated": false,
+    "scientific_evidence_created": false
+  }
+}

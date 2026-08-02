@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 183. It does not alter the strict
+This section records the additive platform truth through Phase 184. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -47,7 +47,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Controlled live twin | Phases 153/168 implemented maximum-coverage contracts/fake; Phase 176 added a fixed-argv, loopback-only local SUMO 1.27.x/TraCI transport over the pinned synthetic square | No BODS/public/cloud/operator transport, generic scenario, scientific campaign, production service or road actuation |
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol tooling; Phase 177 added contract-only manifests, compatible adapters, deterministic unsigned 240-cell/2,400-job and estimate-only resource exports, plus a 21-job synthetic worker and return/resume/freeze gates | `PROPOSED / UNSIGNED`; no real actor/runtime/checkpoint binding, training, evaluation, cloud use, evidence or admission |
 | XAI decision instrumentation | Phase 178 implemented exact-binding synthetic snapshots, two pure replay baselines, disagreement browsing, load-bin fingerprints, attribution-shaped integrity fixtures, real-method unavailable states and a read-only Decision Audit | No compatible producer snapshot hook, authorised real actor/checkpoint access or validated application method; no real attribution, causality, faithfulness, evidence or optimality claim |
-| Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
+| Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views; Phase 184 added a 15-source decision pack for the 174-row review, calibration choices and coverage-targeted demand boundary | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, exact-input reconciliation, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
 | Supervisor communication and literature audit | Phase 180 produced a four-slide editable/verified checkpoint deck, source audit, exact 100-entry BibTeX catalogue and complete manuscript citation coverage | Communication and verified metadata do not create supervisor/ethics/publication approval, project evidence or a final University-style/reference-manager export |
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 
@@ -156,6 +156,15 @@ routes then exposed exactly one visible `h1`. Twelve forward-Tab stops advanced 
 Streamlit heading/table affordance name duplication, complete focus visibility/contrast, genuine
 200%/400% zoom, dark-theme/non-text contrast, screen-reader and human task checks remain explicit.
 The manual checklist is unticked; Gate C and UX-03 are not accepted.
+
+Phase 184 makes the remaining Manchester Gate-D work decision-ready without taking a decision. Its
+path-free record binds 15 exact committed sources, reconciles the 305-row mapping population and
+empty 174-row human-review queue, separates fixed calibration mechanics from six scientific/
+authority choices, and specifies the fail-closed boundary for a future coverage-targeted route
+pool. It preserves the non-reconciling 149-edge/1,788-cell and 150-edge/1,800-cell demand lineages
+and the measured gridlock refusal. No reviewer, protocol amendment, objective, parameter,
+uncertainty rule, contract registration, run, baseline, comparison or scientific evidence was
+created; `MAN-09`–`MAN-11` and Gate D remain unchanged.
 
 Phase 0 status: approved and committed.
 

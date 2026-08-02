@@ -2,7 +2,7 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 183 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 184 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -10,7 +10,8 @@ data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 1
 store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
 supervisor-communication/literature completion, the Phase-181 repository-wide strict-mypy
 reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
-accessibility engineering QA. This tracker distinguishes
+accessibility engineering QA and Phase-184 Manchester Gate-D decision support. This tracker
+distinguishes
 implemented libraries/pages and communication artifacts from activated schedulers, deployed
 services, completed studies and accepted scientific evidence.
 
@@ -108,6 +109,10 @@ At the latest proportional verification points:
   accessibility regression and adjacent route/navigation suite passed all 371 tests; focused
   Ruff format/check and strict mypy pass. The manual checklist remains
   unticked and genuine zoom, screen-reader and complete human keyboard/focus acceptance remain.
+- Phase 184 bound 15 committed Manchester sources into a decision-ready review/calibration/demand
+  packet. Its seven-file adjacent Manchester suite passed all 198 tests; Ruff and repository-wide
+  strict mypy across 891 configured files pass. It made no human row decision, scientific choice,
+  protocol amendment, demand/SUMO run, contract registration, baseline or comparison.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -125,7 +130,7 @@ or research-usability acceptance claim.
 | Controlled live twin | `working_bounded` | Maximum-coverage contracts/fake plus a fixed-argv loopback-only local SUMO/TraCI transport over the pinned synthetic square | BODS/public/cloud/operator transports, deployment inputs, generic scenarios and any scientific/production use |
 | Capacity benchmark | `working_bounded` | Frozen protocol plus contract-only manifests/adapters, deterministic unsigned 240-cell/2,400-job and resource-plan exports, 21-job synthetic worker, receipts/resume/checkpoint/analysis-freeze gates | Signed final protocol, real actor/runtime/checkpoint/domain bindings and separately authorised training/evaluation |
 | XAI decision audit | `working_bounded` | Synthetic exact-binding snapshots, two pure replay baselines, disagreement browser, behavioural fingerprints, attribution-shaped integrity fixtures and read-only UI | Producer snapshot hook, authorised real actor/checkpoint access, literature-grounded application validation and any separately admitted real attribution result |
-| Manchester Gate-D integration | `foundation_only` | Five exact committed records feed typed mapping sensitivity/reconciliation, pending review, temporal profile, calibration/baseline readiness, comparison-contract and lineage views | 174 named-person review decisions, approved calibration/uncertainty design, viable demand and runs, contract registration, human baseline decision and real comparison |
+| Manchester Gate-D integration | `foundation_only` | Five exact committed records feed typed mapping sensitivity/reconciliation, pending review, temporal profile, calibration/baseline readiness, comparison-contract and lineage views; a 15-source decision pack now makes review, calibration and coverage-targeted demand choices explicit | 174 named-person review decisions, exact-input reconciliation, approved calibration/uncertainty and demand designs, viable demand and runs, contract registration, human baseline decision and real comparison |
 | Supervisor communication and literature audit | `working_bounded` | Four-slide editable/verified deck with per-slide sources; exact 100-source matrix, BibTeX catalogue, manuscript bibliography and complete body citation coverage | Supervisor interpretation/decision, private-source format/year, final bibliography breadth, University style/template export, ethics and publication decisions remain human |
 
 These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.

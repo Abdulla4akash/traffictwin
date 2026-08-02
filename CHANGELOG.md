@@ -2,6 +2,13 @@
 
 ## v0.7.0 - In development
 
+Added a source-bound Manchester Gate-D decision-support pack (2 August, Phase 184). Fifteen exact
+committed records now reconcile the empty 174-row analyst-review ledger, separate fixed calibration
+mechanics from six open scientific/authority choices, preserve both non-reconciling demand-input
+lineages and specify a fail-closed coverage-targeted route-pool boundary. No reviewer identity or
+decision, protocol amendment, scientific choice, production registration, SUMO run, baseline,
+comparison or evidence was created; Gate D remains `foundation_only`.
+
 Completed bounded rendered-browser accessibility engineering QA (2 August, Phase 183) across six
 high-risk routes at desktop and narrow viewports. The shared sidebar brand no longer creates a
 second top-level heading, and the post-fix routes expose one visible `h1` with no rendered
