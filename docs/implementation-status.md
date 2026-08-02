@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 180. It does not alter the strict
+This section records the additive platform truth through Phase 181. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -131,6 +131,13 @@ records; the exact 100-entry BibTeX source maps one-to-one to 100 numbered manus
 all cited in the body. Literature, project measurements and LLM drafting remain separate. A human
 must still apply the University reference-manager/template convention, confirm private-source
 format/year, choose final breadth and make every supervisor, ethics or publication decision.
+
+Phase 181 restores the repository-wide strict-mypy gate without changing product behavior. Three
+test helpers now preserve the precise existing production types instead of widening values to
+`object` and suppressing the resulting checks. The original assertions and runtime validation are
+unchanged; all 60 focused tests and the full 4,128-test repository suite pass with two expected
+environment-gated skips, and repository-wide strict mypy passes across all 890 configured source
+files. This repair does not alter any capability, release, evidence or scientific standing.
 
 Phase 0 status: approved and committed.
 

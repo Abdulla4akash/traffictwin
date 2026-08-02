@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from traffictwin.experiments import (
     ObjectiveDirection,
@@ -89,9 +89,8 @@ def _service(tmp_path: Path) -> tuple[ScenarioLifecycleService, Path, ScenarioLi
     )
 
 
-def _write_model(path: Path, model: object) -> Path:
-    assert hasattr(model, "model_dump")
-    payload = model.model_dump(mode="json")  # type: ignore[union-attr]
+def _write_model(path: Path, model: BaseModel) -> Path:
+    payload = model.model_dump(mode="json")
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
 

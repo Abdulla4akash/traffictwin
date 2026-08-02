@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 import pytest
 from pydantic import ValidationError
@@ -143,14 +144,14 @@ def test_seed_namespaces_have_exact_counts_and_are_pairwise_disjoint() -> None:
 
 def test_seed_reuse_and_registered_heldout_seeds_refuse() -> None:
     payload = _protocol_payload()
-    seeds = dict(payload["seeds"])  # type: ignore[arg-type]
+    seeds = cast(dict[str, object], payload["seeds"]).copy()
     seeds["evaluation"] = tuple(range(2300, 2319)) + (2100,)
     payload["seeds"] = seeds
     with pytest.raises(ValidationError, match="SEED_NAMESPACE_CONTAMINATED"):
         BenchmarkProtocol.model_validate(payload)
 
     payload = _protocol_payload()
-    seeds = dict(payload["seeds"])  # type: ignore[arg-type]
+    seeds = cast(dict[str, object], payload["seeds"]).copy()
     seeds["engineering"] = (0, 1, 2)
     payload["seeds"] = seeds
     with pytest.raises(ValidationError, match="SEED_NAMESPACE_CONTAMINATED"):

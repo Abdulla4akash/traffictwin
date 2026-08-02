@@ -28,7 +28,11 @@ from traffictwin.platform.analytics_monitor import (
     read_readiness,
     scheduled_readiness_cells,
 )
-from traffictwin.platform.bus_prediction import BuildRules, load_activity_aggregates
+from traffictwin.platform.bus_prediction import (
+    BuildRules,
+    LoadedAggregate,
+    load_activity_aggregates,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RULES = BuildRules(min_snapshots_per_session=3, min_interval_support_dates=5)
@@ -90,7 +94,7 @@ def _payload(
     }
 
 
-def _load_one(tmp_path: Path, name: str, payload: dict[str, object]) -> object:
+def _load_one(tmp_path: Path, name: str, payload: dict[str, object]) -> LoadedAggregate:
     path = tmp_path / name
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload), encoding="utf-8")
@@ -98,7 +102,7 @@ def _load_one(tmp_path: Path, name: str, payload: dict[str, object]) -> object:
 
 
 def _context(
-    item: object,
+    item: LoadedAggregate,
     *,
     first: str,
     last: str,
@@ -109,8 +113,8 @@ def _context(
     schema_version: str = "1.0",
 ) -> SourceQualityContext:
     return SourceQualityContext(
-        logical_id=item.logical_id,  # type: ignore[attr-defined]
-        source_sha256=item.sha256,  # type: ignore[attr-defined]
+        logical_id=item.logical_id,
+        source_sha256=item.sha256,
         source_stream=stream,
         source_schema_version=schema_version,
         first_snapshot_at_utc=datetime.fromisoformat(first),
@@ -124,8 +128,8 @@ def _context(
 def test_apply_is_exactly_once_with_idempotent_replay(tmp_path: Path) -> None:
     monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
     item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night"))
-    first = monitor.apply_increment(item)  # type: ignore[arg-type]
-    replay = monitor.apply_increment(item)  # type: ignore[arg-type]
+    first = monitor.apply_increment(item)
+    replay = monitor.apply_increment(item)
     assert not first.idempotent_replay
     assert replay.idempotent_replay
     assert replay.materialisation_digest == first.materialisation_digest
@@ -136,17 +140,12 @@ def test_restart_replays_materialisation_and_logical_digest_state(tmp_path: Path
     checkpoint = tmp_path / "checkpoint.jsonl"
     item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night"))
     first = IncrementalAnalyticsMonitor(checkpoint)
-    receipt = first.apply_increment(item)  # type: ignore[arg-type]
+    receipt = first.apply_increment(item)
 
     replayed = IncrementalAnalyticsMonitor(checkpoint)
     assert replayed.materialisation_digests() == first.materialisation_digests()
     assert replayed.materialisation("2026-08-03/night") is not None
-    assert (
-        replayed.apply_increment(item).model_copy(  # type: ignore[arg-type]
-            update={"idempotent_replay": False}
-        )
-        == receipt
-    )
+    assert replayed.apply_increment(item).model_copy(update={"idempotent_replay": False}) == receipt
 
     changed = _load_one(
         tmp_path / "changed",
@@ -154,7 +153,7 @@ def test_restart_replays_materialisation_and_logical_digest_state(tmp_path: Path
         _payload("2026-08-03", "night", live={5: [41, 43, 45]}),
     )
     with pytest.raises(AnalyticsMonitorError) as excinfo:
-        replayed.apply_increment(changed)  # type: ignore[arg-type]
+        replayed.apply_increment(changed)
     assert excinfo.value.code == "DUPLICATE_LOGICAL_SOURCE"
 
 
@@ -193,27 +192,27 @@ def test_crash_before_commit_stays_retryable(
 
     monkeypatch.setattr(module, "materialise", _boom)
     with pytest.raises(RuntimeError):
-        monitor.apply_increment(item)  # type: ignore[arg-type]
+        monitor.apply_increment(item)
     monkeypatch.undo()
     # A fresh monitor replays the checkpoint: the reservation is visible and
     # retryable, no commit was written, and the retry succeeds.
     reloaded = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
     assert reloaded.retryable_reservations()
-    receipt = reloaded.apply_increment(item)  # type: ignore[arg-type]
+    receipt = reloaded.apply_increment(item)
     assert not receipt.idempotent_replay
 
 
 def test_changed_bytes_under_the_same_logical_id_refuse(tmp_path: Path) -> None:
     monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
     original = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night"))
-    monitor.apply_increment(original)  # type: ignore[arg-type]
+    monitor.apply_increment(original)
     changed = _load_one(
         tmp_path / "changed",
         "a.json",
         _payload("2026-08-03", "night", live={5: [40, 42, 44], 6: [50, 52, 54]}),
     )
     with pytest.raises(AnalyticsMonitorError) as excinfo:
-        monitor.apply_increment(changed)  # type: ignore[arg-type]
+        monitor.apply_increment(changed)
     assert excinfo.value.code == "DUPLICATE_LOGICAL_SOURCE"
 
 
@@ -223,17 +222,17 @@ def test_materialisation_is_deterministic_and_order_independent(tmp_path: Path) 
         tmp_path / "one", "b.json", _payload("2026-08-04", "dawn", speeds={6: (4.5, 12)})
     )
     forward = IncrementalAnalyticsMonitor(tmp_path / "forward.jsonl")
-    forward.apply_increment(first_a)  # type: ignore[arg-type]
-    forward.apply_increment(first_b)  # type: ignore[arg-type]
+    forward.apply_increment(first_a)
+    forward.apply_increment(first_b)
     backward = IncrementalAnalyticsMonitor(tmp_path / "backward.jsonl")
-    backward.apply_increment(first_b)  # type: ignore[arg-type]
-    backward.apply_increment(first_a)  # type: ignore[arg-type]
+    backward.apply_increment(first_b)
+    backward.apply_increment(first_a)
     assert forward.materialisation_digests() == backward.materialisation_digests()
 
 
 def test_the_declared_measures_only_and_the_metric_trap_avoided(tmp_path: Path) -> None:
     item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night", speeds={5: (3.5, 8)}))
-    snapshot = materialise(item)  # type: ignore[arg-type]
+    snapshot = materialise(item)
     row = snapshot.hourly[0]
     assert row.concurrency_median == 42.0
     assert row.concurrency_max == 44
@@ -253,7 +252,7 @@ def test_the_declared_measures_only_and_the_metric_trap_avoided(tmp_path: Path) 
 def test_missing_local_time_metadata_refuses(tmp_path: Path) -> None:
     item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night", live={None: [40, 42]}))
     with pytest.raises(AnalyticsMonitorError) as excinfo:
-        materialise(item)  # type: ignore[arg-type]
+        materialise(item)
     assert excinfo.value.code == "LOCAL_TIME_METADATA_MISSING"
 
 
@@ -264,9 +263,9 @@ def test_quality_report_separates_states_and_missing_is_not_zero(
     processed = _load_one(tmp_path / "one", "a.json", _payload("2026-08-03", "night"))
     thin = _load_one(tmp_path / "one", "b.json", _payload("2026-08-04", "dawn", live={6: [50]}))
     unprocessed = _load_one(tmp_path / "one", "c.json", _payload("2026-08-05", "peak"))
-    monitor.apply_increment(processed)  # type: ignore[arg-type]
-    monitor.apply_increment(thin)  # type: ignore[arg-type]
-    report = build_quality_report(monitor, (processed, thin, unprocessed), RULES)  # type: ignore[arg-type]
+    monitor.apply_increment(processed)
+    monitor.apply_increment(thin)
+    report = build_quality_report(monitor, (processed, thin, unprocessed), RULES)
     assert "2026-08-03/night" in report.accepted
     assert any(observation.rule == "incomplete_session_window" for observation in report.warned)
     assert any(observation.rule == "progression_unavailable" for observation in report.warned)
@@ -288,7 +287,7 @@ def test_readiness_wraps_the_predictor_report_with_the_standing_note(
     tmp_path: Path,
 ) -> None:
     item = _load_one(tmp_path, "a.json", _payload("2026-08-03", "night"))
-    report = read_readiness((item,), RULES)  # type: ignore[arg-type]
+    report = read_readiness((item,), RULES)
     assert report["standing_note"] == "forecast-readiness is not forecast validity"
     assert report["progression_target_available"] is False
 
@@ -346,7 +345,7 @@ def test_operational_report_applies_freshness_completeness_and_exclusion_policy(
     )
     monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
     for item in (fresh, warned, refused):
-        monitor.apply_increment(item)  # type: ignore[arg-type]
+        monitor.apply_increment(item)
     contexts = (
         _context(
             fresh,
@@ -370,13 +369,13 @@ def test_operational_report_applies_freshness_completeness_and_exclusion_policy(
     )
     report = build_operational_quality_report(
         monitor,
-        (fresh, warned, refused),  # type: ignore[arg-type]
+        (fresh, warned, refused),
         contexts,
         RULES,
         as_of_utc=datetime(2026, 8, 6, 12, 0, tzinfo=UTC),
         policy=policy,
     )
-    assert report.accepted == (  # type: ignore[attr-defined]
+    assert report.accepted == (
         fresh.logical_id,
         warned.logical_id,
     )
@@ -403,7 +402,7 @@ def test_operational_report_refuses_overlap_digest_and_schema_change(
     second = _load_one(tmp_path / "inputs", "b.json", _payload("2026-08-04", "b"))
     monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
     for item in (first, second):
-        monitor.apply_increment(item)  # type: ignore[arg-type]
+        monitor.apply_increment(item)
     first_context = _context(
         first,
         first="2026-08-06T11:30:00+00:00",
@@ -417,7 +416,7 @@ def test_operational_report_refuses_overlap_digest_and_schema_change(
     ).model_copy(update={"source_sha256": "f" * 64})
     report = build_operational_quality_report(
         monitor,
-        (first, second),  # type: ignore[arg-type]
+        (first, second),
         (first_context, second_context),
         RULES,
         as_of_utc=datetime(2026, 8, 6, 12, 0, tzinfo=UTC),
@@ -431,10 +430,10 @@ def test_local_report_store_is_atomic_idempotent_and_indefinite(tmp_path: Path) 
     policy = AnalyticsOperationalPolicy()
     item = _load_one(tmp_path / "inputs", "a.json", _payload("2026-08-03", "night"))
     monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
-    monitor.apply_increment(item)  # type: ignore[arg-type]
+    monitor.apply_increment(item)
     report = build_operational_quality_report(
         monitor,
-        (item,),  # type: ignore[arg-type]
+        (item,),
         (
             _context(
                 item,

@@ -2,6 +2,12 @@
 
 ## v0.7.0 - In development
 
+Restored the repository-wide strict-mypy gate (2 August, Phase 181) without changing production
+behavior: three test helpers now use the exact existing `LoadedAggregate`, Pydantic `BaseModel` and
+typed benchmark-seed mapping contracts instead of widening values to `object` and suppressing the
+result. The original assertions and runtime validation remain unchanged; no capability, evidence,
+release or scientific standing changed.
+
 Completed the supervisor communication and bibliography package (2 August, Phase 180): a
 four-slide editable PowerPoint and visually verified four-page PDF explain the auditable
 digital-twin/what-if loop, traffic and VEC lenses, exact bounded capacity result,

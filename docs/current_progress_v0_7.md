@@ -2,13 +2,14 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 180 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 181 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
 data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
 store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
-supervisor-communication/literature completion. This tracker distinguishes implemented
+supervisor-communication/literature completion, plus the Phase-181 repository-wide strict-mypy
+reconciliation. This tracker distinguishes implemented
 libraries/pages and communication artifacts from activated schedulers, deployed services,
 completed studies and accepted scientific evidence.
 
@@ -92,6 +93,10 @@ At the latest proportional verification points:
   mypy, lock, 100-source/citation coverage, local-link/privacy and
   four-slide/four-note/four-page structure, full-size visual inspection, overflow and diff gates
   passed.
+- Phase 181 removed the eight stale test-only strict-mypy errors without changing production code
+  or behavioral assertions. The three repaired modules pass 60 tests, the full repository suite
+  passes 4,128 tests with two expected environment-gated skips, and repository-wide strict mypy
+  passes across all 890 configured source files.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
