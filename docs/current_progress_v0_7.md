@@ -2,14 +2,14 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 177 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 178 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–177 operational
-store, lifecycle, console, local-SUMO and benchmark-package integration. This tracker distinguishes
-implemented libraries/pages from activated schedulers, deployed services, completed studies and
-accepted scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–178 operational
+store, lifecycle, console, local-SUMO, benchmark-package and synthetic-XAI integration. This
+tracker distinguishes implemented libraries/pages from activated schedulers, deployed services,
+completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -79,6 +79,9 @@ At the latest proportional verification points:
 - Phase 177 passed 22 focused benchmark-execution tests and the 108-test protocol/execution/
   adjacent job-pack regression; Ruff, formatting, strict mypy, lock, deterministic-export,
   privacy/no-training/no-cloud and diff gates passed.
+- Phase 178 passed 27 focused backend tests and the 88-test backend/UI/navigation/adjacent-console
+  regression; Ruff, formatting, strict mypy, lock, privacy/language/no-model/no-action and diff
+  gates passed.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -95,6 +98,7 @@ or research-usability acceptance claim.
 | Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded assessments with read-only console presentation | Still no execution authority, overall-service recommendation or evidence creation |
 | Controlled live twin | `working_bounded` | Maximum-coverage contracts/fake plus a fixed-argv loopback-only local SUMO/TraCI transport over the pinned synthetic square | BODS/public/cloud/operator transports, deployment inputs, generic scenarios and any scientific/production use |
 | Capacity benchmark | `working_bounded` | Frozen protocol plus contract-only manifests/adapters, deterministic unsigned 240-cell/2,400-job and resource-plan exports, 21-job synthetic worker, receipts/resume/checkpoint/analysis-freeze gates | Signed final protocol, real actor/runtime/checkpoint/domain bindings and separately authorised training/evaluation |
+| XAI decision audit | `working_bounded` | Synthetic exact-binding snapshots, two pure replay baselines, disagreement browser, behavioural fingerprints, attribution-shaped integrity fixtures and read-only UI | Producer snapshot hook, authorised real actor/checkpoint access, literature-grounded application validation and any separately admitted real attribution result |
 
 These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.
 
@@ -194,9 +198,9 @@ next section.
    ingestion and deterministic synthetic workers.~~ Completed in Phase 177 as contract-only and
    engineering-only infrastructure; real training remains separately authorised after a signed
    protocol and concrete resources exist.
-4. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
-   real attribution remains unavailable until a compatible producer snapshot hook and validation
-   method exist.
+4. ~~Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI.~~
+   Completed in Phase 178; real attribution remains unavailable until a compatible producer
+   snapshot hook, authorised model access and validation method exist.
 5. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
    neither artifact creates supervisor approval or research evidence.
 
@@ -232,6 +236,13 @@ resource records; and a tiny 21-job engineering worker with path-free receipts, 
 resume, checkpoint inventory and synthetic analysis-input freezing. Planned returns are gated by
 an exact separately supplied owner signature plus seed, budget, endpoint and checkpoint identity.
 No real actor, training, cloud request, spend, benchmark result, evidence or admission occurred.
+
+Completed in Phase 178: a built-in exact-binding Decision Audit fixture now exercises aggregate
+decision snapshots, two pure engineering-baseline replays, policy-disagreement filtering,
+action-share fingerprints by declared load, attribution-shaped integrity metadata and explicit
+real-method unavailable states. The read-only Platform page exposes full synthetic source/actor/
+checkpoint lineage and rejects unsupported causal/faithful/validated/optimal wording. No real
+model, checkpoint, attribution, evidence, execution or admission occurred.
 
 ## 7. Decisions or evidence required before acceptance
 

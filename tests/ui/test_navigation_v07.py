@@ -16,6 +16,7 @@ from traffictwin.ui.navigation_v07 import (
     PLATFORM_FORECASTS_PAGE_SPEC,
     PLATFORM_INVENTORY_PAGE_SPEC,
     PLATFORM_OBSERVATORY_PAGE_SPEC,
+    PLATFORM_XAI_AUDIT_PAGE_SPEC,
     V07_NAVIGATION_ENV,
     V07_NAVIGATION_GROUPS,
     V07_NORMATIVE_GROUPS,
@@ -54,6 +55,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC,
         PLATFORM_OBSERVATORY_PAGE_SPEC,
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
+        PLATFORM_XAI_AUDIT_PAGE_SPEC,
     )
     assert [spec.title for spec in platform_specs] == [
         "Data Inventory",
@@ -63,6 +65,7 @@ def test_platform_group_is_appended_after_the_seven_normative_groups() -> None:
         "Evidence Matrix",
         "Mechanism Observatory",
         "Decision Safety",
+        "Decision Audit",
     ]
     assert all(spec.group == "Platform" for spec in platform_specs)
     normative_paths = {spec.url_path for spec in V07_PAGE_SPECS}

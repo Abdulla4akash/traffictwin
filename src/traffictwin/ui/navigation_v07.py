@@ -143,6 +143,14 @@ PLATFORM_DECISION_SAFETY_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/policy:",
 )
 
+PLATFORM_XAI_AUDIT_PAGE_SPEC = V07AdditivePageSpec(
+    title="Decision Audit",
+    group="Platform",
+    script="app_pages/platform_xai_audit.py",
+    url_path="platform-xai-audit",
+    icon=":material/troubleshoot:",
+)
+
 MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     title="Manchester Operations",
     group="Overview",
@@ -456,6 +464,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
         PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC,
         PLATFORM_OBSERVATORY_PAGE_SPEC,
         PLATFORM_DECISION_SAFETY_PAGE_SPEC,
+        PLATFORM_XAI_AUDIT_PAGE_SPEC,
     )
     additive_paths = [spec.url_path for spec in additive_specs]
     additive_scripts = [spec.script for spec in additive_specs]
@@ -556,6 +565,7 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                 PLATFORM_EVIDENCE_MATRIX_PAGE_SPEC,
                 PLATFORM_OBSERVATORY_PAGE_SPEC,
                 PLATFORM_DECISION_SAFETY_PAGE_SPEC,
+                PLATFORM_XAI_AUDIT_PAGE_SPEC,
             ):
                 group_pages.append(
                     st.Page(

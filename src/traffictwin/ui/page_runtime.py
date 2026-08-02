@@ -37,6 +37,7 @@ from traffictwin.ui.pages import (
     platform_forecasts,
     platform_inventory,
     platform_observatory,
+    platform_xai_audit,
     provenance_explorer,
     reports,
     rsu_monitor,
@@ -232,3 +233,13 @@ def run_platform_decision_safety_page_script() -> None:
         "Metric-specific Ruleset v2 advice and non-executable drafts; no execution authority."
     )
     platform_decision_safety.render(load_ui_config())
+
+
+def run_platform_xai_audit_page_script() -> None:
+    """Execute the additive synthetic Decision Audit outside the 34-page inventory."""
+
+    st.session_state["_active_ui_route"] = "platform-xai-audit"
+    st.sidebar.caption(
+        "Synthetic decision audit only; no causal, faithful, validated or optimality claim."
+    )
+    platform_xai_audit.render(load_ui_config())

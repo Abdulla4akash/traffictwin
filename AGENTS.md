@@ -4773,3 +4773,37 @@ that check creates no analysis or admission. All 22 focused tests and the 108-te
 protocol/job-pack regression passed; Ruff lint/format, strict mypy, `uv lock --check`, deterministic
 export, privacy/no-training/no-cloud and `git diff --check` gates passed. No real actor, training,
 evaluation, scheduler/cloud contact, spend, benchmark result, evidence or admission occurred.
+
+### Phase 178 claim: fenced XAI instrumentation (2 August 2026)
+
+The owner-directed integrating lead owns the sixth post-meeting build slice in
+`docs/platform/xai_instrumentation_design.md`, the bounded XAI truth amendments in
+`docs/full_product_guide.md` and `docs/system_overview.md`,
+`src/traffictwin/platform/xai_instrumentation.py`, `src/traffictwin/ui/xai_services.py`,
+`src/traffictwin/ui/pages/platform_xai_audit.py` and its
+`src/traffictwin/ui/app_pages/platform_xai_audit.py` wrapper, the additive route changes in
+`src/traffictwin/ui/navigation_v07.py` and `src/traffictwin/ui/page_runtime.py`,
+`tests/unit/test_xai_instrumentation.py`, `tests/ui/test_xai_audit.py`, the narrow additive
+assertions in `tests/ui/test_navigation_v07.py`, the bounded status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`, the narrow `CHANGELOG.md`
+entry, and this phase record. The phase may add typed synthetic decision-time snapshots,
+source-support and counterfactual-replay contracts, policy-disagreement rows, behavioural
+fingerprints, attribution-shaped fixtures with quality metadata/unavailable states, and a
+read-only exact-binding browser. It may not call or represent a real actor, load checkpoints,
+infer causal influence, present synthetic SHAP/Integrated-Gradients shapes as faithful
+explanations, claim optimality/validation, expose identifiers/private paths, create evidence or
+perform any execution/admission action.
+
+Phase 178 completed locally on 2 August 2026. Twelve aggregate-only synthetic decision snapshots
+bind exact fixture/source-record, actor-contract, non-model checkpoint, observation and action
+digests. Injected always-local and fixed queue-aware baselines produce 24 pure replay receipts and
+24 descriptive disagreement rows without mutating snapshots or naming a correct action. Three
+behavioural fingerprints reconcile action shares over exact load bins. SHAP- and Integrated-
+Gradients-shaped artifacts bind one snapshot and carry arithmetic reconstruction plus identical-
+fixture repeat metadata, while type-level flags and unavailable rows keep real attribution,
+faithfulness, causality, optimality and scientific evidence false. The additive Decision Audit
+shows exact bindings, filters, source roles, limitations and fixed repository citations through a
+read-only/no-network service. All 27 focused backend tests and the 88-test backend/UI/navigation/
+adjacent-console regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy/
+language/no-model/no-action and `git diff --check` gates passed. No real actor/checkpoint,
+attribution, external request, evidence, execution or admission occurred.

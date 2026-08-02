@@ -1,0 +1,3 @@
+from traffictwin.ui.page_runtime import run_platform_xai_audit_page_script
+
+run_platform_xai_audit_page_script()

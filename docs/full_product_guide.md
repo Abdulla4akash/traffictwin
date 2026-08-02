@@ -127,7 +127,8 @@ not be used to make safety-critical or public-infrastructure decisions.
 | Near-live or true-live traffic | Unsupported | Imported file recency is not live operation |
 | Real participant evaluation | Not performed | Requires ethics and supervisory approval first |
 | LLM diagnosis or recommendations | Not implemented | The available prose renderer only restates computed findings |
-| XAI and trained portfolio selection | Not implemented | Requires suitable decision-time evidence and research evaluation |
+| XAI decision instrumentation | Implemented, synthetic-only | Exact-binding snapshots, two engineering-baseline replays, disagreement/fingerprint views and attribution-shaped integrity fixtures; no real actor attribution, faithfulness, causality or evidence |
+| Trained portfolio selection | Not implemented | Requires suitable actor results, a frozen selection protocol and research evaluation |
 
 ## How The System Works
 

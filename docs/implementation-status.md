@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 177. It does not alter the strict
+This section records the additive platform truth through Phase 178. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -46,6 +46,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2; Phase 175 added read-only presentation | No execution authority, overall-service decision or evidence creation |
 | Controlled live twin | Phases 153/168 implemented maximum-coverage contracts/fake; Phase 176 added a fixed-argv, loopback-only local SUMO 1.27.x/TraCI transport over the pinned synthetic square | No BODS/public/cloud/operator transport, generic scenario, scientific campaign, production service or road actuation |
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol tooling; Phase 177 added contract-only manifests, compatible adapters, deterministic unsigned 240-cell/2,400-job and estimate-only resource exports, plus a 21-job synthetic worker and return/resume/freeze gates | `PROPOSED / UNSIGNED`; no real actor/runtime/checkpoint binding, training, evaluation, cloud use, evidence or admission |
+| XAI decision instrumentation | Phase 178 implemented exact-binding synthetic snapshots, two pure replay baselines, disagreement browsing, load-bin fingerprints, attribution-shaped integrity fixtures, real-method unavailable states and a read-only Decision Audit | No compatible producer snapshot hook, authorised real actor/checkpoint access or validated application method; no real attribution, causality, faithfulness, evidence or optimality claim |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -100,6 +101,15 @@ analysis-input inventories remain synthetic and non-confirmatory. Planned-return
 requires a separately supplied exact owner signature and refuses changed seeds, budgets, endpoints
 or checkpoint rules, but creates neither analysis nor admission. No benchmark campaign or result
 exists.
+
+Phase 178 closes only the XAI instrumentation-contract and presentation gap. Twelve built-in
+aggregate synthetic snapshots bind one non-model actor/checkpoint marker; 24 pure always-local/
+queue-aware replay rows feed descriptive disagreements and reconciled load-bin action shares. Two
+SHAP/Integrated-Gradients-shaped artifacts validate only arithmetic reconstruction, repeated
+fixture stability and digest lineage. The read-only Decision Audit displays every binding,
+limitation and source role and keeps real attribution unavailable. No real actor/checkpoint was
+opened; no causal influence, faithfulness, model validation, best action, evidence, execution or
+admission was inferred.
 
 Phase 0 status: approved and committed.
 

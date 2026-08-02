@@ -2,6 +2,16 @@
 
 ## v0.7.0 - In development
 
+Added fenced XAI instrumentation and the read-only Decision Audit (2 August, Phase 178): typed
+aggregate decision-time snapshots bind exact synthetic source/actor/checkpoint contracts; two
+pure engineering baselines produce digest-checked replay and descriptive disagreement rows; and
+action-share fingerprints reconcile across declared-load bins. SHAP- and Integrated-Gradients-
+shaped fixtures carry reconstruction/stability metadata but remain synthetic integrity checks,
+while real attribution is explicitly unavailable pending producer hooks, authorised model access
+and an application-validation method. Language/privacy gates prevent unsupported causal,
+faithful, validated, optimal or solution wording. No real model, attribution, evidence, execution
+or admission was created.
+
 Added bounded benchmark execution infrastructure (2 August, Phase 177): all seven Phase-169
 families now have digest-pinned contract-only manifests and pure observation/action/reward
 adapters; the exact 240-cell/2,400-job matched plan and provider-neutral resource estimates export

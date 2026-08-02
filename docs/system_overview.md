@@ -188,7 +188,10 @@ permission, or provenance boundaries.
 - No live dashboard.
 - No launch button that runs external simulation.
 - No LLM-generated recommendations.
-- No XAI instrumentation.
+- No real-actor XAI attribution. A bounded synthetic Decision Audit now proves snapshot, baseline
+  replay, disagreement, behavioural-fingerprint and attribution-artifact contracts while keeping
+  real SHAP/Integrated Gradients unavailable until producer hooks, model access and application
+  validation exist.
 - No uploaded, remote, automatically discovered, or sandboxed custom metric execution; the
   implemented extension API is explicit trusted local application code only.
 - No trained or externally calibrated portfolio selector; the available ruleset is a transparent
