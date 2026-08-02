@@ -121,16 +121,29 @@ changing them. Do not treat `valid: true` as a claim that Manchester artifacts a
 accepted.
 
 Keep the synthetic demo available on port 8501 and start the real-workspace process on a different
-port:
+port. When National Highways operational coverage is required, place the subscription key in the
+process environment; do not put it in the repository, command arguments, workspace marker or
+Streamlit session state:
 
 ```bash
 TRAFFICTWIN_WORKSPACE_PATH="$TRAFFICTWIN_V07_WORKSPACE" \
 TRAFFICTWIN_REGISTRY_PATH="$TRAFFICTWIN_V07_WORKSPACE/registry/traffictwin.sqlite" \
+NATIONAL_HIGHWAYS_API_KEY="$NATIONAL_HIGHWAYS_API_KEY" \
 uv run streamlit run src/traffictwin/ui/app.py --server.port 8502
 ```
 
 Then open <http://localhost:8502>. This process is foreground-only and local. The environment
-variables apply to this command; they do not rewrite the workspace marker.
+variables apply to this command; they do not rewrite the workspace marker. After the first app
+session, the server refreshes the three National Highways layers every five minutes. The page
+checks for a newly published overlay every 30 seconds and rerenders it without another source call.
+The manual refresh remains a fallback. Provider or validation failure retains the previous overlay
+and labels it stale instead of presenting it as current.
+
+The default interval is 300 seconds. Set
+`TRAFFICTWIN_NATIONAL_HIGHWAYS_AUTO_REFRESH_SECONDS=off` to disable it, or select an integer from 60
+through 540 seconds. Restart the exact server process after changing the interval or rotating the
+key. Automatic refresh applies only to National Highways; BODS remains an explicit controlled
+fetch because its identifier/privacy and retention decisions are separate.
 
 Important distinctions:
 
@@ -149,9 +162,9 @@ server with `Ctrl-C`, confirm the port is free, and then use the same direct Str
 
 ## 6. Data and credential safety
 
-This runbook intentionally contains no acquisition command and no credential procedure. Source
-fetches, provider accounts, credentials and BODS/National Highways operations require separate
-explicit authority and their source-specific guides.
+National Highways automatic acquisition requires the owner-authorised environment-only key shown
+above. BODS and every other source retain their source-specific authority and workflow; this
+server-lifetime setting does not authorise them.
 
 During ordinary viewing:
 
@@ -171,6 +184,8 @@ During ordinary viewing:
 | `v07-workspace-inspect` refuses the path | Stop. Ask for the exact owner-supplied path or repair authority; do not guess or bypass the marker. |
 | Manchester layers are unavailable or show zero accepted artifacts | Preserve that state. A valid container is not populated evidence. |
 | The UI shows the wrong registry after changing paths | Stop the exact Streamlit process and relaunch with both workspace variables set together. |
+| National Highways status says automatic refresh is inactive | Confirm the validated workspace and process-only key were present when Streamlit started, then restart that exact process. |
+| A National Highways layer is stale despite automatic refresh | Read the displayed failure code. Keep the cached layer stale while correcting key, provider, schema, network or workspace failure; do not relabel it current. |
 | A page asks for approval, calibration or review input | Use the prepared decision artifact and obtain the responsible human decision; do not invent a default. |
 
 ## 8. Related documentation

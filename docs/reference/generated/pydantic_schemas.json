@@ -51272,10 +51272,9 @@
         },
         "NationalHighwaysRefreshSummary": {
           "additionalProperties": false,
-          "description": "Secret-free aggregate receipt for one explicit three-call refresh.",
+          "description": "Secret-free aggregate receipt for one controlled three-call refresh.",
           "properties": {
             "automatic_polling_performed": {
-              "const": false,
               "default": false,
               "title": "Automatic Polling Performed",
               "type": "boolean"
@@ -51308,7 +51307,6 @@
               "type": "string"
             },
             "operator_triggered": {
-              "const": true,
               "default": true,
               "title": "Operator Triggered",
               "type": "boolean"
@@ -51376,7 +51374,6 @@
           "type": "integer"
         },
         "automatic_polling_available": {
-          "const": false,
           "default": false,
           "title": "Automatic Polling Available",
           "type": "boolean"
@@ -52574,10 +52571,9 @@
         }
       },
       "additionalProperties": false,
-      "description": "Secret-free aggregate receipt for one explicit three-call refresh.",
+      "description": "Secret-free aggregate receipt for one controlled three-call refresh.",
       "properties": {
         "automatic_polling_performed": {
-          "const": false,
           "default": false,
           "title": "Automatic Polling Performed",
           "type": "boolean"
@@ -52610,7 +52606,6 @@
           "type": "string"
         },
         "operator_triggered": {
-          "const": true,
           "default": true,
           "title": "Operator Triggered",
           "type": "boolean"

@@ -99,7 +99,7 @@ class NationalHighwaysProductSummary(ManchesterSnapshotModel):
 
 
 class NationalHighwaysRefreshSummary(ManchesterSnapshotModel):
-    """Secret-free aggregate receipt for one explicit three-call refresh."""
+    """Secret-free aggregate receipt for one controlled three-call refresh."""
 
     schema_version: Literal["1.0"] = "1.0"
     capability_id: Literal["MAN-08"] = "MAN-08"
@@ -112,8 +112,8 @@ class NationalHighwaysRefreshSummary(ManchesterSnapshotModel):
     latest_scene_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     live_overlay_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
     request_count: Literal[3] = 3
-    operator_triggered: Literal[True] = True
-    automatic_polling_performed: Literal[False] = False
+    operator_triggered: bool = True
+    automatic_polling_performed: bool = False
     subscription_key_persisted: Literal[False] = False
     source_fusion_performed: Literal[False] = False
     strategic_road_network_only: Literal[True] = True
@@ -125,6 +125,8 @@ class NationalHighwaysRefreshSummary(ManchesterSnapshotModel):
             raise ValueError("refresh summary must contain the three products in stable order")
         if self.total_records_accepted != sum(item.records_accepted for item in self.products):
             raise ValueError("refresh total must reconcile product records")
+        if self.operator_triggered == self.automatic_polling_performed:
+            raise ValueError("exactly one refresh trigger must be recorded")
         return self
 
 
@@ -143,7 +145,7 @@ class NationalHighwaysControlState(ManchesterSnapshotModel):
     last_failure_code: str | None = Field(default=None, pattern=r"^[A-Z0-9_]{1,96}$")
     history: tuple[NationalHighwaysRefreshSummary, ...] = ()
     history_entry_count: int = Field(ge=0, le=NATIONAL_HIGHWAYS_HISTORY_MAX_ENTRIES)
-    automatic_polling_available: Literal[False] = False
+    automatic_polling_available: bool = False
     raw_payloads_in_history: Literal[False] = False
 
     @model_validator(mode="after")
@@ -213,8 +215,9 @@ def coordinated_national_highways_refresh(
     utc_now: Callable[[], datetime] | None = None,
     http_client: httpx.Client | None = None,
     synthetic: bool = False,
+    trigger: Literal["operator", "automatic"] = "operator",
 ) -> NationalHighwaysRefreshSummary:
-    """Perform one manual three-product refresh and atomically publish both overlays."""
+    """Perform one controlled three-product refresh and atomically publish both overlays."""
 
     workspace = _workspace(workspace_root)
     clock: Callable[[], datetime] = (lambda: datetime.now(UTC)) if utc_now is None else utc_now
@@ -286,6 +289,8 @@ def coordinated_national_highways_refresh(
                 total_records_accepted=sum(item.result.records_accepted for item in acquisitions),
                 latest_scene_sha256=latest_sha,
                 live_overlay_sha256=live_sha,
+                operator_triggered=trigger == "operator",
+                automatic_polling_performed=trigger == "automatic",
             )
         except Exception as exc:
             failed = NationalHighwaysControlState(
@@ -297,6 +302,9 @@ def coordinated_national_highways_refresh(
                 last_failure_code=_failure_code(exc),
                 history=previous.history,
                 history_entry_count=len(previous.history),
+                automatic_polling_available=(
+                    previous.automatic_polling_available or trigger == "automatic"
+                ),
             )
             _store_state(workspace, failed)
             raise
@@ -309,6 +317,9 @@ def coordinated_national_highways_refresh(
             last_attempt_status="succeeded",
             history=history,
             history_entry_count=len(history),
+            automatic_polling_available=(
+                previous.automatic_polling_available or trigger == "automatic"
+            ),
         )
         _store_state(workspace, succeeded)
         return summary

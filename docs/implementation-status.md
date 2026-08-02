@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 186. It does not alter the strict
+This section records the additive platform truth through Phase 188. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -50,6 +50,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views; Phase 184 added a 15-source decision pack for the 174-row review, calibration choices and coverage-targeted demand boundary | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, exact-input reconciliation, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
 | Supervisor communication and literature audit | Phase 180 produced a four-slide editable/verified checkpoint deck, source audit, exact 100-entry BibTeX catalogue and complete manuscript citation coverage | Communication and verified metadata do not create supervisor/ethics/publication approval, project evidence or a final University-style/reference-manager export |
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
+| National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No automatic BODS/other-source polling, city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -183,6 +184,16 @@ that still presented the built Greater Manchester network and approved ADR-058 a
 as missing inputs. The residual ledger now names the exact human, provider, privacy, private-source,
 operational and release authorities required next. No ignored/private workspace was inspected; no
 manuscript result, package/CITATION version, tag, approval, evidence or capability changed.
+
+Phase 188 replaces the National Highways manual-only operational posture with an owner-authorised,
+server-lifetime refresh loop. After the first configured app session, one idempotent daemon per
+validated workspace performs the same fixed three-product acquisition every five minutes, well
+inside the provider's documented 10-call/minute ceiling and the local ten-minute freshness
+threshold. The environment-only key never enters a receipt, scene, session state, path, URL or log;
+automatic receipts are distinguished from operator receipts. A 30-second local UI watcher notices
+new control state and rerenders without performing a request. Provider/schema/workspace failure
+retains the last overlay and marks it stale. BODS and all other sources remain manual, and this
+operational change creates no public-hosting, scientific, capability or release acceptance.
 
 Phase 0 status: approved and committed.
 
@@ -436,11 +447,12 @@ inventing values: 836 missing bearings, 25 missing block references, and 1,553 f
 references in place of direct `VehicleJourneyRef`. Raw gzip wire bytes remain immutable and both
 raw and decoded hashes are bound. This passes the local fetch-to-scene slice but does not settle
 the legal retention basis, complete Bee membership, registration terms, or complete Gate-B
-acceptance. The same page now exposes an independent National Highways form in Latest-available and
-Live-vehicles modes. One explicit action obtains closures/incidents, temporary imposed limits, and
-VMS status; the map merges those local overlay scenes with any BODS scene without fusing records,
-identities, scopes, freshness classes, or totals. Failed operational refreshes retain the prior
-overlay and show it as stale, and ordinary reruns remain offline. The package now
+acceptance. The same page now exposes independent National Highways status and a manual fallback in
+Latest-available and Live-vehicles modes. One server-lifetime worker obtains closures/incidents,
+temporary imposed limits and VMS status every five minutes; the map merges those local overlay
+scenes with any BODS scene without fusing records, identities, scopes, freshness classes or totals.
+Failed operational refreshes retain the prior overlay and show it as stale, and ordinary page
+reruns remain offline. The package now
 directly declares PyDeck and the reviewed `streamlit>=1.58,<2` floor. Historical and latest modes
 now add explicit, bounded source forms: selected DfT raw/count-point/AADF rows; one WebTRIS
 site/day/quality set; and the pinned TfGM signal archive. Their 23 July 2026 controlled runs

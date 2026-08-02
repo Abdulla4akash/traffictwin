@@ -5063,3 +5063,42 @@ privacy/path, CLI-help, live-health, synthetic-status and diff checks passed. Th
 synthetic process remained healthy and unchanged. No private workspace was searched or opened; no
 source fetch, credential, Manchester evidence, capability acceptance, package/CITATION version,
 tag or release was created.
+
+### Phase 188 claim: automatic National Highways operational refresh (2 August 2026)
+
+The owner-directed integrating lead owns the bounded server-lifetime National Highways refresh
+implementation in `src/traffictwin/integration/manchester/national_highways_auto_refresh.py`,
+`src/traffictwin/integration/manchester/national_highways_live.py`,
+`src/traffictwin/integration/manchester/__init__.py`, `src/traffictwin/ui/app.py`,
+`src/traffictwin/ui/pages/manchester_operations.py` and `src/traffictwin/ui/labels.py`; focused
+coverage in `tests/unit/test_manchester_national_highways_auto_refresh.py`,
+`tests/unit/test_manchester_national_highways.py`, `tests/ui/test_app.py` and
+`tests/ui/test_manchester_operations.py`; generated schema reconciliation in
+`docs/reference/generated/pydantic_schemas.json`; operator-contract updates in
+`docs/integration/manchester_national_highways_operational_feeds.md`,
+`docs/integration/manchester_source_refresh.md`,
+`docs/integration/manchester_operations_ui.md`,
+`docs/integration/manchester_live_feature_matrix.md`, `docs/security_and_privacy.md`,
+`docs/full_product_guide.md`, `docs/traffictwin-design-v0_7_beta-goals.md`,
+`docs/assumption-register.md` and `docs/v07_usage.md`; the narrow status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the `CHANGELOG.md` entry; and
+this phase record. The phase may start one process-local daemon after the first configured app
+session, refresh the fixed three National Highways products every five minutes while the server
+process remains active, record automatic versus operator triggering truthfully, retain the manual
+fallback, expose secret-free status, and harden changing layer selections. It may not poll BODS or
+other providers automatically, persist or log a subscription key, suppress stale/outage state,
+claim complete city-road coverage, alter public-release standing, create scientific evidence, or
+create a tag/release.
+
+Phase 188 completed locally on 2 August 2026. One idempotent worker now starts after the first app
+session only when a validated v0.7 workspace and environment-only National Highways key are
+present. It runs the unchanged fixed three-call acquisition every five minutes, writes truthful
+automatic/operator receipts, shares the OS lock and minimum interval with the manual fallback, and
+survives provider/schema failures while retaining stale cached evidence. A 30-second local watcher
+rerenders a changed overlay and layer selection now filters and de-duplicates changing IDs. The
+349-test focused/adjacent regression and full 4,154-test suite passed with the two expected
+environment-gated skips; Ruff, lock validation, generated-schema reconciliation and strict mypy
+across 896 configured files passed. A private local real-workspace smoke produced an automatic
+receipt and changed all three displayed operational layers from stale to near-live without a
+manual click. No key or private source row was committed; BODS/other-source automation,
+city-road-coverage, public-hosting, scientific, capability and release standing remain unchanged.

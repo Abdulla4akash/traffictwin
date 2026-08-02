@@ -20,7 +20,7 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | National Highways source-time freshness and outage fallback | Built | DATEX II `publicationTime`, self-imposed ten-minute near-live ceiling, stale cached fallback, and previous-overlay preservation after failed refresh |
 | Combined BODS and National Highways Manchester map | Built locally | Source-separated private layers; buses remain `live_vehicle`, operational road events remain `near_live`/`stale`; no source fusion or cross-source total |
 | Official Manchester geographic context | Built | Hash-pinned December 2025 ONS Manchester and Greater Manchester display boundaries with required ONS/OS attribution; no basemap request and no scientific clipping/coverage claim |
-| National Highways request-frequency and history control | Built | Explicit three-call refresh only, one OS-locked run at a time, minimum 60 seconds, and 24-hour/240-entry source-separated aggregate history |
+| National Highways request-frequency and history control | Built | One process-local three-call refresh every five minutes plus manual fallback, one OS-locked run at a time, minimum 60 seconds, and 24-hour/240-entry source-separated aggregate history |
 | Local live-status metadata download | Built | Downloadable source state, timestamps, attribution, and aggregate counts only; coordinates, IDs, credentials, raw snapshots, public metadata hosting, and public live-scene hosting are structurally refused |
 | Desktop/mobile light/dark browser regression | Built and passed | 35 routes × two viewports × two themes = 140 screenshots, zero actionable semantic findings; this is automated evidence, not WCAG or participant acceptance |
 | General live Manchester road counts/speeds | **Unavailable** | No authorised, audited city-road private-vehicle feed has been supplied; BODS buses cannot substitute for road traffic |
@@ -29,13 +29,15 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | Live traffic-signal phase/timing state | **Unavailable** | TfGM source is a dated signal-location reference only; no phase, timing, queue, or controller-state feed exists |
 | Complete Bee Network fleet/service claim | **Unavailable** | `BNVB`, branding-versus-franchise scope, NOC/schedule reference rights, and complete feed coverage remain unresolved |
 | Public live-data hosting/export | **Unavailable** | A local metadata-only status download contains no positions or identifiers but does not accept public hosting. General BODS reuse/publication and API registration are documented; identifier privacy/retention, project public-output approval, National Highways release review, reference-data licences, and complete gate acceptance still block public metadata/raw/scene hosting |
-| Always-on background source scheduler | Deliberately out of v0.7 scope | Streamlit reruns read local state only; a daemon/cloud scheduler would require a separate deployment/governance design |
+| National Highways server-lifetime worker | Built locally | One daemon per validated workspace after the first app session; transient key, five-minute default, stops with Streamlit, no BODS/other-source polling or cloud scheduling |
+| Always-on deployment/cloud scheduler | Deliberately out of v0.7 scope | The local worker exists only for the Streamlit process lifetime; an unattended OS/cloud service still requires a separate deployment/governance design |
 
 ## Current acceptance position
 
 The buildable local live path now includes live BODS transit positions and three current National
 Highways operational REST products. Each path fetches, validates, snapshots, replays, classifies,
-maps, ages to stale, rate-limits, and retains aggregate-only history without background polling.
+maps, ages to stale, rate-limits, and retains aggregate-only history. National Highways refreshes
+every five minutes while the configured local server runs; BODS remains operator triggered.
 The National Highways slice completed one isolated real-source acceptance run on 24 July 2026 with
 548 admitted records. It gives useful near-live closures/incidents, imposed temporary restrictions,
 and VMS status—not continuous vehicle flow, measured traffic speed, complete city-road coverage,

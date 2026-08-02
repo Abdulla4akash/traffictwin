@@ -883,11 +883,12 @@ export NATIONAL_HIGHWAYS_API_KEY='your-National-Highways-key'
 uv run streamlit run src/traffictwin/ui/app.py
 ```
 
-Open **Manchester Operations**. Choose **Live vehicles** to submit one scoped BODS request. Choose
-**Latest available** or **Live vehicles**, expand **National Highways operational feeds**, select
-planned or unplanned closures, and click **Refresh all three operational feeds**. That action makes
-exactly three bounded National Highways requests: closures/incidents, imposed temporary speed
-restrictions, and VMS status. Ordinary page reruns are local and make no network request.
+Open **Manchester Operations**. Choose **Live vehicles** to submit one scoped BODS request. After
+the first configured app session, one server-lifetime worker automatically makes the three bounded
+National Highways requests—closures/incidents, imposed temporary speed restrictions and VMS
+status—every five minutes. **Latest available** and **Live vehicles** show its status and retain a
+manual planned/unplanned fallback. Ordinary page reruns are local; a 30-second local watcher only
+rerenders when the worker publishes a new receipt.
 
 The workspace retains private immutable source snapshots and bounded aggregate refresh history.
 Expand **Metadata-only live status** to download a local JSON summary of source state, timestamps,

@@ -2,7 +2,7 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 186 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 188 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -12,8 +12,9 @@ supervisor-communication/literature completion, the Phase-181 repository-wide st
 reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
 accessibility engineering QA, Phase-184 Manchester Gate-D decision support, Phase-185 authoritative
 DfT/WebTRIS/BODS source re-audit and Phase-186 committed-input/submission-release handoff audit.
-This tracker
-distinguishes
+Phase 187 added the bounded local usage runbook; Phase 188 adds owner-authorised process-lifetime
+National Highways refresh without changing source, publication or capability standing. This
+tracker distinguishes
 implemented libraries/pages and communication artifacts from activated schedulers, deployed
 services, completed studies and accepted scientific evidence.
 
@@ -129,6 +130,12 @@ At the latest proportional verification points:
   passed all 68 tests; Ruff, lock validation and repository-wide strict mypy across 893 configured
   files pass. It inspected no ignored/private workspace and changed no manuscript result,
   package/CITATION version, tag, approval, evidence or capability.
+- Phase 188 passed 349 focused/adjacent National Highways, Manchester UI and accessibility tests,
+  then the full 4,154-test repository suite with the two expected environment-gated skips. Ruff,
+  lock validation and repository-wide strict mypy across 896 configured files pass. A local
+  real-workspace smoke recorded an automatic receipt and the 30-second watcher rerendered all three
+  layers from stale to near-live without the manual button; no credential or private source row was
+  committed.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.

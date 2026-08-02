@@ -26,8 +26,11 @@ The [official FAQ](https://developer.data.nationalhighways.co.uk/faq) says anyon
 subscribe, the feeds concern the Strategic Road Network, and each subscription key is limited to
 10 calls per minute. It also states the Road and Lane Closures v2 and Speed Managed Areas v1
 limitations: both depend on active Variable Signs and Signals information, so neither is complete
-road coverage. TrafficTwin uses exactly three calls for a manual all-product refresh and enforces a
-minimum minute between attempts. There is no timer, daemon, fragment poll, or background refresh.
+road coverage. TrafficTwin uses exactly three calls for each all-product refresh and enforces a
+minimum minute between attempts. When a validated real workspace and process-only key are present,
+one process-local daemon refreshes all three products every five minutes after the first app
+session starts. This is 0.6 calls per minute on average and remains below the documented provider
+limit.
 
 The [current terms](https://developer.data.nationalhighways.co.uk/terms) state that data is
 currently supplied without charge, allow copying/adaptation/commercial and non-commercial use
@@ -77,8 +80,18 @@ the immutable raw snapshot.
 
 Freshness comes from `D2Payload.publicationTime`, never retrieval time. A self-imposed ten-minute
 display threshold classifies an accepted operational snapshot `near_live`; after that it is
-`stale`. This threshold is not a provider cadence or SLA. If a refresh fails, the previous accepted
-overlay remains available, is reclassified stale, and the failure affects no other source.
+`stale`. This threshold is not a provider cadence or SLA. The five-minute worker normally replaces
+the accepted overlay before that threshold. If a provider, transport, schema, workspace or
+publication check fails, the previous accepted overlay remains available and is reclassified
+stale; automatic refresh never hides that failure or changes another source.
+
+The worker is process-local and idempotent per workspace. It starts only when
+`TRAFFICTWIN_WORKSPACE_PATH` and `NATIONAL_HIGHWAYS_API_KEY` are configured, retains the key only in
+process memory, records every automatic receipt with `automatic_polling_performed=true`, and stops
+with the Streamlit process. It does not poll BODS, WebTRIS, DfT or TfGM. A 30-second local page
+watcher notices a newly published overlay and rerenders Manchester Operations without making its
+own network request. Manual refresh remains a fallback and shares the same file lock and one-minute
+guard.
 
 ## Real-source acceptance
 
@@ -106,7 +119,10 @@ export TRAFFICTWIN_WORKSPACE_PATH='/absolute/path/to/workspace-v0.7'
 uv run streamlit run src/traffictwin/ui/app.py
 ```
 
-Open **Manchester Operations**, choose **Latest available** or **Live vehicles**, expand
-**National Highways operational feeds**, select planned or unplanned events, and click
-**Refresh all three operational feeds**. Ordinary Streamlit reruns remain local. The map exposes
-three independently toggleable layers and preserves the required attribution.
+Automatic refresh defaults to 300 seconds. The optional
+`TRAFFICTWIN_NATIONAL_HIGHWAYS_AUTO_REFRESH_SECONDS` setting accepts 60–540 seconds; `off` or `0`
+disables the daemon. Restart the server to apply an interval or key change. Open **Manchester
+Operations**, choose **Latest available** or **Live vehicles**, and expand **National Highways
+operational feeds** to see secret-free worker status. The manual planned/unplanned action remains
+available. Ordinary page reruns are local; the daemon alone performs scheduled requests. The map
+exposes three independently toggleable layers and preserves the required attribution.

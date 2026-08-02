@@ -101,22 +101,24 @@ Historical and latest scenes use the separate
 [bounded local publication service](manchester_scene_publication.md); ordinary page rendering never
 creates either scene.
 
-## Explicit National Highways operational acquisition
+## Automatic National Highways operational acquisition
 
-**Latest available** and **Live vehicles** each expose the same explicit three-product refresh
-form. Configure the subscription key before starting Streamlit:
+**Latest available** and **Live vehicles** expose the same three-product status and manual fallback.
+Configure the subscription key before starting Streamlit:
 
 ```bash
 export NATIONAL_HIGHWAYS_API_KEY='your-subscription-key'
 ```
 
 The key is a transient redacted request header and never enters session state, receipts, scenes,
-logs, errors, or stored URLs. One click performs exactly three bounded requests after the
-one-minute/one-process-lock guard. It snapshots closures/incidents, imposed temporary limits, and
-digital VMS status independently, then publishes source-separated overlays. The broad envelope is
-shown explicitly and is not an official boundary. A failed refresh retains the prior overlay and
-projects it stale; ordinary reruns perform no network activity. National Highways layers use the
-required attribution and remain private pending release review.
+logs, errors, or stored URLs. After the first configured app session, one daemon per workspace
+performs exactly three bounded requests every five minutes behind the one-minute/process-lock guard.
+It snapshots closures/incidents, imposed temporary limits, and digital VMS status independently,
+then publishes source-separated overlays. A 30-second local watcher rerenders the page after a new
+receipt; the watcher itself performs no network request. The broad envelope is shown explicitly
+and is not an official boundary. A failed refresh retains the prior overlay and projects it stale;
+ordinary page reruns remain local. Manual planned/unplanned refresh remains available. National
+Highways layers use the required attribution and remain private pending release review.
 
 ## Explicit latest and historical acquisition
 

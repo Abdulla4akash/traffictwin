@@ -670,6 +670,7 @@ def test_live_fetch_form_is_explicit_and_prerequisite_gated(
     assert road_fetch.disabled is True
     assert any("Set BODS_API_KEY" in item.value for item in app.caption)
     assert any("Set NATIONAL_HIGHWAYS_API_KEY" in item.value for item in app.caption)
+    assert any("Automatic refresh is inactive" in item.value for item in app.caption)
     assert any(item.label == "Request bounding box" for item in app.text_input)
     assert any("verified Bee Network operators" in item.value for item in app.caption)
     assert any("not general live road traffic" in item.value for item in app.caption)

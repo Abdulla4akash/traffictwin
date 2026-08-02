@@ -417,6 +417,8 @@ def test_controlled_refresh_publishes_three_overlay_layers_and_history(tmp_path:
         "vms",
     )
     assert summary.total_records_accepted == 3
+    assert summary.operator_triggered is True
+    assert summary.automatic_polling_performed is False
     assert (workspace / NATIONAL_HIGHWAYS_LATEST_OVERLAY).is_file()
     assert (workspace / NATIONAL_HIGHWAYS_LIVE_OVERLAY).is_file()
     state = load_national_highways_control_state(workspace)
@@ -435,6 +437,25 @@ def test_controlled_refresh_publishes_three_overlay_layers_and_history(tmp_path:
     for path in workspace.rglob("*"):
         if path.is_file() and not path.is_symlink():
             assert SYNTHETIC_KEY.encode() not in path.read_bytes()
+
+
+def test_automatic_refresh_records_its_trigger_truthfully(tmp_path: Path) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+    with httpx.Client(transport=_transport([])) as client:
+        summary = coordinated_national_highways_refresh(
+            workspace,
+            subscription_key=SYNTHETIC_KEY,
+            utc_now=_clock(),
+            http_client=client,
+            synthetic=True,
+            trigger="automatic",
+        )
+
+    assert summary.operator_triggered is False
+    assert summary.automatic_polling_performed is True
+    state = load_national_highways_control_state(workspace)
+    assert state.automatic_polling_available is True
+    assert state.history[-1].automatic_polling_performed is True
 
 
 def test_failed_refresh_preserves_overlay_and_synthetic_truth_label(

@@ -40,6 +40,9 @@ from traffictwin.integration.manchester.map_layers import (
 from traffictwin.integration.manchester.national_highways_acquisition import (
     NationalHighwaysAcquisitionError,
 )
+from traffictwin.integration.manchester.national_highways_auto_refresh import (
+    national_highways_auto_refresh_status,
+)
 from traffictwin.integration.manchester.national_highways_live import (
     NationalHighwaysLiveError,
     NationalHighwaysRefreshSummary,
@@ -198,6 +201,29 @@ def _load_dft_survey_view(
     )
 
 
+@st.fragment(run_every="30s")  # type: ignore[untyped-decorator]
+def _watch_national_highways_overlay(workspace: str | None) -> None:
+    """Rerender local evidence when the process worker publishes a new overlay."""
+
+    if workspace is None or national_highways_auto_refresh_status(workspace) is None:
+        return
+    try:
+        state = load_national_highways_control_state(workspace)
+    except (NationalHighwaysLiveError, OSError, ValueError):
+        return
+    marker = (
+        None if state.last_attempt_at_utc is None else state.last_attempt_at_utc.isoformat(),
+        state.last_attempt_status,
+        state.last_failure_code,
+    )
+    key = "_national_highways_auto_refresh_marker"
+    previous = st.session_state.get(key)
+    st.session_state[key] = marker
+    if previous is not None and previous != marker:
+        _clear_manchester_caches()
+        st.rerun()
+
+
 def _render_live_status_download(workspace: str | None) -> None:
     """Offer a local aggregate manifest without exposing private source records."""
 
@@ -234,9 +260,9 @@ def render(config: UiConfig) -> None:
 
     st.title("Manchester Operations")
     st.caption(
-        "Explore admitted local evidence by source and scope. Only an explicit source form can "
-        "call an external service; ordinary reruns remain local, and buses, surveys, signals, "
-        "and road observations are never treated as one traffic total."
+        "Explore admitted local evidence by source and scope. A configured server refreshes the "
+        "three National Highways operational layers automatically; page reruns remain local, and "
+        "buses, surveys, signals, and road observations are never treated as one traffic total."
     )
 
     initial_mode: MapMode = "latest_available"
@@ -251,6 +277,7 @@ def render(config: UiConfig) -> None:
     )
     mode = cast(MapMode, selected or initial_mode)
     workspace = None if config.workspace_path is None else str(config.workspace_path)
+    _watch_national_highways_overlay(workspace)
 
     if mode == "historical_replay":
         _render_dft_source_refresh(workspace)
@@ -356,7 +383,11 @@ def render(config: UiConfig) -> None:
         key=f"manchester_ops_layers_{mode}",
         width="stretch",
     )
-    chosen_ids = tuple(cast(list[str], chosen or []))
+    chosen_ids = tuple(
+        dict.fromkeys(
+            layer_id for layer_id in cast(list[str], chosen or []) if layer_id in available_ids
+        )
+    )
 
     if chosen_ids:
         options = scene_filter_options(scene, chosen_ids)
@@ -1117,7 +1148,7 @@ def _render_national_highways_acquisition(
     *,
     key_suffix: str,
 ) -> None:
-    """Render one explicit three-product operational refresh; ordinary reruns stay local."""
+    """Render automatic status plus the manual three-product fallback."""
 
     subscription_key = os.getenv("NATIONAL_HIGHWAYS_API_KEY")
     readiness = assess_national_highways_acquisition_readiness(
@@ -1130,11 +1161,33 @@ def _render_national_highways_acquisition(
         icon=":material/road:",
     ):
         st.caption(
-            "One explicit action makes exactly three bounded requests: closures/incidents, "
-            "imposed temporary speed restrictions, and digital VMS status. Coverage is the "
-            "Strategic Road Network inside a broad Manchester study envelope—not all city roads, "
-            "measured traffic speed, traffic volume, or congestion."
+            "The server refreshes three bounded products together: closures/incidents, imposed "
+            "temporary speed restrictions, and digital VMS status. Coverage is the Strategic "
+            "Road Network inside a broad Manchester study envelope—not all city roads, measured "
+            "traffic speed, traffic volume, or congestion."
         )
+        auto_status = (
+            None if workspace is None else national_highways_auto_refresh_status(workspace)
+        )
+        auto_error = st.session_state.get("_national_highways_auto_refresh_error")
+        if auto_status is not None and auto_status.running:
+            st.success(
+                f"Automatic refresh active every {auto_status.interval_seconds / 60:g} minutes "
+                "while this server process is running. The manual action remains available as "
+                "a fallback.",
+                icon=":material/autorenew:",
+            )
+        elif isinstance(auto_error, str):
+            st.warning(
+                f"Automatic refresh could not start safely ({auto_error}); use the manual "
+                "fallback after correcting the server configuration.",
+                icon=":material/warning:",
+            )
+        else:
+            st.caption(
+                "Automatic refresh is inactive: start the app with a validated v0.7 workspace "
+                "and NATIONAL_HIGHWAYS_API_KEY, or use the manual fallback."
+            )
         with st.form(
             f"manchester_national_highways_refresh_{key_suffix}",
             border=True,
@@ -1150,7 +1203,9 @@ def _render_national_highways_acquisition(
             )
             st.caption(
                 "Study envelope: 53.30–53.70 latitude, −2.60–−1.90 longitude · "
-                "manual refresh only · provider limit 10 calls/minute · TrafficTwin uses 3"
+                "default automatic unplanned refresh every 5 minutes · "
+                "provider limit 10 calls/minute · "
+                "TrafficTwin uses 3 calls per refresh"
             )
             st.caption(readiness.message)
             submitted = st.form_submit_button(
@@ -1211,6 +1266,7 @@ def _render_national_highways_summary(workspace: str | None) -> None:
             st.metric("Digital VMS", counts["vms"], border=True)
         st.caption(
             f"Last controlled refresh: {summary.evaluated_at_utc.isoformat()} · three requests · "
+            f"trigger: {'operator' if summary.operator_triggered else 'automatic server'} · "
             "raw responses preserved privately · API key not persisted"
         )
     if workspace is None:
@@ -1242,7 +1298,9 @@ def _render_national_highways_summary(workspace: str | None) -> None:
         )
     st.caption(
         f"Aggregate history: {state.history_entry_count} refreshes · 24-hour / 240-entry bound · "
-        "no automatic polling · no cross-source traffic total"
+        "automatic server refresh: "
+        f"{'available' if state.automatic_polling_available else 'not yet recorded'} · "
+        "no cross-source traffic total"
     )
 
 

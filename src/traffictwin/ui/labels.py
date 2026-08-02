@@ -153,7 +153,8 @@ REQUIRED_PROTOTYPE_NOTICE = (
     "deterministic diagnostic hypotheses. Exact VEC execution is request-preflight-gated in its "
     "dedicated workbench. The opt-in Manchester Operations workflow supports private, explicit "
     "BODS bus-position and National Highways operational snapshots; generic/SUMO launch, "
-    "continuous city-road telemetry, and background live polling remain unavailable."
+    "continuous city-road telemetry and automatic BODS polling remain unavailable. A configured "
+    "local server refreshes the three National Highways operational layers every five minutes."
 )
 
 DIAGNOSTIC_NOTICE = (

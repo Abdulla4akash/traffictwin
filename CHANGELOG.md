@@ -2,6 +2,13 @@
 
 ## v0.7.0 - In development
 
+Added owner-authorised automatic National Highways operational refresh (2 August, Phase 188). A
+configured local server now runs one process-level, five-minute worker for the fixed closures,
+temporary-speed-restriction and digital-VMS requests; a local watcher rerenders newly published
+overlays. Automatic/operator receipts are truthful, the transient key is not persisted, the manual
+fallback remains, and failures retain the prior overlay as stale. BODS and other sources remain
+manual; no city-road coverage, public-hosting, capability or release claim was added.
+
 Completed the committed-input and submission/release handoff audit (2 August, Phase 186). Nine
 existing artifacts are bound by exact digest; the 8,396-word, 100-reference manuscript and
 four-slide sourced deck were revalidated with no duplicate long prose. The external-decision pack

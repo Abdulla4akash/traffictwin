@@ -156,8 +156,8 @@ credential. The opt-in v0.7 Manchester development workflow can use two operator
 credentials:
 
 - `BODS_API_KEY` for one explicitly submitted BODS SIRI-VM request; and
-- `NATIONAL_HIGHWAYS_API_KEY` for one explicitly submitted, three-product National Highways
-  operational refresh.
+- `NATIONAL_HIGHWAYS_API_KEY` for the fixed three-product National Highways operational refresh,
+  automatically every five minutes for the configured Streamlit process plus a manual fallback.
 
 Both values are read from the process environment and passed transiently to the bounded transport
 boundary. They must never be committed, placed in a Streamlit widget or session state, written to
@@ -166,6 +166,8 @@ uses a redacted secret query parameter. National Highways uses a redacted secret
 The acquisition tests inspect canonical JSON, persisted artifacts, exceptions, and captured logs
 for credential leakage. Environment variables still remain visible to the local process and may be
 visible to sufficiently privileged local users; TrafficTwin is not a secrets manager.
+The National Highways daemon retains its key only in process memory and stops with Streamlit. It
+does not authorise or poll BODS or another source.
 
 ## Sanitised Fixtures
 

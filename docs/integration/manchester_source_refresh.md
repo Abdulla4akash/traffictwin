@@ -2,14 +2,15 @@
 
 Status: **working real-source vertical slices; v0.7 capability acceptance remains gated**
 
-The Manchester Operations page exposes five operator-triggered source families. Ordinary Streamlit
-reruns and **Refresh local evidence** remain offline. There is no background poller, scheduler,
+The Manchester Operations page exposes four operator-only source families plus National Highways,
+which has both a five-minute server worker and a manual fallback. Ordinary Streamlit reruns and
+**Refresh local evidence** remain offline. There is no automatic BODS/WebTRIS/TfGM/DfT poller,
 arbitrary URL, or automatic source fusion.
 
 | UI mode | Action | Source truth |
 |---|---|---|
 | Live vehicles | Fetch latest buses | BODS SIRI-VM transit positions; the only `live_vehicle` feed |
-| Latest available / Live vehicles | Refresh all three operational feeds | National Highways closures/incidents, imposed temporary restrictions, and VMS status; `near_live` or `stale`, never bus-live or continuous telemetry |
+| Latest available / Live vehicles | Automatic five-minute refresh; manual fallback | National Highways closures/incidents, imposed temporary restrictions, and VMS status; `near_live` or `stale`, never bus-live or continuous telemetry |
 | Latest available | Fetch WebTRIS site, report, and quality | One selected National Highways strategic-road site/day; source timezone unresolved |
 | Latest available | Fetch TfGM signal locations | Static signal infrastructure references; no operational state |
 | Historical replay | Fetch selected DfT rows | Historical survey, count-point, and AADF rows; no live state |
@@ -21,11 +22,15 @@ counts are never added together as one traffic total.
 
 ## National Highways operational products
 
-`coordinated_national_highways_refresh` performs one explicit locked three-call action against the
-exact current REST paths. The subscription key exists only as a redacted request header. Each raw
+`coordinated_national_highways_refresh` performs one locked three-call action against the exact
+current REST paths and records whether the trigger was automatic or operator initiated. The
+subscription key exists only as a redacted request header. Each raw
 gzip HTTP entity is quarantined and hashed before bounded decoding and strict DATEX-JSON parsing.
 The source `publicationTime` drives the conservative ten-minute `near_live`/`stale` classification.
 Failures leave the last accepted overlays unchanged and cause display-time stale projection.
+With a validated workspace and environment-only key, one idempotent process worker invokes that
+same boundary every five minutes. It stops with the server and never suppresses a failed/stale
+state. A local 30-second UI watcher rerenders after the control receipt changes.
 
 The broad study envelope is a declared filter, not an official boundary. Closures/incidents,
 temporary imposed limits, and VMS status remain separate map layers and can coexist with BODS buses

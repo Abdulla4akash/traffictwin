@@ -2,8 +2,17 @@
 
 from __future__ import annotations
 
+import os
+
 import streamlit as st
 
+from traffictwin.integration.manchester.national_highways_auto_refresh import (
+    NationalHighwaysAutoRefreshError,
+    NationalHighwaysAutoRefreshStatus,
+    configured_national_highways_auto_refresh_seconds,
+    ensure_national_highways_auto_refresh,
+)
+from traffictwin.integration.manchester.national_highways_live import NationalHighwaysLiveError
 from traffictwin.ui.guided_runtime import consume_guided_legacy_navigation
 from traffictwin.ui.navigation import render_sidebar_context, select_page
 from traffictwin.ui.navigation_v07 import (
@@ -11,7 +20,7 @@ from traffictwin.ui.navigation_v07 import (
     v07_navigation_requested,
 )
 from traffictwin.ui.page_runtime import render_registered_page
-from traffictwin.ui.state import ensure_session_state, load_ui_config
+from traffictwin.ui.state import UiConfig, ensure_session_state, load_ui_config
 from traffictwin.ui.theme import apply_research_theme
 
 
@@ -22,6 +31,7 @@ def main() -> None:
     st.set_page_config(page_title=config.page_title, layout="wide")
     apply_research_theme()
     ensure_session_state(st.session_state, config)
+    _ensure_configured_national_highways_auto_refresh(config)
     if config.workspace_path is not None:
         default_bundle = config.default_fixture_path / "baseline"
         current_bundle = str(st.session_state.get("selected_bundle_path", ""))
@@ -48,6 +58,39 @@ def main() -> None:
     st.session_state["_active_ui_page"] = page
     render_sidebar_context(page)
     render_registered_page(page, config)
+
+
+def _ensure_configured_national_highways_auto_refresh(
+    config: UiConfig,
+) -> NationalHighwaysAutoRefreshStatus | None:
+    """Start the idempotent process worker only with a real workspace and transient key."""
+
+    subscription_key = os.getenv("NATIONAL_HIGHWAYS_API_KEY")
+    if config.workspace_path is None or not subscription_key:
+        st.session_state.pop("_national_highways_auto_refresh_error", None)
+        return None
+    try:
+        interval_seconds = configured_national_highways_auto_refresh_seconds()
+        if interval_seconds is None:
+            st.session_state.pop("_national_highways_auto_refresh_error", None)
+            return None
+        status = ensure_national_highways_auto_refresh(
+            config.workspace_path,
+            subscription_key=subscription_key,
+            interval_seconds=interval_seconds,
+        )
+    except (
+        NationalHighwaysAutoRefreshError,
+        NationalHighwaysLiveError,
+        OSError,
+        ValueError,
+    ) as exc:
+        st.session_state["_national_highways_auto_refresh_error"] = getattr(
+            exc, "code", "AUTO_REFRESH_START_FAILED"
+        )
+        return None
+    st.session_state.pop("_national_highways_auto_refresh_error", None)
+    return status
 
 
 if __name__ == "__main__":
