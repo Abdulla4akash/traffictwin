@@ -5102,3 +5102,45 @@ across 896 configured files passed. A private local real-workspace smoke produce
 receipt and changed all three displayed operational layers from stale to near-live without a
 manual click. No key or private source row was committed; BODS/other-source automation,
 city-road-coverage, public-hosting, scientific, capability and release standing remain unchanged.
+
+### Phase 189 claim: automatic private BODS live refresh (2 August 2026)
+
+The owner-directed integrating lead owns the bounded server-lifetime BODS refresh implementation
+in `src/traffictwin/integration/manchester/bods_auto_refresh.py`,
+`src/traffictwin/integration/manchester/bods_live_control.py`,
+`src/traffictwin/integration/manchester/__init__.py`, `src/traffictwin/ui/app.py`,
+`src/traffictwin/ui/pages/manchester_operations.py` and `src/traffictwin/ui/labels.py`; focused
+coverage in `tests/unit/test_manchester_bods_auto_refresh.py`,
+`tests/unit/test_manchester_bods_live_control.py`, `tests/ui/test_app.py` and
+`tests/ui/test_manchester_operations.py`; generated schema reconciliation in
+`docs/reference/generated/pydantic_schemas.json`; exact BODS/source/UI/security/runbook updates in
+`docs/integration/manchester_bods_live_control.md`,
+`docs/integration/manchester_source_refresh.md`,
+`docs/integration/manchester_operations_ui.md`,
+`docs/integration/manchester_live_feature_matrix.md`,
+`docs/integration/manchester_national_highways_operational_feeds.md`,
+`docs/security_and_privacy.md`, `docs/full_product_guide.md`,
+`docs/traffictwin-design-v0_7_beta-goals.md`, `docs/assumption-register.md`,
+`docs/open-questions.md` and `docs/v07_usage.md`; narrow status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the `CHANGELOG.md` entry; and
+this phase record. The phase may start one process-local BODS daemon after the first configured app
+session, use the existing explicit request box and environment-only key, invoke the existing
+OS-locked acquisition once per minute, record that automatic polling has occurred, preserve the
+manual fallback and rerender changed live overlays. It may not invent a provider quota, widen the
+request box, relabel source-stale positions as live, automate private snapshot deletion, expose or
+persist a key/raw identifier, claim complete Bee/city-road coverage, approve retention/privacy or
+public output, create scientific evidence, alter capability/release standing, or create a tag.
+
+Phase 189 completed locally on 2 August 2026. One idempotent BODS worker now starts only with a
+validated workspace, transient environment key and explicit request box; it invokes the existing
+private acquisition and control boundary every 60 seconds, shares the lock/rate guard with the
+manual fallback, writes truthful automatic receipts and keeps provider-old rows stale. The local
+watcher rerenders changed BODS and National Highways scenes, while the page reports live-at-fetch
+and source-stale-at-fetch counts separately. The focused BODS/UI regression passed 93 tests and the
+full repository suite passed 4,160 tests with the two expected environment-gated skips. Ruff,
+format, lock, generated-schema, changed-document link, diff and strict-mypy checks across 898 files
+passed. Eleven consecutive real BODS worker cycles completed in the private accepted workspace
+without adding a failure; the rendered page advanced to the second automatic snapshot without a
+manual click. No credential, raw position or vehicle identifier was printed or committed; the
+request box also remains uncommitted. No provider quota, city-road coverage, privacy/retention,
+complete Bee, public-hosting, capability, scientific or release claim was created.

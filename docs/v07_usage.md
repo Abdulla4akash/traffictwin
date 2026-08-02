@@ -128,22 +128,27 @@ Streamlit session state:
 ```bash
 TRAFFICTWIN_WORKSPACE_PATH="$TRAFFICTWIN_V07_WORKSPACE" \
 TRAFFICTWIN_REGISTRY_PATH="$TRAFFICTWIN_V07_WORKSPACE/registry/traffictwin.sqlite" \
+BODS_API_KEY="$BODS_API_KEY" \
+TRAFFICTWIN_BODS_BOUNDING_BOX='min_longitude,min_latitude,max_longitude,max_latitude' \
 NATIONAL_HIGHWAYS_API_KEY="$NATIONAL_HIGHWAYS_API_KEY" \
 uv run streamlit run src/traffictwin/ui/app.py --server.port 8502
 ```
 
 Then open <http://localhost:8502>. This process is foreground-only and local. The environment
 variables apply to this command; they do not rewrite the workspace marker. After the first app
-session, the server refreshes the three National Highways layers every five minutes. The page
-checks for a newly published overlay every 30 seconds and rerenders it without another source call.
-The manual refresh remains a fallback. Provider or validation failure retains the previous overlay
-and labels it stale instead of presenting it as current.
+session, the server refreshes BODS bus positions every minute and the three National Highways
+layers every five minutes. The page checks for newly published overlays every 30 seconds and
+rerenders them without another source call. Manual refreshes remain fallbacks. Provider or
+validation failure retains the previous overlay and labels it stale instead of presenting it as
+current. A newly fetched BODS row whose provider timestamp is old also remains stale.
 
 The default interval is 300 seconds. Set
 `TRAFFICTWIN_NATIONAL_HIGHWAYS_AUTO_REFRESH_SECONDS=off` to disable it, or select an integer from 60
-through 540 seconds. Restart the exact server process after changing the interval or rotating the
-key. Automatic refresh applies only to National Highways; BODS remains an explicit controlled
-fetch because its identifier/privacy and retention decisions are separate.
+through 540 seconds. BODS defaults to 60 seconds; set
+`TRAFFICTWIN_BODS_AUTO_REFRESH_SECONDS=off` to disable it, or select an integer from 60 through 300
+seconds. Restart the exact server process after changing an interval, key, or bounding box. BODS
+raw snapshots remain private and its cleanup remains preview/confirmation-gated; automatic
+collection does not resolve the identifier/privacy or legal-retention decisions.
 
 Important distinctions:
 

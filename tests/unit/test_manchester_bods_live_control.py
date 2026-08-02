@@ -8,6 +8,7 @@ from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from typing import Literal
 
 import httpx
 import pytest
@@ -54,7 +55,12 @@ def _clock(start: datetime) -> Callable[[], datetime]:
     return lambda: next(values)
 
 
-def _run(workspace: Path, started_at: datetime) -> control.ControlledBodsLiveRefresh:
+def _run(
+    workspace: Path,
+    started_at: datetime,
+    *,
+    trigger: Literal["operator", "automatic"] = "operator",
+) -> control.ControlledBodsLiveRefresh:
     calls: list[tuple[str, str, dict[str, str]]] = []
     with httpx.Client(transport=make_transport(siri_xml(), calls)) as client:
         result = coordinated_bods_live_refresh(
@@ -64,6 +70,7 @@ def _run(workspace: Path, started_at: datetime) -> control.ControlledBodsLiveRef
             synthetic=True,
             http_client=client,
             utc_now=_clock(started_at),
+            trigger=trigger,
         )
     assert len(calls) == 1
     return result
@@ -92,6 +99,24 @@ def test_explicit_refresh_persists_only_bounded_aggregate_history(tmp_path: Path
     assert target.stat().st_mode & 0o777 == 0o600
     assert API_KEY.encode() not in payload
     assert b"VehicleRef" not in payload
+
+
+def test_automatic_refresh_records_automatic_capability_without_persisting_key(
+    tmp_path: Path,
+) -> None:
+    workspace = initialise_v07_workspace(tmp_path / "workspace-v0.7").path
+
+    _run(
+        workspace,
+        datetime(2026, 7, 22, 10, tzinfo=UTC),
+        trigger="automatic",
+    )
+
+    state = load_bods_live_control_state(workspace)
+    assert state.policy.operator_triggered_only is False
+    assert state.policy.automatic_source_polling_available is True
+    assert state.automatic_source_polling_performed is True
+    assert API_KEY.encode() not in (workspace / BODS_LIVE_CONTROL_RELATIVE_PATH).read_bytes()
 
 
 def test_minimum_interval_blocks_transport_before_request(tmp_path: Path) -> None:

@@ -51,7 +51,7 @@ entries; selected WebTRIS site-days are bounded to 12 entries, DfT filter invent
 small explicit DfT survey views to 24, also for 30 seconds. The refresh action clears these local
 caches.
 
-## Explicit live-bus acquisition
+## Automatic live-bus acquisition and manual fallback
 
 The **Live vehicles** mode contains a form for one controlled BODS SIRI-VM request. Configure the
 credential and an explicit request scope in the process environment before starting Streamlit:
@@ -63,17 +63,17 @@ export TRAFFICTWIN_BODS_BOUNDING_BOX='min_longitude,min_latitude,max_longitude,m
 
 TrafficTwin deliberately supplies no default **BODS request** boundary. The official Manchester
 display polygon does not choose, clip, or widen the API query. The operator must enter four ordered
-WGS84 coordinates in the form or set `TRAFFICTWIN_BODS_BOUNDING_BOX`. The API key is read
-only when rendering readiness and passed transiently only after **Fetch latest buses** is clicked;
-it is never placed in a model, receipt, scene, session-state value, error, or log. One form submit
-performs one request. The control state permits only one refresh at a time and at least 60 seconds
-between attempts. There is no timer, polling loop, automatic retry cycle, or network activity on
-an ordinary UI rerun.
+WGS84 coordinates in `TRAFFICTWIN_BODS_BOUNDING_BOX` to enable automatic refresh; the form also
+accepts an explicit value for its manual fallback. The API key is passed transiently and is never
+placed in a model, receipt, scene, session-state value, error, or log. One process-local worker per
+workspace starts after a configured app session and requests at most once every 60 seconds. The
+manual fallback shares the same one-at-a-time lock and 60-second minimum. Ordinary UI reruns and
+the 30-second display watcher make no source request.
 
 The controlled workflow is:
 
 ```text
-explicit submit
+automatic interval or explicit fallback
   -> bounded authenticated BODS acquisition
   -> private quarantine before XML parsing
   -> accepted snapshot re-read and fingerprint reconciliation

@@ -2,14 +2,14 @@
 
 Status: **working real-source vertical slices; v0.7 capability acceptance remains gated**
 
-The Manchester Operations page exposes four operator-only source families plus National Highways,
-which has both a five-minute server worker and a manual fallback. Ordinary Streamlit reruns and
-**Refresh local evidence** remain offline. There is no automatic BODS/WebTRIS/TfGM/DfT poller,
-arbitrary URL, or automatic source fusion.
+The Manchester Operations page exposes three operator-only historical/reference source families
+plus BODS and National Highways, which have process-lifetime workers and manual fallbacks.
+Ordinary Streamlit reruns and **Refresh local evidence** remain offline. There is no automatic
+WebTRIS/TfGM/DfT poller, arbitrary URL, or automatic source fusion.
 
 | UI mode | Action | Source truth |
 |---|---|---|
-| Live vehicles | Fetch latest buses | BODS SIRI-VM transit positions; the only `live_vehicle` feed |
+| Live vehicles | Automatic one-minute refresh; manual fallback | BODS SIRI-VM transit positions; the only `live_vehicle` feed; source-old positions remain stale |
 | Latest available / Live vehicles | Automatic five-minute refresh; manual fallback | National Highways closures/incidents, imposed temporary restrictions, and VMS status; `near_live` or `stale`, never bus-live or continuous telemetry |
 | Latest available | Fetch WebTRIS site, report, and quality | One selected National Highways strategic-road site/day; source timezone unresolved |
 | Latest available | Fetch TfGM signal locations | Static signal infrastructure references; no operational state |
@@ -19,6 +19,15 @@ Each workflow reuses the existing bounded transport, quarantine-before-parser, i
 snapshot, exact parser, spatial admission, and atomic scene-publication boundaries. Scene updates
 replace only the same source layer and preserve unrelated source-separated layers. Source record
 counts are never added together as one traffic total.
+
+## BODS live transit
+
+With a validated workspace, environment-only key, and explicit request bounding box, one
+idempotent process worker invokes the existing BODS coordination boundary every 60 seconds. The
+key remains in process memory, raw snapshots stay private, and every attempt remains subject to
+the shared one-minute lock/rate guard. A provider-reported old `RecordedAtTime` remains stale even
+when just retrieved. The worker stops with Streamlit; manual refresh and owner-confirmed retention
+cleanup remain separate fallbacks, and no UI timer performs source acquisition.
 
 ## National Highways operational products
 

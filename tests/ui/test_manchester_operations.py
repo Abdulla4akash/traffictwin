@@ -675,7 +675,7 @@ def test_live_fetch_form_is_explicit_and_prerequisite_gated(
     assert any("verified Bee Network operators" in item.value for item in app.caption)
     assert any("not general live road traffic" in item.value for item in app.caption)
     assert any("cleanup is never automatic" in item.value for item in app.caption)
-    assert any("source polling: manual only" in item.value for item in app.caption)
+    assert any("automatic polling starts" in item.value for item in app.caption)
     assert any(button.label == "Preview private snapshot cleanup" for button in app.button)
 
     monkeypatch.setenv("BODS_API_KEY", "test-only-not-submitted")

@@ -2,10 +2,10 @@
 
 Status: **candidate MAN-05/MAN-08 operational control — both capabilities remain `planned`**
 
-`traffictwin.integration.manchester.bods_live_control` wraps the explicit BODS fetch-to-scene
-workflow with conservative local coordination. It prevents accidental request bursts, serialises
-refreshes, and retains a small private history of already-computed aggregate summaries. It does
-not create an always-on service or fetch during an ordinary Streamlit rerun.
+`traffictwin.integration.manchester.bods_live_control` wraps the BODS fetch-to-scene workflow with
+conservative local coordination. It prevents accidental request bursts, serialises refreshes, and
+retains a small private history of already-computed aggregate summaries. A configured local
+Streamlit process may invoke the same boundary automatically; ordinary UI reruns never fetch.
 
 ## Fixed policy
 
@@ -13,8 +13,11 @@ not create an always-on service or fetch during an ordinary Streamlit rerun.
   released automatically if the process exits.
 - At least 60 seconds between attempted source requests.
 - At most 240 successful aggregate summaries and at most 24 hours of history.
-- Explicit operator action for every source request.
-- No automatic/background polling and no remote scheduler.
+- One process-local worker may request a refresh every 60 seconds while Streamlit is running.
+- The worker requires a validated v0.7 workspace, environment-only `BODS_API_KEY`, and an explicit
+  `TRAFFICTWIN_BODS_BOUNDING_BOX`; `off` disables it and 60–300 seconds is the accepted range.
+- Manual refresh remains available and shares the same lock and minimum interval.
+- No remote scheduler, automatic deletion, or retry burst.
 - No API key, response body, raw position, vehicle token, `VehicleRef`, or private path in state.
 - Private local state only; public export remains unavailable.
 
@@ -37,8 +40,9 @@ history size/order/uniqueness, latest-success identity, failure-code presence, a
 Mutation, symlinks, non-canonical JSON, clock regression, concurrent refresh, and too-soon refresh
 all fail closed before another source request.
 
-The Manchester page uses this coordinator for **Fetch latest buses** and renders the bounded
-aggregate history locally. One point is shown as a status; two or more points enable a chart for
+The server worker and Manchester page's **Refresh bus positions now** fallback both use this
+coordinator. The page renders the bounded aggregate history locally. One point is shown as a
+status; two or more points enable a chart for
 verified Bee Network buses, other/unknown buses, live positions, and stale records. The chart says
 transit positions and never general road traffic.
 
@@ -49,7 +53,9 @@ freshness window expires; the derived display scene, layer title, filter state, 
 badge all agree. The immutable stored scene is not rewritten. Synthetic scenes remain synthetic
 regardless of wall-clock age.
 
-Offline tests in `tests/unit/test_manchester_bods_live_control.py` use synthetic HTTP fixtures to
+Offline tests in `tests/unit/test_manchester_bods_live_control.py` and
+`tests/unit/test_manchester_bods_auto_refresh.py` use synthetic HTTP fixtures to
 prove success persistence, credential/raw-ID absence, pre-transport interval refusal, safe failure
 accounting, concurrency refusal, mutation detection, side-effect-free empty state, live-to-stale
-display projection, and synthetic-state preservation.
+display projection, synthetic-state preservation, explicit scope validation, idempotent worker
+startup, and automatic-trigger receipts.

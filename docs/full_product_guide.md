@@ -13,7 +13,9 @@ provides deterministic synthetic scenarios when external data or simulators are 
 TrafficTwin exposes one exact Randy/VEC evaluator through conditional request-preflight-gated
 foreground execution. On the opt-in v0.7 development branch it also provides explicit, bounded,
 private BODS bus-position and National Highways operational refreshes for Manchester Operations.
-These are operator-triggered snapshot workflows, not continuous city traffic monitoring. The
+When explicitly configured, process-local workers run while Streamlit is active, with manual
+fallbacks and source-time stale classification. These are bounded snapshot workflows, not
+continuous city traffic monitoring. The
 product does not provide a general Randy/SUMO launcher, background job service, or any claim that
 synthetic outputs are real-world predictions. Unsupported functions remain visibly unavailable.
 

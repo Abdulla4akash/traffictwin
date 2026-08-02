@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 188. It does not alter the strict
+This section records the additive platform truth through Phase 189. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -50,7 +50,8 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views; Phase 184 added a 15-source decision pack for the 174-row review, calibration choices and coverage-targeted demand boundary | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, exact-input reconciliation, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
 | Supervisor communication and literature audit | Phase 180 produced a four-slide editable/verified checkpoint deck, source audit, exact 100-entry BibTeX catalogue and complete manuscript citation coverage | Communication and verified metadata do not create supervisor/ethics/publication approval, project evidence or a final University-style/reference-manager export |
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
-| National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No automatic BODS/other-source polling, city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
+| National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
+| BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -192,8 +193,20 @@ inside the provider's documented 10-call/minute ceiling and the local ten-minute
 threshold. The environment-only key never enters a receipt, scene, session state, path, URL or log;
 automatic receipts are distinguished from operator receipts. A 30-second local UI watcher notices
 new control state and rerenders without performing a request. Provider/schema/workspace failure
-retains the last overlay and marks it stale. BODS and all other sources remain manual, and this
-operational change creates no public-hosting, scientific, capability or release acceptance.
+retains the last overlay and marks it stale. That Phase-188 increment did not change other sources;
+the later BODS change is recorded separately below. The operational change creates no public-
+hosting, scientific, capability or release acceptance.
+
+Phase 189 replaces the BODS manual-only posture with a process-lifetime one-minute worker using
+the same private quarantine, strict source-time freshness, OS lock and aggregate-history boundary
+as the manual fallback. It starts only with a validated workspace, transient key, and explicit
+request box; it stops with Streamlit and does not auto-delete private snapshots. Provider-old bus
+positions remain stale, and no general provider quota, city-road coverage, privacy/retention,
+complete Bee scope, public-hosting, capability or release claim is inferred.
+
+The focused BODS/UI regression and full 4,160-test repository suite passed, and eleven consecutive
+private real-source worker cycles succeeded without adding a failure. This operational smoke is
+not source-wide/provider/privacy/capability acceptance and commits no private response.
 
 Phase 0 status: approved and committed.
 

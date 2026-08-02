@@ -10,6 +10,7 @@ from typing import Literal, cast
 import streamlit as st
 
 from traffictwin.integration.manchester.bods_acquisition import BodsAcquisitionError
+from traffictwin.integration.manchester.bods_auto_refresh import bods_auto_refresh_status
 from traffictwin.integration.manchester.bods_live import (
     BodsLiveRefreshSummary,
     BodsLiveWorkflowError,
@@ -202,21 +203,40 @@ def _load_dft_survey_view(
 
 
 @st.fragment(run_every="30s")  # type: ignore[untyped-decorator]
-def _watch_national_highways_overlay(workspace: str | None) -> None:
-    """Rerender local evidence when the process worker publishes a new overlay."""
+def _watch_live_overlays(workspace: str | None) -> None:
+    """Rerender local evidence when either process worker publishes a new overlay."""
 
-    if workspace is None or national_highways_auto_refresh_status(workspace) is None:
+    if workspace is None:
         return
+    highways_worker = national_highways_auto_refresh_status(workspace)
+    bods_worker = bods_auto_refresh_status(workspace)
+    if highways_worker is None and bods_worker is None:
+        return
+    highways_marker: tuple[str | None, str, str | None] | None = None
+    bods_marker: tuple[str | None, str, str | None] | None = None
     try:
-        state = load_national_highways_control_state(workspace)
-    except (NationalHighwaysLiveError, OSError, ValueError):
+        if highways_worker is not None:
+            state = load_national_highways_control_state(workspace)
+            highways_marker = (
+                None
+                if state.last_attempt_at_utc is None
+                else state.last_attempt_at_utc.isoformat(),
+                state.last_attempt_status,
+                state.last_failure_code,
+            )
+        if bods_worker is not None:
+            bods_state = load_bods_live_control_state(workspace)
+            bods_marker = (
+                None
+                if bods_state.last_attempt_at_utc is None
+                else bods_state.last_attempt_at_utc.isoformat(),
+                bods_state.last_attempt_status,
+                bods_state.last_failure_code,
+            )
+    except (BodsLiveControlError, NationalHighwaysLiveError, OSError, ValueError):
         return
-    marker = (
-        None if state.last_attempt_at_utc is None else state.last_attempt_at_utc.isoformat(),
-        state.last_attempt_status,
-        state.last_failure_code,
-    )
-    key = "_national_highways_auto_refresh_marker"
+    marker = (highways_marker, bods_marker)
+    key = "_live_auto_refresh_marker"
     previous = st.session_state.get(key)
     st.session_state[key] = marker
     if previous is not None and previous != marker:
@@ -261,8 +281,9 @@ def render(config: UiConfig) -> None:
     st.title("Manchester Operations")
     st.caption(
         "Explore admitted local evidence by source and scope. A configured server refreshes the "
-        "three National Highways operational layers automatically; page reruns remain local, and "
-        "buses, surveys, signals, and road observations are never treated as one traffic total."
+        "BODS bus layer every minute and the three National Highways operational layers every "
+        "five minutes; page reruns remain local, and buses, surveys, signals, and road "
+        "observations are never treated as one traffic total."
     )
 
     initial_mode: MapMode = "latest_available"
@@ -277,7 +298,7 @@ def render(config: UiConfig) -> None:
     )
     mode = cast(MapMode, selected or initial_mode)
     workspace = None if config.workspace_path is None else str(config.workspace_path)
-    _watch_national_highways_overlay(workspace)
+    _watch_live_overlays(workspace)
 
     if mode == "historical_replay":
         _render_dft_source_refresh(workspace)
@@ -1032,7 +1053,7 @@ def _render_webtris_history(workspace: str | None) -> None:
 
 
 def _render_live_acquisition(workspace: str | None) -> None:
-    """Render one explicit authenticated action; never fetch during an ordinary rerun."""
+    """Render automatic live status and explicit authenticated fallbacks."""
 
     _render_national_highways_acquisition(workspace, key_suffix="live")
     api_key = os.getenv("BODS_API_KEY")
@@ -1040,10 +1061,30 @@ def _render_live_acquisition(workspace: str | None) -> None:
         workspace,
         api_key_available=bool(api_key),
     )
-    with st.form("manchester_bods_live_fetch", border=True, enter_to_submit=False):
-        st.markdown("**Fetch latest bus positions**")
+    auto_status = None if workspace is None else bods_auto_refresh_status(workspace)
+    auto_error = st.session_state.get("_bods_auto_refresh_error")
+    if auto_status is not None and auto_status.running:
+        st.success(
+            f"Automatic BODS refresh active every {auto_status.interval_seconds} seconds while "
+            "this server process is running. Provider-reported old positions remain stale; the "
+            "manual action remains available as a fallback.",
+            icon=":material/autorenew:",
+        )
+    elif isinstance(auto_error, str):
+        st.warning(
+            f"Automatic BODS refresh could not start safely ({auto_error}); use the manual "
+            "fallback after correcting the server configuration.",
+            icon=":material/warning:",
+        )
+    else:
         st.caption(
-            "One click performs one bounded BODS request, preserves the private response, and "
+            "Automatic BODS refresh is inactive: start the app with a validated v0.7 workspace, "
+            "BODS_API_KEY, and TRAFFICTWIN_BODS_BOUNDING_BOX, or use the manual fallback."
+        )
+    with st.form("manchester_bods_live_fetch", border=True, enter_to_submit=False):
+        st.markdown("**Refresh bus positions now**")
+        st.caption(
+            "The fallback performs one bounded BODS request, preserves the private response, and "
             "atomically replaces only the local live-vehicle scene. Exact OperatorRef matching "
             "separates live-feed-verified Bee Network operators from other or unknown operators; "
             "the result is bus evidence, not general live road traffic."
@@ -1113,32 +1154,40 @@ def _render_live_acquisition(workspace: str | None) -> None:
                     icon=":material/check_circle:",
                 )
 
+    summary: BodsLiveRefreshSummary | None = None
     previous = st.session_state.get("manchester_bods_last_refresh")
     if isinstance(previous, str):
         try:
             summary = BodsLiveRefreshSummary.model_validate_json(previous)
         except ValueError:
             del st.session_state["manchester_bods_last_refresh"]
-        else:
-            with st.container(horizontal=True):
-                st.metric(
-                    "Bee Network positions",
-                    summary.bee_network_franchised,
-                    border=True,
-                )
-                st.metric(
-                    "Other or unknown operators",
-                    summary.non_franchised_or_unknown,
-                    border=True,
-                )
-                st.metric("Live buses", summary.live_vehicle, border=True)
-                st.metric("Stale bus records", summary.stale, border=True)
-            st.caption(
-                f"Last controlled fetch: {summary.evaluated_at_utc.isoformat()} · snapshot: "
-                f"{summary.snapshot_id} · membership policy: "
-                f"{summary.bee_network_policy_version} · one candidate operator remains pending · "
-                "road-traffic live state: unavailable"
+            summary = None
+    if summary is None and workspace is not None:
+        try:
+            summary = load_bods_live_control_state(workspace).latest_success
+        except (BodsLiveControlError, OSError, ValueError):
+            summary = None
+    if summary is not None:
+        with st.container(horizontal=True):
+            st.metric(
+                "Bee Network positions",
+                summary.bee_network_franchised,
+                border=True,
             )
+            st.metric(
+                "Other or unknown operators",
+                summary.non_franchised_or_unknown,
+                border=True,
+            )
+            st.metric("Live at fetch", summary.live_vehicle, border=True)
+            st.metric("Source-stale at fetch", summary.stale, border=True)
+        st.caption(
+            f"Last controlled fetch: {summary.evaluated_at_utc.isoformat()} · snapshot: "
+            f"{summary.snapshot_id} · membership policy: "
+            f"{summary.bee_network_policy_version} · one candidate operator remains pending · "
+            "the map re-evaluates source timestamps after fetch · road-traffic live state: "
+            "unavailable"
+        )
     _render_bods_live_history(workspace)
     _render_bods_retention(workspace)
 
@@ -1320,7 +1369,8 @@ def _render_bods_live_history(workspace: str | None) -> None:
         return
     if not state.history:
         st.caption(
-            "Live refresh history: no controlled fetch recorded yet · source polling: manual only"
+            "Live refresh history: no controlled fetch recorded yet · automatic polling starts "
+            "only with a configured key and explicit request box"
         )
         return
     with st.expander("Live bus aggregate history", expanded=False):
@@ -1348,8 +1398,9 @@ def _render_bods_live_history(workspace: str | None) -> None:
         else:
             st.caption("Run another controlled fetch after 60 seconds to begin a history chart.")
         st.caption(
-            "Aggregate counts only · 24-hour / 240-entry bound · no automatic source polling · "
-            "no raw vehicle identifiers · public export unavailable"
+            "Aggregate counts only · 24-hour / 240-entry bound · automatic polling recorded: "
+            f"{'yes' if state.automatic_source_polling_performed else 'no'} · no raw vehicle "
+            "identifiers · public export unavailable"
         )
 
 

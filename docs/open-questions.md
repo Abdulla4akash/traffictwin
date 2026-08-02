@@ -114,11 +114,11 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   operator confirmation while the active/newest snapshots remain protected. The lawful research
   retention period, longitudinal-analysis approval, backup treatment, and secure-erasure posture
   remain open and are not inferred by that software control.
-- Question 9 is resolved for the Streamlit application: it does not run recurring source sync.
-  BODS refresh is operator-triggered, serial, and limited to one attempt per 60 seconds. National
-  Highways refresh is also operator-triggered and locked, makes exactly three calls, and is limited
-  to one attempt per 60 seconds. Page reruns may read only bounded local aggregate histories. Any
-  future always-on scheduler remains a separate deployment and governance decision.
+- Question 9 is resolved for the local Streamlit process: recurring BODS and National Highways
+  source sync runs in bounded process workers, not UI reruns. BODS is serial and limited to one
+  attempt per 60 seconds; National Highways is locked, makes exactly three calls, and defaults to
+  one refresh per five minutes. Page reruns read only bounded local aggregate histories. Any
+  always-on OS/cloud scheduler remains a separate deployment and governance decision.
 - Question 18 is narrowed by the 24 July 2026 real-source acceptance: the current integration is a
   key-authenticated REST pull, not a callback; all three bounded products completed quarantine,
   parse, promotion, replay, scene publication, and secret-persistence checks. Hash-pinned ONS

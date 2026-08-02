@@ -3912,7 +3912,6 @@
           "type": "boolean"
         },
         "automatic_source_polling_available": {
-          "const": false,
           "default": false,
           "title": "Automatic Source Polling Available",
           "type": "boolean"
@@ -3948,7 +3947,6 @@
           "type": "integer"
         },
         "operator_triggered_only": {
-          "const": true,
           "default": true,
           "title": "Operator Triggered Only",
           "type": "boolean"
@@ -4000,7 +3998,6 @@
               "type": "boolean"
             },
             "automatic_source_polling_available": {
-              "const": false,
               "default": false,
               "title": "Automatic Source Polling Available",
               "type": "boolean"
@@ -4036,7 +4033,6 @@
               "type": "integer"
             },
             "operator_triggered_only": {
-              "const": true,
               "default": true,
               "title": "Operator Triggered Only",
               "type": "boolean"
@@ -4274,7 +4270,6 @@
           "type": "integer"
         },
         "automatic_source_polling_performed": {
-          "const": false,
           "default": false,
           "title": "Automatic Source Polling Performed",
           "type": "boolean"

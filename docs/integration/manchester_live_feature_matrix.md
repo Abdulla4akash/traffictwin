@@ -11,7 +11,7 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | Bee Network filtering | Built for five verified exact `OperatorRef` values, with a pending-candidate review | `BNDB`, `BNFM`, `BNGN`, `BNML`, `BNSM`; a later accepted `BNVB` observation opens review but cannot auto-activate policy; non-matches remain other-or-unknown |
 | Live bus map, source cards, scope/freshness filters | Built locally | Private bus/transit layers only; no basemap network request and no public export |
 | Cached outage/age fallback | Built | Display-time projection changes expired non-synthetic BODS layers to **stale cached** without mutating accepted evidence |
-| Request-frequency and concurrency control | Built | Manual action only, one OS-locked refresh at a time, minimum 60 seconds between attempts |
+| BODS server-lifetime refresh and concurrency control | Built locally | One process worker per validated workspace, 60-second default, explicit bounding box and transient key, manual fallback, one OS-locked refresh at a time, minimum 60 seconds between attempts |
 | Aggregate live history | Built | Private 24-hour/240-entry history of Bee/other/live/stale counts; no raw positions or vehicle identifiers |
 | Raw private snapshot retention control | Built as a precautionary software control | Read-only preview, 24-hour/240-family default, active/newest protection, exact confirmation, paired accepted/quarantine cleanup; legal approval and secure erasure remain unavailable |
 | National Highways closures and incidents | Built and exercised with a real private response | Key-authenticated Road and Lane Closures v2 REST request; 7 in-envelope records in the 24 July 2026 acceptance case |
@@ -29,7 +29,7 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 | Live traffic-signal phase/timing state | **Unavailable** | TfGM source is a dated signal-location reference only; no phase, timing, queue, or controller-state feed exists |
 | Complete Bee Network fleet/service claim | **Unavailable** | `BNVB`, branding-versus-franchise scope, NOC/schedule reference rights, and complete feed coverage remain unresolved |
 | Public live-data hosting/export | **Unavailable** | A local metadata-only status download contains no positions or identifiers but does not accept public hosting. General BODS reuse/publication and API registration are documented; identifier privacy/retention, project public-output approval, National Highways release review, reference-data licences, and complete gate acceptance still block public metadata/raw/scene hosting |
-| National Highways server-lifetime worker | Built locally | One daemon per validated workspace after the first app session; transient key, five-minute default, stops with Streamlit, no BODS/other-source polling or cloud scheduling |
+| National Highways server-lifetime worker | Built locally | One daemon per validated workspace after the first app session; transient key, five-minute default, stops with Streamlit, no other-source or cloud scheduling |
 | Always-on deployment/cloud scheduler | Deliberately out of v0.7 scope | The local worker exists only for the Streamlit process lifetime; an unattended OS/cloud service still requires a separate deployment/governance design |
 
 ## Current acceptance position
@@ -37,7 +37,8 @@ provider/governance decision, or formal v0.7 gate acceptance. Code presence does
 The buildable local live path now includes live BODS transit positions and three current National
 Highways operational REST products. Each path fetches, validates, snapshots, replays, classifies,
 maps, ages to stale, rate-limits, and retains aggregate-only history. National Highways refreshes
-every five minutes while the configured local server runs; BODS remains operator triggered.
+every five minutes and BODS every minute while the configured local server runs. Manual fallbacks
+share the same controls.
 The National Highways slice completed one isolated real-source acceptance run on 24 July 2026 with
 548 admitted records. It gives useful near-live closures/incidents, imposed temporary restrictions,
 and VMS status—not continuous vehicle flow, measured traffic speed, complete city-road coverage,

@@ -1,10 +1,10 @@
-"""Operator-triggered BODS live refresh coordination and aggregate history.
+"""Controlled BODS live refresh coordination and aggregate history.
 
 This boundary adds persistent frequency/concurrency control around the existing
 single-fetch workflow.  It records only secret-free aggregate summaries, never
 raw positions, vehicle tokens, response bodies, credentials, or private paths.
-There is deliberately no timer, daemon, background task, or automatic source
-polling: every network request still requires an explicit caller action.
+Both an operator action and the bounded server worker use this same audited
+frequency, concurrency, private-snapshot, and failure boundary.
 """
 
 from __future__ import annotations
@@ -72,8 +72,8 @@ class BodsLiveControlPolicy(ManchesterSnapshotModel):
     minimum_interval_seconds: Literal[60] = 60
     history_max_entries: Literal[240] = 240
     history_max_age_hours: Literal[24] = 24
-    operator_triggered_only: Literal[True] = True
-    automatic_source_polling_available: Literal[False] = False
+    operator_triggered_only: bool = True
+    automatic_source_polling_available: bool = False
     single_refresh_at_a_time: Literal[True] = True
     aggregate_history_only: Literal[True] = True
     raw_vehicle_identifiers_persisted: Literal[False] = False
@@ -99,7 +99,7 @@ class BodsLiveControlState(ManchesterSnapshotModel):
     history_entry_count: int = Field(ge=0, le=BODS_LIVE_HISTORY_MAX_ENTRIES)
     aggregate_history_only: Literal[True] = True
     raw_vehicle_identifiers_persisted: Literal[False] = False
-    automatic_source_polling_performed: Literal[False] = False
+    automatic_source_polling_performed: bool = False
     public_export_available: Literal[False] = False
 
     @model_validator(mode="after")
@@ -141,6 +141,11 @@ class BodsLiveControlState(ManchesterSnapshotModel):
                 raise ValueError("last attempt time must be UTC")
         if (self.last_attempt_status == "failed") != (self.last_failure_code is not None):
             raise ValueError("failure code must exist exactly for a failed last attempt")
+        if self.automatic_source_polling_performed and (
+            self.policy.operator_triggered_only
+            or not self.policy.automatic_source_polling_available
+        ):
+            raise ValueError("automatic polling requires an automatic-capable control policy")
         return self
 
 
@@ -200,8 +205,9 @@ def coordinated_bods_live_refresh(
     synthetic: bool = False,
     http_client: httpx.Client | None = None,
     utc_now: Callable[[], datetime] | None = None,
+    trigger: Literal["operator", "automatic"] = "operator",
 ) -> ControlledBodsLiveRefresh:
-    """Perform one explicit refresh under persisted rate and concurrency limits."""
+    """Perform one controlled refresh under persisted rate and concurrency limits."""
 
     workspace = _validated_workspace(workspace_root)
     clock: Callable[[], datetime] = (lambda: datetime.now(UTC)) if utc_now is None else utc_now
@@ -224,11 +230,21 @@ def coordinated_bods_live_refresh(
                     f"wait at least {remaining} more seconds before another source request",
                 )
         scope_fingerprint = bounding_box.fingerprint()
+        policy = previous.policy
+        automatic_performed = previous.automatic_source_polling_performed
+        if trigger == "automatic":
+            policy = policy.model_copy(
+                update={
+                    "operator_triggered_only": False,
+                    "automatic_source_polling_available": True,
+                }
+            )
+            automatic_performed = True
         settled_failures = previous.failures_total + int(
             previous.last_attempt_status == "in_progress"
         )
         in_progress = BodsLiveControlState(
-            policy=previous.policy,
+            policy=policy,
             attempts_total=previous.attempts_total + 1,
             successes_total=previous.successes_total,
             failures_total=settled_failures,
@@ -238,6 +254,7 @@ def coordinated_bods_live_refresh(
             latest_success=previous.latest_success,
             history=previous.history,
             history_entry_count=len(previous.history),
+            automatic_source_polling_performed=automatic_performed,
         )
         _store_state(workspace, in_progress)
         try:
@@ -252,7 +269,7 @@ def coordinated_bods_live_refresh(
         except Exception as exc:
             failure_code = _safe_failure_code(exc)
             failed = BodsLiveControlState(
-                policy=previous.policy,
+                policy=policy,
                 attempts_total=in_progress.attempts_total,
                 successes_total=previous.successes_total,
                 failures_total=settled_failures + 1,
@@ -263,12 +280,13 @@ def coordinated_bods_live_refresh(
                 latest_success=previous.latest_success,
                 history=previous.history,
                 history_entry_count=len(previous.history),
+                automatic_source_polling_performed=automatic_performed,
             )
             _store_state(workspace, failed)
             raise
         history = _bounded_history(previous.history + (refresh.summary,), attempted_at)
         succeeded = BodsLiveControlState(
-            policy=previous.policy,
+            policy=policy,
             attempts_total=in_progress.attempts_total,
             successes_total=previous.successes_total + 1,
             failures_total=settled_failures,
@@ -278,6 +296,7 @@ def coordinated_bods_live_refresh(
             latest_success=history[-1],
             history=history,
             history_entry_count=len(history),
+            automatic_source_polling_performed=automatic_performed,
         )
         _store_state(workspace, succeeded)
         return ControlledBodsLiveRefresh(refresh=refresh, state=succeeded)

@@ -187,12 +187,14 @@ Do not commit large real datasets or private checkpoints. Store only small sanit
 
 ## Live And Near-Live Data
 
-The v0.7 development branch contains bounded, operator-triggered private acquisition for BODS bus
-positions and three National Highways operational products. It does not run a background poller.
+The v0.7 development branch contains bounded private acquisition for BODS bus positions and three
+National Highways operational products. With explicit workspace, scope, and process-only keys,
+local process workers refresh BODS every minute and National Highways every five minutes.
 Every request is quarantined before parsing, admitted only through source-specific validation,
 published as an immutable accepted snapshot, and replayed locally with source-time freshness and
 outage states. BODS raw evidence may retain source vehicle identifiers, even though rendered
-records are pseudonymised. National Highways outputs remain private pending release/licence review.
+records are pseudonymised. Workers stop with Streamlit and never delete snapshots automatically.
+National Highways outputs remain private pending release/licence review.
 
 Continuous collection, public hosting/export, changed retention, multi-user access, or additional
 live sources still require an explicit security, privacy, licensing, retention, and operational

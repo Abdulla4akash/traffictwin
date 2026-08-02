@@ -2,7 +2,7 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 188 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 189 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -12,11 +12,10 @@ supervisor-communication/literature completion, the Phase-181 repository-wide st
 reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
 accessibility engineering QA, Phase-184 Manchester Gate-D decision support, Phase-185 authoritative
 DfT/WebTRIS/BODS source re-audit and Phase-186 committed-input/submission-release handoff audit.
-Phase 187 added the bounded local usage runbook; Phase 188 adds owner-authorised process-lifetime
-National Highways refresh without changing source, publication or capability standing. This
-tracker distinguishes
-implemented libraries/pages and communication artifacts from activated schedulers, deployed
-services, completed studies and accepted scientific evidence.
+Phase 187 added the bounded local usage runbook; Phases 188–189 add owner-authorised process-
+lifetime National Highways and BODS refresh without changing source, publication or capability
+standing. This tracker distinguishes implemented libraries/pages and communication artifacts from
+activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -136,6 +135,14 @@ At the latest proportional verification points:
   real-workspace smoke recorded an automatic receipt and the 30-second watcher rerendered all three
   layers from stale to near-live without the manual button; no credential or private source row was
   committed.
+- Phase 189 added a process-local BODS worker with a 60-second default, explicit request scope,
+  transient key, the existing shared lock/rate boundary, automatic receipts, source-time stale
+  truth, manual fallback, and 30-second local UI change detection. The focused BODS/UI regression
+  passed 93 tests and the full repository suite passed 4,160 with two expected skips; Ruff, lock,
+  schema, link, diff and strict-mypy checks across 898 files passed. Eleven consecutive private
+  real-source cycles completed without adding a failure, and the rendered page advanced without a
+  manual click. This creates no official provider quota, automatic deletion, complete Bee/privacy
+  approval, city-road coverage, public hosting, capability acceptance or release authority.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.

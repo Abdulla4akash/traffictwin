@@ -151,9 +151,10 @@ ADVANCED_DISCLOSURE_PREFIX = "Advanced:"
 REQUIRED_PROTOTYPE_NOTICE = (
     "Current prototype supports synthetic fixtures, imported run bundles, historical replay, and "
     "deterministic diagnostic hypotheses. Exact VEC execution is request-preflight-gated in its "
-    "dedicated workbench. The opt-in Manchester Operations workflow supports private, explicit "
+    "dedicated workbench. The opt-in Manchester Operations workflow supports private, controlled "
     "BODS bus-position and National Highways operational snapshots; generic/SUMO launch, "
-    "continuous city-road telemetry and automatic BODS polling remain unavailable. A configured "
+    "continuous city-road telemetry remains unavailable. Configured BODS polling runs every "
+    "minute while the server is active. A configured "
     "local server refreshes the three National Highways operational layers every five minutes."
 )
 

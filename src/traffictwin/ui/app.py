@@ -6,6 +6,14 @@ import os
 
 import streamlit as st
 
+from traffictwin.integration.manchester.bods_auto_refresh import (
+    BodsAutoRefreshError,
+    BodsAutoRefreshStatus,
+    configured_bods_auto_refresh_seconds,
+    configured_bods_bounding_box,
+    ensure_bods_auto_refresh,
+)
+from traffictwin.integration.manchester.bods_live_control import BodsLiveControlError
 from traffictwin.integration.manchester.national_highways_auto_refresh import (
     NationalHighwaysAutoRefreshError,
     NationalHighwaysAutoRefreshStatus,
@@ -32,6 +40,7 @@ def main() -> None:
     apply_research_theme()
     ensure_session_state(st.session_state, config)
     _ensure_configured_national_highways_auto_refresh(config)
+    _ensure_configured_bods_auto_refresh(config)
     if config.workspace_path is not None:
         default_bundle = config.default_fixture_path / "baseline"
         current_bundle = str(st.session_state.get("selected_bundle_path", ""))
@@ -90,6 +99,37 @@ def _ensure_configured_national_highways_auto_refresh(
         )
         return None
     st.session_state.pop("_national_highways_auto_refresh_error", None)
+    return status
+
+
+def _ensure_configured_bods_auto_refresh(config: UiConfig) -> BodsAutoRefreshStatus | None:
+    """Start private BODS polling only with an explicit workspace, key, and request box."""
+
+    api_key = os.getenv("BODS_API_KEY")
+    if config.workspace_path is None or not api_key:
+        st.session_state.pop("_bods_auto_refresh_error", None)
+        return None
+    try:
+        interval_seconds = configured_bods_auto_refresh_seconds()
+        if interval_seconds is None:
+            st.session_state.pop("_bods_auto_refresh_error", None)
+            return None
+        bounding_box = configured_bods_bounding_box()
+        if bounding_box is None:
+            st.session_state["_bods_auto_refresh_error"] = "BODS_AUTO_REFRESH_SCOPE_MISSING"
+            return None
+        status = ensure_bods_auto_refresh(
+            config.workspace_path,
+            bounding_box,
+            api_key=api_key,
+            interval_seconds=interval_seconds,
+        )
+    except (BodsAutoRefreshError, BodsLiveControlError, OSError, ValueError) as exc:
+        st.session_state["_bods_auto_refresh_error"] = getattr(
+            exc, "code", "BODS_AUTO_REFRESH_START_FAILED"
+        )
+        return None
+    st.session_state.pop("_bods_auto_refresh_error", None)
     return status
 
 

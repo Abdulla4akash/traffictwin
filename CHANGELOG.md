@@ -2,6 +2,13 @@
 
 ## v0.7.0 - In development
 
+Added owner-authorised automatic BODS refresh (2 August, Phase 189). A configured local server now
+runs one process-level worker per validated workspace, making at most one scoped BODS request per
+minute through the existing lock, private snapshot, strict source-time freshness and aggregate-
+history boundary. The API key remains transient, the manual fallback remains available, provider-
+old positions stay stale, private cleanup stays confirmation-gated, and no provider quota,
+city-road coverage, public-hosting, privacy/retention, capability or release claim was added.
+
 Added owner-authorised automatic National Highways operational refresh (2 August, Phase 188). A
 configured local server now runs one process-level, five-minute worker for the fixed closures,
 temporary-speed-restriction and digital-VMS requests; a local watcher rerenders newly published
