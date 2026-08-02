@@ -2,6 +2,14 @@
 
 ## v0.7.0 - In development
 
+Completed bounded rendered-browser accessibility engineering QA (2 August, Phase 183) across six
+high-risk routes at desktop and narrow viewports. The shared sidebar brand no longer creates a
+second top-level heading, and the post-fix routes expose one visible `h1` with no rendered
+exception, empty interactive name, horizontal overflow or resolved opaque-pair contrast failure.
+The manual checklist remains unticked; Streamlit framework-name ambiguity, genuine zoom,
+screen-reader use and complete human keyboard/focus acceptance remain open, so no WCAG, UX-03 or
+Gate-C acceptance is claimed.
+
 Completed a non-releasing Gate-F technical audit (2 August, Phase 182): 58 focused release,
 migration and rollback tests, deterministic regeneration of all 69 reference artifacts, clean
 source/wheel builds and an isolated Python 3.12 install passed. A fresh v0.6.0/v0.7 coexistence run

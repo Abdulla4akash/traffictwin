@@ -151,6 +151,14 @@ class TestHeadingStructureIsCoherent:
                 assert str(value).strip(), f"{page.name} has a blank {kind}"
 
 
+def test_the_shared_sidebar_brand_is_not_a_page_title() -> None:
+    """The application shell must not give every route a second h1."""
+
+    source = Path("src/traffictwin/ui/app.py").read_text(encoding="utf-8")
+    assert 'st.sidebar.title("TrafficTwin")' not in source
+    assert 'st.sidebar.markdown("**TrafficTwin**")' in source
+
+
 class TestTheAutomatedScopeIsStatedHonestly:
     """The value of these checks depends on nobody mistaking them for an audit."""
 

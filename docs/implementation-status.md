@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 182. It does not alter the strict
+This section records the additive platform truth through Phase 183. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -49,6 +49,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | XAI decision instrumentation | Phase 178 implemented exact-binding synthetic snapshots, two pure replay baselines, disagreement browsing, load-bin fingerprints, attribution-shaped integrity fixtures, real-method unavailable states and a read-only Decision Audit | No compatible producer snapshot hook, authorised real actor/checkpoint access or validated application method; no real attribution, causality, faithfulness, evidence or optimality claim |
 | Manchester Gate-D integration | Phase 179 bound five exact committed records into typed mapping sensitivity/reconciliation, pending human-review, real-profile, calibration/baseline readiness, comparison-contract and complete-lineage views | Gate D remains `foundation_only`: 174 named-person decisions, scientific calibration/uncertainty approval, viable demand/runs, registry action, human baseline decision and a real comparison remain absent |
 | Supervisor communication and literature audit | Phase 180 produced a four-slide editable/verified checkpoint deck, source audit, exact 100-entry BibTeX catalogue and complete manuscript citation coverage | Communication and verified metadata do not create supervisor/ethics/publication approval, project evidence or a final University-style/reference-manager export |
+| Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -146,6 +147,15 @@ builds and an isolated Python 3.12 installation passed; and a fresh v0.6.0/v0.7 
 kept both registries distinct and byte-unchanged. `REL-01` remains `foundation_only`: the package
 still truthfully reports `0.6.0`, no final v0.7 tag exists, and capability, licence, documentation
 and owner release decisions remain open.
+
+Phase 183 adds bounded rendered-browser accessibility engineering evidence without manufacturing a
+human audit. Six representative routes were checked at 1,440 × 900 and 390 × 844 for rendered
+exceptions, empty interactive names, horizontal overflow, heading count and resolvable opaque-pair
+text contrast. The shared sidebar brand's duplicate top-level heading was repaired and all six
+routes then exposed exactly one visible `h1`. Twelve forward-Tab stops advanced without a trap.
+Streamlit heading/table affordance name duplication, complete focus visibility/contrast, genuine
+200%/400% zoom, dark-theme/non-text contrast, screen-reader and human task checks remain explicit.
+The manual checklist is unticked; Gate C and UX-03 are not accepted.
 
 Phase 0 status: approved and committed.
 

@@ -2,14 +2,15 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 182 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 183 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
 data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
 store, lifecycle, console, local-SUMO, benchmark-package, synthetic-XAI, Manchester Gate-D and
 supervisor-communication/literature completion, the Phase-181 repository-wide strict-mypy
-reconciliation and the Phase-182 non-releasing Gate-F technical audit. This tracker distinguishes
+reconciliation, the Phase-182 non-releasing Gate-F technical audit and Phase-183 rendered-browser
+accessibility engineering QA. This tracker distinguishes
 implemented libraries/pages and communication artifacts from activated schedulers, deployed
 services, completed studies and accepted scientific evidence.
 
@@ -101,6 +102,12 @@ At the latest proportional verification points:
   byte-identical isolated regeneration of all 69 reference artifacts, clean source/wheel build and
   Python 3.12 installation, plus a fresh immutable-v0.6.0/v0.7 coexistence check. It created no
   release, tag, deployment, real migration or Gate-F acceptance.
+- Phase 183 inspected Home, Manchester Operations, Manchester Gate-D, Guided Demo, Decision Safety
+  and Decision Audit at desktop and narrow viewports. It repaired the shared duplicate-`h1` shell
+  defect and recorded bounded contrast and 12-stop forward-keyboard observations. The automated
+  accessibility regression and adjacent route/navigation suite passed all 371 tests; focused
+  Ruff format/check and strict mypy pass. The manual checklist remains
+  unticked and genuine zoom, screen-reader and complete human keyboard/focus acceptance remain.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.

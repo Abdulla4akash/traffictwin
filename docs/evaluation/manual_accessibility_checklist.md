@@ -3,6 +3,12 @@
 - Status: **unticked**; no item has been performed
 - Scope: the v0.7 Streamlit page set
 - Companion to the automated checks in `tests/ui/test_accessibility.py`
+- Technical browser companion: [Phase-183 engineering QA](technical_accessibility_qa_20260802.md)
+
+Phase 183 used an agent-operated rendered browser to inspect six high-risk routes at desktop and
+narrow viewports, repair a duplicate shared `<h1>`, and record bounded contrast and keyboard
+observations. It did **not** perform or tick any human item below; genuine 200%/400% zoom,
+screen-reader use and complete keyboard/focus acceptance remain outstanding.
 
 ## What this checklist is for
 

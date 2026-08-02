@@ -33,7 +33,9 @@ def main() -> None:
             variation = config.default_fixture_path / "stressed_demand"
             if variation.exists():
                 st.session_state["selected_variation_run"] = str(variation)
-    st.sidebar.title("TrafficTwin")
+    # Branding is deliberately not a page-level heading: every registered page
+    # supplies the one h1 that describes its own content.
+    st.sidebar.markdown("**TrafficTwin**")
     st.sidebar.caption("Import-first research UI")
     if v07_navigation_requested():
         st.session_state["_v07_navigation_active"] = True

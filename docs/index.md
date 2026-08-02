@@ -110,6 +110,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Workspace setup and side-by-side operation](workspace_setup.md)
 - [v0.7 workspace isolation and v0.6 compatibility copies](v07_release_compatibility.md)
 - [v0.7 technical release-readiness audit, 2 August 2026](quality/v07_release_readiness_audit_20260802.md)
+- [Technical browser accessibility QA, 2 August 2026](evaluation/technical_accessibility_qa_20260802.md)
 - [v0.7 task-oriented navigation and legacy compatibility](v07_navigation.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [User guide](user_guide.md)

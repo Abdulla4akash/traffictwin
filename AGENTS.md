@@ -4920,3 +4920,34 @@ servers with distinct, byte-unchanged registries. The path-free receipt binds v0
 `1c50a25246426128ac6e8530240eff362d16be02` and v0.7 parent `552628f…`. Package/citation version,
 tags, generated references, real workspaces, deployment and formal Gate-F standing remain
 unchanged.
+
+### Phase 183 claim: technical browser accessibility QA (2 August 2026)
+
+The owner-directed integrating lead owns the bounded browser-QA design/report in
+`docs/evaluation/technical_accessibility_qa_20260802.md`; the path-free structured result in
+`docs/evaluation/technical_accessibility_qa_20260802.json`; the explicit non-acceptance note in
+`docs/evaluation/manual_accessibility_checklist.md`; the additive link in `docs/index.md`; the
+narrow status updates in `docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the
+`CHANGELOG.md` entry; and this phase record. The phase may run the local Streamlit application,
+inspect representative high-risk routes and responsive/zoom states in a browser, exercise bounded
+keyboard focus traversal, and calculate rendered-colour contrast heuristics. It may not tick or
+sign the human checklist, claim WCAG conformance, impersonate a keyboard/screen-reader user or
+participant, collect participant data, change UI code without a separately discovered acceptance
+defect and amended exact ownership, or contact any external/private service.
+
+The rendered browser inspection found that the shared sidebar brand adds a second top-level
+heading to every audited route. Exact phase ownership is therefore amended before code to include
+the single semantic-shell substitution in `src/traffictwin/ui/app.py` and its regression assertion
+in `tests/ui/test_accessibility.py`. No other UI source, styling, navigation or page behavior enters
+scope.
+
+Phase 183 completed locally on 2 August 2026. Chrome rendered six representative high-risk routes
+at exact desktop and narrow viewports. The initial matrix found no exception, empty interactive
+name, horizontal overflow or resolved opaque-pair contrast failure, but found the shared sidebar
+brand gave every route a second visible `h1`. The bounded shell repair leaves one visible `h1` per
+route, confirmed across all six routes. Twelve forward-Tab stops advanced without a trap; complete
+focus visibility/contrast remains unaccepted. The seven-file accessibility/route/navigation suite
+passed all 371 tests; focused Ruff format/check, strict mypy, JSON parse and diff gates passed.
+Streamlit framework-name ambiguity, genuine 200%/400% zoom, dark-theme/non-text contrast,
+screen-reader and complete human keyboard acceptance remain explicit. The human checklist is
+unticked and unsigned; no WCAG, UX-03 or Gate-C acceptance was created.

@@ -1,0 +1,57 @@
+{
+  "schema_version": "traffictwin.technical_accessibility_qa.v1",
+  "phase": 183,
+  "date": "2026-08-02",
+  "evidence_class": "agent_operated_engineering_qa",
+  "browser": "Chrome extension surface",
+  "accepts_gate_c": false,
+  "claims_wcag_conformance": false,
+  "human_checklist_ticked": false,
+  "viewports": [
+    {"name": "desktop", "width_css_px": 1440, "height_css_px": 900},
+    {"name": "narrow", "width_css_px": 390, "height_css_px": 844}
+  ],
+  "routes": [
+    {"name": "Home", "path": "/home", "desktop": {"contrast_candidates": 61, "contrast_resolved": 38}, "narrow": {"contrast_candidates": 51, "contrast_resolved": 40}},
+    {"name": "Manchester Operations", "path": "/manchester", "desktop": {"contrast_candidates": 90, "contrast_resolved": 57}, "narrow": {"contrast_candidates": 80, "contrast_resolved": 59}},
+    {"name": "Manchester Gate-D", "path": "/manchester-gate-d", "desktop": {"contrast_candidates": 89, "contrast_resolved": 56}, "narrow": {"contrast_candidates": 79, "contrast_resolved": 58}},
+    {"name": "Guided Demo", "path": "/guided-workflow", "desktop": {"contrast_candidates": 54, "contrast_resolved": 30}, "narrow": {"contrast_candidates": 44, "contrast_resolved": 32}},
+    {"name": "Decision Safety", "path": "/platform-decision-safety", "desktop": {"contrast_candidates": 59, "contrast_resolved": 35}, "narrow": {"contrast_candidates": 49, "contrast_resolved": 37}},
+    {"name": "Decision Audit", "path": "/platform-xai-audit", "desktop": {"contrast_candidates": 64, "contrast_resolved": 37}, "narrow": {"contrast_candidates": 54, "contrast_resolved": 39}}
+  ],
+  "common_state_result": {
+    "rendered_exceptions": 0,
+    "empty_interactive_names": 0,
+    "horizontal_overflow": false,
+    "resolved_contrast_failures": 0
+  },
+  "discovered_defect": {
+    "id": "A11Y-SHELL-H1",
+    "before": "Shared sidebar branding produced a second visible h1 on all six routes.",
+    "resolution": "Render the shared brand as strong paragraph text and retain each page title as the sole h1.",
+    "post_fix_visible_h1_count_per_route": 1
+  },
+  "keyboard_observation": {
+    "route": "/home",
+    "forward_tab_stops": 12,
+    "trap_observed": false,
+    "coverage": "nine sidebar links, navigation expander, Deploy, Main menu",
+    "boundary": "Sidebar focus used a background change while computed outline style remained none; complete focus visibility and contrast are not established."
+  },
+  "framework_residuals": [
+    "Repeated Link to heading anchor names",
+    "Repeated table-toolbar names: Show/hide columns, Download as CSV, Search, Fullscreen",
+    "Repeated Manchester Operations framework affordances: Open and Show data"
+  ],
+  "not_performed": [
+    "genuine 200 percent browser zoom",
+    "genuine 400 percent browser zoom",
+    "screen-reader session",
+    "human keyboard acceptance",
+    "Shift+Tab and modal/expander/full-route traversal",
+    "dark-theme contrast",
+    "transparent/image/chart/component/focus-indicator contrast",
+    "text-spacing override validation"
+  ],
+  "post_fix_surface_discrepancy": "Chrome reported 1800x1125 CSS pixels and DPR 0.8 during the rerun despite the unchanged 1440x900 viewport override; no interpretation is inferred."
+}
