@@ -4740,3 +4740,36 @@ smoke advancing 0→5 simulated seconds; Ruff lint/format, strict mypy, `uv lock
 privacy/no-public-client and `git diff --check` gates passed. The smoke is engineering-only: no
 BODS/public/cloud/operator connection, generic scenario, scientific campaign, evidence,
 production readiness, external authority or real-road effect occurred.
+
+### Phase 177 claim: benchmark execution infrastructure (2 August 2026)
+
+The owner-directed integrating lead owns the fifth post-meeting build slice in
+`docs/platform/benchmark_execution_infrastructure_design.md`, the bounded status amendment in
+`docs/platform/capacity_aware_benchmark_design.md`,
+`src/traffictwin/platform/benchmark_execution.py`, `scripts/benchmark_execution.py`,
+`tests/unit/test_benchmark_execution.py`, the bounded status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`, the narrow `CHANGELOG.md`
+entry, and this phase record. The phase may add digest-pinned contract-only manifests for every
+declared algorithm family, deterministic unsigned export of the frozen 240-cell/2,400-job plan,
+compatible observation/action/reward adapters, a tiny synthetic engineering-seed worker,
+path-free execution receipts and retry/checkpoint/analysis-freeze validation, plus a
+provider-neutral estimate-only resource plan. It may not bind or train a real actor, treat
+contract-only plugins as implementations, contact a scheduler/cloud provider, spend money,
+dispatch unsigned work, reuse training/tuning/evaluation seeds for the dry run, select a
+checkpoint from outcomes, create evidence/admission or claim that synthetic output is a benchmark
+result.
+
+Phase 177 completed locally on 2 August 2026. Canonical contract-only manifests now cover all
+seven declared families and bind the frozen actor contracts to strict observation/action/reward
+adapters and the in-process synthetic runtime. The unsigned exporter expands the exact 240 cells
+to 2,400 jobs with per-cell seeds 2100–2109 and 5,000,000 matched interactions; it atomically
+writes only explicit safe local destinations and returns a path-free receipt. Provider-neutral
+resource output remains estimate-only. A separate 21-job/four-step engineering pack spans all
+families and seeds 2000–2002; dispatch and return revalidate manifests, budgets, namespaces,
+result/checkpoint digests, bounded retries and resume state. Synthetic analysis-input freezing
+retains deviations and stays non-confirmatory/non-evidence. Future planned returns require exact
+external owner-signature, endpoint and 25/50/75/100 checkpoint bindings before compatibility, and
+that check creates no analysis or admission. All 22 focused tests and the 108-test adjacent
+protocol/job-pack regression passed; Ruff lint/format, strict mypy, `uv lock --check`, deterministic
+export, privacy/no-training/no-cloud and `git diff --check` gates passed. No real actor, training,
+evaluation, scheduler/cloud contact, spend, benchmark result, evidence or admission occurred.

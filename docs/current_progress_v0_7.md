@@ -2,14 +2,14 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 176 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 177 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–176 operational
-store, lifecycle, console and local-SUMO integration. This tracker distinguishes implemented
-libraries/pages from activated schedulers, deployed services, completed studies and accepted
-scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–177 operational
+store, lifecycle, console, local-SUMO and benchmark-package integration. This tracker distinguishes
+implemented libraries/pages from activated schedulers, deployed services, completed studies and
+accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -76,6 +76,9 @@ At the latest proportional verification points:
 - Phase 176 passed 18 focused local-transport tests and the 63-test local transport/controller/
   controlled-runner regression, including a real bounded SUMO 1.27.1 loopback smoke; Ruff,
   formatting, strict mypy, lock, fixed-argv/privacy/no-external-client and cleanup gates passed.
+- Phase 177 passed 22 focused benchmark-execution tests and the 108-test protocol/execution/
+  adjacent job-pack regression; Ruff, formatting, strict mypy, lock, deterministic-export,
+  privacy/no-training/no-cloud and diff gates passed.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -91,7 +94,7 @@ or research-usability acceptance claim.
 | Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic analytics feed and evidence-matrix console, append-only registry and exact artifact-revalidating composer lifecycle service | Select real store/lifecycle authority roots and genuine authority/licence artifacts; lifecycle UI remains absent |
 | Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded assessments with read-only console presentation | Still no execution authority, overall-service recommendation or evidence creation |
 | Controlled live twin | `working_bounded` | Maximum-coverage contracts/fake plus a fixed-argv loopback-only local SUMO/TraCI transport over the pinned synthetic square | BODS/public/cloud/operator transports, deployment inputs, generic scenarios and any scientific/production use |
-| Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
+| Capacity benchmark | `working_bounded` | Frozen protocol plus contract-only manifests/adapters, deterministic unsigned 240-cell/2,400-job and resource-plan exports, 21-job synthetic worker, receipts/resume/checkpoint/analysis-freeze gates | Signed final protocol, real actor/runtime/checkpoint/domain bindings and separately authorised training/evaluation |
 
 These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.
 
@@ -187,9 +190,10 @@ next section.
 2. ~~Implement and test a concrete local-SUMO live-twin transport against the existing safe public
    fixture, retaining engineering-only receipts and launching no scientific campaign.~~ Completed
    in Phase 176 over the pinned repository-owned synthetic square.
-3. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
-   ingestion and deterministic synthetic workers; real training remains a separately authorised
-   action after a signed protocol and concrete resources exist.
+3. ~~Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
+   ingestion and deterministic synthetic workers.~~ Completed in Phase 177 as contract-only and
+   engineering-only infrastructure; real training remains separately authorised after a signed
+   protocol and concrete resources exist.
 4. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
    real attribution remains unavailable until a compatible producer snapshot hook and validation
    method exist.
@@ -221,6 +225,13 @@ shell-free argv, loopback TraCI, aggregate-only snapshots, bounded command mappi
 crash/timeout/protocol/cleanup recovery. A local synthetic smoke advanced 0→5 seconds and produced
 an engineering-only terminal receipt. No BODS/public/cloud/operator connection, generic scenario,
 scientific campaign, evidence, production claim or road effect occurred.
+
+Completed in Phase 177: the exact Phase-169 factorial now has deterministic contract-only actor,
+runtime and adapter manifests; an unsigned 2,400-job export; estimate-only provider-neutral
+resource records; and a tiny 21-job engineering worker with path-free receipts, bounded retry/
+resume, checkpoint inventory and synthetic analysis-input freezing. Planned returns are gated by
+an exact separately supplied owner signature plus seed, budget, endpoint and checkpoint identity.
+No real actor, training, cloud request, spend, benchmark result, evidence or admission occurred.
 
 ## 7. Decisions or evidence required before acceptance
 

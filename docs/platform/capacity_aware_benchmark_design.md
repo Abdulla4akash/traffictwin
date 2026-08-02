@@ -1,9 +1,10 @@
 # Design — Capacity-aware and multi-algorithm benchmark (post-v1 B-1)
 
-**Status: IMPLEMENTED for maximum-coverage local protocol tooling in Phase 169. The benchmark
-research remains `PROPOSED / UNSIGNED`; no training, evaluation, cloud submission, spend,
-scientific execution, evidence creation or admission occurred. Maximum policy ceiling:
-`owner_approved_candidate`.**
+**Status: IMPLEMENTED for maximum-coverage local protocol tooling in Phase 169; Phase 177 added
+bounded execution packaging, contract-only manifests, an unsigned 2,400-job export and a tiny
+synthetic engineering worker. The benchmark research remains `PROPOSED / UNSIGNED`; no real actor
+binding, training, evaluation, cloud submission, spend, scientific execution, evidence creation or
+admission occurred. Maximum policy ceiling: `owner_approved_candidate`.**
 
 The delivered implementation is
 `src/traffictwin/platform/benchmark_protocol.py`; its focused verification is
@@ -193,3 +194,20 @@ All producer-derived implementations and results must satisfy
 [`docs/producer_citation_requirements.md`](../producer_citation_requirements.md). Repository
 artifacts must not contain credentials, private paths, raw BODS data, private permission text or
 non-redistributable checkpoints.
+
+## 11. Phase-177 execution package
+
+[`benchmark_execution_infrastructure_design.md`](benchmark_execution_infrastructure_design.md)
+defines the bounded package now implemented in
+`src/traffictwin/platform/benchmark_execution.py`. It deterministically binds contract-only
+manifests for all seven families, validates pure observation/action/reward adapters, exports all
+240 cells and 2,400 matched training jobs as unsigned/non-dispatching canonical records, and
+exports the provider-neutral Phase-169 resource ceilings as estimates only.
+
+The only runnable worker is a four-step in-process synthetic adapter exercise across seven
+families and the three engineering seeds (21 jobs). Its path-free receipts, retries, checkpoint
+inventory and analysis-input freeze remain `synthetic_dry_run: true`, `evidence: false` and
+non-admitting. Future planned returns must bind an exact human-owner signature, budget, seed,
+endpoint set and 25/50/75/100 checkpoint inventory before they are merely marked compatible; that
+gate does not analyse or admit them. No actor implementation, scientific checkpoint or scheduler
+was supplied in Phase 177.

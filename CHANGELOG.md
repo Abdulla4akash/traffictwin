@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Added bounded benchmark execution infrastructure (2 August, Phase 177): all seven Phase-169
+families now have digest-pinned contract-only manifests and pure observation/action/reward
+adapters; the exact 240-cell/2,400-job matched plan and provider-neutral resource estimates export
+deterministically without dispatch authority. A 21-job, four-step in-process engineering-seed
+worker exercises receipt ingestion, retry/resume, checkpoint inventory and synthetic
+analysis-input freezing. Planned-return gates bind signed scope, seeds, budgets, endpoints and
+terminal-checkpoint rules, but create no analysis or admission. No real actor, training,
+evaluation, cloud request, spend, benchmark evidence or scientific result was created.
+
 Added the concrete local-SUMO live-twin transport (2 August, Phase 176): the Phase-168 controller
 can now inject one fixed-argv, `shell=False`, loopback-only SUMO 1.27.x/TraCI process over the exact
 pinned repository-owned synthetic square. The session spec binds the preset/network, executable,

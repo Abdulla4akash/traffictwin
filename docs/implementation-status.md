@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 176. It does not alter the strict
+This section records the additive platform truth through Phase 177. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -45,7 +45,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Evidence matrix and scenario lifecycle | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161; Phase 174 bound exact composer revisions and revalidated external lifecycle artifacts; Phase 175 exposed matrix coverage | No lifecycle UI or real authority-root selection; the services do not create approval, launch work, analyse or admit |
 | Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2; Phase 175 added read-only presentation | No execution authority, overall-service decision or evidence creation |
 | Controlled live twin | Phases 153/168 implemented maximum-coverage contracts/fake; Phase 176 added a fixed-argv, loopback-only local SUMO 1.27.x/TraCI transport over the pinned synthetic square | No BODS/public/cloud/operator transport, generic scenario, scientific campaign, production service or road actuation |
-| Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol, compatibility, budget, seed and analysis tooling | `PROPOSED / UNSIGNED`; no bound actors, training, evaluation, cloud use, evidence or admission |
+| Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol tooling; Phase 177 added contract-only manifests, compatible adapters, deterministic unsigned 240-cell/2,400-job and estimate-only resource exports, plus a 21-job synthetic worker and return/resume/freeze gates | `PROPOSED / UNSIGNED`; no real actor/runtime/checkpoint binding, training, evaluation, cloud use, evidence or admission |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -90,6 +90,16 @@ single-owner controller, whose idempotency, budgets, treatment deviations and en
 terminal receipts remain authoritative. One local SUMO 1.27.1 smoke advanced 0→5 simulated
 seconds. It is software-execution evidence only, not Manchester/Randy/VEC evidence, a scientific
 campaign, production readiness, authority or a real-road effect.
+
+Phase 177 closes only the local benchmark-packaging gap. The frozen factorial expands to 2,400
+canonical non-dispatching job records, each with exact training seed, matched interaction budget,
+contract-only actor and synthetic runtime/adapter identities. A provider-neutral plan repeats the
+Phase-169 compute figures as estimates without allocation authority. The only execution is a
+deterministic 21-job engineering fixture; its path-free receipts, retry/resume and checkpoint/
+analysis-input inventories remain synthetic and non-confirmatory. Planned-return compatibility
+requires a separately supplied exact owner signature and refuses changed seeds, budgets, endpoints
+or checkpoint rules, but creates neither analysis nor admission. No benchmark campaign or result
+exists.
 
 Phase 0 status: approved and committed.
 
