@@ -4421,3 +4421,25 @@ Phase 164 local verification passed on 1 August 2026: all 17 appendix tests pass
 3.11, the exact committed-versus-fresh drift test passed under Python 3.12, a second generator run
 was byte-stable, `uv lock --check` passed and `git diff --check` passed. Only Appendix B's declared
 dependency rows changed; scientific and policy content did not.
+
+### Phase 165 claim: owner-selected analytics operations policy (2 August 2026)
+
+The integrating lead owns the bounded analytics amendment implementing the owner's selected
+15-minute scheduled micro-batch cadence, balanced freshness/completeness/exclusion thresholds,
+local dashboard/report notification contract and indefinite audit retention. Exclusive paths are
+`src/traffictwin/platform/analytics_monitor.py`,
+`tests/unit/test_analytics_monitor.py`,
+`docs/platform/incremental_analytics_monitor_design.md`, and this phase record. The phase may add
+typed scheduling, quality-context, report-publication and retention contracts, plus deterministic
+freshness/gap/overlap/completeness/schema checks. It may not fetch BODS, open quarantine, create an
+external notification, edit the shared dashboard, interpret an operational alert scientifically,
+or change evidence standing. Shared dashboard wiring remains a separately owned integration step;
+this phase exposes only its safe serialisable backend feed.
+
+Phase 165 verification passed on 2 August 2026: all 57 focused analytics, bus-prediction and
+historical-store tests passed; Ruff lint and formatting checks passed on both owned Python files;
+strict mypy passed on the analytics source; `uv lock --check` and owned-path `git diff --check`
+passed. Tests cover the exact selected thresholds, warned-but-usable semantics, digest/schema and
+overlap refusals, the Europe/London fall-back fold, atomic/idempotent report publication and the
+absence of automatic retention deletion. No live acquisition, external alert, dashboard edit or
+scientific interpretation ran.

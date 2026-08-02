@@ -1,11 +1,13 @@
 # Design — Incremental analytics and data-quality monitor (post-v1 A-1)
 
-**Status: PARTIALLY IMPLEMENTED in Phase 152 and corrected in Phase 161. The aggregate-only
-prototype path now has digest/version work keys, durable replay of receipts and materialisations,
-idempotent retry, crash-before-commit recovery, deterministic concurrency/progression summaries,
-local-service-date readiness and explicit missingness. Cadence freshness, cross-source overlap,
-schema-distribution alerts, retention, notifications and scheduling remain unimplemented pending
-their owner decisions; this is not accepted as a continuous or production monitor.
+**Status: IMPLEMENTED as an aggregate-only backend micro-batch contract in Phases 152, 161 and
+165. The delivered path has digest/version work keys, durable replay of receipts and
+materialisations, idempotent retry, crash-before-commit recovery, deterministic
+concurrency/progression summaries, local-service-date readiness, explicit missingness, the
+owner-selected 15-minute schedule, freshness/completeness/exclusion thresholds, cross-source
+overlap and schema-change refusals, and immutable local report publication under indefinite
+retention. The shared dashboard has not yet bound the safe report feed and no OS scheduler is
+activated by the library; this is not continuous streaming or a production-monitoring claim.
 Maximum policy ceiling: `owner_approved_candidate`. This is aggregate micro-batch
 analytics, not a claim of continuous streaming, real-time control or production
 monitoring.**
@@ -85,6 +87,12 @@ Severity is operational (`info`, `warning`, `refusal`), not scientific confidenc
 alerts are descriptive comparisons, not causal findings or evidence of degradation.
 Thresholds that might later support a scientific claim require a separate predeclaration.
 
+Phase 165 binds the operational policy digest to each complete report. Freshness warns at
+30 minutes and refuses readiness at 60 minutes; session completeness warns below 95% and refuses
+below 80%; progression exclusion share warns above 10% and refuses above 25%. Any overlapping
+source window or unrecognised schema version refuses. These thresholds affect operational
+readiness only and cannot establish a scientific effect.
+
 ## 6. Outputs and API
 
 Outputs are immutable `IncrementalAnalyticsReceipt`, feature-snapshot digests, a checkpoint
@@ -100,6 +108,12 @@ Minimum library surface:
 
 Dashboard consumers receive serialisable safe summaries only. They cannot request arbitrary
 filesystem paths or SQL, mutate checkpoints, suppress refusals or start the runner.
+
+`LocalQualityReportStore` publishes a report atomically under its content digest, makes exact
+retries idempotent and exposes a read-only local feed. It has no deletion or external-send API.
+`next_scheduled_run` and `scheduled_readiness_cells` derive strict 15-minute UTC cells and retain
+the corresponding `Europe/London` offset and fold, so the repeated and skipped DST hours remain
+explicit rather than being collapsed.
 
 ## 7. Evidence and alert semantics
 
@@ -134,8 +148,20 @@ quality report that cannot mutate source or evidence state.
 
 ## 10. Owner decisions and stop conditions
 
-The owner must approve scheduling cadence, warning/refusal thresholds, notification surface,
-retention and whether alerts remain local or enter the dashboard. Stop if the requested
-monitoring needs continuous unattended raw acquisition, external notification accounts,
-participant data, cross-session identity, or scientific interpretation of an operational
+The owner selected the following policy on 2 August 2026:
+
+| Decision | Selected policy |
+|---|---|
+| Processing cadence | Scheduled micro-batch every 15 minutes |
+| Freshness | Warning at 30 minutes; readiness refusal at 60 minutes |
+| Completeness | Warning below 95%; readiness refusal below 80% |
+| Progression exclusions | Warning above 10%; refusal above 25% |
+| Overlap and schema | Any overlapping source window or unrecognised schema refuses |
+| Notifications | Typed local receipts and local-dashboard feed only; no external notification |
+| Retention | Indefinite; no automatic deletion |
+
+The backend policy and safe dashboard feed are implemented. Activating an OS scheduler and binding
+the feed into the shared dashboard remain deployment/integration work, not missing analytics
+semantics. Stop if monitoring would require raw quarantine access, participant data, cross-session
+identity, an external notification account, or scientific interpretation of an operational
 threshold.

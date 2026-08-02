@@ -10,16 +10,23 @@ raw-data or runner surface.
 from __future__ import annotations
 
 import json
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 
 from traffictwin.platform.analytics_monitor import (
     AnalyticsMonitorError,
+    AnalyticsOperationalPolicy,
     IncrementalAnalyticsMonitor,
+    LocalQualityReportStore,
+    SourceQualityContext,
+    build_operational_quality_report,
     build_quality_report,
     materialise,
+    next_scheduled_run,
     read_readiness,
+    scheduled_readiness_cells,
 )
 from traffictwin.platform.bus_prediction import BuildRules, load_activity_aggregates
 
@@ -88,6 +95,30 @@ def _load_one(tmp_path: Path, name: str, payload: dict[str, object]) -> object:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload), encoding="utf-8")
     return load_activity_aggregates([path])[0]
+
+
+def _context(
+    item: object,
+    *,
+    first: str,
+    last: str,
+    expected: int = 3,
+    total_segments: int = 10,
+    excluded_segments: int = 0,
+    stream: str = "bods-scheduled",
+    schema_version: str = "1.0",
+) -> SourceQualityContext:
+    return SourceQualityContext(
+        logical_id=item.logical_id,  # type: ignore[attr-defined]
+        source_sha256=item.sha256,  # type: ignore[attr-defined]
+        source_stream=stream,
+        source_schema_version=schema_version,
+        first_snapshot_at_utc=datetime.fromisoformat(first),
+        last_snapshot_at_utc=datetime.fromisoformat(last),
+        expected_snapshot_count=expected,
+        progression_segments_total=total_segments,
+        progression_segments_excluded=excluded_segments,
+    )
 
 
 def test_apply_is_exactly_once_with_idempotent_replay(tmp_path: Path) -> None:
@@ -260,3 +291,167 @@ def test_readiness_wraps_the_predictor_report_with_the_standing_note(
     report = read_readiness((item,), RULES)  # type: ignore[arg-type]
     assert report["standing_note"] == "forecast-readiness is not forecast validity"
     assert report["progression_target_available"] is False
+
+
+def test_owner_selected_operational_policy_is_exact_and_digest_bound() -> None:
+    policy = AnalyticsOperationalPolicy()
+    assert policy.cadence_minutes == 15
+    assert policy.freshness_warning_minutes == 30
+    assert policy.freshness_refusal_minutes == 60
+    assert policy.completeness_warning_ratio == 0.95
+    assert policy.completeness_refusal_ratio == 0.8
+    assert policy.exclusion_warning_ratio == 0.1
+    assert policy.exclusion_refusal_ratio == 0.25
+    assert policy.local_dashboard_alerts
+    assert policy.local_report_receipts
+    assert not policy.external_notifications
+    assert policy.retention == "indefinite"
+    assert not policy.automatic_deletion
+    assert len(policy.digest()) == 64
+
+
+def test_schedule_is_strictly_15_minute_and_dst_safe() -> None:
+    policy = AnalyticsOperationalPolicy()
+    next_cell = next_scheduled_run(datetime(2026, 10, 25, 0, 45, tzinfo=UTC), policy)
+    assert next_cell.scheduled_at_utc == datetime(2026, 10, 25, 1, 0, tzinfo=UTC)
+    assert next_cell.service_date_local == "2026-10-25"
+    assert next_cell.hour_local == 1
+    assert next_cell.minute_local == 0
+    assert next_cell.utc_offset_seconds == 0
+    assert next_cell.fold == 1
+
+    cells = scheduled_readiness_cells(
+        datetime(2026, 10, 25, 0, 30, tzinfo=UTC),
+        datetime(2026, 10, 25, 1, 15, tzinfo=UTC),
+        policy,
+    )
+    assert [cell.scheduled_at_utc.minute for cell in cells] == [45, 0, 15]
+    assert [cell.fold for cell in cells] == [0, 1, 1]
+
+
+def test_operational_report_applies_freshness_completeness_and_exclusion_policy(
+    tmp_path: Path,
+) -> None:
+    policy = AnalyticsOperationalPolicy()
+    fresh = _load_one(tmp_path / "inputs", "fresh.json", _payload("2026-08-03", "fresh"))
+    warned = _load_one(
+        tmp_path / "inputs",
+        "warned.json",
+        _payload("2026-08-04", "warned", live={6: list(range(9))}),
+    )
+    refused = _load_one(
+        tmp_path / "inputs",
+        "refused.json",
+        _payload("2026-08-05", "refused", live={7: list(range(3))}),
+    )
+    monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
+    for item in (fresh, warned, refused):
+        monitor.apply_increment(item)  # type: ignore[arg-type]
+    contexts = (
+        _context(
+            fresh,
+            first="2026-08-06T11:45:00+00:00",
+            last="2026-08-06T11:55:00+00:00",
+        ),
+        _context(
+            warned,
+            first="2026-08-06T10:45:00+00:00",
+            last="2026-08-06T11:15:00+00:00",
+            expected=10,
+            excluded_segments=2,
+        ),
+        _context(
+            refused,
+            first="2026-08-06T09:30:00+00:00",
+            last="2026-08-06T10:30:00+00:00",
+            expected=4,
+            excluded_segments=3,
+        ),
+    )
+    report = build_operational_quality_report(
+        monitor,
+        (fresh, warned, refused),  # type: ignore[arg-type]
+        contexts,
+        RULES,
+        as_of_utc=datetime(2026, 8, 6, 12, 0, tzinfo=UTC),
+        policy=policy,
+    )
+    assert report.accepted == (  # type: ignore[attr-defined]
+        fresh.logical_id,
+        warned.logical_id,
+    )
+    assert report.operational_policy_digest == policy.digest()
+    assert report.notification_surface == ("local_dashboard", "local_report_receipt")
+    assert report.retention_policy == "indefinite; no automatic deletion"
+    assert {entry.rule for entry in report.warned} >= {
+        "source_stale",
+        "session_completeness",
+        "progression_exclusion_share",
+    }
+    assert {entry.rule for entry in report.refused} >= {
+        "source_stale",
+        "session_completeness",
+        "progression_exclusion_share",
+    }
+    assert all(entry.rule_version == "2.0" for entry in report.informational)
+
+
+def test_operational_report_refuses_overlap_digest_and_schema_change(
+    tmp_path: Path,
+) -> None:
+    first = _load_one(tmp_path / "inputs", "a.json", _payload("2026-08-03", "a"))
+    second = _load_one(tmp_path / "inputs", "b.json", _payload("2026-08-04", "b"))
+    monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
+    for item in (first, second):
+        monitor.apply_increment(item)  # type: ignore[arg-type]
+    first_context = _context(
+        first,
+        first="2026-08-06T11:30:00+00:00",
+        last="2026-08-06T11:50:00+00:00",
+    )
+    second_context = _context(
+        second,
+        first="2026-08-06T11:45:00+00:00",
+        last="2026-08-06T11:55:00+00:00",
+        schema_version="2.0",
+    ).model_copy(update={"source_sha256": "f" * 64})
+    report = build_operational_quality_report(
+        monitor,
+        (first, second),  # type: ignore[arg-type]
+        (first_context, second_context),
+        RULES,
+        as_of_utc=datetime(2026, 8, 6, 12, 0, tzinfo=UTC),
+    )
+    rules = {entry.rule for entry in report.refused}
+    assert {"session_overlap", "digest_mismatch", "unexpected_schema_version"} <= rules
+    assert report.accepted == ()
+
+
+def test_local_report_store_is_atomic_idempotent_and_indefinite(tmp_path: Path) -> None:
+    policy = AnalyticsOperationalPolicy()
+    item = _load_one(tmp_path / "inputs", "a.json", _payload("2026-08-03", "night"))
+    monitor = IncrementalAnalyticsMonitor(tmp_path / "checkpoint.jsonl")
+    monitor.apply_increment(item)  # type: ignore[arg-type]
+    report = build_operational_quality_report(
+        monitor,
+        (item,),  # type: ignore[arg-type]
+        (
+            _context(
+                item,
+                first="2026-08-06T11:45:00+00:00",
+                last="2026-08-06T11:55:00+00:00",
+            ),
+        ),
+        RULES,
+        as_of_utc=datetime(2026, 8, 6, 12, 0, tzinfo=UTC),
+        policy=policy,
+    )
+    store = LocalQualityReportStore(tmp_path / "quality-reports")
+    first = store.publish(report, policy)
+    replay = store.publish(report, policy)
+    assert not first.idempotent_replay
+    assert replay.idempotent_replay
+    assert replay.report_digest == first.report_digest
+    assert store.reports() == (report,)
+    assert store.retention_candidates() == ()
+    assert not hasattr(store, "delete")
