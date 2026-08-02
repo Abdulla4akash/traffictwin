@@ -2,14 +2,13 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; through Phase 170 the branch and `origin/main`
-were aligned at `7a661e8a4d980310809436286623458c9adfc399`. The immutable release baseline and
-historical checkpoint tags remain unchanged.
+**Development branch:** `claude/complete-v0.7`; Phase 173 is the current verified increment. The
+immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–169 post-v1 backend suite and Phase 170 bounded DeepSeek composer
-activation. This tracker distinguishes implemented libraries/pages from activated schedulers,
-deployed services, completed studies and accepted scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173 operational
+aggregate-store activation tooling. This tracker distinguishes implemented libraries/pages from
+activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -65,7 +64,9 @@ At the latest proportional verification points:
 - Phase 169's eight-slice platform regression passed 143 tests;
 - Phase 170 passed 43 focused and 129 adjacent predictor/composer/registry/safety/live-twin/
   benchmark/UI tests, plus Ruff, formatting, strict mypy, lock and secret checks; and
-- the Phase-171 status audit reran 250 meeting/platform/research-workflow tests successfully.
+- the Phase-171 status audit reran 250 meeting/platform/research-workflow tests successfully; and
+- Phase 173 passed 22 focused activation tests and 98 aggregate-store/bus-adapter regression tests,
+  plus Ruff, formatting, strict mypy, lock, exact-source-byte and path-leakage gates.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -78,7 +79,7 @@ or research-usability acceptance claim.
 | Group | Practical state | What is built | What remains |
 |---|---|---|---|
 | v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, three platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
-| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store, deterministic incremental analytics, evidence matrix and append-only scenario lifecycle | Populate a real safe store, bind the dashboard feed, add matrix UI and wire lifecycle consumers |
+| Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic incremental analytics, evidence matrix and append-only scenario lifecycle | Select and activate a real owner workspace with authority/licence inputs, bind the dashboard feed, add matrix UI and wire lifecycle consumers |
 | Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded decision assessments | Dashboard presentation and consumer integration; still no execution authority |
 | Controlled live twin | `foundation_only` | Maximum-coverage schemas, policies, state machine and deterministic fake | Concrete local SUMO/public/cloud/operator transports and deployment-supplied authority |
 | Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
@@ -176,19 +177,21 @@ next section.
    matrix, mechanism observatory and Decision-Safety assessments.
 2. Wire composer drafts into the append-only scenario registry through explicit local lifecycle
    actions, leaving approval, execution and admission external and digest-bound.
-3. Add an owner-selected ignored-workspace activation command for the aggregate SQLite store,
-   including migration preview, backup/restore drill and import of already-safe aggregate
-   artifacts only; never open raw quarantine.
-4. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
+3. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
    fixture, retaining engineering-only receipts and launching no scientific campaign.
-5. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
+4. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
    ingestion and deterministic synthetic workers; real training remains a separately authorised
    action after a signed protocol and concrete resources exist.
-6. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
+5. Build the fenced XAI instrumentation contract and synthetic decision-audit/disagreement UI;
    real attribution remains unavailable until a compatible producer snapshot hook and validation
    method exist.
-7. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
+6. Produce the requested 3–4-slide supervisor deck and expand/verify the dissertation bibliography;
    neither artifact creates supervisor approval or research evidence.
+
+Completed in Phase 173: the owner-workspace aggregate SQLite activation command now supplies
+mutation-free preview, exact confirmation, closed safe-artifact adapters, atomic/idempotent
+publication, orphan/corruption reporting, and complete-backup isolated restore verification. No
+real workspace or artifact was activated.
 
 ## 7. Decisions or evidence required before acceptance
 

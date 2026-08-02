@@ -4615,3 +4615,35 @@ directs later sessions to continue through independent safe slices without repea
 the recorded maximum-coverage choices. Verification passed lock consistency, relative-link,
 formatting and secret-leakage checks. No source code, test, evidence, external action, scientific
 campaign, deployment, approval or admission changed.
+
+### Phase 173 claim: operational aggregate-store activation (2 August 2026)
+
+The owner-directed integrating lead owns the first post-meeting build slice in
+`docs/platform/operational_aggregate_store_activation_design.md`,
+`src/traffictwin/platform/historical_store_activation.py`,
+`scripts/historical_store_activation.py`, `tests/unit/test_historical_store_activation.py`,
+the bounded status updates in `docs/implementation-status.md` and
+`docs/current_progress_v0_7.md`, the narrow `CHANGELOG.md` entry, and this phase record. The phase
+may add a preview-first activation service and CLI for an explicitly selected owner workspace,
+digest/schema/licence-validated adapters for existing BODS session-activity aggregates and bus
+forecast-fit artifacts, atomic and idempotent catalogue registration, corruption/orphan
+reporting, and complete-backup plus isolated-restore verification. It may not admit generic JSON
+or raw/private artifacts, reopen BODS quarantine, expose paths or credentials, manufacture source
+standing, migrate real data, execute acquisition or analysis, or claim that a tested activation
+contract is a deployed production/scientific store. Shared historical-store core files are not
+owned by this phase and will remain untouched unless a newly discovered acceptance blocker makes
+a separately recorded amendment unavoidable.
+
+Phase 173 completed locally on 2 August 2026. The activation service and CLI now discover only
+strict digest-bound BODS session-activity and bus forecast-fit bundles beneath private external
+owner-workspace roots, validate separate authoritative source records plus exact schema/licence/
+standing contracts, preview without target mutation, require the exact preview digest, stage and
+register idempotently, create a complete catalogue/payload backup, prove it through isolated
+restore/replay, and atomically publish one path-free marker-bound store. Exact retries reconcile
+marker contracts, catalogue records and payload bytes; corruption, unmanaged targets, source
+changes, duplicate ids, private content, traversal, symlinks and unsafe permissions fail closed
+without deletion. All 22 focused tests and the 205-test adjacent post-v1 regression passed; Ruff
+lint/format, strict mypy on the owned service/CLI, `uv lock --check`, source-byte preservation,
+path-leakage screening and `git diff --check` passed. No real workspace or artifact was selected,
+imported or activated; no quarantine, network, analysis, evidence, admission or deployment action
+occurred.

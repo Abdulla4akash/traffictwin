@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 170. It does not alter the strict
+This section records the additive platform truth through Phase 173. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -41,7 +41,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Bus forecast backend | Phase 143 implemented aggregate dataset/fit/predict/validate and verdict self-test contracts | Too few eligible service dates for the predeclared held-out verdict |
 | Platform dashboard | Phase 145 implemented additive Inventory, Forecasts and Composer pages | No participant results; post-v1 backend views are not yet integrated |
 | Dhaka corridor | Phase 146 completed the authorised Airport-road network feasibility build with an ACCEPTED receipt | Network engineering only: no observations, calibration, simulation, VEC result or Dhaka twin claim |
-| Historical store and analytics | Phases 147/160 implemented local aggregate SQLite persistence; Phases 152/165 implemented atomic analytics and the 15-minute policy | No real migration/population, backup scheduler, OS analytics scheduler or shared-dashboard feed binding |
+| Historical store and analytics | Phases 147/160 implemented local aggregate SQLite persistence; Phase 173 added preview-confirmed activation, two closed safe-artifact adapters, atomic publication and backup/restore verification; Phases 152/165 implemented atomic analytics and the 15-minute policy | No real workspace selection, import/migration/population, backup scheduler, OS analytics scheduler or shared-dashboard feed binding |
 | Evidence matrix and scenario registry | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161 | No matrix UI; the registry does not approve, launch or admit |
 | Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2 | No observatory/safety UI or execution authority; outputs create no evidence |
 | Controlled live twin | Phases 153/168 implemented maximum-coverage control contracts and a deterministic fake adapter | No real process/transport, live BODS, public service, cloud allocation or road actuation |
@@ -51,6 +51,15 @@ The platform backend suite is therefore implemented, but implementation is not s
 running deployment or completed study. Current external/scientific gaps are activation inputs and
 real evidence: participant approval/data, populated live aggregate stores, scheduled operations,
 concrete live-twin transports and the signed/executed benchmark.
+
+Phase 173 closes the aggregate-store tooling gap without claiming a real activation. Its
+path-free CLI previews only digest-bound BODS session-activity aggregates and bus forecast-fit
+artifacts, requires the exact preview digest before mutation, stages the SQLite catalogue outside
+the repository, verifies a complete catalogue/payload backup through an isolated replay, and
+publishes by atomic rename. Exact retries reconcile the marker, contracts, catalogue and payloads;
+corrupt or unmanaged targets refuse. Synthetic tests prove source-byte preservation, privacy,
+licence, standing, permission, symlink, crash-resume, corruption, orphan and CLI boundaries. No
+real owner workspace, authority record or aggregate was selected or imported.
 
 Phase 0 status: approved and committed.
 

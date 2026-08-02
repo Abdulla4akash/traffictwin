@@ -2,6 +2,16 @@
 
 ## v0.7.0 - In development
 
+Added operational aggregate-store activation (2 August, Phase 173): a path-free local CLI and
+service discover only digest-bound BODS session-activity aggregates and bus forecast-fit artifacts
+under a private external owner workspace, validate their separate authoritative source records and
+exact schema/licence/standing contracts, preview without mutation, and require the exact preview
+digest before activation. Catalogue population is staged and idempotent, a complete
+catalogue/payload backup is replayed in an isolated restore drill, and final publication is one
+atomic rename. Exact retries reconcile contracts and bytes; corrupt/unmanaged targets, source
+changes, unsafe permissions, symlinks, raw/private content and generic JSON fail closed. This phase
+activated no real workspace, migrated no real data, opened no quarantine and created no evidence.
+
 Activated bounded DeepSeek natural-language composition (2 August, Phase 170): explicitly
 consented owner-entered scenario prose is translated through the official JSON-output API into the
 existing strict `ComposerForm`; the unchanged local predictor then predicts or refuses and drafts
