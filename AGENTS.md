@@ -5144,3 +5144,30 @@ without adding a failure; the rendered page advanced to the second automatic sna
 manual click. No credential, raw position or vehicle identifier was printed or committed; the
 request box also remains uncommitted. No provider quota, city-road coverage, privacy/retention,
 complete Bee, public-hosting, capability, scientific or release claim was created.
+
+### Phase 190 claim: post-Phase-189 durable real-evidence programme design (3 August 2026)
+
+The owner-directed integrating lead owns the documentation-only design amendment in
+`docs/traffictwin-design-v0_7.md`, the bounded sequencing update in
+`docs/current_progress_v0_7.md`, the formal non-implementation reconciliation in
+`docs/implementation-status.md`, the matching decisions in `docs/open-questions.md`, and this
+phase record. The phase may design eight implementation
+slices: a new-only durable v0.7 workspace; a foreground port-8502 real-workspace run profile over
+the existing BODS and National Highways workers; privacy-safe aggregate persistence beyond the
+24-hour hot histories; National Highways record-transition tracking; BODS operational trends;
+read-only source health; a resumable one-row-at-a-time named-person map-match review; and
+contract-driven TfGM/NTIS measured-traffic adapters after provider evidence arrives. It may not
+initialise or inspect a private workspace, use credentials, acquire source data, create a daemon or
+deployment, choose a retention/publication policy on the owner's behalf, act as the 174-row
+reviewer, assume a TfGM/NTIS endpoint/schema/time basis/licence, change capability standing, create
+scientific evidence, or create a release/tag.
+
+Phase 190 completed locally on 3 August 2026. Canonical design section 27 now specifies the eight
+separate slices, their typed boundaries, operator flows, privacy/time/licence refusals, acceptance
+tests, dependencies and existing-capability traceability. The working tracker and formal status
+record identify the increment as design-only. Verification passed 20 focused release/handoff
+integrity tests, lock validation, changed-document relative-link and eight-slice structure checks,
+added-line secret/private-path screening, and `git diff --check`. No private workspace was created
+or inspected; no key, source request, long-term store, event/trend artifact, page, row decision,
+provider contract/adapter, capability acceptance, scientific evidence, deployment, tag or release
+was created.

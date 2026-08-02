@@ -78,6 +78,13 @@ Open:
     review, provider cadence/SLA evidence, and browser/accessibility acceptance are required before
     the bounded National Highways operational REST slice can contribute to formal MAN-01/MAN-07/
     MAN-08 capability acceptance?
+19. What private retention duration, backup cadence, disk ceiling, deletion authority, and public
+    output class apply to the proposed identifier-free BODS/National Highways operational day
+    aggregates beyond the existing 24-hour hot histories?
+20. For each TfGM SCOOT/UTC/UTMC/automatic-counter or NTIS measured-traffic product offered after
+    provider contact, what exact access, cost, account/agreement, schema, request limit, time/DST,
+    detector identifier/location, security-sensitive-field, retention, licence, derived-result,
+    and publication contract applies?
 
 The 2 August 2026
 [authoritative-source re-audit](integration/manchester_authoritative_source_reaudit_20260802.md)
@@ -126,7 +133,9 @@ Gate-A reconciliation on 22 July 2026 narrows, but does not erase, these questio
   desktop/mobile light/dark automated browser matrix passes. Source-coverage meaning,
   retention/release, provider-SLA, manual accessibility/participant review, and complete capability
   gates in the revised question remain
-  open. Questions 1, 2, 5–8, 11, 12, and 15–18 otherwise remain open at their stated gates.
+  open. Phase 190 defines the fail-closed engineering designs behind Questions 19 and 20 but does
+  not answer their owner/provider decisions. Questions 1, 2, 5–8, 11, 12, and 15–20 otherwise
+  remain open at their stated gates.
 
 ### v0.5 design decisions
 

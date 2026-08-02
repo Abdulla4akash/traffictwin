@@ -1,8 +1,8 @@
 # TrafficTwin v0.7 Current Progress and Build Plan
 
-**Snapshot date:** 2 August 2026
+**Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 189 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 190 is the current design-only increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -14,7 +14,9 @@ accessibility engineering QA, Phase-184 Manchester Gate-D decision support, Phas
 DfT/WebTRIS/BODS source re-audit and Phase-186 committed-input/submission-release handoff audit.
 Phase 187 added the bounded local usage runbook; Phases 188–189 add owner-authorised process-
 lifetime National Highways and BODS refresh without changing source, publication or capability
-standing. This tracker distinguishes implemented libraries/pages and communication artifacts from
+standing. Phase 190 designs the next durable real-workspace, operational-history, source-health,
+map-review and provider-gated measured-traffic programme without implementing or activating it.
+This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
@@ -143,6 +145,12 @@ At the latest proportional verification points:
   real-source cycles completed without adding a failure, and the rendered page advanced without a
   manual click. This creates no official provider quota, automatic deletion, complete Bee/privacy
   approval, city-road coverage, public hosting, capability acceptance or release authority.
+- Phase 190 added design only: canonical section 27 now defines eight separate durable
+  real-evidence slices with typed boundaries, failure/privacy/time/licence rules, acceptance tests
+  and sequencing. Twenty focused release/handoff integrity tests, lock validation, relative-link
+  and structure checks, added-line secret/private-path screening and diff checks pass. No private
+  workspace, source request, implementation, reviewer decision, provider contract, capability
+  acceptance or release was created.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -325,6 +333,34 @@ coverage. Literature context, project measurements and LLM drafting remain separ
 supervisor, ethics, publication, production or real-road approval or new research evidence was
 created.
 
+### 6.5 Phase-190 durable real-evidence programme design
+
+The canonical [v0.7 design](traffictwin-design-v0_7.md#27-post-phase-189-durable-real-evidence-programme)
+now defines eight separate next slices. None is implemented merely because its design exists:
+
+1. preview-confirmed, new-only creation of a durable v0.7 workspace outside the repository;
+2. a secret-free preflight and foreground port-8502 run profile over the existing BODS and
+   National Highways workers, leaving the synthetic demo on 8501;
+3. a hash-chained aggregate attempt journal and immutable UTC-day partitions beyond the current
+   24-hour hot control histories, gated by an owner-approved retention/publication policy;
+4. complete National Highways first-seen/changed/unchanged/no-longer-listed/expired/reappeared
+   tracking between compatible complete accepted snapshots;
+5. identifier-free BODS live/stale, verified-operator coverage, source-age, cadence, refusal and
+   failure trends;
+6. a read-only Source Health route exposing configuration presence, worker state, freshness,
+   history/integrity and blockers without values, paths, identifiers or network actions;
+7. a registered-artifact, resumable, one-row-at-a-time named-person workflow for all 174 Gate-D
+   review rows, preserving append-only supersession and prohibiting bulk/agent decisions; and
+8. a provider-access contract and fail-closed adapter sequence for any TfGM SCOOT/UTC/UTMC/counter
+   or NTIS measured-traffic product offered after the provider enquiry.
+
+`NEXT-01`–`NEXT-08` are programme labels only. The first seven have independent engineering work;
+real long-term retention still requires the owner's policy, real row decisions require the named
+reviewer, and `NEXT-08` source implementation waits for exact provider access/schema/rate/time/
+identifier/security/licence/publication evidence. No workspace was created or inspected, no
+credential was used, no source was fetched, no reviewer decision was recorded, and no capability
+or release standing changed in Phase 190.
+
 ## 7. Decisions or evidence required before acceptance
 
 | Required decision/evidence | Blocks |
@@ -337,7 +373,9 @@ created.
 | WebTRIS source timezone semantics | Full `MAN-03`/`MAN-07` canonical time projection |
 | DfT raw-count hour timezone and defensible profile policy | Full `MAN-02`/`MAN-09` use |
 | BODS multi-day identifier persistence plus project privacy/data-management and public row-level output treatment; general reuse/publication and API registration were documented in Phase 185 | Full `MAN-05` and any public live output |
+| Owner-approved private duration, backup, disk, deletion and public-output policy for identifier-free operational day aggregates | `NEXT-03` real long-term activation and public trend export |
 | Complete versioned Bee Network service/operator/NOC membership evidence | Complete Bee Network claim in `MAN-05` |
+| Exact provider response/agreement for each offered TfGM SCOOT/UTC/UTMC/counter or NTIS product, including access, cost, schema, quota, time/DST, detector, security, retention, licence and publication terms | `NEXT-08` source implementation and any resulting `MAN-07`–`MAN-10` use |
 | Final publication classes and licence reconciliation for all source/reference/network artifacts | Gate B, Gate F, public release |
 | Decision on participant usability study and any ethics/supervisor approval | RQ16 and final UX research acceptance |
 
@@ -374,6 +412,11 @@ WebTRIS remains a useful historical/latest-available source. It is explicitly re
    migration/rollback tooling.
 7. Reconcile project records, generated artifacts, security/licence evidence, capability truth,
    package version, CI, documentation, and the final immutable release tag.
+
+The Phase-190 operational track can proceed alongside that scientific path: implement `NEXT-01`
+then `NEXT-02`; freeze `NEXT-03` before `NEXT-04`/`NEXT-05`; build `NEXT-06` over their read-only
+status contracts; and progress `NEXT-07` independently with the authorised named reviewer. Keep
+`NEXT-08` at contract intake until the provider response closes its exact external blockers.
 
 ## 10. Update protocol
 

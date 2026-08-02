@@ -10,10 +10,10 @@ comparison, and a research-focused product interface
 
 **Status:** Repository-owner-approved design; implementation not yet accepted
 
-**Date:** 22 July 2026
+**Date:** 3 August 2026
 
-**Revision:** Post-review clarification of capability gates, time basis, dependencies, navigation,
-geographic admission, and acceptance evidence
+**Revision:** Post-Phase-189 durable real-workspace, operational-history, source-health,
+map-review, and provider-gated measured-traffic programme
 
 > v0.7 supersedes v0.6 for future product and architecture decisions. The immutable
 > [`v0.6.0`](https://github.com/Abdulla4akash/traffictwin/tree/v0.6.0) release remains the
@@ -998,6 +998,11 @@ not Manchester realism.
     authentication is required, and how should unmatched or incomplete feed coverage be reported?
 15. Which immutable workspace, release-manifest, or checkout evidence proves that a compatibility
     source was produced by the exact `v0.6.0` release before any schema migration is accepted?
+16. What private retention duration, backup cadence, disk ceiling, deletion authority, and public
+    output class apply to the identifier-free operational day aggregates in `NEXT-03`?
+17. For each TfGM SCOOT/UTC/UTMC/counter or NTIS measured-traffic product offered in response to
+    the provider enquiry, what exact access, cost, schema, rate, time/DST, detector,
+    security-sensitive-field, retention, licence, derived-result, and publication contract applies?
 
 Unknown answers block only their dependent capability. Historical replay can be useful without a
 true live city-road feed; live bus positions can be useful without being misrepresented as general
@@ -1021,6 +1026,395 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 - Offline cached data may be useful but must remain visibly stale.
 - No design statement grants a source licence, credential, public-hosting right, or scientific
   acceptance.
+
+## 27. Post-Phase-189 durable real-evidence programme
+
+Phases 188 and 189 added process-lifetime automatic refresh for the three National Highways
+operational products and BODS live vehicle positions. They did not leave a durable real workspace,
+an always-on service, long-term operational history, event-transition evidence, a complete source
+health surface, or a completed human map review. TfGM/NTIS measured traffic also remains
+unavailable while the provider enquiry is unanswered.
+
+This section freezes the next eight designs. The labels `NEXT-01`–`NEXT-08` are programme-slice
+labels, not new capability IDs and not implementation claims. Each slice must be implemented,
+verified, documented, and reconciled separately. Completing one slice does not accept a `MAN-*`,
+`UX-*`, or `REL-01` capability.
+
+```mermaid
+flowchart LR
+    Workspace["NEXT-01 durable private v0.7 workspace"] --> Run["NEXT-02 local real-workspace process :8502"]
+    Run --> BODS["Existing BODS worker"]
+    Run --> NH["Existing National Highways worker"]
+    BODS --> Hot["Existing 24-hour hot control state"]
+    NH --> Hot
+    Hot --> Archive["NEXT-03 aggregate attempt journal + immutable day partitions"]
+    NH --> Changes["NEXT-04 record-transition ledger"]
+    Archive --> Trends["NEXT-05 BODS operational trends"]
+    Archive --> Health["NEXT-06 Source Health"]
+    Changes --> Health
+    Review["NEXT-07 named-person map review"] --> GateD["Existing Gate-D readiness chain"]
+    Provider["NEXT-08 accepted TfGM/NTIS provider contract"] --> Adapters["Future measured-traffic adapters"]
+    Adapters --> Archive
+```
+
+### 27.1 Shared operating and evidence rules
+
+- The synthetic demonstration remains on port 8501 and retains `synthetic` truth. The real
+  workspace, if explicitly created and populated by the owner, uses a separate foreground process
+  on port 8502.
+- A workspace marker proves layout and schema compatibility only. It does not prove source
+  presence, licence acceptance, freshness, calibration readiness, or scientific standing.
+- Source acquisition continues through the existing immutable snapshot, quarantine-before-parse,
+  bounded transport, OS lock, and typed receipt boundaries. UI reruns never fetch a provider.
+- The existing BODS and National Highways control files remain bounded hot state. Longer history is
+  additive and cannot weaken their request-frequency, stale-fallback, or corruption refusals.
+- Stored timestamps are UTC. `Europe/London` is a display/grouping projection that retains UTC,
+  offset, and fold. A local day may contain 23 or 25 hours; neither is normalised to 24.
+- A safe aggregate contains no credential, raw response, vehicle or journey identifier, private
+  path, free-form provider body, participant data, or row-level bus trajectory.
+- Private local use and public publication are separate decisions. No new history, event, trend,
+  detector, or health artifact is publicly exportable until its exact source and project policy
+  allows that output.
+- Worker receipts, trends, and health observations are operational/software evidence. They do not
+  become traffic measurements, scientific findings, source SLAs, or provider guarantees.
+
+### 27.2 `NEXT-01` — durable real v0.7 workspace
+
+#### Goal and operator flow
+
+Create one owner-selected, durable workspace outside the repository without searching for or
+overwriting a prior private workspace. A local directory such as
+`<owner-selected-external-root>/TrafficTwin/workspace-v0.7` is illustrative only; no absolute path
+is committed or made canonical.
+
+1. Preview a new-only workspace plan and report containment, ownership, permissions, required
+   layout, registry schema, free-space threshold, and collision/refusal state without mutation.
+2. Require exact owner confirmation of the plan digest before initialisation.
+3. Create the existing `V07WorkspaceManifest` layout with owner-only directory/file permissions,
+   fsync the marker and registry, then reopen it through the normal read-only inspector.
+4. Create and restore-verify an empty baseline backup before the first source acquisition.
+5. Return a path-free receipt with an opaque workspace handle, manifest digest, registry digest,
+   backup digest, creation time, and `contains_accepted_source_data=false`.
+
+Proposed additive contracts are `V07DurableWorkspacePlan`, `V07DurableWorkspaceReceipt`, and
+`V07LocalRunProfile`. Private paths exist only in local runtime configuration. The run profile
+binds the workspace/registry handles, expected port, enabled source-worker names, and environment-
+variable *names*; it never stores environment values.
+
+#### Refusals and acceptance
+
+Initialisation refuses an existing marker, non-empty target, symlink, repository descendant,
+group/other-writable parent, unsupported registry schema, insufficient free space, failed fsync,
+or failed restore drill. It never repairs, imports, activates a historical store, or acquires data
+as a side effect.
+
+Acceptance requires new-only/idempotency tests, injected interruption at each publication step,
+permission and symlink adversarial tests, backup/restore verification, an unchanged-source check,
+path/secret screening, and a final read-only inspector pass. A real initialisation remains an
+explicit owner operation and receives a separate local receipt; synthetic tests alone do not prove
+it occurred.
+
+### 27.3 `NEXT-02` — local real-workspace process on port 8502
+
+#### Goal and preflight
+
+Run the existing BODS one-minute worker and National Highways five-minute worker together in one
+foreground Streamlit process while leaving the synthetic demo independently usable on 8501.
+`V07RealWorkspaceRunPreflight` reports only:
+
+- valid workspace/registry contract and opaque handle;
+- port availability and loopback-only bind intent;
+- BODS key present/not present, request-box valid/invalid, and interval enabled/disabled;
+- National Highways key present/not present and interval enabled/disabled;
+- control-file integrity, lock availability, last terminal receipt, and local scene availability;
+- source contract/freshness versions and unresolved licence/privacy blockers; and
+- a fixed launch plan digest with no key, value, raw path, or shell fragment.
+
+The launch remains foreground-only and uses the existing fixed application entry point. A worker
+starts only after the app receives its first configured session, uses its existing coordinator,
+and stops with the Streamlit process. The page's 30-second watcher reads local receipt/scene state
+only. Manual actions remain fallbacks and share the same source-specific locks.
+
+#### Failure and acceptance
+
+One worker failing cannot stop or relabel the other. A failed request preserves the last accepted
+scene, records a safe failure code, and allows display-time ageing to `stale`. Missing credentials
+produce `not_configured`, not a stack trace or a false outage. Port conflicts, invalid workspaces,
+unsafe control files, invalid boxes, and unsupported intervals refuse before launch.
+
+Acceptance covers simultaneous-worker lifecycle, exact 60/300-second default scheduling,
+single-owner locking, manual/automatic contention, restart recovery, key/path/log screening,
+stale fallback, independent failure, port separation, and graceful shutdown. A local smoke may
+verify worker wiring with synthetic transports; a real smoke requires the owner's workspace and
+credentials and remains private operational evidence.
+
+### 27.4 `NEXT-03` — privacy-safe aggregate history beyond 24 hours
+
+#### Two-tier persistence
+
+The existing 24-hour/240-entry control files remain the hot UI and coordination cache. They are not
+expanded into unbounded JSON. A separate `ManchesterOperationalAggregateJournal` appends exactly
+one terminal attempt record after each coordinated BODS or National Highways attempt:
+
+```text
+source family and contract version
+automatic/operator trigger
+attempted_at_utc and terminal_at_utc
+success/failure and allowlisted failure code
+request-scope fingerprint (never the box or key)
+accepted/excluded/stale aggregate counts
+source publication/observation range where documented
+receipt fingerprint and prior journal-chain digest
+aggregates_only=true; public_export_available=false
+```
+
+Records are canonical, size-bounded, owner-only, hash-chained, fsynced, and idempotent by terminal
+receipt fingerprint. A crash before journal publication is reconciled from the control receipt on
+restart; a partial or divergent chain is quarantined and cannot silently lose or replace history.
+
+Completed UTC days are deterministically compacted into immutable
+`ManchesterOperationalDayAggregate` artifacts. Each partition reconciles attempted, successful,
+failed, missing-cadence, automatic, and operator-triggered totals and preserves per-source
+denominators. A new closed adapter registers only this schema as `SAFE_ANALYSIS_SUMMARY` in the
+existing aggregate historical store. It cannot admit generic JSON or reopen raw quarantine.
+
+#### Retention, time, and publication
+
+Long-term aggregate retention is controlled by a versioned `ManchesterAggregateRetentionPolicy`
+with private-retention duration, backup cadence, disk ceiling, compaction delay, public-output
+class, and owner decision identity. Until that policy is approved, day partitions may be previewed
+but operational activation remains unavailable. This does not change the separate raw BODS
+snapshot cleanup policy and never deletes raw evidence automatically.
+
+Storage partitions use UTC dates. London-local charts derive labels at query time and retain
+offset/fold, so DST transitions remain explicit. Negative source age/clock skew is counted as a
+quality finding and is never clamped to zero.
+
+Acceptance requires deterministic replay and compaction, duplicate/reordered receipt handling,
+crash recovery, chain mutation detection, daily and lifetime count reconciliation, DST tests,
+bounded query plans, complete backup/isolated restore, no identifier/path/secret fields, and proof
+that refusal leaves the hot control state and last accepted source scene unchanged.
+
+### 27.5 `NEXT-04` — National Highways event and state transitions
+
+#### Comparison contract
+
+The current `record_token` is the stable privacy-safe comparison key and
+`source_record_fingerprint` is the content identity. `NationalHighwaysTransitionService` compares
+only consecutive, complete, accepted snapshots with the same product, envelope, schema, and source
+contract. It emits a complete reconciliation across these states:
+
+| Transition | Required evidence | Permitted wording |
+|---|---|---|
+| `first_seen` | Token absent from prior complete snapshot and present now | New in the accepted feed |
+| `content_changed` | Same token, different record fingerprint | Source record changed |
+| `unchanged` | Same token and fingerprint | Unchanged between accepted snapshots |
+| `no_longer_listed` | Token present before and absent from the next complete snapshot | No longer listed in the latest accepted feed |
+| `validity_expired` | Source validity end passed under documented UTC | Source validity expired |
+| `reappeared` | A previously absent token returns | Reappeared in the accepted feed |
+
+`no_longer_listed` is never shortened to “road cleared” or “sign removed” unless an explicit source
+field supports that stronger statement. A failed, partial, stale, scope-changed, or schema-drifted
+refresh creates no disappearance transitions. VMS working status, message-information types and
+reason/time metadata may change, but literal displayed message text remains unavailable.
+
+`NationalHighwaysRecordTransition` retains product, opaque token, previous/current fingerprints,
+source publication times, an allowlisted changed-field set, transition reason, and lineage. Local
+private views may join the current accepted record for map context. Long-term public artifacts use
+aggregate transition counts unless a later source-publication review permits row-level output.
+
+#### Experience and acceptance
+
+Manchester Operations gains a source-separated **Changes** view with product filters, a timeline,
+new/changed/no-longer-listed counts, and current map selection. It never mixes these with measured
+speed, flow, congestion, or BODS counts.
+
+Acceptance covers all six transitions for closures, restrictions, and VMS; changed-field
+allowlisting; complete set reconciliation; duplicate/order independence; outage/partial/scope
+refusals; reappearance; validity timing; DST-independent UTC comparison; private/public
+projections; and exact prior/current snapshot lineage.
+
+### 27.6 `NEXT-05` — BODS operational trends
+
+#### Aggregate contract
+
+`BodsOperationalAttemptAggregate` extends the safe attempt record with values computed inside the
+existing refresh boundary before row-level observations are discarded:
+
+- accepted, live-at-fetch, source-stale-at-fetch, outside-box, malformed/refused, duplicate, and
+  missing/ambiguous membership counts with complete denominators;
+- verified Bee-operator counts only for the accepted versioned allowlist, plus other/unknown row
+  and distinct-operator totals without retaining arbitrary operator names;
+- minimum, median, 95th-percentile and maximum source age from documented BODS UTC timestamps;
+- negative-age/clock-skew count, earliest/latest source time, and between-snapshot source-time
+  cadence where comparable; and
+- attempt result, safe refusal code, contract/policy fingerprints, and coverage limitations.
+
+No vehicle, journey, block, service, trip, coordinate, bearing, or salted/pseudonymised token enters
+this artifact. A distinct-operator total is feed coverage for the observed response, not guaranteed
+Bee fleet or service coverage. Position gaps do not become road speed, bus progression speed, or a
+continuous trajectory; those require their separate aggregate contract.
+
+#### Experience and acceptance
+
+The BODS trends view shows live/stale composition, verified-versus-other coverage, source-age
+distribution, successful-update cadence, and failure/refusal counts over explicit UTC or
+London-display windows. Every chart shows its denominator, missing intervals, policy version, and
+private/public state. Single-point history remains status-only rather than drawing a trend.
+
+Acceptance uses multi-day synthetic sequences with outages, repeated source timestamps, old rows,
+clock skew, operator changes, empty valid responses, parser refusals, DST boundaries, and process
+restarts. Tests prove exact quantiles/counts, no speed/fleet-completeness inference, no raw or
+pseudonymised identifiers, and stable daily rollups in the `NEXT-03` store.
+
+### 27.7 `NEXT-06` — read-only Source Health page
+
+Source Health is an additive **Overview** route answering “what is configured, running, fresh,
+retained, and blocked?” It reads only validated workspace markers, control receipts, accepted scene
+metadata, aggregate-store integrity, worker registries, and frozen source contracts. It performs no
+fetch, credential test request, file repair, cleanup, approval, or scientific calculation.
+
+Each source card/table row includes:
+
+- source family, product/scope, evidence role, time basis, freshness policy, and capability state;
+- configured/not configured for required credential and request scope, never the value, length,
+  hash, prefix, or private path;
+- worker `disabled`, `not_configured`, `starting`, `running`, `degraded`, or `stopped`, with last
+  heartbeat/attempt/success and next locally eligible attempt;
+- last source observation/publication time, retrieval time, current truth state, age, and exact
+  safe failure code;
+- hot-history and long-term-partition coverage, integrity/backup status, and gaps;
+- documented request limit or `provider_limit_unknown`, plus TrafficTwin's own conservative
+  interval without presenting it as the provider quota;
+- licence, retention, identifier, publication, and security-field decision status; and
+- precise links to Manchester Operations, Match Review, the local runbook, and the relevant
+  decision record.
+
+The primary surface uses semantic status plus text/icons, not colour alone. Machine fingerprints
+and complete limitation sets sit under Evidence/Advanced. A metadata download is allowlisted and
+path/secret/identifier-free; it does not itself approve public hosting.
+
+Acceptance covers all configuration and worker states, one-source degradation, stale projection,
+mutated control/store refusal, unknown quota/time/licence wording, empty workspaces, 30-second local
+rerendering without network access, responsive/keyboard/contrast checks, and adversarial values
+that resemble secrets or paths.
+
+### 27.8 `NEXT-07` — resumable named-person map-match review
+
+The existing ledger remains authoritative: one named person decides one count point at a time;
+accept, reject-all, or defer are explicit; revisions supersede rather than overwrite; and the
+strongest result is `analyst_reviewed_candidate`. The workflow is redesigned for the current 174
+queued rows without adding a bulk or automatic decision path.
+
+#### Review workspace
+
+- Select an exact registered match artifact/queue from the validated workspace lineage instead of
+  requiring arbitrary file-path entry. Manual path selection moves to a bounded operator import
+  action outside the page.
+- Reopen the unsealed working ledger automatically by queue and policy fingerprint, verify it, and
+  resume at the first pending row or the reviewer's last explicit bookmark.
+- Show pending/accepted/rejected/deferred totals, session progress, no-candidate rows, changed-
+  decision count, and queue/policy identity.
+- Filter/search by count-point ID, signed road reference, review reason, candidate count,
+  disposition, or decision state. Sorting changes presentation only.
+- Present source point, candidate road groups, direction/class/reference evidence, distance,
+  override use, missing evidence, and admitted map geometry together. Visual proximity never makes
+  the decision.
+- Capture the real reviewer name and role once per local session, display them on every form, and
+  still bind them into every submitted decision. No placeholder or agent identity is permitted.
+- Persist one decision atomically, fsync, read it back, recompute status, then offer **Next pending**.
+  Auto-advance occurs only after verified persistence and never auto-submits another row.
+- Allow correction only through an explicit superseding decision with the prior decision and both
+  reasons visible. Sealing produces a new tamper-evident export and leaves the working ledger
+  untouched.
+
+No “accept recommended,” bulk reject, confidence shortcut, LLM suggestion, unattended review, or
+scientific threshold choice is added. Deferred and nine no-suitable-candidate rows remain unresolved
+until a person records their treatment. Completing the queue does not approve the calibration
+objective, demand design, baseline, or comparison contract.
+
+Acceptance requires exact 174-row resume, filter/bookmark/restart tests, atomic-write interruption,
+queue/policy/row/candidate mismatch refusal, concurrent-editor refusal, supersession lineage,
+sealed-ledger mutation detection, next-row behavior, keyboard-only operation, map/text equivalence,
+no bulk endpoint, no path exposure, and a full synthetic reviewer session. Real decisions must be
+made by the named authorised person and are not test fixtures.
+
+### 27.9 `NEXT-08` — provider-gated TfGM/NTIS measured-traffic adapters
+
+#### Provider-access contract first
+
+TfGM SCOOT, UTC, UTMC, automatic counter, and any NTIS measured speed/flow source remain
+`unavailable_awaiting_provider_contract`. The static TfGM signal-location adapter and current
+National Highways operational adapters stay separate and cannot be widened to stand in for
+telemetry.
+
+Before code or a credentialed probe, one signed/dated `RestrictedTrafficFeedAccessContract` must
+record, for each product independently:
+
+1. academic availability and provider/data-owner contact;
+2. live, delayed, historical, or periodic-export delivery mode;
+3. free, paid, or bespoke-commercial status and approved budget authority;
+4. application, account, credential, IP allowlist, and data-sharing-agreement process;
+5. exact request frequency, concurrency, daily/monthly volume, pagination, and export limits;
+6. licence, attribution, retention, backup, deletion, derived-result, and publication conditions;
+7. detector identifier/location retention and research-output treatment;
+8. timestamp field, timezone, clock change, DST fold/gap, interval-boundary, and revision semantics;
+9. commercially/security-sensitive fields and required exclusions; and
+10. endpoint/protocol, schema/sample, geographic/network coverage, units, quality flags, outage,
+    support, and change-notification behavior.
+
+Unknown values stay unknown and block only their dependent stage. A paid/bespoke response creates
+a quotation decision, not spending authority or an adapter. Provider prose, agreement files, and
+credentials remain private; committed records contain only reviewed contract facts, digests, safe
+citations, and explicit exclusions.
+
+#### Adapter stages
+
+After contract acceptance, each source follows its own Gate-A/B chain:
+
+1. freeze an exact allowlisted transport/export mechanism and credential role;
+2. conduct one minimum-volume private read-only probe within the documented limit;
+3. preserve immutable raw bytes and a secret-free request/response receipt before parsing;
+4. implement a strict source-specific parser with complete input/output reconciliation;
+5. retain source units, interval, detector identity/location policy, quality and revision flags;
+6. admit geography through an explicit CRS/network-location contract;
+7. compute source freshness only from documented timestamps;
+8. publish only a source-specific local view until projection compatibility is approved; and
+9. enable observed-to-SUMO/calibration use only through separate map-match, time-basis, metric, and
+   scientific contracts.
+
+No SCOOT measure, UTC/UTMC field, counter value, or provider-defined quality state is assumed in
+advance. Occupancy, flow, saturation, journey time, imposed limit, and measured speed remain
+different quantities unless the accepted source schema and metric contract prove equivalence.
+Ambiguous local timestamps, unapproved detector retention, unknown request limits, sensitive
+locations, or prohibited derived publication fail closed rather than receiving defaults.
+
+Acceptance includes exact-schema golden and drift fixtures, quota/backoff/concurrency enforcement,
+credential redaction, raw immutability, timezone/DST and interval tests, detector/public-projection
+policy tests, sensitive-field removal before browser/export, outage/revision replay, licence and
+attribution checks, spatial admission, and proof that one provider's acceptance cannot enable
+another source.
+
+### 27.10 Sequencing and traceability
+
+| Order | Slice | Can start before provider reply? | Existing capability relationship |
+|---|---|---|---|
+| 1 | `NEXT-01` durable workspace | Yes | `REL-01`, `MAN-01` |
+| 2 | `NEXT-02` port-8502 run profile | Yes, after `NEXT-01` | `MAN-05`, `MAN-08`, `REL-01` |
+| 3 | `NEXT-03` aggregate history | Design/tests yes; real retention activation needs owner policy | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08` |
+| 4 | `NEXT-04` National Highways transitions | Yes, after aggregate journal contract | `MAN-07`, `MAN-08` |
+| 5 | `NEXT-05` BODS trends | Yes, after aggregate journal contract | `MAN-05`, `MAN-07`, `MAN-08` |
+| 6 | `NEXT-06` Source Health | Yes, after status/query contracts | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08`, `UX-01`–`UX-03` |
+| 7 | `NEXT-07` review workflow | Yes, independently | `MAN-09`, `UX-01`–`UX-03` |
+| 8 | `NEXT-08` TfGM/NTIS adapters | Contract scaffolding only; source code waits for accepted reply | `MAN-01`, `MAN-07`–`MAN-10` |
+
+Implementation should keep `NEXT-01` and `NEXT-02` separate: creating a safe empty workspace is not
+authorisation to acquire data. `NEXT-03` supplies the shared storage boundary before either trend
+feature. `NEXT-04` and `NEXT-05` can then proceed independently, followed by the read-only health
+page. `NEXT-07` is disjoint and may progress in parallel because it uses existing private Gate-D
+artifacts, not live source workers. `NEXT-08` must stop at contract intake until the provider reply,
+data-sharing agreement, schema, rate, time, identifier, security, and publication decisions are
+evidenced.
 
 ## Appendix A — Proposed typed artifacts
 
@@ -1046,6 +1440,16 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 | `V07WorkspaceManifest` | `REL-01` | Strict marker binding one workspace to the v0.7 namespace and exact required layout |
 | `V06RegistryCopyPreview` | `REL-01` | Read-only source schema/hash/size, destination, free-space, blocker, and action preview |
 | `V06RegistryCopyReceipt` | `REL-01` | Source/copy/active-registry reconciliation for a byte-exact non-active copy |
+| `V07DurableWorkspacePlan` | `REL-01`, `NEXT-01` | Mutation-free new-workspace, permission, layout, collision, space, registry, and backup preview |
+| `V07DurableWorkspaceReceipt` | `REL-01`, `NEXT-01` | Path-free initialisation, reopen, baseline-backup, and restore-drill evidence |
+| `V07RealWorkspaceRunPreflight` | `MAN-05`, `MAN-08`, `NEXT-02` | Secret-free workspace, port, worker, configuration, control-state, and local-run readiness |
+| `ManchesterOperationalAggregateJournal` | `MAN-01`, `MAN-07`, `NEXT-03` | Hash-chained terminal-attempt records containing safe counts and receipts only |
+| `ManchesterOperationalDayAggregate` | `MAN-05`, `MAN-08`, `NEXT-03` | Immutable UTC-day partition with attempt, success, failure, gap, and source-specific reconciliation |
+| `ManchesterAggregateRetentionPolicy` | `MAN-01`, `REL-01`, `NEXT-03` | Private duration, backup, disk, compaction, deletion, and publication decision boundary |
+| `NationalHighwaysRecordTransition` | `MAN-07`, `MAN-08`, `NEXT-04` | Complete prior/current transition and changed-field lineage over one source product |
+| `BodsOperationalAttemptAggregate` | `MAN-05`, `MAN-07`, `NEXT-05` | Identifier-free live/stale, coverage, latency, cadence, quality, and refusal summary |
+| `ManchesterSourceHealthReport` | `MAN-01`, `MAN-08`, `NEXT-06` | Read-only configuration, worker, freshness, history, integrity, licence, and blocker view |
+| `RestrictedTrafficFeedAccessContract` | `MAN-01`, `NEXT-08` | Reviewed provider access, schema, quota, time, licence, identifier, sensitivity, and publication facts |
 
 ## Appendix B — v0.7 traceability
 
@@ -1061,6 +1465,10 @@ traffic; v0.6 remains fully usable if every Manchester source is unavailable.
 | SUMO-to-VEC research chain | `MAN-11` plus existing `VEC-06`–`VEC-12` |
 | Focused navigation and visual redesign | `UX-01`–`UX-03` |
 | Independent v0.6 operation and rollback | `REL-01` |
+| Durable real-workspace local operation | `REL-01`, `MAN-01`, `MAN-05`, `MAN-08`, `NEXT-01`, `NEXT-02` |
+| Long-term privacy-safe operational history and trends | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08`, `NEXT-03`–`NEXT-06` |
+| Resumable named-person map review | `MAN-09`, `UX-01`–`UX-03`, `NEXT-07` |
+| Future provider-gated TfGM/NTIS measurements | `MAN-01`, `MAN-07`–`MAN-10`, `NEXT-08` |
 
 ## Appendix C — initial implementation truth
 

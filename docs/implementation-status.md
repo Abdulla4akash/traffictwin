@@ -28,9 +28,9 @@ Historical design status: v0.6 records the implemented Randy/VEC increment, v0.5
 implemented expansion baseline, and v0.4 remains preserved as the original rationale and
 supervisor-meeting traceability record.
 
-## Data-platform and Meeting-3 implementation status (2 August 2026)
+## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 189. It does not alter the strict
+This section records the additive platform truth through Phase 190. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,6 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
+| Durable real-evidence programme | Phase 190 defines eight implementation-ready designs for durable local workspace/run operation, privacy-safe aggregate history, National Highways transitions, BODS trends, Source Health, resumable named-person review and provider-gated TfGM/NTIS measurements | Design only: no workspace, long-term store, transition/trend artifact, page, review decision, provider contract/adapter, capability acceptance or release exists from this phase |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -207,6 +208,20 @@ complete Bee scope, public-hosting, capability or release claim is inferred.
 The focused BODS/UI regression and full 4,160-test repository suite passed, and eleven consecutive
 private real-source worker cycles succeeded without adding a failure. This operational smoke is
 not source-wide/provider/privacy/capability acceptance and commits no private response.
+
+Phase 190 changes the canonical future design and sequencing only. It keeps the current 24-hour
+BODS/National Highways control histories as hot state and specifies a separate hash-chained,
+identifier-free attempt journal plus immutable UTC-day aggregate partitions for longer history.
+It defines complete National Highways record transitions only between compatible complete accepted
+snapshots; BODS coverage/latency/cadence/refusal trends without vehicle, journey or trajectory
+identifiers; a read-only, secret-free Source Health route; and an atomic resumable one-row review
+over the existing 174-row named-person queue. It also records the exact provider-access contract
+required before any TfGM SCOOT/UTC/UTMC/counter or NTIS measured-traffic adapter is written. No
+private workspace was created or inspected, no key or source was used, no retention/publication
+policy was approved, no person was impersonated, and no implementation/capability/release state
+changed. Verification passed 20 focused release/handoff integrity tests, lock validation,
+changed-document relative-link and eight-slice structure checks, added-line secret/private-path
+screening, and `git diff --check`.
 
 Phase 0 status: approved and committed.
 
