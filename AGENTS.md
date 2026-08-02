@@ -4897,3 +4897,26 @@ expected environment-gated skips. Ruff lint/format and lock checks passed, and r
 strict mypy reported no issues across 890 configured source files. Production code, fixtures,
 assertions, generated references, capabilities, scientific findings and evidence standing remain
 unchanged.
+
+### Phase 182 claim: Gate-F technical release-readiness audit (2 August 2026)
+
+The owner-directed integrating lead owns the non-releasing Gate-F audit in
+`docs/quality/v07_release_readiness_audit_20260802.md`; the new coexistence receipt at
+`docs/integration/evidence/side_by_side_check_20260802_phase182.json`; the bounded reconciliation
+notes in `docs/v07_release_compatibility.md`; the additive link in `docs/index.md`; the narrow
+status updates in `docs/implementation-status.md` and `docs/current_progress_v0_7.md`; the
+`CHANGELOG.md` entry; and this phase record. The phase may run clean source/wheel builds and
+installs, deterministic generated-reference comparison in an isolated copy, release/migration/
+rollback tests, release smoke and v0.6/v0.7 side-by-side checks. It may not change package or
+citation versions, create/push a tag, publish a package/site, accept Gate F, migrate a real
+workspace, alter generated references, or contact any production/private service.
+
+Phase 182 completed locally on 2 August 2026. Fifty-eight focused release/migration/rollback tests,
+standalone release smoke and lock validation passed. All 69 generated reference artifacts were
+byte-identical across two isolated generations and the committed tree; clean source and wheel
+builds succeeded; the wheel installed under CPython 3.12.13 and passed import, preset, doctor and
+release-status smokes. A fresh v0.6.0/v0.7 side-by-side check returned HTTP 200 for both isolated
+servers with distinct, byte-unchanged registries. The path-free receipt binds v0.6.0 commit
+`1c50a25246426128ac6e8530240eff362d16be02` and v0.7 parent `552628f…`. Package/citation version,
+tags, generated references, real workspaces, deployment and formal Gate-F standing remain
+unchanged.

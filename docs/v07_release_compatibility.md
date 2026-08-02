@@ -120,6 +120,15 @@ checkout on separate ports and workspaces. The 24 July 2026 run
 concurrently, every workspace/registry path is distinct, and neither side changed the other's
 registry bytes; the temporary checkout is removed afterwards and the tag is never modified.
 
+Phase 182 repeated that check on 2 August 2026 against v0.7 parent
+`552628f452354d4654b8bd631fb0c03e20e57fa7`. The new
+[path-free receipt](integration/evidence/side_by_side_check_20260802_phase182.json) again records
+HTTP 200 from both isolated servers, distinct registries, no cross-registry mutation and no release
+acceptance. The accompanying
+[technical release-readiness audit](quality/v07_release_readiness_audit_20260802.md) also verifies
+isolated builds/install, deterministic references, migration/rollback tests and release smokes
+without changing the development version or creating a tag.
+
 `REL-01` remains planned until later work adds and accepts
 package/release version alignment, cross-schema migration if a schema ever diverges, and final
 documentation and capability reconciliation. The attested same-schema activation slice above

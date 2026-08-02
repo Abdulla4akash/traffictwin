@@ -2,6 +2,12 @@
 
 ## v0.7.0 - In development
 
+Completed a non-releasing Gate-F technical audit (2 August, Phase 182): 58 focused release,
+migration and rollback tests, deterministic regeneration of all 69 reference artifacts, clean
+source/wheel builds and an isolated Python 3.12 install passed. A fresh v0.6.0/v0.7 coexistence run
+returned HTTP 200 from both isolated servers with distinct, byte-unchanged registries. Package
+version, tags, public artifacts, real workspaces and formal Gate-F standing remain unchanged.
+
 Restored the repository-wide strict-mypy gate (2 August, Phase 181) without changing production
 behavior: three test helpers now use the exact existing `LoadedAggregate`, Pydantic `BaseModel` and
 typed benchmark-seed mapping contracts instead of widening values to `object` and suppressing the

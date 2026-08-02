@@ -1,0 +1,25 @@
+{
+  "capability_status": "REL-01 remains planned",
+  "checked_at_utc": "2026-08-02T15:02:59.292023+00:00",
+  "cross_registry_mutation_observed": false,
+  "findings": [
+    "clean v0.6.0 checkout created at commit 1c50a25246426128ac6e8530240eff362d16be02",
+    "v0.6.0 installed independently from its own lockfile",
+    "v0.6.0 CLI initialised and validated its own synthetic demo workspace",
+    "v0.7 checkout initialised its separately marked workspace",
+    "both servers responded concurrently (v0.6.0 on 8621, v0.7 on 8622)",
+    "neither registry changed while both applications served"
+  ],
+  "registries_distinct": true,
+  "release_acceptance": "not_claimed",
+  "schema_version": "traffictwin.side-by-side-check.v1",
+  "v06_commit": "1c50a25246426128ac6e8530240eff362d16be02",
+  "v06_http_status": 200,
+  "v06_port": 8621,
+  "v06_registry_sha256": "f414c0e36525a3f959f4b37ab93849b45230ec5f2bb5633d9060856f5b9ddaf9",
+  "v06_tag": "v0.6.0",
+  "v07_commit": "552628f452354d4654b8bd631fb0c03e20e57fa7",
+  "v07_http_status": 200,
+  "v07_port": 8622,
+  "v07_registry_sha256": "951782c793e08a5c9eb7e985dce859f30c97939515a24f5a4f0d9b513e705742"
+}
