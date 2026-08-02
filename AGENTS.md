@@ -4592,3 +4592,26 @@ activity as completed. Verification passed 250 meeting/platform/research-workflo
 `uv lock --check`, changed-document relative-link validation, private-path screening and
 `git diff --check`. No source code, test, evidence, capability acceptance, external system or
 scientific standing changed.
+
+### Phase 172 claim: post-meeting build-queue resume handoff (2 August 2026)
+
+The integrating lead owns one documentation-only, root-level continuation handoff at
+`POST_MEETING_BUILD_RESUME_PROMPT.md` and this phase record. It must preserve the live Phase-171
+repository truth, all eight owner-requested next-build areas, their dependency order, safe local
+scope, acceptance gates and exact shared-worktree/commit/push workflow. The embedded paste-ready
+prompt must tell a fresh session to inspect live state rather than reset to the recorded commit,
+design before implementation, use one fresh phase/verification/commit per slice and continue
+through independent safe work without repeatedly re-asking already recorded maximum-coverage
+choices. This phase does not authorise or perform acquisition, participant activity, scientific
+campaigns, cloud spend, public deployment, operator/road effects, approval, admission or evidence
+creation.
+
+Phase 172 completed on 2 August 2026. `POST_MEETING_BUILD_RESUME_PROMPT.md` now records the live
+Phase-171 baseline, all eight requested next-build slices in backend-first order, their concrete
+deliverables and residual authority/scientific boundaries, the shared-worktree verification and
+per-slice commit workflow, and a self-contained paste-ready prompt for a fresh context. The prompt
+starts with operational aggregate-store activation, requires design before implementation and
+directs later sessions to continue through independent safe slices without repeatedly re-asking
+the recorded maximum-coverage choices. Verification passed lock consistency, relative-link,
+formatting and secret-leakage checks. No source code, test, evidence, external action, scientific
+campaign, deployment, approval or admission changed.
