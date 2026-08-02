@@ -4469,3 +4469,26 @@ rerun is now admitted only as descriptive evidence with the immutable
 homecoming-evidence digests. The earlier 147-repeat archive remains non-admitted, and neither
 Sparse-64 return is pooled with corridor VEC evidence. No private archive was published and no
 experiment, external service or scientific calculation ran.
+
+### Phase 167 claim: owner-selected Decision-Safety Ruleset v2 (2 August 2026)
+
+The integrating lead owns the owner-directed broad decision-support amendment in
+`src/traffictwin/platform/decision_safety.py`, `tests/unit/test_decision_safety.py`,
+`docs/platform/decision_safety_layer_design.md`, and this phase record. The phase may replace the
+blanket v1 prohibitions with digest-bound study policies that permit compatible in-envelope
+rankings, metric-specific winners, evidence-backed advisory recommendations, owner-preselected
+defaults, reviewable execution-instruction drafts and design-supported scoped cause status. It must
+still refuse incompatible contracts, unsupported reach, undisclosed deviations, absent support or
+uncertainty, non-admitted promotion and any attempt to turn a draft or assessment into execution
+authority. Generated outputs create no evidence and cannot claim supervisor, ethics, publication,
+production or real-road authority.
+
+Phase 167 verification passed on 2 August 2026: all 89 focused and adjacent decision-safety,
+observatory, evidence-matrix, scenario-registry, what-if and outcome-predictor tests passed. Ruff
+lint and formatting, strict mypy, `uv lock --check` and owned-path `git diff --check` passed.
+Adversarial tests cover incompatible standing/contracts, non-admitted promotion, envelope escape,
+unmatched ranking, missing support/uncertainty, hidden deviations, overall-service overreach,
+unbound cause wording, private paths and global superlatives. Positive tests cover deterministic
+ties, metric winners, evidence-backed advice, owner defaults, non-executable drafts, and both
+simulation-internal and allowlisted real-world cause scopes. The code performed no execution,
+external request, scientific calculation or standing change.

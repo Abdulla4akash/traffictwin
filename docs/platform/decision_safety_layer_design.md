@@ -1,117 +1,127 @@
 # Design — Decision-safety layer (post-v1 D-1)
 
-**Status: IMPLEMENTED as a deterministic backend guardrail in Phase 151 and reconciled in Phase
-161. Assessments and notices are source/ruleset bound and all carry `recommendation: false`,
-`evidence: false` and `causal: false`; there is no ranking, execution or deployment surface. The
-current conservative rules are local engineering defaults, not a scientific or policy approval;
-future domain thresholds and display order remain owner decisions.
-Maximum policy ceiling: `owner_approved_candidate`. This is a guardrail and refusal layer,
-not an optimiser, autonomous decision-maker, policy recommendation service or production
-control system. Every generated assessment is `evidence: false`.**
+**Status: IMPLEMENTED as Decision-Safety Ruleset v2 in Phase 167, superseding the blanket
+presentation prohibitions in the Phase-151 v1 implementation. V2 supports broad bounded decision
+use: compatible in-envelope ranking, metric-specific winners, evidence-backed advisory
+recommendations, owner-preselected defaults, reviewable instruction drafts and design-supported
+scoped cause statements. It creates no evidence and has no execution authority. Maximum policy
+ceiling: `owner_approved_candidate`; this is not supervisor, ethics, publication, production or
+real-road approval.**
 
 ## 1. Purpose
 
-Meeting 3 included a decision layer after analytics and prediction. TrafficTwin's central
-finding shows why that layer must not simply minimise a familiar metric: mean latency can
-improve under degraded capacity while deadline attainment stays flat, actions remain
-invariant, and the change occurs within already-failed tasks. The first decision feature
-should therefore detect unsafe interpretation and refuse unsupported comparisons, not
-select an "optimal" configuration.
+TrafficTwin's capacity result shows why a decision layer must distinguish a metric-specific result
+from an overall-service result: mean latency can improve under degraded capacity while deadline
+attainment stays flat, actions remain invariant and the change occurs inside already-failed tasks.
+That does not make all ranking or advice invalid. It means useful ranking must be scoped to a
+compatible, predeclared endpoint and an overall-service claim must carry the service endpoint and
+its companion metrics.
 
-## 2. Supported question
+## 2. Supported decisions
 
-Given a digest-pinned prediction, scenario or evidence selection, the layer answers:
+Given a digest-pinned study policy and typed options, v2 may produce:
 
-> Is there enough compatible, correctly scoped information to present this option as a
-> bounded decision-support comparison, and which cautions must accompany it?
+- deterministic rankings and tied winners for one declared metric;
+- an evidence-backed advisory within that measured comparison;
+- an owner-preselected default, if it remains eligible;
+- scoped cause status: `none`, `simulation_internal` or `real_world`, bounded by a supporting
+  admitted design and policy; and
+- reviewable execution-instruction drafts that are explicitly non-executable and carry no
+  execution authority.
 
-It does not answer what an operator should deploy. It does not calculate social value,
-safety, equity, emissions or real-world service impact from absent data.
+The layer never silently expands an endpoint, actor, trace, capacity, evidence standing or cause
+scope. It does not execute a draft, create evidence, grant approval or make absent safety, equity,
+emissions or real-service outcomes true.
 
 ## 3. Inputs
 
-Inputs must be typed outputs from the [outcome predictor](outcome_predictor_design.md),
-[experiment evidence matrix](experiment_evidence_matrix_design.md),
-[scenario/run registry](scenario_run_registry_design.md), or a committed admitted analysis.
-Each input supplies its digest, standing, actor/trace/capacity envelope, support,
-uncertainty status, companion metrics, execution deviations and citation bundle.
+`DecisionSafetyPolicy` is a study-specific, owner-approved contract containing its source and
+comparison-contract digests, predeclared support threshold, required overall-service companions,
+enabled decision surfaces, maximum cause scope, optional owner default and fixed display order.
+Its cause-design allowlist binds each reviewed design digest to its greatest supported scope. There
+is no universal scientific support threshold.
 
-Free text, arbitrary external URLs, private paths and raw simulator/BODS payloads are not
-decision inputs. An LLM cannot originate facts or resolve a refusal.
+`DecisionOption` binds its source and comparison digests, compatibility group, standing, actor,
+trace, capacity, envelope, budget match, predeclaration, support, uncertainty, metric definition,
+metric value/direction, companion fields, deviations, optional cause-design digest and optional
+instruction draft. Free-form paths, raw BODS/simulator payloads and secrets are not inputs.
 
 ## 4. Versioned guardrails
 
-Initial deterministic rules:
+1. **Measured-envelope rule:** exclude extrapolation and actor/capacity cells not measured for the
+   exact actor/trace contract.
+2. **Compatibility and standing rule:** refuse mismatched comparison digests, compatibility groups
+   or evidence standings. `NON_ADMITTED` material remains descriptive context, not a decision input.
+3. **Matched predeclaration rule:** ranking requires every included cell to be predeclared and to
+   use the matched budget.
+4. **Metric/service rule:** a winner is a winner for the declared metric only. An overall-service
+   claim additionally requires a service endpoint and all policy-declared companions.
+5. **Support and uncertainty rule:** every included option meets the policy's predeclared support
+   count and carries a non-unavailable interval status. Missing is never zero.
+6. **Deviation rule:** every execution/provenance deviation remains visible; an undisclosed
+   deviation refuses the assessment.
+7. **Scoped-cause rule:** cause wording requires an admitted design digest present in the policy's
+   cause-design allowlist at the exact requested scope, and a policy ceiling at least that broad.
+8. **Bounded-actionability rule:** advice may be emitted when enabled and evidence-backed; an owner
+   default may be carried; instruction drafts remain `executable: false` and
+   `execution_authority: false`.
 
-1. **Envelope rule:** refuse extrapolation, actor/capacity mismatch or incompatible design.
-2. **Standing rule:** keep predictions, forecasts, proposed work and non-admitted results
-   separate from admitted evidence.
-3. **Proxy-inversion rule:** when a headline QoS metric improves, require deadline,
-   completion/failure and action-change companions before interpretation.
-4. **Support rule:** expose seed/date/cell support and refuse claims whose required support
-   is missing.
-5. **Uncertainty rule:** distinguish interval unavailable from a zero-width interval and
-   retain exact small-sample limits.
-6. **Deviation rule:** propagate execution/provenance deviations without downgrading them to
-   optional notes.
-7. **Causality rule:** refuse causal or individual-experience wording unless a separately
-   authorised design supports it; no current input does.
-8. **Actionability rule:** never translate a model output into an execution instruction.
-
-Rules are code- and configuration-versioned. Changing a threshold or required companion
-metric creates a new ruleset digest and requires owner review.
+Any policy or rule change changes the deterministic ruleset digest.
 
 ## 5. Output contract
 
-`DecisionSupportAssessment` contains:
+`DecisionSupportAssessment` includes exact policy/ruleset/input digests, display order, compatible
+and excluded option ids, notices, optional ranking and tied winners, advisory text, owner default,
+and instruction drafts. Its semantics are explicit:
 
-- `status`: `presentable_with_cautions` or `refused`;
-- input and ruleset digests;
-- compatible option records and exact exclusions;
-- required companion metrics and observed support;
-- ordered `SafetyNotice` records with machine code and plain-language text;
-- `recommendation: false`, `evidence: false`, `causal: false`;
-- policy ceiling and citation bundle.
+- `recommendation` may be true only for a compliant evidence-backed advisory;
+- `evidence_backed` says whether the inputs are admitted evidence;
+- `creates_new_evidence` is always false;
+- `causal_scope` reports the greatest supported scope and defaults to `none`; and
+- `execution_authority` is always false.
 
-There is no ranking, winning option, automatic default or green/red deployment signal.
-The dashboard may render comparisons in a neutral input order or an owner-selected fixed
-order, never an inferred preference.
+This replaces v1's ambiguous blanket `evidence: false`: the assessment may be backed by evidence,
+but generating it never creates new evidence.
+
+The fixed order is: standing/scope/deviation; eligibility; metric-specific result; uncertainty and
+support; companion metrics; ranking/advice/default/drafts; citations.
 
 ## 6. Required current safety notice
 
-Any view of the confirmed capacity result must state that the lower-capacity arm reduced
-mean latency by 8,310.9 ms with bootstrap interval [−9,097.5, −7,524.3] ms across five
-same-direction seeds, while the exact two-sided sign-test floor is p=0.0625, deadline
-attainment was effectively flat, actions were invariant and the latency change occurred in
-already-failed tasks. It must not call that an individual vehicle improvement or a reason to
-degrade capacity.
+Any view of the confirmed capacity result states exactly that lowering RSU capacity from 2.5 to
+0.75 reduced mean latency by 8,310.9 ms; the bootstrap interval is
+[−9,097.5, −7,524.3] ms; all five held-out seeds moved in the same direction; the exact two-sided
+sign-test floor is p=0.0625; conventional statistical significance is not claimed; deadline
+attainment remained effectively flat; actions/offloading decisions were invariant; and the change
+occurred within already-failed tasks rather than being an improvement experienced by an individual
+vehicle. It is labelled metric-specific, not an overall-service ranking.
 
-This notice is emitted only when the pinned source/design digests match. Otherwise the
-layer refuses rather than reproducing stale headline numbers.
+The notice renders only while its reviewed source digest matches.
 
 ## 7. Typed refusals
 
-At minimum: `INPUT_DIGEST_MISMATCH`, `OUTSIDE_MEASURED_ENVELOPE`,
-`ACTOR_CAPACITY_NOT_MEASURED`, `INCOMPATIBLE_EVIDENCE`, `NON_ADMITTED_INPUT`,
-`COMPANION_METRIC_MISSING`, `SUPPORT_INSUFFICIENT`, `UNCERTAINTY_UNAVAILABLE`,
-`EXECUTION_DEVIATION_UNACKNOWLEDGED`, `CAUSAL_WORDING_FORBIDDEN`,
-`RECOMMENDATION_REQUEST_FORBIDDEN` and `PRIVATE_CONTENT_DETECTED`.
+The implementation includes `INPUT_DIGEST_MISMATCH`, `OUTSIDE_MEASURED_ENVELOPE`,
+`ACTOR_CAPACITY_NOT_MEASURED`, `INCOMPATIBLE_COMPARISON_CONTRACT`, `INCOMPATIBLE_EVIDENCE`,
+`NON_ADMITTED_INPUT`, `RANKING_NOT_PREDECLARED_OR_MATCHED`, `RANKING_NOT_ALLOWED`,
+`OVERALL_SERVICE_SUPPORT_MISSING`, `SUPPORT_INSUFFICIENT`, `UNCERTAINTY_UNAVAILABLE`,
+`EXECUTION_DEVIATION_UNACKNOWLEDGED`, `CAUSAL_SCOPE_UNSUPPORTED`,
+`ADVISORY_RECOMMENDATION_UNSUPPORTED`, `OWNER_DEFAULT_UNAVAILABLE`,
+`EXECUTION_DRAFT_NOT_ALLOWED`, `UNSUPPORTED_GENERALISATION` and `PRIVATE_CONTENT_DETECTED`.
 
 ## 8. Verification and acceptance
 
-Decision-table tests cover every rule and pairwise interactions. Adversarial tests attempt
-to rank options, label lower latency as better, suppress flat deadline/action invariance,
-promote Sparse-64, treat p=0.0625 as conventionally significant, extrapolate outside an
-actor's capacity range, or pass LLM prose as evidence. Golden wording tests bind notices to
-source digests.
+Decision-table and adversarial tests cover permitted ranking/advice/default/draft paths, ties,
+metric-versus-service semantics, digest/standing/group incompatibility, measured-envelope escapes,
+study-specific support and mandatory uncertainty, deviations, cause-scope escalation, private
+content, unsupported global superlatives and the source-digest-bound capacity notice.
 
-Acceptance requires deterministic assessments, complete provenance, no mutable approval or
-execution surface, correct refusals under missing companion metrics and accessible notices
-that do not rely on colour alone.
+Acceptance requires deterministic results, exact provenance, no standing promotion, no hidden
+deviation, no execution surface and no generated evidence or authority.
 
-## 9. Owner decisions and stop conditions
+## 9. Owner decisions and remaining boundaries
 
-The owner must approve the ruleset, fixed display order, minimum companion metrics and any
-future domain-specific constraints. Stop if a requested feature ranks interventions,
-automatically executes one, claims real-world safety/benefit, uses participant data, or
-requires an ethical/policy judgement that has not been supplied by the owner.
+On 2 August 2026 the owner approved Ruleset v2 and selected maximum bounded coverage. The ruleset,
+required companion contract and display order above are selected. Thresholds are study-specific and
+must be frozen in each input policy rather than imposed universally. A future real-world cause
+statement still needs an admitted design that actually supports that scope; an instruction draft
+still needs a separate execution surface with its own valid authority before anything can happen.
