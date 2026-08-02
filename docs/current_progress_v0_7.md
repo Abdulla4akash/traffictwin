@@ -2,13 +2,14 @@
 
 **Snapshot date:** 2 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 175 is the current verified increment. The
+**Development branch:** `claude/complete-v0.7`; Phase 176 is the current verified increment. The
 immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
-data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–175 operational
-store, lifecycle and console integration. This tracker distinguishes implemented libraries/pages
-from activated schedulers, deployed services, completed studies and accepted scientific evidence.
+data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–176 operational
+store, lifecycle, console and local-SUMO integration. This tracker distinguishes implemented
+libraries/pages from activated schedulers, deployed services, completed studies and accepted
+scientific evidence.
 
 **Formal release baseline:** immutable `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
@@ -71,7 +72,10 @@ At the latest proportional verification points:
   regression, plus Ruff, formatting, strict mypy, lock and privacy/diff gates; and
 - Phase 175 passed 63 focused/adjacent console and navigation AppTests and a 116-test console plus
   backend-contract regression, plus Ruff, formatting, strict mypy, lock and privacy/no-action
-  gates.
+  gates; and
+- Phase 176 passed 18 focused local-transport tests and the 63-test local transport/controller/
+  controlled-runner regression, including a real bounded SUMO 1.27.1 loopback smoke; Ruff,
+  formatting, strict mypy, lock, fixed-argv/privacy/no-external-client and cleanup gates passed.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -86,7 +90,7 @@ or research-usability acceptance claim.
 | v1 ingestion/prediction/dashboard | `working_bounded` | Scheduled BODS runner, VEC predictor, bus forecast backend, composer/DeepSeek panel, seven Platform pages and Dhaka network feasibility | Scheduler activation, enough forecast dates, participant evaluation and any Dhaka observation/simulation |
 | Store/analytics/evidence/registry | `working_bounded` | Local aggregate SQLite store plus preview-confirmed atomic activation/backup/restore CLI, deterministic analytics feed and evidence-matrix console, append-only registry and exact artifact-revalidating composer lifecycle service | Select real store/lifecycle authority roots and genuine authority/licence artifacts; lifecycle UI remains absent |
 | Observatory/decision safety | `working_bounded` | Source-pinned mechanism cards and Ruleset v2 bounded assessments with read-only console presentation | Still no execution authority, overall-service recommendation or evidence creation |
-| Controlled live twin | `foundation_only` | Maximum-coverage schemas, policies, state machine and deterministic fake | Concrete local SUMO/public/cloud/operator transports and deployment-supplied authority |
+| Controlled live twin | `working_bounded` | Maximum-coverage contracts/fake plus a fixed-argv loopback-only local SUMO/TraCI transport over the pinned synthetic square | BODS/public/cloud/operator transports, deployment inputs, generic scenarios and any scientific/production use |
 | Capacity benchmark | `foundation_only` | Frozen questions, algorithms, feature forms, seed/budget/statistical contracts and synthetic self-test | Signed final protocol, actor/runtime bindings and separately authorised real training/evaluation |
 
 These platform labels do not accept any separate `MAN-*`, `UX-*` or `REL-01` capability.
@@ -180,8 +184,9 @@ next section.
 
 1. ~~Add read-only dashboard pages/services for the analytics quality feed, experiment evidence
    matrix, mechanism observatory and Decision-Safety assessments.~~ Completed in Phase 175.
-2. Implement and test a concrete local-SUMO live-twin transport against the existing safe public
-   fixture, retaining engineering-only receipts and launching no scientific campaign.
+2. ~~Implement and test a concrete local-SUMO live-twin transport against the existing safe public
+   fixture, retaining engineering-only receipts and launching no scientific campaign.~~ Completed
+   in Phase 176 over the pinned repository-owned synthetic square.
 3. Extend benchmark tooling with actor/runtime plugin manifests, local job-pack export, receipt
    ingestion and deterministic synthetic workers; real training remains a separately authorised
    action after a signed protocol and concrete resources exist.
@@ -209,6 +214,13 @@ The pages retain roles, exclusions, uncertainty, deviations, citation digests an
 non-admitted separation; the instruction draft is review-only and non-executable. The service has
 no recursive browser, write, network or launch surface, and no real report, authority, participant
 result or new evidence was created.
+
+Completed in Phase 176: the existing single-owner live-twin controller can now inject a real local
+SUMO 1.27.x process with exact runtime/preset/network/policy binding, private staging, fixed
+shell-free argv, loopback TraCI, aggregate-only snapshots, bounded command mappings and complete
+crash/timeout/protocol/cleanup recovery. A local synthetic smoke advanced 0→5 seconds and produced
+an engineering-only terminal receipt. No BODS/public/cloud/operator connection, generic scenario,
+scientific campaign, evidence, production claim or road effect occurred.
 
 ## 7. Decisions or evidence required before acceptance
 

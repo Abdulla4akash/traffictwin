@@ -4707,3 +4707,36 @@ non-executable and without authority. All 63 focused/adjacent AppTests and the 1
 backend-contract regression passed; Ruff lint/format, strict mypy, `uv lock --check`, privacy,
 no-write/no-network/no-action and `git diff --check` gates passed. No real report, participant
 activity/result, approval, admission, evidence, execution or external request occurred.
+
+### Phase 176 claim: concrete local-SUMO live-twin transport (2 August 2026)
+
+The owner-directed integrating lead owns the fourth post-meeting build slice in
+`docs/platform/local_sumo_live_twin_transport_design.md`, the bounded status amendment in
+`docs/platform/controlled_live_twin_adapter_design.md`,
+`src/traffictwin/platform/local_sumo_transport.py`,
+the narrow in-flight protocol/shutdown receipt hardening in
+`src/traffictwin/platform/live_twin.py` and `tests/unit/test_live_twin.py`,
+`tests/unit/test_local_sumo_transport.py`, the bounded status updates in
+`docs/implementation-status.md` and `docs/current_progress_v0_7.md`, the narrow `CHANGELOG.md`
+entry, and this phase record. The phase may bind the existing repository-owned pinned synthetic
+square scenario and supported local SUMO 1.27.x runtime to an injected, foreground, loopback-only
+TraCI process transport with fixed argv; aggregate snapshots; bounded pause/resume/step and
+allowlisted signal/speed/lane/incident/route simulation commands; health, resource and cleanup
+controls; and engineering-only terminal receipts. It may not accept arbitrary executables,
+scenarios, paths, modules or shell text; connect BODS/public/cloud/operator systems; actuate real
+roads; expose vehicle identities or private output; conflate road traffic and RSU compute
+capacity; or create scientific evidence, production readiness or execution authority.
+
+Phase 176 completed locally on 2 August 2026. The new injected transport revalidates and privately
+stages only the existing pinned synthetic-square inventory, binds the exact SUMO executable,
+transport and target-policy digests into the session spec, launches fixed argv with `shell=False`,
+connects only by loopback TraCI, emits aggregate-only snapshots and maps bounded
+pause/resume/step plus allowlisted signal/speed/lane/incident/route commands. The unchanged
+controller retains single ownership, sequence/idempotency, time/command/cost budgets, treatment
+deviations and terminal receipts. Startup, crash, heartbeat/protocol, output/private-content and
+shutdown failures clean the process group and private stage. All 18 focused tests and the 63-test
+local transport/controller/controlled-runner regression passed, including a real local SUMO 1.27.1
+smoke advancing 0→5 simulated seconds; Ruff lint/format, strict mypy, `uv lock --check`, fixed-argv,
+privacy/no-public-client and `git diff --check` gates passed. The smoke is engineering-only: no
+BODS/public/cloud/operator connection, generic scenario, scientific campaign, evidence,
+production readiness, external authority or real-road effect occurred.

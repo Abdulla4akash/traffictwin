@@ -2,6 +2,16 @@
 
 ## v0.7.0 - In development
 
+Added the concrete local-SUMO live-twin transport (2 August, Phase 176): the Phase-168 controller
+can now inject one fixed-argv, `shell=False`, loopback-only SUMO 1.27.x/TraCI process over the exact
+pinned repository-owned synthetic square. The session spec binds the preset/network, executable,
+transport and command-policy digests; inputs are privately staged and revalidated, snapshots are
+aggregate-only, and bounded pause/resume/step plus allowlisted signal/speed/lane/incident/route
+commands retain controller sequencing, idempotency, budgets and treatment deviations. Crash,
+protocol, timeout, output/privacy and cleanup paths terminally receipt and fail closed. A bounded
+local smoke advanced 0→5 simulated seconds and remained engineering-only: no BODS/public/cloud/
+operator connection, scientific evidence, production authority or real-road effect was created.
+
 Added the post-v1 Platform Console (2 August, Phase 175): four unique read-only routes now present
 the immutable analytics quality feed, evidence-matrix coverage, coherence-checked mechanism and
 policy cards, and Decision-Safety Ruleset v2 output. Evidence roles, exclusions, uncertainty,

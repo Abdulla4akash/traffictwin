@@ -1,12 +1,15 @@
 # Design — Controlled live-twin adapter (post-v1 L-1)
 
 **Status: IMPLEMENTED in Phase 168 as maximum-coverage backend contracts and a deterministic fake
-control adapter. Delivered modes are observe-only, unattended closed-loop simulation and
-preauthorised operator-site closed loop; supporting contracts cover authenticated public access,
+control adapter; Phase 176 added the first concrete bounded local-SUMO/TraCI process transport over
+the pinned repository-owned synthetic square scenario. Delivered modes are observe-only,
+unattended closed-loop simulation and preauthorised operator-site closed loop; supporting contracts
+cover authenticated public access,
 local SUMO, GCP/AWS scheduling, aggregate BODS updates, plugins, streams/webhooks, command/cost
-budgets and terminal receipts. No live BODS request, public service, cloud allocation, SUMO process
-or real-road actuation was executed. Real transports/processes still require deployment-supplied
-accounts, endpoints, credentials and operator authority. Maximum policy ceiling:
+budgets and terminal receipts. One foreground local SUMO 1.27.1 engineering smoke ran for five
+simulated seconds; no live BODS request, public service, cloud allocation or real-road actuation was
+executed. Public/cloud/operator transports still require deployment-supplied accounts, endpoints,
+credentials and operator authority. Maximum policy ceiling:
 `owner_approved_candidate`; receipts create no scientific evidence or production certification.**
 
 ## 1. Purpose and coverage
@@ -120,14 +123,17 @@ operator modes, command/capacity conflation, undeclared treatment change and arb
 
 ## 8. Verification and acceptance
 
-All tests use a deterministic in-process fake. They cover every mode/policy family, process-local
+Phase-168 tests use a deterministic in-process fake. They cover every mode/policy family, process-local
 single ownership, heartbeat and budget stops, snapshot privacy, separate road/RSU capacity domains,
 sequenced/idempotent commands, pause/resume, treatment deviations, plugin and command allowlists,
 operator authority, fake external-effect receipts, authenticated public requests, aggregate BODS
 idempotency/staleness/privacy, webhook event digests, scientific-use refusal and bounded SUMO argv.
 
-No test launches SUMO, fetches BODS, opens a socket, contacts a cloud provider, spends money,
-executes a scientific campaign or actuates infrastructure.
+Phase 176 adds injected crash/protocol/privacy/cleanup tests and one runtime-gated loopback TraCI
+smoke over the exact pinned synthetic square. That smoke launches only the locally installed SUMO
+1.27.1 process, advances 0→5 simulated seconds and returns an engineering-only receipt. No test
+fetches BODS, opens a public socket, contacts a cloud provider, spends money, executes a scientific
+campaign or actuates infrastructure.
 
 ## 9. Owner decisions and deployment inputs
 
@@ -137,4 +143,6 @@ the contracts above without per-command human approval. Activation still require
 that code cannot invent: BODS access/licence configuration, GCP/AWS account scope and funded budget,
 public authentication/TLS deployment, and operator endpoint/authority/site policy. Supplying those
 inputs and choosing to start an external adapter are separate deployment actions; none occurred in
-Phase 168.
+Phase 168. Phase 176 supplies only the local-SUMO process input using the already pinned repository
+fixture and locally installed supported runtime; it does not reduce or satisfy any BODS, public,
+cloud or operator deployment input above.

@@ -150,6 +150,11 @@ _TREATMENT_COMMANDS: set[CommandKind] = {
     "apply_instruction_draft",
     "invoke_plugin",
 }
+_TERMINAL_PROCESS_ERROR_CODES = {
+    "BUDGET_EXCEEDED",
+    "CONTROL_PROTOCOL_LOST",
+    "PRIVATE_CONTENT_DETECTED",
+}
 _ACTIVE_SESSION_DIGESTS: set[str] = set()
 
 
@@ -616,15 +621,37 @@ class LiveTwinController:
         if self._clock() - self._started_at > self._spec.max_wall_clock_seconds:
             self._fail_safe_stop("BUDGET_EXCEEDED: wall-clock budget breached")
             raise LiveTwinError("BUDGET_EXCEEDED", "wall-clock budget breached")
-        if not process.alive() or not process.heartbeat():
+        try:
+            healthy = process.alive() and process.heartbeat()
+        except Exception as exc:
+            self._deviations.append("control protocol failed during health check")
+            self._fail_safe_stop("CONTROL_PROTOCOL_LOST: health check failed")
+            raise LiveTwinError("CONTROL_PROTOCOL_LOST", "control health check failed") from exc
+        if not healthy:
             self._fail_safe_stop("CONTROL_PROTOCOL_LOST: heartbeat lost")
             raise LiveTwinError("CONTROL_PROTOCOL_LOST", "control heartbeat lost")
         self._emit_event("heartbeat", "healthy")
 
+    def _receipt_terminal_process_error(self, error: LiveTwinError, operation: str) -> None:
+        if error.code not in _TERMINAL_PROCESS_ERROR_CODES:
+            return
+        self._deviations.append(f"control process terminal refusal during {operation}")
+        self._fail_safe_stop(f"{error.code}: {operation} refused")
+
     def read_snapshot(self) -> TwinSnapshot:
         process = self._require_active()
         self._check_health(process)
-        raw = dict(process.read_aggregates())
+        try:
+            raw = dict(process.read_aggregates())
+        except LiveTwinError as exc:
+            self._receipt_terminal_process_error(exc, "aggregate snapshot read")
+            raise
+        except Exception as exc:
+            self._deviations.append("control protocol failed while reading aggregate snapshot")
+            self._fail_safe_stop("CONTROL_PROTOCOL_LOST: aggregate snapshot read failed")
+            raise LiveTwinError(
+                "CONTROL_PROTOCOL_LOST", "control process aggregate read failed"
+            ) from exc
         for key in raw:
             lowered = key.lower()
             if key not in ALLOWED_SNAPSHOT_KEYS or any(
@@ -698,7 +725,17 @@ class LiveTwinController:
         }:
             raise LiveTwinError("PLUGIN_NOT_ALLOWLISTED", "plugin is not bound to the session")
 
-        result = process.apply_command(command)
+        try:
+            result = process.apply_command(command)
+        except LiveTwinError as exc:
+            self._receipt_terminal_process_error(exc, "command application")
+            raise
+        except Exception as exc:
+            self._deviations.append("control protocol failed while applying a command")
+            self._fail_safe_stop("CONTROL_PROTOCOL_LOST: command application failed")
+            raise LiveTwinError(
+                "CONTROL_PROTOCOL_LOST", "control process command application failed"
+            ) from exc
         self._command_sequence = command.sequence
         if command.kind == "pause":
             self._state = "paused"
@@ -747,7 +784,17 @@ class LiveTwinController:
             raise LiveTwinError("DIGEST_MISMATCH", "mobility aggregate schema changed")
         if update.observed_staleness_seconds > policy.max_staleness_seconds:
             raise LiveTwinError("LIVE_INPUT_STALE", "mobility aggregate exceeded staleness policy")
-        result = process.apply_aggregate_mobility(update)
+        try:
+            result = process.apply_aggregate_mobility(update)
+        except LiveTwinError as exc:
+            self._receipt_terminal_process_error(exc, "aggregate mobility application")
+            raise
+        except Exception as exc:
+            self._deviations.append("control protocol failed while applying aggregate mobility")
+            self._fail_safe_stop("CONTROL_PROTOCOL_LOST: aggregate mobility application failed")
+            raise LiveTwinError(
+                "CONTROL_PROTOCOL_LOST", "control process mobility application failed"
+            ) from exc
         self._mobility_sequence = update.sequence
         self._external_effect = self._external_effect or result.external_effect_performed
         receipt = AggregateMobilityReceipt(
@@ -763,11 +810,20 @@ class LiveTwinController:
         return receipt
 
     def _fail_safe_stop(self, reason: str) -> None:
-        if self._process is not None:
-            self._process.terminate()
+        self._terminate_process()
         self._state = "refused"
         _ACTIVE_SESSION_DIGESTS.discard(self._session_digest)
         self._emit_receipt("refused", reason)
+
+    def _terminate_process(self) -> bool:
+        if self._process is None:
+            return True
+        try:
+            self._process.terminate()
+        except Exception:
+            self._deviations.append("control process termination failed")
+            return False
+        return True
 
     def stop(self, reason: str) -> LiveTwinReceipt:
         if _contains_private_material(reason):
@@ -777,10 +833,13 @@ class LiveTwinController:
             reason = "PRIVATE_CONTENT_DETECTED: supplied stop reason withheld"
         if self._state in {"running", "paused"} and self._process is not None:
             self._state = "stopping"
-            self._process.terminate()
-            self._state = "completed"
+            terminated = self._terminate_process()
+            self._state = "completed" if terminated else "refused"
             _ACTIVE_SESSION_DIGESTS.discard(self._session_digest)
-            self._emit_receipt("completed", reason)
+            if terminated:
+                self._emit_receipt("completed", reason)
+            else:
+                self._emit_receipt("refused", "CONTROL_PROTOCOL_LOST: shutdown failed")
         if self._receipt is None:
             raise LiveTwinError("CONTROL_PROTOCOL_LOST", "no session ran; nothing to receipt")
         return self._receipt

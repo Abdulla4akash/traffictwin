@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (2 August 2026)
 
-This section records the additive platform truth through Phase 175. It does not alter the strict
+This section records the additive platform truth through Phase 176. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -44,7 +44,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Historical store and analytics | Phases 147/160 implemented local aggregate SQLite persistence; Phase 173 added preview-confirmed activation, two closed safe-artifact adapters, atomic publication and backup/restore verification; Phases 152/165 implemented atomic analytics and the 15-minute policy; Phase 175 exposed its immutable report feed | No real workspace selection, import/migration/population, backup scheduler or OS analytics scheduler |
 | Evidence matrix and scenario lifecycle | Phases 148/149 implemented digest-bound coverage and append-only lifecycle backends, hardened in Phase 161; Phase 174 bound exact composer revisions and revalidated external lifecycle artifacts; Phase 175 exposed matrix coverage | No lifecycle UI or real authority-root selection; the services do not create approval, launch work, analyse or admit |
 | Observatory and decision safety | Phases 150/166 implemented the source-pinned observatory; Phases 151/167 implemented Decision-Safety Ruleset v2; Phase 175 added read-only presentation | No execution authority, overall-service decision or evidence creation |
-| Controlled live twin | Phases 153/168 implemented maximum-coverage control contracts and a deterministic fake adapter | No real process/transport, live BODS, public service, cloud allocation or road actuation |
+| Controlled live twin | Phases 153/168 implemented maximum-coverage contracts/fake; Phase 176 added a fixed-argv, loopback-only local SUMO 1.27.x/TraCI transport over the pinned synthetic square | No BODS/public/cloud/operator transport, generic scenario, scientific campaign, production service or road actuation |
 | Capacity/multi-algorithm benchmark | Phases 154/169 implemented maximum-coverage protocol, compatibility, budget, seed and analysis tooling | `PROPOSED / UNSIGNED`; no bound actors, training, evaluation, cloud use, evidence or admission |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
@@ -80,6 +80,16 @@ execution deviations and citations remain visible; non-admitted records require 
 views. Ruleset v2 advice and its review draft remain metric-bounded and structurally non-executable.
 Private paths, credentials and unsafe source links fail closed. No report, evidence, participant
 result, approval, admission, policy authority or external request was created.
+
+Phase 176 closes only the concrete local-process gap. A path-free preparation binds the exact
+session, pinned synthetic-square inventory/network, runtime executable, transport and command
+policy; the real launcher stages private copies, uses fixed argv with `shell=False`, connects only
+over loopback TraCI and always cleans up. Aggregate snapshots contain no ids. Bounded
+pause/resume/step and allowlisted signal/speed/lane/incident/route mappings feed the unchanged
+single-owner controller, whose idempotency, budgets, treatment deviations and engineering-only
+terminal receipts remain authoritative. One local SUMO 1.27.1 smoke advanced 0→5 simulated
+seconds. It is software-execution evidence only, not Manchester/Randy/VEC evidence, a scientific
+campaign, production readiness, authority or a real-road effect.
 
 Phase 0 status: approved and committed.
 

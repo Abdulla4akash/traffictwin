@@ -82,6 +82,38 @@ class FakeProcess:
         self.terminated = True
 
 
+class FailingProcess(FakeProcess):
+    def __init__(self, operation: str, *, termination_fails: bool = False) -> None:
+        super().__init__()
+        self._operation = operation
+        self._termination_fails = termination_fails
+
+    def heartbeat(self) -> bool:
+        if self._operation == "health":
+            raise RuntimeError("synthetic heartbeat protocol loss")
+        return super().heartbeat()
+
+    def read_aggregates(self) -> dict[str, float]:
+        if self._operation == "snapshot":
+            raise RuntimeError("synthetic snapshot protocol loss")
+        return super().read_aggregates()
+
+    def apply_command(self, command: TwinCommand) -> ProcessCommandResult:
+        if self._operation == "command":
+            raise RuntimeError("synthetic command protocol loss")
+        return super().apply_command(command)
+
+    def apply_aggregate_mobility(self, update: AggregateMobilityUpdate) -> ProcessCommandResult:
+        if self._operation == "mobility":
+            raise RuntimeError("synthetic mobility protocol loss")
+        return super().apply_aggregate_mobility(update)
+
+    def terminate(self) -> None:
+        if self._termination_fails:
+            raise RuntimeError("synthetic shutdown failure")
+        super().terminate()
+
+
 class Clock:
     def __init__(self) -> None:
         self.now = 100.0
@@ -587,6 +619,77 @@ def test_stream_events_are_digest_only_and_delivery_failure_is_receipted() -> No
     assert all(len(event.payload_digest) == 64 for event in sink.events)
     assert all(event.external_delivery_attempted for event in sink.events)
     assert any("event delivery failed" in deviation for deviation in receipt.deviations)
+
+
+def test_inflight_protocol_and_shutdown_failures_are_terminally_receipted() -> None:
+    health_spec = _spec(session_id="health-protocol-failure")
+    health = _controller(health_spec, FailingProcess("health"), Clock())
+    health.start()
+    with pytest.raises(LiveTwinError) as health_failure:
+        health.read_snapshot()
+    assert health_failure.value.code == "CONTROL_PROTOCOL_LOST"
+    assert health.receipt is not None
+    assert health.receipt.final_state == "refused"
+
+    snapshot_spec = _spec(session_id="snapshot-protocol-failure")
+    snapshot = _controller(snapshot_spec, FailingProcess("snapshot"), Clock())
+    snapshot.start()
+    with pytest.raises(LiveTwinError) as snapshot_failure:
+        snapshot.read_snapshot()
+    assert snapshot_failure.value.code == "CONTROL_PROTOCOL_LOST"
+    assert snapshot.receipt is not None
+    assert snapshot.receipt.final_state == "refused"
+    assert "aggregate snapshot" in " ".join(snapshot.receipt.deviations)
+
+    command_spec = _closed_spec(
+        CommandGrant(kind="step", surface="simulation"),
+        session_id="command-protocol-failure",
+    )
+    command = _controller(command_spec, FailingProcess("command"), Clock())
+    command.start()
+    with pytest.raises(LiveTwinError) as command_failure:
+        command.apply_command(_command(command_spec))
+    assert command_failure.value.code == "CONTROL_PROTOCOL_LOST"
+    assert command.receipt is not None
+    assert command.receipt.commands_applied == 0
+    assert command.receipt.final_state == "refused"
+
+    bridge = BodsBridgePolicy(
+        upstream_terms_digest="7" * 64,
+        licence_class="synthetic-test",
+        aggregate_schema_digest="8" * 64,
+        unattended=True,
+        max_staleness_seconds=60,
+    )
+    mobility_spec = _spec(session_id="mobility-protocol-failure", bods_bridge=bridge)
+    mobility = _controller(mobility_spec, FailingProcess("mobility"), Clock())
+    mobility.start()
+    update = AggregateMobilityUpdate(
+        update_id="aggregate-protocol-failure",
+        sequence=1,
+        schema_digest="8" * 64,
+        source_receipt_digest="9" * 64,
+        observed_staleness_seconds=1,
+        upstream_retry_after_observed=False,
+        aggregates={"vehicle_count": 2.0},
+    )
+    with pytest.raises(LiveTwinError) as mobility_failure:
+        mobility.apply_aggregate_mobility(update)
+    assert mobility_failure.value.code == "CONTROL_PROTOCOL_LOST"
+    assert mobility.receipt is not None
+    assert mobility.receipt.mobility_updates_applied == 0
+
+    shutdown_spec = _spec(session_id="shutdown-protocol-failure")
+    shutdown = _controller(
+        shutdown_spec,
+        FailingProcess("none", termination_fails=True),
+        Clock(),
+    )
+    shutdown.start()
+    shutdown_receipt = shutdown.stop("normal shutdown requested")
+    assert shutdown_receipt.final_state == "refused"
+    assert shutdown_receipt.stop_reason == "CONTROL_PROTOCOL_LOST: shutdown failed"
+    assert "termination failed" in " ".join(shutdown_receipt.deviations)
 
 
 def test_scientific_use_is_not_created_and_sumo_argv_is_bounded() -> None:
