@@ -4515,3 +4515,31 @@ idempotent command and BODS-update retries, treatment deviations, plugins, fake 
 authenticated request role/age/proof checks, upstream-compliant aggregate BODS semantics,
 webhook-digest events, terminal receipts and scientific-use refusal. No socket, BODS request,
 cloud allocation, spend, SUMO launch, scientific campaign or infrastructure actuation occurred.
+
+### Phase 169 claim: maximum-coverage capacity/multi-algorithm benchmark tooling (2 August 2026)
+
+The integrating lead owns the owner-directed benchmark expansion in
+`src/traffictwin/platform/benchmark_protocol.py`, `tests/unit/test_benchmark_protocol.py`, the
+new digest-bound proposed predeclaration under `docs/evaluation/`,
+`docs/platform/capacity_aware_benchmark_design.md`, and this phase record. The phase may freeze the
+three research questions; MAPPO/IPPO/QMIX/VDN/Independent-DQN/heuristic/random coverage; six
+capacity representations; comprehensive separate domains and observation/action/reward tracks;
+the exact 240 compatible training cells and 2,400 training jobs; 3/10/5/20 disjoint seed
+namespaces; GCP primary/AWS failover and L4/A100/H100 estimate contracts; terminal/milestone
+checkpoint policy; paired bootstrap/sign/permutation/Holm/FDR/practical-threshold analysis; signed
+scope execution eligibility; and rule-based admission eligibility. It may not train, evaluate,
+submit a job, contact cloud, spend, reuse inspected seeds as unseen, expand seeds post hoc, pool
+incompatible domains, promote old B-CAP/Sparse-64 artifacts, fabricate a signature or admit an
+unexecuted result.
+
+Phase 169 completed locally on 2 August 2026. The benchmark protocol now freezes all owner-selected
+candidate choices, constructs and validates all six capacity-feature forms, enumerates 240 training
+cells and 2,400 matched jobs, keeps heuristic/random controls evaluation-only, enforces disjoint
+3/10/5/20 seed namespaces, binds the terminal/milestone checkpoint policy, records explicit
+practical thresholds and paired/multiplicity rules, accounts for but cannot authorise GCP/AWS and
+L4/A100/H100 resource estimates, runs only a three-seed synthetic self-test, renders the committed
+digest-bound `PROPOSED / UNSIGNED` predeclaration, and returns non-executing signed-scope and
+non-admitting rule-eligibility receipts. Focused verification: 33 benchmark tests passed; the
+eight-slice platform regression set passed 143 tests; `uv lock --check`, Ruff, Ruff format, strict
+mypy, owned-path diff checks, link existence and privacy scans passed. No training, evaluation,
+cloud contact, spend, signature, evidence or admission occurred.

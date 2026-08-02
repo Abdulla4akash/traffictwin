@@ -1,145 +1,195 @@
 # Design — Capacity-aware and multi-algorithm benchmark (post-v1 B-1)
 
-**Status: IMPLEMENTED for gates 1–2 tooling only in Phase 154 and completed/reconciled in Phase
-161: schemas, compatibility checks, frozen training-design capacity features, seed namespaces,
-matched-budget estimates, synthetic-only frozen analysis and an unsigned predeclaration renderer.
-The research design remains PROPOSED/UNSIGNED and is not authorised for scientific execution.
-Actor/trace/endpoint/seed/hardware choices, sign-off, training, evaluation and admission remain
-owner-controlled later gates. Maximum policy ceiling: `owner_approved_candidate`. No experiment or compute
-campaign may start from this document. Actor families, budgets, seeds, endpoints and
-admission protocol require explicit owner decisions and a frozen predeclaration first.**
+**Status: IMPLEMENTED for maximum-coverage local protocol tooling in Phase 169. The benchmark
+research remains `PROPOSED / UNSIGNED`; no training, evaluation, cloud submission, spend,
+scientific execution, evidence creation or admission occurred. Maximum policy ceiling:
+`owner_approved_candidate`.**
 
-## 1. Research purpose
+The delivered implementation is
+`src/traffictwin/platform/benchmark_protocol.py`; its focused verification is
+`tests/unit/test_benchmark_protocol.py`; and its exact generated draft is
+[`capacity_multi_algorithm_benchmark_predeclaration_20260802.md`](../evaluation/capacity_multi_algorithm_benchmark_predeclaration_20260802.md).
+The implementation contains no training loop or cloud client.
 
-Meeting 3 asked why capacity was absent from the observation, whether policy behaviour
-changed, whether a capacity-aware agent would behave differently, and whether other
-algorithms should be compared. The existing confirmed study shows invariant actions across
-capacity arms, but it does not answer how a retrained capacity-aware policy would behave.
+## 1. Frozen research questions
 
-This benchmark would test two separable questions:
+The owner-directed candidate protocol covers all three selected questions:
 
-1. Does exposing a capacity representation change policy actions or outcome coherence under
-   a matched training/evaluation contract?
-2. Do selected alternative algorithms produce materially different action/mechanism
-   behaviour under the same observation, action, reward and resource budgets?
+1. the main effect of capacity awareness under matched contracts;
+2. the main effect of algorithm family under matched contracts; and
+3. the interaction between capacity representation and algorithm family.
 
-Neither question is a foregone improvement claim. A null or worse capacity-aware result is
-a complete outcome.
+A null, mixed or worse capacity-aware result is complete and publishable under the protocol. The
+design does not assume that capacity awareness or any algorithm improves service.
 
-## 2. Existing evidence boundary
+## 2. Maximum-coverage factorial
 
-The current B-CAP 17D/19D GPU diagnostic and the Sparse-64 bus/GPU campaigns retain their
-recorded roles, deviations and `NON_ADMITTED` status. They may motivate protocol choices but
-must not be reused, relabelled or pooled as admitted benchmark evidence. The fresh Sparse-64
-five-seed completion does not relax VEC-06 and does not automatically require another run.
+Five families receive matched training/evaluation cells:
 
-Held-out seeds already inspected by current studies cannot become unseen benchmark seeds.
-Training, tuning, dry-run and final evaluation seed namespaces must be newly declared and
-disjoint where the protocol requires independence.
+- MAPPO;
+- IPPO;
+- QMIX;
+- VDN; and
+- Independent DQN.
 
-## 3. Comparison families
+The deterministic heuristic and random policy are evaluation-only controls and therefore receive
+zero training jobs. Every candidate contract is digest identified; real implementation digests
+must replace those bindings before execution. Trained families use five million interactions per
+seed and terminal-checkpoint selection. A policy selected using held-out outcomes is refused as
+`CHECKPOINT_SELECTION_LEAKAGE`.
 
-The owner must select the smallest scientifically useful set. The proposed minimum is:
+The six observation/capacity representations are:
 
-- **Capacity-blind reference:** the compatible existing actor/architecture under its frozen
-  observation contract.
-- **Capacity-aware matched actor:** the same family and training contract with one reviewed,
-  normalised capacity feature or capacity vector added.
-- **Optional alternative algorithm:** at most one additional family initially, chosen only
-  after confirming that its discrete/continuous action support, reward, observation and
-  checkpoint semantics can be matched.
+- capacity blind;
+- global scalar;
+- per-RSU vector;
+- local observable;
+- provisioned plus remaining capacity; and
+- local utilisation plus queue state.
 
-An algorithm name alone does not make a valid baseline. If observation/action/reward or
-training budget cannot be made comparable, the row is reported `INCOMPATIBLE`, not ranked.
+All capacity-aware features are visible before the action on the same tick, normalised only by the
+frozen training-design envelope and refused when missing, dimensionally incompatible or outside
+that envelope. The capacity-blind track adds no visible capacity dimension.
 
-## 4. Capacity representation
+Each trained algorithm crosses:
 
-Before implementation, freeze:
+- six capacity representations;
+- four rewards: balanced QoS/energy, pure QoS, outcome-coherent and fairness-aware; and
+- two discrete local/V2I/V2V action tracks: unmasked and feasibility masked.
 
-- whether capacity is scalar total, per-RSU vector or a local observable;
-- units and normalisation based only on training-design information;
-- missing/out-of-range behaviour;
-- whether the feature represents provisioned compute, remaining compute or both;
-- the causal timing rule: what capacity value is visible before each action;
-- the relationship between 17D/19D observations and existing checkpoint compatibility.
+This yields exactly 240 compatible training cells and 2,400 matched training jobs across ten
+training seeds. The two evaluation-only controls are listed separately so their zero training
+budget is not mistaken for a matched learned-policy cell.
 
-No evaluation-arm statistic may be used to normalise or engineer the feature. A changed
-observation dimension requires new training; existing checkpoints are not silently padded.
+## 3. Separate domain coverage
 
-## 5. Matched protocol
+The protocol covers six independently analysed domains:
 
-The predeclaration must fix:
+- procedural VEC;
+- pinned Manchester corridor periods;
+- a future whole-fleet Sparse-64-compatible design;
+- additional safe Manchester periods;
+- pinned SUMO network fixtures; and
+- the Dhaka corridor synthetic or approved-aggregate scope.
 
-- compatible trace set, fleet preset/size and capacity arms;
-- actor families, implementations and checkpoint-selection rule;
-- observation/action/reward contracts and the single intended difference;
-- training interactions, tuning budget, early-stopping rule and hardware accounting;
-- paired fresh evaluation seeds and blocked randomisation/order;
-- primary endpoint, mechanism endpoints, uncertainty method and multiplicity treatment;
-- minimum successful-pair rule, refusal/deviation policy and publishable null;
-- wall-clock/GPU ceilings and stop rule.
+Mobility, fleet, infrastructure and simulator contracts remain digest-bound per domain. Results
+from incompatible domains are not pooled. Actor, observation, action, reward or budget mismatch is
+reported `INCOMPATIBLE`, not ranked as though the comparison were matched.
 
-The primary endpoint should test outcome coherence rather than latency alone. Latency,
-deadline attainment, completion/failure and action/offloading behaviour must be reported
-together. Mechanism diagnostics should include capacity-scaled ceiling behaviour, failed
-task distribution, tail concentration and action changes.
+The clean Sparse-64 rerun admitted in Phase 166 retains its
+`admitted_with_execution_deviation` standing. The older 147-repeat and B-CAP diagnostics retain
+their non-admitted standing. Prior results may motivate this design but none are benchmark evidence
+inputs, pooled returns or substitutes for the fresh evaluation namespace.
 
-With very small paired seed counts, exact-test resolution must be stated before execution.
-Five unanimous paired differences still have a two-sided sign-test floor of p=0.0625; more
-seeds are a design/budget decision, not a post-hoc repair after seeing results.
+## 4. Seed, checkpoint and endpoint protocol
 
-## 6. Execution and admission separation
+The exact mutually disjoint namespaces are:
 
-Implementation proceeds in gates:
+- engineering dry-run: 2000–2002;
+- training: 2100–2109;
+- tuning: 2200–2204; and
+- fresh paired evaluation: 2300–2319.
 
-1. schema/compatibility design and synthetic dry-run tests;
-2. unsigned predeclaration draft and resource estimate (`evidence: false`);
-3. explicit owner decisions and policy-valid sign-off;
-4. separately authorised training/evaluation execution;
-5. blind/frozen analysis against the predeclared verdict;
-6. independent admission decision with deviations visible.
+Every namespace is checked against all registered/spent cohorts. Current held-out seeds and any
+other registered cohort are refused. Post-hoc seed expansion is prohibited. At least 18 of the 20
+fresh paired evaluation seeds must complete for admission eligibility.
 
-The benchmark tooling may be built before compute authority only if tests use synthetic or
-tiny non-scientific fixtures. It must have no automatic cloud submission path and must not
-reuse runtime credentials.
+The primary endpoint is equal-weight task-class deadline completion. Every analysis must also
+report mean latency, mean energy, completion/failure composition, action/offloading behaviour and
+persistent-minority failure concentration. Latency alone cannot determine the verdict.
 
-## 7. Artifacts
+The terminal checkpoint is primary. Checkpoints at 25%, 50%, 75% and 100% of the frozen budget are
+robustness views only and cannot be selected from evaluation outcomes.
 
-Proposed artifacts are a versioned `BenchmarkProtocol`, `ActorCompatibilityRecord`,
-`TrainingReceipt`, `CheckpointSelectionReceipt`, paired `EvaluationReceipt`, frozen
-`BenchmarkAnalysis` and admission record. Each binds source/code/environment digests,
-seeds, budgets, actor contract, capacity representation and deviations.
+## 5. Frozen statistical contract
 
-Repository artifacts contain no checkpoints whose licence forbids redistribution, private
-paths, credentials or raw BODS data. Producer-derived code/results include the citation
-bundle required by [producer citation requirements](../producer_citation_requirements.md).
+The proposed analysis uses paired differences, a 95% paired bootstrap interval, the exact sign
+test and a paired permutation test. Confirmatory families use Holm FWER 0.05; exploratory families
+use Benjamini–Hochberg FDR 0.05. Domains remain separate. Ties and nulls are reported.
 
-## 8. Typed refusals
+The protocol-digest-bound practical thresholds are:
 
-At minimum: `OWNER_DECISION_MISSING`, `PREDECLARATION_UNSIGNED`,
-`COMPUTE_AUTHORITY_MISSING`, `ACTOR_CONTRACT_INCOMPATIBLE`,
-`OBSERVATION_DIMENSION_MISMATCH`, `CAPACITY_REPRESENTATION_UNFROZEN`,
-`SEED_NAMESPACE_CONTAMINATED`, `TRAINING_BUDGET_UNMATCHED`,
-`CHECKPOINT_SELECTION_LEAKAGE`, `PRIMARY_ENDPOINT_MISSING`,
-`EXISTING_NON_ADMITTED_REUSE` and `RESOURCE_BUDGET_EXCEEDED`.
+- 0.01 absolute deadline-completion difference;
+- 100 ms mean-latency difference;
+- 0.1 J mean-energy difference;
+- 0.01 absolute failure-rate difference;
+- 0.05 absolute action-share difference; and
+- 0.02 absolute persistent-minority-share difference.
 
-## 9. Verification and acceptance
+These are proposed study thresholds, not universal scientific or operational standards.
 
-Before any scientific execution, tests must pin feature construction, dimension checks,
-capacity visibility timing, actor compatibility, deterministic seed partitions, matched
-budget accounting, checkpoint-selection isolation, endpoint completeness and refusal on
-non-admitted reuse. A synthetic end-to-end dry run must prove that the frozen analysis
-produces a publishable null and retains all deviations.
+## 6. Resource plan is an estimate, not authority
 
-Acceptance for the design/tooling phase means the protocol can be frozen and audited
-without launching compute. Scientific acceptance is a later admission decision and is not
-guaranteed by successful execution.
+The candidate plan records GCP Batch as the primary scheduler, AWS Batch as failover, and L4, A100
+and H100 calibration with cross-accelerator reproducibility checks. It estimates ceilings of 5,000
+GPU-hours and GBP 5,000, including GBP 250 calibration and GBP 750 pilot allowances.
 
-## 10. Owner decisions and stop conditions
+All figures carry `estimate_only: true` and `authority: false`. No account was contacted, no
+credential was read, no allocation was made and no money was spent. The code can enumerate and
+account for the plan but cannot submit it.
 
-Required decisions: research priority, actor families, capacity representation, trace/fleet
-scope, primary endpoint, seed count, compute budget, hardware source and whether any new
-training is justified. Stop before training or evaluation until all are explicit and the
-predeclaration is signed. Also stop if comparison requires incompatible contracts,
-post-hoc seed expansion, hidden checkpoint selection, VEC-06 relaxation or promotion of
-existing non-admitted runs.
+## 7. Execution, analysis and admission remain distinct
+
+The generated predeclaration is deterministic and binds its full protocol digest. Its sign-off
+table is intentionally empty. Execution eligibility requires a timezone-aware, policy-validated
+human-owner signature binding both the exact protocol digest and the final Markdown digest. The
+eligibility response records `execution_started: false` and requires an external scheduler; it is
+not an execution command.
+
+After a separately authorised campaign, rule-based admission eligibility requires:
+
+- exact protocol and signed-predeclaration digests;
+- at least 18 successful fresh pairs;
+- complete frozen analysis and multiplicity handling;
+- separate domains;
+- unchanged seed namespaces;
+- the frozen checkpoint rule; and
+- only deviations allowed by the predeclared rule.
+
+Eligibility never creates an admission record or evidence. It returns
+`admission_created: false` and `evidence_created: false`; an actual admission artifact belongs to a
+separate governed workflow after real results exist.
+
+## 8. Synthetic verification and typed refusals
+
+The local dry run uses only the three engineering seeds, exercises the frozen analysis methods,
+preserves a synthetic deviation and returns a publishable null with `evidence: false`,
+`confirmatory: false` and `synthetic_dry_run: true`.
+
+Typed refusals cover owner-decision gaps, unsigned or mismatched predeclarations, incompatible
+contracts, observation dimensions, unfrozen capacity features, seed contamination, unmatched
+budgets, checkpoint leakage, incomplete endpoints, non-admitted-result reuse, resource ceilings,
+private content and unauthorised non-synthetic analysis.
+
+## 9. Current scientific context
+
+The existing admitted capacity result remains exactly:
+
+- Lowering RSU capacity from 2.5 to 0.75 reduced mean latency by 8,310.9 ms.
+- Bootstrap interval: [−9,097.5, −7,524.3] ms.
+- All five held-out seeds moved in the same direction.
+- The exact two-sided sign-test floor is p=0.0625.
+- Do not claim conventional statistical significance.
+- Deadline attainment remained effectively flat.
+- Actions/offloading decisions were invariant across capacity arms.
+- The latency change occurred within already-failed tasks and was not an improvement experienced
+  by an individual vehicle.
+- The post-hoc capacity-scaled latency ceiling was approximately 39,959 ms × capacity.
+- Failure was concentrated among a persistent minority of vehicles.
+- The broader finding is that standard VEC QoS metrics can improve when the system is degraded.
+
+This context motivates the benchmark. It is not a forecast of its outcome and is not pooled with
+future benchmark results.
+
+## 10. Residual limitations
+
+No real actor implementation, simulator image, domain artifact, cloud account, hardware,
+checkpoint, training receipt or evaluation receipt is bound yet. The proposed predeclaration is
+unsigned. Scientific execution still requires a separately signed final artifact and explicit
+external compute action; this phase intentionally provides neither. Any changed scope, budget,
+seed, threshold or analysis rule changes the digest and requires a new proposed predeclaration.
+
+All producer-derived implementations and results must satisfy
+[`docs/producer_citation_requirements.md`](../producer_citation_requirements.md). Repository
+artifacts must not contain credentials, private paths, raw BODS data, private permission text or
+non-redistributable checkpoints.
