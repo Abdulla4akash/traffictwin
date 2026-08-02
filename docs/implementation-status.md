@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 190. It does not alter the strict
+This section records the additive platform truth through Phase 191. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,7 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
-| Durable real-evidence programme | Phase 190 defines eight implementation-ready designs for durable local workspace/run operation, privacy-safe aggregate history, National Highways transitions, BODS trends, Source Health, resumable named-person review and provider-gated TfGM/NTIS measurements | Design only: no workspace, long-term store, transition/trend artifact, page, review decision, provider contract/adapter, capability acceptance or release exists from this phase |
+| Durable real-evidence programme | Phase 190 defines eight implementation-ready designs; Phase 191 implements the `NEXT-01` preview-confirmed, new-only durable workspace workflow with owner-only permissions, empty-registry backup/restore verification, atomic publication, path-free receipt and exact retry | No owner-selected real workspace was created; no source, long-term store, transition/trend artifact, page, review decision, provider adapter, capability acceptance or release exists from these phases |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -222,6 +222,16 @@ policy was approved, no person was impersonated, and no implementation/capabilit
 changed. Verification passed 20 focused release/handoff integrity tests, lock validation,
 changed-document relative-link and eight-slice structure checks, added-line secret/private-path
 screening, and `git diff --check`.
+
+Phase 191 implements only `NEXT-01`. Its mutation-free preview binds an opaque target identity,
+the existing v0.7 layout contract, owner-only parent state, free-space and orphan-staging facts.
+Creation requires the exact plan digest, stages the empty workspace privately, verifies a
+byte-exact baseline-registry backup through an isolated schema-aware restore, reapplies `0700`/
+`0600` permissions, reopens the normal inspector, writes a path-free receipt and publishes by
+atomic rename. Immediate exact retry reconciles the still-empty registry and every managed digest;
+changed or unmanaged targets fail closed. No real target was used in verification, so this is a
+bounded local foundation rather than `REL-01` acceptance or evidence that a durable real workspace
+has been activated.
 
 Phase 0 status: approved and committed.
 

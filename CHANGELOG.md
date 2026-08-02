@@ -2,6 +2,14 @@
 
 ## v0.7.0 - In development
 
+Added preview-confirmed durable v0.7 workspace creation (3 August, Phase 191). A path-free preview
+binds the new target and existing v0.7 layout; exact confirmation creates it through private
+staging and atomic publication, applies owner-only permissions, verifies an empty-registry backup
+through an isolated restore, and records a path-free receipt. Exact immediate retry reconciles the
+managed output, while existing, unsafe, changed or unmanaged targets fail closed. Verification
+created only temporary test workspaces; no owner-selected real workspace, source, evidence,
+historical-store activation, capability acceptance or release was created.
+
 Added owner-authorised automatic BODS refresh (2 August, Phase 189). A configured local server now
 runs one process-level worker per validated workspace, making at most one scoped BODS request per
 minute through the existing lock, private snapshot, strict source-time freshness and aggregate-

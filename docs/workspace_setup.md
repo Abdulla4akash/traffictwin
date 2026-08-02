@@ -40,14 +40,19 @@ traffictwin demo status .demo
 Isolated v0.7 workspace (new-only; the target must not exist):
 
 ```bash
-traffictwin release v07-workspace-init workspace-v0.7
-traffictwin release v07-workspace-inspect workspace-v0.7
+traffictwin release v07-durable-preview /owner-selected/private-parent/workspace-v0.7
+traffictwin release v07-durable-create /owner-selected/private-parent/workspace-v0.7 \
+  --expected-plan "replace-with-confirmed-plan-fingerprint"
+traffictwin release v07-workspace-inspect /owner-selected/private-parent/workspace-v0.7
 ```
 
-This creates an empty structural foundation. It does not populate Manchester sources or create
-mapping, calibration, baseline or comparison evidence. Do not run the initialiser merely to make
-Manchester layers appear. To connect existing evidence, obtain the exact existing path from the
-owner and run only `v07-workspace-inspect` before launch.
+The durable workflow requires a current-user-owned parent with mode `0700`, previews without
+mutation, requires exact digest confirmation, creates an empty-registry backup with an isolated
+restore drill, and publishes atomically. See
+[durable v0.7 workspace creation](v07_durable_workspace.md). It does not populate Manchester
+sources or create mapping, calibration, baseline or comparison evidence. Do not run an
+initialiser merely to make Manchester layers appear. To connect existing evidence, obtain the
+exact existing path from the owner and run only `v07-workspace-inspect` before launch.
 
 ## Side-by-side operation
 
@@ -73,8 +78,8 @@ Notes:
 
 - `traffictwin demo launch` initialises the demo workspace if needed and sets the workspace
   environment variables for its own process only.
-- The v0.7 process must point at a workspace created by `release v07-workspace-init`; Manchester
-  pages fail closed in an unmarked directory.
+- The v0.7 process must point at a strictly marked workspace; Manchester pages fail closed in an
+  unmarked directory. New durable workspaces should use the preview-confirmed workflow above.
 - For an existing real workspace, use only an exact owner-supplied path and validate it read-only.
   Do not scan ignored/private directories to infer one.
 - `demo launch` is for `workspace.yaml` standalone demos only; launch a v0.7 workspace directly

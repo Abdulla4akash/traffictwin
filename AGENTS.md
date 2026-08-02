@@ -5171,3 +5171,29 @@ added-line secret/private-path screening, and `git diff --check`. No private wor
 or inspected; no key, source request, long-term store, event/trend artifact, page, row decision,
 provider contract/adapter, capability acceptance, scientific evidence, deployment, tag or release
 was created.
+
+### Phase 191 claim: durable v0.7 workspace workflow (`NEXT-01`, 3 August 2026)
+
+The owner-directed integrating lead owns the first Phase-190 implementation slice in the new
+`src/traffictwin/release/durable_workspace.py`, its exports in
+`src/traffictwin/release/__init__.py`, the two additive bounded release commands in
+`src/traffictwin/cli.py`, focused tests in `tests/unit/test_durable_workspace_v07.py`, generated
+schema/help reconciliation through `scripts/generate_reference_docs.py`, the new
+`docs/v07_durable_workspace.md`, narrow discoverability/status updates, and this phase record. The
+phase may add path-free mutation-free preview, exact preview confirmation, new-only atomic
+workspace creation, owner-only permissions, an empty-registry baseline backup plus isolated
+restore verification, exact retry, orphan/collision reporting, and typed receipts. It may not
+search for or inspect an existing private workspace, initialise a real target during verification,
+acquire any source, use credentials, activate a historical store, migrate/import evidence, delete
+an unmanaged target, change capability standing, or create a release/tag.
+
+Phase 191 completed locally on 3 August 2026. The two release commands now preview without
+mutation and create only after exact digest confirmation. The implementation uses OS-level
+new-only atomic rename, owner-only permissions, the existing strict v0.7 inspector/layout, a
+byte-exact empty-registry backup and isolated schema-aware restore, a path-free terminal receipt,
+immediate exact retry, typed collision/orphan refusals and sanitized I/O failures. The wider
+release/migration/reconciliation/productisation/CLI regression passed 74 tests. Ruff, format,
+focused strict mypy, lock validation, generated help/schema JSON, changed-document link,
+added-line secret/private-path and diff checks passed. Only temporary empty test workspaces were
+created; no owner-selected private workspace was inspected or initialised, no source or credential
+was used, and no historical store, evidence, capability acceptance, release or tag was created.

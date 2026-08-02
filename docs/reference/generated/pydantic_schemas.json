@@ -95445,6 +95445,418 @@
       "title": "V06RegistryCopyReceipt",
       "type": "object"
     },
+    "V07BaselineBackupReceipt": {
+      "additionalProperties": false,
+      "description": "Proof that the empty active registry was copied and restored in isolation.",
+      "properties": {
+        "backup_relative_path": {
+          "const": "registry/baseline-backup/traffictwin.sqlite",
+          "default": "registry/baseline-backup/traffictwin.sqlite",
+          "title": "Backup Relative Path",
+          "type": "string"
+        },
+        "backup_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Backup Sha256",
+          "type": "string"
+        },
+        "backup_size_bytes": {
+          "minimum": 1,
+          "title": "Backup Size Bytes",
+          "type": "integer"
+        },
+        "isolated_restore_verified": {
+          "const": true,
+          "default": true,
+          "title": "Isolated Restore Verified",
+          "type": "boolean"
+        },
+        "registry_relative_path": {
+          "const": "registry/traffictwin.sqlite",
+          "default": "registry/traffictwin.sqlite",
+          "title": "Registry Relative Path",
+          "type": "string"
+        },
+        "registry_schema_version": {
+          "minimum": 1,
+          "title": "Registry Schema Version",
+          "type": "integer"
+        },
+        "registry_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Registry Sha256",
+          "type": "string"
+        },
+        "registry_size_bytes": {
+          "minimum": 1,
+          "title": "Registry Size Bytes",
+          "type": "integer"
+        },
+        "restored_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Restored Sha256",
+          "type": "string"
+        },
+        "restored_size_bytes": {
+          "minimum": 1,
+          "title": "Restored Size Bytes",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "traffictwin.durable-workspace.v1",
+          "default": "traffictwin.durable-workspace.v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "registry_schema_version",
+        "registry_size_bytes",
+        "registry_sha256",
+        "backup_size_bytes",
+        "backup_sha256",
+        "restored_size_bytes",
+        "restored_sha256"
+      ],
+      "title": "V07BaselineBackupReceipt",
+      "type": "object"
+    },
+    "V07DurableWorkspacePlan": {
+      "additionalProperties": false,
+      "description": "Mutation-free, path-free plan for one new durable workspace.",
+      "properties": {
+        "actions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "activatable": {
+          "title": "Activatable",
+          "type": "boolean"
+        },
+        "available_free_bytes": {
+          "minimum": 0,
+          "title": "Available Free Bytes",
+          "type": "integer"
+        },
+        "baseline_backup_required": {
+          "const": true,
+          "default": true,
+          "title": "Baseline Backup Required",
+          "type": "boolean"
+        },
+        "blockers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "capability_id": {
+          "const": "REL-01",
+          "default": "REL-01",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "capability_status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Capability Status",
+          "type": "string"
+        },
+        "isolated_restore_required": {
+          "const": true,
+          "default": true,
+          "title": "Isolated Restore Required",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "v07-durable-workspace-1.0",
+          "default": "v07-durable-workspace-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "operation": {
+          "const": "new_only_durable_workspace",
+          "default": "new_only_durable_workspace",
+          "title": "Operation",
+          "type": "string"
+        },
+        "orphan_staging_handles": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Orphan Staging Handles",
+          "type": "array"
+        },
+        "parent_owned_by_current_user": {
+          "const": true,
+          "default": true,
+          "title": "Parent Owned By Current User",
+          "type": "boolean"
+        },
+        "parent_owner_only": {
+          "const": true,
+          "default": true,
+          "title": "Parent Owner Only",
+          "type": "boolean"
+        },
+        "repository_descendant": {
+          "const": false,
+          "default": false,
+          "title": "Repository Descendant",
+          "type": "boolean"
+        },
+        "required_directories": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Required Directories",
+          "type": "array"
+        },
+        "required_free_bytes": {
+          "const": 8388608,
+          "default": 8388608,
+          "title": "Required Free Bytes",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "traffictwin.durable-workspace.v1",
+          "default": "traffictwin.durable-workspace.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_acquisition_authorised": {
+          "const": false,
+          "default": false,
+          "title": "Source Acquisition Authorised",
+          "type": "boolean"
+        },
+        "target_absent": {
+          "const": true,
+          "default": true,
+          "title": "Target Absent",
+          "type": "boolean"
+        },
+        "workspace_contract_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Workspace Contract Fingerprint",
+          "type": "string"
+        },
+        "workspace_handle": {
+          "pattern": "^workspace-[0-9a-f]{16}$",
+          "title": "Workspace Handle",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_handle",
+        "workspace_contract_fingerprint",
+        "required_directories",
+        "available_free_bytes",
+        "activatable",
+        "actions"
+      ],
+      "title": "V07DurableWorkspacePlan",
+      "type": "object"
+    },
+    "V07DurableWorkspaceReceipt": {
+      "$defs": {
+        "V07BaselineBackupReceipt": {
+          "additionalProperties": false,
+          "description": "Proof that the empty active registry was copied and restored in isolation.",
+          "properties": {
+            "backup_relative_path": {
+              "const": "registry/baseline-backup/traffictwin.sqlite",
+              "default": "registry/baseline-backup/traffictwin.sqlite",
+              "title": "Backup Relative Path",
+              "type": "string"
+            },
+            "backup_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Backup Sha256",
+              "type": "string"
+            },
+            "backup_size_bytes": {
+              "minimum": 1,
+              "title": "Backup Size Bytes",
+              "type": "integer"
+            },
+            "isolated_restore_verified": {
+              "const": true,
+              "default": true,
+              "title": "Isolated Restore Verified",
+              "type": "boolean"
+            },
+            "registry_relative_path": {
+              "const": "registry/traffictwin.sqlite",
+              "default": "registry/traffictwin.sqlite",
+              "title": "Registry Relative Path",
+              "type": "string"
+            },
+            "registry_schema_version": {
+              "minimum": 1,
+              "title": "Registry Schema Version",
+              "type": "integer"
+            },
+            "registry_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Registry Sha256",
+              "type": "string"
+            },
+            "registry_size_bytes": {
+              "minimum": 1,
+              "title": "Registry Size Bytes",
+              "type": "integer"
+            },
+            "restored_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Restored Sha256",
+              "type": "string"
+            },
+            "restored_size_bytes": {
+              "minimum": 1,
+              "title": "Restored Size Bytes",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "traffictwin.durable-workspace.v1",
+              "default": "traffictwin.durable-workspace.v1",
+              "title": "Schema Version",
+              "type": "string"
+            }
+          },
+          "required": [
+            "registry_schema_version",
+            "registry_size_bytes",
+            "registry_sha256",
+            "backup_size_bytes",
+            "backup_sha256",
+            "restored_size_bytes",
+            "restored_sha256"
+          ],
+          "title": "V07BaselineBackupReceipt",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Path-free terminal receipt for an atomically published durable workspace.",
+      "properties": {
+        "active_registry_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Active Registry Sha256",
+          "type": "string"
+        },
+        "baseline_backup": {
+          "$ref": "#/$defs/V07BaselineBackupReceipt"
+        },
+        "capability_id": {
+          "const": "REL-01",
+          "default": "REL-01",
+          "title": "Capability Id",
+          "type": "string"
+        },
+        "capability_status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Capability Status",
+          "type": "string"
+        },
+        "contains_accepted_source_data": {
+          "const": false,
+          "default": false,
+          "title": "Contains Accepted Source Data",
+          "type": "boolean"
+        },
+        "created_at_utc": {
+          "format": "date-time",
+          "title": "Created At Utc",
+          "type": "string"
+        },
+        "exact_retry": {
+          "default": false,
+          "title": "Exact Retry",
+          "type": "boolean"
+        },
+        "historical_store_activated": {
+          "const": false,
+          "default": false,
+          "title": "Historical Store Activated",
+          "type": "boolean"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "v07-durable-workspace-1.0",
+          "default": "v07-durable-workspace-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "operation": {
+          "const": "new_only_durable_workspace",
+          "default": "new_only_durable_workspace",
+          "title": "Operation",
+          "type": "string"
+        },
+        "owner_only_permissions_verified": {
+          "const": true,
+          "default": true,
+          "title": "Owner Only Permissions Verified",
+          "type": "boolean"
+        },
+        "plan_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Fingerprint",
+          "type": "string"
+        },
+        "private_path_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Persisted",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "traffictwin.durable-workspace.v1",
+          "default": "traffictwin.durable-workspace.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_acquisition_performed": {
+          "const": false,
+          "default": false,
+          "title": "Source Acquisition Performed",
+          "type": "boolean"
+        },
+        "workspace_handle": {
+          "pattern": "^workspace-[0-9a-f]{16}$",
+          "title": "Workspace Handle",
+          "type": "string"
+        },
+        "workspace_reopened_and_verified": {
+          "const": true,
+          "default": true,
+          "title": "Workspace Reopened And Verified",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "workspace_handle",
+        "plan_fingerprint",
+        "created_at_utc",
+        "manifest_sha256",
+        "active_registry_sha256",
+        "baseline_backup"
+      ],
+      "title": "V07DurableWorkspaceReceipt",
+      "type": "object"
+    },
     "V07WorkspaceContract": {
       "additionalProperties": false,
       "description": "Published REL-01 foundation contract.",

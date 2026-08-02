@@ -26,6 +26,10 @@ Do not create a demo or v0.7 workspace inside a valuable existing workspace. Pre
 owner-selected directory outside the repository for durable local state, or a fresh temporary
 directory for a disposable demonstration.
 
+For a new durable v0.7 workspace, use the path-free preview and exact-confirmation workflow in
+[durable v0.7 workspace creation](v07_durable_workspace.md). A new empty container is still not
+evidence and does not authorise source acquisition.
+
 ## 2. Reuse a running synthetic demo
 
 Before starting another server on the usual local port, check whether one is already healthy:
@@ -154,8 +158,8 @@ Important distinctions:
 
 - Do not run `traffictwin demo launch` against a v0.7 workspace. That launcher requires the
   standalone `workspace.yaml` layout and points at `registry.sqlite`, not the v0.7 registry path.
-- Do not run `release v07-workspace-init` against an existing workspace. Initialisation is
-  new-only, and a freshly created empty workspace would not make Manchester layers appear.
+- Do not run either workspace initialiser against an existing workspace. Creation is new-only,
+  and a freshly created empty workspace would not make Manchester layers appear.
 - A Manchester page must continue to show each source's actual accepted, stale, historical,
   unavailable or excluded state. Missing data is not zero.
 - The workspace marker does not resolve the open DfT/WebTRIS time semantics, BODS longitudinal
@@ -197,6 +201,7 @@ During ordinary viewing:
 
 - [Standalone demo](standalone_demo.md)
 - [Workspace setup and side-by-side operation](workspace_setup.md)
+- [Durable v0.7 workspace creation](v07_durable_workspace.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [Manchester Operations UI boundary](integration/manchester_operations_ui.md)
 - [Current v0.7 progress and blockers](current_progress_v0_7.md)

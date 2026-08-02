@@ -1096,10 +1096,11 @@ is committed or made canonical.
 5. Return a path-free receipt with an opaque workspace handle, manifest digest, registry digest,
    backup digest, creation time, and `contains_accepted_source_data=false`.
 
-Proposed additive contracts are `V07DurableWorkspacePlan`, `V07DurableWorkspaceReceipt`, and
-`V07LocalRunProfile`. Private paths exist only in local runtime configuration. The run profile
-binds the workspace/registry handles, expected port, enabled source-worker names, and environment-
-variable *names*; it never stores environment values.
+Phase 191 implements `V07DurableWorkspacePlan`, `V07BaselineBackupReceipt`, and
+`V07DurableWorkspaceReceipt` as the bounded `NEXT-01` workflow. `V07LocalRunProfile` remains the
+separate `NEXT-02` contract. Private paths exist only in local runtime configuration. The run
+profile binds the workspace/registry handles, expected port, enabled source-worker names, and
+environment-variable *names*; it never stores environment values.
 
 #### Refusals and acceptance
 
@@ -1113,6 +1114,12 @@ permission and symlink adversarial tests, backup/restore verification, an unchan
 path/secret screening, and a final read-only inspector pass. A real initialisation remains an
 explicit owner operation and receives a separate local receipt; synthetic tests alone do not prove
 it occurred.
+
+**Implementation reconciliation (Phase 191).** The preview-confirmed new-only workflow, atomic
+publication, owner-only permissions, empty-registry backup, isolated restore drill, path-free
+receipt, exact retry, CLI and focused adversarial tests are implemented. No owner-selected real
+target was created during verification, and this bounded foundation does not accept `REL-01` or
+any `MAN-*` capability.
 
 ### 27.3 `NEXT-02` — local real-workspace process on port 8502
 

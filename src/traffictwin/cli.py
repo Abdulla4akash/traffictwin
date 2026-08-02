@@ -441,13 +441,16 @@ from traffictwin.release import (
     V06AttestationError,
     V06MigrationError,
     V07CompatibilityError,
+    V07DurableWorkspaceError,
     build_v06_producer_attestation,
     copy_v06_registry,
+    create_durable_v07_workspace,
     current_release_metadata,
     initialise_v07_workspace,
     inspect_v07_workspace,
     load_v06_producer_attestation,
     migrate_v06_registry,
+    preview_durable_v07_workspace,
     preview_v06_migration,
     preview_v06_registry_copy,
     rollback_v06_migration,
@@ -4401,6 +4404,81 @@ def release_v07_workspace_init_command(
     typer.echo(f"cache_namespace: {manifest.cache_namespace}")
     typer.echo(f"active_registry: {result.active_registry_path}")
     typer.echo(f"manifest_fingerprint: {result.inspection.manifest_sha256}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-durable-preview")
+def release_v07_durable_preview_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Preview a new durable v0.7 workspace without changing the target."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        plan = preview_durable_v07_workspace(path)
+    except V07DurableWorkspaceError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    payload = {
+        **plan.model_dump(mode="json"),
+        "plan_fingerprint": plan.confirmation_fingerprint(),
+    }
+    if output_format == "json":
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"workspace_handle: {plan.workspace_handle}")
+    typer.echo(f"plan_fingerprint: {plan.confirmation_fingerprint()}")
+    typer.echo(f"target_absent: {str(plan.target_absent).lower()}")
+    typer.echo(f"parent_owner_only: {str(plan.parent_owner_only).lower()}")
+    typer.echo(f"required_free_bytes: {plan.required_free_bytes}")
+    typer.echo(f"available_free_bytes: {plan.available_free_bytes}")
+    typer.echo(f"orphan_staging_count: {len(plan.orphan_staging_handles)}")
+    typer.echo(f"activatable: {str(plan.activatable).lower()}")
+    typer.echo("source_acquisition_authorised: false")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-durable-create")
+def release_v07_durable_create_command(
+    path: Annotated[Path, typer.Argument(file_okay=False)],
+    expected_plan: Annotated[str, typer.Option("--expected-plan")],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Create a new durable workspace after exact preview confirmation."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        result = create_durable_v07_workspace(
+            path,
+            expected_plan_fingerprint=expected_plan,
+        )
+    except V07DurableWorkspaceError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    receipt = result.receipt
+    payload = {
+        **receipt.model_dump(mode="json"),
+        "receipt_fingerprint": receipt.fingerprint(),
+    }
+    if output_format == "json":
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"workspace_handle: {receipt.workspace_handle}")
+    typer.echo(f"plan_fingerprint: {receipt.plan_fingerprint}")
+    typer.echo(f"receipt_fingerprint: {receipt.fingerprint()}")
+    typer.echo(f"manifest_sha256: {receipt.manifest_sha256}")
+    typer.echo(f"active_registry_sha256: {receipt.active_registry_sha256}")
+    typer.echo("baseline_backup_verified: true")
+    typer.echo("workspace_reopened_and_verified: true")
+    typer.echo("owner_only_permissions_verified: true")
+    typer.echo("contains_accepted_source_data: false")
+    typer.echo("source_acquisition_performed: false")
+    typer.echo(f"exact_retry: {str(receipt.exact_retry).lower()}")
     typer.echo("capability_status: planned")
 
 

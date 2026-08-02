@@ -2,8 +2,8 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 190 is the current design-only increment. The
-immutable release baseline and historical checkpoint tags remain unchanged.
+**Development branch:** `claude/complete-v0.7`; Phase 191 is the current bounded implementation
+increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
 data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
@@ -15,7 +15,9 @@ DfT/WebTRIS/BODS source re-audit and Phase-186 committed-input/submission-releas
 Phase 187 added the bounded local usage runbook; Phases 188–189 add owner-authorised process-
 lifetime National Highways and BODS refresh without changing source, publication or capability
 standing. Phase 190 designs the next durable real-workspace, operational-history, source-health,
-map-review and provider-gated measured-traffic programme without implementing or activating it.
+map-review and provider-gated measured-traffic programme. Phase 191 implements its first bounded
+slice: safe creation of a new empty durable workspace, without creating a real owner target or
+activating any source.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -151,6 +153,13 @@ At the latest proportional verification points:
   and structure checks, added-line secret/private-path screening and diff checks pass. No private
   workspace, source request, implementation, reviewer decision, provider contract, capability
   acceptance or release was created.
+- Phase 191 implements the bounded `NEXT-01` durable-workspace workflow. The 74-test release,
+  migration, reconciliation, productisation and CLI regression passes, including atomic
+  no-overwrite publication, interruption recovery, owner-only permissions, empty-registry backup/
+  restore, exact retry and path-free output adversarial checks. Ruff, format, focused strict mypy,
+  lock, generated-reference JSON, changed-document link, privacy/path and diff checks pass. Tests
+  created only temporary empty workspaces; no owner-selected real target, source, historical
+  store, capability acceptance or release was created.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -360,6 +369,23 @@ reviewer, and `NEXT-08` source implementation waits for exact provider access/sc
 identifier/security/licence/publication evidence. No workspace was created or inspected, no
 credential was used, no source was fetched, no reviewer decision was recorded, and no capability
 or release standing changed in Phase 190.
+
+### 6.6 Phase-191 durable workspace foundation (`NEXT-01`)
+
+The first programme slice is now `working_bounded`. Two additive release commands provide a
+path-free, mutation-free preview and exact digest-confirmed creation of a new v0.7 workspace. The
+workflow refuses existing targets, repository descendants, symlinks and unsafe parents; uses
+private sibling staging and atomic rename; enforces owner-only permissions; copies the empty
+registry; validates a byte-exact isolated restore; reopens the normal v0.7 inspector; and writes a
+path-free terminal receipt. Exact immediate retry reconciles every managed artifact and refuses a
+moved, used, changed or unmanaged target.
+
+The operator procedure is documented in
+[durable v0.7 workspace creation](v07_durable_workspace.md). Verification uses temporary test
+parents only. It does not prove that an owner-selected real workspace exists, and the receipt
+explicitly records no accepted source data, acquisition or historical-store activation. `REL-01`
+and every `MAN-*`/`UX-*` capability therefore retain their formal `planned` standing. `NEXT-02`
+through `NEXT-08` remain separate slices.
 
 ## 7. Decisions or evidence required before acceptance
 

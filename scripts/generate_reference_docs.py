@@ -598,6 +598,11 @@ from traffictwin.release.compatibility import (
     v07_workspace_contract,
 )
 from traffictwin.release.deployment import SyntheticStaticSiteManifest
+from traffictwin.release.durable_workspace import (
+    V07BaselineBackupReceipt,
+    V07DurableWorkspacePlan,
+    V07DurableWorkspaceReceipt,
+)
 from traffictwin.rendering.findings import DiagnosticNarrative
 from traffictwin.reporting.diffing import (
     ReportClaimDiff,
@@ -731,6 +736,9 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "V07WorkspaceInspection": V07WorkspaceInspection,
     "V06RegistryCopyPreview": V06RegistryCopyPreview,
     "V06RegistryCopyReceipt": V06RegistryCopyReceipt,
+    "V07DurableWorkspacePlan": V07DurableWorkspacePlan,
+    "V07BaselineBackupReceipt": V07BaselineBackupReceipt,
+    "V07DurableWorkspaceReceipt": V07DurableWorkspaceReceipt,
     "ManchesterSourceIdentity": ManchesterSourceIdentity,
     "ManchesterRequestIdentity": ManchesterRequestIdentity,
     "ManchesterRetrievalWindow": ManchesterRetrievalWindow,
@@ -1252,6 +1260,8 @@ CLI_COMMANDS = [
     ["release"],
     ["release", "status"],
     ["release", "stage-demo-site"],
+    ["release", "v07-durable-preview"],
+    ["release", "v07-durable-create"],
     ["experiment"],
     ["experiment", "summarise"],
     ["experiment", "study-contract"],
