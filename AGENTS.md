@@ -5256,3 +5256,25 @@ help reconciliation and diff checks passed. Verification used only temporary emp
 synthetic approved-policy fixtures; no owner policy/workspace, worker wiring, long-term real row,
 provider call, raw read, deletion, public export, capability acceptance, release or tag was
 created.
+
+### Phase 194 claim: National Highways transitions (`NEXT-04`, 3 August 2026)
+
+The owner-directed integrating lead owns the fourth Phase-190 slice in a new
+`src/traffictwin/integration/manchester/national_highways_transitions.py`, its bounded Manchester
+exports, focused `tests/unit/test_manchester_national_highways_transitions.py`, generated schemas,
+operator/design/status documentation and this phase record. The phase may add exact accepted-
+snapshot binding, deterministic consecutive complete-report comparison, the six designed
+transition states, allowlisted changed fields, reappearance memory, complete reconciliation,
+private row and aggregate-only public projections. It may not call a provider, read an unverified
+snapshot, treat absence as clearance, expose VMS display text, claim measured traffic, activate a
+real writer/page, approve row-level publication, accept a capability or create a release/tag.
+
+Phase 194 completed locally on 3 August 2026. The new pure service exact-binds complete accepted
+receipt/report pairs; refuses time, product, scope, feed/model and evidence-class drift; and
+reconciles opaque tokens across first-seen, changed, unchanged, no-longer-listed, expired and
+reappeared states. Changed fields are closed-allowlisted, disappearance wording is bounded, and
+the public candidate removes tokens, rows and locations while remaining unapproved. Twenty-eight
+focused and adjacent National Highways/history tests passed. Ruff, focused strict mypy, generated
+schema/help reconciliation and diff checks passed. No provider, real snapshot pair, writer,
+Changes page, measured-traffic claim, public row, capability acceptance, release or tag was
+created.

@@ -1257,6 +1257,10 @@ allowlisting; complete set reconciliation; duplicate/order independence; outage/
 refusals; reappearance; validity timing; DST-independent UTC comparison; private/public
 projections; and exact prior/current snapshot lineage.
 
+Phase 194 implements the pure accepted-snapshot comparison, bounded reappearance memory, private
+row projection and aggregate-only public candidate for all three product contracts. It does not
+activate a writer or the Changes page, and public row publication remains unavailable.
+
 ### 27.6 `NEXT-05` — BODS operational trends
 
 #### Aggregate contract

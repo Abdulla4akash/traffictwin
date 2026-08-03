@@ -2,7 +2,7 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 193 is the current bounded implementation
+**Development branch:** `claude/complete-v0.7`; Phase 194 is the current bounded implementation
 increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -21,6 +21,8 @@ activating any source. Phase 192 adds the secret-free port-8502 preflight and fi
 launcher over that durable contract without running a private real-source smoke. Phase 193 adds
 the dormant, policy-gated aggregate operational-history contract, UTC compaction and closed safe
 store adapter without activating a writer or approving retention.
+Phase 194 adds the pure complete accepted-snapshot National Highways transition service without
+calling a provider, persisting a real transition, or activating the Changes page.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -431,6 +433,18 @@ unchanged; and no raw quarantine is read. The operator contract is documented in
 [Manchester aggregate operational history](integration/manchester_operational_history.md).
 `NEXT-04`–`NEXT-08` remain separate, and real `NEXT-03` activation remains blocked on the owner
 policy recorded in section 7.
+
+### 6.9 Phase-194 National Highways transitions (`NEXT-04`)
+
+The fourth programme slice is `working_bounded`. Exact accepted receipt/report bindings feed a
+deterministic complete set reconciliation for consecutive same-product/scope/model snapshots. It
+implements all six designed states, bounded opaque reappearance memory, a closed changed-field
+allowlist, exact prior/current lineage and aggregate-only public-candidate projection. Absence is
+labelled only as no longer listed unless the source validity end establishes expiry.
+
+The service is pure and not wired to a real refresh or UI page. No public row release is approved,
+and literal VMS display text and measured traffic remain unavailable. See
+[National Highways transitions](integration/manchester_national_highways_transitions.md).
 
 ## 7. Decisions or evidence required before acceptance
 

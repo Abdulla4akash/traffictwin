@@ -51896,6 +51896,612 @@
       "title": "NWayRankingStudy",
       "type": "object"
     },
+    "NationalHighwaysAcceptedTransitionSnapshot": {
+      "$defs": {
+        "NationalHighwaysEnvelope": {
+          "additionalProperties": false,
+          "description": "Explicit WGS84 study envelope; not an administrative-boundary claim.",
+          "properties": {
+            "basis": {
+              "const": "caller_declared_study_envelope",
+              "default": "caller_declared_study_envelope",
+              "title": "Basis",
+              "type": "string"
+            },
+            "max_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Latitude"
+            },
+            "max_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Max Longitude"
+            },
+            "min_latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Latitude"
+            },
+            "min_longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Min Longitude"
+            },
+            "official_boundary": {
+              "const": false,
+              "default": false,
+              "title": "Official Boundary",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "min_longitude",
+            "min_latitude",
+            "max_longitude",
+            "max_latitude"
+          ],
+          "title": "NationalHighwaysEnvelope",
+          "type": "object"
+        },
+        "NationalHighwaysParseCounts": {
+          "additionalProperties": false,
+          "description": "Complete input-to-output reconciliation for one response.",
+          "properties": {
+            "coordinates_missing": {
+              "minimum": 0,
+              "title": "Coordinates Missing",
+              "type": "integer"
+            },
+            "exact_duplicates_collapsed": {
+              "minimum": 0,
+              "title": "Exact Duplicates Collapsed",
+              "type": "integer"
+            },
+            "outside_envelope": {
+              "minimum": 0,
+              "title": "Outside Envelope",
+              "type": "integer"
+            },
+            "records_accepted": {
+              "minimum": 0,
+              "title": "Records Accepted",
+              "type": "integer"
+            },
+            "source_items_seen": {
+              "minimum": 0,
+              "title": "Source Items Seen",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source_items_seen",
+            "records_accepted",
+            "outside_envelope",
+            "coordinates_missing",
+            "exact_duplicates_collapsed"
+          ],
+          "title": "NationalHighwaysParseCounts",
+          "type": "object"
+        },
+        "NationalHighwaysParseReport": {
+          "additionalProperties": false,
+          "description": "Deterministic source-separated projection of one exact raw response.",
+          "properties": {
+            "complete_reconciliation": {
+              "const": true,
+              "default": true,
+              "title": "Complete Reconciliation",
+              "type": "boolean"
+            },
+            "counts": {
+              "$ref": "#/$defs/NationalHighwaysParseCounts"
+            },
+            "envelope": {
+              "$ref": "#/$defs/NationalHighwaysEnvelope"
+            },
+            "envelope_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Envelope Fingerprint",
+              "type": "string"
+            },
+            "feed_type": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Feed Type",
+              "type": "string"
+            },
+            "method_version": {
+              "const": "national-highways-datex-json-1.0",
+              "default": "national-highways-datex-json-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "model_base_version": {
+              "maxLength": 80,
+              "minLength": 1,
+              "title": "Model Base Version",
+              "type": "string"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_time_utc": {
+              "format": "date-time",
+              "title": "Publication Time Utc",
+              "type": "string"
+            },
+            "raw_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Raw Sha256",
+              "type": "string"
+            },
+            "records": {
+              "items": {
+                "$ref": "#/$defs/NationalHighwaysRecord"
+              },
+              "title": "Records",
+              "type": "array"
+            },
+            "representative_point_is_source_vertex": {
+              "const": true,
+              "default": true,
+              "title": "Representative Point Is Source Vertex",
+              "type": "boolean"
+            },
+            "schema_version": {
+              "const": "2026-07-24",
+              "default": "2026-07-24",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "source_fusion_performed": {
+              "const": false,
+              "default": false,
+              "title": "Source Fusion Performed",
+              "type": "boolean"
+            },
+            "source_geometry_preserved_in_raw_snapshot": {
+              "const": true,
+              "default": true,
+              "title": "Source Geometry Preserved In Raw Snapshot",
+              "type": "boolean"
+            },
+            "source_id": {
+              "enum": [
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "raw_sha256",
+            "publication_time_utc",
+            "feed_type",
+            "model_base_version",
+            "envelope",
+            "envelope_fingerprint",
+            "records",
+            "counts",
+            "synthetic"
+          ],
+          "title": "NationalHighwaysParseReport",
+          "type": "object"
+        },
+        "NationalHighwaysRecord": {
+          "additionalProperties": false,
+          "description": "One privacy-safe, in-envelope operational feature.",
+          "properties": {
+            "congestion_measure_available": {
+              "const": false,
+              "default": false,
+              "title": "Congestion Measure Available",
+              "type": "boolean"
+            },
+            "direction": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Direction"
+            },
+            "latitude": {
+              "anyOf": [
+                {
+                  "maximum": 90.0,
+                  "minimum": -90.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Latitude"
+            },
+            "literal_display_text_available": {
+              "const": false,
+              "default": false,
+              "title": "Literal Display Text Available",
+              "type": "boolean"
+            },
+            "location_description": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Location Description",
+              "type": "string"
+            },
+            "longitude": {
+              "anyOf": [
+                {
+                  "maximum": 180.0,
+                  "minimum": -180.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                }
+              ],
+              "title": "Longitude"
+            },
+            "measured_speed_available": {
+              "const": false,
+              "default": false,
+              "title": "Measured Speed Available",
+              "type": "boolean"
+            },
+            "operational_type": {
+              "maxLength": 160,
+              "minLength": 1,
+              "title": "Operational Type",
+              "type": "string"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "publication_time_utc": {
+              "format": "date-time",
+              "title": "Publication Time Utc",
+              "type": "string"
+            },
+            "record_token": {
+              "pattern": "^[0-9a-f]{24}$",
+              "title": "Record Token",
+              "type": "string"
+            },
+            "record_updated_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Record Updated At Utc"
+            },
+            "road_name": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Road Name"
+            },
+            "source_geometry_point_count": {
+              "minimum": 1,
+              "title": "Source Geometry Point Count",
+              "type": "integer"
+            },
+            "source_geometry_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Geometry Sha256",
+              "type": "string"
+            },
+            "source_id": {
+              "enum": [
+                "national_highways_closures",
+                "national_highways_speed_limits",
+                "national_highways_vms"
+              ],
+              "title": "Source Id",
+              "type": "string"
+            },
+            "source_record_fingerprint": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Source Record Fingerprint",
+              "type": "string"
+            },
+            "strategic_road_network_only": {
+              "const": true,
+              "default": true,
+              "title": "Strategic Road Network Only",
+              "type": "boolean"
+            },
+            "synthetic": {
+              "title": "Synthetic",
+              "type": "boolean"
+            },
+            "temporary_speed_limit_kph": {
+              "anyOf": [
+                {
+                  "maximum": 300.0,
+                  "minimum": 0.0,
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Temporary Speed Limit Kph"
+            },
+            "traffic_volume_available": {
+              "const": false,
+              "default": false,
+              "title": "Traffic Volume Available",
+              "type": "boolean"
+            },
+            "valid_from_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Valid From Utc"
+            },
+            "valid_until_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Valid Until Utc"
+            },
+            "validity_status": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Validity Status"
+            },
+            "vms_description": {
+              "anyOf": [
+                {
+                  "maxLength": 160,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Description"
+            },
+            "vms_message_information_types": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Vms Message Information Types",
+              "type": "array"
+            },
+            "vms_message_set_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Message Set At Utc"
+            },
+            "vms_reason_for_setting": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Reason For Setting"
+            },
+            "vms_working_status": {
+              "anyOf": [
+                {
+                  "maxLength": 80,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Vms Working Status"
+            }
+          },
+          "required": [
+            "product",
+            "source_id",
+            "record_token",
+            "source_record_fingerprint",
+            "publication_time_utc",
+            "latitude",
+            "longitude",
+            "source_geometry_point_count",
+            "source_geometry_sha256",
+            "location_description",
+            "operational_type",
+            "synthetic"
+          ],
+          "title": "NationalHighwaysRecord",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Exact accepted receipt/report binding used by the comparison service.",
+      "properties": {
+        "accepted_private_snapshot": {
+          "const": true,
+          "default": true,
+          "title": "Accepted Private Snapshot",
+          "type": "boolean"
+        },
+        "acquisition_method_version": {
+          "const": "national-highways-acquisition-1.0",
+          "default": "national-highways-acquisition-1.0",
+          "title": "Acquisition Method Version",
+          "type": "string"
+        },
+        "complete_snapshot": {
+          "const": true,
+          "default": true,
+          "title": "Complete Snapshot",
+          "type": "boolean"
+        },
+        "failed_or_partial": {
+          "const": false,
+          "default": false,
+          "title": "Failed Or Partial",
+          "type": "boolean"
+        },
+        "parser_method_version": {
+          "const": "national-highways-datex-json-1.0",
+          "default": "national-highways-datex-json-1.0",
+          "title": "Parser Method Version",
+          "type": "string"
+        },
+        "parser_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Parser Report Fingerprint",
+          "type": "string"
+        },
+        "report": {
+          "$ref": "#/$defs/NationalHighwaysParseReport"
+        },
+        "schema_version": {
+          "const": "2026-07-24",
+          "default": "2026-07-24",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "snapshot_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Snapshot Receipt Fingerprint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "snapshot_receipt_fingerprint",
+        "parser_report_fingerprint",
+        "report"
+      ],
+      "title": "NationalHighwaysAcceptedTransitionSnapshot",
+      "type": "object"
+    },
     "NationalHighwaysAcquisitionRequest": {
       "$defs": {
         "ManchesterPriorRelation": {
@@ -53486,6 +54092,126 @@
       "title": "NationalHighwaysProductSummary",
       "type": "object"
     },
+    "NationalHighwaysPublicTransitionAggregate": {
+      "$defs": {
+        "NationalHighwaysTransitionCounts": {
+          "additionalProperties": false,
+          "properties": {
+            "content_changed": {
+              "minimum": 0,
+              "title": "Content Changed",
+              "type": "integer"
+            },
+            "first_seen": {
+              "minimum": 0,
+              "title": "First Seen",
+              "type": "integer"
+            },
+            "no_longer_listed": {
+              "minimum": 0,
+              "title": "No Longer Listed",
+              "type": "integer"
+            },
+            "reappeared": {
+              "minimum": 0,
+              "title": "Reappeared",
+              "type": "integer"
+            },
+            "total": {
+              "maximum": 40000,
+              "minimum": 0,
+              "title": "Total",
+              "type": "integer"
+            },
+            "unchanged": {
+              "minimum": 0,
+              "title": "Unchanged",
+              "type": "integer"
+            },
+            "validity_expired": {
+              "minimum": 0,
+              "title": "Validity Expired",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "first_seen",
+            "content_changed",
+            "unchanged",
+            "no_longer_listed",
+            "validity_expired",
+            "reappeared",
+            "total"
+          ],
+          "title": "NationalHighwaysTransitionCounts",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Aggregate-only public-candidate projection; publication is still unapproved.",
+      "properties": {
+        "aggregates_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only",
+          "type": "boolean"
+        },
+        "counts": {
+          "$ref": "#/$defs/NationalHighwaysTransitionCounts"
+        },
+        "current_publication_time_utc": {
+          "format": "date-time",
+          "title": "Current Publication Time Utc",
+          "type": "string"
+        },
+        "locations_present": {
+          "const": false,
+          "default": false,
+          "title": "Locations Present",
+          "type": "boolean"
+        },
+        "opaque_tokens_present": {
+          "const": false,
+          "default": false,
+          "title": "Opaque Tokens Present",
+          "type": "boolean"
+        },
+        "previous_publication_time_utc": {
+          "format": "date-time",
+          "title": "Previous Publication Time Utc",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "public_release_approved": {
+          "const": false,
+          "default": false,
+          "title": "Public Release Approved",
+          "type": "boolean"
+        },
+        "source_attribution": {
+          "const": "Powered by National Highways\u2019 Transport Data Feeds",
+          "default": "Powered by National Highways\u2019 Transport Data Feeds",
+          "title": "Source Attribution",
+          "type": "string"
+        }
+      },
+      "required": [
+        "product",
+        "previous_publication_time_utc",
+        "current_publication_time_utc",
+        "counts"
+      ],
+      "title": "NationalHighwaysPublicTransitionAggregate",
+      "type": "object"
+    },
     "NationalHighwaysRecord": {
       "additionalProperties": false,
       "description": "One privacy-safe, in-envelope operational feature.",
@@ -53781,6 +54507,153 @@
       "title": "NationalHighwaysRecord",
       "type": "object"
     },
+    "NationalHighwaysRecordTransition": {
+      "additionalProperties": false,
+      "description": "One private opaque-token transition with exact prior/current lineage.",
+      "properties": {
+        "changed_fields": {
+          "default": [],
+          "items": {
+            "enum": [
+              "record_updated_at_utc",
+              "valid_from_utc",
+              "valid_until_utc",
+              "latitude",
+              "longitude",
+              "source_geometry_point_count",
+              "source_geometry_sha256",
+              "location_description",
+              "road_name",
+              "direction",
+              "operational_type",
+              "validity_status",
+              "temporary_speed_limit_kph",
+              "vms_working_status",
+              "vms_description",
+              "vms_message_information_types",
+              "vms_reason_for_setting",
+              "vms_message_set_at_utc",
+              "unprojected_source_content"
+            ],
+            "type": "string"
+          },
+          "title": "Changed Fields",
+          "type": "array"
+        },
+        "current_publication_time_utc": {
+          "format": "date-time",
+          "title": "Current Publication Time Utc",
+          "type": "string"
+        },
+        "current_record_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Current Record Fingerprint"
+        },
+        "current_snapshot_id": {
+          "title": "Current Snapshot Id",
+          "type": "string"
+        },
+        "literal_display_text_present": {
+          "const": false,
+          "default": false,
+          "title": "Literal Display Text Present",
+          "type": "boolean"
+        },
+        "measured_traffic_claim": {
+          "const": false,
+          "default": false,
+          "title": "Measured Traffic Claim",
+          "type": "boolean"
+        },
+        "previous_publication_time_utc": {
+          "format": "date-time",
+          "title": "Previous Publication Time Utc",
+          "type": "string"
+        },
+        "previous_record_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Record Fingerprint"
+        },
+        "previous_snapshot_id": {
+          "title": "Previous Snapshot Id",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "public_row_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Row Available",
+          "type": "boolean"
+        },
+        "record_token": {
+          "pattern": "^[0-9a-f]{24}$",
+          "title": "Record Token",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "first_seen",
+            "content_changed",
+            "unchanged",
+            "no_longer_listed",
+            "validity_expired",
+            "reappeared"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "wording": {
+          "enum": [
+            "New in the accepted feed",
+            "Source record changed",
+            "Unchanged between accepted snapshots",
+            "No longer listed in the latest accepted feed",
+            "Source validity expired",
+            "Reappeared in the accepted feed"
+          ],
+          "title": "Wording",
+          "type": "string"
+        }
+      },
+      "required": [
+        "product",
+        "record_token",
+        "state",
+        "previous_publication_time_utc",
+        "current_publication_time_utc",
+        "wording",
+        "previous_snapshot_id",
+        "current_snapshot_id"
+      ],
+      "title": "NationalHighwaysRecordTransition",
+      "type": "object"
+    },
     "NationalHighwaysRefreshSummary": {
       "$defs": {
         "NationalHighwaysProductSummary": {
@@ -53948,6 +54821,452 @@
         "live_overlay_sha256"
       ],
       "title": "NationalHighwaysRefreshSummary",
+      "type": "object"
+    },
+    "NationalHighwaysTransitionCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "content_changed": {
+          "minimum": 0,
+          "title": "Content Changed",
+          "type": "integer"
+        },
+        "first_seen": {
+          "minimum": 0,
+          "title": "First Seen",
+          "type": "integer"
+        },
+        "no_longer_listed": {
+          "minimum": 0,
+          "title": "No Longer Listed",
+          "type": "integer"
+        },
+        "reappeared": {
+          "minimum": 0,
+          "title": "Reappeared",
+          "type": "integer"
+        },
+        "total": {
+          "maximum": 40000,
+          "minimum": 0,
+          "title": "Total",
+          "type": "integer"
+        },
+        "unchanged": {
+          "minimum": 0,
+          "title": "Unchanged",
+          "type": "integer"
+        },
+        "validity_expired": {
+          "minimum": 0,
+          "title": "Validity Expired",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "first_seen",
+        "content_changed",
+        "unchanged",
+        "no_longer_listed",
+        "validity_expired",
+        "reappeared",
+        "total"
+      ],
+      "title": "NationalHighwaysTransitionCounts",
+      "type": "object"
+    },
+    "NationalHighwaysTransitionHistory": {
+      "additionalProperties": false,
+      "description": "Opaque prior-presence memory required to distinguish first seen from reappeared.",
+      "properties": {
+        "aggregates_only_except_opaque_tokens": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only Except Opaque Tokens",
+          "type": "boolean"
+        },
+        "literal_display_text_present": {
+          "const": false,
+          "default": false,
+          "title": "Literal Display Text Present",
+          "type": "boolean"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "seen_record_tokens": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100000,
+          "title": "Seen Record Tokens",
+          "type": "array"
+        },
+        "through_publication_time_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Through Publication Time Utc"
+        },
+        "through_snapshot_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Through Snapshot Id"
+        }
+      },
+      "required": [
+        "product",
+        "seen_record_tokens"
+      ],
+      "title": "NationalHighwaysTransitionHistory",
+      "type": "object"
+    },
+    "NationalHighwaysTransitionReport": {
+      "$defs": {
+        "NationalHighwaysRecordTransition": {
+          "additionalProperties": false,
+          "description": "One private opaque-token transition with exact prior/current lineage.",
+          "properties": {
+            "changed_fields": {
+              "default": [],
+              "items": {
+                "enum": [
+                  "record_updated_at_utc",
+                  "valid_from_utc",
+                  "valid_until_utc",
+                  "latitude",
+                  "longitude",
+                  "source_geometry_point_count",
+                  "source_geometry_sha256",
+                  "location_description",
+                  "road_name",
+                  "direction",
+                  "operational_type",
+                  "validity_status",
+                  "temporary_speed_limit_kph",
+                  "vms_working_status",
+                  "vms_description",
+                  "vms_message_information_types",
+                  "vms_reason_for_setting",
+                  "vms_message_set_at_utc",
+                  "unprojected_source_content"
+                ],
+                "type": "string"
+              },
+              "title": "Changed Fields",
+              "type": "array"
+            },
+            "current_publication_time_utc": {
+              "format": "date-time",
+              "title": "Current Publication Time Utc",
+              "type": "string"
+            },
+            "current_record_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Current Record Fingerprint"
+            },
+            "current_snapshot_id": {
+              "title": "Current Snapshot Id",
+              "type": "string"
+            },
+            "literal_display_text_present": {
+              "const": false,
+              "default": false,
+              "title": "Literal Display Text Present",
+              "type": "boolean"
+            },
+            "measured_traffic_claim": {
+              "const": false,
+              "default": false,
+              "title": "Measured Traffic Claim",
+              "type": "boolean"
+            },
+            "previous_publication_time_utc": {
+              "format": "date-time",
+              "title": "Previous Publication Time Utc",
+              "type": "string"
+            },
+            "previous_record_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Previous Record Fingerprint"
+            },
+            "previous_snapshot_id": {
+              "title": "Previous Snapshot Id",
+              "type": "string"
+            },
+            "product": {
+              "enum": [
+                "closures",
+                "speed_limits",
+                "vms"
+              ],
+              "title": "Product",
+              "type": "string"
+            },
+            "public_row_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Row Available",
+              "type": "boolean"
+            },
+            "record_token": {
+              "pattern": "^[0-9a-f]{24}$",
+              "title": "Record Token",
+              "type": "string"
+            },
+            "state": {
+              "enum": [
+                "first_seen",
+                "content_changed",
+                "unchanged",
+                "no_longer_listed",
+                "validity_expired",
+                "reappeared"
+              ],
+              "title": "State",
+              "type": "string"
+            },
+            "wording": {
+              "enum": [
+                "New in the accepted feed",
+                "Source record changed",
+                "Unchanged between accepted snapshots",
+                "No longer listed in the latest accepted feed",
+                "Source validity expired",
+                "Reappeared in the accepted feed"
+              ],
+              "title": "Wording",
+              "type": "string"
+            }
+          },
+          "required": [
+            "product",
+            "record_token",
+            "state",
+            "previous_publication_time_utc",
+            "current_publication_time_utc",
+            "wording",
+            "previous_snapshot_id",
+            "current_snapshot_id"
+          ],
+          "title": "NationalHighwaysRecordTransition",
+          "type": "object"
+        },
+        "NationalHighwaysTransitionCounts": {
+          "additionalProperties": false,
+          "properties": {
+            "content_changed": {
+              "minimum": 0,
+              "title": "Content Changed",
+              "type": "integer"
+            },
+            "first_seen": {
+              "minimum": 0,
+              "title": "First Seen",
+              "type": "integer"
+            },
+            "no_longer_listed": {
+              "minimum": 0,
+              "title": "No Longer Listed",
+              "type": "integer"
+            },
+            "reappeared": {
+              "minimum": 0,
+              "title": "Reappeared",
+              "type": "integer"
+            },
+            "total": {
+              "maximum": 40000,
+              "minimum": 0,
+              "title": "Total",
+              "type": "integer"
+            },
+            "unchanged": {
+              "minimum": 0,
+              "title": "Unchanged",
+              "type": "integer"
+            },
+            "validity_expired": {
+              "minimum": 0,
+              "title": "Validity Expired",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "first_seen",
+            "content_changed",
+            "unchanged",
+            "no_longer_listed",
+            "validity_expired",
+            "reappeared",
+            "total"
+          ],
+          "title": "NationalHighwaysTransitionCounts",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "complete_set_reconciliation": {
+          "const": true,
+          "default": true,
+          "title": "Complete Set Reconciliation",
+          "type": "boolean"
+        },
+        "consecutive_pair_caller_asserted": {
+          "const": true,
+          "default": true,
+          "title": "Consecutive Pair Caller Asserted",
+          "type": "boolean"
+        },
+        "counts": {
+          "$ref": "#/$defs/NationalHighwaysTransitionCounts"
+        },
+        "current_publication_time_utc": {
+          "format": "date-time",
+          "title": "Current Publication Time Utc",
+          "type": "string"
+        },
+        "current_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Current Report Fingerprint",
+          "type": "string"
+        },
+        "current_snapshot_id": {
+          "title": "Current Snapshot Id",
+          "type": "string"
+        },
+        "envelope_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Envelope Fingerprint",
+          "type": "string"
+        },
+        "literal_display_text_present": {
+          "const": false,
+          "default": false,
+          "title": "Literal Display Text Present",
+          "type": "boolean"
+        },
+        "measured_speed_available": {
+          "const": false,
+          "default": false,
+          "title": "Measured Speed Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "national-highways-transitions-1.0",
+          "default": "national-highways-transitions-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "previous_publication_time_utc": {
+          "format": "date-time",
+          "title": "Previous Publication Time Utc",
+          "type": "string"
+        },
+        "previous_report_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Previous Report Fingerprint",
+          "type": "string"
+        },
+        "previous_snapshot_id": {
+          "title": "Previous Snapshot Id",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "closures",
+            "speed_limits",
+            "vms"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "public_rows_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Rows Available",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "strategic_road_network_only": {
+          "const": true,
+          "default": true,
+          "title": "Strategic Road Network Only",
+          "type": "boolean"
+        },
+        "traffic_volume_available": {
+          "const": false,
+          "default": false,
+          "title": "Traffic Volume Available",
+          "type": "boolean"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/$defs/NationalHighwaysRecordTransition"
+          },
+          "maxItems": 40000,
+          "title": "Transitions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "product",
+        "previous_snapshot_id",
+        "current_snapshot_id",
+        "previous_report_fingerprint",
+        "current_report_fingerprint",
+        "envelope_fingerprint",
+        "previous_publication_time_utc",
+        "current_publication_time_utc",
+        "transitions",
+        "counts"
+      ],
+      "title": "NationalHighwaysTransitionReport",
       "type": "object"
     },
     "NearestFlipAnalysis": {
