@@ -460,6 +460,23 @@ No vehicle, journey, service, location, operator or pseudonymised identifier sur
 and no speed, trajectory or fleet-completeness claim is available. The library is not wired to a
 real writer or page. See [BODS operational trends](integration/manchester_bods_operational_trends.md).
 
+### 6.11 Phase-196 read-only Source Health (`NEXT-06`)
+
+The sixth slice is `working_bounded`. An additive Overview route projects verified durable
+workspace preflight, accepted BODS/National Highways hot controls, process-local worker registries
+and the aggregate operational journal into two semantic health cards. Missing configuration,
+starting/running/degraded/stopped state, local attempt/success/eligibility times, exact safe failure
+codes, conservative local intervals, journal integrity and unresolved policy blockers remain
+distinct. The page rerenders local state every 30 seconds without performing a provider request.
+
+The JSON download is allowlisted and excludes credential values/hashes/prefixes, request-box
+coordinates/fingerprints, workspace paths/handles and raw identifiers. Provider quota remains
+unknown and local intervals are not relabelled as provider limits. BODS source time is unavailable
+because the accepted hot summary does not retain it. The page cannot start/stop a worker, repair or
+delete state, approve retention/licensing/publication, create evidence or host publicly. See
+[Manchester Source Health](integration/manchester_source_health.md). `NEXT-07` remains the next
+independent build; `NEXT-08` remains at fail-closed contract intake pending the provider reply.
+
 ## 7. Decisions or evidence required before acceptance
 
 | Required decision/evidence | Blocks |

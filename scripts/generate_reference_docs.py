@@ -701,6 +701,7 @@ from traffictwin.storage.migrations import (
 )
 from traffictwin.synthetic.config import SyntheticScenarioConfig
 from traffictwin.ui.audit import AccessibilityAuditReport
+from traffictwin.ui.source_health import SourceHealthReport, SourceHealthRow
 from traffictwin.validation.codes import ValidationCode
 from traffictwin.validation.report import ValidationReport
 
@@ -787,6 +788,8 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "BodsOperationalAttemptAggregate": BodsOperationalAttemptAggregate,
     "BodsOperationalTrendWindow": BodsOperationalTrendWindow,
     "BodsOperationalDayRollup": BodsOperationalDayRollup,
+    "SourceHealthRow": SourceHealthRow,
+    "SourceHealthReport": SourceHealthReport,
     "ManchesterSourceIdentity": ManchesterSourceIdentity,
     "ManchesterRequestIdentity": ManchesterRequestIdentity,
     "ManchesterRetrievalWindow": ManchesterRetrievalWindow,

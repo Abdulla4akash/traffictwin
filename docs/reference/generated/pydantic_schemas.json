@@ -76968,6 +76968,650 @@
       "title": "SourceFreshnessPolicy",
       "type": "object"
     },
+    "SourceHealthReport": {
+      "$defs": {
+        "SourceHealthRow": {
+          "additionalProperties": false,
+          "properties": {
+            "capability_status": {
+              "const": "planned",
+              "default": "planned",
+              "title": "Capability Status",
+              "type": "string"
+            },
+            "configuration_status": {
+              "enum": [
+                "configured",
+                "disabled",
+                "not_configured",
+                "invalid"
+              ],
+              "title": "Configuration Status",
+              "type": "string"
+            },
+            "conservative_interval_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 540,
+                  "minimum": 60,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Conservative Interval Seconds"
+            },
+            "credential_present": {
+              "title": "Credential Present",
+              "type": "boolean"
+            },
+            "decision_record": {
+              "title": "Decision Record",
+              "type": "string"
+            },
+            "evidence_role": {
+              "enum": [
+                "live_transit_positions",
+                "near_live_operational_road_events"
+              ],
+              "title": "Evidence Role",
+              "type": "string"
+            },
+            "freshness_policy": {
+              "title": "Freshness Policy",
+              "type": "string"
+            },
+            "hot_history_entries": {
+              "maximum": 240,
+              "minimum": 0,
+              "title": "Hot History Entries",
+              "type": "integer"
+            },
+            "identifier_publication_status": {
+              "const": "not_approved",
+              "default": "not_approved",
+              "title": "Identifier Publication Status",
+              "type": "string"
+            },
+            "last_attempt_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Last Attempt At Utc"
+            },
+            "last_source_time_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Last Source Time Utc"
+            },
+            "last_success_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Last Success At Utc"
+            },
+            "licence_status": {
+              "const": "documented_source_terms_project_review_required",
+              "default": "documented_source_terms_project_review_required",
+              "title": "Licence Status",
+              "type": "string"
+            },
+            "long_term_integrity": {
+              "enum": [
+                "absent_valid",
+                "valid",
+                "invalid"
+              ],
+              "title": "Long Term Integrity",
+              "type": "string"
+            },
+            "long_term_journal_records": {
+              "minimum": 0,
+              "title": "Long Term Journal Records",
+              "type": "integer"
+            },
+            "next_locally_eligible_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Next Locally Eligible At Utc"
+            },
+            "operational_blockers": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Operational Blockers",
+              "type": "array"
+            },
+            "operations_route": {
+              "const": "manchester",
+              "default": "manchester",
+              "title": "Operations Route",
+              "type": "string"
+            },
+            "policy_blockers": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Policy Blockers",
+              "type": "array"
+            },
+            "provider_limit_status": {
+              "const": "provider_limit_unknown",
+              "default": "provider_limit_unknown",
+              "title": "Provider Limit Status",
+              "type": "string"
+            },
+            "public_hosting_status": {
+              "const": "unavailable",
+              "default": "unavailable",
+              "title": "Public Hosting Status",
+              "type": "string"
+            },
+            "request_scope_status": {
+              "enum": [
+                "valid",
+                "missing",
+                "not_applicable",
+                "invalid"
+              ],
+              "title": "Request Scope Status",
+              "type": "string"
+            },
+            "retention_decision": {
+              "const": "owner_policy_required",
+              "default": "owner_policy_required",
+              "title": "Retention Decision",
+              "type": "string"
+            },
+            "safe_failure_code": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Z0-9_]{1,96}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Safe Failure Code"
+            },
+            "scope": {
+              "title": "Scope",
+              "type": "string"
+            },
+            "source": {
+              "enum": [
+                "BODS",
+                "National Highways"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "time_basis": {
+              "const": "documented_source_utc",
+              "default": "documented_source_utc",
+              "title": "Time Basis",
+              "type": "string"
+            },
+            "truth_state": {
+              "enum": [
+                "never",
+                "live",
+                "near_live",
+                "stale",
+                "unavailable",
+                "failed",
+                "invalid"
+              ],
+              "title": "Truth State",
+              "type": "string"
+            },
+            "worker_status": {
+              "enum": [
+                "disabled",
+                "not_configured",
+                "starting",
+                "running",
+                "degraded",
+                "stopped"
+              ],
+              "title": "Worker Status",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "scope",
+            "evidence_role",
+            "freshness_policy",
+            "configuration_status",
+            "credential_present",
+            "request_scope_status",
+            "worker_status",
+            "truth_state",
+            "hot_history_entries",
+            "long_term_journal_records",
+            "long_term_integrity",
+            "operational_blockers",
+            "policy_blockers",
+            "decision_record"
+          ],
+          "title": "SourceHealthRow",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "aggregate_journal_integrity": {
+          "enum": [
+            "absent_valid",
+            "valid",
+            "invalid"
+          ],
+          "title": "Aggregate Journal Integrity",
+          "type": "string"
+        },
+        "aggregate_journal_records": {
+          "minimum": 0,
+          "title": "Aggregate Journal Records",
+          "type": "integer"
+        },
+        "credential_hash_present": {
+          "const": false,
+          "default": false,
+          "title": "Credential Hash Present",
+          "type": "boolean"
+        },
+        "credential_presence_only": {
+          "const": true,
+          "default": true,
+          "title": "Credential Presence Only",
+          "type": "boolean"
+        },
+        "credential_value_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Credential Value Persisted",
+          "type": "boolean"
+        },
+        "evaluated_at_utc": {
+          "format": "date-time",
+          "title": "Evaluated At Utc",
+          "type": "string"
+        },
+        "metadata_download_available": {
+          "const": true,
+          "default": true,
+          "title": "Metadata Download Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "source-health-1.0",
+          "default": "source-health-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "network_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Request Performed",
+          "type": "boolean"
+        },
+        "private_path_present": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Present",
+          "type": "boolean"
+        },
+        "public_hosting_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Hosting Available",
+          "type": "boolean"
+        },
+        "raw_identifier_present": {
+          "const": false,
+          "default": false,
+          "title": "Raw Identifier Present",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sources": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/SourceHealthRow"
+            },
+            {
+              "$ref": "#/$defs/SourceHealthRow"
+            }
+          ],
+          "title": "Sources",
+          "type": "array"
+        },
+        "workspace_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Workspace Mutated",
+          "type": "boolean"
+        },
+        "workspace_status": {
+          "const": "verified_durable",
+          "default": "verified_durable",
+          "title": "Workspace Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "evaluated_at_utc",
+        "sources",
+        "aggregate_journal_records",
+        "aggregate_journal_integrity"
+      ],
+      "title": "SourceHealthReport",
+      "type": "object"
+    },
+    "SourceHealthRow": {
+      "additionalProperties": false,
+      "properties": {
+        "capability_status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Capability Status",
+          "type": "string"
+        },
+        "configuration_status": {
+          "enum": [
+            "configured",
+            "disabled",
+            "not_configured",
+            "invalid"
+          ],
+          "title": "Configuration Status",
+          "type": "string"
+        },
+        "conservative_interval_seconds": {
+          "anyOf": [
+            {
+              "maximum": 540,
+              "minimum": 60,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Conservative Interval Seconds"
+        },
+        "credential_present": {
+          "title": "Credential Present",
+          "type": "boolean"
+        },
+        "decision_record": {
+          "title": "Decision Record",
+          "type": "string"
+        },
+        "evidence_role": {
+          "enum": [
+            "live_transit_positions",
+            "near_live_operational_road_events"
+          ],
+          "title": "Evidence Role",
+          "type": "string"
+        },
+        "freshness_policy": {
+          "title": "Freshness Policy",
+          "type": "string"
+        },
+        "hot_history_entries": {
+          "maximum": 240,
+          "minimum": 0,
+          "title": "Hot History Entries",
+          "type": "integer"
+        },
+        "identifier_publication_status": {
+          "const": "not_approved",
+          "default": "not_approved",
+          "title": "Identifier Publication Status",
+          "type": "string"
+        },
+        "last_attempt_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Attempt At Utc"
+        },
+        "last_source_time_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Source Time Utc"
+        },
+        "last_success_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Success At Utc"
+        },
+        "licence_status": {
+          "const": "documented_source_terms_project_review_required",
+          "default": "documented_source_terms_project_review_required",
+          "title": "Licence Status",
+          "type": "string"
+        },
+        "long_term_integrity": {
+          "enum": [
+            "absent_valid",
+            "valid",
+            "invalid"
+          ],
+          "title": "Long Term Integrity",
+          "type": "string"
+        },
+        "long_term_journal_records": {
+          "minimum": 0,
+          "title": "Long Term Journal Records",
+          "type": "integer"
+        },
+        "next_locally_eligible_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next Locally Eligible At Utc"
+        },
+        "operational_blockers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Operational Blockers",
+          "type": "array"
+        },
+        "operations_route": {
+          "const": "manchester",
+          "default": "manchester",
+          "title": "Operations Route",
+          "type": "string"
+        },
+        "policy_blockers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Policy Blockers",
+          "type": "array"
+        },
+        "provider_limit_status": {
+          "const": "provider_limit_unknown",
+          "default": "provider_limit_unknown",
+          "title": "Provider Limit Status",
+          "type": "string"
+        },
+        "public_hosting_status": {
+          "const": "unavailable",
+          "default": "unavailable",
+          "title": "Public Hosting Status",
+          "type": "string"
+        },
+        "request_scope_status": {
+          "enum": [
+            "valid",
+            "missing",
+            "not_applicable",
+            "invalid"
+          ],
+          "title": "Request Scope Status",
+          "type": "string"
+        },
+        "retention_decision": {
+          "const": "owner_policy_required",
+          "default": "owner_policy_required",
+          "title": "Retention Decision",
+          "type": "string"
+        },
+        "safe_failure_code": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z0-9_]{1,96}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Safe Failure Code"
+        },
+        "scope": {
+          "title": "Scope",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "BODS",
+            "National Highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "time_basis": {
+          "const": "documented_source_utc",
+          "default": "documented_source_utc",
+          "title": "Time Basis",
+          "type": "string"
+        },
+        "truth_state": {
+          "enum": [
+            "never",
+            "live",
+            "near_live",
+            "stale",
+            "unavailable",
+            "failed",
+            "invalid"
+          ],
+          "title": "Truth State",
+          "type": "string"
+        },
+        "worker_status": {
+          "enum": [
+            "disabled",
+            "not_configured",
+            "starting",
+            "running",
+            "degraded",
+            "stopped"
+          ],
+          "title": "Worker Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "scope",
+        "evidence_role",
+        "freshness_policy",
+        "configuration_status",
+        "credential_present",
+        "request_scope_status",
+        "worker_status",
+        "truth_state",
+        "hot_history_entries",
+        "long_term_journal_records",
+        "long_term_integrity",
+        "operational_blockers",
+        "policy_blockers",
+        "decision_record"
+      ],
+      "title": "SourceHealthRow",
+      "type": "object"
+    },
     "SourceMarker": {
       "$defs": {
         "MarkerKind": {

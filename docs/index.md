@@ -12,6 +12,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Manchester aggregate operational history](integration/manchester_operational_history.md)
 - [National Highways accepted-snapshot transitions](integration/manchester_national_highways_transitions.md)
 - [BODS identifier-free operational trends](integration/manchester_bods_operational_trends.md)
+- [Manchester read-only Source Health](integration/manchester_source_health.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [System overview](system_overview.md)
 - [Standalone demo](standalone_demo.md)

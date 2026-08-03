@@ -5257,6 +5257,30 @@ synthetic approved-policy fixtures; no owner policy/workspace, worker wiring, lo
 provider call, raw read, deletion, public export, capability acceptance, release or tag was
 created.
 
+### Phase 196 claim: read-only Source Health (`NEXT-06`, 3 August 2026)
+
+The owner-directed integrating lead owns the sixth Phase-190 slice in new
+`src/traffictwin/ui/source_health.py`, `src/traffictwin/ui/pages/source_health.py`, the additive
+wrapper/navigation/runtime wiring, focused service/navigation/page tests, generated schemas,
+design/status/operator documentation and this record. The phase may add a network-free local
+health projection over verified durable-workspace/preflight/control/journal/worker metadata,
+secret/path/identifier-free download, semantic status cards/tables and 30-second local rerender.
+It may not fetch/test credentials, reveal their values/hashes/prefixes, repair/delete/write local
+state, approve policy/licence/publication, calculate scientific evidence, expose a public service,
+accept a capability or create a release/tag.
+
+Phase 196 completed locally on 3 August 2026. A strict two-source projection now reconciles the
+verified durable-workspace preflight, accepted hot controls, process worker registries and
+aggregate-journal integrity into semantic configuration, worker, truth, attempt/success,
+eligibility, history and blocker states. The additive Overview page rerenders local metadata every
+30 seconds and offers an allowlisted JSON download without credential values/hashes/prefixes,
+request coordinates/fingerprints, workspace paths/handles or raw identifiers. Unknown provider
+quota remains unknown and BODS source time remains unavailable rather than inferred. The initial
+54 focused service/page/navigation tests and final 102-test expanded adjacent regression passed
+with Ruff and focused strict mypy. No provider
+request, credential test, mutation, worker action, owner policy, public hosting, scientific
+evidence, capability acceptance, release or tag was created.
+
 ### Phase 195 claim: BODS operational trends (`NEXT-05`, 3 August 2026)
 
 The owner-directed integrating lead owns the fifth Phase-190 slice in a new

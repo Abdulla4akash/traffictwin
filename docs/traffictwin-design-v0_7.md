@@ -1330,6 +1330,13 @@ mutated control/store refusal, unknown quota/time/licence wording, empty workspa
 rerendering without network access, responsive/keyboard/contrast checks, and adversarial values
 that resemble secrets or paths.
 
+Phase 196 implements the additive Overview route, strict two-source report, 30-second local
+fragment, semantic cards/tables and allowlisted metadata download. The projection is network- and
+mutation-free and excludes credential values/hashes/prefixes, request-scope fingerprints,
+coordinates, private paths and raw identifiers. BODS source time remains explicitly unavailable
+because its accepted hot-control summary does not retain one. Browser/human accessibility
+acceptance, provider quota/licence decisions and public hosting remain outside this phase.
+
 ### 27.8 `NEXT-07` — resumable named-person map-match review
 
 The existing ledger remains authoritative: one named person decides one count point at a time;

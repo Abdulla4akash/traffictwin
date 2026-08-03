@@ -47,6 +47,7 @@ from traffictwin.ui.pages import (
     scenario_mutation,
     search,
     settings,
+    source_health,
     spatial_rsu,
     statistical_study,
     sumo_import,
@@ -166,6 +167,16 @@ def run_manchester_page_script() -> None:
         "Explore validated local Manchester evidence without hidden external source access."
     )
     manchester_operations.render(load_ui_config())
+
+
+def run_source_health_page_script() -> None:
+    """Execute the additive read-only Source Health page."""
+
+    st.session_state["_active_ui_route"] = "source-health"
+    st.sidebar.caption(
+        "Local configuration and worker metadata only; no credential test or provider request."
+    )
+    source_health.render(load_ui_config())
 
 
 def run_platform_inventory_page_script() -> None:

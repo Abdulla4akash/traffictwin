@@ -167,6 +167,14 @@ MANCHESTER_PAGE_SPEC = V07AdditivePageSpec(
     icon=":material/map:",
 )
 
+SOURCE_HEALTH_PAGE_SPEC = V07AdditivePageSpec(
+    title="Source Health",
+    group="Overview",
+    script="app_pages/source_health.py",
+    url_path="source-health",
+    icon=":material/health_and_safety:",
+)
+
 
 V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
     V07PageSpec(
@@ -461,6 +469,7 @@ def validate_v07_page_specs(base: Path | None = None) -> None:
     missing = [spec.script for spec in V07_PAGE_SPECS if not (source_root / spec.script).is_file()]
     additive_specs = (
         MANCHESTER_PAGE_SPEC,
+        SOURCE_HEALTH_PAGE_SPEC,
         MATCH_REVIEW_PAGE_SPEC,
         RSU_MONITOR_PAGE_SPEC,
         BUS_SESSIONS_PAGE_SPEC,
@@ -527,6 +536,14 @@ def v07_navigation_pages() -> dict[str, list[object]]:
                         title=MANCHESTER_PAGE_SPEC.title,
                         icon=MANCHESTER_PAGE_SPEC.icon,
                         url_path=MANCHESTER_PAGE_SPEC.url_path,
+                    )
+                )
+                group_pages.append(
+                    st.Page(
+                        SOURCE_HEALTH_PAGE_SPEC.script,
+                        title=SOURCE_HEALTH_PAGE_SPEC.title,
+                        icon=SOURCE_HEALTH_PAGE_SPEC.icon,
+                        url_path=SOURCE_HEALTH_PAGE_SPEC.url_path,
                     )
                 )
         if group == MATCH_REVIEW_PAGE_SPEC.group:
