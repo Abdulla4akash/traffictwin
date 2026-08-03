@@ -440,7 +440,7 @@ def seal_ledger_for_export(
 def _load_match_rows(path: Path) -> dict[int, ObservationMatchV11] | ReviewServiceError:
     if path.is_symlink() or not path.is_file():
         return ReviewServiceError(
-            "No safe match-results artifact exists for this registration.",
+            "No match-results artifact exists for this safe registration.",
             code="ARTIFACT_MISSING",
         )
     try:
@@ -689,4 +689,14 @@ def _search_text(view: ReviewRowView) -> str:
 def _safe_detail(exc: BaseException) -> str:
     """Bound technical detail while never including a private filesystem path."""
 
+    if isinstance(exc, MatchReviewError):
+        code = str(exc).partition(":")[0]
+        if (
+            code
+            and len(code) <= 80
+            and all(
+                character.isupper() or character.isdigit() or character == "_" for character in code
+            )
+        ):
+            return code
     return type(exc).__name__[:80]

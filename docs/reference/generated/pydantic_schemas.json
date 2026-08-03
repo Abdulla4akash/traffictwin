@@ -68278,6 +68278,132 @@
       "title": "ProvenanceTrace",
       "type": "object"
     },
+    "ProviderContractAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "blockers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "contract_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Contract Fingerprint",
+          "type": "string"
+        },
+        "credentialed_probe_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Credentialed Probe Authorized",
+          "type": "boolean"
+        },
+        "measured_traffic_available": {
+          "const": false,
+          "default": false,
+          "title": "Measured Traffic Available",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "restricted-traffic-feed-access-contract-1.0",
+          "default": "restricted-traffic-feed-access-contract-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "next_stage": {
+          "enum": [
+            "wait_for_provider_response",
+            "review_provider_response",
+            "resolve_contract_blockers",
+            "freeze_transport_then_authorize_minimum_probe",
+            "none"
+          ],
+          "title": "Next Stage",
+          "type": "string"
+        },
+        "product": {
+          "enum": [
+            "tfgm_scoot",
+            "tfgm_utc",
+            "tfgm_utmc",
+            "tfgm_automatic_counter",
+            "ntis_measured_traffic"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "provider": {
+          "enum": [
+            "TfGM",
+            "National Highways NTIS"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "provider_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Provider Request Performed",
+          "type": "boolean"
+        },
+        "quotation_decision_required": {
+          "title": "Quotation Decision Required",
+          "type": "boolean"
+        },
+        "readiness": {
+          "enum": [
+            "unavailable_awaiting_provider_contract",
+            "provider_response_under_review",
+            "provider_contract_refused",
+            "contract_accepted_adapter_not_implemented"
+          ],
+          "title": "Readiness",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sibling_products_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Sibling Products Enabled",
+          "type": "boolean"
+        },
+        "source_adapter_available": {
+          "const": false,
+          "default": false,
+          "title": "Source Adapter Available",
+          "type": "boolean"
+        },
+        "source_fields_assumed": {
+          "const": false,
+          "default": false,
+          "title": "Source Fields Assumed",
+          "type": "boolean"
+        },
+        "spending_authority_created": {
+          "const": false,
+          "default": false,
+          "title": "Spending Authority Created",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "product",
+        "provider",
+        "contract_fingerprint",
+        "readiness",
+        "blockers",
+        "next_stage",
+        "quotation_decision_required"
+      ],
+      "title": "ProviderContractAssessment",
+      "type": "object"
+    },
     "PublicationPermissionBasis": {
       "additionalProperties": false,
       "description": "The written basis, date, and scope of the owner permission.",
@@ -73438,6 +73564,1234 @@
         "row_level_provenance_included"
       ],
       "title": "ResolvedInclusionPolicy",
+      "type": "object"
+    },
+    "RestrictedTrafficFeedAccessContract": {
+      "$defs": {
+        "AcademicAccessTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "academic_eligibility": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "eligible",
+                "ineligible",
+                "conditional"
+              ],
+              "title": "Academic Eligibility",
+              "type": "string"
+            },
+            "availability": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "available",
+                "unavailable"
+              ],
+              "title": "Availability",
+              "type": "string"
+            },
+            "correct_contact_confirmed": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "yes",
+                "redirect_required"
+              ],
+              "title": "Correct Contact Confirmed",
+              "type": "string"
+            },
+            "data_owner_contact": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "eligibility_conditions": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "title": "AcademicAccessTerms",
+          "type": "object"
+        },
+        "CommercialTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "budget_authority": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required_unapproved",
+                "approved"
+              ],
+              "title": "Budget Authority",
+              "type": "string"
+            },
+            "pricing": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "free",
+                "paid",
+                "bespoke_commercial"
+              ],
+              "title": "Pricing",
+              "type": "string"
+            },
+            "quotation_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "quotation_required": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "yes",
+                "no"
+              ],
+              "title": "Quotation Required",
+              "type": "string"
+            },
+            "spending_authority_created_by_contract": {
+              "const": false,
+              "default": false,
+              "title": "Spending Authority Created By Contract",
+              "type": "boolean"
+            }
+          },
+          "title": "CommercialTerms",
+          "type": "object"
+        },
+        "ContractReviewer": {
+          "additionalProperties": false,
+          "properties": {
+            "reviewer_name": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Reviewer Name",
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Reviewer Role",
+              "type": "string"
+            }
+          },
+          "required": [
+            "reviewer_name",
+            "reviewer_role"
+          ],
+          "title": "ContractReviewer",
+          "type": "object"
+        },
+        "DeliveryTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "delivery_schedule_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "modes": {
+              "default": [
+                "unknown"
+              ],
+              "items": {
+                "enum": [
+                  "unknown",
+                  "live",
+                  "delayed",
+                  "historical",
+                  "periodic_export"
+                ],
+                "type": "string"
+              },
+              "title": "Modes",
+              "type": "array"
+            }
+          },
+          "title": "DeliveryTerms",
+          "type": "object"
+        },
+        "DetectorTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "reference_identifiers_in_research": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Reference Identifiers In Research",
+              "type": "string"
+            },
+            "reference_locations_in_research": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Reference Locations In Research",
+              "type": "string"
+            },
+            "retain_detector_identifiers": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Retain Detector Identifiers",
+              "type": "string"
+            },
+            "retain_detector_locations": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Retain Detector Locations",
+              "type": "string"
+            }
+          },
+          "title": "DetectorTerms",
+          "type": "object"
+        },
+        "OnboardingTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "account": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Account",
+              "type": "string"
+            },
+            "application": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Application",
+              "type": "string"
+            },
+            "credential": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Credential",
+              "type": "string"
+            },
+            "data_sharing_agreement": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Data Sharing Agreement",
+              "type": "string"
+            },
+            "ip_allowlist": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Ip Allowlist",
+              "type": "string"
+            },
+            "process_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "title": "OnboardingTerms",
+          "type": "object"
+        },
+        "ProviderLimit": {
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "limited",
+                "unlimited",
+                "not_applicable"
+              ],
+              "title": "Status",
+              "type": "string"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Value"
+            }
+          },
+          "title": "ProviderLimit",
+          "type": "object"
+        },
+        "ProviderResponseEvidence": {
+          "additionalProperties": false,
+          "description": "Digest and date only; the private response/agreement stays outside the record.",
+          "properties": {
+            "agreement_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "agreement_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Agreement Sha256"
+            },
+            "credential_present": {
+              "const": false,
+              "default": false,
+              "title": "Credential Present",
+              "type": "boolean"
+            },
+            "private_path_present": {
+              "const": false,
+              "default": false,
+              "title": "Private Path Present",
+              "type": "boolean"
+            },
+            "provider_prose_present": {
+              "const": false,
+              "default": false,
+              "title": "Provider Prose Present",
+              "type": "boolean"
+            },
+            "provider_response_received_at_utc": {
+              "format": "date-time",
+              "title": "Provider Response Received At Utc",
+              "type": "string"
+            },
+            "provider_response_reference": {
+              "$ref": "#/$defs/SafeReference"
+            },
+            "provider_response_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Provider Response Sha256",
+              "type": "string"
+            }
+          },
+          "required": [
+            "provider_response_sha256",
+            "provider_response_received_at_utc",
+            "provider_response_reference"
+          ],
+          "title": "ProviderResponseEvidence",
+          "type": "object"
+        },
+        "RequestLimitTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "backoff_rules": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_applicable"
+              ],
+              "title": "Backoff Rules",
+              "type": "string"
+            },
+            "concurrent_requests": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            },
+            "export_volume_rows": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            },
+            "limit_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "page_size_rows": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            },
+            "requests_per_day": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            },
+            "requests_per_minute": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            },
+            "requests_per_month": {
+              "$ref": "#/$defs/ProviderLimit",
+              "default": {
+                "status": "unknown",
+                "value": null
+              }
+            }
+          },
+          "title": "RequestLimitTerms",
+          "type": "object"
+        },
+        "RetentionTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "maximum_days": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum Days"
+            },
+            "status": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "fixed_days",
+                "unlimited",
+                "not_permitted"
+              ],
+              "title": "Status",
+              "type": "string"
+            }
+          },
+          "title": "RetentionTerms",
+          "type": "object"
+        },
+        "RightsTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "aggregate_publication": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Aggregate Publication",
+              "type": "string"
+            },
+            "attribution": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_required",
+                "required"
+              ],
+              "title": "Attribution",
+              "type": "string"
+            },
+            "attribution_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "backup": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Backup",
+              "type": "string"
+            },
+            "deletion": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "required",
+                "not_required",
+                "provider_managed"
+              ],
+              "title": "Deletion",
+              "type": "string"
+            },
+            "derived_academic_results": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Derived Academic Results",
+              "type": "string"
+            },
+            "licence": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "restricted",
+                "denied"
+              ],
+              "title": "Licence",
+              "type": "string"
+            },
+            "licence_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "retention": {
+              "$ref": "#/$defs/RetentionTerms",
+              "default": {
+                "maximum_days": null,
+                "status": "unknown"
+              }
+            },
+            "row_level_publication": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "permitted",
+                "prohibited",
+                "aggregate_only",
+                "agreement_specific"
+              ],
+              "title": "Row Level Publication",
+              "type": "string"
+            }
+          },
+          "title": "RightsTerms",
+          "type": "object"
+        },
+        "SafeReference": {
+          "additionalProperties": false,
+          "description": "Safe local citation handle; never provider prose, a URL, email or private path.",
+          "properties": {
+            "reference_id": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}$",
+              "title": "Reference Id",
+              "type": "string"
+            }
+          },
+          "required": [
+            "reference_id"
+          ],
+          "title": "SafeReference",
+          "type": "object"
+        },
+        "SensitiveFieldTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "excluded_field_references": {
+              "default": [],
+              "items": {
+                "$ref": "#/$defs/SafeReference"
+              },
+              "title": "Excluded Field References",
+              "type": "array"
+            },
+            "handling": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "none_required",
+                "exclusions_required"
+              ],
+              "title": "Handling",
+              "type": "string"
+            },
+            "public_output_treatment": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "unchanged_permitted",
+                "aggregate",
+                "anonymise",
+                "publication_prohibited"
+              ],
+              "title": "Public Output Treatment",
+              "type": "string"
+            },
+            "security_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "title": "SensitiveFieldTerms",
+          "type": "object"
+        },
+        "TechnicalTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "change_notifications": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_available"
+              ],
+              "title": "Change Notifications",
+              "type": "string"
+            },
+            "coverage": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_applicable"
+              ],
+              "title": "Coverage",
+              "type": "string"
+            },
+            "coverage_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "endpoint_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "outage_behavior": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_applicable"
+              ],
+              "title": "Outage Behavior",
+              "type": "string"
+            },
+            "quality_flags": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_provided"
+              ],
+              "title": "Quality Flags",
+              "type": "string"
+            },
+            "quality_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "sample_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Sample Sha256"
+            },
+            "sample_status": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "received",
+                "unavailable"
+              ],
+              "title": "Sample Status",
+              "type": "string"
+            },
+            "schema_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "schema_sha256": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Schema Sha256"
+            },
+            "schema_status": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "exact_schema_received",
+                "schema_unavailable"
+              ],
+              "title": "Schema Status",
+              "type": "string"
+            },
+            "support_route": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_available"
+              ],
+              "title": "Support Route",
+              "type": "string"
+            },
+            "transport": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "https_json",
+                "https_xml",
+                "sftp_export",
+                "portal_export",
+                "other"
+              ],
+              "title": "Transport",
+              "type": "string"
+            },
+            "units": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "documented",
+                "not_applicable"
+              ],
+              "title": "Units",
+              "type": "string"
+            },
+            "units_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "title": "TechnicalTerms",
+          "type": "object"
+        },
+        "TimeTerms": {
+          "additionalProperties": false,
+          "properties": {
+            "daylight_saving": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "not_applicable",
+                "offset_in_timestamp",
+                "fold_flag",
+                "provider_revision",
+                "documented_local_clock"
+              ],
+              "title": "Daylight Saving",
+              "type": "string"
+            },
+            "interval_boundary": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "instant",
+                "start_inclusive",
+                "end_inclusive",
+                "cumulative"
+              ],
+              "title": "Interval Boundary",
+              "type": "string"
+            },
+            "revision_semantics": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "immutable",
+                "latest_replaces",
+                "versioned",
+                "provider_defined"
+              ],
+              "title": "Revision Semantics",
+              "type": "string"
+            },
+            "timestamp_field_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "timezone": {
+              "default": "unknown",
+              "enum": [
+                "unknown",
+                "UTC",
+                "Europe/London",
+                "fixed_offset",
+                "other"
+              ],
+              "title": "Timezone",
+              "type": "string"
+            },
+            "timezone_reference": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/SafeReference"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "title": "TimeTerms",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "One independently reviewed product contract; it never enables a sibling product.",
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/AcademicAccessTerms",
+          "default": {
+            "academic_eligibility": "unknown",
+            "availability": "unknown",
+            "correct_contact_confirmed": "unknown",
+            "data_owner_contact": null,
+            "eligibility_conditions": null
+          }
+        },
+        "capability_ids": {
+          "default": [
+            "MAN-01",
+            "MAN-07",
+            "MAN-09",
+            "MAN-10"
+          ],
+          "items": {
+            "enum": [
+              "MAN-01",
+              "MAN-07",
+              "MAN-09",
+              "MAN-10"
+            ],
+            "type": "string"
+          },
+          "title": "Capability Ids",
+          "type": "array"
+        },
+        "capability_status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Capability Status",
+          "type": "string"
+        },
+        "commercial": {
+          "$ref": "#/$defs/CommercialTerms",
+          "default": {
+            "budget_authority": "unknown",
+            "pricing": "unknown",
+            "quotation_reference": null,
+            "quotation_required": "unknown",
+            "spending_authority_created_by_contract": false
+          }
+        },
+        "contract_status": {
+          "default": "draft_unknown",
+          "enum": [
+            "draft_unknown",
+            "provider_response_recorded",
+            "reviewed_accepted",
+            "reviewed_refused"
+          ],
+          "title": "Contract Status",
+          "type": "string"
+        },
+        "credentialed_probe_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Credentialed Probe Authorized",
+          "type": "boolean"
+        },
+        "delivery": {
+          "$ref": "#/$defs/DeliveryTerms",
+          "default": {
+            "delivery_schedule_reference": null,
+            "modes": [
+              "unknown"
+            ]
+          }
+        },
+        "detectors": {
+          "$ref": "#/$defs/DetectorTerms",
+          "default": {
+            "reference_identifiers_in_research": "unknown",
+            "reference_locations_in_research": "unknown",
+            "retain_detector_identifiers": "unknown",
+            "retain_detector_locations": "unknown"
+          }
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ProviderResponseEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "method_version": {
+          "const": "restricted-traffic-feed-access-contract-1.0",
+          "default": "restricted-traffic-feed-access-contract-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "onboarding": {
+          "$ref": "#/$defs/OnboardingTerms",
+          "default": {
+            "account": "unknown",
+            "application": "unknown",
+            "credential": "unknown",
+            "data_sharing_agreement": "unknown",
+            "ip_allowlist": "unknown",
+            "process_reference": null
+          }
+        },
+        "owner_decision_id": {
+          "anyOf": [
+            {
+              "pattern": "^decision-[A-Za-z0-9][A-Za-z0-9_.:-]{7,95}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Decision Id"
+        },
+        "product": {
+          "enum": [
+            "tfgm_scoot",
+            "tfgm_utc",
+            "tfgm_utmc",
+            "tfgm_automatic_counter",
+            "ntis_measured_traffic"
+          ],
+          "title": "Product",
+          "type": "string"
+        },
+        "provider": {
+          "enum": [
+            "TfGM",
+            "National Highways NTIS"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "provider_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Provider Request Performed",
+          "type": "boolean"
+        },
+        "request_limits": {
+          "$ref": "#/$defs/RequestLimitTerms",
+          "default": {
+            "backoff_rules": "unknown",
+            "concurrent_requests": {
+              "status": "unknown",
+              "value": null
+            },
+            "export_volume_rows": {
+              "status": "unknown",
+              "value": null
+            },
+            "limit_reference": null,
+            "page_size_rows": {
+              "status": "unknown",
+              "value": null
+            },
+            "requests_per_day": {
+              "status": "unknown",
+              "value": null
+            },
+            "requests_per_minute": {
+              "status": "unknown",
+              "value": null
+            },
+            "requests_per_month": {
+              "status": "unknown",
+              "value": null
+            }
+          }
+        },
+        "reviewed_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At Utc"
+        },
+        "reviewer": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContractReviewer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rights": {
+          "$ref": "#/$defs/RightsTerms",
+          "default": {
+            "aggregate_publication": "unknown",
+            "attribution": "unknown",
+            "attribution_reference": null,
+            "backup": "unknown",
+            "deletion": "unknown",
+            "derived_academic_results": "unknown",
+            "licence": "unknown",
+            "licence_reference": null,
+            "retention": {
+              "maximum_days": null,
+              "status": "unknown"
+            },
+            "row_level_publication": "unknown"
+          }
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sensitive_fields": {
+          "$ref": "#/$defs/SensitiveFieldTerms",
+          "default": {
+            "excluded_field_references": [],
+            "handling": "unknown",
+            "public_output_treatment": "unknown",
+            "security_reference": null
+          }
+        },
+        "source_adapter_available": {
+          "const": false,
+          "default": false,
+          "title": "Source Adapter Available",
+          "type": "boolean"
+        },
+        "source_fields_assumed": {
+          "const": false,
+          "default": false,
+          "title": "Source Fields Assumed",
+          "type": "boolean"
+        },
+        "technical": {
+          "$ref": "#/$defs/TechnicalTerms",
+          "default": {
+            "change_notifications": "unknown",
+            "coverage": "unknown",
+            "coverage_reference": null,
+            "endpoint_reference": null,
+            "outage_behavior": "unknown",
+            "quality_flags": "unknown",
+            "quality_reference": null,
+            "sample_sha256": null,
+            "sample_status": "unknown",
+            "schema_reference": null,
+            "schema_sha256": null,
+            "schema_status": "unknown",
+            "support_route": "unknown",
+            "transport": "unknown",
+            "units": "unknown",
+            "units_reference": null
+          }
+        },
+        "time": {
+          "$ref": "#/$defs/TimeTerms",
+          "default": {
+            "daylight_saving": "unknown",
+            "interval_boundary": "unknown",
+            "revision_semantics": "unknown",
+            "timestamp_field_reference": null,
+            "timezone": "unknown",
+            "timezone_reference": null
+          }
+        }
+      },
+      "required": [
+        "product",
+        "provider"
+      ],
+      "title": "RestrictedTrafficFeedAccessContract",
       "type": "object"
     },
     "RowDropoutMutation": {

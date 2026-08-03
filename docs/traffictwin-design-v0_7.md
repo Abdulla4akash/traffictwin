@@ -12,7 +12,7 @@ comparison, and a research-focused product interface
 
 **Date:** 3 August 2026
 
-**Revision:** Post-Phase-189 durable real-workspace, operational-history, source-health,
+**Revision:** Phase-198-aligned durable real-workspace, operational-history, source-health,
 map-review, and provider-gated measured-traffic programme
 
 > v0.7 supersedes v0.6 for future product and architecture decisions. The immutable
@@ -1440,6 +1440,15 @@ credential redaction, raw immutability, timezone/DST and interval tests, detecto
 policy tests, sensitive-field removal before browser/export, outage/revision replay, licence and
 attribution checks, spatial admission, and proof that one provider's acceptance cannot enable
 another source.
+
+Phase 198 implements only the strict contract-intake portion of this design. It provides an
+all-unknown product-specific template and a safe readiness projection for all five product
+identifiers. An accepted private contract still reports
+`contract_accepted_adapter_not_implemented`: it creates no spending authority, credentialed probe,
+source adapter, measured-traffic capability or sibling-product permission. No provider response,
+schema, sample, endpoint or credential is recorded in the repository, so every product remains
+`unavailable_awaiting_provider_contract` unless an operator supplies its own reviewed private
+contract. The provider reply and every transport/probe/parser stage remain external residual work.
 
 ### 27.10 Sequencing and traceability
 

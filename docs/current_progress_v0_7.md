@@ -2,7 +2,7 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 195 is the current bounded implementation
+**Development branch:** `claude/complete-v0.7`; Phase 198 is the current bounded implementation
 increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -25,6 +25,10 @@ Phase 194 adds the pure complete accepted-snapshot National Highways transition 
 calling a provider, persisting a real transition, or activating the Changes page.
 Phase 195 adds identifier-free BODS operational attempts, explicit trend windows and UTC-day
 rollups without activating persistence or a trends page.
+Phase 196 adds the read-only two-source Source Health page, Phase 197 adds the exact-artifact
+resumable one-row map-match review workflow, and Phase 198 adds strict product-specific provider-
+contract intake and safe readiness assessment. No real reviewer decision, provider contract,
+credentialed probe or TfGM/NTIS measured-traffic adapter was created.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -494,6 +498,29 @@ workflow without a bulk API. The real v1.1 artifact does not retain coordinates 
 map rendering/map-text equivalence remains unavailable rather than inferred; human keyboard and
 contrast acceptance also remains open. No real identity or Manchester decision was recorded. See
 [resumable named-person review](integration/manchester_match_review.md).
+
+### 6.13 Phase-198 provider-contract intake (`NEXT-08`)
+
+The eighth slice is implemented only through its honest pre-reply boundary. A strict
+`RestrictedTrafficFeedAccessContract` keeps TfGM SCOOT, UTC, UTMC, automatic counters and NTIS
+measured traffic independent and requires reviewed access, delivery, cost, onboarding, quota,
+licence/retention/publication, detector, timezone/DST, sensitive-field and exact technical-schema
+facts. Unknowns fail closed; paid/bespoke terms require a quotation decision and approved budget
+authority. Private provider prose, agreements, endpoints, credentials, paths and rows cannot enter
+the safe assessment.
+
+The CLI can emit an all-unknown template and inspect a private contract:
+
+```bash
+uv run traffictwin integration manchester provider template tfgm_scoot --format json
+uv run traffictwin integration manchester provider status /private/path/contract.json --format text
+```
+
+Even a fully reviewed accepted contract stops at
+`contract_accepted_adapter_not_implemented`; it authorises no credentialed probe and exposes no
+measured traffic. No provider response/agreement is recorded in the repository, so the actual
+TfGM/NTIS adapters remain unavailable pending product-specific evidence and a separately reviewed
+transport/probe/parser stage. See [restricted traffic-feed contract intake](integration/manchester_restricted_traffic_feed_contract.md).
 
 ## 7. Decisions or evidence required before acceptance
 

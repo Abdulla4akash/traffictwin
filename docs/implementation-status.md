@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 197. It does not alter the strict
+This section records the additive platform truth through Phase 198. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,7 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
-| Durable real-evidence programme | Phases 190–194 implement bounded `NEXT-01`–`NEXT-04`; Phase 195 adds identifier-free BODS trends; Phase 196 adds local Source Health; Phase 197 adds the exact-registered, atomic, resumable one-row review workflow for `NEXT-07` | No owner-selected real workspace was created/launched; no retention writer/provider adapter was activated; no provider request, public process/export, real transition/trend artifact, reviewer identity/decision, capability acceptance or release exists from these phases |
+| Durable real-evidence programme | Phases 190–194 implement bounded `NEXT-01`–`NEXT-04`; Phase 195 adds identifier-free BODS trends; Phase 196 adds local Source Health; Phase 197 adds the exact-registered, atomic, resumable one-row review workflow; Phase 198 adds strict five-product provider-contract intake and fail-closed readiness assessment for `NEXT-08` | No owner-selected real workspace was created/launched; no retention writer/provider adapter was activated; no repository provider response, credentialed probe, public process/export, real transition/trend artifact, reviewer identity/decision, capability acceptance or release exists from these phases |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -293,6 +293,15 @@ working copy unchanged. A midpoint-restarted 174-row synthetic session proves th
 a bulk operation. The v1.1 artifact lacks coordinates/edge shapes, so map/text equivalence and
 human accessibility acceptance remain unavailable. No real reviewer identity/decision, scientific
 approval, capability acceptance or release was created.
+
+Phase 198 implements only the pre-reply `NEXT-08` contract boundary. Five independent product
+contracts cover TfGM SCOOT/UTC/UTMC/automatic counters and NTIS measured traffic; all unknown
+access, delivery, cost, onboarding, request-limit, rights/retention/publication, detector,
+timezone/DST, sensitive-field and exact-schema facts fail closed. Safe CLI template/status output
+contains no provider prose, credential, endpoint, path or row. Paid/bespoke terms require a
+quotation decision and approved budget authority, but create no spending authority. Even a fully
+accepted private contract stops before an authorised probe or adapter. No provider response,
+schema/sample, credential, traffic measurement, capability acceptance or release was created.
 
 Phase 0 status: approved and committed.
 

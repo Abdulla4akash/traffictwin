@@ -5307,6 +5307,34 @@ v1.1 row lacks point coordinates/edge shapes, so the page withholds a map and ma
 accessibility acceptance remains open. No real reviewer identity or decision, scientific approval,
 capability acceptance, release or tag was created.
 
+### Phase 198 claim: provider contract intake (`NEXT-08`, 3 August 2026)
+
+The owner-directed integrating lead owns only the pre-reply portion of the final Phase-190 slice
+in a new `src/traffictwin/integration/manchester/restricted_traffic_feed_contract.py`, bounded
+Manchester exports, safe CLI template/status commands, focused tests, generated schemas/help,
+canonical design/status/operator documentation and this record. The phase may add one strict
+product-specific access/rights/rate/time/identifier/security/schema intake contract and a
+fail-closed readiness assessment for TfGM SCOOT/UTC/UTMC/counters and NTIS measured traffic. It
+may not invent a field, endpoint, unit, quota, timezone or licence fact; read provider prose,
+agreement files or credentials into committed output; perform a probe; spend/approve a quote;
+implement or enable a source adapter before an accepted reply; accept a capability or create a
+release/tag.
+
+Phase 198 completed locally on 3 August 2026 through the permitted pre-reply boundary. Five
+independent strict contracts, an all-unknown template command and a private-input/safe-output status
+command now fail closed on unresolved access, delivery, commercial, onboarding, limit, rights,
+retention, detector, time/DST, sensitivity and technical-schema facts. Paid/bespoke terms require
+both a quotation decision and approved budget authority. Even an accepted contract authorises no
+credentialed probe, adapter, measured traffic or sibling source. Focused tests, strict mypy, Ruff,
+generated schema/help reconciliation and diff checks passed. No provider reply, agreement,
+endpoint, schema/sample, credential, provider call, spending authority, source adapter, capability
+acceptance, release or tag was created.
+
+The final integrated gate passed 4,233 tests with two expected skips for the absent optional
+published fresh-VEC result directory. Repository-wide Ruff format/check covered 1,001 files and
+strict mypy passed all 916 configured source files. The suite also exposed and repaired one
+Phase-197 compatibility regression while preserving path-free allowlisted error detail.
+
 ### Phase 195 claim: BODS operational trends (`NEXT-05`, 3 August 2026)
 
 The owner-directed integrating lead owns the fifth Phase-190 slice in a new

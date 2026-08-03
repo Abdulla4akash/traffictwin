@@ -294,6 +294,13 @@ from traffictwin.integration.manchester.owner_candidate_contracts import (
     comparison_contract_fingerprint,
     comparison_contract_is_registered,
 )
+from traffictwin.integration.manchester.restricted_traffic_feed_contract import (
+    RESTRICTED_FEED_PRODUCTS,
+    RestrictedTrafficFeedContractError,
+    assess_restricted_feed_contract,
+    load_restricted_feed_contract,
+    restricted_feed_contract_template,
+)
 from traffictwin.integration.manchester.sumo_run import (
     ManchesterSumoRunError,
     sumo_identity,
@@ -617,6 +624,10 @@ manchester_run_app = typer.Typer(
     no_args_is_help=True,
     help="Operator-invoked controlled SUMO execution (MAN-09, planned).",
 )
+manchester_provider_app = typer.Typer(
+    no_args_is_help=True,
+    help="Fail-closed TfGM/NTIS provider-contract intake; never a source request.",
+)
 MANCHESTER_EVIDENCE_DIR = Path(__file__).resolve().parents[2] / "docs" / "integration" / "evidence"
 
 manchester_evidence_app = typer.Typer(
@@ -658,7 +669,75 @@ manchester_app.add_typer(manchester_observation_app, name="observation")
 manchester_app.add_typer(manchester_match_app, name="match")
 manchester_app.add_typer(manchester_demand_app, name="demand")
 manchester_app.add_typer(manchester_run_app, name="run")
+manchester_app.add_typer(manchester_provider_app, name="provider")
 manchester_app.add_typer(manchester_evidence_app, name="evidence")
+
+
+@manchester_provider_app.command("template")
+def manchester_provider_contract_template_command(
+    product: Annotated[str, typer.Argument(help="One exact TfGM/NTIS product identifier")],
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Print a non-enabling all-unknown provider-response intake template."""
+
+    if product not in RESTRICTED_FEED_PRODUCTS:
+        typer.echo(
+            "unsupported product; choose one of: " + ", ".join(RESTRICTED_FEED_PRODUCTS),
+            err=True,
+        )
+        raise typer.Exit(code=1)
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    contract = restricted_feed_contract_template(product)
+    if output_format == "json":
+        typer.echo(contract.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    assessment = assess_restricted_feed_contract(contract)
+    typer.echo(f"product: {assessment.product}")
+    typer.echo(f"provider: {assessment.provider}")
+    typer.echo(f"readiness: {assessment.readiness}")
+    typer.echo(f"blocker_count: {len(assessment.blockers)}")
+    typer.echo("source_adapter_available: false")
+    typer.echo("credentialed_probe_authorized: false")
+    typer.echo("provider_request_performed: false")
+
+
+@manchester_provider_app.command("status")
+def manchester_provider_contract_status_command(
+    contract_path: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Validate one private contract and print only its safe readiness projection."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        contract = load_restricted_feed_contract(contract_path)
+        assessment = assess_restricted_feed_contract(contract)
+    except RestrictedTrafficFeedContractError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(assessment.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"product: {assessment.product}")
+    typer.echo(f"provider: {assessment.provider}")
+    typer.echo(f"readiness: {assessment.readiness}")
+    typer.echo(f"next_stage: {assessment.next_stage}")
+    typer.echo(
+        f"quotation_decision_required: {str(assessment.quotation_decision_required).lower()}"
+    )
+    typer.echo(f"blocker_count: {len(assessment.blockers)}")
+    for blocker in assessment.blockers:
+        typer.echo(f"blocker: {blocker}")
+    typer.echo("spending_authority_created: false")
+    typer.echo("credentialed_probe_authorized: false")
+    typer.echo("source_adapter_available: false")
+    typer.echo("measured_traffic_available: false")
+    typer.echo("provider_request_performed: false")
+    typer.echo("source_fields_assumed: false")
 
 
 @vec_app.command("contract")
