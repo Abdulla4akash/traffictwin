@@ -129,7 +129,7 @@ addresses are deliberately omitted and the owner fills them at send time.
 | 3 | Record Sandra's actual answers to the two scope questions | Do not infer a verdict from silence or meeting timing |
 | 4 | Trigger Codex review of `CODEX_INTEGRATION_HANDOFF.md` and, if satisfied, the official-branch fast-forward | `main` stays untouched |
 | 5 | Decide B1 G1–G5, especially the 32 m/s drop+count recommendation | No bus experiment or trace construction before signing and viability |
-| 6 | Complete/decide crossover and stadium candidates; decide E1–E5 and N1/R1 | Each remains an owner decision |
+| 6 | Complete/decide crossover and stadium candidates; decide E1–E5 and R1 | Each remains an owner decision; N1 was withdrawn after the 28 July identity correction |
 
 ---
 
@@ -276,6 +276,9 @@ addresses are deliberately omitted and the owner fills them at send time.
 | When replying | **Queued decisions, whenever convenient** | R1 tos-data re-pin (trivial, one docs-only commit); N1 network re-pin (bigger); E1–E5 demand signing; G1–G6 bus-fleet signing; ev-study predeclaration go/no-go (admission landed as ADR-065). |
 
 ---
+
+The archived N1 action above was withdrawn on 28 July after the source PBF/decoded XML identity
+error was corrected; it is not a current owner action.
 
 *Prepared 27 July 2026 under the standing in-session delegation; every draft awaits the
 owner's personal review and send.*

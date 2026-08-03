@@ -6,90 +6,116 @@ the task-oriented UI and the additive Meeting 3 platform surfaces.
 
 The immutable `v0.6.0` tag remains the frozen comparison baseline. Version `0.7.0` does not imply
 production readiness, complete Manchester telemetry, public deployment or acceptance of a
-capability whose evidence gate remains open. Consult `docs/implementation-status.md` before making
-any operational or scientific claim.
+capability whose evidence gate remains open. Consult [implementation status](implementation-status.md)
+and the [Meeting 1–3 live feature-gap audit](meeting_1_2_3_live_feature_gap_audit.md) before making
+an operational or scientific claim.
 
-## Release Status
+## Release status
 
 - Package version: `0.7.0`
 - Release label: `v0.7.0 research prototype`
 - Licence: not yet specified
-- Production status: research prototype, not production-ready
+- Production status: research prototype; not production-ready
+- Final `v0.7.0` Git tag: not created
+- GitHub Release and package publication: not created
 
-## Pre-Release Checks
+## Technical pre-release checks
+
+Use the locked environment and the same commands as CI:
 
 ```bash
-.venv/bin/ruff format .
-.venv/bin/ruff check .
-.venv/bin/mypy
-.venv/bin/python -m pytest
-.venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
-.venv/bin/traffictwin doctor --format text
-.venv/bin/traffictwin demo initialise .release-demo --force
-.venv/bin/traffictwin synthetic verify .release-demo
-.venv/bin/traffictwin report full .release-demo/bundles/stressed_demand \
-  --comparison-baseline .release-demo/bundles/baseline \
-  --output .release-demo/reports/full.html
-.venv/bin/python scripts/verify_release.py
-.venv/bin/python -m build
+uv sync --locked --extra dev --extra vec-runner
 uv lock --check
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy
+uv run python -m pytest --cov=traffictwin --cov-report=term-missing
+uv run python scripts/generate_reference_docs.py
+git diff --exit-code -- docs/reference/generated
+uv run python scripts/check_markdown_links.py
+uv run python scripts/verify_release.py
+git diff --exit-code -- tests/fixtures examples
+git diff --check
 ```
 
-## Package Build
-
-Install build tooling through the development extra:
+Run a standalone synthetic-demo smoke in a temporary directory:
 
 ```bash
-python -m pip install -e ".[dev]"
-python -m build
+release_smoke_root="$(mktemp -d)"
+uv run traffictwin demo initialise "$release_smoke_root/demo"
+uv run traffictwin synthetic verify "$release_smoke_root/demo"
+uv run traffictwin provenance export "$release_smoke_root/demo/bundles/baseline" \
+  --root-type metric --root-id task.completion.rate --format json \
+  --output "$release_smoke_root/demo/exports/provenance.json"
+uv run traffictwin report run "$release_smoke_root/demo/bundles/baseline" \
+  --output "$release_smoke_root/demo/reports/run.md"
+uv run traffictwin report full "$release_smoke_root/demo/bundles/stressed_demand" \
+  --comparison-baseline "$release_smoke_root/demo/bundles/baseline" \
+  --output "$release_smoke_root/demo/reports/full.html"
+uv run traffictwin release stage-demo-site "$release_smoke_root/demo" \
+  --output "$release_smoke_root/public"
 ```
 
-This should create `dist/*.whl` and `dist/*.tar.gz`.
+These are technical checks. Expected unavailable provider, real-workspace, scientific and human
+acceptance states must remain visible; do not “fix” them with invented inputs.
 
-The committed `uv.lock` pins the complete dependency graph. Recreate a development environment with:
+## Package build and clean installation
+
+Build both distributions from the locked development environment:
 
 ```bash
-uv sync --extra dev --extra tos
+uv run python -m build
 ```
 
-## Clean Installation Smoke
-
-Use a temporary virtual environment:
+This creates `dist/traffictwin-0.7.0-py3-none-any.whl` and
+`dist/traffictwin-0.7.0.tar.gz`. Test the wheel without using the editable checkout:
 
 ```bash
-python3.12 -m venv /tmp/tt-wheel-test
-/tmp/tt-wheel-test/bin/python -m pip install dist/traffictwin-0.7.0-py3-none-any.whl
-/tmp/tt-wheel-test/bin/traffictwin synthetic presets
+wheel_smoke_root="$(mktemp -d)"
+uv venv --python 3.12 "$wheel_smoke_root/venv"
+uv pip install --python "$wheel_smoke_root/venv/bin/python" \
+  dist/traffictwin-0.7.0-py3-none-any.whl
+"$wheel_smoke_root/venv/bin/python" -c \
+  "import traffictwin; assert traffictwin.__version__ == '0.7.0'"
+"$wheel_smoke_root/venv/bin/traffictwin" synthetic presets
 ```
 
-## Git Tag Instructions
+The GitHub Actions matrix repeats the build and clean-wheel smoke on Python 3.11 and 3.12.
 
-Only tag after quality gates pass:
+## Owner-only publication actions
 
-```bash
-git tag -a v0.7.0 -m "TrafficTwin v0.7.0 research prototype"
-git push origin v0.7.0
-```
+Do not create or move a tag, create a GitHub Release, upload to PyPI, choose a licence or deploy a
+public service from this guide alone. Those actions require explicit repository-owner
+authorisation after the technical checks and the applicable licence, publication and evidence
+boundaries have been reviewed. Commands for those irreversible publication actions are
+intentionally omitted while authorisation is absent.
 
-## Release Checklist
+## Release checklist
 
-- [ ] Working tree clean.
-- [ ] Quality gates pass.
-- [ ] `traffictwin doctor` reports no blocked required checks for the release environment.
-- [ ] Standalone workspace initialises.
-- [ ] Streamlit dry-run command prints expected command.
-- [ ] Reports contain no real-data claims.
-- [ ] No private credentials or large data are committed.
-- [ ] Licence status remains explicit.
-- [ ] Synthetic Netlify site manifest reports `synthetic: true` and `live_data: false`.
-- [ ] Private TOS supervisor pack checksums pass, when the external package is available.
+- [ ] Working tree is clean and the intended release commit is reviewed.
+- [ ] Locked dependency, formatting, lint, typing and full-suite gates pass.
+- [ ] Generated references regenerate without tracked drift.
+- [ ] Repository-local Markdown links resolve.
+- [ ] Source and wheel distributions build, and the clean wheel smoke passes.
+- [ ] Standalone demo/report/provenance/static-site smoke passes.
+- [ ] Fixture directories remain byte-unchanged after validation.
+- [ ] GitHub Actions passes on Python 3.11 and 3.12 for the intended commit.
+- [ ] Expected unavailable product/provider/scientific states remain accurately documented.
+- [ ] Reports contain no fabricated real-data, operational or production claims.
+- [ ] No private credential, path, raw identifier or unapproved large data is committed.
+- [ ] Licence and publication status remain explicit and have owner approval before publication.
+- [ ] Synthetic site manifest reports `synthetic: true` and `live_data: false`.
+- [ ] Private TOS supervisor-pack checksums pass when the authorised external package is available.
 - [ ] No public TOS atlas is staged without recorded publication permission.
-- [ ] Repository `CITATION.cff` and any archive-specific authors/identifier/date are reviewed.
-- [ ] Every release research object passes `traffictwin archive verify`; imported public raw
-      embed/reference has recorded permission basis and licence, otherwise use `exclude`.
+- [ ] `CITATION.cff` and any archive-specific authors, identifiers and dates are owner-reviewed.
+- [ ] Every published research object passes `traffictwin archive verify`; raw embed/reference
+      permission and licence are recorded, otherwise the raw artifact is excluded.
+- [ ] Final tag, GitHub Release, package upload and deployment each have explicit owner authority.
 
 Related documents:
 
+- [v0.7 housekeeping completion record](quality/v07_housekeeping_completion_20260803.md)
+- [v0.7 main-branch release integration](quality/v07_main_release_integration_20260803.md)
 - [v0.7 technical release-readiness audit](quality/v07_release_readiness_audit_20260802.md)
 - [v0.7 local-input and handoff audit](quality/v07_local_input_and_handoff_audit_20260802.md)
 - [Standalone demo](standalone_demo.md)

@@ -307,6 +307,15 @@ quotation decision and approved budget authority, but create no spending authori
 accepted private contract stops before an authorised probe or adapter. No provider response,
 schema/sample, credential, traffic measurement, capability acceptance or release was created.
 
+## Historical implementation chronology
+
+The phase notes below preserve earlier checkpoint evidence. Their local headings such as
+“Blocked”, “Not Started”, “Evidence Required Next” and “Quality Gates” describe the checkpoint in
+which they were written; they are not current status labels. Use the dated 3 August status above,
+the [current workflow](current_workflow_and_todo.md) and the
+[housekeeping completion record](quality/v07_housekeeping_completion_20260803.md) for current
+release and residual-work truth.
+
 Phase 0 status: approved and committed.
 
 Phase 1 status: implemented and committed.
@@ -2395,7 +2404,10 @@ builds; dependency-lock validation; release smoke; 164-document and 1,199-local-
 and `git diff --check`. OPS-01 changes no Streamlit page; the existing desktop/mobile semantic
 audit remains green with zero findings.
 
-## Repository Assessment
+## Historical Repository Assessment
+
+This assessment records the repository state before the later v0.5–v0.7 increments. It is retained
+for provenance and must not be read as the current capability or quality-gate summary.
 
 Workspace root inspected: repository parent workspace
 
@@ -2753,7 +2765,7 @@ per-row causal weights.
 - Generated reference artifacts under `docs/reference/generated/`.
 - Cross-links added to data, validation, metrics, evidence, comparison, and diagnostic contract documents.
 
-## Quality Gates
+## Historical Phase 0–6 Quality Gates
 
 Commands run successfully:
 
@@ -2828,7 +2840,7 @@ Results:
 - JSON finite check: metric JSON contained no `NaN` or infinity.
 - Fixture raw-file hashes were unchanged after validation/import smoke checks.
 
-## Blocked
+## Historical Phase 6 Blockers
 
 - Full TOS/VEC canonical conversion remains blocked by absent physical-completion,
   persistent-identity, per-vehicle tier/target/link evidence, source raw SUMO/trip data, and
@@ -2840,14 +2852,14 @@ Results:
   v1.0 semantic contract. Drop-cause, queue-clearance, and capacity-normalised metrics remain
   blocked until source fields and units exist.
 
-## Not Started
+## Historical Phase 6 Not-Started Items
 
 - Additional external-source families, FCD mapping, VEC canonical conversion, and sensor adapters
   beyond the two reviewed OPS-05 reference contracts.
 - LLM rendering.
 - XAI.
 
-## Evidence Required Next
+## Historical Phase 6 Evidence Required Next
 
 - Definitions for `rsu_busy_ms`, `rsu_load`, and `rsu_max_concurrent`; confirmed trace units; and
   clarification of eventual completion remain required for canonical conversion.
@@ -2856,7 +2868,7 @@ Results:
 - Confirmation of supported scenario controls.
 - Environment invocation contract, if direct launch is expected.
 
-## Current File Tree Summary
+## Historical Phase 6 File Tree Summary
 
 ```text
 diss/

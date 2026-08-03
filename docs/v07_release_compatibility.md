@@ -129,9 +129,11 @@ acceptance. The accompanying
 isolated builds/install, deterministic references, migration/rollback tests and release smokes
 without changing the development version or creating a tag.
 
-`REL-01` remains planned until later work adds and accepts
-package/release version alignment, cross-schema migration if a schema ever diverges, and final
-documentation and capability reconciliation. The attested same-schema activation slice above
+Package, citation and release metadata are now aligned at `0.7.0`, and the 3 August housekeeping
+pass reconciles current documentation, generated references, package installation and CI gates.
+`REL-01` nevertheless remains planned until the owner accepts a real workspace, any cross-schema
+migration that becomes necessary, source/licence/publication boundaries and the final tag/release.
+The attested same-schema activation slice above
 implements preview, backup, interruption quarantine, activation, and rollback for
 ADR-058-attested sources only; an unattested registry still cannot claim v0.6.0 provenance, and
 the scripted coexistence run is automated evidence rather than formal Gate-F release

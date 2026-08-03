@@ -569,19 +569,21 @@ For details, see [docs/architecture.md](docs/architecture.md) and [docs/system_o
 ## Testing And Quality
 
 ```bash
-.venv/bin/ruff format .
-.venv/bin/ruff check .
-.venv/bin/mypy
-.venv/bin/python -m pytest
-.venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
-.venv/bin/python -m build
 uv lock --check
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy
+uv run python -m pytest --cov=traffictwin --cov-report=term-missing
+uv run python scripts/generate_reference_docs.py
+git diff --exit-code -- docs/reference/generated
+uv run python scripts/check_markdown_links.py
+uv run python -m build
 ```
 
 Release smoke:
 
 ```bash
-.venv/bin/python scripts/verify_release.py
+uv run python scripts/verify_release.py
 ```
 
 The current test count and coverage are documented in [docs/reproducibility.md](docs/reproducibility.md) after the latest full quality-gate run.

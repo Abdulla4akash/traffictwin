@@ -305,8 +305,8 @@ def v07_workspace_contract() -> V07WorkspaceContract:
         ],
         limitations=[
             "A registry does not encode enough evidence to prove its producing package version.",
-            "Side-by-side clean-checkout acceptance, package/release version alignment, and "
-            "final release reconciliation remain pending REL-01 work.",
+            "Licence/publication decisions, final tag/release authorisation, real owner-workspace "
+            "acceptance, and cross-schema migration if schemas diverge remain pending REL-01 work.",
             "A structural copy does not revalidate stored scientific payloads.",
         ],
     )

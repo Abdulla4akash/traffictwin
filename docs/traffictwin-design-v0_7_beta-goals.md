@@ -1,6 +1,7 @@
 # TrafficTwin v0.7 Beta Goals — Completion Backlog
 
-**Status:** planning supplement; no capability or gate is accepted by this document
+**Status:** historical alpha.7 planning supplement; superseded by the 3 August `main` integration,
+current status and housekeeping records. No capability or gate is accepted by this document.
 
 **Snapshot date:** 26 July 2026
 
@@ -112,9 +113,15 @@ A v0.7 beta candidate should not be created until all of the following are true:
 
 ## 6. Critical beta work packages
 
-### `BETA-REC-01` — Reconcile the project records
+### `BETA-REC-01` — Completed after the alpha.7 snapshot
 
-Before more capability claims, correct the current record drift:
+The stale-record list below describes the 26 July starting point. Subsequent phase records,
+`0.7.0` main integration and the
+[housekeeping completion record](quality/v07_housekeeping_completion_20260803.md) reconciled the
+current workflow, progress, requirement matrix, live audit, release/compatibility guidance and
+technical evidence. Historical alpha handoffs remain unchanged as checkpoint provenance.
+
+The original drift inventory was:
 
 - `current_workflow_and_todo.md` still points to `b50f27d`, calls Phase 12 unfinished and says the
   alpha.7 tag has not been created;

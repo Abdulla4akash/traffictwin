@@ -8,6 +8,14 @@ The immutable `v0.6.0` tag remains unchanged. This release identity does not con
 synthetic, draft-only or evidence-bounded capabilities into live services; their exact limits remain
 recorded in `docs/implementation-status.md` and the Meeting 1–3 live-feature audit.
 
+Completed bounded v0.7 housekeeping (3 August): reconciled current workflow, requirement,
+compatibility, release and evidence documents; corrected the withdrawn N1 provider-mutation claim;
+repaired two local documentation links and added an offline link gate; updated the generated
+workspace contract; and extended CI with clean-wheel installation on Python 3.11/3.12. The full
+local suite, generated references, package build/install, standalone demo and fixture-immutability
+gates passed. No licence, final tag, GitHub Release, package publication, provider data, scientific
+acceptance, deployment or production claim was created.
+
 Added the fixed local real-workspace run profile (3 August, Phase 192). A mutation-free preflight
 reopens the durable receipt/workspace, probes loopback port 8502, reduces credentials to presence,
 fingerprints the BODS box, validates source intervals and existing control/lock/scene state, and
@@ -462,9 +470,11 @@ Completed the capacity research programme's first full arc (27–28 July):
 
 Continued the autonomous build-out on 27 July: the Match Review page landed as an additive
 v0.7 route with the full decide-persist-resume-seal flow under AppTest; a workspace continuity
-audit found the network chain dead in expired session workspaces and the Geofabrik dated-file
-pin **mutated upstream** (recovery halted at the verification gate as owner decision N1, and a
-reproducibility finding in its own right); the surviving demand artifact measured truncated and
+audit found the network chain dead in expired session workspaces and initially—but incorrectly—
+reported that the Geofabrik dated-file pin had mutated upstream. The 28 July N1 re-examination
+withdrew that provider claim: source and decoded-output identities had been conflated, and the
+verified source rebuilt the original canonical network exactly. The surviving demand artifact
+measured truncated and
 provenance-uncertain; the B2 bus-versus-DfT hourly shape comparison shipped from committed
 artifacts with a +3,152 edgeData reconciliation note; and the crossover's descriptive
 cross-actor slope comparison shipped with its rendered report, because the accepted paired and

@@ -4,7 +4,9 @@
 
 **Repository:** `Abdulla4akash/traffictwin`
 
-**Audited branch:** `claude/complete-v0.7` at `c3e2dc8`
+**Current repository baseline:** `main` at
+`49be6a2db8a69409a1b92fb02e954db7cf1441f6`; the original live-app inspection was performed over
+the integrated feature head `c3e2dc8` before its fast-forward into `main`.
 
 **Purpose:** Compare the product and research capabilities requested in supervisor
 Meetings 1, 2 and 3 with the repository and the locally running TrafficTwin app.
@@ -26,7 +28,7 @@ TrafficTwin has a substantial local research interface, import-first analysis
 workflow and evidence-governance backend. However, the complete Manchester
 digital-twin loop described in the meetings is not operationally live.
 
-At the time of inspection, port `8501` was serving a temporary demo workspace and
+During the 3 August live inspection, port `8501` was serving a temporary demo workspace and
 no service was listening on port `8502`. The app reported:
 
 - Manchester evidence unavailable;
@@ -37,9 +39,10 @@ no service was listening on port `8502`. The app reported:
 - no forecast aggregates; and
 - draft-only what-if composition with no execution.
 
-The audited feature branch was also nine commits ahead of the repository's
-default `main` branch. Therefore, some bounded interfaces visible locally were not
-yet present on default `main` at the time of this audit.
+Those nine feature commits are now integrated on default `main`, and the Python 3.11/3.12 CI run
+for `49be6a2` passed. Integration changes repository availability, not operational evidence: it did
+not populate a real workspace, activate a deployment, obtain a provider response, complete human
+review or accept a scientific gate. The live verdicts below therefore remain unchanged.
 
 ## Features that are not live
 
@@ -110,3 +113,7 @@ The interface and bounded research tooling are working. The meetings' intended
 real product—a populated, continuously updated and calibrated Manchester digital
 twin that forecasts traffic, executes user-authored scenarios and supports
 validated decisions—is **not yet live**.
+
+Release engineering and documentation hygiene are tracked separately in the
+[v0.7 housekeeping completion record](quality/v07_housekeeping_completion_20260803.md). Passing
+those technical gates does not change any live verdict in this audit.

@@ -42,6 +42,8 @@ def test_contract_keeps_foundation_planned_and_copy_only() -> None:
     assert contract.cache_namespace == "traffictwin-cache-v0.7"
     assert any("No in-place" in item for item in contract.exclusions)
     assert any("remain pending" in item for item in contract.limitations)
+    assert any("final tag/release authorisation" in item for item in contract.limitations)
+    assert all("package/release version alignment" not in item for item in contract.limitations)
     assert len(contract.fingerprint()) == 64
 
 

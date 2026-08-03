@@ -5,31 +5,23 @@ TrafficTwin is designed so that every reported number comes from deterministic c
 ## Environment Setup
 
 ```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev]"
+uv sync --locked --extra dev --extra vec-runner
 ```
 
-The package supports Python 3.11+. The checked local environment for this documentation pass used Python 3.12.
+The package supports Python 3.11+. CI verifies Python 3.11 and 3.12 from the committed lock.
 
 The complete dependency graph is committed in `uv.lock`:
 
 ```bash
-uv sync --extra dev --extra tos
 uv lock --check
 ```
 
-The latest local OPS-05 quality-gate run passed 919 tests with 86% statement coverage, including
-95% for the external-source contract package, 86% for the research-object module, 87% for the
-doctor, 84% for the canonical-cache engine, and 92% for the migration engine. Ruff format/check
-passed across all 480 Python files, and strict mypy passed across all 473 configured source/test
-files. All 38 generated JSON references were byte-identical across two consecutive regenerations,
-and all 87 generated/golden JSON documents parsed. These are
-software-verification figures for this repository snapshot, not performance or external-validity
-claims. The dependency lock, isolated source/wheel build/install/external-contract CLI smoke,
-release smoke, all 1,292 checked local documentation links across 152 files, and `git diff --check`
-also passed. See
-[testing strategy](testing_strategy.md) for the remaining gates.
+The latest exact test, coverage, generated-reference, link, build, installation, demo, fixture and
+CI results are recorded once in the dated
+[v0.7 housekeeping completion record](quality/v07_housekeeping_completion_20260803.md). Historical
+phase counts remain in their dated records; they are not current acceptance criteria. These are
+software-verification figures, not performance or external-validity claims. See
+[testing strategy](testing_strategy.md) for the gate design.
 
 ## Deterministic Design Choices
 
@@ -309,8 +301,8 @@ bundle validation. The ambiguity fixture deliberately supports several file kind
 must retain no selected kind. Reproduce both drafts with:
 
 ```bash
-.venv/bin/traffictwin manifest infer tests/fixtures/manifest_inference/value_patterns --format json
-.venv/bin/traffictwin manifest infer tests/fixtures/manifest_inference/ambiguous --format json
+uv run traffictwin manifest infer tests/fixtures/manifest_inference/value_patterns --format json
+uv run traffictwin manifest infer tests/fixtures/manifest_inference/ambiguous --format json
 ```
 
 Draft fingerprints include the versioned candidate output and complete source fingerprint.
@@ -323,8 +315,8 @@ tag/commit, licence, retrieval metadata, immutable hashes, and random seed. Repr
 validation and metrics with:
 
 ```bash
-.venv/bin/traffictwin integration sumo validate tests/fixtures/sumo/square_public
-.venv/bin/traffictwin integration sumo metrics tests/fixtures/sumo/square_public
+uv run traffictwin integration sumo validate tests/fixtures/sumo/square_public
+uv run traffictwin integration sumo metrics tests/fixtures/sumo/square_public
 ```
 
 ## Reproduce A Measurement-Robustness Fixture
@@ -346,27 +338,28 @@ deterministic software behavior, not a calibrated real sensor or dropout distrib
 ## Quality Gates
 
 ```bash
-.venv/bin/ruff format .
-.venv/bin/ruff check .
-.venv/bin/mypy
-.venv/bin/python -m pytest
-.venv/bin/python -m pytest --cov=traffictwin --cov-report=term-missing
 uv lock --check
-.venv/bin/python scripts/generate_reference_docs.py
-.venv/bin/traffictwin demo initialise .demo --force
-.venv/bin/traffictwin synthetic verify .demo
-.venv/bin/traffictwin report full .demo/bundles/stressed_demand \
+uv run ruff format --check .
+uv run ruff check .
+uv run mypy
+uv run python -m pytest --cov=traffictwin --cov-report=term-missing
+uv run python scripts/generate_reference_docs.py
+git diff --exit-code -- docs/reference/generated
+uv run python scripts/check_markdown_links.py
+uv run traffictwin demo initialise .demo --force
+uv run traffictwin synthetic verify .demo
+uv run traffictwin report full .demo/bundles/stressed_demand \
   --comparison-baseline .demo/bundles/baseline \
   --output .demo/reports/stressed_full.html
-traffictwin release stage-demo-site .demo --output public
+uv run traffictwin release stage-demo-site .demo --output public
+git diff --exit-code -- tests/fixtures examples
 ```
 
 The exact current snapshot is recorded in [testing strategy](testing_strategy.md) after the complete
 quality-gate run. Historical counts are not acceptance criteria for later increments.
 
-Pytest configuration explicitly adds the repository root to its import path, so both
-`.venv/bin/python -m pytest` and `.venv/bin/pytest` resolve the repository's test helpers
-consistently.
+Pytest configuration explicitly adds the repository root to its import path, so `uv run python -m
+pytest` resolves the repository's test helpers consistently.
 
 ## Reproduce The Baseline-Versus-Variation Demo
 
