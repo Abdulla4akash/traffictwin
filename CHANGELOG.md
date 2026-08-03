@@ -14,8 +14,10 @@ repaired two local documentation links and added an offline link gate; updated t
 workspace contract; and extended CI with clean-wheel installation on Python 3.11/3.12 while moving
 the checkout/setup actions to their Node 24-compatible majors. The full
 local suite, generated references, package build/install, standalone demo and fixture-immutability
-gates passed. No licence, final tag, GitHub Release, package publication, provider data, scientific
-acceptance, deployment or production claim was created.
+gates passed. No licence, GitHub Release, package publication, provider data, scientific acceptance,
+deployment or production claim was created. After those exact-commit branch and draft-PR matrices
+passed, the repository owner explicitly authorised the annotated `v0.7.0` tag at `e840be6`; the tag
+does not change any product, scientific, licence, publication or production boundary.
 
 Added the fixed local real-workspace run profile (3 August, Phase 192). A mutation-free preflight
 reopens the durable receipt/workspace, probes loopback port 8502, reduces credentials to presence,

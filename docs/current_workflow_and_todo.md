@@ -30,8 +30,9 @@ The housekeeping track covers:
 - CI coverage of generated references, documentation links, fixtures, package installation and
   the existing Python 3.11/3.12 matrix.
 
-These checks establish technical repository hygiene only. They do not accept `REL-01`, create a
-tag or release, choose a licence, publish a package, validate a real deployment or accept any
+These checks establish technical repository hygiene only. The owner subsequently authorised the
+annotated `v0.7.0` tag at `e840be6`; neither those checks nor that tag accept `REL-01`, create a
+GitHub Release, choose a licence, publish a package, validate a real deployment or accept any
 `MAN-*`/`UX-*` capability.
 
 ## Current capability posture
@@ -49,7 +50,7 @@ practical labels below describe tested bounded software, not formal acceptance.
 | Capacity benchmark and decision audit | `working_bounded` | Unsigned job-pack contracts, 21-job synthetic worker and synthetic exact-binding/XAI-shaped integrity fixtures | Signed protocol, authorised actors/checkpoints/runtime/compute, real benchmark results and a validated attribution method |
 | Forecasting and journey views | `working_bounded` or offline-only | Bounded bus climatology/surrogate and imported-run journey analysis | Held-out accepted real validation and genuinely prospective Manchester traffic/journey/route advice |
 | UX and accessibility | `working_bounded` | Task routes, responsive native UI, automated semantics and bounded browser evidence | Human keyboard/screen-reader/zoom/contrast review and any ethics-approved participant evidence |
-| Release isolation and migration | `foundation_only` | Separate workspaces, byte-exact compatibility copy, attested same-schema activation, backup/rollback, coexistence, package alignment and technical build/install evidence | Real owner-selected workspace acceptance, cross-schema work only if schemas diverge, licence/publication decisions and owner-authorised final tag/release |
+| Release isolation and migration | `foundation_only` | Separate workspaces, byte-exact compatibility copy, attested same-schema activation, backup/rollback, coexistence, package alignment, technical build/install evidence and owner-authorised final tag | Real owner-selected workspace acceptance, cross-schema work only if schemas diverge, licence/publication decisions and separately authorised GitHub Release/package publication |
 
 ## Product-completion queue
 
@@ -68,14 +69,15 @@ live without their required inputs and authorities:
    training and real explainability are in the accepted product scope; then supply the required
    signed protocols, actors, data and scientific evidence.
 6. Perform the human accessibility and, if authorised, ethics-supported participant evaluation.
-7. Make the owner-only licence, publication, package-upload, final tag, GitHub Release and
-   deployment decisions.
+7. Make the remaining owner-only licence, publication, package-upload, GitHub Release and
+   deployment decisions; the final Git tag is complete and must not move.
 
 ## Immediate next actions
 
-- Review and merge the housekeeping draft PR only after its Python 3.11/3.12 CI matrix passes.
-- Keep the final `v0.7.0` tag and GitHub Release absent until the repository owner explicitly
-  authorises them after licence/publication review.
+- Review and merge the housekeeping draft PR only under explicit owner authority; its final-head
+  Python 3.11/3.12 branch and draft-PR matrices passed.
+- Keep the owner-authorised final `v0.7.0` tag immutable. No GitHub Release, package publication or
+  deployment follows from the tag without separate owner authority and licence/publication review.
 - Choose the next product-completion item from the queue only after its named human, provider,
   credential, dataset or scientific prerequisite is available.
 - Update the live feature-gap audit whenever operational evidence changes; code integration alone
@@ -90,5 +92,5 @@ live without their required inputs and authorities:
 - Raw/private evidence, credentials, identifiers and private absolute paths do not enter Git.
 - No agent may invent a provider fact, human review, licence, scientific acceptance, production
   evidence, publication permission or deployment authority.
-- No direct merge to `main`, final tag, release, package publication, branch deletion or public
-  deployment occurs without explicit owner authorisation.
+- No direct merge to `main`, movement of the final tag, GitHub Release, package publication, branch
+  deletion or public deployment occurs without explicit owner authorisation.

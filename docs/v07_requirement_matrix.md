@@ -52,7 +52,7 @@ No row is marked `accepted`; all 15 capability rows remain `planned` under the c
 | UX-01 | Task navigation | INA | 34-page map, both routers, cross-page-state evidence (`test_cross_page_state.py`); manual + cutover open |
 | UX-02 | Map-led home | INA | Focused home tested; human usability acceptance open |
 | UX-03 | Responsive/accessible | INA/BX | Native theme, width migration, 140-snapshot audit; manual accessibility pass **BX** (human) |
-| REL-01 | v0.6/v0.7 isolation | INA | Workspace isolation, copy, ADR-058 attestation, attested activation/backup/rollback and coexistence tested; package/CITATION aligned at `0.7.0`; licence/publication, final tag and real-workspace reconciliation open |
+| REL-01 | v0.6/v0.7 isolation | INA | Workspace isolation, copy, ADR-058 attestation, attested activation/backup/rollback and coexistence tested; package/CITATION aligned and the owner-authorised final tag published at `0.7.0`; licence/publication, GitHub Release/package publication and real-workspace reconciliation remain open |
 
 ## §22 Testing/acceptance conditions (selected normative)
 

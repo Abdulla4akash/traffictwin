@@ -16,8 +16,14 @@ an operational or scientific claim.
 - Release label: `v0.7.0 research prototype`
 - Licence: not yet specified
 - Production status: research prototype; not production-ready
-- Final `v0.7.0` Git tag: not created
+- Final `v0.7.0` Git tag: owner-authorised annotated tag at
+  `e840be6c09ac4579e3604665110db2e3209fc7dd`
 - GitHub Release and package publication: not created
+
+The exact tag target passed the Python 3.11/3.12 branch and draft-PR matrices. The subsequent
+tag-push run did not start a runner because GitHub reported an account payment/spending-limit
+block; it was not a code or test failure and requires an owner billing/settings resolution before
+that event can be rerun.
 
 ## Technical pre-release checks
 
@@ -84,11 +90,11 @@ The GitHub Actions matrix repeats the build and clean-wheel smoke on Python 3.11
 
 ## Owner-only publication actions
 
-Do not create or move a tag, create a GitHub Release, upload to PyPI, choose a licence or deploy a
-public service from this guide alone. Those actions require explicit repository-owner
-authorisation after the technical checks and the applicable licence, publication and evidence
-boundaries have been reviewed. Commands for those irreversible publication actions are
-intentionally omitted while authorisation is absent.
+The owner-authorised `v0.7.0` tag already exists and must not be moved. Do not create another tag,
+create a GitHub Release, upload to PyPI, choose a licence or deploy a public service from this guide
+alone. Each remaining action requires separate explicit repository-owner authorisation after the
+technical checks and the applicable licence, publication and evidence boundaries have been
+reviewed. Commands for those irreversible publication actions remain intentionally omitted.
 
 ## Release checklist
 
@@ -110,7 +116,8 @@ intentionally omitted while authorisation is absent.
 - [ ] `CITATION.cff` and any archive-specific authors, identifiers and dates are owner-reviewed.
 - [ ] Every published research object passes `traffictwin archive verify`; raw embed/reference
       permission and licence are recorded, otherwise the raw artifact is excluded.
-- [ ] Final tag, GitHub Release, package upload and deployment each have explicit owner authority.
+- [x] Final `v0.7.0` tag has explicit owner authority and resolves to the reviewed commit.
+- [ ] GitHub Release, package upload and deployment each have separate explicit owner authority.
 
 Related documents:
 

@@ -74,8 +74,9 @@ The detailed row-level verdict remains in the
 - Signed benchmark/training protocols, authorised actors/checkpoints/runtime/compute and compatible
   real method evidence.
 - Human accessibility review, ethics/supervisor authority and participant inputs where applicable.
-- Repository licence, third-party publication classes, final tag, GitHub Release, PyPI publication
-  and deployment decisions.
+- Repository licence, third-party publication classes, GitHub Release, PyPI publication and
+  deployment decisions. The final Git tag was separately owner-authorised after this housekeeping
+  pass and is no longer an open item.
 
 ## Verification
 
@@ -97,17 +98,32 @@ The detailed row-level verdict remains in the
 | Release smoke | `scripts/verify_release.py` passed |
 | Fixture immutability | `git diff --exit-code -- tests/fixtures examples` passed before and after the full suite/demo/build checks |
 | Diff/whitespace | `git diff --check` passed; commit-candidate review found only the intended housekeeping files |
-| GitHub Actions | The starting-main matrix passed in run 30800943000. The branch matrix, including Python 3.11/3.12 wheel-install smokes and the Python 3.12 container build, is required after push and is reported in the draft PR checks. |
+| GitHub Actions | The starting-main matrix passed in run 30800943000. Final-head branch run 30808623991 and draft-PR run 30808626666 passed on Python 3.11/3.12, including wheel-install smokes and the Python 3.12 container build. |
 
 The local environment did not need to manufacture provider, Docker, VEC-result or real-workspace
 inputs. The branch CI owns the container-build repetition and both supported Python-version wheel
 installations after publication.
 
+## Post-completion owner-authorised tag action
+
+After the exact housekeeping head passed both published matrices, the repository owner explicitly
+authorised the annotated `v0.7.0` Git tag. Tag object
+`ba513f9fd52803b7644f1130a6a0202cd2043752` resolves to
+`e840be6c09ac4579e3604665110db2e3209fc7dd`. The tag message preserves the feature, evidence,
+licence, publication and production boundaries in this record.
+
+The tag-push workflow run 30810803992 failed before checkout or runner assignment because GitHub
+reported an account payment/spending-limit block. The exact tagged commit's branch and draft-PR
+matrices had already passed; the tag event supplies no additional test evidence and must not be
+reported as a code failure. No GitHub Release, package upload, licence, deployment or tag movement
+was performed.
+
 ## Release standing
 
-- **Technically clean:** yes for the local commit candidate; draft-PR CI must also pass before
-  merge.
+- **Technically clean:** yes for the tagged housekeeping head; its branch and draft-PR CI matrices
+  passed before tagging.
 - **Feature-complete for Meetings 1–3:** no.
 - **Production-ready:** no.
-- **Formally accepted v0.7 release:** no; package identity is `0.7.0`, but the final tag, GitHub
-  Release, licence/publication decisions and Gate-F acceptance remain absent.
+- **Formally accepted v0.7 release:** no; package identity and the final Git tag are `v0.7.0`, but
+  the GitHub Release, licence/publication decisions, real-workspace acceptance and Gate-F
+  acceptance remain absent.
