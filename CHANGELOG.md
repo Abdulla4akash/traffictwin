@@ -11,7 +11,8 @@ recorded in `docs/implementation-status.md` and the Meeting 1–3 live-feature a
 Completed bounded v0.7 housekeeping (3 August): reconciled current workflow, requirement,
 compatibility, release and evidence documents; corrected the withdrawn N1 provider-mutation claim;
 repaired two local documentation links and added an offline link gate; updated the generated
-workspace contract; and extended CI with clean-wheel installation on Python 3.11/3.12. The full
+workspace contract; and extended CI with clean-wheel installation on Python 3.11/3.12 while moving
+the checkout/setup actions to their Node 24-compatible majors. The full
 local suite, generated references, package build/install, standalone demo and fixture-immutability
 gates passed. No licence, final tag, GitHub Release, package publication, provider data, scientific
 acceptance, deployment or production claim was created.
