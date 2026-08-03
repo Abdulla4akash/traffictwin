@@ -1,5 +1,10 @@
 """Standalone release and deployment helpers."""
 
+from __future__ import annotations
+
+from importlib import import_module
+from typing import TYPE_CHECKING
+
 from traffictwin.release.attestation import (
     V06AttestationError,
     V06AttestationVerification,
@@ -52,15 +57,39 @@ from traffictwin.release.migration import (
     preview_v06_migration,
     rollback_v06_migration,
 )
-from traffictwin.release.real_workspace_run import (
-    V07RealWorkspaceLaunchReceipt,
-    V07RealWorkspaceRunError,
-    V07RealWorkspaceRunPreflight,
-    V07SourceContractVersions,
-    V07SourceRunPreflight,
-    launch_real_v07_workspace,
-    preflight_real_v07_workspace_run,
+
+if TYPE_CHECKING:
+    from traffictwin.release.real_workspace_run import (
+        V07RealWorkspaceLaunchReceipt,
+        V07RealWorkspaceRunError,
+        V07RealWorkspaceRunPreflight,
+        V07SourceContractVersions,
+        V07SourceRunPreflight,
+        launch_real_v07_workspace,
+        preflight_real_v07_workspace_run,
+    )
+
+_REAL_WORKSPACE_EXPORTS = frozenset(
+    {
+        "V07RealWorkspaceLaunchReceipt",
+        "V07RealWorkspaceRunError",
+        "V07RealWorkspaceRunPreflight",
+        "V07SourceContractVersions",
+        "V07SourceRunPreflight",
+        "launch_real_v07_workspace",
+        "preflight_real_v07_workspace_run",
+    }
 )
+
+
+def __getattr__(name: str) -> object:
+    """Load Manchester-dependent run helpers lazily to avoid a package import cycle."""
+
+    if name not in _REAL_WORKSPACE_EXPORTS:
+        raise AttributeError(name)
+    module = import_module("traffictwin.release.real_workspace_run")
+    return getattr(module, name)
+
 
 __all__ = [
     "ReleaseMetadata",

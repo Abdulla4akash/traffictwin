@@ -31337,6 +31337,121 @@
       "title": "LatexExportContract",
       "type": "object"
     },
+    "ManchesterAggregateRetentionPolicy": {
+      "additionalProperties": false,
+      "description": "Owner decision boundary required before any long-term local mutation.",
+      "properties": {
+        "automatic_deletion_enabled": {
+          "const": false,
+          "default": false,
+          "title": "Automatic Deletion Enabled",
+          "type": "boolean"
+        },
+        "backup_cadence_hours": {
+          "default": 24,
+          "maximum": 168,
+          "minimum": 1,
+          "title": "Backup Cadence Hours",
+          "type": "integer"
+        },
+        "compaction_delay_hours": {
+          "default": 24,
+          "maximum": 168,
+          "minimum": 1,
+          "title": "Compaction Delay Hours",
+          "type": "integer"
+        },
+        "decided_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decided At Utc"
+        },
+        "decision_status": {
+          "default": "proposed",
+          "enum": [
+            "proposed",
+            "owner_approved"
+          ],
+          "title": "Decision Status",
+          "type": "string"
+        },
+        "deletion_authority": {
+          "const": "owner_only",
+          "default": "owner_only",
+          "title": "Deletion Authority",
+          "type": "string"
+        },
+        "disk_ceiling_bytes": {
+          "default": 536870912,
+          "minimum": 8388608,
+          "title": "Disk Ceiling Bytes",
+          "type": "integer"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "owner_decision_id": {
+          "anyOf": [
+            {
+              "pattern": "^decision-[0-9a-f]{16}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Decision Id"
+        },
+        "policy_version": {
+          "const": "manchester-aggregate-retention-v1",
+          "default": "manchester-aggregate-retention-v1",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "private_retention_days": {
+          "default": 30,
+          "maximum": 3660,
+          "minimum": 1,
+          "title": "Private Retention Days",
+          "type": "integer"
+        },
+        "public_output_class": {
+          "default": "private_only",
+          "enum": [
+            "private_only",
+            "aggregated_anonymised"
+          ],
+          "title": "Public Output Class",
+          "type": "string"
+        },
+        "raw_snapshot_policy_changed": {
+          "const": false,
+          "default": false,
+          "title": "Raw Snapshot Policy Changed",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "title": "ManchesterAggregateRetentionPolicy",
+      "type": "object"
+    },
     "ManchesterBoundaryFeature": {
       "$defs": {
         "ManchesterBoundaryReference": {
@@ -34890,6 +35005,96 @@
       "title": "ManchesterLiveStatusMetric",
       "type": "object"
     },
+    "ManchesterLondonHourAggregate": {
+      "additionalProperties": false,
+      "description": "Display-time London projection retaining UTC offset and fold.",
+      "properties": {
+        "accepted_count": {
+          "minimum": 0,
+          "title": "Accepted Count",
+          "type": "integer"
+        },
+        "attempts": {
+          "minimum": 0,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "excluded_count": {
+          "minimum": 0,
+          "title": "Excluded Count",
+          "type": "integer"
+        },
+        "failed": {
+          "minimum": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "fold": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Fold",
+          "type": "integer"
+        },
+        "hour_start_utc": {
+          "format": "date-time",
+          "title": "Hour Start Utc",
+          "type": "string"
+        },
+        "london_hour": {
+          "maximum": 23,
+          "minimum": 0,
+          "title": "London Hour",
+          "type": "integer"
+        },
+        "london_local_date": {
+          "format": "date",
+          "title": "London Local Date",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "bods",
+            "national_highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "stale_count": {
+          "minimum": 0,
+          "title": "Stale Count",
+          "type": "integer"
+        },
+        "succeeded": {
+          "minimum": 0,
+          "title": "Succeeded",
+          "type": "integer"
+        },
+        "utc_offset_minutes": {
+          "maximum": 840,
+          "minimum": -720,
+          "title": "Utc Offset Minutes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source",
+        "hour_start_utc",
+        "london_local_date",
+        "london_hour",
+        "utc_offset_minutes",
+        "fold",
+        "attempts",
+        "succeeded",
+        "failed",
+        "accepted_count",
+        "excluded_count",
+        "stale_count"
+      ],
+      "title": "ManchesterLondonHourAggregate",
+      "type": "object"
+    },
     "ManchesterMapLayerManifest": {
       "$defs": {
         "ManchesterMapPoint": {
@@ -38066,6 +38271,1093 @@
         "status"
       ],
       "title": "ManchesterMapScene",
+      "type": "object"
+    },
+    "ManchesterOperationalAppendReceipt": {
+      "$defs": {
+        "ManchesterOperationalJournalReport": {
+          "additionalProperties": false,
+          "description": "Path-free integrity result for the complete append-only chain.",
+          "properties": {
+            "aggregates_only": {
+              "const": true,
+              "default": true,
+              "title": "Aggregates Only",
+              "type": "boolean"
+            },
+            "bods_records": {
+              "minimum": 0,
+              "title": "Bods Records",
+              "type": "integer"
+            },
+            "canonical_chain_verified": {
+              "const": true,
+              "default": true,
+              "title": "Canonical Chain Verified",
+              "type": "boolean"
+            },
+            "duplicate_terminal_receipts": {
+              "const": 0,
+              "default": 0,
+              "title": "Duplicate Terminal Receipts",
+              "type": "integer"
+            },
+            "first_attempted_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "First Attempted At Utc"
+            },
+            "journal_file_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Journal File Sha256",
+              "type": "string"
+            },
+            "journal_present": {
+              "title": "Journal Present",
+              "type": "boolean"
+            },
+            "journal_size_bytes": {
+              "maximum": 134217728,
+              "minimum": 0,
+              "title": "Journal Size Bytes",
+              "type": "integer"
+            },
+            "last_terminal_at_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Last Terminal At Utc"
+            },
+            "method_version": {
+              "const": "manchester-operational-history-1.0",
+              "default": "manchester-operational-history-1.0",
+              "title": "Method Version",
+              "type": "string"
+            },
+            "national_highways_records": {
+              "minimum": 0,
+              "title": "National Highways Records",
+              "type": "integer"
+            },
+            "network_request_performed": {
+              "const": false,
+              "default": false,
+              "title": "Network Request Performed",
+              "type": "boolean"
+            },
+            "record_count": {
+              "maximum": 200000,
+              "minimum": 0,
+              "title": "Record Count",
+              "type": "integer"
+            },
+            "schema_version": {
+              "const": "1.0",
+              "default": "1.0",
+              "title": "Schema Version",
+              "type": "string"
+            },
+            "tail_chain_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Tail Chain Sha256",
+              "type": "string"
+            },
+            "workspace_mutated": {
+              "const": false,
+              "default": false,
+              "title": "Workspace Mutated",
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "journal_present",
+            "record_count",
+            "journal_size_bytes",
+            "journal_file_sha256",
+            "tail_chain_sha256",
+            "bods_records",
+            "national_highways_records"
+          ],
+          "title": "ManchesterOperationalJournalReport",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Safe result of one authority-gated exact journal append.",
+      "properties": {
+        "append_completed": {
+          "const": true,
+          "default": true,
+          "title": "Append Completed",
+          "type": "boolean"
+        },
+        "attempt_record_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Attempt Record Fingerprint",
+          "type": "string"
+        },
+        "idempotent_retry": {
+          "title": "Idempotent Retry",
+          "type": "boolean"
+        },
+        "journal_report": {
+          "$ref": "#/$defs/ManchesterOperationalJournalReport"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "private_path_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Persisted",
+          "type": "boolean"
+        },
+        "public_export_performed": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Performed",
+          "type": "boolean"
+        },
+        "raw_snapshot_changed": {
+          "const": false,
+          "default": false,
+          "title": "Raw Snapshot Changed",
+          "type": "boolean"
+        },
+        "retention_policy_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Retention Policy Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "terminal_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Terminal Receipt Fingerprint",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terminal_receipt_fingerprint",
+        "attempt_record_fingerprint",
+        "retention_policy_fingerprint",
+        "journal_report",
+        "idempotent_retry"
+      ],
+      "title": "ManchesterOperationalAppendReceipt",
+      "type": "object"
+    },
+    "ManchesterOperationalAttemptRecord": {
+      "additionalProperties": false,
+      "description": "One hash-chained, identifier-free terminal source attempt.",
+      "properties": {
+        "accepted_count": {
+          "minimum": 0,
+          "title": "Accepted Count",
+          "type": "integer"
+        },
+        "aggregates_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only",
+          "type": "boolean"
+        },
+        "attempted_at_utc": {
+          "format": "date-time",
+          "title": "Attempted At Utc",
+          "type": "string"
+        },
+        "credential_value_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Credential Value Persisted",
+          "type": "boolean"
+        },
+        "excluded_count": {
+          "minimum": 0,
+          "title": "Excluded Count",
+          "type": "integer"
+        },
+        "failure_code": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z0-9_]{1,96}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Failure Code"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "prior_chain_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Prior Chain Sha256",
+          "type": "string"
+        },
+        "private_path_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Persisted",
+          "type": "boolean"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_identifiers_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Raw Identifiers Persisted",
+          "type": "boolean"
+        },
+        "record_type": {
+          "const": "manchester_operational_attempt",
+          "default": "manchester_operational_attempt",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "request_scope_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Request Scope Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "bods",
+            "national_highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_clock_skew_count": {
+          "enum": [
+            0,
+            1
+          ],
+          "title": "Source Clock Skew Count",
+          "type": "integer"
+        },
+        "source_contract_version": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Source Contract Version",
+          "type": "string"
+        },
+        "source_time_end_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time End Utc"
+        },
+        "source_time_start_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Time Start Utc"
+        },
+        "stale_count": {
+          "minimum": 0,
+          "title": "Stale Count",
+          "type": "integer"
+        },
+        "terminal_at_utc": {
+          "format": "date-time",
+          "title": "Terminal At Utc",
+          "type": "string"
+        },
+        "terminal_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Terminal Receipt Fingerprint",
+          "type": "string"
+        },
+        "terminal_status": {
+          "enum": [
+            "succeeded",
+            "failed"
+          ],
+          "title": "Terminal Status",
+          "type": "string"
+        },
+        "trigger": {
+          "enum": [
+            "automatic",
+            "operator"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        },
+        "vehicle_or_journey_identity_present": {
+          "const": false,
+          "default": false,
+          "title": "Vehicle Or Journey Identity Present",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "source",
+        "source_contract_version",
+        "trigger",
+        "attempted_at_utc",
+        "terminal_at_utc",
+        "terminal_status",
+        "request_scope_fingerprint",
+        "accepted_count",
+        "excluded_count",
+        "stale_count",
+        "source_clock_skew_count",
+        "terminal_receipt_fingerprint",
+        "prior_chain_sha256"
+      ],
+      "title": "ManchesterOperationalAttemptRecord",
+      "type": "object"
+    },
+    "ManchesterOperationalCadenceExpectation": {
+      "additionalProperties": false,
+      "description": "Explicit automatic-attempt denominator for one UTC day and source.",
+      "properties": {
+        "configuration_status": {
+          "enum": [
+            "enabled",
+            "disabled",
+            "not_configured"
+          ],
+          "title": "Configuration Status",
+          "type": "string"
+        },
+        "denominator_authority": {
+          "const": "caller_declared_preview",
+          "default": "caller_declared_preview",
+          "title": "Denominator Authority",
+          "type": "string"
+        },
+        "expected_automatic_attempts": {
+          "maximum": 1440,
+          "minimum": 0,
+          "title": "Expected Automatic Attempts",
+          "type": "integer"
+        },
+        "interval_seconds": {
+          "anyOf": [
+            {
+              "maximum": 540,
+              "minimum": 60,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval Seconds"
+        },
+        "source": {
+          "enum": [
+            "bods",
+            "national_highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "configuration_status",
+        "expected_automatic_attempts"
+      ],
+      "title": "ManchesterOperationalCadenceExpectation",
+      "type": "object"
+    },
+    "ManchesterOperationalDayAggregate": {
+      "$defs": {
+        "ManchesterOperationalCadenceExpectation": {
+          "additionalProperties": false,
+          "description": "Explicit automatic-attempt denominator for one UTC day and source.",
+          "properties": {
+            "configuration_status": {
+              "enum": [
+                "enabled",
+                "disabled",
+                "not_configured"
+              ],
+              "title": "Configuration Status",
+              "type": "string"
+            },
+            "denominator_authority": {
+              "const": "caller_declared_preview",
+              "default": "caller_declared_preview",
+              "title": "Denominator Authority",
+              "type": "string"
+            },
+            "expected_automatic_attempts": {
+              "maximum": 1440,
+              "minimum": 0,
+              "title": "Expected Automatic Attempts",
+              "type": "integer"
+            },
+            "interval_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 540,
+                  "minimum": 60,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Interval Seconds"
+            },
+            "source": {
+              "enum": [
+                "bods",
+                "national_highways"
+              ],
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "configuration_status",
+            "expected_automatic_attempts"
+          ],
+          "title": "ManchesterOperationalCadenceExpectation",
+          "type": "object"
+        },
+        "ManchesterOperationalHourAggregate": {
+          "additionalProperties": false,
+          "description": "One source's aggregate-only terminal attempts in one UTC hour.",
+          "properties": {
+            "accepted_count": {
+              "minimum": 0,
+              "title": "Accepted Count",
+              "type": "integer"
+            },
+            "attempts": {
+              "minimum": 0,
+              "title": "Attempts",
+              "type": "integer"
+            },
+            "automatic_attempts": {
+              "minimum": 0,
+              "title": "Automatic Attempts",
+              "type": "integer"
+            },
+            "excluded_count": {
+              "minimum": 0,
+              "title": "Excluded Count",
+              "type": "integer"
+            },
+            "failed": {
+              "minimum": 0,
+              "title": "Failed",
+              "type": "integer"
+            },
+            "hour_start_utc": {
+              "format": "date-time",
+              "title": "Hour Start Utc",
+              "type": "string"
+            },
+            "operator_attempts": {
+              "minimum": 0,
+              "title": "Operator Attempts",
+              "type": "integer"
+            },
+            "source": {
+              "enum": [
+                "bods",
+                "national_highways"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "source_clock_skew_count": {
+              "minimum": 0,
+              "title": "Source Clock Skew Count",
+              "type": "integer"
+            },
+            "stale_count": {
+              "minimum": 0,
+              "title": "Stale Count",
+              "type": "integer"
+            },
+            "succeeded": {
+              "minimum": 0,
+              "title": "Succeeded",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source",
+            "hour_start_utc",
+            "attempts",
+            "succeeded",
+            "failed",
+            "automatic_attempts",
+            "operator_attempts",
+            "accepted_count",
+            "excluded_count",
+            "stale_count",
+            "source_clock_skew_count"
+          ],
+          "title": "ManchesterOperationalHourAggregate",
+          "type": "object"
+        },
+        "ManchesterOperationalSourceDayAggregate": {
+          "additionalProperties": false,
+          "description": "One source's reconciled UTC-day totals and cadence denominator.",
+          "properties": {
+            "accepted_count": {
+              "minimum": 0,
+              "title": "Accepted Count",
+              "type": "integer"
+            },
+            "attempts": {
+              "minimum": 0,
+              "title": "Attempts",
+              "type": "integer"
+            },
+            "automatic_attempts": {
+              "minimum": 0,
+              "title": "Automatic Attempts",
+              "type": "integer"
+            },
+            "excluded_count": {
+              "minimum": 0,
+              "title": "Excluded Count",
+              "type": "integer"
+            },
+            "expected_automatic_attempts": {
+              "minimum": 0,
+              "title": "Expected Automatic Attempts",
+              "type": "integer"
+            },
+            "failed": {
+              "minimum": 0,
+              "title": "Failed",
+              "type": "integer"
+            },
+            "missing_cadence_attempts": {
+              "minimum": 0,
+              "title": "Missing Cadence Attempts",
+              "type": "integer"
+            },
+            "operator_attempts": {
+              "minimum": 0,
+              "title": "Operator Attempts",
+              "type": "integer"
+            },
+            "source": {
+              "enum": [
+                "bods",
+                "national_highways"
+              ],
+              "title": "Source",
+              "type": "string"
+            },
+            "source_clock_skew_count": {
+              "minimum": 0,
+              "title": "Source Clock Skew Count",
+              "type": "integer"
+            },
+            "stale_count": {
+              "minimum": 0,
+              "title": "Stale Count",
+              "type": "integer"
+            },
+            "succeeded": {
+              "minimum": 0,
+              "title": "Succeeded",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "source",
+            "attempts",
+            "succeeded",
+            "failed",
+            "automatic_attempts",
+            "operator_attempts",
+            "expected_automatic_attempts",
+            "missing_cadence_attempts",
+            "accepted_count",
+            "excluded_count",
+            "stale_count",
+            "source_clock_skew_count"
+          ],
+          "title": "ManchesterOperationalSourceDayAggregate",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Immutable identifier-free aggregate partition for one complete UTC day.",
+      "properties": {
+        "aggregates_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only",
+          "type": "boolean"
+        },
+        "day_end_utc": {
+          "format": "date-time",
+          "title": "Day End Utc",
+          "type": "string"
+        },
+        "day_start_utc": {
+          "format": "date-time",
+          "title": "Day Start Utc",
+          "type": "string"
+        },
+        "expectations": {
+          "items": {
+            "$ref": "#/$defs/ManchesterOperationalCadenceExpectation"
+          },
+          "title": "Expectations",
+          "type": "array"
+        },
+        "journal_first_prior_chain_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Journal First Prior Chain Sha256",
+          "type": "string"
+        },
+        "journal_record_count": {
+          "minimum": 0,
+          "title": "Journal Record Count",
+          "type": "integer"
+        },
+        "journal_record_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Journal Record Fingerprints",
+          "type": "array"
+        },
+        "journal_tail_record_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Journal Tail Record Sha256",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "partition_time_basis": {
+          "const": "UTC",
+          "default": "UTC",
+          "title": "Partition Time Basis",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "raw_identifiers_present": {
+          "const": false,
+          "default": false,
+          "title": "Raw Identifiers Present",
+          "type": "boolean"
+        },
+        "record_type": {
+          "const": "manchester_operational_day_aggregate",
+          "default": "manchester_operational_day_aggregate",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "retention_activation_performed": {
+          "const": false,
+          "default": false,
+          "title": "Retention Activation Performed",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_aggregates": {
+          "items": {
+            "$ref": "#/$defs/ManchesterOperationalSourceDayAggregate"
+          },
+          "title": "Source Aggregates",
+          "type": "array"
+        },
+        "utc_date": {
+          "format": "date",
+          "title": "Utc Date",
+          "type": "string"
+        },
+        "utc_hours": {
+          "items": {
+            "$ref": "#/$defs/ManchesterOperationalHourAggregate"
+          },
+          "title": "Utc Hours",
+          "type": "array"
+        },
+        "vehicle_or_journey_identity_present": {
+          "const": false,
+          "default": false,
+          "title": "Vehicle Or Journey Identity Present",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "utc_date",
+        "day_start_utc",
+        "day_end_utc",
+        "expectations",
+        "source_aggregates",
+        "utc_hours",
+        "journal_record_count",
+        "journal_record_fingerprints",
+        "journal_first_prior_chain_sha256",
+        "journal_tail_record_sha256"
+      ],
+      "title": "ManchesterOperationalDayAggregate",
+      "type": "object"
+    },
+    "ManchesterOperationalDayPublicationReceipt": {
+      "additionalProperties": false,
+      "description": "Policy-bound proof of immutable private UTC-day publication.",
+      "properties": {
+        "day_aggregate_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Day Aggregate Fingerprint",
+          "type": "string"
+        },
+        "idempotent_retry": {
+          "title": "Idempotent Retry",
+          "type": "boolean"
+        },
+        "immutable_publication_completed": {
+          "const": true,
+          "default": true,
+          "title": "Immutable Publication Completed",
+          "type": "boolean"
+        },
+        "journal_tail_chain_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Journal Tail Chain Sha256",
+          "type": "string"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "owner_only_permissions": {
+          "const": true,
+          "default": true,
+          "title": "Owner Only Permissions",
+          "type": "boolean"
+        },
+        "partition_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Partition Sha256",
+          "type": "string"
+        },
+        "public_export_performed": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Performed",
+          "type": "boolean"
+        },
+        "raw_snapshot_changed": {
+          "const": false,
+          "default": false,
+          "title": "Raw Snapshot Changed",
+          "type": "boolean"
+        },
+        "retention_policy_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Retention Policy Fingerprint",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "utc_date": {
+          "format": "date",
+          "title": "Utc Date",
+          "type": "string"
+        }
+      },
+      "required": [
+        "utc_date",
+        "day_aggregate_fingerprint",
+        "partition_sha256",
+        "retention_policy_fingerprint",
+        "journal_tail_chain_sha256",
+        "idempotent_retry"
+      ],
+      "title": "ManchesterOperationalDayPublicationReceipt",
+      "type": "object"
+    },
+    "ManchesterOperationalJournalReport": {
+      "additionalProperties": false,
+      "description": "Path-free integrity result for the complete append-only chain.",
+      "properties": {
+        "aggregates_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only",
+          "type": "boolean"
+        },
+        "bods_records": {
+          "minimum": 0,
+          "title": "Bods Records",
+          "type": "integer"
+        },
+        "canonical_chain_verified": {
+          "const": true,
+          "default": true,
+          "title": "Canonical Chain Verified",
+          "type": "boolean"
+        },
+        "duplicate_terminal_receipts": {
+          "const": 0,
+          "default": 0,
+          "title": "Duplicate Terminal Receipts",
+          "type": "integer"
+        },
+        "first_attempted_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "First Attempted At Utc"
+        },
+        "journal_file_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Journal File Sha256",
+          "type": "string"
+        },
+        "journal_present": {
+          "title": "Journal Present",
+          "type": "boolean"
+        },
+        "journal_size_bytes": {
+          "maximum": 134217728,
+          "minimum": 0,
+          "title": "Journal Size Bytes",
+          "type": "integer"
+        },
+        "last_terminal_at_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Terminal At Utc"
+        },
+        "method_version": {
+          "const": "manchester-operational-history-1.0",
+          "default": "manchester-operational-history-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "national_highways_records": {
+          "minimum": 0,
+          "title": "National Highways Records",
+          "type": "integer"
+        },
+        "network_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Request Performed",
+          "type": "boolean"
+        },
+        "record_count": {
+          "maximum": 200000,
+          "minimum": 0,
+          "title": "Record Count",
+          "type": "integer"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "tail_chain_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Tail Chain Sha256",
+          "type": "string"
+        },
+        "workspace_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Workspace Mutated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "journal_present",
+        "record_count",
+        "journal_size_bytes",
+        "journal_file_sha256",
+        "tail_chain_sha256",
+        "bods_records",
+        "national_highways_records"
+      ],
+      "title": "ManchesterOperationalJournalReport",
+      "type": "object"
+    },
+    "ManchesterOperationalSourceDayAggregate": {
+      "additionalProperties": false,
+      "description": "One source's reconciled UTC-day totals and cadence denominator.",
+      "properties": {
+        "accepted_count": {
+          "minimum": 0,
+          "title": "Accepted Count",
+          "type": "integer"
+        },
+        "attempts": {
+          "minimum": 0,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "automatic_attempts": {
+          "minimum": 0,
+          "title": "Automatic Attempts",
+          "type": "integer"
+        },
+        "excluded_count": {
+          "minimum": 0,
+          "title": "Excluded Count",
+          "type": "integer"
+        },
+        "expected_automatic_attempts": {
+          "minimum": 0,
+          "title": "Expected Automatic Attempts",
+          "type": "integer"
+        },
+        "failed": {
+          "minimum": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "missing_cadence_attempts": {
+          "minimum": 0,
+          "title": "Missing Cadence Attempts",
+          "type": "integer"
+        },
+        "operator_attempts": {
+          "minimum": 0,
+          "title": "Operator Attempts",
+          "type": "integer"
+        },
+        "source": {
+          "enum": [
+            "bods",
+            "national_highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "source_clock_skew_count": {
+          "minimum": 0,
+          "title": "Source Clock Skew Count",
+          "type": "integer"
+        },
+        "stale_count": {
+          "minimum": 0,
+          "title": "Stale Count",
+          "type": "integer"
+        },
+        "succeeded": {
+          "minimum": 0,
+          "title": "Succeeded",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "source",
+        "attempts",
+        "succeeded",
+        "failed",
+        "automatic_attempts",
+        "operator_attempts",
+        "expected_automatic_attempts",
+        "missing_cadence_attempts",
+        "accepted_count",
+        "excluded_count",
+        "stale_count",
+        "source_clock_skew_count"
+      ],
+      "title": "ManchesterOperationalSourceDayAggregate",
       "type": "object"
     },
     "ManchesterPriorSnapshotLink": {

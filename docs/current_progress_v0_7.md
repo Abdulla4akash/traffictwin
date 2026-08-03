@@ -2,7 +2,7 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 192 is the current bounded implementation
+**Development branch:** `claude/complete-v0.7`; Phase 193 is the current bounded implementation
 increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -18,7 +18,9 @@ standing. Phase 190 designs the next durable real-workspace, operational-history
 map-review and provider-gated measured-traffic programme. Phase 191 implements its first bounded
 slice: safe creation of a new empty durable workspace, without creating a real owner target or
 activating any source. Phase 192 adds the secret-free port-8502 preflight and fixed foreground
-launcher over that durable contract without running a private real-source smoke.
+launcher over that durable contract without running a private real-source smoke. Phase 193 adds
+the dormant, policy-gated aggregate operational-history contract, UTC compaction and closed safe
+store adapter without activating a writer or approving retention.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -410,7 +412,25 @@ disables usage-stat collection and retains the existing independent BODS/Nationa
 manual fallback, lock/rate and stale-cache behaviour. The operator procedure is
 [local real-workspace run profile](v07_real_workspace_run.md). Verification uses temporary empty
 workspaces, fake local port probes and an injected process runner; it does not prove a real
-workspace process or either provider was reached. `NEXT-03`–`NEXT-08` remain separate.
+workspace process or either provider was reached. `NEXT-03`–`NEXT-08` remain separate at the end
+of Phase 192.
+
+### 6.8 Phase-193 aggregate operational history (`NEXT-03`)
+
+The third programme slice is now `working_bounded`. It supplies strict identifier-free terminal
+records, an owner-only canonical hash chain, atomic exact-retry append, deterministic 24-hour UTC
+compaction for both sources, explicit cadence denominators, London offset/fold projection and a
+closed descriptive `SAFE_ANALYSIS_SUMMARY` adapter. Partial, divergent, duplicate, reordered,
+unsafe or permission-invalid inputs fail closed. Immutable private day publication additionally
+requires an exact owner-approved retention-policy fingerprint, a caller authority validator and
+the configured delay.
+
+The two release commands are read-only status and day-preview surfaces. The proposed policy cannot
+mutate; the current workers are not wired to the journal; the existing 24-hour hot controls are
+unchanged; and no raw quarantine is read. The operator contract is documented in
+[Manchester aggregate operational history](integration/manchester_operational_history.md).
+`NEXT-04`–`NEXT-08` remain separate, and real `NEXT-03` activation remains blocked on the owner
+policy recorded in section 7.
 
 ## 7. Decisions or evidence required before acceptance
 

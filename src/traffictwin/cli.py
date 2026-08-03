@@ -282,6 +282,13 @@ from traffictwin.integration.manchester.observation_matching_v11 import (
     build_manual_review_queue,
     match_observation_v11,
 )
+from traffictwin.integration.manchester.operational_history import (
+    ManchesterOperationalCadenceExpectation,
+    ManchesterOperationalHistoryError,
+    load_operational_journal,
+    preview_operational_utc_day,
+    project_operational_day_to_london,
+)
 from traffictwin.integration.manchester.owner_candidate_contracts import (
     COMPARISON_CONTRACT_VERSION,
     comparison_contract_fingerprint,
@@ -4561,6 +4568,105 @@ def release_v07_real_launch_command(
     typer.echo("shell_used: false")
     typer.echo("credential_value_persisted: false")
     typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-operational-history-status")
+def release_v07_operational_history_status_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Verify the private aggregate journal without source calls or mutation."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        report = load_operational_journal(path).report
+    except ManchesterOperationalHistoryError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(report.model_dump_json(indent=2))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"journal_present: {str(report.journal_present).lower()}")
+    typer.echo(f"record_count: {report.record_count}")
+    typer.echo(f"bods_records: {report.bods_records}")
+    typer.echo(f"national_highways_records: {report.national_highways_records}")
+    typer.echo(f"tail_chain_sha256: {report.tail_chain_sha256}")
+    typer.echo("canonical_chain_verified: true")
+    typer.echo("network_request_performed: false")
+    typer.echo("workspace_mutated: false")
+    typer.echo("retention_activation_status: owner_policy_required")
+
+
+@release_app.command("v07-operational-day-preview")
+def release_v07_operational_day_preview_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    utc_date: Annotated[str, typer.Argument()],
+    bods_status: Annotated[str, typer.Option("--bods-status")] = "not_configured",
+    bods_interval: Annotated[int | None, typer.Option("--bods-interval")] = None,
+    bods_expected: Annotated[int, typer.Option("--bods-expected", min=0, max=1440)] = 0,
+    national_highways_status: Annotated[
+        str, typer.Option("--national-highways-status")
+    ] = "not_configured",
+    national_highways_interval: Annotated[
+        int | None, typer.Option("--national-highways-interval")
+    ] = None,
+    national_highways_expected: Annotated[
+        int, typer.Option("--national-highways-expected", min=0, max=1440)
+    ] = 0,
+    output_format: Annotated[str, typer.Option("--format")] = "json",
+) -> None:
+    """Preview one deterministic UTC day with caller-declared cadence denominators."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        selected_date = date.fromisoformat(utc_date)
+        expectations = (
+            ManchesterOperationalCadenceExpectation.model_validate(
+                {
+                    "source": "bods",
+                    "configuration_status": bods_status,
+                    "interval_seconds": bods_interval,
+                    "expected_automatic_attempts": bods_expected,
+                }
+            ),
+            ManchesterOperationalCadenceExpectation.model_validate(
+                {
+                    "source": "national_highways",
+                    "configuration_status": national_highways_status,
+                    "interval_seconds": national_highways_interval,
+                    "expected_automatic_attempts": national_highways_expected,
+                }
+            ),
+        )
+        day = preview_operational_utc_day(path, selected_date, expectations)
+    except (ManchesterOperationalHistoryError, ValueError) as exc:
+        typer.echo(f"operational day preview refused: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        payload = {
+            **day.model_dump(mode="json"),
+            "day_aggregate_fingerprint": day.fingerprint(),
+            "london_projection": [
+                item.model_dump(mode="json") for item in project_operational_day_to_london(day)
+            ],
+        }
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"utc_date: {day.utc_date.isoformat()}")
+    typer.echo(f"day_aggregate_fingerprint: {day.fingerprint()}")
+    typer.echo(f"journal_record_count: {day.journal_record_count}")
+    for aggregate in day.source_aggregates:
+        typer.echo(f"{aggregate.source}_attempts: {aggregate.attempts}")
+        typer.echo(
+            f"{aggregate.source}_missing_cadence_attempts: {aggregate.missing_cadence_attempts}"
+        )
+    typer.echo("partition_time_basis: UTC")
+    typer.echo("workspace_mutated: false")
+    typer.echo("retention_activation_status: owner_policy_required")
 
 
 @release_app.command("v07-workspace-inspect")

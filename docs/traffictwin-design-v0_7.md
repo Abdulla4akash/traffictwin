@@ -1210,6 +1210,14 @@ crash recovery, chain mutation detection, daily and lifetime count reconciliatio
 bounded query plans, complete backup/isolated restore, no identifier/path/secret fields, and proof
 that refusal leaves the hot control state and last accepted source scene unchanged.
 
+Phase 193 implements this as a dormant policy-gated library: the strict safe record, canonical
+chain verification and append, UTC compaction, London offset/fold projection, immutable private
+day publication and closed historical-store adapter are present, with read-only status/preview
+commands. Because no owner policy has been approved and no worker writer has been activated,
+restart reconciliation and automatic quarantine movement are not operational; partial or
+divergent journals are detected and refused in place for owner investigation. The existing hot
+controls and scenes are not mutated by this library.
+
 ### 27.5 `NEXT-04` — National Highways event and state transitions
 
 #### Comparison contract
@@ -1416,7 +1424,7 @@ another source.
 |---|---|---|---|
 | 1 | `NEXT-01` durable workspace | Yes | `REL-01`, `MAN-01` |
 | 2 | `NEXT-02` port-8502 run profile | Yes, after `NEXT-01` | `MAN-05`, `MAN-08`, `REL-01` |
-| 3 | `NEXT-03` aggregate history | Design/tests yes; real retention activation needs owner policy | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08` |
+| 3 | `NEXT-03` aggregate history | Bounded library/tests yes; real retention activation needs owner policy | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08` |
 | 4 | `NEXT-04` National Highways transitions | Yes, after aggregate journal contract | `MAN-07`, `MAN-08` |
 | 5 | `NEXT-05` BODS trends | Yes, after aggregate journal contract | `MAN-05`, `MAN-07`, `MAN-08` |
 | 6 | `NEXT-06` Source Health | Yes, after status/query contracts | `MAN-01`, `MAN-05`, `MAN-07`, `MAN-08`, `UX-01`–`UX-03` |

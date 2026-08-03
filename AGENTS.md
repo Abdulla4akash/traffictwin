@@ -5226,3 +5226,33 @@ tests. Ruff, format, focused strict mypy, lock, generated help/schema JSON, chan
 added-line secret/private-path and diff checks passed. Verification used temporary empty
 workspaces, fake port probes and an injected process runner only; no owner workspace, credential,
 provider call, real server, public deployment, capability acceptance, release or tag was created.
+
+### Phase 193 claim: aggregate operational history (`NEXT-03`, 3 August 2026)
+
+The owner-directed integrating lead owns the third Phase-190 implementation slice in a new
+`src/traffictwin/integration/manchester/operational_history.py`, bounded Manchester exports and
+read-only release CLI previews, focused `tests/unit/test_manchester_operational_history.py`,
+generated schema/help reconciliation, `docs/integration/manchester_operational_history.md`, narrow
+canonical design/status/usage discoverability updates, and this phase record. The phase may add
+typed identifier-free terminal-attempt records, a hash-chained owner-only journal, exact-retry and
+integrity checks, explicit retention-policy authority gating, deterministic UTC-day/hour
+compaction, London offset/fold projections, immutable partition publication under approved test
+authority, and a closed `SAFE_ANALYSIS_SUMMARY` historical-store adapter. It may not select or
+approve a real retention/publication policy, wire or activate long-term collection in an owner
+workspace, auto-delete raw or aggregate data, read raw quarantine, admit generic JSON, call a
+provider, create public exports, change the existing 24-hour hot controls, accept a capability, or
+create a release/tag.
+
+Phase 193 completed locally on 3 August 2026. Strict aggregate-only attempt records now support a
+canonical owner-only hash chain, exact-retry atomic append, permission/size/duplicate/divergence
+refusals, explicit owner-policy authority gating, complete two-source UTC-day/hour compaction,
+caller-declared cadence gaps, London offset/fold projection, source-clock-skew counts, new-only
+private partition publication and one closed descriptive `SAFE_ANALYSIS_SUMMARY` adapter. Two
+release commands verify and preview without mutation or network access. A direct-import cycle
+exposed by the new module was repaired with lazy Manchester-dependent release exports while
+preserving the existing API. The wider worker/control/store/release/generated-reference regression
+passed 135 tests. Repository Ruff, format, strict mypy across 484 source files, generated schema/
+help reconciliation and diff checks passed. Verification used only temporary empty workspaces and
+synthetic approved-policy fixtures; no owner policy/workspace, worker wiring, long-term real row,
+provider call, raw read, deletion, public export, capability acceptance, release or tag was
+created.
