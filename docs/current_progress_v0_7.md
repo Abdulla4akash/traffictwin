@@ -2,7 +2,7 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 194 is the current bounded implementation
+**Development branch:** `claude/complete-v0.7`; Phase 195 is the current bounded implementation
 increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -23,6 +23,8 @@ the dormant, policy-gated aggregate operational-history contract, UTC compaction
 store adapter without activating a writer or approving retention.
 Phase 194 adds the pure complete accepted-snapshot National Highways transition service without
 calling a provider, persisting a real transition, or activating the Changes page.
+Phase 195 adds identifier-free BODS operational attempts, explicit trend windows and UTC-day
+rollups without activating persistence or a trends page.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -445,6 +447,18 @@ labelled only as no longer listed unless the source validity end establishes exp
 The service is pure and not wired to a real refresh or UI page. No public row release is approved,
 and literal VMS display text and measured traffic remain unavailable. See
 [National Highways transitions](integration/manchester_national_highways_transitions.md).
+
+### 6.10 Phase-195 BODS operational trends (`NEXT-05`)
+
+The fifth slice is `working_bounded`. Exact-bound live-refresh components yield only reconciled
+counts, contract fingerprints, a distinct-operator total and exact source-age/skew/cadence
+statistics. Safe failure attempts invent no response denominator. Explicit UTC windows retain
+caller-declared expected cadence and refuse to present fewer than two successes as a trend;
+deterministic UTC-day rollups bind their input fingerprints.
+
+No vehicle, journey, service, location, operator or pseudonymised identifier survives the builder,
+and no speed, trajectory or fleet-completeness claim is available. The library is not wired to a
+real writer or page. See [BODS operational trends](integration/manchester_bods_operational_trends.md).
 
 ## 7. Decisions or evidence required before acceptance
 

@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 194. It does not alter the strict
+This section records the additive platform truth through Phase 195. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,7 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
-| Durable real-evidence programme | Phases 190–193 define and implement the bounded `NEXT-01`–`NEXT-03` foundations; Phase 194 implements exact complete-snapshot National Highways transition comparison, all six states, reappearance memory and private/public-safe projections for `NEXT-04` | No owner-selected real workspace was created or launched; no retention policy/writer/page was activated; no provider request, public process/export, real transition artifact, review decision, provider adapter, capability acceptance or release exists from these phases |
+| Durable real-evidence programme | Phases 190–194 implement the bounded `NEXT-01`–`NEXT-04` foundations; Phase 195 adds identifier-free BODS attempt aggregates, exact source-age/skew/cadence statistics, explicit trend windows and UTC-day rollups for `NEXT-05` | No owner-selected real workspace was created or launched; no retention policy/writer/page was activated; no provider request, public process/export, real transition/trend artifact, review decision, provider adapter, capability acceptance or release exists from these phases |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -262,6 +262,15 @@ are closed-allowlisted, disappearance wording does not claim clearance, and lite
 measured-traffic claims remain structurally absent. The public candidate contains counts only and
 remains unapproved. No real transition, writer, Changes page, public row, provider request,
 capability acceptance or release was created.
+
+Phase 195 implements the pure `NEXT-05` BODS trend boundary without persisting a real attempt.
+Successful aggregates are derived only from an exact-bound verified live refresh and retain
+reconciled response/membership counts, distinct-operator count, exact integer-millisecond source-
+age quantiles, skew and comparable cadence; safe failures contain zero response counts. Windows
+use caller-declared cadence denominators and one/no-success windows remain status-only. Vehicle,
+journey, service, location, operator and pseudonymised identifiers are absent, and the contract
+explicitly refuses speed, trajectory and fleet-completeness inference. No real trend, writer,
+page, public export, provider request, capability acceptance or release was created.
 
 Phase 0 status: approved and committed.
 

@@ -11,6 +11,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Local real-workspace port-8502 run profile](v07_real_workspace_run.md)
 - [Manchester aggregate operational history](integration/manchester_operational_history.md)
 - [National Highways accepted-snapshot transitions](integration/manchester_national_highways_transitions.md)
+- [BODS identifier-free operational trends](integration/manchester_bods_operational_trends.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [System overview](system_overview.md)
 - [Standalone demo](standalone_demo.md)

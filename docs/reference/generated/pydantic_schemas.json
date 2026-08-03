@@ -4600,6 +4600,716 @@
       "title": "BodsLiveRefreshSummary",
       "type": "object"
     },
+    "BodsOperationalAttemptAggregate": {
+      "$defs": {
+        "BodsSourceAgeDistribution": {
+          "additionalProperties": false,
+          "properties": {
+            "denominator": {
+              "minimum": 0,
+              "title": "Denominator",
+              "type": "integer"
+            },
+            "earliest_source_time_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Earliest Source Time Utc"
+            },
+            "latest_source_time_utc": {
+              "anyOf": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Latest Source Time Utc"
+            },
+            "maximum_age_ms": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Maximum Age Ms"
+            },
+            "median_age_ms": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Median Age Ms"
+            },
+            "minimum_age_ms": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Minimum Age Ms"
+            },
+            "negative_age_count": {
+              "minimum": 0,
+              "title": "Negative Age Count",
+              "type": "integer"
+            },
+            "p95_age_ms": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "P95 Age Ms"
+            }
+          },
+          "required": [
+            "denominator",
+            "negative_age_count"
+          ],
+          "title": "BodsSourceAgeDistribution",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "acquisition_contract_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Acquisition Contract Fingerprint",
+          "type": "string"
+        },
+        "activities_seen": {
+          "minimum": 0,
+          "title": "Activities Seen",
+          "type": "integer"
+        },
+        "ambiguous_membership_identifier": {
+          "minimum": 0,
+          "title": "Ambiguous Membership Identifier",
+          "type": "integer"
+        },
+        "attempted_at_utc": {
+          "format": "date-time",
+          "title": "Attempted At Utc",
+          "type": "string"
+        },
+        "bee_policy_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bee Policy Fingerprint"
+        },
+        "bee_policy_version": {
+          "anyOf": [
+            {
+              "maxLength": 96,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bee Policy Version"
+        },
+        "complete_fleet_coverage_available": {
+          "const": false,
+          "default": false,
+          "title": "Complete Fleet Coverage Available",
+          "type": "boolean"
+        },
+        "conflicting_duplicates": {
+          "minimum": 0,
+          "title": "Conflicting Duplicates",
+          "type": "integer"
+        },
+        "coordinates_present": {
+          "const": false,
+          "default": false,
+          "title": "Coordinates Present",
+          "type": "boolean"
+        },
+        "distinct_operator_count": {
+          "minimum": 0,
+          "title": "Distinct Operator Count",
+          "type": "integer"
+        },
+        "exact_duplicates_collapsed": {
+          "minimum": 0,
+          "title": "Exact Duplicates Collapsed",
+          "type": "integer"
+        },
+        "historical_records": {
+          "minimum": 0,
+          "title": "Historical Records",
+          "type": "integer"
+        },
+        "identifiers_present": {
+          "const": false,
+          "default": false,
+          "title": "Identifiers Present",
+          "type": "boolean"
+        },
+        "live_at_fetch": {
+          "minimum": 0,
+          "title": "Live At Fetch",
+          "type": "integer"
+        },
+        "malformed_or_refused": {
+          "minimum": 0,
+          "title": "Malformed Or Refused",
+          "type": "integer"
+        },
+        "membership_count_denominator_complete": {
+          "const": true,
+          "default": true,
+          "title": "Membership Count Denominator Complete",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "bods-operational-trends-1.0",
+          "default": "bods-operational-trends-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "missing_membership_identifier": {
+          "minimum": 0,
+          "title": "Missing Membership Identifier",
+          "type": "integer"
+        },
+        "other_or_unknown_rows": {
+          "minimum": 0,
+          "title": "Other Or Unknown Rows",
+          "type": "integer"
+        },
+        "outside_box": {
+          "minimum": 0,
+          "title": "Outside Box",
+          "type": "integer"
+        },
+        "parser_report_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parser Report Fingerprint"
+        },
+        "previous_success_source_cadence_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Success Source Cadence Ms"
+        },
+        "pseudonymised_identifiers_present": {
+          "const": false,
+          "default": false,
+          "title": "Pseudonymised Identifiers Present",
+          "type": "boolean"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "records_accepted": {
+          "minimum": 0,
+          "title": "Records Accepted",
+          "type": "integer"
+        },
+        "response_count_denominator_complete": {
+          "const": true,
+          "default": true,
+          "title": "Response Count Denominator Complete",
+          "type": "boolean"
+        },
+        "road_speed_available": {
+          "const": false,
+          "default": false,
+          "title": "Road Speed Available",
+          "type": "boolean"
+        },
+        "safe_failure_code": {
+          "anyOf": [
+            {
+              "pattern": "^[A-Z0-9_]{1,96}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Safe Failure Code"
+        },
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "source_age": {
+          "$ref": "#/$defs/BodsSourceAgeDistribution"
+        },
+        "source_response_available": {
+          "title": "Source Response Available",
+          "type": "boolean"
+        },
+        "stale_at_fetch": {
+          "minimum": 0,
+          "title": "Stale At Fetch",
+          "type": "integer"
+        },
+        "synthetic_records": {
+          "minimum": 0,
+          "title": "Synthetic Records",
+          "type": "integer"
+        },
+        "terminal_at_utc": {
+          "format": "date-time",
+          "title": "Terminal At Utc",
+          "type": "string"
+        },
+        "terminal_status": {
+          "enum": [
+            "succeeded",
+            "failed"
+          ],
+          "title": "Terminal Status",
+          "type": "string"
+        },
+        "trajectory_available": {
+          "const": false,
+          "default": false,
+          "title": "Trajectory Available",
+          "type": "boolean"
+        },
+        "trigger": {
+          "enum": [
+            "automatic",
+            "operator"
+          ],
+          "title": "Trigger",
+          "type": "string"
+        },
+        "verified_bee_rows": {
+          "minimum": 0,
+          "title": "Verified Bee Rows",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "attempted_at_utc",
+        "terminal_at_utc",
+        "trigger",
+        "terminal_status",
+        "source_response_available",
+        "acquisition_contract_fingerprint",
+        "activities_seen",
+        "records_accepted",
+        "live_at_fetch",
+        "stale_at_fetch",
+        "synthetic_records",
+        "historical_records",
+        "outside_box",
+        "malformed_or_refused",
+        "exact_duplicates_collapsed",
+        "conflicting_duplicates",
+        "verified_bee_rows",
+        "other_or_unknown_rows",
+        "missing_membership_identifier",
+        "ambiguous_membership_identifier",
+        "distinct_operator_count",
+        "source_age"
+      ],
+      "title": "BodsOperationalAttemptAggregate",
+      "type": "object"
+    },
+    "BodsOperationalDayRollup": {
+      "$defs": {
+        "BodsOperationalTrendWindow": {
+          "additionalProperties": false,
+          "properties": {
+            "accepted_rows": {
+              "minimum": 0,
+              "title": "Accepted Rows",
+              "type": "integer"
+            },
+            "automatic_attempts": {
+              "minimum": 0,
+              "title": "Automatic Attempts",
+              "type": "integer"
+            },
+            "denominator_authority": {
+              "const": "caller_declared",
+              "default": "caller_declared",
+              "title": "Denominator Authority",
+              "type": "string"
+            },
+            "expected_automatic_attempts": {
+              "minimum": 0,
+              "title": "Expected Automatic Attempts",
+              "type": "integer"
+            },
+            "failed": {
+              "minimum": 0,
+              "title": "Failed",
+              "type": "integer"
+            },
+            "failure_counts": {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "integer"
+                  }
+                ],
+                "type": "array"
+              },
+              "title": "Failure Counts",
+              "type": "array"
+            },
+            "live_rows": {
+              "minimum": 0,
+              "title": "Live Rows",
+              "type": "integer"
+            },
+            "missing_automatic_attempts": {
+              "minimum": 0,
+              "title": "Missing Automatic Attempts",
+              "type": "integer"
+            },
+            "observed_attempts": {
+              "minimum": 0,
+              "title": "Observed Attempts",
+              "type": "integer"
+            },
+            "operator_attempts": {
+              "minimum": 0,
+              "title": "Operator Attempts",
+              "type": "integer"
+            },
+            "other_or_unknown_rows": {
+              "minimum": 0,
+              "title": "Other Or Unknown Rows",
+              "type": "integer"
+            },
+            "public_export_available": {
+              "const": false,
+              "default": false,
+              "title": "Public Export Available",
+              "type": "boolean"
+            },
+            "source_clock_skew_rows": {
+              "minimum": 0,
+              "title": "Source Clock Skew Rows",
+              "type": "integer"
+            },
+            "stale_rows": {
+              "minimum": 0,
+              "title": "Stale Rows",
+              "type": "integer"
+            },
+            "succeeded": {
+              "minimum": 0,
+              "title": "Succeeded",
+              "type": "integer"
+            },
+            "trend_available": {
+              "title": "Trend Available",
+              "type": "boolean"
+            },
+            "trend_unavailable_reason": {
+              "enum": [
+                "single_or_no_success",
+                "available"
+              ],
+              "title": "Trend Unavailable Reason",
+              "type": "string"
+            },
+            "verified_bee_rows": {
+              "minimum": 0,
+              "title": "Verified Bee Rows",
+              "type": "integer"
+            },
+            "window_end_utc": {
+              "format": "date-time",
+              "title": "Window End Utc",
+              "type": "string"
+            },
+            "window_start_utc": {
+              "format": "date-time",
+              "title": "Window Start Utc",
+              "type": "string"
+            }
+          },
+          "required": [
+            "window_start_utc",
+            "window_end_utc",
+            "expected_automatic_attempts",
+            "observed_attempts",
+            "succeeded",
+            "failed",
+            "automatic_attempts",
+            "operator_attempts",
+            "missing_automatic_attempts",
+            "accepted_rows",
+            "live_rows",
+            "stale_rows",
+            "verified_bee_rows",
+            "other_or_unknown_rows",
+            "source_clock_skew_rows",
+            "failure_counts",
+            "trend_available",
+            "trend_unavailable_reason"
+          ],
+          "title": "BodsOperationalTrendWindow",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "aggregates_only": {
+          "const": true,
+          "default": true,
+          "title": "Aggregates Only",
+          "type": "boolean"
+        },
+        "attempt_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Attempt Fingerprints",
+          "type": "array"
+        },
+        "day_end_utc": {
+          "format": "date-time",
+          "title": "Day End Utc",
+          "type": "string"
+        },
+        "day_start_utc": {
+          "format": "date-time",
+          "title": "Day Start Utc",
+          "type": "string"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "utc_date": {
+          "format": "date",
+          "title": "Utc Date",
+          "type": "string"
+        },
+        "window": {
+          "$ref": "#/$defs/BodsOperationalTrendWindow"
+        }
+      },
+      "required": [
+        "utc_date",
+        "day_start_utc",
+        "day_end_utc",
+        "window",
+        "attempt_fingerprints"
+      ],
+      "title": "BodsOperationalDayRollup",
+      "type": "object"
+    },
+    "BodsOperationalTrendWindow": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_rows": {
+          "minimum": 0,
+          "title": "Accepted Rows",
+          "type": "integer"
+        },
+        "automatic_attempts": {
+          "minimum": 0,
+          "title": "Automatic Attempts",
+          "type": "integer"
+        },
+        "denominator_authority": {
+          "const": "caller_declared",
+          "default": "caller_declared",
+          "title": "Denominator Authority",
+          "type": "string"
+        },
+        "expected_automatic_attempts": {
+          "minimum": 0,
+          "title": "Expected Automatic Attempts",
+          "type": "integer"
+        },
+        "failed": {
+          "minimum": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "failure_counts": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Failure Counts",
+          "type": "array"
+        },
+        "live_rows": {
+          "minimum": 0,
+          "title": "Live Rows",
+          "type": "integer"
+        },
+        "missing_automatic_attempts": {
+          "minimum": 0,
+          "title": "Missing Automatic Attempts",
+          "type": "integer"
+        },
+        "observed_attempts": {
+          "minimum": 0,
+          "title": "Observed Attempts",
+          "type": "integer"
+        },
+        "operator_attempts": {
+          "minimum": 0,
+          "title": "Operator Attempts",
+          "type": "integer"
+        },
+        "other_or_unknown_rows": {
+          "minimum": 0,
+          "title": "Other Or Unknown Rows",
+          "type": "integer"
+        },
+        "public_export_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Export Available",
+          "type": "boolean"
+        },
+        "source_clock_skew_rows": {
+          "minimum": 0,
+          "title": "Source Clock Skew Rows",
+          "type": "integer"
+        },
+        "stale_rows": {
+          "minimum": 0,
+          "title": "Stale Rows",
+          "type": "integer"
+        },
+        "succeeded": {
+          "minimum": 0,
+          "title": "Succeeded",
+          "type": "integer"
+        },
+        "trend_available": {
+          "title": "Trend Available",
+          "type": "boolean"
+        },
+        "trend_unavailable_reason": {
+          "enum": [
+            "single_or_no_success",
+            "available"
+          ],
+          "title": "Trend Unavailable Reason",
+          "type": "string"
+        },
+        "verified_bee_rows": {
+          "minimum": 0,
+          "title": "Verified Bee Rows",
+          "type": "integer"
+        },
+        "window_end_utc": {
+          "format": "date-time",
+          "title": "Window End Utc",
+          "type": "string"
+        },
+        "window_start_utc": {
+          "format": "date-time",
+          "title": "Window Start Utc",
+          "type": "string"
+        }
+      },
+      "required": [
+        "window_start_utc",
+        "window_end_utc",
+        "expected_automatic_attempts",
+        "observed_attempts",
+        "succeeded",
+        "failed",
+        "automatic_attempts",
+        "operator_attempts",
+        "missing_automatic_attempts",
+        "accepted_rows",
+        "live_rows",
+        "stale_rows",
+        "verified_bee_rows",
+        "other_or_unknown_rows",
+        "source_clock_skew_rows",
+        "failure_counts",
+        "trend_available",
+        "trend_unavailable_reason"
+      ],
+      "title": "BodsOperationalTrendWindow",
+      "type": "object"
+    },
     "BodsReplayRequest": {
       "$defs": {
         "BodsBoundingBox": {
@@ -6480,6 +7190,101 @@
         "reasons"
       ],
       "title": "BodsRetentionSnapshotDecision",
+      "type": "object"
+    },
+    "BodsSourceAgeDistribution": {
+      "additionalProperties": false,
+      "properties": {
+        "denominator": {
+          "minimum": 0,
+          "title": "Denominator",
+          "type": "integer"
+        },
+        "earliest_source_time_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Earliest Source Time Utc"
+        },
+        "latest_source_time_utc": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Latest Source Time Utc"
+        },
+        "maximum_age_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum Age Ms"
+        },
+        "median_age_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Median Age Ms"
+        },
+        "minimum_age_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Age Ms"
+        },
+        "negative_age_count": {
+          "minimum": 0,
+          "title": "Negative Age Count",
+          "type": "integer"
+        },
+        "p95_age_ms": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P95 Age Ms"
+        }
+      },
+      "required": [
+        "denominator",
+        "negative_age_count"
+      ],
+      "title": "BodsSourceAgeDistribution",
       "type": "object"
     },
     "BooleanPredicateDefinition": {

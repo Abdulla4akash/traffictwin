@@ -5257,6 +5257,26 @@ synthetic approved-policy fixtures; no owner policy/workspace, worker wiring, lo
 provider call, raw read, deletion, public export, capability acceptance, release or tag was
 created.
 
+### Phase 195 claim: BODS operational trends (`NEXT-05`, 3 August 2026)
+
+The owner-directed integrating lead owns the fifth Phase-190 slice in a new
+`src/traffictwin/integration/manchester/bods_operational_trends.py`, bounded exports, focused
+tests, generated schemas, design/status/operator documentation and this phase record. The phase
+may add identifier-free success/failure attempt aggregates derived inside the verified live-refresh
+boundary, exact age quantiles/skew/cadence, verified-versus-other operator counts, explicit trend
+windows and stable UTC-day rollups. It may not retain operator names or any vehicle/journey/
+service/location token, infer road speed/fleet completeness/trajectory, activate real persistence
+or a page, call a provider, approve public export, accept a capability or create a release/tag.
+
+Phase 195 completed locally on 3 August 2026. Exact-bound live refreshes now produce only complete
+response/membership counts, distinct-operator totals, integer-millisecond source-age quantiles,
+negative-age findings and comparable source-time cadence; safe failures carry zero response
+counts. Explicit UTC windows preserve caller-declared cadence gaps, single/no-success windows stay
+status-only, and deterministic UTC-day rollups bind every attempt. Thirty focused and adjacent
+BODS/history tests passed. Ruff, focused strict mypy, generated schemas and diff checks passed.
+No identifier, real attempt/trend, writer, page, provider call, public export, capability
+acceptance, release or tag was created.
+
 ### Phase 194 claim: National Highways transitions (`NEXT-04`, 3 August 2026)
 
 The owner-directed integrating lead owns the fourth Phase-190 slice in a new

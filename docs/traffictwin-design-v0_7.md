@@ -1294,6 +1294,10 @@ clock skew, operator changes, empty valid responses, parser refusals, DST bounda
 restarts. Tests prove exact quantiles/counts, no speed/fleet-completeness inference, no raw or
 pseudonymised identifiers, and stable daily rollups in the `NEXT-03` store.
 
+Phase 195 implements the identifier-free attempt, explicit-window and stable UTC-day rollup
+contracts with exact age quantiles, skew/cadence, failure and membership denominators. It does not
+activate a writer, the trends page or public export.
+
 ### 27.7 `NEXT-06` — read-only Source Health page
 
 Source Health is an additive **Overview** route answering “what is configured, running, fresh,
