@@ -477,6 +477,24 @@ delete state, approve retention/licensing/publication, create evidence or host p
 [Manchester Source Health](integration/manchester_source_health.md). `NEXT-07` remains the next
 independent build; `NEXT-08` remains at fail-closed contract intake pending the provider reply.
 
+### 6.12 Phase-197 resumable named-person review (`NEXT-07`)
+
+The seventh slice is `working_bounded`. Match Review now discovers only the exact committed
+305-row/174-queue Manchester v1.1 registration inside a verified workspace; the page accepts no
+artifact, ledger or export path. It derives the private working ledger from registration, queue and
+policy identities, resumes pending work, supports presentation-only search/filter/sort and local
+bookmark state, captures one real person's local session identity, and shows explicit current
+decision/revision lineage.
+
+Each one-row save now refuses stale concurrent editors and uses lock, private temporary file,
+fsync, atomic replace and strict readback before offering **Next pending**. Corrections explicitly
+supersede and never overwrite. Seals are content-addressed, new-only, read back and leave the
+working ledger untouched. A midpoint-restarted 174-row synthetic session proves the complete
+workflow without a bulk API. The real v1.1 artifact does not retain coordinates or edge shapes, so
+map rendering/map-text equivalence remains unavailable rather than inferred; human keyboard and
+contrast acceptance also remains open. No real identity or Manchester decision was recorded. See
+[resumable named-person review](integration/manchester_match_review.md).
+
 ## 7. Decisions or evidence required before acceptance
 
 | Required decision/evidence | Blocks |

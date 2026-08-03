@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 196. It does not alter the strict
+This section records the additive platform truth through Phase 197. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,7 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
-| Durable real-evidence programme | Phases 190–194 implement the bounded `NEXT-01`–`NEXT-04` foundations; Phase 195 adds identifier-free BODS trends; Phase 196 adds the local, read-only, secret/path/identifier-free Source Health route for `NEXT-06` | No owner-selected real workspace was created or launched; no retention writer or provider adapter was activated; no provider request, public process/export, real transition/trend artifact, review decision, capability acceptance or release exists from these phases |
+| Durable real-evidence programme | Phases 190–194 implement bounded `NEXT-01`–`NEXT-04`; Phase 195 adds identifier-free BODS trends; Phase 196 adds local Source Health; Phase 197 adds the exact-registered, atomic, resumable one-row review workflow for `NEXT-07` | No owner-selected real workspace was created/launched; no retention writer/provider adapter was activated; no provider request, public process/export, real transition/trend artifact, reviewer identity/decision, capability acceptance or release exists from these phases |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -281,6 +281,18 @@ unknown, the local interval is separately labelled, and BODS source time is unav
 than inferred. The allowlisted JSON adds no permission. No provider request, state mutation,
 credential test, worker action, owner-policy decision, public hosting, evidence, capability
 acceptance or release was created.
+
+Phase 197 implements `NEXT-07` around the existing append-only ledger without deciding a row. The
+page recognizes only the exact committed 305-row/174-queue private registration in a verified
+workspace and derives its working ledger from registration/queue/policy identity; arbitrary input
+and export paths are gone. Presentation-only filters, search, sorting and local bookmarks preserve
+queue truth. Real-person session identity is displayed on every one-row form; corrections explicitly
+supersede. Locking, stale-editor comparison, private temporary publication, fsync, atomic replace
+and strict readback protect each decision, while content-addressed new-only sealing leaves the
+working copy unchanged. A midpoint-restarted 174-row synthetic session proves the workflow without
+a bulk operation. The v1.1 artifact lacks coordinates/edge shapes, so map/text equivalence and
+human accessibility acceptance remain unavailable. No real reviewer identity/decision, scientific
+approval, capability acceptance or release was created.
 
 Phase 0 status: approved and committed.
 

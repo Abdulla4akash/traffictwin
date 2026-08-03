@@ -5281,6 +5281,32 @@ with Ruff and focused strict mypy. No provider
 request, credential test, mutation, worker action, owner policy, public hosting, scientific
 evidence, capability acceptance, release or tag was created.
 
+### Phase 197 claim: resumable named-person review (`NEXT-07`, 3 August 2026)
+
+The owner-directed integrating lead owns the seventh Phase-190 slice in
+`src/traffictwin/ui/review_services.py`, `src/traffictwin/ui/pages/match_review.py`, focused
+review-service/page/ledger tests, generated schemas, canonical design/status/operator
+documentation and this record. The phase may replace arbitrary page paths with the one exact
+registered 305-row artifact, derive an automatic queue/policy-bound working ledger, add filters,
+bookmarks, session identity, revisions and explicit next-pending behavior, and harden one-row
+persistence/sealing with locking, atomic fsync and readback. It may not create a reviewer identity
+or decision, add a bulk/automatic/recommended action, infer missing geometry, alter match rows,
+approve scientific policy/calibration/baseline/comparison, accept a capability or create a
+release/tag.
+
+Phase 197 completed locally on 3 August 2026. The page now recognizes only the exact committed
+305-row/174-queue registration, derives a queue/policy-bound private working ledger and supports
+resume, local bookmark, filters/search/sort, local named-person identity, explicit revision and
+next-pending behavior without an arbitrary path or bulk/recommended action. One-row persistence
+uses a nonblocking OS lock, stale-editor digest check, private temporary file, fsync, atomic replace
+and strict readback; content-addressed new-only seals leave the working copy unchanged. Eighteen
+focused ledger/service/page tests passed, including injected replace failure, concurrent editors
+and a midpoint-restarted 174-row synthetic session; the expanded adjacent regression passed 71
+tests. Ruff and focused strict mypy passed. The
+v1.1 row lacks point coordinates/edge shapes, so the page withholds a map and map/text/human
+accessibility acceptance remains open. No real reviewer identity or decision, scientific approval,
+capability acceptance, release or tag was created.
+
 ### Phase 195 claim: BODS operational trends (`NEXT-05`, 3 August 2026)
 
 The owner-directed integrating lead owns the fifth Phase-190 slice in a new

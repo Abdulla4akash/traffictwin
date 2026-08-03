@@ -1377,6 +1377,14 @@ sealed-ledger mutation detection, next-row behavior, keyboard-only operation, ma
 no bulk endpoint, no path exposure, and a full synthetic reviewer session. Real decisions must be
 made by the named authorised person and are not test fixtures.
 
+Phase 197 implements the exact registered-artifact discovery, automatic queue/policy-derived
+working ledger, filters/sorting, local bookmark and session identity, explicit revision and next-
+pending controls, concurrent-editor refusal, atomic fsync/readback persistence and content-addressed
+sealing. A 174-row synthetic session proves midpoint restart without a bulk operation. The current
+v1.1 artifact contains distances and geometry-source labels but no point coordinates or edge
+shapes, so the page explicitly withholds a map; map/text equivalence plus human keyboard/contrast
+acceptance remain residual. No real reviewer identity or Manchester decision was created.
+
 ### 27.9 `NEXT-08` — provider-gated TfGM/NTIS measured-traffic adapters
 
 #### Provider-access contract first
