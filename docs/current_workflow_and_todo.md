@@ -28,7 +28,8 @@ The housekeeping track covers:
 - source and wheel builds plus an isolated wheel-install smoke;
 - standalone synthetic-demo verification; and
 - CI coverage of generated references, documentation links, fixtures, package installation and
-  the existing Python 3.11/3.12 matrix.
+  the existing Python 3.11/3.12 matrix, with feature branches covered once through pull-request CI
+  while `main` pushes and version-tag pushes retain their own runs.
 
 These checks establish technical repository hygiene only. The owner subsequently authorised the
 annotated `v0.7.0` tag at `e840be6`; neither those checks nor that tag accept `REL-01`, create a
@@ -74,8 +75,10 @@ live without their required inputs and authorities:
 
 ## Immediate next actions
 
-- Review and merge the housekeeping draft PR only under explicit owner authority; its final-head
-  Python 3.11/3.12 branch and draft-PR matrices passed.
+- Review and merge the housekeeping draft PR only under explicit owner authority. The exact tagged
+  head passed both Python 3.11/3.12 matrices; post-tag documentation and CI-efficiency amendments
+  pass locally, while their hosted verification awaits restoration of the account's Actions
+  billing/spending availability.
 - Keep the owner-authorised final `v0.7.0` tag immutable. No GitHub Release, package publication or
   deployment follows from the tag without separate owner authority and licence/publication review.
 - Choose the next product-completion item from the queue only after its named human, provider,

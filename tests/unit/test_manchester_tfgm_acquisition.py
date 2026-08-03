@@ -70,6 +70,7 @@ PDF_ATTRIBUTION_2025 = (
     "Contains Transport for Greater Manchester data. Contains OS data © Crown "
     "copyright and database right 2025."
 )
+_SYNTHETIC_ZIP_TIMESTAMP = (2026, 7, 22, 10, 0, 0)
 
 
 def make_clock() -> Callable[[], datetime]:
@@ -128,7 +129,9 @@ def build_zip(
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for name, payload in members.items():
-            archive.writestr(name, payload)
+            info = zipfile.ZipInfo(name, date_time=_SYNTHETIC_ZIP_TIMESTAMP)
+            info.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(info, payload)
         for info, payload in extra_infos or []:
             archive.writestr(info, payload)
     return buffer.getvalue()
@@ -183,6 +186,15 @@ def workspace_dirs(workspace: Path, area: str) -> list[Path]:
 
 def replay_request(expected_synthetic: bool | None = True) -> TfgmReplayRequest:
     return TfgmReplayRequest(expected_synthetic=expected_synthetic)
+
+
+def test_synthetic_zip_metadata_is_deterministic() -> None:
+    first = build_zip()
+    second = build_zip()
+
+    assert first == second
+    with zipfile.ZipFile(io.BytesIO(first)) as archive:
+        assert {member.date_time for member in archive.infolist()} == {_SYNTHETIC_ZIP_TIMESTAMP}
 
 
 def test_exact_allowed_request_and_receipt_identity(tmp_path: Path) -> None:

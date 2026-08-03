@@ -118,6 +118,30 @@ matrices had already passed; the tag event supplies no additional test evidence 
 reported as a code failure. No GitHub Release, package upload, licence, deployment or tag movement
 was performed.
 
+## Post-tag CI efficiency amendment
+
+The housekeeping branch now runs feature-branch changes once through `pull_request` CI instead of
+starting an identical full matrix for both the branch push and its open pull request. Direct pushes
+to `main` and pushes of `v*` tags retain their own matrix, so integration and tag events remain
+covered. Workflow-level concurrency also cancels an older in-progress run for the same pull request
+or Git ref when a newer event supersedes it. The Python 3.11/3.12 jobs and every quality, package,
+demo, fixture and Python 3.12 container step are unchanged.
+
+Two repository tests pin the event and concurrency policy, and the workflow parses as YAML with the
+expected branch/tag filters. This amendment is later than the immutable `v0.7.0` tag and does not
+move it. Hosted verification remains pending while GitHub refuses Actions jobs before runner
+assignment because of the recorded account billing/spending-limit state; that external refusal is
+not reported as a code or test failure.
+
+Complete local validation also exposed a pre-existing timing defect in the synthetic TfGM ZIP test
+builder: it inherited the wall-clock ZIP-member timestamp, so byte identity could change during a
+slow suite and invalidate a same-snapshot refusal test. The synthetic helper now fixes archive-member
+timestamps and has a byte/metadata determinism regression test. Production acquisition behavior,
+provider evidence and fixtures are unchanged. The final clean rerun reports 4,236 passed and the two
+expected fresh-VEC environment skips, with 87% total statement coverage; lock, repository Ruff,
+strict mypy over 917 files, generated references, all 2,104 local documentation links, fixture
+immutability and diff checks also pass.
+
 ## Release standing
 
 - **Technically clean:** yes for the tagged housekeeping head; its branch and draft-PR CI matrices
