@@ -52,6 +52,15 @@ from traffictwin.release.migration import (
     preview_v06_migration,
     rollback_v06_migration,
 )
+from traffictwin.release.real_workspace_run import (
+    V07RealWorkspaceLaunchReceipt,
+    V07RealWorkspaceRunError,
+    V07RealWorkspaceRunPreflight,
+    V07SourceContractVersions,
+    V07SourceRunPreflight,
+    launch_real_v07_workspace,
+    preflight_real_v07_workspace_run,
+)
 
 __all__ = [
     "ReleaseMetadata",
@@ -75,6 +84,11 @@ __all__ = [
     "V07DurableWorkspacePlan",
     "V07DurableWorkspaceReceipt",
     "V07DurableWorkspaceResult",
+    "V07RealWorkspaceLaunchReceipt",
+    "V07RealWorkspaceRunError",
+    "V07RealWorkspaceRunPreflight",
+    "V07SourceContractVersions",
+    "V07SourceRunPreflight",
     "V07WorkspaceContract",
     "V07WorkspaceError",
     "V07WorkspaceInitialiseResult",
@@ -88,12 +102,14 @@ __all__ = [
     "load_v06_producer_attestation",
     "load_v06_rollback_receipt",
     "load_durable_workspace_receipt",
+    "launch_real_v07_workspace",
     "migrate_v06_registry",
     "preview_v06_migration",
     "rollback_v06_migration",
     "inspect_v07_workspace",
     "preview_v06_registry_copy",
     "preview_durable_v07_workspace",
+    "preflight_real_v07_workspace_run",
     "verify_v06_producer_attestation",
     "stage_synthetic_demo_site",
     "v07_workspace_contract",

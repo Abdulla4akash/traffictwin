@@ -1155,6 +1155,14 @@ stale fallback, independent failure, port separation, and graceful shutdown. A l
 verify worker wiring with synthetic transports; a real smoke requires the owner's workspace and
 credentials and remains private operational evidence.
 
+**Implementation reconciliation (Phase 192).** The durable-receipt-gated, mutation-free preflight,
+fixed loopback port-8502 plan, source configuration/control/lock/scene/version reports, exact
+confirmation, dry run and fixed-argv foreground launcher are implemented. The existing app starts
+the two workers independently after a configured session and retains its manual, lock, rate and
+stale-fallback semantics. No owner-selected workspace or credential was used for verification, no
+provider request or public process was started, and this bounded local profile does not accept a
+capability.
+
 ### 27.4 `NEXT-03` — privacy-safe aggregate history beyond 24 hours
 
 #### Two-tier persistence

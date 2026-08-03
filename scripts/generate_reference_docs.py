@@ -603,6 +603,12 @@ from traffictwin.release.durable_workspace import (
     V07DurableWorkspacePlan,
     V07DurableWorkspaceReceipt,
 )
+from traffictwin.release.real_workspace_run import (
+    V07RealWorkspaceLaunchReceipt,
+    V07RealWorkspaceRunPreflight,
+    V07SourceContractVersions,
+    V07SourceRunPreflight,
+)
 from traffictwin.rendering.findings import DiagnosticNarrative
 from traffictwin.reporting.diffing import (
     ReportClaimDiff,
@@ -739,6 +745,10 @@ MODEL_TYPES: dict[str, type[BaseModel]] = {
     "V07DurableWorkspacePlan": V07DurableWorkspacePlan,
     "V07BaselineBackupReceipt": V07BaselineBackupReceipt,
     "V07DurableWorkspaceReceipt": V07DurableWorkspaceReceipt,
+    "V07SourceContractVersions": V07SourceContractVersions,
+    "V07SourceRunPreflight": V07SourceRunPreflight,
+    "V07RealWorkspaceRunPreflight": V07RealWorkspaceRunPreflight,
+    "V07RealWorkspaceLaunchReceipt": V07RealWorkspaceLaunchReceipt,
     "ManchesterSourceIdentity": ManchesterSourceIdentity,
     "ManchesterRequestIdentity": ManchesterRequestIdentity,
     "ManchesterRetrievalWindow": ManchesterRetrievalWindow,
@@ -1262,6 +1272,8 @@ CLI_COMMANDS = [
     ["release", "stage-demo-site"],
     ["release", "v07-durable-preview"],
     ["release", "v07-durable-create"],
+    ["release", "v07-real-preflight"],
+    ["release", "v07-real-launch"],
     ["experiment"],
     ["experiment", "summarise"],
     ["experiment", "study-contract"],

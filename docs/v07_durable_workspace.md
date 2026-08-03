@@ -99,9 +99,10 @@ uv run traffictwin release v07-workspace-inspect \
   "$TRAFFICTWIN_DURABLE_WORKSPACE" --format json
 ```
 
-A valid empty container is not Manchester evidence. Source configuration and the foreground
-port-8502 run profile are separate operations; credentials remain process-only, and source access
-retains its own authority, licence, privacy, and retention requirements.
+A valid empty container is not Manchester evidence. Source configuration and the
+[foreground port-8502 run profile](v07_real_workspace_run.md) are separate operations;
+credentials remain process-only, and source access retains its own authority, licence, privacy,
+and retention requirements.
 
 See also [v0.7 local usage](v07_usage.md),
 [workspace setup](workspace_setup.md), and

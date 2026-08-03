@@ -60,18 +60,22 @@ Run the synthetic/v0.6 demonstration and the v0.7 Manchester operations applicat
 separate processes with different ports and different workspace environment values. Neither
 process reads or writes the other's workspace.
 
-Terminal 1 — synthetic demonstration on port 8601:
+Terminal 1 — synthetic demonstration on port 8501:
 
 ```bash
-traffictwin demo launch .demo --port 8601
+traffictwin demo launch .demo --port 8501
 ```
 
-Terminal 2 — v0.7 Manchester operations on port 8602 against the isolated workspace:
+Terminal 2 — v0.7 Manchester operations on fixed port 8502 against the durable workspace:
 
 ```bash
-TRAFFICTWIN_WORKSPACE_PATH="$PWD/workspace-v0.7" \
-TRAFFICTWIN_REGISTRY_PATH="$PWD/workspace-v0.7/registry/traffictwin.sqlite" \
-uv run streamlit run src/traffictwin/ui/app.py --server.port 8602
+TRAFFICTWIN_REAL_WORKSPACE=/exact/owner-supplied/durable-workspace
+uv run traffictwin release v07-real-preflight \
+  "$TRAFFICTWIN_REAL_WORKSPACE" --format json
+TRAFFICTWIN_REAL_RUN_PLAN="replace-with-the-confirmed-plan-fingerprint"
+uv run traffictwin release v07-real-launch \
+  "$TRAFFICTWIN_REAL_WORKSPACE" \
+  --expected-plan "$TRAFFICTWIN_REAL_RUN_PLAN"
 ```
 
 Notes:
@@ -82,8 +86,9 @@ Notes:
   unmarked directory. New durable workspaces should use the preview-confirmed workflow above.
 - For an existing real workspace, use only an exact owner-supplied path and validate it read-only.
   Do not scan ignored/private directories to infer one.
-- `demo launch` is for `workspace.yaml` standalone demos only; launch a v0.7 workspace directly
-  with both environment variables shown above.
+- `demo launch` is for `workspace.yaml` standalone demos only; use the path-free preflight and
+  fixed foreground profile for a durable v0.7 workspace. See
+  [local real-workspace run profile](v07_real_workspace_run.md).
 - Port values are local operational choices; nothing in either process claims public hosting.
 - To demonstrate the immutable `v0.6.0` release itself, use a separate clean checkout of the
   `v0.6.0` tag with its own workspace; do not point it at the v0.7 workspace.

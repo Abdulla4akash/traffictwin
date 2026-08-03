@@ -2,6 +2,15 @@
 
 ## v0.7.0 - In development
 
+Added the fixed local real-workspace run profile (3 August, Phase 192). A mutation-free preflight
+reopens the durable receipt/workspace, probes loopback port 8502, reduces credentials to presence,
+fingerprints the BODS box, validates source intervals and existing control/lock/scene state, and
+returns exact source versions and policy blockers without a provider request. Exact confirmation
+uses a fixed no-shell foreground Streamlit argv and passes private paths/credentials only to the
+child environment; the existing independent workers retain their locks, rates and stale fallback.
+Tests used temporary empty workspaces, fake ports and an injected runner; no private real launch,
+provider request, public hosting, capability acceptance or release was created.
+
 Added preview-confirmed durable v0.7 workspace creation (3 August, Phase 191). A path-free preview
 binds the new target and existing v0.7 layout; exact confirmation creates it through private
 staging and atomic publication, applies owner-only permissions, verifies an empty-registry backup

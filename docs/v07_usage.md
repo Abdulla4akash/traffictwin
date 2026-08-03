@@ -124,27 +124,27 @@ Continue only when the command exits successfully. It verifies the non-symlinked
 changing them. Do not treat `valid: true` as a claim that Manchester artifacts are present or
 accepted.
 
-Keep the synthetic demo available on port 8501 and start the real-workspace process on a different
-port. When National Highways operational coverage is required, place the subscription key in the
-process environment; do not put it in the repository, command arguments, workspace marker or
-Streamlit session state:
+Keep the synthetic demo available on port 8501 and use the fixed, preflight-confirmed local
+real-workspace profile on port 8502. Place provider credentials only in the process environment;
+do not put them in the repository, command arguments, workspace marker or Streamlit session state:
 
 ```bash
-TRAFFICTWIN_WORKSPACE_PATH="$TRAFFICTWIN_V07_WORKSPACE" \
-TRAFFICTWIN_REGISTRY_PATH="$TRAFFICTWIN_V07_WORKSPACE/registry/traffictwin.sqlite" \
-BODS_API_KEY="$BODS_API_KEY" \
-TRAFFICTWIN_BODS_BOUNDING_BOX='min_longitude,min_latitude,max_longitude,max_latitude' \
-NATIONAL_HIGHWAYS_API_KEY="$NATIONAL_HIGHWAYS_API_KEY" \
-uv run streamlit run src/traffictwin/ui/app.py --server.port 8502
+uv run traffictwin release v07-real-preflight \
+  "$TRAFFICTWIN_V07_WORKSPACE" --format json
+TRAFFICTWIN_REAL_RUN_PLAN="replace-with-the-confirmed-plan-fingerprint"
+uv run traffictwin release v07-real-launch \
+  "$TRAFFICTWIN_V07_WORKSPACE" \
+  --expected-plan "$TRAFFICTWIN_REAL_RUN_PLAN"
 ```
 
-Then open <http://localhost:8502>. This process is foreground-only and local. The environment
-variables apply to this command; they do not rewrite the workspace marker. After the first app
-session, the server refreshes BODS bus positions every minute and the three National Highways
-layers every five minutes. The page checks for newly published overlays every 30 seconds and
-rerenders them without another source call. Manual refreshes remain fallbacks. Provider or
-validation failure retains the previous overlay and labels it stale instead of presenting it as
-current. A newly fetched BODS row whose provider timestamp is old also remains stale.
+Then open <http://localhost:8502>. This process is foreground-only, loopback-only and local. The
+launcher sets the verified workspace/registry paths in its child process; it does not rewrite the
+workspace marker. After the first configured app session, the server refreshes BODS bus positions
+every minute and the three National Highways layers every five minutes. The page checks for newly
+published overlays every 30 seconds and rerenders them without another source call. Manual
+refreshes remain fallbacks. Provider or validation failure retains the previous overlay and labels
+it stale instead of presenting it as current. A newly fetched BODS row whose provider timestamp is
+old also remains stale. See [local real-workspace run profile](v07_real_workspace_run.md).
 
 The default interval is 300 seconds. Set
 `TRAFFICTWIN_NATIONAL_HIGHWAYS_AUTO_REFRESH_SECONDS=off` to disable it, or select an integer from 60
@@ -202,6 +202,7 @@ During ordinary viewing:
 - [Standalone demo](standalone_demo.md)
 - [Workspace setup and side-by-side operation](workspace_setup.md)
 - [Durable v0.7 workspace creation](v07_durable_workspace.md)
+- [Local real-workspace port-8502 run profile](v07_real_workspace_run.md)
 - [Complete product and usage guide](full_product_guide.md)
 - [Manchester Operations UI boundary](integration/manchester_operations_ui.md)
 - [Current v0.7 progress and blockers](current_progress_v0_7.md)

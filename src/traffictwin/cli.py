@@ -442,14 +442,17 @@ from traffictwin.release import (
     V06MigrationError,
     V07CompatibilityError,
     V07DurableWorkspaceError,
+    V07RealWorkspaceRunError,
     build_v06_producer_attestation,
     copy_v06_registry,
     create_durable_v07_workspace,
     current_release_metadata,
     initialise_v07_workspace,
     inspect_v07_workspace,
+    launch_real_v07_workspace,
     load_v06_producer_attestation,
     migrate_v06_registry,
+    preflight_real_v07_workspace_run,
     preview_durable_v07_workspace,
     preview_v06_migration,
     preview_v06_registry_copy,
@@ -4479,6 +4482,84 @@ def release_v07_durable_create_command(
     typer.echo("contains_accepted_source_data: false")
     typer.echo("source_acquisition_performed: false")
     typer.echo(f"exact_retry: {str(receipt.exact_retry).lower()}")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-real-preflight")
+def release_v07_real_preflight_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Inspect the fixed local port-8502 run profile without source calls."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        plan = preflight_real_v07_workspace_run(path)
+    except V07RealWorkspaceRunError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    payload = {
+        **plan.model_dump(mode="json"),
+        "plan_fingerprint": plan.confirmation_fingerprint(),
+    }
+    if output_format == "json":
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"workspace_handle: {plan.workspace_handle}")
+    typer.echo(f"plan_fingerprint: {plan.confirmation_fingerprint()}")
+    typer.echo(f"bind_host: {plan.bind_host}")
+    typer.echo(f"port: {plan.port}")
+    typer.echo(f"port_available: {str(plan.port_available).lower()}")
+    typer.echo(f"bods_status: {plan.bods.configuration_status}")
+    typer.echo(f"bods_enabled: {str(plan.bods.enabled_for_process).lower()}")
+    typer.echo(f"national_highways_status: {plan.national_highways.configuration_status}")
+    typer.echo(
+        f"national_highways_enabled: {str(plan.national_highways.enabled_for_process).lower()}"
+    )
+    typer.echo(f"blocker_count: {len(plan.blockers)}")
+    typer.echo(f"launchable: {str(plan.launchable).lower()}")
+    typer.echo("network_request_performed: false")
+    typer.echo("credential_value_persisted: false")
+    typer.echo("capability_status: planned")
+
+
+@release_app.command("v07-real-launch")
+def release_v07_real_launch_command(
+    path: Annotated[Path, typer.Argument(exists=True, file_okay=False, readable=True)],
+    expected_plan: Annotated[str, typer.Option("--expected-plan")],
+    dry_run: Annotated[bool, typer.Option("--dry-run")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Run the confirmed fixed loopback Streamlit profile in the foreground."""
+
+    if output_format not in {"text", "json"}:
+        _require_text_format(output_format)
+    try:
+        receipt = launch_real_v07_workspace(
+            path,
+            expected_plan_fingerprint=expected_plan,
+            dry_run=dry_run,
+        )
+    except V07RealWorkspaceRunError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(json.dumps(receipt.model_dump(mode="json"), indent=2, sort_keys=True))
+        return
+    _require_text_format(output_format)
+    typer.echo(f"workspace_handle: {receipt.workspace_handle}")
+    typer.echo(f"plan_fingerprint: {receipt.plan_fingerprint}")
+    typer.echo(f"bind_host: {receipt.bind_host}")
+    typer.echo(f"port: {receipt.port}")
+    typer.echo(f"dry_run: {str(receipt.dry_run).lower()}")
+    typer.echo(f"process_started: {str(receipt.process_started).lower()}")
+    typer.echo(f"foreground_process_completed: {str(receipt.foreground_process_completed).lower()}")
+    typer.echo(f"return_code: {receipt.return_code}")
+    typer.echo("fixed_argv: true")
+    typer.echo("shell_used: false")
+    typer.echo("credential_value_persisted: false")
     typer.echo("capability_status: planned")
 
 

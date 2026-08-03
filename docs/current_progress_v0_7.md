@@ -2,7 +2,7 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 191 is the current bounded implementation
+**Development branch:** `claude/complete-v0.7`; Phase 192 is the current bounded implementation
 increment. The immutable release baseline and historical checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
@@ -17,7 +17,8 @@ lifetime National Highways and BODS refresh without changing source, publication
 standing. Phase 190 designs the next durable real-workspace, operational-history, source-health,
 map-review and provider-gated measured-traffic programme. Phase 191 implements its first bounded
 slice: safe creation of a new empty durable workspace, without creating a real owner target or
-activating any source.
+activating any source. Phase 192 adds the secret-free port-8502 preflight and fixed foreground
+launcher over that durable contract without running a private real-source smoke.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
@@ -160,6 +161,12 @@ At the latest proportional verification points:
   lock, generated-reference JSON, changed-document link, privacy/path and diff checks pass. Tests
   created only temporary empty workspaces; no owner-selected real target, source, historical
   store, capability acceptance or release was created.
+- Phase 192 implements the bounded `NEXT-02` preflight and local foreground profile. Its 118-test
+  durable/release/worker/control/scene/app/CLI regression passes, including missing/invalid source
+  configuration, busy locks, corrupt controls, unsafe scenes, port conflict, independent worker
+  failure, exact confirmation, dry run, fixed argv and child-only environment checks. Ruff,
+  format, focused strict mypy, generated-reference, lock, link, privacy/path and diff checks pass.
+  No owner workspace, credential, source request, real server or public process was used.
 
 The previously recorded 35-route desktop/mobile light/dark browser matrix produced 140
 screenshots with zero actionable semantic findings.
@@ -386,6 +393,24 @@ parents only. It does not prove that an owner-selected real workspace exists, an
 explicitly records no accepted source data, acquisition or historical-store activation. `REL-01`
 and every `MAN-*`/`UX-*` capability therefore retain their formal `planned` standing. `NEXT-02`
 through `NEXT-08` remain separate slices.
+
+### 6.7 Phase-192 local real-workspace run profile (`NEXT-02`)
+
+The second programme slice is now `working_bounded`. A read-only preflight binds one exact durable
+workspace receipt, current manifest/registry and fixed app-entrypoint digests; probes only
+`127.0.0.1:8502`; reports credential presence, BODS box fingerprint and exact interval status;
+validates existing hot controls, non-mutating source-lock availability and cached scenes; and
+preserves source contract/freshness versions plus unresolved policy blockers. Its plan and CLI
+outputs contain no credential value, coordinate box, shell fragment or private path and make no
+provider request.
+
+Exact digest confirmation launches only the fixed Streamlit argv in the foreground, overwriting
+the child process's workspace/registry environment with the verified values. It binds loopback,
+disables usage-stat collection and retains the existing independent BODS/National Highways worker,
+manual fallback, lock/rate and stale-cache behaviour. The operator procedure is
+[local real-workspace run profile](v07_real_workspace_run.md). Verification uses temporary empty
+workspaces, fake local port probes and an injected process runner; it does not prove a real
+workspace process or either provider was reached. `NEXT-03`–`NEXT-08` remain separate.
 
 ## 7. Decisions or evidence required before acceptance
 

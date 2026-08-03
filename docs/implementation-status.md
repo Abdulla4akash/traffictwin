@@ -30,7 +30,7 @@ supervisor-meeting traceability record.
 
 ## Data-platform and Meeting-3 implementation status (3 August 2026)
 
-This section records the additive platform truth through Phase 191. It does not alter the strict
+This section records the additive platform truth through Phase 192. It does not alter the strict
 acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 
 | Surface | Formal implementation truth | Residual boundary |
@@ -52,7 +52,7 @@ acceptance state of the separate `MAN-*`, `UX-*` or `REL-01` rows below.
 | Technical accessibility QA | Phase 183 inspected six high-risk routes at desktop/narrow sizes, repaired the shared duplicate-`h1` shell defect and recorded bounded keyboard/contrast engineering observations | Human checklist, genuine zoom, screen-reader use, complete keyboard/focus acceptance, WCAG conformance and Gate-C/UX-03 acceptance remain absent |
 | National Highways server refresh | Phase 188 starts one five-minute, process-local worker per validated workspace when an environment-only key is present; automatic/manual receipts, shared lock/rate guard, stale fallback and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider SLA, capability acceptance or release authority |
 | BODS server refresh | Phase 189 starts one one-minute, process-local worker per validated workspace when an environment-only key and explicit request box are present; automatic/manual receipts, shared lock/rate guard, source-time stale truth and local UI change detection remain source-separated | No city-road telemetry, public hosting, provider quota/SLA, approved retention/privacy treatment, complete Bee scope, capability acceptance or release authority |
-| Durable real-evidence programme | Phase 190 defines eight implementation-ready designs; Phase 191 implements the `NEXT-01` preview-confirmed, new-only durable workspace workflow with owner-only permissions, empty-registry backup/restore verification, atomic publication, path-free receipt and exact retry | No owner-selected real workspace was created; no source, long-term store, transition/trend artifact, page, review decision, provider adapter, capability acceptance or release exists from these phases |
+| Durable real-evidence programme | Phase 190 defines eight implementation-ready designs; Phase 191 implements the `NEXT-01` durable-workspace workflow; Phase 192 implements the `NEXT-02` secret-free fixed-loopback preflight and foreground launcher over the existing independent BODS/National Highways workers | No owner-selected real workspace was created or launched; no provider request, public process, long-term store, transition/trend artifact, page, review decision, provider adapter, capability acceptance or release exists from these phases |
 
 The platform backend suite is therefore implemented, but implementation is not synonymous with a
 running deployment or completed study. Current external/scientific gaps are activation inputs and
@@ -232,6 +232,16 @@ atomic rename. Immediate exact retry reconciles the still-empty registry and eve
 changed or unmanaged targets fail closed. No real target was used in verification, so this is a
 bounded local foundation rather than `REL-01` acceptance or evidence that a durable real workspace
 has been activated.
+
+Phase 192 implements only `NEXT-02`. The preflight reopens the durable receipt and current v0.7
+inspector, probes the fixed loopback port, reduces credential configuration to presence booleans,
+fingerprints rather than emits the BODS box, validates intervals and existing local control/lock/
+scene state, and returns source contract versions and policy blockers without mutation or network
+access. Exact plan confirmation selects a fixed no-shell Streamlit argv on `127.0.0.1:8502`; only
+the child environment receives the verified private workspace/registry paths and inherited source
+values. The existing app-worker services remain independently failing and stop with the foreground
+process. Tests use fake ports and a process runner, so no real workspace launch, credential,
+provider request, deployment, capability acceptance or source-wide operational evidence exists.
 
 Phase 0 status: approved and committed.
 

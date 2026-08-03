@@ -95857,6 +95857,806 @@
       "title": "V07DurableWorkspaceReceipt",
       "type": "object"
     },
+    "V07RealWorkspaceLaunchReceipt": {
+      "additionalProperties": false,
+      "description": "Safe terminal result for a dry run or completed foreground process.",
+      "properties": {
+        "bind_host": {
+          "const": "127.0.0.1",
+          "default": "127.0.0.1",
+          "title": "Bind Host",
+          "type": "string"
+        },
+        "credential_value_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Credential Value Persisted",
+          "type": "boolean"
+        },
+        "dry_run": {
+          "title": "Dry Run",
+          "type": "boolean"
+        },
+        "fixed_argv": {
+          "const": true,
+          "default": true,
+          "title": "Fixed Argv",
+          "type": "boolean"
+        },
+        "foreground_only": {
+          "const": true,
+          "default": true,
+          "title": "Foreground Only",
+          "type": "boolean"
+        },
+        "foreground_process_completed": {
+          "title": "Foreground Process Completed",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "v07-real-workspace-run-1.0",
+          "default": "v07-real-workspace-run-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "plan_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Plan Fingerprint",
+          "type": "string"
+        },
+        "port": {
+          "const": 8502,
+          "default": 8502,
+          "title": "Port",
+          "type": "integer"
+        },
+        "private_path_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Persisted",
+          "type": "boolean"
+        },
+        "process_started": {
+          "title": "Process Started",
+          "type": "boolean"
+        },
+        "return_code": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Return Code"
+        },
+        "schema_version": {
+          "const": "traffictwin.real-workspace-run.v1",
+          "default": "traffictwin.real-workspace-run.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "shell_used": {
+          "const": false,
+          "default": false,
+          "title": "Shell Used",
+          "type": "boolean"
+        },
+        "workspace_handle": {
+          "pattern": "^workspace-[0-9a-f]{16}$",
+          "title": "Workspace Handle",
+          "type": "string"
+        }
+      },
+      "required": [
+        "workspace_handle",
+        "plan_fingerprint",
+        "dry_run",
+        "process_started",
+        "foreground_process_completed"
+      ],
+      "title": "V07RealWorkspaceLaunchReceipt",
+      "type": "object"
+    },
+    "V07RealWorkspaceRunPreflight": {
+      "$defs": {
+        "V07SourceContractVersions": {
+          "additionalProperties": false,
+          "description": "Exact source/control/freshness versions read by one worker.",
+          "properties": {
+            "acquisition": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Acquisition",
+              "type": "string"
+            },
+            "control": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Control",
+              "type": "string"
+            },
+            "freshness": {
+              "const": "manchester-freshness-v1",
+              "default": "manchester-freshness-v1",
+              "title": "Freshness",
+              "type": "string"
+            },
+            "live_scene": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Live Scene",
+              "type": "string"
+            },
+            "source_schema": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Source Schema",
+              "type": "string"
+            }
+          },
+          "required": [
+            "acquisition",
+            "source_schema",
+            "live_scene",
+            "control"
+          ],
+          "title": "V07SourceContractVersions",
+          "type": "object"
+        },
+        "V07SourceRunPreflight": {
+          "additionalProperties": false,
+          "description": "Secret-free local readiness for one process worker.",
+          "properties": {
+            "configuration_status": {
+              "enum": [
+                "configured",
+                "disabled",
+                "not_configured",
+                "invalid"
+              ],
+              "title": "Configuration Status",
+              "type": "string"
+            },
+            "contracts": {
+              "$ref": "#/$defs/V07SourceContractVersions"
+            },
+            "control_integrity": {
+              "enum": [
+                "absent_valid",
+                "valid",
+                "invalid"
+              ],
+              "title": "Control Integrity",
+              "type": "string"
+            },
+            "credential_environment_name": {
+              "enum": [
+                "BODS_API_KEY",
+                "NATIONAL_HIGHWAYS_API_KEY"
+              ],
+              "title": "Credential Environment Name",
+              "type": "string"
+            },
+            "credential_present": {
+              "title": "Credential Present",
+              "type": "boolean"
+            },
+            "credential_value_persisted": {
+              "const": false,
+              "default": false,
+              "title": "Credential Value Persisted",
+              "type": "boolean"
+            },
+            "enabled_for_process": {
+              "title": "Enabled For Process",
+              "type": "boolean"
+            },
+            "interval_environment_name": {
+              "title": "Interval Environment Name",
+              "type": "string"
+            },
+            "interval_seconds": {
+              "anyOf": [
+                {
+                  "maximum": 540,
+                  "minimum": 60,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Interval Seconds"
+            },
+            "last_terminal_state_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Last Terminal State Fingerprint"
+            },
+            "last_terminal_status": {
+              "enum": [
+                "never",
+                "succeeded",
+                "failed",
+                "in_progress"
+              ],
+              "title": "Last Terminal Status",
+              "type": "string"
+            },
+            "local_scene_count": {
+              "maximum": 2,
+              "minimum": 0,
+              "title": "Local Scene Count",
+              "type": "integer"
+            },
+            "lock_status": {
+              "enum": [
+                "available",
+                "busy",
+                "unsafe"
+              ],
+              "title": "Lock Status",
+              "type": "string"
+            },
+            "network_request_performed": {
+              "const": false,
+              "default": false,
+              "title": "Network Request Performed",
+              "type": "boolean"
+            },
+            "operational_blockers": {
+              "default": [],
+              "items": {
+                "type": "string"
+              },
+              "title": "Operational Blockers",
+              "type": "array"
+            },
+            "policy_blockers": {
+              "items": {
+                "type": "string"
+              },
+              "title": "Policy Blockers",
+              "type": "array"
+            },
+            "request_scope_fingerprint": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null,
+              "title": "Request Scope Fingerprint"
+            },
+            "request_scope_status": {
+              "enum": [
+                "valid",
+                "missing",
+                "not_applicable",
+                "invalid"
+              ],
+              "title": "Request Scope Status",
+              "type": "string"
+            },
+            "scene_status": {
+              "enum": [
+                "absent",
+                "available",
+                "partial",
+                "invalid"
+              ],
+              "title": "Scene Status",
+              "type": "string"
+            },
+            "source": {
+              "enum": [
+                "bods",
+                "national_highways"
+              ],
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source",
+            "configuration_status",
+            "credential_environment_name",
+            "credential_present",
+            "interval_environment_name",
+            "request_scope_status",
+            "control_integrity",
+            "lock_status",
+            "last_terminal_status",
+            "scene_status",
+            "local_scene_count",
+            "contracts",
+            "enabled_for_process",
+            "policy_blockers"
+          ],
+          "title": "V07SourceRunPreflight",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Mutation-free, network-free, path-free plan for local port 8502.",
+      "properties": {
+        "active_registry_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Active Registry Sha256",
+          "type": "string"
+        },
+        "application_entrypoint_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Application Entrypoint Sha256",
+          "type": "string"
+        },
+        "bind_host": {
+          "const": "127.0.0.1",
+          "default": "127.0.0.1",
+          "title": "Bind Host",
+          "type": "string"
+        },
+        "blockers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Blockers",
+          "type": "array"
+        },
+        "bods": {
+          "$ref": "#/$defs/V07SourceRunPreflight"
+        },
+        "capability_ids": {
+          "default": [
+            "REL-01",
+            "MAN-05",
+            "MAN-08"
+          ],
+          "items": {
+            "enum": [
+              "REL-01",
+              "MAN-05",
+              "MAN-08"
+            ],
+            "type": "string"
+          },
+          "title": "Capability Ids",
+          "type": "array"
+        },
+        "capability_status": {
+          "const": "planned",
+          "default": "planned",
+          "title": "Capability Status",
+          "type": "string"
+        },
+        "credential_value_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Credential Value Persisted",
+          "type": "boolean"
+        },
+        "durable_receipt_fingerprint": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Durable Receipt Fingerprint",
+          "type": "string"
+        },
+        "environment_variable_names": {
+          "default": [
+            "BODS_API_KEY",
+            "TRAFFICTWIN_BODS_BOUNDING_BOX",
+            "TRAFFICTWIN_BODS_AUTO_REFRESH_SECONDS",
+            "NATIONAL_HIGHWAYS_API_KEY",
+            "TRAFFICTWIN_NATIONAL_HIGHWAYS_AUTO_REFRESH_SECONDS",
+            "TRAFFICTWIN_WORKSPACE_PATH",
+            "TRAFFICTWIN_REGISTRY_PATH"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "title": "Environment Variable Names",
+          "type": "array"
+        },
+        "foreground_only": {
+          "const": true,
+          "default": true,
+          "title": "Foreground Only",
+          "type": "boolean"
+        },
+        "launchable": {
+          "title": "Launchable",
+          "type": "boolean"
+        },
+        "loopback_only": {
+          "const": true,
+          "default": true,
+          "title": "Loopback Only",
+          "type": "boolean"
+        },
+        "method_version": {
+          "const": "v07-real-workspace-run-1.0",
+          "default": "v07-real-workspace-run-1.0",
+          "title": "Method Version",
+          "type": "string"
+        },
+        "national_highways": {
+          "$ref": "#/$defs/V07SourceRunPreflight"
+        },
+        "network_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Request Performed",
+          "type": "boolean"
+        },
+        "operation": {
+          "const": "foreground_local_real_workspace",
+          "default": "foreground_local_real_workspace",
+          "title": "Operation",
+          "type": "string"
+        },
+        "port": {
+          "const": 8502,
+          "default": 8502,
+          "title": "Port",
+          "type": "integer"
+        },
+        "port_available": {
+          "title": "Port Available",
+          "type": "boolean"
+        },
+        "port_separated_from_synthetic_demo": {
+          "const": true,
+          "default": true,
+          "title": "Port Separated From Synthetic Demo",
+          "type": "boolean"
+        },
+        "private_path_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Private Path Persisted",
+          "type": "boolean"
+        },
+        "public_hosting_available": {
+          "const": false,
+          "default": false,
+          "title": "Public Hosting Available",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "traffictwin.real-workspace-run.v1",
+          "default": "traffictwin.real-workspace-run.v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "synthetic_demo_expected_port": {
+          "const": 8501,
+          "default": 8501,
+          "title": "Synthetic Demo Expected Port",
+          "type": "integer"
+        },
+        "workspace_handle": {
+          "pattern": "^workspace-[0-9a-f]{16}$",
+          "title": "Workspace Handle",
+          "type": "string"
+        },
+        "workspace_manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Workspace Manifest Sha256",
+          "type": "string"
+        },
+        "workspace_mutated": {
+          "const": false,
+          "default": false,
+          "title": "Workspace Mutated",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "workspace_handle",
+        "durable_receipt_fingerprint",
+        "workspace_manifest_sha256",
+        "active_registry_sha256",
+        "application_entrypoint_sha256",
+        "port_available",
+        "bods",
+        "national_highways",
+        "launchable"
+      ],
+      "title": "V07RealWorkspaceRunPreflight",
+      "type": "object"
+    },
+    "V07SourceContractVersions": {
+      "additionalProperties": false,
+      "description": "Exact source/control/freshness versions read by one worker.",
+      "properties": {
+        "acquisition": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Acquisition",
+          "type": "string"
+        },
+        "control": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Control",
+          "type": "string"
+        },
+        "freshness": {
+          "const": "manchester-freshness-v1",
+          "default": "manchester-freshness-v1",
+          "title": "Freshness",
+          "type": "string"
+        },
+        "live_scene": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Live Scene",
+          "type": "string"
+        },
+        "source_schema": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Source Schema",
+          "type": "string"
+        }
+      },
+      "required": [
+        "acquisition",
+        "source_schema",
+        "live_scene",
+        "control"
+      ],
+      "title": "V07SourceContractVersions",
+      "type": "object"
+    },
+    "V07SourceRunPreflight": {
+      "$defs": {
+        "V07SourceContractVersions": {
+          "additionalProperties": false,
+          "description": "Exact source/control/freshness versions read by one worker.",
+          "properties": {
+            "acquisition": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Acquisition",
+              "type": "string"
+            },
+            "control": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Control",
+              "type": "string"
+            },
+            "freshness": {
+              "const": "manchester-freshness-v1",
+              "default": "manchester-freshness-v1",
+              "title": "Freshness",
+              "type": "string"
+            },
+            "live_scene": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Live Scene",
+              "type": "string"
+            },
+            "source_schema": {
+              "maxLength": 96,
+              "minLength": 1,
+              "title": "Source Schema",
+              "type": "string"
+            }
+          },
+          "required": [
+            "acquisition",
+            "source_schema",
+            "live_scene",
+            "control"
+          ],
+          "title": "V07SourceContractVersions",
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Secret-free local readiness for one process worker.",
+      "properties": {
+        "configuration_status": {
+          "enum": [
+            "configured",
+            "disabled",
+            "not_configured",
+            "invalid"
+          ],
+          "title": "Configuration Status",
+          "type": "string"
+        },
+        "contracts": {
+          "$ref": "#/$defs/V07SourceContractVersions"
+        },
+        "control_integrity": {
+          "enum": [
+            "absent_valid",
+            "valid",
+            "invalid"
+          ],
+          "title": "Control Integrity",
+          "type": "string"
+        },
+        "credential_environment_name": {
+          "enum": [
+            "BODS_API_KEY",
+            "NATIONAL_HIGHWAYS_API_KEY"
+          ],
+          "title": "Credential Environment Name",
+          "type": "string"
+        },
+        "credential_present": {
+          "title": "Credential Present",
+          "type": "boolean"
+        },
+        "credential_value_persisted": {
+          "const": false,
+          "default": false,
+          "title": "Credential Value Persisted",
+          "type": "boolean"
+        },
+        "enabled_for_process": {
+          "title": "Enabled For Process",
+          "type": "boolean"
+        },
+        "interval_environment_name": {
+          "title": "Interval Environment Name",
+          "type": "string"
+        },
+        "interval_seconds": {
+          "anyOf": [
+            {
+              "maximum": 540,
+              "minimum": 60,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval Seconds"
+        },
+        "last_terminal_state_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Terminal State Fingerprint"
+        },
+        "last_terminal_status": {
+          "enum": [
+            "never",
+            "succeeded",
+            "failed",
+            "in_progress"
+          ],
+          "title": "Last Terminal Status",
+          "type": "string"
+        },
+        "local_scene_count": {
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Local Scene Count",
+          "type": "integer"
+        },
+        "lock_status": {
+          "enum": [
+            "available",
+            "busy",
+            "unsafe"
+          ],
+          "title": "Lock Status",
+          "type": "string"
+        },
+        "network_request_performed": {
+          "const": false,
+          "default": false,
+          "title": "Network Request Performed",
+          "type": "boolean"
+        },
+        "operational_blockers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Operational Blockers",
+          "type": "array"
+        },
+        "policy_blockers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Policy Blockers",
+          "type": "array"
+        },
+        "request_scope_fingerprint": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Request Scope Fingerprint"
+        },
+        "request_scope_status": {
+          "enum": [
+            "valid",
+            "missing",
+            "not_applicable",
+            "invalid"
+          ],
+          "title": "Request Scope Status",
+          "type": "string"
+        },
+        "scene_status": {
+          "enum": [
+            "absent",
+            "available",
+            "partial",
+            "invalid"
+          ],
+          "title": "Scene Status",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "bods",
+            "national_highways"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "configuration_status",
+        "credential_environment_name",
+        "credential_present",
+        "interval_environment_name",
+        "request_scope_status",
+        "control_integrity",
+        "lock_status",
+        "last_terminal_status",
+        "scene_status",
+        "local_scene_count",
+        "contracts",
+        "enabled_for_process",
+        "policy_blockers"
+      ],
+      "title": "V07SourceRunPreflight",
+      "type": "object"
+    },
     "V07WorkspaceContract": {
       "additionalProperties": false,
       "description": "Published REL-01 foundation contract.",

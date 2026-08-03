@@ -5197,3 +5197,32 @@ focused strict mypy, lock validation, generated help/schema JSON, changed-docume
 added-line secret/private-path and diff checks passed. Only temporary empty test workspaces were
 created; no owner-selected private workspace was inspected or initialised, no source or credential
 was used, and no historical store, evidence, capability acceptance, release or tag was created.
+
+### Phase 192 claim: foreground real-workspace run profile (`NEXT-02`, 3 August 2026)
+
+The owner-directed integrating lead owns the second Phase-190 implementation slice in a new
+`src/traffictwin/release/real_workspace_run.py`, its bounded exports and release CLI commands,
+focused `tests/unit/test_real_workspace_run_v07.py` plus narrow existing app-worker regression,
+generated schema/help reconciliation, `docs/v07_real_workspace_run.md`, canonical design/status/
+usage discoverability updates, and this phase record. The phase may add a mutation-free,
+network-free, secret/path-free preflight over one exact owner-supplied durable workspace; fixed
+loopback port-8502 foreground launch planning; environment-presence, interval, BODS request-scope,
+control/lock/local-scene integrity checks; source-policy blockers; exact plan confirmation; and a
+fixed-argv Streamlit launcher that inherits credentials only in child-process environment. It may
+not search for a workspace, print/store an environment value, call either provider during
+preflight, create a daemon or public deployment, alter the existing worker/source/control
+semantics, run a private real-source smoke during verification, claim city-road coverage or
+provider SLA, accept a capability, or create a release/tag.
+
+Phase 192 completed locally on 3 August 2026. The preflight now binds the durable receipt and
+current workspace/registry/app digests; probes only loopback port 8502; reports configuration
+presence, interval and BODS scope-fingerprint state; validates existing controls, locks and cached
+scenes without mutation; and preserves exact source versions and policy blockers. Exact plan
+confirmation selects a fixed no-shell foreground Streamlit argv; only the child environment
+receives verified private paths and inherited source values. The existing workers start and fail
+independently after a configured session and retain their current locks, rates, manual fallbacks
+and stale-cache truth. The wider durable/release/worker/control/scene/app/CLI regression passed 118
+tests. Ruff, format, focused strict mypy, lock, generated help/schema JSON, changed-document links,
+added-line secret/private-path and diff checks passed. Verification used temporary empty
+workspaces, fake port probes and an injected process runner only; no owner workspace, credential,
+provider call, real server, public deployment, capability acceptance, release or tag was created.
