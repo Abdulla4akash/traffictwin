@@ -11,7 +11,7 @@ evidence-linked diagnostic hypotheses, and traces outputs back to their source r
 provides deterministic synthetic scenarios when external data or simulators are unavailable.
 
 TrafficTwin exposes one exact Randy/VEC evaluator through conditional request-preflight-gated
-foreground execution. On the opt-in v0.7 development branch it also provides explicit, bounded,
+foreground execution. The v0.7 release line also provides explicit, bounded,
 private BODS bus-position and National Highways operational refreshes for Manchester Operations.
 When explicitly configured, process-local workers run while Streamlit is active, with manual
 fallbacks and source-time stale classification. These are bounded snapshot workflows, not
@@ -217,8 +217,8 @@ python -m playwright install chromium
 ### Container build
 
 ```bash
-docker build -t traffictwin:0.6.0 .
-docker run --rm -p 8501:8501 traffictwin:0.6.0
+docker build -t traffictwin:0.7.0 .
+docker run --rm -p 8501:8501 traffictwin:0.7.0
 ```
 
 Open `http://localhost:8501`. The container contains a synthetic workspace only.
@@ -864,7 +864,7 @@ Real evaluation may begin only after the relevant approval and consent process.
 
 **Use when:** you need a current, auditable Manchester-area view of BODS bus positions and/or
 National Highways strategic-road closures, imposed temporary restrictions, and digital sign
-status. This is an opt-in v0.7 development workflow; it does not change the immutable v0.6 release.
+status. This is a bounded v0.7 workflow; it does not change the immutable `v0.6.0` tag.
 
 Create an isolated v0.7 workspace once:
 
@@ -1472,8 +1472,8 @@ Use the root Dockerfile for the full standalone UI. The container initializes a 
 workspace and exposes port 8501.
 
 ```bash
-docker build -t traffictwin:0.6.0 .
-docker run --rm -p 8501:8501 traffictwin:0.6.0
+docker build -t traffictwin:0.7.0 .
+docker run --rm -p 8501:8501 traffictwin:0.7.0
 ```
 
 ### TOS-derived output
@@ -1609,9 +1609,10 @@ the calculated values. Report content and calculation remain separate.
   canonicalisation supports larger explicitly bounded generic tables without retaining all
   canonical rows; streaming metadata import does not automatically compute metrics.
 - No arbitrary simulator, detached job, remote execution, or training launcher.
-- No continuous city-road telemetry, measured road speed/congestion feed, traffic-signal phase
-  feed, or background polling. The v0.7 development branch provides only explicit private BODS
-  bus-position and National Highways operational snapshot workflows with source-time freshness.
+- No continuous city-road telemetry, measured road speed/congestion feed or traffic-signal phase
+  feed. The v0.7 release line provides only private BODS bus-position and National Highways
+  operational snapshot workflows with source-time freshness; configured process-lifetime workers
+  remain local and source-specific.
 - No persistent canonical analytical row store.
 - The OPS-02 Parquet cache is disposable derived reuse, not a primary evidence store or queryable
   analytical database; it has no automatic retention/eviction or remote/shared-cache service.

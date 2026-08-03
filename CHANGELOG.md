@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.7.0 - In development
+## v0.7.0 - 2026-08-03
+
+Integrated the complete `claude/complete-v0.7` feature line into `main` and reconciled the package,
+citation, release metadata, lockfile, operator documentation and release checks at version `0.7.0`.
+The immutable `v0.6.0` tag remains unchanged. This release identity does not convert unavailable,
+synthetic, draft-only or evidence-bounded capabilities into live services; their exact limits remain
+recorded in `docs/implementation-status.md` and the Meeting 1–3 live-feature audit.
 
 Added the fixed local real-workspace run profile (3 August, Phase 192). A mutation-free preflight
 reopens the durable receipt/workspace, probes loopback port 8502, reduces credentials to presence,

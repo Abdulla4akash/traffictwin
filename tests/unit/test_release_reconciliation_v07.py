@@ -12,14 +12,13 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
-import subprocess
 import tomllib
 from pathlib import Path
 
 import pytest
 
 import traffictwin
+from traffictwin.release.metadata import current_release_metadata
 
 _ROOT = Path(__file__).resolve().parents[2]
 _PYPROJECT = _ROOT / "pyproject.toml"
@@ -27,8 +26,8 @@ _CITATION = _ROOT / "CITATION.cff"
 _CHANGELOG = _ROOT / "CHANGELOG.md"
 _CLI_HELP = _ROOT / "docs" / "reference" / "generated" / "cli_help.json"
 
-#: v0.7 is a development line. A final release tag is the owner's to create, and
-#: an agent must never bump the package into it.
+#: Main now carries the owner-authorised v0.7 package identity. Tag publication
+#: remains a separate repository-owner action.
 _FINAL_V07_VERSION = "0.7.0"
 
 
@@ -50,32 +49,19 @@ class TestVersionsAgree:
         # A stale citation misattributes which version was cited.
         assert _citation_version() == _pyproject_version()
 
-    def test_the_changelog_names_the_development_line(self) -> None:
+    def test_the_changelog_names_the_release_line(self) -> None:
         text = _CHANGELOG.read_text(encoding="utf-8")
-        assert "v0.7.0" in text, "the changelog must record the in-development line"
+        assert "## v0.7.0 - 2026-08-03" in text, "the changelog must record the release line"
 
 
-class TestTheReleaseLineIsNotPrematurelyAdvanced:
-    def test_the_package_version_is_not_the_final_v07(self) -> None:
-        # v0.7 still has planned capabilities and incomplete gates. Bumping the
-        # package to the final version would assert a release that has not
-        # happened, whatever any tag says.
-        assert _pyproject_version() != _FINAL_V07_VERSION, (
-            "the package must not carry the final v0.7.0 version while gates are incomplete"
-        )
+class TestTheReleaseLineIsReconciled:
+    def test_the_package_carries_the_v07_identity(self) -> None:
+        assert _pyproject_version() == _FINAL_V07_VERSION
 
-    def test_no_final_v07_tag_exists(self) -> None:
-        git = shutil.which("git")
-        if git is None:  # pragma: no cover - git is present in every dev environment
-            pytest.skip("git is unavailable")
-        result = subprocess.run(  # noqa: S603 - resolved argv, no shell, no caller input
-            [git, "tag", "-l", _FINAL_V07_VERSION, f"v{_FINAL_V07_VERSION}"],
-            cwd=_ROOT,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        assert result.stdout.strip() == "", "a final v0.7.0 tag must not exist yet"
+    def test_release_identity_does_not_claim_production_readiness(self) -> None:
+        metadata = current_release_metadata()
+        assert metadata.version == _FINAL_V07_VERSION
+        assert metadata.production_status == "Research prototype; not production-ready."
 
 
 class TestGeneratedReferencesAreCurrent:

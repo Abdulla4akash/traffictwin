@@ -89,7 +89,7 @@ def test_manuscript_contains_no_exact_duplicate_long_prose() -> None:
     assert text.count("synthetic vehicle paths.") == 1
 
 
-def test_release_and_external_authority_remain_fail_closed() -> None:
+def test_phase_186_release_boundary_remains_historical_and_fail_closed() -> None:
     record = _record()
     boundary = record["release_boundary"]
     external = record["external_state"]
@@ -108,8 +108,11 @@ def test_release_and_external_authority_remain_fail_closed() -> None:
     assert record["capability_accepted"] is False
     assert record["scientific_evidence_created"] is False
     assert record["supervisor_or_ethics_approval_created"] is False
-    assert re.search(r'^version = "0\.6\.0"$', PYPROJECT.read_text(), re.MULTILINE)
-    assert re.search(r"^version: 0\.6\.0$", CITATION.read_text(), re.MULTILINE)
+    # The immutable Phase-186 record must keep the exact state observed on 2 August.
+    # The owner-authorised 0.7.0 integration happened later and updates only current
+    # package metadata, not the historical evidence record above.
+    assert re.search(r'^version = "0\.7\.0"$', PYPROJECT.read_text(), re.MULTILINE)
+    assert re.search(r"^version: 0\.7\.0$", CITATION.read_text(), re.MULTILINE)
 
 
 def test_audit_is_path_free_and_does_not_claim_private_inspection() -> None:

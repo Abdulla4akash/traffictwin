@@ -26,8 +26,8 @@ The root `Dockerfile` packages the full standalone synthetic Streamlit applicati
 demo workspace during image construction and exposes port `8501`.
 
 ```bash
-docker build -t traffictwin:0.6.0 .
-docker run --rm -p 8501:8501 traffictwin:0.6.0
+docker build -t traffictwin:0.7.0 .
+docker run --rm -p 8501:8501 traffictwin:0.7.0
 ```
 
 This container remains synthetic and import-first. It does not include external TOS data or enable

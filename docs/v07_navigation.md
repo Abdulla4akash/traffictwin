@@ -2,12 +2,12 @@
 
 This document describes the implemented candidate foundation for `UX-01` from the
 [TrafficTwin v0.7 design](traffictwin-design-v0_7.md#13-product-information-architecture-and-visual-design).
-`UX-01` remains `planned`; making this the normal development router does not accept its complete
+`UX-01` remains `planned`; making this the normal router does not accept its complete
 atomic-cutover gate.
 
 ## Current behaviour
 
-The ordinary v0.7 development application uses the grouped router. No existing page has been
+The ordinary v0.7 application uses the grouped router. No existing page has been
 removed, hidden, or made dependent on a Manchester source. The complete v0.6 radio router remains
 available as an explicit compatibility route:
 

@@ -187,7 +187,7 @@ Do not commit large real datasets or private checkpoints. Store only small sanit
 
 ## Live And Near-Live Data
 
-The v0.7 development branch contains bounded private acquisition for BODS bus positions and three
+The v0.7 release line contains bounded private acquisition for BODS bus positions and three
 National Highways operational products. With explicit workspace, scope, and process-only keys,
 local process workers refresh BODS every minute and National Highways every five minutes.
 Every request is quarantined before parsing, admitted only through source-specific validation,

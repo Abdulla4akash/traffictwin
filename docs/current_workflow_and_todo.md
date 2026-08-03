@@ -1,5 +1,11 @@
 # Current workflow and to-do
 
+> **Release integration update — 3 August 2026:** The repository owner superseded the earlier
+> branch-preservation constraint and authorised fast-forward integration of
+> `claude/complete-v0.7` into `main` plus package/CITATION alignment at `0.7.0`. The dated alpha
+> workflow below remains historical context. Existing tags are still immutable and force-pushing
+> remains prohibited.
+
 - Last updated: 26 July 2026 (dated addendum below; full record reconciliation remains
   `BETA-REC-01`, lead-owned)
 - Branch: `claude/complete-v0.7`
@@ -165,8 +171,8 @@ checkpoint name for lead review; it does not create the tag.
 
 ## Standing constraints
 
-- `main` is the v0.6 release line and is never updated. No final `v0.7.0` tag. No force-push. No
-  moving an existing tag.
+- `main` is the v0.7 package line. The `v0.6.0` and alpha tags remain immutable; no force-push and
+  no moving an existing tag. Publication of a final `v0.7.0` tag is a separate owner action.
 - The user's `codex/traffictwin-v0.7` checkout, `supervisor questions2 Gemini/`, and `../external/`
   are never touched.
 - Raw `.osm.pbf`, decoded `.osm.xml`, built `.net.xml`, route pools, demand files and acquired DfT

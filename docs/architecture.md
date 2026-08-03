@@ -1895,7 +1895,7 @@ inventories and re-derives every pair, exclusion, denominator, coverage value, a
 and metric during reload. Production goodness-of-fit is unavailable because the reviewed contract
 registry is empty. This candidate evidence does not accept MAN-10 or establish model quality.
 
-The candidate `UX-01` implementation makes the grouped router the normal v0.7 development route
+The candidate `UX-01` implementation makes the grouped router the normal v0.7 route
 and preserves the complete legacy router through `TRAFFICTWIN_V07_NAVIGATION=legacy`. A normative
 typed inventory maps all 34 `UiPage` values to unique direct scripts and URL paths. A shared page
 runtime serves both routers, while candidate page-to-page callbacks use registered

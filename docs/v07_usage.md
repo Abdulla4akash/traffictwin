@@ -1,6 +1,6 @@
 # TrafficTwin v0.7 local usage
 
-This is the current operator runbook for the v0.7 development tree. It covers two deliberately
+This is the current operator runbook for the v0.7 release line. It covers two deliberately
 different local modes:
 
 1. a populated standalone demonstration containing deterministic synthetic fixtures; and
@@ -11,8 +11,9 @@ contains no Manchester evidence. A structurally valid v0.7 workspace is only a s
 marker does not prove that any source artifact, mapping, calibration, baseline or comparison has
 been accepted.
 
-The immutable public release remains `v0.6.0`. These instructions do not create a `v0.7.0`
-release, accept a capability or authorise source acquisition.
+The immutable `v0.6.0` tag remains available as the frozen baseline. The `main` branch and package
+metadata now identify `v0.7.0`. These instructions do not accept a capability, create evidence or
+authorise source acquisition.
 
 ## 1. Start from the repository root
 

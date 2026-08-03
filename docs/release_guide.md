@@ -1,19 +1,18 @@
 # Release Guide
 
-TrafficTwin `0.6.0` is a research prototype release candidate with import-first analysis,
-audited Randy/VEC integration, and controlled source-specific VEC and SUMO execution.
+TrafficTwin `0.7.0` is the current research-prototype package identity on `main`. It includes the
+import-first analysis baseline, audited Randy/VEC integration, bounded Manchester source workflows,
+the task-oriented UI and the additive Meeting 3 platform surfaces.
 
-> **v0.7 development boundary:** this file still describes the immutable `v0.6.0` release. On the
-> `claude/complete-v0.7` development branch, do not run the tag commands below as a v0.7 release
-> procedure. Phase 182 passed the safe technical build/install/coexistence checks and Phase 186
-> confirmed the committed handoff inputs, but package/CITATION version, licence/publication
-> reconciliation, capability decisions and explicit release authority remain open. No final
-> `v0.7.0` tag is authorised.
+The immutable `v0.6.0` tag remains the frozen comparison baseline. Version `0.7.0` does not imply
+production readiness, complete Manchester telemetry, public deployment or acceptance of a
+capability whose evidence gate remains open. Consult `docs/implementation-status.md` before making
+any operational or scientific claim.
 
 ## Release Status
 
-- Package version: `0.6.0`
-- Release label: `v0.6.0 research prototype`
+- Package version: `0.7.0`
+- Release label: `v0.7.0 research prototype`
 - Licence: not yet specified
 - Production status: research prototype, not production-ready
 
@@ -59,7 +58,7 @@ Use a temporary virtual environment:
 
 ```bash
 python3.12 -m venv /tmp/tt-wheel-test
-/tmp/tt-wheel-test/bin/python -m pip install dist/traffictwin-0.6.0-py3-none-any.whl
+/tmp/tt-wheel-test/bin/python -m pip install dist/traffictwin-0.7.0-py3-none-any.whl
 /tmp/tt-wheel-test/bin/traffictwin synthetic presets
 ```
 
@@ -68,8 +67,8 @@ python3.12 -m venv /tmp/tt-wheel-test
 Only tag after quality gates pass:
 
 ```bash
-git tag -a v0.6.0 -m "TrafficTwin v0.6.0 research prototype"
-git push origin v0.6.0
+git tag -a v0.7.0 -m "TrafficTwin v0.7.0 research prototype"
+git push origin v0.7.0
 ```
 
 ## Release Checklist

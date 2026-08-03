@@ -6,7 +6,10 @@ observed-to-SUMO calibration, SUMO-to-VEC lineage, and a task-oriented product i
 `MAN-01`–`MAN-11`, `UX-01`–`UX-03`, and `REL-01` capability is planned; none is implemented merely
 because the design, public documentation, an API, or a local SUMO runtime exists.
 
-Implemented release baseline: v0.6 is frozen by tag `v0.6.0` at commit
+Current package line: `main` reports `0.7.0` after the repository-owner-authorised integration on
+3 August 2026. This version identity does not alter the evidence standing of any capability below.
+
+Implemented reproducibility baseline: v0.6 is frozen by tag `v0.6.0` at commit
 `1c50a25246426128ac6e8530240eff362d16be02`. `VEC-01`–`VEC-12` are accepted with scoped scientific
 and publication blockers after their pinned-source, contract, join, preprocessing, safe-runner,
 reproduction, scientific, interface, publication, and end-to-end artifact acceptance tests. Gate G
@@ -147,9 +150,10 @@ Phase 182 completes the currently safe technical Gate-F audit. Fifty-eight focus
 compatibility, migration, rollback and CLI tests passed; all 69 generated reference artifacts were
 byte-identical across two isolated regenerations and the committed catalogue; clean source/wheel
 builds and an isolated Python 3.12 installation passed; and a fresh v0.6.0/v0.7 coexistence run
-kept both registries distinct and byte-unchanged. `REL-01` remains `foundation_only`: the package
-still truthfully reports `0.6.0`, no final v0.7 tag exists, and capability, licence, documentation
-and owner release decisions remain open.
+kept both registries distinct and byte-unchanged. On 3 August 2026 the repository owner authorised
+integration of the complete feature line into `main` and package/CITATION alignment at `0.7.0`.
+`REL-01` remains `foundation_only`: version alignment does not provide a final tag, licence/publication
+decision, real-workspace migration, capability acceptance or production authority.
 
 Phase 183 adds bounded rendered-browser accessibility engineering evidence without manufacturing a
 human audit. Six representative routes were checked at 1,440 × 900 and 390 × 844 for rendered
@@ -781,8 +785,8 @@ side-by-side check now installs the immutable `v0.6.0` tag from a clean detached
 its own lockfile and serves it beside the v0.7 checkout on separate ports and workspaces; the
 24 July 2026 run confirmed concurrent responses, distinct registries, and no cross-registry
 mutation before removing the temporary checkout. This is automated coexistence evidence, not
-release acceptance. Package/release version alignment and final
-release reconciliation remain, so `REL-01` remains planned. The canonical
+release acceptance. Package/CITATION and `main` were aligned at `0.7.0` on 3 August 2026; licence,
+publication, final-tag and real-workspace reconciliation remain, so `REL-01` remains planned. The canonical
 v0.7 specification defines these planned groups without changing current capability truth:
 
 - `MAN-01`–`MAN-07`: audited and immutable source snapshots, DfT historical road counts, WebTRIS
@@ -3095,7 +3099,7 @@ not schedule it, infer environment details, import matched bundles, or change re
   producer/runtime artifacts, and sanitised fixture permission. Public SUMO tripinfo/summary
   ingestion is independently implemented.
 - In the immutable standalone v0.5/v0.6 baseline, direct launch, near-live, and true-live support
-  remain unavailable. The v0.7 development branch adds only the separately documented private
+  remain unavailable. The v0.7 release line adds only the separately documented private
   source-specific BODS and National Highways slices; it does not create a generic live mode.
 
 ## Implemented In Read-Only TOS Integration Increment

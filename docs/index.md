@@ -16,6 +16,8 @@ This index points only to documentation and repository paths that exist in the c
 - [Restricted TfGM/NTIS traffic-feed contract intake](integration/manchester_restricted_traffic_feed_contract.md)
 - [Resumable Manchester map-match review](integration/manchester_match_review.md)
 - [Complete product and usage guide](full_product_guide.md)
+- [Meeting 1–3 live feature gap audit](meeting_1_2_3_live_feature_gap_audit.md)
+- [v0.7 main-branch release integration record](quality/v07_main_release_integration_20260803.md)
 - [System overview](system_overview.md)
 - [Standalone demo](standalone_demo.md)
 - [User guide](user_guide.md)

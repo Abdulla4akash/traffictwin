@@ -44,8 +44,8 @@ The root `Dockerfile` builds the complete standalone Streamlit application with 
 synthetic workspace:
 
 ```bash
-docker build -t traffictwin:0.6.0 .
-docker run --rm -p 8501:8501 traffictwin:0.6.0
+docker build -t traffictwin:0.7.0 .
+docker run --rm -p 8501:8501 traffictwin:0.7.0
 ```
 
 The container exposes `8501` and includes a Streamlit health check. It does not include TOS data,

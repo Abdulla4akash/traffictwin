@@ -54,8 +54,8 @@ v0.7 is additive. It retains every accepted v0.6 boundary:
 - unsupported sources, fields, modes, controls, or claims remain visibly unavailable.
 
 The `v0.6.0` tag identifies commit `1c50a25246426128ac6e8530240eff362d16be02` and must never be
-moved. v0.7 development uses a separate branch, package version, workspace namespace, and cache
-schema. A v0.7 application may read or copy accepted v0.6 records through a versioned compatibility
+moved. The v0.7 package now lives on `main` while retaining a separate package identity, workspace
+namespace and cache schema. A v0.7 application may read or copy accepted v0.6 records through a versioned compatibility
 service, but it must not silently migrate or mutate a valuable v0.6 workspace in place.
 
 ## 3. Non-negotiable constraints
@@ -542,9 +542,9 @@ every row has an accepted destination, stable URL, page-level test, and cross-pa
 During development an incomplete v0.7 regroup keeps the complete v0.6 navigation active; no page is
 removed or hidden merely because its replacement has not landed.
 
-The grouped router is the normal route on the v0.7 development branch. The complete v0.6 router
+The grouped router is the normal route on the v0.7 release line. The complete v0.6 router
 remains available through `TRAFFICTWIN_V07_NAVIGATION=legacy`, while the immutable `v0.6.0` tag is
-unchanged. Development-default routing does not change capability truth or release acceptance;
+unchanged. Default routing does not change capability truth or evidence acceptance;
 the complete Appendix-D inventory and minimum/locked-version, direct-URL, browser-history,
 cross-page-state, packaging, accessibility, mobile, and screenshot gates must still pass together.
 

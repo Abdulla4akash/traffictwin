@@ -2,8 +2,9 @@
 
 **Snapshot date:** 3 August 2026
 
-**Development branch:** `claude/complete-v0.7`; Phase 198 is the current bounded implementation
-increment. The immutable release baseline and historical checkpoint tags remain unchanged.
+**Current package line:** `main` at `0.7.0`; Phase 198 is the current bounded implementation
+increment after integration of `claude/complete-v0.7`. The immutable v0.6 baseline and historical
+checkpoint tags remain unchanged.
 
 **Snapshot scope:** all previously recorded Manchester/VEC/product work plus the Phase 139–146
 data-platform v1, Phase 147–170 post-v1/backend-and-composer suite and Phase 173–180 operational
@@ -32,7 +33,9 @@ credentialed probe or TfGM/NTIS measured-traffic adapter was created.
 This tracker distinguishes implemented libraries/pages and communication artifacts from designs,
 activated schedulers, deployed services, completed studies and accepted scientific evidence.
 
-**Formal release baseline:** immutable `v0.6.0` at
+**Current package identity:** `0.7.0` on `main`
+
+**Immutable reproducibility baseline:** `v0.6.0` at
 `1c50a25246426128ac6e8530240eff362d16be02`
 
 ## 1. Purpose and authority
@@ -66,7 +69,7 @@ precedence.
 | `out_of_scope` | The design explicitly excludes the function from v0.7. |
 
 Under the strict v0.7 completion rule, all 15 v0.7 capability rows remain formally `planned`.
-This does not mean the branch is empty: substantial bounded source, live-operations, and UI
+This does not mean the release line is empty: substantial bounded source, live-operations, and UI
 workflows are already working.
 
 At `v0.7.0-alpha.4` (`4e95a5d`), the Guided Demo is an action-aware cross-page workflow
@@ -213,7 +216,7 @@ reliable engineering-time estimate.
 | Gate C | Manchester Operations, grouped navigation, home page, responsive visual system, and accessibility | `working_bounded` | Final cross-page state and cutover evidence; manual keyboard, screen-reader, contrast, zoom, and participant review where required | 2–4 working days, plus human evaluation time |
 | Gate D | Observation-to-SUMO mapping, calibration, accepted baseline, and observed-versus-simulated comparison | `foundation_only` | Integrated: the reviewed Greater Manchester network, owner-policy v1.1 candidate generation, exact 305-site reconciliation, sealed per-row review ledger, real DfT temporal-profile candidate, calibration/comparison engines, owner-candidate comparison contract, versioned baseline-candidate workflow, read-only complete-lineage UI, and both measured sensitivity populations. Remaining: 174 named-person decisions, an explicit treatment for nine unmatched sites, scientific calibration/uncertainty approval, replacement of the gridlocking demand, compatible runs, separate lead registration of production contracts, a human baseline decision, and a real comparison. | 7–14 working days after the remaining human/scientific decisions |
 | Gate E | Accepted Manchester SUMO output through FCD/network and VEC-06–VEC-12 | `foundation_only` | Run the accepted baseline, validate one-second FCD/network, execute the gated VEC chain, and assemble research/evaluation evidence | 4–8 working days after Gate D |
-| Gate F | v0.6/v0.7 isolation, migration, rollback, packaging, documentation, CI, and immutable release | `foundation_only` | Migration/backup/interruption/rollback and side-by-side clean-checkout tests; reconcile manifests and create the final release | 3–6 working days after claimed capabilities settle |
+| Gate F | v0.6/v0.7 isolation, migration, rollback, packaging, documentation, CI, and immutable release | `foundation_only` | Package/CITATION and `main` are reconciled at `0.7.0`; licence/publication decisions, final tag reconciliation and real-workspace acceptance remain | External/owner decisions plus any resulting engineering work |
 
 The critical dependency path is Gate D → Gate E → Gate F. Gate-B reconciliation, Gate-C manual
 acceptance, and parts of Gate-F migration tooling can progress in parallel.
@@ -233,10 +236,10 @@ acceptance, and parts of Gate-F migration tooling can progress in parallel.
 | `MAN-09` observation-to-SUMO baseline | `foundation_only` | Reviewed Greater Manchester network; owner-policy v1.1 candidates over all 305 real sites (131 owner-policy candidates, 165 ambiguous, nine no-candidate); sealed per-row human-review ledger; real 39,072-cell DfT temporal-profile candidate; deterministic calibration evaluator; Phase-179 calibration dependency and versioned baseline-candidate workflows | All 174 queued rows remain undecided by a person; the nine unmatched sites have no accepted treatment; calibration/uncertainty is unsigned; the existing demand gridlocks; no compatible candidate run, admitted calibration or accepted/refused baseline exists |
 | `MAN-10` observed-versus-simulated comparison | `foundation_only` | Deterministic pairing/exclusion/coverage/lineage/MAE/RMSE engine plus the exact owner-candidate contract (`b1d31a1b…`) and Phase-179 read-only contract/readiness UI | The production registry is empty, GEH is outside the frozen contract, compatible simulated intervals do not exist and no real comparison was executed |
 | `MAN-11` Manchester SUMO-to-VEC workflow | `foundation_only` | Strict path-free research lineage plus Phase-179 complete Gate-D source→mapping→review→profile→calibration→baseline→comparison readiness lineage | No accepted baseline, controlled Manchester SUMO receipt, matching one-second FCD/network pair, complete Manchester VEC chain, or research/usability evaluation exists |
-| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Final cutover decision, package-version reconciliation, and manual accessibility acceptance remain |
-| `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Final release and human usability/participant acceptance remain |
+| `UX-01` task-oriented navigation | `working_bounded` | All 34 v0.6 pages mapped into five groups with stable direct routes, Material icons, normal v0.7 routing, complete legacy fallback, a candidate action-aware Guided Demo with persistent progress and automatic next-task routing, and automated cross-page shared-state evidence for both routers; minimum/locked Streamlit, wheel, AppTest, and browser checks pass | Manual accessibility and final capability acceptance remain |
+| `UX-02` map-led home/workflow | `working_bounded` | Focused research home, primary actions, meaningful local KPIs, and latest accepted Manchester context | Human usability/participant and final capability acceptance remain |
 | `UX-03` responsive/accessibility system | `working_bounded` | Native theme/components, presentation mapping, deprecated-width removal, responsive layouts, the integrated Tier 1 page-presentation harvest (SUMO/bundle/TOS import, comparison, About, experiment tracking, and the shared truncated-fingerprint caption with Advanced identity), the Tier 2 harvest (Statistical Study tabs and per-seed chart, VEC Workbench staged workflow, Temporal Metrics reconciliation, Threshold Sensitivity response panels), the Tier 3 harvest (Diagnostics & Evidence grouped availability, Provenance Explorer structured dependency views, Operations View replay/active-filter/window panels, Triviality descriptive chart, Participant Evaluation readiness checklist, Manifest Inference preview/confirm separation), the Tier 4 analysis-evidence harvest (Energy coverage-first family dashboard and joule-comparison chart, Fairness eligible-group coverage and Exclusions & Limitations, Infrastructure canonical-vs-source provenance/window and native per-RSU charts, Journey-Time cohort-completion and distribution chart, Spatial & RSU coordinate-frame and target/coordinate reconciliation), the Tier 5 research-workflow harvest (Scenario Builder sequential authored-vs-generated flow, Scenario Mutations three-stage before/after, Experiment Planner define/validate/inspect/register run matrix, Parameter Sweep choose/define/preview/export with a preview chart, Reports peer-view tabs), and 140-view visual regression | Manual keyboard, screen-reader, contrast, zoom, and participant checks remain; automation cannot claim WCAG conformance |
-| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, and a workspace setup/diagnostics guide | Package/release version alignment, cross-schema migration if schemas diverge, and final release/tag reconciliation remain |
+| `REL-01` v0.6/v0.7 isolation | `foundation_only` | Separate v0.7 workspace/registry/cache namespaces, byte-exact read-only v0.6 registry copying, the ADR-058 operator attestation, an attested same-schema activation workflow with durable backup, interruption quarantine, and receipt-gated rollback, bounded CLI commands for the whole chain, a demo-launcher `--port` option for side-by-side operation, a passing scripted v0.6.0 clean-checkout coexistence check, package/CITATION alignment at `0.7.0`, and a workspace setup/diagnostics guide | Cross-schema migration if schemas diverge, licence/publication decisions, final tag reconciliation and real-workspace acceptance remain |
 
 ## 6. Major work ready to build now
 

@@ -2,7 +2,7 @@
 
 TrafficTwin is an import-first research software prototype for reproducible urban traffic and vehicular edge-computing what-if analysis. It defines versioned scenario seeds, imports standard run bundles, validates and canonicalises source files, computes deterministic metrics, builds EvidencePacks, compares scenarios, evaluates deterministic diagnostic hypotheses, and traces results back to source rows through the Provenance Explorer. OffloadLens is the VEC analysis module inside the platform.
 
-Status: `v0.6.0` research prototype. The repository is usable without Randy's VEC
+Status: `v0.7.0` research prototype. The repository is usable without Randy's VEC
 environment, external services, or live feeds. All bundled demonstration and SUMO acceptance data
 is synthetic. The import-only SUMO adapter accepts checksummed 1.27 tripinfo/summary outputs, and
 the confirmation-gated manifest wizard can suggest generic CSV mappings without making them
@@ -24,16 +24,17 @@ audited source scripts, immutable outputs, and a deterministic receipt. The VEC-
 the exact audited Randy evaluator locally through a closed typed request and immutable receipt; it
 does not launch SUMO, expose a product Run control, or establish VEC-08 numerical reproduction.
 
-The v0.7 development tree additionally contains private, operator-triggered
+The v0.7 release line additionally contains private, operator-controlled
 Manchester evidence workflows. BODS supplies source-timed live bus positions. The current National
 Highways developer REST service supplies source-separated near-live/stale closures and incidents,
 imposed temporary restrictions, and digital VMS status for Strategic Road Network features inside
 a declared study envelope. A real three-product acceptance run passed on 24 July 2026. These
-features require credentials supplied through environment variables and never run in the
-background. Manchester Operations also includes attributed, hash-verified ONS Manchester/Greater
+features require credentials supplied through environment variables. A validated real v0.7
+workspace can run process-lifetime BODS and National Highways refresh workers, with explicit manual
+fallbacks. Manchester Operations also includes attributed, hash-verified ONS Manchester/Greater
 Manchester display boundaries and a downloadable aggregate-only source-status manifest. It does
 not provide continuous traffic flow, measured road speed, congestion, complete city-road coverage,
-traffic-signal phases, raw/position public export, or a change to the immutable v0.6 release.
+traffic-signal phases, raw/position public export, or a change to the immutable `v0.6.0` tag.
 
 Public synthetic demonstration: <https://traffictwin-research-demo.netlify.app>. This static site
 shows precomputed repository-generated scenarios and reports. It is not the full Streamlit
@@ -210,15 +211,14 @@ Implemented:
   accessibility regression checks.
 - Descriptive analysis for explicitly labelled synthetic mock participant results only.
 
-Not implemented in the immutable v0.6 release (the bounded v0.7 development exceptions are
-described above):
+Not live or production-complete in the v0.7 release line:
 
-- Standard Randy/VEC bundle conversion, SUMO FCD/other-output adapters, and simulator launch.
-- Direct simulator launch or asynchronous jobs.
+- Generic Randy/VEC conversion and launch beyond the explicit evidence- and preflight-gated paths.
+- Generic or asynchronous simulator jobs beyond the bounded loopback-only synthetic SUMO transport.
 - Complete real Manchester sensor ingestion or continuous city-road telemetry.
-- Generic near-live or true-live operation beyond the source-specific private v0.7 workflows.
-- LLM rendering, XAI, trained/calibrated portfolio selection, or training orchestration. The
-  deterministic findings renderer is not an LLM and adds no claims.
+- Generic live operation beyond the source-specific private BODS and National Highways workflows.
+- Real model attribution, trained/calibrated portfolio selection, automatic training orchestration,
+  or action authority. The deterministic findings renderer is not an LLM and adds no claims.
 
 ## Ten-Minute Standalone Demo
 
@@ -626,10 +626,10 @@ The current test count and coverage are documented in [docs/reproducibility.md](
 
 All repository-contained run data is synthetic unless an imported source explicitly says otherwise.
 The optional TOS Data package is an external simulation-results source and is labelled imported
-historical replay, not live Manchester data. On the v0.7 development branch, Manchester Operations
-can fetch private BODS and National Highways evidence only after an operator supplies the relevant
-environment credential and clicks the explicit refresh form. Ordinary reruns remain offline; no
-real response or credential is bundled with the repository.
+historical replay, not live Manchester data. In a validated real v0.7 workspace, Manchester
+Operations can refresh private BODS and National Highways evidence after the operator supplies the
+relevant environment credentials and request scope. Process-lifetime workers and explicit manual
+fallbacks remain source-separated; no real response or credential is bundled with the repository.
 
 ## External Integration Status
 

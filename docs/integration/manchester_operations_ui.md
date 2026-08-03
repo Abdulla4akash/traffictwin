@@ -6,7 +6,7 @@ software evidence, not acceptance of any Manchester source, live feed, calibrati
 
 ## Availability and setup
 
-The page is additive at `/manchester` inside the normal v0.7 development router:
+The page is additive at `/manchester` inside the normal v0.7 router:
 
 ```bash
 uv run python - <<'PY'
