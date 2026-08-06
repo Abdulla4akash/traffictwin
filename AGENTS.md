@@ -5376,3 +5376,38 @@ focused and adjacent National Highways/history tests passed. Ruff, focused stric
 schema/help reconciliation and diff checks passed. No provider, real snapshot pair, writer,
 Changes page, measured-traffic claim, public row, capability acceptance, release or tag was
 created.
+
+### Completed owner-directed claim: VEC per-task lifecycle contract v1 (6 August 2026)
+
+The owner directed the first core scheduling milestone on a new implementation branch from the
+clean `origin/main` head `a462c72b81f1668eef4ea0b7f8e806be4d208b47`. This slice owns only a new
+`src/traffictwin/integration/vec_task_lifecycle/` package, focused
+`tests/unit/test_vec_task_lifecycle.py`, one lifecycle-contract document under
+`docs/integration/`, the directly relevant implementation/progress records and this claim.
+
+The slice may define a strict versioned per-task event ledger, validate state transitions and
+node continuity, reconcile every offered task count into admitted/rejected and terminal/in-progress
+populations, keep physical return distinct from modelled deadline attainment, and prove the
+contract on synthetic fixtures. It may not edit or wrap the pinned external evaluator; infer
+missing lifecycle events from current `task_met`/latency arrays; implement RSU-selection policy,
+forwarding decisions, a learned scheduler or actor retraining; alter VEC-01–VEC-12 evidence;
+touch campaigns, registries, checkpoints, approval records or digest-bound candidates; fetch or
+modify either external clone; launch an experiment; accept a capability; or create/move a tag.
+
+The contract is provisional instrumentation software and proves task-count rather than CPU-work
+conservation. It is not an assertion of Randy's intended queue,
+service, rejection, completion or return semantics. Native lifecycle producers and an evaluator
+adapter remain separate later slices. The documentation-only PR #2 is not part of this branch.
+
+Completed locally on the dedicated implementation branch. The new strict native-event ledger
+validates contiguous per-task sequence, non-decreasing time, local/V2I/V2V ingress compatibility,
+admission/rejection, retained versus RSU-forwarded paths, execution, drop, result return/failure,
+deadline assessment and node continuity. Reports deterministically fingerprint canonical events
+and reconcile offered tasks into pending/admitted/rejected and admitted tasks into in-progress/
+dropped/returned/return-failed counts. A physically returned task may still miss its modelled
+deadline. The current evaluator remains explicitly incompatible because it emits no native
+lifecycle events, and task-count conservation is not CPU-work/service-budget conservation.
+Fourteen focused tests, 86 adjacent VEC contract/runner/join/admission tests and all 3,458 unit
+tests passed. Repository Ruff check/format passed across 975 files and strict mypy passed across
+920 source files. No external repository, evaluator, campaign, registry, checkpoint, approval,
+evidence, digest-bound artifact, capability, release or tag changed.
