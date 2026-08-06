@@ -40,6 +40,7 @@ This index points only to documentation and repository paths that exist in the c
 - [VEC per-task lifecycle instrumentation contract v1](integration/vec_task_lifecycle_contract.md)
 - [Synthetic two-RSU hand-check v1](integration/vec_two_rsu_handcheck.md)
 - [Deterministic VEC execution-RSU dispatcher v1](integration/vec_deterministic_dispatch.md)
+- [Native VEC runner sidecar boundary v1](integration/vec_native_runner_sidecar.md)
 - [Accepted v0.7 Manchester source Gate A audit](integration/manchester-source-gate-a-audit-v0_7.md)
 - [Manchester acquisition and hardened-parsing decision](decisions/ADR-054-bounded-manchester-acquisition-transport-and-parsing.md)
 - [Manchester time-basis decision](decisions/ADR-055-manchester-time-basis.md)

@@ -5487,3 +5487,41 @@ cases, 112 adjacent VEC tests and all 3,484 unit tests passed. Repository Ruff c
 across 981 files and strict mypy passed across 926 source files. No actor, observation contract,
 model, evaluator, native producer, external repository, campaign, registry, checkpoint, approval,
 evidence, digest-bound artifact, capability, release, push or tag changed.
+
+### Owner-directed claim: native VEC runner sidecar boundary v1 (6 August 2026)
+
+The owner selected native evaluator/runner integration on a new local branch from deterministic-
+dispatcher commit `3b13856134fc6afece5fa6fd1d7e7c5876ace096`. Because the pinned evaluator
+does not emit native lifecycle or dispatcher artifacts and must not be modified, this slice owns
+only a new `src/traffictwin/integration/vec_native_runner/` read-only sidecar verifier, focused
+`tests/unit/test_vec_native_runner.py`, one integration document, bounded status/index updates and
+this claim.
+
+The slice may define a digest-bound manifest for lifecycle-event, dispatcher-request and
+dispatcher-decision JSONL files; bind it to one successful existing `VecExecutionReceipt`; read
+only bounded regular non-symlink files; replay the lifecycle and reservation-aware dispatcher
+validators; join exact V2I task, ingress, forwarding, execution and return identities; and report
+which producer semantics remain unavailable. It may not add flags to or modify the pinned
+evaluator, infer native events from `task_met`/latency arrays, alter existing VEC-07 outputs or
+receipts, claim producer authentication, manufacture scientific evidence, write into a completed
+runner directory, launch/relaunch a run or campaign, touch registry/campaign/checkpoint/digest-
+bound candidate bytes, fetch/modify an external clone, push, publish or create/move a tag.
+
+The sidecar is additive future-native/adapter validation, not evidence that the current pinned
+evaluator emits the files. A selected dispatch must reconcile with explicit lifecycle nodes; an
+unavailable dispatch uses a manifest-declared provisional explicit-rejection rule. Structural
+validation proves artifact consistency only, not truth of the producer, physical performance,
+deadline benefit or scheduler superiority.
+
+Completed locally on the dedicated native-runner-sidecar branch. The strict manifest exact-binds
+three bounded JSONL roles to one completed published VEC-07 receipt by run, request, output and
+receipt fingerprints. The read-only verifier rejects unsafe paths/symlinks and size/digest drift,
+replays complete lifecycle and reservation-aware dispatch validation, requires recorded decisions
+to equal deterministic replay, and joins every V2I ingress, selected retained/forwarded path,
+execution/terminal node and return source. Explicit dispatch unavailability reconciles only to the
+declared provisional ingress-rejection rule; selected tasks may still drop or fail return. Ten
+focused native-sidecar test cases, 64 adjacent lifecycle/dispatch/runner tests and all 3,494 unit
+tests passed. Repository Ruff check/format passed across 985 files and strict mypy passed across 930
+source files. No pinned evaluator flag/output, external repository, native producer, run, campaign,
+registry, checkpoint, approval, evidence, digest-bound artifact, capability, release, push or tag
+changed.

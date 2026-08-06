@@ -136,8 +136,9 @@ Implemented and tested:
 
 Still separate and unbuilt:
 
-1. a reviewed native evaluator lifecycle/state producer or adapter;
-2. runner/admission integration for dispatcher requests and decisions;
+1. a reviewed native evaluator lifecycle/state producer or adapter, followed by the implemented
+   [native runner sidecar validation](vec_native_runner_sidecar.md);
+2. live runner production and admission integration for validated dispatcher requests/decisions;
 3. contact-time, bandwidth, reliability and service-budget semantics;
 4. a signed matched deterministic comparison on identical traffic/tasks/seeds;
 5. scientific metrics and admitted result evidence; and
