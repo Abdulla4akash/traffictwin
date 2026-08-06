@@ -146,7 +146,8 @@ The next slices are separate and still unbuilt:
 
 1. obtain producer answers or freeze explicit provisional service/admission/return semantics;
 2. implement a native lifecycle producer in a reviewed evaluator boundary;
-3. validate one hand-calculated two-RSU case against the native event stream;
+3. replay the implemented
+   [synthetic two-RSU hand calculation](vec_two_rsu_handcheck.md) against the native event stream;
 4. add deterministic strongest-link/no-forwarding, least-loaded and predicted-earliest-completion
    policies behind a separate scheduler interface;
 5. extend VEC runner output validation, fresh admission and metrics to the new native artifact;

@@ -16,9 +16,24 @@ from traffictwin.integration.vec_task_lifecycle.service import (
     VecTaskLifecycleError,
     validate_vec_task_lifecycle,
 )
+from traffictwin.integration.vec_task_lifecycle.two_rsu_handcheck import (
+    TWO_RSU_HANDCHECK_METHOD_VERSION,
+    TWO_RSU_HANDCHECK_RESEARCH_STATUS,
+    TWO_RSU_HANDCHECK_SCHEMA_VERSION,
+    TwoRsuExecutionReservation,
+    TwoRsuExecutionState,
+    TwoRsuHandcheckCase,
+    TwoRsuHandcheckError,
+    TwoRsuHandcheckReport,
+    build_two_rsu_handcheck_case,
+    validate_two_rsu_handcheck,
+)
 
 __all__ = [
     "MAX_LIFECYCLE_EVENTS",
+    "TWO_RSU_HANDCHECK_METHOD_VERSION",
+    "TWO_RSU_HANDCHECK_RESEARCH_STATUS",
+    "TWO_RSU_HANDCHECK_SCHEMA_VERSION",
     "VEC_TASK_LIFECYCLE_METHOD_VERSION",
     "VEC_TASK_LIFECYCLE_RESEARCH_STATUS",
     "VEC_TASK_LIFECYCLE_SCHEMA_VERSION",
@@ -28,6 +43,13 @@ __all__ = [
     "VecTaskLifecycleEventKind",
     "VecTaskLifecycleReport",
     "VecTaskNodeKind",
+    "TwoRsuExecutionReservation",
+    "TwoRsuExecutionState",
+    "TwoRsuHandcheckCase",
+    "TwoRsuHandcheckError",
+    "TwoRsuHandcheckReport",
+    "build_two_rsu_handcheck_case",
     "validate_vec_task_lifecycle",
+    "validate_two_rsu_handcheck",
     "vec_task_lifecycle_contract",
 ]

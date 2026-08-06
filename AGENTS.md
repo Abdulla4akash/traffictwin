@@ -5411,3 +5411,40 @@ Fourteen focused tests, 86 adjacent VEC contract/runner/join/admission tests and
 tests passed. Repository Ruff check/format passed across 975 files and strict mypy passed across
 920 source files. No external repository, evaluator, campaign, registry, checkpoint, approval,
 evidence, digest-bound artifact, capability, release or tag changed.
+
+### Owner-directed claim: synthetic two-RSU hand-check v1 (6 August 2026)
+
+The owner directed the second core scheduling milestone on a new local branch from the completed
+VEC lifecycle-contract commit `b7bc0cca870f3eaa3fd9a0d49e04b8fd951ff114`. This slice owns only a
+new synthetic two-RSU reference-case module inside
+`src/traffictwin/integration/vec_task_lifecycle/`, focused
+`tests/unit/test_vec_two_rsu_handcheck.py`, one directly relevant integration document, bounded
+exports, implementation/progress records and this claim.
+
+The slice may freeze explicit provisional assumptions for one strong-link execution-full ingress
+RSU and one weaker-link idle execution RSU; construct one synthetic V2I lifecycle; reconcile an
+execution-slot reservation, forwarding delay/energy, execution location, end-to-end timing,
+deadline outcome and the task's unique terminal state; and fail closed when any hand-calculated
+quantity is changed. It may not implement a reusable scheduler or policy comparison, claim that an
+execution reservation is processor speed/service rate, validate or modify the pinned evaluator,
+infer missing native events, read or change campaign/registry/evidence/checkpoint/digest bytes,
+fetch or modify an external clone, launch an experiment, accept a capability, push a branch or
+create/move a tag.
+
+The initial occupied slot at RSU A is a declared boundary condition outside the one-task validation
+cohort. Application admission at the ingress and execution-slot reservation at RSU B are explicit
+provisional fixture semantics, not claims about the upstream producer. Passing the reference oracle
+will establish only that the synthetic arithmetic and lifecycle reconcile under those assumptions;
+native evaluator validation remains unavailable until a reviewed producer emits the required
+events.
+
+Completed locally on the dedicated two-RSU branch. The canonical case records unique strongest-
+link ingress at execution-full RSU A, one-slot reservation at weaker-link idle RSU B, one explicit
+forwarding hop, execution and physical result return at the exact nodes, and integer arithmetic of
+`2 + 4 + 2 + 10 + 5 = 23 ms`, `4 × 100 = 400 mJ`, and `23 <= 25 ms`. The oracle independently
+reconciles the lifecycle, initial headroom, `0 -> 1 -> 0` destination reservation, component times,
+forwarding cost, deadline outcome and single closed terminal task. Thirteen focused hand-check
+test cases, 99 adjacent VEC tests and all 3,471 unit tests passed. Repository Ruff check/format
+passed across 977 files and strict mypy passed across 922 source files. No scheduler, evaluator,
+native producer, external repository, campaign, registry, checkpoint, approval, evidence,
+digest-bound artifact, capability, release, push or tag changed.

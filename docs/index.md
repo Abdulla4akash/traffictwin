@@ -38,6 +38,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Platform design: Dhaka corridor network build (optional, Bangladesh tier 2)](platform/dhaka_corridor_design.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [VEC per-task lifecycle instrumentation contract v1](integration/vec_task_lifecycle_contract.md)
+- [Synthetic two-RSU hand-check v1](integration/vec_two_rsu_handcheck.md)
 - [Accepted v0.7 Manchester source Gate A audit](integration/manchester-source-gate-a-audit-v0_7.md)
 - [Manchester acquisition and hardened-parsing decision](decisions/ADR-054-bounded-manchester-acquisition-transport-and-parsing.md)
 - [Manchester time-basis decision](decisions/ADR-055-manchester-time-basis.md)
