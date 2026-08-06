@@ -117,7 +117,9 @@ The next bounded steps are:
 1. obtain producer answers or approve a versioned provisional producer semantics record;
 2. implement a reviewed native lifecycle producer/adapter;
 3. replay this exact arithmetic against its emitted event stream;
-4. build the separate deterministic dispatcher interface and three policies; and
+4. replay the exact case through the implemented
+   [deterministic dispatcher](vec_deterministic_dispatch.md) and reviewed native lifecycle stream;
+   and
 5. add separately justified bandwidth, service-budget, contact, telemetry-age and reliability
    treatments only after their semantics are frozen.
 

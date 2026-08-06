@@ -5448,3 +5448,42 @@ test cases, 99 adjacent VEC tests and all 3,471 unit tests passed. Repository Ru
 passed across 977 files and strict mypy passed across 922 source files. No scheduler, evaluator,
 native producer, external repository, campaign, registry, checkpoint, approval, evidence,
 digest-bound artifact, capability, release, push or tag changed.
+
+### Owner-directed claim: deterministic VEC dispatcher v1 (6 August 2026)
+
+The owner selected the next build milestone on a new local branch from the completed synthetic
+two-RSU hand-check commit `ec256baef7682bae9bf3e9eec1c62bcc5d07a8fd`. This slice owns only a
+new `src/traffictwin/integration/vec_dispatch/` package, focused
+`tests/unit/test_vec_dispatch.py`, one dispatcher-contract document, bounded documentation/status
+updates and this claim.
+
+The slice may define one common V2I task/candidate information contract and implement three pure
+application-level policies: strongest-link ingress with no forwarding, least projected load, and
+predicted earliest completion. It may use explicit execution-slot headroom, existing reservations,
+link quality, freshness, forwarding delay/energy, predicted queue/compute/return costs and stable
+tie-breaking; reserve selected capacity; and process explicitly ordered batches against shared
+reservations so simultaneous tasks cannot reuse the same slot. It may not change the actor or its
+observation contract, retrain a model, mutate the pinned evaluator, infer current evaluator events,
+call a scheduler platform, treat a concurrency ceiling as speed/service rate/workers/bandwidth,
+launch a campaign, admit evidence, touch registry/campaign/checkpoint/digest bytes, fetch or modify
+an external clone, push a branch, publish an artifact or create/move a tag.
+
+The dispatcher remains deterministic provisional software over caller-supplied synthetic or future
+native state. A selection is a reservation decision, not proof of execution, physical return,
+deadline success or scientific benefit. The three policies must consume the same declared
+candidate fields; policy differences are limited to their versioned ranking/refusal rules. Frozen
+MAPPO actor plus downstream V2I dispatch does not require retraining; adding these fields to actor
+observations would be a separate retraining experiment.
+
+Completed locally on the dedicated deterministic-dispatch branch. One canonical request contract
+now feeds all three policies. Strongest-link/no-forwarding either reserves the ingress or gives an
+exact ingress refusal; least-loaded ranks the exact post-reservation occupancy fraction; predicted
+earliest completion ranks forwarding plus queue, compute and return time. Stable policy-specific
+ties and candidate canonicalisation remove input-order dependence. Explicit contiguous batch order
+carries shared reservations forward, reconciles every task into selected/unavailable, and prevents
+two tasks from reusing one slot. Decisions expose projection and reservation values while keeping
+execution, return, deadline and scientific-evidence claims false. Thirteen focused dispatcher test
+cases, 112 adjacent VEC tests and all 3,484 unit tests passed. Repository Ruff check/format passed
+across 981 files and strict mypy passed across 926 source files. No actor, observation contract,
+model, evaluator, native producer, external repository, campaign, registry, checkpoint, approval,
+evidence, digest-bound artifact, capability, release, push or tag changed.

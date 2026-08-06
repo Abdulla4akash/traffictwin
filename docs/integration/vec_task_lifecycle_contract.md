@@ -148,8 +148,9 @@ The next slices are separate and still unbuilt:
 2. implement a native lifecycle producer in a reviewed evaluator boundary;
 3. replay the implemented
    [synthetic two-RSU hand calculation](vec_two_rsu_handcheck.md) against the native event stream;
-4. add deterministic strongest-link/no-forwarding, least-loaded and predicted-earliest-completion
-   policies behind a separate scheduler interface;
+4. connect the implemented
+   [deterministic execution-RSU dispatcher](vec_deterministic_dispatch.md) to reviewed native
+   lifecycle/state events;
 5. extend VEC runner output validation, fresh admission and metrics to the new native artifact;
 6. sign and execute a matched deterministic comparison; and
 7. build learned scheduling and capacity-aware actor retraining only as later distinct treatments.
