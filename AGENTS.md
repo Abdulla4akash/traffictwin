@@ -5525,3 +5525,40 @@ tests passed. Repository Ruff check/format passed across 985 files and strict my
 source files. No pinned evaluator flag/output, external repository, native producer, run, campaign,
 registry, checkpoint, approval, evidence, digest-bound artifact, capability, release, push or tag
 changed.
+
+### Owner-directed claim: matched deterministic VEC dispatch study v1 (6 August 2026)
+
+The owner selected the matched deterministic policy-comparison harness on a new local branch from
+native-runner-sidecar commit `9fa1c379035f183784b714fcefe80311c0b8d408`. This slice owns only a
+new `src/traffictwin/integration/vec_dispatch_study/` package, focused
+`tests/unit/test_vec_dispatch_study.py`, one directly relevant integration document, bounded
+exports/status/index updates and this claim.
+
+The slice may exact-bind one canonical synthetic request batch; replay strongest-link/no-forwarding,
+least-loaded and predicted-earliest-completion policies over the identical input fingerprint;
+reconcile per-policy reservations, selected/unavailable tasks, execution-slot allocations and
+caller-supplied predicted forwarding/completion costs; and expose per-task agreement or divergence
+without declaring a winner. It may not fabricate actual execution, physical return, deadline,
+service-rate, contact-time, reliability or lifecycle outcomes; infer native state from legacy
+arrays; modify the pinned evaluator or either external clone; launch a run/campaign; read or write
+campaign, registry, checkpoint, approval, evidence or digest-bound candidate bytes; train or rank a
+learned policy; claim scientific benefit; push, publish or create/move a tag.
+
+Every v1 study input is structurally labelled synthetic and every projection remains engineering
+evidence only. All three policies must consume the same original request bytes and common
+information contract; differences caused by their carried reservation states remain visible in
+policy-specific evaluated-request fingerprints. Predicted latency and forwarding-energy totals are
+not measured outcomes, and final execution-slot occupancy plus reservations is not processor
+utilisation, speed, service rate or physical completion.
+
+Completed locally on the dedicated matched-dispatch-study branch. The harness canonicalises one
+strict synthetic batch and replays all three deterministic policies against the same input
+fingerprint. It retains complete batch reports, exact per-task policy decisions, route/projection
+agreement counts, selected/unavailable/forwarded conservation, predicted cost totals and per-RSU
+batch-end execution-slot occupancy plus reservations. Every derived summary is revalidated against
+the plan and batch reports, and the public two-RSU replay first revalidates the earlier hand-check
+oracle. No winner, measured outcome or scientific evidence is produced. Eleven focused study tests,
+75 adjacent lifecycle/dispatch/sidecar/runner tests and all 3,505 unit tests passed. Repository Ruff
+check/format passed across 989 files and strict mypy passed across 934 source files. No evaluator,
+external repository, native producer, run, campaign, registry, checkpoint, approval, evidence,
+digest-bound artifact, capability, release, push or tag changed.

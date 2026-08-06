@@ -131,7 +131,9 @@ pinned evaluator is restricted and emits none of the required files. Completion 
 After that, a separate integration must supply the sidecar during an authorised run, preserve the
 producer provenance, validate it here, and only then consider runner/admission wiring. A matched
 policy campaign, scientific metrics, learned scheduler and actor retraining remain later separate
-work.
+work. The implemented [matched dispatch study](vec_matched_dispatch_study.md) compares all three
+policies only on exact-matched synthetic request batches; it does not substitute for those native
+events or a realised policy campaign.
 
 No campaign, registry, checkpoint, approval, evidence or digest-bound artifact is read or changed
 by this module.

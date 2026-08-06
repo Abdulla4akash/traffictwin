@@ -153,7 +153,8 @@ The next slices are separate and still unbuilt:
    [deterministic execution-RSU dispatcher](vec_deterministic_dispatch.md) to reviewed native
    lifecycle/state events;
 5. extend VEC fresh admission and metrics to a successfully validated native sidecar;
-6. sign and execute a matched deterministic comparison; and
+6. sign and execute a native matched deterministic comparison after the implemented synthetic
+   [matched dispatch study](vec_matched_dispatch_study.md); and
 7. build learned scheduling and capacity-aware actor retraining only as later distinct treatments.
 
 No campaign, registry, checkpoint, approval, evidence or digest-bound artifact is read or changed

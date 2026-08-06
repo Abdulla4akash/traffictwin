@@ -140,7 +140,9 @@ Still separate and unbuilt:
    [native runner sidecar validation](vec_native_runner_sidecar.md);
 2. live runner production and admission integration for validated dispatcher requests/decisions;
 3. contact-time, bandwidth, reliability and service-budget semantics;
-4. a signed matched deterministic comparison on identical traffic/tasks/seeds;
+4. a signed native matched deterministic comparison on identical traffic/tasks/seeds; the
+   [matched dispatch study](vec_matched_dispatch_study.md) now provides only the synthetic
+   exact-input structural harness;
 5. scientific metrics and admitted result evidence; and
 6. a learned scheduler using the same information and costs.
 
