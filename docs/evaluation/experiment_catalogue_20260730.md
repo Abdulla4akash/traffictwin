@@ -13,6 +13,17 @@ The lead's B-BUS Sparse-64 homecoming review and the onset-scaling verdict lande
 commits contemporaneous with this catalogue's first commit; both are reflected below from
 their committed records.
 
+**Standing amendment (owner decision, 2 August 2026; reconciled here 6 August 2026).** The
+earlier Sparse-64 return with 147 unintended repeated held-out evaluations remains non-admitted.
+The clean rerun is owner-admitted only as descriptive evidence with the immutable
+`admitted_with_execution_deviation` qualifier. Completed training, actors and checkpoints were
+not overwritten; one fixed held-out evaluation/return repeated after the first valid download,
+with no scientific-setting change or metric-based selection. Cross-return metric identity remains
+unverifiable, and the retained result is not pooled with protocol-confirmed VEC evidence. The
+[append-only owner decision](bbus_sparse64_clean_rerun_owner_admission_20260802.json) supersedes
+the clean rerun's 30 July pre-decision standing without rewriting its historical result or
+homecoming-evidence records.
+
 ---
 
 ## A. The capacity programme
@@ -247,11 +258,13 @@ pid files, surviving session death; every run is admitted to a registry before a
 
 ---
 
-## B. GPU training track (Codex-led, Colab G4; outputs are non-admitted diagnostics)
+## B. GPU training track (Codex-led, Colab G4; diagnostic by default, with one explicit later owner-admitted exception)
 
 All under the recorded code/data/publication permission with citation; archives are
 private (`data/gpu-track/`, gitignored) with published SHA-256 identities and
-preservation records; nothing here has passed admission or independent review.
+preservation records. B-CAP, B-REWARD, B-MASK, B-DOMAIN and the B-BUS corridor remain
+non-admitted diagnostics. The clean Sparse-64 rerun alone has the narrow later owner admission
+described above; that decision is not independent review, actor admission or supervisor approval.
 
 | Campaign | Design | Outcome |
 |---|---|---|
@@ -263,8 +276,8 @@ preservation records; nothing here has passed admission or independent review.
 | **B-DOMAIN full** | 15 jobs, seeds {400–404}; default / safety-dominant / pilot-inspired procedural domains | 15/15 complete; data-free diagnostic precursor, explicitly not literal trace B4; contrasts pending review. Archive `0d17154e…` |
 | **B-DENSITY Phase 1 + cost probe** | engineering gate, then a timed sweep on unpatched producer code (29 Jul) | Gate passed. (a) The frozen design's source transform is **unnecessary** — `VEC_JAX_N_VEHICLES` / `VEC_JAX_RSU_MAX_CONCURRENT` are documented producer knobs with the required allowance semantics; recorded as a deviation. (b) The grid is **unaffordable as frozen**: 5.92 s/update at N=512 → 31.08 at N=2048 (≈N^1.2) → ≈99 GPU-h for 6 densities × 3 seeds at 5M steps — several times the Colab balance. `N_RSUS=2`, not overridable, bounds all claims. [Record](bdensity_phase1_results_20260729.md) |
 | **B-BUS corridor dawn→peak** | frozen 750 m landmark-line capsule, 5 seeds | 5/5 on GPU; archive locally integrity-rechecked (`a84b5a16…`), independent homecoming pending. Preliminary non-admitted held-out peak completion: cap-0.75 mean 0.809841 vs cap-2.5 0.809672 — practically invariant. [Settings & preliminaries](bbus_dawn_peak_settings_and_preliminary_results_20260729.md) |
-| **B-BUS Sparse-64 dawn→peak** | whole observed fleet, explicitly outside VEC-06 | **GPU compute completed 5/5 through checkpoint recovery; result NON-ADMITTED on an execution deviation.** Retained cap-0.75 peak completion 0.519215 mean (SD 0.088806; T1/T2/T3 0.337793/0.595472/0.545997); cap-2.5 0.519108 — again practically capacity-invariant. After the first return, `launchd` relaunched the supervisor and repeated the fixed peak evaluation **147 times**, overwriting prior archives: no metric selection occurred, but repeat identity is unverifiable and the literal peak-once rule failed. [Homecoming](bbus_sparse64_homecoming_results_20260730.md) · [checkpointed execution](bbus_sparse64_checkpointed_execution_20260729.md) |
-| **B-BUS Sparse-64 full fresh rerun** | same frozen pack, new owner-approved execution | 5/5 seeds terminal and archive independently reviewed; retained cap-0.75 completion 0.501355 (SD 0.088677; T1/T2/T3 0.314816/0.592028/0.521530), cap-2.5 0.501233. Four hourly recoveries were a stale CLI proxy credential, not demonstrated GPU crashes. A post-download terminal-state timeout then caused one unintended second return; first archive was overwritten, so the rerun remains **execution-deviated and non-admitted** despite unchanged settings and no metric selection. The ordering defect is repaired and tested; GPU/session stopped. [Fresh-rerun result](bbus_sparse64_clean_rerun_results_20260730.md) |
+| **B-BUS Sparse-64 dawn→peak** | whole observed fleet, explicitly outside VEC-06 | **GPU compute completed 5/5 through checkpoint recovery; result NON-ADMITTED on an execution deviation.** Retained cap-0.75 peak completion 0.519215 mean (SD 0.088806; T1/T2/T3 0.337793/0.595472/0.545997); cap-2.5 0.519108 — again practically capacity-invariant. After the first return, `launchd` relaunched the supervisor and repeated the fixed peak evaluation **147 times**. Training, actors and checkpoints were unchanged and no metric selection occurred, but the review retained and bound only the final returned artifact, so cross-return metric identity is unverifiable and the literal peak-once rule failed. [Homecoming](bbus_sparse64_homecoming_results_20260730.md) · [checkpointed execution](bbus_sparse64_checkpointed_execution_20260729.md) |
+| **B-BUS Sparse-64 full fresh rerun** | same frozen pack, new owner-approved execution | 5/5 seeds terminal and retained archive independently reviewed; cap-0.75 completion 0.501355 (SD 0.088677; T1/T2/T3 0.314816/0.592028/0.521530), cap-2.5 0.501233. Four hourly recoveries were a stale CLI proxy credential, not demonstrated GPU crashes. A post-download terminal-state timeout caused one unintended second fixed held-out evaluation/return. Training, actors, checkpoints and settings were not overwritten or changed, and no metric selection occurred; only cross-return metric identity is unverifiable. The owner subsequently admitted the retained rerun as descriptive evidence with `admitted_with_execution_deviation`; it remains outside VEC-06 and unpooled with protocol-confirmed VEC evidence. The ordering defect is repaired and tested; GPU/session stopped. [Fresh-rerun result](bbus_sparse64_clean_rerun_results_20260730.md) · [owner admission](bbus_sparse64_clean_rerun_owner_admission_20260802.json) |
 
 ---
 

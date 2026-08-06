@@ -5394,3 +5394,46 @@ draft documentation PR. The context records the GitHub billing gate as an extern
 blocker, not a test verdict, and separates frozen-actor deterministic forwarding from capacity-aware
 actor retraining. No implementation, experiment, evidence, approval, capability, tag or release was
 changed.
+
+### Completed lead ownership: Sparse-64 documentation-standing correction (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only correction in this record,
+`CLAUDE_SESSION_CONTEXT_PROMPT_V9.md`, `docs/evaluation/experiment_catalogue_20260730.md` and
+`docs/experiments_and_findings_20260728.md`. The correction may reconcile the append-only 2 August
+owner admission with current documentation and distinguish repeated fixed held-out evaluation/
+return from completed training, actors and checkpoints. It may not alter either 30 July result or
+machine-evidence record, the append-only owner-decision bytes, private archives, code, tests,
+registries, external clones, scientific settings, tags or releases.
+
+Completed locally on 6 August 2026. The current canonical handoff, detailed catalogue and
+authoritative register now state that the earlier 147-repeat Sparse-64 return remains non-admitted,
+while the clean rerun is owner-admitted only as descriptive evidence with its immutable
+`admitted_with_execution_deviation` qualifier. They no longer imply that training, actors or
+checkpoints were overwritten: the recorded deviation was repeated fixed held-out evaluation/return
+after completed training, with unchanged settings and no metric-based selection. Cross-return
+identity remains unverifiable, the clean rerun remains outside VEC-06 and neither return is pooled
+with protocol-confirmed VEC evidence. Historical result/evidence and owner-decision bytes remain
+unchanged; no implementation, experiment, evidence calculation, private artifact, approval,
+capability, tag or release changed.
+
+### Completed lead ownership: complete scientific experiment history (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only synthesis in
+`docs/evaluation/complete_experiment_history_20260806.md`, its `docs/index.md` pointer and this
+record. The synthesis may consolidate completed experiments, negative results, execution
+deviations, withdrawn interpretations, evidence ceilings and next research steps from existing
+repository records. It may not create or reinterpret experimental evidence; expose private data;
+alter protocols, results, evidence, campaign or registry bytes; touch external clones; add
+implementation; or change any approval, capability, tag or release.
+
+Completed locally on 6 August 2026. The new history follows the programme from the 17-study
+capacity campaign through Colab/GPU diagnostics, attended BODS observations, B-BUS hybrid
+experiments and Manchester demand/network investigations. It preserves the corrected semantics:
+the 2.5-to-0.75 control changed a per-RSU admission/in-flight concurrency ceiling rather than
+computation power, and lower mean modelled latency reflects compression of an already-failed tail
+under incomplete lifecycle accounting rather than faster computation or improved physical
+completion. Real captured bus mobility is separated from simulated computing tasks,
+infrastructure and outcomes. The record identifies evidence standing and unavailable claims, and
+keeps lifecycle/work-conservation instrumentation ahead of deterministic forwarding, learned
+scheduling and separate capacity-aware actor retraining. No implementation, experiment, evidence,
+private artifact, approval, capability, tag or release changed.

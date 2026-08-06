@@ -154,9 +154,16 @@ recorded governance artifact says less.
   point deadline advantage, while the frozen actor-independent latency-slope prediction was
   refuted (`experiment_catalogue`, A16).
 - GPU B-CAP, B-REWARD, B-MASK and B-DOMAIN campaigns completed as private, non-admitted
-  diagnostics. B-BUS corridor was also diagnostic; both Sparse-64 attempts remain non-admitted
-  because their execution/return identity rules were violated. Do not promote GPU-track outputs to
-  scientific evidence (`experiment_catalogue`, GPU track).
+  diagnostics. B-BUS corridor was also diagnostic. The earlier Sparse-64 return with 147 unintended
+  repeated held-out evaluations remains non-admitted. The clean Sparse-64 rerun was subsequently
+  owner-admitted on 2 August only as descriptive evidence with the immutable
+  `admitted_with_execution_deviation` qualifier. Its completed training, actors and checkpoints
+  were not overwritten: the deviation was one unintended second fixed held-out evaluation/return
+  after the first valid download, with unchanged scientific settings and no metric-based selection.
+  Cross-return metric identity remains unverifiable, the result stays outside VEC-06 and must not be
+  pooled with protocol-confirmed VEC evidence or promoted to causal, general-Manchester, physical-
+  completion, actor-admission or supervisor-approved standing (`experiment_catalogue`, GPU track;
+  `docs/evaluation/bbus_sparse64_clean_rerun_owner_admission_20260802.json`).
 - BODS night, dawn, morning and evening sessions completed under the attended boundary. Buses are
   never relabelled as general traffic. The MAN-05 refusals were traced to cross-operator reuse of
   bare `VehicleRef`; they were not proof of feed overload (`experiment_catalogue`, bus programme).
