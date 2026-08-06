@@ -5437,3 +5437,21 @@ infrastructure and outcomes. The record identifies evidence standing and unavail
 keeps lifecycle/work-conservation instrumentation ahead of deterministic forwarding, learned
 scheduling and separate capacity-aware actor retraining. No implementation, experiment, evidence,
 private artifact, approval, capability, tag or release changed.
+
+### Completed lead ownership: live-bus and Colab experiment guide (6 August 2026)
+
+The owner-directed integrating lead owns a documentation-only focused synthesis in
+`docs/evaluation/live_bus_and_colab_experiments_20260806.md`, its `docs/index.md` pointer and this
+record. The synthesis may restate attended aggregate BODS observations, Colab/GPU diagnostics and
+B-BUS hybrid results from existing repository records, with explicit real-versus-simulated and
+evidence-standing boundaries. It may not expose private bus or GPU artifacts; create or
+reinterpret experimental evidence; alter experiment, evidence, campaign or registry bytes; touch
+external clones; add implementation; or change an approval, capability, tag or release.
+
+Completed locally on 6 August 2026. The focused guide separates pure live-bus observations,
+synthetic Colab training diagnostics and B-BUS real-mobility-informed simulations. It records all
+four attended sessions, the identity/refusal and speed–fleet analyses, every completed GPU
+campaign or smoke, the B-BUS placement refusal, corridor result and both Sparse-64 executions. It
+preserves the clean rerun's narrow `admitted_with_execution_deviation` standing, the earlier
+return's non-admission and the admission/in-flight-ceiling correction. No implementation,
+experiment, evidence, private artifact, approval, capability, tag or release changed.
