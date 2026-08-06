@@ -1,5 +1,17 @@
 # Future Research Directions v2 — after the capacity finding (27 July 2026)
 
+> **Status reconciliation, 6 August 2026:** this document preserves the prospective programme as
+> it stood on 27 July. Several Tier-A studies and private GPU diagnostics below have since run; use
+> the [experiment catalogue](evaluation/experiment_catalogue_20260730.md) for execution/admission
+> status. Randy's code/data/publication permission is now recorded through the owner's written-grant
+> relay, while scientific admission and approval remain separate
+> ([permission record](integration/randy_data_and_publication_permission_20260729.md)). Read the
+> capacity mechanism and load-balancing proposals with the later
+> [5.6 Pro interpretation audit](current_status_5_6_pro_analysis.md): the control was not compute
+> power, complete task-lifecycle/work-conservation evidence is missing, deterministic forwarding is
+> the no-retraining baseline, and capacity-aware offloading is a distinct retraining treatment.
+> Nothing in this addendum retroactively predeclares or approves an experiment.
+
 **Status: proposals only. Nothing in this document is approved, scheduled, or executed by
 its existence.** Every direction respects the standing ceilings
 (`owner_approved_candidate`; never validated/causal/supervisor-approved), the

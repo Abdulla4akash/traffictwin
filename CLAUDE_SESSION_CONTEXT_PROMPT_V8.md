@@ -1,7 +1,12 @@
 # Claude session context prompt v8 — TrafficTwin, 1 August 2026
 
-Supersedes V7. V3–V7 are historical; **this file carries the current state.**
-Paste the block in §10 into a fresh session started from `~/AntigravityTest/diss-integration`.
+> **Historical snapshot.** Superseded by
+> [`CLAUDE_SESSION_CONTEXT_PROMPT_V9.md`](CLAUDE_SESSION_CONTEXT_PROMPT_V9.md) on 6 August 2026.
+> Do not resume from v8: it predates the v0.7 release, completed Phase-198 line and current 5.6 Pro
+> capacity-interpretation audit.
+
+This file superseded V7 on 1 August but is now historical. **Do not paste its §10 block.** Use the
+v9 prompt linked above.
 
 ---
 
@@ -127,14 +132,7 @@ Never promote `owner_approved_candidate` to anything stronger.
 ## 10. THE PROMPT TO PASTE INTO A FRESH SESSION
 
 ```
-Read CLAUDE_SESSION_CONTEXT_PROMPT_V8.md at the repo root of
-~/AntigravityTest/diss-integration first — it carries the current state (V3–V7 are
-historical). Then check `git status` and `git log --oneline -5` for anything Codex
-landed or left in flight since, and read the memory file's RESUME HERE.
-
-The active mandate is the data platform v1 build (owner directive, design-first,
-extension being sought — scope not cut for time). Build order and designs are in V8 §2;
-start with the scheduled BODS runner unless the owner says otherwise, claim the next
-free Phase number in AGENTS.md for it (deferred claims noted in V8 §1), implement to
-the committed design, run the full gates, commit only your own files, push, and report.
+Historical prompt — do not use. Read AGENTS.md and CLAUDE_SESSION_CONTEXT_PROMPT_V9.md
+from /Users/akashx/AntigravityTest/diss-integration, verify the mutable state described
+in v9 §3, and resume only from the v9 handoff.
 ```

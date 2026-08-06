@@ -5376,3 +5376,21 @@ focused and adjacent National Highways/history tests passed. Ruff, focused stric
 schema/help reconciliation and diff checks passed. No provider, real snapshot pair, writer,
 Changes page, measured-traffic claim, public row, capability acceptance, release or tag was
 created.
+
+### Completed lead ownership: current cross-agent session context (6 August 2026)
+
+The integrating lead owns the documentation-only reconciliation of the root session-context entry
+points, the additive v9 canonical handoff, the historical-v8 warning, the narrow documentation-index
+pointer, and this ownership record on `agent/current-status-5-6-pro-analysis`. The update may record
+verified Git/PR/CI/process state; point to existing evidence; preserve the external, descriptive
+ceiling of the owner-supplied 5.6 Pro audit; and reconcile the corrected capacity interpretation and
+next research sequence. It may not alter code, tests, experiment bytes, registries, external clones,
+approval standing, capability standing, tags, releases or scientific evidence.
+
+Completed locally on 6 August 2026. One canonical v9 handoff now supersedes the contradictory
+pre-release root prompts; historical prompts remain preserved and v8 is visibly marked superseded.
+The integration handoff now reflects the live v0.7 main/tag/housekeeping topology and the dedicated
+draft documentation PR. The context records the GitHub billing gate as an external workflow-start
+blocker, not a test verdict, and separates frozen-actor deterministic forwarding from capacity-aware
+actor retraining. No implementation, experiment, evidence, approval, capability, tag or release was
+changed.

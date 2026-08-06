@@ -1,73 +1,46 @@
-# Codex integration handoff — review and fast-forward (28 July 2026)
+# Codex integration handoff — 6 August 2026
 
-For Codex as lead/integrator: review the accumulated work and advance the official
-branch. One instruction from the owner suffices: "read CODEX_INTEGRATION_HANDOFF.md,
-review the range, fast-forward the official branch, touch nothing else."
+The complete current handoff is
+[`CLAUDE_SESSION_CONTEXT_PROMPT_V9.md`](CLAUDE_SESSION_CONTEXT_PROMPT_V9.md). Read it and
+`AGENTS.md` before integrating anything. This file records the narrower Git integration posture.
 
-## Current fast-forward range
+## Current topology at the recorded snapshot
 
-- On 28 July at the Phase-102 claim, official branch `codex/traffictwin-v0.7` was
-  `1dbc748fd7f08de8d8369d167d6025fd0d68e0ee` and candidate branch
-  `claude/complete-v0.7` was `a87e082a0e6e28fc70134fe8d426421f28de548e` (131 additive
-  commits). `git merge-base --is-ancestor` passed. Re-read both refs before review because
-  this shared candidate branch may have advanced.
-- The correct integration remains a **fast-forward**. If the official branch is checked out
-  in the owner's worktree, push from this integration worktree instead of switching:
-  `git push origin <reviewed-sha>:refs/heads/codex/traffictwin-v0.7`.
-- **`main` stays untouched** (v0.6.0 release line until REL-01). All `v0.7.0-alpha.*`
-  tags are immutable.
+- `main` / `origin/main`:
+  `49be6a2db8a69409a1b92fb02e954db7cf1441f6` (`release TrafficTwin v0.7.0 on main`).
+- `claude/complete-v0.7` / remote:
+  `c3e2dc868bbe6cc3dff21f7433984bb28b74df80` (Phase 198).
+- `housekeeping/v0.7-completion` / remote:
+  `e3871c6c73106a5ca1178cb3ef58d504780ad027`, open draft PR #1 to `main`.
+- Annotated `v0.7.0` target:
+  `e840be6c09ac4579e3604665110db2e3209fc7dd`, on the housekeeping history rather than
+  the current `main` tip. Never move it without explicit owner authority.
+- `agent/current-status-5-6-pro-analysis`: open draft PR #2 to `main`. Its first commit is
+  `9036b6ed36577aa44fe18dc03ef4c8bf4b6357a7`.
 
-## What the range contains (review map)
+Verify all mutable refs rather than copying these values blindly. Do not revive the old instruction
+to fast-forward `codex/traffictwin-v0.7`; the release topology has moved on.
 
-AGENTS.md §"v0.7 Work Coordination" is the authoritative claim ledger:
+## PR #2 scope
 
-- **Primary research arc:** the experiment instrument (ADR-061..066), capacity pilot,
-  signed held-out confirmation (−8,310.9 ms), five-regime completion, deep-squeeze onset,
-  B0 baseline prediction test, keyed-action and observation-gap probes, results records,
-  tables, and the hash-bound cross-regime dissertation figure.
-- **Phases 40–71 (parallel feature batches 1–6):** RSU Monitor, demand-diagnosis
-  library, mechanism report + CLI + exhibit, stadium/crossover skeletons, appendix and
-  figure/table generators, bus trajectory library + VEC-06 bridge, confirmatory-mode
-  renderer, campaigns browser, CSF job-pack + CLI, gate battery, participant documents,
-  diagrams, narration script, the tos-reader fork-segfault fix.
-- **GPU track:** B-CAP, B-REWARD, B-MASK, B-BUS/IPPO engineering smokes, and B-DOMAIN
-  harnesses plus full-campaign records. B-MASK and B-DOMAIN exact archives are preserved
-  in gitignored `data/gpu-track/` with committed provenance records. They remain private,
-  non-admitted diagnostics; B-DOMAIN is not literal trace B4.
-- **Bus track:** night/dawn/peak post-hoc aggregates, operator-scoped session identity v1.1,
-  the three-session B1 proposal record, and exact diagnosis of both preserved MAN-05
-  rush-hour refusals. No bus experiment ran and the accepted MAN-05 parser is unchanged.
-- **Governance/handoff:** consolidated 18-entry experiment register, owner action drafts,
-  Week-4→5 checkpoint, session prompts, and claim records through Phase 102+.
+PR #2 is documentation-only: the 5.6 Pro capacity-interpretation analysis, its docs-index entry and
+the current context handoff. Do not add evaluator, scheduler, training or experiment code to it.
+Its GitHub Actions jobs currently fail before executing steps because of an account billing or
+spending-limit block. Record that external blocker accurately; it is not a code-test verdict.
 
-## Gate evidence at the tree
+## Integration boundaries
 
-Use the per-slice gates in AGENTS.md rather than the older clean-tree count. Most recently:
-the bus slice has 49 focused tests with focused Ruff/mypy clean and 3/3 exact artifact-hash
-checks; the cross-regime figure has six focused tests with focused Ruff/format/mypy clean,
-valid SVG XML, visual inspection, and exact source-value checks. The latest broad unit run
-after mechanically regenerating the ADR-066 appendix is green: **2,923 passed in 128.16 s**.
-Repository-wide Ruff and mypy still expose recorded pre-existing findings outside these
-slices. Review those honestly and do not restate the range as globally clean without fresh
-lint/type gates.
+- Review and stage explicit paths only. Preserve unrelated user or agent work.
+- Do not force-push, move tags, reset worktrees or infer that PR #1 should merge.
+- Never fetch or pull inside the two pinned external Randy repositories.
+- Do not mutate `.demo/`, `data/vec-fresh/`, private GPU archives, quarantine data or approval
+  artifacts during integration.
+- Never edit the byte-bound confirmatory candidate.
+- Keep the 5.6 report's external-analysis status and subjective-score caveat intact.
+- Any implementation of task lifecycle accounting or load balancing starts on a separate claimed
+  branch after owner direction and a reviewed semantic contract.
 
-## Hazards — absolute, regardless of review outcome
+## Review handback
 
-1. **Never `git fetch`/`pull` inside `../external/tos-data` or `../external/vec_env`** —
-   fresh admission verifies origin/main == audited commit; a fetch bricks admissions.
-   Probe upstreams with `ls-remote` only. (R1 re-pin is a queued owner decision.)
-2. **Byte-frozen:** `docs/evaluation/capacity_confirmatory_candidate_b_latency_primary.md`
-   (digest-bound into the completed held-out campaign's approval). Never reformat it.
-3. `.demo/registry-*.sqlite` and `data/vec-fresh/**` are admitted evidence — read-only.
-   The completed campaigns must not be resumed, relaunched, mutated, or re-analysed under
-   changed design bytes.
-4. Held-out seeds {10–14} are spent. Label ceilings and forbidden labels unchanged.
-5. The attended-only BODS boundary is untouched; no acquisition runs from review.
-
-## Open decision queue (owner's, unchanged by integration)
-
-Ethics/Sandra/Randy/CSF sends; Sandra's two scope answers; B1 G1–G5 (including the
-speed-outlier rule); completion and signing/declining of crossover and stadium candidates;
-R1/N1 re-pins; E1–E5 demand signing; and producer code/data/publication permissions.
-The peak session is complete and processed. These decisions remain owner/external actions;
-review and fast-forward do not take any of them.
+Report the reviewed commit range, exact files, local checks, CI status, branch/tag discrepancies,
+scientific label impact (normally none for documentation), and every owner decision still needed.
