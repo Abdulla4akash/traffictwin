@@ -1,0 +1,264 @@
+{
+  "schema_version": "traffictwin.e0-manifest.v1",
+  "manifest_id": "e0-corrected-reference-v1",
+  "predeclared_at_utc": "2026-08-07T19:53:35Z",
+  "status_at_creation": "predeclared_before_execution",
+  "objective": "Test whether the corrected evaluator accounts for every offered task before any controller comparison.",
+  "scope": {
+    "experiment": "E0 bounded validity smoke",
+    "max_steps": 10,
+    "repeat_count": 2,
+    "explicitly_excluded": [
+      "E1 or any controller comparison",
+      "full-hour execution",
+      "actor retraining",
+      "proactive prediction",
+      "learned scheduling",
+      "bus modelling"
+    ]
+  },
+  "repositories": {
+    "traffictwin": {
+      "selected_commit": "95e7b1e4048a11a2002473e83eb0aa1c584c9bbc",
+      "selected_branch": "agent/e0-corrected-reference-v1",
+      "starting_branch": "codex/traffictwin-v0.7",
+      "observed_remote_main": "a462c72b81f1668eef4ea0b7f8e806be4d208b47",
+      "divergence_selected_vs_remote_main": {
+        "selected_only": 6,
+        "remote_main_only": 271
+      },
+      "preserved_untracked": [
+        "year_1_report_randy_11315534.pdf"
+      ]
+    },
+    "vec_env": {
+      "audited_remote_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "selected_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "selected_clean_branch": "agent/traffictwin-e0-pinned-0f01f4d",
+      "preserved_original_branch": "akash-traffictwin-discovery",
+      "preserved_original_commit": "e98441196270b8fd4cc0eede892df4a0053b2185",
+      "execution_base_reason": "The clean worktree exactly matches the fetched audited remote commit and avoids modifying or resetting the existing discovery checkout.",
+      "evaluator": {
+        "path": "eval/eval_sumo_stage1_mc.py",
+        "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669"
+      },
+      "environment_module": {
+        "path": "jaxmarl/env/vec_jax.py",
+        "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+      },
+      "local_import_adapter": {
+        "kind": "minimal_package_initializer_plus_symbolic_link",
+        "logical_path": "task-home:scratch/vec-offloading-jaxmarl-fullport",
+        "target": "vec_env-worktree:jaxmarl/env/vec_jax.py",
+        "reason": "The pinned evaluator prepends a fixed historical path before importing env.vec_jax. Importing the source env package initializer also loads an optional JaxMARL training wrapper. The minimal local package initializer avoids that unrelated dependency while the vec_jax.py symlink retains the exact pinned source bytes.",
+        "bootstrap_attempt": "The initial whole-directory symlink reached the pinned env package but stopped at import, before evaluator main() and before task simulation, because the optional jaxmarl training package was absent. The failed invocation log is retained with run_1."
+      }
+    },
+    "tos_data": {
+      "audited_remote_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "selected_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "selected_clean_branch": "agent/traffictwin-e0-data-a75bbd",
+      "preserved_original_commit": "d27294ef5213e6a20f55632448bd20f5a76a45ab"
+    }
+  },
+  "inputs": {
+    "actor": {
+      "repository": "tos_data",
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "size_bytes": 21880,
+      "identity": "frozen Paper-2A 17-dimensional MAPPO actor, training seed 100",
+      "observation_dimension": 17,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "observes_current_rsu_load": false
+    },
+    "trace": {
+      "repository": "tos_data",
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "size_bytes": 5964044,
+      "scenario": "Manchester incident trace",
+      "date": "2024-03-15",
+      "weekday": "Friday",
+      "window_local": "20:00-21:00",
+      "trace_steps": 3600,
+      "step_seconds": 1.0,
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "sumo_seed": 43,
+      "source_sumo_version": "1.27.0",
+      "has_enter_channel": false
+    },
+    "excluded_legacy_output": {
+      "path": "tos_data:instrumented/json/baseline_uk2030_inc_fs0.json",
+      "sha256": "69e9774338c4650a5465a516dd076553da37507e2a9b9d0fef18bc319d058404",
+      "reason": "It lacks corrected sequential/reject/conserved accounting fields and is inventory evidence only, not a corrected-engine baseline."
+    }
+  },
+  "configuration": {
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "actor_training_seed": 100,
+    "trace_sumo_seed": 43,
+    "fleet": {
+      "preset": "uk2030",
+      "status": "provisional",
+      "basis": "The audited evidence inventory identifies baseline_uk2030_inc_fs0 as the matching incident/fleet-seed anchor; the complete historical sweep contract remains unavailable."
+    },
+    "arrival_lambda": 1.5,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "placement": {
+      "mode": "off",
+      "meaning": "default strongest-link radio association and execution placement",
+      "backhaul_ms": 0.0
+    },
+    "compute": {
+      "rsu_service_multiplier": 1.0,
+      "scaling": "off",
+      "mean_multiplier_expected": 1.0,
+      "real_kubernetes_deployment": false
+    },
+    "cap": {
+      "name": "per-RSU admission/in-flight task ceiling",
+      "unit": "tasks per RSU",
+      "mode": "fleet_scaled_ratio",
+      "ratio_per_padded_vehicle": 2.5,
+      "padded_fleet_width": 2488,
+      "resolved_value": 6220,
+      "status": "provisional_training_parity",
+      "source": "eval/eval_sumo_stage1_mc.py defines 50/20 as training parity and resolves round(ratio * padded fleet width); vec_env docs/DATA_CONVENTIONS.md and docs/REPRODUCING.md document the same ratio.",
+      "not_compute_power": true,
+      "limitation": "No approved physical absolute waiting-room size is available; this smoke cannot support physical-cap claims."
+    }
+  },
+  "environment": {
+    "os": "macOS 26.4.1 (build 25E253)",
+    "architecture": "arm64",
+    "python": "3.11.15",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "ml_dtypes": "0.5.4",
+    "opt_einsum": "3.4.0",
+    "scipy": "1.17.1",
+    "jax_backend": "cpu",
+    "jax_devices": [
+      "TFRT_CPU_0"
+    ],
+    "jax_enable_x64": false,
+    "installed_sumo": "1.27.1",
+    "sumo_compatibility_status": "mismatch_with_trace_provenance_1.27.0",
+    "sumo_execution_note": "The evaluator replays a preprocessed trace and does not invoke SUMO. This local environment is a 1.27.1 compatibility context, not an exact canonical 1.27.0 reproduction."
+  },
+  "execution": {
+    "path_bindings_not_committed_as_private_paths": {
+      "E0_PYTHON": "isolated Python environment listed above",
+      "VEC_E0_WORKTREE": "clean vec_env worktree at selected_commit",
+      "TOS_E0_WORKTREE": "clean tos_data worktree at selected_commit",
+      "E0_RUN_DIR": "repeat-specific directory below output_root"
+    },
+    "environment_variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "argv_template": [
+      "{E0_PYTHON}",
+      "{VEC_E0_WORKTREE}/eval/eval_sumo_stage1_mc.py",
+      "--trace",
+      "{TOS_E0_WORKTREE}/traces/trace_inc_fullrsu.npz",
+      "--actor",
+      "{TOS_E0_WORKTREE}/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "--max-steps",
+      "10",
+      "--seed",
+      "0",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "0",
+      "--rsu-cap-per-veh",
+      "2.5",
+      "--lambda-arrival",
+      "1.5",
+      "--rsu-service-mult",
+      "1.0",
+      "--rsu-lb",
+      "off",
+      "--rsu-backhaul-ms",
+      "0.0",
+      "--substep-queue",
+      "sequential",
+      "--substep-queue-iters",
+      "3",
+      "--veh-queue",
+      "conserved",
+      "--rsu-cap-mode",
+      "reject",
+      "--k8s-scale",
+      "off",
+      "--out-json",
+      "{E0_RUN_DIR}/summary.json",
+      "--per-step-out",
+      "{E0_RUN_DIR}/per_step.npz",
+      "--per-task-out",
+      "{E0_RUN_DIR}/per_task.npz"
+    ],
+    "output_root": "local-output:e0_outputs/e0-corrected-reference-v1",
+    "repeat_directories": [
+      "run_1",
+      "run_2"
+    ],
+    "captured_files_per_repeat": [
+      "summary.json",
+      "per_step.npz",
+      "per_task.npz",
+      "stdout_stderr.log",
+      "checksums.sha256"
+    ]
+  },
+  "required_assertions": {
+    "task_count_conservation": "n_offered == n_admitted + v2i_gate_rejected + v2i_cap_rejected + local_mqd_rejected + v2v_mqd_rejected + v2i_unavailable + v2v_unavailable",
+    "v2i_work_conservation_ms": "work_ms.v2i_offered == work_ms.v2i_admitted + work_ms.v2i_rejected_or_unavailable",
+    "vehicle_work_conservation_ms": "work_ms.veh_offered == work_ms.veh_admitted + work_ms.veh_rejected",
+    "rejection_reconciliation": "per-task outcome codes 3..8 equal their six aggregate rejection/unavailability counters",
+    "task_stream_reconciliation": "active task records and per-step arrivals equal n_offered; deadline-met records and per-step done equal the deadline-met numerator",
+    "numeric_validity": "No NaN, infinity, negative count/work, impossible completion fraction, active task without terminal outcome, inactive task with terminal outcome, or silent task loss",
+    "identity_retention": "Actor, trace, evaluator, raw outputs and derived reports retain SHA-256 identities",
+    "semantics": "deadline attainment is reported as a simulated deadline outcome and never as confirmed native physical completion or result return",
+    "denominators": "offered-task and admitted-task metrics are retained and checked separately"
+  },
+  "metric_denominators": {
+    "completion": "deadline_met / n_offered",
+    "completion_admitted": "deadline_met / n_admitted",
+    "avg_latency_ms_per_task": "sum task latency-or-penalty / n_offered",
+    "avg_latency_admitted_ms": "sum latency for admitted outcomes / n_admitted",
+    "avg_latency_met_ms": "sum latency for deadline-met outcomes / deadline_met",
+    "avg_energy_j_per_task": "total energy / n_offered",
+    "action_shares": "action count / total actor actions"
+  },
+  "predeclared_limitations": [
+    "Ten seconds is a bounded smoke, not the full one-hour scenario.",
+    "The 2.5x fleet-scaled ceiling is provisional training parity, not an established physical buffer and not compute power.",
+    "The UK-2030 fleet preset is a provisional evidence-anchored choice pending the complete historical sweep contract.",
+    "The historical trace lacks an enter channel, so mask-only slot reset semantics remain in force.",
+    "The installed SUMO version is 1.27.1 while trace provenance names 1.27.0; no exact canonical SUMO reproduction is claimed.",
+    "Deadline attainment is a simulated evaluator result, not evidence of native physical task completion or returned results.",
+    "Legacy tos-data outputs are not corrected-engine baselines and Randy's reported 0.6943 is not treated as reproduced."
+  ]
+}

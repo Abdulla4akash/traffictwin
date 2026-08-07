@@ -29,3 +29,7 @@ traffictwin participant-evaluation analyse-mock docs/evaluation/mock_results.jso
 `streaming_ingestion_benchmark.md` is separate generated-fixture parser working-set/runtime and
 equivalence evidence for v0.5 `ING-05`. Its `tracemalloc` values are not full process RSS and it
 makes no Randy/VEC or city-scale claim.
+
+The [E0 corrected-evaluator validity gate](e0/README.md) records the predeclared bounded smoke,
+deterministic conservation checks, repeat comparison and readiness boundary for the Randy/VEC
+research stream. It is not a controller comparison.
