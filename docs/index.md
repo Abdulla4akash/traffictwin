@@ -29,6 +29,7 @@ This index points only to documentation and repository paths that exist in the c
 - [Provider enquiry drafts (DfT, WebTRIS, BODS)](integration/provider_enquiry_drafts.md)
 - [Supervisor Gate-D contract decision form](evaluation/supervisor_contract_decision_form.md)
 - [E0 corrected-evaluator validity gate](evaluation/e0/README.md)
+- [E1 waiting-room semantics evidence](evaluation/e1/README.md)
 - [Manchester SUMO network decision worksheet](integration/manchester_network_decision_worksheet.md)
 - [Operator v0.6 attestation procedure](integration/v06_attestation_procedure.md)
 - [Manual accessibility checklist and evidence record](evaluation/manual_accessibility_checklist.md)
