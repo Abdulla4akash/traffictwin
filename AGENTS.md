@@ -5455,3 +5455,23 @@ campaign or smoke, the B-BUS placement refusal, corridor result and both Sparse-
 preserves the clean rerun's narrow `admitted_with_execution_deviation` standing, the earlier
 return's non-admission and the admission/in-flight-ceiling correction. No implementation,
 experiment, evidence, private artifact, approval, capability, tag or release changed.
+
+### Completed lead ownership: canonical session context v10 (7 August 2026)
+
+The owner-directed integrating lead owns a documentation-only refresh of the canonical root
+handoff, its three current pointer/integration files, the documentation-index link and this record
+on `agent/current-status-5-6-pro-analysis`. The refresh may record verified Git, remote, PR, CI,
+campaign/registry and PID state; catalogue the five already-pushed VEC scheduling-foundation
+branches; and distinguish implemented synthetic/provisional software from native evaluator and
+scientific completion. It may not add implementation code to PR #2; alter campaign, registry,
+approval, evidence or digest-bound bytes; touch external clones; integrate branches; move tags; or
+change any scientific, publication or capability standing.
+
+Completed locally on 7 August 2026. `CLAUDE_SESSION_CONTEXT_PROMPT_V10.md` now supersedes v9,
+records the five pushed implementation tips and their exact evidence ceilings, identifies the
+authorised native lifecycle/state producer as the evidence bottleneck, retains the corrected
+admission/in-flight-ceiling interpretation and updates every current handoff pointer. The live
+audit confirmed PR #2 remained Markdown-only, hosted CI was blocked before runner allocation by
+the account billing/spending state, the admitted campaign and registry hashes were unchanged and
+PID 49470 was not alive. No implementation, experiment, campaign, registry, evidence, approval,
+external repository, tag or release was changed.

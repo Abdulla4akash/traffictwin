@@ -6,7 +6,7 @@ This index points only to documentation and repository paths that exist in the c
 
 - [Root README](../README.md)
 - [Repository owner project guide](project_guide.md)
-- [Current cross-agent session handoff (v9)](../CLAUDE_SESSION_CONTEXT_PROMPT_V9.md)
+- [Current cross-agent session handoff (v10)](../CLAUDE_SESSION_CONTEXT_PROMPT_V10.md)
 - [v0.7 local usage: synthetic demo and existing real workspace](v07_usage.md)
 - [Durable v0.7 workspace creation](v07_durable_workspace.md)
 - [Local real-workspace port-8502 run profile](v07_real_workspace_run.md)
