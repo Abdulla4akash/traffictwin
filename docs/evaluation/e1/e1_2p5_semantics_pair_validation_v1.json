@@ -1,0 +1,323 @@
+{
+  "decision": "bounded_e1_2p5_pair_valid_with_legacy_conservation_unavailable",
+  "input_identity": {
+    "expected_sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    },
+    "passed": true,
+    "sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "manifest": "318b909749f514833eba4a09bc34978b33bdefd570bfc3d59e189cebe9334bf5",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "interpretation_limits": {
+    "cap_effect_estimated": false,
+    "legacy_conservation_verdict": "unavailable_and_nonconserving_by_source_contract",
+    "legacy_zero_rejection_counters_interpreted_as_observed_zero": false,
+    "multi_seed_inference_supported": false,
+    "randy_reported_0_6943_reproduced": false
+  },
+  "legacy_run": {
+    "array_sha256": {
+      "per_step": {
+        "active": "a71e69c416ce9215ec1ecff0ff4e0c923d97fee6bfe48b55887ad8e4f7c2e9de",
+        "arrivals": "aafacdcb27b0ad7ccd890bd10ef760c051213f5abaf95bd4a260e392e4e815ee",
+        "done": "56e6ad77f1284c2f54827d89659f7cda64b7519248d8cfff4b347971aab5ae88",
+        "lat_sum": "91776d6f7be44830680d1d745979c7e72020a1198d38ef2ab1d16acfec6e8a67",
+        "n_local": "69422a6ecdf94bc5b6b792694f21250f08ed4ca78b4aad98057cc0d4fcb020c4",
+        "n_v2i": "c570e7daebb69bb162e8a80d58f1d5c514d4a88b5d71f078e54967585284d2bb",
+        "n_v2v": "40fdfc83fccff4ae96c7663b8ace483d288b5f314ccd29558e8c9f22d79e53b0",
+        "rsu_busy_ms": "4beb95ff259c009dac3d6ea157e061e8a53ff367f0804f8fd09c4c2414b8d419",
+        "rsu_load": "a0c191009982573d1962927fd0f0d8ed91b1608b5bb172820d5dbafdb41ebb3a",
+        "slot_is_ev": "b969e3fbf80e8218efeb9e178d2aa9b20167f7ef5586085f1df74873e75d25cd",
+        "slot_tier": "7053c4b498daa41de63973738674f420cbadd4560ba7a91105d8978ba782106e",
+        "times": "94deb2a7a25ca4d67e13e8aaac0deef27815f89f5e8a4108247c97d6f7178211",
+        "veh_action": "ff45bebb83a58f8db2256601da7584a5d2da93b47e7faadc7d7aa03730dca474",
+        "veh_best_rsu": "cf5a82db6726423deb9222039f068684fd1fa975665eecc95d88752c2a62e686",
+        "veh_best_v2v": "efffc414a0a03d2ab46383e1d024bdd10835de3aa469032f2e82250ffad97663",
+        "veh_done": "e738803db13361dc2ecf6deb73ad16289d01001c5f3a7c54f3f8c6e3664b06bc",
+        "veh_k": "4a09b292bbfe9238ad9bf14b0511c61d9aa74c978c6e2041c12cbd6b01323faa",
+        "veh_queue_ms": "e47c39a9d9a33fa8ad70e03bd9475580eed0a6ea07543235faf5db2defb7c827"
+      },
+      "per_task": {
+        "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+        "task_lat_ms": "1dd5583ddf46ba8598feed7cc25910b9688a6ed24d1db8e9a3a0ce1b0b623312",
+        "task_met": "593e00df96cb48b096bf41914ce918de3275e6e4f39b7db080065e3477081a35",
+        "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+      }
+    },
+    "checks": [
+      {
+        "expected": true,
+        "name": "summary_numbers_finite",
+        "observed": true,
+        "passed": true
+      },
+      {
+        "expected": [],
+        "name": "aggregate_counts_nonnegative_integral",
+        "observed": [],
+        "passed": true
+      },
+      {
+        "expected": {},
+        "name": "predeclared_configuration",
+        "observed": {},
+        "passed": true
+      },
+      {
+        "expected": 13076234.0,
+        "name": "total_tasks_equals_offered",
+        "observed": 13076234.0,
+        "passed": true
+      },
+      {
+        "expected": {},
+        "name": "legacy_unavailable_fields_remain_null",
+        "observed": {},
+        "passed": true
+      },
+      {
+        "expected": {},
+        "name": "legacy_placeholder_counters_match_source_contract",
+        "observed": {},
+        "passed": true
+      },
+      {
+        "expected": "task_outcome absent",
+        "name": "legacy_task_outcome_absent",
+        "observed": [
+          "task_active",
+          "task_lat_ms",
+          "task_met",
+          "task_type"
+        ],
+        "passed": true
+      },
+      {
+        "expected": [],
+        "name": "instrumentation_arrays_finite",
+        "observed": [],
+        "passed": true
+      },
+      {
+        "expected": 13076234.0,
+        "name": "active_records_equal_offered",
+        "observed": 13076234,
+        "passed": true
+      },
+      {
+        "expected": 0,
+        "name": "inactive_records_not_deadline_met",
+        "observed": 0,
+        "passed": true
+      },
+      {
+        "expected": 0,
+        "name": "active_task_types_in_range",
+        "observed": 0,
+        "passed": true
+      },
+      {
+        "expected": 13076234.0,
+        "name": "per_step_arrivals_equal_offered",
+        "observed": 13076234,
+        "passed": true
+      },
+      {
+        "expected": 9528093,
+        "name": "per_step_done_equals_deadline_met",
+        "observed": 9528093,
+        "passed": true
+      },
+      {
+        "expected": 13076234.0,
+        "name": "action_counts_equal_offered",
+        "observed": 13076234,
+        "passed": true
+      },
+      {
+        "expected": [],
+        "name": "count_queue_latency_arrays_nonnegative",
+        "observed": [],
+        "passed": true
+      },
+      {
+        "expected": 0.7286572724226257,
+        "name": "offered_completion_denominator",
+        "observed": 0.7286572724226257,
+        "passed": true
+      },
+      {
+        "expected": 17116.571975659237,
+        "name": "penalty_inclusive_latency_per_step_denominator",
+        "observed": 17116.584494281764,
+        "passed": true
+      },
+      {
+        "expected": 17116.571971263016,
+        "name": "penalty_inclusive_latency_per_task_denominator",
+        "observed": 17116.584494281764,
+        "passed": true
+      },
+      {
+        "expected": 0.6492658573587076,
+        "name": "t1_completion_denominator",
+        "observed": 0.6492658573587076,
+        "passed": true
+      },
+      {
+        "expected": 0.7962691241533999,
+        "name": "t2_completion_denominator",
+        "observed": 0.7962691241533999,
+        "passed": true
+      },
+      {
+        "expected": 0.7198343440772041,
+        "name": "t3_completion_denominator",
+        "observed": 0.7198343440772041,
+        "passed": true
+      },
+      {
+        "expected": 0.5349685544018254,
+        "name": "p_local_denominator",
+        "observed": 0.5349685544018254,
+        "passed": true
+      },
+      {
+        "expected": 0.20284043555659834,
+        "name": "p_v2i_denominator",
+        "observed": 0.20284043555659834,
+        "passed": true
+      },
+      {
+        "expected": 0.2621910100415762,
+        "name": "p_v2v_denominator",
+        "observed": 0.2621910100415762,
+        "passed": true
+      },
+      {
+        "expected": [],
+        "name": "fractions_in_unit_interval",
+        "observed": [],
+        "passed": true
+      }
+    ],
+    "label": "legacy_full_run_1",
+    "observed": {
+      "completion_offered": 0.7286572724226257,
+      "deadline_met": 9528093,
+      "n_admitted": null,
+      "n_offered": 13076234,
+      "penalty_inclusive_latency_ms_per_offered_task": 17116.584494281764,
+      "terminal_rejections_or_unavailability": null,
+      "wall_s_excluded_from_repeat_verdict": 4542.2,
+      "work_conservation": "unavailable_and_nonconserving_by_source_contract"
+    },
+    "output_sha256": {
+      "per_step.npz": "6e1ef1007e60b6eed7dbb5ceca483f9b8ecdb9135b6f8d454617b071d00e8ea8",
+      "per_task.npz": "f4facd0634099b6f7930628a0f84a0bbd3b63a922905af999c0ee97805be422e",
+      "stdout_stderr.log": "6f345d2bee0f804ec365b9d43e6e016cbcf37cbfa3892fecdcc3d840af56d8f4",
+      "summary.json": "9c9d6c5078758ec98892fd387412872375c70bbdff7ba4b3cbfaa0ff30d13840"
+    },
+    "passed": true,
+    "scientific_summary": {
+      "T": 3600,
+      "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "avg_energy_j_per_task": 0.5013042746099526,
+      "avg_latency_admitted_ms": null,
+      "avg_latency_met_ms": null,
+      "avg_latency_ms_per_task": 17116.584494281764,
+      "completion": 0.7286572724226257,
+      "completion_admitted": null,
+      "engine_version": "v2_post_nrsus_fix",
+      "enter_reset": false,
+      "fleet": "uk2030",
+      "fleet_ev_share": 0.2186495065689087,
+      "fleet_seed": 0,
+      "fleet_tier_hist": [
+        988,
+        878,
+        622
+      ],
+      "k8s_first_scaleup_s": -1.0,
+      "k8s_mean_mult": 1.0,
+      "k8s_params": {},
+      "k8s_scale": "off",
+      "k8s_scale_events": 0,
+      "lambda_arrival": 1.5,
+      "local_mqd_rejected": 0.0,
+      "maxN": 2488,
+      "model": "C",
+      "n_admitted": null,
+      "n_offered": 13076234.0,
+      "obs_variant": "onehot17",
+      "p_local": 0.5349685544018254,
+      "p_v2i": 0.20284043555659834,
+      "p_v2v": 0.2621910100415762,
+      "reset_soc_on_enter": false,
+      "rsu_backhaul_ms": 0.0,
+      "rsu_cap_mode": "clamp",
+      "rsu_lb": "off",
+      "rsu_max_concurrent": 6220,
+      "rsu_service_mult": 1.0,
+      "substep_queue": "snapshot",
+      "t1_completion": 0.6492658573587076,
+      "t1_share": 0.2000245636473009,
+      "t2_completion": 0.7962691241533999,
+      "t2_share": 0.30010368428708145,
+      "t3_completion": 0.7198343440772041,
+      "t3_share": 0.4998717520656177,
+      "total_tasks": 13076234.0,
+      "trace": "trace_inc_fullrsu.npz",
+      "v2i_cap_rejected": 0.0,
+      "v2i_gate_rejected": 0.0,
+      "v2i_unavailable": 0.0,
+      "v2v_mqd_rejected": 0.0,
+      "v2v_unavailable": 0.0,
+      "veh_queue_mode": "legacy",
+      "work_ms": null
+    }
+  },
+  "manifest_id": "e1-2p5-semantics-pair-seed0-v1",
+  "paired_input_equality": {
+    "offered_count": true,
+    "task_active": true,
+    "task_type": true
+  },
+  "paired_metrics_physical_minus_legacy": {
+    "completion_admitted": null,
+    "completion_offered_absolute": -0.04503804382821541,
+    "completion_offered_percentage_points": -4.503804382821541,
+    "penalty_inclusive_latency_ms_per_offered_task": 145.53382632950525,
+    "reason_null_metrics": "The pinned legacy snapshot/clamp path does not emit admitted identities or terminal rejection outcomes.",
+    "rejection_fraction": null
+  },
+  "passed": true,
+  "phase": "full_2p5_pair",
+  "physical_e0_reuse": {
+    "completion_admitted": 0.7665225258196019,
+    "completion_offered": 0.6836192285944103,
+    "deadline_met": 8939165,
+    "n_admitted": 11661973,
+    "n_offered": 13076234,
+    "output_hashes_passed": true,
+    "output_sha256": {
+      "per_step.npz": "0be8726efa956d6d6e60b289fb3a6b587beb4dde7616fc235462bfb997d0e6d1",
+      "per_task.npz": "c30acc1e6685db268a31daeda2c8020df2968487efecd420e729a16d3b3b2d57",
+      "summary.json": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1"
+    },
+    "penalty_inclusive_latency_ms_per_offered_task": 17262.11832061127,
+    "validation_passed": true,
+    "validation_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+    "work_conservation": "passed_in_e0_validation"
+  },
+  "schema_version": "traffictwin.e1-semantics-pair-validation.v1",
+  "semantic_boundary": {
+    "confirmed_native_physical_completion": false,
+    "confirmed_physical_result_return": false,
+    "measured_outcome": "simulated deadline attainment"
+  }
+}
