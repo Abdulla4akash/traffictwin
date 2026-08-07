@@ -1,0 +1,56 @@
+as a later architecture comparison, not a first experiment. | OPTIONAL / GATED |
+| 11 | E10 — learned infrastructure dispatcher | Is a learned execution-RSU policy justified after deterministic placement baselines? | A learned dispatcher is justified only if it improves the completion/resource/robustness trade-off under staleness and forwarding cost beyond JSQ/deadline-aware rules. | Learned dispatcher versus strongest-link, JSQ, P2C and deadline-aware deterministic policies. | Frozen vehicle actor, common candidate information, task streams, seeds, reward and compute budget. | Held-out incident/event/ordinary conditions with staleness/backhaul sweeps. | Frozen actor. | Second-stage learned execution-RSU policy. | Yes, infrastructure policy only. | At least five training seeds plus matched evaluation seeds. | Held-out offered completion/resource trade-off versus strongest deterministic baseline. | Robustness to staleness, forwarding, rejection, latency, training stability and inference cost. | Environment/API for dispatcher training, reward, replay/evaluation and policy artifacts. | Not implemented; the TrafficTwin deterministic study is synthetic structural software, not a learned scheduler. | High. | Potentially high but unnecessary unless deterministic baselines are inadequate. | Reward shaping, common-information fairness, overfitting, actor/dispatcher non-stationarity and selected-seed bias. | No deterministic comparator, no held-out conditions, or marginal gain without cost/robustness benefit. | All training seeds, common-information contract, held-out matched results, ablations and artifact hashes. | Aligned with Sandra's learned scheduling idea, explicitly gated. | OPTIONAL / GATED |
+| 12 | E11 — action masking | Does masking infeasible Local/V2I/V2V choices improve policy quality compared with explicit rejection? | Masking will reduce invalid actions but changes the policy-learning problem and should not be mixed into the infrastructure baseline. | Masked versus unmasked policy under an otherwise identical training/evaluation contract. | Observation, reward, algorithm, budget, training distribution, infrastructure semantics and seeds. | Training distribution plus held-out Manchester cells. | New masked and unmasked actors. | Fixed baseline controller. | Yes. | At least five training seeds and five fleet draws. | Offered completion. | Invalid/rejected action rate, strategy shares, latency, energy and seed stability. | Masking support exists in training; complete campaign/checkpoints and compatibility evidence are missing. | Partially implemented; no accepted current campaign identified. | High due paired retraining and evaluation. | Moderate and separable; not part of the minimum contribution. | Masking changes the action distribution and exploration; it is not merely an evaluator toggle. | Applying a mask only at evaluation, comparing differently trained policies without matched budgets, or bundling it with load balancing. | Paired training records, masks at every training/eval step, all seeds and held-out results. | Separate extension only. | OPTIONAL |
+
+## Statistical analysis rule
+
+**[NEW_RECOMMENDATION]** Use matched per-seed differences as the primary analysis unit. With only five fleet draws,
+emphasize raw effects, bootstrap intervals and sensitivity rather than pretending millions of tasks are independent.
+An exact paired permutation test with five pairs has coarse resolution, so a null p-value must not erase a practically
+meaningful effect. Predeclare the actor, cap, policy, seed pairs, primary metric and stopping rule.
+
+# 8. Recommended minimum viable research contribution
+
+**[NEW_RECOMMENDATION]**
+
+The minimum dissertation contribution should contain four admitted components:
+
+1. **Corrected semantic contract and E0 reference:** offered/admitted/rejected accounting, physical reject semantics,
+   work conservation and complete provenance.
+2. **E1 queue-semantic result:** show exactly why low waiting-room capacity can create a fail-fast latency appearance.
+3. **E2 deterministic placement result:** frozen actor; strongest-link versus transparent load-aware placement on the
+   incident cell and one ordinary control.
+4. **E3 forwarding sensitivity:** identify the condition under which placement benefit disappears.
+
+E4 fixed/static/reactive scaling is the first add-on if compute permits.
+
+A defensible contribution statement would be:
+
+> This study separates vehicle offloading choice, RSU admission, execution-RSU placement and compute scaling, then
+> evaluates them under matched Manchester mobility traces using explicit rejection and conservation. It identifies
+> when load-aware infrastructure control improves deadline attainment over all offered tasks and when rejection,
+> forwarding cost or stale state removes that benefit.
+
+Do not claim “Kubernetes load balancing” unless an actual Kubernetes deployment is built. For the current evaluator,
+use “Kubernetes-inspired” or “Kubernetes-style reactive resource scaling.”
+
+# 9. Stronger extension if time permits
+
+**[NEW_RECOMMENDATION]**
+
+The strongest extension is **E5 stale-state sensitivity**, not an LLM or a large neural controller. It directly tests
+whether the information required by a load-aware dispatcher remains useful at realistic age. Combine it with the
+best deterministic placement and report a condition map over traffic regime, backhaul and telemetry age.
+
+Only after E2/E5 establish a residual decision problem should the project attempt:
+
+1. E8 proactive forecasting, beginning with persistence and EWMA;
+2. E9 load-aware actor retraining; or
+3. E10 a learned infrastructure dispatcher.
+
+A complex model that fails to beat JSQ/deadline-aware placement under held-out conditions is still a valid negative
+result, but it should not consume the first week.
+
+# 10. Independent bus-thread recommendation
+
+**[NEW_RECOMMENDATION]** Keep the Manchester bus prediction thread alive as a **parallel feasibility track**, not

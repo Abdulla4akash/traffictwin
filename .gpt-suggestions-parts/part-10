@@ -1,0 +1,130 @@
+ve cap points.
+- If compute is unavailable, finish the complete seed-0 pilot and queue the predeclared multi-draw campaign rather
+  than pretending one seed is conclusive.
+
+**Exit condition:** admitted multi-draw E1 outputs or a fully ready campaign manifest.
+
+## Day 5 — native placement evidence
+
+- Validate the two-RSU strong-link-full/weaker-idle case against current evaluator state.
+- Add ingress/execution/forwarding counters if absent.
+- Run strongest-link, JSQ and deterministic deadline-aware placement for one incident seed.
+
+**Exit condition:** path-level evidence and a matched deterministic pilot.
+
+## Day 6 — placement plus cost
+
+- Run the selected E2 policies across fleet seeds 0–4 if compute permits.
+- Run the E3 backhaul pilot at 0, 2 and 10 ms.
+- Run a fixed 1×/static 3×/reactive seed-0 scaling pilot only after placement/accounting is stable.
+
+**Exit condition:** first condition-map figure or a documented null/harm result.
+
+## Day 7 — analysis and supervisor decision pack
+
+- Produce paired per-seed tables, uncertainty intervals, conservation audit and provenance appendix.
+- Separate observed results from expected mechanisms.
+- Write a one-page decision note: MVP complete/in progress, best next extension (staleness versus scaling), blockers and
+  compute need.
+- Complete the bus-thread feasibility inventory separately; do not mix its data or claims with VEC.
+
+**Realism note:** one historical incident run took about three CPU-hours. A 30-run E1 grid is about 90 CPU-hours if
+runtime is similar. The five-seed core is feasible within seven days only with parallel compute; serial local work
+should prioritize correctness, the seed-0 pilot and ready-to-launch manifests.
+
+# 16. Reproducibility checklist
+
+- [ ] Authoritative repository branch and full commit for every codebase.
+- [ ] Clean/dirty local `git status`; untracked output inventory retained.
+- [ ] Full actor filename, checksum, training record and selected-seed disclosure.
+- [ ] Full trace filename, checksum, date/window, maxN, RSU placement and SUMO seed.
+- [ ] Python, JAX, NumPy, SUMO and OS/container identity.
+- [ ] Hardware/partition and wall-clock recorded without pooling unlike machines.
+- [ ] Complete command, environment variables and SLURM manifest.
+- [ ] Evaluator seed, fleet seed, training seed and controller RNG seed separated.
+- [ ] Queue/admission/service/placement/scaling semantics written explicitly.
+- [ ] Offered/admitted/rejected task and work identities checked.
+- [ ] Drain/terminal policy documented.
+- [ ] Metric denominators and unavailable metrics written into the schema.
+- [ ] Tail-latency and class metrics retained.
+- [ ] Ingress/execution/forwarding/return path retained for placement claims.
+- [ ] Capacity timeline/core-seconds retained for scaling claims.
+- [ ] Raw JSON/NPZ/log files immutable and checksummed.
+- [ ] Campaign directory and filenames never reused.
+- [ ] Analysis plan, primary metric and seed set predeclared.
+- [ ] Paired raw rows and null/negative results retained.
+- [ ] Train/eval contamination labels for every retrained/FCD model.
+- [ ] Publication/attribution permission checked before sharing any private artifact.
+
+# 17. Sources and traceability
+
+## Primary TrafficTwin sources
+
+- `AGENTS.md`
+- `SUPERVISOR_RESEARCH_DIRECTION.md`
+- `docs/research_start_2026-08-07.md`
+- `docs/randy_email_research_analysis_2026-08-07.md`
+- `docs/msc_students_qna_research_record_2026-08-05.md`
+- `docs/implementation-status.md`
+- `docs/traffictwin-design-v0_7.md`
+- `docs/current_progress_v0_7.md`
+- `docs/integration/vec_end_to_end_research_artifact.md`
+- `docs/integration/randy-source-snapshot-audit-v0_6.md`
+- `docs/integration/vec_evaluator_runner.md`
+- `docs/integration/vec_reproduction_verification.md`
+- `docs/integration/vec_scientific_admission.md`
+- `docs/experiment_protocol.md`
+- `docs/statistical_studies.md`
+- `docs/reproducibility.md`
+- `src/traffictwin/integration/vec_runner/models.py`
+
+## TrafficTwin branch/prototype sources
+
+- Branch comparison: `a462c72...` versus requested `ae5b543...`
+- `b7bc0cc...` — provisional lifecycle contract
+- `ec256ba...` — synthetic two-RSU hand check
+- `3b13856...` — deterministic dispatcher
+- `9fa1c37...` — native sidecar validator
+- `3813431...` — matched synthetic dispatch study
+- `a43ce2a.../docs/evaluation/supervisor_meeting_4_and_independent_bus_research_plan.md`
+
+## vec_env sources
+
+- `README.md`
+- `docs/DATA_CONVENTIONS.md`
+- `docs/REPRODUCING.md`
+- `eval/eval_sumo_stage1_mc.py`
+- `jaxmarl/env/vec_jax.py`
+- `pytorch/env/vec_offloading_env.py`
+- `jaxmarl/scripts/train_mappo_vec.py`
+- `validation/fidelity_trace_replay.py`
+- `validation/gen_forced_actors.py`
+- `slurm/README.md`
+- Change commits `d4d5dfc`, `e592662`, `4cb7c06`, `eb5ed93`, `df022e6`, `82d3ecf`
+
+Stable code anchors for local line-number verification:
+
+- `eval_sumo_stage1_mc.py`: argument parser; admission/queue setup; LB/DLA routing; queue drain/scaling; JSON output.
+- `vec_jax.py`: `process_agent`, `best_rsu_load_frac`, observation construction and action masks.
+- `train_mappo_vec.py`: `--use-mask`, actor construction, checkpoint save and greedy evaluation.
+- `vec_offloading_env.py`: strongest-channel target selection and 17D observation construction.
+
+## tos-data sources
+
+- `README.md`
+- `DATA_DICTIONARY.md`
+- `records/DATA_CONVENTIONS.md`
+- all eight relevant `TRAINING_*.md` records for UK-fleet, cap-scalar, gridlock and fine-tuned variants
+- `traces/PROVENANCE.md`
+- `evals/eval_results_master.csv`
+- `instrumented/json/baseline_uk2030_inc_fs0.json`
+- actor/checkpoint, trace, occupancy, tripinfo and instrumented tree inventory
+
+# Direct answers
+
+**Can research execution begin now?**  
+**Yes for E0 smoke/reference work and manifest preparation. No for a large accepted campaign until branch authority,
+exact first-run identity, environment/compute and metric/path boundaries are frozen.**
+
+**What is the first experiment?**  
+**E0: the current-engine frozen-actor reference under 

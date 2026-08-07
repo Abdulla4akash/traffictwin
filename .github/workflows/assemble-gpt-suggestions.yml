@@ -1,0 +1,38 @@
+name: Assemble GPT 5.6 Pro suggestions
+
+on:
+  push:
+    branches:
+      - codex/traffictwin-v0.7
+    paths:
+      - '.gpt-suggestions-parts/**'
+      - '.github/workflows/assemble-gpt-suggestions.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the target branch
+        uses: actions/checkout@v4
+        with:
+          ref: codex/traffictwin-v0.7
+      - name: Assemble and verify the document
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .gpt-suggestions-parts/part-* > "gpt 5.6 pro suggestions.md"
+          printf '%s  %s\n' '0ac86a26573541a73c98e2a1a86fe56ae8bc20d6b0112dd6a0b7d666f069085c' 'gpt 5.6 pro suggestions.md' | sha256sum --check -
+          rm -rf .gpt-suggestions-parts
+          rm .github/workflows/assemble-gpt-suggestions.yml
+      - name: Commit the assembled document
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "docs: add GPT 5.6 Pro suggestions"
+          git push origin HEAD:codex/traffictwin-v0.7

@@ -1,0 +1,100 @@
+ed RSU, forwarding cost and telemetry freshness.
+Because that document explicitly says it is not a verbatim transcript or supervisor approval, those details are
+treated here as **[INFERENCE]**, not upgraded to direct requirements.
+
+# 3. What Randy added
+
+| Evidence class | Randy contribution | Audit treatment |
+|---|---|---|
+| RANDY_REPORTED_RESULT | A waiting-room sweep from `0.75×` to `40×` reportedly kept completion near `0.6943` while mean latency rose from roughly `4.9 s` to `128.4 s`. | Unverified until raw outputs and exact manifest are supplied. |
+| RANDY_PROPOSAL | Add RSU-load information to the actor and retrain. | Valid later ablation; not the first experiment. |
+| RANDY_PROPOSAL | Use JSQ, P2C, deadline-aware admission/placement and combinations. | Current code supports most of this; comparisons must distinguish placement from admission. |
+| RANDY_PROPOSAL | Compare fixed 1×, static 3×, reactive scaling and proactive forecasting. | Good staged architecture if resource use and actuation delay are reported. |
+| RANDY_PROPOSAL | Sweep remote-state staleness at 0/100/500/1000 ms and backhaul cost. | Strong condition-map extension; staleness is not currently implemented. |
+| RANDY_PROPOSAL | Keep Kubernetes worker/resource management separate from application placement/admission. | Correct architecture boundary; name current work “Kubernetes-style” until a real deployment exists. |
+| CODE_VERIFIED_IMPLEMENTATION | August commits added reject semantics, sequential queue updates, conservation fields, absolute caps and scaling. | These are implementation facts, not evidence that a corrected campaign has run. |
+
+# 4. What the code actually implements
+
+## 4.1 TrafficTwin requested branch
+
+**[CODE_VERIFIED_IMPLEMENTATION]**
+
+- The requested branch is `ae5b543...`, but it diverges from main: GitHub reports it as four commits ahead and
+  **271 commits behind** `a462c72...`.
+- The branch's VEC runner is a bounded old-engine wrapper. Its request model pins the older reviewed external
+  snapshots and exposes only the old trace/actor/cap/max-step/seed/fleet/output flags.
+- It has accepted archival/reproduction/scientific-admission machinery for the old VEC evidence chain.
+- It does not natively run current physical reject semantics, absolute caps, JSQ/P2C/deadline-aware placement or
+  Kubernetes-style scaling.
+
+**Interpretation:** the requested branch is appropriate for reading the new supervisor-direction documents, but it
+is not the authoritative execution base for the new experiments.
+
+## 4.2 TrafficTwin current main and unmerged prototypes
+
+**[CODE_VERIFIED_IMPLEMENTATION]**
+
+Starting from current main `a462c72...`, the sequential prototype chain adds:
+
+1. `b7bc0cc...`: strict provisional per-task lifecycle ledger and task-count conservation over synthetic fixtures;
+   no native producer and no CPU-work conservation.
+2. `ec256ba...`: synthetic two-RSU oracle, with strong-link RSU A full, weaker RSU B idle, one forwarded task,
+   `23 ms` end-to-end arithmetic and `400 mJ` forwarding arithmetic; not an evaluator run.
+3. `3b13856...`: pure deterministic strongest-link/no-forwarding, least-loaded and predicted-earliest-completion
+   policies with reservation-aware batching; caller supplies predicted state/costs.
+4. `9fa1c37...`: read-only sidecar verifier for future native lifecycle/dispatch JSONL files; current evaluator does
+   not emit those files.
+5. `3813431...`: matched synthetic three-policy harness; explicitly no measured execution, return, deadline or
+   scientific winner.
+
+These prototypes substantially reduce future integration work but do not answer Sandra's research question yet.
+
+## 4.3 vec_env current main
+
+**[CODE_VERIFIED_IMPLEMENTATION]**
+
+`eval/eval_sumo_stage1_mc.py` implements:
+
+- `--rsu-cap-per-veh` and `--rsu-cap-abs`;
+- `--substep-queue snapshot|sequential`;
+- `--veh-queue legacy|conserved`;
+- `--rsu-cap-mode clamp|reject`, with physical reject coupled to sequential updates;
+- LB modes `off`, `jsq`, `p2c`, `dla`, `dla_p2c`;
+- configurable backhaul delay;
+- compute modes `off/fixed`, static multiplier and reactive Kubernetes-style scaling;
+- offered/admitted populations, rejection reasons, class completion, conditional latency, capacity summaries and
+  exact work conservation under the physical mode.
+
+The evaluator does **not** currently implement:
+
+- remote-state staleness;
+- proactive load forecasting;
+- a learned infrastructure dispatcher;
+- an actor observation containing RSU load/capacity/age;
+- complete ingress→execution→return per-task path evidence;
+- forwarding count/energy as first-class output;
+- physical return failure distinct from modelled deadline status;
+- a real Kubernetes deployment.
+
+`jaxmarl/env/vec_jax.py` and the PyTorch environment expose three actor actions:
+Local, V2I and V2V. Exact V2I/V2V targets are environment-selected. In the JAX environment,
+`best_rsu_load_frac` is computed but omitted from the 17-dimensional observation. The frozen actor therefore does
+not observe current RSU load.
+
+`jaxmarl/scripts/train_mappo_vec.py` has explicit action-mask training support, but masking is a separate trained
+policy variant, not a harmless evaluator switch.
+
+## 4.4 tos-data
+
+**[REPOSITORY_REPRODUCED_EVIDENCE]**
+
+- The repository contains 300 historical evaluation rows, five Manchester traces, actor checkpoints, per-step
+  arrays, six showcase per-task arrays, training curves and machine records.
+- The package is explicitly the older `v2_post_nrsus_fix` engine, produced before the 5 August physical-accounting
+  commits.
+- The five baseline incident/UK2030 fleet draws in the master CSV have old-engine completion values from
+  approximately `0.7170` to `0.7414` (mean about `0.7247`).
+- One sample incident run records about 13.1 million offered tasks and roughly 10,743 seconds wall time.
+- Historical retraining records show that matching gridlock speed/density while keeping a two-RSU training topology
+  transferred badly to the ten-RSU Manchest

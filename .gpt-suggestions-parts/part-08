@@ -1,0 +1,90 @@
+ the
+primary dissertation claim yet.
+
+The focused question is:
+
+> Do recent bus trajectories plus admitted traffic/event information improve short-horizon corridor travel-time and
+> severe-delay prediction beyond persistence and historical time-of-day baselines?
+
+First-stage models should be persistence, historical median, moving average/regularized regression and gradient
+boosting. Use chronological splits, source-ablation, freshness/dropout tests and calibrated uncertainty. An LLM may
+coordinate validated sources or explain already-computed predictions, but must not generate the numerical forecast.
+
+**Switch-primary gate:** reconsider making the bus thread primary only if (a) the VEC native-evidence/ownership block
+remains unresolved after the first bounded coordination cycle and (b) the bus audit confirms sufficient repeated
+trajectories, labels, geographic overlap, legal use and a leakage-safe held-out test. Until both conditions hold,
+the VEC study remains the supervisor-aligned primary thread.
+
+# 11. Missing-information register
+
+## 11.1 Hard blockers before a full scientific campaign
+
+| ID | Evidence class | Missing item | Why it blocks | Owner/request |
+|---|---|---|---|---|
+| H1 | MISSING_INFORMATION | Authoritative TrafficTwin execution base: requested diverged branch, current main, or prototype tip | Changes code availability and provenance | Abdulla + repository owner: choose and record base/merge strategy |
+| H2 | MISSING_INFORMATION | Signed/predeclared first-campaign manifest | Without actor, trace, flags, seeds and outputs, E0 cannot be an accepted reference | Abdulla; review with Randy |
+| H3 | MISSING_INFORMATION | Confirmed environment and SUMO version for current engine | 1.27.0/1.27.1 drift can invalidate exact reproduction | Randy/Abdulla |
+| H4 | MISSING_INFORMATION | Native forwarding/path and physical-return evidence boundary | Required before claiming scheduler execution benefit rather than selection/projection | Randy + implementation owner |
+| H5 | MISSING_INFORMATION | CSF3 access, partition/quota and durable output location | Required for a five-seed/full-hour matrix at practical wall-clock | Sandra/Randy/CSF owner |
+| H6 | MISSING_INFORMATION | Local `git status`, untracked outputs and local result inventory | GitHub absence does not prove local absence | Abdulla on the three supplied local paths |
+
+## 11.2 Required to reproduce Randy's reported result
+
+| ID | Evidence class | Missing item |
+|---|---|---|
+| R1 | MISSING_INFORMATION | Raw sweep JSON/CSV and any per-task/per-step sidecars |
+| R2 | MISSING_INFORMATION | Exact command or SLURM manifest for every cap point |
+| R3 | MISSING_INFORMATION | Exact cap grid and whether values were per-vehicle or absolute |
+| R4 | MISSING_INFORMATION | Actor filename plus checksum and training identity |
+| R5 | MISSING_INFORMATION | Trace checksum/window, fleet preset and fleet seed(s) |
+| R6 | MISSING_INFORMATION | Evaluator/task RNG seed(s) and P2C/controller seed if relevant |
+| R7 | MISSING_INFORMATION | vec_env/tos-data commits and environment/SUMO versions used |
+| R8 | MISSING_INFORMATION | Definition of completion, latency denominator, drain horizon and rejection treatment |
+| R9 | MISSING_INFORMATION | Full numerical table, not only the two endpoints |
+
+## 11.3 Required for new supervisor experiments
+
+| ID | Evidence class | Missing item |
+|---|---|---|
+| N1 | MISSING_INFORMATION | Approved first deterministic comparator: current JSQ/deadline-aware code or integrated TrafficTwin least-loaded/earliest-completion prototype |
+| N2 | MISSING_INFORMATION | Exact service-rate/core semantics and a separately controlled compute-speed parameter |
+| N3 | MISSING_INFORMATION | Forwarding network assumptions: delay, bandwidth, energy, loss and reachability |
+| N4 | MISSING_INFORMATION | Remote-state staleness producer/buffer and timestamp contract |
+| N5 | MISSING_INFORMATION | Resource-cost denominator for static/reactive scaling |
+| N6 | MISSING_INFORMATION | Tail-latency and path-event output schema for the current engine |
+| N7 | MISSING_INFORMATION | Supervisor-approved essential cell set and campaign deadline |
+
+## 11.4 Required for multi-seed retraining
+
+| ID | Evidence class | Missing item |
+|---|---|---|
+| T1 | MISSING_INFORMATION | Frozen load/capacity/age observation schema and normalization |
+| T2 | MISSING_INFORMATION | Reward and masking contract |
+| T3 | MISSING_INFORMATION | Training seed set, checkpoint selection rule and equal-budget protocol |
+| T4 | MISSING_INFORMATION | GPU allocation and storage for all seeds/curves/checkpoints |
+| T5 | MISSING_INFORMATION | Held-out topology/trace matrix and contamination labels |
+| T6 | MISSING_INFORMATION | Availability of non-selected baseline actor seeds for actor-seed sensitivity |
+
+## 11.5 Coordination and ownership
+
+| ID | Evidence class | Missing item |
+|---|---|---|
+| C1 | MISSING_INFORMATION | Ethan's exact branch, experiment ownership and current outputs |
+| C2 | MISSING_INFORMATION | Who may modify/review the authoritative `vec_env` evaluator |
+| C3 | MISSING_INFORMATION | Who owns native lifecycle/path instrumentation |
+| C4 | MISSING_INFORMATION | Where campaign manifests/results are committed and who admits them |
+| C5 | MISSING_INFORMATION | Authorship/data-governance boundary for Randy-originated assets |
+| C6 | MISSING_INFORMATION | Sandra's expected dissertation deliverable and decision date |
+
+## 11.6 Useful but non-blocking
+
+- Formal versioned schema for the current evaluator JSON/NPZ.
+- Corrected documentation about whether traces ship in `vec_env`.
+- Public/dissertation publication permission for any new raw or derived VEC artifact.
+- Complete FCD-replay training record for every historical variant referenced by the data dictionary.
+- Bus-source licence, retention, temporal depth, geographic overlap and target-label audit.
+- Hardware-specific runtime benchmark for the current corrected engine.
+
+# 12. Exact questions for Sandra
+
+1. Is the prima

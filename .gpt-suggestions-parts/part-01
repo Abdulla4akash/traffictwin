@@ -1,0 +1,91 @@
+# GPT-5.6 Pro Suggestions — TrafficTwin Research Audit
+
+**Prepared:** 7 August 2026  
+**Contents:** complete TrafficTwin research audit plus the immediate request checklist.
+
+---
+
+# TrafficTwin MSc Dissertation Research Audit
+
+**Audit date:** 7 August 2026  
+**Mode:** read-only scientific and implementation audit; no code was modified and no expensive campaign was launched.  
+**Requested scope:** TrafficTwin, `vec_env`, and `tos-data`, using the source-authority hierarchy in the supplied brief.  
+**Important coverage limitation:** the GitHub repositories and branches were inspected. The local working trees under
+`/Users/akashx/...`, untracked files, local result directories and scheduler queues were not accessible from this audit.
+Therefore, “not found” means “not found in the inspected repository state,” not “cannot exist on a local disk.”
+
+## Audit pins
+
+| Resource | Audited identity |
+|---|---|
+| TrafficTwin requested branch | `codex/traffictwin-v0.7 @ ae5b543df6a37e8083c5807aa766aba12872ff21` |
+| TrafficTwin current main observed during branch inventory | `main @ a462c72b81f1668eef4ea0b7f8e806be4d208b47` |
+| TrafficTwin sequential research-prototype tip | `agent/vec-matched-dispatch-study-v1 @ 3813431f7366c833924fcc79d50268be2179e974` |
+| vec_env | `main @ 0f01f4d2082d3e8b735e74a873095ab8eeba37cc` |
+| tos-data | `main @ a75bbdb1a956f828ee0e9b97b33506bd32d31b85` |
+
+## Evidence labels used
+
+Every major claim below is assigned one label only:
+
+`DIRECT_SUPERVISOR_DIRECTION`, `RANDY_REPORTED_RESULT`, `RANDY_PROPOSAL`,
+`CODE_VERIFIED_IMPLEMENTATION`, `REPOSITORY_REPRODUCED_EVIDENCE`, `INFERENCE`,
+`NEW_RECOMMENDATION`, or `MISSING_INFORMATION`.
+
+# 1. Executive verdict
+
+**[DIRECT_SUPERVISOR_DIRECTION]** Sandra's problem is not “make a queue smaller” and not simply
+“use Kubernetes.” It is whether infrastructure-side load management can improve VEC task outcomes when the
+frozen vehicle actor lacks adequate RSU-capacity awareness, while keeping admission ceilings, compute service,
+placement and scaling conceptually separate.
+
+**[CODE_VERIFIED_IMPLEMENTATION]** The current `vec_env` evaluator already contains enough machinery to begin
+a corrected no-retraining study directly: physical reject semantics, sequential queue updates, conserved vehicle
+queues, per-vehicle and absolute RSU caps, JSQ/P2C/deadline-aware placement, backhaul delay, and fixed/static/reactive
+compute scaling.
+
+**[CODE_VERIFIED_IMPLEMENTATION]** The requested TrafficTwin branch cannot orchestrate that current evaluator
+faithfully. Its runner contract pins the older reviewed `vec_env`/`tos-data` snapshots and does not expose the new
+physical-semantics, placement, absolute-cap or scaling flags.
+
+**[CODE_VERIFIED_IMPLEMENTATION]** TrafficTwin also has a five-commit sequential prototype chain containing a
+lifecycle contract, synthetic two-RSU hand check, deterministic dispatcher, future-native sidecar validator and
+matched synthetic harness. These are useful engineering foundations, but they are unmerged and explicitly mark
+themselves as non-scientific, non-native evidence.
+
+**[REPOSITORY_REPRODUCED_EVIDENCE]** One old weekend evaluation was reproduced twice through TrafficTwin against
+the old reviewed engine with exact/within-tolerance agreement. This proves the old bounded runner path, not the
+corrected August engine, the disputed queue sweep, native scheduling benefit, or Kubernetes-style scaling.
+
+**[MISSING_INFORMATION]** No repository artifact establishes Randy's reported `0.6943` completion and
+approximately `4.9 → 128.4 s` latency sweep: the raw JSON/CSV, exact commands, cap grid, actor/checkpoint, seed list,
+environment and numerical table are absent from the pinned repositories.
+
+**[NEW_RECOMMENDATION]** Research execution can begin now, but only in two layers:
+
+1. **Immediate engineering/scientific gate:** run E0, a current-engine corrected reference with full provenance and
+   conservation.
+2. **First causal experiment:** run E1, the matched legacy-versus-physical waiting-room sweep, before claiming any
+   scheduler or scaling improvement.
+
+**[NEW_RECOMMENDATION]** The strongest defensible MSc contribution is:
+
+> A semantics-aware, conservation-checked evaluation of infrastructure-side RSU scheduling with a frozen vehicle
+> actor, showing when deterministic load-aware placement and compute scaling help, tie or harm under admission
+> limits, forwarding cost and stale state.
+
+This contribution is smaller and stronger than immediately training another neural policy.
+
+# 2. What Sandra wants
+
+| Evidence class | Supervisor-directed point | Research consequence |
+|---|---|---|
+| DIRECT_SUPERVISOR_DIRECTION | The `2.5× → 0.75×` intervention changed an RSU admission/waiting-room ceiling, not computation power. | Reinterpret the prior latency result; do not call it compute scaling. |
+| DIRECT_SUPERVISOR_DIRECTION | The frozen vehicle policy does not have adequate awareness of current RSU capacity/load. | Keep the actor frozen first and isolate infrastructure-side decisions. |
+| DIRECT_SUPERVISOR_DIRECTION | Investigate deterministic infrastructure load balancing. | Compare strongest-link with transparent load-aware placement under matched tasks/seeds. |
+| DIRECT_SUPERVISOR_DIRECTION | Investigate learned RSU scheduling/load balancing. | Treat learning as a gated extension after deterministic baselines. |
+| DIRECT_SUPERVISOR_DIRECTION | Investigate AI-based Kubernetes/resource control. | Compare fixed 1×, static 3× and reactive/proactive simulated resource control, with cost denominators. |
+| DIRECT_SUPERVISOR_DIRECTION | Report completion over offered work, conditional admitted completion, latency, energy, decisions, rejection, conservation, forwarding and scaling. | Freeze a semantic/metric contract before the campaign. |
+
+A later planning synthesis of Supervisor Meeting 4 narrows the intended mechanism to scheduling under incomplete or
+ageing RSU state, strongest-link versus a weaker but less-load
