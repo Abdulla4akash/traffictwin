@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from scripts.validate_e0_smoke import build_report
+from scripts.validate_e0_smoke import build_report, build_single_run_report
 
 
 def _sha256(path: Path) -> str:
@@ -136,6 +136,14 @@ def test_valid_outputs_pass_and_repeat_is_identical(tmp_path: Path) -> None:
     assert report["passed"] is True
     assert report["repeat"]["scientific_summary_identical"] is True
     assert report["repeat"]["instrumentation_arrays_identical"] is True
+
+
+def test_valid_single_full_reference_passes_without_repeat(tmp_path: Path) -> None:
+    manifest, run_1, _, actor, trace = _fixture(tmp_path)
+    report = build_single_run_report(manifest, run_1, actor, trace)
+    assert report["passed"] is True
+    assert report["decision"] == "full_corrected_reference_pass"
+    assert report["repeat"]["requested"] is False
 
 
 def test_silent_task_loss_fails(tmp_path: Path) -> None:

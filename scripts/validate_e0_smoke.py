@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate TrafficTwin E0 corrected-evaluator smoke outputs.
+"""Validate TrafficTwin E0 corrected-evaluator smoke and full-reference outputs.
 
 This validator intentionally reads the evaluator's aggregate, per-step and
 per-task products. It does not recalculate scientific results with an LLM and
@@ -447,17 +447,77 @@ def build_report(
     }
 
 
+def build_single_run_report(
+    manifest_path: Path,
+    run_dir: Path,
+    actor_path: Path,
+    trace_path: Path,
+) -> dict[str, Any]:
+    """Build a deterministic report for one post-smoke full reference."""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    input_checks = {
+        "manifest": sha256_file(manifest_path),
+        "actor": sha256_file(actor_path),
+        "trace": sha256_file(trace_path),
+    }
+    expected_inputs = {
+        "actor": manifest["inputs"]["actor"]["sha256"],
+        "trace": manifest["inputs"]["trace"]["sha256"],
+    }
+    input_identity_passed = all(
+        input_checks[name] == digest for name, digest in expected_inputs.items()
+    )
+    run = validate_run(run_dir, manifest, "run_1")
+    passed = input_identity_passed and run["passed"]
+    return {
+        "schema_version": "traffictwin.e0-full-reference-validation.v1",
+        "manifest_id": manifest["manifest_id"],
+        "passed": passed,
+        "decision": "full_corrected_reference_pass" if passed else "full_corrected_reference_fail",
+        "input_identity": {
+            "passed": input_identity_passed,
+            "sha256": input_checks,
+            "expected_sha256": expected_inputs,
+        },
+        "runs": [run],
+        "repeat": {
+            "requested": False,
+            "reason": (
+                "The predecessor bounded smoke already passed an exact repeat; this "
+                "authorisation covered one full reference."
+            ),
+        },
+        "semantic_boundary": {
+            "measured_outcome": "simulated deadline attainment",
+            "confirmed_native_physical_completion": False,
+            "confirmed_physical_result_return": False,
+        },
+        "readiness_scope": (
+            "A pass establishes one full corrected strongest-link reference under the "
+            "provisional configuration; it does not authorise E1."
+        ),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", required=True, type=Path)
     parser.add_argument("--run-1", required=True, type=Path)
-    parser.add_argument("--run-2", required=True, type=Path)
+    parser.add_argument("--run-2", type=Path)
     parser.add_argument("--actor", required=True, type=Path)
     parser.add_argument("--trace", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
 
-    report = build_report(args.manifest, args.run_1, args.run_2, args.actor, args.trace)
+    if args.run_2 is None:
+        report = build_single_run_report(
+            args.manifest,
+            args.run_1,
+            args.actor,
+            args.trace,
+        )
+    else:
+        report = build_report(args.manifest, args.run_1, args.run_2, args.actor, args.trace)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps({"decision": report["decision"], "output": str(args.output)}, indent=2))

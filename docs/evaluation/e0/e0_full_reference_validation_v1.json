@@ -1,0 +1,360 @@
+{
+  "decision": "full_corrected_reference_pass",
+  "input_identity": {
+    "expected_sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    },
+    "passed": true,
+    "sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "manifest": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "manifest_id": "e0-full-corrected-reference-v1",
+  "passed": true,
+  "readiness_scope": "A pass establishes one full corrected strongest-link reference under the provisional configuration; it does not authorise E1.",
+  "repeat": {
+    "reason": "The predecessor bounded smoke already passed an exact repeat; this authorisation covered one full reference.",
+    "requested": false
+  },
+  "runs": [
+    {
+      "array_sha256": {
+        "per_step": {
+          "active": "a71e69c416ce9215ec1ecff0ff4e0c923d97fee6bfe48b55887ad8e4f7c2e9de",
+          "arrivals": "aafacdcb27b0ad7ccd890bd10ef760c051213f5abaf95bd4a260e392e4e815ee",
+          "done": "4fb0e6eab2928d4ad1c395d7b8a68f692be734ddfd49cd305ebcec821ee73423",
+          "lat_sum": "020b4bdc0e9967e532b38f10ba0f8a01341974cb557385fd46e0e881364f5094",
+          "n_local": "25692a35a1c61ada6ed22927097e047ed32228103d708d416d981bc31df6abcf",
+          "n_v2i": "34959066601ddbad3c6b578a35681d07b6c1b36b7e6462bceae626b40de4bcb9",
+          "n_v2v": "03279352f5dd587eaf64085673504da7e25e8b67b42b7aede5ceb439e4f5afdf",
+          "rsu_busy_ms": "b0f8451f12e90b3e7e706b659951342b8d1e361a04c8df37ba614ef33e3069d5",
+          "rsu_load": "f796c2d2ce2a12f372e279afad69c37a11a0242553386e60e288322234afc7cc",
+          "slot_is_ev": "b969e3fbf80e8218efeb9e178d2aa9b20167f7ef5586085f1df74873e75d25cd",
+          "slot_tier": "7053c4b498daa41de63973738674f420cbadd4560ba7a91105d8978ba782106e",
+          "times": "94deb2a7a25ca4d67e13e8aaac0deef27815f89f5e8a4108247c97d6f7178211",
+          "veh_action": "a7b2802bfd43f702fb673b4db894e02fdf004fdada05e9c87b207ec13bddce1f",
+          "veh_best_rsu": "cf5a82db6726423deb9222039f068684fd1fa975665eecc95d88752c2a62e686",
+          "veh_best_v2v": "efffc414a0a03d2ab46383e1d024bdd10835de3aa469032f2e82250ffad97663",
+          "veh_done": "c848dbf5e729bb66763143612660e8d3b87f8c2eb05e29f8cdcd808db253d459",
+          "veh_k": "4a09b292bbfe9238ad9bf14b0511c61d9aa74c978c6e2041c12cbd6b01323faa",
+          "veh_queue_ms": "70dab82578971ffec5425cf9a2522f18813fd1bee7c7c384e9168ea688d58bfa"
+        },
+        "per_task": {
+          "task_active": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+          "task_lat_ms": "e1b0fc7961552b7c2614d0f307db89b42382cb5d9d34eba2ec0b6fafaebd9f18",
+          "task_met": "7a440943be5b6a4dd9b63a24b9604a4a15cedd4783d897a732c5e76bb0820a46",
+          "task_outcome": "6f81e703251e48f4a6fd0e21512e9baddc3936bd7c690c8415c86494ea73e412",
+          "task_type": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+        }
+      },
+      "checks": [
+        {
+          "expected": true,
+          "name": "summary_numbers_finite",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "aggregate_counts_nonnegative_integral",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": {},
+          "name": "predeclared_configuration",
+          "observed": {},
+          "passed": true
+        },
+        {
+          "expected": 13076234.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": 13076234.0,
+          "name": "total_tasks_equals_offered",
+          "observed": 13076234.0,
+          "passed": true
+        },
+        {
+          "expected": "dict",
+          "name": "work_ledger_present",
+          "observed": "dict",
+          "passed": true
+        },
+        {
+          "expected": "all finite and >= 0",
+          "name": "work_ms_nonnegative_finite",
+          "observed": {
+            "v2i_admitted": 29263840.0,
+            "v2i_offered": 42670748.0,
+            "v2i_rejected_or_unavailable": 13406908.0,
+            "veh_admitted": 270951552.0,
+            "veh_offered": 281346752.0,
+            "veh_rejected": 10395200.0
+          },
+          "passed": true
+        },
+        {
+          "expected": 42670748.0,
+          "name": "v2i_work_ms_conserved",
+          "observed": 42670748.0,
+          "passed": true
+        },
+        {
+          "expected": 281346752.0,
+          "name": "vehicle_work_ms_conserved",
+          "observed": 281346752.0,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "instrumentation_arrays_finite",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 13076234.0,
+          "name": "active_records_equal_offered",
+          "observed": 13076234,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 8939165,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 8939165,
+          "passed": true
+        },
+        {
+          "expected": 11661973.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 11661973,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 834120.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 834120,
+          "passed": true
+        },
+        {
+          "expected": 34124.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 34124,
+          "passed": true
+        },
+        {
+          "expected": 545879.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 545879,
+          "passed": true
+        },
+        {
+          "expected": 138.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 138,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 13076234.0,
+          "name": "per_step_arrivals_equal_offered",
+          "observed": 13076234,
+          "passed": true
+        },
+        {
+          "expected": 8939165,
+          "name": "per_step_done_equals_deadline_met",
+          "observed": 8939165,
+          "passed": true
+        },
+        {
+          "expected": 13076234.0,
+          "name": "action_counts_equal_offered",
+          "observed": 13076234,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "count_work_latency_arrays_nonnegative",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 0.6836192285944103,
+          "name": "offered_completion_denominator",
+          "observed": 0.6836192285944103,
+          "passed": true
+        },
+        {
+          "expected": 0.7665225258196019,
+          "name": "admitted_completion_denominator",
+          "observed": 0.7665225258196019,
+          "passed": true
+        },
+        {
+          "expected": [
+            "completion",
+            "completion_admitted"
+          ],
+          "name": "offered_and_admitted_denominators_retained_separately",
+          "observed": [
+            "completion",
+            "completion_admitted"
+          ],
+          "passed": true
+        },
+        {
+          "expected": 17262.126013164157,
+          "name": "avg_latency_ms_per_task_denominator",
+          "observed": 17262.11832061127,
+          "passed": true
+        },
+        {
+          "expected": 12140.323427604959,
+          "name": "avg_latency_admitted_ms_denominator",
+          "observed": 12140.312200002521,
+          "passed": true
+        },
+        {
+          "expected": 46.30103758810536,
+          "name": "avg_latency_met_ms_denominator",
+          "observed": 46.3009903050229,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "completion_fractions_in_unit_interval",
+          "observed": [],
+          "passed": true
+        }
+      ],
+      "label": "run_1",
+      "observed": {
+        "completion_admitted": 0.7665225258196019,
+        "completion_offered": 0.6836192285944103,
+        "deadline_met": 8939165,
+        "n_admitted": 11661973,
+        "n_offered": 13076234,
+        "outcome_counts": {
+          "1": 8939165,
+          "2": 2722808,
+          "3": 0,
+          "4": 834120,
+          "5": 34124,
+          "6": 545879,
+          "7": 138,
+          "8": 0
+        },
+        "terminal_rejections_or_unavailability": 1414261,
+        "wall_s_excluded_from_repeat_verdict": 5870.3,
+        "work_unit": "milliseconds of service work"
+      },
+      "output_sha256": {
+        "per_step.npz": "0be8726efa956d6d6e60b289fb3a6b587beb4dde7616fc235462bfb997d0e6d1",
+        "per_task.npz": "c30acc1e6685db268a31daeda2c8020df2968487efecd420e729a16d3b3b2d57",
+        "stdout_stderr.log": "46539ecf9e219e09c180b952737cd915eb0efa784b4674233317c99f5edd0bd5",
+        "summary.json": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1"
+      },
+      "passed": true,
+      "scientific_summary": {
+        "T": 3600,
+        "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+        "avg_energy_j_per_task": 0.46828276398235147,
+        "avg_latency_admitted_ms": 12140.312200002521,
+        "avg_latency_met_ms": 46.3009903050229,
+        "avg_latency_ms_per_task": 17262.11832061127,
+        "completion": 0.6836192285944103,
+        "completion_admitted": 0.7665225258196019,
+        "engine_version": "v2_post_nrsus_fix",
+        "enter_reset": false,
+        "fleet": "uk2030",
+        "fleet_ev_share": 0.2186495065689087,
+        "fleet_seed": 0,
+        "fleet_tier_hist": [
+          988,
+          878,
+          622
+        ],
+        "k8s_first_scaleup_s": -1.0,
+        "k8s_mean_mult": 1.0,
+        "k8s_params": {},
+        "k8s_scale": "off",
+        "k8s_scale_events": 0,
+        "lambda_arrival": 1.5,
+        "local_mqd_rejected": 34124.0,
+        "maxN": 2488,
+        "model": "C",
+        "n_admitted": 11661973.0,
+        "n_offered": 13076234.0,
+        "obs_variant": "onehot17",
+        "p_local": 0.5349689367749154,
+        "p_v2i": 0.20284043555659834,
+        "p_v2v": 0.2621906276684862,
+        "reset_soc_on_enter": false,
+        "rsu_backhaul_ms": 0.0,
+        "rsu_cap_mode": "reject",
+        "rsu_lb": "off",
+        "rsu_max_concurrent": 6220,
+        "rsu_service_mult": 1.0,
+        "substep_queue": "sequential",
+        "t1_completion": 0.587190621692879,
+        "t1_share": 0.2000245636473009,
+        "t2_completion": 0.7484487386812074,
+        "t2_share": 0.30010368428708145,
+        "t3_completion": 0.6832841730360869,
+        "t3_share": 0.4998717520656177,
+        "total_tasks": 13076234.0,
+        "trace": "trace_inc_fullrsu.npz",
+        "v2i_cap_rejected": 834120.0,
+        "v2i_gate_rejected": 0.0,
+        "v2i_unavailable": 138.0,
+        "v2v_mqd_rejected": 545879.0,
+        "v2v_unavailable": 0.0,
+        "veh_queue_mode": "conserved",
+        "work_ms": {
+          "v2i_admitted": 29263840.0,
+          "v2i_offered": 42670748.0,
+          "v2i_rejected_or_unavailable": 13406908.0,
+          "veh_admitted": 270951552.0,
+          "veh_offered": 281346752.0,
+          "veh_rejected": 10395200.0
+        }
+      }
+    }
+  ],
+  "schema_version": "traffictwin.e0-full-reference-validation.v1",
+  "semantic_boundary": {
+    "confirmed_native_physical_completion": false,
+    "confirmed_physical_result_return": false,
+    "measured_outcome": "simulated deadline attainment"
+  }
+}
