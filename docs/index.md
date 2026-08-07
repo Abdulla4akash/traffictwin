@@ -386,6 +386,9 @@ This index points only to documentation and repository paths that exist in the c
 
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
 - [Current supervisor research direction](../SUPERVISOR_RESEARCH_DIRECTION.md)
+- [GPT-5.6 Pro research-audit reply](evaluation/TrafficTwin_research_audit_reply_2026-08-07.md)
+- [Complete GPT-5.6 Pro 17-section research audit](evaluation/TrafficTwin_research_audit_2026-08-07.md)
+- [Immediate supervisor/Randy/Ethan request checklist](evaluation/TrafficTwin_immediate_request_checklist_2026-08-07.txt)
 - [Dated research-start status and active research threads](research_start_2026-08-07.md)
 - [Randy email research analysis](randy_email_research_analysis_2026-08-07.md)
 - [MSc Students Q&A research record](msc_students_qna_research_record_2026-08-05.md)

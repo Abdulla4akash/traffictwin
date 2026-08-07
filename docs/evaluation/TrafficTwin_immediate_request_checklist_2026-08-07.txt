@@ -1,23 +1,4 @@
-sequential, conserved, physical reject semantics, with complete
-offered/admitted/rejected and work-conservation evidence. E1 is the first causal comparison.**
-
-**What is the main research contribution?**  
-**A semantics-aware condition map for infrastructure-side RSU scheduling and compute scaling with a frozen vehicle
-actor, explicit conservation and offered-task denominators.**
-
-**What information must Abdulla request immediately?**  
-**Randy's raw sweep/manifests and identities; Sandra's mandatory scope/metric/actor/deadline decisions; Ethan's
-ownership/branch/status; CSF3 access and storage; and the authoritative TrafficTwin branch/merge decision.**
-
-**What work can proceed without waiting for replies?**  
-**Local repository/status inventory, E0 manifest, environment pinning, bounded current-engine smoke, conservation
-validation, tail/path instrumentation design, and a separate bus-data feasibility inventory.**
-
-
----
-
-# Appendix A — Immediate Request Checklist
-
+TRAFFICTWIN — IMMEDIATE REQUEST CHECKLIST (7 AUGUST 2026)
 
 REQUEST FROM SANDRA
 - Confirm primary research question and mandatory deliverables.
