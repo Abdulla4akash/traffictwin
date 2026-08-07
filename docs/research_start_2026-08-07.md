@@ -64,6 +64,12 @@ accepted real-world calibration, or causal evidence.
 The immediate purpose of this thread is to reproduce and then interrogate the
 reviewed VEC work rather than treating its outputs as unquestioned facts.
 
+Sandra Sampaio's direct correction of the queue-capacity interpretation and
+request to compare deterministic Kubernetes-style load balancing, learned RSU
+scheduling, and AI-based infrastructure control is the primary supervisor
+direction for this thread. It is recorded prominently in
+[`SUPERVISOR_RESEARCH_DIRECTION.md`](../SUPERVISOR_RESEARCH_DIRECTION.md).
+
 The detailed analysis of Randy's queue-limit results, evaluator changes,
 RSU-load observation proposal, deadline-aware dispatcher, Kubernetes baseline,
 and proactive-scaling opportunity is recorded in

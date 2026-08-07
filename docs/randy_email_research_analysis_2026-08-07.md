@@ -13,6 +13,10 @@ as reported claims until their configurations, seeds, outputs, and calculations
 have been reproduced. This document does not change any formal TrafficTwin
 capability or gate status.
 
+Sandra Sampaio's direct research instruction precedes this implementation
+discussion and is recorded in the prominent
+[`SUPERVISOR_RESEARCH_DIRECTION.md`](../SUPERVISOR_RESEARCH_DIRECTION.md).
+
 ## Executive assessment
 
 The email provides three immediately useful contributions:

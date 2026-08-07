@@ -42,6 +42,16 @@ As the project evolves, update:
 - `docs/open-questions.md`
 - `docs/architecture.md` when architecture decisions change
 
+## Current Supervisor Research Direction
+
+Before planning or implementing the supervisor-aligned VEC research thread,
+read [`SUPERVISOR_RESEARCH_DIRECTION.md`](SUPERVISOR_RESEARCH_DIRECTION.md).
+It records Sandra Sampaio's direct 4 August 2026 instruction, distinguishes it
+from Randy Putra's later implementation proposals, and prevents the RSU
+waiting-room ceiling from being misreported as computation power. The linked
+Randy email and detailed Q&A records provide supporting semantics but do not
+override the evidence and reproduction boundaries in that supervisor record.
+
 ## v0.7 Work Coordination
 
 ### Completed parallel ownership: Claude UI presentation Phase 1

@@ -297,6 +297,7 @@ reproduced.
 
 ## Related records
 
+- [Current supervisor research direction](../SUPERVISOR_RESEARCH_DIRECTION.md)
 - [Research start status](research_start_2026-08-07.md)
 - [Randy email research analysis](randy_email_research_analysis_2026-08-07.md)
 - [VEC end-to-end research artifact](integration/vec_end_to_end_research_artifact.md)
