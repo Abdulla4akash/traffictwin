@@ -385,6 +385,9 @@ This index points only to documentation and repository paths that exist in the c
 ## Dissertation Support
 
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
+- [Dated research-start status and active research threads](research_start_2026-08-07.md)
+- [Randy email research analysis](randy_email_research_analysis_2026-08-07.md)
+- [MSc Students Q&A research record](msc_students_qna_research_record_2026-08-05.md)
 - [TrafficTwin v0.7 current progress and build plan](current_progress_v0_7.md)
 - [Implemented Randy/VEC integration design v0.6](traffictwin-design-v0_6.md)
 - [Implemented baseline design v0.5](traffictwin-design-v0_5.md)

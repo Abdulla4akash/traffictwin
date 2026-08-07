@@ -68,6 +68,9 @@ The detailed analysis of Randy's queue-limit results, evaluator changes,
 RSU-load observation proposal, deadline-aware dispatcher, Kubernetes baseline,
 and proactive-scaling opportunity is recorded in
 [`randy_email_research_analysis_2026-08-07.md`](randy_email_research_analysis_2026-08-07.md).
+The subsequent detailed Q&A and its concrete simulator, dispatcher, backhaul,
+staleness, and experiment-design decisions are recorded separately in
+[`msc_students_qna_research_record_2026-08-05.md`](msc_students_qna_research_record_2026-08-05.md).
 
 1. Create and verify the pinned Python/JAX/PyTorch environments.
 2. Replace machine-specific CSF paths with explicit local or account-specific

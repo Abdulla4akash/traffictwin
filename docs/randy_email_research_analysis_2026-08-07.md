@@ -3,8 +3,10 @@
 This document records the research value extracted from a technical email from
 PhD student Randy Putra that Abdulla supplied on 7 August 2026. It paraphrases
 the relevant technical content rather than reproducing personal email headers.
-The email refers to a more detailed `MSc Students QnA.docx`; that attachment and
-the waiting-room sweep outputs were not supplied with this record.
+The email refers to a more detailed `MSc Students QnA.docx`. The attachment was
+subsequently supplied and reviewed; its technical decisions are captured in the
+[MSc Students Q&A research record](msc_students_qna_research_record_2026-08-05.md).
+The raw waiting-room sweep outputs were not supplied with either source.
 
 This is a research-planning and source-audit note. Email statements are labelled
 as reported claims until their configurations, seeds, outputs, and calculations
@@ -322,8 +324,9 @@ Any analyst-assistance claim requires its own evaluation protocol.
 
 ## 10. Proposed research sequence
 
-1. Obtain and archive the detailed Q&A attachment, sweep manifest, seed list,
-   and raw/aggregate outputs in the authorised private evidence boundary.
+1. Preserve the supplied detailed Q&A in the authorised private evidence
+   boundary, and obtain the sweep manifest, seed list, checkpoint identity, and
+   raw/aggregate outputs.
 2. Reproduce one current evaluator baseline and verify aggregate-versus-
    instrumented reconciliation.
 3. Repeat the RSU-cap sweep under legacy and physical queue semantics.
