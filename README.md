@@ -659,6 +659,7 @@ Start at [docs/index.md](docs/index.md). Key documents:
 
 - [docs/traffictwin-design-v0_7.md](docs/traffictwin-design-v0_7.md) — canonical planned Manchester evidence and product-experience design
 - [docs/research_start_2026-08-07.md](docs/research_start_2026-08-07.md) — secured assets and the supervisor-aligned and independent-bus research start
+- [docs/randy_email_research_analysis_2026-08-07.md](docs/randy_email_research_analysis_2026-08-07.md) — queue accounting, RSU-load MAPPO, DLA/Kubernetes baselines, and proactive-scaling research plan
 - [docs/traffictwin-design-v0_6.md](docs/traffictwin-design-v0_6.md) — implemented evidence-gated Randy/VEC release design
 - [docs/integration/vec_end_to_end_research_artifact.md](docs/integration/vec_end_to_end_research_artifact.md) — VEC-12 archive use, rebuild, verification, and limits
 - [docs/traffictwin-design-v0_5.md](docs/traffictwin-design-v0_5.md) — implemented baseline

@@ -64,6 +64,11 @@ accepted real-world calibration, or causal evidence.
 The immediate purpose of this thread is to reproduce and then interrogate the
 reviewed VEC work rather than treating its outputs as unquestioned facts.
 
+The detailed analysis of Randy's queue-limit results, evaluator changes,
+RSU-load observation proposal, deadline-aware dispatcher, Kubernetes baseline,
+and proactive-scaling opportunity is recorded in
+[`randy_email_research_analysis_2026-08-07.md`](randy_email_research_analysis_2026-08-07.md).
+
 1. Create and verify the pinned Python/JAX/PyTorch environments.
 2. Replace machine-specific CSF paths with explicit local or account-specific
    configuration without changing scientific parameters.
