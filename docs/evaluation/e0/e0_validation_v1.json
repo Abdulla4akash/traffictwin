@@ -1,0 +1,702 @@
+{
+  "decision": "bounded_e0_smoke_pass",
+  "input_identity": {
+    "expected_sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    },
+    "passed": true,
+    "sha256": {
+      "actor": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "manifest": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93",
+      "trace": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  },
+  "manifest_id": "e0-corrected-reference-v1",
+  "passed": true,
+  "readiness_scope": "A pass supports only a full corrected strongest-link reference run under the same provisional configuration; it does not authorize E1.",
+  "repeat": {
+    "comparison_method": "Exact JSON equality excluding wall_s; exact dtype/shape/byte SHA-256 equality for every NPZ array.",
+    "excluded_volatile_summary_fields": [
+      "wall_s"
+    ],
+    "instrumentation_arrays_identical": true,
+    "passed": true,
+    "raw_file_sha256_equal": {
+      "per_step.npz": true,
+      "per_task.npz": true,
+      "stdout_stderr.log": false,
+      "summary.json": false
+    },
+    "scientific_summary_identical": true
+  },
+  "runs": [
+    {
+      "array_sha256": {
+        "per_step": {
+          "active": "15c69e360330a2c1b70c64265d87b8dcd248e27627e54a91a8e306d21bbe16b4",
+          "arrivals": "309eefda519c6eb93e98f5177efe7d80adb298c49b332ae19d95e45b5359d81a",
+          "done": "1da681b5aa26c125d3c76fe01f0f8f417bdf62a7434e11c34894665f0d81cebc",
+          "lat_sum": "765e04c59f2d8da08adf029c627dcf8f89ebbfeb49fc3ad588b0db41ffdfb44c",
+          "n_local": "a1f9694e3d79cb90ce11c11be575e07efbc2d079b4fb3123c3215f7b6220b9b3",
+          "n_v2i": "88efac8477d23f4e6692be5bc547e1ecb1f8a64d250e964ff2b87ea036344182",
+          "n_v2v": "7c3aaced0ac49c312b9a2e3472634d69ad84eeafd55c6c6d0dbc61ec11d6d1ec",
+          "rsu_busy_ms": "682da7bcbebdc34488038f50504a39b980ba4e15cd80167c309fd54d4271fdbd",
+          "rsu_load": "f5dea2cae4e9b9fc34bd35b2b2185c79d55b37ad309f7e15ca0fbf8e5fc83e31",
+          "slot_is_ev": "b969e3fbf80e8218efeb9e178d2aa9b20167f7ef5586085f1df74873e75d25cd",
+          "slot_tier": "7053c4b498daa41de63973738674f420cbadd4560ba7a91105d8978ba782106e",
+          "times": "481f45d0308e509f35de874b7e3e786d3d4373321a2e444dc6c36bc4c0914f70",
+          "veh_action": "92f8cb8469144fafe0cb7c96994cbc6bbd84ddfb3c28c29e786eceb767bc0345",
+          "veh_best_rsu": "82591cfec334d7158fc6808bfe2d3217fec35d361b44ae36112eb3b9822b1815",
+          "veh_best_v2v": "81805a76b5a27e31dd18ff5cbe5df76b0895306f51cecffe6b34885696a5c1e7",
+          "veh_done": "1efe845fe5df8d98e7899cd77fc40d11db4f288776d4e1f2bd0bf889c164c58a",
+          "veh_k": "3c4a798275e074f15b6f5e5616e36aad7033c0fea73be4723334883734f4ff7c",
+          "veh_queue_ms": "664448515396fc7a3715d7ba81b0ea6b83c97452511d6f8f5a651378a017c915"
+        },
+        "per_task": {
+          "task_active": "eab273a38e4c8edf3f77546409ad19534eee5d9dcf76964cefedfa3c96b86297",
+          "task_lat_ms": "7dc2d3b765c2eaf498c1f9a0e5433a22382af9b58d1a559f45b3d9c0db0a2568",
+          "task_met": "3893bf8e8e07a883a76eb59765b2066fe2b19035145e7494d512fb2652041b08",
+          "task_outcome": "3ec62bb4f54740afdd042abc2f3ca6cd5ad6ace47f0aaa981718f1b53d8baada",
+          "task_type": "d85e8ff5004c49a849e2942a35f59bd2e15a62e0d419b26f6309af9b05501846"
+        }
+      },
+      "checks": [
+        {
+          "expected": true,
+          "name": "summary_numbers_finite",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "aggregate_counts_nonnegative_integral",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": {},
+          "name": "predeclared_configuration",
+          "observed": {},
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "total_tasks_equals_offered",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": "dict",
+          "name": "work_ledger_present",
+          "observed": "dict",
+          "passed": true
+        },
+        {
+          "expected": "all finite and >= 0",
+          "name": "work_ms_nonnegative_finite",
+          "observed": {
+            "v2i_admitted": 122473.0,
+            "v2i_offered": 122473.0,
+            "v2i_rejected_or_unavailable": 0.0,
+            "veh_admitted": 789046.9375,
+            "veh_offered": 820565.8125,
+            "veh_rejected": 31518.875
+          },
+          "passed": true
+        },
+        {
+          "expected": 122473.0,
+          "name": "v2i_work_ms_conserved",
+          "observed": 122473.0,
+          "passed": true
+        },
+        {
+          "expected": 820565.8125,
+          "name": "vehicle_work_ms_conserved",
+          "observed": 820565.8125,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "instrumentation_arrays_finite",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "active_records_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 35195.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 35195,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 108.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 108,
+          "passed": true
+        },
+        {
+          "expected": 1553.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 1553,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "per_step_arrivals_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "per_step_done_equals_deadline_met",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "action_counts_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "count_work_latency_arrays_nonnegative",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 0.6844747123941828,
+          "name": "offered_completion_denominator",
+          "observed": 0.6844747123941828,
+          "passed": true
+        },
+        {
+          "expected": 0.716777951413553,
+          "name": "admitted_completion_denominator",
+          "observed": 0.716777951413553,
+          "passed": true
+        },
+        {
+          "expected": [
+            "completion",
+            "completion_admitted"
+          ],
+          "name": "offered_and_admitted_denominators_retained_separately",
+          "observed": [
+            "completion",
+            "completion_admitted"
+          ],
+          "passed": true
+        },
+        {
+          "expected": 1075.0019329403083,
+          "name": "avg_latency_ms_per_task_denominator",
+          "observed": 1075.0019535489473,
+          "passed": true
+        },
+        {
+          "expected": 1021.1470731765307,
+          "name": "avg_latency_admitted_ms_denominator",
+          "observed": 1021.1470947577781,
+          "passed": true
+        },
+        {
+          "expected": 48.28283805512983,
+          "name": "avg_latency_met_ms_denominator",
+          "observed": 48.28284179648789,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "completion_fractions_in_unit_interval",
+          "observed": [],
+          "passed": true
+        }
+      ],
+      "label": "run_1",
+      "observed": {
+        "completion_admitted": 0.716777951413553,
+        "completion_offered": 0.6844747123941828,
+        "deadline_met": 25227,
+        "n_admitted": 35195,
+        "n_offered": 36856,
+        "outcome_counts": {
+          "1": 25227,
+          "2": 9968,
+          "3": 0,
+          "4": 0,
+          "5": 108,
+          "6": 1553,
+          "7": 0,
+          "8": 0
+        },
+        "terminal_rejections_or_unavailability": 1661,
+        "wall_s_excluded_from_repeat_verdict": 12.7,
+        "work_unit": "milliseconds of service work"
+      },
+      "output_sha256": {
+        "bootstrap_failure.log": "c80aaa0118c95a86c7eacef85f0437d6ba4f478775398f65f3f9b2fa255a11a9",
+        "per_step.npz": "9ca62b5df68c6b39d8961b1a0376d23ba1b2a646792305fda6e5dae9447e9904",
+        "per_task.npz": "01aa251422a35f692291d8e7085044c97b6a62c11213f7a81b7805c59437643f",
+        "stdout_stderr.log": "e9fb5c131bfb4ea9148381c903c9ea3b1154afa2e01597d172421ac3426ee9e0",
+        "summary.json": "298ccbee8bae82d043a2dcd4401a72d7bce2437e0027e208db53970ca9f2aa7b"
+      },
+      "passed": true,
+      "scientific_summary": {
+        "T": 10,
+        "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+        "avg_energy_j_per_task": 0.47224920764258194,
+        "avg_latency_admitted_ms": 1021.1470947577781,
+        "avg_latency_met_ms": 48.28284179648789,
+        "avg_latency_ms_per_task": 1075.0019535489473,
+        "completion": 0.6844747123941828,
+        "completion_admitted": 0.716777951413553,
+        "engine_version": "v2_post_nrsus_fix",
+        "enter_reset": false,
+        "fleet": "uk2030",
+        "fleet_ev_share": 0.2186495065689087,
+        "fleet_seed": 0,
+        "fleet_tier_hist": [
+          988,
+          878,
+          622
+        ],
+        "k8s_first_scaleup_s": -1.0,
+        "k8s_mean_mult": 1.0,
+        "k8s_params": {},
+        "k8s_scale": "off",
+        "k8s_scale_events": 0,
+        "lambda_arrival": 1.5,
+        "local_mqd_rejected": 108.0,
+        "maxN": 2488,
+        "model": "C",
+        "n_admitted": 35195.0,
+        "n_offered": 36856.0,
+        "obs_variant": "onehot17",
+        "p_local": 0.5302257434339049,
+        "p_v2i": 0.2055024962014326,
+        "p_v2v": 0.2642717603646625,
+        "reset_soc_on_enter": false,
+        "rsu_backhaul_ms": 0.0,
+        "rsu_cap_mode": "reject",
+        "rsu_lb": "off",
+        "rsu_max_concurrent": 6220,
+        "rsu_service_mult": 1.0,
+        "substep_queue": "sequential",
+        "t1_completion": 0.5885768295976236,
+        "t1_share": 0.20094421532450618,
+        "t2_completion": 0.7574364521362899,
+        "t2_share": 0.301009333622748,
+        "t3_completion": 0.6790695140553498,
+        "t3_share": 0.4980464510527458,
+        "total_tasks": 36856.0,
+        "trace": "trace_inc_fullrsu.npz",
+        "v2i_cap_rejected": 0.0,
+        "v2i_gate_rejected": 0.0,
+        "v2i_unavailable": 0.0,
+        "v2v_mqd_rejected": 1553.0,
+        "v2v_unavailable": 0.0,
+        "veh_queue_mode": "conserved",
+        "work_ms": {
+          "v2i_admitted": 122473.0,
+          "v2i_offered": 122473.0,
+          "v2i_rejected_or_unavailable": 0.0,
+          "veh_admitted": 789046.9375,
+          "veh_offered": 820565.8125,
+          "veh_rejected": 31518.875
+        }
+      }
+    },
+    {
+      "array_sha256": {
+        "per_step": {
+          "active": "15c69e360330a2c1b70c64265d87b8dcd248e27627e54a91a8e306d21bbe16b4",
+          "arrivals": "309eefda519c6eb93e98f5177efe7d80adb298c49b332ae19d95e45b5359d81a",
+          "done": "1da681b5aa26c125d3c76fe01f0f8f417bdf62a7434e11c34894665f0d81cebc",
+          "lat_sum": "765e04c59f2d8da08adf029c627dcf8f89ebbfeb49fc3ad588b0db41ffdfb44c",
+          "n_local": "a1f9694e3d79cb90ce11c11be575e07efbc2d079b4fb3123c3215f7b6220b9b3",
+          "n_v2i": "88efac8477d23f4e6692be5bc547e1ecb1f8a64d250e964ff2b87ea036344182",
+          "n_v2v": "7c3aaced0ac49c312b9a2e3472634d69ad84eeafd55c6c6d0dbc61ec11d6d1ec",
+          "rsu_busy_ms": "682da7bcbebdc34488038f50504a39b980ba4e15cd80167c309fd54d4271fdbd",
+          "rsu_load": "f5dea2cae4e9b9fc34bd35b2b2185c79d55b37ad309f7e15ca0fbf8e5fc83e31",
+          "slot_is_ev": "b969e3fbf80e8218efeb9e178d2aa9b20167f7ef5586085f1df74873e75d25cd",
+          "slot_tier": "7053c4b498daa41de63973738674f420cbadd4560ba7a91105d8978ba782106e",
+          "times": "481f45d0308e509f35de874b7e3e786d3d4373321a2e444dc6c36bc4c0914f70",
+          "veh_action": "92f8cb8469144fafe0cb7c96994cbc6bbd84ddfb3c28c29e786eceb767bc0345",
+          "veh_best_rsu": "82591cfec334d7158fc6808bfe2d3217fec35d361b44ae36112eb3b9822b1815",
+          "veh_best_v2v": "81805a76b5a27e31dd18ff5cbe5df76b0895306f51cecffe6b34885696a5c1e7",
+          "veh_done": "1efe845fe5df8d98e7899cd77fc40d11db4f288776d4e1f2bd0bf889c164c58a",
+          "veh_k": "3c4a798275e074f15b6f5e5616e36aad7033c0fea73be4723334883734f4ff7c",
+          "veh_queue_ms": "664448515396fc7a3715d7ba81b0ea6b83c97452511d6f8f5a651378a017c915"
+        },
+        "per_task": {
+          "task_active": "eab273a38e4c8edf3f77546409ad19534eee5d9dcf76964cefedfa3c96b86297",
+          "task_lat_ms": "7dc2d3b765c2eaf498c1f9a0e5433a22382af9b58d1a559f45b3d9c0db0a2568",
+          "task_met": "3893bf8e8e07a883a76eb59765b2066fe2b19035145e7494d512fb2652041b08",
+          "task_outcome": "3ec62bb4f54740afdd042abc2f3ca6cd5ad6ace47f0aaa981718f1b53d8baada",
+          "task_type": "d85e8ff5004c49a849e2942a35f59bd2e15a62e0d419b26f6309af9b05501846"
+        }
+      },
+      "checks": [
+        {
+          "expected": true,
+          "name": "summary_numbers_finite",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "aggregate_counts_nonnegative_integral",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": {},
+          "name": "predeclared_configuration",
+          "observed": {},
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "offered_equals_admitted_plus_terminal_rejections",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "total_tasks_equals_offered",
+          "observed": 36856.0,
+          "passed": true
+        },
+        {
+          "expected": "dict",
+          "name": "work_ledger_present",
+          "observed": "dict",
+          "passed": true
+        },
+        {
+          "expected": "all finite and >= 0",
+          "name": "work_ms_nonnegative_finite",
+          "observed": {
+            "v2i_admitted": 122473.0,
+            "v2i_offered": 122473.0,
+            "v2i_rejected_or_unavailable": 0.0,
+            "veh_admitted": 789046.9375,
+            "veh_offered": 820565.8125,
+            "veh_rejected": 31518.875
+          },
+          "passed": true
+        },
+        {
+          "expected": 122473.0,
+          "name": "v2i_work_ms_conserved",
+          "observed": 122473.0,
+          "passed": true
+        },
+        {
+          "expected": 820565.8125,
+          "name": "vehicle_work_ms_conserved",
+          "observed": 820565.8125,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "instrumentation_arrays_finite",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "active_records_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "every_active_task_has_one_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0,
+          "name": "inactive_records_have_no_terminal_outcome",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "deadline_met_flag_matches_outcome_1",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 35195.0,
+          "name": "admitted_records_equal_outcomes_1_and_2",
+          "observed": 35195,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_3_equals_v2i_gate_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_4_equals_v2i_cap_rejected",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 108.0,
+          "name": "outcome_5_equals_local_mqd_rejected",
+          "observed": 108,
+          "passed": true
+        },
+        {
+          "expected": 1553.0,
+          "name": "outcome_6_equals_v2v_mqd_rejected",
+          "observed": 1553,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_7_equals_v2i_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 0.0,
+          "name": "outcome_8_equals_v2v_unavailable",
+          "observed": 0,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "per_step_arrivals_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": 25227,
+          "name": "per_step_done_equals_deadline_met",
+          "observed": 25227,
+          "passed": true
+        },
+        {
+          "expected": 36856.0,
+          "name": "action_counts_equal_offered",
+          "observed": 36856,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "count_work_latency_arrays_nonnegative",
+          "observed": [],
+          "passed": true
+        },
+        {
+          "expected": 0.6844747123941828,
+          "name": "offered_completion_denominator",
+          "observed": 0.6844747123941828,
+          "passed": true
+        },
+        {
+          "expected": 0.716777951413553,
+          "name": "admitted_completion_denominator",
+          "observed": 0.716777951413553,
+          "passed": true
+        },
+        {
+          "expected": [
+            "completion",
+            "completion_admitted"
+          ],
+          "name": "offered_and_admitted_denominators_retained_separately",
+          "observed": [
+            "completion",
+            "completion_admitted"
+          ],
+          "passed": true
+        },
+        {
+          "expected": 1075.0019329403083,
+          "name": "avg_latency_ms_per_task_denominator",
+          "observed": 1075.0019535489473,
+          "passed": true
+        },
+        {
+          "expected": 1021.1470731765307,
+          "name": "avg_latency_admitted_ms_denominator",
+          "observed": 1021.1470947577781,
+          "passed": true
+        },
+        {
+          "expected": 48.28283805512983,
+          "name": "avg_latency_met_ms_denominator",
+          "observed": 48.28284179648789,
+          "passed": true
+        },
+        {
+          "expected": [],
+          "name": "completion_fractions_in_unit_interval",
+          "observed": [],
+          "passed": true
+        }
+      ],
+      "label": "run_2",
+      "observed": {
+        "completion_admitted": 0.716777951413553,
+        "completion_offered": 0.6844747123941828,
+        "deadline_met": 25227,
+        "n_admitted": 35195,
+        "n_offered": 36856,
+        "outcome_counts": {
+          "1": 25227,
+          "2": 9968,
+          "3": 0,
+          "4": 0,
+          "5": 108,
+          "6": 1553,
+          "7": 0,
+          "8": 0
+        },
+        "terminal_rejections_or_unavailability": 1661,
+        "wall_s_excluded_from_repeat_verdict": 12.6,
+        "work_unit": "milliseconds of service work"
+      },
+      "output_sha256": {
+        "per_step.npz": "9ca62b5df68c6b39d8961b1a0376d23ba1b2a646792305fda6e5dae9447e9904",
+        "per_task.npz": "01aa251422a35f692291d8e7085044c97b6a62c11213f7a81b7805c59437643f",
+        "stdout_stderr.log": "a2aeaea7013a47180f7de261e91528416ad6eda7caca97242708cbe2249a80f6",
+        "summary.json": "faa261dfa8c3a3c9532bdddb563ef2877cb60740b5537510e3dc561cb1a76e6b"
+      },
+      "passed": true,
+      "scientific_summary": {
+        "T": 10,
+        "actor": "mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+        "avg_energy_j_per_task": 0.47224920764258194,
+        "avg_latency_admitted_ms": 1021.1470947577781,
+        "avg_latency_met_ms": 48.28284179648789,
+        "avg_latency_ms_per_task": 1075.0019535489473,
+        "completion": 0.6844747123941828,
+        "completion_admitted": 0.716777951413553,
+        "engine_version": "v2_post_nrsus_fix",
+        "enter_reset": false,
+        "fleet": "uk2030",
+        "fleet_ev_share": 0.2186495065689087,
+        "fleet_seed": 0,
+        "fleet_tier_hist": [
+          988,
+          878,
+          622
+        ],
+        "k8s_first_scaleup_s": -1.0,
+        "k8s_mean_mult": 1.0,
+        "k8s_params": {},
+        "k8s_scale": "off",
+        "k8s_scale_events": 0,
+        "lambda_arrival": 1.5,
+        "local_mqd_rejected": 108.0,
+        "maxN": 2488,
+        "model": "C",
+        "n_admitted": 35195.0,
+        "n_offered": 36856.0,
+        "obs_variant": "onehot17",
+        "p_local": 0.5302257434339049,
+        "p_v2i": 0.2055024962014326,
+        "p_v2v": 0.2642717603646625,
+        "reset_soc_on_enter": false,
+        "rsu_backhaul_ms": 0.0,
+        "rsu_cap_mode": "reject",
+        "rsu_lb": "off",
+        "rsu_max_concurrent": 6220,
+        "rsu_service_mult": 1.0,
+        "substep_queue": "sequential",
+        "t1_completion": 0.5885768295976236,
+        "t1_share": 0.20094421532450618,
+        "t2_completion": 0.7574364521362899,
+        "t2_share": 0.301009333622748,
+        "t3_completion": 0.6790695140553498,
+        "t3_share": 0.4980464510527458,
+        "total_tasks": 36856.0,
+        "trace": "trace_inc_fullrsu.npz",
+        "v2i_cap_rejected": 0.0,
+        "v2i_gate_rejected": 0.0,
+        "v2i_unavailable": 0.0,
+        "v2v_mqd_rejected": 1553.0,
+        "v2v_unavailable": 0.0,
+        "veh_queue_mode": "conserved",
+        "work_ms": {
+          "v2i_admitted": 122473.0,
+          "v2i_offered": 122473.0,
+          "v2i_rejected_or_unavailable": 0.0,
+          "veh_admitted": 789046.9375,
+          "veh_offered": 820565.8125,
+          "veh_rejected": 31518.875
+        }
+      }
+    }
+  ],
+  "schema_version": "traffictwin.e0-validation.v1",
+  "semantic_boundary": {
+    "confirmed_native_physical_completion": false,
+    "confirmed_physical_result_return": false,
+    "measured_outcome": "simulated deadline attainment"
+  }
+}
