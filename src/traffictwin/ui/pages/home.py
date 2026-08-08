@@ -290,12 +290,6 @@ def _render_static_manchester_context(
             "could not be loaded. No live or observed traffic scene is displayed."
         )
         return
-    except Exception:  # pragma: no cover — defensive fallback
-        st.caption(
-            "Static geographic context unavailable — an unexpected error occurred "
-            "while loading the boundary. No live or observed traffic scene is displayed."
-        )
-        return
 
     st.markdown("**Manchester study-area context — static geographic reference**")
     st.caption("Static geographic context — no live or observed traffic scene is loaded.")
@@ -305,13 +299,18 @@ def _render_static_manchester_context(
         height=380,
         key="home_manchester_context_map",
     )
+    # Use the canonical attribution so a change in boundary_reference propagates.
+    os_attr, ons_attr = context.attribution
+    greater_ref = context.greater_manchester.reference
+    manchester_ref = context.manchester.reference
     st.caption(
-        "Offline reference — Greater Manchester Combined Authority (E47000001) and "
-        "Manchester Local Authority (E08000003), December 2025 ONS BGC Generalised "
-        "(20m), coastline clipped. Source: Office for National Statistics licensed "
-        "under the Open Government Licence v.3.0. Contains OS data © Crown copyright "
-        "and database right 2025. This outline is geographic context only; it is not "
-        "a traffic scene, provider telemetry, or a calibrated network."
+        f"Offline reference — {greater_ref.official_name} Combined Authority "
+        f"({greater_ref.official_code}) and {manchester_ref.official_name} Local "
+        f"Authority ({manchester_ref.official_code}), {greater_ref.reference_date} "
+        f"{greater_ref.source_generalisation}. Source: {greater_ref.source_owner} "
+        f"licensed under the Open Government Licence v.3.0. {os_attr} {ons_attr} "
+        f"This outline is geographic context only; it is not a traffic scene, "
+        f"provider telemetry, or a calibrated network."
     )
     if has_workspace and workspace_ready:
         st.caption(

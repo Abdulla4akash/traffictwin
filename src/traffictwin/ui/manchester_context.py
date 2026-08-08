@@ -21,6 +21,11 @@ from traffictwin.integration.manchester.boundary_reference import (
     load_boundary_features,
 )
 
+# The two packaged GeoJSON files are ~10 KB total and are re-validated on
+# load. Caching is intentionally not used here: the files are tiny, the load
+# is deterministic and cheap, and Streamlit caching would add cross-test
+# session complexity for no meaningful performance gain.
+
 
 @dataclass(frozen=True)
 class ManchesterContext:
@@ -50,26 +55,10 @@ def _build_context_deck(
 ) -> pdk.Deck:
     """Build an offline, no-basemap deck fitted to the boundary extents."""
 
-    boundary_styles: dict[str, tuple[list[int], int]] = {
-        "greater_manchester_combined_authority": ([92, 104, 120, 190], 2),
-        "manchester_local_authority": ([36, 78, 116, 230], 4),
-    }
-    layers: list[pdk.Layer] = []
-    for feature in features:
-        colour, width = boundary_styles[feature.reference.scope]
-        layers.append(
-            pdk.Layer(
-                "GeoJsonLayer",
-                id=f"ons-boundary-{feature.reference.scope}",
-                data=feature.geojson(),
-                stroked=True,
-                filled=False,
-                get_line_color=colour,
-                get_line_width=width,
-                line_width_units="pixels",
-                pickable=True,
-            )
-        )
+    # Reuse the single authoritative boundary layer construction.
+    from traffictwin.ui.manchester_operations import build_boundary_layers
+
+    layers = build_boundary_layers(features)
     longitude, latitude, zoom = _context_view_state(features)
     return pdk.Deck(
         layers=layers,

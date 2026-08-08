@@ -110,20 +110,20 @@ def test_home_shows_static_context_when_no_accepted_scene() -> None:
     markdown_text = " ".join(str(m.value) for m in app.markdown)
     caption_text = " ".join(str(c.value) for c in app.caption)
     assert "Manchester study-area context" in markdown_text
-    assert "Static geographic context" in caption_text
-    assert "no live or observed traffic scene is loaded" in caption_text.lower()
-    # Provenance must be visible
+    assert (
+        "Static geographic context — no live or observed traffic scene is loaded." in caption_text
+    )
+    # Provenance must be visible and exact
     assert "E47000001" in caption_text
     assert "E08000003" in caption_text
     assert "December 2025" in caption_text
     assert "Office for National Statistics" in caption_text
-    # Wording must not claim live traffic
-    combined = (markdown_text + " " + caption_text).lower()
-    assert "live manchester map" not in combined
-    assert "current manchester traffic" not in combined
-    assert "observed scene" not in combined or "no accepted" in combined or "no live" in combined
-    # Unavailable explanation must remain
-    assert "No demo workspace is configured" in markdown_text or "No accepted" in markdown_text
+    assert "Open Government Licence v.3.0" in caption_text
+    # Wording must not claim live traffic — pin the negative contract precisely
+    assert "Live Manchester map" not in markdown_text
+    assert "Live Manchester map" not in caption_text
+    # Unavailable explanation must remain visible
+    assert "No demo workspace is configured — create one to begin." in markdown_text
     # Map chart must be emitted — verify via AppTest deck element
     decks = app.get("deck_gl_json_chart")
     assert len(decks) >= 1
@@ -173,12 +173,18 @@ def test_home_static_context_with_synthetic_demo_workspace() -> None:
         caption_text = " ".join(str(c.value) for c in app.caption)
         # Static context must still be shown
         assert "Manchester study-area context" in markdown_text
-        assert "Static geographic context" in caption_text
-        # Synthetic distinction must be explicit
-        assert "Synthetic demo workspace" in caption_text or "synthetic" in caption_text.lower()
-        # Must not claim synthetic is Manchester evidence as observed (negated form is allowed)
-        assert "Manchester observed traffic is loaded" not in caption_text
-        assert "Calibrated Manchester simulation" not in caption_text
+        assert (
+            "Static geographic context — no live or observed traffic scene is loaded."
+            in caption_text
+        )
+        # Synthetic distinction must be explicit — pin the exact sentence
+        assert (
+            "Synthetic demo workspace is active, but the boundary above remains "
+            "geographic context only — it does not represent Manchester observed traffic "
+            "or a calibrated simulation." in caption_text
+        )
+        # Visible local layers must remain 0
+        assert any(m.label == "Visible local layers" and str(m.value) == "0" for m in app.metric)
         decks = app.get("deck_gl_json_chart")
         assert len(decks) >= 1
 
