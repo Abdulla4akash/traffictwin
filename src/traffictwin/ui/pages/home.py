@@ -7,6 +7,7 @@ from pathlib import Path
 import streamlit as st
 
 from traffictwin.demo.workspace import workspace_status
+from traffictwin.integration.manchester.boundary_reference import ManchesterBoundaryError
 from traffictwin.ui.components.badges import badge_row, evidence_state_badge
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.demo_workspace_service import (
@@ -16,6 +17,7 @@ from traffictwin.ui.demo_workspace_service import (
     resolve_effective_demo_paths,
 )
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
+from traffictwin.ui.manchester_context import load_manchester_context
 from traffictwin.ui.manchester_operations import (
     build_manchester_deck,
     load_local_manchester_scene,
@@ -125,6 +127,7 @@ def _render_v07_home(config: UiConfig) -> None:
             f"state: {manchester.scene.status.replace('_', ' ')} · basemap disabled"
         )
     else:
+        _render_static_manchester_context(has_workspace, workspace_ready)
         with st.container(border=True):
             if not has_workspace or not workspace_ready:
                 st.markdown("**No demo workspace is configured — create one to begin.**")
@@ -271,6 +274,54 @@ def _render_demo_workspace_empty_state() -> None:
                         "The target directory is not empty and has no TrafficTwin marker. "
                         "Choose an empty/new directory or remove/relocate the existing content."
                     )
+
+
+def _render_static_manchester_context(
+    has_workspace: bool,
+    workspace_ready: bool,
+) -> None:
+    """Render the offline Greater Manchester boundary when no scene is available."""
+
+    try:
+        context = load_manchester_context()
+    except ManchesterBoundaryError:
+        st.caption(
+            "Static geographic context unavailable — the offline boundary asset "
+            "could not be loaded. No live or observed traffic scene is displayed."
+        )
+        return
+
+    st.markdown("**Manchester study-area context — static geographic reference**")
+    st.caption("Static geographic context — no live or observed traffic scene is loaded.")
+    st.pydeck_chart(
+        context.deck,
+        width="stretch",
+        height=380,
+        key="home_manchester_context_map",
+    )
+    # Use the canonical attribution so a change in boundary_reference propagates.
+    os_attr, ons_attr = context.attribution
+    greater_ref = context.greater_manchester.reference
+    manchester_ref = context.manchester.reference
+    st.caption(
+        f"Offline reference — {greater_ref.official_name} Combined Authority "
+        f"({greater_ref.official_code}) and {manchester_ref.official_name} Local "
+        f"Authority ({manchester_ref.official_code}), {greater_ref.reference_date} "
+        f"{greater_ref.source_generalisation}. Source: {greater_ref.source_owner} "
+        f"licensed under the Open Government Licence v.3.0. {os_attr} {ons_attr} "
+        f"This outline is geographic context only; it is not a traffic scene, "
+        f"provider telemetry, or a calibrated network."
+    )
+    if has_workspace and workspace_ready:
+        st.caption(
+            "Synthetic demo workspace is active, but the boundary above remains "
+            "geographic context only — it does not represent Manchester observed traffic "
+            "or a calibrated simulation."
+        )
+    st.caption(
+        "No accepted Manchester traffic scene is currently loaded. Use Explore "
+        "Manchester or Start Guided Demo for the next supported step."
+    )
 
 
 def _render_legacy_home(config: UiConfig) -> None:

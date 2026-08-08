@@ -18,7 +18,10 @@ import pydeck as pdk
 from pydantic import ValidationError
 
 from traffictwin.integration.manchester.bods import BodsBoundingBox
-from traffictwin.integration.manchester.boundary_reference import load_boundary_features
+from traffictwin.integration.manchester.boundary_reference import (
+    ManchesterBoundaryFeature,
+    load_boundary_features,
+)
 from traffictwin.integration.manchester.dft import DirectionCode
 from traffictwin.integration.manchester.dft_acquisition import (
     DftAcceptedSnapshotCatalogue,
@@ -971,18 +974,26 @@ def build_manchester_deck(
     return build_filtered_manchester_deck(filtered)
 
 
-def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Deck:
-    """Build an offline deck with pinned official boundary context and admitted points."""
+def build_boundary_layers(
+    features: tuple[ManchesterBoundaryFeature, ...] | None = None,
+) -> list[pdk.Layer]:
+    """Return the authoritative official boundary layers.
 
-    _validate_filtered_scene(filtered)
-    deck_layers: list[pdk.Layer] = []
-    boundary_styles = {
+    The two ONS December 2025 boundaries are display-only context. This is the
+    single authoritative construction; callers must not duplicate colours, widths,
+    or GeoJsonLayer parameters.
+    """
+
+    if features is None:
+        features = load_boundary_features()
+    boundary_styles: dict[str, tuple[list[int], int]] = {
         "greater_manchester_combined_authority": ([92, 104, 120, 190], 2),
         "manchester_local_authority": ([36, 78, 116, 230], 4),
     }
-    for boundary in load_boundary_features():
+    layers: list[pdk.Layer] = []
+    for boundary in features:
         line_colour, line_width = boundary_styles[boundary.reference.scope]
-        deck_layers.append(
+        layers.append(
             pdk.Layer(
                 "GeoJsonLayer",
                 id=f"ons-boundary-{boundary.reference.scope}",
@@ -995,6 +1006,14 @@ def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Dec
                 pickable=True,
             )
         )
+    return layers
+
+
+def build_filtered_manchester_deck(filtered: FilteredManchesterScene) -> pdk.Deck:
+    """Build an offline deck with pinned official boundary context and admitted points."""
+
+    _validate_filtered_scene(filtered)
+    deck_layers: list[pdk.Layer] = build_boundary_layers()
     for filtered_layer in filtered.layers:
         layer = filtered_layer.manifest
         glyph = _SYMBOL_GLYPHS[layer.style.symbol]
