@@ -99,3 +99,11 @@ The [macOS CPU backend selection validation](e1_macos_cpu_backend_selection_vali
 records the passing read-only repository, input, interpreter/package/device, reused-seed-0 and
 compute/output preflight. It also confirms that the campaign output directory did not exist and no
 campaign process had started when CPU was selected.
+
+The first new campaign cell is now complete. Fleet seed 1 at 0.75x passed its two serial ten-step
+smokes, exact repeat comparison and 3,600-step full validation. See the
+[machine-readable one-cell validation](e1_multidraw_seed1_0p75_cell_validation_v1.json), SHA-256
+`b145c801901bf40c1447f3852d8b549a3157d56674acb2b44ea0536d127028ae`, and the
+[cell report](e1_multidraw_seed1_0p75_cell_report_2026-08-08.md). All 32 full checks and the 29-file
+checksum index passed. Execution stopped before seed 1 at 2.5x, so no paired cap comparison or
+multi-draw result is yet available.

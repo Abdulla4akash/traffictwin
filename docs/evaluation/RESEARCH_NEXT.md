@@ -2,8 +2,8 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 seed-0 design and backend gates closed; macOS CPU campaign preflight next
-**Execution authority:** bounded physical E1 campaign under the selected-backend manifest only
+**Current phase:** E1 multi-draw campaign; seed 1 / 0.75x passed, review hold before next cap
+**Execution authority:** stopped after the authorised seed-1/0.75x cell; do not start the next cap
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -29,9 +29,9 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 
 ## Current verified state
 
-The evidence base through TrafficTwin pre-run commit
-`8b47df90153905c274b2efb2f862e319e43850a0`, together with the result and backend-selection
-records in this reviewed change, establishes:
+The evidence base through TrafficTwin execution commit
+`ca4c04890346e01a572b728da4a785026fa87d5a`, together with the one-cell records in this reviewed
+change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -52,8 +52,12 @@ records in this reviewed change, establishes:
   JAX/JAXLIB 0.4.30; the three exact macOS seed-0 physical artifacts remain reused by hash;
 - campaign matrix: 12 new physical cells, fleet seeds 1-4 by 0.75x, 2.5x and 40x, with concurrency
   one and a mandatory two-repeat ten-step gate before every corresponding full cell;
-- campaign execution: not started; 0 campaign smokes and 0 full cells have run;
-- multi-draw E1 evidence: unavailable;
+- campaign execution: seed 1 / 0.75x completed after two exact ten-step smokes; two campaign smokes
+  and one full cell passed, with zero failed or later cells;
+- seed-1/0.75x full accounting: 13,076,234 offered, 11,779,070 admitted and 1,297,164
+  rejected/unavailable tasks; all 32 task/work/numerical checks passed;
+- multi-draw E1 evidence: one new fleet-seed/cap row is available, but no cross-cap paired estimate
+  or five-draw campaign inference is yet available;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -63,43 +67,28 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Run the first per-cell macOS CPU gate only: fleet seed 1, 0.75x, two serial ten-step smokes.**
+**Stop and review the completed fleet-seed-1 / 0.75x cell. Do not start the next cap point.**
 
 The selected-backend campaign is governed by
 [e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
 SHA-256 `0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`.
-It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and requires the runner to refuse
-execution unless both `backend_decision.status == selected` and
-`campaign_execution_allowed == true`. This reviewed selection must exist remotely before the
-first campaign process starts.
+It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and governs all scientific and
+validation fields. The [one-cell validation](e1/e1_multidraw_seed1_0p75_cell_validation_v1.json),
+SHA-256 `b145c801901bf40c1447f3852d8b549a3157d56674acb2b44ea0536d127028ae`, and
+[report](e1/e1_multidraw_seed1_0p75_cell_report_2026-08-08.md) govern the new observation.
 
-The first G4 attempt remains governed by its
-[machine-readable result](e1/e1_colab_g4_backend_smoke_result_v1.json) and
-[human-readable report](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md). Abdulla's subsequent
-direct instruction authorised exactly one isolated modern-stack compatibility gate governed by
-[e1_g4_jax13_compatibility_smoke_manifest_v1.json](e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json),
-SHA-256 `d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659`.
-The [decision record](e1/e1_g4_jax13_compatibility_decision_record_2026-08-08.md) preserves the first
-failure and isolates stable JAX 0.11.0 CUDA-13 as the only intervention.
+Both ten-step smokes passed individually and matched exactly in scientific summary and every
+instrumentation array. The 3,600-step cell then passed all 32 checks. Offered tasks reconciled with
+admitted plus every rejection/unavailability category; V2I and vehicle service work conserved;
+numbers and arrays were finite/nonnegative; no task disappeared; and offered/admitted deadline
+denominators remained separate. Evaluator wall time was 6,440.6 seconds. All 29 retained raw files
+passed the checksum index.
 
-That gate used a genuine RTX PRO 6000 Blackwell G4 and all locked packages and inputs passed.
-`jax.random.PRNGKey(0)` then failed before TrafficTwin with
-`Unexpected PJRT_FFI_UserData_Add_Args size: expected 48, got 40`. The small array, JIT operations
-and both evaluator repeats were stopped by design. The
-[machine-readable result](e1/e1_g4_jax13_compatibility_smoke_result_v1.json), SHA-256
-`d713594c750396ede2d5bf3b9d850cff285170553d253b5fd1fd8944a7d0a9be`, and
-[report](e1/e1_g4_jax13_compatibility_smoke_report_2026-08-08.md) govern this second immutable
-negative result. There is no G4 task output, conservation verdict, evaluator time or speedup.
-
-Under the direct decision rule, G4 investigation is now closed and the already validated macOS CPU
-backend is selected. The next process is not a free-standing full run: it is the runner's two
-ten-step smokes for seed 1 at 0.75x. Both corrected-accounting validations, exact repeat comparison,
-input/environment identities, storage gate and no-overwrite gate must pass. Only then may the
-corresponding seed-1/0.75x full cell launch. Any failure stops later cells and retains the evidence.
-The read-only [CPU backend selection validation](e1/e1_macos_cpu_backend_selection_validation_v1.json),
-SHA-256 `faf09089ec494fab386fda9e0eb3d54f6f2b96858593f36f7896cfcb02aac1bc`, passed all repository,
-input, interpreter, package, device, reused-seed-0, storage and output-absence checks without
-starting a campaign process.
+This is one row, not the predeclared paired campaign result. Do not compare caps or calculate the
+primary estimand yet. The current direct instruction requires a stop and report before the next cap.
+If the researcher subsequently directs continuation, the next manifest gate is fleet seed 1 at
+2.5x, beginning with two serial ten-step smokes. A 2.5x full cell remains prohibited until those
+smokes pass every gate.
 
 ### Exit condition
 
@@ -140,8 +129,8 @@ Do not start:
 
 - The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
   pre-task failures. No G4 scientific compatibility or performance measurement is available.
-- The CPU environment and 12-cell campaign are selected, but no new per-cell smoke or full run has
-  started. The first repeated-smoke gate remains outstanding.
+- The seed-1/0.75x cell passed, but 11 new full cells remain. The immediate blocker is the explicit
+  stop-and-report boundary before seed 1 / 2.5x, not a scientific failure.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.
