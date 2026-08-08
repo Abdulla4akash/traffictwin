@@ -36,21 +36,27 @@ residual scientific, licensing, hosting, canonicalisation, or generic-launch bou
 
 As the project evolves, update:
 
+- `docs/evaluation/RESEARCH_NEXT.md` after every research gate or new research instruction
 - `docs/current_progress_v0_7.md` for v0.7 sequencing and remaining-work changes
 - `docs/implementation-status.md`
 - `docs/assumption-register.md`
 - `docs/open-questions.md`
 - `docs/architecture.md` when architecture decisions change
 
-## Current Supervisor Research Direction
+## Authoritative Research Direction
 
-Before planning or implementing the supervisor-aligned VEC research thread,
-read [`SUPERVISOR_RESEARCH_DIRECTION.md`](SUPERVISOR_RESEARCH_DIRECTION.md).
-It records Sandra Sampaio's direct 4 August 2026 instruction, distinguishes it
-from Randy Putra's later implementation proposals, and prevents the RSU
-waiting-room ceiling from being misreported as computation power. The linked
-Randy email and detailed Q&A records provide supporting semantics but do not
-override the evidence and reproduction boundaries in that supervisor record.
+Before planning or implementing the supervisor-aligned VEC research thread, read
+[`docs/evaluation/RESEARCH_NEXT.md`](docs/evaluation/RESEARCH_NEXT.md) completely. It is the
+repository's highest-authority operational record for the current research state, next gate and
+prohibited next actions. If a dated audit, checklist, report or product plan contains an older
+“next” instruction, `RESEARCH_NEXT.md` wins for sequencing.
+
+Then read [`SUPERVISOR_RESEARCH_DIRECTION.md`](SUPERVISOR_RESEARCH_DIRECTION.md) for Sandra
+Sampaio's direct scientific direction. That record distinguishes the supervisor's research
+problem from Randy Putra's later implementation proposals and prevents the RSU waiting-room
+ceiling from being misreported as compute power. A new direct researcher/supervisor instruction
+supersedes the repository pointer, but `RESEARCH_NEXT.md` must be updated in the same reviewed
+change before future agents rely on it.
 
 ## v0.7 Work Coordination
 

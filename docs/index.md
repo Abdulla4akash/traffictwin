@@ -386,8 +386,9 @@ This index points only to documentation and repository paths that exist in the c
 
 ## Dissertation Support
 
+- [Authoritative current research direction and next gate](evaluation/RESEARCH_NEXT.md)
 - [Canonical Manchester evidence and product experience design v0.7](traffictwin-design-v0_7.md)
-- [Current supervisor research direction](../SUPERVISOR_RESEARCH_DIRECTION.md)
+- [Supervisor scientific research direction](../SUPERVISOR_RESEARCH_DIRECTION.md)
 - [GPT-5.6 Pro research-audit reply](evaluation/TrafficTwin_research_audit_reply_2026-08-07.md)
 - [Complete GPT-5.6 Pro 17-section research audit](evaluation/TrafficTwin_research_audit_2026-08-07.md)
 - [Immediate supervisor/Randy/Ethan request checklist](evaluation/TrafficTwin_immediate_request_checklist_2026-08-07.txt)

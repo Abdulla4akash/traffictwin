@@ -1,5 +1,9 @@
 # E0-to-E1 seed-0 corrected-evaluator research record
 
+> **Evidence snapshot:** This record preserves the completed E0/E1 seed-0 evidence and its
+> interpretation. For the authoritative current next action, read
+> [RESEARCH_NEXT.md](../RESEARCH_NEXT.md).
+
 Date: 2026-08-08
 
 Status: **E0 passed; the bounded E1 three-cap seed-0/fleet-0 pilot passed its validity checks and

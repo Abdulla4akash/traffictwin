@@ -1,4 +1,9 @@
-# Current Supervisor Research Direction
+# Supervisor Scientific Research Direction (4 August 2026)
+
+> **Current execution pointer:** Read
+> [`docs/evaluation/RESEARCH_NEXT.md`](docs/evaluation/RESEARCH_NEXT.md) first for the active
+> research state, next gate and prohibited next actions. This file remains authoritative for
+> Sandra's scientific problem and comparison principles; it is not a live completion tracker.
 
 This is the prominent agent-facing record of the current research direction
 given directly by supervisor Sandra Sampaio. It is based on Sandra's message in
@@ -10,10 +15,11 @@ The message is paraphrased here rather than reproduced with private mailbox
 metadata. It is a supervisor-direction record, not experimental evidence, and
 does not change any formal TrafficTwin implementation or evidence-gate status.
 
-## Read this first
+## Scientific direction source
 
 Any agent planning or implementing the supervisor-aligned VEC research thread
-must read this record before the later Randy email and Q&A records.
+must read this record after the current execution pointer and before the later Randy email and Q&A
+records.
 
 The source hierarchy is:
 

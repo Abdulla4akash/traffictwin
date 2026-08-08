@@ -1,5 +1,9 @@
 # Research Start Status — 7 August 2026
 
+> **Historical inventory:** This records the assets and starting position on 7 August. It is not
+> the current experiment sequence. Read
+> [RESEARCH_NEXT.md](evaluation/RESEARCH_NEXT.md) for the authoritative current direction.
+
 TrafficTwin now has the source material, software foundation, and local SUMO
 toolchain needed to begin the next research phase. This record inventories what
 is available and separates possession of the materials from verified

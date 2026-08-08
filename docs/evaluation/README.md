@@ -1,5 +1,10 @@
 # Evaluation Materials
 
+For the supervisor-aligned Randy/VEC research thread, start with
+[RESEARCH_NEXT.md](RESEARCH_NEXT.md). It is the authoritative current-state and next-action
+pointer; dated audits, checklists and experiment reports remain evidence/history rather than live
+sequencing instructions.
+
 These files prepare a possible expert/researcher evaluation of TrafficTwin. They are drafts for
 supervisor and ethics review. Their presence does not mean that ethics approval has been obtained
 or that participant sessions have occurred.
