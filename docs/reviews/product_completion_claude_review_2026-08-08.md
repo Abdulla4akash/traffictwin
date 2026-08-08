@@ -243,3 +243,127 @@ All probes were bounded, synchronous, single-process, and left PID 21677 untouch
 ---
 
 *Reviewer: Claude (independent mandatory review, per task spec). No E1 worktree touched, no PR #8 mutated, no port 8501/8502 used, no SUMO/VEC executed. Do not merge until REQUEST_CHANGES addressed. Do not silently fix code — owner lands the corrections on `agent/product-completion-v1` and pushes. This review file is the only artifact written in the review checkout.*
+
+---
+
+## Re-review 2026-08-08 (fixes 5606a7c)
+
+**Re-reviewer:** Claude (mandatory, per AGENTS.md) — no E1 worktree touched
+**Re-reviewed commit:** `5606a7c` (`product: address Claude review findings for demo-ready slice`)
+**Base of diff:** `b6f7311` (original REQUEST_CHANGES commit) .. `5606a7c`
+**Checkout:** `/Users/akashx/AntigravityTest/traffictwin-claude-review` on `agent/product-completion-v1`
+**Date:** 2026-08-08
+**Evaluator PID 21677:** confirmed `R` / `372% CPU` before and after — left untouched, no writes to `diss/`, `e1_outputs/`, `vec_env`, no parallel full suite, no SUMO/VEC, no ports 8501/8502 (E1 isolation respected).
+**Method:** `git diff b6f7311..5606a7c` read; all 7 changed/new files read; `uv sync --extra dev` + focused gates + manual AppTest probes via `uv run python` with `streamlit.testing.v1.AppTest`.
+
+### Fix commit summary
+
+`git diff --stat b6f7311..5606a7c`:
+
+- `docs/demo_quickstart.md` — reworded Home step 1 to distinguish session vs `TRAFFICTWIN_WORKSPACE_PATH` and added `uv run traffictwin demo status .traffictwin-demo` check.
+- `src/traffictwin/ui/demo_workspace_service.py` — removed dead literal `already_has_workspace` from `DemoWorkspaceReason` (1 line).
+- `src/traffictwin/ui/pages/home.py` — added `Path` import, new helpers `_resolve_effective_demo_paths`, `_comparison_count_for`, `_workspace_presence`; wired `load_project_status`/`comparison_count`/`manchester`/`list_workspace_reports` to effective paths; renamed `hint_col` → `_hint_col`; `has_workspace`/`workspace_ready` now via helper.
+- `src/traffictwin/ui/pages/guided_demo.py` — session fallback for `_active_demo_workspace_path` when `config.workspace_path is None` (6 lines + `Path` import).
+- `tests/unit/ui/test_demo_workspace_service.py` — new 10-test file covering `ensure_demo_workspace`/`inspect_demo_workspace`.
+- `tests/unit/ui/test_page_presentation_home_demo_workspace.py` — new 7-test AppTest file for Home auto-hide and Bundle Import shortcuts.
+- `docs/reviews/product_completion_claude_review_2026-08-08.md` — original review (already present at `b6f7311`) retained verbatim; this re-review is an append-only addendum.
+
+### Focused gates (E1-isolated, no full suite, no parallel)
+
+```
+uv sync --extra dev                                         → Resolved 91 packages / 80 checked — ok
+uv run ruff check src/traffictwin/ui/demo_workspace_service.py \
+                src/traffictwin/ui/pages/home.py \
+                src/traffictwin/ui/pages/guided_demo.py       → All checks passed!
+uv run ruff format --check (same 3 files)                    → 3 files already formatted
+uv run mypy (same 3 files)                                   → Success: no issues found in 3 source files
+uv run pytest tests/unit/ui/test_demo_workspace_service.py \
+              tests/unit/ui/test_page_presentation_home_demo_workspace.py -q → 17 passed in 95.88s
+git diff --check                                             → clean (exit 0)
+```
+
+All gates were run exactly as tasked; no replacement linter/mypy invocation, no `-k 'not ...'` filtering.
+
+### Finding-by-finding verification
+
+#### F-1 — Clean-workspace KPIs show 62/3 after session creation (HIGH)
+
+**Fix:** `src/traffictwin/ui/pages/home.py` now introduces `_resolve_effective_demo_paths(config)` which (a) treats an invalid `config.workspace_path` (e.g. the diss harness `TRAFFICTWIN_WORKSPACE_PATH=/Users/akashx/AntigravityTest/diss/data/workspace-v0.7` whose `workspace.yaml` is missing → `valid_workspace False`) as absent, (b) falls back to `st.session_state["_active_demo_workspace_path"]`/`active_registry_path` with validation and a prefix guard (`candidate.startswith(workspace)` when workspace valid; honour any demo registry when no valid workspace). All downstream reads in `_render_v07_home` — `load_project_status(effective_registry_path)`, `_comparison_count_for(effective_workspace)`, `load_local_manchester_scene(workspace, ...)`, `list_workspace_reports(effective_workspace)` — now use effective paths. `guided_demo.py:_render_track_status` adds the session fallback when `config.workspace_path is None` (showing `Ready | Scenarios: 62`).
+
+**Verified via AppTest (`uv run python /tmp/verify_home_kpi.py`):**
+
+- `TRAFFICTWIN_WORKSPACE_PATH` in this checkout is the diss path; `workspace_status(env)` → `valid=False, 0/0/0, ["No such file: workspace.yaml", "registry.sqlite is missing"]` — correctly treated as absent.
+- Home with `initialise_workspace(tmp/"kpi-demo")` then `session_state["_active_demo_workspace_path"]=...` / `active_registry_path=...` + two `run(timeout=30)` → metrics `Visible local layers: 0, Registered runs: 62, Comparisons: 3` and `Create demo workspace` button hidden — **pass**.
+- Guided Demo with clean env (`TRAFFICTWIN_WORKSPACE_PATH` unset, `session_state` set) → `**Workspace:** Ready | Scenarios: 62 | Imported runs: 62 | Comparisons: 3` — **pass** for the intended clean-checkout journey.
+- Click flow: before click `Registered runs: 0, Comparisons: 0` with button present; after `Create demo workspace` click → `st.success` contains `62 scenarios, 62 runs, 3 comparisons` + `synthetic`; on immediate rerun same-process metrics still `0` (expected — session state propagation completes on next Streamlit rerun); on next `run()` → `62/3` and button hidden — matches Streamlit's rerun semantics observed in `tests/unit/ui/test_page_presentation_home_demo_workspace.py:test_home_effective_workspace_hides_create_after_session_creation` (two-run pattern). The task's "KPIs now show 62/3 after session creation" is therefore satisfied on the effective next render.
+
+**Residual nuance (minor, not merge-blocking):** `guided_demo.py` only falls back when `config.workspace_path is None`, not when it is present but invalid (non-`None` invalid diss path). With the diss env set, a user who creates a demo workspace then navigates to Guided Demo in the *same shell* sees `Workspace: Unavailable | Scenarios: 0` until the shell's `TRAFFICTWIN_WORKSPACE_PATH` is cleared (clean checkout has no such var, so the issue does not arise for the advertised `streamlit run src/traffictwin/ui/app.py` clean-clone flow). Home handles the invalid-env case; Guided Demo does not yet mirror that branch. Classified **LOW** — does not affect the clean-clone (env unset) journey and can be aligned in a follow-up by reusing the same `valid_workspace` check as `home.py:195`.
+
+**Verdict on F-1: RESOLVED** (with the LOW guided-demo invalid-env edge noted above).
+
+#### F-2 — Tests for service + Home/Bundler wiring (HIGH)
+
+New files exist and pass:
+
+- `tests/unit/ui/test_demo_workspace_service.py` — 10 tests: `test_ensure_creates_deterministic_demo_with_counts` (62/62/3 + `synthetic` + files exist), `test_ensure_is_idempotent_on_existing_workspace`, `test_ensure_refuses_non_empty_without_marker`, `test_ensure_rejects_unsafe_paths` (`/`, `Path.home()`, `Path.cwd()`), `test_ensure_rejects_none_and_empty_string` (`None`/`""`/`"   "`), `test_ensure_accepts_string_path`, `test_ensure_trims_whitespace`, `test_inspect_reports_ready_for_existing`, `test_inspect_reports_failed_for_missing`, `test_default_path_is_repo_relative`. Covers every `DemoWorkspaceReason` except `unexpected_error` as an explicit `reason == "unexpected_error"` assertion — but the two `failed` paths exercise it (`non-existent` and `corrupt workspace.yaml` both yield `reason="unexpected_error"` as seen in probe; the tests assert `status=="failed"` without narrowing reason, which is acceptable because `unexpected_error` is the catch-all for non-typed failures). All required reason codes are hit.
+- `tests/unit/ui/test_page_presentation_home_demo_workspace.py` — 7 AppTests: `test_home_empty_state_offers_create_demo_workspace`, `test_home_create_demo_workspace_creates_and_shows_success`, `test_home_create_demo_workspace_shows_already_exists_on_rerun`, `test_home_effective_workspace_hides_create_after_session_creation`, `test_bundle_import_shows_example_shortcuts`, `test_bundle_import_example_baseline_sets_selected_path`, `test_bundle_import_example_variation_sets_selected_path`. Collectively assert button presence, synthetic/Manchester copy, click→success 62+files, rerun hides card, Bundle Import shortcuts wiring.
+
+`uv run pytest ... -q` → `17 passed` (10+7). Tests are behaviour-anchored (file existence, message content, metric semantics) not just implementation probes.
+
+**Verdict on F-2: RESOLVED.**
+
+#### F-3 — `inspect_demo_workspace` dead code (MEDIUM)
+
+Not deleted — intentionally retained as public surface. Now **covered** by two tests (`test_inspect_reports_ready_for_existing`, `test_inspect_reports_failed_for_missing`) proving the contract, and grep shows `src/.../demo_workspace_service.py:45` is still definition-only (no in-`src/` caller beyond tests). The original review allowed "documented; not required to delete if unused but noted." Keeping it with tests satisfies that allowance; future wiring can adopt it without churn. No dead-code warning from ruff/mypy.
+
+**Verdict on F-3: RESOLVED (retained with test coverage; acceptable per task note).**
+
+#### F-4 — `workspace_status` deduplication via helpers (MEDIUM)
+
+Original: 3 scattered `workspace_status(config.workspace_path)` calls in `_render_v07_home` plus one in legacy home. Now: `_render_v07_home` has zero direct `workspace_status` calls — all go through `_resolve_effective_demo_paths` (validity check for env + session), `_comparison_count_for`, and `_workspace_presence`. Grep confirms `home.py` has `workspace_status` on lines 195, 204 (inside `_resolve...`), 229 (inside `_comparison_count_for`), 242 (inside `_workspace_presence`), plus line 358 (legacy) and the import. The helper `has_workspace, workspace_ready, _ws_status = _workspace_presence(effective_workspace)` replaces the inline try/except block; `comparison_count` and `workspace` derive from the same effective value; `list_workspace_reports(effective_workspace)` reuses it. The helpers reuse a single validity-checked workspace rather than re-querying `config.workspace_path` three times with divergent error handling. Residual extra query inside `_resolve...` (env check + session re-check) is justified — it is the session-fallback validity gate, not duplication of the KPI path.
+
+**Verdict on F-4: RESOLVED.**
+
+#### F-5 — `docs/demo_quickstart.md` wording for Option A/B (MEDIUM)
+
+Fixed. Step 1 now reads:
+
+> **Home** — after in-browser creation the page reads the session workspace and shows `Visible local layers: 0` … `Registered runs: 62`, `Comparisons: 3` without requiring a process restart; the same counts are shown immediately by `traffictwin demo launch .traffictwin-demo` (which sets `TRAFFICTWIN_WORKSPACE_PATH`). Verify counts directly: `uv run traffictwin demo status .traffictwin-demo` (expect `valid_workspace True, 62/3`). The empty Manchester card correctly states that missing observations are not filled…
+
+This matches the code (Home reads session; verify via CLI status) and no longer overpromises. The "Verify counts directly" line was added exactly as the task's doc fix intended. The Option A vs B distinction is explicit and the stale "after creation shows" is now qualified with "reads the session workspace".
+
+**Verdict on F-5: RESOLVED.**
+
+#### F-6 — `_active_demo_workspace_path` now read (MEDIUM)
+
+Original: write-only at `home.py:222-223`. Now read in two places: `home.py:188` via `_resolve_effective_demo_paths` and `guided_demo.py:158` via `_render_track_status`. Grep: `home.py:188 get`, `home.py:281 set`, `guided_demo.py:158 get`. The session key propagates to `load_project_status`, `load_local_manchester_scene`, and `list_workspace_reports` (Home) and to the evidence-context banner (Guided Demo). No longer write-only.
+
+**Verdict on F-6: RESOLVED.**
+
+#### F-7 — Dead literal removed (LOW)
+
+`DemoWorkspaceReason` at `src/traffictwin/ui/demo_workspace_service.py:20` no longer contains `"already_has_workspace"` — now exactly `ready | created | already_exists | invalid_path | unsafe_path | non_empty_without_force | unexpected_error` (6 non-error + 1 catch-all). Grep for `already_has_workspace` is clean; grep for `DemoWorkspaceReason` shows only the single type alias and the `reason:` field. Ruff/mypy unaffected.
+
+**Verdict on F-7: RESOLVED.**
+
+### Residual issues (none blocking)
+
+| ID | Severity | Note |
+|---|---|---|
+| R-1 | **LOW** | Guided Demo invalid-env fallback not mirrored. `guided_demo.py:157-165` only checks `config.workspace_path is None` before consulting session; `home.py:193-198` additionally demotes an invalid (non-`None` but `valid_workspace==False`) env workspace to `None` first. With `TRAFFICTWIN_WORKSPACE_PATH` pointing at an invalid workspace (as in this machine's E1 harness), Guided Demo still shows `Unavailable | 0/0/0` after session creation, while Home shows `62/3`. Clean-checkout (`TRAFFICTWIN_WORKSPACE_PATH` unset) is unaffected. Fix: mirror Home's `valid_workspace` check in Guided Demo or extract a shared `resolve_effective_workspace(config)` helper. |
+| R-2 | **NIT** | `inspect_demo_workspace` `reason="unexpected_error"` is not asserted by name in tests (only `status=="failed"`). For the non-existent and corrupt cases the probe showed `reason=="unexpected_error"` — consider adding `assert result.reason == "unexpected_error"` in the missing/corrupt tests for taxonomy completeness. |
+| R-3 | **NIT** | `home.py:358` legacy home still calls `workspace_status(config.workspace_path)` directly, not via helpers. Legacy path is opt-in (`_v07_navigation_active is False`) and out of scope for v0.7, so this is expected to remain as-is. |
+
+No new **HIGH** or **MEDIUM** residual was introduced. Privacy/non-broadening (F-8/F-9/F-10 area) was not re-flagged; the prefix guard `candidate.startswith(str(workspace))` prevents arbitrary registry honoring when workspace is valid, and synthetic/Manchester wording is unchanged.
+
+### Original review verdict disposition
+
+Original review (245 lines, commit `b6f7311`) issued **REQUEST_CHANGES** (no BLOCKER, but HIGH F-1 + F-2 prevented merge). Fixes in `5606a7c` address the blocking pair plus all MEDIUM/LOW findings F-3..F-7. The added gates all pass, behaviour is verified by both new tests (17 passed) and manual AppTest probes, and the only residual is a LOW Guided Demo invalid-env divergence that does not affect the documented clean-clone journey. The original documentation overclaim (F-5) is corrected and matches runtime.
+
+**Re-review verdict: APPROVE_WITH_MINOR_FIXES** (alternative framing in task terms: **APPROVE** to merge with the noted LOW follow-up as non-blocking). The branch is **merge-ready** subject to the owner landing the one-line Guided Demo alignment (R-1) in a fast follow-up or accepting it as a tracked NIT; re-review is not required if R-1 is accepted as-is for the clean-checkout journey.
+
+**Whether original REQUEST_CHANGES is resolved:** **YES** — the HIGH findings that justified REQUEST_CHANGES are fully resolved; the branch no longer withholds merge on those grounds. The remaining R-1 is LOW and isolated to the diss-harness polluted-env edge case.
+
+---
+
+*Re-reviewer: Claude (independent mandatory re-review, per delegation). E1 PID 21677 left untouched throughout. Only file written: this addendum appended to `docs/reviews/product_completion_claude_review_2026-08-08.md`.*
