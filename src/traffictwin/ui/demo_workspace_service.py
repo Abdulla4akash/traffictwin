@@ -12,9 +12,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
+import streamlit as st
+
 from traffictwin.demo.workspace import initialise_workspace, workspace_status
+from traffictwin.ui.state import UiConfig
 
 DEFAULT_DEMO_WORKSPACE_PATH = Path(".traffictwin-demo")
+
+_ACTIVE_DEMO_WORKSPACE_KEY = "_active_demo_workspace_path"
+_ACTIVE_REGISTRY_KEY = "active_registry_path"
+_DEMO_WORKSPACE_FLASH_KEY = "_demo_workspace_flash"
 
 DemoWorkspaceStatus = Literal["ready", "created", "already_exists", "failed"]
 DemoWorkspaceReason = Literal[
@@ -217,3 +224,54 @@ def _coerce_workspace_path(path: str | Path | None) -> Path | None:
     if not raw:
         return None
     return Path(raw)
+
+
+def _is_valid_workspace(path: Path) -> bool:
+    """Return True only for a workspace that contains a valid marker."""
+
+    try:
+        return workspace_status(path).valid_workspace
+    except (OSError, ValueError):
+        return False
+
+
+def _is_within_workspace(candidate: Path, workspace: Path) -> bool:
+    """Return True only when ``candidate`` is contained in ``workspace``."""
+
+    try:
+        return candidate.resolve().is_relative_to(workspace.resolve())
+    except (OSError, ValueError, RuntimeError):
+        return False
+
+
+def resolve_effective_demo_paths(config: UiConfig) -> tuple[Path | None, Path]:
+    """Resolve the effective workspace and registry with clear precedence.
+
+    Precedence is ``valid configured workspace > valid session workspace > no workspace``.
+    A session registry is honoured only when it is contained in the effective
+    workspace (via :meth:`Path.is_relative_to`); when no valid workspace exists
+    the session registry is honoured so that an in-browser demo creation shows
+    counts immediately without a process restart.
+    """
+
+    workspace: Path | None = config.workspace_path
+    registry: Path = config.registry_path
+    session_workspace = st.session_state.get(_ACTIVE_DEMO_WORKSPACE_KEY)
+    session_registry = st.session_state.get(_ACTIVE_REGISTRY_KEY)
+
+    if workspace is not None and not _is_valid_workspace(workspace):
+        workspace = None
+
+    if workspace is None and isinstance(session_workspace, str) and session_workspace.strip():
+        candidate_ws = Path(session_workspace.strip())
+        if _is_valid_workspace(candidate_ws):
+            workspace = candidate_ws
+
+    if isinstance(session_registry, str) and session_registry.strip():
+        candidate = Path(session_registry.strip())
+        if workspace is not None:
+            if _is_within_workspace(candidate, workspace):
+                registry = candidate
+        else:
+            registry = candidate
+    return workspace, registry

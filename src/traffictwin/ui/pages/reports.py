@@ -12,6 +12,7 @@ from traffictwin.annotations import (
     AnalystDecisionLabel,
 )
 from traffictwin.ui.components.cards import report_card, section_header
+from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
 from traffictwin.ui.guided_runtime import complete_guided_action
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
@@ -34,7 +35,7 @@ def render(config: UiConfig) -> None:
 
     render_page_header(st.session_state.get("_active_ui_page", UiPage.REPORTS))
     st.info("Reports are deterministic exports. They are never regenerated automatically.")
-    workspace = config.workspace_path
+    workspace, effective_registry = resolve_effective_demo_paths(config)
     reports = list_workspace_reports(workspace)
     default_bundle = (
         workspace / "bundles" / "baseline"
@@ -50,7 +51,7 @@ def render(config: UiConfig) -> None:
     with tab_inventory:
         _render_inventory(reports)
     with tab_regenerate:
-        _render_regenerate(config, workspace, default_bundle)
+        _render_regenerate(config, workspace, default_bundle, effective_registry)
     with tab_compare:
         _render_structured_diff(report_root)
     with tab_exports:
@@ -58,7 +59,7 @@ def render(config: UiConfig) -> None:
         st.divider()
         _render_latex_export(workspace, default_bundle)
     with tab_annotations:
-        _render_annotations(config)
+        _render_annotations(config, effective_registry)
 
 
 def _render_inventory(reports: list[ReportEntry]) -> None:
@@ -111,7 +112,9 @@ def _render_inventory(reports: list[ReportEntry]) -> None:
         st.info("No reports found for the active workspace.")
 
 
-def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle: Path) -> None:
+def _render_regenerate(
+    config: UiConfig, workspace: Path | None, default_bundle: Path, effective_registry: Path
+) -> None:
     section_header("Regenerate report", "Choose explicit inputs before regenerating.")
     report_type = st.selectbox("Report type", ["run", "compare", "diagnostics", "full"])
     primary = Path(st.text_input("Primary bundle path", value=str(default_bundle)))
@@ -135,7 +138,7 @@ def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle:
     include_annotations = st.checkbox(
         "Include matching append-only analyst annotations",
         value=False,
-        disabled=not config.registry_path.is_file(),
+        disabled=not effective_registry.is_file(),
         help=(
             "Annotations render in a separate non-computed section and never change report "
             "claims or findings."
@@ -147,7 +150,7 @@ def _render_regenerate(config: UiConfig, workspace: Path | None, default_bundle:
             primary,
             output,
             secondary_path=Path(secondary_value) if secondary_value else None,
-            annotation_registry_path=config.registry_path if include_annotations else None,
+            annotation_registry_path=effective_registry if include_annotations else None,
         )
         if isinstance(generated, ServiceError):
             st.error(generated.message)
@@ -305,7 +308,7 @@ def _render_structured_diff(report_root: Path) -> None:
             )
 
 
-def _render_annotations(config: UiConfig) -> None:
+def _render_annotations(config: UiConfig, effective_registry: Path | None = None) -> None:
     section_header(
         "Analyst annotations (REP-02)",
         "Append notes or decisions to typed artifact references without rewriting evidence.",
@@ -348,8 +351,11 @@ def _render_annotations(config: UiConfig) -> None:
         key="reports_annotation_note",
     )
     if st.button("Append Analyst Annotation", key="reports_annotation_append"):
+        registry_for_write = (
+            effective_registry if effective_registry is not None else config.registry_path
+        )
         appended = append_analyst_annotation_for_ui(
-            config.registry_path,
+            registry_for_write,
             target_kind=annotation_kind,
             target_id=annotation_target_id,
             target_fingerprint=annotation_fingerprint or None,
@@ -362,9 +368,12 @@ def _render_annotations(config: UiConfig) -> None:
             st.code(appended.detail or "")
         else:
             st.success(f"Annotation #{appended.sequence} appended: {appended.annotation_id}")
-    if config.registry_path.is_file() and annotation_target_id:
+    registry_for_read = (
+        effective_registry if effective_registry is not None else config.registry_path
+    )
+    if registry_for_read.is_file() and annotation_target_id:
         history = list_analyst_annotations_for_ui(
-            config.registry_path,
+            registry_for_read,
             target_kind=annotation_kind,
             target_id=annotation_target_id,
             target_fingerprint=annotation_fingerprint or None,

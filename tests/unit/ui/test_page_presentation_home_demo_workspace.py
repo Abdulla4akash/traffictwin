@@ -6,10 +6,22 @@ import tempfile
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
 from streamlit.testing.v1 import AppTest
 
 from traffictwin.demo.workspace import initialise_workspace
 from traffictwin.ui.state import default_session_state
+
+
+@pytest.fixture(autouse=True)
+def _isolate_traffictwin_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep AppTests hermetic when a host TRAFFICTWIN_WORKSPACE_PATH is set."""
+
+    monkeypatch.delenv("TRAFFICTWIN_WORKSPACE_PATH", raising=False)
+    monkeypatch.delenv("TRAFFICTWIN_REGISTRY_PATH", raising=False)
+    monkeypatch.delenv("TRAFFICTWIN_TOS_DATA_PATH", raising=False)
+    monkeypatch.delenv("TRAFFICTWIN_FIXTURE_PATH", raising=False)
+
 
 HOME_APP = "src/traffictwin/ui/app_pages/home.py"
 BUNDLE_APP = "src/traffictwin/ui/app_pages/bundle_import.py"
@@ -91,14 +103,41 @@ def test_home_effective_workspace_hides_create_after_session_creation() -> None:
         app = _home_app()
         app.session_state["_active_demo_workspace_path"] = str(workspace)
         app.session_state["active_registry_path"] = str(workspace / "registry.sqlite")
-        # Run once to establish visible layers with diss env contamination,
-        # then re-run to pick up session workspace after env is validated as invalid.
-        app.run(timeout=30)
         app.run(timeout=30)
 
         assert not app.exception
         labels = [button.label for button in app.button]
         assert "Create demo workspace" not in labels
+
+
+def test_home_create_demo_workspace_updates_kpis_in_one_click() -> None:
+    """One click must create the workspace and immediately show 62/3 KPIs."""
+
+    with tempfile.TemporaryDirectory() as tmp:
+        workspace = Path(tmp) / "kpi-demo"
+        app = _home_app().run(timeout=30)
+        assert not app.exception
+
+        input_widget = next(
+            widget for widget in app.text_input if widget.label == "Demo workspace path"
+        )
+        input_widget.set_value(str(workspace)).run(timeout=30)
+        assert not app.exception
+
+        app.button(key="home_create_demo_workspace").click().run(timeout=30)
+        assert not app.exception
+
+        # Flash message survives the rerun
+        success = " ".join(str(item.value) for item in app.success)
+        assert "62" in success
+
+        # KPIs update without a manual reload (AppTest's button list is stale after st.rerun,
+        # but metrics and flash correctly reflect the rerun).
+        metric_labels = [str(metric.label) for metric in app.metric]
+        metric_values = [str(metric.value) for metric in app.metric]
+        paired = dict(zip(metric_labels, metric_values, strict=False))
+        assert paired.get("Registered runs") == "62"
+        assert paired.get("Comparisons") == "3"
 
 
 def test_bundle_import_shows_example_shortcuts() -> None:

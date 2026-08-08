@@ -7,6 +7,7 @@ import streamlit as st
 from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row, status_badge
 from traffictwin.ui.components.cards import section_header
+from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
 from traffictwin.ui.guided import DemoTrack, GuidedDemoProgress, steps_for_track
 from traffictwin.ui.guided_runtime import (
     begin_guided_workflow,
@@ -153,17 +154,11 @@ def _render_track_status(config: UiConfig, track: DemoTrack) -> None:
     section_header("Active evidence context")
     if track is DemoTrack.STANDALONE:
         badge_row(["SYNTHETIC", "OFFLINE", "DETERMINISTIC"])
-        workspace: object | None = config.workspace_path
+        workspace, _ = resolve_effective_demo_paths(config)
         if workspace is None:
-            session_path = st.session_state.get("_active_demo_workspace_path")
-            if isinstance(session_path, str) and session_path.strip():
-                from pathlib import Path
-
-                workspace = Path(session_path)
-            else:
-                st.warning("No standalone workspace is configured for this app process.")
-                return
-        status = workspace_status(workspace)  # type: ignore[arg-type]
+            st.warning("No standalone workspace is configured for this app process.")
+            return
+        status = workspace_status(workspace)
         workspace_label = "Ready" if status.valid_workspace else "Unavailable"
         st.markdown(
             f"**Workspace:** {workspace_label} | **Scenarios:** {status.scenario_count} | "

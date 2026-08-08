@@ -10,8 +10,10 @@ from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row, evidence_state_badge
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.demo_workspace_service import (
+    _DEMO_WORKSPACE_FLASH_KEY,
     DEFAULT_DEMO_WORKSPACE_PATH,
     ensure_demo_workspace,
+    resolve_effective_demo_paths,
 )
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
 from traffictwin.ui.manchester_operations import (
@@ -38,7 +40,21 @@ def render(config: UiConfig) -> None:
 def _render_v07_home(config: UiConfig) -> None:
     """Render the focused v0.7 research entry point without hiding evidence limits."""
 
-    effective_workspace, effective_registry_path = _resolve_effective_demo_paths(config)
+    effective_workspace, effective_registry_path = resolve_effective_demo_paths(config)
+    # One-shot flash from the immediate rerun after in-browser workspace creation
+    flash = st.session_state.pop(_DEMO_WORKSPACE_FLASH_KEY, None)
+    if isinstance(flash, dict) and flash.get("message"):
+        if flash.get("status") == "created":
+            st.success(str(flash["message"]))
+            st.info(
+                "Follow Guided Demo to continue. Manchester scenes remain unavailable in a "
+                "demo workspace — they require a separately activated real workspace with "
+                "accepted Manchester artifacts."
+            )
+        elif flash.get("status") == "already_exists":
+            st.info(str(flash["message"]))
+        else:
+            st.info(str(flash["message"]))
     status = load_project_status(effective_registry_path)
     summary = status.registry_summary
     run_count = summary.run_count if summary else 0
@@ -181,45 +197,9 @@ def _render_v07_home(config: UiConfig) -> None:
 
 
 def _resolve_effective_demo_paths(config: UiConfig) -> tuple[Path | None, Path]:
-    """Return effective workspace and registry paths respecting session fallback."""
+    """Compatibility shim — delegates to the central resolver."""
 
-    workspace: Path | None = config.workspace_path
-    registry: Path = config.registry_path
-    session_workspace = st.session_state.get("_active_demo_workspace_path")
-    session_registry = st.session_state.get("active_registry_path")
-
-    # If the env workspace is set but invalid, treat it as absent so that
-    # the demo session can take over for a clean-workspace journey.
-    if workspace is not None:
-        try:
-            if not workspace_status(workspace).valid_workspace:
-                workspace = None
-        except (OSError, ValueError):
-            workspace = None
-
-    if workspace is None and isinstance(session_workspace, str) and session_workspace.strip():
-        workspace = Path(session_workspace)
-        # Re-validate the session workspace before honouring it.
-        try:
-            if not workspace_status(workspace).valid_workspace:
-                workspace = None
-        except (OSError, ValueError):
-            workspace = None
-
-    if isinstance(session_registry, str) and session_registry.strip():
-        candidate = Path(session_registry)
-        # Honour the session registry when it belongs to the effective workspace,
-        # or when there is no valid effective workspace (in-browser creation).
-        # Never honour an arbitrary private path.
-        if workspace is not None and str(candidate).startswith(str(workspace)):
-            registry = candidate
-        elif workspace is None:
-            # No valid effective workspace — honour the demo registry so that
-            # Home can show counts immediately after in-browser creation without
-            # requiring a process restart (e.g. when TRAFFICTWIN_WORKSPACE_PATH
-            # points at an invalid diss worktree in the test harness).
-            registry = candidate
-    return workspace, registry
+    return resolve_effective_demo_paths(config)
 
 
 def _comparison_count_for(workspace: Path | None) -> int:
@@ -279,18 +259,11 @@ def _render_demo_workspace_empty_state() -> None:
             if result.status in {"created", "already_exists"}:
                 st.session_state["active_registry_path"] = str(result.path / "registry.sqlite")
                 st.session_state["_active_demo_workspace_path"] = str(result.path)
-                # Wire the repository workspace so downstream pages see counts.
-                # Pages that read TRAFFICTWIN_WORKSPACE_PATH via UiConfig inherit on next rerun;
-                # for the current rerun we also publish the comparison/run signal via registry path.
-                if result.status == "created":
-                    st.success(result.message)
-                    st.info(
-                        "Reload the page or follow Guided Demo to continue. Manchester scenes "
-                        "remain unavailable in a demo workspace — they require a separately "
-                        "activated real workspace with accepted Manchester artifacts."
-                    )
-                else:
-                    st.info(result.message)
+                st.session_state[_DEMO_WORKSPACE_FLASH_KEY] = {
+                    "status": result.status,
+                    "message": result.message,
+                }
+                st.rerun()
             else:
                 st.error(result.message)
                 if result.reason == "non_empty_without_force":
