@@ -40,8 +40,11 @@ Every artifact carries `synthetic: true` and a deterministic created instant. No
    `Comparisons: 3` without requiring a process restart; the same counts are shown immediately
    by `traffictwin demo launch .traffictwin-demo` (which sets `TRAFFICTWIN_WORKSPACE_PATH`).
    Verify counts directly: `uv run traffictwin demo status .traffictwin-demo`
-   (expect `valid_workspace True, 62/3`). The empty Manchester card correctly states that
-   missing observations are not filled with synthetic or stale values.
+   (expect `valid_workspace True, 62/3`). When no accepted Manchester scene is available,
+   Home shows a static Greater Manchester boundary context map (offline ONS December 2025
+   BGC, E47000001/E08000003, OGL-3.0) with the explicit statement “Static geographic
+   context — no live or observed traffic scene is loaded.” Missing observations are not
+   filled with synthetic or stale values.
 2. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
 3. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
 4. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
@@ -79,7 +82,7 @@ For real-workspace activation see [`docs/v07_usage.md`](v07_usage.md), [`docs/v0
 | Button says path not empty | Choose an empty/new directory, or relocate the existing non-workspace content |
 | Port busy | Check `curl http://127.0.0.1:8501/_stcore/health`; reuse it or launch on 8503 |
 | Bundle path not found | Press the Quick-start fixture buttons on Bundle Import, or `git status --short tests/fixtures` |
-| Manchester map empty in demo | Expected — demo workspaces never have Manchester scenes |
+| Manchester map empty in demo | Expected — demo workspaces show a static Greater Manchester boundary context map (offline ONS December 2025 BGC) with “Static geographic context — no live or observed traffic scene is loaded.” No accepted Manchester scene is present by design |
 | Real workspace inspect fails | Stop; request the exact owner path; use `traffictwin release v07-workspace-inspect` |
 
 ## Sources & design

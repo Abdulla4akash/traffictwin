@@ -55,6 +55,14 @@ Warning: direct simulator launch, live data, full Randy/VEC conversion, and SUMO
 integration are not implemented.
 The generic adapter and TOS result reader both report direct launch as unsupported.
 
+When no accepted Manchester scene is available, Home shows a static Greater Manchester
+boundary context map (offline ONS December 2025 BGC Generalised 20m, E47000001/E08000003,
+OGL-3.0, Contains OS data © Crown copyright 2025). The view is centred and fitted to the
+study area with no basemap, no live traffic, and no provider telemetry. A caption states
+“Static geographic context — no live or observed traffic scene is loaded.” If an accepted
+Manchester scene exists, that scene takes precedence and the static fallback is not shown.
+If the offline boundary asset cannot be loaded, Home falls back to a truthful text state.
+
 Home includes visible actions for Guided Demo, Experiment Planner, and imported TOS results. These
 actions are available in the main page content, so the first workflow does not depend on opening
 Streamlit's sidebar on a phone.
