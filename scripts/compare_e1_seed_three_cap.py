@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,8 @@ REJECTION_FIELDS = (
     "v2i_unavailable",
     "v2v_unavailable",
 )
+
+FLEET_SEED_DIRECTORY = re.compile(r"fleet_seed_(\d+)$")
 
 
 def sha256_file(path: Path) -> str:
@@ -47,6 +50,13 @@ def _finite_nonnegative(value: object) -> bool:
         and math.isfinite(value)
         and value >= 0
     )
+
+
+def _fleet_seed(seed_root: Path) -> int:
+    match = FLEET_SEED_DIRECTORY.fullmatch(seed_root.name)
+    if match is None:
+        raise ValueError(f"seed root must be named fleet_seed_<integer>: {seed_root}")
+    return int(match.group(1))
 
 
 def _profile(values: list[float]) -> str:
@@ -168,6 +178,7 @@ def build_seed_comparison(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     seed0 = json.loads(seed0_comparison_path.read_text(encoding="utf-8"))
+    fleet_seed = _fleet_seed(seed_root)
     checks: list[dict[str, Any]] = [
         _check(
             "selected_backend_is_frozen_macos_cpu",
@@ -267,7 +278,7 @@ def build_seed_comparison(
             _check("task_type_identical_across_caps", len(type_hashes) == 1),
         ]
     )
-    seed1_trends = _trends(points)
+    seed_trends = _trends(points)
     seed0_points = {label: _seed0_point(seed0["physical_points"][label]) for label in CAP_LABELS}
     seed0_trends = _trends(seed0_points)
     comparable_fields = (
@@ -280,16 +291,18 @@ def build_seed_comparison(
         "admitted_latency_nondecreasing",
     )
     pattern_checks = {
-        field: seed1_trends[field] == seed0_trends[field] for field in comparable_fields
+        field: seed_trends[field] == seed0_trends[field] for field in comparable_fields
     }
     passed = all(item["passed"] for item in checks)
     validation_record = {
         "schema_version": "traffictwin.e1-within-seed-three-cap-validation.v1",
         "manifest_sha256": sha256_file(manifest_path),
-        "fleet_seed": 1,
+        "fleet_seed": fleet_seed,
         "passed": passed,
         "decision": (
-            "seed1_three_cap_comparison_valid" if passed else "stop_invalid_seed1_comparison"
+            "within_seed_three_cap_comparison_valid"
+            if passed
+            else "stop_invalid_within_seed_comparison"
         ),
         "checks": checks,
         "sources": sources,
@@ -303,7 +316,7 @@ def build_seed_comparison(
         "manifest_sha256": sha256_file(manifest_path),
         "validation_passed": passed,
         "replication_unit": "fleet_seed",
-        "fleet_seed": 1,
+        "fleet_seed": fleet_seed,
         "evaluator_seed": 0,
         "points": points,
         "higher_cap_minus_lower_cap": {
@@ -311,7 +324,7 @@ def build_seed_comparison(
             "40x_minus_2p5": _delta(points["40x"], points["2p5"]),
             "40x_minus_0p75": _delta(points["40x"], points["0p75"]),
         },
-        "seed1_descriptive_trends": seed1_trends,
+        "seed_descriptive_trends": seed_trends,
         "seed0_reference": {
             "comparison_sha256": sha256_file(seed0_comparison_path),
             "descriptive_trends": seed0_trends,

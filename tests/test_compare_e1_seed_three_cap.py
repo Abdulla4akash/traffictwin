@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from scripts.compare_e1_seed_three_cap import build_seed_comparison
+import pytest
+from scripts.compare_e1_seed_three_cap import _fleet_seed, build_seed_comparison
 
 CAPS = {"0p75": 1866, "2p5": 6220, "40x": 99520}
 
@@ -115,7 +116,7 @@ def test_valid_seed_comparison_computes_deltas_and_pattern(tmp_path: Path) -> No
     assert validation["passed"] is True
     assert comparison["higher_cap_minus_lower_cap"]["40x_minus_0p75"]["admitted_tasks"] == 100.0
     assert (
-        comparison["seed1_descriptive_trends"]["offered_deadline_attainment_profile"]
+        comparison["seed_descriptive_trends"]["offered_deadline_attainment_profile"]
         == "decrease_then_plateau"
     )
     assert (
@@ -138,3 +139,9 @@ def test_task_stream_mismatch_fails_validation(tmp_path: Path) -> None:
     assert comparison["validation_passed"] is False
     failed = {item["name"] for item in validation["checks"] if not item["passed"]}
     assert "task_active_identical_across_caps" in failed
+
+
+def test_fleet_seed_is_derived_from_seed_root() -> None:
+    assert _fleet_seed(Path("fleet_seed_4")) == 4
+    with pytest.raises(ValueError, match="fleet_seed_<integer>"):
+        _fleet_seed(Path("seed_4"))

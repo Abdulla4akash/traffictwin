@@ -2,8 +2,9 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 multi-draw campaign; seed 1 complete at all three caps
-**Execution authority:** stopped before fleet seed 2; do not start another cell
+**Current phase:** E1 physical multi-draw campaign; seed 1 accepted, seeds 2-4 authorised
+**Execution authority:** run only the remaining frozen nine-cell matrix, serially, with mandatory
+per-cell repeated-smoke gates
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -30,8 +31,8 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 ## Current verified state
 
 The evidence base through TrafficTwin execution commit
-`fcc4602d337de4824fb3b23ead9697aba41c3621`, together with the seed-1 records in this reviewed
-change, establishes:
+`8da77b87632690f655f370339c9fe1e1a6592f32`, together with the direct researcher continuation
+instruction dated 8 August 2026, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -60,8 +61,8 @@ change, establishes:
   deadline attainment decreased slightly then plateaued and latency rose sharply;
 - seed-0 qualitative comparison: the same seven-field admission/rejection/deadline/latency pattern
   was observed; this is descriptive two-draw evidence, not five-draw inference;
-- multi-draw E1 evidence: seed 0 and seed 1 rows are available, but the predeclared five-draw
-  estimate is not yet available;
+- multi-draw E1 evidence: seed 0 and seed 1 rows are accepted; the researcher has authorised the
+  remaining predeclared fleet seeds 2, 3 and 4 without a routine pause between passing cells;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -71,7 +72,8 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Stop and review the completed fleet-seed-1 three-cap result. Do not start fleet seed 2.**
+**Execute only the remaining physical E1 cells for fleet seeds 2, 3 and 4, serially in frozen
+manifest order.**
 
 The selected-backend campaign is governed by
 [e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
@@ -89,17 +91,28 @@ All three full cells offered 13,076,234 tasks. Admitted tasks increased from 11,
 while penalty-inclusive offered latency rose from 4,642.546 to 14,519.940 to 117,993.732 ms.
 
 The exact equality of the observed 2.5x and 40x offered-deadline values is not a formal tie or
-equivalence result. This is one new fleet draw, and five-draw inference remains prohibited until
-the full predeclared replication set is valid. The current direct instruction requires a stop
-before fleet seed 2. If the researcher subsequently directs continuation, the next manifest gate
-is fleet seed 2 at 0.75x, beginning with two serial ten-step smokes.
+equivalence result. The next gate is fleet seed 2 at 0.75x, beginning with two serial ten-step
+smokes. If and only if both smokes and all mandatory checks pass, run and validate that cell's
+3,600-step full evaluation. Continue the same cell-specific sequence through 2.5x and 40x, then
+fleet seeds 3 and 4. Stop the entire later campaign immediately on any identity, repeat,
+accounting, rejection, work-conservation, numerical, storage or no-overwrite failure.
+
+The append-only controller
+[`scripts/resume_e1_multidraw_physical_campaign.py`](../../scripts/resume_e1_multidraw_physical_campaign.py),
+SHA-256 `c42ca19416d1921031b9685181e5b4798a8881d02a5c9e600fa3edceacb55cd4`, is a bounded adapter over
+the unchanged manifest-pinned runner. It verifies the accepted seed-1 evidence index, accepts only
+seeds 2-4, derives caps and commands from the frozen manifest, uses concurrency one and refuses any
+existing target or control record. Raw outputs remain outside Git under the manifest's logical
+locator.
 
 ### Exit condition
 
 The backend gate is closed. It records one backend, exact CPU environment, reuse of the three
 validated macOS seed-0 artifacts, concurrency one, a projected 20.089 CPU-hour new-cell total and
-the final 12-cell matrix. The campaign gate exits only after all authorised cells either pass or
-stop on a mandatory condition and the five-draw analysis is published. E2 remains unauthorised.
+the final 12-cell matrix. After seeds 2-4 pass, run the predeclared matched five-draw analysis and
+publish the campaign validation, comparison, report and evidence index to draft PR #8. The
+campaign gate exits only after all authorised cells either pass or stop on a mandatory condition.
+E2 remains unauthorised.
 
 ## What follows after this gate
 
@@ -133,8 +146,8 @@ Do not start:
 
 - The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
   pre-task failures. No G4 scientific compatibility or performance measurement is available.
-- All three seed-1 cells passed, but nine new full cells remain. The immediate blocker is the
-  explicit stop-and-report boundary before fleet seed 2, not a scientific failure.
+- All three seed-1 cells passed and nine new full cells remain. There is no routine-review blocker;
+  each later cell remains contingent on its own mandatory repeated-smoke and validation gates.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.
