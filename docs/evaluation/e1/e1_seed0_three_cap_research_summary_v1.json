@@ -1,0 +1,370 @@
+{
+  "schema_version": "traffictwin.e1-seed0-research-summary.v1",
+  "record_date": "2026-08-08",
+  "status": "seed0_three_cap_pilot_complete_and_valid_for_bounded_descriptive_use",
+  "research_questions": {
+    "eventual": "Given a frozen vehicle actor that chooses only Local, V2I or V2V and does not observe current RSU load, when does downstream infrastructure-side load-aware placement improve, tie or harm task outcomes relative to strongest-link placement?",
+    "e0": "Does the corrected evaluator account for every offered task and conserve service work before any controller comparison?",
+    "e1": "How do the bundled legacy snapshot/clamp/legacy semantics and physical sequential/reject/conserved semantics behave at provisional 0.75x, 2.5x and 40x RSU waiting-room ceilings?",
+    "not_tested": "The eventual load-aware-placement question is E2 and was not tested."
+  },
+  "hypotheses": [
+    {
+      "id": "E0-HV1",
+      "kind": "validity",
+      "statement": "The corrected physical evaluator conserves offered tasks as admitted plus explicit terminal rejection/unavailability outcomes and conserves V2I and vehicle service work.",
+      "status": "supported_for_the_bounded_smoke_and_one_seed0_full_reference"
+    },
+    {
+      "id": "E0-HV2",
+      "kind": "repeatability",
+      "statement": "Repeated bounded executions with identical inputs and seeds have identical scientific summaries and instrumentation arrays, excluding wall time.",
+      "status": "supported_for_the_repeated_10_step_smokes"
+    },
+    {
+      "id": "E1-H1",
+      "kind": "diagnostic",
+      "statement": "Legacy clamp may hide work loss and change offered-task outcomes relative to physical rejection; no directional result was assumed.",
+      "status": "the_bundled_semantic_paths_differed_at_all_three_caps_but_the_contrast_is_not_a_component_ablation"
+    },
+    {
+      "id": "E1-H2",
+      "kind": "directionally_agnostic_cap_tradeoff",
+      "statement": "A lower waiting-room ceiling may reject work earlier and reduce queue latency; offered-task attainment may improve, tie or harm.",
+      "status": "descriptive_seed0_pattern_observed_without_uncertainty_or_formal_tie_testing"
+    },
+    {
+      "id": "E2-H1",
+      "kind": "future_controller_hypothesis",
+      "statement": "Downstream load-aware placement may improve, tie or harm outcomes relative to strongest-link placement.",
+      "status": "not_tested"
+    }
+  ],
+  "provenance": {
+    "traffictwin_initial_e0_start_commit": "95e7b1e4048a11a2002473e83eb0aa1c584c9bbc",
+    "traffictwin_remote_main_observed": "a462c72b81f1668eef4ea0b7f8e806be4d208b47",
+    "traffictwin_execution_record_parent_for_40x": "65dab1f327f87362f5b6765903a5d46c44b24ac0",
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "scenario": {
+      "name": "Manchester incident",
+      "date": "2024-03-15",
+      "window_local": "20:00-21:00",
+      "steps": 3600,
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "trace_sumo_seed": 43,
+      "has_enter_channel": false
+    },
+    "seeds": {
+      "evaluator": 0,
+      "fleet": 0,
+      "actor_training": 100,
+      "trace_sumo": 43
+    },
+    "environment": {
+      "python": "3.11.15",
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "numpy": "1.26.4",
+      "backend": "cpu",
+      "installed_sumo": "1.27.1",
+      "trace_provenance_sumo": "1.27.0",
+      "sumo_note": "The evaluator replayed the NPZ and did not invoke SUMO; this is not an exact canonical SUMO 1.27.0 reproduction."
+    }
+  },
+  "controlled_configuration": {
+    "actor": "frozen 17-dimensional Paper-2A MAPPO actor",
+    "actor_actions": [
+      "Local",
+      "V2I",
+      "V2V"
+    ],
+    "actor_observes_current_rsu_load": false,
+    "fleet": "uk2030_provisional",
+    "placement": "strongest_link_default",
+    "load_balancing": "off",
+    "rsu_service_multiplier": 1.0,
+    "scaling": "off",
+    "backhaul_ms": 0.0,
+    "arrival_lambda": 1.5,
+    "cap_semantics": "per_RSU_admission_or_inflight_task_ceiling_not_compute_power",
+    "cap_points": [
+      {
+        "multiplier": 0.75,
+        "resolved_tasks_per_rsu": 1866
+      },
+      {
+        "multiplier": 2.5,
+        "resolved_tasks_per_rsu": 6220
+      },
+      {
+        "multiplier": 40.0,
+        "resolved_tasks_per_rsu": 99520
+      }
+    ],
+    "legacy_arm": {
+      "substep_queue": "snapshot",
+      "rsu_cap_mode": "clamp",
+      "vehicle_queue": "legacy",
+      "work_conservation_available": false
+    },
+    "physical_arm": {
+      "substep_queue": "sequential",
+      "substep_queue_iterations": 3,
+      "rsu_cap_mode": "reject",
+      "vehicle_queue": "conserved",
+      "work_conservation_available": true
+    }
+  },
+  "evidence_records": {
+    "e0_smoke_manifest": {
+      "path": "docs/evaluation/e0/e0_manifest_v1.json",
+      "sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
+    },
+    "e0_smoke_validation": {
+      "path": "docs/evaluation/e0/e0_validation_v1.json",
+      "sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d"
+    },
+    "e0_full_manifest": {
+      "path": "docs/evaluation/e0/e0_full_reference_manifest_v1.json",
+      "sha256": "eae09f31bd049b70f99930507873b0efb84a7a7cbeab2a37adb7b3a0bae6b12f"
+    },
+    "e0_full_validation": {
+      "path": "docs/evaluation/e0/e0_full_reference_validation_v1.json",
+      "sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa"
+    },
+    "e1_2p5_manifest": {
+      "path": "docs/evaluation/e1/e1_2p5_semantics_pair_manifest_v1.json",
+      "sha256": "318b909749f514833eba4a09bc34978b33bdefd570bfc3d59e189cebe9334bf5"
+    },
+    "e1_2p5_validation": {
+      "path": "docs/evaluation/e1/e1_2p5_semantics_pair_validation_v1.json",
+      "sha256": "3a0227d355852c68273d4c9b0159782f98d9a345a11528b19ddd5b36feedd10a"
+    },
+    "e1_0p75_manifest": {
+      "path": "docs/evaluation/e1/e1_0p75_semantics_pair_manifest_v1.json",
+      "sha256": "d299998d0346aa20466afcb156868cff6fabd614d15c5a91dc6427f58d857b5d"
+    },
+    "e1_0p75_smoke_validation": {
+      "path": "docs/evaluation/e1/e1_0p75_smoke_validation_v1.json",
+      "sha256": "a70ecce0aca3a1bd976f7b9332981539ea9b47856af4cb95fad3ca6de8c7fd3a"
+    },
+    "e1_0p75_validation": {
+      "path": "docs/evaluation/e1/e1_0p75_semantics_pair_validation_v1.json",
+      "sha256": "1b0ce7612fda194cb91ed70d01b4f18dfecd7d06b7d77a14c38480ab734fc09e"
+    },
+    "e1_40x_manifest": {
+      "path": "docs/evaluation/e1/e1_40x_semantics_pair_manifest_v1.json",
+      "sha256": "f156d19ed8d59bff479c6f3767291acc2e5c681bdc8e4d630665aba67c3c10e8"
+    },
+    "e1_40x_smoke_validation": {
+      "path": "docs/evaluation/e1/e1_40x_smoke_validation_v1.json",
+      "sha256": "ef851cec13c510bea9e1805f01479c76f4fa215da03e8ed78686c24de9d5bb30"
+    },
+    "e1_40x_validation": {
+      "path": "docs/evaluation/e1/e1_40x_semantics_pair_validation_v1.json",
+      "sha256": "fc8ec5b33c2e0b5de74e86fbf4545b36234eda6e65d1208295632632d9e91ad6"
+    },
+    "three_cap_comparison": {
+      "path": "docs/evaluation/e1/e1_three_cap_sweep_seed0_v1.json",
+      "sha256": "e1153d11a73480668bdb730c19c2671b12413c3bd1e85c9c3a8e56735cdadfc2"
+    }
+  },
+  "validation_outcomes": {
+    "e0_smoke": {
+      "passed": true,
+      "repeat_count": 2,
+      "checks_passed_per_run": 32,
+      "checks_total_per_run": 32,
+      "scientific_summary_identical": true,
+      "instrumentation_arrays_identical": true
+    },
+    "e1_0p75_smoke": {
+      "passed": true,
+      "repeats_per_arm": 2,
+      "legacy_checks_per_run": "25/25",
+      "physical_checks_per_run": "32/32",
+      "within_arm_scientific_summary_identical": true,
+      "within_arm_instrumentation_arrays_identical": true
+    },
+    "e1_40x_smoke": {
+      "passed": true,
+      "repeats_per_arm": 2,
+      "legacy_checks_per_run": "25/25",
+      "physical_checks_per_run": "32/32",
+      "within_arm_scientific_summary_identical": true,
+      "within_arm_instrumentation_arrays_identical": true
+    },
+    "full_pairs": {
+      "legacy_checks_per_run": "25/25",
+      "physical_checks_per_run": "32/32",
+      "cross_arm_offered_count_task_active_and_task_type_equal": true
+    },
+    "three_cap_comparison": {
+      "passed": true,
+      "checks": "31/31"
+    }
+  },
+  "physical_results": {
+    "0p75": {
+      "rsu_max_concurrent": 1866,
+      "n_offered": 13076234,
+      "n_admitted": 11630198,
+      "n_rejected_or_unavailable": 1446036,
+      "v2i_cap_rejected": 865895,
+      "completion_offered": 0.6837908376371974,
+      "completion_admitted": 0.7688096969630268,
+      "penalty_inclusive_latency_ms_per_offered_task": 5461.601257976876,
+      "latency_ms_per_admitted_task": 3808.757481858864
+    },
+    "2p5": {
+      "rsu_max_concurrent": 6220,
+      "n_offered": 13076234,
+      "n_admitted": 11661973,
+      "n_rejected_or_unavailable": 1414261,
+      "v2i_cap_rejected": 834120,
+      "completion_offered": 0.6836192285944103,
+      "completion_admitted": 0.7665225258196019,
+      "penalty_inclusive_latency_ms_per_offered_task": 17262.11832061127,
+      "latency_ms_per_admitted_task": 12140.312200002521
+    },
+    "40x": {
+      "rsu_max_concurrent": 99520,
+      "n_offered": 13076234,
+      "n_admitted": 12143126,
+      "n_rejected_or_unavailable": 933108,
+      "v2i_cap_rejected": 352967,
+      "completion_offered": 0.6836192285944103,
+      "completion_admitted": 0.7361502301796095,
+      "penalty_inclusive_latency_ms_per_offered_task": 160827.13705612795,
+      "latency_ms_per_admitted_task": 126782.74757784775
+    }
+  },
+  "legacy_results": {
+    "0p75": {
+      "rsu_max_concurrent": 1866,
+      "n_offered": 13076234,
+      "completion_offered": 0.7290600642356201,
+      "penalty_inclusive_latency_ms_per_offered_task": 5314.834518868353,
+      "admitted_rejected_and_work_metrics": null
+    },
+    "2p5": {
+      "rsu_max_concurrent": 6220,
+      "n_offered": 13076234,
+      "completion_offered": 0.7286572724226257,
+      "penalty_inclusive_latency_ms_per_offered_task": 17116.584494281764,
+      "admitted_rejected_and_work_metrics": null
+    },
+    "40x": {
+      "rsu_max_concurrent": 99520,
+      "n_offered": 13076234,
+      "completion_offered": 0.7286572724226257,
+      "penalty_inclusive_latency_ms_per_offered_task": 160676.9823127974,
+      "admitted_rejected_and_work_metrics": null
+    },
+    "evidence_boundary": "The legacy path lacks admitted identities, terminal outcome codes and a work ledger; zero rejection counters are placeholders and are not observed zero rejection."
+  },
+  "code_generated_descriptive_trends": {
+    "physical_admissions_nondecreasing_with_cap": true,
+    "physical_cap_rejections_nonincreasing_with_cap": true,
+    "physical_penalty_latency_nondecreasing_with_cap": true,
+    "physical_offered_completion_range_absolute": 0.0001716090427871242,
+    "physical_offered_completion_range_percentage_points": 0.01716090427871242,
+    "0p75_to_40x": {
+      "n_admitted": 512928,
+      "n_rejected": -512928,
+      "v2i_cap_rejected": -512928,
+      "completion_offered_percentage_points": -0.01716090427871242,
+      "completion_admitted_percentage_points": -3.2659466783417357,
+      "penalty_inclusive_latency_ms_per_offered_task": 155365.53579815108
+    }
+  },
+  "interpretation": {
+    "supported": [
+      "The corrected physical path accounted for every offered task and conserved service work in the tested smoke and full runs.",
+      "At this matched seed, larger provisional waiting rooms admitted more tasks and produced fewer explicit cap rejections while queue-associated latency increased.",
+      "The waiting-room ceiling remained binding even at 40x in the physical full run.",
+      "The bundled legacy and physical semantics produced different outputs on an identical offered task stream."
+    ],
+    "not_supported": [
+      "A formal equivalence or tie claim for offered-task completion.",
+      "A general cap-response relationship beyond evaluator seed 0 and fleet seed 0.",
+      "A component-level causal attribution to clamp, substep accounting or vehicle queues individually.",
+      "A claim that waiting-room capacity is compute power.",
+      "A load-aware placement or controller conclusion.",
+      "A native physical completion or result-return claim.",
+      "Reproduction of Randy's reported 0.6943 result."
+    ]
+  },
+  "authorization_and_decision_log": [
+    {
+      "date": "2026-08-07",
+      "decision": "Start with a bounded E0 smoke and stop before campaigns or controller comparisons."
+    },
+    {
+      "date": "2026-08-07",
+      "decision": "After E0 smoke passed, execute one full corrected strongest-link reference."
+    },
+    {
+      "date": "2026-08-07",
+      "decision": "Execute the bounded 2.5x E1 semantics pair, reusing the exact validated E0 physical arm."
+    },
+    {
+      "date": "2026-08-08",
+      "decision": "Execute the next bounded 0.75x pair, then the remaining bounded 40x pair, each with repeated smoke gates before full execution."
+    },
+    {
+      "date": "2026-08-08",
+      "decision": "Write and publish the cumulative hypotheses, experiment, observations, results, interpretation and limitations; do not start E2 or a multi-seed campaign."
+    }
+  ],
+  "raw_output_roots": [
+    "local-output:e0_outputs/e0-corrected-reference-v1",
+    "local-output:e0_outputs/e0-full-corrected-reference-v1",
+    "local-output:e1_outputs/e1-2p5-semantics-pair-seed0-v1",
+    "local-output:e1_outputs/e1-0p75-semantics-pair-seed0-v1",
+    "local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1"
+  ],
+  "blockers": [
+    "Evaluator and fleet seeds 1-4 have not been run, so there is no replication or uncertainty evidence.",
+    "The provisional 0.75x, 2.5x and 40x ceilings and uk2030 fleet are not approved physical configuration choices.",
+    "The legacy source path cannot supply admitted/rejected task identities or service-work conservation.",
+    "The historical waiting-room manifest, exact commands, actor identity, seed table and raw outputs remain unavailable.",
+    "The trace has no enter channel and retains mask-only reset semantics.",
+    "Installed SUMO 1.27.1 differs from trace provenance SUMO 1.27.0.",
+    "Native physical completion and result-return lifecycle events are unavailable.",
+    "GitHub Actions jobs cannot start while the repository-owner billing or spending-limit restriction remains active."
+  ],
+  "next_gate": {
+    "status": "approval_required",
+    "decision": "Decide whether the observed admission and latency sensitivity justifies a separately predeclared seeds 1-4 replication.",
+    "required_before_execution": [
+      "approve or revise the provisional cap definitions",
+      "approve or revise the provisional fleet definition",
+      "set an explicit compute budget",
+      "accept the legacy evidence limitation or require instrumentation"
+    ],
+    "explicitly_not_next": [
+      "E2 load-aware placement",
+      "MAPPO retraining",
+      "proactive prediction",
+      "learned scheduling",
+      "bus modelling"
+    ]
+  },
+  "publication": {
+    "branch": "agent/e1-waiting-room-40x-v1",
+    "head_before_cumulative_record": "7b42c260815e76e12b28223fbd224b613aa92ca2",
+    "draft_pull_request": 7,
+    "stacked_predecessor_pull_requests": [
+      4,
+      5,
+      6
+    ],
+    "raw_private_artifacts_committed": false
+  }
+}

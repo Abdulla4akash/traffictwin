@@ -1,5 +1,9 @@
 # TrafficTwin research audit reply
 
+> **Historical reply:** E0 and the seed-0 E1 pilot described here as future work have since been
+> completed. Read [RESEARCH_NEXT.md](RESEARCH_NEXT.md) for the authoritative current research state
+> and next gate.
+
 ## Audit complete
 
 The requested read-only scientific and implementation audit was completed. No code was changed and no experimental campaign was launched.
@@ -136,4 +140,6 @@ Proceed now with:
 
 The bus thread should remain a parallel contingency rather than replacing the supervisor-directed VEC study immediately. Its strongest focused question is short-horizon corridor travel-time and severe-delay prediction, starting with persistence, historical median and gradient-boosting baselines—not an LLM-generated numerical forecast.
 
-**The immediate move is E0: establish that the current engine accounts for every offered task before trying to make any controller look clever.**
+**Historical conclusion at audit time:** the immediate move was E0—establish that the current
+engine accounts for every offered task before trying to make any controller look clever. E0 is now
+complete; use [RESEARCH_NEXT.md](RESEARCH_NEXT.md) for current sequencing.

@@ -1,5 +1,10 @@
 # Evaluation Materials
 
+For the supervisor-aligned Randy/VEC research thread, start with
+[RESEARCH_NEXT.md](RESEARCH_NEXT.md). It is the authoritative current-state and next-action
+pointer; dated audits, checklists and experiment reports remain evidence/history rather than live
+sequencing instructions.
+
 These files prepare a possible expert/researcher evaluation of TrafficTwin. They are drafts for
 supervisor and ethics review. Their presence does not mean that ethics approval has been obtained
 or that participant sessions have occurred.
@@ -34,7 +39,11 @@ The [E0 corrected-evaluator validity gate](e0/README.md) records the predeclared
 deterministic conservation checks, repeat comparison and readiness boundary for the Randy/VEC
 research stream. It is not a controller comparison.
 
-The [E1 waiting-room semantics evidence](e1/README.md) records bounded 2.5x and 0.75x
-legacy-versus-physical seed-0 pairs, their non-conserving legacy evidence boundary, and a
-code-generated descriptive cross-cap comparison. It is not the complete E1 cap sweep and does not
+The [E1 waiting-room semantics evidence](e1/README.md) records the bounded 0.75x, 2.5x and 40x
+legacy-versus-physical seed-0 pilot, its non-conserving legacy evidence boundary, and a
+code-generated descriptive three-cap comparison. It is not a replicated E1 cap sweep and does not
 begin the E2 placement comparison.
+
+The E1 directory also contains a cumulative E0-to-E1 research record covering the hypotheses,
+experimental design, authorization and decision sequence, observations, results, interpretation,
+validity threats, reproducibility index and remaining gates.

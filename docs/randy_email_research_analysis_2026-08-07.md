@@ -1,5 +1,9 @@
 # Randy Email Research Analysis — 7 August 2026
 
+> **Supporting source analysis:** Randy's reported results and proposals inform the research but
+> do not set the current execution order. Read
+> [RESEARCH_NEXT.md](evaluation/RESEARCH_NEXT.md) for the authoritative current direction.
+
 This document records the research value extracted from a technical email from
 PhD student Randy Putra that Abdulla supplied on 7 August 2026. It paraphrases
 the relevant technical content rather than reproducing personal email headers.

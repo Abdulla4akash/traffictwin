@@ -1,5 +1,9 @@
 # MSc Students Q&A Research Record — 5 August 2026
 
+> **Supporting reported record:** This Q&A supplies semantics and proposals; it is not the current
+> experiment sequence. Read [RESEARCH_NEXT.md](evaluation/RESEARCH_NEXT.md) for the authoritative
+> current direction.
+
 This document is a research-facing record of the technical answers supplied by
 PhD student Randy Putra to S M Abdulla Al Mamun on 5 August 2026. The private
 source was supplied as `MSc Students QnA.docx` and reviewed on 7 August 2026.

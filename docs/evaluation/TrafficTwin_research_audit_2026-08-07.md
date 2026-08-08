@@ -1,5 +1,10 @@
 # TrafficTwin MSc Dissertation Research Audit
 
+> **Historical design snapshot:** This audit was authoritative when published on 7 August 2026,
+> before E0 and the seed-0 E1 pilot were executed. Its “immediate” and seven-day instructions must
+> not be used as current state. Read [RESEARCH_NEXT.md](RESEARCH_NEXT.md) for the repository's
+> authoritative current sequence.
+
 **Audit date:** 7 August 2026
 **Mode:** read-only scientific and implementation audit; no code was modified and no expensive campaign was launched.
 **Requested scope:** TrafficTwin, `vec_env`, and `tos-data`, using the source-authority hierarchy in the supplied brief.

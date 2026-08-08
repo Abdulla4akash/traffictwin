@@ -1,5 +1,8 @@
 TRAFFICTWIN — IMMEDIATE REQUEST CHECKLIST (7 AUGUST 2026)
 
+HISTORICAL STATUS: The E0 "DO NOW" items below are completed and are not current instructions.
+CURRENT AUTHORITY: docs/evaluation/RESEARCH_NEXT.md
+
 REQUEST FROM SANDRA
 - Confirm primary research question and mandatory deliverables.
 - Confirm primary actor, metric denominator, core trace set and deadline.
@@ -18,7 +21,7 @@ REQUEST FROM ETHAN
 - Ownership split for lifecycle, placement, scaling, forecasting and analysis.
 - Shared manifest/result naming and merge-review owner.
 
-DO NOW
+HISTORICAL DO NOW (COMPLETED OR SUPERSEDED; SEE RESEARCH_NEXT.md)
 - Inventory local git status/untracked outputs at all three supplied paths.
 - Freeze E0 manifest.
 - Pin SUMO/environment.
