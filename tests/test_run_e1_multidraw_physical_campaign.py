@@ -11,6 +11,7 @@ from scripts.run_e1_multidraw_physical_campaign import (
     _format_argv,
     _physical_manifest_view,
     _write_checksums,
+    environment_identity_checks,
     run_campaign,
 )
 
@@ -18,7 +19,11 @@ from scripts.run_e1_multidraw_physical_campaign import (
 def _manifest() -> dict[str, Any]:
     return {
         "manifest_id": "test-campaign",
-        "backend_decision": {"status": "selected", "backend": "fixture"},
+        "backend_decision": {
+            "status": "selected",
+            "selected_backend": "fixture",
+            "campaign_execution_allowed": True,
+        },
         "inputs": {
             "actor": {"path": "checkpoints/actor.npz"},
             "trace": {
@@ -118,12 +123,44 @@ def test_checksum_writer_refuses_overwrite(tmp_path: Path) -> None:
         _write_checksums(tmp_path)
 
 
-def test_campaign_runner_refuses_pending_backend_decision(tmp_path: Path) -> None:
+def test_environment_identity_checks_detects_backend_drift() -> None:
+    expected = {
+        "python": "3.11.15",
+        "jax": "0.4.30",
+        "jaxlib": "0.4.30",
+        "numpy": "1.26.4",
+        "ml_dtypes": "0.5.4",
+        "opt_einsum": "3.4.0",
+        "scipy": "1.17.1",
+        "jax_backend": "cpu",
+        "jax_device": "TFRT_CPU_0",
+        "jax_enable_x64": False,
+    }
+    observed = {**expected, "jax_backend": "gpu", "jax_device": "cuda:0"}
+    checks = environment_identity_checks(expected, observed)
+    assert checks["jax_backend"] is False
+    assert checks["jax_device"] is False
+    assert all(
+        passed for name, passed in checks.items() if name not in {"jax_backend", "jax_device"}
+    )
+
+
+@pytest.mark.parametrize(
+    "decision",
+    [
+        {"status": "pending_colab_gpu_smoke", "campaign_execution_allowed": False},
+        {"status": "selected", "campaign_execution_allowed": False},
+        {"status": "selected"},
+    ],
+)
+def test_campaign_runner_refuses_disabled_backend_decision(
+    tmp_path: Path, decision: dict[str, Any]
+) -> None:
     manifest = tmp_path / "manifest.json"
     manifest.write_text(
-        json.dumps({"backend_decision": {"status": "pending_colab_gpu_smoke"}}),
+        json.dumps({"backend_decision": decision}),
         encoding="utf-8",
     )
     args = argparse.Namespace(manifest=manifest)
-    with pytest.raises(RuntimeError, match="Colab backend comparison"):
+    with pytest.raises(RuntimeError, match="campaign_execution_allowed"):
         run_campaign(args)

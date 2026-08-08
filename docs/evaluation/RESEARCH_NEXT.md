@@ -2,8 +2,8 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 seed-0 design gate closed; G4 JAX/CUDA-13 compatibility gate authorised
-**Execution authority:** only the separately predeclared G4 compatibility smoke is authorised
+**Current phase:** E1 seed-0 design and backend gates closed; macOS CPU campaign preflight next
+**Execution authority:** bounded physical E1 campaign under the selected-backend manifest only
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -29,9 +29,9 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 
 ## Current verified state
 
-The evidence base through TrafficTwin commit
-`90c086763bca70f08a7a5f0ca16d279523f72295`, together with the pre-run records in this reviewed
-change, establishes:
+The evidence base through TrafficTwin pre-run commit
+`8b47df90153905c274b2efb2f862e319e43850a0`, together with the result and backend-selection
+records in this reviewed change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -44,7 +44,15 @@ change, establishes:
 - G4 backend feasibility: failed before task generation under the exact pinned JAX 0.4.30 CUDA-12
   environment; [the retained result](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md) contains no
   scientific task output or speedup;
-- campaign backend: still pending; no campaign cell has started;
+- G4 JAX/CUDA-13 compatibility: failed independently at the mandatory first primitive with an
+  observed PJRT FFI/ABI-size mismatch; no evaluator repeat ran and the
+  [compatibility report](e1/e1_g4_jax13_compatibility_smoke_report_2026-08-08.md) contains no task,
+  conservation or speed result;
+- campaign backend: selected as the established macOS arm64 CPU runtime with Python 3.11.15 and
+  JAX/JAXLIB 0.4.30; the three exact macOS seed-0 physical artifacts remain reused by hash;
+- campaign matrix: 12 new physical cells, fleet seeds 1-4 by 0.75x, 2.5x and 40x, with concurrency
+  one and a mandatory two-repeat ten-step gate before every corresponding full cell;
+- campaign execution: not started; 0 campaign smokes and 0 full cells have run;
 - multi-draw E1 evidence: unavailable;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
@@ -55,57 +63,50 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Run only the predeclared G4 JAX/CUDA-13 compatibility smoke. Do not start a campaign cell.**
+**Run the first per-cell macOS CPU gate only: fleet seed 1, 0.75x, two serial ten-step smokes.**
 
-Abdulla's later direct instruction dated 8 August 2026 inserts a backend decision before the
-campaign authority previously recorded here. The bounded comparison is governed by
-[e1_colab_gpu_backend_smoke_manifest_v1.json](e1/e1_colab_gpu_backend_smoke_manifest_v1.json).
-Its SHA-256 is `5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7`.
-It fixes the existing physical 2.5x/fleet-seed-0 ten-step contract, requires two repeats, prohibits
-CPU fallback and permits no full run.
-
-The still-pending campaign design is
+The selected-backend campaign is governed by
 [e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
-SHA-256 `35531f397bc3ba5c93e2d49ac60b8d0f7bc016121f253bf2cc1496170ec2c66c`.
-Its runner must refuse execution while `backend_decision.status` is not `selected`.
+SHA-256 `0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`.
+It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and requires the runner to refuse
+execution unless both `backend_decision.status == selected` and
+`campaign_execution_allowed == true`. This reviewed selection must exist remotely before the
+first campaign process starts.
 
-The direct G4-only instruction requested `colab new -s e1-g4-smoke --gpu G4`. The CLI and
-in-runtime probes confirmed a G4 allocation backed by an NVIDIA RTX PRO 6000 Blackwell Server
-Edition with 97,887 MiB VRAM. Exact input and package identities passed. The first evaluator
-process then failed at `jax.random.PRNGKey(0)`: the pinned JAX 0.4.30 CUDA-12 `ptxas` could not
-compile its `sm_90a` target for the assigned future Blackwell architecture. No task summary or
-instrumentation was written; repeat 2 and every full cell were stopped. The failed-process time is
-not a speed measurement.
-
-The machine-readable
-[G4 result](e1/e1_colab_g4_backend_smoke_result_v1.json) and
-[human-readable report](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md) govern this negative
-evidence. G4 is not selected, and the campaign manifest remains deliberately unchanged with a
-pending backend decision.
-
-Abdulla's subsequent direct instruction authorises exactly one new compatibility gate governed by
+The first G4 attempt remains governed by its
+[machine-readable result](e1/e1_colab_g4_backend_smoke_result_v1.json) and
+[human-readable report](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md). Abdulla's subsequent
+direct instruction authorised exactly one isolated modern-stack compatibility gate governed by
 [e1_g4_jax13_compatibility_smoke_manifest_v1.json](e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json),
 SHA-256 `d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659`.
-The [decision record](e1/e1_g4_jax13_compatibility_decision_record_2026-08-08.md) preserves the
-first failure unchanged and isolates the current stable JAX 0.11.0 CUDA-13 stack as the only
-intervention.
+The [decision record](e1/e1_g4_jax13_compatibility_decision_record_2026-08-08.md) preserves the first
+failure and isolates stable JAX 0.11.0 CUDA-13 as the only intervention.
 
-The new gate permits one named G4 allocation, an exact package install and pip report, one
-primitive synchronized GPU-compilation gate, and—only after that passes—two serial ten-step
-physical evaluator repeats. It permits no 3,600-step cell. Another GPU type, nightly package,
-scientific source change, identity mismatch, primitive failure, accounting failure, repeat drift
-or material CPU/G4 divergence stops execution.
+That gate used a genuine RTX PRO 6000 Blackwell G4 and all locked packages and inputs passed.
+`jax.random.PRNGKey(0)` then failed before TrafficTwin with
+`Unexpected PJRT_FFI_UserData_Add_Args size: expected 48, got 40`. The small array, JIT operations
+and both evaluator repeats were stopped by design. The
+[machine-readable result](e1/e1_g4_jax13_compatibility_smoke_result_v1.json), SHA-256
+`d713594c750396ede2d5bf3b9d850cff285170553d253b5fd1fd8944a7d0a9be`, and
+[report](e1/e1_g4_jax13_compatibility_smoke_report_2026-08-08.md) govern this second immutable
+negative result. There is no G4 task output, conservation verdict, evaluator time or speedup.
 
-If G4 is both scientifically acceptable and at least 1.25x faster, recommend it but do not launch.
-First freeze the selected backend in this file and the campaign manifest, changing the future full
-matrix to all 15 seed/cap cells on G4. If it fails or is not worthwhile, stop G4 experimentation and
-recommend macOS CPU; CPU selection still requires the separate backend-decision update.
+Under the direct decision rule, G4 investigation is now closed and the already validated macOS CPU
+backend is selected. The next process is not a free-standing full run: it is the runner's two
+ten-step smokes for seed 1 at 0.75x. Both corrected-accounting validations, exact repeat comparison,
+input/environment identities, storage gate and no-overwrite gate must pass. Only then may the
+corresponding seed-1/0.75x full cell launch. Any failure stops later cells and retains the evidence.
+The read-only [CPU backend selection validation](e1/e1_macos_cpu_backend_selection_validation_v1.json),
+SHA-256 `faf09089ec494fab386fda9e0eb3d54f6f2b96858593f36f7896cfcb02aac1bc`, passed all repository,
+input, interpreter, package, device, reused-seed-0, storage and output-absence checks without
+starting a campaign process.
 
 ### Exit condition
 
-The backend gate exits only when a selected single campaign backend, seed-0 handling, concurrency,
-runtime estimate and final matrix are recorded in the campaign manifest and this file. The failed
-G4 result alone does not close that gate. Until it closes, no campaign cell is authorised.
+The backend gate is closed. It records one backend, exact CPU environment, reuse of the three
+validated macOS seed-0 artifacts, concurrency one, a projected 20.089 CPU-hour new-cell total and
+the final 12-cell matrix. The campaign gate exits only after all authorised cells either pass or
+stop on a mandatory condition and the five-draw analysis is published. E2 remains unauthorised.
 
 ## What follows after this gate
 
@@ -132,14 +133,15 @@ Do not start:
 - action masking or an RSU-load-augmented actor;
 - proactive prediction or oracle forecasting;
 - bus modelling as a replacement for the VEC thread;
-- any local or Colab E1 campaign before the backend decision is recorded in both governing files.
+- any G4, other-GPU, TPU or cross-backend E1 campaign cell;
+- any full E1 cell whose own two serial ten-step CPU smokes have not passed.
 
 ## Active blockers and requests
 
-- The original pinned JAX 0.4.30 CUDA-12 G4 attempt remains a retained pre-task failure. The newly
-  authorised JAX 0.11.0 CUDA-13 compatibility result is not yet available.
-- No campaign backend is selected. This blocks every campaign cell even if the bounded smoke later
-  recommends G4.
+- The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
+  pre-task failures. No G4 scientific compatibility or performance measurement is available.
+- The CPU environment and 12-cell campaign are selected, but no new per-cell smoke or full run has
+  started. The first repeated-smoke gate remains outstanding.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.

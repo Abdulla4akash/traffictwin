@@ -60,6 +60,61 @@ def git_status(path: Path) -> str:
     return result.stdout
 
 
+def python_environment(python: Path, environment_variables: dict[str, str]) -> dict[str, Any]:
+    probe = """
+import json
+import platform
+
+import jax
+import jaxlib
+import ml_dtypes
+import numpy
+import opt_einsum
+import scipy
+
+print(json.dumps({
+    "python": platform.python_version(),
+    "jax": jax.__version__,
+    "jaxlib": jaxlib.__version__,
+    "numpy": numpy.__version__,
+    "ml_dtypes": ml_dtypes.__version__,
+    "opt_einsum": opt_einsum.__version__,
+    "scipy": scipy.__version__,
+    "jax_backend": jax.default_backend(),
+    "jax_device": str(jax.devices()[0]),
+    "jax_enable_x64": bool(jax.config.jax_enable_x64),
+}, sort_keys=True))
+"""
+    environment = os.environ.copy()
+    environment.update(environment_variables)
+    result = subprocess.run(  # noqa: S603 - interpreter is hash-checked by this preflight
+        [str(python), "-c", probe],
+        check=True,
+        capture_output=True,
+        env=environment,
+        text=True,
+    )
+    return cast(dict[str, Any], json.loads(result.stdout))
+
+
+def environment_identity_checks(
+    expected: dict[str, Any], observed: dict[str, Any]
+) -> dict[str, bool]:
+    fields = (
+        "python",
+        "jax",
+        "jaxlib",
+        "numpy",
+        "ml_dtypes",
+        "opt_einsum",
+        "scipy",
+        "jax_backend",
+        "jax_device",
+        "jax_enable_x64",
+    )
+    return {field: observed.get(field) == expected.get(field) for field in fields}
+
+
 def _cap(manifest: dict[str, Any], label: str) -> dict[str, Any]:
     matches = [item for item in manifest["cap_grid"] if item["label"] == label]
     if len(matches) != 1:
@@ -212,7 +267,7 @@ def _identity_preflight(
     trace = tos_data / inputs["trace"]["path"]
     adapter_initializer = adapter_root / "env" / "__init__.py"
     adapter_vec = adapter_root / "env" / "vec_jax.py"
-    observed = {
+    observed: dict[str, Any] = {
         "traffictwin_head": git_head(traffic_twin),
         "vec_env_head": git_head(vec_env),
         "tos_data_head": git_head(tos_data),
@@ -224,9 +279,19 @@ def _identity_preflight(
         "adapter_initializer_sha256": sha256_file(adapter_initializer),
         "adapter_vec_jax_sha256": sha256_file(adapter_vec),
         "python_exists": python.is_file(),
+        "python_executable_sha256": sha256_file(python) if python.is_file() else None,
         "output_parent_writable": os.access(output_parent, os.W_OK),
         "storage_available_bytes": shutil.disk_usage(output_parent).free,
     }
+    if observed["python_exists"]:
+        observed["python_environment"] = python_environment(
+            python, manifest["execution"]["environment_variables"]
+        )
+    else:
+        observed["python_environment"] = {}
+    environment_checks = environment_identity_checks(
+        manifest["environment"], observed["python_environment"]
+    )
     parent_check = (
         subprocess.run(  # noqa: S603
             [
@@ -255,6 +320,9 @@ def _identity_preflight(
         "adapter_vec_identity": observed["adapter_vec_jax_sha256"]
         == manifest["environment"]["vec_jax_sha256"],
         "python_exists": observed["python_exists"],
+        "python_executable_identity": observed["python_executable_sha256"]
+        == manifest["environment"]["python_executable_sha256"],
+        **{f"python_environment_{name}": passed for name, passed in environment_checks.items()},
         "output_parent_writable": observed["output_parent_writable"],
         "storage_gate": observed["storage_available_bytes"]
         >= manifest["compute_plan"]["minimum_free_storage_bytes"],
@@ -342,10 +410,13 @@ def _common_stream_check(records: list[dict[str, Any]]) -> dict[str, Any]:
 def run_campaign(args: argparse.Namespace) -> int:
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     backend_decision = manifest.get("backend_decision", {})
-    if backend_decision.get("status") != "selected":
+    if (
+        backend_decision.get("status") != "selected"
+        or backend_decision.get("campaign_execution_allowed") is not True
+    ):
         raise RuntimeError(
-            "campaign execution is disabled until the Colab backend comparison is recorded "
-            "and backend_decision.status is selected"
+            "campaign execution is disabled until the backend comparison is recorded, "
+            "backend_decision.status is selected and campaign_execution_allowed is true"
         )
     observed_manifest_sha = sha256_file(args.manifest)
     if observed_manifest_sha != args.manifest_sha256:

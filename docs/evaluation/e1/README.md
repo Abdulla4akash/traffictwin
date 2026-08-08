@@ -45,7 +45,7 @@ The seed-0 decision gate was subsequently closed by the
 [multi-draw decision record](e1_multidraw_decision_record_2026-08-08.md). The exact bounded
 physical replication is governed by the
 [multi-draw campaign manifest](e1_multidraw_physical_campaign_manifest_v1.json), SHA-256
-`35531f397bc3ba5c93e2d49ac60b8d0f7bc016121f253bf2cc1496170ec2c66c`. Until its checked-in
+`0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`. Until its checked-in
 campaign evidence says otherwise, this paragraph records authority and design rather than a result.
 
 A later same-day researcher instruction paused that campaign pending a
@@ -81,3 +81,21 @@ Compatibility-gate execution materials:
 - [private bundle receipt](e1_g4_jax13_compatibility_bundle_receipt_v1.json);
 - [bounded compatibility runner](../../../scripts/run_e1_g4_jax13_compatibility_smoke.py);
 - [focused comparison tests](../../../tests/test_run_e1_g4_jax13_compatibility_smoke.py).
+
+That separately predeclared retry also stopped before TrafficTwin. All locked inputs and packages
+passed on the genuine G4 Blackwell device, but `jax.random.PRNGKey(0)` failed at the mandatory
+primitive gate with an observed PJRT FFI/ABI-size mismatch. The
+[machine-readable result](e1_g4_jax13_compatibility_smoke_result_v1.json) and
+[compatibility report](e1_g4_jax13_compatibility_smoke_report_2026-08-08.md) retain the negative
+evidence. No evaluator repeat, conservation comparison, speed measurement or full cell ran.
+
+The direct decision rule therefore closes G4 investigation and selects the already validated
+macOS arm64 CPU/JAX 0.4.30 backend in the updated campaign manifest. The final new matrix remains
+12 cells for fleet seeds 1-4; the three validated macOS seed-0 physical records are reused by hash.
+The exact next process is the two-repeat ten-step gate for seed 1 at 0.75x, not an unconditional
+full run.
+
+The [macOS CPU backend selection validation](e1_macos_cpu_backend_selection_validation_v1.json)
+records the passing read-only repository, input, interpreter/package/device, reused-seed-0 and
+compute/output preflight. It also confirms that the campaign output directory did not exist and no
+campaign process had started when CPU was selected.

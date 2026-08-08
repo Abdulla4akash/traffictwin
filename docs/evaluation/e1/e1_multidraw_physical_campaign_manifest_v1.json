@@ -2,24 +2,33 @@
   "schema_version": "traffictwin.e1-multidraw-physical-campaign-manifest.v1",
   "manifest_id": "e1-multidraw-physical-seeds0-4-v1",
   "record_date": "2026-08-08",
-  "status": "backend_decision_pending_no_campaign_execution_authorised",
+  "status": "macos_cpu_backend_selected_campaign_not_started",
   "authority": {
     "source": "Direct researcher instructions from Abdulla dated 2026-08-08, including the later mandatory Colab GPU backend evaluation",
     "repository_pointer": "docs/evaluation/RESEARCH_NEXT.md",
     "decision_record": "docs/evaluation/e1/e1_multidraw_decision_record_2026-08-08.md",
-    "scope": "Physical E1 waiting-room campaign design only. No campaign smoke or full cell may run until the bounded Colab backend result is recorded here and in RESEARCH_NEXT.md."
+    "scope": "Physical E1 waiting-room campaign only. The bounded G4 investigations are closed. After this reviewed backend-selection record is pushed, each new macOS CPU full cell remains conditional on its two serial ten-step smoke repeats passing every manifest gate."
   },
   "backend_decision": {
-    "status": "pending_colab_gpu_smoke",
-    "governing_smoke_manifest": "docs/evaluation/e1/e1_colab_gpu_backend_smoke_manifest_v1.json",
-    "governing_smoke_manifest_sha256": "5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7",
-    "colab_notebook": "notebooks/e1_colab_gpu_backend_smoke_v1.ipynb",
-    "private_bundle_receipt": "docs/evaluation/e1/e1_colab_gpu_backend_bundle_receipt_v1.json",
-    "selected_backend": null,
-    "campaign_execution_allowed": false,
+    "status": "selected",
+    "selected_backend": "macos_arm64_cpu_jax_0_4_30",
+    "selection_date": "2026-08-08",
+    "selection_authority": "Direct researcher decision rule: if the separately predeclared modern-stack G4 compatibility smoke fails, stop G4 experimentation and select the already validated macOS CPU backend.",
+    "first_g4_result": "docs/evaluation/e1/e1_colab_g4_backend_smoke_result_v1.json",
+    "first_g4_result_sha256": "cfbe8a966c60b5eae1f784bc51bf8525da91715251573d1491c59dd933fcacc6",
+    "compatibility_smoke_manifest": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json",
+    "compatibility_smoke_manifest_sha256": "d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659",
+    "compatibility_smoke_result": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_result_v1.json",
+    "compatibility_smoke_result_sha256": "d713594c750396ede2d5bf3b9d850cff285170553d253b5fd1fd8944a7d0a9be",
+    "compatibility_smoke_outcome": "failed_first_primitive_no_evaluator_started",
+    "campaign_execution_allowed": true,
+    "campaign_execution_condition": "This backend-selection change must exist remotely, then each full cell is allowed only after its corresponding two serial ten-step CPU smokes and every identity/accounting gate pass.",
     "cross_backend_mixing_allowed": false,
-    "colab_selection_consequence": "If Colab is genuinely at least 1.25x faster and passes all identity, repeatability, conservation and CPU-contract checks, update this manifest to use one Colab backend and rerun seed-0 caps before any five-draw analysis.",
-    "cpu_selection_consequence": "If Colab is invalid or not materially faster, record the evidence and explicitly select the established macOS CPU backend before launch."
+    "seed0_handling": "Reuse the three exact validated macOS CPU physical artifacts by their retained SHA-256 identities; do not create artificial seed-0 duplication.",
+    "new_full_matrix": "fleet seeds 1-4 by caps 0.75x, 2.5x and 40x: 12 cells",
+    "g4_campaign_cells_allowed": false,
+    "further_g4_experimentation_allowed": false,
+    "backend_comparison_limit": "Neither G4 attempt produced evaluator output, so no scientific cross-backend comparison or measured G4 speedup exists."
   },
   "repositories": {
     "traffictwin": {
@@ -176,10 +185,13 @@
     "os": "macOS 26.4.1 (build 25E253)",
     "architecture": "arm64",
     "python": "3.11.15",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
     "jax": "0.4.30",
     "jaxlib": "0.4.30",
     "numpy": "1.26.4",
-    "scipy_analysis_environment": "1.17.1",
+    "ml_dtypes": "0.5.4",
+    "opt_einsum": "3.4.0",
+    "scipy": "1.17.1",
     "jax_backend": "cpu",
     "jax_device": "TFRT_CPU_0",
     "jax_enable_x64": false,
@@ -188,12 +200,15 @@
     "sumo_compatibility_status": "mismatch",
     "sumo_note": "The evaluator replays the NPZ and does not invoke SUMO. This campaign is not an exact canonical SUMO 1.27.0 reproduction.",
     "local_import_adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
-    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "validated_environment_reference": "docs/evaluation/e0/e0_manifest_v1.json",
+    "validated_environment_reference_sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
   },
   "execution": {
     "required_manifest_sha256_external": "recorded_in_authority_pointer",
     "runner": "scripts/run_e1_multidraw_physical_campaign.py",
-    "execution_hold": "The runner must refuse execution while backend_decision.status is not selected.",
+    "runner_sha256": "2e82f9d557dd584712e9ddf67f17bc10ee39cf2b786122333ad94032e1a53a09",
+    "execution_hold": "The runner must refuse execution unless backend_decision.status is selected and campaign_execution_allowed is true.",
     "environment_variables": {
       "JAX_PLATFORMS": "cpu",
       "PYTHONHASHSEED": "0",
@@ -413,17 +428,17 @@
     "failure_retention": "Retain failed and negative outputs, command records and logs; never delete or overwrite them."
   },
   "compute_plan": {
-    "backend": null,
-    "backend_status": "pending_bounded_colab_gpu_comparison",
-    "macos_cpu_candidate": "established_local_macos_arm64_cpu_runtime used for E0 and seed-0 E1",
-    "colab_gpu_candidate": "ephemeral Google Colab NVIDIA GPU with exact pinned JAX/JAXLIB/NumPy scientific package versions",
+    "backend": "macos_arm64_cpu_jax_0_4_30",
+    "backend_status": "selected_after_two_retained_g4_pre_task_failures",
+    "backend_evidence": "Established local macOS arm64 CPU runtime used for the validated E0 and seed-0 E1 physical results.",
+    "rejected_colab_g4_candidate": "Both separately predeclared G4 attempts failed before task generation; no valid G4 evaluator timing exists.",
     "csf3_status": "unavailable_from_this_machine_hostname_not_resolvable",
     "physical_cpu_cores": 10,
     "logical_cpu_cores": 10,
     "memory_bytes": 17179869184,
-    "concurrency_limit": null,
+    "concurrency_limit": 1,
     "maximum_authorised_concurrency": 4,
-    "concurrency_reason": "Must be set after backend selection; no campaign process may start while null.",
+    "concurrency_reason": "One TFRT CPU device uses the ten-core host; serialize cells to preserve the validated execution contract and avoid resource contention.",
     "seed0_full_runtime_anchor_seconds_mean": 6026.733333333334,
     "projected_new_full_run_hours_macos_cpu_12_cells": 20.089111111111112,
     "maximum_authorised_cpu_hours": 48.0,
@@ -433,7 +448,7 @@
     "storage_gate": "available storage must remain at least twice estimated campaign output size before launch and safe before every later cell"
   },
   "stop_conditions": [
-    "backend decision remains pending or differs from RESEARCH_NEXT.md",
+    "selected backend or campaign permission differs from RESEARCH_NEXT.md",
     "evaluator, actor, trace or repository identity mismatch",
     "repeated smokes differ scientifically or in instrumentation identity",
     "offered count, task_active or task_type differs across cap points for the same fleet seed",
@@ -451,11 +466,13 @@
   ],
   "permission_boundaries": {
     "authorised": [
-      "only the two predeclared ten-step Colab GPU backend-validation repeats governed by e1_colab_gpu_backend_smoke_manifest_v1.json",
-      "backend comparison, documentation and permission-safe evidence publication to the TrafficTwin campaign branch"
+      "after this backend-selection change is pushed: the two serial ten-step macOS CPU smoke repeats required for each of the 12 new fleet-seed/cap cells",
+      "the corresponding 12 macOS CPU full cells only when each cell's repeated-smoke and all mandatory preflight gates pass",
+      "deterministic validation, analysis, documentation and permission-safe evidence publication to the TrafficTwin campaign branch"
     ],
     "prohibited": [
-      "any E1 campaign smoke or full run before backend selection is recorded in this manifest and RESEARCH_NEXT.md",
+      "any campaign execution before this exact manifest hash is recorded in RESEARCH_NEXT.md and the reviewed change exists remotely",
+      "any G4, other GPU, TPU or cross-backend campaign cell",
       "E2 or any strongest-link versus JSQ, P2C or DLA comparison",
       "legacy cells beyond retained seed-0 diagnostics",
       "inter-RSU forwarding or nonzero backhaul",
@@ -468,6 +485,7 @@
     ]
   },
   "known_limitations": [
+    "Both G4 backend investigations failed before evaluator task generation, so no GPU scientific-comparability or speed evidence exists.",
     "The incident trace represents one historical hour and no ordinary-traffic control is included.",
     "The uk2030 fleet is provisional and is not a validated real-world fleet model.",
     "The evaluator seed remains fixed at 0; fleet draw is the replication unit.",
