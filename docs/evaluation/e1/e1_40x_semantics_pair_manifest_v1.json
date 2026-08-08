@@ -1,0 +1,324 @@
+{
+  "schema_version": "traffictwin.e1-new-cap-pair-manifest.v1",
+  "manifest_id": "e1-40x-semantics-pair-seed0-v1",
+  "predeclared_at_utc": "2026-08-08T08:43:38Z",
+  "authorization_scope": "One bounded 40x seed-0/fleet-0 legacy/physical pair following the retained 2.5x and 0.75x diagnostics; no seed expansion or E2.",
+  "predecessor": {
+    "report": "docs/evaluation/e1/e1_0p75_semantics_pair_report_2026-08-08.md",
+    "report_sha256": "f95ae8dbd9a2e42f21b17982ec353f272c6be8b28eb018cf412bb922d91eb897",
+    "validation": "docs/evaluation/e1/e1_0p75_semantics_pair_validation_v1.json",
+    "validation_sha256": "1b0ce7612fda194cb91ed70d01b4f18dfecd7d06b7d77a14c38480ab734fc09e",
+    "comparison": "docs/evaluation/e1/e1_0p75_vs_2p5_cap_comparison_seed0_v1.json",
+    "comparison_sha256": "0a0d99d47267de6edf490b9f8cadd59286892cb654466a3c44e80b4b5d974999",
+    "decision": "bounded_e1_0p75_pair_valid_with_legacy_conservation_unavailable",
+    "legacy_evidence_contract_assumption": "The 40x legacy arm is retained as an explicitly non-work-conserving historical-control diagnostic. Its absent admission/rejection/work evidence will not be inferred or treated as zero."
+  },
+  "research_basis": {
+    "experiment": "E1 waiting-room semantic sweep",
+    "authoritative_definition": "docs/evaluation/TrafficTwin_research_audit_reply_2026-08-07.md specifies 0.75x, 2.5x and 40x under legacy clamp/snapshot and sequential physical rejection/conservation.",
+    "bounded_unit": "The remaining seed-0 cap point is 40x. Both arms are new executions with identical actor, trace, evaluator seed, fleet seed, placement, scaling and task-stream configuration.",
+    "hypothesis": "At the high ceiling, physical RSU-cap rejection may fall while admitted queueing and penalty-inclusive latency may grow. Offered-task attainment may improve, tie or harm; no direction is accepted before validation.",
+    "not_answered_by_this_pair": [
+      "multi-seed stability or uncertainty",
+      "a component-level clamp versus snapshot versus vehicle-queue ablation",
+      "the E2 load-aware placement question",
+      "Randy's reported 0.6943 reproduction"
+    ]
+  },
+  "scope": {
+    "scenario": "Manchester incident",
+    "date": "2024-03-15",
+    "weekday": "Friday",
+    "window_local": "20:00-21:00",
+    "smoke_steps": 10,
+    "full_steps": 3600,
+    "smoke_repeat_count_per_arm": 2,
+    "new_full_runs": 2,
+    "full_run_order": [
+      "legacy_clamp_snapshot_cap_40x_seed0_fleet0",
+      "physical_sequential_reject_conserved_cap_40x_seed0_fleet0"
+    ],
+    "explicitly_excluded": [
+      "additional E1 cap or seed cells beyond this 40x seed-0/fleet-0 pair",
+      "fleet seeds 1-4",
+      "E2 or any placement-controller comparison",
+      "load balancing",
+      "scaling intervention",
+      "actor retraining",
+      "proactive prediction",
+      "learned scheduling",
+      "bus modelling"
+    ]
+  },
+  "repositories": {
+    "traffictwin": {
+      "execution_record_parent_commit": "65dab1f327f87362f5b6765903a5d46c44b24ac0",
+      "branch": "agent/e1-waiting-room-40x-v1",
+      "parent_branch": "agent/e1-waiting-room-0p75-v1",
+      "preserved_untracked": "year_1_report_randy_11315534.pdf"
+    },
+    "vec_env": {
+      "selected_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "clean_worktree_branch": "agent/traffictwin-e0-pinned-0f01f4d",
+      "selection_reason": "The same audited pinned evaluator used by E0 and the 2.5x/0.75x E1 pairs; both documented semantic paths are present and the worktree remains clean.",
+      "evaluator_path": "eval/eval_sumo_stage1_mc.py",
+      "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+      "modified_for_e1": false
+    },
+    "tos_data": {
+      "selected_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "clean_worktree_branch": "agent/traffictwin-e0-data-a75bbd",
+      "modified_for_e1": false
+    }
+  },
+  "inputs": {
+    "actor": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "identity": "frozen Paper-2A 17-dimensional MAPPO actor",
+      "training_seed": 100,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "observes_current_rsu_load": false
+    },
+    "trace": {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "steps": 3600,
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "sumo_seed": 43,
+      "source_sumo_version": "1.27.0",
+      "has_enter_channel": false
+    }
+  },
+  "controlled_configuration": {
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "fleet": {
+      "preset": "uk2030",
+      "status": "provisional_evidence_anchored"
+    },
+    "arrival_lambda": 1.5,
+    "placement": {
+      "mode": "off",
+      "meaning": "strongest-link/default placement",
+      "backhaul_ms": 0.0
+    },
+    "compute": {
+      "rsu_service_multiplier": 1.0,
+      "scaling": "off",
+      "mean_multiplier_expected": 1.0,
+      "real_kubernetes_deployment": false
+    },
+    "cap": {
+      "name": "per-RSU admission/in-flight task ceiling",
+      "unit": "tasks per RSU",
+      "ratio_per_padded_vehicle": 40.0,
+      "resolved_value": 99520,
+      "resolution": "round(40.0 * 2488)",
+      "status": "provisional_e1_pilot_point",
+      "source": "The research audit predeclares 40x; the pinned evaluator resolves int(round(ratio * padded fleet width)).",
+      "not_compute_power": true
+    }
+  },
+  "arms": {
+    "legacy": {
+      "substep_queue": "snapshot",
+      "vehicle_queue_argument": "legacy",
+      "vehicle_queue_effective": "legacy",
+      "rsu_cap_mode": "clamp",
+      "source_semantics": "Surplus tasks remain scored while only the aggregate admitted fraction of batch work enters the backlog.",
+      "work_conserved": false,
+      "admitted_task_count_available": false,
+      "explicit_rejection_reasons_available": false,
+      "task_outcome_codes_available": false
+    },
+    "physical": {
+      "substep_queue": "sequential",
+      "substep_queue_iterations": 3,
+      "vehicle_queue_argument": "conserved",
+      "vehicle_queue_effective": "conserved",
+      "rsu_cap_mode": "reject",
+      "work_conserved": true,
+      "admitted_task_count_available": true,
+      "explicit_rejection_reasons_available": true,
+      "task_outcome_codes_available": true
+    }
+  },
+  "environment": {
+    "os": "macOS 26.4.1 (build 25E253)",
+    "architecture": "arm64",
+    "python": "3.11.15",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "jax_backend": "cpu",
+    "jax_device": "TFRT_CPU_0",
+    "jax_enable_x64": false,
+    "installed_sumo": "1.27.1",
+    "sumo_compatibility_status": "mismatch_with_trace_provenance_1.27.0",
+    "sumo_execution_note": "The evaluator replays the NPZ and does not invoke SUMO. This is not an exact canonical SUMO 1.27.0 reproduction.",
+    "local_import_adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b"
+  },
+  "validation": {
+    "new_pair_validator": "scripts/validate_e1_new_cap_pair.py",
+    "new_pair_validator_sha256": "88917795dcf2abce1e0c1103fc0ec74a529c72eaf828769e05525fa2df4cc134",
+    "legacy_validator": "scripts/validate_e1_semantics_pair.py",
+    "legacy_validator_sha256": "05fab7b29330ba3c23b4c743964d58c218fc18382f043c09ba3a36df3a6a4b04"
+  },
+  "validation_decisions": {
+    "smoke_pass": "e1_40x_dual_arm_smoke_repeat_pass",
+    "full_pass": "bounded_e1_40x_pair_valid_with_legacy_conservation_unavailable",
+    "stop": "stop_e1_40x_pair_invalid"
+  },
+  "execution": {
+    "environment_variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "common_argv_prefix": [
+      "{E0_PYTHON}",
+      "{VEC_E0_WORKTREE}/eval/eval_sumo_stage1_mc.py",
+      "--trace",
+      "{TOS_E0_WORKTREE}/traces/trace_inc_fullrsu.npz",
+      "--actor",
+      "{TOS_E0_WORKTREE}/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "--max-steps",
+      "{MAX_STEPS}",
+      "--seed",
+      "0",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "0",
+      "--rsu-cap-per-veh",
+      "40.0",
+      "--lambda-arrival",
+      "1.5",
+      "--rsu-service-mult",
+      "1.0",
+      "--rsu-lb",
+      "off",
+      "--rsu-backhaul-ms",
+      "0.0"
+    ],
+    "legacy_semantic_argv": [
+      "--substep-queue",
+      "snapshot",
+      "--substep-queue-iters",
+      "3",
+      "--veh-queue",
+      "legacy",
+      "--rsu-cap-mode",
+      "clamp",
+      "--k8s-scale",
+      "off"
+    ],
+    "physical_semantic_argv": [
+      "--substep-queue",
+      "sequential",
+      "--substep-queue-iters",
+      "3",
+      "--veh-queue",
+      "conserved",
+      "--rsu-cap-mode",
+      "reject",
+      "--k8s-scale",
+      "off"
+    ],
+    "output_argv": [
+      "--out-json",
+      "{RUN_DIR}/summary.json",
+      "--per-step-out",
+      "{RUN_DIR}/per_step.npz",
+      "--per-task-out",
+      "{RUN_DIR}/per_task.npz"
+    ],
+    "smoke_commands": [
+      "common_argv_prefix + legacy_semantic_argv + output_argv with MAX_STEPS=10 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/legacy_smoke/run_1",
+      "common_argv_prefix + legacy_semantic_argv + output_argv with MAX_STEPS=10 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/legacy_smoke/run_2",
+      "common_argv_prefix + physical_semantic_argv + output_argv with MAX_STEPS=10 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/physical_smoke/run_1",
+      "common_argv_prefix + physical_semantic_argv + output_argv with MAX_STEPS=10 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/physical_smoke/run_2"
+    ],
+    "full_commands_in_order": [
+      "common_argv_prefix + legacy_semantic_argv + output_argv with MAX_STEPS=3600 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/legacy_full/run_1",
+      "common_argv_prefix + physical_semantic_argv + output_argv with MAX_STEPS=3600 and RUN_DIR=local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/physical_full/run_1"
+    ],
+    "output_root": "local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1",
+    "expected_files_per_run": [
+      "summary.json",
+      "per_step.npz",
+      "per_task.npz",
+      "stdout_stderr.log",
+      "checksums.sha256"
+    ]
+  },
+  "validation_contract": {
+    "common_assertions": [
+      "input hashes and predeclared configurations match",
+      "summary offered equals total tasks, per-step arrivals and active per-task records",
+      "per-step deadline-met equals active per-task met flags",
+      "Local + V2I + V2V action counts equal offered tasks",
+      "all numerical values are finite and nonnegative where physically required",
+      "offered-task completion and penalty-inclusive offered latency are recomputed",
+      "task-active masks and task types match exactly across arms",
+      "output checksums are retained"
+    ],
+    "repeat_assertions": [
+      "each arm's two 10-step scientific summaries are identical excluding wall time",
+      "each arm's two 10-step instrumentation array identities are identical"
+    ],
+    "legacy_specific": [
+      "admission, admitted completion, rejection and work fields remain null/unobservable",
+      "task_outcome remains absent",
+      "zero rejection placeholders are not interpreted as observed zero",
+      "legacy work conservation is not passed"
+    ],
+    "physical_specific": [
+      "offered equals admitted plus six terminal rejection/unavailability reasons",
+      "every active task has one outcome code 1..8",
+      "aggregate rejection reasons match outcome codes",
+      "V2I and vehicle work ledgers conserve milliseconds of service work",
+      "offered and admitted denominators remain separate"
+    ]
+  },
+  "metric_denominators": {
+    "both_arms_completion_offered": "deadline_met / offered",
+    "both_arms_penalty_inclusive_latency": "sum recorded task latency / offered",
+    "physical_completion_admitted": "deadline_met / admitted",
+    "legacy_completion_admitted": "unavailable; must not be inferred",
+    "legacy_rejection_fraction": "unavailable; must not be inferred",
+    "comparison_sign": "physical minus legacy"
+  },
+  "stop_conditions": [
+    "any smoke common check fails",
+    "either arm's repeated smoke differs scientifically or by instrumentation array identity",
+    "cross-arm task-active masks or task types differ",
+    "legacy full common reconciliation fails before the physical full run",
+    "physical full task/work conservation or terminal accounting fails",
+    "input identity or predeclared configuration differs",
+    "any output contains NaN, infinity, impossible negative values or silent task-record loss"
+  ],
+  "limitations": [
+    "Legacy clamp is a superseded non-work-conserving software path, not a physical system.",
+    "Legacy admitted, rejected and work-loss magnitudes are not emitted and remain unavailable.",
+    "The pair bundles snapshot/clamp/legacy versus sequential/reject/conserved semantics.",
+    "This is one cap and one seed pair; the three cap points together still provide no uncertainty analysis.",
+    "The 99520-task ceiling is a provisional pilot point, not an approved physical buffer and not compute power.",
+    "The UK-2030 fleet preset remains provisional pending the complete historical run contract.",
+    "Installed SUMO 1.27.1 differs from trace provenance 1.27.0.",
+    "No native physical completion or result-return events are observed."
+  ]
+}

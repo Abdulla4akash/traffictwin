@@ -1,0 +1,350 @@
+{
+  "checks": [
+    {
+      "name": "0p75_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_input_identity_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_legacy_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_physical_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_within_pair_inputs_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_input_identity_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_legacy_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_physical_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_within_pair_inputs_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_reuse_validation_hash_matches",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_reuse_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_reuse_contains_one_run",
+      "observed": 1,
+      "passed": true
+    },
+    {
+      "name": "2p5_reused_physical_run_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_reused_output_hashes_match_wrapper",
+      "observed": {
+        "validation_extra_keys": [
+          "stdout_stderr.log"
+        ],
+        "wrapper_keys": [
+          "per_step.npz",
+          "per_task.npz",
+          "summary.json"
+        ]
+      },
+      "passed": true
+    },
+    {
+      "name": "40x_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_input_identity_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_legacy_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_physical_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_within_pair_inputs_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "required_run_records_present",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "actor_hash_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "trace_hash_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "physical_common_configuration_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "physical_offered_count_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "physical_task_active_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "physical_task_type_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "legacy_task_active_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "legacy_task_type_equal",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "caps_strictly_increasing",
+      "observed": [
+        1866,
+        6220,
+        99520
+      ],
+      "passed": true
+    },
+    {
+      "name": "physical_comparison_values_finite",
+      "observed": null,
+      "passed": true
+    }
+  ],
+  "decision": "three_cap_seed0_descriptive_sweep_valid",
+  "descriptive_trend_checks": {
+    "physical_admissions_nondecreasing_with_cap": true,
+    "physical_cap_rejections_nonincreasing_with_cap": true,
+    "physical_offered_completion_range_absolute": 0.0001716090427871242,
+    "physical_offered_completion_range_percentage_points": 0.01716090427871242,
+    "physical_penalty_latency_nondecreasing_with_cap": true
+  },
+  "inputs": {
+    "0p75": {
+      "validation": "docs/evaluation/e1/e1_0p75_semantics_pair_validation_v1.json",
+      "validation_sha256": "1b0ce7612fda194cb91ed70d01b4f18dfecd7d06b7d77a14c38480ab734fc09e"
+    },
+    "2p5": {
+      "physical_reuse_validation": "docs/evaluation/e0/e0_full_reference_validation_v1.json",
+      "physical_reuse_validation_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+      "validation": "docs/evaluation/e1/e1_2p5_semantics_pair_validation_v1.json",
+      "validation_sha256": "3a0227d355852c68273d4c9b0159782f98d9a345a11528b19ddd5b36feedd10a"
+    },
+    "40x": {
+      "validation": "docs/evaluation/e1/e1_40x_semantics_pair_validation_v1.json",
+      "validation_sha256": "fc8ec5b33c2e0b5de74e86fbf4545b36234eda6e65d1208295632632d9e91ad6"
+    }
+  },
+  "interpretation_limits": {
+    "cap_points": 3,
+    "confirmed_native_physical_completion": false,
+    "controller_comparison_supported": false,
+    "descriptive_only": true,
+    "formal_tie_claim_supported": false,
+    "legacy_conservation_available": false,
+    "measured_outcome": "simulated deadline attainment",
+    "multi_seed_inference_supported": false,
+    "single_evaluator_seed": 0,
+    "single_fleet_seed": 0
+  },
+  "legacy_higher_cap_minus_lower_cap": {
+    "0p75_to_2p5": {
+      "admitted_and_rejection_metrics": null,
+      "cap": 4354,
+      "completion_offered_absolute": -0.00040279181299440747,
+      "completion_offered_percentage_points": -0.04027918129944075,
+      "penalty_inclusive_latency_ms_per_offered_task": 11801.749975413411,
+      "reason_null_metrics": "The pinned legacy path does not emit admitted identities or terminal rejection outcomes."
+    },
+    "0p75_to_40x": {
+      "admitted_and_rejection_metrics": null,
+      "cap": 97654,
+      "completion_offered_absolute": -0.00040279181299440747,
+      "completion_offered_percentage_points": -0.04027918129944075,
+      "penalty_inclusive_latency_ms_per_offered_task": 155362.14779392903,
+      "reason_null_metrics": "The pinned legacy path does not emit admitted identities or terminal rejection outcomes."
+    },
+    "2p5_to_40x": {
+      "admitted_and_rejection_metrics": null,
+      "cap": 93300,
+      "completion_offered_absolute": 0.0,
+      "completion_offered_percentage_points": 0.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 143560.39781851563,
+      "reason_null_metrics": "The pinned legacy path does not emit admitted identities or terminal rejection outcomes."
+    }
+  },
+  "legacy_points": {
+    "0p75": {
+      "admitted_and_rejection_metrics": null,
+      "completion_offered": 0.7290600642356201,
+      "n_offered": 13076234.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 5314.834518868353,
+      "rsu_max_concurrent": 1866
+    },
+    "2p5": {
+      "admitted_and_rejection_metrics": null,
+      "completion_offered": 0.7286572724226257,
+      "n_offered": 13076234.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 17116.584494281764,
+      "rsu_max_concurrent": 6220
+    },
+    "40x": {
+      "admitted_and_rejection_metrics": null,
+      "completion_offered": 0.7286572724226257,
+      "n_offered": 13076234.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 160676.9823127974,
+      "rsu_max_concurrent": 99520
+    }
+  },
+  "passed": true,
+  "physical_higher_cap_minus_lower_cap": {
+    "0p75_to_2p5": {
+      "cap": 4354,
+      "completion_admitted_absolute": -0.0022871711434249153,
+      "completion_admitted_percentage_points": -0.22871711434249153,
+      "completion_offered_absolute": -0.0001716090427871242,
+      "completion_offered_percentage_points": -0.01716090427871242,
+      "latency_ms_per_admitted_task": 8331.554718143658,
+      "n_admitted": 31775.0,
+      "n_rejected": -31775.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 11800.517062634393,
+      "rejection_fraction": -0.0024299809868804784,
+      "v2i_cap_rejected": -31775.0
+    },
+    "0p75_to_40x": {
+      "cap": 97654,
+      "completion_admitted_absolute": -0.03265946678341736,
+      "completion_admitted_percentage_points": -3.2659466783417357,
+      "completion_offered_absolute": -0.0001716090427871242,
+      "completion_offered_percentage_points": -0.01716090427871242,
+      "latency_ms_per_admitted_task": 122973.99009598889,
+      "n_admitted": 512928.0,
+      "n_rejected": -512928.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 155365.53579815108,
+      "rejection_fraction": -0.039225972860381667,
+      "v2i_cap_rejected": -512928.0
+    },
+    "2p5_to_40x": {
+      "cap": 93300,
+      "completion_admitted_absolute": -0.03037229563999244,
+      "completion_admitted_percentage_points": -3.037229563999244,
+      "completion_offered_absolute": 0.0,
+      "completion_offered_percentage_points": 0.0,
+      "latency_ms_per_admitted_task": 114642.43537784524,
+      "n_admitted": 481153.0,
+      "n_rejected": -481153.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 143565.01873551667,
+      "rejection_fraction": -0.03679599187350119,
+      "v2i_cap_rejected": -481153.0
+    }
+  },
+  "physical_points": {
+    "0p75": {
+      "completion_admitted": 0.7688096969630268,
+      "completion_offered": 0.6837908376371974,
+      "latency_ms_per_admitted_task": 3808.757481858864,
+      "local_mqd_rejected": 34124.0,
+      "n_admitted": 11630198.0,
+      "n_offered": 13076234.0,
+      "n_rejected": 1446036.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 5461.601257976876,
+      "rejection_fraction": 0.11058505071108395,
+      "rsu_max_concurrent": 1866,
+      "v2i_cap_rejected": 865895.0,
+      "v2i_unavailable": 138.0,
+      "v2v_mqd_rejected": 545879.0,
+      "v2v_unavailable": 0.0
+    },
+    "2p5": {
+      "completion_admitted": 0.7665225258196019,
+      "completion_offered": 0.6836192285944103,
+      "latency_ms_per_admitted_task": 12140.312200002521,
+      "local_mqd_rejected": 34124.0,
+      "n_admitted": 11661973.0,
+      "n_offered": 13076234.0,
+      "n_rejected": 1414261.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 17262.11832061127,
+      "rejection_fraction": 0.10815506972420347,
+      "rsu_max_concurrent": 6220,
+      "v2i_cap_rejected": 834120.0,
+      "v2i_unavailable": 138.0,
+      "v2v_mqd_rejected": 545879.0,
+      "v2v_unavailable": 0.0
+    },
+    "40x": {
+      "completion_admitted": 0.7361502301796095,
+      "completion_offered": 0.6836192285944103,
+      "latency_ms_per_admitted_task": 126782.74757784775,
+      "local_mqd_rejected": 34124.0,
+      "n_admitted": 12143126.0,
+      "n_offered": 13076234.0,
+      "n_rejected": 933108.0,
+      "penalty_inclusive_latency_ms_per_offered_task": 160827.13705612795,
+      "rejection_fraction": 0.07135907785070228,
+      "rsu_max_concurrent": 99520,
+      "v2i_cap_rejected": 352967.0,
+      "v2i_unavailable": 138.0,
+      "v2v_mqd_rejected": 545879.0,
+      "v2v_unavailable": 0.0
+    }
+  },
+  "schema_version": "traffictwin.e1-cap-sweep-comparison.v1"
+}
