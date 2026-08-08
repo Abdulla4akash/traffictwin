@@ -1,0 +1,204 @@
+{
+  "evaluator_seed": 0,
+  "fleet_seed": 1,
+  "higher_cap_minus_lower_cap": {
+    "2p5_minus_0p75": {
+      "admitted_tasks": 26880.0,
+      "deadline_attainment_admitted": -0.0018751555333408332,
+      "deadline_attainment_offered": -0.00012212996494254114,
+      "latency_ms_per_admitted_task": 7393.540146451875,
+      "penalty_inclusive_latency_ms_per_offered_task": 9877.393961594753,
+      "rejected_or_unavailable_tasks": -26880.0,
+      "v2i_cap_rejected": -26880.0
+    },
+    "40x_minus_0p75": {
+      "admitted_tasks": 370685.0,
+      "deadline_attainment_admitted": -0.02344613327996159,
+      "deadline_attainment_offered": -0.00012212996494254114,
+      "latency_ms_per_admitted_task": 88247.00513932103,
+      "penalty_inclusive_latency_ms_per_offered_task": 113351.18644098904,
+      "rejected_or_unavailable_tasks": -370685.0,
+      "v2i_cap_rejected": -370685.0
+    },
+    "40x_minus_2p5": {
+      "admitted_tasks": 343805.0,
+      "deadline_attainment_admitted": -0.021570977746620756,
+      "deadline_attainment_offered": 0.0,
+      "latency_ms_per_admitted_task": 80853.46499286915,
+      "penalty_inclusive_latency_ms_per_offered_task": 103473.7924793943,
+      "rejected_or_unavailable_tasks": -343805.0,
+      "v2i_cap_rejected": -343805.0
+    }
+  },
+  "interpretation_limits": {
+    "causality_beyond_controlled_simulator_intervention_supported": false,
+    "confirmed_native_physical_completion_or_result_return": false,
+    "descriptive_single_fleet_seed_only": true,
+    "five_draw_inference_calculated": false,
+    "formal_tie_equivalence_or_noninferiority_supported": false,
+    "individual_tasks_used_as_independent_replicates": false,
+    "randy_reported_0_6943_reproduced": false,
+    "waiting_room_cap_is_compute_power": false
+  },
+  "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d",
+  "points": {
+    "0p75": {
+      "admitted_latency_tail_ms": {
+        "p50": 52.9176139831543,
+        "p95": 29306.016699218748,
+        "p99": 29975.150390625
+      },
+      "admitted_tasks": 11779070,
+      "deadline_attainment_admitted": 0.7641738269659659,
+      "deadline_attainment_offered": 0.6883676905751305,
+      "deadline_met_latency_tail_ms": {
+        "p50": 35.71510314941406,
+        "p95": 139.5860717773437,
+        "p99": 339.69069946289045
+      },
+      "deadline_met_tasks": 9001257,
+      "evaluator_wall_s": 6440.6,
+      "latency_ms_per_admitted_task": 3412.17931534493,
+      "latency_ms_per_deadline_met_task": 47.282843274000506,
+      "offered_tasks": 13076234,
+      "penalty_inclusive_latency_ms_per_offered_task": 4642.545912225187,
+      "rejected_or_unavailable_tasks": 1297164,
+      "rejection_counts": {
+        "local_mqd_rejected": 38444,
+        "v2i_cap_rejected": 639848,
+        "v2i_gate_rejected": 0,
+        "v2i_unavailable": 111,
+        "v2v_mqd_rejected": 618761,
+        "v2v_unavailable": 0
+      },
+      "rejection_fraction_offered": 0.09920012138051369,
+      "rsu_max_concurrent": 1866,
+      "work_ms": {
+        "v2i_admitted": 29815326.0,
+        "v2i_offered": 40107836.0,
+        "v2i_rejected_or_unavailable": 10292510.0,
+        "veh_admitted": 270455040.0,
+        "veh_offered": 282604672.0,
+        "veh_rejected": 12149632.0
+      }
+    },
+    "2p5": {
+      "admitted_latency_tail_ms": {
+        "p50": 53.62565994262695,
+        "p95": 98655.953125,
+        "p99": 99871.668046875
+      },
+      "admitted_tasks": 11805950,
+      "deadline_attainment_admitted": 0.7622986714326251,
+      "deadline_attainment_offered": 0.6882455606101879,
+      "deadline_met_latency_tail_ms": {
+        "p50": 35.70662498474121,
+        "p95": 139.48195037841793,
+        "p99": 339.4049069213869
+      },
+      "deadline_met_tasks": 8999660,
+      "evaluator_wall_s": 7077.9,
+      "latency_ms_per_admitted_task": 10805.719461796805,
+      "latency_ms_per_deadline_met_task": 47.252202860996974,
+      "offered_tasks": 13076234,
+      "penalty_inclusive_latency_ms_per_offered_task": 14519.93987381994,
+      "rejected_or_unavailable_tasks": 1270284,
+      "rejection_counts": {
+        "local_mqd_rejected": 38444,
+        "v2i_cap_rejected": 612968,
+        "v2i_gate_rejected": 0,
+        "v2i_unavailable": 111,
+        "v2v_mqd_rejected": 618761,
+        "v2v_unavailable": 0
+      },
+      "rejection_fraction_offered": 0.0971444836487325,
+      "rsu_max_concurrent": 6220,
+      "work_ms": {
+        "v2i_admitted": 30252578.0,
+        "v2i_offered": 40107836.0,
+        "v2i_rejected_or_unavailable": 9855258.0,
+        "veh_admitted": 270455040.0,
+        "veh_offered": 282604672.0,
+        "veh_rejected": 12149632.0
+      }
+    },
+    "40x": {
+      "admitted_latency_tail_ms": {
+        "p50": 60.01058578491211,
+        "p95": 733367.0874999987,
+        "p99": 1588365.4324999999
+      },
+      "admitted_tasks": 12149755,
+      "deadline_attainment_admitted": 0.7407276936860043,
+      "deadline_attainment_offered": 0.6882455606101879,
+      "deadline_met_latency_tail_ms": {
+        "p50": 35.70662498474121,
+        "p95": 139.48195037841793,
+        "p99": 339.4049069213869
+      },
+      "deadline_met_tasks": 8999660,
+      "evaluator_wall_s": 7379.8,
+      "latency_ms_per_admitted_task": 91659.18445466596,
+      "latency_ms_per_deadline_met_task": 47.252202860996974,
+      "offered_tasks": 13076234,
+      "penalty_inclusive_latency_ms_per_offered_task": 117993.73235321423,
+      "rejected_or_unavailable_tasks": 926479,
+      "rejection_counts": {
+        "local_mqd_rejected": 38444,
+        "v2i_cap_rejected": 269163,
+        "v2i_gate_rejected": 0,
+        "v2i_unavailable": 111,
+        "v2v_mqd_rejected": 618761,
+        "v2v_unavailable": 0
+      },
+      "rejection_fraction_offered": 0.07085212760799478,
+      "rsu_max_concurrent": 99520,
+      "work_ms": {
+        "v2i_admitted": 35782356.0,
+        "v2i_offered": 40107836.0,
+        "v2i_rejected_or_unavailable": 4325480.0,
+        "veh_admitted": 270455040.0,
+        "veh_offered": 282604672.0,
+        "veh_rejected": 12149632.0
+      }
+    }
+  },
+  "qualitative_pattern_comparison": {
+    "all_predeclared_qualitative_fields_match": true,
+    "field_matches": {
+      "admissions_nondecreasing": true,
+      "admitted_deadline_attainment_profile": true,
+      "admitted_latency_nondecreasing": true,
+      "offered_deadline_attainment_profile": true,
+      "penalty_inclusive_offered_latency_nondecreasing": true,
+      "total_rejections_nonincreasing": true,
+      "v2i_cap_rejections_nonincreasing": true
+    }
+  },
+  "replication_unit": "fleet_seed",
+  "schema_version": "traffictwin.e1-within-seed-three-cap-comparison.v1",
+  "seed0_reference": {
+    "comparison_sha256": "e1153d11a73480668bdb730c19c2671b12413c3bd1e85c9c3a8e56735cdadfc2",
+    "descriptive_trends": {
+      "admissions_nondecreasing": true,
+      "admitted_deadline_attainment_profile": "nonincreasing",
+      "admitted_latency_nondecreasing": true,
+      "offered_deadline_attainment_profile": "decrease_then_plateau",
+      "offered_deadline_attainment_range_absolute": 0.0001716090427871242,
+      "penalty_inclusive_offered_latency_nondecreasing": true,
+      "total_rejections_nonincreasing": true,
+      "v2i_cap_rejections_nonincreasing": true
+    }
+  },
+  "seed1_descriptive_trends": {
+    "admissions_nondecreasing": true,
+    "admitted_deadline_attainment_profile": "nonincreasing",
+    "admitted_latency_nondecreasing": true,
+    "offered_deadline_attainment_profile": "decrease_then_plateau",
+    "offered_deadline_attainment_range_absolute": 0.00012212996494254114,
+    "penalty_inclusive_offered_latency_nondecreasing": true,
+    "total_rejections_nonincreasing": true,
+    "v2i_cap_rejections_nonincreasing": true
+  },
+  "validation_passed": true
+}

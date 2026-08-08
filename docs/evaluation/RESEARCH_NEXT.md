@@ -2,8 +2,8 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 multi-draw campaign; seed 1 / 0.75x passed, review hold before next cap
-**Execution authority:** stopped after the authorised seed-1/0.75x cell; do not start the next cap
+**Current phase:** E1 multi-draw campaign; seed 1 complete at all three caps
+**Execution authority:** stopped before fleet seed 2; do not start another cell
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -30,7 +30,7 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 ## Current verified state
 
 The evidence base through TrafficTwin execution commit
-`ca4c04890346e01a572b728da4a785026fa87d5a`, together with the one-cell records in this reviewed
+`fcc4602d337de4824fb3b23ead9697aba41c3621`, together with the seed-1 records in this reviewed
 change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
@@ -52,12 +52,16 @@ change, establishes:
   JAX/JAXLIB 0.4.30; the three exact macOS seed-0 physical artifacts remain reused by hash;
 - campaign matrix: 12 new physical cells, fleet seeds 1-4 by 0.75x, 2.5x and 40x, with concurrency
   one and a mandatory two-repeat ten-step gate before every corresponding full cell;
-- campaign execution: seed 1 / 0.75x completed after two exact ten-step smokes; two campaign smokes
-  and one full cell passed, with zero failed or later cells;
-- seed-1/0.75x full accounting: 13,076,234 offered, 11,779,070 admitted and 1,297,164
-  rejected/unavailable tasks; all 32 task/work/numerical checks passed;
-- multi-draw E1 evidence: one new fleet-seed/cap row is available, but no cross-cap paired estimate
-  or five-draw campaign inference is yet available;
+- campaign execution: all six seed-1 ten-step smokes and all three seed-1 full cells passed, with
+  zero failures and no seed-2 process;
+- seed-1 task-stream identity: offered count, `task_active` and `task_type` matched across 0.75x,
+  2.5x and 40x; each full cell passed all 32 task/work/numerical checks;
+- seed-1 descriptive pattern: higher caps admitted more tasks and rejected fewer, while offered
+  deadline attainment decreased slightly then plateaued and latency rose sharply;
+- seed-0 qualitative comparison: the same seven-field admission/rejection/deadline/latency pattern
+  was observed; this is descriptive two-draw evidence, not five-draw inference;
+- multi-draw E1 evidence: seed 0 and seed 1 rows are available, but the predeclared five-draw
+  estimate is not yet available;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -67,28 +71,28 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Stop and review the completed fleet-seed-1 / 0.75x cell. Do not start the next cap point.**
+**Stop and review the completed fleet-seed-1 three-cap result. Do not start fleet seed 2.**
 
 The selected-backend campaign is governed by
 [e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
 SHA-256 `0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`.
 It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and governs all scientific and
-validation fields. The [one-cell validation](e1/e1_multidraw_seed1_0p75_cell_validation_v1.json),
-SHA-256 `b145c801901bf40c1447f3852d8b549a3157d56674acb2b44ea0536d127028ae`, and
-[report](e1/e1_multidraw_seed1_0p75_cell_report_2026-08-08.md) govern the new observation.
+validation fields. The [seed-1 validation](e1/e1_seed1_three_cap_validation_v1.json), SHA-256
+`cfb6e076cb70f7aeb4143f7a91c33bd2b04c9af6d4af60b2b082b87889dd58db`,
+[comparison](e1/e1_seed1_three_cap_comparison_v1.json), SHA-256
+`0f2ea863a91419412130f70d201814ff7f75fcce7f03019afaa48c6132709c5d`, and
+[report](e1/e1_seed1_three_cap_campaign_report_2026-08-08.md) govern the new evidence.
 
-Both ten-step smokes passed individually and matched exactly in scientific summary and every
-instrumentation array. The 3,600-step cell then passed all 32 checks. Offered tasks reconciled with
-admitted plus every rejection/unavailability category; V2I and vehicle service work conserved;
-numbers and arrays were finite/nonnegative; no task disappeared; and offered/admitted deadline
-denominators remained separate. Evaluator wall time was 6,440.6 seconds. All 29 retained raw files
-passed the checksum index.
+All three full cells offered 13,076,234 tasks. Admitted tasks increased from 11,779,070 to
+11,805,950 to 12,149,755 as the cap rose; rejected/unavailable tasks fell from 1,297,164 to
+1,270,284 to 926,479. Offered deadline attainment was 0.688367691, 0.688245561 and 0.688245561,
+while penalty-inclusive offered latency rose from 4,642.546 to 14,519.940 to 117,993.732 ms.
 
-This is one row, not the predeclared paired campaign result. Do not compare caps or calculate the
-primary estimand yet. The current direct instruction requires a stop and report before the next cap.
-If the researcher subsequently directs continuation, the next manifest gate is fleet seed 1 at
-2.5x, beginning with two serial ten-step smokes. A 2.5x full cell remains prohibited until those
-smokes pass every gate.
+The exact equality of the observed 2.5x and 40x offered-deadline values is not a formal tie or
+equivalence result. This is one new fleet draw, and five-draw inference remains prohibited until
+the full predeclared replication set is valid. The current direct instruction requires a stop
+before fleet seed 2. If the researcher subsequently directs continuation, the next manifest gate
+is fleet seed 2 at 0.75x, beginning with two serial ten-step smokes.
 
 ### Exit condition
 
@@ -129,8 +133,8 @@ Do not start:
 
 - The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
   pre-task failures. No G4 scientific compatibility or performance measurement is available.
-- The seed-1/0.75x cell passed, but 11 new full cells remain. The immediate blocker is the explicit
-  stop-and-report boundary before seed 1 / 2.5x, not a scientific failure.
+- All three seed-1 cells passed, but nine new full cells remain. The immediate blocker is the
+  explicit stop-and-report boundary before fleet seed 2, not a scientific failure.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.

@@ -105,5 +105,14 @@ smokes, exact repeat comparison and 3,600-step full validation. See the
 [machine-readable one-cell validation](e1_multidraw_seed1_0p75_cell_validation_v1.json), SHA-256
 `b145c801901bf40c1447f3852d8b549a3157d56674acb2b44ea0536d127028ae`, and the
 [cell report](e1_multidraw_seed1_0p75_cell_report_2026-08-08.md). All 32 full checks and the 29-file
-checksum index passed. Execution stopped before seed 1 at 2.5x, so no paired cap comparison or
-multi-draw result is yet available.
+checksum index passed. That record remains the immutable one-cell evidence; the later three-cap
+record below supersedes its historical stop boundary.
+
+Fleet seed 1 is now complete at all three cap points. Its six smokes, three full validations,
+cross-cap task-stream identity and 31-check descriptive comparator passed. See the
+[seed-1 comparison](e1_seed1_three_cap_comparison_v1.json), [validation](e1_seed1_three_cap_validation_v1.json)
+and [campaign report](e1_seed1_three_cap_campaign_report_2026-08-08.md). The
+[comparator](../../../scripts/compare_e1_seed_three_cap.py) and
+[focused tests](../../../tests/test_compare_e1_seed_three_cap.py) retain the calculation contract.
+The seed-1 qualitative admission/rejection/deadline/latency pattern matches seed 0, but no
+five-draw inference, tie or equivalence claim is available. Execution stopped before fleet seed 2.
