@@ -38,3 +38,7 @@ The [E1 waiting-room semantics evidence](e1/README.md) records the bounded 0.75x
 legacy-versus-physical seed-0 pilot, its non-conserving legacy evidence boundary, and a
 code-generated descriptive three-cap comparison. It is not a replicated E1 cap sweep and does not
 begin the E2 placement comparison.
+
+The E1 directory also contains a cumulative E0-to-E1 research record covering the hypotheses,
+experimental design, authorization and decision sequence, observations, results, interpretation,
+validity threats, reproducibility index and remaining gates.

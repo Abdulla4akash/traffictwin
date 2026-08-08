@@ -5,6 +5,13 @@ This directory records the bounded E1 seed-0/fleet-0 waiting-room pilot at the p
 snapshot/clamp/legacy semantics with its sequential/reject/conserved physical semantics. The
 three-cap record is descriptive single-seed evidence, not a replicated cap sweep.
 
+Start with the cumulative
+[E0-to-E1 research record](e1_seed0_three_cap_research_record_2026-08-08.md) and its
+[machine-readable summary](e1_seed0_three_cap_research_summary_v1.json). They consolidate the
+hypotheses, design, authorization sequence, observations, results, interpretation, validity
+limits, evidence hashes and next decision gate without replacing the authoritative per-run
+validation records below.
+
 - [Predeclared 2.5x pair manifest](e1_2p5_semantics_pair_manifest_v1.json)
 - [Repeated legacy smoke validation](e1_legacy_smoke_validation_v1.json)
 - [Full 2.5x pair validation](e1_2p5_semantics_pair_validation_v1.json)
