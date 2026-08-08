@@ -6,6 +6,7 @@ import streamlit as st
 
 from traffictwin.ui.components.cards import fingerprint_summary, section_header
 from traffictwin.ui.components.first_run import first_run_guidance
+from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button, render_page_header
 from traffictwin.ui.services import (
@@ -23,7 +24,8 @@ def render(config: UiConfig) -> None:
     """Render experiments, runs, seeds, comparisons, and export references."""
 
     render_page_header(st.session_state.get("_active_ui_page", UiPage.EXPERIMENT_MANAGER))
-    view = load_experiment_manager_view(config.registry_path, config.workspace_path)
+    effective_workspace, effective_registry = resolve_effective_demo_paths(config)
+    view = load_experiment_manager_view(effective_registry, effective_workspace)
 
     if not (view.experiments or view.runs or view.seeds or view.reports or view.comparisons):
         first_run_guidance(
@@ -97,7 +99,7 @@ def render(config: UiConfig) -> None:
         )
         if st.button("Initialise Manual Slot Tracking"):
             result = initialise_protocol_tracking_for_ui(
-                config.registry_path,
+                effective_registry,
                 selected_experiment,
             )
             if isinstance(result, ServiceError):
@@ -107,7 +109,7 @@ def render(config: UiConfig) -> None:
                 st.success(
                     f"Tracking ready for {result['slot_count']} slots ({result['protocol_id']})."
                 )
-    tracking = protocol_tracking_rows_for_ui(config.registry_path)
+    tracking = protocol_tracking_rows_for_ui(effective_registry)
     if isinstance(tracking, ServiceError):
         st.warning(tracking.message)
     elif tracking:
@@ -126,7 +128,7 @@ def render(config: UiConfig) -> None:
         tracking_note = st.text_input("Tracking note", value="")
         if st.button("Update Tracked Slot"):
             result = update_protocol_slot_for_ui(
-                config.registry_path,
+                effective_registry,
                 str(selected_row["protocol_id"]),
                 str(selected_row["slot_id"]),
                 next_status,

@@ -2,11 +2,19 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 from traffictwin.demo.workspace import workspace_status
 from traffictwin.ui.components.badges import badge_row, evidence_state_badge
 from traffictwin.ui.components.cards import section_header
+from traffictwin.ui.demo_workspace_service import (
+    _DEMO_WORKSPACE_FLASH_KEY,
+    DEFAULT_DEMO_WORKSPACE_PATH,
+    ensure_demo_workspace,
+    resolve_effective_demo_paths,
+)
 from traffictwin.ui.labels import REQUIRED_PROTOTYPE_NOTICE, UiPage
 from traffictwin.ui.manchester_operations import (
     build_manchester_deck,
@@ -32,15 +40,26 @@ def render(config: UiConfig) -> None:
 def _render_v07_home(config: UiConfig) -> None:
     """Render the focused v0.7 research entry point without hiding evidence limits."""
 
-    status = load_project_status(config.registry_path)
+    effective_workspace, effective_registry_path = resolve_effective_demo_paths(config)
+    # One-shot flash from the immediate rerun after in-browser workspace creation
+    flash = st.session_state.pop(_DEMO_WORKSPACE_FLASH_KEY, None)
+    if isinstance(flash, dict) and flash.get("message"):
+        if flash.get("status") == "created":
+            st.success(str(flash["message"]))
+            st.info(
+                "Follow Guided Demo to continue. Manchester scenes remain unavailable in a "
+                "demo workspace — they require a separately activated real workspace with "
+                "accepted Manchester artifacts."
+            )
+        elif flash.get("status") == "already_exists":
+            st.info(str(flash["message"]))
+        else:
+            st.info(str(flash["message"]))
+    status = load_project_status(effective_registry_path)
     summary = status.registry_summary
     run_count = summary.run_count if summary else 0
-    comparison_count = (
-        workspace_status(config.workspace_path).comparison_count
-        if config.workspace_path is not None
-        else 0
-    )
-    workspace = None if config.workspace_path is None else str(config.workspace_path)
+    comparison_count = _comparison_count_for(effective_workspace)
+    workspace = str(effective_workspace) if effective_workspace is not None else None
     manchester = load_local_manchester_scene(workspace, "latest_available")
     visible_layers = visible_layer_ids(manchester.scene) if manchester.scene is not None else ()
 
@@ -89,6 +108,10 @@ def _render_v07_home(config: UiConfig) -> None:
         st.metric("Registered runs", run_count, border=True)
         st.metric("Comparisons", comparison_count, border=True)
 
+    has_workspace, workspace_ready, _ws_status = _workspace_presence(effective_workspace)
+
+    if not has_workspace or not workspace_ready:
+        _render_demo_workspace_empty_state()
     st.subheader("Current evidence context")
     if manchester.scene is not None and visible_layers:
         st.pydeck_chart(
@@ -103,13 +126,21 @@ def _render_v07_home(config: UiConfig) -> None:
         )
     else:
         with st.container(border=True):
-            st.markdown("**No accepted latest-available Manchester scene is loaded.**")
-            st.write(manchester.message)
-            st.caption(
-                "You can still build synthetic scenarios, import completed runs, inspect "
-                "Randy/TOS evidence, and use the guided workflow. Missing observations are not "
-                "filled with synthetic or stale values."
-            )
+            if not has_workspace or not workspace_ready:
+                st.markdown("**No demo workspace is configured — create one to begin.**")
+                st.caption(
+                    "The demo workspace is synthetic and local. It contains no Manchester, "
+                    "Randy, or live data. A fresh demo lets you run the entire import-first "
+                    "workflow without any provider credential."
+                )
+            else:
+                st.markdown("**No accepted latest-available Manchester scene is loaded.**")
+                st.write(manchester.message)
+                st.caption(
+                    "You can still build synthetic scenarios, import completed runs, inspect "
+                    "Randy/TOS evidence, and use the guided workflow. Missing observations are "
+                    "not filled with synthetic or stale values."
+                )
 
     st.subheader("Next reproducible actions")
     with st.container(horizontal=True):
@@ -132,7 +163,7 @@ def _render_v07_home(config: UiConfig) -> None:
                 "research exports."
             )
 
-    reports = list_workspace_reports(config.workspace_path)[:5]
+    reports = list_workspace_reports(effective_workspace)[:5]
     if status.latest_runs or reports:
         st.subheader("Recent research activity")
         if status.latest_runs:
@@ -163,6 +194,83 @@ def _render_v07_home(config: UiConfig) -> None:
         icon=":material/info:",
     )
     st.caption(REQUIRED_PROTOTYPE_NOTICE)
+
+
+def _resolve_effective_demo_paths(config: UiConfig) -> tuple[Path | None, Path]:
+    """Compatibility shim — delegates to the central resolver."""
+
+    return resolve_effective_demo_paths(config)
+
+
+def _comparison_count_for(workspace: Path | None) -> int:
+    if workspace is None:
+        return 0
+    try:
+        return workspace_status(workspace).comparison_count
+    except (OSError, ValueError):
+        return 0
+
+
+def _workspace_presence(
+    workspace: Path | None,
+) -> tuple[bool, bool, object | None]:
+    """Return (has_workspace, workspace_ready, status)."""
+
+    if workspace is None:
+        return False, False, None
+    try:
+        status = workspace_status(workspace)
+    except (OSError, ValueError):
+        return True, False, None
+    return True, status.valid_workspace, status
+
+
+def _render_demo_workspace_empty_state() -> None:
+    """Offer a one-click synthetic workspace beside the honest empty state."""
+
+    with st.container(border=True):
+        st.markdown("**Create a demo workspace**")
+        st.caption(
+            "No workspace is configured for this app process. Create a local synthetic demo "
+            "workspace to explore the end-to-end workflow without Manchester, Randy, or live "
+            "provider data. All generated records carry `synthetic: true` and a deterministic "
+            "created instant."
+        )
+        with st.expander("Advanced: workspace location", expanded=False):
+            st.caption(
+                f"Default directory: `{DEFAULT_DEMO_WORKSPACE_PATH}` (relative to the process "
+                "working directory). Change it only to a safe, empty/non-existent directory; "
+                "existing files outside the marker are not overwritten."
+            )
+        path_input = st.text_input(
+            "Demo workspace path",
+            value=str(DEFAULT_DEMO_WORKSPACE_PATH),
+            key="home_demo_workspace_path",
+            help="Must not be /, $HOME, or the repository root, and must be empty or new.",
+        )
+        create_col, _hint_col = st.columns([1, 2])
+        if create_col.button(
+            "Create demo workspace",
+            type="primary",
+            width="stretch",
+            key="home_create_demo_workspace",
+        ):
+            result = ensure_demo_workspace(path_input)
+            if result.status in {"created", "already_exists"}:
+                st.session_state["active_registry_path"] = str(result.path / "registry.sqlite")
+                st.session_state["_active_demo_workspace_path"] = str(result.path)
+                st.session_state[_DEMO_WORKSPACE_FLASH_KEY] = {
+                    "status": result.status,
+                    "message": result.message,
+                }
+                st.rerun()
+            else:
+                st.error(result.message)
+                if result.reason == "non_empty_without_force":
+                    st.caption(
+                        "The target directory is not empty and has no TrafficTwin marker. "
+                        "Choose an empty/new directory or remove/relocate the existing content."
+                    )
 
 
 def _render_legacy_home(config: UiConfig) -> None:

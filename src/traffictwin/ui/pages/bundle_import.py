@@ -31,6 +31,7 @@ def render(config: UiConfig) -> None:
 
     st.title("Bundle Import & Validation")
     st.caption("Validated bundles are imported as historical or synthetic run evidence.")
+    _render_example_shortcuts(config)
     bundle_path = Path(
         st.text_input(
             "Bundle directory or ZIP path",
@@ -149,6 +150,44 @@ def render(config: UiConfig) -> None:
                 )
     else:
         st.error("Rejected bundles cannot be imported or used in analysis pages.")
+
+
+def _render_example_shortcuts(config: UiConfig) -> None:
+    """Offer one-click fixture selection without requiring the user to type a path."""
+
+    with st.container(border=True):
+        st.markdown("**Quick start — open a committed example**")
+        st.caption(
+            "Fixtures are deterministic synthetic bundles stored in the repository. They carry "
+            "`synthetic: true` and never represent Manchester or live traffic."
+        )
+        baseline = config.default_fixture_path / "baseline_valid"
+        variation = config.default_fixture_path / "variation_valid"
+        baseline_exists = baseline.exists()
+        variation_exists = variation.exists()
+        cols = st.columns(2)
+        if cols[0].button(
+            "Open example baseline",
+            width="stretch",
+            key="bundle_import_example_baseline",
+            disabled=not baseline_exists,
+        ):
+            st.session_state["selected_bundle_path"] = str(baseline)
+            st.session_state["selected_baseline_run"] = str(baseline)
+            st.rerun()
+        if cols[1].button(
+            "Open example variation",
+            width="stretch",
+            key="bundle_import_example_variation",
+            disabled=not variation_exists,
+        ):
+            st.session_state["selected_bundle_path"] = str(variation)
+            st.session_state["selected_variation_run"] = str(variation)
+            st.rerun()
+        if not baseline_exists:
+            st.caption(f"Example baseline not found: {baseline}")
+        if not variation_exists:
+            st.caption(f"Example variation not found: {variation}")
 
 
 def _render_batch_import(registry_path: Path) -> None:
