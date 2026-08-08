@@ -40,3 +40,31 @@ retain permission-safe logical locators and SHA-256 identities.
 
 The seed-0 three-cap pilot is complete, but E1 provides no multi-seed inference, does not
 reproduce Randy's reported `0.6943`, and does not address E2 load-aware placement.
+
+The seed-0 decision gate was subsequently closed by the
+[multi-draw decision record](e1_multidraw_decision_record_2026-08-08.md). The exact bounded
+physical replication is governed by the
+[multi-draw campaign manifest](e1_multidraw_physical_campaign_manifest_v1.json), SHA-256
+`35531f397bc3ba5c93e2d49ac60b8d0f7bc016121f253bf2cc1496170ec2c66c`. Until its checked-in
+campaign evidence says otherwise, this paragraph records authority and design rather than a result.
+
+A later same-day researcher instruction paused that campaign pending a
+[predeclared Colab GPU backend smoke](e1_colab_gpu_backend_smoke_manifest_v1.json), SHA-256
+`5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7`. No campaign cell
+may run until the bounded GPU evidence is compared with the validated macOS CPU contract and one
+backend is selected in both the campaign manifest and `RESEARCH_NEXT.md`. Cross-backend full results
+must not be mixed in the confirmatory five-draw analysis.
+
+Backend-smoke execution materials:
+
+- [private upload-bundle receipt](e1_colab_gpu_backend_bundle_receipt_v1.json);
+- [Colab notebook](../../../notebooks/e1_colab_gpu_backend_smoke_v1.ipynb);
+- [Colab smoke runner](../../../scripts/run_e1_colab_gpu_backend_smoke.py);
+- [focused runner tests](../../../tests/test_run_e1_colab_gpu_backend_smoke.py).
+
+The subsequent G4-only attempt is retained in the
+[machine-readable result](e1_colab_g4_backend_smoke_result_v1.json) and
+[backend report](e1_colab_g4_backend_smoke_report_2026-08-08.md). Input, package and genuine-GPU
+preflight checks passed, but the pinned JAX 0.4.30 toolchain failed before task generation on the
+assigned Blackwell device. G4 was not selected, no speedup or conservation comparison is available,
+and no full campaign cell started.

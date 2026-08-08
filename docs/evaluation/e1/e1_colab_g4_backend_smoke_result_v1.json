@@ -1,0 +1,178 @@
+{
+  "schema_version": "traffictwin.e1-colab-g4-backend-smoke-result.v1",
+  "record_date": "2026-08-08",
+  "status": "failed_before_task_generation",
+  "authority": {
+    "source": "Direct researcher instruction from Abdulla dated 2026-08-08",
+    "requested_accelerator": "G4",
+    "fallback_accelerator_allowed": false,
+    "full_run_authorised": false
+  },
+  "governing_predeclared_manifest": {
+    "path": "docs/evaluation/e1/e1_colab_gpu_backend_smoke_manifest_v1.json",
+    "sha256": "5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7",
+    "identity_verified_from_uploaded_bundle": true,
+    "git_commit_existed_remotely_before_smoke": false,
+    "protocol_deviation": "The manifest was frozen by hash and embedded in the permission-safe bundle before allocation, but the pre-run TrafficTwin commit and draft PR had not been published before this failed backend feasibility attempt. No task output was produced."
+  },
+  "repositories": {
+    "traffictwin_parent_commit": "b7dd42be5d02d6c2f6bfb120d9fabf90f7b9ca66",
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+  },
+  "execution": {
+    "cli": {
+      "path": "local-tool:colab",
+      "version": "0.6.0",
+      "session_alias": "e1-g4-smoke",
+      "allocation_command": "colab new -s e1-g4-smoke --gpu G4",
+      "session_status_hardware": "G4",
+      "session_status_variant": "GPU",
+      "terminated_after_evidence_retrieval": true,
+      "active_sessions_after_stop": 0
+    },
+    "bundle": {
+      "receipt_path": "docs/evaluation/e1/e1_colab_gpu_backend_bundle_receipt_v1.json",
+      "receipt_sha256": "32baa4d52795da3ab801d40eff9a49323cb649a90f7079375db17c460c766ead",
+      "filename": "e1-colab-gpu-backend-smoke-v1-inputs-r3.tar.gz",
+      "sha256": "7cf78ed99f912bfbcd7d50f08a1dd2baa0c89a9de8260a5bf05be9d3838b6091",
+      "size_bytes": 5535427,
+      "remote_upload_sha256_verified_before_extraction": true
+    },
+    "scientific_command": {
+      "max_steps": 10,
+      "evaluator_seed": 0,
+      "fleet_seed": 0,
+      "cap_label": "2p5",
+      "resolved_tasks_per_rsu": 6220,
+      "substep_queue": "sequential",
+      "vehicle_queue": "conserved",
+      "rsu_admission": "reject",
+      "placement": "strongest-link/default",
+      "load_balancing": "off",
+      "rsu_service_multiplier": 1.0,
+      "scaling": "off"
+    }
+  },
+  "hardware_and_environment": {
+    "requested_accelerator": "G4",
+    "assigned_accelerator_status": "G4",
+    "actual_nvidia_model": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "vram_mib": 97887,
+    "driver_version": "580.82.07",
+    "nvidia_smi_max_cuda_version": "13.0",
+    "nvcc_release": "12.8",
+    "nvcc_version": "12.8.93",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+    "python": "3.12.13",
+    "jax_backend": "gpu",
+    "jax_device": "cuda:0",
+    "jax_device_kind": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "jax-cuda12-plugin": "0.4.30",
+      "jax-cuda12-pjrt": "0.4.30",
+      "numpy": "1.26.4",
+      "scipy": "1.17.1"
+    },
+    "all_manifest_input_identities_passed": true,
+    "all_manifest_package_identities_passed": true,
+    "genuine_gpu_preflight_passed": true
+  },
+  "cell_accounting": {
+    "planned_repeats": 2,
+    "started_repeats": 1,
+    "completed_repeats": 0,
+    "passed_repeats": 0,
+    "failed_repeats": 1,
+    "stopped_repeats": 1,
+    "full_cells_started": 0,
+    "campaign_cells_started": 0
+  },
+  "failure": {
+    "phase": "first evaluator process before task generation",
+    "source": "eval/eval_sumo_stage1_mc.py:306",
+    "operation": "jax.random.PRNGKey(evaluator_seed)",
+    "exception": "jaxlib.xla_extension.XlaRuntimeError",
+    "message": "ptxas could not compile a program targeting sm_90a for the assigned future Blackwell architecture",
+    "evaluator_exit_code": 1,
+    "runner_wall_s_to_failure": 1.1679128050000145,
+    "task_summary_written": false,
+    "per_step_instrumentation_written": false,
+    "per_task_instrumentation_written": false
+  },
+  "validation": {
+    "task_conservation": "unavailable_no_task_output",
+    "v2i_work_conservation": "unavailable_no_task_output",
+    "vehicle_work_conservation": "unavailable_no_task_output",
+    "task_stream_identity_vs_macos": "unavailable_no_task_output",
+    "scientific_metrics_vs_macos": "unavailable_no_task_output",
+    "numerical_differences_vs_macos": "unavailable_no_task_output",
+    "repeat_determinism": "unavailable_second_repeat_not_started",
+    "g4_speedup_vs_macos": null,
+    "estimated_g4_campaign_runtime_hours": null,
+    "failed_process_time_is_valid_speed_measurement": false,
+    "overall_backend_smoke_passed": false
+  },
+  "macos_cpu_contract_reference": {
+    "validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "backend": "macOS arm64 TFRT CPU",
+    "evaluator_wall_s": [
+      12.7,
+      12.6
+    ],
+    "offered_tasks": 36856,
+    "admitted_tasks": 35195,
+    "deadline_met_tasks": 25227,
+    "projected_12_new_cell_campaign_hours": 20.089111111111112,
+    "comparison_performed": false,
+    "reason": "The G4 evaluator produced no scientific summary or instrumentation."
+  },
+  "evidence": {
+    "raw_output_locator": "local-output:e1_outputs/e1-colab-gpu-backend-smoke-v1",
+    "raw_outputs_committed_to_git": false,
+    "checksum_index_sha256": "a869102f165452e4faf1faa83a02b63b3f43c5b0a2dc8d592f0af3366de08761",
+    "files": {
+      "result_archive": {
+        "sha256": "a2d650e0779c9620d4acf3a4c31c471375f75515dc7ea6fcc457c10b0141c7d0",
+        "size_bytes": 2682
+      },
+      "hardware_probe": {
+        "sha256": "41968612e05a7580735ad4a043a636582c1648d12e4c07a86d201f9ae7a4de34",
+        "size_bytes": 2492
+      },
+      "preflight": {
+        "sha256": "b6e7e97eefe637dfd9c190e9b6f29d458435a5633d89299a847f6f66d911c488",
+        "size_bytes": 999
+      },
+      "command": {
+        "sha256": "3dad1be6b164be75230b8cc7d90d58f4d9cb654cbed210f0f2eaefd774ec4c9f",
+        "size_bytes": 1377
+      },
+      "runner_status": {
+        "sha256": "51e9222a265ddfc935af65dd351098e5078840823d14a1e2d69f04276fd7253e",
+        "size_bytes": 60
+      },
+      "failure_log": {
+        "sha256": "421b93cff29d68cb624fb3eb8fa14cee76989a7397a1e28fa83f34417f26b0ef",
+        "size_bytes": 2968
+      }
+    }
+  },
+  "decision": {
+    "g4_selected_for_campaign": false,
+    "campaign_backend_status": "pending_reviewed_backend_decision",
+    "campaign_execution_authorised": false,
+    "other_accelerator_substituted": false,
+    "package_contract_changed": false,
+    "full_run_launched": false,
+    "next_gate": "Review the G4 incompatibility and explicitly select a backend or separately authorise a revised package-compatibility smoke before any campaign run."
+  },
+  "semantic_boundaries": {
+    "waiting_room_cap_is_compute_power": false,
+    "native_physical_completion_or_result_return_observed": false,
+    "randy_reported_0_6943_reproduced": false,
+    "E2_started": false
+  }
+}

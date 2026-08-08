@@ -2,8 +2,8 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 seed-0 pilot complete; E1 multi-draw decision and predeclaration next
-**Execution authority:** no new full campaign or E2 run is authorised by this record
+**Current phase:** E1 seed-0 design gate closed; pinned-environment G4 smoke failed; backend pending
+**Execution authority:** no new E1 smoke or full campaign cell is currently authorised
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -29,8 +29,9 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 
 ## Current verified state
 
-The evidence base through TrafficTwin commit
-`40d5dc792454165c1c845d776098d8f97b5e6d46` establishes:
+The evidence base through TrafficTwin parent commit
+`b7dd42be5d02d6c2f6bfb120d9fabf90f7b9ca66`, together with the pre-run records in this reviewed
+change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -38,7 +39,13 @@ The evidence base through TrafficTwin commit
   legacy and physical semantic packages;
 - physical task and service-work conservation: passed at all three full cap points;
 - legacy conservation: unavailable and non-conserving by source contract;
-- multi-draw E1 evidence: unavailable because fleet seeds 1-4 have not been run;
+- seed-0 decision gate: closed by the
+  [multi-draw decision record](e1/e1_multidraw_decision_record_2026-08-08.md);
+- G4 backend feasibility: failed before task generation under the exact pinned JAX 0.4.30 CUDA-12
+  environment; [the retained result](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md) contains no
+  scientific task output or speedup;
+- campaign backend: still pending; no campaign cell has started;
+- multi-draw E1 evidence: unavailable;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -48,62 +55,51 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Close the E1 seed-0 decision gate and produce a review-ready, predeclared multi-draw E1 campaign
-manifest. Do not launch the campaign automatically.**
+**Review the failed G4 compatibility evidence and explicitly choose the next backend gate. Do not
+start another smoke or a campaign cell without that reviewed choice.**
 
-This is Day 4 of the dated research design. The seed-0 pilot has satisfied the preceding Day-3
-execution requirement, but its exit decision and the multi-draw contract still need to be frozen.
+Abdulla's later direct instruction dated 8 August 2026 inserts a backend decision before the
+campaign authority previously recorded here. The bounded comparison is governed by
+[e1_colab_gpu_backend_smoke_manifest_v1.json](e1/e1_colab_gpu_backend_smoke_manifest_v1.json).
+Its SHA-256 is `5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7`.
+It fixes the existing physical 2.5x/fleet-seed-0 ten-step contract, requires two repeats, prohibits
+CPU fallback and permits no full run.
 
-### Required decision record
+The still-pending campaign design is
+[e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
+SHA-256 `35531f397bc3ba5c93e2d49ac60b8d0f7bc016121f253bf2cc1496170ec2c66c`.
+Its runner must refuse execution while `backend_decision.status` is not `selected`.
 
-Record explicit answers to all of the following:
+The direct G4-only instruction requested `colab new -s e1-g4-smoke --gpu G4`. The CLI and
+in-runtime probes confirmed a G4 allocation backed by an NVIDIA RTX PRO 6000 Blackwell Server
+Edition with 97,887 MiB VRAM. Exact input and package identities passed. The first evaluator
+process then failed at `jax.random.PRNGKey(0)`: the pinned JAX 0.4.30 CUDA-12 `ptxas` could not
+compile its `sm_90a` target for the assigned future Blackwell architecture. No task summary or
+instrumentation was written; repeat 2 and every full cell were stopped. The failed-process time is
+not a speed measurement.
 
-1. Which of the provisional 0.75x, 2.5x and 40x cap points remain in the final grid, and why?
-2. Does the multi-draw grid retain the non-conserving legacy path as a historical diagnostic,
-   require instrumentation, or restrict confirmatory inference to the conserved physical path?
-3. Is the provisional `uk2030` fleet accepted for this bounded study?
-4. Is fleet seed the replication unit with fleet seeds 0-4 and evaluator seed fixed/disclosed, as
-   recommended by the dated audit?
-5. What is the primary estimand and decision rule? Offered-task deadline attainment remains the
-   primary outcome; admitted completion, latency, rejection and work conservation stay separate.
-6. Is an ordinary-traffic control required, and at which most informative cap points?
-7. What compute allocation, allowed concurrency, durable raw-output location and retention policy
-   are approved?
-8. What run-level stop conditions apply before later seeds or cells proceed?
+The machine-readable
+[G4 result](e1/e1_colab_g4_backend_smoke_result_v1.json) and
+[human-readable report](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md) govern this negative
+evidence. G4 is not selected, and the campaign manifest remains deliberately unchanged with a
+pending backend decision.
 
-The decision must continue to state that the waiting-room ceiling is admission/in-flight capacity,
-not compute power, and that simulated deadline attainment is not confirmed physical result return.
-
-### Required campaign manifest
-
-The launch-ready manifest must include:
-
-- exact TrafficTwin, vec_env and tos-data commits;
-- evaluator, actor and trace paths plus SHA-256 identities;
-- scenario date/window and every seed identity;
-- selected cap grid and exact source-resolved cap values;
-- legacy/physical inclusion decision and all queue/admission semantics;
-- strongest-link placement, fixed 1x service, load balancing off and scaling off;
-- common task-stream and seed-pairing contract;
-- primary/secondary metrics, units and denominators;
-- conservation, rejection-reconciliation, finite/nonnegative and no-silent-loss assertions;
-- per-cell repeated-smoke gate, run order, stopping rule and failure-retention policy;
-- raw-output locators, checksum/naming policy and permission boundaries;
-- compute budget, concurrency and expected campaign size;
-- analysis plan based on matched per-seed differences without task-level pseudo-replication.
+The next reviewed choice is either to select the already validated macOS CPU backend and update
+both governing files, or to authorise a new package-compatibility smoke with its changed JAX/CUDA
+contract predeclared. Do not silently substitute another Colab accelerator and do not change the
+scientific environment merely to make G4 run. If a Colab backend is later selected, rerun all three
+seed-0 cap points there; do not mix existing macOS seed-0 outputs with new Colab full outputs.
 
 ### Exit condition
 
-This gate is complete only when one of these is true:
-
-1. approved multi-draw E1 outputs for the selected grid have passed validation; or
-2. compute is unavailable and a fully reviewed, launch-ready campaign manifest is committed, with
-   the campaign explicitly queued rather than one seed presented as conclusive.
+The backend gate exits only when a selected single campaign backend, seed-0 handling, concurrency,
+runtime estimate and final matrix are recorded in the campaign manifest and this file. The failed
+G4 result alone does not close that gate. Until it closes, no campaign cell is authorised.
 
 ## What follows after this gate
 
-Only after the E1 multi-draw gate exits may the project begin the bounded E2 native-placement
-pilot:
+E2 is not authorised by the 8 August instruction. After a valid E1 campaign exit, the researcher
+must explicitly authorise the bounded E2 native-placement pilot before any of these actions:
 
 1. validate the two-RSU strong-link-full/weaker-idle case against current evaluator state;
 2. add or validate native ingress-RSU, execution-RSU, forwarding-count and forwarding-cost fields;
@@ -116,7 +112,7 @@ E2 multi-seed expansion and the E3 backhaul pilot follow only after that bounded
 
 ## Explicitly not next
 
-Do not automatically start:
+Do not start:
 
 - E2 before the E1 multi-draw exit condition;
 - static/reactive/proactive scaling;
@@ -125,16 +121,21 @@ Do not automatically start:
 - action masking or an RSU-load-augmented actor;
 - proactive prediction or oracle forecasting;
 - bus modelling as a replacement for the VEC thread;
-- a large local serial campaign without an approved compute/output plan.
+- any local or Colab E1 campaign before the backend decision is recorded in both governing files.
 
 ## Active blockers and requests
 
-- final cap-grid and legacy-evidence decisions;
-- approval of the provisional fleet and seed protocol;
-- CSF3 partition/quota, durable storage and allowed concurrency;
-- Randy's original sweep package and exact definitions, if historical reproduction remains desired;
-- native path-event feasibility for later E2;
-- GitHub Actions billing/spending state, which currently prevents jobs from starting.
+- The exact pinned JAX 0.4.30 CUDA-12 environment cannot execute on the assigned Colab G4
+  Blackwell device: `ptxas` fails before task generation. No valid G4 speed or conservation result
+  exists.
+- A reviewed choice between the validated macOS CPU backend and a separately authorised revised
+  package-compatibility smoke is missing. This blocks every campaign cell.
+- CSF3 remains unavailable from this machine because its hostname is not resolvable.
+- Randy's original sweep package and exact definitions remain unavailable if historical
+  reproduction is later desired; his reported `0.6943` is not reproduced.
+- Native path-event feasibility and explicit authority remain unavailable for later E2.
+- GitHub Actions billing/spending state may prevent hosted checks from starting; local pre-run and
+  campaign validation remain mandatory regardless.
 
 Unknown historical inputs do not block fresh, clearly named experiments after their own manifest
 and compute gate pass. They do block claims that Randy's historical sweep was reproduced.
