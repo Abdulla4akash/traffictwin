@@ -1,0 +1,58 @@
+{
+  "schema_version": "traffictwin.e1-g4-jax13-compatibility-bundle-receipt.v1",
+  "record_date": "2026-08-08",
+  "purpose": "Permission-safe identity and handling record for the private G4 compatibility upload bundle. The archive remains outside Git.",
+  "bundle": {
+    "filename": "e1-g4-jax13-compatibility-smoke-v1-inputs-r3.tar.gz",
+    "logical_locator": "local-private-input:colab_inputs/e1-g4-jax13-compatibility-smoke-v1-inputs-r3.tar.gz",
+    "sha256": "b57297b1572cbed7b9806cae12f58f727442cc25618cfa64e4d4f26d8ba27c8f",
+    "size_bytes": 5842647,
+    "committed_to_git": false,
+    "publication_allowed": false
+  },
+  "superseded_pre_execution_bundles": [
+    {
+      "filename": "e1-g4-jax13-compatibility-smoke-v1-inputs.tar.gz",
+      "sha256": "1031877195e68ea1aac5b4f06ed81e07403779f5f50c201c0fd22faa56b9e812",
+      "status": "retained_outside_git_but_not_authoritative_for_execution"
+    },
+    {
+      "filename": "e1-g4-jax13-compatibility-smoke-v1-inputs-r2.tar.gz",
+      "sha256": "21705c32ea219b9a046dd4ee67fc65a6844b358087d895b8a240e4aea24ef146",
+      "status": "retained_outside_git_but_not_authoritative_for_execution"
+    }
+  ],
+  "governing_manifest": {
+    "path": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json",
+    "sha256": "d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659"
+  },
+  "requirements_lock": {
+    "path": "docs/evaluation/e1/e1_g4_jax13_compatibility_requirements_v1.txt",
+    "sha256": "e5d604c612002b4ad0054dea7351e59d456e0b59c3d24f0e07b6c00e80426e57"
+  },
+  "runner": {
+    "path": "scripts/run_e1_g4_jax13_compatibility_smoke.py",
+    "sha256": "2b7d9d8f8165b5fa7016b2b03747e2a2e5b5a16b6275c02b61d6efb62a42a20b"
+  },
+  "contained_private_inputs": {
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b"
+  },
+  "contained_cpu_reference": {
+    "validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "summary_sha256": "298ccbee8bae82d043a2dcd4401a72d7bce2437e0027e208db53970ca9f2aa7b",
+    "per_step_sha256": "9ca62b5df68c6b39d8961b1a0376d23ba1b2a646792305fda6e5dae9447e9904",
+    "per_task_sha256": "01aa251422a35f692291d8e7085044c97b6a62c11213f7a81b7805c59437643f"
+  },
+  "handling": {
+    "upload_target": "one ephemeral named Google Colab G4 session",
+    "public_sharing": false,
+    "drive_persistence": false,
+    "download_all_evidence_before_stop": true,
+    "retain_failures": true,
+    "overwrite_allowed": false
+  }
+}

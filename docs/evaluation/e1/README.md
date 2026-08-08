@@ -68,3 +68,16 @@ The subsequent G4-only attempt is retained in the
 preflight checks passed, but the pinned JAX 0.4.30 toolchain failed before task generation on the
 assigned Blackwell device. G4 was not selected, no speedup or conservation comparison is available,
 and no full campaign cell started.
+
+A later direct instruction authorises one isolated modern-stack retry. Its
+[decision record](e1_g4_jax13_compatibility_decision_record_2026-08-08.md),
+[manifest](e1_g4_jax13_compatibility_smoke_manifest_v1.json) and
+[complete package lock](e1_g4_jax13_compatibility_requirements_v1.txt) govern that gate. The prior
+failure remains immutable. The retry may run only a primitive G4 gate and two ten-step repeats; it
+cannot select a campaign backend or launch a full cell by itself.
+
+Compatibility-gate execution materials:
+
+- [private bundle receipt](e1_g4_jax13_compatibility_bundle_receipt_v1.json);
+- [bounded compatibility runner](../../../scripts/run_e1_g4_jax13_compatibility_smoke.py);
+- [focused comparison tests](../../../tests/test_run_e1_g4_jax13_compatibility_smoke.py).

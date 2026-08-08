@@ -2,8 +2,8 @@
 
 **Status date:** 2026-08-08
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 seed-0 design gate closed; pinned-environment G4 smoke failed; backend pending
-**Execution authority:** no new E1 smoke or full campaign cell is currently authorised
+**Current phase:** E1 seed-0 design gate closed; G4 JAX/CUDA-13 compatibility gate authorised
+**Execution authority:** only the separately predeclared G4 compatibility smoke is authorised
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -29,8 +29,8 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 
 ## Current verified state
 
-The evidence base through TrafficTwin parent commit
-`b7dd42be5d02d6c2f6bfb120d9fabf90f7b9ca66`, together with the pre-run records in this reviewed
+The evidence base through TrafficTwin commit
+`90c086763bca70f08a7a5f0ca16d279523f72295`, together with the pre-run records in this reviewed
 change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
@@ -55,8 +55,7 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Review the failed G4 compatibility evidence and explicitly choose the next backend gate. Do not
-start another smoke or a campaign cell without that reviewed choice.**
+**Run only the predeclared G4 JAX/CUDA-13 compatibility smoke. Do not start a campaign cell.**
 
 Abdulla's later direct instruction dated 8 August 2026 inserts a backend decision before the
 campaign authority previously recorded here. The bounded comparison is governed by
@@ -84,11 +83,23 @@ The machine-readable
 evidence. G4 is not selected, and the campaign manifest remains deliberately unchanged with a
 pending backend decision.
 
-The next reviewed choice is either to select the already validated macOS CPU backend and update
-both governing files, or to authorise a new package-compatibility smoke with its changed JAX/CUDA
-contract predeclared. Do not silently substitute another Colab accelerator and do not change the
-scientific environment merely to make G4 run. If a Colab backend is later selected, rerun all three
-seed-0 cap points there; do not mix existing macOS seed-0 outputs with new Colab full outputs.
+Abdulla's subsequent direct instruction authorises exactly one new compatibility gate governed by
+[e1_g4_jax13_compatibility_smoke_manifest_v1.json](e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json),
+SHA-256 `d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659`.
+The [decision record](e1/e1_g4_jax13_compatibility_decision_record_2026-08-08.md) preserves the
+first failure unchanged and isolates the current stable JAX 0.11.0 CUDA-13 stack as the only
+intervention.
+
+The new gate permits one named G4 allocation, an exact package install and pip report, one
+primitive synchronized GPU-compilation gate, and—only after that passes—two serial ten-step
+physical evaluator repeats. It permits no 3,600-step cell. Another GPU type, nightly package,
+scientific source change, identity mismatch, primitive failure, accounting failure, repeat drift
+or material CPU/G4 divergence stops execution.
+
+If G4 is both scientifically acceptable and at least 1.25x faster, recommend it but do not launch.
+First freeze the selected backend in this file and the campaign manifest, changing the future full
+matrix to all 15 seed/cap cells on G4. If it fails or is not worthwhile, stop G4 experimentation and
+recommend macOS CPU; CPU selection still requires the separate backend-decision update.
 
 ### Exit condition
 
@@ -125,11 +136,10 @@ Do not start:
 
 ## Active blockers and requests
 
-- The exact pinned JAX 0.4.30 CUDA-12 environment cannot execute on the assigned Colab G4
-  Blackwell device: `ptxas` fails before task generation. No valid G4 speed or conservation result
-  exists.
-- A reviewed choice between the validated macOS CPU backend and a separately authorised revised
-  package-compatibility smoke is missing. This blocks every campaign cell.
+- The original pinned JAX 0.4.30 CUDA-12 G4 attempt remains a retained pre-task failure. The newly
+  authorised JAX 0.11.0 CUDA-13 compatibility result is not yet available.
+- No campaign backend is selected. This blocks every campaign cell even if the bounded smoke later
+  recommends G4.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.
