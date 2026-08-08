@@ -1,7 +1,7 @@
 """Thin in-UI demo-workspace service for the P0 clean-workspace journey.
 
 The Streamlit pages remain thin: this module turns the single
-``traffictwin.demo.workspace`` library into atyped, failure-explicit
+``traffictwin.demo.workspace`` library into a typed, failure-explicit
 UI boundary without duplicating generation logic, metrics, or registry
 knowledge.
 """
@@ -24,7 +24,6 @@ DemoWorkspaceReason = Literal[
     "invalid_path",
     "unsafe_path",
     "non_empty_without_force",
-    "already_has_workspace",
     "unexpected_error",
 ]
 

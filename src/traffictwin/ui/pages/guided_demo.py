@@ -153,10 +153,17 @@ def _render_track_status(config: UiConfig, track: DemoTrack) -> None:
     section_header("Active evidence context")
     if track is DemoTrack.STANDALONE:
         badge_row(["SYNTHETIC", "OFFLINE", "DETERMINISTIC"])
-        if config.workspace_path is None:
-            st.warning("No standalone workspace is configured for this app process.")
-            return
-        status = workspace_status(config.workspace_path)
+        workspace: object | None = config.workspace_path
+        if workspace is None:
+            session_path = st.session_state.get("_active_demo_workspace_path")
+            if isinstance(session_path, str) and session_path.strip():
+                from pathlib import Path
+
+                workspace = Path(session_path)
+            else:
+                st.warning("No standalone workspace is configured for this app process.")
+                return
+        status = workspace_status(workspace)  # type: ignore[arg-type]
         workspace_label = "Ready" if status.valid_workspace else "Unavailable"
         st.markdown(
             f"**Workspace:** {workspace_label} | **Scenarios:** {status.scenario_count} | "

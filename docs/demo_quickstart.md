@@ -35,7 +35,13 @@ Every artifact carries `synthetic: true` and a deterministic created instant. No
 
 ## End-to-end browser journey
 
-1. **Home** — after creation shows `Visible local layers: 0` (Manchester scenes are absent in demo), `Registered runs: 62`, `Comparisons: 3`. The empty Manchester card explicitly says no demo workspace was absent before, then "missing observations are not filled with synthetic or stale values".
+1. **Home** — after in-browser creation the page reads the session workspace and shows
+   `Visible local layers: 0` (Manchester scenes are absent in demo), `Registered runs: 62`,
+   `Comparisons: 3` without requiring a process restart; the same counts are shown immediately
+   by `traffictwin demo launch .traffictwin-demo` (which sets `TRAFFICTWIN_WORKSPACE_PATH`).
+   Verify counts directly: `uv run traffictwin demo status .traffictwin-demo`
+   (expect `valid_workspace True, 62/3`). The empty Manchester card correctly states that
+   missing observations are not filled with synthetic or stale values.
 2. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
 3. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
 4. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
