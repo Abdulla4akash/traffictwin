@@ -220,6 +220,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/experiment:",
     ),
     V07PageSpec(
+        UiPage.WHATIF_STUDIO,
+        "Build & run",
+        "app_pages/whatif_studio.py",
+        "whatif-studio",
+        ":material/compare:",
+    ),
+    V07PageSpec(
         UiPage.SCENARIO,
         "Build & run",
         "app_pages/scenario_builder.py",

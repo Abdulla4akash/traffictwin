@@ -174,6 +174,36 @@ Steps:
 The builder exposes only the current synthetic generator model. It does not launch Randy, SUMO, or
 any live data source.
 
+## What-If Studio (V2-S1)
+
+What-If Studio provides the V2 one-click what-if pair orchestration. It reuses the existing
+synthetic generator and ordinary validation/registry services. It does not run SUMO, VEC,
+a provider feed, or an admitted research campaign.
+
+Evidence: every surface is labelled **SYNTHETIC / DETERMINISTIC / LOCAL** and explicitly
+**not** Manchester observation, not a live traffic forecast, not SUMO/VEC execution, and not
+research admission. The banner states: “This studio generates a deterministic synthetic
+baseline and intervention through TrafficTwin’s local generator. It does not run SUMO, VEC,
+a provider feed or an admitted research campaign.”
+
+Distinction: **What-If Studio** creates validated baseline/variation bundles (software
+evidence) and registers the pair for Compare. **Platform → What-If Composer** predicts from
+a bounded surrogate fit and drafts unsigned research campaigns; it cannot approve or execute.
+
+Journey:
+
+1. Choose an existing synthetic preset as the baseline.
+2. Define an intervention from the closed set: incident/event enabled/type/location/start/duration/lanes/demand multiplier, congestion/demand multiplier, vehicle count, task arrival rate and T1/T2/T3 mix, RSU count/capacity, and synthetic policy profile.
+3. Review the deterministic changed-parameter ledger (canonical field paths, lexical ordering, baseline and variation values, no unchanged rows, no LLM prose).
+4. Click **Generate comparison** — the service stages outside final locations, generates both bundles, validates both through the ordinary path, confirms pair compatibility (same experiment identity, variation links to baseline via `baseline_seed_id`, unique scenario IDs, same reproducibility seed unless deliberately changed), publishes both only when the complete pair succeeds, registers both, and sets `selected_bundle_path`, `selected_baseline_run`, `selected_variation_run` plus a small typed receipt for V2-S2.
+5. Inspect the success receipt (pair ID `whatif-<name>-<short-digest>`, request/pair fingerprint, baseline/variation IDs, validation standing, synthetic/evidence labels) and continue to **Compare**, baseline **Run Overview**, or variation **Run Overview**.
+
+Transaction and idempotency: the pair is one product transaction. On any failure (generation, validation, compatibility, publish, or registration) no partial bundle or registry state remains, staging is removed, unrelated data is preserved, and a typed user-readable failure is returned. No broad destructive overwrite is enabled. Path safety uses `pathlib`-aware resolved containment checks, not string prefixes. An exact retry returns the verified existing pair; the same sanitised pair ID with changed content refuses; an existing unrelated non-empty destination refuses; a corrupt/partial pair is not treated as success. Pair fingerprints are deterministic; no absolute private path enters a publication-safe receipt.
+
+Supported intervention fields are intentionally bounded (general congestion/demand, vehicle count, task arrival rate and T1/T2/T3 mix, RSU count/capacity, synthetic policy profile, incident/event controls). Traffic-light programmes, alternative-route optimisation, real provider feeds, learned forecasting, cloud controls, or generic SUMO execution are not part of this slice.
+
+Limitations: consequence lenses, Portfolio Explorer, Manchester calibration, provider activation, research admission, and formal user evaluation remain separate gated tracks and are not performed here. The existing Compare page is the first downstream result surface.
+
 ## Bundle Import & Validation
 
 Use this page to validate a bundle path without pretending that rejected data is usable.

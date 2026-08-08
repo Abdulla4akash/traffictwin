@@ -21,6 +21,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.EXPERIMENT_PLANNER,
         UiPage.PARAMETER_SWEEP,
         UiPage.SCENARIO_MUTATION,
+        UiPage.WHATIF_STUDIO,
         UiPage.SCENARIO,
         UiPage.MANIFEST_WIZARD,
         UiPage.BUNDLE_IMPORT,

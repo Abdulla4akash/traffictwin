@@ -164,6 +164,14 @@ from traffictwin.ui.services.tos import (
     tos_training_run_for_ui,
     tos_training_runs_for_ui,
 )
+from traffictwin.ui.services.whatif_pair import (
+    WhatIfChangedParameter,
+    WhatIfPairReceipt,
+    WhatIfPairRequest,
+    WhatIfVariationOverrides,
+    generate_whatif_pair_for_ui,
+    preview_whatif_ledger_for_ui,
+)
 
 __all__ = [
     "AboutInfo",
@@ -306,4 +314,10 @@ __all__ = [
     "validate_bundle_for_ui",
     "validate_bundle_streaming_for_ui",
     "validate_sumo_for_ui",
+    "WhatIfChangedParameter",
+    "WhatIfPairReceipt",
+    "WhatIfPairRequest",
+    "WhatIfVariationOverrides",
+    "generate_whatif_pair_for_ui",
+    "preview_whatif_ledger_for_ui",
 ]

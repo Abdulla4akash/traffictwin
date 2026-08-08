@@ -23,6 +23,7 @@ class UiPage(StrEnum):
     EXPERIMENT_PLANNER = "Experiment Planner"
     PARAMETER_SWEEP = "Parameter Sweep"
     SCENARIO_MUTATION = "Scenario Mutations"
+    WHATIF_STUDIO = "What-If Studio"
     SCENARIO = "Scenario Builder"
     BUNDLE_IMPORT = "Bundle Import & Validation"
     MANIFEST_WIZARD = "Manifest Inference Wizard"
@@ -70,6 +71,7 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
         "Apply one deterministic mutation to a copied synthetic/evaluation bundle with an exact "
         "change ledger."
     ),
+    UiPage.WHATIF_STUDIO: "Generate a deterministic synthetic baseline/variation pair and continue to Compare.",
     UiPage.SCENARIO: "Author deterministic synthetic scenario configurations and bundles.",
     UiPage.BUNDLE_IMPORT: "Validate and import TrafficTwin run bundles.",
     UiPage.MANIFEST_WIZARD: (

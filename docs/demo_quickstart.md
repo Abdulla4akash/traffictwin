@@ -45,9 +45,10 @@ Every artifact carries `synthetic: true` and a deterministic created instant. No
    BGC, E47000001/E08000003, OGL-3.0) with the explicit statement “Static geographic
    context — no live or observed traffic scene is loaded.” Missing observations are not
    filled with synthetic or stale values.
-2. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
-3. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
-4. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
+2. **What-If Studio (V2-S1)** — **Build & run → What-If Studio**. Choose a baseline preset, define a variation from the closed intervention set, review the deterministic changed-parameter ledger, click **Generate comparison**. The pair is staged, validated, published, and registered transactionally; on success `selected_baseline_run`/`selected_variation_run` are set and Compare is pre-filled. All surfaces state SYNTHETIC/DETERMINISTIC/LOCAL and “This studio generates a deterministic synthetic baseline and intervention through TrafficTwin’s local generator. It does not run SUMO, VEC, a provider feed or an admitted research campaign.” See `docs/user_guide.md#what-if-studio-v2-s1`.
+3. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
+4. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
+5. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
 5. **Guided Demo — Standalone synthetic** — 8 stages from experiment plan → validate → metrics → compare → replay → diagnose → trace → report. Action stages (`register_experiment_plan`, `regenerate_report`) auto-advance; review stages wait for **Reviewed — continue**.
 6. **Reports** — inventory, deterministic regeneration, comparison/difference provenance, export.
 7. **Provenance Explorer** — traces metric → canonical record → source row; bounded graph.
