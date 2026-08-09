@@ -263,14 +263,9 @@ def test_bridge_ledger_distinction_visible(monkeypatch: pytest.MonkeyPatch) -> N
         monkeypatch, UiPage.WHATIF_STUDIO, extra_state={PENDING_WHATIF_CHALLENGE_DRAFT_KEY: handoff}
     )
     assert not app.exception
-    all_text = "\n".join(
-        str(x.value) for coll in [app.markdown, app.caption, app.info, app.warning] for x in coll
-    )
-    assert (
-        "Challenge source fields" in all_text
-        or "actual What-If" in all_text
-        or "ledger" in all_text.lower()
-    )
+    captions = [str(c.value) for c in app.caption]
+    assert "Unmapped controls keep ordinary What-If Studio defaults." in captions
+    assert "The actual generated ledger is authoritative." in captions
 
 
 def test_range_validation_no_crash_and_status_truthful(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -440,40 +435,64 @@ def test_user_edit_survives_through_generation(
 def test_old_receipt_not_relabelled_by_later_ch02(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """HIGH-2: old receipt without challenge must not be relabelled by later CH-02 draft."""
-    # Generate without challenge
-    app = _run_whatif(monkeypatch, tmp_path, extra_state=None)
+    """HIGH-2: old receipt CH-01→CH-02 relabel proof as mandatory transaction."""
+    # 1. Prepare CH-01 through real bridge
+    d01 = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
+    h01 = draft_to_handoff_dict(d01)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h01,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
     assert not app.exception
+    # 2. Generate real What-If pair
     [b for b in app.button if b.label == "Generate comparison"][0].click().run(timeout=30)
     assert not app.exception
     assert "whatif_pair_receipt" in app.session_state
     receipt = app.session_state["whatif_pair_receipt"]
-    assert receipt is not None
+    assert isinstance(receipt, dict)
     pair_id = receipt["pair_id"]
-    # Inject CH-02 draft AFTER generation
-    d2 = build_challenge_whatif_draft(get_challenge_seed("CH-02-lane-closure-corridor"))  # type: ignore[arg-type]
-    app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = draft_to_handoff_dict(d2)
+    request_fp = receipt["request_fingerprint"]
+    assert "last_whatif_generation_challenge_context" in app.session_state
+    ctx = app.session_state["last_whatif_generation_challenge_context"]
+    assert isinstance(ctx, dict)
+    # 4. Exact CH-01 identity and receipt binding
+    assert ctx["challenge_id"] == "CH-01-arena-surge"
+    assert ctx["challenge_fingerprint"] == d01.fingerprint
+    assert ctx["pair_id"] == pair_id
+    assert ctx["request_fingerprint"] == request_fp
+    # 5. Prepare CH-02 as new pending draft WITHOUT generating
+    d02 = build_challenge_whatif_draft(get_challenge_seed("CH-02-lane-closure-corridor"))  # type: ignore[arg-type]
+    h02 = draft_to_handoff_dict(d02)
+    app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = h02
     app.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
+    # 6. Rerender
     app.run(timeout=30)
     assert not app.exception
-    # Success text should NOT contain CH-02 now
+    # 7. Pending draft is CH-02
+    pending = app.session_state["pending_whatif_challenge_draft"]
+    assert isinstance(pending, dict)
+    assert pending["challenge_id"] == "CH-02-lane-closure-corridor"
+    # 8. Old receipt remains same
+    assert "whatif_pair_receipt" in app.session_state
+    receipt2 = app.session_state["whatif_pair_receipt"]
+    assert receipt2["pair_id"] == pair_id
+    assert receipt2["request_fingerprint"] == request_fp
+    # Generation context remains CH-01 exact
+    assert "last_whatif_generation_challenge_context" in app.session_state
+    ctx2 = app.session_state["last_whatif_generation_challenge_context"]
+    assert isinstance(ctx2, dict)
+    assert ctx2["challenge_id"] == "CH-01-arena-surge"
+    assert ctx2["pair_id"] == pair_id
+    assert ctx2["request_fingerprint"] == request_fp
+    assert ctx2["challenge_fingerprint"] == d01.fingerprint
+    # Old success wording does not claim CH-02 generated the old pair
     success_text = " ".join(str(s.value) for s in app.success)
-    # The receipt's provenance should remain without CH-02 label (last generation context was None)
-    assert (
-        "CH-02" not in success_text
-        or "Generated from the supported subset of CH-02" not in success_text
-    )
-    # Specifically, last generation context should still be None or not matching CH-02
-    if "last_whatif_generation_challenge_context" not in app.session_state:
-        ctx2: dict[str, object] | None = None
-    else:
-        raw_ctx = app.session_state["last_whatif_generation_challenge_context"]
-        assert raw_ctx is None or isinstance(raw_ctx, dict)
-        ctx2 = raw_ctx if isinstance(raw_ctx, dict) or raw_ctx is None else None
-        if isinstance(ctx2, dict):
-            assert ctx2.get("pair_id") == pair_id or ctx2 is None
-    if isinstance(ctx2, dict):
-        assert ctx2.get("challenge_id") != "CH-02-lane-closure-corridor"
+    assert "Generated from the supported subset of CH-02" not in success_text
+    assert "CH-02" not in success_text or pair_id in success_text or "CH-01" in success_text
 
 
 # --- MEDIUM-6: cross-draft reset regression ---
