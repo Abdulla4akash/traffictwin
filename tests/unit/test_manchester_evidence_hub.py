@@ -7,12 +7,12 @@ from pathlib import Path
 
 import pytest
 
+from traffictwin.integration.manchester.freshness import FreshnessTruthState
 from traffictwin.ui.manchester_evidence_hub import (
     ManchesterEvidenceHubView,
+    ManchesterSourceReadiness,
     build_manchester_hub_view,
 )
-
-ALLOWED_FRESHNESS = {"historical", "near_live", "live_vehicle", "stale", "unavailable", "synthetic"}
 
 
 def test_deterministic_source_inventory() -> None:
@@ -50,8 +50,8 @@ def test_dft_historical_only() -> None:
     assert dft.freshness_state == "historical"
     assert "live" not in dft.freshness_state.lower()
     # DfT must never be live
-    assert dft.freshness_state != "live_vehicle"
-    assert dft.freshness_state != "near_live"
+    assert str(dft.freshness_state) != "live_vehicle"
+    assert str(dft.freshness_state) != "near_live"
 
 
 def test_webtris_never_mislabeled_live() -> None:
@@ -280,7 +280,9 @@ def test_acquisition_ready_not_scientifically_accepted(
     assert found, "Expected at least one READY source after configuring BODS"
 
 
-def test_acquisition_ready_distinct_from_evidence_present(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_acquisition_ready_distinct_from_evidence_present(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("BODS_API_KEY", raising=False)
     monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
     # Empty workspace: DfT software support AVAILABLE, acquisition READY, but no accepted evidence
@@ -407,10 +409,41 @@ def test_fingerprint_excludes_wall_clock(tmp_path: Path) -> None:
 
 
 def test_freshness_reuses_authoritative_states() -> None:
+    """All built rows validate under the authoritative FreshnessTruthState contract."""
+
+    from typing import get_args
+
     view = build_manchester_hub_view(None)
+    allowed = set(get_args(FreshnessTruthState))
     for src in view.sources:
-        assert src.freshness_state in ALLOWED_FRESHNESS, (
+        assert src.freshness_state in allowed, (
             f"{src.source_id} freshness {src.freshness_state} not in authoritative set"
+        )
+        # Also prove the production model itself enforces the type:
+        # Re-validating the row through the Pydantic model must keep the same state
+        restored = ManchesterSourceReadiness.model_validate(src.model_dump())
+        assert restored.freshness_state == src.freshness_state
+
+
+def test_freshness_rejects_arbitrary_value() -> None:
+    """Arbitrary freshness must be rejected by the authoritative production type."""
+
+    with pytest.raises(Exception):  # noqa: B017 - Pydantic ValidationError is expected
+        ManchesterSourceReadiness(
+            source_id="probe",
+            display_name="Probe",
+            source_role="Probe",
+            evidence_type="probe",
+            evidence_ceiling="probe",
+            coverage_scope="probe",
+            freshness_state="live",  # not in FreshnessTruthState
+            software_support_state="AVAILABLE",
+            configuration_state="probe",
+            local_evidence_state="probe",
+            acquisition_readiness="probe",
+            rights_retention_state="probe",
+            scientific_gate_state="probe",
+            next_action="probe",
         )
 
 
