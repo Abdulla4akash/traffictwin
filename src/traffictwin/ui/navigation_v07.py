@@ -325,6 +325,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/map:",
     ),
     V07PageSpec(
+        UiPage.PORTFOLIO_EXPLORER,
+        "Results",
+        "app_pages/portfolio_explorer.py",
+        "portfolio-explorer",
+        ":material/assessment:",
+    ),
+    V07PageSpec(
         UiPage.COMPARE,
         "Compare & test",
         "app_pages/compare.py",

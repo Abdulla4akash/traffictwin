@@ -734,6 +734,42 @@ closed, demand multiplier, and vehicle references. It can export a linked incide
 configuration. The synthetic preset catalogue includes S5 stadium-event/RSU-siting and S6
 road-clearing/lane-closure workflows. Generated outputs remain synthetic fixtures.
 
+## Portfolio Explorer (V2-S3)
+
+Portfolio Explorer surfaces the existing transparent portfolio selector as a supervisor-readable
+product workflow. It does not train a policy, does not deploy to Kubernetes, does not perform
+live Manchester optimisation, and does not prove causal superiority.
+
+Evidence: every view is labelled synthetic demonstration only unless the source evidence
+explicitly says otherwise. The transparent selector is a fixed ordered rule set over declared seed
+features (load intensity, T1 share, fleet tier mix, infrastructure capacity mode). The selected
+strategy is the first matching rule or the explicit fallback; the rationale comes directly from
+the matched rule. Winner/tie rate, regret, and pairwise dominance are descriptive held-out
+statistics from the synthetic study fixture (three development families, S5/S6 held-out) and are not
+optimality claims.
+
+Challenge Seed Library: seven deterministic synthetic challenges encode supervisor-requested
+situations — arena/event surge, lane-closure corridor, T1-heavy weak fleet, Reduced-capacity stress,
+High-load forwarding context, Ordered-arrival fallback case, and Scaling stress. Each challenge is a
+fixed `ScenarioSeed` override (demand multiplier, birth-rate multiplier, class mix, fleet tier mix,
+RSU count/capacity mode, incident fields) reusing the validated seed schema. All seven are
+currently `REPRESENTABLE_ONLY`: valid and serialisable as ScenarioSeed configuration, but no generic
+current path executes that seed and yields the advertised outcome metrics. TrafficTwin does not currently
+provide a generic ScenarioSeed-to-run execution path for this challenge. Where the generic synthetic product has only one abstract capacity field,
+it is labelled exactly as `infrastructure.rsu_capacity_mode` (STANDARD/REDUCED) and
+`infrastructure.rsu_count`; waiting-room size is not conflated with compute cores. If a future
+challenge cannot be represented, it will be marked `NOT_YET_EXECUTABLE` rather than inventing a field. Target
+evidence surfaces are those this challenge is intended to probe if executed.
+
+Workflow: choose a challenge seed, inspect scenario features (load intensity, T1 share, fleet tier mix,
+infrastructure capacity mode, RSU count, fleet count, demand and birth-rate multipliers), inspect selector decision and
+rationale (matched rule ID must agree with the displayed claim; CH-03 T1-heavy weak-fleet shows P1-weak-fleet shadowing P2), inspect all constituent strategies and ranking by mean regret (lower is better; metric objective itself is MAXIMISE), inspect regret/dominance and held-out
+evidence (held-out n=2, development does not train the rules — rules are predeclared), then continue to Scenario Builder, Experiments, Compare, or Provenance. The
+explorer reads only local deterministic data and requires no provider credentials and has no dependency on internal ConsequenceLensReport or WhatIfPairReceipt.
+
+Limitations: synthetic result, not Manchester or live evidence; no Kubernetes deployment; no live
+control; no causal claim; waiting-room vs compute distinction preserved. Illustrative held-out set: n=2. On these two synthetic seeds, the rule selector does not outperform the strongest single constituent.
+
 ## Provenance Explorer
 
 The Provenance Explorer is a read-only audit page. It shows how TrafficTwin derived a displayed
