@@ -1070,3 +1070,58 @@ def test_legacy_two_tuple_still_miss_or_hit_correctly(tmp_path: Path) -> None:
     assert isinstance(cache_dict2, dict)
     entry2 = cache_dict2.get(resolved)
     assert isinstance(entry2, tuple) and len(entry2) == 3
+
+
+def test_malformed_entry_with_live_fingerprint_and_wrong_analysis_type_must_miss(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """M13: ``isinstance(analysis, BundleAnalysis)`` guard must be reached.
+
+    The existing malformed matrix uses ``logical=\"logical\"`` which mismatches
+    the live fingerprint, so the entry is rejected on fingerprint mismatch
+    before the analysis-type guard is exercised.  This test inserts a
+    malformed 3-tuple with the exact live fingerprint but a wrong analysis
+    type (plain ``str``) so the only way to miss is via the
+    ``BundleAnalysis`` type guard.  Removing that guard (M13) leaks the raw
+    ``str`` as a cache hit with 0 validator calls and violates the
+    ``BundleAnalysis`` contract.
+    """
+
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    dst = _baseline_copy(tmp_path, "m13_live_fp_wrong_type")
+    current_logical = fingerprint_bundle_source(dst)
+    assert isinstance(current_logical, str), "live fingerprint must be str"
+    # Malformed entry: exact live fingerprint, wrong analysis type
+    session_state: dict[str, object] = {
+        "_consequence_bundle_cache": {
+            str(dst.resolve()): (None, current_logical, "not-a-bundle-analysis")
+        }
+    }
+    calls = {"n": 0}
+    orig = cache_mod.validate_bundle_for_ui
+
+    def counting(path: Path) -> BundleAnalysis:
+        calls["n"] += 1
+        return orig(path)
+
+    monkeypatch.setattr("traffictwin.ui.consequence_cache.validate_bundle_for_ui", counting)
+    result = session_validate_bundle(dst, session_state)
+    # Must miss and revalidate via production validator
+    assert calls["n"] == 1, "malformed live-fingerprint entry must miss and call validator once"
+    assert isinstance(result, BundleAnalysis), "must return BundleAnalysis, not leaked str"
+    assert result.analysis_ready, "fixture bundle must be analysis_ready"
+    assert result.validation.fingerprint == current_logical
+    # Final stored entry must be valid typed shape, not the wrong string
+    cache_dict = session_state["_consequence_bundle_cache"]  # type: ignore[assignment]
+    assert isinstance(cache_dict, dict)
+    entry = cache_dict.get(str(dst.resolve()))
+    assert isinstance(entry, tuple) and len(entry) == 3
+    assert entry[0] is None
+    assert isinstance(entry[1], str)
+    assert isinstance(entry[2], BundleAnalysis)
+    assert entry[2].validation.fingerprint == current_logical
+    assert not isinstance(result, str)
+    assert (
+        entry[2] is not result
+    )  # deep-copy isolation also holds, but at least not the injected str
