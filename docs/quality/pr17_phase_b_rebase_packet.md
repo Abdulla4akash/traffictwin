@@ -80,66 +80,92 @@ Zero-page proof (no new page / navigation edits):
 
 Avoid brittle line numbers: reset button is `st.button("Reset to stock defaults", key="whatif_clear_challenge_prefill")` in the challenge-source panel of `whatif_studio.py`; ledger distinction is `st.info("Challenge source fields above are separate from the actual What-If changed-parameter ledger below. Only the ledger determines what will be generated.")` shown when `challenge_draft is not None and can_generate`; disclosures are `st.caption("Unmapped controls keep ordinary What-If Studio defaults.")` and `st.caption("The actual generated ledger is authoritative.")`.
 
-## 5. Exact official Phase-B rebase procedure after PR #13 merges
+## 5. Exact official Phase-B rebase procedure after PR #13 merges (merge-style-agnostic, fail-closed, draft-guarded)
 
-**Current reality (already retargeted):** PR #17 has already been retargeted to `main` while head remains `bb30fd4` (see §1). This prevents auto-close when `agent/product-portfolio-explorer-v2` is deleted. The temporary diff on GitHub is not the final Phase-B diff and must not be reviewed/merged. Future procedure begins with verification of this retargeted state.
+**Current reality (already retargeted):** PR #17 has already been retargeted to `main` while head remains `bb30fd4` (see §1). This prevents auto-close when `agent/product-portfolio-explorer-v2` is deleted. The temporary diff on GitHub is not the final Phase-B diff and must not be reviewed/merged. Future procedure begins with verification of this retargeted state. DRAFT status is the active safety guard — do not mark READY until Phase-B replay + final Claude 4 exact-head review (see Draft invariant below).
 
-**Trigger:** `gh pr view 13 --json state` becomes `MERGED` and `git rev-parse origin/main` contains `2d7e85f`.
+**Trigger — two gates, both required (see also CI and readiness sections):** PR #13 `mergedAt != null` (GitHub) AND live `origin/main` satisfies PR #13 product contract via `tools/check_pr17_phase_b_ready.py` → `READY_FOR_PHASE_B`. Do not use `git merge-base --is-ancestor 2d7e85f origin/main` as required gate (informational only — fails for squash/rebase).
 
-Do NOT touch official PR #17 until this trigger, even though its base is already `main`.
+Do NOT touch official PR #17 until both gates are READY, even though its base is already `main`.
 
-Procedure (mechanical, no re-interpretation — starts with verification, then safety ref, then destructive ops):
+**Draft invariant (formal):** At start and end, PR #17 must satisfy `state==OPEN && isDraft==true && baseRefName==main && headRefOid==bb30fd4` (or new SHA after Phase-B). If ever observed READY before final review, immediately convert back to DRAFT via `gh pr edit 17 --add-label`/`gh pr ready` inversion (`gh pr edit 17 --repo Abdulla4akash/traffictwin` → `gh api` to convert to draft) — do not interpret `MERGEABLE` as authorization. PR body top banner must say **DRAFT STATUS IS AN ACTIVE SAFETY GUARD — DO NOT MARK READY UNTIL PHASE-B REPLAY + FINAL CLAUDE 4 EXACT-HEAD REVIEW.**
+
+Procedure (mechanical, 12 steps — starts with verification, then safety ref, then destructive ops):
 
 ```bash
+# 1. git fetch origin --prune
 git fetch origin --prune
-# 1. Verify PR #17 still OPEN/DRAFT, base main, head bb30fd4 (retarget already done)
-gh pr view 17 --repo Abdulla4akash/traffictwin --json state,isDraft,baseRefName,headRefName,headRefOid
+# 2. Verify PR #17: OPEN, DRAFT, base main, head bb30fd4 (retarget already done)
+gh pr view 17 --repo Abdulla4akash/traffictwin --json state,isDraft,baseRefName,headRefName,headRefOid,mergedAt
 # must be: state=OPEN, isDraft=true, baseRefName=main, headRefOid=bb30fd49640084c9a0878afc3191e6e368c5edd0
 git rev-parse agent/product-challenge-whatif-bridge-v2  # must be bb30fd4
 git rev-parse origin/agent/product-challenge-whatif-bridge-v2  # must be bb30fd4
-# 2. Verify safety tag exists locally and remotely BEFORE any destructive command
+# If DRAFT is false, restore DRAFT via metadata only before continuing:
+# gh pr edit 17 --repo Abdulla4akash/traffictwin --add-label  (or gh api -X PUT .../pulls/17 --field draft=true)
+# 3. Verify safety tag exists locally/remotely BEFORE any destructive command
 git rev-parse pr17-pre-phase-b-bb30fd4^{commit}  # must be bb30fd4
 git ls-remote --tags origin refs/tags/pr17-pre-phase-b-bb30fd4  # must show 0d1f0fe... bb30fd4
-# 3. Verify PR #13 trigger
-gh pr view 13 --repo Abdulla4akash/traffictwin --json state,headRefOid,baseRefName,mergedAt
-git log --oneline origin/main -5  # must show 2d7e85f merged
-# 4. Create rebase tmp from new live main
+# 4. Verify PR #13: mergedAt != null (Gate A)
+gh pr view 13 --repo Abdulla4akash/traffictwin --json state,mergedAt,headRefOid,mergeCommit,baseRefName
+# must be: mergedAt != null (ISO timestamp)
+# 5. Run merge-style-agnostic PR13 content/readiness check against live origin/main (Gate B)
+python3 tools/check_pr17_phase_b_ready.py --pr13-merged-at "$(gh pr view 13 --repo Abdulla4akash/traffictwin --json mergedAt --jq .mergedAt)" --main-path "$(git rev-parse --show-toplevel)"
+# or on synthetic checkout: python3 tools/check_pr17_phase_b_ready.py --pr13-merged-at "$MERGED_AT" --main-path /tmp/checkout
+# Require READY_FOR_PHASE_B (exit 0). BLOCKED_PR13_OPEN (exit 1) or BLOCKED_CONTENT_MISMATCH (exit 2) → stop.
+# 6. Require READY_FOR_PHASE_B (both gates). If BLOCKED, stop and investigate.
+# 7. Record hosted CI status: healthy OR CI_INFRASTRUCTURE_BLOCKED
+gh run list --repo Abdulla4akash/traffictwin --limit 5
+gh run view <RUN_ID> --repo Abdulla4akash/traffictwin  # check "The job was not started because recent account payments..."
+# Classification: CI_INFRASTRUCTURE_BLOCKED is not product regression. Do not edit .github/workflows/**.
+# 8. If owner authorizes Phase B: create temporary Phase-B branch from live origin/main, replay reviewed 7-commit packet
 git checkout -b tmp-phase-b origin/main
 # Verify patch range still 3 commits from pre-Phase-B head
 git log --oneline 2d7e85f..bb30fd4 --reverse  # 7aae39b, f148805, bb30fd4
 # Replay PR #17 core (identical patches — preserves reviewed product patch)
-git cherry-pick 7aae39ba5a46ead8429fdf020a13ced55acf4eb6  # 7aae39b
-git cherry-pick f14880501cf7ac203a61fa7a82843f26548672d2  # f148805
-git cherry-pick bb30fd49640084c9a0878afc3191e6e368c5edd0  # bb30fd4
-# Replay UX/test hardening from this canonical packet branch (use commit hashes from rehearsal/pr17-phase-b-v1)
-git cherry-pick 9b59b6a  # a6cb1bb equivalent
-git cherry-pick 9a05fb6  # f31a34e equivalent
-git cherry-pick 459677f
-git cherry-pick 884618e
-# Verify
+git cherry-pick 7aae39ba5a46ead8429fdf020a13ced55acf4eb6  # 7aae39b → 191c83f
+git cherry-pick f14880501cf7ac203a61fa7a82843f26548672d2  # f148805 → d66f099
+git cherry-pick bb30fd49640084c9a0878afc3191e6e368c5edd0  # bb30fd4 → 4407059
+# Replay UX/test hardening from canonical packet branch
+git cherry-pick 9b59b6a  # a6cb1bb equivalent → 2d196ee
+git cherry-pick 9a05fb6  # f31a34e equivalent → 2bb02685
+git cherry-pick 459677f  # → 6248a2f
+git cherry-pick 884618e  # → 095d30b
+# Verify patch IDs for the original reviewed bridge commits
+git patch-id --stable < <(git show 7aae39b)  # must equal replay
+git patch-id --stable < <(git show <replay>)  # see synthetic proof table
+# 9. Verify, then run focused/full local validation + project gates
 git diff origin/main..HEAD --stat  # 8 files, 2726/31
 git diff origin/main..HEAD --name-only  # no navigation files
 ls src/traffictwin/ui/pages/*.py | wc -l  # 55
 ls src/traffictwin/ui/app_pages/*.py | wc -l  # 53
-# Gates
 uv run --no-sync ruff check .
 uv run --no-sync ruff format --check .
 uv run --no-sync mypy
 uv lock --check
 git diff --check
-# Tests (serial, E1 may still be active)
-uv run --no-sync python -m pytest tests/unit/test_challenge_whatif_bridge.py tests/ui/test_challenge_whatif_bridge_ui.py tests/integration/test_challenge_whatif_e2e.py tests/ui/test_whatif_studio.py tests/unit/test_whatif_pair.py -q
-uv run --no-sync python -m pytest tests/unit/test_challenge_whatif_bridge.py tests/ui/test_challenge_whatif_bridge_ui.py tests/integration/test_challenge_whatif_e2e.py tests/ui/test_whatif_studio.py tests/unit/test_whatif_pair.py tests/ui/test_portfolio_explorer.py tests/unit/test_portfolio_explorer.py tests/ui/test_cross_page_state.py tests/ui/test_navigation_v07.py -q
-# Push official (only after safety tag verified and tests/gates pass)
+uv run --no-sync python -m pytest tests/unit/test_challenge_whatif_bridge.py tests/ui/test_challenge_whatif_bridge_ui.py tests/integration/test_challenge_whatif_e2e.py tests/ui/test_whatif_studio.py tests/unit/test_whatif_pair.py -q  # 79
+# 10. Force-with-lease official PR17 head against expected old SHA bb30fd4 (precondition)
+REMOTE_BEFORE=$(git rev-parse origin/agent/product-challenge-whatif-bridge-v2)
+# Require REMOTE_BEFORE == bb30fd49640084c9a0878afc3191e6e368c5edd0
+# Then:
 git checkout agent/product-challenge-whatif-bridge-v2
 git reset --hard tmp-phase-b
-git push --force-with-lease origin agent/product-challenge-whatif-bridge-v2
-# Base is already main — verify, do not retarget again unless it drifted
-gh pr view 17 --repo Abdulla4akash/traffictwin --json baseRefName  # must be main
+git push --force-with-lease=refs/heads/agent/product-challenge-whatif-bridge-v2:bb30fd49640084c9a0878afc3191e6e368c5edd0 origin <NEW_PHASE_B_SHA>:refs/heads/agent/product-challenge-whatif-bridge-v2
+# This prevents overwriting unexpected concurrent work.
+# 11. Verify PR remains base main and DRAFT after force-push
+gh pr view 17 --repo Abdulla4akash/traffictwin --json state,isDraft,baseRefName,headRefOid
+# must be: OPEN, DRAFT true, base main, head = new Phase-B SHA
+# If READY, convert back to DRAFT before requesting final review.
+# 12. Request Claude 4 final exact-head review. Only after final review may owner consider mark-ready/merge.
+# If hosted CI remains billing-blocked: retain CI_INFRASTRUCTURE_BLOCKED, do not edit workflows, rerun CI once owner restores billing.
 git branch -D tmp-phase-b
 ```
 
 If `git cherry-pick` reports 0 conflicts, proceed; if conflict, resolve by accepting both sides (additive bridge sections), then `git cherry-pick --continue`. Do not improvise outside this packet — any deviation is a packet defect.
+
+**Force-with-lease safety property:** Push must use `--force-with-lease=refs/heads/agent/product-challenge-whatif-bridge-v2:bb30fd49640084c9a0878afc3191e6e368c5edd0` so it fails if remote advanced unexpectedly.
+
+**Draft after force-push invariant:** After push, `gh pr view 17` must still be `isDraft=true`; if not, `gh pr edit 17 --repo Abdulla4akash/traffictwin` → convert to draft via API before requesting review.
 
 ## 6. Test commands and expected counts
 
@@ -150,6 +176,124 @@ On rehearsal `884618e` (and after Phase-B):
 - Broader rehearsal boundary `+ tests/ui/test_portfolio_explorer.py tests/unit/test_portfolio_explorer.py tests/ui/test_cross_page_state.py tests/ui/test_navigation_v07.py` → **181** collected (previously ~180, now 181 after 8-line ledger test growth)
 
 Expected passes: 45, 79, 181 respectively (serial, E1 active).
+
+## CI state classification
+
+Current hosted Actions (verified 2026-08-09 via `gh run list`/`gh run view` on 20 recent runs across branches):
+
+`CI_INFRASTRUCTURE_BLOCKED`
+
+Evidence:
+- `gh run view 31333013313` (rehearsal/pr17-phase-b-v1) → `The job was not started because recent account payments have failed or your spending limit needs to be increased.`
+- `gh run view 31332811555` (tag pr17-pre-phase-b-bb30fd4) → same
+- `gh run view 31338793418` (PR #16) → same
+- All 20 recent `gh run list` entries `completed failure` with 3-5s duration, 0 steps executed.
+
+Meaning:
+- Jobs do not start; 0 steps, `log not found`.
+- Red GitHub check UI is **not evidence of test failure** or product regression.
+- Local gates remain the only executable code validation until billing is restored.
+
+Owner action:
+**Restore repository/account GitHub Actions billing/spending availability.** No workflow edits, no fake-success steps, no `rerun` loops, no code workaround. Do not edit `.github/workflows/**`.
+
+Phase-B behavior while blocked:
+- Keep PR #17 DRAFT.
+- Do not interpret red zero-step jobs as code regression.
+- Do not merge merely because local tests pass.
+- Once billing is fixed, rerun hosted CI against the exact final Phase-B head.
+
+---
+
+## Old Phase-B trigger (ancestry assumption) — why it fails
+
+Previous packet versions used (informationally):
+
+```bash
+git merge-base --is-ancestor 2d7e85f origin/main
+```
+
+- **Normal merge commit** (merge `--no-ff`): ancestry **TRUE** (exact head preserved).
+- **Squash merge** (one squashed commit): **FALSE** — exact `2d7e85f` SHA not in history, even though content is correct.
+- **Rebase-and-merge** (replayed commits): **FALSE** — SHAs changed, ancestry absent.
+
+Yet the PR is correctly merged in all three. Exact-head ancestry is therefore **informational only**, not a required gate.
+
+---
+
+## New readiness contract (merge-style-agnostic)
+
+Phase B may begin only when **BOTH** are true:
+
+### Gate A — GitHub says PR #13 was actually merged
+
+```bash
+gh pr view 13 --repo Abdulla4akash/traffictwin --json state,mergedAt,headRefOid,mergeCommit
+```
+
+Require: `mergedAt != null`
+
+Do not use `state == CLOSED` alone (closed-unmerged is insufficient).
+
+### Gate B — live main contains the required PR #13 product contract
+
+Do not rely on SHA ancestry. Verify semantic/content presence on fetched `origin/main` via `tools/check_pr17_phase_b_ready.py` (read-only).
+
+At minimum establish from live main:
+
+- Portfolio Explorer production module exists (`src/traffictwin/ui/portfolio_explorer.py`)
+- Portfolio Explorer page exists (`src/traffictwin/ui/pages/portfolio_explorer.py`, `src/traffictwin/ui/app_pages/portfolio_explorer.py`)
+- Portfolio page is registered (`src/traffictwin/ui/labels.py` + `navigation_v07.py` contain `PORTFOLIO_EXPLORER` exactly once)
+- Challenge Seed Library data/contracts exist (`ChallengeSeedDefinition`, `get_challenge_seed_library`)
+- All seven challenge seeds remain `REPRESENTABLE_ONLY` (no `EXECUTABLE`/`NOT_YET_EXECUTABLE` for seeds; IDs `CH-01`..`CH-07` present)
+- Authoritative selector-consumed contract exists (`SELECTOR_CONSUMED_FIELDS`, `is_selector_input`)
+- Portfolio production fingerprint includes reviewed evidence semantics (`challenge_target_surfaces`, `selector_input_features`)
+- No generic ScenarioSeed→run executor appeared (no `def run_challenge` etc.)
+- Navigation/page contract includes Portfolio exactly once (`navigation.py` contains `portfolio`)
+
+The script `tools/check_pr17_phase_b_ready.py` implements Gate B exactly from `src/traffictwin/ui/portfolio_explorer.py` as source of truth.
+
+---
+
+## Merge-style-agnostic readiness states
+
+The checker/packet reports:
+
+- **BLOCKED_PR13_OPEN** — `mergedAt == null` → No Phase B.
+- **BLOCKED_CONTENT_MISMATCH** — `mergedAt != null` but current main does not satisfy expected Portfolio/Challenge product contract → No Phase B, investigate merge result.
+- **READY_FOR_PHASE_B** — `mergedAt != null` AND product contract exists on live main → Only then may owner authorize Phase-B replay.
+
+Do not equate `2d7e85f is ancestor` with readiness.
+
+---
+
+## Synthetic merge-style proof (disposable LOCAL refs, now deleted)
+
+Starting from `origin/main` + PR #13 contribution, constructed three synthetic outcomes:
+
+| style | `2d7e85f` ancestor? | content gate (checker) | final readiness |
+|---|---|---|---|
+| Normal merge commit (`merge --no-ff 2d7e85f`) | TRUE | PASS | **READY** |
+| Squash merge (`merge --squash 2d7e85f` as one commit) | FALSE | PASS | **READY** |
+| Rebase-style (`cherry-pick origin/main..2d7e85f`, 8 commits) | FALSE | PASS | **READY** |
+| Negative control (merged true but `portfolio_explorer.py` removed) | TRUE | FAIL (missing file) | **BLOCKED_CONTENT_MISMATCH** |
+
+Plus: `mergedAt null` on good content → **BLOCKED_PR13_OPEN** (verified).
+
+This proves the old ancestry check fails for squash/rebase where the new semantic checker still returns READY, which is why the packet was changed.
+
+Lightweight checker `tools/check_pr17_phase_b_ready.py` plus `tests/unit/test_pr17_phase_b_readiness.py` (6 tests) were executed on `rehearsal/pr17-phase-b-v1`:
+
+- `test_pr13_not_merged_blocked` → PASS
+- `test_merged_blocked_content_mismatch_missing_file` → PASS
+- `test_merged_ready_on_rehearsal` → PASS
+- `test_merged_challenge_status_changed_blocked` → PASS (EXECUTABLE triggers BLOCKED)
+- `test_content_gate_direct` → PASS
+- `test_content_gate_missing_portfolio` → PASS
+
+See `uv run --no-sync python -m pytest tests/unit/test_pr17_phase_b_readiness.py -q`.
+
+---
 
 ## 7. Owner / reviewer sequence and evidence provenance
 
