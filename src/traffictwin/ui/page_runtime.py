@@ -59,6 +59,7 @@ from traffictwin.ui.pages import (
     tos_training_audit,
     triviality,
     vec_workbench,
+    whatif_studio,
 )
 from traffictwin.ui.state import UiConfig, load_ui_config
 
@@ -71,6 +72,7 @@ PAGE_RENDERERS: dict[UiPage, PageRenderer] = {
     UiPage.EXPERIMENT_PLANNER: experiment_planner.render,
     UiPage.PARAMETER_SWEEP: parameter_sweep.render,
     UiPage.SCENARIO_MUTATION: scenario_mutation.render,
+    UiPage.WHATIF_STUDIO: whatif_studio.render,
     UiPage.SCENARIO: scenario_builder.render,
     UiPage.BUNDLE_IMPORT: bundle_import.render,
     UiPage.MANIFEST_WIZARD: manifest_inference.render,

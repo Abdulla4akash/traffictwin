@@ -63,7 +63,7 @@ def test_ensure_rejects_unsafe_paths(tmp_path: Path) -> None:
 
 def test_ensure_rejects_none_and_empty_string() -> None:
     for bad in [None, "", "   "]:
-        result = ensure_demo_workspace(bad)  # type: ignore[arg-type]
+        result = ensure_demo_workspace(bad)
 
         assert result.status == "failed"
         assert result.reason == "invalid_path"
