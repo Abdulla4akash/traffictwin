@@ -223,11 +223,11 @@ def render() -> None:
                 disabled=(draft.mapping_status == "NOT_MAPPABLE" and not draft.supported_fields),
             ):
                 st.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = draft_to_handoff_dict(draft)
+                # Reset fingerprint so What-If Studio will seed this exact draft once
+                st.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
                 st.session_state["whatif_challenge_prefill_applied"] = False
                 # Navigate via pending key (works inside callbacks and direct)
                 st.session_state["_v07_pending_page"] = UiPage.WHATIF_STUDIO.value
-                # Also keep legacy key for compatibility
-                st.session_state["pending_whatif_challenge_draft"] = draft_to_handoff_dict(draft)
                 st.success(
                     f"Prepared {len(draft.supported_fields)} supported field(s) from "
                     f"{draft.challenge_id}. Opening What-If Studio…"
