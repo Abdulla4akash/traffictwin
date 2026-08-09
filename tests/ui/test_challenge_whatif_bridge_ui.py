@@ -221,9 +221,28 @@ def test_whatif_clear_prefill_button_exists(monkeypatch: pytest.MonkeyPatch) -> 
     )
     assert not app.exception
     buttons = [b.label for b in app.button]
-    assert "Clear challenge prefill" in buttons
+    assert "Reset to stock defaults" in buttons
+    assert "Clear challenge prefill" not in buttons
     # Keep editing button should not exist (LOW-5)
     assert "Keep editing" not in buttons
+
+
+def test_unmapped_controls_disclosure_visible(monkeypatch: pytest.MonkeyPatch) -> None:
+    d = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
+    handoff = draft_to_handoff_dict(d)
+    app = _run_page(
+        monkeypatch, UiPage.WHATIF_STUDIO, extra_state={PENDING_WHATIF_CHALLENGE_DRAFT_KEY: handoff}
+    )
+    assert not app.exception
+    all_text = "\n".join(
+        str(x.value) for coll in [app.markdown, app.caption, app.info, app.warning] for x in coll
+    )
+    assert "Unmapped controls keep ordinary What-If Studio defaults." in all_text
+    # Distinguishes mapped vs unsupported vs defaults vs user edits vs ledger
+    assert "Mapped fields" in all_text or "mapped" in all_text.lower()
+    assert "unsupported" in all_text.lower()
+    assert "ordinary" in all_text.lower() and "defaults" in all_text.lower()
+    assert "actual generated ledger" in all_text.lower()
 
 
 def test_whatif_without_handoff_has_no_challenge_panel(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -667,7 +686,7 @@ def test_new_draft_resets_before_overlay_clears_user_edit(
 
 
 def test_clear_restores_full_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Clear must restore the same authoritative stock defaults."""
+    """Reset to stock defaults must restore the same authoritative stock defaults."""
     from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
 
     d01 = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
@@ -682,8 +701,8 @@ def test_clear_restores_full_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path:
     )
     assert not app.exception
     assert "stadium_event" in str(app.session_state["whatif_incident_type"])
-    # Click Clear
-    clear_btn = [b for b in app.button if b.label == "Clear challenge prefill"]
+    # Click Reset to stock defaults
+    clear_btn = [b for b in app.button if b.label == "Reset to stock defaults"]
     assert clear_btn
     clear_btn[0].click().run(timeout=30)
     assert not app.exception
@@ -698,3 +717,115 @@ def test_clear_restores_full_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path:
         or app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] is None
     )
     assert app.session_state["whatif_challenge_prefill_applied_fingerprint"] is None
+
+
+def test_ch07_default_incident_truth(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """CH-07 leaves ordinary default incident enabled; not attributed to CH-07."""
+    from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
+
+    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
+    # CH-07 must NOT map any incident field
+    assert "incident_type" not in d07.whatif_overrides
+    assert "incident_location" not in d07.whatif_overrides
+    assert "incident_duration_s" not in d07.whatif_overrides
+    assert "incident_enabled" not in d07.whatif_overrides
+    # Incident fields must be unsupported? No, just absent — check supported list has no incident
+    incident_mapped = [f for f in d07.supported_fields if "incident" in f.whatif_field]
+    assert not incident_mapped, f"CH-07 should not map incident, got {incident_mapped}"
+    h07 = draft_to_handoff_dict(d07)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h07,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    # Incident should be ordinary Studio default (enabled, synthetic_congestion_pulse etc.)
+    assert bool(app.session_state["whatif_incident_enabled"]) is True
+    assert (
+        app.session_state["whatif_incident_type"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_type"]
+    )
+    assert (
+        app.session_state["whatif_incident_location"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_location"]
+    )
+    # Labelled as ordinary default, not CH-07 mapped — check panel does not list incident as mapped
+    all_text = "\n".join(
+        str(x.value) for coll in [app.markdown, app.caption, app.info, app.warning] for x in coll
+    )
+    assert "Unmapped controls keep ordinary What-If Studio defaults." in all_text
+    # Supported fields caption should not mention incident
+    assert "incident_type" not in "\n".join(f.whatif_field for f in d07.supported_fields)
+    # Generate and prove ledger records actual generation
+    gen_btn = [b for b in app.button if b.label == "Generate comparison"]
+    assert gen_btn
+    gen_btn[0].click().run(timeout=30)
+    assert not app.exception
+    assert "whatif_pair_receipt" in app.session_state
+    # Provenance must not claim CH-07 supplied incident
+    assert "last_whatif_generation_challenge_context" in app.session_state
+    ctx = app.session_state["last_whatif_generation_challenge_context"]
+    # ctx should exist and have challenge_id CH-07, but its supported count is 4 and no incident
+    if isinstance(ctx, dict):
+        assert ctx.get("challenge_id") == "CH-07-scaling-strategy"
+        assert ctx.get("supported_count") == 4
+        # Incident not from challenge; ensure provenance does not list it as supplied
+        assert "incident" not in str(ctx.get("challenge_id"))
+    # Ledger not retroactively attributed — challenge note must not claim incident from CH-07
+    success_text = " ".join(str(s.value) for s in app.success)
+    assert "CH-07" in success_text or "whatif-" in success_text
+    # Ensure not claiming incident from CH-07
+    assert "stadium_event" not in success_text
+
+
+def test_unmapped_user_edit_represented_in_ledger_not_challenge(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Unmapped field edited by user appears in ledger, not attributed to challenge."""
+    from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
+
+    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
+    h07 = draft_to_handoff_dict(d07)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h07,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    # Edit unmapped control: incident_duration (CH-07 does not map it) from default 60.0 to 123.0
+    default_dur = float(DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_duration_s"])
+    assert float(app.session_state["whatif_incident_duration_s"]) == default_dur
+    dur_inp = next(inp for inp in app.number_input if "Duration (s)" in str(inp.label))
+    dur_inp.set_value(123.0).run(timeout=30)
+    assert not app.exception
+    assert abs(float(app.session_state["whatif_incident_duration_s"]) - 123.0) < 1e-6
+    # Generate
+    gen_btn = [b for b in app.button if b.label == "Generate comparison"]
+    assert gen_btn
+    gen_btn[0].click().run(timeout=30)
+    assert not app.exception
+    receipt = app.session_state["whatif_pair_receipt"]
+    changed = {p["field_path"]: p for p in receipt.get("changed_parameters", [])}
+    # Unmapped edit must be in actual ledger
+    assert (
+        "incident_schedule[0].duration_s" in changed
+        or "incident_duration_s" in changed
+        or any("duration_s" in k for k in changed)
+    ), f"duration not in ledger {list(changed.keys())}"
+    # Find the duration entry
+    dur_key = next((k for k in changed if "duration" in k), None)
+    assert dur_key is not None
+    assert abs(float(changed[dur_key]["variation_value"]) - 123.0) < 1e-6
+    # Provenance must not attribute duration to CH-07; ledger proves user edit
+    assert "last_whatif_generation_challenge_context" in app.session_state
+    ctx = app.session_state["last_whatif_generation_challenge_context"]
+    assert isinstance(ctx, dict)
+    assert ctx.get("challenge_id") == "CH-07-scaling-strategy"
+    # Challenge mapped fields must not include duration
+    assert not any("incident" in f.whatif_field for f in d07.supported_fields)

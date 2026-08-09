@@ -177,8 +177,15 @@ def render(config: UiConfig) -> None:
                 "Challenge parameters are applied as intervention inputs against the "
                 "baseline preset you choose."
             )
+            st.caption("Unmapped controls keep ordinary What-If Studio defaults.")
+            st.caption(
+                "Mapped fields above come from the selected challenge; "
+                "unsupported fields are not mappable; other controls keep ordinary "
+                "Studio defaults unless you edit them; user edits after prefill are "
+                "preserved; the actual generated ledger at click time is authoritative."
+            )
             st.caption(f"Bridge fingerprint: `{challenge_draft.fingerprint[:12]}`")
-            if st.button("Clear challenge prefill", key="whatif_clear_challenge_prefill"):
+            if st.button("Reset to stock defaults", key="whatif_clear_challenge_prefill"):
                 st.session_state.pop(PENDING_WHATIF_CHALLENGE_DRAFT_KEY, None)
                 st.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
                 st.session_state["whatif_challenge_prefill_applied"] = False
