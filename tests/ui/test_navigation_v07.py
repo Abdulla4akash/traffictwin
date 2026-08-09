@@ -101,6 +101,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.FAIRNESS: ("Results", "fairness"),
         UiPage.INFRASTRUCTURE: ("Results", "infrastructure"),
         UiPage.SPATIAL_RSU: ("Results", "spatial-rsu"),
+        UiPage.MANCHESTER_EVIDENCE_HUB: ("Evidence & reports", "manchester-evidence-hub"),
         UiPage.COMPARE: ("Compare & test", "compare"),
         UiPage.STATISTICAL_STUDY: ("Compare & test", "statistics"),
         UiPage.THRESHOLD_SENSITIVITY: ("Compare & test", "threshold-sensitivity"),

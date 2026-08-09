@@ -47,6 +47,7 @@ class UiPage(StrEnum):
     COMPARE = "Comparison"
     JOURNEY_TIME = "Journey-Time Lens"
     CONSEQUENCE_LENSES = "Consequence Lenses"
+    MANCHESTER_EVIDENCE_HUB = "Manchester Evidence Hub"
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
@@ -134,6 +135,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.CONSEQUENCE_LENSES: (
         "Inspect curated traffic and VEC consequence lenses over an existing "
         "baseline/variation comparison."
+    ),
+    UiPage.MANCHESTER_EVIDENCE_HUB: (
+        "Manchester source inventory, readiness, evidence standing and activation blockers. "
+        "Synthetic/manual input is not promoted to observed evidence."
     ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",

@@ -716,6 +716,38 @@ closed, demand multiplier, and vehicle references. It can export a linked incide
 configuration. The synthetic preset catalogue includes S5 stadium-event/RSU-siting and S6
 road-clearing/lane-closure workflows. Generated outputs remain synthetic fixtures.
 
+## Manchester Evidence Hub (V2-M1)
+
+Manchester Evidence Hub provides a supervisor-readable source inventory and activation readiness
+view over existing Manchester integration contracts. It does not invent a new acquisition path,
+does not fetch network data on render, and does not decide scientific policy.
+
+Each source retains its exact semantics:
+
+- **DfT**: historical traffic counts (not live).
+- **WebTRIS**: historical/latest per accepted contract (not casually live).
+- **BODS**: live/recent BUS positions, bus-only (not general traffic, not Manchester-wide flow).
+- **National Highways**: strategic-road operational evidence (not Manchester city-road coverage).
+- **TfGM**: infrastructure/reference unless telemetry has been supplied and accepted (not live traffic telemetry).
+- **Static ONS boundaries**: geographic context only (not traffic evidence).
+- **Manual incident**: AUTHORED SCENARIO INPUT via Scenario Builder (not an observation).
+- **Social media**: deferred — no ingestion.
+
+The hub shows per-source freshness (historical, near_live, live_vehicle, stale, unavailable,
+synthetic), configuration (Configured / Not configured), local accepted evidence, acquisition
+readiness, rights/retention (NOT RECORDED / OWNER DECISION REQUIRED unless explicitly recorded),
+and scientific gate state (BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED for map matching,
+ambiguity threshold, road-class, calibration objective, parameter bounds, uncertainty, 174
+map-review decisions, viable demand — not implemented here). No API key or bearer token is
+displayed; only Configured / Not configured.
+
+Use **Open Manchester Operations** for detailed source use and explicit acquisition controls,
+and **Open Scenario Builder** for manual incident authoring. The hub is offline by default and
+works with no workspace and no credentials, showing empty-state readiness and next actions.
+
+Fingerprint binds source IDs, evidence states, freshness, readiness, blockers and accepted
+artifact IDs (no secrets); identical state yields identical fingerprint.
+
 ## Provenance Explorer
 
 The Provenance Explorer is a read-only audit page. It shows how TrafficTwin derived a displayed
