@@ -31,6 +31,19 @@ def _provenance_badge(synthetic_flag: object) -> str:
     return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
 
 
+def _render_missing_pair_guidance(*, key_prefix: str, message: str) -> None:
+    """Render first-run guidance for missing pair states with distinct keys."""
+
+    first_run_guidance(
+        actions=[
+            ("Start Guided Demo", UiPage.GUIDED_DEMO),
+            ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
+        ],
+        message=message,
+        key_prefix=key_prefix,
+    )
+
+
 def render() -> None:
     """Render comparison page."""
 
@@ -73,27 +86,39 @@ def render() -> None:
     baseline_path = Path(baseline_str)
     variation_path = Path(variation_str)
     if not baseline_path.exists() and not variation_path.exists():
-        st.error("Both baseline and variation bundle paths do not exist.")
-        first_run_guidance(
-            actions=[
-                ("Start Guided Demo", UiPage.GUIDED_DEMO),
-                ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
-            ],
+        st.error("Both baseline and variation bundle paths must exist.")
+        _render_missing_pair_guidance(
+            key_prefix="compare_both_missing",
             message=(
                 "A comparison needs two existing run bundles. The guided demo creates "
                 "a baseline and a stressed variation to compare, or import your own "
                 "bundles and enter their paths above."
             ),
-            key_prefix="compare_both_missing",
         )
         return
     if not baseline_path.exists():
-        st.error(f"Baseline bundle path does not exist: {baseline_path}")
-        st.info("Baseline is missing. Enter a valid baseline bundle path.")
+        st.error("Both baseline and variation bundle paths must exist.")
+        st.info(f"Baseline bundle path does not exist: {baseline_path}")
+        _render_missing_pair_guidance(
+            key_prefix="compare_baseline_missing",
+            message=(
+                "Baseline bundle is missing. A comparison needs two existing run bundles. "
+                "The guided demo creates a baseline and a stressed variation to compare, "
+                "or import your own bundles and enter their paths above."
+            ),
+        )
         return
     if not variation_path.exists():
-        st.error(f"Variation bundle path does not exist: {variation_path}")
-        st.info("Variation is missing. Enter a valid variation bundle path.")
+        st.error("Both baseline and variation bundle paths must exist.")
+        st.info(f"Variation bundle path does not exist: {variation_path}")
+        _render_missing_pair_guidance(
+            key_prefix="compare_variation_missing",
+            message=(
+                "Variation bundle is missing. A comparison needs two existing run bundles. "
+                "The guided demo creates a baseline and a stressed variation to compare, "
+                "or import your own bundles and enter their paths above."
+            ),
+        )
         return
 
     baseline = validate_bundle_for_ui(baseline_path)
