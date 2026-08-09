@@ -234,15 +234,9 @@ def test_unmapped_controls_disclosure_visible(monkeypatch: pytest.MonkeyPatch) -
         monkeypatch, UiPage.WHATIF_STUDIO, extra_state={PENDING_WHATIF_CHALLENGE_DRAFT_KEY: handoff}
     )
     assert not app.exception
-    all_text = "\n".join(
-        str(x.value) for coll in [app.markdown, app.caption, app.info, app.warning] for x in coll
-    )
-    assert "Unmapped controls keep ordinary What-If Studio defaults." in all_text
-    # Distinguishes mapped vs unsupported vs defaults vs user edits vs ledger
-    assert "Mapped fields" in all_text or "mapped" in all_text.lower()
-    assert "unsupported" in all_text.lower()
-    assert "ordinary" in all_text.lower() and "defaults" in all_text.lower()
-    assert "actual generated ledger" in all_text.lower()
+    captions = [str(c.value) for c in app.caption]
+    assert "Unmapped controls keep ordinary What-If Studio defaults." in captions
+    assert "The actual generated ledger is authoritative." in captions
 
 
 def test_whatif_without_handoff_has_no_challenge_panel(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -719,30 +713,73 @@ def test_clear_restores_full_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path:
     assert app.session_state["whatif_challenge_prefill_applied_fingerprint"] is None
 
 
+def test_ch07_exact_source_contract() -> None:
+    """CH-07 source contract: exact four overrides, exact mappings, no incident."""
+    seed = get_challenge_seed("CH-07-scaling-strategy")
+    assert seed is not None
+    assert seed.parameter_overrides == {
+        "fleet.count": 80,
+        "infrastructure.rsu_count": 6,
+        "demand.multiplier": 1.0,
+        "workload.birth_rate_multiplier": 2.0,
+    }
+    draft = build_challenge_whatif_draft(seed)
+    assert {f.challenge_path for f in draft.supported_fields} == {
+        "fleet.count",
+        "infrastructure.rsu_count",
+        "demand.multiplier",
+        "workload.birth_rate_multiplier",
+    }
+    assert {(f.challenge_path, f.whatif_field) for f in draft.supported_fields} == {
+        ("fleet.count", "vehicle_count"),
+        ("infrastructure.rsu_count", "rsu_count"),
+        ("demand.multiplier", "congestion_multiplier"),
+        ("workload.birth_rate_multiplier", "task_arrival_rate"),
+    }
+    assert len(draft.supported_fields) == 4
+    assert len(draft.unsupported_fields) == 0
+    assert draft.mapping_status.value == "FULLY_MAPPABLE"
+    assert draft.whatif_overrides == {
+        "vehicle_count": 80,
+        "rsu_count": 6,
+        "congestion_multiplier": 1.0,
+        "task_arrival_rate": 0.2,
+    }
+    assert set(draft.whatif_overrides) == {
+        "vehicle_count",
+        "rsu_count",
+        "congestion_multiplier",
+        "task_arrival_rate",
+    }
+    # By set equality, cannot secretly include incident controls
+    assert not any(k.startswith("incident") for k in draft.whatif_overrides)
+    assert "lanes_closed" not in draft.whatif_overrides
+    assert "event_demand_multiplier" not in draft.whatif_overrides
+
+
 def test_ch07_default_incident_truth(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """CH-07 leaves ordinary default incident enabled; not attributed to CH-07."""
     from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
 
-    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
-    # CH-07 must NOT map any incident field
-    assert "incident_type" not in d07.whatif_overrides
-    assert "incident_location" not in d07.whatif_overrides
-    assert "incident_duration_s" not in d07.whatif_overrides
-    assert "incident_enabled" not in d07.whatif_overrides
-    # Incident fields must be unsupported? No, just absent — check supported list has no incident
-    incident_mapped = [f for f in d07.supported_fields if "incident" in f.whatif_field]
-    assert not incident_mapped, f"CH-07 should not map incident, got {incident_mapped}"
-    h07 = draft_to_handoff_dict(d07)
+    seed = get_challenge_seed("CH-07-scaling-strategy")
+    assert seed is not None
+    draft = build_challenge_whatif_draft(seed)
+    handoff = draft_to_handoff_dict(draft)
     app = _run_whatif(
         monkeypatch,
         tmp_path,
         extra_state={
-            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h07,
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: handoff,
             "whatif_challenge_prefill_applied_fingerprint": None,
         },
     )
     assert not app.exception
-    # Incident should be ordinary Studio default (enabled, synthetic_congestion_pulse etc.)
+    # Exact CH-07 mapped widget values
+    assert int(app.session_state["whatif_vehicle_count"]) == 80
+    assert int(app.session_state["whatif_rsu_count"]) == 6
+    assert float(app.session_state["whatif_congestion_multiplier"]) == 1.0
+    assert abs(float(app.session_state["whatif_task_arrival_rate"]) - 0.2) < 1e-9
+    # Every stock incident value remains ordinary Studio default
     assert bool(app.session_state["whatif_incident_enabled"]) is True
     assert (
         app.session_state["whatif_incident_type"]
@@ -752,33 +789,63 @@ def test_ch07_default_incident_truth(monkeypatch: pytest.MonkeyPatch, tmp_path: 
         app.session_state["whatif_incident_location"]
         == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_location"]
     )
-    # Labelled as ordinary default, not CH-07 mapped — check panel does not list incident as mapped
-    all_text = "\n".join(
-        str(x.value) for coll in [app.markdown, app.caption, app.info, app.warning] for x in coll
+    assert (
+        app.session_state["whatif_incident_severity"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_severity"]
     )
-    assert "Unmapped controls keep ordinary What-If Studio defaults." in all_text
-    # Supported fields caption should not mention incident
-    assert "incident_type" not in "\n".join(f.whatif_field for f in d07.supported_fields)
-    # Generate and prove ledger records actual generation
+    assert float(app.session_state["whatif_incident_start_s"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_start_s"]
+    )
+    assert float(app.session_state["whatif_incident_duration_s"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_duration_s"]
+    )
+    assert int(app.session_state["whatif_lanes_closed"]) == int(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_lanes_closed"]
+    )
+    assert float(app.session_state["whatif_event_demand_multiplier"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_event_demand_multiplier"]
+    )
+    # Exact UI disclosure via captions (exact element value)
+    captions = [str(c.value) for c in app.caption]
+    assert "Unmapped controls keep ordinary What-If Studio defaults." in captions
+    assert "The actual generated ledger is authoritative." in captions
+    # Draft must not list incident as mapped
+    assert not any("incident" in f.whatif_field for f in draft.supported_fields)
+    # Generate via real form
     gen_btn = [b for b in app.button if b.label == "Generate comparison"]
     assert gen_btn
     gen_btn[0].click().run(timeout=30)
     assert not app.exception
     assert "whatif_pair_receipt" in app.session_state
-    # Provenance must not claim CH-07 supplied incident
+    receipt = app.session_state["whatif_pair_receipt"]
+    assert isinstance(receipt, dict)
+    # Generation provenance unconditional
     assert "last_whatif_generation_challenge_context" in app.session_state
     ctx = app.session_state["last_whatif_generation_challenge_context"]
-    # ctx should exist and have challenge_id CH-07, but its supported count is 4 and no incident
-    if isinstance(ctx, dict):
-        assert ctx.get("challenge_id") == "CH-07-scaling-strategy"
-        assert ctx.get("supported_count") == 4
-        # Incident not from challenge; ensure provenance does not list it as supplied
-        assert "incident" not in str(ctx.get("challenge_id"))
-    # Ledger not retroactively attributed — challenge note must not claim incident from CH-07
-    success_text = " ".join(str(s.value) for s in app.success)
-    assert "CH-07" in success_text or "whatif-" in success_text
-    # Ensure not claiming incident from CH-07
-    assert "stadium_event" not in success_text
+    assert isinstance(ctx, dict)
+    assert ctx["challenge_id"] == "CH-07-scaling-strategy"
+    assert ctx["challenge_fingerprint"] == draft.fingerprint
+    assert ctx["mapping_status"] == "FULLY_MAPPABLE"
+    assert ctx["supported_count"] == 4
+    assert ctx["unsupported_count"] == 0
+    assert ctx["pair_id"] == receipt["pair_id"]
+    assert ctx["request_fingerprint"] == receipt["request_fingerprint"]
+    assert ctx["user_edited"] is False
+    assert receipt["pair_id"].startswith("whatif-")
+    # Source vs actual ledger: draft has no incident, ledger may have incident if baseline differs
+    assert "incident" not in draft.whatif_overrides
+    # Pin ledger paths — CH-07 mapped fields must be present, incident not in source
+    changed_fields = {p["field_path"] for p in receipt.get("changed_parameters", [])}
+    # At minimum, the three CH-07 fields that differ from baseline preset 'baseline' appear
+    assert "vehicle_count" in changed_fields
+    assert "rsu_count" in changed_fields
+    # Ensure draft source set does not secretly include incident
+    assert draft.whatif_overrides.keys() == {
+        "vehicle_count",
+        "rsu_count",
+        "congestion_multiplier",
+        "task_arrival_rate",
+    }
 
 
 def test_unmapped_user_edit_represented_in_ledger_not_challenge(
@@ -826,6 +893,17 @@ def test_unmapped_user_edit_represented_in_ledger_not_challenge(
     assert "last_whatif_generation_challenge_context" in app.session_state
     ctx = app.session_state["last_whatif_generation_challenge_context"]
     assert isinstance(ctx, dict)
-    assert ctx.get("challenge_id") == "CH-07-scaling-strategy"
+    assert ctx["challenge_id"] == "CH-07-scaling-strategy"
+    assert ctx["challenge_fingerprint"] == d07.fingerprint
+    assert ctx["pair_id"] == receipt["pair_id"]
+    assert ctx["request_fingerprint"] == receipt["request_fingerprint"]
+    # Unmapped edit: provenance based on mapped fields only — pair binding proves generation
+    assert receipt["pair_id"].startswith("whatif-")
     # Challenge mapped fields must not include duration
     assert not any("incident" in f.whatif_field for f in d07.supported_fields)
+    assert d07.whatif_overrides.keys() == {
+        "vehicle_count",
+        "rsu_count",
+        "congestion_multiplier",
+        "task_arrival_rate",
+    }
