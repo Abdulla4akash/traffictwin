@@ -8,7 +8,11 @@ import streamlit as st
 
 from traffictwin.ui.components.badges import badge_row
 from traffictwin.ui.labels import UiPage
-from traffictwin.ui.manchester_evidence_hub import build_manchester_hub_view
+from traffictwin.ui.manchester_evidence_hub import (
+    RightsRetentionState,
+    ScientificGateState,
+    build_manchester_hub_view,
+)
 from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
@@ -41,16 +45,20 @@ def render() -> None:
 
     view = build_manchester_hub_view(workspace)
 
-    # 1. Evidence summary cards — semantically precise, not combined into fake total
+    # 1. Evidence summary cards — typed-derived, never combined into fake total
     st.subheader("Evidence summary")
-    cols = st.columns(4)
-    cols[0].metric("Sources known", len(view.sources))
-    cols[1].metric("Accepted local evidence", view.accepted_evidence_count)
-    cols[2].metric("Acquisition-ready", view.available_count)
-    cols[3].metric("Blocked/unavailable", view.blocked_count + view.unavailable_count)
+    cols = st.columns(5)
+    cols[0].metric("Sources known", view.known_source_count)
+    cols[1].metric("Accepted", view.accepted_evidence_count)
+    cols[2].metric("Acquisition-ready", view.acquisition_ready_count)
+    cols[3].metric("Blocked", view.blocked_count)
+    cols[4].metric("Unavailable", view.unavailable_count)
     st.caption(f"Workspace: {view.workspace_state} · No provider data fetched on render.")
     st.caption(
-        f"Known sources (definitions): {len(view.sources)} — distinct from accepted local evidence sources: {view.accepted_evidence_count}."  # noqa: E501
+        f"Known sources (definitions): {view.known_source_count} — distinct from accepted local evidence sources: {view.accepted_evidence_count}."  # noqa: E501
+    )
+    st.caption(
+        f"Blocked or unavailable (unique): {view.blocked_unavailable_union_count} — never exceeds known sources ({view.known_source_count}); blocked and unavailable overlap honestly."  # noqa: E501
     )
     for w in view.warnings:
         st.caption(w)
@@ -171,7 +179,8 @@ def render() -> None:
             "blockers": "; ".join(s.blockers) or "None",
         }
         for s in view.sources
-        if "BLOCKED" in s.scientific_gate_state or "REQUIRED" in s.rights_retention_state
+        if s.scientific_gate_typed != ScientificGateState.NOT_APPLICABLE
+        or s.rights_typed != RightsRetentionState.RECORDED
     ]
     if blocker_rows:
         st.dataframe(

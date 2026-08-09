@@ -1,4 +1,4 @@
-"""Deterministic Manchester Evidence Hub projection — hardened M1."""
+"""Deterministic Manchester Evidence Hub projection — hardened M1 with typed readiness."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import datetime
 import hashlib
 import json
 import os
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,8 +14,54 @@ from pydantic import BaseModel, ConfigDict, Field
 from traffictwin.integration.manchester.freshness import FreshnessTruthState
 
 
+class SoftwareSupportState(StrEnum):
+    """Machine-typed software support standing."""
+
+    AVAILABLE = "available"
+    UNAVAILABLE_PROVIDER_CONTRACT = "unavailable_provider_contract"
+    DEFERRED = "deferred"
+
+
+class AcquisitionReadinessState(StrEnum):
+    """Machine-typed acquisition/config standing."""
+
+    READY = "ready"
+    NOT_READY_CREDENTIAL_MISSING = "not_ready_credential_missing"
+    UNAVAILABLE_PROVIDER_CONTRACT = "unavailable_provider_contract"
+    UNAVAILABLE_DEFERRED = "unavailable_deferred"
+
+
+class LocalEvidenceState(StrEnum):
+    """Machine-typed local evidence standing."""
+
+    ACCEPTED_AVAILABLE = "accepted_available"
+    NOT_ACCEPTED = "not_accepted"
+    LIVE_AVAILABLE = "live_available"
+    NO_LIVE = "no_live"
+    STATIC_AVAILABLE = "static_available"
+    AUTHORED_AVAILABLE = "authored_available"
+    UNAVAILABLE = "unavailable"
+
+
+class RightsRetentionState(StrEnum):
+    """Machine-typed rights/retention standing."""
+
+    NOT_RECORDED = "not_recorded"
+    PROVIDER_CONTRACT_REQUIRED = "provider_contract_required"
+    RECORDED = "recorded"
+
+
+class ScientificGateState(StrEnum):
+    """Machine-typed scientific gate standing."""
+
+    BLOCKED = "blocked"
+    NOT_APPLICABLE = "not_applicable"
+    BLOCKED_PROVIDER_CONTRACT = "blocked_provider_contract"
+    BLOCKED_DEFERRED = "blocked_deferred"
+
+
 class ManchesterSourceReadiness(BaseModel):
-    """One source readiness row with four-state separation."""
+    """One source readiness row with four-state separation and typed machine state."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -25,12 +72,19 @@ class ManchesterSourceReadiness(BaseModel):
     evidence_ceiling: str = Field(min_length=1)
     coverage_scope: str = Field(min_length=1)
     freshness_state: FreshnessTruthState = Field()
+    # Display prose (human-readable)
     software_support_state: str = Field(min_length=1)
     configuration_state: str = Field(min_length=1)
     local_evidence_state: str = Field(min_length=1)
     acquisition_readiness: str = Field(min_length=1)
     rights_retention_state: str = Field(min_length=1)
     scientific_gate_state: str = Field(min_length=1)
+    # Typed machine state (for counts/filters/fingerprint)
+    software_support_typed: SoftwareSupportState = Field()
+    acquisition_typed: AcquisitionReadinessState = Field()
+    local_evidence_typed: LocalEvidenceState = Field()
+    rights_typed: RightsRetentionState = Field()
+    scientific_gate_typed: ScientificGateState = Field()
     last_receipt_summary: str | None = None
     blockers: list[str] = Field(default_factory=list)
     next_action: str = Field(min_length=1)
@@ -38,20 +92,83 @@ class ManchesterSourceReadiness(BaseModel):
 
 
 class ManchesterEvidenceHubView(BaseModel):
-    """Aggregated hub view."""
+    """Aggregated hub view with typed-derived counts.
+
+    Counts are derived ONLY from typed machine state, never from display prose.
+
+    Definitions:
+    - blocked: scientific_gate_typed in {BLOCKED, BLOCKED_PROVIDER_CONTRACT,
+      BLOCKED_DEFERRED} — explicit blocking of scientific/provider contract.
+    - unavailable: local_evidence_typed in {NOT_ACCEPTED, NO_LIVE, UNAVAILABLE}
+      — qualifying evidence/acquisition unavailable under current projection.
+      A source may be both blocked AND unavailable; union counts unique ids.
+    - manual_incident (AUTHORED_AVAILABLE/NOT_APPLICABLE) and static_boundaries
+      (STATIC_AVAILABLE/NOT_APPLICABLE) are geographic/authored context, never
+      counted as Manchester traffic available.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     sources: list[ManchesterSourceReadiness] = Field(default_factory=list)
-    available_count: int = 0
+    available_count: int = Field(
+        default=0,
+        description="Deprecated alias for acquisition_ready_count — acquisition-ready sources",
+    )
+    acquisition_ready_count: int = Field(
+        default=0, description="Acquisition-ready sources (typed READY)"
+    )
     blocked_count: int = 0
     unavailable_count: int = 0
     accepted_evidence_count: int = 0
     known_source_count: int = 0
+    blocked_unavailable_union_count: int = 0
+    # Backward compat alias: blocked_or_unavailable is preferred display label,
+    # but both union fields stay in sync.
+    blocked_or_unavailable_count: int = 0
     warnings: list[str] = Field(default_factory=list)
     workspace_state: str = Field(min_length=1)
     fingerprint: str = ""
     generated_at: str = ""
+
+    @property
+    def blocked_or_unavailable(self) -> int:
+        """Alias for blocked_unavailable_union_count."""
+        return self.blocked_unavailable_union_count
+
+    def to_portable_dict(self) -> dict[str, object]:
+        """Publication-safe substantive payload (no secrets, paths, wall clock)."""
+        return {
+            "sources": [
+                {
+                    "source_id": s.source_id,
+                    "source_role": s.source_role,
+                    "evidence_type": s.evidence_type,
+                    "evidence_ceiling": s.evidence_ceiling,
+                    "coverage_scope": s.coverage_scope,
+                    "freshness_state": str(s.freshness_state),
+                    "software_support_typed": s.software_support_typed.value,
+                    "acquisition_typed": s.acquisition_typed.value,
+                    "local_evidence_typed": s.local_evidence_typed.value,
+                    "rights_typed": s.rights_typed.value,
+                    "scientific_gate_typed": s.scientific_gate_typed.value,
+                    "blockers": sorted(s.blockers),
+                    "next_action": s.next_action,
+                }
+                for s in sorted(self.sources, key=lambda x: x.source_id)
+            ],
+            "workspace_state": self.workspace_state,
+            "warnings": sorted(self.warnings),
+            "known_source_count": self.known_source_count,
+            "accepted_evidence_count": self.accepted_evidence_count,
+            "acquisition_ready_count": self.acquisition_ready_count,
+            "blocked_count": self.blocked_count,
+            "unavailable_count": self.unavailable_count,
+            "blocked_unavailable_union_count": self.blocked_unavailable_union_count,
+        }
+
+    def to_canonical_bytes(self) -> bytes:
+        """Canonical bytes for fingerprinting (excludes generated_at)."""
+        return json.dumps(self.to_portable_dict(), sort_keys=True, default=str).encode()
 
 
 def _env_configured(key: str) -> bool:
@@ -79,12 +196,6 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
         workspace, "manchester/tfgm"
     )
 
-    # Four-state separation:
-    # SOFTWARE SUPPORT = client/parser implemented?
-    # ACQUISITION READINESS = credentials/config present?
-    # LOCAL EVIDENCE = accepted snapshot present?
-    # SCIENTIFIC ACCEPTANCE = owner/scientific decision present? (always BLOCKED in M1)
-
     return [
         ManchesterSourceReadiness(
             source_id="bods",
@@ -97,17 +208,26 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",  # noqa: E501
             freshness_state="live_vehicle" if bods_configured else "unavailable",
             software_support_state="AVAILABLE — BODS live control client implemented",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Configured"
             if bods_configured
             else "Not configured (BODS_API_KEY unavailable)",
             local_evidence_state="Live control available"
             if bods_configured
             else "No live evidence",
+            local_evidence_typed=LocalEvidenceState.LIVE_AVAILABLE
+            if bods_configured
+            else LocalEvidenceState.NO_LIVE,
             acquisition_readiness="Acquisition-ready (BODS live control)"
             if bods_configured
             else "Not ready — credential unavailable",
+            acquisition_typed=AcquisitionReadinessState.READY
+            if bods_configured
+            else AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — BODS retention, privacy, licence",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             last_receipt_summary="BODS live control state" if bods_configured else None,
             blockers=[] if bods_configured else ["BODS_API_KEY not configured"],
             next_action="Configure BODS_API_KEY and open Manchester Operations for BODS live control"  # noqa: E501
@@ -127,13 +247,20 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="DfT count points (survey, not live)",
             freshness_state="historical",
             software_support_state="AVAILABLE — DfT catalogue client implemented (offline, no credential)",  # noqa: E501
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (historical snapshot catalogue — code available)",
             local_evidence_state="Accepted local evidence available"
             if dft_accepted
             else "No accepted local evidence",
+            local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
+            if dft_accepted
+            else LocalEvidenceState.NOT_ACCEPTED,
             acquisition_readiness="READY — historical snapshot catalogue (no credential required)",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — map matching, road-class, ambiguity threshold",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             last_receipt_summary="Accepted DfT snapshot" if dft_accepted else None,
             blockers=[] if dft_accepted else ["No accepted DfT snapshot catalogue"],
             next_action="Open Manchester Operations for DfT catalogue"
@@ -153,11 +280,16 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Manually entered incident changes scenario definition only",
             freshness_state="synthetic",
             software_support_state="AVAILABLE — authoring via Scenario Builder",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Available via Scenario Builder",
             local_evidence_state="Authored input available",
+            local_evidence_typed=LocalEvidenceState.AUTHORED_AVAILABLE,
             acquisition_readiness="READY — authoring via Scenario Builder",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="NOT_APPLICABLE — authored input, not evidence",
+            scientific_gate_typed=ScientificGateState.NOT_APPLICABLE,
             last_receipt_summary="Scenario Builder authored incident",
             blockers=[],
             next_action="Open Scenario Builder to author incident/event",
@@ -175,15 +307,24 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Strategic road network only — NOT general Manchester city-road coverage",  # noqa: E501
             freshness_state="near_live" if nh_configured else "unavailable",
             software_support_state="AVAILABLE — National Highways live control client implemented",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Configured"
             if nh_configured
             else "Not configured (NATIONAL_HIGHWAYS_API_KEY unavailable)",
             local_evidence_state="Live control available" if nh_configured else "No live evidence",
+            local_evidence_typed=LocalEvidenceState.LIVE_AVAILABLE
+            if nh_configured
+            else LocalEvidenceState.NO_LIVE,
             acquisition_readiness="Acquisition-ready (National Highways live control)"
             if nh_configured
             else "Not ready — credential unavailable",
+            acquisition_typed=AcquisitionReadinessState.READY
+            if nh_configured
+            else AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — National Highways retention, licence",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             last_receipt_summary="National Highways live control state" if nh_configured else None,
             blockers=[] if nh_configured else ["NATIONAL_HIGHWAYS_API_KEY not configured"],
             next_action="Configure NATIONAL_HIGHWAYS_API_KEY and open Manchester Operations"
@@ -203,11 +344,16 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Deferred social media source",
             freshness_state="unavailable",
             software_support_state="DEFERRED — no adapter implemented",
+            software_support_typed=SoftwareSupportState.DEFERRED,
             configuration_state="Deferred",
             local_evidence_state="Unavailable — no ingestion",
+            local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
             acquisition_readiness="UNAVAILABLE — deferred per design",
+            acquisition_typed=AcquisitionReadinessState.UNAVAILABLE_DEFERRED,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / DEFERRED",
+            scientific_gate_typed=ScientificGateState.BLOCKED_DEFERRED,
             last_receipt_summary=None,
             blockers=["Social media ingestion deferred per V2 design"],
             next_action="No action — deferred",
@@ -222,11 +368,16 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Greater Manchester boundary (ONS BGC 20m, E47000001/E08000003)",
             freshness_state="unavailable",
             software_support_state="AVAILABLE — static asset bundled (no acquisition)",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Static asset available",
             local_evidence_state="Accepted local evidence (static boundary)",
+            local_evidence_typed=LocalEvidenceState.STATIC_AVAILABLE,
             acquisition_readiness="READY — static asset, no acquisition required",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="RECORDED — OGL-3.0, Contains OS data © Crown copyright 2025",
+            rights_typed=RightsRetentionState.RECORDED,
             scientific_gate_state="NOT_APPLICABLE — geographic context only",
+            scientific_gate_typed=ScientificGateState.NOT_APPLICABLE,
             last_receipt_summary="Static ONS boundary asset",
             blockers=[],
             next_action="View on Home Manchester context map",
@@ -241,15 +392,22 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="TfGM signal locations — reference layer, NOT traffic telemetry",
             freshness_state="unavailable",
             software_support_state="AVAILABLE — TfGM signal catalogue client implemented",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (TfGM catalogue code available)"
             if tfgm_accepted
             else "Ready (TfGM catalogue code available; no accepted snapshot)",
             local_evidence_state="Accepted local evidence available"
             if tfgm_accepted
             else "No accepted local evidence",
+            local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
+            if tfgm_accepted
+            else LocalEvidenceState.NOT_ACCEPTED,
             acquisition_readiness="READY — TfGM snapshot catalogue (no credential required)",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — infrastructure vs telemetry distinction",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             last_receipt_summary="Accepted TfGM snapshot" if tfgm_accepted else None,
             blockers=[] if tfgm_accepted else ["No accepted TfGM snapshot"],
             next_action="Open Manchester Operations for TfGM catalogue",
@@ -267,11 +425,16 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Provider-restricted measured traffic (TfGM SCOOT/UTC/UTMC/counter or NTIS) — unavailable",  # noqa: E501
             freshness_state="unavailable",
             software_support_state="UNAVAILABLE — adapter not implemented pending provider contract",  # noqa: E501
+            software_support_typed=SoftwareSupportState.UNAVAILABLE_PROVIDER_CONTRACT,
             configuration_state="UNAVAILABLE — provider contract required",
             local_evidence_state="Unavailable — no ingestion; adapter not implemented",
+            local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
             acquisition_readiness="UNAVAILABLE — provider contract required; no acquisition implemented",  # noqa: E501
+            acquisition_typed=AcquisitionReadinessState.UNAVAILABLE_PROVIDER_CONTRACT,
             rights_retention_state="PROVIDER_CONTRACT_REQUIRED",
+            rights_typed=RightsRetentionState.PROVIDER_CONTRACT_REQUIRED,
             scientific_gate_state="BLOCKED / PROVIDER CONTRACT REQUIRED — no measured traffic without independent provider contract",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
             last_receipt_summary=None,
             blockers=[
                 "TfGM/NTIS measured traffic requires independent provider contract; no adapter implemented"  # noqa: E501
@@ -291,13 +454,20 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             coverage_scope="Strategic road network (WebTRIS sites, not Manchester city roads)",
             freshness_state="historical",
             software_support_state="AVAILABLE — WebTRIS catalogue client implemented (offline, no credential)",  # noqa: E501
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (historical snapshot catalogue — code available)",
             local_evidence_state="Accepted local evidence available"
             if webtris_accepted
             else "No accepted local evidence",
+            local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
+            if webtris_accepted
+            else LocalEvidenceState.NOT_ACCEPTED,
             acquisition_readiness="READY — accepted snapshot catalogue (no credential required)",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — calibration objective, parameter bounds",  # noqa: E501
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             last_receipt_summary="Accepted WebTRIS snapshot" if webtris_accepted else None,
             blockers=[] if webtris_accepted else ["No accepted WebTRIS snapshot catalogue"],
             next_action="Open Manchester Operations for WebTRIS catalogue",
@@ -316,33 +486,59 @@ def build_manchester_hub_view(
 
     sources = _source_definitions(workspace)
     sources_sorted = sorted(sources, key=lambda s: s.source_id)
-    # Precise counts — do not conflate known vs accepted vs acquisition-ready
     known = len(sources_sorted)
-    accepted = sum(1 for s in sources_sorted if "Accepted local evidence" in s.local_evidence_state)
-    # Acquisition-ready: explicit READY/acquisition-ready states, not merely local evidence
-    available = sum(
+    # Typed-derived counts — not substring parsing
+    accepted = sum(
         1
         for s in sources_sorted
-        if s.acquisition_readiness.startswith("READY")
-        or "Acquisition-ready" in s.acquisition_readiness
-        or s.acquisition_readiness.startswith("READY — static")
+        if s.local_evidence_typed
+        in (LocalEvidenceState.ACCEPTED_AVAILABLE, LocalEvidenceState.STATIC_AVAILABLE)
     )
-    # For live sources, available is credential-configured; for historical, always READY
-    # Recompute blocked as sources with non-empty blockers
-    blocked = sum(1 for s in sources_sorted if s.blockers)
-    # Unavailable: sources lacking accepted/live evidence
-    # Unavailable distinct: freshness unavailable and no accepted evidence
+    available = sum(
+        1 for s in sources_sorted if s.acquisition_typed == AcquisitionReadinessState.READY
+    )
+    blocked = sum(
+        1
+        for s in sources_sorted
+        if s.scientific_gate_typed
+        in (
+            ScientificGateState.BLOCKED,
+            ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
+            ScientificGateState.BLOCKED_DEFERRED,
+        )
+    )
     unavailable = sum(
         1
         for s in sources_sorted
-        if s.local_evidence_state.startswith("Unavailable")
-        or s.local_evidence_state.startswith("No accepted")
-        or s.local_evidence_state.startswith("No live")
+        if s.local_evidence_typed
+        in (
+            LocalEvidenceState.NOT_ACCEPTED,
+            LocalEvidenceState.NO_LIVE,
+            LocalEvidenceState.UNAVAILABLE,
+        )
     )
-    # Unavailable is informational; ensure non-negative
-    # For hub semantics, unavailable is just for information; ensure non-negative
-    if unavailable < 0:
-        unavailable = 0
+    # Honest union — unique sources that are blocked OR unavailable
+    blocked_ids = {
+        s.source_id
+        for s in sources_sorted
+        if s.scientific_gate_typed
+        in (
+            ScientificGateState.BLOCKED,
+            ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
+            ScientificGateState.BLOCKED_DEFERRED,
+        )
+    }
+    unavailable_ids = {
+        s.source_id
+        for s in sources_sorted
+        if s.local_evidence_typed
+        in (
+            LocalEvidenceState.NOT_ACCEPTED,
+            LocalEvidenceState.NO_LIVE,
+            LocalEvidenceState.UNAVAILABLE,
+        )
+    }
+    union_count = len(blocked_ids | unavailable_ids)
     workspace_state = (
         "Workspace configured"
         if workspace and workspace.exists()
@@ -354,13 +550,15 @@ def build_manchester_hub_view(
     warnings.append(
         "DfT is historical; WebTRIS is historical per accepted contract; TfGM is infrastructure reference"  # noqa: E501
     )
+    # Use typed state, not display prose, to decide warnings
     if not any(
-        s.source_id == "bods" and s.configuration_state.startswith("Configured")
+        s.source_id == "bods" and s.acquisition_typed == AcquisitionReadinessState.READY
         for s in sources_sorted
     ):
         warnings.append("BODS live evidence requires BODS_API_KEY")
     if not any(
-        s.source_id == "national_highways" and s.configuration_state.startswith("Configured")
+        s.source_id == "national_highways"
+        and s.acquisition_typed == AcquisitionReadinessState.READY
         for s in sources_sorted
     ):
         warnings.append("National Highways live evidence requires NATIONAL_HIGHWAYS_API_KEY")
@@ -368,41 +566,34 @@ def build_manchester_hub_view(
         "TfGM/NTIS measured traffic unavailable until provider contract and adapter exist"
     )
 
-    # Fingerprint binds substantive displayed state, no secrets, no paths, no wall clock
-    payload = {
-        "sources": [
-            {
-                "source_id": s.source_id,
-                "source_role": s.source_role,
-                "evidence_type": s.evidence_type,
-                "evidence_ceiling": s.evidence_ceiling,
-                "coverage_scope": s.coverage_scope,
-                "freshness_state": s.freshness_state,
-                "software_support_state": s.software_support_state,
-                "acquisition_readiness": s.acquisition_readiness,
-                "local_evidence_state": s.local_evidence_state,
-                "rights_retention_state": s.rights_retention_state,
-                "scientific_gate_state": s.scientific_gate_state,
-                "blockers": sorted(s.blockers),
-                "next_action": s.next_action,
-            }
-            for s in sources_sorted
-        ],
-        "workspace_state": workspace_state,
-        "warnings": sorted(warnings),
-        "known_source_count": known,
-        "accepted_evidence_count": accepted,
-    }
-    fingerprint = hashlib.sha256(
-        json.dumps(payload, sort_keys=True, default=str).encode()
-    ).hexdigest()
-    return ManchesterEvidenceHubView(
+    # Fingerprint binds substantive typed state — use portable payload
+    # Construct view without fingerprint first to reuse portable dict logic
+    tmp_view = ManchesterEvidenceHubView(
         sources=sources_sorted,
         available_count=available,
+        acquisition_ready_count=available,
         blocked_count=blocked,
         unavailable_count=unavailable,
         accepted_evidence_count=accepted,
         known_source_count=known,
+        blocked_unavailable_union_count=union_count,
+        blocked_or_unavailable_count=union_count,
+        warnings=warnings,
+        workspace_state=workspace_state,
+        fingerprint="",
+        generated_at="",
+    )
+    fingerprint = hashlib.sha256(tmp_view.to_canonical_bytes()).hexdigest()
+    return ManchesterEvidenceHubView(
+        sources=sources_sorted,
+        available_count=available,
+        acquisition_ready_count=available,
+        blocked_count=blocked,
+        unavailable_count=unavailable,
+        accepted_evidence_count=accepted,
+        known_source_count=known,
+        blocked_unavailable_union_count=union_count,
+        blocked_or_unavailable_count=union_count,
         warnings=warnings,
         workspace_state=workspace_state,
         fingerprint=fingerprint,
