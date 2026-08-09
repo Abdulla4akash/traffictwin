@@ -72,9 +72,16 @@ def _render_v07_home(config: UiConfig) -> None:
     )
 
     with st.container(horizontal=True):
+        navigation_button(
+            st.button,
+            "Create what-if comparison",
+            UiPage.WHATIF_STUDIO,
+            key="home_v07_whatif",
+            width="stretch",
+            kind="primary",
+        )
         if st.button(
             "Explore Manchester",
-            type="primary",
             icon=":material/map:",
             width="stretch",
             key="home_v07_manchester",
@@ -89,17 +96,28 @@ def _render_v07_home(config: UiConfig) -> None:
         )
         navigation_button(
             st.button,
+            "Open latest run",
+            UiPage.RUN_OVERVIEW,
+            key="home_v07_latest_run",
+            width="stretch",
+        )
+    st.caption(
+        "What-If Studio generates a deterministic synthetic baseline/variation "
+        "pair locally — SYNTHETIC / DETERMINISTIC / LOCAL. It is not Manchester "
+        "observation, not a live traffic forecast, and does not run SUMO, VEC, a "
+        "provider feed, or an admitted research campaign."
+    )
+    with st.container(horizontal=True):
+        navigation_button(
+            st.button,
             "Create scenario",
             UiPage.SCENARIO,
             key="home_v07_scenario",
             width="stretch",
         )
-        navigation_button(
-            st.button,
-            "Open latest run",
-            UiPage.RUN_OVERVIEW,
-            key="home_v07_latest_run",
-            width="stretch",
+        st.caption(
+            "Scenario Builder remains available below for direct synthetic preset "
+            "authoring without the pair workflow."
         )
 
     with st.container(horizontal=True):
@@ -348,6 +366,27 @@ def _render_legacy_home(config: UiConfig) -> None:
         UiPage.EXPERIMENT_PLANNER,
         key="home_plan_experiment",
         width="stretch",
+    )
+    legacy_second = st.columns(2)
+    navigation_button(
+        legacy_second[0].button,
+        "Create what-if comparison",
+        UiPage.WHATIF_STUDIO,
+        key="home_legacy_whatif",
+        width="stretch",
+    )
+    navigation_button(
+        legacy_second[1].button,
+        "Open Comparison",
+        UiPage.COMPARE,
+        key="home_legacy_compare",
+        width="stretch",
+    )
+    st.caption(
+        "What-If Studio generates a deterministic synthetic baseline/variation "
+        "pair locally — SYNTHETIC / DETERMINISTIC / LOCAL. It is not Manchester "
+        "observation, not a live traffic forecast, and does not run SUMO, VEC, a "
+        "provider feed, or an admitted research campaign."
     )
     navigation_button(
         st.button,
