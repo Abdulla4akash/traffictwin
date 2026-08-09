@@ -1,10 +1,9 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-08
+**Status date:** 2026-08-09
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 physical multi-draw campaign; seed 1 accepted, seeds 2-4 authorised
-**Execution authority:** run only the remaining frozen nine-cell matrix, serially, with mandatory
-per-cell repeated-smoke gates
+**Current phase:** E1 physical multi-draw campaign complete; five-draw result ready for review
+**Execution authority:** stopped after the predeclared E1 exit; do not start E2 or another cell
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -31,8 +30,8 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 ## Current verified state
 
 The evidence base through TrafficTwin execution commit
-`8da77b87632690f655f370339c9fe1e1a6592f32`, together with the direct researcher continuation
-instruction dated 8 August 2026, establishes:
+`5111cbc23ec16b031435b2aba5a11e9f9074d3e9`, together with the final records in this reviewed
+change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -53,16 +52,26 @@ instruction dated 8 August 2026, establishes:
   JAX/JAXLIB 0.4.30; the three exact macOS seed-0 physical artifacts remain reused by hash;
 - campaign matrix: 12 new physical cells, fleet seeds 1-4 by 0.75x, 2.5x and 40x, with concurrency
   one and a mandatory two-repeat ten-step gate before every corresponding full cell;
-- campaign execution: all six seed-1 ten-step smokes and all three seed-1 full cells passed, with
-  zero failures and no seed-2 process;
 - seed-1 task-stream identity: offered count, `task_active` and `task_type` matched across 0.75x,
   2.5x and 40x; each full cell passed all 32 task/work/numerical checks;
 - seed-1 descriptive pattern: higher caps admitted more tasks and rejected fewer, while offered
   deadline attainment decreased slightly then plateaued and latency rose sharply;
 - seed-0 qualitative comparison: the same seven-field admission/rejection/deadline/latency pattern
   was observed; this is descriptive two-draw evidence, not five-draw inference;
-- multi-draw E1 evidence: seed 0 and seed 1 rows are accepted; the researcher has authorised the
-  remaining predeclared fleet seeds 2, 3 and 4 without a routine pause between passing cells;
+- multi-draw E1 execution: all 24 new ten-step smokes and all 12 new full cells passed, with zero
+  failed or stopped scientific cells; the three seed-0 full records were reused by exact hash;
+- within-seed identity: offered count, `task_active` and `task_type` matched across caps for all
+  five fleet draws; all 15 analysed full cells passed task and V2I/vehicle-work conservation;
+- primary five-draw result: raw paired `40x - 0.75x` offered-deadline differences were
+  `[-0.000171609043, -0.000122129965, 0, -0.000253436884, 0]`; mean
+  `-0.000109435178`, sample SD `0.000110357776`, SE `0.000049353498`, and two-sided 95% Student-t
+  CI `[-0.000246462456, 0.000027592099]`;
+- primary decision: the interval includes zero, so the comparison is inconclusive at this
+  replication size; this is not formal equivalence, non-inferiority or a tie;
+- secondary pattern: 40x admitted more and rejected fewer tasks than 0.75x in every fleet draw,
+  while admitted-task attainment fell and admitted/penalty-inclusive latency rose sharply; every
+  `40x - 2.5x` offered-attainment difference was numerically zero, without supporting an
+  equivalence claim;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -72,52 +81,47 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Execute only the remaining physical E1 cells for fleet seeds 2, 3 and 4, serially in frozen
-manifest order.**
+**Stop and review the completed physical E1 five-draw result. Do not start E2 or another
+experiment.**
 
 The selected-backend campaign is governed by
 [e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
 SHA-256 `0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`.
 It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and governs all scientific and
-validation fields. The [seed-1 validation](e1/e1_seed1_three_cap_validation_v1.json), SHA-256
-`cfb6e076cb70f7aeb4143f7a91c33bd2b04c9af6d4af60b2b082b87889dd58db`,
-[comparison](e1/e1_seed1_three_cap_comparison_v1.json), SHA-256
-`0f2ea863a91419412130f70d201814ff7f75fcce7f03019afaa48c6132709c5d`, and
-[report](e1/e1_seed1_three_cap_campaign_report_2026-08-08.md) govern the new evidence.
+validation fields.
 
-All three full cells offered 13,076,234 tasks. Admitted tasks increased from 11,779,070 to
-11,805,950 to 12,149,755 as the cap rose; rejected/unavailable tasks fell from 1,297,164 to
-1,270,284 to 926,479. Offered deadline attainment was 0.688367691, 0.688245561 and 0.688245561,
-while penalty-inclusive offered latency rose from 4,642.546 to 14,519.940 to 117,993.732 ms.
+The [final campaign report](e1/e1_multidraw_physical_campaign_report_2026-08-09.md) separates
+observations, matched statistics, interpretation and limitations. Its governing
+[validation](e1/e1_multidraw_physical_campaign_validation_v1.json), SHA-256
+`f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b`, passed all 15 full
+runs and all within-seed identity checks. The
+[comparison](e1/e1_multidraw_physical_campaign_comparison_v1.json), SHA-256
+`b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3`, contains the exact
+five-draw matched analysis. The
+[evidence index](e1/e1_multidraw_physical_campaign_evidence_index_v1.json), SHA-256
+`aeecdece2cbfffef4d7e68ac398c42fb2f36af5a6a1256536f58186c547f74e5`, retains the 12
+repeated-smoke/full-cell gates and permission-safe raw-output hashes.
 
-The exact equality of the observed 2.5x and 40x offered-deadline values is not a formal tie or
-equivalence result. The next gate is fleet seed 2 at 0.75x, beginning with two serial ten-step
-smokes. If and only if both smokes and all mandatory checks pass, run and validate that cell's
-3,600-step full evaluation. Continue the same cell-specific sequence through 2.5x and 40x, then
-fleet seeds 3 and 4. Stop the entire later campaign immediately on any identity, repeat,
-accounting, rejection, work-conservation, numerical, storage or no-overwrite failure.
-
-The append-only controller
+Execution of fleet seeds 2-4 used the append-only controller
 [`scripts/resume_e1_multidraw_physical_campaign.py`](../../scripts/resume_e1_multidraw_physical_campaign.py),
-SHA-256 `c42ca19416d1921031b9685181e5b4798a8881d02a5c9e600fa3edceacb55cd4`, is a bounded adapter over
+SHA-256 `c42ca19416d1921031b9685181e5b4798a8881d02a5c9e600fa3edceacb55cd4`. It is a bounded adapter over
 the unchanged manifest-pinned runner. It verifies the accepted seed-1 evidence index, accepts only
-seeds 2-4, derives caps and commands from the frozen manifest, uses concurrency one and refuses any
+seeds 2-4, derived caps and commands from the frozen manifest, used concurrency one and refused any
 existing target or control record. Raw outputs remain outside Git under the manifest's logical
-locator.
+locator. The first direct-file controller invocation failed at local import before evidence
+creation or evaluator launch; module-mode invocation then ran the unchanged committed controller.
 
 ### Exit condition
 
-The backend gate is closed. It records one backend, exact CPU environment, reuse of the three
-validated macOS seed-0 artifacts, concurrency one, a projected 20.089 CPU-hour new-cell total and
-the final 12-cell matrix. After seeds 2-4 pass, run the predeclared matched five-draw analysis and
-publish the campaign validation, comparison, report and evidence index to draft PR #8. The
-campaign gate exits only after all authorised cells either pass or stop on a mandatory condition.
-E2 remains unauthorised.
+The backend and campaign gates are closed. The 12 new full runs consumed 23.662 evaluator
+wall-hours at concurrency one, within the 48 CPU-hour bound. The matched analysis and final
+permission-safe evidence records are complete. E2 remains unauthorised, so the exact exit action
+is researcher review and stop.
 
 ## What follows after this gate
 
-E2 is not authorised by the 8 August instruction. After a valid E1 campaign exit, the researcher
-must explicitly authorise the bounded E2 native-placement pilot before any of these actions:
+E2 is not authorised by the 8-9 August instructions. A new direct researcher instruction is
+required before any bounded E2 native-placement pilot or any of these actions:
 
 1. validate the two-RSU strong-link-full/weaker-idle case against current evaluator state;
 2. add or validate native ingress-RSU, execution-RSU, forwarding-count and forwarding-cost fields;
@@ -132,7 +136,7 @@ E2 multi-seed expansion and the E3 backhaul pilot follow only after that bounded
 
 Do not start:
 
-- E2 before the E1 multi-draw exit condition;
+- E2 without a new direct researcher instruction;
 - static/reactive/proactive scaling;
 - MAPPO or other actor retraining;
 - a learned infrastructure dispatcher;
@@ -140,14 +144,14 @@ Do not start:
 - proactive prediction or oracle forecasting;
 - bus modelling as a replacement for the VEC thread;
 - any G4, other-GPU, TPU or cross-backend E1 campaign cell;
-- any full E1 cell whose own two serial ten-step CPU smokes have not passed.
+- any additional E1 cell or semantic/cap variant.
 
 ## Active blockers and requests
 
 - The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
   pre-task failures. No G4 scientific compatibility or performance measurement is available.
-- All three seed-1 cells passed and nine new full cells remain. There is no routine-review blocker;
-  each later cell remains contingent on its own mandatory repeated-smoke and validation gates.
+- The E1 campaign has no unresolved execution cell. Its five-draw primary result is inconclusive
+  at this replication size and must not be relabelled as equivalence or non-inferiority.
 - CSF3 remains unavailable from this machine because its hostname is not resolvable.
 - Randy's original sweep package and exact definitions remain unavailable if historical
   reproduction is later desired; his reported `0.6943` is not reproduced.

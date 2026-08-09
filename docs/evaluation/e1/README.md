@@ -5,6 +5,25 @@ This directory records the bounded E1 seed-0/fleet-0 waiting-room pilot at the p
 snapshot/clamp/legacy semantics with its sequential/reject/conserved physical semantics. The
 three-cap record is descriptive single-seed evidence, not a replicated cap sweep.
 
+## Final multi-draw result
+
+The physical E1 campaign is complete under the frozen
+[campaign manifest](e1_multidraw_physical_campaign_manifest_v1.json), SHA-256
+`0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`. Start with the
+[final campaign report](e1_multidraw_physical_campaign_report_2026-08-09.md), then use the
+[machine comparison](e1_multidraw_physical_campaign_comparison_v1.json),
+[validation](e1_multidraw_physical_campaign_validation_v1.json),
+[result summary](e1_multidraw_physical_campaign_result_summary_v1.json),
+[evidence index](e1_multidraw_physical_campaign_evidence_index_v1.json) and
+[record checksums](e1_multidraw_physical_campaign_checksums_v1.sha256).
+
+All 24 new smokes, 12 new full cells and all 15 analysed full records passed their declared gates.
+The primary five-draw `40x - 0.75x` offered-deadline comparison was inconclusive at this
+replication size; it is not an equivalence, non-inferiority or tie result. Raw artifacts remain
+outside Git. E2 and all extensions remain unauthorised pending a new direct instruction.
+
+The remainder of this page preserves the chronological evidence and authority history.
+
 Start with the cumulative
 [E0-to-E1 research record](e1_seed0_three_cap_research_record_2026-08-08.md) and its
 [machine-readable summary](e1_seed0_three_cap_research_summary_v1.json). They consolidate the
@@ -38,8 +57,8 @@ validation records below.
 Raw actor, trace and evaluator outputs remain outside TrafficTwin Git. The manifest and report
 retain permission-safe logical locators and SHA-256 identities.
 
-The seed-0 three-cap pilot is complete, but E1 provides no multi-seed inference, does not
-reproduce Randy's reported `0.6943`, and does not address E2 load-aware placement.
+At the seed-0 gate, no multi-seed inference was available. Randy's reported `0.6943` remains
+unreproduced, and E1 does not address E2 load-aware placement.
 
 The seed-0 decision gate was subsequently closed by the
 [multi-draw decision record](e1_multidraw_decision_record_2026-08-08.md). The exact bounded
@@ -114,5 +133,6 @@ cross-cap task-stream identity and 31-check descriptive comparator passed. See t
 and [campaign report](e1_seed1_three_cap_campaign_report_2026-08-08.md). The
 [comparator](../../../scripts/compare_e1_seed_three_cap.py) and
 [focused tests](../../../tests/test_compare_e1_seed_three_cap.py) retain the calculation contract.
-The seed-1 qualitative admission/rejection/deadline/latency pattern matches seed 0, but no
-five-draw inference, tie or equivalence claim is available. Execution stopped before fleet seed 2.
+The seed-1 qualitative admission/rejection/deadline/latency pattern matched seed 0. That record's
+stop-before-seed-2 boundary is historical and was later superseded by direct researcher authority;
+the final five-draw records at the top of this page now govern the completed result.

@@ -1,0 +1,207 @@
+{
+  "backend": "macos_arm64_cpu_jax_0_4_30",
+  "campaign_passed": true,
+  "conservation": {
+    "all_full_runs_valid": true,
+    "finite_nonnegative": "passed",
+    "rejection_reconciliation": "passed",
+    "silent_task_loss": false,
+    "task_accounting": "passed",
+    "v2i_service_work_ms": "conserved",
+    "vehicle_service_work_ms": "conserved",
+    "within_seed_task_stream_identity": "passed for offered count, task_active and task_type"
+  },
+  "counts": {
+    "caps_per_draw": 3,
+    "fleet_draws": 5,
+    "full_cells_analysed": 15,
+    "new_full_cells_failed": 0,
+    "new_full_cells_passed": 12,
+    "new_full_cells_started": 12,
+    "new_smoke_pairs_passed": 12,
+    "new_smoke_runs_passed": 24,
+    "seed0_full_cells_reused_by_hash": 3
+  },
+  "decision": "inconclusive_at_this_replication_size",
+  "evaluator_seed": 0,
+  "execution_commit": "5111cbc23ec16b031435b2aba5a11e9f9074d3e9",
+  "limitations": {
+    "causality_beyond_controlled_simulator_intervention_supported": false,
+    "formal_equivalence_or_noninferiority_claim_supported": false,
+    "ordinary_traffic_control_included": false,
+    "randy_reported_0_6943_reproduced": false,
+    "real_world_optimality_supported": false,
+    "tasks_used_as_independent_replicates": false,
+    "uk2030_fleet_validated_real_world_model": false
+  },
+  "manifest_id": "e1-multidraw-physical-seeds0-4-v1",
+  "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d",
+  "mechanism_checks": {
+    "40x_remains_binding_every_seed": true,
+    "admission_increases_from_0p75_to_40x_every_seed": true,
+    "admitted_attainment_decreases_from_0p75_to_40x_every_seed": true,
+    "offered_attainment_2p5_equals_40x_every_seed": true,
+    "offered_penalty_latency_increases_from_0p75_to_40x_every_seed": true,
+    "rejection_decreases_from_0p75_to_40x_every_seed": true
+  },
+  "next_gate": "stop_for_researcher_review; E2 and all extensions remain unauthorised",
+  "primary_estimand": {
+    "confidence_interval": {
+      "confidence_level": 0.95,
+      "critical_value": 2.7764451051977987,
+      "degrees_of_freedom": 4,
+      "excludes_zero": false,
+      "lower": -0.00024646245558826457,
+      "method": "two-sided Student t interval",
+      "upper": 2.759209887848739e-05
+    },
+    "contrast": "deadline_attainment_offered_40x_minus_0p75",
+    "decision": "inconclusive_at_this_replication_size",
+    "formal_equivalence_or_noninferiority_claim_supported": false,
+    "maximum": 0.0,
+    "mean": -0.00010943517835488858,
+    "median": -0.00012212996494254114,
+    "minimum": -0.0002534368840447776,
+    "n_fleet_draws": 5,
+    "positive_value_favours": "40x",
+    "raw_paired_differences": [
+      -0.0001716090427871242,
+      -0.00012212996494254114,
+      0.0,
+      -0.0002534368840447776,
+      0.0
+    ],
+    "sample_standard_deviation": 0.0001103577758810792,
+    "standard_error": 4.9353497743155963e-05
+  },
+  "provenance": {
+    "environment": {
+      "architecture": "arm64",
+      "installed_sumo": "1.27.1",
+      "jax": "0.4.30",
+      "jax_backend": "cpu",
+      "jax_device": "TFRT_CPU_0",
+      "jax_enable_x64": false,
+      "jaxlib": "0.4.30",
+      "local_import_adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+      "ml_dtypes": "0.5.4",
+      "numpy": "1.26.4",
+      "opt_einsum": "3.4.0",
+      "os": "macOS 26.4.1 (build 25E253)",
+      "python": "3.11.15",
+      "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+      "scipy": "1.17.1",
+      "sumo_compatibility_status": "mismatch",
+      "sumo_note": "The evaluator replays the NPZ and does not invoke SUMO. This campaign is not an exact canonical SUMO 1.27.0 reproduction.",
+      "trace_provenance_sumo": "1.27.0",
+      "validated_environment_reference": "docs/evaluation/e0/e0_manifest_v1.json",
+      "validated_environment_reference_sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93",
+      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    },
+    "inputs": {
+      "actor": {
+        "actions": [
+          "Local",
+          "V2I",
+          "V2V"
+        ],
+        "identity": "Frozen 17-dimensional Paper-2A MAPPO actor",
+        "observes_current_rsu_load": false,
+        "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+        "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+        "training_seed": 100
+      },
+      "evaluator": {
+        "path": "eval/eval_sumo_stage1_mc.py",
+        "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669"
+      },
+      "trace": {
+        "has_enter_channel": false,
+        "padded_fleet_width": 2488,
+        "path": "traces/trace_inc_fullrsu.npz",
+        "rsu_count": 10,
+        "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+        "sumo_seed": 43,
+        "trace_steps": 3600
+      }
+    },
+    "repositories": {
+      "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "traffictwin_execution_commit": "5111cbc23ec16b031435b2aba5a11e9f9074d3e9",
+      "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc"
+    }
+  },
+  "raw_evidence": {
+    "file_count": 369,
+    "logical_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1",
+    "size_bytes": 1261337011
+  },
+  "replication_unit": "fleet_seed",
+  "runtime": {
+    "maximum_authorised_cpu_hours": 48.0,
+    "measure": "evaluator wall time reported by each authoritative summary",
+    "nine_cells_executed_in_final_continuation_hours": 17.856833333333334,
+    "nine_cells_executed_in_final_continuation_seconds": 64284.6,
+    "reused_seed0_seconds_excluded": true,
+    "twelve_new_full_cells_hours": 23.661916666666666,
+    "twelve_new_full_cells_seconds": 85182.9,
+    "within_authorised_budget": true
+  },
+  "schema_version": "traffictwin.e1-multidraw-physical-result-summary.v1",
+  "secondary_deadline_attainment_contrasts": {
+    "2p5_minus_0p75": {
+      "confidence_interval": {
+        "confidence_level": 0.95,
+        "critical_value": 2.7764451051977987,
+        "degrees_of_freedom": 4,
+        "excludes_zero": false,
+        "lower": -0.00024646245558826457,
+        "method": "two-sided Student t interval",
+        "upper": 2.759209887848739e-05
+      },
+      "decision": "inconclusive_at_this_replication_size",
+      "formal_equivalence_or_noninferiority_claim_supported": false,
+      "maximum": 0.0,
+      "mean": -0.00010943517835488858,
+      "median": -0.00012212996494254114,
+      "minimum": -0.0002534368840447776,
+      "n_fleet_draws": 5,
+      "raw_paired_differences": [
+        -0.0001716090427871242,
+        -0.00012212996494254114,
+        0.0,
+        -0.0002534368840447776,
+        0.0
+      ],
+      "sample_standard_deviation": 0.0001103577758810792,
+      "standard_error": 4.9353497743155963e-05
+    },
+    "40x_minus_2p5": {
+      "confidence_interval": {
+        "confidence_level": 0.95,
+        "critical_value": 2.7764451051977987,
+        "degrees_of_freedom": 4,
+        "excludes_zero": false,
+        "lower": 0.0,
+        "method": "two-sided Student t interval",
+        "upper": 0.0
+      },
+      "decision": "inconclusive_at_this_replication_size",
+      "formal_equivalence_or_noninferiority_claim_supported": false,
+      "maximum": 0.0,
+      "mean": 0.0,
+      "median": 0.0,
+      "minimum": 0.0,
+      "n_fleet_draws": 5,
+      "raw_paired_differences": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "sample_standard_deviation": 0.0,
+      "standard_error": 0.0
+    }
+  }
+}
