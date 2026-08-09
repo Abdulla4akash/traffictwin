@@ -389,3 +389,93 @@ def test_incompatible_seed_mismatch_shows_warning(
     # but we also verify lens reports zero comparable
     assert lens.traffic_summary.available_count == 0
     assert lens.vec_summary.available_count == 0
+
+
+def test_synthetic_mismatch_shows_incompatibility_banner(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import ComparisonRequest, compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    variation_synth_false = variation_col.model_copy(
+        update={
+            "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
+        }
+    )
+    comp = compare_metric_collections(
+        baseline_col,
+        variation_synth_false,
+        ComparisonRequest(
+            baseline_run_id=baseline_col.run_id,
+            variation_run_id=variation_synth_false.run_id,
+            require_same_random_seed=True,
+        ),
+        clock=fixed_clock,
+    )
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.compatibility["synthetic_match"] is False
+    assert lens.compatibility["is_compatible"] is False
+    assert "synthetic flags differ" in lens.warnings
+    # JSON export must say is_compatible false
+    import json
+
+    exported = json.loads(lens.to_json())
+    assert exported["compatibility"]["is_compatible"] is False
+
+    # Render the page with this synthetic-mismatched lens injected
+    import traffictwin.ui.pages.consequence_lenses as page_module
+
+    monkeypatch.setattr(page_module, "build_consequence_lens_report", lambda *_a, **_kw: lens)
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    # Warning banner must be visible
+    warning_text = "\n".join(str(w.value) for w in app.warning)
+    assert "Pair is not fully compatible" in warning_text
+    assert "synthetic flags differ" in warning_text
+    # Synthetic provenance mismatch banner
+    assert "Synthetic provenance mismatch" in warning_text
+    # Compatibility details must show synthetic_match false
+    markdown_text = "\n".join(str(m.value) for m in app.markdown)
+    assert "Synthetic provenance match:" in markdown_text
+    assert "no" in markdown_text.lower()
+    # Provenance badges must still be visible, and rows remain for diagnostic transparency
+    # (do not silently hide comparison rows)
+    assert len(app.dataframe) >= 2
+
+
+def test_synthetic_mismatch_json_export_is_incompatible(tmp_path: Path) -> None:
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import ComparisonRequest, compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    variation_synth_false = variation_col.model_copy(
+        update={
+            "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
+        }
+    )
+    comp = compare_metric_collections(
+        baseline_col,
+        variation_synth_false,
+        ComparisonRequest(
+            baseline_run_id=baseline_col.run_id,
+            variation_run_id=variation_synth_false.run_id,
+            require_same_random_seed=True,
+        ),
+        clock=fixed_clock,
+    )
+    lens = build_consequence_lens_report_from_comparison(comp)
+    import json
+
+    exported = json.loads(lens.to_json())
+    assert exported["compatibility"]["synthetic_match"] is False
+    assert exported["compatibility"]["is_compatible"] is False
+    assert "synthetic flags differ" in exported["warnings"]
+    assert exported["traffic_summary"]["warnings"] == exported["warnings"]
+    assert exported["vec_summary"]["warnings"] == exported["warnings"]

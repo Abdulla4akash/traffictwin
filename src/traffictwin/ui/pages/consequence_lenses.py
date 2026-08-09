@@ -273,17 +273,26 @@ def render() -> None:
     compat = report.compatibility
     same_exp = bool(compat.get("same_experiment"))
     same_seed = bool(compat.get("same_random_seed"))
+    synthetic_match = bool(compat.get("synthetic_match"))
+    same_version = bool(compat.get("same_metric_version"))
     warnings = compat.get("warnings")
     warning_list: list[str] = warnings if isinstance(warnings, list) else []
     with st.container(border=True):
         st.markdown(
             f"**Same experiment:** {'yes' if same_exp else 'no'} · "
             f"**Same random seed:** {'yes' if same_seed else 'no'} · "
-            f"**Metric version:** {report.baseline_identity.get('metric_version')}"
+            f"**Same metric version:** {'yes' if same_version else 'no'} · "
+            f"**Synthetic provenance match:** {'yes' if synthetic_match else 'no'}"
         )
+        st.markdown(f"**Metric version:** {report.baseline_identity.get('metric_version')}")
         base_badge = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
         var_badge = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
         st.markdown(f"**Baseline:** {base_badge} **Variation:** {var_badge}")
+        if not synthetic_match:
+            st.warning(
+                "Synthetic provenance mismatch: baseline and variation have different "
+                "synthetic/imported standing."
+            )
         if not bool(compat.get("is_compatible")):
             st.warning(
                 "Pair is not fully compatible. Deltas for mismatched metrics "

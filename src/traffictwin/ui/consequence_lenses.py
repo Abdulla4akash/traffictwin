@@ -246,9 +246,12 @@ def _fingerprint_for_report(
     report: ComparisonReport,
     traffic: ConsequenceDomainSummary,
     vec: ConsequenceDomainSummary,
+    evidence_standing: dict[str, JsonScalar],
+    reconciled_warnings: list[str],
 ) -> str:
-    # Canonical stable binding of the complete projected payload.
-    # Order is deterministic (allowlist order) and values are bound, not just keys.
+    # Canonical stable binding of the complete projected evidence payload.
+    # Includes metric values, provenance/evidence standing, and compatibility
+    # findings so a report fingerprint identifies the full consequence projection.
     def _row_payload(row: ConsequenceMetricRow) -> dict[str, Any]:
         return {
             "metric_key": row.metric_key,
@@ -261,26 +264,39 @@ def _fingerprint_for_report(
             "relative_delta": row.relative_delta,
             "unit": row.unit,
             "reason_codes": sorted(row.reason_codes),
+            "compatibility_findings": sorted(row.compatibility_findings),
+            "provenance": dict(sorted(row.provenance.items())),
+            "limitations": sorted(row.limitations),
+            "denominator_description": row.denominator_description,
         }
+
+    # Re-derive compatibility for fingerprint binding; keep consistent with
+    # report compatibility (same_experiment / same_seed / same_version /
+    # synthetic_match and authoritative warnings).
+    baseline_ctx = report.baseline_context
+    variation_ctx = report.variation_context
+    compatibility_payload: dict[str, Any] = {
+        "same_experiment": baseline_ctx.get("experiment_id") == variation_ctx.get("experiment_id"),
+        "same_random_seed": baseline_ctx.get("random_seed") == variation_ctx.get("random_seed"),
+        "same_metric_version": baseline_ctx.get("metric_version")
+        == variation_ctx.get("metric_version"),
+        "synthetic_match": baseline_ctx.get("synthetic") == variation_ctx.get("synthetic"),
+        "warnings": sorted(reconciled_warnings),
+        "comparison_version": report.comparison_version,
+    }
 
     payload: dict[str, Any] = {
         "projection_version": "1.0",
-        "baseline_identity": report.baseline_context,
-        "variation_identity": report.variation_context,
-        "compatibility": {
-            "same_experiment": report.baseline_context.get("experiment_id")
-            == report.variation_context.get("experiment_id"),
-            "same_random_seed": report.baseline_context.get("random_seed")
-            == report.variation_context.get("random_seed"),
-            "same_metric_version": report.baseline_context.get("metric_version")
-            == report.variation_context.get("metric_version"),
-        },
+        "baseline_identity": baseline_ctx,
+        "variation_identity": variation_ctx,
+        "compatibility": compatibility_payload,
         "changed_seed_parameters": sorted(
             report.changed_seed_parameters,
             key=lambda item: str(item.get("path")),
         ),
-        "warnings": sorted(report.warnings),
+        "warnings": sorted(reconciled_warnings),
         "comparison_version": report.comparison_version,
+        "evidence_standing": dict(sorted(evidence_standing.items(), key=lambda kv: kv[0])),
         "traffic_rows": [_row_payload(row) for row in traffic.rows],
         "vec_rows": [_row_payload(row) for row in vec.rows],
     }
@@ -359,15 +375,28 @@ def build_consequence_lens_report_from_comparison(
     variation_ctx = dict(comparison.variation_context)
 
     # Compatibility preserves the authoritative comparison contract.
+    # Reconcile authoritative warnings first, then derive is_compatible so a
+    # synthetic/imported mismatch or any authoritative incompatibility cannot
+    # coexist with is_compatible == true.
     same_experiment = baseline_ctx.get("experiment_id") == variation_ctx.get("experiment_id")
     same_seed = baseline_ctx.get("random_seed") == variation_ctx.get("random_seed")
     same_version = baseline_ctx.get("metric_version") == variation_ctx.get("metric_version")
     synthetic_match = baseline_ctx.get("synthetic") == variation_ctx.get("synthetic")
-    is_compatible = bool(same_experiment and same_version and same_seed)
-    # Warnings are the authoritative compatibility findings.
+    # Warnings are the authoritative compatibility findings (comparison plus
+    # locally derived version mismatch, kept as single source of truth).
     warnings = list(comparison.warnings)
     if not same_version and "metric collection versions differ" not in warnings:
         warnings.append("metric collection versions differ")
+    # Overall verdict must require provenance compatibility and absence of
+    # authoritative incompatibility warnings.
+    has_authoritative_incompatibility = bool(warnings)
+    is_compatible = bool(
+        same_experiment
+        and same_version
+        and same_seed
+        and synthetic_match
+        and not has_authoritative_incompatibility
+    )
     compatibility: dict[str, Any] = {
         "same_experiment": same_experiment,
         "same_random_seed": same_seed,
@@ -411,7 +440,9 @@ def build_consequence_lens_report_from_comparison(
         warnings=list(warnings),
     )
 
-    fingerprint = _fingerprint_for_report(comparison, traffic_summary, vec_summary)
+    fingerprint = _fingerprint_for_report(
+        comparison, traffic_summary, vec_summary, evidence_standing, warnings
+    )
 
     return ConsequenceLensReport(
         baseline_identity=baseline_ctx,
@@ -421,7 +452,7 @@ def build_consequence_lens_report_from_comparison(
         traffic_summary=traffic_summary,
         vec_summary=vec_summary,
         evidence_standing=evidence_standing,
-        warnings=list(comparison.warnings),
+        warnings=list(warnings),
         fingerprint=fingerprint,
         generated_at=comparison.generated_at.isoformat(),
     )

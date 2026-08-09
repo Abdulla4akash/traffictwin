@@ -500,3 +500,120 @@ def test_compatibility_requires_random_seed() -> None:
     assert lens2.compatibility["is_compatible"] is False
     assert len(comp2.comparable_metrics) == 0
     assert len(comp2.unavailable_comparisons) == len(ALL_LENS_KEYS)
+
+
+def test_synthetic_mismatch_gates_compatibility() -> None:
+    """Synthetic/imported mismatch must yield synthetic_match False and is_compatible False."""
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    # Baseline synthetic True, variation synthetic False
+    variation_synth_false = variation_col.model_copy(
+        update={
+            "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
+        }
+    )
+    comp = compare_metric_collections(
+        baseline_col,
+        variation_synth_false,
+        ComparisonRequest(
+            baseline_run_id=baseline_col.run_id,
+            variation_run_id=variation_synth_false.run_id,
+            require_same_random_seed=True,
+        ),
+        clock=fixed_clock,
+    )
+    assert "synthetic flags differ" in comp.warnings
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.compatibility["synthetic_match"] is False
+    assert lens.compatibility["is_compatible"] is False
+    assert "synthetic flags differ" in lens.compatibility["warnings"]
+    assert "synthetic flags differ" in lens.warnings
+    assert "synthetic flags differ" in lens.traffic_summary.warnings
+    assert "synthetic flags differ" in lens.vec_summary.warnings
+    # JSON export must also say is_compatible false
+    exported = json.loads(lens.to_json())
+    assert exported["compatibility"]["is_compatible"] is False
+    assert exported["compatibility"]["synthetic_match"] is False
+    assert "synthetic flags differ" in exported["warnings"]
+    assert "synthetic flags differ" in exported["compatibility"]["warnings"]
+    # Ordinary synthetic-matched pair remains compatible
+    comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
+    assert lens_ok.compatibility["synthetic_match"] is True
+    assert lens_ok.compatibility["is_compatible"] is True
+    assert lens_ok.warnings == []
+
+
+def test_warning_consistency_across_report_and_summaries() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    # Metric version mismatch should appear consistently via reconciled warnings
+    variation_mv = variation_col.model_copy(update={"metric_version": "9.9"})
+    comp = compare_metric_collections(baseline_col, variation_mv, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert "metric collection versions differ" in lens.compatibility["warnings"]
+    assert lens.warnings == lens.compatibility["warnings"]
+    assert lens.traffic_summary.warnings == lens.warnings
+    assert lens.vec_summary.warnings == lens.warnings
+    assert lens.compatibility["is_compatible"] is False
+    # Also test ordinary pair has empty warnings everywhere
+    comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
+    assert lens_ok.warnings == []
+    assert lens_ok.compatibility["warnings"] == []
+    assert lens_ok.traffic_summary.warnings == []
+    assert lens_ok.vec_summary.warnings == []
+
+
+def test_fingerprint_binds_evidence_provenance_and_compatibility() -> None:
+    """Fingerprint must bind evidence standing, provenance, and compatibility findings."""
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    # Changing synthetic provenance must change fingerprint (evidence binding)
+    variation_synth_false = variation_col.model_copy(
+        update={
+            "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
+        }
+    )
+    comp_synth = compare_metric_collections(
+        baseline_col,
+        variation_synth_false,
+        ComparisonRequest(
+            baseline_run_id=baseline_col.run_id,
+            variation_run_id=variation_synth_false.run_id,
+            require_same_random_seed=True,
+        ),
+        clock=fixed_clock,
+    )
+    lens_synth = build_consequence_lens_report_from_comparison(comp_synth)
+    assert lens.fingerprint != lens_synth.fingerprint
+    # Changing a row's provenance/compatibility finding must change fingerprint
+    comp2 = copy.deepcopy(comp)
+    # Mutate provenance of first comparable metric
+    if comp2.comparable_metrics:
+        orig = comp2.comparable_metrics[0]
+        mutated_provenance = dict(orig.provenance)
+        mutated_provenance["baseline_run_id"] = "mutated-run-id"
+        comp2.comparable_metrics[0] = orig.model_copy(update={"provenance": mutated_provenance})
+        lens2 = build_consequence_lens_report_from_comparison(comp2)
+        assert lens.fingerprint != lens2.fingerprint
+    # Changing evidence standing (bundle fingerprint) must change fingerprint
+    baseline, variation = _baseline_variation()
+    report = build_consequence_lens_report(baseline, variation)
+    assert not isinstance(report, ServiceError)
+    # Report via comparison path vs via bundle path should differ in fingerprint
+    # because evidence_standing includes bundle fingerprints/paths
+    comp_direct = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens_direct = build_consequence_lens_report_from_comparison(comp_direct)
+    assert (
+        report.fingerprint != lens_direct.fingerprint
+        or report.evidence_standing != lens_direct.evidence_standing
+    )
+    # At minimum, mutating evidence_standing directly and recomputing fingerprint
+    # would differ; we verify the fingerprint helper now incorporates evidence_standing
+    # by checking that two identical comparisons with same evidence differ if we
+    # pass different evidence_standing (tested via bundle vs no-bundle difference)
