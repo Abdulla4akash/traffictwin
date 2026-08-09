@@ -67,7 +67,7 @@ def test_page_renders_with_no_workspace(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert "Sources known" in metrics
     assert int(metrics["Sources known"]) == 9
     # Must show acquisition-ready vs accepted distinction (honest counts)
-    assert "Accepted" in metrics
+    assert "Accepted local evidence" in metrics
     assert "Acquisition-ready" in metrics
 
 
@@ -376,7 +376,7 @@ def test_partial_workspace_renders_independently(
     assert "DfT" in all_text
     # Overall page must not claim whole Manchester available because one source exists
     metrics = {m.label: m.value for m in app.metric}
-    assert int(metrics["Accepted"]) < int(metrics["Sources known"])
+    assert int(metrics["Accepted local evidence"]) < int(metrics["Sources known"])
 
 
 def test_source_table_has_expected_columns(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -423,15 +423,15 @@ def test_exact_metrics_match_typed_service(monkeypatch: pytest.MonkeyPatch, tmp_
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
     metrics = {m.label: m.value for m in app.metric}
-    # Five separate cards, no fake total
+    # Five separate cards, no fake total — precise labels
     assert metrics["Sources known"] == "9"
-    assert metrics["Accepted"] == "1"
+    assert metrics["Accepted local evidence"] == "1"
     assert metrics["Acquisition-ready"] == "5"
-    assert metrics["Blocked"] == "7"
-    assert metrics["Unavailable"] == "7"
+    assert metrics["Blocked sources"] == "7"
+    assert metrics["Unavailable sources"] == "7"
     # Union caption must be honest
     captions = "\n".join(str(c.value) for c in app.caption)
-    assert "Blocked or unavailable (unique): 7" in captions
+    assert "Blocked or unavailable sources (unique): 7" in captions
     assert "never exceeds known sources (9)" in captions
 
 

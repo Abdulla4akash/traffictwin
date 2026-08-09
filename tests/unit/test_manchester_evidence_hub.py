@@ -876,3 +876,180 @@ def test_acquisition_ready_alias_consistency(monkeypatch: pytest.MonkeyPatch) ->
     assert view.available_count == view.acquisition_ready_count
     assert view.blocked_or_unavailable_count == view.blocked_unavailable_union_count
     assert view.blocked_or_unavailable == view.blocked_unavailable_union_count
+
+
+# --- Presentation-consistency contract (Claude 5 tamper fix) ---
+
+
+def test_scientific_prose_tamper_rejected() -> None:
+    """Claude tamper: BLOCKED with APPROVED must be rejected."""
+    from pydantic import ValidationError
+
+    view = build_manchester_hub_view(None)
+    blocked = next(
+        s for s in view.sources if s.scientific_gate_typed == ScientificGateState.BLOCKED
+    )
+    # Before fix, this validated and did not change canonical bytes; after fix it must raise
+    with pytest.raises(ValidationError) as exc:
+        ManchesterSourceReadiness.model_validate(
+            {**blocked.model_dump(), "scientific_gate_state": "APPROVED — no owner decision needed"}
+        )
+    # Error at scientific_gate_state or model-level
+    assert (
+        any("scientific_gate_state" in str(e["loc"]) for e in exc.value.errors())
+        or exc.value.errors()
+    )
+
+
+def test_blocked_sources_contain_no_approval_claim() -> None:
+    view = build_manchester_hub_view(None)
+    for s in view.sources:
+        if s.scientific_gate_typed == ScientificGateState.BLOCKED:
+            assert "approved" not in s.scientific_gate_state.lower()
+            assert "no owner decision needed" not in s.scientific_gate_state.lower()
+        if s.scientific_gate_typed == ScientificGateState.NOT_APPLICABLE:
+            assert "scientifically accepted" not in s.scientific_gate_state.lower()
+
+
+def test_consistent_paraphrase_validates_and_keeps_fingerprint() -> None:
+    view = build_manchester_hub_view(None)
+    s = next(s for s in view.sources if s.scientific_gate_typed == ScientificGateState.BLOCKED)
+    # Consistent paraphrase: still BLOCKED language, no prohibited claim
+    good = ManchesterSourceReadiness.model_validate(
+        {
+            **s.model_dump(),
+            "scientific_gate_state": "BLOCKED — paraphrased owner decision required for testing",
+        }
+    )
+    assert good.scientific_gate_typed == s.scientific_gate_typed
+    # Fingerprint unchanged because scientific_gate_state prose is not identity-bound
+    sources_good = [good if x.source_id == s.source_id else x for x in view.sources]
+    tmp = ManchesterEvidenceHubView(
+        sources=sources_good,
+        available_count=view.available_count,
+        acquisition_ready_count=view.acquisition_ready_count,
+        blocked_count=view.blocked_count,
+        unavailable_count=view.unavailable_count,
+        accepted_evidence_count=view.accepted_evidence_count,
+        known_source_count=view.known_source_count,
+        blocked_unavailable_union_count=view.blocked_unavailable_union_count,
+        blocked_or_unavailable_count=view.blocked_or_unavailable_count,
+        warnings=view.warnings,
+        workspace_state=view.workspace_state,
+        fingerprint="",
+        generated_at="",
+    )
+    assert tmp.to_canonical_bytes() == view.to_canonical_bytes()
+
+
+def test_contradictory_paraphrase_rejected_before_fingerprint() -> None:
+    view = build_manchester_hub_view(None)
+    s = next(s for s in view.sources if s.scientific_gate_typed == ScientificGateState.BLOCKED)
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        ManchesterSourceReadiness.model_validate(
+            {**s.model_dump(), "scientific_gate_state": "APPROVED — no owner decision needed"}
+        )
+
+
+def test_typed_change_changes_fingerprint() -> None:
+    view = build_manchester_hub_view(None)
+    s = next(s for s in view.sources if s.scientific_gate_typed == ScientificGateState.BLOCKED)
+    mutated = ManchesterSourceReadiness.model_validate(
+        {**s.model_dump(), "scientific_gate_typed": ScientificGateState.NOT_APPLICABLE}
+    )
+    sources_mut = [mutated if x.source_id == s.source_id else x for x in view.sources]
+
+    view_mut = view.model_copy(update={"sources": sources_mut})
+    assert view.to_canonical_bytes() != view_mut.to_canonical_bytes()
+
+
+@pytest.mark.parametrize(
+    "typed_state, valid_detail, contradictory_detail, field",
+    [
+        (
+            ScientificGateState.BLOCKED,
+            "BLOCKED — owner decision required",
+            "APPROVED — no owner decision needed",
+            "scientific_gate_state",
+        ),
+        (
+            RightsRetentionState.NOT_RECORDED,
+            "NOT_RECORDED / OWNER_DECISION_REQUIRED",
+            "RETENTION APPROVED",
+            "rights_retention_state",
+        ),
+        (
+            RightsRetentionState.PROVIDER_CONTRACT_REQUIRED,
+            "PROVIDER_CONTRACT_REQUIRED",
+            "RECORDED — approved",
+            "rights_retention_state",
+        ),
+        (
+            AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
+            "Not ready — credential unavailable",
+            "Acquisition-ready (BODS live control)",
+            "acquisition_readiness",
+        ),
+        (
+            LocalEvidenceState.NOT_ACCEPTED,
+            "No accepted local evidence",
+            "Accepted local evidence available",
+            "local_evidence_state",
+        ),
+        (
+            LocalEvidenceState.NO_LIVE,
+            "No live evidence",
+            "Live control available",
+            "local_evidence_state",
+        ),
+    ],
+)
+def test_typed_dimension_consistency_matrix(
+    typed_state: object, valid_detail: str, contradictory_detail: str, field: str
+) -> None:
+    """Compact matrix covering scientific, rights, acquisition, local evidence."""
+    from pydantic import ValidationError
+
+    # Build a minimal valid base
+    base = {
+        "source_id": "probe",
+        "display_name": "Probe",
+        "source_role": "Probe",
+        "evidence_type": "probe",
+        "evidence_ceiling": "probe",
+        "coverage_scope": "probe",
+        "freshness_state": "historical",
+        "software_support_state": "probe",
+        "software_support_typed": SoftwareSupportState.AVAILABLE,
+        "configuration_state": "probe",
+        "local_evidence_state": "No accepted local evidence",
+        "local_evidence_typed": LocalEvidenceState.NOT_ACCEPTED,
+        "acquisition_readiness": "Not ready — credential unavailable",
+        "acquisition_typed": AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
+        "rights_retention_state": "NOT_RECORDED / OWNER_DECISION_REQUIRED",
+        "rights_typed": RightsRetentionState.NOT_RECORDED,
+        "scientific_gate_state": "BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED",
+        "scientific_gate_typed": ScientificGateState.BLOCKED,
+        "next_action": "probe",
+    }
+    # Inject the typed state under test
+    if field == "scientific_gate_state":
+        base["scientific_gate_typed"] = typed_state  # type: ignore[assignment]
+    elif field == "rights_retention_state":
+        base["rights_typed"] = typed_state  # type: ignore[assignment]
+    elif field == "acquisition_readiness":
+        base["acquisition_typed"] = typed_state  # type: ignore[assignment]
+    elif field == "local_evidence_state":
+        base["local_evidence_typed"] = typed_state  # type: ignore[assignment]
+    # Valid detail must validate
+    base_valid = dict(base)
+    base_valid[field] = valid_detail
+    obj = ManchesterSourceReadiness.model_validate(base_valid)
+    assert obj.model_dump()[field] == valid_detail
+    # Contradictory must raise
+    base_bad = dict(base)
+    base_bad[field] = contradictory_detail
+    with pytest.raises(ValidationError):
+        ManchesterSourceReadiness.model_validate(base_bad)
