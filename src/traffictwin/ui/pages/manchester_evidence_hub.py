@@ -113,7 +113,7 @@ def render() -> None:
             # Truthful per-source warnings
             if src.source_id == "bods":
                 st.warning(
-                    "BODS is live/recent BUS positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow."  # noqa: E501
+                    "BODS is live/recent BUS-only positions — NOT general private-vehicle traffic, NOT Manchester-wide road flow."  # noqa: E501
                 )
             if src.source_id == "national_highways":
                 st.warning(

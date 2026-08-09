@@ -147,7 +147,7 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             if bods_configured
             else "Not ready — credential unavailable",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / PROVIDER REQUIRED — BODS retention, privacy, licence",
+            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — BODS retention, privacy, licence",  # noqa: E501
             last_receipt_summary="BODS live control state" if bods_configured else None,
             blockers=[] if bods_configured else ["BODS_API_KEY not configured"],
             next_action="Configure BODS_API_KEY and open Manchester Operations for BODS live control"  # noqa: E501
@@ -173,7 +173,7 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             if nh_configured
             else "Not ready — credential unavailable",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / PROVIDER REQUIRED — National Highways retention, licence",  # noqa: E501
+            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — National Highways retention, licence",  # noqa: E501
             last_receipt_summary="National Highways live control state" if nh_configured else None,
             blockers=[] if nh_configured else ["NATIONAL_HIGHWAYS_API_KEY not configured"],
             next_action="Configure NATIONAL_HIGHWAYS_API_KEY and open Manchester Operations"
