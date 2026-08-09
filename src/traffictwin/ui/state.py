@@ -98,6 +98,8 @@ class ReplayFilters(BaseModel):
 
 
 DEFAULT_SESSION_STATE: dict[str, object] = {
+    "pending_whatif_challenge_draft": None,
+    "whatif_challenge_prefill_applied": False,
     "active_registry_path": "data/registry/traffictwin.sqlite",
     "selected_bundle_path": "tests/fixtures/bundles/baseline_valid",
     "selected_run_id": None,

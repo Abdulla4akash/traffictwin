@@ -12,6 +12,12 @@ from traffictwin.synthetic.whatif_pair import (
     STUDIO_EVIDENCE_SENTENCE,
     receipt_to_portable_dict,
 )
+from traffictwin.ui.challenge_whatif_bridge import (
+    PENDING_WHATIF_CHALLENGE_DRAFT_KEY,
+    ChallengeWhatIfDraft,
+    draft_from_handoff_dict,
+    is_valid_handoff_dict,
+)
 from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
@@ -62,6 +68,123 @@ def render(config: UiConfig) -> None:
         f"Active workspace: `{effective_workspace_path}` | Registry: `{effective_registry_path}`"
     )
 
+    # --- Challenge prefill handoff: show source panel and compute effective defaults ---
+    pending_raw = st.session_state.get(PENDING_WHATIF_CHALLENGE_DRAFT_KEY)
+    # Fallback: check legacy key
+    if pending_raw is None:
+        pending_raw = st.session_state.get("pending_whatif_challenge_draft")
+    challenge_draft: ChallengeWhatIfDraft | None = None
+    if pending_raw is not None and is_valid_handoff_dict(pending_raw):
+        try:
+            challenge_draft = draft_from_handoff_dict(pending_raw)
+        except Exception:  # noqa: BLE001 - defensive handoff parse
+            challenge_draft = None
+    # Track whether prefill has been applied (once)
+    prefill_applied = bool(st.session_state.get("whatif_challenge_prefill_applied", False))
+
+    if challenge_draft is not None:
+        with st.container(border=True):
+            st.markdown(
+                f"**Prepared from {challenge_draft.challenge_id} — "
+                f"{challenge_draft.challenge_title}**"
+            )
+            st.markdown(f"Status: `{challenge_draft.mapping_status.value}`")
+            st.caption(
+                f"Supported in What-If Studio: {len(challenge_draft.supported_fields)} · "
+                f"Not represented by current What-If controls: "
+                f"{len(challenge_draft.unsupported_fields)}"
+            )
+            if challenge_draft.supported_fields:
+                st.markdown("**Applied automatically:**")
+                for fld in challenge_draft.supported_fields:
+                    st.caption(
+                        f"`{fld.challenge_path}` → `{fld.whatif_field}` = "
+                        f"`{fld.mapped_value}` — {fld.rationale}"
+                    )
+            if challenge_draft.unsupported_fields:
+                st.markdown("**Not applied — unsupported by current What-If controls:**")
+                for ufld in challenge_draft.unsupported_fields:
+                    st.caption(
+                        f"`{ufld.challenge_path}` = `{ufld.challenge_value}` — {ufld.reason}"
+                    )
+                st.warning(
+                    "Only the supported subset will be prefilled. "
+                    "The generated What-If pair must not be interpreted as exact "
+                    "execution of the original challenge."
+                )
+            for w in challenge_draft.warnings:
+                st.caption(f"Bridge: {w}")
+            st.caption(
+                "Challenge parameters are applied as intervention inputs against the "
+                "baseline preset you choose."
+            )
+            st.caption(f"Bridge fingerprint: `{challenge_draft.fingerprint[:12]}`")
+            cols = st.columns(2)
+            if cols[0].button("Clear challenge prefill", key="whatif_clear_challenge_prefill"):
+                st.session_state.pop(PENDING_WHATIF_CHALLENGE_DRAFT_KEY, None)
+                st.session_state.pop("pending_whatif_challenge_draft", None)
+                st.session_state["whatif_challenge_prefill_applied"] = False
+                st.rerun()
+            if cols[1].button("Keep editing", key="whatif_keep_challenge_prefill"):
+                st.info("Continue editing below. Your changes take precedence.")
+
+    # Resolve effective widget defaults: apply prefill ONCE, then user owns values
+    # Defaults before prefill
+    _default_incident_enabled = True
+    _default_incident_type = "synthetic_congestion_pulse"
+    _default_incident_location = "synthetic-corridor-a"
+    _default_incident_severity = "moderate"
+    _default_incident_start = 120.0
+    _default_incident_duration = 60.0
+    _default_lanes_closed = 1
+    _default_event_demand_multiplier = 1.3
+    _default_congestion_multiplier = 1.65
+    _default_vehicle_count = 20
+    _default_task_arrival_rate = 0.18
+    _default_task_t1 = 0.30
+    _default_task_t2 = 0.40
+    _default_task_t3 = 0.30
+    _default_rsu_count = 2
+    _default_rsu_capacity = 22.0
+    _default_random_seed = 7
+
+    if challenge_draft is not None and not prefill_applied:
+        ov = challenge_draft.whatif_overrides
+        if "congestion_multiplier" in ov:
+            _default_congestion_multiplier = float(ov["congestion_multiplier"])
+        if "task_arrival_rate" in ov:
+            _default_task_arrival_rate = float(ov["task_arrival_rate"])
+        if "vehicle_count" in ov:
+            _default_vehicle_count = int(ov["vehicle_count"])
+        if "rsu_count" in ov:
+            _default_rsu_count = int(ov["rsu_count"])
+        if "rsu_capacity" in ov:
+            _default_rsu_capacity = float(ov["rsu_capacity"])
+        if "random_seed" in ov:
+            _default_random_seed = int(ov["random_seed"])
+        if "incident_type" in ov:
+            _default_incident_type = str(ov["incident_type"])
+        if "incident_location" in ov:
+            _default_incident_location = str(ov["incident_location"])
+        if "incident_start_s" in ov:
+            _default_incident_start = float(ov["incident_start_s"])
+        if "incident_duration_s" in ov:
+            _default_incident_duration = float(ov["incident_duration_s"])
+        if "lanes_closed" in ov:
+            _default_lanes_closed = int(ov["lanes_closed"])
+        if "event_demand_multiplier" in ov:
+            _default_event_demand_multiplier = float(ov["event_demand_multiplier"])
+        if "incident_enabled" in ov:
+            _default_incident_enabled = bool(ov["incident_enabled"])
+        if "task_mix_t1" in ov:
+            _default_task_t1 = float(ov["task_mix_t1"])
+        if "task_mix_t2" in ov:
+            _default_task_t2 = float(ov["task_mix_t2"])
+        if "task_mix_t3" in ov:
+            _default_task_t3 = float(ov["task_mix_t3"])
+        # Mark as applied so reruns don't reset user edits
+        st.session_state["whatif_challenge_prefill_applied"] = True
+
     # Single form for all inputs — one authoritative value flow, no session_state read
     with st.form("whatif_form"):
         section_header("Stage 1 · choose baseline", "Existing supported synthetic preset.")
@@ -92,38 +215,65 @@ def render(config: UiConfig) -> None:
 
         st.markdown("**Incident / event**")
         c1, c2, c3, c4 = st.columns(4)
-        incident_enabled = c1.checkbox("Enable synthetic incident/event", value=True)
-        incident_type = c2.text_input("Event type", value="synthetic_congestion_pulse")
-        incident_location = c3.text_input("Location", value="synthetic-corridor-a")
-        incident_severity = c4.text_input("Severity", value="moderate")
+        incident_enabled = c1.checkbox(
+            "Enable synthetic incident/event", value=_default_incident_enabled
+        )
+        incident_type = c2.text_input("Event type", value=_default_incident_type)
+        incident_location = c3.text_input("Location", value=_default_incident_location)
+        incident_severity = c4.text_input("Severity", value=_default_incident_severity)
         c1, c2, c3, c4 = st.columns(4)
-        incident_start = c1.number_input("Start time (s)", min_value=0.0, value=120.0)
-        incident_duration = c2.number_input("Duration (s)", min_value=1.0, value=60.0)
-        lanes_closed = c3.number_input("Lanes closed", min_value=0, value=1, step=1)
+        incident_start = c1.number_input(
+            "Start time (s)", min_value=0.0, value=_default_incident_start
+        )
+        incident_duration = c2.number_input(
+            "Duration (s)", min_value=1.0, value=_default_incident_duration
+        )
+        lanes_closed = c3.number_input(
+            "Lanes closed", min_value=0, value=_default_lanes_closed, step=1
+        )
         event_demand_multiplier = c4.number_input(
-            "Event demand multiplier", min_value=0.1, value=1.3, step=0.1
+            "Event demand multiplier",
+            min_value=0.1,
+            value=_default_event_demand_multiplier,
+            step=0.1,
         )
 
         st.markdown("**Demand / congestion**")
         c1, c2, c3 = st.columns(3)
         congestion_multiplier = c1.number_input(
-            "Congestion multiplier", min_value=0.25, max_value=3.0, value=1.65, step=0.05
+            "Congestion multiplier",
+            min_value=0.25,
+            max_value=3.0,
+            value=_default_congestion_multiplier,
+            step=0.05,
         )
-        vehicle_count = c2.number_input("Vehicle count", min_value=1, value=20, step=1)
+        vehicle_count = c2.number_input(
+            "Vehicle count", min_value=1, value=_default_vehicle_count, step=1
+        )
         task_arrival_rate = c3.number_input(
-            "Task arrival rate", min_value=0.001, value=0.18, step=0.01, format="%.3f"
+            "Task arrival rate",
+            min_value=0.001,
+            value=_default_task_arrival_rate,
+            step=0.01,
+            format="%.3f",
         )
 
         st.markdown("**Task mix (must sum to 1.0)**")
         c1, c2, c3 = st.columns(3)
-        task_t1 = c1.number_input("T1 share", min_value=0.0, max_value=1.0, value=0.30, step=0.05)
-        task_t2 = c2.number_input("T2 share", min_value=0.0, max_value=1.0, value=0.40, step=0.05)
-        task_t3 = c3.number_input("T3 share", min_value=0.0, max_value=1.0, value=0.30, step=0.05)
+        task_t1 = c1.number_input(
+            "T1 share", min_value=0.0, max_value=1.0, value=_default_task_t1, step=0.05
+        )
+        task_t2 = c2.number_input(
+            "T2 share", min_value=0.0, max_value=1.0, value=_default_task_t2, step=0.05
+        )
+        task_t3 = c3.number_input(
+            "T3 share", min_value=0.0, max_value=1.0, value=_default_task_t3, step=0.05
+        )
 
         st.markdown("**Infrastructure / policy**")
         c1, c2, c3 = st.columns(3)
-        rsu_count = c1.number_input("RSU count", min_value=1, value=2, step=1)
-        rsu_capacity = c2.number_input("RSU capacity", min_value=1.0, value=22.0)
+        rsu_count = c1.number_input("RSU count", min_value=1, value=_default_rsu_count, step=1)
+        rsu_capacity = c2.number_input("RSU capacity", min_value=1.0, value=_default_rsu_capacity)
         policy_options = synthetic_policy_options_for_ui()
         policy_profile = c3.selectbox(
             "Synthetic policy profile",
@@ -281,6 +431,15 @@ def render(config: UiConfig) -> None:
     if preview_submitted and can_generate:
         st.info("Ledger preview updated from current form values.")
 
+    # Show challenge source vs actual ledger distinction before generation
+    if challenge_draft is not None and can_generate:
+        # ledger already computed — show challenge source separation
+        st.info(
+            "Challenge source fields above are separate from the actual What-If "
+            "changed-parameter ledger below. Only the ledger determines what will be "
+            "generated."
+        )
+
     # Success state display (survives reruns)
     receipt_raw = st.session_state.get("whatif_pair_receipt")
     if receipt_raw:
@@ -288,14 +447,55 @@ def render(config: UiConfig) -> None:
             from traffictwin.synthetic.whatif_pair import WhatIfPairReceipt as _Receipt
 
             receipt = _Receipt.model_validate(receipt_raw)
-        except Exception:
+        except Exception:  # noqa: BLE001 - defensive receipt parse
             receipt = None
         if receipt is not None:
             status_label = "already exists" if receipt.status == "already_exists" else "generated"
+            # Check if this receipt was prepared from a challenge draft
+            _challenge_note = ""
+            _challenge_for_receipt = None
+            _pending_for_receipt = st.session_state.get(PENDING_WHATIF_CHALLENGE_DRAFT_KEY)
+            if _pending_for_receipt is None:
+                _pending_for_receipt = st.session_state.get("pending_whatif_challenge_draft")
+            if _pending_for_receipt is not None and is_valid_handoff_dict(_pending_for_receipt):
+                try:
+                    _challenge_for_receipt = draft_from_handoff_dict(_pending_for_receipt)
+                except Exception:  # noqa: BLE001 - defensive handoff parse
+                    _challenge_for_receipt = None
+            if _challenge_for_receipt is not None and _challenge_for_receipt.unsupported_fields:
+                _challenge_note = (
+                    f" Generated from the supported subset of "
+                    f"{_challenge_for_receipt.challenge_id} "
+                    f"({len(_challenge_for_receipt.supported_fields)} mapped, "
+                    f"{len(_challenge_for_receipt.unsupported_fields)} unsupported). "
+                    f"This must not be interpreted as exact execution of "
+                    f"{_challenge_for_receipt.challenge_id}."
+                )
+            elif _challenge_for_receipt is not None:
+                _challenge_note = (
+                    f" Generated from supported fields of {_challenge_for_receipt.challenge_id}."
+                )
             st.success(
                 f"What-if pair {status_label}: `{receipt.pair_id}` · "
                 f"request fingerprint `{receipt.request_fingerprint[:12]}`"
+                + (_challenge_note or "")
             )
+            if _challenge_note and _challenge_for_receipt is not None:
+                if _challenge_for_receipt.unsupported_fields:
+                    st.warning(
+                        f"Generated a What-If pair prepared from the supported subset of "
+                        f"{_challenge_for_receipt.challenge_id} — "
+                        f"{len(_challenge_for_receipt.supported_fields)} field(s) mapped, "
+                        f"{len(_challenge_for_receipt.unsupported_fields)} field(s) not "
+                        f"representable by current What-If controls. "
+                        f"This is not exact execution of the original challenge."
+                    )
+                else:
+                    st.info(
+                        f"Generated a What-If pair prepared from "
+                        f"{len(_challenge_for_receipt.supported_fields)} "
+                        f"supported field(s) of {_challenge_for_receipt.challenge_id}."
+                    )
             with st.container(border=True):
                 st.markdown(f"{badge_markdown('synthetic')} **Pair receipt** · `{receipt.pair_id}`")
                 cols = st.columns(3)
