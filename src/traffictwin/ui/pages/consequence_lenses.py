@@ -6,7 +6,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.badges import provenance_badge
 from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.components.first_run import first_run_guidance
 from traffictwin.ui.consequence_lenses import (
@@ -16,13 +16,13 @@ from traffictwin.ui.consequence_lenses import (
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.services import ServiceError, validate_bundle_for_ui
-from traffictwin.ui.tables import ColumnDisplay, table_column_config
+from traffictwin.ui.tables import ColumnDisplay, consequence_lens_table_rows, table_column_config
 
 
 def _provenance_badge(synthetic_flag: object) -> str:
-    if synthetic_flag is None:
-        return ":gray-badge[UNKNOWN]"
-    return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
+    """Shared three-state provenance badge — delegates to ui.components.badges."""
+
+    return provenance_badge(synthetic_flag)
 
 
 def _format_value(value: object) -> str:
@@ -71,25 +71,9 @@ def _format_tri(value: object) -> str:
 
 
 def _row_dicts(report: ConsequenceLensReport, domain: str) -> list[dict[str, object]]:
-    summary = report.traffic_summary if domain == "traffic" else report.vec_summary
-    rows: list[dict[str, object]] = []
-    for row in summary.rows:
-        rows.append(
-            {
-                "metric_key": row.metric_key,
-                "label": row.label,
-                "status": row.status,
-                "baseline": _format_value(row.baseline),
-                "variation": _format_value(row.variation),
-                "absolute_delta": _format_value(row.absolute_delta),
-                "relative_delta": _format_value(row.relative_delta),
-                "unit": row.unit or "",
-                "direction": row.direction,
-                "reason_codes": ", ".join(row.reason_codes),
-                "denominator": row.denominator_description or "",
-            }
-        )
-    return rows
+    """Thin page wrapper — delegates to shared ui.tables helper."""
+
+    return consequence_lens_table_rows(report, domain)
 
 
 def _render_domain_section(report: ConsequenceLensReport, domain: str, title: str) -> None:
@@ -184,6 +168,27 @@ def render() -> None:
         )
     )
 
+    # Synchronise keyed widget draft state with authoritative committed pair.
+    # Streamlit ignores changed `value=` when a widget key already has persistent
+    # widget state, so an external What-If Studio commit would otherwise leave
+    # stale draft paths visible and re-commit the stale pair. Detect external
+    # change via a marker and explicitly seed the widget keys from the new
+    # committed pair before constructing the keyed widgets.
+    current_pair = (committed_baseline, committed_variation)
+    last_synced = st.session_state.get("_consequence_last_synced_pair")
+    # Normalise stored marker to tuple of strings for robust comparison
+    if isinstance(last_synced, (list, tuple)) and len(last_synced) == 2:
+        try:
+            last_pair = (str(last_synced[0]), str(last_synced[1]))
+        except Exception:  # pragma: no cover - defensive
+            last_pair = None
+    else:
+        last_pair = None
+    if last_pair != current_pair:
+        st.session_state["consequence_baseline_path"] = committed_baseline
+        st.session_state["consequence_variation_path"] = committed_variation
+        st.session_state["_consequence_last_synced_pair"] = current_pair
+
     baseline_input = st.text_input(
         "Baseline bundle path",
         value=committed_baseline,
@@ -269,6 +274,13 @@ def render() -> None:
     # invalid draft input from poisoning selected state and keeps the pair atomic.
     st.session_state["selected_baseline_run"] = str(baseline_path)
     st.session_state["selected_variation_run"] = str(variation_path)
+    # Keep the synchronisation marker in step with the authoritative pair so
+    # our own commit is not misinterpreted as an external change on next render
+    # and invalid blank/invalid drafts do not falsely mark sync.
+    st.session_state["_consequence_last_synced_pair"] = (
+        str(baseline_path),
+        str(variation_path),
+    )
 
     # Baseline and variation identities (logical only, no absolute paths)
     st.subheader("Pair identity")
@@ -315,15 +327,28 @@ def render() -> None:
                 }
             )
 
-    # Compatibility status (tri-state)
+    # Compatibility status (tri-state) — typed model, single authoritative warnings
     st.subheader("Compatibility")
     compat = report.compatibility
-    same_exp = compat.get("same_experiment")
-    same_seed = compat.get("same_random_seed")
-    synthetic_match = compat.get("synthetic_match")
-    same_version = compat.get("same_metric_version")
-    warnings = compat.get("warnings")
-    warning_list: list[str] = warnings if isinstance(warnings, list) else []
+
+    # Support both typed model and legacy dict during transition for tests that monkeypatch
+    def _get_compat(field: str) -> object:
+        if hasattr(compat, field):
+            return getattr(compat, field)
+        if isinstance(compat, dict):
+            return compat.get(field)
+        return None
+
+    same_exp = _get_compat("same_experiment")
+    same_seed = _get_compat("same_random_seed")
+    synthetic_match = _get_compat("synthetic_match")
+    same_version = _get_compat("same_metric_version")
+    is_compat = _get_compat("is_compatible")
+    # Metric versions are per-side typed fields, not dead; display both symmetrically
+    baseline_mv = _get_compat("baseline_metric_version")
+    variation_mv = _get_compat("variation_metric_version")
+    # Authoritative global warnings live once at report level (not fan-out)
+    warning_list: list[str] = list(report.warnings) if isinstance(report.warnings, list) else []
     with st.container(border=True):
         st.markdown(
             f"**Same experiment:** {_format_tri(same_exp)} · "
@@ -331,9 +356,20 @@ def render() -> None:
             f"**Same metric version:** {_format_tri(same_version)} · "
             f"**Synthetic provenance match:** {_format_tri(synthetic_match)}"
         )
-        # Metric version display
-        mv = report.baseline_identity.get("metric_version")
-        st.markdown(f"**Metric version:** {_format_value(mv)}")
+        # Symmetric metric version display — both sides visible, unknown truthfully
+        baseline_mv_disp = _format_value(baseline_mv) if baseline_mv is not None else "Unavailable"
+        # Treat empty string as unavailable via _format_value but ensure explicit
+        if isinstance(baseline_mv, str) and not baseline_mv.strip():
+            baseline_mv_disp = "Unavailable"
+        variation_mv_disp = (
+            _format_value(variation_mv) if variation_mv is not None else "Unavailable"
+        )
+        if isinstance(variation_mv, str) and not variation_mv.strip():
+            variation_mv_disp = "Unavailable"
+        st.markdown(
+            f"**Baseline metric version:** `{baseline_mv_disp}` · "
+            f"**Variation metric version:** `{variation_mv_disp}`"
+        )
         base_badge = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
         var_badge = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
         st.markdown(f"**Baseline:** {base_badge} **Variation:** {var_badge}")
@@ -344,7 +380,7 @@ def render() -> None:
             )
         elif synthetic_match is None:
             st.warning("Synthetic provenance is unknown; compatibility cannot be confirmed.")
-        if not bool(compat.get("is_compatible")):
+        if not bool(is_compat):
             st.warning(
                 "Pair is not fully compatible. Deltas for mismatched metrics "
                 "are withheld with exact reasons."
@@ -352,11 +388,19 @@ def render() -> None:
         if warning_list:
             st.warning("\n".join(str(item) for item in warning_list))
     with st.expander("Advanced: raw compatibility context JSON"):
+        # Serialise typed compatibility deterministically
+        compat_payload: object
+        if hasattr(compat, "model_dump"):
+            compat_payload = compat.model_dump(mode="json")
+        elif isinstance(compat, dict):
+            compat_payload = compat
+        else:
+            compat_payload = str(compat)
         st.json(
             {
                 "baseline_context": report.baseline_identity,
                 "variation_context": report.variation_identity,
-                "compatibility": compat,
+                "compatibility": compat_payload,
                 "warnings": report.warnings,
             }
         )

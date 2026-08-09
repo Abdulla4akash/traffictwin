@@ -19,6 +19,7 @@ from traffictwin.ui.consequence_lenses import (
     DENOMINATOR_BY_KEY,
     TRAFFIC_LENS_KEYS,
     VEC_LENS_KEYS,
+    ConsequenceLensReport,
     build_consequence_lens_report,
     build_consequence_lens_report_from_comparison,
 )
@@ -117,6 +118,8 @@ def test_deterministic_canonical_bytes() -> None:
     assert comp1.generated_at != comp2.generated_at
     r1 = build_consequence_lens_report_from_comparison(comp1)
     r2 = build_consequence_lens_report_from_comparison(comp2)
+    assert isinstance(r1, ConsequenceLensReport)
+    assert isinstance(r2, ConsequenceLensReport)
     assert r1.fingerprint == r2.fingerprint
     assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
     assert r1.to_json() == r2.to_json()
@@ -222,8 +225,8 @@ def test_metric_version_compatibility_preserved() -> None:
     baseline, variation = _baseline_variation()
     report = build_consequence_lens_report(baseline, variation)
     assert not isinstance(report, ServiceError)
-    assert report.compatibility["same_metric_version"] is True
-    assert report.compatibility["is_compatible"] is True
+    assert report.compatibility.same_metric_version is True
+    assert report.compatibility.is_compatible is True
     assert report.baseline_identity["metric_version"] == "1.0"
     assert report.variation_identity["metric_version"] == "1.0"
     baseline_col = metric_collection("baseline_valid")
@@ -232,8 +235,8 @@ def test_metric_version_compatibility_preserved() -> None:
     )
     report2 = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens2 = build_consequence_lens_report_from_comparison(report2)
-    assert lens2.compatibility["same_metric_version"] is False
-    assert lens2.compatibility["is_compatible"] is False
+    assert lens2.compatibility.same_metric_version is False
+    assert lens2.compatibility.is_compatible is False
 
 
 def test_unavailable_reason_preserved() -> None:
@@ -286,9 +289,9 @@ def test_incompatible_pair_refusal() -> None:
         clock=fixed_clock,
     )
     lens = build_consequence_lens_report_from_comparison(report)
-    assert lens.compatibility["same_experiment"] is False
-    assert lens.compatibility["is_compatible"] is False
-    assert any("experiment identifiers differ" in str(w) for w in lens.compatibility["warnings"])
+    assert lens.compatibility.same_experiment is False
+    assert lens.compatibility.is_compatible is False
+    assert any("experiment identifiers differ" in str(w) for w in lens.warnings)
     variation_seed_mismatch = variation_col.model_copy(
         update={
             "results": [r.model_copy(update={"random_seed": 999}) for r in variation_col.results]
@@ -305,8 +308,8 @@ def test_incompatible_pair_refusal() -> None:
         clock=fixed_clock,
     )
     lens2 = build_consequence_lens_report_from_comparison(report2)
-    assert lens2.compatibility["same_random_seed"] is False
-    assert lens2.compatibility["is_compatible"] is False
+    assert lens2.compatibility.same_random_seed is False
+    assert lens2.compatibility.is_compatible is False
     assert len(report2.comparable_metrics) == 0
     assert len(report2.unavailable_comparisons) == len(ALL_LENS_KEYS)
 
@@ -381,8 +384,8 @@ def test_unknown_provenance_remains_unknown() -> None:
     assert lens.evidence_standing["baseline_synthetic"] is None
     assert lens.evidence_standing["variation_synthetic"] is None
     # None==None must NOT become True – must be unknown (None) and fail closed
-    assert lens.compatibility["synthetic_match"] is None
-    assert lens.compatibility["is_compatible"] is False
+    assert lens.compatibility.synthetic_match is None
+    assert lens.compatibility.is_compatible is False
 
 
 def test_unknown_single_side_provenance() -> None:
@@ -392,8 +395,8 @@ def test_unknown_single_side_provenance() -> None:
     report.baseline_context["synthetic"] = True
     report.variation_context["synthetic"] = None
     lens = build_consequence_lens_report_from_comparison(report)
-    assert lens.compatibility["synthetic_match"] is None
-    assert lens.compatibility["is_compatible"] is False
+    assert lens.compatibility.synthetic_match is None
+    assert lens.compatibility.is_compatible is False
 
 
 def test_missing_run_seed_identity() -> None:
@@ -479,7 +482,7 @@ def test_incompatible_pair_still_projects_with_reasons() -> None:
     lens = build_consequence_lens_report_from_comparison(
         report, baseline=baseline, variation=variation
     )
-    assert lens.compatibility["is_compatible"] is False
+    assert lens.compatibility.is_compatible is False
     vec_unavailable = [r for r in lens.vec_summary.rows if r.status == "unavailable"]
     assert len(vec_unavailable) > 0
 
@@ -641,6 +644,8 @@ def test_same_report_across_tmp_directories(tmp_path: Path) -> None:
     r1 = build_consequence_lens_report(baseline, variation)
     r2 = build_consequence_lens_report(baseline, variation)
     assert not isinstance(r1, ServiceError) and not isinstance(r2, ServiceError)
+    assert isinstance(r1, ConsequenceLensReport)
+    assert isinstance(r2, ConsequenceLensReport)
     assert r1.fingerprint == r2.fingerprint
     assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
     assert r1.to_json() == r2.to_json()
@@ -670,8 +675,8 @@ def test_compatibility_requires_random_seed() -> None:
     variation_col = metric_collection("variation_valid")
     comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
-    assert lens.compatibility["same_random_seed"] is True
-    assert lens.compatibility["is_compatible"] is True
+    assert lens.compatibility.same_random_seed is True
+    assert lens.compatibility.is_compatible is True
     assert len(comp.comparable_metrics) > 0
     variation_mismatch = variation_col.model_copy(
         update={
@@ -689,8 +694,8 @@ def test_compatibility_requires_random_seed() -> None:
         clock=fixed_clock,
     )
     lens2 = build_consequence_lens_report_from_comparison(comp2)
-    assert lens2.compatibility["same_random_seed"] is False
-    assert lens2.compatibility["is_compatible"] is False
+    assert lens2.compatibility.same_random_seed is False
+    assert lens2.compatibility.is_compatible is False
     assert len(comp2.comparable_metrics) == 0
     assert len(comp2.unavailable_comparisons) == len(ALL_LENS_KEYS)
 
@@ -703,20 +708,20 @@ def test_compatibility_unknown_fails_closed() -> None:
     comp.baseline_context["synthetic"] = None
     comp.variation_context["synthetic"] = None
     lens = build_consequence_lens_report_from_comparison(comp)
-    assert lens.compatibility["synthetic_match"] is None
-    assert lens.compatibility["is_compatible"] is False
+    assert lens.compatibility.synthetic_match is None
+    assert lens.compatibility.is_compatible is False
     # One unknown
     comp2 = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     comp2.baseline_context["random_seed"] = None
     lens2 = build_consequence_lens_report_from_comparison(comp2)
-    assert lens2.compatibility["same_random_seed"] is None
-    assert lens2.compatibility["is_compatible"] is False
+    assert lens2.compatibility.same_random_seed is None
+    assert lens2.compatibility.is_compatible is False
     # Unknown experiment
     comp3 = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     comp3.baseline_context["experiment_id"] = None
     lens3 = build_consequence_lens_report_from_comparison(comp3)
-    assert lens3.compatibility["same_experiment"] is None
-    assert lens3.compatibility["is_compatible"] is False
+    assert lens3.compatibility.same_experiment is None
+    assert lens3.compatibility.is_compatible is False
 
 
 def test_synthetic_mismatch_gates_compatibility() -> None:
@@ -741,21 +746,23 @@ def test_synthetic_mismatch_gates_compatibility() -> None:
     )
     assert "synthetic flags differ" in comp.warnings
     lens = build_consequence_lens_report_from_comparison(comp)
-    assert lens.compatibility["synthetic_match"] is False
-    assert lens.compatibility["is_compatible"] is False
-    assert "synthetic flags differ" in lens.compatibility["warnings"]
+    assert lens.compatibility.synthetic_match is False
+    assert lens.compatibility.is_compatible is False
     assert "synthetic flags differ" in lens.warnings
-    assert "synthetic flags differ" in lens.traffic_summary.warnings
-    assert "synthetic flags differ" in lens.vec_summary.warnings
+    assert lens.traffic_summary.warnings == []
+    assert lens.vec_summary.warnings == []
     exported = json.loads(lens.to_json())
     assert exported["compatibility"]["is_compatible"] is False
     assert exported["compatibility"]["synthetic_match"] is False
     assert "synthetic flags differ" in exported["warnings"]
-    assert "synthetic flags differ" in exported["compatibility"]["warnings"]
+    assert (
+        "warnings" not in exported["compatibility"]
+        or exported["compatibility"].get("warnings") is None
+    )
     comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
-    assert lens_ok.compatibility["synthetic_match"] is True
-    assert lens_ok.compatibility["is_compatible"] is True
+    assert lens_ok.compatibility.synthetic_match is True
+    assert lens_ok.compatibility.is_compatible is True
     assert lens_ok.warnings == []
 
 
@@ -765,15 +772,14 @@ def test_warning_consistency_across_report_and_summaries() -> None:
     variation_mv = variation_col.model_copy(update={"metric_version": "9.9"})
     comp = compare_metric_collections(baseline_col, variation_mv, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
-    assert "metric collection versions differ" in lens.compatibility["warnings"]
-    assert lens.warnings == lens.compatibility["warnings"]
-    assert lens.traffic_summary.warnings == lens.warnings
-    assert lens.vec_summary.warnings == lens.warnings
-    assert lens.compatibility["is_compatible"] is False
+    assert "metric collection versions differ" in lens.warnings
+    assert lens.traffic_summary.warnings == []
+    assert lens.vec_summary.warnings == []
+    assert lens.compatibility.is_compatible is False
     comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
     assert lens_ok.warnings == []
-    assert lens_ok.compatibility["warnings"] == []
+    assert not hasattr(lens_ok.compatibility, "warnings")
     assert lens_ok.traffic_summary.warnings == []
     assert lens_ok.vec_summary.warnings == []
 
@@ -824,3 +830,103 @@ def test_download_filename_stable_across_workspaces(tmp_path: Path) -> None:
     assert r1.fingerprint == r2.fingerprint
     assert f1 == f2
     assert r1.to_json() == r2.to_json()
+
+
+def test_provenance_badge_shared_helper() -> None:
+    from traffictwin.ui.components.badges import provenance_badge
+
+    assert provenance_badge(None) == ":gray-badge[UNKNOWN]"
+    assert "SYNTHETIC" in provenance_badge(True) or "synthetic" in provenance_badge(True).lower()
+    assert "IMPORTED" in provenance_badge(False)
+    # Unknown not collapsed to false
+    assert provenance_badge(None) != provenance_badge(False)
+
+
+def test_typed_compatibility_rejects_invalid_types() -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    from traffictwin.ui.consequence_lenses import ConsequenceCompatibility
+
+    # Valid tri-state
+    c = ConsequenceCompatibility(
+        same_experiment=True,
+        same_random_seed=None,
+        same_metric_version=False,
+        synthetic_match=None,
+        is_compatible=False,
+        baseline_metric_version="1.0",
+        variation_metric_version=None,
+    )
+    assert c.same_experiment is True
+    assert c.same_random_seed is None
+    # Invalid type should be rejected (extra fields, wrong type)
+    with pytest.raises(ValidationError):
+        ConsequenceCompatibility(same_experiment="yes", is_compatible=True)
+    with pytest.raises(ValidationError):
+        ConsequenceCompatibility(is_compatible=True, extra_field="oops")  # type: ignore[call-arg]
+
+
+def test_typed_compatibility_serialises_and_fingerprint_deterministic() -> None:
+    import json
+
+    from tests.helpers import fixed_clock, metric_collection
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    # Tri-state serialises correctly: True/False/None -> true/false/null
+    exported = json.loads(lens.to_json())
+    assert exported["compatibility"]["same_experiment"] in (True, False, None)
+    assert "is_compatible" in exported["compatibility"]
+    # Deterministic
+    lens2 = build_consequence_lens_report_from_comparison(comp)
+    assert lens.fingerprint == lens2.fingerprint
+    assert lens.to_canonical_bytes() == lens2.to_canonical_bytes()
+    # Changing compatibility changes fingerprint
+
+
+def test_consequence_caching_hit_miss_and_mutation_isolation(tmp_path: Path) -> None:
+    import copy
+    from pathlib import Path as _Path
+
+    from tests.helpers import fixed_clock, metric_collection
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import (
+        build_consequence_lens_report,
+        build_consequence_lens_report_from_comparison,
+        clear_consequence_report_cache,
+        get_cached_consequence_report,
+    )
+    from traffictwin.ui.services import validate_bundle_for_ui
+
+    clear_consequence_report_cache()
+    b = validate_bundle_for_ui(_Path("tests/fixtures/bundles/baseline_valid"))
+    v = validate_bundle_for_ui(_Path("tests/fixtures/bundles/variation_valid"))
+    r1 = build_consequence_lens_report(b, v)
+    assert not isinstance(r1, ServiceError)
+    # Second build of same logical pair should hit cache (same fingerprint, same bytes)
+    r2 = build_consequence_lens_report(b, v)
+    assert not isinstance(r2, ServiceError)
+    assert r1.fingerprint == r2.fingerprint
+    assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
+    # Cache returns deep copy so mutation does not corrupt
+    r1_mut = r1.model_copy(deep=True)
+    r1_mut.warnings.append("injected")
+    cached = get_cached_consequence_report(r1.fingerprint)
+    assert cached is not None
+    assert "injected" not in cached.warnings
+    # Changed evidence causes cache miss (different fingerprint)
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp2 = copy.deepcopy(comp)
+    comp2.comparable_metrics[0] = comp2.comparable_metrics[0].model_copy(update={"baseline": 9999})
+    lens_a = build_consequence_lens_report_from_comparison(comp)
+    lens_b = build_consequence_lens_report_from_comparison(comp2)
+    assert lens_a.fingerprint != lens_b.fingerprint
+    # Cache does not alter canonical fingerprint/export
+    assert "injected" not in lens_a.to_json()

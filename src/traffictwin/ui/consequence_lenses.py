@@ -37,7 +37,7 @@ import hashlib
 import json
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
 from traffictwin.metrics.comparison import ComparisonReport, MetricComparison
@@ -173,6 +173,20 @@ class ConsequenceDomainSummary(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class ConsequenceCompatibility(BaseModel):
+    """Typed compatibility for a consequence comparison."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    same_experiment: StrictBool | None = None
+    same_random_seed: StrictBool | None = None
+    same_metric_version: StrictBool | None = None
+    synthetic_match: StrictBool | None = None
+    is_compatible: StrictBool
+    baseline_metric_version: str | None = None
+    variation_metric_version: str | None = None
+
+
 class ConsequenceLensReport(BaseModel):
     """Deterministic projection over an existing comparison report.
 
@@ -185,7 +199,9 @@ class ConsequenceLensReport(BaseModel):
 
     baseline_identity: dict[str, JsonScalar] = Field(default_factory=dict)
     variation_identity: dict[str, JsonScalar] = Field(default_factory=dict)
-    compatibility: dict[str, Any] = Field(default_factory=dict)
+    compatibility: ConsequenceCompatibility = Field(
+        default_factory=lambda: ConsequenceCompatibility(is_compatible=False)
+    )
     changed_seed_parameters: list[dict[str, JsonScalar]] = Field(default_factory=list)
     traffic_summary: ConsequenceDomainSummary = Field(
         default_factory=lambda: ConsequenceDomainSummary(domain="traffic")
@@ -236,11 +252,13 @@ class ConsequenceLensReport(BaseModel):
                 "rows": [_row_payload(r) for r in summary.rows],
             }
 
+        # Typed compatibility serialised deterministically
+        compat_dict = self.compatibility.model_dump(mode="json")
         return {
             "projection_version": "1.0",
             "baseline_identity": dict(sorted(self.baseline_identity.items())),
             "variation_identity": dict(sorted(self.variation_identity.items())),
-            "compatibility": dict(sorted(self.compatibility.items())),
+            "compatibility": dict(sorted(compat_dict.items())),
             "changed_seed_parameters": sorted(
                 self.changed_seed_parameters,
                 key=lambda item: str(item.get("path")),
@@ -357,6 +375,55 @@ def _fingerprint_for_canonical(portable_dict: dict[str, Any]) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
+# Deterministic projection cache — keyed by stable validated evidence identity
+# (logical fingerprint), not raw path strings. Cache state never enters report
+# fingerprint and absolute paths never leak. Mutations are isolated via deep copy.
+_consequence_report_cache: dict[str, ConsequenceLensReport] = {}
+
+
+def _cache_key_for_report(report: ConsequenceLensReport) -> str:
+    """Stable cache key for a consequence report — its logical fingerprint."""
+
+    # Fingerprint already binds the canonical logical payload (including
+    # evidence standing, compatibility, warnings once, etc.) and is
+    # deterministic. Using it as cache key ensures same accepted logical
+    # evidence reuses cached work, while changed evidence (different
+    # fingerprint) misses. The fingerprint itself is the cache identity,
+    # not a path.
+    return report.fingerprint
+
+
+def _cache_consequence_report(report: ConsequenceLensReport) -> None:
+    """Store a deep copy in the deterministic projection cache."""
+
+    if not report.fingerprint:
+        return
+    # Keep cache bounded
+    if len(_consequence_report_cache) >= 32:
+        # Evict oldest entry (FIFO) to keep memory bounded without global framework
+        oldest = next(iter(_consequence_report_cache))
+        _consequence_report_cache.pop(oldest, None)
+    _consequence_report_cache[report.fingerprint] = report.model_copy(deep=True)
+
+
+def get_cached_consequence_report(fingerprint: str) -> ConsequenceLensReport | None:
+    """Return a deep copy from cache if present, else None.
+
+    Returned value is a deep copy so caller mutations cannot corrupt cache.
+    """
+
+    cached = _consequence_report_cache.get(fingerprint)
+    if cached is None:
+        return None
+    return cached.model_copy(deep=True)
+
+
+def clear_consequence_report_cache() -> None:
+    """Clear the deterministic projection cache (for tests)."""
+
+    _consequence_report_cache.clear()
+
+
 def build_consequence_lens_report(
     baseline: BundleAnalysis,
     variation: BundleAnalysis,
@@ -455,16 +522,20 @@ def build_consequence_lens_report_from_comparison(
         and synthetic_match is True
         and not has_authoritative_incompatibility
     )
-    compatibility: dict[str, Any] = {
-        "same_experiment": same_experiment,
-        "same_random_seed": same_seed,
-        "same_metric_version": same_version,
-        "synthetic_match": synthetic_match,
-        "is_compatible": is_compatible,
-        "warnings": warnings,
-        "baseline_metric_version": baseline_ctx.get("metric_version"),
-        "variation_metric_version": variation_ctx.get("metric_version"),
-    }
+    # Typed compatibility — baseline/variation metric versions are retained as
+    # explicit typed per-side fields and used by UI; warnings live only at
+    # report level (single authoritative source, not fan-out).
+    baseline_mv = baseline_ctx.get("metric_version")
+    variation_mv = variation_ctx.get("metric_version")
+    compatibility = ConsequenceCompatibility(
+        same_experiment=same_experiment,
+        same_random_seed=same_seed,
+        same_metric_version=same_version,
+        synthetic_match=synthetic_match,
+        is_compatible=is_compatible,
+        baseline_metric_version=str(baseline_mv) if isinstance(baseline_mv, str) else None,
+        variation_metric_version=str(variation_mv) if isinstance(variation_mv, str) else None,
+    )
 
     # Evidence standing: logical only, no absolute paths, no local fingerprints
     evidence_standing: dict[str, JsonScalar] = {
@@ -476,13 +547,15 @@ def build_consequence_lens_report_from_comparison(
         "variation_seed_id": variation_ctx.get("seed_id"),
     }
 
+    # Domain summaries carry only domain-specific warnings; global warnings
+    # live once at report level to avoid fan-out duplication.
     traffic_summary = ConsequenceDomainSummary(
         domain="traffic",
         rows=traffic_rows,
         available_count=traffic_available,
         partial_count=traffic_partial,
         unavailable_count=traffic_unavailable,
-        warnings=list(warnings),
+        warnings=[],
     )
     vec_summary = ConsequenceDomainSummary(
         domain="vec",
@@ -490,7 +563,7 @@ def build_consequence_lens_report_from_comparison(
         available_count=vec_available,
         partial_count=vec_partial,
         unavailable_count=vec_unavailable,
-        warnings=list(warnings),
+        warnings=[],
     )
 
     # Build provisional report without fingerprint to compute canonical fingerprint
@@ -507,7 +580,13 @@ def build_consequence_lens_report_from_comparison(
     )
     fingerprint = _fingerprint_for_canonical(provisional.to_portable_dict())
 
-    return ConsequenceLensReport(
+    # If same accepted logical evidence was already projected, reuse cached
+    # deterministic report (deep copy) — cache key is logical fingerprint, not path.
+    cached = get_cached_consequence_report(fingerprint)
+    if cached is not None:
+        return cached
+
+    report = ConsequenceLensReport(
         baseline_identity=baseline_ctx,
         variation_identity=variation_ctx,
         compatibility=compatibility,
@@ -518,3 +597,6 @@ def build_consequence_lens_report_from_comparison(
         warnings=list(warnings),
         fingerprint=fingerprint,
     )
+    # Cache deterministic projection keyed by stable validated evidence identity
+    _cache_consequence_report(report)
+    return report.model_copy(deep=True)
