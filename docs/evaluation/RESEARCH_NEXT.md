@@ -1,9 +1,9 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-08
+**Status date:** 2026-08-09
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 seed-0 pilot complete; E1 multi-draw decision and predeclaration next
-**Execution authority:** no new full campaign or E2 run is authorised by this record
+**Current phase:** E1 physical multi-draw campaign complete; five-draw result ready for review
+**Execution authority:** stopped after the predeclared E1 exit; do not start E2 or another cell
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -29,8 +29,9 @@ Manchester evidence gates. It is not the active experiment scheduler for this VE
 
 ## Current verified state
 
-The evidence base through TrafficTwin commit
-`40d5dc792454165c1c845d776098d8f97b5e6d46` establishes:
+The evidence base through TrafficTwin execution commit
+`5111cbc23ec16b031435b2aba5a11e9f9074d3e9`, together with the final records in this reviewed
+change, establishes:
 
 - E0 corrected accounting and conservation: complete for the bounded repeated smoke and one full
   seed-0/fleet-0 strongest-link reference;
@@ -38,7 +39,39 @@ The evidence base through TrafficTwin commit
   legacy and physical semantic packages;
 - physical task and service-work conservation: passed at all three full cap points;
 - legacy conservation: unavailable and non-conserving by source contract;
-- multi-draw E1 evidence: unavailable because fleet seeds 1-4 have not been run;
+- seed-0 decision gate: closed by the
+  [multi-draw decision record](e1/e1_multidraw_decision_record_2026-08-08.md);
+- G4 backend feasibility: failed before task generation under the exact pinned JAX 0.4.30 CUDA-12
+  environment; [the retained result](e1/e1_colab_g4_backend_smoke_report_2026-08-08.md) contains no
+  scientific task output or speedup;
+- G4 JAX/CUDA-13 compatibility: failed independently at the mandatory first primitive with an
+  observed PJRT FFI/ABI-size mismatch; no evaluator repeat ran and the
+  [compatibility report](e1/e1_g4_jax13_compatibility_smoke_report_2026-08-08.md) contains no task,
+  conservation or speed result;
+- campaign backend: selected as the established macOS arm64 CPU runtime with Python 3.11.15 and
+  JAX/JAXLIB 0.4.30; the three exact macOS seed-0 physical artifacts remain reused by hash;
+- campaign matrix: 12 new physical cells, fleet seeds 1-4 by 0.75x, 2.5x and 40x, with concurrency
+  one and a mandatory two-repeat ten-step gate before every corresponding full cell;
+- seed-1 task-stream identity: offered count, `task_active` and `task_type` matched across 0.75x,
+  2.5x and 40x; each full cell passed all 32 task/work/numerical checks;
+- seed-1 descriptive pattern: higher caps admitted more tasks and rejected fewer, while offered
+  deadline attainment decreased slightly then plateaued and latency rose sharply;
+- seed-0 qualitative comparison: the same seven-field admission/rejection/deadline/latency pattern
+  was observed; this is descriptive two-draw evidence, not five-draw inference;
+- multi-draw E1 execution: all 24 new ten-step smokes and all 12 new full cells passed, with zero
+  failed or stopped scientific cells; the three seed-0 full records were reused by exact hash;
+- within-seed identity: offered count, `task_active` and `task_type` matched across caps for all
+  five fleet draws; all 15 analysed full cells passed task and V2I/vehicle-work conservation;
+- primary five-draw result: raw paired `40x - 0.75x` offered-deadline differences were
+  `[-0.000171609043, -0.000122129965, 0, -0.000253436884, 0]`; mean
+  `-0.000109435178`, sample SD `0.000110357776`, SE `0.000049353498`, and two-sided 95% Student-t
+  CI `[-0.000246462456, 0.000027592099]`;
+- primary decision: the interval includes zero, so the comparison is inconclusive at this
+  replication size; this is not formal equivalence, non-inferiority or a tie;
+- secondary pattern: 40x admitted more and rejected fewer tasks than 0.75x in every fleet draw,
+  while admitted-task attainment fell and admitted/penalty-inclusive latency rose sharply; every
+  `40x - 2.5x` offered-attainment difference was numerically zero, without supporting an
+  equivalence claim;
 - E2 deterministic execution-RSU placement: not started;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
@@ -48,62 +81,47 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Close the E1 seed-0 decision gate and produce a review-ready, predeclared multi-draw E1 campaign
-manifest. Do not launch the campaign automatically.**
+**Stop and review the completed physical E1 five-draw result. Do not start E2 or another
+experiment.**
 
-This is Day 4 of the dated research design. The seed-0 pilot has satisfied the preceding Day-3
-execution requirement, but its exit decision and the multi-draw contract still need to be frozen.
+The selected-backend campaign is governed by
+[e1_multidraw_physical_campaign_manifest_v1.json](e1/e1_multidraw_physical_campaign_manifest_v1.json),
+SHA-256 `0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d`.
+It selects `macos_arm64_cpu_jax_0_4_30`, fixes concurrency at one and governs all scientific and
+validation fields.
 
-### Required decision record
+The [final campaign report](e1/e1_multidraw_physical_campaign_report_2026-08-09.md) separates
+observations, matched statistics, interpretation and limitations. Its governing
+[validation](e1/e1_multidraw_physical_campaign_validation_v1.json), SHA-256
+`f1edacf318109eb0b9ccb7c8848b68fa199056c78d8329e1aa5e92c2e2395e0b`, passed all 15 full
+runs and all within-seed identity checks. The
+[comparison](e1/e1_multidraw_physical_campaign_comparison_v1.json), SHA-256
+`b2f7e8bf8769e7359bf5731b4b98d1007d294ed55595ec4977886f976d600ec3`, contains the exact
+five-draw matched analysis. The
+[evidence index](e1/e1_multidraw_physical_campaign_evidence_index_v1.json), SHA-256
+`aeecdece2cbfffef4d7e68ac398c42fb2f36af5a6a1256536f58186c547f74e5`, retains the 12
+repeated-smoke/full-cell gates and permission-safe raw-output hashes.
 
-Record explicit answers to all of the following:
-
-1. Which of the provisional 0.75x, 2.5x and 40x cap points remain in the final grid, and why?
-2. Does the multi-draw grid retain the non-conserving legacy path as a historical diagnostic,
-   require instrumentation, or restrict confirmatory inference to the conserved physical path?
-3. Is the provisional `uk2030` fleet accepted for this bounded study?
-4. Is fleet seed the replication unit with fleet seeds 0-4 and evaluator seed fixed/disclosed, as
-   recommended by the dated audit?
-5. What is the primary estimand and decision rule? Offered-task deadline attainment remains the
-   primary outcome; admitted completion, latency, rejection and work conservation stay separate.
-6. Is an ordinary-traffic control required, and at which most informative cap points?
-7. What compute allocation, allowed concurrency, durable raw-output location and retention policy
-   are approved?
-8. What run-level stop conditions apply before later seeds or cells proceed?
-
-The decision must continue to state that the waiting-room ceiling is admission/in-flight capacity,
-not compute power, and that simulated deadline attainment is not confirmed physical result return.
-
-### Required campaign manifest
-
-The launch-ready manifest must include:
-
-- exact TrafficTwin, vec_env and tos-data commits;
-- evaluator, actor and trace paths plus SHA-256 identities;
-- scenario date/window and every seed identity;
-- selected cap grid and exact source-resolved cap values;
-- legacy/physical inclusion decision and all queue/admission semantics;
-- strongest-link placement, fixed 1x service, load balancing off and scaling off;
-- common task-stream and seed-pairing contract;
-- primary/secondary metrics, units and denominators;
-- conservation, rejection-reconciliation, finite/nonnegative and no-silent-loss assertions;
-- per-cell repeated-smoke gate, run order, stopping rule and failure-retention policy;
-- raw-output locators, checksum/naming policy and permission boundaries;
-- compute budget, concurrency and expected campaign size;
-- analysis plan based on matched per-seed differences without task-level pseudo-replication.
+Execution of fleet seeds 2-4 used the append-only controller
+[`scripts/resume_e1_multidraw_physical_campaign.py`](../../scripts/resume_e1_multidraw_physical_campaign.py),
+SHA-256 `c42ca19416d1921031b9685181e5b4798a8881d02a5c9e600fa3edceacb55cd4`. It is a bounded adapter over
+the unchanged manifest-pinned runner. It verifies the accepted seed-1 evidence index, accepts only
+seeds 2-4, derived caps and commands from the frozen manifest, used concurrency one and refused any
+existing target or control record. Raw outputs remain outside Git under the manifest's logical
+locator. The first direct-file controller invocation failed at local import before evidence
+creation or evaluator launch; module-mode invocation then ran the unchanged committed controller.
 
 ### Exit condition
 
-This gate is complete only when one of these is true:
-
-1. approved multi-draw E1 outputs for the selected grid have passed validation; or
-2. compute is unavailable and a fully reviewed, launch-ready campaign manifest is committed, with
-   the campaign explicitly queued rather than one seed presented as conclusive.
+The backend and campaign gates are closed. The 12 new full runs consumed 23.662 evaluator
+wall-hours at concurrency one, within the 48 CPU-hour bound. The matched analysis and final
+permission-safe evidence records are complete. E2 remains unauthorised, so the exact exit action
+is researcher review and stop.
 
 ## What follows after this gate
 
-Only after the E1 multi-draw gate exits may the project begin the bounded E2 native-placement
-pilot:
+E2 is not authorised by the 8-9 August instructions. A new direct researcher instruction is
+required before any bounded E2 native-placement pilot or any of these actions:
 
 1. validate the two-RSU strong-link-full/weaker-idle case against current evaluator state;
 2. add or validate native ingress-RSU, execution-RSU, forwarding-count and forwarding-cost fields;
@@ -116,25 +134,30 @@ E2 multi-seed expansion and the E3 backhaul pilot follow only after that bounded
 
 ## Explicitly not next
 
-Do not automatically start:
+Do not start:
 
-- E2 before the E1 multi-draw exit condition;
+- E2 without a new direct researcher instruction;
 - static/reactive/proactive scaling;
 - MAPPO or other actor retraining;
 - a learned infrastructure dispatcher;
 - action masking or an RSU-load-augmented actor;
 - proactive prediction or oracle forecasting;
 - bus modelling as a replacement for the VEC thread;
-- a large local serial campaign without an approved compute/output plan.
+- any G4, other-GPU, TPU or cross-backend E1 campaign cell;
+- any additional E1 cell or semantic/cap variant.
 
 ## Active blockers and requests
 
-- final cap-grid and legacy-evidence decisions;
-- approval of the provisional fleet and seed protocol;
-- CSF3 partition/quota, durable storage and allowed concurrency;
-- Randy's original sweep package and exact definitions, if historical reproduction remains desired;
-- native path-event feasibility for later E2;
-- GitHub Actions billing/spending state, which currently prevents jobs from starting.
+- The pinned JAX 0.4.30 CUDA-12 and stable JAX 0.11.0 CUDA-13 G4 attempts are separate retained
+  pre-task failures. No G4 scientific compatibility or performance measurement is available.
+- The E1 campaign has no unresolved execution cell. Its five-draw primary result is inconclusive
+  at this replication size and must not be relabelled as equivalence or non-inferiority.
+- CSF3 remains unavailable from this machine because its hostname is not resolvable.
+- Randy's original sweep package and exact definitions remain unavailable if historical
+  reproduction is later desired; his reported `0.6943` is not reproduced.
+- Native path-event feasibility and explicit authority remain unavailable for later E2.
+- GitHub Actions billing/spending state may prevent hosted checks from starting; local pre-run and
+  campaign validation remain mandatory regardless.
 
 Unknown historical inputs do not block fresh, clearly named experiments after their own manifest
 and compute gate pass. They do block claims that Randy's historical sweep was reproduced.

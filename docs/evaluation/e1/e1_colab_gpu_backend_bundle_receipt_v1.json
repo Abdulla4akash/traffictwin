@@ -1,0 +1,66 @@
+{
+  "schema_version": "traffictwin.e1-colab-gpu-backend-bundle-receipt.v1",
+  "record_date": "2026-08-08",
+  "purpose": "Permission-safe locator and identity record for the private Colab upload bundle. The archive itself remains outside Git.",
+  "bundle": {
+    "filename": "e1-colab-gpu-backend-smoke-v1-inputs-r3.tar.gz",
+    "logical_locator": "local-private-input:colab_inputs/e1-colab-gpu-backend-smoke-v1-inputs-r3.tar.gz",
+    "sha256": "7cf78ed99f912bfbcd7d50f08a1dd2baa0c89a9de8260a5bf05be9d3838b6091",
+    "size_bytes": 5535427,
+    "committed_to_git": false,
+    "publication_allowed": false
+  },
+  "governing_manifest": {
+    "path": "docs/evaluation/e1/e1_colab_gpu_backend_smoke_manifest_v1.json",
+    "sha256": "5f6a69cea9fd479cf0c8152565bfb52d01b6f080bacf9012da8b8f87708eb5b7"
+  },
+  "notebook": {
+    "path": "notebooks/e1_colab_gpu_backend_smoke_v1.ipynb",
+    "sha256": "d221363d8db5bcf0bc45c48244981e0a009ff59d842b396c197af2005d41cb34"
+  },
+  "runner": {
+    "path": "scripts/run_e1_colab_gpu_backend_smoke.py",
+    "sha256": "916c2d49951b4566e00ee619cd436215408ec9051117ccaeabcf14f1132b0e2b"
+  },
+  "superseded_pre_execution_bundles": [
+    {
+      "filename": "e1-colab-gpu-backend-smoke-v1-inputs.tar.gz",
+      "sha256": "e3a15e795e84756341f35179937a1cb86988a73b09f6b2cce75477d530327e3c",
+      "status": "retained_outside_git_but_not_authoritative_for_execution"
+    },
+    {
+      "filename": "e1-colab-gpu-backend-smoke-v1-inputs-r2.tar.gz",
+      "sha256": "f72b04d623ee4a9739c5ae54aa2c9c8ff64e28bda9aba0b39766442cac45366a",
+      "status": "retained_outside_git_but_not_authoritative_for_execution"
+    }
+  ],
+  "contained_private_inputs": [
+    {
+      "logical_path": "vec_env/eval/eval_sumo_stage1_mc.py",
+      "source_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669"
+    },
+    {
+      "logical_path": "vec_env/jaxmarl/env/vec_jax.py",
+      "source_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+    },
+    {
+      "logical_path": "tos_data/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "source_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208"
+    },
+    {
+      "logical_path": "tos_data/traces/trace_inc_fullrsu.npz",
+      "source_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056"
+    }
+  ],
+  "handling": {
+    "upload_target": "ephemeral signed-in Google Colab GPU runtime",
+    "public_sharing": false,
+    "drive_persistence_required": false,
+    "download_failed_evidence": true,
+    "delete_or_overwrite_failed_evidence": false
+  }
+}

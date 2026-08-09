@@ -1,0 +1,208 @@
+{
+  "schema_version": "traffictwin.e1-multidraw-one-cell-validation.v1",
+  "record_date": "2026-08-08",
+  "status": "seed1_0p75_full_pass_stopped_before_next_cap",
+  "passed": true,
+  "authority": {
+    "source": "Direct researcher instruction from Abdulla dated 2026-08-08",
+    "scope": "Fleet seed 1 at 0.75x only: two serial ten-step smokes, then one 3600-step full cell only after the repeated-smoke gate passed.",
+    "next_cap_authorised_in_this_execution": false
+  },
+  "campaign": {
+    "manifest": "docs/evaluation/e1/e1_multidraw_physical_campaign_manifest_v1.json",
+    "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d",
+    "backend": "macos_arm64_cpu_jax_0_4_30",
+    "runner": "scripts/run_e1_multidraw_physical_campaign.py",
+    "runner_sha256": "2e82f9d557dd584712e9ddf67f17bc10ee39cf2b786122333ad94032e1a53a09"
+  },
+  "repositories": {
+    "traffictwin": "ca4c04890346e01a572b728da4a785026fa87d5a",
+    "vec_env": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+  },
+  "inputs": {
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "local_import_adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+  },
+  "environment": {
+    "os": "macOS 26.4.1 (build 25E253)",
+    "architecture": "arm64",
+    "python": "3.11.15",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "ml_dtypes": "0.5.4",
+    "opt_einsum": "3.4.0",
+    "scipy": "1.17.1",
+    "jax_backend": "cpu",
+    "jax_device": "TFRT_CPU_0",
+    "jax_enable_x64": false,
+    "installed_sumo": "1.27.1",
+    "trace_provenance_sumo": "1.27.0",
+    "sumo_compatibility_status": "mismatch_replay_does_not_invoke_sumo"
+  },
+  "target": {
+    "fleet_seed": 1,
+    "evaluator_seed": 0,
+    "cap_label": "0p75",
+    "cap_ratio": 0.75,
+    "resolved_tasks_per_rsu": 1866,
+    "smoke_steps": 10,
+    "smoke_repeats": 2,
+    "full_steps": 3600
+  },
+  "preflight": {
+    "initial_passed": true,
+    "pre_full_passed": true,
+    "checks_per_preflight": 39,
+    "manifest_runner_repository_input_environment_storage_and_seed0_identities_passed": true,
+    "initial_record_sha256": "55d7a2fadd7fca231339bd67de263e71161bca21222080de8e019ec43b786ccf",
+    "pre_full_record_sha256": "275838f0adfa97663aaddd0e89e260641e3d9b7199b698e3a79ddbe5714c84f9"
+  },
+  "smoke_gate": {
+    "passed": true,
+    "decision": "cell_full_run_authorised",
+    "run_1_passed": true,
+    "run_2_passed": true,
+    "scientific_summary_identical_excluding_wall_s": true,
+    "instrumentation_arrays_identical_dtype_shape_and_bytes": true,
+    "run_1_evaluator_wall_s": 13.4,
+    "run_2_evaluator_wall_s": 13.7,
+    "run_1_runner_wall_s": 14.180454416200519,
+    "run_2_runner_wall_s": 14.443823833018541,
+    "offered_tasks_each": 36856,
+    "admitted_tasks_each": 35133,
+    "deadline_attainment_offered_each": 0.6988821358801823,
+    "validation_sha256": "dc3f17edac164a34d73775cf09d4a16931824e541a9ed07e77b6f738f52091bb"
+  },
+  "full_cell": {
+    "passed": true,
+    "decision": "cell_pass",
+    "passed_check_count": 32,
+    "failed_check_count": 0,
+    "evaluator_wall_s": 6440.6,
+    "runner_wall_s": 6462.124663833063,
+    "offered_tasks": 13076234,
+    "admitted_tasks": 11779070,
+    "rejected_or_unavailable_tasks": 1297164,
+    "rejection_fraction_offered": 0.09920012138051369,
+    "deadline_met_tasks": 9001257,
+    "served_deadline_missed_tasks": 2777813,
+    "deadline_attainment_offered": 0.6883676905751305,
+    "deadline_attainment_admitted": 0.7641738269659659,
+    "rejection_counts": {
+      "v2i_gate_rejected": 0,
+      "v2i_cap_rejected": 639848,
+      "local_mqd_rejected": 38444,
+      "v2v_mqd_rejected": 618761,
+      "v2i_unavailable": 111,
+      "v2v_unavailable": 0
+    },
+    "latency_ms": {
+      "penalty_inclusive_per_offered_task": 4642.545912225187,
+      "per_admitted_task": 3412.17931534493,
+      "per_deadline_met_task": 47.282843274000506,
+      "admitted_p50": 52.9176139831543,
+      "admitted_p95": 29306.016699218748,
+      "admitted_p99": 29975.150390625,
+      "deadline_met_p50": 35.71510314941406,
+      "deadline_met_p95": 139.5860717773437,
+      "deadline_met_p99": 339.69069946289045
+    },
+    "decision_shares": {
+      "local": 0.5316876403404833,
+      "v2i": 0.1906163502427381,
+      "v2v": 0.2776960094167786
+    },
+    "task_class_deadline_attainment": {
+      "t1": 0.5870411321747322,
+      "t2": 0.7597457434918377,
+      "t3": 0.6860610668804425
+    }
+  },
+  "conservation": {
+    "task_accounting_passed": true,
+    "offered_equals_admitted_plus_all_rejections_and_unavailability": true,
+    "every_active_task_has_exactly_one_terminal_outcome": true,
+    "silent_task_loss_detected": false,
+    "v2i_work_ms": {
+      "offered": 40107836.0,
+      "admitted": 29815326.0,
+      "rejected_or_unavailable": 10292510.0,
+      "conserved": true
+    },
+    "vehicle_work_ms": {
+      "offered": 282604672.0,
+      "admitted": 270455040.0,
+      "rejected": 12149632.0,
+      "conserved": true
+    },
+    "finite_numbers_and_arrays_passed": true,
+    "nonnegative_counts_work_latency_and_queues_passed": true,
+    "offered_and_admitted_denominators_separate": true
+  },
+  "task_stream_identity": {
+    "task_active_sha256": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+    "task_type_sha256": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+  },
+  "raw_evidence": {
+    "locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_0p75",
+    "raw_outputs_in_git": false,
+    "full_validation_sha256": "e9499a3c74510c343de179ea3cd12cc71241bacb3d9d65ec213690419b404c32",
+    "cell_metrics_sha256": "c69fe241b03316f61ff841c4beb9c78219ca6d2d6990f5ed18bb4d7ca16cc2e6",
+    "cell_evidence_index_sha256": "2053195ca639848c8d74858bd36c223d0b703658f3c7c7973a21957f96140469",
+    "campaign_evidence_checksums_sha256": "94d2e233af9a685e9b05edc4a91c3051b518c08a351eb78c3ebb7c8c06a8cea7",
+    "campaign_status_sha256": "d85e9f7474738eb0ed701072ba4812a43b35c2bf8b4c75440250c5377d89598a",
+    "authoritative_file_count": 29,
+    "full_output_files": {
+      "summary.json": {
+        "sha256": "d2be5e57598e4e894b9a1c5fa647656ea6d83cc88a67d5ae89a586941a4b32fc",
+        "size_bytes": 1855
+      },
+      "per_step.npz": {
+        "sha256": "2e2c92f3561fa37d597b10d328e52e8f3aa5cbb2044db7aff0650b2d2b44549e",
+        "size_bytes": 20114807
+      },
+      "per_task.npz": {
+        "sha256": "9a37b6222ec51fb2efa2d293ef85c7371f964a6040e6c590ee352118016180ae",
+        "size_bytes": 84595095
+      },
+      "stdout_stderr.log": {
+        "sha256": "eb877aa42e7fd7f8d79b1e29751aa54858d2f1b6aa317a3a629e1d96b2ae8f2f",
+        "size_bytes": 2736
+      },
+      "command.json": {
+        "sha256": "ec4dac4cfe53d46227f21730d59bdd61eb49496a1a12690778335ba4a6cbf482",
+        "size_bytes": 1730
+      },
+      "runner_status.json": {
+        "sha256": "b6dac88be50a82a3a4de6d472e4aed157ae97695dd0afebbbc7c5e6336476b31",
+        "size_bytes": 80
+      },
+      "checksums.sha256": {
+        "sha256": "b9e98c723961848f45bc33233b897cd8774cc8e615bf6804cdc69346a14403e6",
+        "size_bytes": 485
+      }
+    }
+  },
+  "execution_boundary": {
+    "full_cells_started": 1,
+    "full_cells_completed": 1,
+    "full_cells_passed": 1,
+    "full_cells_failed": 0,
+    "later_cells_started": 0,
+    "next_cap_started": false,
+    "stopped_before_cap_2p5": true
+  },
+  "semantic_boundaries": {
+    "waiting_room_cap_is_compute_power": false,
+    "deadline_attainment_is_confirmed_native_physical_result_return": false,
+    "randy_reported_0_6943_reproduced": false,
+    "E2_started": false
+  },
+  "next_gate": "Stop and review this cell. If the researcher directs continuation, the next manifest cell is fleet seed 1 at 2.5x, beginning with two serial ten-step smokes; no full 2.5x cell is allowed before that gate passes."
+}

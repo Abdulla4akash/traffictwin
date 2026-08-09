@@ -1,0 +1,94 @@
+{
+  "schema_version": "traffictwin.e1-macos-cpu-backend-selection-validation.v1",
+  "record_date": "2026-08-08",
+  "passed": true,
+  "status": "backend_selected_preflight_passed_campaign_not_started",
+  "campaign_manifest": {
+    "path": "docs/evaluation/e1/e1_multidraw_physical_campaign_manifest_v1.json",
+    "sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d"
+  },
+  "runner": {
+    "path": "scripts/run_e1_multidraw_physical_campaign.py",
+    "sha256": "2e82f9d557dd584712e9ddf67f17bc10ee39cf2b786122333ad94032e1a53a09",
+    "backend_status_and_permission_guard_present": true,
+    "exact_environment_preflight_present": true
+  },
+  "backend": {
+    "selected": "macos_arm64_cpu_jax_0_4_30",
+    "os": "macOS 26.4.1 (build 25E253)",
+    "architecture": "arm64",
+    "python": "3.11.15",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "ml_dtypes": "0.5.4",
+    "opt_einsum": "3.4.0",
+    "scipy": "1.17.1",
+    "jax_backend": "cpu",
+    "jax_device": "TFRT_CPU_0",
+    "jax_enable_x64": false,
+    "sumo_installed": "1.27.1",
+    "trace_sumo_provenance": "1.27.0",
+    "sumo_mismatch_recorded": true
+  },
+  "repositories": {
+    "traffictwin_pre_result_head": "8b47df90153905c274b2efb2f862e319e43850a0",
+    "required_traffictwin_parent_is_ancestor": true,
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "vec_env_clean": true,
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+    "tos_data_clean": true
+  },
+  "input_identity": {
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "all_passed": true
+  },
+  "reused_seed0_identity": {
+    "cap_points": [
+      "0p75",
+      "2p5",
+      "40x"
+    ],
+    "authoritative_files_checked_per_cap": [
+      "summary.json",
+      "per_step.npz",
+      "per_task.npz",
+      "stdout_stderr.log",
+      "checksums.sha256"
+    ],
+    "checks_passed": 15,
+    "checks_failed": 0,
+    "all_passed": true
+  },
+  "compute_and_output_gate": {
+    "output_parent_writable": true,
+    "observed_free_storage_bytes": 283862007808,
+    "required_minimum_free_storage_bytes": 2506899296,
+    "storage_gate_passed": true,
+    "campaign_output_directory_exists": false,
+    "campaign_smokes_started": 0,
+    "campaign_full_cells_started": 0,
+    "concurrency_limit": 1,
+    "projected_new_full_run_hours": 20.089111111111112,
+    "maximum_authorised_cpu_hours": 48.0
+  },
+  "preflight_checks": {
+    "repository_and_input_checks_passed": true,
+    "python_executable_identity_passed": true,
+    "all_10_python_environment_fields_passed": true,
+    "all_15_reused_seed0_file_checks_passed": true,
+    "output_and_storage_checks_passed": true,
+    "overall_passed": true
+  },
+  "decision": {
+    "backend_gate_closed": true,
+    "campaign_launched_by_this_validation": false,
+    "next_gate": "After this reviewed record exists remotely, run two serial ten-step macOS CPU smokes for fleet seed 1 at 0.75x. The corresponding full cell remains conditional on every repeated-smoke and mandatory manifest check passing.",
+    "E2_authorised": false
+  }
+}

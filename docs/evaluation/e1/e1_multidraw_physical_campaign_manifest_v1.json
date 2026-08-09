@@ -1,0 +1,497 @@
+{
+  "schema_version": "traffictwin.e1-multidraw-physical-campaign-manifest.v1",
+  "manifest_id": "e1-multidraw-physical-seeds0-4-v1",
+  "record_date": "2026-08-08",
+  "status": "macos_cpu_backend_selected_campaign_not_started",
+  "authority": {
+    "source": "Direct researcher instructions from Abdulla dated 2026-08-08, including the later mandatory Colab GPU backend evaluation",
+    "repository_pointer": "docs/evaluation/RESEARCH_NEXT.md",
+    "decision_record": "docs/evaluation/e1/e1_multidraw_decision_record_2026-08-08.md",
+    "scope": "Physical E1 waiting-room campaign only. The bounded G4 investigations are closed. After this reviewed backend-selection record is pushed, each new macOS CPU full cell remains conditional on its two serial ten-step smoke repeats passing every manifest gate."
+  },
+  "backend_decision": {
+    "status": "selected",
+    "selected_backend": "macos_arm64_cpu_jax_0_4_30",
+    "selection_date": "2026-08-08",
+    "selection_authority": "Direct researcher decision rule: if the separately predeclared modern-stack G4 compatibility smoke fails, stop G4 experimentation and select the already validated macOS CPU backend.",
+    "first_g4_result": "docs/evaluation/e1/e1_colab_g4_backend_smoke_result_v1.json",
+    "first_g4_result_sha256": "cfbe8a966c60b5eae1f784bc51bf8525da91715251573d1491c59dd933fcacc6",
+    "compatibility_smoke_manifest": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json",
+    "compatibility_smoke_manifest_sha256": "d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659",
+    "compatibility_smoke_result": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_result_v1.json",
+    "compatibility_smoke_result_sha256": "d713594c750396ede2d5bf3b9d850cff285170553d253b5fd1fd8944a7d0a9be",
+    "compatibility_smoke_outcome": "failed_first_primitive_no_evaluator_started",
+    "campaign_execution_allowed": true,
+    "campaign_execution_condition": "This backend-selection change must exist remotely, then each full cell is allowed only after its corresponding two serial ten-step CPU smokes and every identity/accounting gate pass.",
+    "cross_backend_mixing_allowed": false,
+    "seed0_handling": "Reuse the three exact validated macOS CPU physical artifacts by their retained SHA-256 identities; do not create artificial seed-0 duplication.",
+    "new_full_matrix": "fleet seeds 1-4 by caps 0.75x, 2.5x and 40x: 12 cells",
+    "g4_campaign_cells_allowed": false,
+    "further_g4_experimentation_allowed": false,
+    "backend_comparison_limit": "Neither G4 attempt produced evaluator output, so no scientific cross-backend comparison or measured G4 speedup exists."
+  },
+  "repositories": {
+    "traffictwin": {
+      "remote": "https://github.com/Abdulla4akash/traffictwin",
+      "parent_branch": "agent/e1-waiting-room-40x-v1",
+      "campaign_branch": "agent/e1-multidraw-physical-v1",
+      "parent_commit": "b7dd42be5d02d6c2f6bfb120d9fabf90f7b9ca66"
+    },
+    "vec_env": {
+      "commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+      "role": "read_only_execution_source"
+    },
+    "tos_data": {
+      "commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
+      "role": "read_only_actor_and_trace_source"
+    }
+  },
+  "inputs": {
+    "evaluator": {
+      "path": "eval/eval_sumo_stage1_mc.py",
+      "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669"
+    },
+    "actor": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "identity": "Frozen 17-dimensional Paper-2A MAPPO actor",
+      "training_seed": 100,
+      "actions": [
+        "Local",
+        "V2I",
+        "V2V"
+      ],
+      "observes_current_rsu_load": false
+    },
+    "trace": {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "trace_steps": 3600,
+      "has_enter_channel": false,
+      "sumo_seed": 43
+    }
+  },
+  "scenario": {
+    "name": "Manchester incident",
+    "date": "2024-03-15",
+    "day": "Friday",
+    "window_local": "20:00-21:00",
+    "ordinary_traffic_control_included": false,
+    "ordinary_traffic_control_status": "deferred_later_robustness_extension"
+  },
+  "seeds": {
+    "replication_unit": "fleet_seed",
+    "evaluator_seed": 0,
+    "fleet_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "reused_fleet_seed": 0,
+    "new_full_fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "actor_training_seed": 100,
+    "trace_sumo_seed": 43,
+    "task_stream_contract": "Evaluator seed remains 0. Within each fleet seed, all cap points must have identical offered count, task_active array and task_type array."
+  },
+  "cap_semantics": {
+    "name": "per-RSU admission/in-flight waiting-room ceiling",
+    "explicitly_not": "compute power",
+    "source_resolution": "int(round(rsu_cap_per_veh * padded_fleet_width)) in the pinned evaluator",
+    "padded_fleet_width": 2488,
+    "status": "provisional_bounded_E1_grid"
+  },
+  "cap_grid": [
+    {
+      "label": "0p75",
+      "display_label": "0.75x",
+      "ratio_cli": "0.75",
+      "resolved_tasks_per_rsu": 1866,
+      "resolution_check": "int(round(0.75 * 2488)) == 1866"
+    },
+    {
+      "label": "2p5",
+      "display_label": "2.5x",
+      "ratio_cli": "2.5",
+      "resolved_tasks_per_rsu": 6220,
+      "resolution_check": "int(round(2.5 * 2488)) == 6220"
+    },
+    {
+      "label": "40x",
+      "display_label": "40x",
+      "ratio_cli": "40.0",
+      "resolved_tasks_per_rsu": 99520,
+      "resolution_check": "int(round(40.0 * 2488)) == 99520",
+      "empirically_unlimited": false
+    }
+  ],
+  "scope": {
+    "smoke_steps": 10,
+    "smoke_repeats_per_new_cell": 2,
+    "full_steps": 3600,
+    "reused_full_cells_if_cpu_selected": 3,
+    "new_full_cells_if_cpu_selected": 12,
+    "new_smoke_runs_if_cpu_selected": 24,
+    "reused_full_cells_if_colab_selected": 0,
+    "new_full_cells_if_colab_selected": 15,
+    "new_smoke_runs_if_colab_selected": 30,
+    "legacy_cells": 0
+  },
+  "controlled_configuration": {
+    "fleet": {
+      "preset": "uk2030",
+      "status": "provisional_for_this_bounded_E1_replication_only",
+      "validated_real_world_fleet_model": false
+    },
+    "arrival_lambda": 1.5,
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "terminal_rejection": "explicit_per_task",
+    "task_accounting": "complete_offered_admitted_terminal_outcome_accounting",
+    "service_work_accounting": "complete_V2I_and_vehicle_work_ledgers_in_milliseconds",
+    "placement": {
+      "mode": "off",
+      "interpretation": "strongest-link/default placement",
+      "load_balancing": "off",
+      "backhaul_ms": 0.0,
+      "inter_rsu_forwarding": false
+    },
+    "compute": {
+      "rsu_service_multiplier": 1.0,
+      "fixed_service": "1x",
+      "scaling": "off",
+      "static_scaling": false,
+      "reactive_scaling": false,
+      "proactive_scaling": false,
+      "mean_multiplier_expected": 1.0
+    },
+    "legacy_semantics": {
+      "included_in_new_campaign": false,
+      "seed0_status": "historical_diagnostic_only",
+      "limitations": "No admitted identities, complete terminal outcomes or service-work conservation."
+    }
+  },
+  "environment": {
+    "os": "macOS 26.4.1 (build 25E253)",
+    "architecture": "arm64",
+    "python": "3.11.15",
+    "python_executable_sha256": "e3938f2a272dafdc33f3dd12b093dfc85354629476cb97a7d7d4a7201b8482dd",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "ml_dtypes": "0.5.4",
+    "opt_einsum": "3.4.0",
+    "scipy": "1.17.1",
+    "jax_backend": "cpu",
+    "jax_device": "TFRT_CPU_0",
+    "jax_enable_x64": false,
+    "installed_sumo": "1.27.1",
+    "trace_provenance_sumo": "1.27.0",
+    "sumo_compatibility_status": "mismatch",
+    "sumo_note": "The evaluator replays the NPZ and does not invoke SUMO. This campaign is not an exact canonical SUMO 1.27.0 reproduction.",
+    "local_import_adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "validated_environment_reference": "docs/evaluation/e0/e0_manifest_v1.json",
+    "validated_environment_reference_sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93"
+  },
+  "execution": {
+    "required_manifest_sha256_external": "recorded_in_authority_pointer",
+    "runner": "scripts/run_e1_multidraw_physical_campaign.py",
+    "runner_sha256": "2e82f9d557dd584712e9ddf67f17bc10ee39cf2b786122333ad94032e1a53a09",
+    "execution_hold": "The runner must refuse execution unless backend_decision.status is selected and campaign_execution_allowed is true.",
+    "environment_variables": {
+      "JAX_PLATFORMS": "cpu",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "argv_template": [
+      "{PYTHON}",
+      "{VEC_ENV}/eval/eval_sumo_stage1_mc.py",
+      "--trace",
+      "{TOS_DATA}/traces/trace_inc_fullrsu.npz",
+      "--actor",
+      "{TOS_DATA}/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "--max-steps",
+      "{MAX_STEPS}",
+      "--seed",
+      "0",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "{FLEET_SEED}",
+      "--rsu-cap-per-veh",
+      "{CAP_RATIO}",
+      "--lambda-arrival",
+      "1.5",
+      "--rsu-service-mult",
+      "1.0",
+      "--rsu-lb",
+      "off",
+      "--rsu-backhaul-ms",
+      "0.0",
+      "--substep-queue",
+      "sequential",
+      "--substep-queue-iters",
+      "3",
+      "--veh-queue",
+      "conserved",
+      "--rsu-cap-mode",
+      "reject",
+      "--k8s-scale",
+      "off",
+      "--out-json",
+      "{RUN_DIR}/summary.json",
+      "--per-step-out",
+      "{RUN_DIR}/per_step.npz",
+      "--per-task-out",
+      "{RUN_DIR}/per_task.npz"
+    ],
+    "allowed_substitutions": {
+      "MAX_STEPS": [
+        10,
+        3600
+      ],
+      "FLEET_SEED": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "CAP_RATIO": [
+        "0.75",
+        "2.5",
+        "40.0"
+      ],
+      "RUN_DIR": "unique no-overwrite cell directory"
+    },
+    "full_run_order": [
+      "fleet_seed_1/cap_0p75",
+      "fleet_seed_1/cap_2p5",
+      "fleet_seed_1/cap_40x",
+      "fleet_seed_2/cap_0p75",
+      "fleet_seed_2/cap_2p5",
+      "fleet_seed_2/cap_40x",
+      "fleet_seed_3/cap_0p75",
+      "fleet_seed_3/cap_2p5",
+      "fleet_seed_3/cap_40x",
+      "fleet_seed_4/cap_0p75",
+      "fleet_seed_4/cap_2p5",
+      "fleet_seed_4/cap_40x"
+    ]
+  },
+  "reused_seed0_artifacts": {
+    "0p75": {
+      "locator": "local-output:e1_outputs/e1-0p75-semantics-pair-seed0-v1/physical_full/run_1",
+      "relative_to_antigravitytest": "e1_outputs/e1-0p75-semantics-pair-seed0-v1/physical_full/run_1",
+      "validation_record": "docs/evaluation/e1/e1_0p75_semantics_pair_validation_v1.json",
+      "validation_sha256": "1b0ce7612fda194cb91ed70d01b4f18dfecd7d06b7d77a14c38480ab734fc09e",
+      "sha256": {
+        "summary.json": "abde7cffdc21e73a074b6cb3bd10e54a25fb70c3008b6d6cba0e679b12fd8d14",
+        "per_step.npz": "7a4b20e50f9d1ef14835c01344baaa7a598bb37bcfbe22f469f78e648fd3aff7",
+        "per_task.npz": "d89d36d353cdea405f60e710244d75c04c3bd296c66c6302502b7a0ee2281f7f",
+        "stdout_stderr.log": "0d1529ea0ad3e92e9fd51f316f0b6f4028445965704b5415c37fcde03f6ba59d",
+        "checksums.sha256": "178d9f395d47847596f3e1b5f9dad2ff60239c4e351928633d385faef0d3b163"
+      }
+    },
+    "2p5": {
+      "locator": "local-output:e0_outputs/e0-full-corrected-reference-v1/run_1",
+      "relative_to_antigravitytest": "e0_outputs/e0-full-corrected-reference-v1/run_1",
+      "validation_record": "docs/evaluation/e0/e0_full_reference_validation_v1.json",
+      "validation_sha256": "3970b89e371a05cae6f5baa8142c98587b302d0c5a467601d50aa021e1368bfa",
+      "sha256": {
+        "summary.json": "1ed26e6c8a4411b9a4e27dacf4d9381c8f8430a37c434f93b36f1150d8c661e1",
+        "per_step.npz": "0be8726efa956d6d6e60b289fb3a6b587beb4dde7616fc235462bfb997d0e6d1",
+        "per_task.npz": "c30acc1e6685db268a31daeda2c8020df2968487efecd420e729a16d3b3b2d57",
+        "stdout_stderr.log": "46539ecf9e219e09c180b952737cd915eb0efa784b4674233317c99f5edd0bd5",
+        "checksums.sha256": "3596554ca3c0dddab9bc352881b6c320035af427b2cfa183843f500794bbdb0c"
+      }
+    },
+    "40x": {
+      "locator": "local-output:e1_outputs/e1-40x-semantics-pair-seed0-v1/physical_full/run_1",
+      "relative_to_antigravitytest": "e1_outputs/e1-40x-semantics-pair-seed0-v1/physical_full/run_1",
+      "validation_record": "docs/evaluation/e1/e1_40x_semantics_pair_validation_v1.json",
+      "validation_sha256": "fc8ec5b33c2e0b5de74e86fbf4545b36234eda6e65d1208295632632d9e91ad6",
+      "sha256": {
+        "summary.json": "c3bd33440f2328a0e40d948896b4b2882673d42946b2e14b19a386288d34af58",
+        "per_step.npz": "393cda2bd37520eca4693a7d720d42bd8edd07c8ba4e63008203e108a10a78e3",
+        "per_task.npz": "8c29745cf5738eeeac61f2a9e1e044ac119c0d0d87f79d2cb736e87aadfe62f3",
+        "stdout_stderr.log": "e7f410880054a36ea69da9b42e00a7b2f75fa94cb1c396f4417a1bc243666969",
+        "checksums.sha256": "5714e6f5a8da65e7867f46b0d0c82e786b0434dafc4a3d1e579d187253980cc0"
+      }
+    }
+  },
+  "repeated_smoke_gate": {
+    "required_for_every_new_cell": true,
+    "runs": 2,
+    "steps_per_run": 10,
+    "serial_within_cell": true,
+    "scientific_summary_comparison": "exact JSON equality excluding wall_s",
+    "instrumentation_comparison": "exact shapes, dtypes and dtype-shape-byte SHA-256 for every array",
+    "physical_validity_contract": "all corrected E0 per-run checks must pass",
+    "cap_response_inference_from_smoke": false,
+    "full_cell_authorised_only_after_pass": true
+  },
+  "validation_contract": {
+    "required_assertions": [
+      "offered_tasks == admitted_tasks + v2i_gate_rejected + v2i_cap_rejected + local_mqd_rejected + v2v_mqd_rejected + v2i_unavailable + v2v_unavailable",
+      "total_tasks == offered_tasks",
+      "every active task has exactly one terminal outcome",
+      "no active task silently disappears",
+      "V2I offered service work == admitted service work + rejected_or_unavailable service work",
+      "vehicle offered service work == admitted service work + rejected service work",
+      "all JSON numbers and instrumentation arrays are finite",
+      "counts, work, latency and queue arrays contain no unexplained negative values",
+      "deadline attainment over offered and admitted denominators remains separate",
+      "offered count, task_active and task_type are identical across caps within each fleet seed",
+      "resolved cap is exactly 1866, 6220 or 99520 as predeclared"
+    ],
+    "work_unit": "milliseconds of service work",
+    "measured_outcome": "simulated deadline attainment",
+    "confirmed_native_physical_completion": false,
+    "confirmed_physical_result_return": false
+  },
+  "metrics": {
+    "primary": {
+      "name": "paired fleet-seed difference in offered-task deadline attainment",
+      "formula": "deadline_attainment_offered_40x - deadline_attainment_offered_0p75",
+      "unit": "proportion of offered tasks",
+      "denominator": "all offered tasks within each fleet-seed/cap cell",
+      "positive_value_favours": "40x",
+      "replicate": "fleet seed",
+      "decision_rule": "If the two-sided paired 95% Student-t confidence interval across five fleet draws excludes zero, report evidence of a directional difference within this bounded study; otherwise report inconclusive at this replication size.",
+      "equivalence_or_noninferiority_claim_allowed": false
+    },
+    "secondary": [
+      "0p75 versus 2p5 offered-task deadline attainment",
+      "2p5 versus 40x offered-task deadline attainment",
+      "admitted-task deadline attainment",
+      "cap rejection and total rejection/unavailability",
+      "penalty-inclusive latency in milliseconds per offered task",
+      "latency in milliseconds per admitted task",
+      "mean and available p50/p95/p99 latency",
+      "deadline-met latency",
+      "task-class completion",
+      "Local/V2I/V2V decision shares",
+      "V2I and vehicle service-work conservation"
+    ],
+    "task_level_pseudoreplication_allowed": false
+  },
+  "analysis_plan": {
+    "rows": "one row per fleet seed and cap",
+    "primary_outputs": [
+      "five raw paired differences",
+      "mean paired difference",
+      "sample standard deviation",
+      "standard error",
+      "two-sided 95% t confidence interval with 4 degrees of freedom",
+      "median",
+      "minimum",
+      "maximum"
+    ],
+    "student_t_critical_two_sided_95_df4": 2.7764451051977987,
+    "secondary_contrasts_reported_separately": true,
+    "observations_statistics_interpretation_recommendations_separated": true
+  },
+  "output": {
+    "directory_name": "e1-multidraw-physical-seeds0-4-v1",
+    "logical_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1",
+    "raw_outputs_in_git": false,
+    "cell_naming": "fleet_seed_{seed}/cap_{label}/{smoke|full}/run_{repeat}",
+    "files_per_run": [
+      "command.json",
+      "summary.json",
+      "per_step.npz",
+      "per_task.npz",
+      "stdout_stderr.log",
+      "runner_status.json",
+      "checksums.sha256"
+    ],
+    "no_overwrite": true,
+    "checksum_policy": "SHA-256 every authoritative raw output; retain sizes and logical locators in checked-in evidence.",
+    "failure_retention": "Retain failed and negative outputs, command records and logs; never delete or overwrite them."
+  },
+  "compute_plan": {
+    "backend": "macos_arm64_cpu_jax_0_4_30",
+    "backend_status": "selected_after_two_retained_g4_pre_task_failures",
+    "backend_evidence": "Established local macOS arm64 CPU runtime used for the validated E0 and seed-0 E1 physical results.",
+    "rejected_colab_g4_candidate": "Both separately predeclared G4 attempts failed before task generation; no valid G4 evaluator timing exists.",
+    "csf3_status": "unavailable_from_this_machine_hostname_not_resolvable",
+    "physical_cpu_cores": 10,
+    "logical_cpu_cores": 10,
+    "memory_bytes": 17179869184,
+    "concurrency_limit": 1,
+    "maximum_authorised_concurrency": 4,
+    "concurrency_reason": "One TFRT CPU device uses the ten-core host; serialize cells to preserve the validated execution contract and avoid resource contention.",
+    "seed0_full_runtime_anchor_seconds_mean": 6026.733333333334,
+    "projected_new_full_run_hours_macos_cpu_12_cells": 20.089111111111112,
+    "maximum_authorised_cpu_hours": 48.0,
+    "projected_full_output_bytes": 1253449648,
+    "minimum_free_storage_bytes": 2506899296,
+    "observed_free_storage_bytes_predeclaration": 284091928576,
+    "storage_gate": "available storage must remain at least twice estimated campaign output size before launch and safe before every later cell"
+  },
+  "stop_conditions": [
+    "selected backend or campaign permission differs from RESEARCH_NEXT.md",
+    "evaluator, actor, trace or repository identity mismatch",
+    "repeated smokes differ scientifically or in instrumentation identity",
+    "offered count, task_active or task_type differs across cap points for the same fleet seed",
+    "offered tasks fail to reconcile with admitted plus every terminal rejection/unavailability category",
+    "V2I or vehicle service work fails conservation",
+    "a task silently disappears",
+    "NaN, infinity or an unexplained negative value occurs",
+    "source-resolved cap differs from 1866, 6220 or 99520",
+    "load balancing, forwarding or scaling is enabled",
+    "fixed 1x service is not preserved",
+    "raw output enters Git staging or an output would be overwritten",
+    "disk or 48 CPU-hour budget becomes unsafe",
+    "an unpredeclared command or configuration is used",
+    "a private artifact would be published"
+  ],
+  "permission_boundaries": {
+    "authorised": [
+      "after this backend-selection change is pushed: the two serial ten-step macOS CPU smoke repeats required for each of the 12 new fleet-seed/cap cells",
+      "the corresponding 12 macOS CPU full cells only when each cell's repeated-smoke and all mandatory preflight gates pass",
+      "deterministic validation, analysis, documentation and permission-safe evidence publication to the TrafficTwin campaign branch"
+    ],
+    "prohibited": [
+      "any campaign execution before this exact manifest hash is recorded in RESEARCH_NEXT.md and the reviewed change exists remotely",
+      "any G4, other GPU, TPU or cross-backend campaign cell",
+      "E2 or any strongest-link versus JSQ, P2C or DLA comparison",
+      "legacy cells beyond retained seed-0 diagnostics",
+      "inter-RSU forwarding or nonzero backhaul",
+      "static, reactive or proactive scaling",
+      "MAPPO retraining, load-augmented observations, action masking or learned dispatch",
+      "ordinary-traffic, prediction or bus experiments",
+      "modifying or pushing vec_env or tos-data",
+      "publishing raw actor, trace, checkpoint, private paths or the unrelated PDF",
+      "merging the draft pull request"
+    ]
+  },
+  "known_limitations": [
+    "Both G4 backend investigations failed before evaluator task generation, so no GPU scientific-comparability or speed evidence exists.",
+    "The incident trace represents one historical hour and no ordinary-traffic control is included.",
+    "The uk2030 fleet is provisional and is not a validated real-world fleet model.",
+    "The evaluator seed remains fixed at 0; fleet draw is the replication unit.",
+    "The waiting-room caps scale from padded fleet width and are not computation-power interventions.",
+    "Installed SUMO 1.27.1 differs from trace provenance SUMO 1.27.0, although SUMO is not invoked during replay.",
+    "Deadline attainment is simulated and does not confirm native physical completion or result return.",
+    "Randy's reported 0.6943 remains unreproduced."
+  ]
+}

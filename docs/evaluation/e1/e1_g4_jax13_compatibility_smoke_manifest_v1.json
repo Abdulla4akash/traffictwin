@@ -1,0 +1,357 @@
+{
+  "schema_version": "traffictwin.e1-g4-jax13-compatibility-smoke-manifest.v1",
+  "manifest_id": "e1-g4-jax13-compatibility-smoke-v1",
+  "record_date": "2026-08-08",
+  "status": "predeclared_before_g4_allocation",
+  "authority": {
+    "source": "Direct researcher instruction from Abdulla dated 2026-08-08",
+    "purpose": "Determine whether the unchanged evaluator executes correctly, reproducibly and materially faster on Colab G4 Blackwell with the current stable officially supported JAX CUDA-13 stack.",
+    "compatibility_smoke_authorised": true,
+    "full_run_authorised": false,
+    "campaign_authorised": false
+  },
+  "immutable_prior_negative_evidence": {
+    "result_path": "docs/evaluation/e1/e1_colab_g4_backend_smoke_result_v1.json",
+    "result_sha256": "cfbe8a966c60b5eae1f784bc51bf8525da91715251573d1491c59dd933fcacc6",
+    "report_path": "docs/evaluation/e1/e1_colab_g4_backend_smoke_report_2026-08-08.md",
+    "report_sha256": "28dd1d586f92948a93a89e1b8b35ec8f5ea83f1aa786d922b7013c54dbb49543",
+    "status": "immutable_failed_jax_0_4_30_cuda12_blackwell_evidence",
+    "may_be_rewritten_or_relabelled_success": false
+  },
+  "repositories": {
+    "traffictwin_parent_commit": "90c086763bca70f08a7a5f0ca16d279523f72295",
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+  },
+  "scope": {
+    "requested_accelerator": "G4",
+    "session_alias": "e1-g4-jax13-smoke",
+    "allocation_command": "colab new -s e1-g4-jax13-smoke --gpu G4",
+    "accepted_fallback_accelerators": [],
+    "primitive_gate_required": true,
+    "evaluator_repeat_count": 2,
+    "max_steps_per_repeat": 10,
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "cap_label": "2p5",
+    "cap_ratio_cli": "2.5",
+    "resolved_tasks_per_rsu": 6220,
+    "full_steps": 0
+  },
+  "inputs": {
+    "evaluator": {
+      "path": "eval/eval_sumo_stage1_mc.py",
+      "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+      "source_changed_for_compatibility": false
+    },
+    "actor": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "identity": "Frozen 17-dimensional Paper-2A MAPPO actor",
+      "training_seed": 100,
+      "observes_current_rsu_load": false
+    },
+    "trace": {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "scenario": "Manchester incident",
+      "date": "2024-03-15",
+      "window_local": "20:00-21:00",
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "sumo_seed": 43,
+      "sumo_provenance": "1.27.0",
+      "has_enter_channel": false
+    }
+  },
+  "identities": {
+    "runner_sha256": "2b7d9d8f8165b5fa7016b2b03747e2a2e5b5a16b6275c02b61d6efb62a42a20b",
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+    "cpu_validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "cpu_summary_sha256": "298ccbee8bae82d043a2dcd4401a72d7bce2437e0027e208db53970ca9f2aa7b",
+    "cpu_per_step_sha256": "9ca62b5df68c6b39d8961b1a0376d23ba1b2a646792305fda6e5dae9447e9904",
+    "cpu_per_task_sha256": "01aa251422a35f692291d8e7085044c97b6a62c11213f7a81b7805c59437643f",
+    "requirements_lock_sha256": "e5d604c612002b4ad0054dea7351e59d456e0b59c3d24f0e07b6c00e80426e57"
+  },
+  "bundle_paths": {
+    "runner": "traffictwin/scripts/run_e1_g4_jax13_compatibility_smoke.py",
+    "evaluator": "vec_env/eval/eval_sumo_stage1_mc.py",
+    "vec_jax": "vec_env/jaxmarl/env/vec_jax.py",
+    "adapter_initializer": "adapter/env/__init__.py",
+    "actor": "tos_data/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "trace": "tos_data/traces/trace_inc_fullrsu.npz",
+    "cpu_validation": "cpu_reference/e0_validation_v1.json",
+    "cpu_summary": "cpu_reference/run_1/summary.json",
+    "cpu_per_step": "cpu_reference/run_1/per_step.npz",
+    "cpu_per_task": "cpu_reference/run_1/per_task.npz",
+    "requirements_lock": "traffictwin/docs/evaluation/e1/e1_g4_jax13_compatibility_requirements_v1.txt"
+  },
+  "configuration": {
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "fleet": {
+      "preset": "uk2030",
+      "status": "provisional"
+    },
+    "arrival_lambda": 1.5,
+    "cap": {
+      "semantic": "per-RSU admission/in-flight waiting-room ceiling",
+      "ratio": 2.5,
+      "resolved_value": 6220,
+      "explicitly_not": "compute power"
+    },
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "placement": {
+      "mode": "off",
+      "meaning": "strongest-link/default placement",
+      "backhaul_ms": 0.0
+    },
+    "compute": {
+      "rsu_service_multiplier": 1.0,
+      "scaling": "off",
+      "mean_multiplier_expected": 1.0
+    }
+  },
+  "software_intervention": {
+    "only_intended_intervention": "JAX/CUDA execution stack required for Blackwell compatibility",
+    "official_installation_source": "https://docs.jax.dev/en/latest/installation.html",
+    "official_install_command_family": "python -m pip install --upgrade jax[cuda13]",
+    "stable_release_source": "https://github.com/jax-ml/jax/releases/tag/jax-v0.11.0",
+    "nightly_build_allowed": false,
+    "resolution_target": "CPython 3.12 x86_64-manylinux_2_28 wheels only",
+    "requirements_lock_path": "docs/evaluation/e1/e1_g4_jax13_compatibility_requirements_v1.txt",
+    "requirements_lock_sha256": "e5d604c612002b4ad0054dea7351e59d456e0b59c3d24f0e07b6c00e80426e57",
+    "resolved_packages": {
+      "jax": "0.11.0",
+      "jax-cuda13-pjrt": "0.11.0",
+      "jax-cuda13-plugin": "0.11.0",
+      "jaxlib": "0.11.0",
+      "ml-dtypes": "0.5.4",
+      "numpy": "2.5.1",
+      "nvidia-cublas": "13.6.1.10",
+      "nvidia-cuda-cccl": "13.3.3.4.1",
+      "nvidia-cuda-crt": "13.3.73",
+      "nvidia-cuda-cupti": "13.3.75",
+      "nvidia-cuda-nvcc": "13.3.73",
+      "nvidia-cuda-nvrtc": "13.3.33",
+      "nvidia-cuda-runtime": "13.3.29",
+      "nvidia-cudnn-cu13": "9.24.0.43",
+      "nvidia-cufft": "12.3.0.29",
+      "nvidia-cusolver": "12.2.6.9",
+      "nvidia-cusparse": "12.8.2.51",
+      "nvidia-nccl-cu13": "2.30.7",
+      "nvidia-nvjitlink": "13.3.33",
+      "nvidia-nvshmem-cu13": "3.7.2",
+      "nvidia-nvvm": "13.3.73",
+      "opt-einsum": "3.4.0",
+      "scipy": "1.18.0"
+    },
+    "pip_install_report_required": true,
+    "source_change_rule": "If the pinned evaluator or vec_jax requires any API/source modification, stop before evaluator execution and treat it as a separate intervention."
+  },
+  "execution": {
+    "environment_variables": {
+      "JAX_PLATFORMS": "cuda",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "backend_only_environment_difference": "JAX_PLATFORMS selects CUDA rather than the validated CPU backend; all scientific environment variables remain identical.",
+    "runner": "scripts/run_e1_g4_jax13_compatibility_smoke.py",
+    "runner_sha256": "2b7d9d8f8165b5fa7016b2b03747e2a2e5b5a16b6275c02b61d6efb62a42a20b",
+    "evaluator_argv_contract": [
+      "{PYTHON}",
+      "{EVALUATOR}",
+      "--trace",
+      "{TRACE}",
+      "--actor",
+      "{ACTOR}",
+      "--max-steps",
+      "10",
+      "--seed",
+      "0",
+      "--fleet",
+      "uk2030",
+      "--fleet-seed",
+      "0",
+      "--rsu-cap-per-veh",
+      "2.5",
+      "--lambda-arrival",
+      "1.5",
+      "--rsu-service-mult",
+      "1.0",
+      "--rsu-lb",
+      "off",
+      "--rsu-backhaul-ms",
+      "0.0",
+      "--substep-queue",
+      "sequential",
+      "--substep-queue-iters",
+      "3",
+      "--veh-queue",
+      "conserved",
+      "--rsu-cap-mode",
+      "reject",
+      "--k8s-scale",
+      "off"
+    ]
+  },
+  "primitive_gate": {
+    "must_pass_before_evaluator": true,
+    "operations": [
+      "jax.random.PRNGKey(0) with device synchronization",
+      "small float32 JAX array placed on GPU",
+      "jax.jit(lambda x: x * 2 + 1) first compile/execute",
+      "same jitted operation second synchronized warm execution"
+    ],
+    "expected_output": [
+      1.0,
+      3.0,
+      5.0,
+      7.0
+    ],
+    "failure_action": "Retain error, run zero evaluator processes, retrieve evidence and stop G4 session."
+  },
+  "validation_contract": {
+    "each_repeat_must_pass": [
+      "offered tasks equal admitted plus every rejection and unavailability outcome",
+      "V2I offered service work equals admitted plus rejected or unavailable work",
+      "vehicle offered service work equals admitted plus rejected work",
+      "every active task has exactly one terminal outcome",
+      "no silent task loss",
+      "all numbers and arrays finite",
+      "counts, work, latency and queues nonnegative",
+      "offered and admitted deadline denominators remain separate"
+    ],
+    "g4_repeat_contract": "Exact scientific JSON equality excluding wall time and exact dtype/shape/byte SHA-256 identity for every instrumentation array.",
+    "deadline_attainment_is_confirmed_physical_result_return": false
+  },
+  "comparison_contract": {
+    "cpu_reference_validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "exact_count_fields": [
+      "total_tasks",
+      "n_offered",
+      "n_admitted",
+      "v2i_gate_rejected",
+      "v2i_cap_rejected",
+      "local_mqd_rejected",
+      "v2v_mqd_rejected",
+      "v2i_unavailable",
+      "v2v_unavailable",
+      "k8s_scale_events"
+    ],
+    "exact_array_fields": {
+      "per_step": [
+        "active",
+        "arrivals",
+        "done",
+        "n_local",
+        "n_v2i",
+        "n_v2v",
+        "slot_is_ev",
+        "slot_tier",
+        "veh_action",
+        "veh_best_rsu",
+        "veh_best_v2v",
+        "veh_done",
+        "veh_k"
+      ],
+      "per_task": [
+        "task_active",
+        "task_met",
+        "task_outcome",
+        "task_type"
+      ]
+    },
+    "floating_tolerance": {
+      "rtol": 1e-06,
+      "atol": 1e-05,
+      "meaning": "Cross-backend continuous numerical fields need not be byte-identical, but every difference is reported and must be within this predeclared tolerance."
+    },
+    "material_divergence_rule": "Any exact count/decision/terminal-outcome failure, any floating array outside tolerance, or any summary field outside tolerance is scientifically material and rejects G4 for this campaign gate."
+  },
+  "macos_cpu_baseline": {
+    "backend": "macOS arm64 TFRT CPU",
+    "python": "3.11.15",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "evaluator_wall_s": [
+      12.7,
+      12.6
+    ],
+    "offered_tasks": 36856,
+    "admitted_tasks": 35195,
+    "deadline_met_tasks": 25227,
+    "completion_offered": 0.6844747123941828,
+    "completion_admitted": 0.716777951413553
+  },
+  "performance_rule": {
+    "measure": "Median evaluator-reported wall time across two separate ten-step processes; each process includes its own compilation. Primitive first-versus-warm JIT timing is reported separately.",
+    "minimum_material_speedup": 1.25,
+    "macos_per_cell_full_runtime_hours": 1.6740925925925926,
+    "campaign_if_g4_selected": "15 full cells: fleet seeds 0-4 by caps 0.75x, 2.5x and 40x on one frozen G4 stack",
+    "ten_step_extrapolation_limit": "A ten-step timing is compilation-heavy and only a provisional full-campaign planning estimate."
+  },
+  "backend_decision_rule": {
+    "g4_scientifically_acceptable_if": "Primitive gate, both repeat validations, exact G4 repeat, cross-backend discrete identity and all floating tolerances pass with no unexplained material divergence.",
+    "recommend_g4_if": "G4 is scientifically acceptable and median speedup is at least 1.25x.",
+    "if_g4_recommended": "Do not launch. First update and hash-freeze the campaign manifest and RESEARCH_NEXT; run all 15 seed/cap full cells on the same G4 stack and do not reuse macOS seed-0 full outputs.",
+    "if_g4_fails_or_is_not_worthwhile": "Stop G4 experimentation and recommend the already validated macOS CPU backend; do not launch until its campaign selection is separately recorded.",
+    "campaign_launch_by_this_manifest": false
+  },
+  "output": {
+    "colab_runtime_root": "/content/e1-g4-jax13-compatibility-smoke-v1",
+    "download_archive_name": "e1-g4-jax13-compatibility-smoke-v1-results.zip",
+    "local_logical_locator": "local-output:e1_outputs/e1-g4-jax13-compatibility-smoke-v1",
+    "raw_outputs_in_git": false,
+    "checksum_policy": "Retain SHA-256 and size for the bundle, pip install report, hardware and primitive evidence, every evaluator output, validation, comparison, log and downloaded archive.",
+    "failure_retention": "Retain every failed or negative output and stop without overwrite."
+  },
+  "stop_conditions": [
+    "CLI status is not G4 or the in-runtime device is not a genuine NVIDIA GPU",
+    "any input, runner, CPU reference, lock or package identity differs",
+    "a nightly or unpinned package is present",
+    "any evaluator or vec_env scientific source change is required",
+    "any primitive operation fails or does not execute on the G4",
+    "either evaluator process exits nonzero or exceeds 10 steps",
+    "either repeat fails task or work conservation",
+    "G4 repeats differ scientifically or in instrumentation identity",
+    "cross-backend exact task stream, decision, terminal outcome or count differs",
+    "a numerical difference exceeds the predeclared tolerance",
+    "any full E1 or E2 process would start",
+    "a private artifact would enter Git or be published"
+  ],
+  "permission_boundaries": {
+    "authorised": [
+      "one named G4 allocation",
+      "exact package installation and immutable pip report",
+      "one primitive compilation gate",
+      "two serial ten-step corrected-physical evaluator repeats only",
+      "CPU comparison, evidence retrieval, reporting and session termination"
+    ],
+    "prohibited": [
+      "any 3600-step or E1 campaign cell",
+      "any accelerator other than G4",
+      "nightly JAX builds",
+      "scientific queue, actor, trace, cap, placement, service or scaling changes",
+      "modifying or pushing vec_env or tos-data",
+      "E2, retraining, prediction or bus modelling",
+      "merging pull request 8",
+      "rewriting the prior failed G4 record"
+    ]
+  }
+}

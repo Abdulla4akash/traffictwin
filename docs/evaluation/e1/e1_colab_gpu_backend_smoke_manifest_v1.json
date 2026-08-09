@@ -1,0 +1,264 @@
+{
+  "schema_version": "traffictwin.e1-colab-gpu-backend-smoke-manifest.v1",
+  "manifest_id": "e1-colab-gpu-backend-smoke-v1",
+  "record_date": "2026-08-08",
+  "status": "predeclared_before_colab_execution",
+  "authority": {
+    "source": "Direct researcher instruction from Abdulla dated 2026-08-08",
+    "purpose": "Evaluate Google Colab GPU before any new E1 campaign smoke or full run.",
+    "full_run_authorised": false,
+    "campaign_authorised_by_this_manifest": false
+  },
+  "scope": {
+    "experiment": "bounded cross-backend validation smoke",
+    "max_steps": 10,
+    "repeat_count": 2,
+    "cap_label": "2p5",
+    "cap_ratio_cli": "2.5",
+    "resolved_tasks_per_rsu": 6220,
+    "fleet_seed": 0,
+    "evaluator_seed": 0,
+    "explicitly_excluded": [
+      "any 3600-step run",
+      "the 12-cell fleet-seed 1-4 campaign",
+      "E2 or a placement comparison",
+      "legacy semantics",
+      "scaling, retraining, prediction or bus modelling"
+    ]
+  },
+  "repositories": {
+    "traffictwin_parent_commit": "b7dd42be5d02d6c2f6bfb120d9fabf90f7b9ca66",
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+  },
+  "inputs": {
+    "evaluator": {
+      "path": "eval/eval_sumo_stage1_mc.py",
+      "sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+      "size_bytes": 57106
+    },
+    "actor": {
+      "path": "checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+      "sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+      "size_bytes": 21880,
+      "identity": "Frozen 17-dimensional Paper-2A MAPPO actor",
+      "training_seed": 100,
+      "observes_current_rsu_load": false
+    },
+    "trace": {
+      "path": "traces/trace_inc_fullrsu.npz",
+      "sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+      "size_bytes": 5964044,
+      "scenario": "Manchester incident",
+      "date": "2024-03-15",
+      "window_local": "20:00-21:00",
+      "padded_fleet_width": 2488,
+      "rsu_count": 10,
+      "sumo_seed": 43,
+      "sumo_provenance": "1.27.0",
+      "has_enter_channel": false
+    }
+  },
+  "identities": {
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "adapter_initializer_sha256": "5917ef0cb0cf634d1f079acd0dfd129d8b81016be12968d1977202046ee8cf5b",
+    "cpu_validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d"
+  },
+  "bundle_paths": {
+    "evaluator": "vec_env/eval/eval_sumo_stage1_mc.py",
+    "vec_jax": "vec_env/jaxmarl/env/vec_jax.py",
+    "actor": "tos_data/checkpoints/mappo_modelc_17dim__envs128__lr3e-3__seed100_actor_params.npz",
+    "trace": "tos_data/traces/trace_inc_fullrsu.npz",
+    "adapter_initializer": "adapter/env/__init__.py",
+    "cpu_validation": "traffictwin/docs/evaluation/e0/e0_validation_v1.json"
+  },
+  "configuration": {
+    "evaluator_seed": 0,
+    "fleet_seed": 0,
+    "fleet": {
+      "preset": "uk2030",
+      "status": "provisional"
+    },
+    "arrival_lambda": 1.5,
+    "cap": {
+      "semantic": "per-RSU admission/in-flight waiting-room ceiling",
+      "ratio": 2.5,
+      "resolved_value": 6220,
+      "explicitly_not": "compute power"
+    },
+    "substep_queue": "sequential",
+    "substep_queue_iterations": 3,
+    "vehicle_queue": "conserved",
+    "rsu_admission": "reject",
+    "placement": {
+      "mode": "off",
+      "meaning": "strongest-link/default placement",
+      "backhaul_ms": 0.0
+    },
+    "compute": {
+      "rsu_service_multiplier": 1.0,
+      "scaling": "off",
+      "mean_multiplier_expected": 1.0
+    }
+  },
+  "colab_environment": {
+    "runtime_type_required": "NVIDIA GPU",
+    "cpu_fallback_allowed": false,
+    "cuda_wheel_family": "CUDA 12 pip wheels",
+    "required_packages": {
+      "jax": "0.4.30",
+      "jaxlib": "0.4.30",
+      "jax-cuda12-plugin": "0.4.30",
+      "jax-cuda12-pjrt": "0.4.30",
+      "numpy": "1.26.4",
+      "scipy": "1.17.1"
+    },
+    "install_command": [
+      "python",
+      "-m",
+      "pip",
+      "install",
+      "--upgrade",
+      "jax[cuda12]==0.4.30",
+      "jaxlib==0.4.30",
+      "jax-cuda12-plugin[with-cuda]==0.4.30",
+      "jax-cuda12-pjrt==0.4.30",
+      "numpy==1.26.4",
+      "scipy==1.17.1"
+    ],
+    "python_version_policy": "Record the Colab interpreter exactly. A mismatch from macOS Python 3.11.15 is a backend difference, not silently treated as identical.",
+    "required_device_evidence": [
+      "jax.default_backend() == gpu",
+      "jax.devices and device_kind",
+      "nvidia-smi GPU name, driver and memory"
+    ]
+  },
+  "execution": {
+    "environment_variables": {
+      "JAX_PLATFORMS": "cuda",
+      "PYTHONHASHSEED": "0",
+      "VEC_JAX_MODEL_C": "1",
+      "VEC_JAX_PRIORITY_ALPHA": "0",
+      "VEC_JAX_STRESS_ARRIVAL": "1",
+      "VEC_JAX_LAMBDA_ARRIVAL": "1.5",
+      "VEC_JAX_K_MIN": "0",
+      "VEC_JAX_K_MAX": "5",
+      "VEC_JAX_STRESS_SPEED": "0",
+      "VEC_JAX_STRESS_LANES": "0"
+    },
+    "backend_variable_difference": "JAX_PLATFORMS changes from cpu to cuda solely to select the evaluated accelerator; every scientific environment variable and CLI field remains fixed.",
+    "runner": "scripts/run_e1_colab_gpu_backend_smoke.py",
+    "repeat_contract": "Two separate evaluator processes with identical inputs; exact scientific JSON equality excluding wall_s and exact dtype/shape/byte hash equality for every instrumentation array."
+  },
+  "macos_cpu_baseline": {
+    "manifest_path": "docs/evaluation/e0/e0_manifest_v1.json",
+    "manifest_sha256": "8d81cf30f1ada3e9af7c799c9ebd0e01a427a67c570f583b658b11717a5eab93",
+    "validation_path": "docs/evaluation/e0/e0_validation_v1.json",
+    "validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "backend": "macOS arm64 TFRT CPU",
+    "python": "3.11.15",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "evaluator_wall_s": [
+      12.7,
+      12.6
+    ],
+    "scientific_repeat_identical": true,
+    "instrumentation_repeat_identical": true,
+    "offered_tasks": 36856,
+    "admitted_tasks": 35195,
+    "deadline_met_tasks": 25227,
+    "completion_offered": 0.6844747123941828,
+    "completion_admitted": 0.716777951413553,
+    "rejected_or_unavailable_tasks": 1661,
+    "v2i_work_ms": {
+      "offered": 122473.0,
+      "admitted": 122473.0,
+      "rejected_or_unavailable": 0.0
+    },
+    "vehicle_work_ms": {
+      "offered": 820565.8125,
+      "admitted": 789046.9375,
+      "rejected": 31518.875
+    }
+  },
+  "comparison_contract": {
+    "each_colab_run_must_pass_all_physical_checks": true,
+    "colab_repeat_must_be_exact": true,
+    "task_stream_hashes_must_match_cpu": [
+      "task_active",
+      "task_type"
+    ],
+    "exact_count_fields": [
+      "total_tasks",
+      "n_offered",
+      "n_admitted",
+      "v2i_gate_rejected",
+      "v2i_cap_rejected",
+      "local_mqd_rejected",
+      "v2v_mqd_rejected",
+      "v2i_unavailable",
+      "v2v_unavailable",
+      "k8s_scale_events"
+    ],
+    "report_all_scientific_numeric_differences": true,
+    "report_every_array_hash_equality": true,
+    "cross_backend_mix_allowed_by_this_smoke": false,
+    "reason": "A ten-step check can demonstrate bounded contract comparability but cannot by itself justify mixing CPU seed-0 full outputs with Colab fleet-seed 1-4 full outputs."
+  },
+  "speed_decision": {
+    "measure": "median evaluator-reported wall_s across two separate ten-step processes",
+    "minimum_material_speedup": 1.25,
+    "meaning": "Colab median wall time must be at least 25 percent faster than the 12.65-second macOS CPU median.",
+    "macos_projected_campaign_hours": 20.089111111111112,
+    "estimate_policy": "Scale the macOS planning estimate by the observed smoke speed ratio and label the result JIT/startup-dominated and provisional."
+  },
+  "backend_decision_rule": {
+    "select_colab_candidate": "Genuine GPU, exact package/input identities, two repeated-smoke passes, exact repeated scientific/array outputs, exact CPU task stream and count fields, and speedup >= 1.25.",
+    "if_selected": "Update the campaign manifest and RESEARCH_NEXT before any full run; use Colab only and rerun all three fleet-seed-0 physical cap points on Colab so the five-draw analysis has one backend.",
+    "otherwise": "Do not launch on Colab. Record the exact failure or non-material speed result and obtain a reviewed CPU/backend decision before campaign launch.",
+    "mix_cpu_and_colab_full_results": false
+  },
+  "output": {
+    "colab_runtime_root": "/content/e1-colab-gpu-backend-smoke-v1",
+    "download_archive_name": "e1-colab-gpu-backend-smoke-v1-results.zip",
+    "local_logical_locator": "local-output:e1_outputs/e1-colab-gpu-backend-smoke-v1",
+    "raw_outputs_in_git": false,
+    "required_files": [
+      "run_1/summary.json",
+      "run_1/per_step.npz",
+      "run_1/per_task.npz",
+      "run_1/stdout_stderr.log",
+      "run_2/summary.json",
+      "run_2/per_step.npz",
+      "run_2/per_task.npz",
+      "run_2/stdout_stderr.log",
+      "colab_validation.json",
+      "colab_backend_smoke_report.json"
+    ],
+    "checksum_policy": "Retain SHA-256 and sizes for the uploaded bundle and every downloaded authoritative result.",
+    "failure_retention": "Download and retain failed outputs and logs; do not delete negative evidence."
+  },
+  "stop_conditions": [
+    "No Colab GPU runtime is allocated",
+    "Any package or input identity differs",
+    "JAX reports CPU or TPU rather than GPU",
+    "Either repeat fails physical task or service-work conservation",
+    "The two Colab repeats differ scientifically or in instrumentation identity",
+    "CPU and Colab task-active, task-type or exact count fields differ",
+    "NaN, infinity, unexplained negative value or silent task loss occurs",
+    "Any run exceeds 10 steps or a full campaign cell would start",
+    "Raw private artifacts would be committed or published"
+  ],
+  "semantic_boundaries": {
+    "measured_outcome": "simulated deadline attainment",
+    "confirmed_native_physical_completion": false,
+    "confirmed_physical_result_return": false,
+    "waiting_room_cap_is_compute_power": false,
+    "randy_reported_0_6943_reproduced": false
+  }
+}

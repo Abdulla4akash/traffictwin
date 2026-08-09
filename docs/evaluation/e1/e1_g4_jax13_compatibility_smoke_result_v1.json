@@ -1,0 +1,177 @@
+{
+  "schema_version": "traffictwin.e1-g4-jax13-compatibility-smoke-result.v1",
+  "record_date": "2026-08-08",
+  "status": "failed_primitive_gate_no_evaluator_started",
+  "passed": false,
+  "authority": {
+    "source": "Direct researcher instruction from Abdulla dated 2026-08-08",
+    "requested_accelerator": "G4",
+    "fallback_accelerator_allowed": false,
+    "full_run_authorised": false
+  },
+  "governing_predeclaration": {
+    "decision_record": "docs/evaluation/e1/e1_g4_jax13_compatibility_decision_record_2026-08-08.md",
+    "manifest": "docs/evaluation/e1/e1_g4_jax13_compatibility_smoke_manifest_v1.json",
+    "manifest_sha256": "d91abe1f6fb95c22387cd150e5f027483391cc72bf23e8ccd0318e71f8cbf659",
+    "requirements_lock": "docs/evaluation/e1/e1_g4_jax13_compatibility_requirements_v1.txt",
+    "requirements_lock_sha256": "e5d604c612002b4ad0054dea7351e59d456e0b59c3d24f0e07b6c00e80426e57",
+    "traffic_twin_pre_run_commit": "8b47df90153905c274b2efb2f862e319e43850a0",
+    "pre_run_commit_pushed_before_allocation": true
+  },
+  "immutable_prior_negative_evidence": {
+    "result": "docs/evaluation/e1/e1_colab_g4_backend_smoke_result_v1.json",
+    "result_sha256": "cfbe8a966c60b5eae1f784bc51bf8525da91715251573d1491c59dd933fcacc6",
+    "report": "docs/evaluation/e1/e1_colab_g4_backend_smoke_report_2026-08-08.md",
+    "report_sha256": "28dd1d586f92948a93a89e1b8b35ec8f5ea83f1aa786d922b7013c54dbb49543",
+    "modified_by_this_gate": false
+  },
+  "repositories": {
+    "traffictwin_lineage_commit": "90c086763bca70f08a7a5f0ca16d279523f72295",
+    "vec_env_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
+    "tos_data_commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85"
+  },
+  "hardware": {
+    "requested_accelerator": "G4",
+    "colab_status_hardware": "G4",
+    "actual_nvidia_model": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "compute_capability": "12.0",
+    "vram_mib": 97887,
+    "driver_version": "580.82.07",
+    "nvidia_smi_max_cuda_version": "13.0",
+    "host_nvcc_release": "12.8",
+    "host_nvcc_version": "12.8.93",
+    "platform": "Linux-6.6.122+-x86_64-with-glibc2.35",
+    "genuine_requested_device_verified": true,
+    "fallback_device_used": false
+  },
+  "software": {
+    "python": "3.12.13",
+    "jax": "0.11.0",
+    "jaxlib": "0.11.0",
+    "jax_cuda13_plugin": "0.11.0",
+    "jax_cuda13_pjrt": "0.11.0",
+    "pjrt_api_version_reported_by_failure": "0.76",
+    "numpy": "2.5.1",
+    "scipy": "1.18.0",
+    "jax_backend": "gpu",
+    "jax_device": "cuda:0",
+    "jax_device_kind": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+    "jax_platform_version": null,
+    "cuda_runtime_package": "nvidia-cuda-runtime 13.3.29",
+    "cuda_nvcc_package": "nvidia-cuda-nvcc 13.3.73",
+    "resolved_package_count": 23,
+    "all_locked_package_identities_passed": true,
+    "pip_install_exit_code": 0,
+    "pip_install_wall_s": 62.50603681299998,
+    "pip_warning": "The ambient Colab numba 0.60.0 requirement declares numpy<2.1, while the frozen JAX CUDA-13 resolution installed NumPy 2.5.1. The evaluator was not started, so runtime impact was not assessed."
+  },
+  "input_identity": {
+    "all_11_predeclared_identities_passed": true,
+    "evaluator_sha256": "260b90ff400cb5048ae4e74fb6c407d197fbfc80d91d7b7edf0c65640b5bd669",
+    "actor_sha256": "93c970594447efbfa76c25629307ba4bbbbacd0661f9f4423496850d899dc208",
+    "trace_sha256": "e188ce076b0d000113dca3a53db8586dc424cbde51915a441f9d6b9990328056",
+    "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+    "runner_sha256": "2b7d9d8f8165b5fa7016b2b03747e2a2e5b5a16b6275c02b61d6efb62a42a20b",
+    "scientific_source_changed": false
+  },
+  "primitive_gate": {
+    "passed": false,
+    "first_operation": "jax.random.PRNGKey(0) with device synchronization",
+    "first_operation_completed": false,
+    "small_gpu_array_started": false,
+    "jax_jit_started": false,
+    "warm_synchronized_operation_started": false,
+    "exception_type": "JaxRuntimeError",
+    "message": "INVALID_ARGUMENT: Unexpected PJRT_FFI_UserData_Add_Args size: expected 48, got 40. The plugin is likely built with a later version than the framework. This plugin is built with PJRT API version 0.76.",
+    "mandatory_stop_applied": true
+  },
+  "cell_accounting": {
+    "planned_evaluator_repeats": 2,
+    "started_evaluator_repeats": 0,
+    "completed_evaluator_repeats": 0,
+    "passed_evaluator_repeats": 0,
+    "failed_evaluator_repeats": 0,
+    "stopped_evaluator_repeats": 2,
+    "full_cells_started": 0,
+    "campaign_cells_started": 0,
+    "evaluation_steps_executed": 0
+  },
+  "validation": {
+    "repeat_1": "not_started_primitive_gate_failed",
+    "repeat_2": "not_started_primitive_gate_failed",
+    "task_conservation": "unavailable_no_evaluator_output",
+    "v2i_work_conservation": "unavailable_no_evaluator_output",
+    "vehicle_work_conservation": "unavailable_no_evaluator_output",
+    "task_stream_identity_vs_macos": "unavailable_no_evaluator_output",
+    "scientific_metrics_vs_macos": "unavailable_no_evaluator_output",
+    "g4_repeat_determinism": "unavailable_no_evaluator_repeat",
+    "g4_evaluator_wall_s": null,
+    "measured_g4_speedup_vs_macos": null,
+    "estimated_g4_campaign_runtime_hours": null,
+    "install_time_is_valid_evaluator_speed_measurement": false,
+    "overall_scientific_compatibility": "not_demonstrated"
+  },
+  "macos_cpu_reference": {
+    "validation_sha256": "ff095ac91765c1e59410c4b902ff47e018cf00a7c9513ca33e2983a8e18ae38d",
+    "backend": "macOS arm64 TFRT CPU",
+    "python": "3.11.15",
+    "jax": "0.4.30",
+    "jaxlib": "0.4.30",
+    "numpy": "1.26.4",
+    "evaluator_wall_s": [
+      12.7,
+      12.6
+    ],
+    "median_evaluator_wall_s": 12.65,
+    "offered_tasks": 36856,
+    "admitted_tasks": 35195,
+    "deadline_met_tasks": 25227,
+    "g4_counterpart_available": false
+  },
+  "evidence": {
+    "raw_output_locator": "local-output:e1_outputs/e1-g4-jax13-compatibility-smoke-v1",
+    "raw_outputs_committed_to_git": false,
+    "checksum_index_sha256": "4fb26d6ae5a9dccf96fe918ea02b1ade253bf1864f48c0f041ddb6111d4ab702",
+    "files": {
+      "result_archive": {
+        "sha256": "8469f9049a64abb62c855d12e4dafacd80662c0b0527a12da47bde0c9f35fcfb",
+        "size_bytes": 35207
+      },
+      "raw_compatibility_report": {
+        "sha256": "104801ae79e8b1621c354fc23de02fd0678f8c9adcb7b0e673278b4ccb8bd772",
+        "size_bytes": 5494
+      },
+      "allocation_probe": {
+        "sha256": "8d09c35eb0021264365ad7afedcc2d5041f11da84e373fa912cbe772bf955c04",
+        "size_bytes": 492
+      },
+      "install_status": {
+        "sha256": "4459bcff9c122cd69f295a60dd29a4b1ec8b4a38662f6f88c7347eef12d4c0c3",
+        "size_bytes": 724
+      },
+      "pip_install_report": {
+        "sha256": "e155230d999c766b24fd42fb5d106accfbbc608d19a2d35c150772200c13809e",
+        "size_bytes": 125896
+      },
+      "pip_install_log": {
+        "sha256": "ae278215ba4bca59ad334e46ceeef03dd17f85d88975594cd980cd842280db75",
+        "size_bytes": 11925
+      }
+    }
+  },
+  "decision": {
+    "g4_scientifically_acceptable": false,
+    "g4_recommended_for_campaign": false,
+    "selected_campaign_backend": "macos_arm64_cpu_jax_0_4_30",
+    "selection_basis": "The second separately predeclared G4 stack failed the primitive gate. The direct decision rule requires further G4 experimentation to stop and the already validated macOS CPU backend to be selected.",
+    "cross_backend_results_will_be_mixed": false,
+    "full_run_launched": false,
+    "next_gate": "Publish the reviewed macOS CPU backend selection, then run the two predeclared ten-step CPU smoke repeats for fleet seed 1 at 0.75x. Launch that full cell only if every smoke and identity gate passes."
+  },
+  "semantic_boundaries": {
+    "waiting_room_cap_is_compute_power": false,
+    "native_physical_completion_or_result_return_observed": false,
+    "randy_reported_0_6943_reproduced": false,
+    "E2_started": false
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "checks": [
+    {
+      "name": "selected_backend_is_frozen_macos_cpu",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "campaign_execution_allowed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "seed0_comparison_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "cap_grid_exact",
+      "observed": {
+        "0p75": 1866,
+        "2p5": 6220,
+        "40x": 99520
+      },
+      "passed": true
+    },
+    {
+      "name": "0p75_full_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_all_full_checks_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_cap_exact",
+      "observed": 1866,
+      "passed": true
+    },
+    {
+      "name": "0p75_task_accounting",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_rejection_reconciliation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_v2i_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_vehicle_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "0p75_comparison_values_finite_nonnegative",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_full_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_all_full_checks_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_cap_exact",
+      "observed": 6220,
+      "passed": true
+    },
+    {
+      "name": "2p5_task_accounting",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_rejection_reconciliation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_v2i_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_vehicle_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "2p5_comparison_values_finite_nonnegative",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_full_validation_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_all_full_checks_passed",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_cap_exact",
+      "observed": 99520,
+      "passed": true
+    },
+    {
+      "name": "40x_task_accounting",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_rejection_reconciliation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_v2i_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_vehicle_work_conservation",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "40x_comparison_values_finite_nonnegative",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "offered_count_identical_across_caps",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "task_active_identical_across_caps",
+      "observed": null,
+      "passed": true
+    },
+    {
+      "name": "task_type_identical_across_caps",
+      "observed": null,
+      "passed": true
+    }
+  ],
+  "decision": "seed1_three_cap_comparison_valid",
+  "fleet_seed": 1,
+  "manifest_sha256": "0631f7b80a8575139c5dcbb7a110487fa57a0952555f0518a5bb9d37a1b93a2d",
+  "passed": true,
+  "schema_version": "traffictwin.e1-within-seed-three-cap-validation.v1",
+  "sources": {
+    "0p75": {
+      "metrics_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_0p75/cell_metrics.json",
+      "metrics_sha256": "c69fe241b03316f61ff841c4beb9c78219ca6d2d6990f5ed18bb4d7ca16cc2e6",
+      "validation_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_0p75/full_validation.json",
+      "validation_sha256": "e9499a3c74510c343de179ea3cd12cc71241bacb3d9d65ec213690419b404c32"
+    },
+    "2p5": {
+      "metrics_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_2p5/cell_metrics.json",
+      "metrics_sha256": "5a9e4a2598f1ed2714df4917dd0e04b13c63922ed9898b89586d40fb903fb48d",
+      "validation_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_2p5/full_validation.json",
+      "validation_sha256": "d64d4c67313a94fd5d4b9df7da2a27d0456a9402b1ebb14a6766a47ceb523383"
+    },
+    "40x": {
+      "metrics_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_40x/cell_metrics.json",
+      "metrics_sha256": "a9a19e0d9a1f9b044e119345c7f66a453fa4cb1fd956531291e7263897c61669",
+      "validation_locator": "local-output:e1_outputs/e1-multidraw-physical-seeds0-4-v1/fleet_seed_1/cap_40x/full_validation.json",
+      "validation_sha256": "659d25b7661e17a22e3ee1b85a5897d2a56b48b004e106d93eb98f3ec6f798c1"
+    }
+  },
+  "task_stream_identity": {
+    "task_active_sha256": "b1599eea0a8696b1083bd17e0910f4fca5b18f453f525911fda7817177909917",
+    "task_type_sha256": "030f0de92101c4368deaad7381bcfcb1750353311c27ff17c395017b7617847b"
+  }
+}
