@@ -1,48 +1,136 @@
-# ruff: noqa: ANN001,ANN002,ANN003,ANN201,ANN202,S110,SIM105
-"""Pytest session hardening for Streamlit AppTest cold start.
+# ruff: noqa: ANN001,ANN401,ANN002,ANN003,ANN201,ANN202,S110,SIM105
+"""Pytest plugin for AppTest cold-start hardening — lazy, fail-closed.
 
-First AppTest.run in a pytest process gets a larger startup budget (cold floor)
-to cover import/startup overhead. Subsequent runs keep their requested timeout
-unchanged. This is test-only, does not affect production `src/`, and does not
-perform a hidden warm-up AppTest before the named test.
+First AppTest.run in a pytest process gets max(requested,60); later calls
+retain requested timeout. This file orchestrates tests/_apptest_runtime.py and
+contains no second implementation.
 
-Implementation is intentionally lazy: Streamlit is imported only if the test
-session actually collects AppTest-using tests, but the patch is installed
-early enough to cover the first real AppTest.run.
+Lazy guarantees:
+A. Importing this module does not import Streamlit.
+B. Collecting a pure-unit test does not import Streamlit because of this plugin.
+C. Before the first actual AppTest.run, the wrapper is installed.
+D. Installed once (installer is idempotent).
+E. Restored at session end.
+
+No hidden warm-up AppTest is ever executed.
 """
 
 from __future__ import annotations
 
-import pytest
+import importlib.abc
+import importlib.machinery
+import sys
 
-try:
-    from streamlit.testing.v1 import AppTest as _AppTest  # type: ignore[import-untyped]
+# Fail-closed: broken helper must raise loudly — do not swallow.
+from tests._apptest_runtime import (  # noqa: F401
+    COLD_FLOOR_SECONDS,
+    effective_timeout,
+    install_apptest_run_patch,
+    is_patched,
+    reset_apptest_cold_state,
+    uninstall_apptest_run_patch,
+)
 
-    from tests._apptest_runtime import COLD_FLOOR_SECONDS, effective_timeout
+# ---------------------------------------------------------------------------
+# Lazy installer via sys.meta_path — does not import Streamlit at plugin import.
+# ---------------------------------------------------------------------------
 
-    _ORIGINAL_RUN = _AppTest.run
-    _has_run_first = False
 
-    def _patched_run(self, timeout: int = 10, **kwargs):  # type: ignore[no-untyped-def]
-        global _has_run_first
-        is_first = not _has_run_first
-        if is_first:
-            _has_run_first = True
-        eff = effective_timeout(timeout, is_first, cold_floor=COLD_FLOOR_SECONDS)
-        return _ORIGINAL_RUN(self, timeout=eff, **kwargs)
+class _PatchedLoader(importlib.abc.Loader):
+    """Wraps the original loader for streamlit.testing.v1 to patch after exec."""
 
-    _AppTest.run = _patched_run  # type: ignore[method-assign]
+    def __init__(self, original_loader: importlib.abc.Loader) -> None:
+        self.original_loader = original_loader
 
-    @pytest.fixture(autouse=True, scope="session")
-    def _restore_apptest_run():  # type: ignore[no-untyped-def]
-        yield
-        # Restore at session teardown to avoid leaking into other pytest invocations
-        # in the same interpreter (e.g., `pytest --forked` is not used, but be tidy).
+    def create_module(self, spec):  # type: ignore[no-untyped-def]
+        if hasattr(self.original_loader, "create_module"):
+            return self.original_loader.create_module(spec)
+        return None
+
+    def exec_module(self, module):  # type: ignore[no-untyped-def]
+        # First let the original loader do its work (populates module, defines AppTest).
+        self.original_loader.exec_module(module)
+        # Now patch — this does not import Streamlit anew because the module
+        # is already in sys.modules; it just wraps AppTest.run.
         try:
-            _AppTest.run = _ORIGINAL_RUN  # type: ignore[method-assign]
+            install_apptest_run_patch()
+        except ModuleNotFoundError as exc:
+            if exc.name is not None and exc.name.startswith("streamlit"):
+                # Tolerate missing Streamlit only when not needed.
+                return
+            raise
         except Exception:
-            pass
+            raise
 
-except ImportError:
-    # Streamlit not installed — nothing to patch (e.g., minimal CI without UI deps)
-    pass
+
+class _LazyPatchFinder(importlib.abc.MetaPathFinder):
+    """Intercepts ``streamlit.testing.v1`` import to install patch lazily."""
+
+    def find_spec(self, fullname, path, target=None):  # type: ignore[no-untyped-def]
+        if fullname != "streamlit.testing.v1":
+            return None
+        # Avoid recursion: look up original spec via other finders only.
+        for finder in sys.meta_path:
+            if finder is self:
+                continue
+            try:
+                spec = finder.find_spec(fullname, path, target)
+            except Exception:  # noqa: S112
+                continue
+            if spec is not None and spec.loader is not None:
+                # Wrap loader so patch happens after exec_module.
+                spec.loader = _PatchedLoader(spec.loader)
+                return spec
+        return None
+
+
+# Install finder at import time — does NOT import Streamlit.
+_finder = _LazyPatchFinder()
+if _finder not in sys.meta_path:
+    sys.meta_path.insert(0, _finder)
+
+
+# ---------------------------------------------------------------------------
+# Pytest hooks — fallback for already-loaded case and session teardown.
+# ---------------------------------------------------------------------------
+
+
+def pytest_collection_finish(session):  # type: ignore[no-untyped-def]
+    """If any test module imported streamlit.testing.v1 at collection time, install."""
+    if "streamlit.testing.v1" in sys.modules and not is_patched():
+        try:
+            install_apptest_run_patch()
+        except ModuleNotFoundError as exc:
+            if exc.name is not None and exc.name.startswith("streamlit"):
+                return
+            raise
+
+
+def pytest_runtest_setup(item):  # type: ignore[no-untyped-def]
+    """Ensure wrapper before each AppTest test (covers pre-imported case)."""
+    if "streamlit.testing.v1" in sys.modules and not is_patched():
+        try:
+            install_apptest_run_patch()
+        except ModuleNotFoundError as exc:
+            if exc.name is not None and exc.name.startswith("streamlit"):
+                return
+            raise
+
+
+def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
+    """Restore original AppTest.run and remove finder."""
+    # Remove finder
+    try:
+        if _finder in sys.meta_path:
+            sys.meta_path.remove(_finder)
+    except Exception:
+        pass
+    # Restore AppTest.run — fail closed if helper is broken.
+    try:
+        uninstall_apptest_run_patch()
+    except ModuleNotFoundError as exc:
+        if exc.name is not None and exc.name.startswith("streamlit"):
+            return
+        raise
+    except Exception:
+        raise

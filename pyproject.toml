@@ -66,8 +66,11 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra"
+addopts = "-ra -m 'not cold_apptest'"
 pythonpath = ["."]
+markers = [
+    "cold_apptest: expensive genuine cold AppTest proof requiring fresh cache (run with -m cold_apptest)",
+]
 
 [tool.ruff]
 line-length = 100
