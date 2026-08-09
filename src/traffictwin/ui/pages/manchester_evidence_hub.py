@@ -21,7 +21,7 @@ def render() -> None:
     # Evidence summary — offline, secret-free
     st.caption(
         "Source inventory, readiness, evidence standing, activation blockers and next actions. "
-        "This hub reuses existing Manchester integration contracts and does not automatically acquire provider data."
+        "This hub reuses existing Manchester integration contracts and does not automatically acquire provider data."  # noqa: E501
     )
     badge_row(["OFFLINE", "SECRET-FREE", "DETERMINISTIC", "BOUNDED"])
 
@@ -50,7 +50,7 @@ def render() -> None:
         st.caption(w)
     # Do not combine incompatible counts into fake total
     st.info(
-        "Counts are per-source and not combined into a Manchester total. Each source retains its own coverage and freshness contract."
+        "Counts are per-source and not combined into a Manchester total. Each source retains its own coverage and freshness contract."  # noqa: E501
     )
 
     # 2. Source readiness table
@@ -76,11 +76,17 @@ def render() -> None:
             table_rows,
             overrides={
                 "source": ColumnDisplay(key="source", label="Source"),
-                "what_it_represents": ColumnDisplay(key="what_it_represents", label="What it represents"),
+                "what_it_represents": ColumnDisplay(
+                    key="what_it_represents", label="What it represents"
+                ),
                 "evidence_state": ColumnDisplay(key="evidence_state", label="Evidence state"),
                 "freshness": ColumnDisplay(key="freshness", label="Freshness"),
-                "acquisition_readiness": ColumnDisplay(key="acquisition_readiness", label="Acquisition readiness"),
-                "blocking_decision": ColumnDisplay(key="blocking_decision", label="Blocking decision"),
+                "acquisition_readiness": ColumnDisplay(
+                    key="acquisition_readiness", label="Acquisition readiness"
+                ),
+                "blocking_decision": ColumnDisplay(
+                    key="blocking_decision", label="Blocking decision"
+                ),
             },
         ),
     )
@@ -106,9 +112,13 @@ def render() -> None:
             st.info(f"Next action: {src.next_action}")
             # Truthful per-source warnings
             if src.source_id == "bods":
-                st.warning("BODS is live/recent BUS positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow.")
+                st.warning(
+                    "BODS is live/recent BUS positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow."  # noqa: E501
+                )
             if src.source_id == "national_highways":
-                st.warning("National Highways is strategic-road operational evidence only — NOT general Manchester city-road coverage.")
+                st.warning(
+                    "National Highways is strategic-road operational evidence only — NOT general Manchester city-road coverage."  # noqa: E501
+                )
             if src.source_id == "dft":
                 st.caption("DfT: historical traffic count evidence — NOT live traffic.")
             if src.source_id == "manual_incident":
@@ -119,8 +129,8 @@ def render() -> None:
     # 4. Scientific / owner blockers
     st.subheader("Scientific / owner blockers")
     st.info(
-        "Software readiness (portfolio, freshness, acquisition controls) is distinct from provider, "
-        "rights/retention and scientific acceptance. Successful API configuration does not imply scientific acceptance."
+        "Software readiness (portfolio, freshness, acquisition controls) is distinct from provider, "  # noqa: E501
+        "rights/retention and scientific acceptance. Successful API configuration does not imply scientific acceptance."  # noqa: E501
     )
     blocker_rows = [
         {
@@ -133,13 +143,18 @@ def render() -> None:
         if "BLOCKED" in s.scientific_gate_state or "REQUIRED" in s.rights_retention_state
     ]
     if blocker_rows:
-        st.dataframe(blocker_rows, hide_index=True, width="stretch", column_config=table_column_config(blocker_rows))
+        st.dataframe(
+            blocker_rows,
+            hide_index=True,
+            width="stretch",
+            column_config=table_column_config(blocker_rows),
+        )
     else:
         st.success("No scientific/owner blockers beyond displayed source readiness.")
     st.warning(
-        "Scientific gates still BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED before calibrated Manchester baseline: "
-        "map matching policy, ambiguity threshold, road-class policy, calibration objective, parameter bounds, "
-        "uncertainty, development/held-out split, minimum coverage, comparison weighting, missing-data handling, "
+        "Scientific gates still BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED before calibrated Manchester baseline: "  # noqa: E501
+        "map matching policy, ambiguity threshold, road-class policy, calibration objective, parameter bounds, "  # noqa: E501
+        "uncertainty, development/held-out split, minimum coverage, comparison weighting, missing-data handling, "  # noqa: E501
         "174 map-review decisions, viable demand — not implemented in this slice."
     )
 
@@ -148,18 +163,30 @@ def render() -> None:
     cols = st.columns(3)
     if cols[0].button("Open Manchester Operations", key="hub_next_manchester_ops"):
         st.switch_page("app_pages/manchester.py")
-    navigation_button(cols[1].button, "Open Scenario Builder", UiPage.SCENARIO, key="hub_next_scenario")
-    navigation_button(cols[2].button, "Review Provenance", UiPage.PROVENANCE, key="hub_next_provenance")
-    st.caption("Acquisition controls live in Manchester Operations; this hub does not clone them. Manual incident authoring uses Scenario Builder.")
+    navigation_button(
+        cols[1].button, "Open Scenario Builder", UiPage.SCENARIO, key="hub_next_scenario"
+    )
+    navigation_button(
+        cols[2].button, "Review Provenance", UiPage.PROVENANCE, key="hub_next_provenance"
+    )
+    st.caption(
+        "Acquisition controls live in Manchester Operations; this hub does not clone them. Manual incident authoring uses Scenario Builder."  # noqa: E501
+    )
     with st.expander("Advanced: hub view JSON (secret-free)"):
         st.download_button(
             "Download hub view JSON",
             data=view.model_dump_json(indent=2),
-            file_name=f"{view.fingerprint[:12]}-manchester-hub.json" if view.fingerprint else "manchester-hub.json",
+            file_name=f"{view.fingerprint[:12]}-manchester-hub.json"
+            if view.fingerprint
+            else "manchester-hub.json",
             mime="application/json",
             key="hub_download_json",
         )
         st.json(view.model_dump(mode="json"))
-        st.caption(f"Fingerprint: `{view.fingerprint[:12]}…` binds source IDs, evidence states, freshness, readiness, blockers and accepted artifact IDs (no secrets).")
+        st.caption(
+            f"Fingerprint: `{view.fingerprint[:12]}…` binds source IDs, evidence states, freshness, readiness, blockers and accepted artifact IDs (no secrets)."  # noqa: E501
+        )
 
-    st.caption("This hub never displays API keys, bearer tokens or raw credentials; it shows Configured / Not configured only. No network call is made on render.")
+    st.caption(
+        "This hub never displays API keys, bearer tokens or raw credentials; it shows Configured / Not configured only. No network call is made on render."  # noqa: E501
+    )

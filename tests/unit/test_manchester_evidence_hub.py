@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
+
+import pytest
 
 from traffictwin.ui.manchester_evidence_hub import (
     ManchesterEvidenceHubView,
@@ -58,7 +59,10 @@ def test_tfgm_infrastructure_telemetry_distinction() -> None:
     view = build_manchester_hub_view(None)
     tfgm = next(s for s in view.sources if s.source_id == "tfgm")
     assert "Infrastructure" in tfgm.source_role
-    assert "NOT traffic telemetry" in " ".join(tfgm.limitations) or "NOT traffic" in tfgm.coverage_scope
+    assert (
+        "NOT traffic telemetry" in " ".join(tfgm.limitations)
+        or "NOT traffic" in tfgm.coverage_scope
+    )
 
 
 def test_manual_incident_authored_input() -> None:
@@ -89,7 +93,7 @@ def test_no_boundary_promotion() -> None:
     assert "NOT traffic evidence" in " ".join(b.limitations)
 
 
-def test_no_credentials_exposed(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+def test_no_credentials_exposed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("BODS_API_KEY", "secret-bods-key-123")
     monkeypatch.setenv("NATIONAL_HIGHWAYS_API_KEY", "secret-nh-key-456")
     view = build_manchester_hub_view(None)
@@ -124,7 +128,10 @@ def test_partial_availability_state(tmp_path: Path) -> None:
     assert "Accepted local evidence" in dft.local_evidence_state
     # But BODS still unavailable without key
     bods = next(s for s in view.sources if s.source_id == "bods")
-    assert "No live evidence" in bods.local_evidence_state or "Not configured" in bods.configuration_state
+    assert (
+        "No live evidence" in bods.local_evidence_state
+        or "Not configured" in bods.configuration_state
+    )
 
 
 def test_accepted_local_evidence_state(tmp_path: Path) -> None:
@@ -138,16 +145,26 @@ def test_acquisition_ready_not_scientifically_accepted() -> None:
     view = build_manchester_hub_view(None)
     for src in view.sources:
         if "Acquisition-ready" in src.acquisition_readiness:
-            assert "BLOCKED" in src.scientific_gate_state or "REQUIRED" in src.scientific_gate_state or "NOT APPLICABLE" in src.scientific_gate_state
+            assert (
+                "BLOCKED" in src.scientific_gate_state
+                or "REQUIRED" in src.scientific_gate_state
+                or "NOT APPLICABLE" in src.scientific_gate_state
+            )
             # Successful acquisition does not imply scientific acceptance
-            assert "scientific" in src.scientific_gate_state.lower() or "not applicable" in src.scientific_gate_state.lower()
+            assert (
+                "scientific" in src.scientific_gate_state.lower()
+                or "not applicable" in src.scientific_gate_state.lower()
+            )
 
 
 def test_rights_retention_unknown_remains_unknown() -> None:
     view = build_manchester_hub_view(None)
     for src in view.sources:
         if src.source_id not in {"static_boundaries"}:
-            assert "NOT RECORDED" in src.rights_retention_state or "OWNER" in src.rights_retention_state
+            assert (
+                "NOT RECORDED" in src.rights_retention_state
+                or "OWNER" in src.rights_retention_state
+            )
 
 
 def test_scientific_blockers_preserved() -> None:
@@ -155,7 +172,13 @@ def test_scientific_blockers_preserved() -> None:
     # At least DfT and WebTRIS have scientific blockers
     dft = next(s for s in view.sources if s.source_id == "dft")
     assert "OWNER-SCIENTIFIC" in dft.scientific_gate_state
-    assert any("174" in b or "map" in b.lower() or "BLOCKED" in b for b in [dft.scientific_gate_state] + dft.blockers) or True
+    assert (
+        any(
+            "174" in b or "map" in b.lower() or "BLOCKED" in b
+            for b in [dft.scientific_gate_state] + dft.blockers
+        )
+        or True
+    )
 
 
 def test_deterministic_fingerprint() -> None:
