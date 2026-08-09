@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
-from typing import Any
 from unittest.mock import patch
 
 import pytest
 
-from traffictwin.ingestion.bundle import validate_bundle
-from traffictwin.storage.registry import Registry
+from traffictwin.ingestion.bundle import BundleValidationResult, validate_bundle
+from traffictwin.storage.registry import BundleImportResult, Registry
+from traffictwin.synthetic.config import SyntheticScenarioConfig
 from traffictwin.synthetic.whatif_pair import (
     WhatIfPairRequest,
     WhatIfVariationOverrides,
@@ -94,7 +93,6 @@ def test_changed_ledger_contains_every_change() -> None:
     assert "rsu_capacity" in paths
     assert "policy_behavior" in paths
     # ordering is lexical
-    assert paths == set(sorted(paths))
     assert [p.field_path for p in ledger] == sorted([p.field_path for p in ledger])
 
 
@@ -259,7 +257,7 @@ def test_baseline_generation_failure_rolls_back(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail_baseline(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
+    def fail_baseline(cfg: SyntheticScenarioConfig, dest: Path, overwrite: bool = False) -> Path:
         if "baseline" in str(dest):
             raise RuntimeError("baseline fail")
         return orig(cfg, dest, overwrite=overwrite)
@@ -289,9 +287,9 @@ def test_variation_generation_failure_rolls_back(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail_variation(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
+    def fail_variation(cfg: SyntheticScenarioConfig, dest: Path, overwrite: bool = False) -> Path:
         # distinguish via scenario_id suffix
-        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith("-variation"):
+        if str(cfg.scenario_id).endswith("-variation"):
             raise RuntimeError("variation fail")
         return orig(cfg, dest, overwrite=overwrite)
 
@@ -314,14 +312,14 @@ def test_validation_failure_rolls_back(tmp_path: Path) -> None:
         experiment_id="exp-demo",
         variation_overrides=WhatIfVariationOverrides(congestion_multiplier=1.9),
     )
-    from traffictwin.synthetic import whatif_pair as m
     from traffictwin.ingestion.bundle import validate_bundle as orig_v
+    from traffictwin.synthetic import whatif_pair as m
 
     def mock_validate(p: Path) -> object:
         res = orig_v(p)
         if "variation" in str(p) and res.manifest is not None:
-            from traffictwin.validation.findings import Severity, ValidationFinding
             from traffictwin.validation.codes import ValidationCode
+            from traffictwin.validation.findings import Severity, ValidationFinding
 
             res.report.add(
                 ValidationFinding(
@@ -367,11 +365,10 @@ def test_registration_failure_rolls_back(tmp_path: Path) -> None:
 
     orig_import = m.import_validated_bundle
 
-    def fail_second(result: Any, registry_path: Path) -> Any:
+    def fail_second(result: BundleValidationResult, registry_path: Path) -> BundleImportResult:
         # result is BundleValidationResult
-        if getattr(getattr(result, "manifest", None), "run", None) and "variation" in getattr(
-            result.manifest.run, "seed_id", ""
-        ):
+        manifest = result.manifest
+        if manifest is not None and "variation" in manifest.run.seed_id:
             raise m.RegistryConflictError("simulated")
         return orig_import(result, registry_path)
 
@@ -398,8 +395,8 @@ def test_no_partial_pair_remains_on_failure(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
-        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith("-variation"):
+    def fail(cfg: SyntheticScenarioConfig, dest: Path, overwrite: bool = False) -> Path:
+        if str(cfg.scenario_id).endswith("-variation"):
             raise RuntimeError("fail")
         return orig(cfg, dest, overwrite=overwrite)
 
@@ -426,10 +423,9 @@ def test_no_partial_registry_state_remains(tmp_path: Path) -> None:
 
     orig_import = m.import_validated_bundle
 
-    def fail(result: Any, registry_path: Path) -> Any:
-        if getattr(getattr(result, "manifest", None), "run", None) and getattr(
-            result.manifest.run, "seed_id", ""
-        ).endswith("-variation"):
+    def fail(result: BundleValidationResult, registry_path: Path) -> BundleImportResult:
+        manifest = result.manifest
+        if manifest is not None and manifest.run.seed_id.endswith("-variation"):
             raise RuntimeError("variation registry fail")
         return orig_import(result, registry_path)
 
@@ -474,8 +470,9 @@ def test_synthetic_provenance_preserved(tmp_path: Path) -> None:
 
 def test_no_network_provider_sumo_vec_dependency(tmp_path: Path) -> None:
     # Verify the module does not import network/provider/sumo/vec
-    import traffictwin.synthetic.whatif_pair as mod
     import pathlib
+
+    import traffictwin.synthetic.whatif_pair as mod
 
     source = pathlib.Path(mod.__file__).read_text()
     # should not import httpx, sumolib, vec, provider
@@ -505,9 +502,93 @@ def test_pair_receipt_has_no_absolute_private_path(tmp_path: Path) -> None:
     data = json.loads((ws / "bundles" / receipt.pair_id / "whatif_receipt.json").read_text())
     assert not data["baseline_bundle_path"].startswith(str(ws))
     assert not data["variation_bundle_path"].startswith("/")
-    # also check receipt's baseline_bundle_path (UI path) is absolute for UI but receipt_path is relative
+    # also check receipt's baseline_bundle_path (UI path) is absolute for UI
+    # but receipt_path is relative
     assert receipt.receipt_path is not None
     assert not receipt.receipt_path.startswith("/")
-    # but the receipt's baseline_bundle_path for UI is absolute (session needs it), but publication-safe receipt is relative
+    # but the receipt's baseline_bundle_path for UI is absolute
+    # (session needs it), but publication-safe receipt is relative
     assert receipt.baseline_bundle_path is not None
     assert Path(receipt.baseline_bundle_path).is_absolute()
+
+
+def test_fresh_registry_reconcile_partial_rollback(tmp_path: Path) -> None:
+    """Valid pair on disk + fresh registry, variation re-register fails → baseline rolled back."""
+    ws, reg = _tmp_workspace(tmp_path)
+    req = WhatIfPairRequest(
+        baseline_preset="baseline",
+        pair_name="fresh-rollback-test",
+        experiment_id="exp-fresh-rollback",
+        variation_overrides=WhatIfVariationOverrides(congestion_multiplier=1.9),
+    )
+    # Create valid pair
+    first = generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+    assert first.status == "ok"
+    pid = first.pair_id
+    baseline_path = Path(first.baseline_bundle_path) if first.baseline_bundle_path else None
+    variation_path = Path(first.variation_bundle_path) if first.variation_bundle_path else None
+    assert baseline_path is not None and baseline_path.exists()
+    assert variation_path is not None and variation_path.exists()
+    receipt_path = ws / "bundles" / pid / "whatif_receipt.json"
+    receipt_before = receipt_path.read_text()
+    # Fresh registry
+    reg.unlink()
+    assert not reg.exists()
+    # Now force variation registration to fail after baseline succeeds
+    from traffictwin.synthetic import whatif_pair as m
+
+    orig = m.import_validated_bundle
+
+    def fail_variation_only(
+        result: BundleValidationResult, registry_path: Path
+    ) -> BundleImportResult:
+        manifest = result.manifest
+        if manifest is not None and manifest.run.seed_id.endswith("-variation"):
+            raise RuntimeError("forced variation reconciliation failure")
+        return orig(result, registry_path)
+
+    with patch.object(m, "import_validated_bundle", side_effect=fail_variation_only):
+        from traffictwin.synthetic.whatif_pair import WhatIfPairError
+
+        with pytest.raises(WhatIfPairError) as exc:
+            generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+        # Should be registration failure, not corrupt_existing_pair for valid filesystem pair
+        assert exc.value.code == "registration_failed"
+    # Registry must be back to zero (baseline rolled back)
+    assert not reg.exists() or Registry(reg).inspect().run_count == 0
+    assert Registry(reg).inspect().bundle_import_count == 0 if reg.exists() else True
+    # Filesystem pair must remain unchanged
+    assert baseline_path.exists()
+    assert variation_path.exists()
+    assert receipt_path.exists()
+    assert receipt_path.read_text() == receipt_before
+    # Complementary case: baseline already registered, variation fails → baseline preserved
+    # First restore registry to have baseline only
+    # Re-create pair successfully to repopulate registry
+    second = generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+    assert second.status == "already_exists"
+    assert Registry(reg).inspect().run_count == 2
+    # Now delete variation from registry only to simulate partial
+    import sqlite3
+
+    conn = sqlite3.connect(str(reg))
+    try:
+        conn.execute(
+            "DELETE FROM bundle_imports WHERE bundle_id = ?",
+            (second.variation_bundle_id,),
+        )
+        conn.execute("DELETE FROM runs WHERE run_id = ?", (second.variation_run_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    assert Registry(reg).inspect().run_count == 1
+    # Now attempt reconcile again but force variation failure
+    with patch.object(m, "import_validated_bundle", side_effect=fail_variation_only):
+        with pytest.raises(WhatIfPairError) as exc2:
+            generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+        assert exc2.value.code == "registration_failed"
+    # Baseline must still be registered (1 run remains)
+    assert Registry(reg).inspect().run_count == 1
+    # Filesystem still intact
+    assert baseline_path.exists()
+    assert variation_path.exists()

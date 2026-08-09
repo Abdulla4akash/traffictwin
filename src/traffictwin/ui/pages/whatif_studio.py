@@ -65,7 +65,8 @@ def render(config: UiConfig) -> None:
         presets = synthetic_preset_names_for_ui()
         baseline_preset = st.selectbox("Baseline preset", presets, index=0)
         st.caption(
-            f"Baseline preset `{baseline_preset}` is a deterministic synthetic starting point. Nothing is executed yet."
+            f"Baseline preset `{baseline_preset}` is a deterministic synthetic "
+            "starting point. Nothing is executed yet."
         )
 
         section_header("Pair identity", "Stable pair identifier and experiment grouping.")
@@ -78,10 +79,12 @@ def render(config: UiConfig) -> None:
 
         section_header(
             "Stage 2 · define variation",
-            "Closed intervention set; unchanged fields remain byte-consistent where the generator permits.",
+            "Closed intervention set; unchanged fields remain byte-consistent "
+            "where the generator permits.",
         )
         st.caption(
-            "Edit a small closed set of intervention parameters. Only changed fields will appear in the ledger."
+            "Edit a small closed set of intervention parameters. Only changed "
+            "fields will appear in the ledger."
         )
 
         st.markdown("**Incident / event**")
@@ -183,13 +186,15 @@ def render(config: UiConfig) -> None:
         if ledger.detail:
             st.code(ledger.detail)
         st.warning(
-            "Baseline and variation would be identical, or request is invalid. Generation is refused."
+            "Baseline and variation would be identical, or request is invalid. "
+            "Generation is refused."
         )
         can_generate = False
     else:
         if not ledger:
             st.warning(
-                "No meaningful field changed — baseline and variation would be identical. Change at least one intervention before generating."
+                "No meaningful field changed — baseline and variation would be "
+                "identical. Change at least one intervention before generating."
             )
             can_generate = False
         else:
@@ -222,17 +227,20 @@ def render(config: UiConfig) -> None:
     # Stage 4: generate (uses same submitted values; no stale read)
     section_header(
         "Stage 4 · generate comparison",
-        "Stages and validates both bundles, publishes only when the complete pair succeeds, registers both, sets selected paths.",
+        "Stages and validates both bundles, publishes only when the complete pair "
+        "succeeds, registers both, sets selected paths.",
     )
     st.caption(
-        "One click generates the complete pair. No manual import, no YAML editing, no terminal, no restart."
+        "One click generates the complete pair. No manual import, no YAML "
+        "editing, no terminal, no restart."
     )
 
     # Handle Generate submission from the same form
     if generate_submitted:
         if not can_generate:
             st.error(
-                "No meaningful field changed — baseline and variation would be identical. Change at least one intervention before generating."
+                "No meaningful field changed — baseline and variation would be "
+                "identical. Change at least one intervention before generating."
             )
         else:
             workspace_path = effective_workspace_path
@@ -282,7 +290,8 @@ def render(config: UiConfig) -> None:
         if receipt is not None:
             status_label = "already exists" if receipt.status == "already_exists" else "generated"
             st.success(
-                f"What-if pair {status_label}: `{receipt.pair_id}` · request fingerprint `{receipt.request_fingerprint[:12]}`"
+                f"What-if pair {status_label}: `{receipt.pair_id}` · "
+                f"request fingerprint `{receipt.request_fingerprint[:12]}`"
             )
             with st.container(border=True):
                 st.markdown(f"{badge_markdown('synthetic')} **Pair receipt** · `{receipt.pair_id}`")
@@ -297,7 +306,8 @@ def render(config: UiConfig) -> None:
                 st.caption(f"Baseline path: `{receipt.baseline_bundle_path}`")
                 st.caption(f"Variation path: `{receipt.variation_bundle_path}`")
                 st.caption(
-                    f"Pair fingerprint: `{receipt.pair_fingerprint[:12]}` · Synthetic: {', '.join(receipt.evidence_labels[:3])}"
+                    f"Pair fingerprint: `{receipt.pair_fingerprint[:12]}` · "
+                    f"Synthetic: {', '.join(receipt.evidence_labels[:3])}"
                 )
                 st.caption(STUDIO_EVIDENCE_SENTENCE)
                 if receipt.warnings:
@@ -337,7 +347,9 @@ def render(config: UiConfig) -> None:
                     mime="application/json",
                 )
             st.info(
-                "Next: open Compare to inspect deterministic comparable output, or inspect either Run Overview. Compare will be pre-filled with this pair."
+                "Next: open Compare to inspect deterministic comparable output, "
+                "or inspect either Run Overview. Compare will be pre-filled "
+                "with this pair."
             )
             c1, c2, c3 = st.columns(3)
             with c1:
@@ -345,7 +357,8 @@ def render(config: UiConfig) -> None:
                     st.session_state["selected_baseline_run"] = receipt.baseline_bundle_path or ""
                     st.session_state["selected_variation_run"] = receipt.variation_bundle_path or ""
                     st.success(
-                        "Compare paths set. Use sidebar → Compare & test → Comparison to view results."
+                        "Compare paths set. Use sidebar → Compare & test → "
+                        "Comparison to view results."
                     )
             with c2:
                 if st.button("Inspect baseline Run Overview", key="whatif_inspect_baseline"):

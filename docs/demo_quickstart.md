@@ -49,10 +49,10 @@ Every artifact carries `synthetic: true` and a deterministic created instant. No
 3. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
 4. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
 5. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
-5. **Guided Demo — Standalone synthetic** — 8 stages from experiment plan → validate → metrics → compare → replay → diagnose → trace → report. Action stages (`register_experiment_plan`, `regenerate_report`) auto-advance; review stages wait for **Reviewed — continue**.
-6. **Reports** — inventory, deterministic regeneration, comparison/difference provenance, export.
-7. **Provenance Explorer** — traces metric → canonical record → source row; bounded graph.
-8. **Manchester Operations** — in a demo workspace it will always show "No accepted Manchester scene" — that is expected. Manchester evidence requires a separately activated real workspace with accepted snapshots.
+6. **Guided Demo — Standalone synthetic** — 8 stages from experiment plan → validate → metrics → compare → replay → diagnose → trace → report. Action stages (`register_experiment_plan`, `regenerate_report`) auto-advance; review stages wait for **Reviewed — continue**.
+7. **Reports** — inventory, deterministic regeneration, comparison/difference provenance, export.
+8. **Provenance Explorer** — traces metric → canonical record → source row; bounded graph.
+9. **Manchester Operations** — in a demo workspace it will always show "No accepted Manchester scene" — that is expected. Manchester evidence requires a separately activated real workspace with accepted snapshots.
 
 Cross-page state: the selected bundle/run survives navigation between groups. A seeded `selected_bundle_path` remains authoritative on every page.
 

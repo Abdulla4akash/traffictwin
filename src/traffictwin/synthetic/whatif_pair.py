@@ -44,9 +44,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from traffictwin.domain.enums import TaskClass
 from traffictwin.ingestion.bundle import (
     import_validated_bundle as import_validated_bundle,
+)
+from traffictwin.ingestion.bundle import (
     validate_bundle as validate_bundle,
 )
-from traffictwin.storage.registry import Registry, RegistryConflictError as RegistryConflictError
+from traffictwin.storage.registry import Registry
+from traffictwin.storage.registry import RegistryConflictError as RegistryConflictError
 from traffictwin.synthetic.bundles import write_synthetic_bundle as write_synthetic_bundle
 from traffictwin.synthetic.config import (
     IncidentSpec,
@@ -694,12 +697,17 @@ def generate_whatif_pair(
                                         ),
                                     )
                                 # valid artifacts but missing registration -> re-register (F-5)
+                                # transaction with ownership tracking (fix partial rollback)
                                 if b_val.manifest and v_val.manifest:
+                                    b_reconcile_created = False
+                                    v_reconcile_created = False
                                     try:
                                         if not b_in:
-                                            import_validated_bundle(b_val, registry_path)
+                                            b_res = import_validated_bundle(b_val, registry_path)
+                                            b_reconcile_created = b_res.created
                                         if not v_in:
-                                            import_validated_bundle(v_val, registry_path)
+                                            v_res = import_validated_bundle(v_val, registry_path)
+                                            v_reconcile_created = v_res.created
                                         return WhatIfPairReceipt(
                                             status="already_exists",
                                             pair_id=pair_id,
@@ -735,10 +743,55 @@ def generate_whatif_pair(
                                             ),
                                         )
                                     except WhatIfPairError:
+                                        # rollback baseline if we created it in this attempt
+                                        if b_reconcile_created and b_bid:
+                                            try:
+                                                import sqlite3
+
+                                                if registry_path.exists():
+                                                    conn = sqlite3.connect(str(registry_path))
+                                                    try:
+                                                        conn.execute(
+                                                            "DELETE FROM bundle_imports "
+                                                            "WHERE bundle_id = ?",
+                                                            (b_bid,),
+                                                        )
+                                                        b_run = b_val.manifest.run.run_id
+                                                        conn.execute(
+                                                            "DELETE FROM runs WHERE run_id = ?",
+                                                            (b_run,),
+                                                        )
+                                                        conn.commit()
+                                                    finally:
+                                                        conn.close()
+                                            except Exception:  # noqa: S110
+                                                pass
                                         raise
                                     except Exception as exc:
+                                        if b_reconcile_created and b_bid:
+                                            try:
+                                                import sqlite3
+
+                                                if registry_path.exists():
+                                                    conn = sqlite3.connect(str(registry_path))
+                                                    try:
+                                                        conn.execute(
+                                                            "DELETE FROM bundle_imports "
+                                                            "WHERE bundle_id = ?",
+                                                            (b_bid,),
+                                                        )
+                                                        b_run = b_val.manifest.run.run_id
+                                                        conn.execute(
+                                                            "DELETE FROM runs WHERE run_id = ?",
+                                                            (b_run,),
+                                                        )
+                                                        conn.commit()
+                                                    finally:
+                                                        conn.close()
+                                            except Exception:  # noqa: S110
+                                                pass
                                         raise WhatIfPairError(
-                                            "corrupt_existing_pair",
+                                            "registration_failed",
                                             f"Re-registration failed: {exc}",
                                         ) from exc
                         except WhatIfPairError:
