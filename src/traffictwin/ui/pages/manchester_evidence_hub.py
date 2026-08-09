@@ -18,27 +18,30 @@ def render() -> None:
 
     st.title("Manchester Evidence Hub")
 
-    # Evidence summary — offline, secret-free
     st.caption(
         "Source inventory, readiness, evidence standing, activation blockers and next actions. "
         "This hub reuses existing Manchester integration contracts and does not automatically acquire provider data."  # noqa: E501
     )
     badge_row(["OFFLINE", "SECRET-FREE", "DETERMINISTIC", "BOUNDED"])
 
-    # Determine workspace for local evidence checks (offline, no network)
     workspace_input = st.text_input(
         "Workspace path (optional, local only)",
         value=str(st.session_state.get("selected_workspace", "")),
         key="manchester_hub_workspace",
     )
     workspace: Path | None = Path(workspace_input) if workspace_input.strip() else None
+    if workspace_input.strip():
+        st.caption(f"LOCAL PATH — NOT PART OF EVIDENCE IDENTITY: `{workspace_input.strip()}`")
+        st.caption(
+            "This local path is for debugging only and is excluded from the downloadable evidence fingerprint and export."  # noqa: E501
+        )
     if workspace is not None and not workspace.exists():
         st.info(f"Workspace path does not exist: {workspace} — showing empty-state readiness.")
         workspace = None
 
     view = build_manchester_hub_view(workspace)
 
-    # 1. Evidence summary cards
+    # 1. Evidence summary cards — semantically precise, not combined into fake total
     st.subheader("Evidence summary")
     cols = st.columns(4)
     cols[0].metric("Sources known", len(view.sources))
@@ -46,9 +49,11 @@ def render() -> None:
     cols[2].metric("Acquisition-ready", view.available_count)
     cols[3].metric("Blocked/unavailable", view.blocked_count + view.unavailable_count)
     st.caption(f"Workspace: {view.workspace_state} · No provider data fetched on render.")
+    st.caption(
+        f"Known sources (definitions): {len(view.sources)} — distinct from accepted local evidence sources: {view.accepted_evidence_count}."  # noqa: E501
+    )
     for w in view.warnings:
         st.caption(w)
-    # Do not combine incompatible counts into fake total
     st.info(
         "Counts are per-source and not combined into a Manchester total. Each source retains its own coverage and freshness contract."  # noqa: E501
     )
@@ -59,9 +64,10 @@ def render() -> None:
         {
             "source": s.display_name,
             "what_it_represents": s.source_role,
+            "evidence_ceiling": s.evidence_ceiling,
             "evidence_state": s.local_evidence_state,
             "freshness": s.freshness_state,
-            "local_artifact": s.last_receipt_summary or "—",
+            "software_support": s.software_support_state,
             "acquisition_readiness": s.acquisition_readiness,
             "blocking_decision": "; ".join(s.blockers) or "None",
             "next_action": s.next_action,
@@ -79,8 +85,10 @@ def render() -> None:
                 "what_it_represents": ColumnDisplay(
                     key="what_it_represents", label="What it represents"
                 ),
+                "evidence_ceiling": ColumnDisplay(key="evidence_ceiling", label="Evidence ceiling"),
                 "evidence_state": ColumnDisplay(key="evidence_state", label="Evidence state"),
                 "freshness": ColumnDisplay(key="freshness", label="Freshness"),
+                "software_support": ColumnDisplay(key="software_support", label="Software support"),
                 "acquisition_readiness": ColumnDisplay(
                     key="acquisition_readiness", label="Acquisition readiness"
                 ),
@@ -97,7 +105,9 @@ def render() -> None:
         with st.expander(f"{src.display_name} — {src.source_role}"):
             st.markdown(f"**Coverage:** {src.coverage_scope}")
             st.markdown(f"**Evidence type:** {src.evidence_type}")
+            st.markdown(f"**Evidence ceiling:** {src.evidence_ceiling}")
             st.markdown(f"**Freshness:** {src.freshness_state}")
+            st.markdown(f"**Software support:** {src.software_support_state}")
             st.markdown(f"**Configuration:** {src.configuration_state}")
             st.markdown(f"**Local evidence:** {src.local_evidence_state}")
             st.markdown(f"**Acquisition readiness:** {src.acquisition_readiness}")
@@ -110,7 +120,6 @@ def render() -> None:
             if src.blockers:
                 st.warning("Blockers: " + "; ".join(src.blockers))
             st.info(f"Next action: {src.next_action}")
-            # Truthful per-source warnings
             if src.source_id == "bods":
                 st.warning(
                     "BODS is live/recent BUS-only positions — NOT general private-vehicle traffic, NOT Manchester-wide road flow."  # noqa: E501
@@ -121,16 +130,38 @@ def render() -> None:
                 )
             if src.source_id == "dft":
                 st.caption("DfT: historical traffic count evidence — NOT live traffic.")
+            if src.source_id == "webtris":
+                st.caption(
+                    "WebTRIS: historical/latest-available per accepted contract — NOT live city-road traffic."  # noqa: E501
+                )
+            if src.source_id == "tfgm":
+                st.caption(
+                    "TfGM: infrastructure/reference only — NOT traffic telemetry unless supplied and accepted."  # noqa: E501
+                )
+            if src.source_id == "tfgm_ntis_measured_traffic":
+                st.warning(
+                    "TfGM/NTIS measured traffic: UNAVAILABLE — provider contract required before any adapter or ingestion."  # noqa: E501
+                )
+            if src.source_id == "static_boundaries":
+                st.caption("Static ONS boundaries: geographic context only — NOT traffic evidence.")
             if src.source_id == "manual_incident":
                 st.success("Manual incident: AUTHORED SCENARIO INPUT — not an observation.")
             if src.source_id == "social_media":
                 st.info("Social media: deferred — no ingestion.")
+            if src.source_id == "tfgm_ntis_measured_traffic":
+                st.info(
+                    "No TfGM/NTIS traffic adapter exists until provider contract, schema, and retention are reviewed."  # noqa: E501
+                )
 
     # 4. Scientific / owner blockers
     st.subheader("Scientific / owner blockers")
     st.info(
         "Software readiness (portfolio, freshness, acquisition controls) is distinct from provider, "  # noqa: E501
         "rights/retention and scientific acceptance. Successful API configuration does not imply scientific acceptance."  # noqa: E501
+    )
+    st.caption(
+        "Display, do not solve, the human/scientific gates — no defaults are invented. "
+        "Missing decisions remain blocked until an owner/supervisor decision is recorded."
     )
     blocker_rows = [
         {
@@ -153,9 +184,10 @@ def render() -> None:
         st.success("No scientific/owner blockers beyond displayed source readiness.")
     st.warning(
         "Scientific gates still BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED before calibrated Manchester baseline: "  # noqa: E501
-        "map matching policy, ambiguity threshold, road-class policy, calibration objective, parameter bounds, "  # noqa: E501
-        "uncertainty, development/held-out split, minimum coverage, comparison weighting, missing-data handling, "  # noqa: E501
-        "174 map-review decisions, viable demand — not implemented in this slice."
+        "boundary/network decision, map-matching policy, ambiguity policy, road-class policy, direction policy, "  # noqa: E501
+        "confidence thresholds, 174 named-person map reviews, viable demand, calibration objective, calibration parameter bounds, "  # noqa: E501
+        "uncertainty method, development/held-out split, minimum coverage, observed-vs-simulated weighting, missing-data policy "  # noqa: E501
+        "— not implemented in this slice."
     )
 
     # 5. Next actions
@@ -173,6 +205,8 @@ def render() -> None:
         "Acquisition controls live in Manchester Operations; this hub does not clone them. Manual incident authoring uses Scenario Builder."  # noqa: E501
     )
     with st.expander("Advanced: hub view JSON (secret-free)"):
+        # Publication-safe export: view dump contains no secrets or absolute paths;
+        # workspace path is deliberately excluded from the model.
         st.download_button(
             "Download hub view JSON",
             data=view.model_dump_json(indent=2),
@@ -184,9 +218,10 @@ def render() -> None:
         )
         st.json(view.model_dump(mode="json"))
         st.caption(
-            f"Fingerprint: `{view.fingerprint[:12]}…` binds source IDs, evidence states, freshness, readiness, blockers and accepted artifact IDs (no secrets)."  # noqa: E501
+            f"Fingerprint: `{view.fingerprint[:12]}…` binds source IDs, roles, evidence ceiling, software support, "  # noqa: E501
+            "acquisition state, local evidence presence, freshness, coverage, rights/retention, blocker codes, and next-action class (no secrets, no paths, no wall clock)."  # noqa: E501
         )
 
     st.caption(
-        "This hub never displays API keys, bearer tokens or raw credentials; it shows Configured / Not configured only. No network call is made on render."  # noqa: E501
+        "This hub never displays API keys, Bearer [REDACTED] or raw credentials; it shows Configured / Not configured only. No network call is made on render."  # noqa: E501
     )
