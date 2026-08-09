@@ -183,31 +183,66 @@ def test_generated_whatif_pair_survives_guided_handoff_to_compare() -> None:
         assert Path(generated_baseline).exists()
         assert Path(generated_variation).exists()
 
-        # Simulate session handoff as What-If Studio does
-        session: dict[str, object] = {
-            "selected_baseline_run": generated_baseline,
-            "selected_variation_run": generated_variation,
-        }
-        assert session["selected_baseline_run"] == generated_baseline
-        assert session["selected_variation_run"] == generated_variation
+        # Place the exact generated paths into the REAL session-state mechanism
+        # used by production Guided Demo code (st.session_state), then exercise
+        # the actual REVIEW transition that could affect that state.
+        import streamlit as st
 
-        # Move guided What-If stage to Compare via REVIEW completion
-        steps = steps_for_track(DemoTrack.STANDALONE)
-        whatif_index = [s.key for s in steps].index("whatif")
-        progress = GuidedDemoProgress(
-            track=DemoTrack.STANDALONE,
-            step_index=whatif_index,
-            completed_step_keys=tuple(s.key for s in steps[:whatif_index]),
-            active=True,
-        )
-        assert progress.current_step.key == "whatif"
-        next_progress = progress.complete_current()
-        assert next_progress.current_step.key == "compare"
-        assert "whatif" in next_progress.completed_step_keys
+        from traffictwin.ui.guided_runtime import GUIDED_PROGRESS_KEY
 
-        # Selections must survive the guided completion
-        assert session["selected_baseline_run"] == generated_baseline
-        assert session["selected_variation_run"] == generated_variation
+        state: dict[str, object] = {}
+        # Monkeypatch Streamlit session_state and navigation side effects
+        original_session_state = st.session_state
+        original_rerun = st.rerun
+        original_switch_page = getattr(st, "switch_page", None)
+        try:
+            st.session_state = state
+            st.rerun = lambda: None
+            if original_switch_page is not None:
+                st.switch_page = lambda _: None
+
+            state["selected_baseline_run"] = generated_baseline
+            state["selected_variation_run"] = generated_variation
+            state["_v07_navigation_active"] = True
+            assert state["selected_baseline_run"] == generated_baseline
+            assert state["selected_variation_run"] == generated_variation
+
+            # Create real guided progress at What-If stage via production helper
+            steps = steps_for_track(DemoTrack.STANDALONE)
+            whatif_index = [s.key for s in steps].index("whatif")
+            progress = GuidedDemoProgress(
+                track=DemoTrack.STANDALONE,
+                step_index=whatif_index,
+                completed_step_keys=tuple(s.key for s in steps[:whatif_index]),
+                active=True,
+            )
+            assert progress.current_step.key == "whatif"
+            # Persist via production _save_progress (writes to st.session_state)
+            from traffictwin.ui.guided_runtime import _complete_or_skip
+
+            # Ensure the progress is the one production code will load
+            state[GUIDED_PROGRESS_KEY] = progress.model_dump(mode="json")
+
+            # Exercise the REAL REVIEW transition: "Reviewed — continue"
+            _complete_or_skip(progress, skipped=False)
+
+            # After production transition, the next guided stage must be Compare
+            from traffictwin.ui.guided_runtime import load_guided_progress
+
+            updated = load_guided_progress(state)
+            assert updated is not None
+            assert updated.current_step.key == "compare"
+            assert "whatif" in updated.completed_step_keys
+
+            # Selections must survive the production guided completion
+            # — this would fail if _complete_or_skip cleared or overwrote them
+            assert state["selected_baseline_run"] == generated_baseline
+            assert state["selected_variation_run"] == generated_variation
+        finally:
+            st.session_state = original_session_state
+            st.rerun = original_rerun
+            if original_switch_page is not None:
+                st.switch_page = original_switch_page
 
         # Compare consumes those exact paths
         from copy import deepcopy
@@ -328,14 +363,17 @@ def test_standalone_guided_page_renders_whatif_stage() -> None:
     app.run(timeout=25)
 
     assert not app.exception
-    # Expand full journey should mention Build a what-if experiment
+    # Full 9-stage journey expander must list the What-If stage deterministically
     full = " ".join(str(m.value) for m in app.markdown)
     captions = " ".join(str(c.value) for c in app.caption)
-    assert (
-        "Build a what-if experiment" in full
-        or "Build a what-if experiment" in captions
-        or "whatif" in full.lower()
-    )
+    # Exact production title and target, not a broad substring fallback
+    assert "Build a what-if experiment" in full
+    assert "What-If Studio" in full
+    assert "4. Build a what-if experiment" in full
+    # Instruction must be the narrow semantic contract for the What-If stage
+    assert "selected_baseline_run" in captions
+    assert "selected_variation_run" in captions
+    assert "deterministic synthetic baseline" in captions.lower()
     # Verify stage count reflects 9
     # The header in guided_demo page shows Stage X of N
     subheaders = " ".join(str(s.value) for s in app.subheader)
