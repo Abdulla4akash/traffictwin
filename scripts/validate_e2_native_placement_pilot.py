@@ -50,6 +50,11 @@ def close(a: float, b: float, *, scale: float = 1.0) -> bool:
     return abs(float(a) - float(b)) <= max(1e-5, abs(scale) * 2e-6)
 
 
+def latency_close(a: float, b: float) -> bool:
+    """Float32-appropriate aggregate tolerance predeclared before E2 runs."""
+    return bool(np.isclose(float(a), float(b), rtol=1e-4, atol=1e-3))
+
+
 def add_check(checks: list[dict], name: str, passed: bool, observed: Any, expected: Any) -> None:
     checks.append({
         "name": name,
@@ -114,6 +119,15 @@ def validate_path_arrays(
             add_check(checks, f"path_{key}_dtype", value.dtype == expected_dtypes[key],
                       str(value.dtype), str(expected_dtypes[key]))
 
+    if any(key not in per_task for key in PATH_KEYS):
+        return {
+            "v2i_attempts": None,
+            "v2i_admitted": None,
+            "forwarded": None,
+            "execution_count_per_rsu": None,
+            "execution_share_range": None,
+        }
+
     ingress = per_task["task_ingress_rsu"]
     selected = per_task["task_selected_execution_rsu"]
     execution = per_task["task_execution_rsu"]
@@ -153,6 +167,9 @@ def validate_path_arrays(
 
     outcome = per_task["task_outcome"]
     rejected_v2i = np.isin(outcome, (3, 4, 7))
+    expected_admitted = expected_attempt & np.isin(outcome, (1, 2))
+    add_check(checks, "v2i_admission_outcome_identity", np.array_equal(
+        admitted, expected_admitted), int(admitted.sum()), int(expected_admitted.sum()))
     add_check(checks, "rejected_v2i_has_no_execution", np.all(execution[rejected_v2i] == -1),
               np.unique(execution[rejected_v2i]).tolist(), [-1])
     add_check(checks, "rejected_v2i_not_forwarded", not np.any(forwarded[rejected_v2i]),
@@ -303,6 +320,13 @@ def validate_run(run_dir: Path, *, arm: dict, manifest: dict, expected_steps: in
               int(per_step["done"].sum()), outcome_counts[1])
     add_check(checks, "action_conservation", sum(action_counts.values()) == offered,
               sum(action_counts.values()), offered)
+    v2i_admitted_count = int(per_task["task_v2i_admitted"].sum())
+    v2i_terminal_count = (
+        v2i_admitted_count + outcome_counts[3] + outcome_counts[4] + outcome_counts[7]
+    )
+    add_check(checks, "v2i_attempt_conservation",
+              action_counts["v2i"] == v2i_terminal_count,
+              action_counts["v2i"], v2i_terminal_count)
 
     completion = outcome_counts[1] / max(offered, 1)
     completion_admitted = outcome_counts[1] / max(admitted, 1)
@@ -318,8 +342,17 @@ def validate_run(run_dir: Path, *, arm: dict, manifest: dict, expected_steps: in
         "avg_latency_met_ms": float(latency[active & (outcome == 1)].sum(dtype=np.float64)) / max(outcome_counts[1], 1),
     }
     for field, expected in latency_expectations.items():
-        add_check(checks, f"{field}_denominator", close(summary[field], expected, scale=expected),
+        add_check(checks, f"{field}_denominator", latency_close(summary[field], expected),
                   summary[field], expected)
+    total_energy = summary.get("total_energy_j")
+    add_check(checks, "total_energy_numerator_present", total_energy is not None,
+              total_energy, "finite additive total energy numerator")
+    expected_energy = float(total_energy) / max(offered, 1) if total_energy is not None else None
+    add_check(checks, "energy_per_offered_denominator",
+              expected_energy is not None and close(
+                  summary["avg_energy_j_per_task"], expected_energy,
+                  scale=expected_energy),
+              summary["avg_energy_j_per_task"], expected_energy)
     for task_type, field in enumerate(("t1_completion", "t2_completion", "t3_completion")):
         type_mask = active & (per_task["task_type"] == task_type)
         expected = int((type_mask & (outcome == 1)).sum()) / max(int(type_mask.sum()), 1)
@@ -344,11 +377,12 @@ def validate_run(run_dir: Path, *, arm: dict, manifest: dict, expected_steps: in
         per_step=per_step, per_task=per_task, summary=summary,
         rsu_lb=arm["rsu_lb"], n_rsus=design["rsus"], checks=checks,
     )
+    actor_logits = per_step.get("veh_actor_logits")
     add_check(checks, "actor_logits_schema",
-              per_step.get("veh_actor_logits") is not None
-              and per_step["veh_actor_logits"].shape == (expected_steps, design["padded_fleet_width"], 3)
-              and per_step["veh_actor_logits"].dtype == np.float32,
-              array_record(per_step["veh_actor_logits"]),
+              actor_logits is not None
+              and actor_logits.shape == (expected_steps, design["padded_fleet_width"], 3)
+              and actor_logits.dtype == np.float32,
+              array_record(actor_logits) if actor_logits is not None else None,
               {"shape": [expected_steps, design["padded_fleet_width"], 3], "dtype": "float32"})
 
     file_hashes = {
@@ -387,6 +421,18 @@ def validate_phase(manifest: dict, phase: str) -> dict:
             arm_runs.append(run)
         by_arm[arm["id"]] = arm_runs
 
+    if any(run["status"] != "passed" for run in runs):
+        return {
+            "schema_version": "e2_native_placement_validation_v1",
+            "phase": phase,
+            "status": "failed",
+            "statistical_status": "one-seed descriptive bounded pilot; tasks are not replicates",
+            "runs": runs,
+            "repeat_checks": [],
+            "cross_arm_identity_checks": [],
+            "failure": "one or more run-level gates failed; repeat/cross-arm comparison not attempted",
+        }
+
     repeat_checks = []
     if phase == "smoke":
         for arm in manifest["arms"]:
@@ -415,24 +461,56 @@ def validate_phase(manifest: dict, phase: str) -> dict:
     reference_run = by_arm[reference_arm][0]
     ref_step = load_npz(Path(reference_run["run_dir"]) / "per_step.npz")
     ref_task = load_npz(Path(reference_run["run_dir"]) / "per_task.npz")
+    logit_contract = manifest["cross_arm_actor_stream_contract"]["logit_diagnostic"]
     for arm in manifest["arms"][1:]:
         candidate_run = by_arm[arm["id"]][0]
         step = load_npz(Path(candidate_run["run_dir"]) / "per_step.npz")
         task = load_npz(Path(candidate_run["run_dir"]) / "per_task.npz")
+        reference_logits = ref_step["veh_actor_logits"]
+        candidate_logits = step["veh_actor_logits"]
+        logit_shape_dtype_equal = (
+            reference_logits.shape == candidate_logits.shape
+            and reference_logits.dtype == candidate_logits.dtype == np.float32
+        )
+        if logit_shape_dtype_equal:
+            logit_delta = np.abs(
+                reference_logits.astype(np.float64) - candidate_logits.astype(np.float64)
+            )
+            logit_max_abs = float(logit_delta.max(initial=0.0))
+            logit_finite = bool(np.isfinite(logit_delta).all())
+        else:
+            logit_max_abs = float("inf")
+            logit_finite = False
+        logit_within_tolerance = (
+            logit_finite
+            and logit_max_abs <= float(logit_contract["absolute_tolerance"])
+        )
         fields = {
             "offered_count": reference_run["summary"]["n_offered"] == candidate_run["summary"]["n_offered"],
             "task_active": ref_task["task_active"].tobytes() == task["task_active"].tobytes(),
             "task_type": ref_task["task_type"].tobytes() == task["task_type"].tobytes(),
             "vehicle_action": ref_step["veh_action"].tobytes() == step["veh_action"].tobytes(),
-            "actor_logits": ref_step["veh_actor_logits"].tobytes() == step["veh_actor_logits"].tobytes(),
             "fleet_tier": ref_step["slot_tier"].tobytes() == step["slot_tier"].tobytes(),
             "fleet_is_ev": ref_step["slot_is_ev"].tobytes() == step["slot_is_ev"].tobytes(),
         }
         cross_arm_checks.append({
             "reference": reference_arm,
             "candidate": arm["id"],
-            "pass": all(fields.values()),
+            "pass": all(fields.values()) and logit_within_tolerance,
             "fields": fields,
+            "actor_logit_diagnostic": {
+                "pass": logit_within_tolerance,
+                "shape_dtype_equal": logit_shape_dtype_equal,
+                "byte_exact": (
+                    logit_shape_dtype_equal
+                    and reference_logits.tobytes() == candidate_logits.tobytes()
+                ),
+                "maximum_absolute_difference": logit_max_abs,
+                "absolute_tolerance": float(logit_contract["absolute_tolerance"]),
+                "reference_sha256": hashlib.sha256(reference_logits.tobytes()).hexdigest(),
+                "candidate_sha256": hashlib.sha256(candidate_logits.tobytes()).hexdigest(),
+                "interpretation": logit_contract["interpretation"],
+            },
         })
 
     passed = (

@@ -189,6 +189,23 @@ def main() -> int:
     full_validation = json.loads(full_validation_path.read_text())
     if full_validation.get("status") != "passed":
         raise SystemExit("full validation did not pass")
+
+    validation_doc = args.docs_dir / "e2_native_placement_pilot_validation_v1.json"
+    comparison_doc = args.docs_dir / "e2_native_placement_pilot_comparison_v1.json"
+    path_doc = args.docs_dir / "e2_native_placement_path_forwarding_summary_v1.json"
+    report_doc = args.docs_dir / "e2_native_placement_pilot_report_2026-08-09.md"
+    supervisor_doc = args.docs_dir / "e2_native_placement_supervisor_summary_2026-08-09.md"
+    evidence_doc = args.docs_dir / "e2_native_placement_evidence_index_v1.json"
+    raw_index_path = raw_root / "raw_evidence_index.json"
+    raw_checksums_path = raw_root / "checksums.sha256"
+    existing_outputs = [
+        path for path in (
+            validation_doc, comparison_doc, path_doc, report_doc,
+            supervisor_doc, evidence_doc, raw_index_path, raw_checksums_path,
+        ) if path.exists()
+    ]
+    if existing_outputs:
+        raise SystemExit(f"refusing to overwrite existing analysis evidence: {existing_outputs}")
     args.docs_dir.mkdir(parents=True, exist_ok=True)
 
     records = {
@@ -220,16 +237,6 @@ def main() -> int:
             "No ordinary-traffic control, scaling, P2C, learning, retraining, or Kubernetes deployment was tested.",
         ],
     }
-
-    validation_doc = args.docs_dir / "e2_native_placement_pilot_validation_v1.json"
-    comparison_doc = args.docs_dir / "e2_native_placement_pilot_comparison_v1.json"
-    path_doc = args.docs_dir / "e2_native_placement_path_forwarding_summary_v1.json"
-    report_doc = args.docs_dir / "e2_native_placement_pilot_report_2026-08-09.md"
-    supervisor_doc = args.docs_dir / "e2_native_placement_supervisor_summary_2026-08-09.md"
-    evidence_doc = args.docs_dir / "e2_native_placement_evidence_index_v1.json"
-    for path in (validation_doc, comparison_doc, path_doc, report_doc, supervisor_doc, evidence_doc):
-        if path.exists():
-            raise SystemExit(f"refusing to overwrite {path}")
 
     validation_payload = {
         "schema_version": "e2_native_placement_pilot_validation_v1",

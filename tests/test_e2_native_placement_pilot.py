@@ -11,7 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from analyze_e2_native_placement_pilot import contrast  # noqa: E402
-from validate_e2_native_placement_pilot import validate_run  # noqa: E402
+from validate_e2_native_placement_pilot import validate_phase, validate_run  # noqa: E402
 
 
 def manifest() -> dict:
@@ -25,7 +25,13 @@ def manifest() -> dict:
             "rsu_service_multiplier": 1.0,
             "backhaul_ms": 0.0,
             "rsus": 2,
-        }
+        },
+        "cross_arm_actor_stream_contract": {
+            "logit_diagnostic": {
+                "absolute_tolerance": 1e-5,
+                "interpretation": "diagnostic only",
+            }
+        },
     }
 
 
@@ -114,6 +120,7 @@ def write_valid_run(root: Path, *, rsu_lb: str = "jsq") -> Path:
         "p_v2i": 2 / 3,
         "p_v2v": 0.0,
         "avg_energy_j_per_task": 0.1,
+        "total_energy_j": 0.3,
         "work_ms": {
             "v2i_offered": 100.0,
             "v2i_admitted": 50.0,
@@ -175,6 +182,74 @@ def test_rejected_execution_defect_fails(tmp_path: Path) -> None:
         check["pass"] for check in result["checks"]
         if check["name"] == "rejected_v2i_has_no_execution"
     )
+
+
+def test_v2i_admission_outcome_identity_defect_fails(tmp_path: Path) -> None:
+    run = write_valid_run(tmp_path / "run")
+    with np.load(run / "per_task.npz") as archive:
+        arrays = {key: archive[key] for key in archive.files}
+    arrays["task_v2i_admitted"][0, 1, 0] = True
+    arrays["task_execution_rsu"][0, 1, 0] = 1
+    arrays["task_forwarded"][0, 1, 0] = True
+    np.savez_compressed(run / "per_task.npz", **arrays)
+    result = validate_run(
+        run, arm={"id": "jsq", "rsu_lb": "jsq"},
+        manifest=manifest(), expected_steps=1,
+    )
+    assert result["status"] == "failed"
+    assert not next(
+        check["pass"] for check in result["checks"]
+        if check["name"] == "v2i_admission_outcome_identity"
+    )
+
+
+def test_energy_denominator_defect_fails(tmp_path: Path) -> None:
+    run = write_valid_run(tmp_path / "run")
+    summary = json.loads((run / "summary.json").read_text())
+    summary["total_energy_j"] = 3.0
+    (run / "summary.json").write_text(json.dumps(summary))
+    result = validate_run(
+        run, arm={"id": "jsq", "rsu_lb": "jsq"},
+        manifest=manifest(), expected_steps=1,
+    )
+    assert result["status"] == "failed"
+    assert not next(
+        check["pass"] for check in result["checks"]
+        if check["name"] == "energy_per_offered_denominator"
+    )
+
+
+def test_missing_actor_logits_fails_without_exception(tmp_path: Path) -> None:
+    run = write_valid_run(tmp_path / "run")
+    with np.load(run / "per_step.npz") as archive:
+        arrays = {key: archive[key] for key in archive.files if key != "veh_actor_logits"}
+    np.savez_compressed(run / "per_step.npz", **arrays)
+    result = validate_run(
+        run, arm={"id": "jsq", "rsu_lb": "jsq"},
+        manifest=manifest(), expected_steps=1,
+    )
+    assert result["status"] == "failed"
+    assert not next(
+        check["pass"] for check in result["checks"]
+        if check["name"] == "actor_logits_schema"
+    )
+
+
+def test_phase_with_missing_runs_fails_closed_without_exception(tmp_path: Path) -> None:
+    contract = manifest()
+    contract.update({
+        "outputs": {"raw_root": str(tmp_path)},
+        "smoke_gate": {"steps": 10, "serial_repeats_per_arm": 2},
+        "arms": [
+            {"id": "off", "rsu_lb": "off"},
+            {"id": "jsq", "rsu_lb": "jsq"},
+            {"id": "dla", "rsu_lb": "dla"},
+        ],
+    })
+    result = validate_phase(contract, "smoke")
+    assert result["status"] == "failed"
+    assert result["repeat_checks"] == []
+    assert result["cross_arm_identity_checks"] == []
 
 
 def test_contrast_is_raw_candidate_minus_reference() -> None:

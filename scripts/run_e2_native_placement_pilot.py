@@ -68,6 +68,10 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
         "tos_data_commit": git(tos_repo, "rev-parse", "HEAD"),
         "evaluator_sha256": sha256(Path(paths["evaluator"])),
         "vec_jax_sha256": sha256(Path(paths["vec_jax"])),
+        "resolved_imported_vec_jax_path": str(Path(paths["resolved_imported_vec_jax"]).resolve()),
+        "resolved_imported_vec_jax_sha256": sha256(
+            Path(paths["resolved_imported_vec_jax"]).resolve()
+        ),
         "actor_sha256": sha256(Path(manifest["inputs"]["actor"]["path"])),
         "trace_sha256": sha256(Path(manifest["inputs"]["trace"]["path"])),
         "python_version": platform.python_version(),
@@ -85,6 +89,12 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
         "tos_data_commit": repos["tos_data"]["commit"],
         "evaluator_sha256": repos["vec_env"]["evaluator_sha256"],
         "vec_jax_sha256": repos["vec_env"]["vec_jax_sha256"],
+        "resolved_imported_vec_jax_path": str(
+            Path(paths["resolved_imported_vec_jax"]).resolve()
+        ),
+        "resolved_imported_vec_jax_sha256": repos["vec_env"][
+            "resolved_imported_vec_jax_sha256"
+        ],
         "actor_sha256": manifest["inputs"]["actor"]["sha256"],
         "trace_sha256": manifest["inputs"]["trace"]["sha256"],
         "python_version": manifest["environment"]["python_version"],
@@ -140,6 +150,18 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
         raise SystemExit("instrumentation no-effect or two-RSU gate is not passed")
     if no_effect["identities"]["candidate_commit"] != identities["vec_env_commit"]:
         raise SystemExit("no-effect evidence does not cover the current vec_env commit")
+    resolved_source = no_effect["source"]["resolved_imported_vec_jax"]
+    if (
+        resolved_source.get("path") != identities["resolved_imported_vec_jax_path"]
+        or resolved_source.get("sha256") != identities["resolved_imported_vec_jax_sha256"]
+    ):
+        raise SystemExit("no-effect evidence does not bind the resolved imported vec_jax module")
+    probe_evaluator = hand_probe.get("production_evaluator", {})
+    if (
+        probe_evaluator.get("candidate_commit") != identities["vec_env_commit"]
+        or probe_evaluator.get("sha256") != identities["evaluator_sha256"]
+    ):
+        raise SystemExit("two-RSU evidence does not cover the current evaluator commit/hash")
 
     raw_root = Path(manifest["outputs"]["raw_root"])
     if not raw_root.is_dir():
@@ -147,6 +169,10 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
     target = raw_root / phase
     if target.exists():
         raise SystemExit(f"refusing to overwrite existing phase output: {target}")
+    for output_name in (f"{phase}_validation.json", f"{phase}_status.json"):
+        output_path = raw_root / output_name
+        if output_path.exists():
+            raise SystemExit(f"refusing to overwrite existing phase evidence: {output_path}")
     if phase == "full":
         smoke_validation = raw_root / "smoke_validation.json"
         if not smoke_validation.is_file() or json.loads(smoke_validation.read_text()).get("status") != "passed":

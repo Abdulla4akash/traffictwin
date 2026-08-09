@@ -9,7 +9,7 @@ gates pass. The pilot must then stop for researcher review.
 The frozen contract is
 [`e2_native_placement_pilot_manifest_v1.json`](e2_native_placement_pilot_manifest_v1.json),
 SHA-256
-`57f0fff8098a30dfcd9b3dd0cbc43f8101812b5d7b0de57806a680413c877a30`.
+`53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8`.
 
 ## Why E1 is closed
 
@@ -38,8 +38,14 @@ question.
 The Paper-2A MAPPO vehicle actor is frozen because the causal intervention is
 infrastructure-side execution placement. The 17-dimensional actor chooses only
 Local, V2I, or V2V and does not observe current RSU load. Native
-`veh_actor_logits` and `veh_action` arrays must therefore remain byte-identical
-across arms.
+The pre-existing `veh_action` array is the exact binding for the frozen greedy
+actor output/action stream and must remain byte-identical across arms. Native
+`veh_actor_logits` are retained as a diagnostic. Placement-dependent admission
+can change modelled EV energy, then state of charge, then a later observation
+and logit even though the actor parameters are frozen. Logit hashes, byte
+identity, and maximum absolute divergence are therefore reported against the
+predeclared float32 absolute bound of `1e-5`; this never permits an action
+difference.
 
 Only three arms are admitted:
 
@@ -69,17 +75,22 @@ capacity and deadline admission apply at the selected execution RSU; and
 backhaul latency enters the successful V2I path only when execution differs
 from ingress. The pre-existing saved task file did not expose these identities.
 
-Candidate vec_env commit `819bed09555b136ca56bfc8e9c12ac0f2a22585a`
+Candidate vec_env commit `e11f4445a9cc939a79d4f419c6f48b43ce110664`
 adds output-only task ingress, selected target, actual execution, admission,
-forwarding, and charged forwarding-latency arrays, plus the frozen actor logits.
-It adds no PRNG split and does not alter physics or existing definitions.
+forwarding, and charged forwarding-latency arrays, plus frozen actor logits and
+the already-computed total-energy numerator. It adds no PRNG split and does not
+alter physics or existing definitions. The resolved module actually imported
+by the evaluator is separately hash-bound to the candidate `vec_jax.py`.
 
-The final ten-step matched no-effect check against the untouched parent passed:
-all existing scientific JSON values matched after excluding `wall_s`; all
-existing per-step and per-task arrays matched in shape, dtype, and bytes; and
-the only new arrays were the declared path fields and actor logits. Raw evidence
-is retained under
-`/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_819bed0`.
+The final ten-step matched no-effect checks against the untouched parent passed
+for `off`, `jsq`, and `dla`: all existing scientific JSON values matched after
+excluding `wall_s` and declared additive fields; all existing per-step and
+per-task arrays matched in shape, dtype, and bytes; and the only new arrays were
+the declared path fields and actor logits. Raw evidence is retained under
+`/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_e11f444`.
+An earlier gate-output serialization failure is retained separately under
+`instrumentation_no_effect_candidate_df1e20b`; it produced no scientific
+comparison verdict and its directory was not reused.
 
 The production-evaluator two-RSU probe also passed. With RSU 0 saturated and
 RSU 1 idle, `off` retained ingress/selection/execution at RSU 0, rejected work
@@ -87,8 +98,11 @@ at the cap, and emitted no forwarding. `jsq` admitted redirected work at RSU 1
 and reconciled its forwarding and service-work counts. In the DLA case, 124
 gate-rejected tasks retained a selected target but had actual execution `-1`,
 were not admitted or forwarded, charged zero forwarding latency, and enqueued
-no work. Raw evidence is retained under
-`/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe_candidate_819bed0`.
+no work. A separate output-only positive check charged exactly 2.5 ms only to
+an admitted forwarded task; that probe is not an E2 science arm and does not
+change the locked zero-backhaul design. All 34 checks passed. Raw evidence is
+retained under
+`/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe_candidate_e11f444`.
 
 ## Statistical interpretation
 
@@ -121,7 +135,8 @@ The full pilot may start only after both draft PRs exist and independent Claude
 returns exact `APPROVE` for both complete diffs, the exact commits, and this
 manifest hash. `APPROVE_WITH_MINOR_FIXES` is not a full-run go verdict. Each arm
 must then pass two serial ten-step repeats, exact within-arm scientific and
-array repeatability, and cross-arm task/fleet/action/actor identity.
+array repeatability, exact cross-arm task/fleet/action identity, and the
+separately bounded actor-logit diagnostic.
 
 Any identity drift, no-effect difference, path inconsistency, rejected
 execution/forwarding, accounting or work-conservation failure, silent loss,

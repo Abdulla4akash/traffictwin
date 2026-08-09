@@ -23,11 +23,12 @@
     "vec_env": {
       "parent_commit": "0f01f4d2082d3e8b735e74a873095ab8eeba37cc",
       "branch": "agent/e2-native-placement-instrumentation-v1",
-      "instrumentation_commit": "819bed09555b136ca56bfc8e9c12ac0f2a22585a",
+      "instrumentation_commit": "e11f4445a9cc939a79d4f419c6f48b43ce110664",
       "remote": "https://github.com/Abdulla4akash/vec_env.git",
       "draft_pr_base": "main",
-      "evaluator_sha256": "3e1bf6c67726643dc08b3372bf9ef9c9ffabbf743125da09a88a3bb828a45e9c",
-      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
+      "evaluator_sha256": "b58a9cbd1ff1271c10c966210d425906917218b4506037c1c1c1009a88e6e1c6",
+      "vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff",
+      "resolved_imported_vec_jax_sha256": "73d83d062fad030941f5236835cce8e86caacc4d44eb7a1129047e99228886ff"
     },
     "tos_data": {
       "commit": "a75bbdb1a956f828ee0e9b97b33506bd32d31b85",
@@ -40,6 +41,7 @@
     "tos_data_checkout": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd",
     "evaluator": "/Users/akashx/AntigravityTest/vec-env-e2/eval/eval_sumo_stage1_mc.py",
     "vec_jax": "/Users/akashx/AntigravityTest/vec-env-e2/jaxmarl/env/vec_jax.py",
+    "resolved_imported_vec_jax": "/Users/akashx/scratch/vec-offloading-jaxmarl-fullport/env/vec_jax.py",
     "runner": "/Users/akashx/AntigravityTest/traffictwin-e2/scripts/run_e2_native_placement_pilot.py",
     "validator": "/Users/akashx/AntigravityTest/traffictwin-e2/scripts/validate_e2_native_placement_pilot.py",
     "analyzer": "/Users/akashx/AntigravityTest/traffictwin-e2/scripts/analyze_e2_native_placement_pilot.py"
@@ -175,35 +177,51 @@
     "primary": "jsq minus off isolates deterministic infrastructure placement",
     "admission": "dla minus jsq isolates added deadline-aware admission under the same JSQ placement family",
     "joint": "dla minus off combines placement and admission",
-    "dla_terminology": "JSQ placement plus deadline-aware admission; never deadline-aware placement alone"
+    "dla_terminology": "JSQ placement plus deadline-aware admission; never deadline-aware placement alone",
+    "jsq_implementation_semantics": "deterministic argmin(current rsu_busy_ms) once per task substep; all V2I tasks in that substep share the selected target"
   },
   "path_instrumentation": {
     "enabled_by": "--per-task-out",
     "shape": ["T", "KMAX", "N"],
     "inactive_index_sentinel": -1,
     "fields": {
-      "task_ingress_rsu": "int16 strongest-link ingress for active V2I attempt",
+      "task_ingress_rsu": "int16 strongest-link ingress candidate for every active V2I attempt, including outcome-7 unavailable; -1 only inactive/non-V2I",
       "task_selected_execution_rsu": "int16 selected target before final admission",
       "task_execution_rsu": "int16 actual execution for admitted V2I only",
       "task_forwarded": "bool admitted V2I and execution differs from ingress",
       "task_forwarding_latency_ms": "float32 actual charged forwarding latency, zero otherwise",
       "task_v2i_admitted": "bool explicit V2I admission"
     },
-    "actor_identity_field": "per-step veh_actor_logits float32 [T,N,3] before argmax",
+    "actor_identity_field": "per-step veh_action is the exact frozen greedy actor output/action binding; veh_actor_logits float32 [T,N,3] is a bounded diagnostic",
     "imbalance_diagnostic": "execution_share_range = max(per-RSU admitted-V2I execution share) - min share"
   },
+  "cross_arm_actor_stream_contract": {
+    "exact_binding": "veh_action shape/dtype/bytes must be identical across arms",
+    "reason": "the frozen actor parameters and actions are held fixed, but placement-dependent V2I admission may change modelled EV energy, then state of charge, then later logits",
+    "logit_diagnostic": {
+      "field": "veh_actor_logits",
+      "dtype": "float32",
+      "absolute_tolerance": 1e-05,
+      "relative_tolerance": 0.0,
+      "interpretation": "report hashes, byte identity and maximum absolute difference; tolerance is a diagnostic bound, not permission for an action difference"
+    }
+  },
   "gates": {
-    "no_effect_validation": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_819bed0/no_effect_validation.json",
-    "two_rsu_validation": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe_candidate_819bed0/two_rsu_probe_validation.json",
+    "no_effect_validation": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_e11f444/no_effect_validation.json",
+    "two_rsu_validation": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe_candidate_e11f444/two_rsu_probe_validation.json",
     "superseded_retained_evidence": [
       "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect",
-      "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe"
+      "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe",
+      "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_819bed0",
+      "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/two_rsu_probe_candidate_819bed0",
+      "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/instrumentation_no_effect_candidate_df1e20b"
     ]
   },
   "review_gate": {
     "required_verdict": "APPROVE",
     "allowed_verdicts": ["APPROVE", "APPROVE_WITH_MINOR_FIXES", "REQUEST_CHANGES", "BLOCK"],
     "verdict_path": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/independent_review/claude_review_verdict.json",
+    "retained_initial_request_changes": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/independent_review/claude_review_initial_verdict.json",
     "full_runs_forbidden_until_exact_approve": true
   },
   "smoke_gate": {
@@ -216,7 +234,7 @@
       "task accounting and V2I/vehicle service-work conservation",
       "valid native path schema and exact aggregate reconciliation",
       "finite nonnegative values and no silent loss",
-      "cross-arm offered/task_active/task_type/veh_action/veh_actor_logits/fleet identities exact"
+      "cross-arm offered/task_active/task_type/veh_action/fleet identities exact; actor logits remain within the separately declared float32 diagnostic bound"
     ],
     "interpretation": "determinism and instrumentation gate only; no benefit claim"
   },
@@ -226,14 +244,15 @@
     "latency_per_offered": "sum task latency / offered tasks",
     "latency_per_admitted": "sum admitted-task latency / admitted tasks",
     "deadline_met_latency": "sum latency for deadline-met tasks / deadline-met tasks",
-    "energy": "fleet source-plus-target energy / offered tasks",
+    "energy": "total_energy_j fleet source-plus-target numerator / offered tasks, independently reconciled to avg_energy_j_per_task",
     "forwarding_share": "forwarded admitted V2I / admitted V2I",
     "per_rsu_execution_share": "admitted V2I executed at RSU r / admitted V2I",
     "task_replication_rule": "individual tasks are not independent statistical replicates"
   },
   "cross_arm_identity_checks": [
     "offered count", "task_active bytes", "task_type bytes", "vehicle action bytes",
-    "frozen actor logits bytes", "slot tier bytes", "slot EV bytes", "actor/trace/fleet/seeds/environment identities"
+    "actor-logit hashes, byte-identity flag and maximum absolute divergence within the predeclared 1e-5 diagnostic bound",
+    "slot tier bytes", "slot EV bytes", "actor/trace/fleet/seeds/environment identities"
   ],
   "outputs": {
     "raw_root": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1",
@@ -256,12 +275,12 @@
   "stop_rules": [
     "E1 artifact, manifest or commit drift",
     "repository, actor, trace, evaluator, vec_jax, Python or package identity mismatch",
-    "instrumentation changes any existing scientific output, consumes RNG or affects physics",
+    "instrumentation changes any existing scientific output in any of off/jsq/dla, consumes RNG or affects physics",
     "ingress, selected target and actual execution cannot be distinguished",
     "rejected or unavailable tasks appear executed or forwarded",
     "two-RSU checks do not use production evaluator logic",
     "Claude verdict is not exact APPROVE for the exact commits and manifest",
-    "repeat smokes differ or cross-arm task/action/actor/fleet streams differ",
+    "repeat smokes differ, cross-arm task/action/fleet streams differ, or actor logits exceed the predeclared diagnostic bound",
     "task accounting, V2I work or vehicle work conservation fails",
     "silent loss, NaN, infinity or unexplained negative value",
     "path aggregate fails to reconcile with task-level paths",
