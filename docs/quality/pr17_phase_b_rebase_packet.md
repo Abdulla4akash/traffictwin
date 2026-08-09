@@ -1,17 +1,17 @@
 # PR #17 Phase-B Rebase Packet — Challenge Seeds → What-If Studio
 
-**Durable branch:** `rehearsal/pr17-phase-b-packet-v1` (local, based on `rehearsal-pr17-final-on-2d7e85f` at `884618e`)
+**Durable branch:** `rehearsal/pr17-phase-b-v1` (local and `origin/rehearsal/pr17-phase-b-v1` after push, based on `rehearsal-pr17-final-on-2d7e85f` at `884618e`)
 **Created:** 2026-08-09, on current PR #13 head `2d7e85f5641c1836a0e8892d2e256c55b1e3bc6a` (still OPEN DRAFT, base main)
-**Official PR #17 head (frozen):** `bb30fd49640084c9a0878afc3191e6e368c5edd0` on `agent/product-challenge-whatif-bridge-v2` (base `agent/product-portfolio-explorer-v2`)
-**Purpose:** Exact replay after PR #13 merges to `main`; no PR #16/PR #14 merge required.
+**Official PR #17 head (frozen):** `bb30fd49640084c9a0878afc3191e6e368c5edd0` on `agent/product-challenge-whatif-bridge-v2` (base now `main` after retarget, previously `agent/product-portfolio-explorer-v2`)
+**Purpose:** Exact replay after PR #13 merges to `main`; no PR #16/PR #14 merge required. PR #17 has already been retargeted to `main` while head remains `bb30fd4` to prevent auto-close on PR #13 branch deletion.
 
 ## 1. Verified live state at packet creation
 
 - `git rev-parse agent/product-challenge-whatif-bridge-v2` = `bb30fd4` (local)
 - `git rev-parse origin/agent/product-challenge-whatif-bridge-v2` = `bb30fd4`
-- `gh pr view 17 --json headRefOid` = `bb30fd4`, `isDraft=true`, `state=OPEN`, `baseRefName=agent/product-portfolio-explorer-v2`
+- `gh pr view 17 --json headRefOid` = `bb30fd4`, `isDraft=true`, `state=OPEN`, `baseRefName=main` (retargeted from `agent/product-portfolio-explorer-v2` to prevent auto-close; head unchanged)
 - `gh pr view 13 --json headRefOid` = `2d7e85f`, `baseRefName=main`, `isDraft=true`, `state=OPEN`, `mergeable=MERGEABLE`
-- `git branch --contains a6cb1bb02e2608b359dc4da03d601fdb231e4ee0` = `rehearsal-ux-keep` only (original `a6cb1bb` object not reachable from `rehearsal/pr17-phase-b-packet-v1` except via cherry-picks `9b59b6a` which is a **different commit object** with same patch but different parent; `git cat-file -t a6cb1bb` = `commit`, `git cherry-pick a6cb1bb` creates new object `9b59b6a`).
+- `git branch --contains a6cb1bb02e2608b359dc4da03d601fdb231e4ee0` = `rehearsal-ux-keep` only (original `a6cb1bb` object not reachable from `rehearsal/pr17-phase-b-v1` except via cherry-picks `9b59b6a` which is a **different commit object** with same patch but different parent; `git cat-file -t a6cb1bb` = `commit`, `git cherry-pick a6cb1bb` creates new object `9b59b6a`).
 - E1 dynamic still active (`pgrep eval_sumo_stage1_mc.py` = PID 87396), so all tests run serially without `-n`.
 
 ## 2. Patch-ID equivalence (original → replay)
@@ -82,29 +82,36 @@ Avoid brittle line numbers: reset button is `st.button("Reset to stock defaults"
 
 ## 5. Exact official Phase-B rebase procedure after PR #13 merges
 
+**Current reality (already retargeted):** PR #17 has already been retargeted to `main` while head remains `bb30fd4` (see §1). This prevents auto-close when `agent/product-portfolio-explorer-v2` is deleted. The temporary diff on GitHub is not the final Phase-B diff and must not be reviewed/merged. Future procedure begins with verification of this retargeted state.
+
 **Trigger:** `gh pr view 13 --json state` becomes `MERGED` and `git rev-parse origin/main` contains `2d7e85f`.
 
-Do NOT touch official PR #17 until this trigger.
+Do NOT touch official PR #17 until this trigger, even though its base is already `main`.
 
-Procedure (mechanical, no re-interpretation):
+Procedure (mechanical, no re-interpretation — starts with verification, then safety ref, then destructive ops):
 
 ```bash
 git fetch origin --prune
-# Verify trigger
-gh pr view 13 --repo Abdulla4akash/traffictwin --json state,headRefOid,baseRefName
-git log --oneline origin/main -5  # must show 2d7e85f merged
-# Check official still frozen
+# 1. Verify PR #17 still OPEN/DRAFT, base main, head bb30fd4 (retarget already done)
+gh pr view 17 --repo Abdulla4akash/traffictwin --json state,isDraft,baseRefName,headRefName,headRefOid
+# must be: state=OPEN, isDraft=true, baseRefName=main, headRefOid=bb30fd49640084c9a0878afc3191e6e368c5edd0
 git rev-parse agent/product-challenge-whatif-bridge-v2  # must be bb30fd4
-gh pr view 17 --repo Abdulla4akash/traffictwin --json headRefOid,baseRefName,isDraft
-# Create rebase tmp from new main
+git rev-parse origin/agent/product-challenge-whatif-bridge-v2  # must be bb30fd4
+# 2. Verify safety tag exists locally and remotely BEFORE any destructive command
+git rev-parse pr17-pre-phase-b-bb30fd4^{commit}  # must be bb30fd4
+git ls-remote --tags origin refs/tags/pr17-pre-phase-b-bb30fd4  # must show 0d1f0fe... bb30fd4
+# 3. Verify PR #13 trigger
+gh pr view 13 --repo Abdulla4akash/traffictwin --json state,headRefOid,baseRefName,mergedAt
+git log --oneline origin/main -5  # must show 2d7e85f merged
+# 4. Create rebase tmp from new live main
 git checkout -b tmp-phase-b origin/main
-# Verify patch range still 3 commits
+# Verify patch range still 3 commits from pre-Phase-B head
 git log --oneline 2d7e85f..bb30fd4 --reverse  # 7aae39b, f148805, bb30fd4
-# Replay PR #17 core (identical patches)
+# Replay PR #17 core (identical patches — preserves reviewed product patch)
 git cherry-pick 7aae39ba5a46ead8429fdf020a13ced55acf4eb6  # 7aae39b
 git cherry-pick f14880501cf7ac203a61fa7a82843f26548672d2  # f148805
 git cherry-pick bb30fd49640084c9a0878afc3191e6e368c5edd0  # bb30fd4
-# Replay UX/test hardening from this packet branch (use commit hashes from rehearsal/pr17-phase-b-packet-v1)
+# Replay UX/test hardening from this canonical packet branch (use commit hashes from rehearsal/pr17-phase-b-v1)
 git cherry-pick 9b59b6a  # a6cb1bb equivalent
 git cherry-pick 9a05fb6  # f31a34e equivalent
 git cherry-pick 459677f
@@ -123,15 +130,16 @@ git diff --check
 # Tests (serial, E1 may still be active)
 uv run --no-sync python -m pytest tests/unit/test_challenge_whatif_bridge.py tests/ui/test_challenge_whatif_bridge_ui.py tests/integration/test_challenge_whatif_e2e.py tests/ui/test_whatif_studio.py tests/unit/test_whatif_pair.py -q
 uv run --no-sync python -m pytest tests/unit/test_challenge_whatif_bridge.py tests/ui/test_challenge_whatif_bridge_ui.py tests/integration/test_challenge_whatif_e2e.py tests/ui/test_whatif_studio.py tests/unit/test_whatif_pair.py tests/ui/test_portfolio_explorer.py tests/unit/test_portfolio_explorer.py tests/ui/test_cross_page_state.py tests/ui/test_navigation_v07.py -q
-# Push official
+# Push official (only after safety tag verified and tests/gates pass)
 git checkout agent/product-challenge-whatif-bridge-v2
 git reset --hard tmp-phase-b
 git push --force-with-lease origin agent/product-challenge-whatif-bridge-v2
-gh pr edit 17 --repo Abdulla4akash/traffictwin --base main  # retarget from portfolio branch to main, keep DRAFT
+# Base is already main — verify, do not retarget again unless it drifted
+gh pr view 17 --repo Abdulla4akash/traffictwin --json baseRefName  # must be main
 git branch -D tmp-phase-b
 ```
 
-If `git cherry-pick` reports 0 conflicts, proceed; if conflict, resolve by accepting both sides (additive bridge sections), then `git cherry-pick --continue`.
+If `git cherry-pick` reports 0 conflicts, proceed; if conflict, resolve by accepting both sides (additive bridge sections), then `git cherry-pick --continue`. Do not improvise outside this packet — any deviation is a packet defect.
 
 ## 6. Test commands and expected counts
 
@@ -143,15 +151,37 @@ On rehearsal `884618e` (and after Phase-B):
 
 Expected passes: 45, 79, 181 respectively (serial, E1 active).
 
-## 7. Owner / reviewer sequence
+## 7. Owner / reviewer sequence and evidence provenance
 
-- Owner: Muse 4 (implementation worker) — builds rehearsal, proves mutations, prepares packet.
-- Reviewer: Claude 4 (independent exact-head review) — reproduces `git patch-id --stable`, re-runs `test_bridge_ledger_distinction_visible` and `test_old_receipt_not_relabelled_by_later_ch02`, checks `rehearsal/pr17-phase-b-packet-v1` durable branch and this packet, gates `ruff/mypy/lock/diff`.
-- After PR #13 merges, owner executes Phase-B procedure above, pushes official PR #17, requests final Claude 4 exact-head review on new official head, then PR #17 remains DRAFT until merge.
+- Owner: Muse 4 (implementation worker) — builds rehearsal, proves mutations, prepares packet, executes tests/gates.
+- Reviewer: Claude 4 (independent exact-head review, Passes 1-4) — **did NOT run pytest or project gates**.
+
+Evidence provenance (as of this packet):
+
+| claim | Claude independently verified | Muse executed this round |
+|---|---|---|
+| exact SHAs (2d7e85f, bb30fd4, replay commits) | yes (git rev-parse, gh pr view) | yes |
+| local/origin/GitHub ref alignment | yes | yes |
+| patch IDs (stable) | yes (git patch-id --stable) | yes |
+| source assertions (ledger st.info exact, old-receipt no OR) | yes (source read, no vacuous branches) | yes |
+| absence of vacuous branches (no OR with pair_id) | yes | yes |
+| counts from source/collection where inspected | yes (where inspected) | yes (see §6) |
+| diffstat / per-file numstat | yes (git diff --stat/--numstat) | yes |
+| packet contents (157 lines at 14b1576) | yes | yes |
+| pytest pass counts by execution (45/79/181) | **no** — Claude validated test quality, not execution | **yes** (see §6, §10-11) |
+| ruff / format / mypy / lock / diff-check execution | **no** | **yes** (see §11) |
+| mutation cycles proving tests kill mutants | **no** (Claude noted mutation claims, did not re-run) | **yes** (see §12; M1-M5 re-run this round, older claims marked PREVIOUSLY MUSE-EXECUTED) |
+
+Do not attribute Muse execution to Claude. This packet's §6, §10-12, §11 are Muse-executed this round; earlier Claude passes verified structure but did not execute suites/gates.
+
+After PR #13 merges, owner executes Phase-B procedure above, pushes official PR #17, requests final Claude 4 exact-head review on new official head, then PR #17 remains DRAFT until merge.
 
 ## 8. Durability and isolation
 
-- This packet lives at `docs/quality/pr17_phase_b_rebase_packet.md` on local branch `rehearsal/pr17-phase-b-packet-v1` (survives reboot and `/tmp` cleanup); not on `origin/main`, not on official PR #17.
+- This packet lives at `docs/quality/pr17_phase_b_rebase_packet.md` on branch `rehearsal/pr17-phase-b-v1` **locally and on `origin/rehearsal/pr17-phase-b-v1` after push** (remote durable, survives reboot, `/tmp` cleanup, and single-disk loss); not on `origin/main`, not on official PR #17. Do not claim `/tmp` or one local clone is durable.
+- `origin/rehearsal/pr17-phase-b-packet-v1` is predecessor; canonical is `origin/rehearsal/pr17-phase-b-v1`.
+- Remote safety tag `pr17-pre-phase-b-bb30fd4` at `0d1f0fe3304d877b3897466b0de32733dd5c6028` → `bb30fd4` is second remote durability anchor.
+- Optional bundle `~/AntigravityTest/traffictwin-pr17-phase-b.bundle` (see §14) is secondary offline backup; remote branch/tag are primary.
 - Official `agent/product-challenge-whatif-bridge-v2` remains `bb30fd4` until Phase-B.
 - PR #13, PR #14, PR #16, PR #15, research `/diss` untouched by this packet creation (read-only `git fetch` and `gh pr view`).
 
