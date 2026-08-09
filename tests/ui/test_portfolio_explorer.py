@@ -58,7 +58,10 @@ def test_evidence_banner_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert not app.exception
     warnings = "\n".join(str(w.value) for w in app.warning)
     assert "synthetic" in warnings.lower()
-    assert "not production scheduling" in warnings.lower() or "not establish an optimal" in warnings.lower()
+    assert (
+        "not production scheduling" in warnings.lower()
+        or "not establish an optimal" in warnings.lower()
+    )
 
 
 def test_portfolio_strategies_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -105,7 +108,9 @@ def test_synthetic_standing_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     assert "demonstration" in combined.lower()
 
 
-def test_regret_dominance_shown_when_available(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_regret_dominance_shown_when_available(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
     markdowns = "\n".join(str(m.value) for m in app.markdown)
@@ -140,7 +145,9 @@ def test_no_optimal_production_claim(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     )
     lowered = all_text.lower()
     # Must not claim optimal policy or Kubernetes
-    assert "optimal policy" not in lowered or "not optimal" in lowered or "not an optimal" in lowered
+    assert (
+        "optimal policy" not in lowered or "not optimal" in lowered or "not an optimal" in lowered
+    )
     assert "kubernetes" not in lowered
     assert "live manchester" not in lowered
 
@@ -148,14 +155,18 @@ def test_no_optimal_production_claim(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 def test_no_kubernetes_deployment_claim(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning)
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.warning
+    )
     assert "kubernetes" not in all_text.lower()
 
 
 def test_no_live_manchester_claim(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning)
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.warning
+    )
     assert "live manchester" not in all_text.lower()
     # Must not claim causal superiority
     assert "causal superiority" not in all_text.lower()
@@ -172,7 +183,9 @@ def test_challenge_seed_library_visible(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert "CH-01" in combined or "Arena" in combined
 
 
-def test_challenge_seed_parameter_table_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_challenge_seed_parameter_table_visible(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
     # Parameter overrides table is a dataframe
@@ -191,7 +204,9 @@ def test_next_action_navigation_visible(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert "Provenance" in buttons
 
 
-def test_page_works_without_provider_credentials(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_page_works_without_provider_credentials(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     # Already hermetic via _ENV_CLEAR, but explicitly test no BODS key
     for key in _ENV_CLEAR:
         monkeypatch.delenv(key, raising=False)
@@ -223,7 +238,11 @@ def test_tests_hermetic_against_environment_configuration(
 def test_waiting_room_not_labelled_compute(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.caption) + "\n".join(str(x.value) for x in app.info)
+    all_text = (
+        "\n".join(str(x.value) for x in app.markdown)
+        + "\n".join(str(x.value) for x in app.caption)
+        + "\n".join(str(x.value) for x in app.info)
+    )
     lowered = all_text.lower()
     # Must distinguish waiting-room vs compute, not label rsu_capacity as compute power
     if "compute power" in lowered:

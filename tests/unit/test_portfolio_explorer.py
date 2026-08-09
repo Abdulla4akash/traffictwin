@@ -4,20 +4,14 @@ from __future__ import annotations
 
 import json
 
-import pytest
-
-from traffictwin.domain.enums import FleetTierMix, RsuCapacityMode, TaskClass
+from traffictwin.domain.enums import RsuCapacityMode
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.experiments.portfolio import (
-    PortfolioStudyReport,
     default_synthetic_portfolio_rules,
     select_portfolio_policy,
 )
-from traffictwin.synthetic.generator import generate_run_data
-from traffictwin.synthetic.scenarios import preset_config
 from traffictwin.ui.portfolio_explorer import (
     build_portfolio_explorer_view,
-    describe_portfolio_selection,
     get_challenge_seed,
     get_challenge_seed_library,
     get_demo_portfolio_study,
@@ -157,7 +151,11 @@ def test_synthetic_provenance_preserved_and_no_optimality_claim() -> None:
     assert "synthetic" in " ".join(view.study_report.warnings).lower()
     # No optimality claim
     combined_warnings = " ".join(view.warnings).lower()
-    assert "optimal" not in combined_warnings or "not optimal" in combined_warnings or "not an optimal" in combined_warnings
+    assert (
+        "optimal" not in combined_warnings
+        or "not optimal" in combined_warnings
+        or "not an optimal" in combined_warnings
+    )
     assert "kubernetes" not in combined_warnings
     assert "live manchester" not in combined_warnings
     # Candidate standing
@@ -171,7 +169,9 @@ def test_challenge_seed_deterministic_parameters() -> None:
     assert ch1.parameter_overrides["demand.multiplier"] == 2.2
     ch4 = get_challenge_seed("CH-04-rsu-waiting-room-squeeze")
     assert ch4 is not None
-    assert ch4.parameter_overrides["infrastructure.rsu_capacity_mode"] == RsuCapacityMode.REDUCED.value
+    assert (
+        ch4.parameter_overrides["infrastructure.rsu_capacity_mode"] == RsuCapacityMode.REDUCED.value
+    )
     assert ch4.parameter_overrides["infrastructure.rsu_count"] == 3
 
 
@@ -193,7 +193,10 @@ def test_portfolio_study_is_deterministic() -> None:
     study2 = get_demo_portfolio_study()
     assert study1.selector_id == study2.selector_id == "synthetic-portfolio-v1"
     assert study1.metric_key == study2.metric_key
-    assert study1.held_out_evaluation.winner_or_tie_rate == study2.held_out_evaluation.winner_or_tie_rate
+    assert (
+        study1.held_out_evaluation.winner_or_tie_rate
+        == study2.held_out_evaluation.winner_or_tie_rate
+    )
     # Fingerprint via view
     v1 = build_portfolio_explorer_view("CH-01-arena-surge")
     v2 = build_portfolio_explorer_view("CH-01-arena-surge")

@@ -19,7 +19,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from traffictwin.domain.enums import FleetTierMix, RsuCapacityMode, TaskClass, WorkloadOrdering
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.experiments.portfolio import (
-    PortfolioDecision,
     PortfolioRuleSet,
     PortfolioStudyReport,
     default_synthetic_portfolio_rules,
@@ -27,12 +26,13 @@ from traffictwin.experiments.portfolio import (
     select_portfolio_policy,
 )
 from traffictwin.metrics.results import JsonScalar
-from traffictwin.synthetic.config import SyntheticPolicyProfile
 from traffictwin.synthetic.experiments import generate_synthetic_portfolio_study
 from traffictwin.synthetic.generator import generate_run_data
 from traffictwin.synthetic.scenarios import preset_config
 
-_FIXTURE_TIME = __import__("datetime").datetime(2026, 7, 17, 12, 0, tzinfo=__import__("datetime").timezone.utc)
+_FIXTURE_TIME = __import__("datetime").datetime(
+    2026, 7, 17, 12, 0, tzinfo=__import__("datetime").timezone.utc
+)
 
 
 def _fixed_clock() -> __import__("datetime").datetime:
@@ -114,7 +114,10 @@ def _scenario_seed_from_challenge(challenge: ChallengeSeedDefinition) -> Scenari
     for key, value in challenge.parameter_overrides.items():
         _apply_dot_override(seed_dict, key, value)
     # Keep provenance synthetic
-    seed_dict["provenance"] = {"created_by": "TrafficTwin challenge library", "source": "TrafficTwin synthetic demonstration"}
+    seed_dict["provenance"] = {
+        "created_by": "TrafficTwin challenge library",
+        "source": "TrafficTwin synthetic demonstration",
+    }
     return ScenarioSeed.model_validate(seed_dict)
 
 
@@ -143,7 +146,9 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
         challenge_id="CH-01-arena-surge",
         title="Arena / event demand surge",
         purpose="High synthetic demand surge around an event location.",
-        why_challenging="Tests selector under uniform high pressure; P5 high-pressure rule expected.",
+        why_challenging=(
+            "Tests selector under uniform high pressure; P5 high-pressure rule expected."
+        ),
         parameter_overrides={
             "demand.multiplier": 2.2,
             "workload.birth_rate_multiplier": 1.6,
@@ -152,9 +157,16 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "traffic.event_demand_multiplier": 2.0,
             "traffic.duration_min": 15.0,
         },
-        expected_evidence_surfaces=["traffic.count.total", "task.generated.count", "infra.queue_length.mean"],
+        expected_evidence_surfaces=[
+            "traffic.count.total",
+            "task.generated.count",
+            "infra.queue_length.mean",
+        ],
         limitations=[
-            "Infrastructure capacity is rsu_capacity_mode (STANDARD), not compute cores or waiting-room seats.",
+            (
+                "Infrastructure capacity is rsu_capacity_mode (STANDARD), not compute cores "
+                "or waiting-room seats."
+            ),
             "Synthetic event demand is not a calibrated Manchester surge.",
         ],
         scenario_seed_preview={},
@@ -173,7 +185,11 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "demand.multiplier": 1.1,
             "infrastructure.rsu_capacity_mode": RsuCapacityMode.STANDARD.value,
         },
-        expected_evidence_surfaces=["trip.duration.mean_s", "traffic.speed.mean_mps", "infra.utilisation.mean"],
+        expected_evidence_surfaces=[
+            "trip.duration.mean_s",
+            "traffic.speed.mean_mps",
+            "infra.utilisation.mean",
+        ],
         limitations=[
             "Lane closure is a synthetic incident type; not SUMO-closed or live Manchester.",
             "rsu_capacity_mode remains STANDARD infrastructure mode, not compute.",
@@ -185,12 +201,20 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
         purpose="Workload dominated by T1 tasks with a weak vehicle tier mix.",
         why_challenging="Tests P2 T1-pressure rule and weak-fleet routing.",
         parameter_overrides={
-            "workload.class_mix": {TaskClass.T1.value: 0.6, TaskClass.T2.value: 0.2, TaskClass.T3.value: 0.2},
+            "workload.class_mix": {
+                TaskClass.T1.value: 0.6,
+                TaskClass.T2.value: 0.2,
+                TaskClass.T3.value: 0.2,
+            },
             "fleet.tier_mix": FleetTierMix.WEAK.value,
             "workload.birth_rate_multiplier": 1.5,
             "demand.multiplier": 1.0,
         },
-        expected_evidence_surfaces=["task.completion.rate", "task.latency.mean_ms", "fairness.vehicle_tier.completion_rate.max_gap"],
+        expected_evidence_surfaces=[
+            "task.completion.rate",
+            "task.latency.mean_ms",
+            "fairness.vehicle_tier.completion_rate.max_gap",
+        ],
         limitations=[
             "Fleet tier mix WEAK is synthetic; not a live Manchester fleet measurement.",
             "No waiting-room capacity is implied by tier mix.",
@@ -207,9 +231,18 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "demand.multiplier": 1.2,
             "workload.birth_rate_multiplier": 1.4,
         },
-        expected_evidence_surfaces=["infra.queue_length.max", "infra.saturation.episode_count", "task.offload.rate"],
+        expected_evidence_surfaces=[
+            "infra.queue_length.max",
+            "infra.saturation.episode_count",
+            "task.offload.rate",
+        ],
         limitations=[
-            "Current product exposes only rsu_capacity_mode (STANDARD/REDUCED) and rsu_count; it does not expose separate waiting-room seats, service/compute cores, worker count, or in-flight cap. Do not label rsu_capacity as compute.",
+            (
+                "Current product exposes only rsu_capacity_mode (STANDARD/REDUCED) and "
+                "rsu_count; it does not expose separate waiting-room seats, service/"
+                "compute cores, worker count, or in-flight cap. Do not label rsu_capacity "
+                "as compute."
+            ),
             "Queue length and saturation are synthetic observations, not live RSU telemetry.",
         ],
     ),
@@ -224,7 +257,11 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "demand.multiplier": 1.3,
             "fleet.tier_mix": FleetTierMix.MIXED.value,
         },
-        expected_evidence_surfaces=["infra.load_balance.jain_capacity_normalised", "task.decision_share.v2i", "task.completion.rate"],
+        expected_evidence_surfaces=[
+            "infra.load_balance.jain_capacity_normalised",
+            "task.decision_share.v2i",
+            "task.completion.rate",
+        ],
         limitations=[
             "Load-aware forwarding is evaluated via synthetic task routing only.",
             "No placement is deployed to Kubernetes or live RSUs.",
@@ -241,7 +278,11 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "demand.multiplier": 1.0,
             "evaluation.random_seed": 42,
         },
-        expected_evidence_surfaces=["task.latency.p95_ms", "task.deadline_miss.completed_observed_rate", "traffic.count.mean"],
+        expected_evidence_surfaces=[
+            "task.latency.p95_ms",
+            "task.deadline_miss.completed_observed_rate",
+            "traffic.count.mean",
+        ],
         limitations=[
             "Stale state is a research prompt; no live scheduler is evaluated.",
             "Random seed 42 is deterministic synthetic repeatability only.",
@@ -258,9 +299,16 @@ _CHALLENGE_SEEDS: list[ChallengeSeedDefinition] = [
             "demand.multiplier": 1.0,
             "workload.birth_rate_multiplier": 2.0,
         },
-        expected_evidence_surfaces=["infra.observed_rsu.count", "spatial.rsu.task.completion_rate_by_target", "task.energy.mean_per_observed_task_j"],
+        expected_evidence_surfaces=[
+            "infra.observed_rsu.count",
+            "spatial.rsu.task.completion_rate_by_target",
+            "task.energy.mean_per_observed_task_j",
+        ],
         limitations=[
-            "Fleet count 80 and RSU count 6 are synthetic scaling values; not a live Manchester deployment.",
+            (
+                "Fleet count 80 and RSU count 6 are synthetic scaling values; not a live "
+                "Manchester deployment."
+            ),
             "rsu_count is infrastructure count, distinct from waiting-room or compute capacity.",
         ],
     ),
@@ -314,16 +362,18 @@ def get_demo_portfolio_study() -> PortfolioStudyReport:
 
     with tempfile.TemporaryDirectory() as tmp:
         fixture = generate_synthetic_portfolio_study(Path(tmp) / "study", overwrite=True)
+        from traffictwin.experiments.winner_map import build_winner_map
         from traffictwin.ingestion.bundle import validate_bundle
         from traffictwin.metrics.engine import compute_metrics_for_bundle
-        from traffictwin.experiments.winner_map import build_winner_map
 
         collections = []
         aliases: dict[str, str] = {}
         for path in fixture.bundle_paths:
             validation = validate_bundle(path)
             assert validation.seed is not None
-            aliases[validation.seed.seed_id] = validation.seed.parent_seed_id or validation.seed.seed_id
+            aliases[validation.seed.seed_id] = (
+                validation.seed.parent_seed_id or validation.seed.seed_id
+            )
             collections.append(compute_metrics_for_bundle(validation, clock=_fixed_clock))
         winner_map = build_winner_map(collections, seed_aliases=aliases, clock=_fixed_clock)
         report = evaluate_portfolio_study(
@@ -373,7 +423,7 @@ def build_portfolio_explorer_view(
         # Objective is minimise for portfolio study
         candidates_sorted = sorted(
             candidates,
-            key=lambda c: (c.mean_regret if c.mean_regret is not None else float("inf")),
+            key=lambda c: c.mean_regret if c.mean_regret is not None else float("inf"),
         )
         for idx, cand in enumerate(candidates_sorted, start=1):
             cand.rank = idx
@@ -405,4 +455,3 @@ def build_portfolio_explorer_view(
         warnings=warnings,
         fingerprint=fingerprint,
     )
-
