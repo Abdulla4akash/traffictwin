@@ -43,7 +43,18 @@ from traffictwin.ui.whatif_controls import (
 def _ensure_whatif_widget_defaults() -> None:
     for key, default in DEFAULT_WHATIF_WIDGET_VALUES.items():
         if key not in st.session_state:
-            st.session_state[key] = default
+            # Deep-copy mutable defaults (no mutable containers currently, but guard future)
+            import copy
+
+            st.session_state[key] = copy.deepcopy(default)
+
+
+def _reset_whatif_widgets_to_defaults() -> None:
+    """Reset the complete What-If control set to authoritative stock defaults."""
+    import copy
+
+    for key, default in DEFAULT_WHATIF_WIDGET_VALUES.items():
+        st.session_state[key] = copy.deepcopy(default)
 
 
 def _seed_widgets_from_draft(draft: ChallengeWhatIfDraft) -> None:
@@ -120,9 +131,10 @@ def render(config: UiConfig) -> None:
         except Exception:  # noqa: BLE001 - defensive handoff parse
             challenge_draft = None
 
-    # Apply prefill exactly once per draft fingerprint
+    # Apply prefill exactly once per draft fingerprint — full reset then overlay
     applied_fp = st.session_state.get("whatif_challenge_prefill_applied_fingerprint")
     if challenge_draft is not None and applied_fp != challenge_draft.fingerprint:
+        _reset_whatif_widgets_to_defaults()
         _seed_widgets_from_draft(challenge_draft)
         st.session_state["whatif_challenge_prefill_applied_fingerprint"] = (
             challenge_draft.fingerprint
@@ -170,42 +182,42 @@ def render(config: UiConfig) -> None:
                 st.session_state.pop(PENDING_WHATIF_CHALLENGE_DRAFT_KEY, None)
                 st.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
                 st.session_state["whatif_challenge_prefill_applied"] = False
+                _reset_whatif_widgets_to_defaults()
                 st.rerun()
 
-    # Single form for all inputs — widgets use stable explicit keys
+    # Single form — keyed widgets, no redundant value= (session_state is truth)
+    # Ensure preset/policy validity before widget creation
+    presets = synthetic_preset_names_for_ui()
+    if st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]] not in presets:
+        st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]] = presets[0]
+    policy_options = synthetic_policy_options_for_ui()
+    if st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] not in policy_options:
+        st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] = policy_options[0]
     with st.form("whatif_form"):
         section_header("Stage 1 · choose baseline", "Existing supported synthetic preset.")
-        presets = synthetic_preset_names_for_ui()
-        # Use keyed widget; ensure default present
         baseline_preset = st.selectbox(
             "Baseline preset",
             presets,
-            index=presets.index(st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]])
-            if st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]] in presets
-            else 0,
             key=WHATIF_WIDGET_KEYS["baseline_preset"],
         )
         st.caption(
-            f"Baseline preset `{baseline_preset}` is a deterministic synthetic "
-            "starting point. Nothing is executed yet."
+            f"Baseline preset `{st.session_state[WHATIF_WIDGET_KEYS['baseline_preset']]}` "
+            "is a deterministic synthetic starting point. Nothing is executed yet."
         )
 
         section_header("Pair identity", "Stable pair identifier and experiment grouping.")
         cols = st.columns(2)
         pair_name = cols[0].text_input(
             "Pair name (sanitised, e.g. congestion-pulse)",
-            value=str(st.session_state[WHATIF_WIDGET_KEYS["pair_name"]]),
             key=WHATIF_WIDGET_KEYS["pair_name"],
         )
         experiment_id = cols[1].text_input(
             "Experiment ID",
-            value=str(st.session_state[WHATIF_WIDGET_KEYS["experiment_id"]]),
             key=WHATIF_WIDGET_KEYS["experiment_id"],
         )
         baseline_seed = st.number_input(
             "Baseline random seed",
             min_value=WHATIF_CONTROL_SPEC["baseline_random_seed"]["min"],
-            value=int(st.session_state[WHATIF_WIDGET_KEYS["baseline_random_seed"]]),
             step=1,
             key=WHATIF_WIDGET_KEYS["baseline_random_seed"],
         )
@@ -224,48 +236,40 @@ def render(config: UiConfig) -> None:
         c1, c2, c3, c4 = st.columns(4)
         incident_enabled = c1.checkbox(
             "Enable synthetic incident/event",
-            value=bool(st.session_state[WHATIF_WIDGET_KEYS["incident_enabled"]]),
             key=WHATIF_WIDGET_KEYS["incident_enabled"],
         )
         incident_type = c2.text_input(
             "Event type",
-            value=str(st.session_state[WHATIF_WIDGET_KEYS["incident_type"]]),
             key=WHATIF_WIDGET_KEYS["incident_type"],
         )
         incident_location = c3.text_input(
             "Location",
-            value=str(st.session_state[WHATIF_WIDGET_KEYS["incident_location"]]),
             key=WHATIF_WIDGET_KEYS["incident_location"],
         )
         incident_severity = c4.text_input(
             "Severity",
-            value=str(st.session_state[WHATIF_WIDGET_KEYS["incident_severity"]]),
             key=WHATIF_WIDGET_KEYS["incident_severity"],
         )
         c1, c2, c3, c4 = st.columns(4)
         incident_start = c1.number_input(
             "Start time (s)",
             min_value=float(WHATIF_CONTROL_SPEC["incident_start_s"]["min"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["incident_start_s"]]),
             key=WHATIF_WIDGET_KEYS["incident_start_s"],
         )
         incident_duration = c2.number_input(
             "Duration (s)",
             min_value=float(WHATIF_CONTROL_SPEC["incident_duration_s"]["min"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["incident_duration_s"]]),
             key=WHATIF_WIDGET_KEYS["incident_duration_s"],
         )
         lanes_closed = c3.number_input(
             "Lanes closed",
             min_value=int(WHATIF_CONTROL_SPEC["lanes_closed"]["min"]),
-            value=int(st.session_state[WHATIF_WIDGET_KEYS["lanes_closed"]]),
             step=1,
             key=WHATIF_WIDGET_KEYS["lanes_closed"],
         )
         event_demand_multiplier = c4.number_input(
             "Event demand multiplier",
             min_value=float(WHATIF_CONTROL_SPEC["event_demand_multiplier"]["min"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["event_demand_multiplier"]]),
             step=float(WHATIF_CONTROL_SPEC["event_demand_multiplier"]["step"] or 0.1),
             key=WHATIF_WIDGET_KEYS["event_demand_multiplier"],
         )
@@ -276,21 +280,18 @@ def render(config: UiConfig) -> None:
             "Congestion multiplier",
             min_value=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["min"]),
             max_value=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["max"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["congestion_multiplier"]]),
             step=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["step"] or 0.05),
             key=WHATIF_WIDGET_KEYS["congestion_multiplier"],
         )
         vehicle_count = c2.number_input(
             "Vehicle count",
             min_value=int(WHATIF_CONTROL_SPEC["vehicle_count"]["min"]),
-            value=int(st.session_state[WHATIF_WIDGET_KEYS["vehicle_count"]]),
             step=1,
             key=WHATIF_WIDGET_KEYS["vehicle_count"],
         )
         task_arrival_rate = c3.number_input(
             "Task arrival rate",
             min_value=float(WHATIF_CONTROL_SPEC["task_arrival_rate"]["min"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["task_arrival_rate"]]),
             step=float(WHATIF_CONTROL_SPEC["task_arrival_rate"]["step"] or 0.01),
             format="%.3f",
             key=WHATIF_WIDGET_KEYS["task_arrival_rate"],
@@ -302,7 +303,6 @@ def render(config: UiConfig) -> None:
             "T1 share",
             min_value=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["min"]),
             max_value=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["max"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["task_mix_t1"]]),
             step=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["step"] or 0.05),
             key=WHATIF_WIDGET_KEYS["task_mix_t1"],
         )
@@ -310,7 +310,6 @@ def render(config: UiConfig) -> None:
             "T2 share",
             min_value=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["min"]),
             max_value=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["max"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["task_mix_t2"]]),
             step=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["step"] or 0.05),
             key=WHATIF_WIDGET_KEYS["task_mix_t2"],
         )
@@ -318,7 +317,6 @@ def render(config: UiConfig) -> None:
             "T3 share",
             min_value=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["min"]),
             max_value=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["max"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["task_mix_t3"]]),
             step=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["step"] or 0.05),
             key=WHATIF_WIDGET_KEYS["task_mix_t3"],
         )
@@ -328,32 +326,17 @@ def render(config: UiConfig) -> None:
         rsu_count = c1.number_input(
             "RSU count",
             min_value=int(WHATIF_CONTROL_SPEC["rsu_count"]["min"]),
-            value=int(st.session_state[WHATIF_WIDGET_KEYS["rsu_count"]]),
             step=1,
             key=WHATIF_WIDGET_KEYS["rsu_count"],
         )
         rsu_capacity = c2.number_input(
             "RSU capacity",
             min_value=float(WHATIF_CONTROL_SPEC["rsu_capacity"]["min"]),
-            value=float(st.session_state[WHATIF_WIDGET_KEYS["rsu_capacity"]]),
             key=WHATIF_WIDGET_KEYS["rsu_capacity"],
         )
-        policy_options = synthetic_policy_options_for_ui()
-        # policy selectbox with key
-        current_policy = str(st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]])
-        policy_index = (
-            policy_options.index(current_policy) if current_policy in policy_options else 0
-        )
-        # Ensure session state holds the actual value before widget creation
-        if (
-            WHATIF_WIDGET_KEYS["policy_profile"] not in st.session_state
-            or st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] not in policy_options
-        ):
-            st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] = policy_options[policy_index]
         policy_profile = c3.selectbox(
             "Synthetic policy profile",
             policy_options,
-            index=policy_index,
             key=WHATIF_WIDGET_KEYS["policy_profile"],
         )
 
