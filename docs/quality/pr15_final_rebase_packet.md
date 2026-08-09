@@ -215,7 +215,7 @@ No PR opened from rehearsal refs.
 | `origin/main` | `73264bd125ead979cd2615d5e4b50c2cfe6c50ae` | same |
 | PR #13 `agent/product-portfolio-explorer-v2` | `2d7e85f5641c1836a0e8892d2e256c55b1e3bc6a` | OPEN DRAFT |
 | PR #14 `agent/product-v2-home-guided-whatif` | `a9ec532ac88ed8678973416fe21bcab5d1a57d11` | OPEN DRAFT |
-| PR #16 `agent/product-consequence-lens-hardening-v2` | `48e705b40690fe2585324dd156c297503d1c64c1` | OPEN DRAFT (live, same as rehearsed) |
+| PR #16 `agent/product-consequence-lens-hardening-v2` | `48e705b40690fe2585324dd156c297503d1c64c1` (rehearsed) → **live `24f8b5c9bda4ad67d5524e80596b9dc486c14322`** (2026-08-09 23:11, 1 commit ahead) | OPEN DRAFT — live advanced 1 commit, no five-file delta (see §8) |
 | PR #20 `agent/fix-compare-draft-lifecycle` | `ea37dd3bb13ec11900583556d1d95ac294f6f659` | OPEN DRAFT |
 | Old stale PR #16 SHAs (no longer used) | `35e6f41`, `12f8436` | archived — not present in v2 base |
 
@@ -226,10 +226,12 @@ No PR opened from rehearsal refs.
 ## 8. PR16 compatibility audit
 
 ```
-git diff --name-only 48e705b 48e705b  # rehearsed PR16 head == live PR16 head → no diff
+git diff --name-only 48e705b 48e705b  # rehearsed PR16 head == live PR16 head at packet write (2026-08-09 21:19) → no diff
+# At audit 2026-08-09 23:57 live PR16 advanced to 24f8b5c (1 commit: test: exercise cache analysis type guard)
+git diff --name-only 48e705b 24f8b5c  # → only tests/unit/ui/test_consequence_cache.py, 0 of five conflict files
 ```
 
-Result: **NO delta** — live PR #16 (`48e705b`) equals the PR #16 head merged into `rehearsal/final-38-v2` (`9c75835 rehearsal v2: merge PR16 48e705b`). All five conflict files unchanged between rehearsed and live PR #16. The rehearsed PR15 five-file resolution is **not invalidated** by later PR16 hardening (v2 already includes the hardened `48e705b`).
+Result at packet write: **NO delta** — live `48e705b` equals rehearsed (`9c75835 rehearsal v2: merge PR16 48e705b`). **Update 2026-08-09 23:57:** live advanced to `24f8b5c` (diff vs `48e705b` = only `tests/unit/ui/test_consequence_cache.py`, **none** of `docs/user_guide.md, labels.py, navigation.py, navigation_v07.py, page_runtime.py, test_navigation_v07.py`). Rehearsed five-file resolution remains applicable; no new compatibility rehearsal required for this delta. Production code unchanged between `48e705b` and `24f8b5c`.
 
 If live PR #16 moves again before official rebase, re-run:
 
@@ -333,6 +335,12 @@ No corrective commit to official PR #15 required for these.
 - Not a merge or Ready-mark.
 - Not a claim that official is already 38 pages.
 - Not a replacement for live-head verification at rebase time.
+
+---
+
+## Amendment — 2026-08-09 23:57 audit (E2 active, no new product commit)
+
+- PR16 live head advanced `48e705b` → `24f8b5c9bda4ad67d5524e80596b9dc486c14322` (1 commit, `test: exercise cache analysis type guard at live fingerprint`, production unchanged). Audit verified `git diff --name-only 48e705b 24f8b5c` = only `tests/unit/ui/test_consequence_cache.py`, 0 five-file overlap. Rerere 8 entries still valid, live-check `d03ea20`/`6089b56` trees unchanged, 38-page arithmetic unchanged. E2 active (`eval_sumo_stage1_mc.py` + `run_e2_native_placement_pilot.py`) — no heavy 668 rerun, lightweight verification only. Packet updated on rehearsal branch, official `34cdcac` untouched.
 
 ---
 
