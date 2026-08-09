@@ -53,6 +53,7 @@ def _run_whatif(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, extra_state: dict[str, object] | None = None
 ) -> AppTest:
     import importlib
+    from typing import cast
 
     monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(tmp_path / "ws"))
     monkeypatch.setenv("TRAFFICTWIN_REGISTRY_PATH", str(tmp_path / "ws" / "registry.sqlite"))
@@ -61,7 +62,10 @@ def _run_whatif(
             monkeypatch.delenv(k, raising=False)
     (tmp_path / "ws").mkdir(parents=True, exist_ok=True)
     app_test_cls = vars(importlib.import_module("streamlit.testing.v1"))["AppTest"]
-    app = app_test_cls.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.WHATIF_STUDIO)}")
+    app = cast(
+        AppTest,
+        app_test_cls.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.WHATIF_STUDIO)}"),
+    )
     from traffictwin.ui.state import load_ui_config
 
     state = deepcopy(default_session_state(load_ui_config()))
@@ -305,10 +309,17 @@ def test_prepared_challenge_survives_rerun_into_generation(
     assert not app.exception
     # Assert prefilled widget values before generate
     vals = {str(inp.label): inp.value for inp in app.number_input}
-    assert float(vals.get("Congestion multiplier", 0)) == 2.2
-    assert abs(float(vals.get("Task arrival rate", 0)) - 0.16) < 1e-6
+    c_mul = vals.get("Congestion multiplier")
+    assert c_mul is not None
+    assert float(c_mul) == 2.2
+    tar = vals.get("Task arrival rate")
+    assert tar is not None
+    assert abs(float(tar) - 0.16) < 1e-6
     # Find duration with value 900 (incident duration)
-    dur_vals = [float(inp.value) for inp in app.number_input if "Duration (s)" in str(inp.label)]
+    dur_vals: list[float] = []
+    for inp in app.number_input:
+        if "Duration (s)" in str(inp.label) and inp.value is not None:
+            dur_vals.append(float(inp.value))
     assert any(abs(v - 900.0) < 1e-6 for v in dur_vals), f"900 not in {dur_vals}"
     # Trigger Generate through real form
     gen_btn = [b for b in app.button if b.label == "Generate comparison"]
@@ -393,7 +404,9 @@ def test_user_edit_survives_through_generation(
     assert not app.exception
     # Verify edit persisted
     vals = {str(i.label): i.value for i in app.number_input}
-    assert float(vals.get("Congestion multiplier", 0)) == 2.5
+    c_mul2 = vals.get("Congestion multiplier")
+    assert c_mul2 is not None
+    assert float(c_mul2) == 2.5
     # Generate
     gen_btn = [b for b in app.button if b.label == "Generate comparison"][0]
     gen_btn.click().run(timeout=30)
@@ -438,10 +451,250 @@ def test_old_receipt_not_relabelled_by_later_ch02(
         or "Generated from the supported subset of CH-02" not in success_text
     )
     # Specifically, last generation context should still be None or not matching CH-02
-    ctx = app.session_state["last_whatif_generation_challenge_context"]
-    # AppTest session_state returns None if missing? check containment
     if "last_whatif_generation_challenge_context" not in app.session_state:
-        ctx = None
-    assert ctx is None or ctx.get("pair_id") == pair_id  # type: ignore[union-attr]
-    if isinstance(ctx, dict):
-        assert ctx.get("challenge_id") != "CH-02-lane-closure-corridor"
+        ctx2: dict[str, object] | None = None
+    else:
+        raw_ctx = app.session_state["last_whatif_generation_challenge_context"]
+        assert raw_ctx is None or isinstance(raw_ctx, dict)
+        ctx2 = raw_ctx if isinstance(raw_ctx, dict) or raw_ctx is None else None
+        if isinstance(ctx2, dict):
+            assert ctx2.get("pair_id") == pair_id or ctx2 is None
+    if isinstance(ctx2, dict):
+        assert ctx2.get("challenge_id") != "CH-02-lane-closure-corridor"
+
+
+# --- MEDIUM-6: cross-draft reset regression ---
+
+
+def test_ch01_to_ch07_resets_full_control_set(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """CH-01 → CH-07 without Clear must reset full control set to defaults then overlay CH-07.
+
+    Proves: no CH-01 incident/event/demand leak, duration 900 gone, ledger is CH-07+defaults.
+    """
+    from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
+
+    # Step 1: prepare CH-01
+    d01 = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
+    h01 = draft_to_handoff_dict(d01)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h01,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    # Confirm CH-01 controls present
+    vals01 = {str(inp.label): inp.value for inp in app.number_input}
+    # congestion 2.2 is CH-01 specific
+    c_mul_01 = vals01.get("Congestion multiplier")
+    assert c_mul_01 is not None and abs(float(c_mul_01) - 2.2) < 1e-6
+    dur_vals_01: list[float] = [
+        float(inp.value)
+        for inp in app.number_input
+        if "Duration (s)" in str(inp.label) and inp.value is not None
+    ]
+    assert any(abs(v - 900.0) < 1e-6 for v in dur_vals_01), (
+        f"CH-01 duration 900 missing {dur_vals_01}"
+    )
+    # Also check incident type is stadium_event (CH-01)
+    incident_types_01 = [str(c.value) for c in app.text_input if "Event type" in str(c.label)]
+    assert any("stadium_event" in t for t in incident_types_01)
+
+    # Step 2: prepare CH-07 in same session without Clear
+    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
+    h07 = draft_to_handoff_dict(d07)
+    # Inject new draft via session state (simulates Portfolio → Prepare again)
+    app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = h07
+    app.session_state["whatif_challenge_prefill_applied_fingerprint"] = (
+        d01.fingerprint
+    )  # old applied, new will trigger reset
+    app.run(timeout=30)
+    assert not app.exception
+
+    # Step 3: prove every control not mapped by CH-07 has returned to stock default
+    # CH-07 maps: vehicle_count 80, rsu_count 6, congestion 1.0, task_arrival 0.2
+    # It does NOT map incident_type/location/event_demand/duration etc.
+    # Use DEFAULT_WHATIF_WIDGET_VALUES for expected defaults
+    # Map widget labels to expected keys via app.session_state
+    # Check incident fields returned to defaults
+    assert (
+        app.session_state["whatif_incident_type"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_type"]
+    )
+    assert (
+        app.session_state["whatif_incident_location"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_location"]
+    )
+    assert (
+        app.session_state["whatif_event_demand_multiplier"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_event_demand_multiplier"]
+    )
+    assert (
+        app.session_state["whatif_incident_duration_s"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_duration_s"]
+    )
+    assert (
+        app.session_state["whatif_incident_start_s"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_incident_start_s"]
+    )
+    assert (
+        app.session_state["whatif_lanes_closed"]
+        == DEFAULT_WHATIF_WIDGET_VALUES["whatif_lanes_closed"]
+    )
+    # Explicitly prove CH-01-only incident/event state is gone
+    assert "stadium_event" not in str(app.session_state["whatif_incident_type"])
+    assert "old-trafford" not in str(app.session_state["whatif_incident_location"])
+    # Explicitly prove CH-01 duration 900.0 does not leak
+    assert float(app.session_state["whatif_incident_duration_s"]) != 900.0
+    dur_vals_after: list[float] = [
+        float(inp.value)
+        for inp in app.number_input
+        if "Duration (s)" in str(inp.label) and inp.value is not None
+    ]
+    assert all(abs(v - 900.0) > 1e-6 for v in dur_vals_after), f"leaked 900 in {dur_vals_after}"
+    # CH-01 demand 2.0 must not leak unless CH-07 maps same field/value
+    # CH-07 maps congestion 1.0, not 2.2, so 2.2 must be gone; event_demand default 1.3
+    assert abs(float(app.session_state["whatif_congestion_multiplier"]) - 2.2) > 1e-6
+    assert float(app.session_state["whatif_congestion_multiplier"]) == 1.0  # CH-07 value
+    assert float(app.session_state["whatif_event_demand_multiplier"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_event_demand_multiplier"]
+    )
+    # Also prove CH-07-supported values plus ordinary defaults only via generation
+    assert int(app.session_state["whatif_vehicle_count"]) == 80
+    assert int(app.session_state["whatif_rsu_count"]) == 6
+    assert abs(float(app.session_state["whatif_task_arrival_rate"]) - 0.2) < 1e-6
+    # Task mix not mapped by CH-07 so should be defaults
+    assert float(app.session_state["whatif_task_mix_t1"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_task_mix_t1"]
+    )
+    assert float(app.session_state["whatif_rsu_capacity"]) == float(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_rsu_capacity"]
+    )
+
+    # Step 4: click Generate and inspect ledger
+    gen_btn = [b for b in app.button if b.label == "Generate comparison"]
+    assert gen_btn
+    gen_btn[0].click().run(timeout=30)
+    assert not app.exception
+    assert "whatif_pair_receipt" in app.session_state
+    receipt = app.session_state["whatif_pair_receipt"]
+    changed = {p["field_path"]: p for p in receipt.get("changed_parameters", [])}
+    # Ledger must contain CH-07 values, not CH-01 leakage
+    assert (
+        "congestion_multiplier" not in changed
+        or str(changed["congestion_multiplier"]["variation_value"]) == "1.0"
+    )
+    # Prove incident fields not in ledger as CH-01 leakage (defaults, no diff)
+    # Key: duration_s in ledger should NOT be 900.0
+    for p in receipt.get("changed_parameters", []):
+        if "duration_s" in p["field_path"]:
+            assert abs(float(p["variation_value"]) - 900.0) > 1e-6, f"leaked 900 in ledger {p}"
+        if p["field_path"] == "event_demand_multiplier":
+            assert abs(float(p["variation_value"]) - 2.0) > 1e-6, (
+                f"leaked CH-01 event_demand 2.0 {p}"
+            )
+
+
+def test_same_fingerprint_rerun_preserves_user_edit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Same CH-07 fingerprint rerun does not reset a user edit."""
+    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
+    h07 = draft_to_handoff_dict(d07)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h07,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    # User edits congestion from 1.0 to 2.5
+    inp = next(inp for inp in app.number_input if "Congestion multiplier" in str(inp.label))
+    inp.set_value(2.5).run(timeout=30)
+    assert not app.exception
+    vals = {str(i.label): i.value for i in app.number_input}
+    edited_val = vals.get("Congestion multiplier")
+    assert edited_val is not None and abs(float(edited_val) - 2.5) < 1e-6
+    # Rerun with same fingerprint (no new draft) should preserve edit
+    app.run(timeout=30)
+    assert not app.exception
+    vals2 = {str(i.label): i.value for i in app.number_input}
+    edited_val2 = vals2.get("Congestion multiplier")
+    assert edited_val2 is not None and abs(float(edited_val2) - 2.5) < 1e-6
+
+
+def test_new_draft_resets_before_overlay_clears_user_edit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A later different draft resets before overlay (clears user edit)."""
+    d07 = build_challenge_whatif_draft(get_challenge_seed("CH-07-scaling-strategy"))  # type: ignore[arg-type]
+    h07 = draft_to_handoff_dict(d07)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h07,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    # User edits vehicle_count from 80 to 42
+    inp = next(inp for inp in app.number_input if "Vehicle count" in str(inp.label))
+    inp.set_value(42).run(timeout=30)
+    assert not app.exception
+    assert int(app.session_state["whatif_vehicle_count"]) == 42
+    # Now inject CH-01 (different fingerprint) — should reset complete set then overlay CH-01
+    d01 = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
+    h01 = draft_to_handoff_dict(d01)
+    app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = h01
+    # Keep old fingerprint to trigger reset path on next run
+    app.run(timeout=30)
+    assert not app.exception
+    # vehicle_count should now be default (CH-01 does NOT map vehicle_count) — not 42, not 80
+    from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
+
+    assert int(app.session_state["whatif_vehicle_count"]) == int(
+        DEFAULT_WHATIF_WIDGET_VALUES["whatif_vehicle_count"]
+    )
+    # And CH-01 mapped values should be present
+    assert abs(float(app.session_state["whatif_congestion_multiplier"]) - 2.2) < 1e-6
+
+
+def test_clear_restores_full_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Clear must restore the same authoritative stock defaults."""
+    from traffictwin.ui.whatif_controls import DEFAULT_WHATIF_WIDGET_VALUES
+
+    d01 = build_challenge_whatif_draft(get_challenge_seed("CH-01-arena-surge"))  # type: ignore[arg-type]
+    h01 = draft_to_handoff_dict(d01)
+    app = _run_whatif(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            PENDING_WHATIF_CHALLENGE_DRAFT_KEY: h01,
+            "whatif_challenge_prefill_applied_fingerprint": None,
+        },
+    )
+    assert not app.exception
+    assert "stadium_event" in str(app.session_state["whatif_incident_type"])
+    # Click Clear
+    clear_btn = [b for b in app.button if b.label == "Clear challenge prefill"]
+    assert clear_btn
+    clear_btn[0].click().run(timeout=30)
+    assert not app.exception
+    # All controls should be defaults
+    for key, expected in DEFAULT_WHATIF_WIDGET_VALUES.items():
+        assert app.session_state[key] == expected, (
+            f"{key} not reset: {app.session_state[key]} != {expected}"
+        )
+    # Pending draft gone
+    assert (
+        PENDING_WHATIF_CHALLENGE_DRAFT_KEY not in app.session_state
+        or app.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] is None
+    )
+    assert app.session_state["whatif_challenge_prefill_applied_fingerprint"] is None
