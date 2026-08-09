@@ -31,35 +31,44 @@ def _provenance_badge(synthetic_flag: object) -> str:
     return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
 
 
+def _render_missing_pair_guidance(*, key_prefix: str, message: str) -> None:
+    """Render first-run guidance for missing pair states with distinct keys."""
+
+    first_run_guidance(
+        actions=[
+            ("Start Guided Demo", UiPage.GUIDED_DEMO),
+            ("Import a Run Bundle", UiPage.BUNDLE_IMPORT),
+        ],
+        message=message,
+        key_prefix=key_prefix,
+    )
+
+
 def render() -> None:
     """Render comparison page."""
 
     st.title("What-if Compare")
-    baseline_path = Path(
-        st.text_input(
-            "Baseline bundle path",
-            value=str(
-                st.session_state.get(
-                    "selected_baseline_run", "tests/fixtures/bundles/baseline_valid"
-                )
-            ),
-        )
+    # AUTHORITATIVE state: last successfully validated/comparable pair
+    committed_baseline = str(
+        st.session_state.get("selected_baseline_run", "tests/fixtures/bundles/baseline_valid")
     )
-    variation_path = Path(
-        st.text_input(
-            "Variation bundle path",
-            value=str(
-                st.session_state.get(
-                    "selected_variation_run", "tests/fixtures/bundles/variation_valid"
-                )
-            ),
-        )
+    committed_variation = str(
+        st.session_state.get("selected_variation_run", "tests/fixtures/bundles/variation_valid")
     )
-    st.session_state["selected_baseline_run"] = str(baseline_path)
-    st.session_state["selected_variation_run"] = str(variation_path)
-
-    if not baseline_path.exists() or not variation_path.exists():
-        st.error("Both baseline and variation bundle paths must exist.")
+    # Draft inputs: must not become authoritative merely because typed
+    baseline_draft = st.text_input(
+        "Baseline bundle path",
+        value=committed_baseline,
+    )
+    variation_draft = st.text_input(
+        "Variation bundle path",
+        value=committed_variation,
+    )
+    # Strip BEFORE Path construction — Path("") == Path(".") would corrupt session
+    baseline_str = baseline_draft.strip()
+    variation_str = variation_draft.strip()
+    if not baseline_str or not variation_str:
+        st.error("Both baseline and variation bundle paths must be selected.")
         first_run_guidance(
             actions=[
                 ("Start Guided Demo", UiPage.GUIDED_DEMO),
@@ -73,13 +82,73 @@ def render() -> None:
             key_prefix="compare_first_run",
         )
         return
+    # Construct Path only from non-blank strings
+    baseline_path = Path(baseline_str)
+    variation_path = Path(variation_str)
+    if not baseline_path.exists() and not variation_path.exists():
+        st.error("Both baseline and variation bundle paths must exist.")
+        _render_missing_pair_guidance(
+            key_prefix="compare_both_missing",
+            message=(
+                "A comparison needs two existing run bundles. The guided demo creates "
+                "a baseline and a stressed variation to compare, or import your own "
+                "bundles and enter their paths above."
+            ),
+        )
+        return
+    if not baseline_path.exists():
+        st.error("Both baseline and variation bundle paths must exist.")
+        st.info(f"Baseline bundle path does not exist: {baseline_path}")
+        _render_missing_pair_guidance(
+            key_prefix="compare_baseline_missing",
+            message=(
+                "Baseline bundle is missing. A comparison needs two existing run bundles. "
+                "The guided demo creates a baseline and a stressed variation to compare, "
+                "or import your own bundles and enter their paths above."
+            ),
+        )
+        return
+    if not variation_path.exists():
+        st.error("Both baseline and variation bundle paths must exist.")
+        st.info(f"Variation bundle path does not exist: {variation_path}")
+        _render_missing_pair_guidance(
+            key_prefix="compare_variation_missing",
+            message=(
+                "Variation bundle is missing. A comparison needs two existing run bundles. "
+                "The guided demo creates a baseline and a stressed variation to compare, "
+                "or import your own bundles and enter their paths above."
+            ),
+        )
+        return
 
     baseline = validate_bundle_for_ui(baseline_path)
     variation = validate_bundle_for_ui(variation_path)
+    # Validate suitability for comparison — fail closed without mutating authoritative pair
+    if isinstance(baseline, ServiceError) or not getattr(baseline, "analysis_ready", False):
+        st.error("Baseline bundle is invalid and cannot be used for comparison.")
+        if isinstance(baseline, ServiceError) and baseline.detail:
+            st.caption(baseline.detail)
+        elif not isinstance(baseline, ServiceError):
+            with st.expander("Advanced: baseline validation report"):
+                st.json(baseline.validation.report.model_dump(mode="json"))
+        return
+    if isinstance(variation, ServiceError) or not getattr(variation, "analysis_ready", False):
+        st.error("Variation bundle is invalid and cannot be used for comparison.")
+        if isinstance(variation, ServiceError) and variation.detail:
+            st.caption(variation.detail)
+        elif not isinstance(variation, ServiceError):
+            with st.expander("Advanced: variation validation report"):
+                st.json(variation.validation.report.model_dump(mode="json"))
+        return
     report = compare_runs_for_ui(baseline, variation)
     if isinstance(report, ServiceError):
         st.error(report.message)
+        if report.detail:
+            st.caption(report.detail)
         return
+    # Only after pair is successfully usable: atomically assign BOTH
+    st.session_state["selected_baseline_run"] = str(baseline_path)
+    st.session_state["selected_variation_run"] = str(variation_path)
 
     st.subheader("Compatibility")
     same_experiment = report.baseline_context.get("experiment_id") == report.variation_context.get(
