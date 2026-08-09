@@ -1,4 +1,3 @@
-# mypy: disable-error-code="arg-type, has-type, no-any-return, unused-ignore"
 """Session-local BundleAnalysis cache for the Consequence page.
 
 Caches ``BundleAnalysis`` (validation + metrics + evidence + diagnostics) in
@@ -55,6 +54,7 @@ validation itself provides.
 from __future__ import annotations
 
 import copy
+from dataclasses import dataclass
 from pathlib import Path
 
 from traffictwin.ingestion.hashes import fingerprint_bundle_source, sha256_file
@@ -62,6 +62,13 @@ from traffictwin.ui.services import validate_bundle_for_ui
 from traffictwin.ui.services.models import BundleAnalysis
 
 _MAX_BUNDLE_CACHE = 32
+
+
+@dataclass(frozen=True)
+class _SessionCacheEntry:
+    raw: str | None
+    logical: str
+    analysis: BundleAnalysis
 
 
 def _resolved_path_str(path: Path) -> str:
@@ -90,6 +97,41 @@ def _raw_zip_witness(path: Path) -> str | None:
         return None
 
 
+def _parse_entry(value: object) -> _SessionCacheEntry | None:
+    """Validate an untrusted cache value and return a typed entry or ``None``.
+
+    Supports:
+    * current 3-tuple ``(raw, logical, analysis)`` where ``raw`` is ``str|None``,
+      ``logical`` is ``str``, ``analysis`` is ``BundleAnalysis``;
+    * legacy 2-tuple ``(logical, analysis)`` where ``logical`` is ``str`` and
+      ``analysis`` is ``BundleAnalysis`` (treated as directory entry with
+      ``raw=None`` for backwards compatibility; new writes always use 3-tuple).
+
+    Malformed entries return ``None`` and are treated as a miss, never a crash.
+    """
+
+    if not isinstance(value, tuple):
+        return None
+    if len(value) == 2:
+        logical, analysis = value
+        raw: str | None = None
+        if not isinstance(logical, str):
+            return None
+        if not isinstance(analysis, BundleAnalysis):
+            return None
+        return _SessionCacheEntry(raw=raw, logical=logical, analysis=analysis)
+    if len(value) == 3:
+        raw, logical, analysis = value
+        if raw is not None and not isinstance(raw, str):
+            return None
+        if not isinstance(logical, str):
+            return None
+        if not isinstance(analysis, BundleAnalysis):
+            return None
+        return _SessionCacheEntry(raw=raw, logical=logical, analysis=analysis)
+    return None
+
+
 def _session_cache_get(
     cache_dict: dict[str, object],
     path: Path,
@@ -99,38 +141,19 @@ def _session_cache_get(
     current_logical: str | None,
 ) -> BundleAnalysis | None:
     resolved = _resolved_path_str(path)
-    entry = cache_dict.get(resolved)
+    raw_entry = cache_dict.get(resolved)
+    entry = _parse_entry(raw_entry)
     if entry is None:
         return None
-    # Handle legacy 2-tuple (logical, analysis) and new 3-tuple (raw, logical, analysis)
-    try:
-        if len(entry) == 2:
-            # Legacy directory entry: (logical, analysis)
-            cached_logical, cached_analysis = entry  # type: ignore[misc]
-            cached_raw = None
-        elif len(entry) == 3:
-            cached_raw, cached_logical, cached_analysis = entry  # type: ignore[misc]
-        else:
-            return None
-    except (TypeError, ValueError):
-        return None
-    if not isinstance(cached_logical, str):
-        return None
-    if not hasattr(cached_analysis, "validation"):
-        return None
     if is_zip:
-        if not isinstance(cached_raw, str) or current_raw is None:
+        if entry.raw is None or current_raw is None:
             return None
-        if cached_raw != current_raw:
+        if entry.raw != current_raw:
             return None
-        # Raw match implies logical must match, but we also verify logical if present
-        # For ZIP, we don't require logical equality for warm hit, raw is sufficient
-        return copy.deepcopy(cached_analysis)
-    # Directory: compare logical
-    if current_logical is None or cached_logical != current_logical:
+        return copy.deepcopy(entry.analysis)
+    if current_logical is None or entry.logical != current_logical:
         return None
-    # For directory, raw is expected to be None
-    return copy.deepcopy(cached_analysis)
+    return copy.deepcopy(entry.analysis)
 
 
 def _session_cache_put(
@@ -153,7 +176,6 @@ def _session_cache_put(
         oldest = next(iter(cache_dict))
         cache_dict.pop(oldest, None)
     if is_zip:
-        # For ZIP, raw must be present
         if raw_witness is None:
             return
         cache_dict[resolved] = (raw_witness, logical_fingerprint, copy.deepcopy(analysis))
@@ -172,30 +194,26 @@ def session_validate_bundle(path: Path, session_state: dict[str, object]) -> Bun
     raw_cache = session_state.get("_consequence_bundle_cache")
     if not isinstance(raw_cache, dict):
         cache_dict: dict[str, object] = {}
-        session_state["_consequence_bundle_cache"] = cache_dict  # type: ignore[assignment]
+        session_state["_consequence_bundle_cache"] = cache_dict
     else:
-        cache_dict = raw_cache  # type: ignore[assignment]
+        cache_dict = raw_cache
 
     is_zip = _is_zip_source(Path(path))
 
     if is_zip:
-        # ZIP: two-level freshness — raw witness for warm, logical for cold
         current_raw = _raw_zip_witness(Path(path))
         if current_raw is None:
-            # Fail closed for ZIP when raw cannot be established
             analysis = validate_bundle_for_ui(path)
             return copy.deepcopy(analysis)
-        # Check cache via raw witness (no extraction)
         cached = _session_cache_get(
             cache_dict, Path(path), is_zip=True, current_raw=current_raw, current_logical=None
         )
         if cached is not None:
             return cached
-        # Miss: validate, then re-check raw to detect mutation during validation
         analysis = validate_bundle_for_ui(path)
-        if not getattr(analysis, "analysis_ready", False):
+        if not analysis.analysis_ready:
             return copy.deepcopy(analysis)
-        validation_fp = getattr(analysis.validation, "fingerprint", None)
+        validation_fp = analysis.validation.fingerprint
         if not isinstance(validation_fp, str):
             return copy.deepcopy(analysis)
         try:
@@ -205,7 +223,6 @@ def session_validate_bundle(path: Path, session_state: dict[str, object]) -> Bun
             return copy.deepcopy(analysis)
         raw_after = _raw_zip_witness(Path(path))
         if raw_after is None or raw_after != current_raw:
-            # Archive mutated during validation — do not cache
             return copy.deepcopy(analysis)
         _session_cache_put(
             cache_dict,
@@ -216,7 +233,6 @@ def session_validate_bundle(path: Path, session_state: dict[str, object]) -> Bun
             analysis=analysis,
         )
         return copy.deepcopy(analysis)
-    # Directory (and non-ZIP): logical fingerprint
     current_fp = fingerprint_bundle_source(path)
     if current_fp is None:
         analysis = validate_bundle_for_ui(path)
@@ -227,9 +243,9 @@ def session_validate_bundle(path: Path, session_state: dict[str, object]) -> Bun
     if cached is not None:
         return cached
     analysis = validate_bundle_for_ui(path)
-    if not getattr(analysis, "analysis_ready", False):
+    if not analysis.analysis_ready:
         return copy.deepcopy(analysis)
-    validation_fp = getattr(analysis.validation, "fingerprint", None)
+    validation_fp = analysis.validation.fingerprint
     if not isinstance(validation_fp, str):
         return copy.deepcopy(analysis)
     try:

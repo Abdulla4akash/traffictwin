@@ -938,3 +938,135 @@ def test_zip_raw_witness_never_in_portable(tmp_path: Path) -> None:
         assert raw not in payload, "raw ZIP witness must not be in portable"
         assert "raw_witness" not in payload.lower()
         assert "sha256" not in payload.lower() or raw not in payload  # raw should not leak
+
+
+@pytest.mark.parametrize(
+    "malformed_value",
+    [
+        None,
+        123,
+        "not-a-tuple",
+        (),
+        ("only_one",),
+        ("a", "b", "c", "d"),  # wrong length 4
+        (123, "logical", None),  # raw int, but need BundleAnalysis for third
+        (None, 123, None),  # logical int
+        (None, "logical", "not-bundle-analysis"),  # fake analysis str
+        (None, "logical", 123),  # fake analysis int
+        {"raw": "x", "logical": "y"},  # dict
+        ("logical", "not-bundle"),  # legacy 2-tuple with fake analysis
+        (None, 123, None),  # duplicate to ensure int logical fails
+        # Fake object with .validation but not BundleAnalysis
+        type("Fake", (), {"validation": type("V", (), {"fingerprint": "abc"})()})(),
+    ],
+)
+def test_malformed_entry_matrix_miss_and_no_crash(tmp_path: Path, malformed_value: object) -> None:
+    """Parametrized malformed session entries must miss, not crash, and be replaced."""
+
+    dst = _baseline_copy(tmp_path, f"malformed_{hash(str(malformed_value)) % 10000}")
+    session_state: dict[str, object] = {}
+    # Inject malformed value
+    resolved = str(dst.resolve())
+    session_state["_consequence_bundle_cache"] = {resolved: malformed_value}  # type: ignore[dict-item]
+    # First call should miss, run validator, not crash, and return valid analysis
+    first = session_validate_bundle(dst, session_state)
+    assert first.analysis_ready
+    # After successful validation, the malformed value should have been replaced with a valid entry
+    cache_dict = session_state["_consequence_bundle_cache"]  # type: ignore[assignment]
+    assert isinstance(cache_dict, dict)
+    entry = cache_dict.get(resolved)
+    assert entry is not None
+    # Entry should now be a valid 3-tuple (None, logical, BundleAnalysis) for directory
+    assert isinstance(entry, tuple)
+    assert len(entry) == 3
+    assert entry[0] is None  # raw is None for directory
+    assert isinstance(entry[1], str)
+    assert isinstance(entry[2], BundleAnalysis)
+
+
+def test_malformed_entry_correct_directory_and_zip_are_hits(tmp_path: Path) -> None:
+    """Correct directory and ZIP entries must be hits (not malformed)."""
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    # Directory correct entry
+    dst = _baseline_copy(tmp_path, "dir_correct")
+    session_state: dict[str, object] = {}
+    # Warm to get a valid entry
+    first = session_validate_bundle(dst, session_state)
+    assert first.analysis_ready
+    cache_dict = session_state["_consequence_bundle_cache"]  # type: ignore[assignment]
+    assert isinstance(cache_dict, dict)
+    resolved = str(dst.resolve())
+    entry = cache_dict.get(resolved)
+    assert isinstance(entry, tuple) and len(entry) == 3
+    # Second call should hit (no validator)
+    calls = {"n": 0}
+    orig = cache_mod.validate_bundle_for_ui
+
+    def counting(path: Path) -> BundleAnalysis:
+        calls["n"] += 1
+        return orig(path)
+
+    cache_mod.validate_bundle_for_ui = counting  # type: ignore[attr-defined, assignment]
+    try:
+        second = session_validate_bundle(dst, session_state)
+        assert calls["n"] == 0
+        assert second.validation.fingerprint == first.validation.fingerprint
+    finally:
+        cache_mod.validate_bundle_for_ui = orig  # type: ignore[attr-defined, assignment]
+
+    # ZIP correct entry
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip_path = tmp_path / "zip_correct.zip"
+    _make_zip_from_dir(src_dir, zip_path)
+    session_state2: dict[str, object] = {}
+    first_zip = session_validate_bundle(zip_path, session_state2)
+    assert first_zip.analysis_ready
+    cache_dict2 = session_state2["_consequence_bundle_cache"]  # type: ignore[assignment]
+    assert isinstance(cache_dict2, dict)
+    resolved_zip = str(zip_path.resolve())
+    entry_zip = cache_dict2.get(resolved_zip)
+    assert isinstance(entry_zip, tuple) and len(entry_zip) == 3
+    assert isinstance(entry_zip[0], str)  # raw
+    assert isinstance(entry_zip[1], str)  # logical
+    assert isinstance(entry_zip[2], BundleAnalysis)
+    # Warm ZIP should hit via raw
+    calls["n"] = 0
+    cache_mod.validate_bundle_for_ui = counting  # type: ignore[attr-defined, assignment]
+    try:
+        second_zip = session_validate_bundle(zip_path, session_state2)
+        assert calls["n"] == 0
+        assert second_zip.validation.fingerprint == first_zip.validation.fingerprint
+    finally:
+        cache_mod.validate_bundle_for_ui = orig  # type: ignore[attr-defined, assignment]
+
+
+def test_legacy_two_tuple_still_miss_or_hit_correctly(tmp_path: Path) -> None:
+    """Legacy 2-tuple (logical, analysis) should be parsed as directory entry."""
+    from traffictwin.ui.services import validate_bundle_for_ui
+
+    dst = _baseline_copy(tmp_path, "legacy")
+    session_state: dict[str, object] = {}
+    # Create a valid analysis via direct validation
+    analysis = validate_bundle_for_ui(dst)
+    assert analysis.analysis_ready
+    assert isinstance(analysis.validation.fingerprint, str)
+    # Inject legacy 2-tuple
+    resolved = str(dst.resolve())
+    session_state["_consequence_bundle_cache"] = {
+        resolved: (analysis.validation.fingerprint, analysis)
+    }  # type: ignore[dict-item]
+    # Should be a hit (legacy directory entry with raw=None)
+    second = session_validate_bundle(dst, session_state)
+    assert second.validation.fingerprint == analysis.validation.fingerprint
+    # Malformed legacy: wrong types should miss
+    session_state2: dict[str, object] = {
+        "_consequence_bundle_cache": {resolved: (123, analysis)}  # type: ignore[dict-item]
+    }
+    third = session_validate_bundle(dst, session_state2)
+    assert third.analysis_ready  # miss, revalidated
+    # After miss, cache should be replaced with valid 3-tuple
+    cache_dict2 = session_state2["_consequence_bundle_cache"]  # type: ignore[assignment]
+    assert isinstance(cache_dict2, dict)
+    entry2 = cache_dict2.get(resolved)
+    assert isinstance(entry2, tuple) and len(entry2) == 3
