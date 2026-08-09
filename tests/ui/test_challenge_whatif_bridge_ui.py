@@ -263,9 +263,12 @@ def test_bridge_ledger_distinction_visible(monkeypatch: pytest.MonkeyPatch) -> N
         monkeypatch, UiPage.WHATIF_STUDIO, extra_state={PENDING_WHATIF_CHALLENGE_DRAFT_KEY: handoff}
     )
     assert not app.exception
-    captions = [str(c.value) for c in app.caption]
-    assert "Unmapped controls keep ordinary What-If Studio defaults." in captions
-    assert "The actual generated ledger is authoritative." in captions
+    infos = [str(c.value) for c in app.info]
+    assert (
+        "Challenge source fields above are separate from the actual What-If "
+        "changed-parameter ledger below. Only the ledger determines what will be "
+        "generated."
+    ) in infos
 
 
 def test_range_validation_no_crash_and_status_truthful(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -491,8 +494,13 @@ def test_old_receipt_not_relabelled_by_later_ch02(
     assert ctx2["challenge_fingerprint"] == d01.fingerprint
     # Old success wording does not claim CH-02 generated the old pair
     success_text = " ".join(str(s.value) for s in app.success)
-    assert "Generated from the supported subset of CH-02" not in success_text
-    assert "CH-02" not in success_text or pair_id in success_text or "CH-01" in success_text
+    assert pair_id in success_text
+    assert d01.challenge_id in success_text
+    assert "CH-01-arena-surge" in success_text
+    assert d02.challenge_id not in success_text
+    assert "CH-02-lane-closure-corridor" not in success_text
+    assert f"Generated from the supported subset of {d02.challenge_id}" not in success_text
+    assert f"Generated from supported fields of {d02.challenge_id}" not in success_text
 
 
 # --- MEDIUM-6: cross-draft reset regression ---
