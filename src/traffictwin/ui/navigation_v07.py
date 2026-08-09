@@ -395,6 +395,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/fact_check:",
     ),
     V07PageSpec(
+        UiPage.MANCHESTER_EVIDENCE_HUB,
+        "Evidence & reports",
+        "app_pages/manchester_evidence_hub.py",
+        "manchester-evidence-hub",
+        ":material/hub:",
+    ),
+    V07PageSpec(
         UiPage.PROVENANCE,
         "Evidence & reports",
         "app_pages/provenance.py",
