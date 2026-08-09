@@ -141,3 +141,18 @@ def evidence_state_badge(state: str) -> None:
     display = _EVIDENCE_STATE_DISPLAY.get(_normalise(state), state.upper().replace("_", " "))
     style = badge_style(state)
     st.badge(_sanitise(display), icon=style.icon, color=style.color)
+
+
+def provenance_badge(synthetic_flag: object) -> str:
+    """Three-state provenance badge: synthetic / imported / unknown.
+
+    Preserves exact semantics:
+    * None -> UNKNOWN
+    * True -> SYNTHETIC
+    * False -> IMPORTED
+    Unknown is never collapsed into false.
+    """
+
+    if synthetic_flag is None:
+        return ":gray-badge[UNKNOWN]"
+    return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
