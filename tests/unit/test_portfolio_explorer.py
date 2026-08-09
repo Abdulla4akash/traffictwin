@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from traffictwin.domain.enums import RsuCapacityMode
 from traffictwin.domain.scenario import ScenarioSeed
 from traffictwin.experiments.portfolio import (
@@ -59,9 +61,17 @@ def test_challenge_parameters_are_representable_not_executable() -> None:
         seed = _scenario_seed_from_challenge(challenge)
         assert isinstance(seed, ScenarioSeed)
         assert seed.seed_id == challenge.challenge_id
-        # No invented waiting-room vs compute conflation
+        # Protect selector-input vs recorded distinction via authoritative contract
+        from traffictwin.ui.portfolio_explorer import (  # noqa: PLC0415
+            SELECTOR_CONSUMED_FIELDS,
+            is_selector_input,
+        )
+
         for param in challenge.parameter_overrides:
-            assert "compute" not in param.lower() or "rsu_capacity" in param
+            expected_is_input = param in SELECTOR_CONSUMED_FIELDS or param.startswith(
+                "workload.class_mix"
+            )
+            assert is_selector_input(param) == expected_is_input, param
 
 
 def test_target_evidence_surfaces_truthful() -> None:
@@ -312,96 +322,90 @@ def test_portfolio_study_is_deterministic_independent() -> None:
     assert v1.fingerprint != v_other.fingerprint
 
 
-def test_fingerprint_binds_evidence() -> None:
-    base = build_portfolio_explorer_view("CH-01-arena-surge")
-    # identical evidence -> same fingerprint
+def test_fingerprint_binds_dominance_via_production_builder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Dominance mutation via real builder must change production fingerprint."""
+    baseline = build_portfolio_explorer_view("CH-01-arena-surge")
+    baseline_fp = baseline.fingerprint
+    assert len(baseline_fp) == 64
+    # identical evidence -> same fingerprint via production path
     again = build_portfolio_explorer_view("CH-01-arena-surge")
-    assert base.fingerprint == again.fingerprint
-    assert len(base.fingerprint) == 64
-    # change dominance wins -> different fingerprint (mutate study)
-    mutated = base.study_report.model_copy(deep=True) if base.study_report else None
-    assert mutated is not None and mutated.dominance_matrix
+    assert again.fingerprint == baseline_fp
+
+    from traffictwin.ui import portfolio_explorer as pe  # noqa: PLC0415
+
+    orig_study = pe._cached_demo_portfolio_study()
+    mutated = orig_study.model_copy(deep=True)
+    # Mutate dominance evidence: first pairwise win count
     mutated.dominance_matrix[0] = mutated.dominance_matrix[0].model_copy(
         update={"wins": mutated.dominance_matrix[0].wins + 1}
     )
-    # Recompute fingerprint via helper: build a view with mutated dominance would differ
-    # Directly test payload sensitivity by hashing view's study_report change
-    from traffictwin.ui.portfolio_explorer import (
-        build_portfolio_explorer_view as build,  # noqa: PLC0415
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: mutated)
+    mutated_view = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert mutated_view.fingerprint != baseline_fp
+
+    # Restore and prove deterministic return
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: orig_study)
+    restored = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert restored.fingerprint == baseline_fp
+
+
+def test_fingerprint_binds_held_out_evidence_via_production_builder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Held-out mean regret, winner rate and candidate scores must be fingerprint-bound."""
+    baseline = build_portfolio_explorer_view("CH-01-arena-surge")
+    baseline_fp = baseline.fingerprint
+    assert baseline.study_report is not None
+    assert len(baseline.candidate_views) == 3
+
+    from traffictwin.ui import portfolio_explorer as pe  # noqa: PLC0415
+
+    orig_study = pe._cached_demo_portfolio_study()
+
+    # Mutate held-out winner/tie rate
+    mutated = orig_study.model_copy(deep=True)
+    orig_rate = mutated.held_out_evaluation.winner_or_tie_rate
+    assert orig_rate is not None
+    mutated.held_out_evaluation = mutated.held_out_evaluation.model_copy(
+        update={
+            "winner_or_tie_rate": orig_rate + 0.1 if orig_rate + 0.1 <= 1.0 else orig_rate - 0.1
+        }
     )
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: mutated)
+    mutated_view = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert mutated_view.fingerprint != baseline_fp
 
-    # Simulate held-out mean regret change
-    view = build("CH-01-arena-surge")
-    assert view.study_report is not None
-    original_regret = view.study_report.held_out_evaluation.mean_regret
-    # Mutate via copy and check fingerprint would change if we bound it
-    # We verify current fingerprint does bind held_out mean_regret by constructing
-    # two views where we artificially tweak the study before fingerprinting.
-    # Instead, test challenge parameter override change
-    ch_view = build("CH-01-arena-surge")
-    ch_other = build("CH-02-lane-closure-corridor")
-    assert ch_view.fingerprint != ch_other.fingerprint
-    # winner/tie rate change sensitivity: compare CH-01 vs itself with study mutation
-    # Use the fact that fingerprint includes candidate winner rates
-    assert ch_view.candidate_views[0].winner_or_tie_rate is not None
-    # Ensure fingerprint changes when we change candidate ranking input
-    # (indirectly tested via challenge change, but also via dominance)
-    # For explicit check, we hash the fingerprint payload directly
-    import hashlib
-
-    payload = view.model_dump(mode="json")
-    h1 = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
-    assert h1 != view.fingerprint  # fingerprint binds canonical evidence, not raw dump
-    # Ensure original regret is bound: fingerprint must differ if we rebuild with different challenge  # noqa: E501
-    assert original_regret is not None
-
-
-def test_fingerprint_changes_on_dominance_and_held_out_mutation() -> None:
-    v1 = build_portfolio_explorer_view("CH-01-arena-surge")
-    assert v1.study_report is not None
-    # Copy and mutate dominance wins
-    mutated_report = v1.study_report.model_copy(deep=True)
-    orig_wins = mutated_report.dominance_matrix[0].wins
-    mutated_report.dominance_matrix[0] = mutated_report.dominance_matrix[0].model_copy(
-        update={"wins": orig_wins + 1}
+    # Mutate held-out mean regret
+    mutated2 = orig_study.model_copy(deep=True)
+    orig_regret = mutated2.held_out_evaluation.mean_regret
+    assert orig_regret is not None
+    mutated2.held_out_evaluation = mutated2.held_out_evaluation.model_copy(
+        update={"mean_regret": orig_regret + 1.0}
     )
-    # Build fingerprint payloads manually to prove binding
-    import hashlib
-    import json as js
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: mutated2)
+    mutated_view2 = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert mutated_view2.fingerprint != baseline_fp
+    assert mutated_view2.fingerprint != mutated_view.fingerprint
 
-    from traffictwin.ui.portfolio_explorer import (
-        build_portfolio_explorer_view as build,  # noqa: PLC0415
+    # Mutate candidate mean regret via constituent evaluation
+    mutated3 = orig_study.model_copy(deep=True)
+    mutated3.held_out_constituents[0] = mutated3.held_out_constituents[0].model_copy(
+        update={"mean_regret": (mutated3.held_out_constituents[0].mean_regret or 0) + 5.0}
     )
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: mutated3)
+    mutated_view3 = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert mutated_view3.fingerprint != baseline_fp
 
-    # Helper to compute fingerprint via the same logic as build (simplified)
-    # Instead we test that two different studies would give different fingerprints
-    # by verifying build's fingerprint includes dominance
-    v_base = build("CH-01-arena-surge")
-    assert v_base.study_report is not None
-    # Mutate held-out winner rate
-    held = v_base.study_report.held_out_evaluation
-    assert held.winner_or_tie_rate is not None
-    # Create a second view with same challenge but artificially different held-out
-    # Since build is deterministic, we prove fingerprint would change if held-out changed
-    # by directly checking that the fingerprint payload includes those fields
-    # (indirect proof: challenge change already gives different, but we need dominance)
-    v2 = build("CH-01-arena-surge")
-    assert v2.fingerprint is not None
-    # Ensure dominance is part of fingerprint by checking that fingerprint length and that
-    # the study's dominance is not empty
-    assert v1.study_report is not None
-    assert len(v1.study_report.dominance_matrix) == 6
-    # If fingerprint did not bind dominance, mutating it would not change fingerprint.
-    # We assert the implementation does bind dominance by checking code path exists.
-    # Practical: create two views with different challenges that have same selector but different dominance? Instead  # noqa: E501
-    # we just assert fingerprint differs when we tweak study before hashing.  # noqa: E501
-    # We simulate by hashing the study payload ourselves.
-    payload1 = v1.study_report.model_dump(mode="json", exclude={"generated_at"})
-    mutated_payload = mutated_report.model_dump(mode="json", exclude={"generated_at"})
-    assert payload1 != mutated_payload
-    h1 = hashlib.sha256(js.dumps(payload1, sort_keys=True, default=str).encode()).hexdigest()
-    h2 = hashlib.sha256(js.dumps(mutated_payload, sort_keys=True, default=str).encode()).hexdigest()
-    assert h1 != h2
+    # Mutate challenge parameter override also via production path (different challenge)
+    other = pe.build_portfolio_explorer_view("CH-02-lane-closure-corridor")
+    assert other.fingerprint != baseline_fp
+
+    # Restore original study and prove fingerprint returns deterministically
+    monkeypatch.setattr(pe, "_cached_demo_portfolio_study", lambda: orig_study)
+    restored = pe.build_portfolio_explorer_view("CH-01-arena-surge")
+    assert restored.fingerprint == baseline_fp
 
 
 def test_cache_mutation_isolation() -> None:
