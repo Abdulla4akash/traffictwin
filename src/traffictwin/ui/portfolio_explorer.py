@@ -30,12 +30,12 @@ from traffictwin.synthetic.experiments import generate_synthetic_portfolio_study
 from traffictwin.synthetic.generator import generate_run_data
 from traffictwin.synthetic.scenarios import preset_config
 
-_FIXTURE_TIME = __import__("datetime").datetime(
-    2026, 7, 17, 12, 0, tzinfo=__import__("datetime").timezone.utc
-)
+from datetime import UTC, datetime
+
+_FIXTURE_TIME = datetime(2026, 7, 17, 12, 0, tzinfo=UTC)
 
 
-def _fixed_clock() -> __import__("datetime").datetime:
+def _fixed_clock() -> datetime:
     return _FIXTURE_TIME
 
 
@@ -121,13 +121,15 @@ def _scenario_seed_from_challenge(challenge: ChallengeSeedDefinition) -> Scenari
     return ScenarioSeed.model_validate(seed_dict)
 
 
-def _apply_dot_override(target: dict[str, Any], dotted: str, value: JsonScalar) -> None:
+def _apply_dot_override(target: dict[str, Any], dotted: str, value: Any) -> None:
     parts = dotted.split(".")
     cur: dict[str, Any] = target
     for part in parts[:-1]:
-        if part not in cur or not isinstance(cur[part], dict):
-            cur[part] = {}
-        cur = cur[part]  # type: ignore[assignment]
+        nxt = cur.get(part)
+        if not isinstance(nxt, dict):
+            nxt = {}
+            cur[part] = nxt
+        cur = nxt
     cur[parts[-1]] = value
 
 

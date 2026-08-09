@@ -108,7 +108,6 @@ def test_all_candidates_preserved_and_ranked() -> None:
 
 
 def test_regret_and_winner_preserved() -> None:
-    study = get_demo_portfolio_study()
     view = build_portfolio_explorer_view("CH-01-arena-surge")
     assert view.study_report is not None
     held = view.study_report.held_out_evaluation
