@@ -9,6 +9,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from traffictwin.integration.manchester.freshness import FreshnessTruthState
+
 
 class ManchesterSourceReadiness(BaseModel):
     """One source readiness row with four-state separation."""
@@ -21,7 +23,7 @@ class ManchesterSourceReadiness(BaseModel):
     evidence_type: str = Field(min_length=1)
     evidence_ceiling: str = Field(min_length=1)
     coverage_scope: str = Field(min_length=1)
-    freshness_state: str = Field(min_length=1)
+    freshness_state: FreshnessTruthState = Field()
     software_support_state: str = Field(min_length=1)
     configuration_state: str = Field(min_length=1)
     local_evidence_state: str = Field(min_length=1)
@@ -88,7 +90,9 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             display_name="BODS bus positions",
             source_role="Live/recent BUS positions — bus-only",
             evidence_type="live_vehicle",
-            evidence_ceiling="Live/recent BUS-only vehicle positions only; never general road traffic",
+            evidence_ceiling=(
+                "Live/recent BUS-only vehicle positions only; never general road traffic"
+            ),
             coverage_scope="Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",  # noqa: E501
             freshness_state="live_vehicle" if bods_configured else "unavailable",
             software_support_state="AVAILABLE — BODS live control client implemented",
