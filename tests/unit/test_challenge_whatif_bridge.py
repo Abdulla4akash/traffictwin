@@ -149,8 +149,8 @@ def test_fingerprint_changes_when_mapped_content_changes() -> None:
     assert c is not None
     d1 = build_challenge_whatif_draft(c)
     c2 = copy.deepcopy(c)
-    # Supported field is demand.multiplier
-    c2.parameter_overrides["demand.multiplier"] = 9.9
+    # Supported field is demand.multiplier — change within representable range
+    c2.parameter_overrides["demand.multiplier"] = 1.8
     d2 = build_challenge_whatif_draft(c2)
     assert d1.fingerprint != d2.fingerprint
 
@@ -341,3 +341,73 @@ def test_workload_class_mix_mapping() -> None:
     assert ov["task_mix_t1"] == 0.6
     assert ov["task_mix_t2"] == 0.2
     assert ov["task_mix_t3"] == 0.2
+
+
+def test_range_validation_fails_closed_congestion_above_max() -> None:
+    """Out-of-range mapped value must be unsupported, not crash, not FULLY_MAPPABLE."""
+    c = ChallengeSeedDefinition(
+        challenge_id="CH-99-range-high",
+        title="Range high test",
+        purpose="test",
+        why_challenging="test",
+        parameter_overrides={"demand.multiplier": 5.0},
+        status=ChallengeExecutionStatus.REPRESENTABLE_ONLY,
+    )
+    d = build_challenge_whatif_draft(c)
+    # 5.0 > max 3.0 for congestion_multiplier, so should be unsupported
+    assert len(d.supported_fields) == 0
+    assert len(d.unsupported_fields) == 1
+    assert d.mapping_status == ChallengeWhatIfMappingStatus.NOT_MAPPABLE
+    assert "outside current What-If control range" in d.unsupported_fields[0].reason
+    assert "above maximum" in d.unsupported_fields[0].reason.lower()
+    assert "rsu_capacity" not in d.whatif_overrides
+    assert "congestion_multiplier" not in d.whatif_overrides
+
+
+def test_range_validation_valid_remains_mapped() -> None:
+    """Current valid challenge values must remain mapped after range validation."""
+    c = get_challenge_seed("CH-01-arena-surge")
+    assert c is not None
+    d = build_challenge_whatif_draft(c)
+    # CH-01 has congestion 2.2 which is within 0.25-3.0
+    assert d.mapping_status == ChallengeWhatIfMappingStatus.FULLY_MAPPABLE
+    assert any(f.challenge_path == "demand.multiplier" for f in d.supported_fields)
+
+
+def test_range_validation_partial_with_mixed_validity() -> None:
+    """When one field is out-of-range, others still map and status is PARTIAL."""
+    c = ChallengeSeedDefinition(
+        challenge_id="CH-99-range-mixed",
+        title="Range mixed test",
+        purpose="test",
+        why_challenging="test",
+        parameter_overrides={
+            "demand.multiplier": 5.0,  # out of range
+            "workload.birth_rate_multiplier": 1.5,  # valid -> 0.15
+            "infrastructure.rsu_count": 3,  # valid
+        },
+        status=ChallengeExecutionStatus.REPRESENTABLE_ONLY,
+    )
+    d = build_challenge_whatif_draft(c)
+    assert len(d.supported_fields) == 2
+    assert len(d.unsupported_fields) == 1
+    assert d.mapping_status == ChallengeWhatIfMappingStatus.PARTIALLY_MAPPABLE
+    assert any(f.challenge_path == "demand.multiplier" for f in d.unsupported_fields)
+    assert d.whatif_overrides.get("task_arrival_rate") == 0.15
+    assert d.whatif_overrides.get("rsu_count") == 3
+    assert "congestion_multiplier" not in d.whatif_overrides
+
+
+def test_range_validation_low_bound() -> None:
+    """Below-minimum value should also fail closed."""
+    c = ChallengeSeedDefinition(
+        challenge_id="CH-99-range-low",
+        title="Range low test",
+        purpose="test",
+        why_challenging="test",
+        parameter_overrides={"demand.multiplier": 0.1},  # below min 0.25
+        status=ChallengeExecutionStatus.REPRESENTABLE_ONLY,
+    )
+    d = build_challenge_whatif_draft(c)
+    assert len(d.unsupported_fields) == 1
+    assert "outside current What-If control range" in d.unsupported_fields[0].reason

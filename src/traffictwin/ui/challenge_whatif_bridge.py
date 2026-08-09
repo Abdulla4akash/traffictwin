@@ -51,6 +51,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from traffictwin.synthetic.whatif_pair import WhatIfVariationOverrides
 from traffictwin.ui.portfolio_explorer import ChallengeSeedDefinition, get_challenge_seed
+from traffictwin.ui.whatif_controls import is_value_representable
 
 # ---------------------------------------------------------------------------
 # typed contracts
@@ -345,12 +346,6 @@ _UNSUPPORTED_REASONS: dict[str, str] = {
         "(EASY_FIRST/MIXED/HARD_FIRST) has no What-If Studio control; "
         "generator hardcodes ordering=MIXED."
     ),
-    "workload.class_mix": (
-        # This one IS supported via task_mix_t1/t2/t3 — handled specially
-        # If we reach here it means individual handling failed
-        "UNSUPPORTED BY CURRENT WHAT-IF CONTROLS — workload.class_mix present but "
-        "could not be converted to task mix controls."
-    ),
 }
 
 # Generic unsupported reason for unknown paths
@@ -436,19 +431,43 @@ def build_challenge_whatif_draft(
         if path == "workload.class_mix":
             try:
                 mapped = _as_class_mix(value)
-                supported.append(
-                    ChallengeWhatIfMappedField(
-                        challenge_path=path,
-                        challenge_value=value,
-                        whatif_field="task_mix_t1/task_mix_t2/task_mix_t3",
-                        mapped_value=mapped,
-                        rationale=(
-                            "workload.class_mix ↔ SyntheticScenarioConfig.task_class_mix "
-                            "(generator: class_mix = {TaskClass: share} ↔ "
-                            "task_class_mix dict; What-If: task_mix_t1/t2/t3)"
-                        ),
+                # Validate each share against control spec
+                t1_ok, t1_reason = is_value_representable("task_mix_t1", mapped["T1"])
+                t2_ok, t2_reason = is_value_representable("task_mix_t2", mapped["T2"])
+                t3_ok, t3_reason = is_value_representable("task_mix_t3", mapped["T3"])
+                if not (t1_ok and t2_ok and t3_ok):
+                    reasons: list[str] = []
+                    if not t1_ok:
+                        reasons.append(str(t1_reason))
+                    if not t2_ok:
+                        reasons.append(str(t2_reason))
+                    if not t3_ok:
+                        reasons.append(str(t3_reason))
+                    unsupported.append(
+                        ChallengeWhatIfUnsupportedField(
+                            challenge_path=path,
+                            challenge_value=value,
+                            reason=(
+                                "UNSUPPORTED BY CURRENT WHAT-IF CONTROLS — "
+                                + "; ".join(reasons)
+                                + f" — mapped {mapped} from {path}"
+                            ),
+                        )
                     )
-                )
+                else:
+                    supported.append(
+                        ChallengeWhatIfMappedField(
+                            challenge_path=path,
+                            challenge_value=value,
+                            whatif_field="task_mix_t1/task_mix_t2/task_mix_t3",
+                            mapped_value=mapped,
+                            rationale=(
+                                "workload.class_mix ↔ SyntheticScenarioConfig.task_class_mix "
+                                "(generator: class_mix = {TaskClass: share} ↔ "
+                                "task_class_mix dict; What-If: task_mix_t1/t2/t3)"
+                            ),
+                        )
+                    )
             except (ValueError, TypeError) as exc:
                 unsupported.append(
                     ChallengeWhatIfUnsupportedField(
@@ -465,15 +484,30 @@ def build_challenge_whatif_draft(
             whatif_field, fn, rationale = mapper_entry
             try:
                 mapped_value = fn(value)
-                supported.append(
-                    ChallengeWhatIfMappedField(
-                        challenge_path=path,
-                        challenge_value=value,
-                        whatif_field=whatif_field,
-                        mapped_value=mapped_value,
-                        rationale=rationale,
+                # Range / representability check against shared control spec (fail closed)
+                ok, reason = is_value_representable(whatif_field, mapped_value)
+                if not ok:
+                    unsupported.append(
+                        ChallengeWhatIfUnsupportedField(
+                            challenge_path=path,
+                            challenge_value=value,
+                            reason=(
+                                f"UNSUPPORTED BY CURRENT WHAT-IF CONTROLS — "
+                                f"{reason} — mapped {whatif_field}={mapped_value} from "
+                                f"{path}={value!r}"
+                            ),
+                        )
                     )
-                )
+                else:
+                    supported.append(
+                        ChallengeWhatIfMappedField(
+                            challenge_path=path,
+                            challenge_value=value,
+                            whatif_field=whatif_field,
+                            mapped_value=mapped_value,
+                            rationale=rationale,
+                        )
+                    )
             except (ValueError, TypeError) as exc:
                 unsupported.append(
                     ChallengeWhatIfUnsupportedField(
