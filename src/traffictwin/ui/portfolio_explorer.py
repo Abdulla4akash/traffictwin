@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import tempfile
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -29,8 +30,6 @@ from traffictwin.metrics.results import JsonScalar
 from traffictwin.synthetic.experiments import generate_synthetic_portfolio_study
 from traffictwin.synthetic.generator import generate_run_data
 from traffictwin.synthetic.scenarios import preset_config
-
-from datetime import UTC, datetime
 
 _FIXTURE_TIME = datetime(2026, 7, 17, 12, 0, tzinfo=UTC)
 
@@ -121,7 +120,7 @@ def _scenario_seed_from_challenge(challenge: ChallengeSeedDefinition) -> Scenari
     return ScenarioSeed.model_validate(seed_dict)
 
 
-def _apply_dot_override(target: dict[str, Any], dotted: str, value: Any) -> None:
+def _apply_dot_override(target: dict[str, Any], dotted: str, value: object) -> None:
     parts = dotted.split(".")
     cur: dict[str, Any] = target
     for part in parts[:-1]:
