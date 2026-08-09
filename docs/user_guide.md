@@ -733,20 +733,31 @@ Each source retains its exact semantics:
 - **Manual incident**: AUTHORED SCENARIO INPUT via Scenario Builder (not an observation).
 - **Social media**: deferred — no ingestion.
 
+The hub separates six readiness dimensions per source, each machine-typed:
+
+* **Software support** — does TrafficTwin have code for this source?
+* **Acquisition readiness** — can acquisition be attempted under current config?
+* **Local evidence** — is qualifying local evidence actually present?
+* **Rights / retention** — what authority is recorded?
+* **Scientific gate** — is this usable for the gated Manchester scientific path?
+* **Freshness** — what freshness category applies (authoritative FreshnessTruthState)?
+
 The hub shows per-source freshness (historical, near_live, live_vehicle, stale, unavailable,
 synthetic), configuration (Configured / Not configured), local accepted evidence, acquisition
 readiness, rights/retention (NOT RECORDED / OWNER DECISION REQUIRED unless explicitly recorded),
 and scientific gate state (BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED for map matching,
 ambiguity threshold, road-class, calibration objective, parameter bounds, uncertainty, 174
-map-review decisions, viable demand — not implemented here). No API key or bearer token is
+map-review decisions, viable demand — not implemented here). No API key or Bearer [REDACTED] is
 displayed; only Configured / Not configured.
 
 Use **Open Manchester Operations** for detailed source use and explicit acquisition controls,
 and **Open Scenario Builder** for manual incident authoring. The hub is offline by default and
 works with no workspace and no credentials, showing empty-state readiness and next actions.
 
-Fingerprint binds source IDs, evidence states, freshness, readiness, blockers and accepted
-artifact IDs (no secrets); identical state yields identical fingerprint.
+Fingerprint binds source IDs, source roles, evidence type, evidence ceiling, coverage, freshness,
+software support, acquisition readiness, local evidence, rights/retention, scientific gate, blocker
+codes and next-action class (no secrets, no paths, no wall clock) via a canonical portable payload;
+identical logical state yields identical fingerprint, cosmetic wording does not change counts.
 
 ## Provenance Explorer
 
