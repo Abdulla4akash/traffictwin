@@ -598,3 +598,216 @@ def test_portable_export_has_no_absolute_paths(tmp_path: Path) -> None:
         assert "/Users" not in txt
         assert "baseline_bundle_path" not in txt
         assert "variation_bundle_path" not in txt
+
+
+def test_session_state_clobber_blank_baseline_preserves_committed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Blank baseline input must not clobber committed session state with "."."""
+    # Seed valid committed state as would be set by What-If Studio
+    committed_baseline = "tests/fixtures/bundles/baseline_valid"
+    committed_variation = "tests/fixtures/bundles/variation_valid"
+    app = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    assert not app.exception
+    assert app.session_state["selected_baseline_run"] == committed_baseline
+    assert app.session_state["selected_variation_run"] == committed_variation
+    # Clear baseline textbox (empty string) – this previously produced Path("") -> "."
+    app.text_input[0].set_value("")
+    app.text_input[1].set_value(committed_variation)
+    app.run(timeout=30)
+    assert not app.exception
+    # Committed baseline must remain previous valid, not "." or empty
+    assert app.session_state["selected_baseline_run"] == committed_baseline
+    assert app.session_state["selected_baseline_run"] != "."
+    assert app.session_state["selected_baseline_run"] != ""
+    assert app.session_state["selected_variation_run"] == committed_variation
+    assert app.session_state["selected_variation_run"] != "."
+
+
+def test_session_state_clobber_blank_variation_preserves_committed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    committed_baseline = "tests/fixtures/bundles/baseline_valid"
+    committed_variation = "tests/fixtures/bundles/variation_valid"
+    app = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    assert not app.exception
+    app.text_input[0].set_value(committed_baseline)
+    app.text_input[1].set_value("")
+    app.run(timeout=30)
+    assert not app.exception
+    assert app.session_state["selected_variation_run"] == committed_variation
+    assert app.session_state["selected_variation_run"] != "."
+    assert app.session_state["selected_baseline_run"] == committed_baseline
+
+
+def test_session_state_invalid_path_does_not_poison_committed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    committed_baseline = "tests/fixtures/bundles/baseline_valid"
+    committed_variation = "tests/fixtures/bundles/variation_valid"
+    app = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    assert not app.exception
+    invalid = str(tmp_path / "does-not-exist-xyz")
+    app.text_input[0].set_value(invalid)
+    app.text_input[1].set_value(committed_variation)
+    app.run(timeout=30)
+    assert not app.exception
+    # Invalid non-empty path must not replace last known good committed pair
+    assert app.session_state["selected_baseline_run"] == committed_baseline
+    assert app.session_state["selected_variation_run"] == committed_variation
+    assert app.session_state["selected_baseline_run"] != invalid
+    # Also test invalid variation symmetrically
+    app2 = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    app2.text_input[0].set_value(committed_baseline)
+    app2.text_input[1].set_value(invalid)
+    app2.run(timeout=30)
+    assert not app2.exception
+    assert app2.session_state["selected_baseline_run"] == committed_baseline
+    assert app2.session_state["selected_variation_run"] == committed_variation
+
+
+def test_session_state_valid_new_pair_updates_committed_atomically(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    committed_baseline = "tests/fixtures/bundles/baseline_valid"
+    committed_variation = "tests/fixtures/bundles/variation_valid"
+    # Create a valid new pair via tmp copies of fixtures (different path, same content)
+    import shutil
+
+    new_baseline = tmp_path / "new_baseline"
+    new_variation = tmp_path / "new_variation"
+    shutil.copytree("tests/fixtures/bundles/baseline_valid", new_baseline)
+    shutil.copytree("tests/fixtures/bundles/variation_valid", new_variation)
+    app = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    assert not app.exception
+    app.text_input[0].set_value(str(new_baseline))
+    app.text_input[1].set_value(str(new_variation))
+    app.run(timeout=30)
+    assert not app.exception
+    # Valid new pair should atomically update both committed keys
+    assert app.session_state["selected_baseline_run"] == str(new_baseline)
+    assert app.session_state["selected_variation_run"] == str(new_variation)
+
+
+def test_session_state_half_valid_pair_does_not_commit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    committed_baseline = "tests/fixtures/bundles/baseline_valid"
+    committed_variation = "tests/fixtures/bundles/variation_valid"
+    import shutil
+
+    new_baseline = tmp_path / "new_baseline2"
+    shutil.copytree("tests/fixtures/bundles/baseline_valid", new_baseline)
+    invalid = str(tmp_path / "missing-variation-xyz")
+    app = _run_page(
+        monkeypatch,
+        tmp_path,
+        extra_state={
+            "selected_baseline_run": committed_baseline,
+            "selected_variation_run": committed_variation,
+        },
+    )
+    assert not app.exception
+    app.text_input[0].set_value(str(new_baseline))
+    app.text_input[1].set_value(invalid)
+    app.run(timeout=30)
+    assert not app.exception
+    # One valid + one invalid must not leave half-updated pair
+    assert app.session_state["selected_baseline_run"] == committed_baseline
+    assert app.session_state["selected_variation_run"] == committed_variation
+
+
+def test_format_value_is_lossless_for_finite_floats() -> None:
+    from traffictwin.ui.pages.consequence_lenses import _format_value
+
+    # Value where %.6g is demonstrably lossy
+    assert _format_value(2024123.0) == "2024123.0"
+    assert float(_format_value(2024123.0)) == 2024123.0
+    # Second value with meaningful precision beyond six digits
+    val2 = 1234567.89
+    assert float(_format_value(val2)) == val2
+    # Ordinary floats
+    assert _format_value(0.25) == "0.25"
+    assert float(_format_value(0.25)) == 0.25
+    # Integers
+    assert _format_value(42) == "42"
+    assert _format_value(42.0) == "42.0"
+    # None
+    assert _format_value(None) == "Unavailable"
+    # Textual
+    assert _format_value("hello") == "hello"
+    # Large precise float
+    big = 0.123456789012345
+    assert float(_format_value(big)) == big
+
+
+def test_format_value_preserves_across_dataframe_rendering(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Ensure rendered dataframe values round-trip via _format_value."""
+    from traffictwin.ui.pages.consequence_lenses import _format_value
+
+    # Simulate a row baseline value that would be lossy under %.6g
+    lossy_val = 2024123.0
+    rendered = _format_value(lossy_val)
+    assert rendered == "2024123.0"
+    assert float(rendered) == lossy_val
+    # Also test via actual page with synthetic data containing such value
+    # Inject a report where one metric has the lossy value
+    import copy
+
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    # Mutate one metric to have the lossy value as baseline
+    comp2 = copy.deepcopy(comp)
+    m = comp2.comparable_metrics[0]
+    comp2.comparable_metrics[0] = m.model_copy(update={"baseline": lossy_val})
+    lens = build_consequence_lens_report_from_comparison(comp2)
+    # Find that row and check formatting preserves value
+    for row in [*lens.traffic_summary.rows, *lens.vec_summary.rows]:
+        if row.metric_key == m.metric_key:
+            assert float(_format_value(row.baseline)) == lossy_val
+            break
+    else:
+        pytest.fail("metric not found")

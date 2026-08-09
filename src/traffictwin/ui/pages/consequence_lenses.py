@@ -26,10 +26,25 @@ def _provenance_badge(synthetic_flag: object) -> str:
 
 
 def _format_value(value: object) -> str:
+    """Lossless rendering for consequence values; readability without silent change."""
+
     if value is None:
         return "Unavailable"
+    # bool is subclass of int, handle before int
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, int):
+        return str(value)
     if isinstance(value, float):
-        return f"{value:.6g}"
+        # Preserve NaN / infinities explicitly
+        if value != value:  # NaN
+            return "NaN"
+        if value == float("inf"):
+            return "Infinity"
+        if value == float("-inf"):
+            return "-Infinity"
+        # repr is lossless round-trip for Python floats
+        return repr(value)
     return str(value)
 
 
@@ -152,31 +167,35 @@ def render() -> None:
 
     st.title("Consequence Lenses")
 
+    # Draft vs committed state: widget values are draft (consequence_*_path),
+    # committed cross-page keys are selected_baseline_run / selected_variation_run
+    # which represent last known valid selections. We must not clobber committed
+    # state with empty/invalid draft input.
+    committed_baseline = str(
+        st.session_state.get(
+            "selected_baseline_run",
+            "tests/fixtures/bundles/baseline_valid",
+        )
+    )
+    committed_variation = str(
+        st.session_state.get(
+            "selected_variation_run",
+            "tests/fixtures/bundles/variation_valid",
+        )
+    )
+
     baseline_input = st.text_input(
         "Baseline bundle path",
-        value=str(
-            st.session_state.get(
-                "selected_baseline_run",
-                "tests/fixtures/bundles/baseline_valid",
-            )
-        ),
+        value=committed_baseline,
         key="consequence_baseline_path",
     )
     variation_input = st.text_input(
         "Variation bundle path",
-        value=str(
-            st.session_state.get(
-                "selected_variation_run",
-                "tests/fixtures/bundles/variation_valid",
-            )
-        ),
+        value=committed_variation,
         key="consequence_variation_path",
     )
-    baseline_path = Path(baseline_input)
-    variation_path = Path(variation_input)
-    st.session_state["selected_baseline_run"] = str(baseline_path)
-    st.session_state["selected_variation_run"] = str(variation_path)
-
+    # Do not commit draft immediately. Draft is baseline_input / variation_input.
+    # Committed state is updated atomically only after both inputs are valid.
     baseline_str = baseline_input.strip()
     variation_str = variation_input.strip()
     if not baseline_str or not variation_str:
@@ -195,6 +214,11 @@ def render() -> None:
             key_prefix="consequence_no_pair",
         )
         return
+
+    # Resolve draft strings to paths only after confirming non-empty; Path("") would
+    # normalize to "." and must never be written back to committed session state.
+    baseline_path = Path(baseline_str)
+    variation_path = Path(variation_str)
 
     if not baseline_path.exists() and not variation_path.exists():
         st.error("Both baseline and variation bundle paths do not exist.")
@@ -239,6 +263,12 @@ def render() -> None:
         if report.detail:
             st.caption(report.detail)
         return
+
+    # Atomic commit: only after both bundles are valid and report built do we
+    # update the authoritative cross-page session keys. This prevents blank or
+    # invalid draft input from poisoning selected state and keeps the pair atomic.
+    st.session_state["selected_baseline_run"] = str(baseline_path)
+    st.session_state["selected_variation_run"] = str(variation_path)
 
     # Baseline and variation identities (logical only, no absolute paths)
     st.subheader("Pair identity")
