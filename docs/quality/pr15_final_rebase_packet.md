@@ -344,6 +344,54 @@ No corrective commit to official PR #15 required for these.
 
 ---
 
+## Gate attribution correction — 2026-08-10 audit (Claude 5 independent measurement)
+
+**MISTAKE CORRECTED:** Early packet drafts conflated V2 and live-check gate counts. **Measured values are distinct and must not be flattened:**
+
+| tree | commit/branch | ruff check | ruff format | mypy source files | uv lock | git diff --check | provenance |
+|---|---|---|---|---|---|---|---|
+| **V2 rehearsal / packet tree** | `2c6ef2c` (`rehearsal/pr15-final-38-v2` — V2 product `7bd5723` + packet) | clean | **1033 files formatted** | **948 source files** — Success | 91 packages | clean | Muse 5 measured on V2 packet tree (docs-only, no PR20) — Claude 5 independently verified ruff clean on live-check, not V2 |
+| **Live-check integration tree** | `d03ea20` (`rehearsal/pr15-live-check` on `6089b56`) | clean | **1034 files formatted** | **949 source files** — Success | 91 packages | clean | Claude 5 independent `668 passed` + Muse 5 `668 passed` on identical live-check tree (includes PR20) |
+
+Live-check has +1 formatted file and +1 mypy source file vs V2 due to PR20's `compare.py`/tests. Do not attribute 1034/949 to V2.
+
+## Full rehearsal branch inventory — 2026-08-10 (12 local refs, 4 remote)
+
+| rehearsal ref | SHA (short) | remote? | worktree? | owner/workstream | purpose | delete policy |
+|---|---|---|---|---|---|---|
+| `rehearsal/final-38-v2` | `1d797c5` | **yes** `origin/rehearsal/final-38-v2` | no | PR15 / Muse 5 | **Answer-key base** — main 73264bd + PR14 a9ec532 + PR16 48e705b + PR13 2d7e85f → 37 pages | **RETAIN** until official rebase + Claude review |
+| `rehearsal/pr15-final-38-v2` | `2c6ef2c` (product `7bd5723`) | **yes** `origin/rehearsal/pr15-final-38-v2` | **yes** `traffictwin-v2-m1` HEAD | PR15 / Muse 5 | **Answer-key result** — `34cdcac` replay → 38 pages + packet | **RETAIN** as above |
+| `rehearsal/final-38-live-check` | `6089b56` | no (local only) | no | PR15 / Muse 5 | Live-check base — main+PR20 ea37dd3+PR14 a9ec532+PR16 48e705b+PR13 2d7e85f → 37 | **RETAIN** (evidence, bounded compat) |
+| `rehearsal/pr15-live-check` | `d03ea20` | no | no | PR15 / Muse 5 | Live-check PR15 replay `34cdcac→6089b56` → 38 + PR20 diff | **RETAIN** |
+| `rehearsal/pr13-copy-on-pr16-base` | `26b4a3e` | no | no | PR13 downstream / shared | PR13 hardened replay on PR16 base | unknown — investigate before deletion |
+| `rehearsal/pr16-downstream-integration-v1` | `92a7d0a` | no (but pushed earlier?) | **yes** `traffictwin-product` | PR16 / Muse 3 | PR13 downstream rehearsal (0 conflicts, 355 tests) | unknown — PR16 owner |
+| `rehearsal/pr16-plus-pr20-pr14-base` | `5ce8e8a` | no | no | PR16 / shared | Integration base PR16+PR20+PR14 | unknown — PR16 owner |
+| `rehearsal/pr17-phase-b-packet-v1` | `14b1576` | no | no | PR17 / Muse 4 | Durable Phase-B packet for PR17 on PR13 | **RETAIN** — PR17 owner |
+| `rehearsal/pr17-phase-b-v1` | `4e0a992` | **yes** `origin/rehearsal/pr17-phase-b-v1` | **yes** `traffictwin-v2-challenge-bridge` | PR17 / Muse 4 | PR17 Phase-B correction | **RETAIN** |
+| `rehearsal/pr18-post20-post14-v1` | `b8556fd` | no | no | PR18 / Muse 1 | Rehearsal packet post-#20/post-#14 PR18 | **RETAIN** |
+| `rehearsal/muse1-post20-post14-v1` | `8e2703b` | **yes** `origin/rehearsal/muse1-post20-post14-v1` | no | PR18 / Muse 1 | PR18 post20+post14 base | **RETAIN** |
+| `rehearsal/muse1-pr18-acceptance-only-v1` | `364414b` | **yes** `origin/rehearsal/muse1-pr18-acceptance-only-v1` | no | PR18 / Muse 1 | PR18 acceptance-only replay | **RETAIN** |
+
+Count: **12** local `refs/heads/rehearsal/*` — previous tables listing only 4 were incomplete (cleanup hazard). **Never assume “12” is fixed** — re-run `git for-each-ref` before any cleanup.
+
+## Formal cleanup safety rule — DO NOT DELETE BY PREFIX
+
+> **NEVER DELETE BRANCHES BY THE PREFIX `rehearsal/*`.**
+>
+> Cleanup must use an explicit allow-list. Before deletion require: 1) exact branch name, 2) owner/workstream, 3) worktree status (`git worktree list`), 4) local/remote status (`git ls-remote`), 5) unique-commit/reachability (`git log old..new`, `git branch --contains`), 6) confirmation evidence preserved elsewhere. **Do NOT execute further cleanup in this task** — inventory/documentation only. Previously deleted `rehearsal/final-38`, `rehearsal/pr15-final-38`, `tmp-pr13`, `rehearsal/pr15-rerere-audit` are history, retained refs verified not deleted remotely.
+
+## Claude 5 rerere correction — linked-worktree path mistake
+
+Previous review incorrectly reported **zero rr-cache entries** because `.git/rr-cache` was inspected from a linked worktree where `.git` is a file (`gitdir: .../worktrees/...`). Correct common-dir inspection `git rev-parse --git-common-dir` → `.../traffictwin-product/.git` proves **rerere trained**: `rerere.enabled=true`, `rerere.autoupdate=true`, **8 rr-cache signature directories** (`12f4d7e, 2460857, 366c1e7, 3af6045, 3f43249, 69430f4, c30c4f8, f9514ae`), **24 files** (pre/post/thisimage per signature), `git rerere status/remaining` empty. The eight hashes match the recorded trained resolutions and the replay proof (`Staged ... using previous resolution`, tree `bb88e0c == 7bd5723`). This correction is transparent; rerere is **trained, not untrained**.
+
+## Current packet history
+
+- `3658ddf` 352 lines — `docs(quality): refresh PR15 final rebase packet to round-6 computed-field architecture`
+- `2c6ef2c` 360 lines — `docs(quality): reconcile PR15 packet — PR16 live 48e705b→24f8b5c, no five-file delta`
+- **This commit** — `docs(quality): finalize PR15 rehearsal inventory and evidence provenance` — corrects V2 vs live-check gate attribution (1033/948 vs 1034/949), adds full 12-ref inventory, cleanup safety rule, rerere correction
+
+---
+
 ## Appendix — command log for this packet
 
 ```
