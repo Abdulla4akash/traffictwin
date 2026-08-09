@@ -43,13 +43,25 @@ Every artifact carries `synthetic: true` and a deterministic created instant. No
    (expect `valid_workspace True, 62/3`). When no accepted Manchester scene is available,
    Home shows a static Greater Manchester boundary context map (offline ONS December 2025
    BGC, E47000001/E08000003, OGL-3.0) with the explicit statement “Static geographic
-   context — no live or observed traffic scene is loaded.” Missing observations are not
-   filled with synthetic or stale values.
-2. **What-If Studio (V2-S1)** — **Build & run → What-If Studio**. Choose a baseline preset, define a variation from the closed intervention set, review the deterministic changed-parameter ledger, click **Generate comparison**. The pair is staged, validated, published, and registered transactionally; on success `selected_baseline_run`/`selected_variation_run` are set and Compare is pre-filled. All surfaces state SYNTHETIC/DETERMINISTIC/LOCAL and “This studio generates a deterministic synthetic baseline and intervention through TrafficTwin’s local generator. It does not run SUMO, VEC, a provider feed or an admitted research campaign.” See `docs/user_guide.md#what-if-studio-v2-s1`.
-3. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic.
+   context — no live or observed traffic scene is loaded.” The top actions now expose
+   **Create what-if comparison** (What-If Studio, synthetic/deterministic/local, not Manchester
+   observation or live forecast) as the primary V2-S1 entry alongside **Explore Manchester**,
+   **Start Guided Demo**, and **Open latest run**; **Create scenario** remains below. Missing
+   observations are not filled with synthetic or stale values.
+2. **What-If Studio (V2-S1)** — **Home → Create what-if comparison** or **Build & run → What-If
+   Studio**. Choose a baseline preset, define a variation from the closed intervention set, review
+   the deterministic changed-parameter ledger, click **Generate comparison**. The pair is staged,
+   validated, published, and registered transactionally; on success `selected_baseline_run`/
+   `selected_variation_run` are set and Compare is pre-filled. All surfaces state
+   SYNTHETIC/DETERMINISTIC/LOCAL and “This studio generates a deterministic synthetic baseline and
+   intervention through TrafficTwin’s local generator. It does not run SUMO, VEC, a provider feed or
+   an admitted research campaign.” Do not confuse with **Platform → What-If Composer**, which
+   predicts from a bounded surrogate fit and drafts unsigned campaigns without approval or execution.
+   See `docs/user_guide.md#what-if-studio-v2-s1`.
+3. **Bundle Import** — press **Open example baseline** or **Open example variation** to select a committed fixture without typing a path; or use the text input for any local bundle. Validation is deterministic. Remains the fallback when What-If Studio is skipped.
 4. **Run Overview / Infrastructure / Energy / Fairness / Journey Time** — inspect deterministic metrics; unavailable metrics stay `UNAVAILABLE` with reason codes.
-5. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence.
-6. **Guided Demo — Standalone synthetic** — 8 stages from experiment plan → validate → metrics → compare → replay → diagnose → trace → report. Action stages (`register_experiment_plan`, `regenerate_report`) auto-advance; review stages wait for **Reviewed — continue**.
+5. **Comparison** — baseline vs variation, arithmetic deltas, seeded alignment check, downloadable evidence. Works with a What-If generated pair (`selected_baseline_run`/`selected_variation_run`) or the committed demo fixtures.
+6. **Guided Demo — Standalone synthetic** — 9 stages from experiment plan → validate → metrics → **Build a what-if experiment** (What-If Studio) → compare → replay → diagnose → trace → report. The What-If stage is the preferred V2-S1 path; skipping it and using Bundle Import keeps Compare reachable. Action stages (`register_experiment_plan`, `regenerate_report`) auto-advance; review stages wait for **Reviewed — continue**.
 7. **Reports** — inventory, deterministic regeneration, comparison/difference provenance, export.
 8. **Provenance Explorer** — traces metric → canonical record → source row; bounded graph.
 9. **Manchester Operations** — in a demo workspace it will always show "No accepted Manchester scene" — that is expected. Manchester evidence requires a separately activated real workspace with accepted snapshots.
