@@ -888,3 +888,80 @@ def test_typed_compatibility_serialises_and_fingerprint_deterministic() -> None:
     assert lens.fingerprint == lens2.fingerprint
     assert lens.to_canonical_bytes() == lens2.to_canonical_bytes()
     # Changing compatibility changes fingerprint
+
+
+def test_typed_consequence_table_rows_direct() -> None:
+    """Typed feature helper must preserve all fields without object indirection."""
+
+    import ast
+    import copy
+    from pathlib import Path as _Path
+
+    from tests.helpers import fixed_clock, metric_collection
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+    from traffictwin.ui.consequence_tables import consequence_lens_table_rows
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    # Inject NaN and Inf to test formatter semantics
+    comp2 = copy.deepcopy(comp)
+    m = comp2.comparable_metrics[0]
+    comp2.comparable_metrics[0] = m.model_copy(
+        update={
+            "baseline": float("nan"),
+            "variation": float("inf"),
+            "absolute_delta": float("-inf"),
+        }
+    )
+    lens = build_consequence_lens_report_from_comparison(comp2)
+    # Traffic and VEC helpers
+    for domain in ("traffic", "vec"):
+        rows = consequence_lens_table_rows(lens, domain)
+        for r in rows:
+            assert "metric_key" in r
+            assert "label" in r
+            assert "status" in r
+            assert "baseline" in r
+            assert "variation" in r
+            assert "absolute_delta" in r
+            assert "relative_delta" in r
+            assert "unit" in r
+            assert "direction" in r
+            assert "reason_codes" in r
+            assert "denominator" in r
+            assert isinstance(r["baseline"], str)
+            assert isinstance(r["variation"], str)
+    found = False
+    for dom in ("traffic", "vec"):
+        rows = consequence_lens_table_rows(lens, dom)
+        for r in rows:
+            if r["metric_key"] == m.metric_key:
+                assert r["baseline"] == "NaN"
+                assert r["variation"] == "Infinity"
+                assert r["absolute_delta"] == "-Infinity"
+                found = True
+                break
+        if found:
+            break
+    assert found, "mutated metric not found in typed helper"
+    # Verify generic tables.py does not import consequence feature via AST
+    tables_src = _Path("src/traffictwin/ui/tables.py").read_text(encoding="utf-8")
+    tree = ast.parse(tables_src, filename="src/traffictwin/ui/tables.py")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            assert node.module not in (
+                "traffictwin.ui.consequence_lenses",
+                "traffictwin.ui.consequence_tables",
+            ), f"tables.py must not import {node.module}"
+            if node.module and "consequence" in node.module:
+                raise AssertionError(
+                    f"tables.py must not import consequence feature: {node.module}"
+                )
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                assert "consequence" not in alias.name, f"tables.py must not import {alias.name}"
+    # Also ensure no string reference to the helper remains
+    assert "consequence_lens_table_rows" not in tables_src
+    assert "ConsequenceLensReport" not in tables_src

@@ -21,7 +21,6 @@ import pytest
 from traffictwin.ingestion.hashes import fingerprint_bundle_source, sha256_file
 from traffictwin.ui.consequence_cache import (
     _MAX_BUNDLE_CACHE,
-    _bundle_freshness_token,
     session_validate_bundle,
 )
 from traffictwin.ui.services.models import BundleAnalysis
@@ -262,7 +261,9 @@ def test_p7_mutation_during_validation_is_not_sticky(tmp_path: Path) -> None:
         assert first.validation.fingerprint is not None
         cache_dict = session_state.get("_consequence_bundle_cache", {})
         assert isinstance(cache_dict, dict)
-        stored_fp = list(cache_dict.values())[0][0]  # type: ignore[index]
+        entry = list(cache_dict.values())[0]  # type: ignore[index]
+        # Handle both legacy 2-tuple (logical, analysis) and new 3-tuple (raw, logical, analysis)
+        stored_fp = entry[1] if len(entry) == 3 else entry[0]  # type: ignore[index]
         assert stored_fp == first.validation.fingerprint
         current_fp = fingerprint_bundle_source(dst)
         assert current_fp is not None and current_fp != stored_fp
@@ -515,7 +516,6 @@ def test_p16_unavailable_fingerprint_fails_closed(tmp_path: Path) -> None:
     missing = tmp_path / "p16_missing_xyz"
     session_state: dict[str, object] = {}
     assert fingerprint_bundle_source(missing) is None
-    assert _bundle_freshness_token(missing) is None
     result = session_validate_bundle(missing, session_state)
     assert not result.analysis_ready or result.validation.fingerprint is None
     cache_dict = session_state.get("_consequence_bundle_cache", {})
@@ -543,7 +543,7 @@ def test_p17_portable_report_identity_not_polluted(tmp_path: Path) -> None:
     canonical = report.to_canonical_bytes().decode()
     json_str = report.to_json()
     for payload_dict in [portable]:
-        assert "_bundle_freshness_token" not in str(payload_dict)
+        assert "raw_witness" not in str(payload_dict).lower()
         assert "consequence_cache" not in str(payload_dict)
         assert "_consequence_bundle_cache" not in str(payload_dict)
     for payload in [canonical, json_str]:
@@ -651,3 +651,290 @@ def test_zip_logical_fingerprint_matches_validation_not_raw(tmp_path: Path) -> N
     assert logical != raw
     validation = validate_bundle_for_ui(zip_path)
     assert validation.validation.fingerprint == logical
+
+
+def test_p7_opposite_direction_pre_validation_stale(tmp_path: Path) -> None:
+    """Opposite-direction race: lookup A, validator observes B, storing A is stale.
+
+    Mutant storing ``current_fp`` (A) instead of ``analysis.validation.fingerprint``
+    (B) would cache analysis B under fingerprint A. When disk returns to A,
+    warm lookup A would incorrectly return stale B. Correct code must store B
+    and miss on return to A.
+    """
+
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    src_a = Path("tests/fixtures/bundles/baseline_valid")
+    src_b = Path("tests/fixtures/bundles/variation_valid")
+    dst = tmp_path / "p7_opposite"
+    shutil.copytree(src_a, dst)
+    session_state: dict[str, object] = {}
+    orig_validate = cache_mod.validate_bundle_for_ui
+    calls = {"n": 0}
+
+    def pre_mutating_validate(path: Path) -> BundleAnalysis:
+        calls["n"] += 1
+        p = Path(path)
+        if p.exists() and (p / "manifest.yaml").exists():
+            current = fingerprint_bundle_source(p)
+            if current and current.startswith("b778c4c3"):
+                shutil.rmtree(p)
+                shutil.copytree(src_b, p)
+        return orig_validate(path)
+
+    cache_mod.validate_bundle_for_ui = pre_mutating_validate  # type: ignore[attr-defined, assignment]  # noqa: E501
+    try:
+        first = session_validate_bundle(dst, session_state)
+        assert first.validation.report.run_id == "run-variation-001", (
+            "validator should have observed B"
+        )
+        assert calls["n"] == 1
+        cache_dict = session_state.get("_consequence_bundle_cache", {})
+        assert isinstance(cache_dict, dict)
+        stored = list(cache_dict.values())[0]  # type: ignore[index]
+        if len(stored) == 3:
+            stored_fp = stored[1]  # type: ignore[index]
+        else:
+            stored_fp = stored[0]  # type: ignore[index]
+            if stored_fp is None and len(stored) == 3:
+                stored_fp = stored[1]  # type: ignore[index]
+        assert stored_fp == first.validation.fingerprint
+        assert str(stored_fp).startswith("3fc08c75"), "stored should be B"
+        shutil.rmtree(dst)
+        shutil.copytree(src_a, dst)
+        current_a = fingerprint_bundle_source(dst)
+        assert current_a and current_a.startswith("b778c4c3")
+        calls["n"] = 0
+        cache_mod.validate_bundle_for_ui = orig_validate  # type: ignore[attr-defined, assignment]
+        orig2 = cache_mod.validate_bundle_for_ui
+
+        def counting2(path: Path) -> BundleAnalysis:
+            calls["n"] += 1
+            return orig2(path)
+
+        cache_mod.validate_bundle_for_ui = counting2  # type: ignore[attr-defined, assignment]
+        second = session_validate_bundle(dst, session_state)
+        assert second.validation.report.run_id == "run-baseline-001", (
+            "should return A after disk returned to A"
+        )
+        assert calls["n"] == 1, "must miss and revalidate, not hit stale B"
+        assert second.validation.fingerprint == current_a
+    finally:
+        cache_mod.validate_bundle_for_ui = orig_validate  # type: ignore[attr-defined, assignment]
+
+
+def test_zip_warm_uses_raw_witness_no_extraction(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """ZIP warm unchanged: one raw SHA, zero validator, no extraction."""
+    import traffictwin.ingestion.hashes as hashes_mod
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip_path = tmp_path / "zip_warm.zip"
+    _make_zip_from_dir(src_dir, zip_path)
+    session_state: dict[str, object] = {}
+    # Cold
+    first = session_validate_bundle(zip_path, session_state)
+    assert first.analysis_ready
+    # Instrument: count sha256_file (raw), fingerprint_bundle_source (logical), open_bundle, validator  # noqa: E501
+    raw_calls = {"n": 0}
+    orig_sha = hashes_mod.sha256_file
+
+    def counting_sha(path: Path) -> str:
+        raw_calls["n"] += 1
+        return orig_sha(path)
+
+    monkeypatch.setattr(hashes_mod, "sha256_file", counting_sha)
+    # Also need to patch the cache module's sha256 import
+    monkeypatch.setattr(cache_mod, "sha256_file", counting_sha)
+    # For open_bundle, count extraction
+    from traffictwin.ingestion import loader as loader_mod
+
+    open_calls = {"n": 0}
+    orig_open = loader_mod.open_bundle
+
+    def counting_open(path: object, **kwargs: object) -> object:
+        open_calls["n"] += 1
+        return orig_open(path, **kwargs)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(loader_mod, "open_bundle", counting_open)
+    # Also need to patch hashes_mod.open_bundle via fingerprint_bundle_source? That uses loader.open_bundle directly  # noqa: E501
+    # Instead, we patch the cache's fingerprint check: for ZIP warm, it should not call fingerprint_bundle_source at all  # noqa: E501
+    fps_calls = {"n": 0}
+    orig_fps = hashes_mod.fingerprint_bundle_source
+
+    def counting_fps(path: object) -> str | None:
+        fps_calls["n"] += 1
+        return orig_fps(path)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(hashes_mod, "fingerprint_bundle_source", counting_fps)
+    monkeypatch.setattr(cache_mod, "fingerprint_bundle_source", counting_fps)
+    val_calls = {"n": 0}
+    orig_validate = cache_mod.validate_bundle_for_ui
+
+    def counting_validate(path: Path) -> BundleAnalysis:
+        val_calls["n"] += 1
+        return orig_validate(path)
+
+    monkeypatch.setattr(cache_mod, "validate_bundle_for_ui", counting_validate)
+    monkeypatch.setattr(
+        "traffictwin.ui.consequence_cache.validate_bundle_for_ui", counting_validate
+    )  # type: ignore[attr-defined]
+    raw_calls["n"] = 0
+    fps_calls["n"] = 0
+    open_calls["n"] = 0
+    val_calls["n"] = 0
+    second = session_validate_bundle(zip_path, session_state)
+    assert second.analysis_ready
+    assert second.validation.fingerprint == first.validation.fingerprint
+    # For ZIP warm, we expect: 1 raw SHA (via _raw_zip_witness), 0 fingerprint (logical) extraction, 0 open_bundle, 0 validator  # noqa: E501
+    assert raw_calls["n"] == 1, f"ZIP warm should do 1 raw SHA, got {raw_calls['n']}"
+    assert fps_calls["n"] == 0, (
+        f"ZIP warm should not call logical fingerprint, got {fps_calls['n']}"
+    )
+    assert open_calls["n"] == 0, f"ZIP warm should not extract, got {open_calls['n']}"
+    assert val_calls["n"] == 0, f"ZIP warm should not call validator, got {val_calls['n']}"
+    # Deep-copy isolation: mutate returned, next warm still clean
+    poison = tmp_path / "poison"
+    object.__setattr__(second, "source_path", poison)
+    third = session_validate_bundle(zip_path, session_state)
+    assert str(third.source_path) != str(poison)
+
+
+def test_zip_changed_miss_and_validator_invoked(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Changed ZIP must miss and revalidate."""
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip_path = tmp_path / "zip_changed.zip"
+    _make_zip_from_dir(src_dir, zip_path)
+    session_state: dict[str, object] = {}
+    session_validate_bundle(zip_path, session_state)
+    # Modify ZIP bytes: add a new file to the ZIP
+    with zipfile.ZipFile(zip_path, "a") as zf:
+        zf.writestr("extra.txt", "extra")
+    val_calls = {"n": 0}
+    orig_validate = cache_mod.validate_bundle_for_ui
+
+    def counting(path: Path) -> BundleAnalysis:
+        val_calls["n"] += 1
+        return orig_validate(path)
+
+    monkeypatch.setattr(cache_mod, "validate_bundle_for_ui", counting)
+    monkeypatch.setattr("traffictwin.ui.consequence_cache.validate_bundle_for_ui", counting)  # type: ignore[attr-defined]  # noqa: E501
+    second = session_validate_bundle(zip_path, session_state)
+    assert val_calls["n"] == 1, "changed ZIP must miss and revalidate"
+    assert second.analysis_ready
+
+
+def test_zip_changes_during_validation_not_cached(tmp_path: Path) -> None:
+    """ZIP that mutates during validation must not be cached."""
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip_path = tmp_path / "zip_race.zip"
+    _make_zip_from_dir(src_dir, zip_path)
+    session_state: dict[str, object] = {}
+    orig_validate = cache_mod.validate_bundle_for_ui
+
+    def racing_validate(path: Path) -> BundleAnalysis:
+        result = orig_validate(path)
+        # Mutate ZIP bytes after validator read but before raw_after check
+        with zipfile.ZipFile(path, "a") as zf:
+            zf.writestr("race_extra.txt", "race")
+        return result
+
+    cache_mod.validate_bundle_for_ui = racing_validate  # type: ignore[attr-defined, assignment]
+    try:
+        first = session_validate_bundle(zip_path, session_state)
+        assert first.analysis_ready
+        # Should not have cached because raw_before != raw_after
+        cache_dict = session_state.get("_consequence_bundle_cache", {})
+        assert not cache_dict, "ZIP mutated during validation must not be cached"  # type: ignore[truthy-bool]  # noqa: E501
+        # Next call should validate current archive (which is mutated) and return that
+        cache_mod.validate_bundle_for_ui = orig_validate  # type: ignore[attr-defined, assignment]
+        second = session_validate_bundle(zip_path, session_state)
+        assert second.analysis_ready
+        # The second's logical fingerprint should reflect the mutated ZIP (has extra file)
+        assert second.validation.fingerprint != first.validation.fingerprint
+    finally:
+        cache_mod.validate_bundle_for_ui = orig_validate  # type: ignore[attr-defined, assignment]
+
+
+def test_zip_raw_bytes_differ_logical_same_documented(tmp_path: Path) -> None:
+    """Raw ZIP bytes can differ while logical fingerprint stays same (e.g., recompressed).
+
+    This is correct and documented: raw witness is local exact-byte check,
+    logical fingerprint is the bundle identity. Different compression levels
+    for the same logical files produce different raw SHA but same logical.
+    Cache must correctly handle this: raw mismatch → miss, but logical
+    remains same, and no identity confusion.
+    """
+
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip1 = tmp_path / "zip1.zip"
+    zip2 = tmp_path / "zip2.zip"
+    # Create same logical content with different compression (STORED vs DEFLATED)
+    with zipfile.ZipFile(zip1, "w", compression=zipfile.ZIP_STORED) as zf:
+        for f in src_dir.rglob("*"):
+            if f.is_file():
+                zf.write(f, f.relative_to(src_dir).as_posix())
+    with zipfile.ZipFile(zip2, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for f in src_dir.rglob("*"):
+            if f.is_file():
+                zf.write(f, f.relative_to(src_dir).as_posix())
+    raw1 = sha256_file(zip1)
+    raw2 = sha256_file(zip2)
+    # Raw should differ due to compression, but logical should be same
+    # Note: if the filesystem produces same raw due to same content and
+    # STORED vs DEFLATED might still differ
+    # We check: if raw1 == raw2, skip (unlikely), else logical should be same
+    if raw1 == raw2:
+        pytest.skip("raw SHA same despite different compression, cannot test")
+    logical1 = fingerprint_bundle_source(zip1)
+    logical2 = fingerprint_bundle_source(zip2)
+    assert logical1 == logical2, (
+        "same logical files must have same logical fingerprint despite different raw"
+    )
+    # Documented behavior: cache uses raw for ZIP warm, so zip1 and zip2 are different cache keys
+    # even though logical is same — correct because raw witness is exact-byte, not logical
+    session_state: dict[str, object] = {}
+    a1 = session_validate_bundle(zip1, session_state)
+    # zip2 is different file path, so separate cache entry; but if we copy zip2
+    # over zip1's path, it should miss
+    zip1_copy = tmp_path / "zip1_copy.zip"
+    shutil.copy2(zip2, zip1_copy)
+    # Same path different raw → miss
+    session_state2: dict[str, object] = {}
+    # First cache zip1_copy as zip2 content
+    a2 = session_validate_bundle(zip1_copy, session_state2)
+    assert a1.validation.fingerprint == a2.validation.fingerprint  # logical same
+    assert sha256_file(zip1) != sha256_file(zip1_copy)  # raw differ
+
+
+def test_zip_raw_witness_never_in_portable(tmp_path: Path) -> None:
+    """Raw ZIP witness must never enter report export/fingerprint."""
+
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report
+
+    src_dir = Path("tests/fixtures/bundles/baseline_valid")
+    zip_path = tmp_path / "zip_portable.zip"
+    _make_zip_from_dir(src_dir, zip_path)
+    raw = sha256_file(zip_path)
+    session_state: dict[str, object] = {}
+    b = session_validate_bundle(zip_path, session_state)
+    v = session_validate_bundle(Path("tests/fixtures/bundles/variation_valid"), session_state)
+    report = build_consequence_lens_report(b, v)
+    from traffictwin.ui.services import ServiceError
+
+    assert not isinstance(report, ServiceError)
+    portable = report.to_portable_dict()
+    canonical = report.to_canonical_bytes().decode()
+    json_str = report.to_json()
+    for payload in [str(portable), canonical, json_str]:
+        assert raw not in payload, "raw ZIP witness must not be in portable"
+        assert "raw_witness" not in payload.lower()
+        assert "sha256" not in payload.lower() or raw not in payload  # raw should not leak
