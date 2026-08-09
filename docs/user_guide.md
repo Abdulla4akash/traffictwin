@@ -63,16 +63,32 @@ study area with no basemap, no live traffic, and no provider telemetry. A captio
 Manchester scene exists, that scene takes precedence and the static fallback is not shown.
 If the offline boundary asset cannot be loaded, Home falls back to a truthful text state.
 
-Home includes visible actions for Guided Demo, Experiment Planner, and imported TOS results. These
-actions are available in the main page content, so the first workflow does not depend on opening
-Streamlit's sidebar on a phone.
+Home includes visible primary actions for **Create what-if comparison** (What-If Studio,
+synthetic/deterministic/local, not Manchester observation or live forecast), **Explore
+Manchester**, **Start Guided Demo**, and **Open latest run**. **Create scenario** (Scenario
+Builder) remains available below the primary row. These actions are available in the main page
+content, so the first workflow — **Home → What-If Studio → Compare** — does not depend on
+opening Streamlit's sidebar on a phone. The What-If entry caption states: “What-If Studio
+generates a deterministic synthetic baseline/variation pair locally — SYNTHETIC / DETERMINISTIC /
+LOCAL. It is not Manchester observation, not a live traffic forecast, and does not run SUMO, VEC,
+a provider feed, or an admitted research campaign.” Later V2-S4B integration (Consequence Lenses,
+Portfolio Explorer) remains upcoming and is not wired here.
 
 ## Guided Demo
 
 Guided Demo presents two evidence tracks without introducing a second analysis pipeline:
 
-- **Standalone synthetic** follows experiment planning, bundle validation, metrics, comparison,
-  historical replay, diagnostics, provenance, and report export.
+- **Standalone synthetic** follows experiment planning, bundle validation, metrics, a new
+  **Build a what-if experiment** (What-If Studio), comparison, historical replay, diagnostics,
+  provenance, and report export — 9 stages. The What-If Studio stage is the preferred V2-S1
+  path (choose a deterministic synthetic baseline, make a meaningful intervention from the closed
+  set, preview/inspect the changed-parameter ledger, generate the pair). On success the studio
+  sets `selected_baseline_run` / `selected_variation_run` for the existing **Compare** stage;
+  skipping it and using the committed demo fixtures via **Bundle Import** keeps **Compare**
+  reachable, so the older synthetic guided workflow remains functional. What-If Studio
+  generates a deterministic synthetic pair locally; **Platform → What-If Composer** (Platform
+  group) predicts from a bounded surrogate fit and drafts unsigned campaigns and cannot
+  approve or execute research — the two surfaces are not interchangeable.
 - **Randy/TOS imported simulation** follows package inspection, evaluation results, historical
   mobility/RSU replay, and training/reproducibility audit.
 

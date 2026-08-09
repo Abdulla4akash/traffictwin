@@ -481,7 +481,7 @@ def test_home_starts_and_advances_guided_demo() -> None:
     assert not app.exception
     assert any(title.value == "Guided Demo" for title in app.title)
     assert any(
-        heading.value == "Stage 1 of 8: Frame a reproducible experiment"
+        heading.value == "Stage 1 of 9: Frame a reproducible experiment"
         for heading in app.subheader
     )
 
@@ -492,14 +492,14 @@ def test_home_starts_and_advances_guided_demo() -> None:
     assert not app.exception
     assert any(title.value == "Experiment Planner" for title in app.title)
     assert any(button.label == "Waiting for task" for button in app.button)
-    assert any("stage 1 of 8" in caption.value for caption in app.caption)
+    assert any("stage 1 of 9" in caption.value for caption in app.caption)
 
     next(button for button in app.button if button.label == "Skip").click().run(timeout=10)
 
     assert not app.exception
     assert any(title.value == "Bundle Import & Validation" for title in app.title)
     assert any(button.label == "Reviewed — continue" for button in app.button)
-    assert any("stage 2 of 8" in caption.value for caption in app.caption)
+    assert any("stage 2 of 9" in caption.value for caption in app.caption)
 
     next(button for button in app.button if button.label == "Reviewed — continue").click().run(
         timeout=10
@@ -507,7 +507,7 @@ def test_home_starts_and_advances_guided_demo() -> None:
 
     assert not app.exception
     assert any(title.value == "Run Overview" for title in app.title)
-    assert any("stage 3 of 8" in caption.value for caption in app.caption)
+    assert any("stage 3 of 9" in caption.value for caption in app.caption)
 
 
 def test_guided_demo_tos_track_has_honest_empty_state() -> None:
