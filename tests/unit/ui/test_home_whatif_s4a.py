@@ -7,12 +7,9 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
-import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 from traffictwin.demo.workspace import initialise_workspace
-from traffictwin.ui.labels import UiPage
-from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.state import default_session_state
 
 HOME_APP = "src/traffictwin/ui/app_pages/home.py"
@@ -50,31 +47,32 @@ def test_home_legacy_exposes_whatif_action() -> None:
     assert "Create what-if comparison" in labels
 
 
-def test_home_whatif_routes_to_whatif_studio(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Isolate navigation: v07 pending page must be WHATIF_STUDIO
-    state: dict[str, object] = {"_v07_navigation_active": True}
-    switched: list[str] = []
-    monkeypatch.setattr(st, "session_state", state)
-    monkeypatch.setattr(st, "switch_page", switched.append)
+def test_home_actual_whatif_button_routes_to_studio() -> None:
+    """Regression: the production V0.7 Home button must route to What-If Studio.
 
-    from traffictwin.ui.navigation import navigation_button
+    Renders the real Home via the app router, clicks the actual button labelled
+    "Create what-if comparison", and asserts the observed navigation target is
+    What-If Studio. This fails if home.py is changed to SCENARIO, COMPARE, or
+    any other destination because the clicked button declaration is the
+    production one.
+    """
 
-    def pressed(label: str, **kwargs: object) -> bool:
-        return True
+    from streamlit.testing.v1 import AppTest
 
-    monkeypatch.setattr(st, "session_state", state)
+    app = AppTest.from_file("src/traffictwin/ui/app.py").run(timeout=25)
+    assert not app.exception
+    # Land on Home
+    assert any("Model a traffic scenario" in str(t.value) for t in app.title)
 
-    # Directly exercise the navigation helper for the label we expose
-    state.clear()
-    state["_v07_navigation_active"] = True
-    navigation_button(
-        pressed,
-        "Create what-if comparison",
-        UiPage.WHATIF_STUDIO,
-        key="home_v07_whatif",
-    )
+    button = next(b for b in app.button if b.label == "Create what-if comparison")
+    button.click().run(timeout=25)
 
-    assert switched == [page_script_for(UiPage.WHATIF_STUDIO)]
+    assert not app.exception
+    # What-If Studio page renders "What-If Studio" as title
+    assert any(t.value == "What-If Studio" for t in app.title)
+    # Must not have navigated to Scenario Builder or Compare
+    assert not any(t.value == "Scenario Builder" for t in app.title)
+    assert not any("What-if Compare" in str(t.value) for t in app.title)
 
 
 def test_home_whatif_no_terminal_path_knowledge() -> None:
