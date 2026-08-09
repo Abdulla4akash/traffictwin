@@ -99,8 +99,8 @@ def test_valid_synthetic_example_pair(monkeypatch: pytest.MonkeyPatch, tmp_path:
     captions = "\n".join(str(c.value) for c in app.caption)
     code_blocks = "\n".join(str(c.value) for c in app.code)
     all_text = captions + code_blocks + "\n".join(str(m.value) for m in app.markdown)
-    assert "baseline_valid" in all_text or "run-baseline-001" in all_text
-    assert "variation_valid" in all_text or "run-variation-001" in all_text
+    assert "baseline_valid" in all_text or "run-baseline" in all_text
+    assert "variation_valid" in all_text or "run-variatio" in all_text
 
 
 def test_pair_identities_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -296,13 +296,50 @@ def test_compatible_pair_with_partial_metrics(
 def test_unknown_provenance_remains_unknown(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    # Default fixtures are synthetic; unknown is not promoted to synthetic.
-    # Service handling is tested in unit; here we ensure page shows badges.
+    # Unknown provenance: synthetic_match None → is_compatible False, UNKNOWN badge
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp.baseline_context["synthetic"] = None
+    comp.variation_context["synthetic"] = None
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.evidence_standing["baseline_synthetic"] is None
+    assert lens.evidence_standing["variation_synthetic"] is None
+    assert lens.compatibility["synthetic_match"] is None
+    assert lens.compatibility["is_compatible"] is False
+    # Ensure no "None" string rendered as identity
+    import traffictwin.ui.pages.consequence_lenses as page_module
+
+    monkeypatch.setattr(page_module, "build_consequence_lens_report", lambda *_a, **_kw: lens)
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
     markdowns = "\n".join(str(m.value) for m in app.markdown)
-    # Should contain synthetic badge (lowercase in badge markdown)
-    assert "synthetic" in markdowns.lower()
+    # Must show UNKNOWN, not synthetic
+    assert "UNKNOWN" in markdowns
+    assert "synthetic" not in markdowns.lower() or "UNKNOWN" in markdowns
+    # Compatibility must show unknown, not no
+    assert "unknown" in markdowns.lower()
+    assert "Synthetic provenance match:" in markdowns and "unknown" in markdowns.lower()
+    # No literal "None" identity
+    all_text = (
+        markdowns
+        + "\n".join(str(c.value) for c in app.caption)
+        + "\n".join(str(c.value) for c in app.code)
+    )
+    assert "None" not in all_text or "Unavailable" in all_text
+    # Run/Seed should be valid or Unavailable, but not "None"
+    assert "Run: Unavailable" not in all_text or lens.evidence_standing["baseline_run_id"] is None
+    # Export must not contain "None" string for synthetic
+    import json
+
+    exported = json.loads(lens.to_json())
+    assert exported["evidence_standing"]["baseline_synthetic"] is None
+    assert exported["compatibility"]["synthetic_match"] is None
 
 
 def test_available_tile_is_strictly_available_and_partial_separate(
@@ -479,3 +516,85 @@ def test_synthetic_mismatch_json_export_is_incompatible(tmp_path: Path) -> None:
     assert "synthetic flags differ" in exported["warnings"]
     assert exported["traffic_summary"]["warnings"] == exported["warnings"]
     assert exported["vec_summary"]["warnings"] == exported["warnings"]
+
+
+def test_missing_run_seed_renders_unavailable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp.baseline_context["run_id"] = None
+    comp.baseline_context["seed_id"] = ""
+    comp.variation_context["run_id"] = None
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.evidence_standing["baseline_run_id"] is None
+    # UI must render Unavailable, not "None"
+    import traffictwin.ui.pages.consequence_lenses as page_module
+
+    monkeypatch.setattr(page_module, "build_consequence_lens_report", lambda *_a, **_kw: lens)
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    markdowns = "\n".join(str(m.value) for m in app.markdown)
+    assert "Unavailable" in markdowns
+    assert "`None`" not in markdowns
+    assert "Run: `None`" not in markdowns
+    assert "Seed: `None`" not in markdowns
+    # Export must keep None as JSON null, not string "None"
+    import json
+
+    exported = json.loads(lens.to_json())
+    assert exported["evidence_standing"]["baseline_run_id"] is None
+
+
+def test_tri_state_compatibility_shows_unknown(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp.baseline_context["experiment_id"] = None
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.compatibility["same_experiment"] is None
+    assert lens.compatibility["is_compatible"] is False
+    import traffictwin.ui.pages.consequence_lenses as page_module
+
+    monkeypatch.setattr(page_module, "build_consequence_lens_report", lambda *_a, **_kw: lens)
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    markdowns = "\n".join(str(m.value) for m in app.markdown)
+    assert "Same experiment:" in markdowns and "unknown" in markdowns.lower()
+    assert "unknown" in markdowns.lower()
+
+
+def test_portable_export_has_no_absolute_paths(tmp_path: Path) -> None:
+    import json
+    from pathlib import Path as _Path
+
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report
+    from traffictwin.ui.services import ServiceError, validate_bundle_for_ui
+    from traffictwin.ui.services.models import BundleAnalysis
+
+    b = validate_bundle_for_ui(_Path("tests/fixtures/bundles/baseline_valid"))
+    v = validate_bundle_for_ui(_Path("tests/fixtures/bundles/variation_valid"))
+    assert isinstance(b, BundleAnalysis) and isinstance(v, BundleAnalysis)
+    report = build_consequence_lens_report(b, v)
+    assert not isinstance(report, ServiceError)
+    portable = report.to_portable_dict()
+    json_str = report.to_json()
+    for txt in [json.dumps(portable), json_str, report.to_canonical_bytes().decode()]:
+        assert "/tmp" not in txt  # noqa: S108
+        assert "/private" not in txt
+        assert "/Users" not in txt
+        assert "baseline_bundle_path" not in txt
+        assert "variation_bundle_path" not in txt

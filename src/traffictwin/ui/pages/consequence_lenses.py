@@ -33,6 +33,28 @@ def _format_value(value: object) -> str:
     return str(value)
 
 
+def _format_identity(value: object) -> str:
+    """Return display for run/seed/bundle identifiers; None/empty → Unavailable."""
+
+    if value is None:
+        return "Unavailable"
+    if isinstance(value, str) and not value.strip():
+        return "Unavailable"
+    # Use truncated fingerprint for long IDs, otherwise raw
+    text = str(value).strip()
+    return fingerprint_summary(text)
+
+
+def _format_tri(value: object) -> str:
+    """Tri-state display: True→yes, False→no, None/unknown→unknown."""
+
+    if value is True:
+        return "yes"
+    if value is False:
+        return "no"
+    return "unknown"
+
+
 def _row_dicts(report: ConsequenceLensReport, domain: str) -> list[dict[str, object]]:
     summary = report.traffic_summary if domain == "traffic" else report.vec_summary
     rows: list[dict[str, object]] = []
@@ -64,7 +86,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
         cols[1].metric("Partial", summary.partial_count, border=True)
         cols[2].metric("Unavailable", summary.unavailable_count, border=True)
         cols[3].metric("Total", len(summary.rows), border=True)
-        # Comparable is available + partial, but keep separate evidence states
         comparable = summary.available_count + summary.partial_count
         st.caption(f"Comparable (available + partial): {comparable}")
         if summary.warnings:
@@ -90,7 +111,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
         )
     else:
         st.info(f"No {domain} consequence rows available.")
-    # Unavailable reasons visible
     unavailable = [row for row in summary.rows if row.status == "unavailable"]
     if unavailable:
         st.caption(f"{len(unavailable)} {domain} metrics are unavailable with exact reason codes.")
@@ -109,7 +129,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
                 width="stretch",
                 column_config=table_column_config(reason_rows),
             )
-    # Denominator wording
     denom_rows = [row for row in summary.rows if row.denominator_description is not None]
     if denom_rows:
         with st.expander(f"Advanced: {domain} denominator definitions"):
@@ -158,7 +177,6 @@ def render() -> None:
     st.session_state["selected_baseline_run"] = str(baseline_path)
     st.session_state["selected_variation_run"] = str(variation_path)
 
-    # Empty and failure states
     baseline_str = baseline_input.strip()
     variation_str = variation_input.strip()
     if not baseline_str or not variation_str:
@@ -222,41 +240,31 @@ def render() -> None:
             st.caption(report.detail)
         return
 
-    # Baseline and variation identities
+    # Baseline and variation identities (logical only, no absolute paths)
     st.subheader("Pair identity")
     with st.container(border=True):
         cols = st.columns(2)
         with cols[0]:
             st.markdown("**Baseline**")
-            st.code(str(baseline.source_path), language=None)
             baseline_prov = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
-            baseline_run = fingerprint_summary(str(report.evidence_standing.get("baseline_run_id")))
-            baseline_seed = fingerprint_summary(
-                str(report.evidence_standing.get("baseline_seed_id"))
-            )
+            # Use helper that returns Unavailable for None
+            baseline_run = _format_identity(report.evidence_standing.get("baseline_run_id"))
+            baseline_seed = _format_identity(report.evidence_standing.get("baseline_seed_id"))
+            # For fingerprint we use logical report fingerprint, not bundle path
             st.markdown(
                 f"**Provenance:** {baseline_prov} "
                 f"**Run:** `{baseline_run}` **Seed:** `{baseline_seed}`"
             )
-            fp = fingerprint_summary(str(report.evidence_standing.get("baseline_fingerprint")))
-            st.caption(f"Bundle fingerprint: `{fp}`")
         with cols[1]:
             st.markdown("**Variation**")
-            st.code(str(variation.source_path), language=None)
             variation_prov = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
-            variation_run = fingerprint_summary(
-                str(report.evidence_standing.get("variation_run_id"))
-            )
-            variation_seed = fingerprint_summary(
-                str(report.evidence_standing.get("variation_seed_id"))
-            )
+            variation_run = _format_identity(report.evidence_standing.get("variation_run_id"))
+            variation_seed = _format_identity(report.evidence_standing.get("variation_seed_id"))
             st.markdown(
                 f"**Provenance:** {variation_prov} "
                 f"**Run:** `{variation_run}` **Seed:** `{variation_seed}`"
             )
-            var_fp = fingerprint_summary(str(report.evidence_standing.get("variation_fingerprint")))
-            st.caption(f"Bundle fingerprint: `{var_fp}`")
-        st.caption(f"Report fingerprint: `{fingerprint_summary(report.fingerprint)}`")
+        st.caption(f"Report fingerprint: `{_format_identity(report.fingerprint)}`")
         if report.fingerprint:
             with st.expander("Advanced: full fingerprints and identities"):
                 st.json(
@@ -267,32 +275,45 @@ def render() -> None:
                         "fingerprint": report.fingerprint,
                     }
                 )
+        # Local paths are NOT part of report identity; show only as local debug if needed
+        with st.expander("Advanced: local bundle paths (not part of report identity)"):
+            st.caption("LOCAL PATH — NOT PART OF REPORT IDENTITY. For local debugging only.")
+            st.json(
+                {
+                    "baseline_local_path": str(baseline.source_path),
+                    "variation_local_path": str(variation.source_path),
+                }
+            )
 
-    # Compatibility status
+    # Compatibility status (tri-state)
     st.subheader("Compatibility")
     compat = report.compatibility
-    same_exp = bool(compat.get("same_experiment"))
-    same_seed = bool(compat.get("same_random_seed"))
-    synthetic_match = bool(compat.get("synthetic_match"))
-    same_version = bool(compat.get("same_metric_version"))
+    same_exp = compat.get("same_experiment")
+    same_seed = compat.get("same_random_seed")
+    synthetic_match = compat.get("synthetic_match")
+    same_version = compat.get("same_metric_version")
     warnings = compat.get("warnings")
     warning_list: list[str] = warnings if isinstance(warnings, list) else []
     with st.container(border=True):
         st.markdown(
-            f"**Same experiment:** {'yes' if same_exp else 'no'} · "
-            f"**Same random seed:** {'yes' if same_seed else 'no'} · "
-            f"**Same metric version:** {'yes' if same_version else 'no'} · "
-            f"**Synthetic provenance match:** {'yes' if synthetic_match else 'no'}"
+            f"**Same experiment:** {_format_tri(same_exp)} · "
+            f"**Same random seed:** {_format_tri(same_seed)} · "
+            f"**Same metric version:** {_format_tri(same_version)} · "
+            f"**Synthetic provenance match:** {_format_tri(synthetic_match)}"
         )
-        st.markdown(f"**Metric version:** {report.baseline_identity.get('metric_version')}")
+        # Metric version display
+        mv = report.baseline_identity.get("metric_version")
+        st.markdown(f"**Metric version:** {_format_value(mv)}")
         base_badge = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
         var_badge = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
         st.markdown(f"**Baseline:** {base_badge} **Variation:** {var_badge}")
-        if not synthetic_match:
+        if synthetic_match is False:
             st.warning(
                 "Synthetic provenance mismatch: baseline and variation have different "
                 "synthetic/imported standing."
             )
+        elif synthetic_match is None:
+            st.warning("Synthetic provenance is unknown; compatibility cannot be confirmed.")
         if not bool(compat.get("is_compatible")):
             st.warning(
                 "Pair is not fully compatible. Deltas for mismatched metrics "
@@ -385,9 +406,11 @@ def render() -> None:
         "or continue to full Compare."
     )
     with st.expander("Advanced: consequence lens JSON export"):
+        # Canonical portable export (deterministic, no absolute paths)
+        portable_json = report.to_json()
         st.download_button(
             "Download consequence lens JSON",
-            data=report.to_json(),
+            data=portable_json,
             file_name=(
                 f"{report.fingerprint[:12]}-lens.json"
                 if report.fingerprint
@@ -396,7 +419,8 @@ def render() -> None:
             mime="application/json",
             key="consequence_download_json",
         )
-        st.json(report.model_dump(mode="json"))
+        # Show portable payload only (no local paths)
+        st.json(report.to_portable_dict() | {"fingerprint": report.fingerprint})
 
     st.caption(
         "Direction is neutral and does not imply improvement or causality. Variation − baseline."

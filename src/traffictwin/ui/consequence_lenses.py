@@ -4,6 +4,31 @@ This module is a typed presentation projection. It consumes existing
 validated analyses and comparison results, selects and groups existing
 metrics, retains exact values and reason codes, and avoids scientific
 recomputation.
+
+Report identity contract
+------------------------
+A ConsequenceLensReport fingerprint identifies the canonical logical
+consequence projection. It binds:
+
+* baseline_identity and variation_identity (logical run/seed/experiment/metric_version/synthetic)
+* compatibility (tri-state same_* / synthetic_match, warnings)
+* changed_seed_parameters
+* traffic and VEC rows (status, direction, values, reason_codes, provenance, etc.)
+* evidence_standing (logical synthetic/run/seed only, no absolute paths)
+* warnings
+
+It explicitly excludes:
+
+* local absolute filesystem paths (/tmp, /Users, /private, etc.)
+* optional local BundleAnalysis enrichment (bundle paths / bundle validation fingerprints)
+* runtime wall-clock values (generated_at)
+
+Two independent builds of the same logical comparison produce identical
+fingerprint and identical canonical export bytes (deterministic).
+
+The downloadable artifact is the canonical portable payload plus the
+fingerprint, byte-identical for the same logical projection on any
+machine.
 """
 
 from __future__ import annotations
@@ -149,7 +174,12 @@ class ConsequenceDomainSummary(BaseModel):
 
 
 class ConsequenceLensReport(BaseModel):
-    """Deterministic projection over an existing comparison report."""
+    """Deterministic projection over an existing comparison report.
+
+    The fingerprint identifies the canonical portable payload (logical
+    comparison evidence). It does not depend on absolute local paths,
+    optional local enrichment, or runtime wall-clock values.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -166,12 +196,77 @@ class ConsequenceLensReport(BaseModel):
     evidence_standing: dict[str, JsonScalar] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
     fingerprint: str = ""
-    generated_at: str = ""
+
+    def to_portable_dict(self) -> dict[str, Any]:
+        """Return canonical portable payload excluding fingerprint self-reference.
+
+        This is the exact payload that is hashed to produce ``fingerprint``
+        and that is exported as the downloadable artifact (plus fingerprint).
+        It contains no absolute paths and no runtime timestamps.
+        The shape mirrors the report (traffic_summary/vec_summary) for
+        backward compatibility with existing exports, but with deterministic
+        ordering and without local paths.
+        """
+
+        def _row_payload(row: ConsequenceMetricRow) -> dict[str, Any]:
+            return {
+                "metric_key": row.metric_key,
+                "domain": row.domain,
+                "status": row.status,
+                "direction": row.direction,
+                "baseline": row.baseline,
+                "variation": row.variation,
+                "absolute_delta": row.absolute_delta,
+                "relative_delta": row.relative_delta,
+                "unit": row.unit,
+                "reason_codes": sorted(row.reason_codes),
+                "compatibility_findings": sorted(row.compatibility_findings),
+                "provenance": dict(sorted(row.provenance.items())),
+                "limitations": sorted(row.limitations),
+                "denominator_description": row.denominator_description,
+            }
+
+        def _summary_payload(summary: ConsequenceDomainSummary) -> dict[str, Any]:
+            return {
+                "domain": summary.domain,
+                "available_count": summary.available_count,
+                "partial_count": summary.partial_count,
+                "unavailable_count": summary.unavailable_count,
+                "warnings": sorted(summary.warnings),
+                "rows": [_row_payload(r) for r in summary.rows],
+            }
+
+        return {
+            "projection_version": "1.0",
+            "baseline_identity": dict(sorted(self.baseline_identity.items())),
+            "variation_identity": dict(sorted(self.variation_identity.items())),
+            "compatibility": dict(sorted(self.compatibility.items())),
+            "changed_seed_parameters": sorted(
+                self.changed_seed_parameters,
+                key=lambda item: str(item.get("path")),
+            ),
+            "warnings": sorted(self.warnings),
+            "evidence_standing": dict(sorted(self.evidence_standing.items())),
+            "traffic_summary": _summary_payload(self.traffic_summary),
+            "vec_summary": _summary_payload(self.vec_summary),
+        }
+
+    def to_canonical_bytes(self) -> bytes:
+        """Return deterministic canonical JSON bytes for fingerprinting/export."""
+
+        payload = self.to_portable_dict()
+        # Use sorted keys, compact separators, no default=str leakage for unknown
+        # types – we explicitly fail on non-serializable values.
+        encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+        return encoded.encode("utf-8")
 
     def to_json(self) -> str:
-        """Return deterministic JSON export."""
+        """Return deterministic portable JSON export (canonical payload + fingerprint)."""
 
-        return self.model_dump_json(indent=2)
+        payload = self.to_portable_dict()
+        # Export payload is canonical payload plus fingerprint, byte-deterministic.
+        payload["fingerprint"] = self.fingerprint
+        return json.dumps(payload, sort_keys=True, indent=2, ensure_ascii=False)
 
 
 def _label_for_key(metric_key: str) -> str:
@@ -242,65 +337,23 @@ def _unavailable_row_for_missing_key(metric_key: str, findings: list[str]) -> Co
     )
 
 
-def _fingerprint_for_report(
-    report: ComparisonReport,
-    traffic: ConsequenceDomainSummary,
-    vec: ConsequenceDomainSummary,
-    evidence_standing: dict[str, JsonScalar],
-    reconciled_warnings: list[str],
-) -> str:
-    # Canonical stable binding of the complete projected evidence payload.
-    # Includes metric values, provenance/evidence standing, and compatibility
-    # findings so a report fingerprint identifies the full consequence projection.
-    def _row_payload(row: ConsequenceMetricRow) -> dict[str, Any]:
-        return {
-            "metric_key": row.metric_key,
-            "domain": row.domain,
-            "status": row.status,
-            "direction": row.direction,
-            "baseline": row.baseline,
-            "variation": row.variation,
-            "absolute_delta": row.absolute_delta,
-            "relative_delta": row.relative_delta,
-            "unit": row.unit,
-            "reason_codes": sorted(row.reason_codes),
-            "compatibility_findings": sorted(row.compatibility_findings),
-            "provenance": dict(sorted(row.provenance.items())),
-            "limitations": sorted(row.limitations),
-            "denominator_description": row.denominator_description,
-        }
+def _tri_state_equal(a: Any, b: Any) -> bool | None:  # noqa: ANN401
+    """Return True if both known equal, False if both known different, None if unknown."""
 
-    # Re-derive compatibility for fingerprint binding; keep consistent with
-    # report compatibility (same_experiment / same_seed / same_version /
-    # synthetic_match and authoritative warnings).
-    baseline_ctx = report.baseline_context
-    variation_ctx = report.variation_context
-    compatibility_payload: dict[str, Any] = {
-        "same_experiment": baseline_ctx.get("experiment_id") == variation_ctx.get("experiment_id"),
-        "same_random_seed": baseline_ctx.get("random_seed") == variation_ctx.get("random_seed"),
-        "same_metric_version": baseline_ctx.get("metric_version")
-        == variation_ctx.get("metric_version"),
-        "synthetic_match": baseline_ctx.get("synthetic") == variation_ctx.get("synthetic"),
-        "warnings": sorted(reconciled_warnings),
-        "comparison_version": report.comparison_version,
-    }
+    if a is None or b is None:
+        return None
+    # Treat empty string as unknown for identity fields where empty means missing
+    if isinstance(a, str) and not a.strip():
+        return None
+    if isinstance(b, str) and not b.strip():
+        return None
+    return bool(a == b)
 
-    payload: dict[str, Any] = {
-        "projection_version": "1.0",
-        "baseline_identity": baseline_ctx,
-        "variation_identity": variation_ctx,
-        "compatibility": compatibility_payload,
-        "changed_seed_parameters": sorted(
-            report.changed_seed_parameters,
-            key=lambda item: str(item.get("path")),
-        ),
-        "warnings": sorted(reconciled_warnings),
-        "comparison_version": report.comparison_version,
-        "evidence_standing": dict(sorted(evidence_standing.items(), key=lambda kv: kv[0])),
-        "traffic_rows": [_row_payload(row) for row in traffic.rows],
-        "vec_rows": [_row_payload(row) for row in vec.rows],
-    }
-    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+
+def _fingerprint_for_canonical(portable_dict: dict[str, Any]) -> str:
+    """Compute SHA-256 over canonical portable payload (excluding fingerprint)."""
+
+    encoded = json.dumps(portable_dict, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
@@ -325,20 +378,23 @@ def build_consequence_lens_report(
     if isinstance(comparison, ServiceError):
         return comparison
 
-    return build_consequence_lens_report_from_comparison(
-        comparison,
-        baseline=baseline,
-        variation=variation,
-    )
+    # Ignore optional local BundleAnalysis enrichment for canonical identity
+    return build_consequence_lens_report_from_comparison(comparison)
 
 
 def build_consequence_lens_report_from_comparison(
     comparison: ComparisonReport,
     *,
-    baseline: BundleAnalysis | None = None,
-    variation: BundleAnalysis | None = None,
+    baseline: BundleAnalysis | None = None,  # noqa: ARG001 - kept for backward compat, intentionally ignored for identity
+    variation: BundleAnalysis | None = None,  # noqa: ARG001
 ) -> ConsequenceLensReport:
-    """Project an already computed comparison report into traffic and VEC lenses."""
+    """Project an already computed comparison report into traffic and VEC lenses.
+
+    Optional ``baseline``/``variation`` kwargs are accepted for backward
+    compatibility but are intentionally **not** part of canonical report
+    identity (no absolute paths, no local fingerprints). They remain local
+    UI context only.
+    """
 
     by_key: dict[str, MetricComparison] = {
         item.metric_key: item
@@ -374,27 +430,29 @@ def build_consequence_lens_report_from_comparison(
     baseline_ctx = dict(comparison.baseline_context)
     variation_ctx = dict(comparison.variation_context)
 
-    # Compatibility preserves the authoritative comparison contract.
-    # Reconcile authoritative warnings first, then derive is_compatible so a
-    # synthetic/imported mismatch or any authoritative incompatibility cannot
-    # coexist with is_compatible == true.
-    same_experiment = baseline_ctx.get("experiment_id") == variation_ctx.get("experiment_id")
-    same_seed = baseline_ctx.get("random_seed") == variation_ctx.get("random_seed")
-    same_version = baseline_ctx.get("metric_version") == variation_ctx.get("metric_version")
-    synthetic_match = baseline_ctx.get("synthetic") == variation_ctx.get("synthetic")
-    # Warnings are the authoritative compatibility findings (comparison plus
-    # locally derived version mismatch, kept as single source of truth).
+    # Tri-state compatibility: None means unknown (one or both missing)
+    same_experiment = _tri_state_equal(
+        baseline_ctx.get("experiment_id"), variation_ctx.get("experiment_id")
+    )
+    same_seed = _tri_state_equal(baseline_ctx.get("random_seed"), variation_ctx.get("random_seed"))
+    same_version = _tri_state_equal(
+        baseline_ctx.get("metric_version"), variation_ctx.get("metric_version")
+    )
+    synthetic_match = _tri_state_equal(
+        baseline_ctx.get("synthetic"), variation_ctx.get("synthetic")
+    )
+
     warnings = list(comparison.warnings)
-    if not same_version and "metric collection versions differ" not in warnings:
+    if same_version is False and "metric collection versions differ" not in warnings:
         warnings.append("metric collection versions differ")
-    # Overall verdict must require provenance compatibility and absence of
-    # authoritative incompatibility warnings.
+    # Unknown version does not promote
     has_authoritative_incompatibility = bool(warnings)
+    # is_compatible requires all required dimensions explicitly True and no warnings
     is_compatible = bool(
-        same_experiment
-        and same_version
-        and same_seed
-        and synthetic_match
+        same_experiment is True
+        and same_version is True
+        and same_seed is True
+        and synthetic_match is True
         and not has_authoritative_incompatibility
     )
     compatibility: dict[str, Any] = {
@@ -408,6 +466,7 @@ def build_consequence_lens_report_from_comparison(
         "variation_metric_version": variation_ctx.get("metric_version"),
     }
 
+    # Evidence standing: logical only, no absolute paths, no local fingerprints
     evidence_standing: dict[str, JsonScalar] = {
         "baseline_synthetic": baseline_ctx.get("synthetic"),
         "variation_synthetic": variation_ctx.get("synthetic"),
@@ -416,12 +475,6 @@ def build_consequence_lens_report_from_comparison(
         "baseline_seed_id": baseline_ctx.get("seed_id"),
         "variation_seed_id": variation_ctx.get("seed_id"),
     }
-    if baseline is not None:
-        evidence_standing["baseline_bundle_path"] = str(baseline.source_path)
-        evidence_standing["baseline_fingerprint"] = baseline.validation.fingerprint
-    if variation is not None:
-        evidence_standing["variation_bundle_path"] = str(variation.source_path)
-        evidence_standing["variation_fingerprint"] = variation.validation.fingerprint
 
     traffic_summary = ConsequenceDomainSummary(
         domain="traffic",
@@ -440,9 +493,19 @@ def build_consequence_lens_report_from_comparison(
         warnings=list(warnings),
     )
 
-    fingerprint = _fingerprint_for_report(
-        comparison, traffic_summary, vec_summary, evidence_standing, warnings
+    # Build provisional report without fingerprint to compute canonical fingerprint
+    provisional = ConsequenceLensReport(
+        baseline_identity=baseline_ctx,
+        variation_identity=variation_ctx,
+        compatibility=compatibility,
+        changed_seed_parameters=list(comparison.changed_seed_parameters),
+        traffic_summary=traffic_summary,
+        vec_summary=vec_summary,
+        evidence_standing=evidence_standing,
+        warnings=list(warnings),
+        fingerprint="",
     )
+    fingerprint = _fingerprint_for_canonical(provisional.to_portable_dict())
 
     return ConsequenceLensReport(
         baseline_identity=baseline_ctx,
@@ -454,5 +517,4 @@ def build_consequence_lens_report_from_comparison(
         evidence_standing=evidence_standing,
         warnings=list(warnings),
         fingerprint=fingerprint,
-        generated_at=comparison.generated_at.isoformat(),
     )

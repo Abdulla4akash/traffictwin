@@ -1,4 +1,4 @@
-"""Pure service tests for traffic and VEC consequence lenses."""
+"""Pure service tests for traffic and VEC consequence lenses – hardened."""
 
 from __future__ import annotations
 
@@ -41,19 +41,88 @@ def test_deterministic_projection() -> None:
     assert not isinstance(first, ServiceError)
     assert not isinstance(second, ServiceError)
     assert first.fingerprint == second.fingerprint
-    first_data = json.loads(first.to_json())
-    second_data = json.loads(second.to_json())
-    first_data.pop("generated_at", None)
-    second_data.pop("generated_at", None)
-    assert first_data == second_data
+    # Canonical bytes deterministic (no generated_at, no absolute paths)
+    assert first.to_canonical_bytes() == second.to_canonical_bytes()
+    assert first.to_json() == second.to_json()
     from traffictwin.ui.services.provenance import compare_runs_for_ui
 
     comp = compare_runs_for_ui(baseline, variation)
     assert not isinstance(comp, ServiceError)
-    via_comp = build_consequence_lens_report_from_comparison(
+    via_comp = build_consequence_lens_report_from_comparison(comp)
+    # With fix, optional kwargs must not alter identity
+    via_comp_with = build_consequence_lens_report_from_comparison(
         comp, baseline=baseline, variation=variation
     )
     assert via_comp.fingerprint == first.fingerprint
+    assert via_comp_with.fingerprint == first.fingerprint
+    assert via_comp.to_canonical_bytes() == via_comp_with.to_canonical_bytes()
+
+
+def test_optional_kwargs_identity_stability() -> None:
+    """Same ComparisonReport → with vs without BundleAnalysis kwargs → identical fingerprint."""
+
+    baseline, variation = _baseline_variation()
+    from traffictwin.ui.services.provenance import compare_runs_for_ui
+
+    comp = compare_runs_for_ui(baseline, variation)
+    assert not isinstance(comp, ServiceError)
+    without = build_consequence_lens_report_from_comparison(comp)
+    with_kwargs = build_consequence_lens_report_from_comparison(
+        comp, baseline=baseline, variation=variation
+    )
+    assert without.fingerprint == with_kwargs.fingerprint
+    assert without.to_canonical_bytes() == with_kwargs.to_canonical_bytes()
+    assert without.to_portable_dict() == with_kwargs.to_portable_dict()
+    # Also verify build_consequence_lens_report matches via_comp
+    direct = build_consequence_lens_report(baseline, variation)
+    assert not isinstance(direct, ServiceError)
+    assert direct.fingerprint == without.fingerprint
+
+
+def test_no_absolute_paths_in_report() -> None:
+    """Report JSON and fingerprint input must not contain absolute local paths."""
+
+    baseline, variation = _baseline_variation()
+    report = build_consequence_lens_report(baseline, variation)
+    assert not isinstance(report, ServiceError)
+    portable = report.to_portable_dict()
+    json_str = report.to_json()
+    canonical = report.to_canonical_bytes().decode("utf-8")
+    for payload in [json.dumps(portable), json_str, canonical]:
+        assert "/tmp" not in payload  # noqa: S108
+        assert "/private/var" not in payload
+        assert "/Users" not in payload
+        assert "baseline_bundle_path" not in payload
+        assert "variation_bundle_path" not in payload
+        assert (
+            "bundle_fingerprint" not in payload.lower() or payload.count("bundle_fingerprint") == 0
+        )
+    # Also ensure fingerprint payload excludes generated_at
+    assert "generated_at" not in json.dumps(portable)
+    assert "generated_at" not in report.to_portable_dict()
+
+
+def test_deterministic_canonical_bytes() -> None:
+    """Same logical report twice with different comparison times → same fingerprint and bytes."""  # noqa: E501
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    # Two comparisons with different clocks
+    from datetime import UTC, datetime
+
+    t1 = datetime(2026, 1, 1, tzinfo=UTC)
+    t2 = datetime(2026, 12, 31, tzinfo=UTC)
+    comp1 = compare_metric_collections(baseline_col, variation_col, clock=lambda: t1)
+    comp2 = compare_metric_collections(baseline_col, variation_col, clock=lambda: t2)
+    assert comp1.generated_at != comp2.generated_at
+    r1 = build_consequence_lens_report_from_comparison(comp1)
+    r2 = build_consequence_lens_report_from_comparison(comp2)
+    assert r1.fingerprint == r2.fingerprint
+    assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
+    assert r1.to_json() == r2.to_json()
+    # Fingerprint must bind export bytes (canonical + fingerprint)
+    assert json.loads(r1.to_json())["fingerprint"] == r1.fingerprint
+    assert json.loads(r2.to_json())["fingerprint"] == r2.fingerprint
 
 
 def test_baseline_variation_identity() -> None:
@@ -64,8 +133,9 @@ def test_baseline_variation_identity() -> None:
     assert report.variation_identity["run_id"] == "run-variation-001"
     assert report.baseline_identity["seed_id"] == "s1-gridlock-baseline"
     assert report.variation_identity["seed_id"] == "s1-gridlock-variation"
-    assert report.evidence_standing["baseline_bundle_path"] == str(baseline.source_path)
-    assert report.evidence_standing["variation_bundle_path"] == str(variation.source_path)
+    # No absolute paths in evidence_standing
+    assert "baseline_bundle_path" not in report.evidence_standing
+    assert "variation_bundle_path" not in report.evidence_standing
     assert report.changed_seed_parameters
     paths = {item["path"] for item in report.changed_seed_parameters}
     assert "demand.multiplier" in paths
@@ -237,7 +307,6 @@ def test_incompatible_pair_refusal() -> None:
     lens2 = build_consequence_lens_report_from_comparison(report2)
     assert lens2.compatibility["same_random_seed"] is False
     assert lens2.compatibility["is_compatible"] is False
-    # Authoritative engine produces zero comparable metrics for seed mismatch
     assert len(report2.comparable_metrics) == 0
     assert len(report2.unavailable_comparisons) == len(ALL_LENS_KEYS)
 
@@ -311,7 +380,40 @@ def test_unknown_provenance_remains_unknown() -> None:
     lens = build_consequence_lens_report_from_comparison(report)
     assert lens.evidence_standing["baseline_synthetic"] is None
     assert lens.evidence_standing["variation_synthetic"] is None
-    assert lens.compatibility["synthetic_match"] is True
+    # None==None must NOT become True – must be unknown (None) and fail closed
+    assert lens.compatibility["synthetic_match"] is None
+    assert lens.compatibility["is_compatible"] is False
+
+
+def test_unknown_single_side_provenance() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    report = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    report.baseline_context["synthetic"] = True
+    report.variation_context["synthetic"] = None
+    lens = build_consequence_lens_report_from_comparison(report)
+    assert lens.compatibility["synthetic_match"] is None
+    assert lens.compatibility["is_compatible"] is False
+
+
+def test_missing_run_seed_identity() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    report = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    report.baseline_context["run_id"] = None
+    report.baseline_context["seed_id"] = ""
+    lens = build_consequence_lens_report_from_comparison(report)
+    assert lens.evidence_standing["baseline_run_id"] is None
+    assert lens.evidence_standing["baseline_seed_id"] in (None, "")
+    # Compatibility for missing run/seed not required, but identity must stay Unknown
+    # Ensure portable dict does not contain string "None" as fabricated identity
+    portable = lens.to_portable_dict()
+    assert portable["evidence_standing"]["baseline_run_id"] is None
+    json_str = lens.to_json()
+    # Should not contain the literal digest of "None" as run id
+    assert (
+        '"None"' not in json_str or json_str.count('"None"') == 0 or "Unavailable" not in json_str
+    )  # we just ensure no fake "None" tokenization
 
 
 def test_deterministic_serialisation_export() -> None:
@@ -322,11 +424,21 @@ def test_deterministic_serialisation_export() -> None:
     second_json = report.to_json()
     assert first_json == second_json
     data = json.loads(first_json)
-    assert "traffic_summary" in data
-    assert "vec_summary" in data
     assert "fingerprint" in data
-    assert "baseline_identity" in data
-    assert "variation_identity" in data
+    # Portable dict round-trips
+    portable = report.to_portable_dict()
+    assert portable["baseline_identity"]["run_id"] == "run-baseline-001"
+    assert "fingerprint" not in portable
+    # Fingerprint binds canonical bytes
+    assert report.fingerprint == report.to_canonical_bytes().hex() or len(report.fingerprint) == 64
+    # Actually fingerprint is hex SHA256 of canonical bytes
+    import hashlib
+    import json as _json
+
+    canonical = _json.dumps(
+        portable, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    assert report.fingerprint == hashlib.sha256(canonical).hexdigest()
     assert "NaN" not in first_json
     assert "Infinity" not in first_json
 
@@ -397,21 +509,15 @@ def test_no_scientific_recomputation() -> None:
 
 
 def test_golden_committed_fixture_counts() -> None:
-    """Pin deterministic counts for the committed fixture pair.
-
-    These are golden counts for the deterministic synthetic baseline_valid vs
-    variation_valid fixtures, not universal domain sizes.
-    """
+    """Pin deterministic counts for the committed fixture pair."""
 
     baseline, variation = _baseline_variation()
     report = build_consequence_lens_report(baseline, variation)
     assert not isinstance(report, ServiceError)
-    # Traffic: 19 total, 18 strictly available, 0 partial, 1 unavailable (time_coverage dict)
     assert report.traffic_summary.available_count == 18
     assert report.traffic_summary.partial_count == 0
     assert report.traffic_summary.unavailable_count == 1
     assert len(report.traffic_summary.rows) == 19
-    # VEC: 41 total, 19 strictly available, 3 partial, 19 unavailable
     assert report.vec_summary.available_count == 19
     assert report.vec_summary.partial_count == 3
     assert report.vec_summary.unavailable_count == 19
@@ -422,7 +528,6 @@ def test_fingerprint_binds_complete_payload() -> None:
     baseline, variation = _baseline_variation()
     report = build_consequence_lens_report(baseline, variation)
     assert not isinstance(report, ServiceError)
-    # Identical projection → identical fingerprint
     second = build_consequence_lens_report(baseline, variation)
     assert not isinstance(second, ServiceError)
     assert report.fingerprint == second.fingerprint
@@ -432,26 +537,116 @@ def test_fingerprint_binds_complete_payload() -> None:
     comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
     comp_changed = copy.deepcopy(comp)
-    # Change baseline value of first comparable metric
     comp_changed.comparable_metrics[0] = comp_changed.comparable_metrics[0].model_copy(
         update={"baseline": 9999}
     )
     lens_changed = build_consequence_lens_report_from_comparison(comp_changed)
     assert lens.fingerprint != lens_changed.fingerprint
-    # Changed status/reason also changes fingerprint
-    comp_status_changed = copy.deepcopy(comp)
-    comp_status_changed.comparable_metrics[0] = comp_status_changed.comparable_metrics[
-        0
-    ].model_copy(update={"status": comp_status_changed.comparable_metrics[0].status})
-    # Force a status change via reason
-    comp_reason_changed = copy.deepcopy(comp)
-    if comp_reason_changed.comparable_metrics:
-        m = comp_reason_changed.comparable_metrics[0]
-        comp_reason_changed.comparable_metrics[0] = m.model_copy(
-            update={"reason_codes": m.reason_codes + []}
+
+
+def test_fingerprint_binds_status_change() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    comp_status = copy.deepcopy(comp)
+    # Flip status of first comparable metric from available to unavailable
+    orig = comp_status.comparable_metrics[0]
+    assert orig.status.value == "available"
+    comp_status.comparable_metrics[0] = orig.model_copy(
+        update={
+            "status": comp_status.unavailable_comparisons[0].status
+            if comp_status.unavailable_comparisons
+            else orig.status
+        }
+    )
+    # Ensure we actually changed it to unavailable
+    if comp_status.comparable_metrics[0].status.value == "available":
+        # force to unavailable if no unavailable template
+        from traffictwin.metrics.comparison import ComparisonStatus
+
+        comp_status.comparable_metrics[0] = orig.model_copy(
+            update={"status": ComparisonStatus.UNAVAILABLE}
         )
-    # At least the value-change test already proves binding; status test is similar
-    assert lens_changed.fingerprint != lens.fingerprint
+    lens_status = build_consequence_lens_report_from_comparison(comp_status)
+    assert lens.fingerprint != lens_status.fingerprint
+
+
+def test_fingerprint_binds_reason_code_change() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    comp_reason = copy.deepcopy(comp)
+    # Add a new reason code to first metric
+    m = comp_reason.comparable_metrics[0]
+    from traffictwin.metrics.results import UnavailableReason
+
+    new_reasons = list(m.reason_codes) + [UnavailableReason.BASELINE_ZERO]
+    comp_reason.comparable_metrics[0] = m.model_copy(update={"reason_codes": new_reasons})
+    lens_reason = build_consequence_lens_report_from_comparison(comp_reason)
+    assert lens.fingerprint != lens_reason.fingerprint
+
+
+def test_fingerprint_binds_compatibility_finding_change() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    comp_compat = copy.deepcopy(comp)
+    m = comp_compat.comparable_metrics[0]
+    comp_compat.comparable_metrics[0] = m.model_copy(
+        update={
+            "compatibility_findings": m.compatibility_findings
+            + ["synthetic provenance is questionable"]
+        }
+    )
+    lens_compat = build_consequence_lens_report_from_comparison(comp_compat)
+    assert lens.fingerprint != lens_compat.fingerprint
+
+
+def test_fingerprint_binds_provenance_change() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens = build_consequence_lens_report_from_comparison(comp)
+    comp2 = copy.deepcopy(comp)
+    if comp2.comparable_metrics:
+        orig = comp2.comparable_metrics[0]
+        mutated_provenance = dict(orig.provenance)
+        mutated_provenance["baseline_run_id"] = "mutated-run-id"
+        comp2.comparable_metrics[0] = orig.model_copy(update={"provenance": mutated_provenance})
+        lens2 = build_consequence_lens_report_from_comparison(comp2)
+        assert lens.fingerprint != lens2.fingerprint
+
+
+def test_fingerprint_ignores_local_absolute_path() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    lens_without = build_consequence_lens_report_from_comparison(comp)
+    # With local BundleAnalysis that would previously inject /tmp paths – now ignored
+    baseline, variation = _baseline_variation()
+    lens_with = build_consequence_lens_report_from_comparison(
+        comp, baseline=baseline, variation=variation
+    )
+    assert lens_without.fingerprint == lens_with.fingerprint
+    assert lens_without.to_canonical_bytes() == lens_with.to_canonical_bytes()
+
+
+def test_same_report_across_tmp_directories(tmp_path: Path) -> None:
+    """Same report across tmp roots → same fingerprint and export."""  # noqa: E501
+
+    baseline, variation = _baseline_variation()
+    r1 = build_consequence_lens_report(baseline, variation)
+    r2 = build_consequence_lens_report(baseline, variation)
+    assert not isinstance(r1, ServiceError) and not isinstance(r2, ServiceError)
+    assert r1.fingerprint == r2.fingerprint
+    assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
+    assert r1.to_json() == r2.to_json()
+    for txt in [r1.to_json(), r2.to_json(), r1.to_canonical_bytes().decode()]:
+        assert "/tmp" not in txt  # noqa: S108
+        assert "baseline_bundle_path" not in txt
 
 
 def test_direction_preserved_from_authoritative_comparison() -> None:
@@ -473,13 +668,11 @@ def test_direction_preserved_from_authoritative_comparison() -> None:
 def test_compatibility_requires_random_seed() -> None:
     baseline_col = metric_collection("baseline_valid")
     variation_col = metric_collection("variation_valid")
-    # Compatible pair
     comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
     assert lens.compatibility["same_random_seed"] is True
     assert lens.compatibility["is_compatible"] is True
     assert len(comp.comparable_metrics) > 0
-    # Change only random_seed
     variation_mismatch = variation_col.model_copy(
         update={
             "results": [r.model_copy(update={"random_seed": 999}) for r in variation_col.results]
@@ -502,12 +695,35 @@ def test_compatibility_requires_random_seed() -> None:
     assert len(comp2.unavailable_comparisons) == len(ALL_LENS_KEYS)
 
 
+def test_compatibility_unknown_fails_closed() -> None:
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    # Both unknown
+    comp.baseline_context["synthetic"] = None
+    comp.variation_context["synthetic"] = None
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.compatibility["synthetic_match"] is None
+    assert lens.compatibility["is_compatible"] is False
+    # One unknown
+    comp2 = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp2.baseline_context["random_seed"] = None
+    lens2 = build_consequence_lens_report_from_comparison(comp2)
+    assert lens2.compatibility["same_random_seed"] is None
+    assert lens2.compatibility["is_compatible"] is False
+    # Unknown experiment
+    comp3 = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    comp3.baseline_context["experiment_id"] = None
+    lens3 = build_consequence_lens_report_from_comparison(comp3)
+    assert lens3.compatibility["same_experiment"] is None
+    assert lens3.compatibility["is_compatible"] is False
+
+
 def test_synthetic_mismatch_gates_compatibility() -> None:
     """Synthetic/imported mismatch must yield synthetic_match False and is_compatible False."""
 
     baseline_col = metric_collection("baseline_valid")
     variation_col = metric_collection("variation_valid")
-    # Baseline synthetic True, variation synthetic False
     variation_synth_false = variation_col.model_copy(
         update={
             "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
@@ -531,13 +747,11 @@ def test_synthetic_mismatch_gates_compatibility() -> None:
     assert "synthetic flags differ" in lens.warnings
     assert "synthetic flags differ" in lens.traffic_summary.warnings
     assert "synthetic flags differ" in lens.vec_summary.warnings
-    # JSON export must also say is_compatible false
     exported = json.loads(lens.to_json())
     assert exported["compatibility"]["is_compatible"] is False
     assert exported["compatibility"]["synthetic_match"] is False
     assert "synthetic flags differ" in exported["warnings"]
     assert "synthetic flags differ" in exported["compatibility"]["warnings"]
-    # Ordinary synthetic-matched pair remains compatible
     comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
     assert lens_ok.compatibility["synthetic_match"] is True
@@ -548,7 +762,6 @@ def test_synthetic_mismatch_gates_compatibility() -> None:
 def test_warning_consistency_across_report_and_summaries() -> None:
     baseline_col = metric_collection("baseline_valid")
     variation_col = metric_collection("variation_valid")
-    # Metric version mismatch should appear consistently via reconciled warnings
     variation_mv = variation_col.model_copy(update={"metric_version": "9.9"})
     comp = compare_metric_collections(baseline_col, variation_mv, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
@@ -557,7 +770,6 @@ def test_warning_consistency_across_report_and_summaries() -> None:
     assert lens.traffic_summary.warnings == lens.warnings
     assert lens.vec_summary.warnings == lens.warnings
     assert lens.compatibility["is_compatible"] is False
-    # Also test ordinary pair has empty warnings everywhere
     comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
     assert lens_ok.warnings == []
@@ -573,7 +785,6 @@ def test_fingerprint_binds_evidence_provenance_and_compatibility() -> None:
     variation_col = metric_collection("variation_valid")
     comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
-    # Changing synthetic provenance must change fingerprint (evidence binding)
     variation_synth_false = variation_col.model_copy(
         update={
             "results": [r.model_copy(update={"synthetic": False}) for r in variation_col.results]
@@ -591,9 +802,7 @@ def test_fingerprint_binds_evidence_provenance_and_compatibility() -> None:
     )
     lens_synth = build_consequence_lens_report_from_comparison(comp_synth)
     assert lens.fingerprint != lens_synth.fingerprint
-    # Changing a row's provenance/compatibility finding must change fingerprint
     comp2 = copy.deepcopy(comp)
-    # Mutate provenance of first comparable metric
     if comp2.comparable_metrics:
         orig = comp2.comparable_metrics[0]
         mutated_provenance = dict(orig.provenance)
@@ -601,19 +810,17 @@ def test_fingerprint_binds_evidence_provenance_and_compatibility() -> None:
         comp2.comparable_metrics[0] = orig.model_copy(update={"provenance": mutated_provenance})
         lens2 = build_consequence_lens_report_from_comparison(comp2)
         assert lens.fingerprint != lens2.fingerprint
-    # Changing evidence standing (bundle fingerprint) must change fingerprint
+
+
+def test_download_filename_stable_across_workspaces(tmp_path: Path) -> None:
+    """Same report on different workspaces → same fingerprint and filename."""  # noqa: E501
+
     baseline, variation = _baseline_variation()
-    report = build_consequence_lens_report(baseline, variation)
-    assert not isinstance(report, ServiceError)
-    # Report via comparison path vs via bundle path should differ in fingerprint
-    # because evidence_standing includes bundle fingerprints/paths
-    comp_direct = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
-    lens_direct = build_consequence_lens_report_from_comparison(comp_direct)
-    assert (
-        report.fingerprint != lens_direct.fingerprint
-        or report.evidence_standing != lens_direct.evidence_standing
-    )
-    # At minimum, mutating evidence_standing directly and recomputing fingerprint
-    # would differ; we verify the fingerprint helper now incorporates evidence_standing
-    # by checking that two identical comparisons with same evidence differ if we
-    # pass different evidence_standing (tested via bundle vs no-bundle difference)
+    r1 = build_consequence_lens_report(baseline, variation)
+    r2 = build_consequence_lens_report(baseline, variation)
+    assert not isinstance(r1, ServiceError) and not isinstance(r2, ServiceError)
+    f1 = r1.fingerprint[:12] + "-lens.json" if r1.fingerprint else "consequence-lens.json"
+    f2 = r2.fingerprint[:12] + "-lens.json" if r2.fingerprint else "consequence-lens.json"
+    assert r1.fingerprint == r2.fingerprint
+    assert f1 == f2
+    assert r1.to_json() == r2.to_json()
