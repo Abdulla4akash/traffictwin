@@ -54,6 +54,8 @@ def install_apptest_run_patch() -> bool:
 
     Idempotent — second call is a no-op without double-wrapping.
     Does not instantiate or run an AppTest.
+
+    Invariant: ``_installed`` is the single source of truth for idempotence.
     """
     global _installed, _original_run, _has_run_first
 
@@ -72,17 +74,11 @@ def install_apptest_run_patch() -> bool:
     # Any other ImportError / SyntaxError from helper or Streamlit internals
     # must fail closed — do not swallow.
 
-    # Guard against double-patch if AppTest.run was already replaced
-    # by a previous install (e.g., via import hook).
-    if (
-        _original_run is not None
-        and getattr(AppTest, "run", None) is not _original_run
-        and getattr(getattr(AppTest, "run", None), "_is_cold_patched", False)
-    ):  # noqa: SIM102
-        _installed = True
-        return True
-
     _original_run = AppTest.run
+    # Close over the exact original callable at install time — the wrapper must
+    # never resolve the mutable global ``_original_run`` at call time, otherwise
+    # a captured reference would crash after ``uninstall`` sets it to ``None``.
+    original_run = _original_run
 
     def _patched_run(self: Any, *args: Any, timeout: float | None = None, **kwargs: Any) -> Any:
         global _has_run_first
@@ -93,7 +89,7 @@ def install_apptest_run_patch() -> bool:
         eff = effective_timeout(timeout, is_first=is_first, cold_floor=COLD_FLOOR_SECONDS)
         # Preserve all other args/kwargs; inject effective timeout.
         # ``AppTest.run`` is keyword-only for timeout, so pass as keyword.
-        return _original_run(self, *args, timeout=eff, **kwargs)
+        return original_run(self, *args, timeout=eff, **kwargs)
 
     # Mark wrapper for idempotence detection.
     _patched_run._is_cold_patched = True  # type: ignore[attr-defined]
@@ -146,10 +142,3 @@ def is_patched() -> bool:
 def get_has_run_first() -> bool:
     """Whether the first-run budget has been consumed in this process."""
     return _has_run_first
-
-
-# Ensure the module never imports Streamlit at import time — invariant for
-# pure-unit collection. Verified by tests that import this module and check
-# ``sys.modules``.
-if False:  # pragma: no cover  # noqa: SIM223
-    pass

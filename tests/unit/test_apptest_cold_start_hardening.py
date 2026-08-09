@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 import types
 from pathlib import Path
 
@@ -568,7 +569,6 @@ def test_broken_helper_import_fails_closed() -> None:
     # Create a temporary copy of the repo where helper is broken, run collect
     import shutil
     import subprocess
-    import tempfile
 
     with tempfile.TemporaryDirectory() as td:
         td_path = Path(td) / "repo"
@@ -609,7 +609,6 @@ def test_broken_helper_import_fails_closed() -> None:
 def test_process_state_resets_between_processes_via_subprocess() -> None:
     """Each independent process observes its own first call receiving the floor."""
     repo_root = Path(__file__).resolve().parents[2]
-    import tempfile
 
     helper_code = (
         "import sys, types\n"
@@ -685,3 +684,207 @@ def test_auto_install_for_real_apptest_is_visible() -> None:
     )
     assert result.returncode == 0, f"failed:\n{result.stdout}\n{result.stderr}"
     assert "PATCHED:True" in result.stdout
+
+
+def test_captured_wrapper_survives_uninstall_and_preserves_semantics() -> None:
+    """Regression A-G: captured patched reference survives uninstall."""
+    fake = _make_fake_module()
+    _install_fake(fake)
+    try:
+        from tests._apptest_runtime import (
+            install_apptest_run_patch,
+            reset_apptest_cold_state,
+            uninstall_apptest_run_patch,
+        )
+
+        # Install and capture
+        install_apptest_run_patch()
+        patched = fake.AppTest.run
+        assert getattr(patched, "_is_cold_patched", False)
+        # Uninstall (sets global _original_run to None)
+        uninstall_apptest_run_patch()
+        # Captured wrapper must still invoke original exactly once, no TypeError, return preserved, timeout transformed
+        # Original for fake is Fake.run which returns sentinel and records timeout
+        # First call via captured wrapper should still be floored to 60 even though wrapper state is consumed?
+        # Reset state to have first-run allowance for this captured wrapper's closure?
+        # Actually _has_run_first is global; after install it was False, first call would set it True.
+        # We need to reset to test transformation
+        reset_apptest_cold_state()
+        # Reinstall to get fresh state? No, we are testing captured after uninstall, so we need to have installed state to test.
+        # Instead, reinstall, capture, uninstall, then call captured with first-run semantics
+        # Do fresh cycle:
+        install_apptest_run_patch()
+        patched2 = fake.AppTest.run
+        uninstall_apptest_run_patch()
+        # Now patched2 is captured wrapper that closed over original_run (the original Fake.run)
+        # Its closure has original_run, not global _original_run, so it should not crash
+        reset_apptest_cold_state()
+        # Need to ensure _has_run_first is False for first call via patched2
+        # patched2's closure will use global _has_run_first to decide is_first, so first call should be 60
+        inst = fake.AppTest()
+        # patched2 is an unbound function, need to call with instance
+        ret = patched2(inst, timeout=10)
+        assert ret is inst.return_sentinel, "return not preserved"
+        assert inst.last_timeout == 60, f"expected 60 got {inst.last_timeout}"
+        assert inst.call_count == 1, "original not called exactly once"
+        # Second call via same captured wrapper should be 10 (global state now True)
+        inst2 = fake.AppTest()
+        ret2 = patched2(inst2, timeout=10)
+        assert inst2.last_timeout == 10, f"expected 10 got {inst2.last_timeout}"
+        # No TypeError
+    finally:
+        _uninstall_fake(fake)
+        # Ensure clean for next tests
+        from tests._apptest_runtime import reset_apptest_cold_state as _rst
+
+        _rst()
+
+
+def test_captured_wrapper_after_reinstall_does_not_dispatch_through_new_global() -> None:
+    """Old captured wrapper must not dispatch through newer global original."""
+    fake = _make_fake_module()
+    _install_fake(fake)
+    try:
+        from tests._apptest_runtime import install_apptest_run_patch, uninstall_apptest_run_patch
+
+        # First install, capture old wrapper
+        install_apptest_run_patch()
+        old_patched = fake.AppTest.run
+        old_original = old_patched  # not, need original
+        # Uninstall and reinstall (which will capture new original, but original is same Fake.run)
+        uninstall_apptest_run_patch()
+        install_apptest_run_patch()
+        new_patched = fake.AppTest.run
+        assert old_patched is not new_patched
+        # Both should close over the same original Fake.run, but old should not be affected by new install's global
+        # Now uninstall again, old should still work
+        uninstall_apptest_run_patch()
+        # Old captured should still call original, not crash, and not use new global (which is None)
+        from tests._apptest_runtime import reset_apptest_cold_state
+
+        reset_apptest_cold_state()
+        inst = fake.AppTest()
+        # old_patched should still work
+        ret = old_patched(inst, timeout=10)
+        assert inst.last_timeout == 60
+        assert ret is inst.return_sentinel
+    finally:
+        _uninstall_fake(fake)
+
+
+# ---------------------------------------------------------------------------
+# Cold opt-in contract — subprocess, tiny marker, no 48s cost
+# ---------------------------------------------------------------------------
+
+
+def _run_pytest_with_marker(tmp_path: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
+    repo_root = Path(__file__).resolve().parents[2]
+    return subprocess.run(
+        [sys.executable, "-m", "pytest", *args],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+
+
+def _tmp_test_path(tmp_path: Path, repo_root: Path) -> Path:
+    # Create temp test file inside repo/tests so tests/conftest.py is loaded
+    # Use tmp_path's basename to make unique, but place under tests
+    name = f"tmp_cold_{tmp_path.name.replace('-', '_')}_{id(tmp_path)}.py"
+    return repo_root / "tests" / name
+
+
+def test_cold_opt_in_ordinary_pytest_does_not_run_cold(tmp_path: Path) -> None:
+    """Ordinary pytest (no -m, no --run-cold-apptest) does not execute cold."""
+    repo_root = Path(__file__).resolve().parents[2]
+    tpath = _tmp_test_path(tmp_path, repo_root)
+    tpath.write_text(
+        "import pytest\n@pytest.mark.cold_apptest\ndef test_dummy_cold(): assert True\n"
+        + "def test_dummy_normal(): assert True\n"
+    )
+    try:
+        result = _run_pytest_with_marker(tmp_path, [str(tpath), "-v"])
+        assert result.returncode == 0
+        # cold should be skipped
+        assert (
+            "cold AppTest control requires --run-cold-apptest" in result.stdout
+            or "skipped" in result.stdout.lower()
+        )
+        assert "test_dummy_cold" in result.stdout
+        # normal should have passed
+        assert "1 passed" in result.stdout or "2 passed" in result.stdout
+        # Ensure cold not counted as passed
+        assert "test_dummy_cold PASSED" not in result.stdout
+    finally:
+        tpath.unlink(missing_ok=True)
+
+
+def test_cold_opt_in_m_cold_without_flag_still_skipped(tmp_path: Path) -> None:
+    """-m cold_apptest WITHOUT --run-cold-apptest still skipped."""
+    repo_root = Path(__file__).resolve().parents[2]
+    tpath = _tmp_test_path(tmp_path, repo_root)
+    tpath.write_text(
+        "import pytest\n@pytest.mark.cold_apptest\ndef test_dummy_cold(): assert True\n"
+    )
+    try:
+        result = _run_pytest_with_marker(tmp_path, [str(tpath), "-v", "-m", "cold_apptest"])
+        assert result.returncode == 0
+        assert "cold AppTest control requires --run-cold-apptest" in result.stdout
+        # Should be skipped, not passed
+        assert "1 skipped" in result.stdout or "skipped" in result.stdout.lower()
+    finally:
+        tpath.unlink(missing_ok=True)
+
+
+def test_cold_opt_in_with_flag_and_m_cold_is_eligible(tmp_path: Path) -> None:
+    """--run-cold-apptest -m cold_apptest makes cold eligible."""
+    repo_root = Path(__file__).resolve().parents[2]
+    tpath = _tmp_test_path(tmp_path, repo_root)
+    tpath.write_text(
+        "import pytest\n@pytest.mark.cold_apptest\ndef test_dummy_cold(): assert True\n"
+    )
+    try:
+        result = _run_pytest_with_marker(
+            tmp_path, [str(tpath), "-v", "--run-cold-apptest", "-m", "cold_apptest"]
+        )
+        assert result.returncode == 0
+        assert "1 passed" in result.stdout
+        assert "cold AppTest control requires --run-cold-apptest" not in result.stdout
+    finally:
+        tpath.unlink(missing_ok=True)
+
+
+def test_cold_opt_in_arbitrary_m_does_not_enable_cold(tmp_path: Path) -> None:
+    """Arbitrary -m "not foo" does not accidentally enable cold."""
+    repo_root = Path(__file__).resolve().parents[2]
+    tpath = _tmp_test_path(tmp_path, repo_root)
+    tpath.write_text(
+        "import pytest\n@pytest.mark.cold_apptest\ndef test_dummy_cold(): assert True\n"
+        + "def test_dummy_normal(): assert True\n"
+    )
+    try:
+        result = _run_pytest_with_marker(tmp_path, [str(tpath), "-v", "-m", "not foo"])
+        assert result.returncode == 0
+        # cold should still be skipped even though -m not foo would normally include it
+        assert "cold AppTest control requires --run-cold-apptest" in result.stdout
+        # normal should pass
+        assert "1 passed" in result.stdout
+    finally:
+        tpath.unlink(missing_ok=True)
+
+
+def test_cold_opt_in_normal_tests_unaffected(tmp_path: Path) -> None:
+    """Normal non-cold tests remain unaffected by opt-in."""
+    repo_root = Path(__file__).resolve().parents[2]
+    tpath = _tmp_test_path(tmp_path, repo_root)
+    tpath.write_text("def test_a(): assert True\n" + "def test_b(): assert True\n")
+    try:
+        result = _run_pytest_with_marker(tmp_path, [str(tpath), "-v"])
+        assert result.returncode == 0
+        assert "2 passed" in result.stdout
+        result2 = _run_pytest_with_marker(tmp_path, [str(tpath), "-v", "--run-cold-apptest"])
+        assert result2.returncode == 0
+        assert "2 passed" in result2.stdout
+    finally:
+        tpath.unlink(missing_ok=True)

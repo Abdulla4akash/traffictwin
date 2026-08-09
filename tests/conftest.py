@@ -21,6 +21,8 @@ import importlib.abc
 import importlib.machinery
 import sys
 
+import pytest
+
 # Fail-closed: broken helper must raise loudly — do not swallow.
 from tests._apptest_runtime import (  # noqa: F401
     COLD_FLOOR_SECONDS,
@@ -88,6 +90,36 @@ class _LazyPatchFinder(importlib.abc.MetaPathFinder):
 _finder = _LazyPatchFinder()
 if _finder not in sys.meta_path:
     sys.meta_path.insert(0, _finder)
+
+
+# ---------------------------------------------------------------------------
+# Cold-test opt-in — explicit --run-cold-apptest required
+# ---------------------------------------------------------------------------
+
+
+def pytest_addoption(parser):  # type: ignore[no-untyped-def]
+    group = parser.getgroup("traffictwin")
+    import contextlib
+
+    with contextlib.suppress(ValueError):
+        group.addoption(
+            "--run-cold-apptest",
+            action="store_true",
+            default=False,
+            help="run expensive cold AppTest controls (requires --run-cold-apptest)",
+        )
+
+
+def pytest_collection_modifyitems(config, items):  # type: ignore[no-untyped-def]
+    # By default cold controls are skipped; only with --run-cold-apptest may they run.
+    # This is explicit opt-in, not a default -m expression, so a user-supplied
+    # -m cannot accidentally re-enable them.
+    if config.getoption("--run-cold-apptest"):
+        return
+    skip = pytest.mark.skip(reason="cold AppTest control requires --run-cold-apptest")
+    for item in items:
+        if item.get_closest_marker("cold_apptest"):
+            item.add_marker(skip)
 
 
 # ---------------------------------------------------------------------------

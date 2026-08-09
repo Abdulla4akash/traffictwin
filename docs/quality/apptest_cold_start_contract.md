@@ -41,9 +41,9 @@ Turning every `timeout=10` into `60` would hide genuine hangs (a later AppTest t
 
 ## Actual installer architecture
 
-- `tests/_apptest_runtime.py` owns the shipped behavior: `effective_timeout()`, `install_apptest_run_patch()`, `uninstall_apptest_run_patch()`, `reset_apptest_cold_state()`, `is_patched()`. Pure `effective_timeout` is independently unit-tested; `install` is lazily invoked by `tests/conftest.py`.
-- `tests/conftest.py` orchestrates the installer, contains no second implementation, and never imports Streamlit at module import. It installs a `sys.meta_path` finder for `streamlit.testing.v1` that patches `AppTest.run` after `exec_module`, plus `pytest_collection_finish`/`pytest_runtest_setup` fallbacks for already-loaded cases, and restores at `pytest_sessionfinish`. The import hook does not import Streamlit for pure-unit collection.
-- Tests import and execute the same installer used by conftest — no private copy. `tests/unit/test_apptest_cold_start_hardening.py` exercises the real wrapper over a fake `streamlit.testing.v1.AppTest` and verifies: first 10→60, second 10→10, later 25→25, first 90→90, never reduced, call count 1, args/kwargs preserved, return preserved, RuntimeError preserved, arbitrary exception preserved, idempotent, uninstall restores, reset gives new allowance, no hidden AppTest call during install. Breaking the real installer makes these fail.
+- `tests/_apptest_runtime.py` owns the shipped behavior: `effective_timeout()`, `install_apptest_run_patch()`, `uninstall_apptest_run_patch()`, `reset_apptest_cold_state()`, `is_patched()`. Pure `effective_timeout` is independently unit-tested; `install` closes over the exact original `AppTest.run` at install time (wrapper never resolves mutable global `_original_run` at call time, so a captured reference survives `uninstall`) and `uninstall` restores via bookkeeping. Invariant: `_installed` is the single source of truth for idempotence.
+- `tests/conftest.py` and root `conftest.py` orchestrate the installer, contain no second implementation, and never import Streamlit at module import. They install a `sys.meta_path` finder for `streamlit.testing.v1` that patches `AppTest.run` after `exec_module`, plus `pytest_collection_finish`/`pytest_runtest_setup` fallbacks for already-loaded cases, and restore at `pytest_sessionfinish`. The import hook does not import Streamlit for pure-unit collection.
+- Tests import and execute the same installer used by conftest — no private copy. `tests/unit/test_apptest_cold_start_hardening.py` exercises the real wrapper over a fake `streamlit.testing.v1.AppTest` and verifies: first 10→60, second 10→10, later 25→25, first 90→90, never reduced, call count 1, args/kwargs preserved, return preserved, RuntimeError preserved, arbitrary exception preserved, idempotent, uninstall restores, reset gives new allowance, no hidden AppTest call during install, and captured-wrapper-after-uninstall/reinstall regressions. Breaking the real installer makes these fail.
 
 ## Lazy Streamlit proof
 
@@ -57,25 +57,35 @@ Turning every `timeout=10` into `60` would hide genuine hangs (a later AppTest t
 
 `tests/conftest.py` imports `tests._apptest_runtime` at module import without `except ImportError: pass`. Only `ModuleNotFoundError` for `streamlit` (genuinely not installed) is tolerated, and only when the current invocation does not need Streamlit (pure-unit). A broken `tests/_apptest_runtime` (simulated `raise ImportError('simulated helper breakage')`) fails closed: a temporary copy of the repo with a broken helper and `pytest --collect-only` exits non-zero and surfaces the helper breakage. The test `test_broken_helper_import_fails_closed` proves this.
 
-## Cold marker registration
+## Cold marker registration and explicit opt-in
 
 `pyproject.toml` registers:
 
 ```toml
 [tool.pytest.ini_options]
-addopts = "-ra -m 'not cold_apptest'"
-markers = ["cold_apptest: expensive genuine cold AppTest proof requiring fresh cache (run with -m cold_apptest)"]
+addopts = "-ra"
+markers = ["cold_apptest: expensive genuine cold AppTest proof requiring fresh cache (run with --run-cold-apptest -m cold_apptest)"]
 ```
 
-Routine `pytest` excludes `cold_apptest`. The expensive proof runs only deliberately:
+`conftest.py` (root and `tests/conftest.py`) implement explicit opt-in:
 
-```bash
-pytest -m cold_apptest tests/test_apptest_cold_start_integration.py -v
+```python
+def pytest_addoption(parser):
+    parser.addoption("--run-cold-apptest", action="store_true", help="run expensive cold AppTest controls")
+
+def pytest_collection_modifyitems(config, items):
+    if config.getoption("--run-cold-apptest"):
+        return
+    for item in items:
+        if item.get_closest_marker("cold_apptest"):
+            item.add_marker(pytest.mark.skip(reason="cold AppTest control requires --run-cold-apptest"))
 ```
 
-The old unregistered `slow` marker is removed.
+By default all `cold_apptest` tests are skipped/deselected. Only `pytest --run-cold-apptest -m cold_apptest` (or plain `--run-cold-apptest`) may execute them. A caller-supplied `-m` expression cannot accidentally re-enable them — `not foo` still skips cold. Verified via tiny temporary marked tests in `tests/unit/test_apptest_cold_start_hardening.py`.
 
-## Genuinely cold proof
+The old unregistered `slow` marker and global `addopts = "-m 'not cold_apptest'"` are removed.
+
+## Genuinely cold proof and opportunistic evidence
 
 Each control uses:
 
@@ -87,15 +97,10 @@ Each control uses:
 
 Inner target identical: `tests/integration/test_ui_demo_flow.py::test_streamlit_app_starts_with_apptest` (`app.run(timeout=10)`).
 
-- **Negative control** (`--noconftest`, hardening disabled): expected `RuntimeError` timeout / non-zero exit. If unexpectedly passes (machine genuinely faster than 8–12s), the test reports the environment and `pytest.skip`s — deterministic installer tests remain the invariant.
+- **Negative control** (`--noconftest`, hardening disabled): expected `RuntimeError` timeout / non-zero exit when cold >10s.
 - **Positive control** (hardening enabled): expected `1 passed`, no `RuntimeError`.
 
-Both controls were executed on darwin (Python 3.13.5, 2026-08-09) with `PYTHONPYCACHEPREFIX` isolation:
-
-- Negative: skipped (passed unexpectedly — env faster, cold <10s), reported, not faked.
-- Positive: passed in 9.33s.
-
-Deterministic wrapper tests (first 10→60, second 10→10, etc.) are the invariant proof across environments.
+**Truth about evidence:** Deterministic installer/wrapper unit tests are the standing invariant. The cold negative control is an opportunistic environmental demonstration — `PYTHONPYCACHEPREFIX` and `-p no:cacheprovider` do **not** flush the OS page cache, so a negative control may legitimately skip on a warm machine. On this darwin machine one observed cold invocation **did** reproduce the timeout when hardening was disabled (`RuntimeError` after ~11s), while later warm OS-page-cache runs passed (<8s) and therefore skipped via `pytest.skip`. The positive control passed consistently (e.g., 9.33s with hardening). Do not claim every invocation reproduces the timeout; do not tie it specifically to PR #14.
 
 ## 23-test boundary
 
