@@ -700,14 +700,12 @@ def generate_whatif_pair(
                                 # transaction with ownership tracking (fix partial rollback)
                                 if b_val.manifest and v_val.manifest:
                                     b_reconcile_created = False
-                                    v_reconcile_created = False
                                     try:
                                         if not b_in:
                                             b_res = import_validated_bundle(b_val, registry_path)
                                             b_reconcile_created = b_res.created
                                         if not v_in:
-                                            v_res = import_validated_bundle(v_val, registry_path)
-                                            v_reconcile_created = v_res.created
+                                            import_validated_bundle(v_val, registry_path)
                                         return WhatIfPairReceipt(
                                             status="already_exists",
                                             pair_id=pair_id,
@@ -1190,3 +1188,70 @@ def whatif_ledger_to_yaml(ledger: list[WhatIfChangedParameter]) -> str:
         sort_keys=False,
         allow_unicode=False,
     )
+
+
+def receipt_to_portable_dict(
+    receipt: WhatIfPairReceipt, workspace_path: Path | None = None
+) -> dict[str, Any]:
+    """Return a publication-safe dict for the receipt without absolute local paths.
+
+    Internal runtime receipts keep absolute ``baseline_bundle_path`` /
+    ``variation_bundle_path`` for safe filesystem operations and Compare wiring.
+    This helper produces the serialised form for download and for the on-disk
+    ``whatif_receipt.json`` — only workspace-relative or bundle-relative
+    references, plus stable IDs, are retained.
+    """
+
+    data = receipt.model_dump(mode="json")
+    # Replace absolute bundle paths with portable workspace-relative or pair-relative forms.
+    for key in ("baseline_bundle_path", "variation_bundle_path"):
+        value = data.get(key)
+        if isinstance(value, str) and value:
+            p = Path(value)
+            # Prefer workspace-relative if workspace is known and containment holds
+            portable: str | None = None
+            if workspace_path is not None:
+                try:
+                    ws = Path(workspace_path).resolve(strict=False)
+                    # bundle is expected under workspace/bundles/<pair_id>/...
+                    # Use relative_to workspace/bundles for portability (matches on-disk)
+                    bundles_root = ws / "bundles"
+                    try:
+                        portable = p.resolve(strict=False).relative_to(bundles_root).as_posix()
+                    except (ValueError, OSError, RuntimeError):
+                        portable = p.resolve(strict=False).relative_to(ws).as_posix()
+                        # strip leading bundles/ to match on-disk pair-relative form
+                        if portable.startswith("bundles/"):
+                            portable = portable[len("bundles/") :]
+                except (ValueError, OSError, RuntimeError):
+                    portable = None
+            if portable is None:
+                # Fallback: pair-relative (<pair_id>/baseline) or just bundle id
+                # The on-disk receipt already uses this form; keep it for download
+                try:
+                    # pair_id is stable; construct pair-relative
+                    if receipt.pair_id and receipt.pair_id in value:
+                        # Extract suffix after pair_id
+                        idx = value.find(receipt.pair_id)
+                        portable = value[idx:].replace("\\", "/")
+                    else:
+                        portable = Path(value).name
+                except Exception:
+                    portable = Path(value).name
+                # Ensure it is not absolute
+                if portable.startswith("/"):
+                    portable = portable.lstrip("/")
+                # Prefer <pair_id>/... form if we can derive it (matches on-disk)
+                if "/" not in portable:
+                    suffix = "baseline" if "baseline" in key else "variation"
+                    portable = f"{receipt.pair_id}/{suffix}"
+            data[key] = portable
+    # Ensure receipt_path itself is already relative (keep as is)
+    # Remove any accidental absolute workspace exposure
+    for k, v in list(data.items()):
+        if isinstance(v, str) and (v.startswith("/Users/") or v.startswith("/tmp/")):  # noqa: S108
+            # Replace with portable fallback — keep ID, not path
+            if "bundle_path" in k:
+                continue  # already handled
+            data[k] = Path(v).name
+    return data

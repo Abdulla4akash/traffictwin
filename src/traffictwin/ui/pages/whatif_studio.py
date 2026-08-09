@@ -8,7 +8,10 @@ from pathlib import Path
 import streamlit as st
 
 from traffictwin.synthetic.config import SyntheticPolicyProfile
-from traffictwin.synthetic.whatif_pair import STUDIO_EVIDENCE_SENTENCE
+from traffictwin.synthetic.whatif_pair import (
+    STUDIO_EVIDENCE_SENTENCE,
+    receipt_to_portable_dict,
+)
 from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.demo_workspace_service import resolve_effective_demo_paths
@@ -330,9 +333,16 @@ def render(config: UiConfig) -> None:
                     )
                 with st.expander("Advanced: full receipt JSON"):
                     st.json(receipt.model_dump(mode="json"))
+                # Portable download must not expose absolute local paths
+                portable_receipt = receipt_to_portable_dict(
+                    receipt,
+                    workspace_path=Path(effective_workspace_path)
+                    if effective_workspace_path
+                    else None,
+                )
                 st.download_button(
                     "Download pair receipt JSON",
-                    data=json.dumps(receipt.model_dump(mode="json"), indent=2, sort_keys=True),
+                    data=json.dumps(portable_receipt, indent=2, sort_keys=True),
                     file_name=f"{receipt.pair_id}_receipt.json",
                     mime="application/json",
                 )

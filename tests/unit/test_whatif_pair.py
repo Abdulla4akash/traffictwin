@@ -592,3 +592,51 @@ def test_fresh_registry_reconcile_partial_rollback(tmp_path: Path) -> None:
     # Filesystem still intact
     assert baseline_path.exists()
     assert variation_path.exists()
+
+
+def test_downloadable_receipt_is_portable(tmp_path: Path) -> None:
+    """Downloaded receipt must not expose absolute local paths, but retain IDs."""
+    ws, reg = _tmp_workspace(tmp_path)
+    req = WhatIfPairRequest(
+        baseline_preset="baseline",
+        pair_name="portable-receipt-test",
+        experiment_id="exp-portable",
+        variation_overrides=WhatIfVariationOverrides(congestion_multiplier=1.7),
+    )
+    receipt = generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+    assert receipt.baseline_bundle_path is not None
+    assert Path(receipt.baseline_bundle_path).is_absolute()
+    # Runtime paths are absolute for Compare wiring
+    assert str(ws) in receipt.baseline_bundle_path
+    assert str(ws) in receipt.variation_bundle_path  # type: ignore[operator]
+    # On-disk receipt must be portable
+    on_disk = json.loads((ws / "bundles" / receipt.pair_id / "whatif_receipt.json").read_text())
+    assert not on_disk["baseline_bundle_path"].startswith("/")
+    assert not on_disk["variation_bundle_path"].startswith("/")
+    assert str(ws) not in json.dumps(on_disk)
+    # Portable download helper must also be free of absolute paths
+    from traffictwin.synthetic.whatif_pair import receipt_to_portable_dict
+
+    portable = receipt_to_portable_dict(receipt, workspace_path=ws)
+    dumped = json.dumps(portable)
+    # No absolute workspace or bundle paths in download
+    assert str(ws) not in dumped
+    assert "/Users/" not in dumped
+    assert "/tmp/" not in dumped or str(tmp_path) not in dumped  # noqa: S108
+    # Baseline/variation bundle paths must be relative/portable
+    assert not portable["baseline_bundle_path"].startswith("/")
+    assert not portable["variation_bundle_path"].startswith("/")
+    assert portable["baseline_bundle_path"] == on_disk["baseline_bundle_path"]
+    assert portable["variation_bundle_path"] == on_disk["variation_bundle_path"]
+    # Portable receipt still identifies baseline, variation, pair, experiment
+    assert portable["baseline_bundle_id"] == receipt.baseline_bundle_id
+    assert portable["variation_bundle_id"] == receipt.variation_bundle_id
+    assert portable["pair_id"] == receipt.pair_id
+    assert portable["experiment_id"] == receipt.experiment_id
+    assert portable["baseline_run_id"] == receipt.baseline_run_id
+    assert portable["variation_run_id"] == receipt.variation_run_id
+    # Even without workspace, fallback is still portable
+    portable_no_ws = receipt_to_portable_dict(receipt, workspace_path=None)
+    assert not portable_no_ws["baseline_bundle_path"].startswith("/")
+    assert "baseline" in portable_no_ws["baseline_bundle_path"]
+    assert "variation" in portable_no_ws["variation_bundle_path"]
