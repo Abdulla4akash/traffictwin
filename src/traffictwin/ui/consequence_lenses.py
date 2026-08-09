@@ -170,7 +170,6 @@ class ConsequenceDomainSummary(BaseModel):
     available_count: int = 0
     partial_count: int = 0
     unavailable_count: int = 0
-    warnings: list[str] = Field(default_factory=list)
 
 
 class ConsequenceCompatibility(BaseModel):
@@ -248,7 +247,6 @@ class ConsequenceLensReport(BaseModel):
                 "available_count": summary.available_count,
                 "partial_count": summary.partial_count,
                 "unavailable_count": summary.unavailable_count,
-                "warnings": sorted(summary.warnings),
                 "rows": [_row_payload(r) for r in summary.rows],
             }
 
@@ -375,55 +373,6 @@ def _fingerprint_for_canonical(portable_dict: dict[str, Any]) -> str:
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-# Deterministic projection cache — keyed by stable validated evidence identity
-# (logical fingerprint), not raw path strings. Cache state never enters report
-# fingerprint and absolute paths never leak. Mutations are isolated via deep copy.
-_consequence_report_cache: dict[str, ConsequenceLensReport] = {}
-
-
-def _cache_key_for_report(report: ConsequenceLensReport) -> str:
-    """Stable cache key for a consequence report — its logical fingerprint."""
-
-    # Fingerprint already binds the canonical logical payload (including
-    # evidence standing, compatibility, warnings once, etc.) and is
-    # deterministic. Using it as cache key ensures same accepted logical
-    # evidence reuses cached work, while changed evidence (different
-    # fingerprint) misses. The fingerprint itself is the cache identity,
-    # not a path.
-    return report.fingerprint
-
-
-def _cache_consequence_report(report: ConsequenceLensReport) -> None:
-    """Store a deep copy in the deterministic projection cache."""
-
-    if not report.fingerprint:
-        return
-    # Keep cache bounded
-    if len(_consequence_report_cache) >= 32:
-        # Evict oldest entry (FIFO) to keep memory bounded without global framework
-        oldest = next(iter(_consequence_report_cache))
-        _consequence_report_cache.pop(oldest, None)
-    _consequence_report_cache[report.fingerprint] = report.model_copy(deep=True)
-
-
-def get_cached_consequence_report(fingerprint: str) -> ConsequenceLensReport | None:
-    """Return a deep copy from cache if present, else None.
-
-    Returned value is a deep copy so caller mutations cannot corrupt cache.
-    """
-
-    cached = _consequence_report_cache.get(fingerprint)
-    if cached is None:
-        return None
-    return cached.model_copy(deep=True)
-
-
-def clear_consequence_report_cache() -> None:
-    """Clear the deterministic projection cache (for tests)."""
-
-    _consequence_report_cache.clear()
-
-
 def build_consequence_lens_report(
     baseline: BundleAnalysis,
     variation: BundleAnalysis,
@@ -547,15 +496,12 @@ def build_consequence_lens_report_from_comparison(
         "variation_seed_id": variation_ctx.get("seed_id"),
     }
 
-    # Domain summaries carry only domain-specific warnings; global warnings
-    # live once at report level to avoid fan-out duplication.
     traffic_summary = ConsequenceDomainSummary(
         domain="traffic",
         rows=traffic_rows,
         available_count=traffic_available,
         partial_count=traffic_partial,
         unavailable_count=traffic_unavailable,
-        warnings=[],
     )
     vec_summary = ConsequenceDomainSummary(
         domain="vec",
@@ -563,7 +509,6 @@ def build_consequence_lens_report_from_comparison(
         available_count=vec_available,
         partial_count=vec_partial,
         unavailable_count=vec_unavailable,
-        warnings=[],
     )
 
     # Build provisional report without fingerprint to compute canonical fingerprint
@@ -580,12 +525,6 @@ def build_consequence_lens_report_from_comparison(
     )
     fingerprint = _fingerprint_for_canonical(provisional.to_portable_dict())
 
-    # If same accepted logical evidence was already projected, reuse cached
-    # deterministic report (deep copy) — cache key is logical fingerprint, not path.
-    cached = get_cached_consequence_report(fingerprint)
-    if cached is not None:
-        return cached
-
     report = ConsequenceLensReport(
         baseline_identity=baseline_ctx,
         variation_identity=variation_ctx,
@@ -597,6 +536,4 @@ def build_consequence_lens_report_from_comparison(
         warnings=list(warnings),
         fingerprint=fingerprint,
     )
-    # Cache deterministic projection keyed by stable validated evidence identity
-    _cache_consequence_report(report)
-    return report.model_copy(deep=True)
+    return report

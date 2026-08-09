@@ -749,8 +749,8 @@ def test_synthetic_mismatch_gates_compatibility() -> None:
     assert lens.compatibility.synthetic_match is False
     assert lens.compatibility.is_compatible is False
     assert "synthetic flags differ" in lens.warnings
-    assert lens.traffic_summary.warnings == []
-    assert lens.vec_summary.warnings == []
+    assert not hasattr(lens.traffic_summary, "warnings")
+    assert not hasattr(lens.vec_summary, "warnings")
     exported = json.loads(lens.to_json())
     assert exported["compatibility"]["is_compatible"] is False
     assert exported["compatibility"]["synthetic_match"] is False
@@ -763,7 +763,7 @@ def test_synthetic_mismatch_gates_compatibility() -> None:
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
     assert lens_ok.compatibility.synthetic_match is True
     assert lens_ok.compatibility.is_compatible is True
-    assert lens_ok.warnings == []
+    assert lens_ok.warnings == []  # report-level warnings may be empty but domain warnings removed
 
 
 def test_warning_consistency_across_report_and_summaries() -> None:
@@ -773,15 +773,15 @@ def test_warning_consistency_across_report_and_summaries() -> None:
     comp = compare_metric_collections(baseline_col, variation_mv, clock=fixed_clock)
     lens = build_consequence_lens_report_from_comparison(comp)
     assert "metric collection versions differ" in lens.warnings
-    assert lens.traffic_summary.warnings == []
-    assert lens.vec_summary.warnings == []
+    assert not hasattr(lens.traffic_summary, "warnings")
+    assert not hasattr(lens.vec_summary, "warnings")
     assert lens.compatibility.is_compatible is False
     comp_ok = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
     lens_ok = build_consequence_lens_report_from_comparison(comp_ok)
-    assert lens_ok.warnings == []
+    assert lens_ok.warnings == []  # report-level warnings may be empty but domain warnings removed
     assert not hasattr(lens_ok.compatibility, "warnings")
-    assert lens_ok.traffic_summary.warnings == []
-    assert lens_ok.vec_summary.warnings == []
+    assert not hasattr(lens_ok.traffic_summary, "warnings")
+    assert not hasattr(lens_ok.vec_summary, "warnings")
 
 
 def test_fingerprint_binds_evidence_provenance_and_compatibility() -> None:
@@ -889,44 +889,183 @@ def test_typed_compatibility_serialises_and_fingerprint_deterministic() -> None:
     # Changing compatibility changes fingerprint
 
 
-def test_consequence_caching_hit_miss_and_mutation_isolation(tmp_path: Path) -> None:
-    import copy
+def test_validation_cache_hit_miss_and_token_invalidation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Validation cache: hit on unchanged, miss on content change, isolation."""
+    import shutil
     from pathlib import Path as _Path
+
+    from traffictwin.ui.consequence_cache import (
+        _bundle_freshness_token,
+        clear_bundle_cache,
+        get_cached_bundle,
+        validate_bundle_cached,
+    )
+
+    clear_bundle_cache()
+    # Use a temporary copy of a valid bundle so we can mutate mtime
+    src = _Path("tests/fixtures/bundles/baseline_valid")
+    dst = tmp_path / "bundle_copy"
+    shutil.copytree(src, dst)
+    # First validation -> miss, then cached
+    a1 = validate_bundle_cached(dst)
+    assert a1.analysis_ready
+    token1 = _bundle_freshness_token(dst)
+    cached = get_cached_bundle(dst)
+    assert cached is not None
+    # Second call with unchanged files -> hit (same token, no revalidation)
+    import traffictwin.ui.consequence_cache as cache_mod
+
+    calls = {"n": 0}
+    orig = cache_mod.validate_bundle_for_ui  # type: ignore[attr-defined]
+
+    def counting(path: Path) -> BundleAnalysis:
+        calls["n"] += 1
+        return orig(path)
+
+    monkeypatch.setattr(cache_mod, "validate_bundle_for_ui", counting)
+    try:
+        a2 = validate_bundle_cached(dst)
+        assert a2.analysis_ready
+        assert calls["n"] == 0, "warm hit should not call expensive validator"
+        # Mutate a file to change token -> miss
+        target = dst / "manifest.yaml"
+        # Ensure mtime changes (sleep fraction or write)
+        import time
+
+        time.sleep(0.01)
+        target.write_text(target.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        token2 = _bundle_freshness_token(dst)
+        assert token1 != token2, "token must change on content modification"
+        a3 = validate_bundle_cached(dst)
+        assert calls["n"] == 1, "changed content must invalidate and revalidate"
+        # Mutation isolation: mutating returned analysis must not poison cache
+
+        # BundleAnalysis is frozen, use object.__setattr__ to simulate mutation
+        poisoned_path = dst / "poison"
+        object.__setattr__(a3, "source_path", poisoned_path)
+        cached2 = get_cached_bundle(dst)
+        assert cached2 is not None
+        # The poison path should not be in the cached copy (deep isolation)
+        assert str(cached2.source_path) != str(poisoned_path)
+    finally:
+        clear_bundle_cache()
+
+
+def test_session_validation_cache_proves_report_identity_unchanged(tmp_path: Path) -> None:
+    """Report fingerprint identical with cache enabled or cold."""
+    from pathlib import Path as _Path
+
+    from traffictwin.ui.consequence_cache import clear_bundle_cache, validate_bundle_cached
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report
+    from traffictwin.ui.services import validate_bundle_for_ui
+
+    clear_bundle_cache()
+    b_cold = validate_bundle_for_ui(_Path("tests/fixtures/bundles/baseline_valid"))
+    v_cold = validate_bundle_for_ui(_Path("tests/fixtures/bundles/variation_valid"))
+    r_cold = build_consequence_lens_report(b_cold, v_cold)
+    assert not isinstance(r_cold, ServiceError)
+    # Warm via cached validation
+    clear_bundle_cache()
+    b_warm = validate_bundle_cached(_Path("tests/fixtures/bundles/baseline_valid"))
+    v_warm = validate_bundle_cached(_Path("tests/fixtures/bundles/variation_valid"))
+    r_warm = build_consequence_lens_report(b_warm, v_warm)
+    assert not isinstance(r_warm, ServiceError)
+    assert r_cold.fingerprint == r_warm.fingerprint
+    assert r_cold.to_canonical_bytes() == r_warm.to_canonical_bytes()
+    assert r_cold.to_portable_dict() == r_warm.to_portable_dict()
+    clear_bundle_cache()
+
+
+def test_format_scalar_unified_contract() -> None:
+    """Single authoritative scalar formatter must handle all consequence types."""
+
+    from traffictwin.ui.formatting import format_scalar
+
+    # None
+    assert format_scalar(None) == "Unavailable"
+    # bool before int
+    assert format_scalar(True) == "True"
+    assert format_scalar(False) == "False"
+    # int
+    assert format_scalar(42) == "42"
+    assert format_scalar(-7) == "-7"
+    # finite float lossless
+    assert format_scalar(2024123.0) == "2024123.0"
+    assert float(format_scalar(2024123.0)) == 2024123.0
+    assert format_scalar(0.25) == "0.25"
+    assert format_scalar(0.123456789012345) == "0.123456789012345"
+    assert float(format_scalar(0.123456789012345)) == 0.123456789012345
+    # NaN / Inf
+    assert format_scalar(float("nan")) == "NaN"
+    assert format_scalar(float("inf")) == "Infinity"
+    assert format_scalar(float("-inf")) == "-Infinity"
+    # other
+    assert format_scalar("hello") == "hello"
+
+
+def test_typed_consequence_table_rows_direct() -> None:
+    """Typed feature helper must preserve all fields without object indirection."""
+
+    import copy
 
     from tests.helpers import fixed_clock, metric_collection
     from traffictwin.metrics.comparison import compare_metric_collections
-    from traffictwin.ui.consequence_lenses import (
-        build_consequence_lens_report,
-        build_consequence_lens_report_from_comparison,
-        clear_consequence_report_cache,
-        get_cached_consequence_report,
-    )
-    from traffictwin.ui.services import validate_bundle_for_ui
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+    from traffictwin.ui.consequence_tables import consequence_lens_table_rows
 
-    clear_consequence_report_cache()
-    b = validate_bundle_for_ui(_Path("tests/fixtures/bundles/baseline_valid"))
-    v = validate_bundle_for_ui(_Path("tests/fixtures/bundles/variation_valid"))
-    r1 = build_consequence_lens_report(b, v)
-    assert not isinstance(r1, ServiceError)
-    # Second build of same logical pair should hit cache (same fingerprint, same bytes)
-    r2 = build_consequence_lens_report(b, v)
-    assert not isinstance(r2, ServiceError)
-    assert r1.fingerprint == r2.fingerprint
-    assert r1.to_canonical_bytes() == r2.to_canonical_bytes()
-    # Cache returns deep copy so mutation does not corrupt
-    r1_mut = r1.model_copy(deep=True)
-    r1_mut.warnings.append("injected")
-    cached = get_cached_consequence_report(r1.fingerprint)
-    assert cached is not None
-    assert "injected" not in cached.warnings
-    # Changed evidence causes cache miss (different fingerprint)
     baseline_col = metric_collection("baseline_valid")
     variation_col = metric_collection("variation_valid")
     comp = compare_metric_collections(baseline_col, variation_col, clock=fixed_clock)
+    # Inject NaN and Inf to test formatter semantics
     comp2 = copy.deepcopy(comp)
-    comp2.comparable_metrics[0] = comp2.comparable_metrics[0].model_copy(update={"baseline": 9999})
-    lens_a = build_consequence_lens_report_from_comparison(comp)
-    lens_b = build_consequence_lens_report_from_comparison(comp2)
-    assert lens_a.fingerprint != lens_b.fingerprint
-    # Cache does not alter canonical fingerprint/export
-    assert "injected" not in lens_a.to_json()
+    m = comp2.comparable_metrics[0]
+    comp2.comparable_metrics[0] = m.model_copy(
+        update={
+            "baseline": float("nan"),
+            "variation": float("inf"),
+            "absolute_delta": float("-inf"),
+        }
+    )
+    lens = build_consequence_lens_report_from_comparison(comp2)
+    # Traffic and VEC helpers
+    for domain in ("traffic", "vec"):
+        rows = consequence_lens_table_rows(lens, domain)
+        # Each row must have required keys and unified formatting
+        for r in rows:
+            assert "metric_key" in r
+            assert "label" in r
+            assert "status" in r
+            assert "baseline" in r
+            assert "variation" in r
+            assert "absolute_delta" in r
+            assert "relative_delta" in r
+            assert "unit" in r
+            assert "direction" in r
+            assert "reason_codes" in r
+            assert "denominator" in r
+            # Values are strings via format_scalar
+            assert isinstance(r["baseline"], str)
+            assert isinstance(r["variation"], str)
+    # Find the mutated metric and verify NaN/Inf semantics
+    found = False
+    for dom in ("traffic", "vec"):
+        rows = consequence_lens_table_rows(lens, dom)
+        for r in rows:
+            if r["metric_key"] == m.metric_key:
+                assert r["baseline"] == "NaN"
+                assert r["variation"] == "Infinity"
+                assert r["absolute_delta"] == "-Infinity"
+                found = True
+                break
+        if found:
+            break
+    assert found, "mutated metric not found in typed helper"
+    # Also verify generic tables.py no longer imports consequence feature
+    import pathlib
+
+    tables_src = pathlib.Path("src/traffictwin/ui/tables.py").read_text()
+    assert "consequence_lenses" not in tables_src
+    assert "consequence_lens_table_rows" not in tables_src
+    assert "ConsequenceLensReport" not in tables_src

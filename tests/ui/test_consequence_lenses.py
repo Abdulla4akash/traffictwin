@@ -32,6 +32,9 @@ def _run_page(
 ) -> AppTest:
     for key in _ENV_CLEAR:
         monkeypatch.delenv(key, raising=False)
+    # Hermetic: ensure CWD is repository root regardless of caller CWD
+    project_root = Path(__file__).resolve().parents[2]
+    monkeypatch.chdir(project_root)
     app = AppTest.from_file(f"src/traffictwin/ui/{page_script_for(page)}")
     state = deepcopy(default_session_state())
     state["_v07_navigation_active"] = True
@@ -514,8 +517,8 @@ def test_synthetic_mismatch_json_export_is_incompatible(tmp_path: Path) -> None:
     assert exported["compatibility"]["synthetic_match"] is False
     assert exported["compatibility"]["is_compatible"] is False
     assert "synthetic flags differ" in exported["warnings"]
-    assert exported["traffic_summary"]["warnings"] == []
-    assert exported["vec_summary"]["warnings"] == []
+    assert "warnings" not in exported["traffic_summary"]
+    assert "warnings" not in exported["vec_summary"]
 
 
 def test_missing_run_seed_renders_unavailable(
@@ -753,38 +756,38 @@ def test_session_state_half_valid_pair_does_not_commit(
 
 
 def test_format_value_is_lossless_for_finite_floats() -> None:
-    from traffictwin.ui.pages.consequence_lenses import _format_value
+    from traffictwin.ui.formatting import format_scalar
 
     # Value where %.6g is demonstrably lossy
-    assert _format_value(2024123.0) == "2024123.0"
-    assert float(_format_value(2024123.0)) == 2024123.0
+    assert format_scalar(2024123.0) == "2024123.0"
+    assert float(format_scalar(2024123.0)) == 2024123.0
     # Second value with meaningful precision beyond six digits
     val2 = 1234567.89
-    assert float(_format_value(val2)) == val2
+    assert float(format_scalar(val2)) == val2
     # Ordinary floats
-    assert _format_value(0.25) == "0.25"
-    assert float(_format_value(0.25)) == 0.25
+    assert format_scalar(0.25) == "0.25"
+    assert float(format_scalar(0.25)) == 0.25
     # Integers
-    assert _format_value(42) == "42"
-    assert _format_value(42.0) == "42.0"
+    assert format_scalar(42) == "42"
+    assert format_scalar(42.0) == "42.0"
     # None
-    assert _format_value(None) == "Unavailable"
+    assert format_scalar(None) == "Unavailable"
     # Textual
-    assert _format_value("hello") == "hello"
+    assert format_scalar("hello") == "hello"
     # Large precise float
     big = 0.123456789012345
-    assert float(_format_value(big)) == big
+    assert float(format_scalar(big)) == big
 
 
 def test_format_value_preserves_across_dataframe_rendering(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """Ensure rendered dataframe values round-trip via _format_value."""
-    from traffictwin.ui.pages.consequence_lenses import _format_value
+    from traffictwin.ui.formatting import format_scalar
 
     # Simulate a row baseline value that would be lossy under %.6g
     lossy_val = 2024123.0
-    rendered = _format_value(lossy_val)
+    rendered = format_scalar(lossy_val)
     assert rendered == "2024123.0"
     assert float(rendered) == lossy_val
     # Also test via actual page with synthetic data containing such value
@@ -807,7 +810,7 @@ def test_format_value_preserves_across_dataframe_rendering(
     # Find that row and check formatting preserves value
     for row in [*lens.traffic_summary.rows, *lens.vec_summary.rows]:
         if row.metric_key == m.metric_key:
-            assert float(_format_value(row.baseline)) == lossy_val
+            assert float(format_scalar(row.baseline)) == lossy_val
             break
     else:
         pytest.fail("metric not found")
@@ -936,8 +939,8 @@ def test_warning_single_source_not_fan_out(monkeypatch: pytest.MonkeyPatch, tmp_
     lens = build_consequence_lens_report_from_comparison(comp)
     # Structured report has one authoritative global occurrence
     assert "synthetic flags differ" in lens.warnings
-    assert lens.traffic_summary.warnings == []
-    assert lens.vec_summary.warnings == []
+    assert not hasattr(lens.traffic_summary, "warnings")
+    assert not hasattr(lens.vec_summary, "warnings")
     # Fingerprint binds warnings exactly once — changing warning changes fingerprint
     lens2 = lens.model_copy(update={"warnings": ["different warning"]})
     from traffictwin.ui.consequence_lenses import _fingerprint_for_canonical
@@ -965,7 +968,7 @@ def test_shared_tables_helper_lossless(tmp_path: Path) -> None:
 
     from traffictwin.metrics.comparison import compare_metric_collections
     from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
-    from traffictwin.ui.tables import consequence_lens_table_rows
+    from traffictwin.ui.consequence_tables import consequence_lens_table_rows
 
     baseline_col = metric_collection("baseline_valid")
     variation_col = metric_collection("variation_valid")
@@ -991,3 +994,37 @@ def test_shared_tables_helper_lossless(tmp_path: Path) -> None:
     # Also check vec domain
     rows_vec = consequence_lens_table_rows(lens, "vec")
     assert len(rows_vec) > 0
+
+
+def test_cwd_hermetic_helper(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """_run_page must be hermetic: works even when starting CWD is not repo root."""
+
+    # Change CWD away from repo root
+    other_cwd = tmp_path / "other_cwd"
+    other_cwd.mkdir()
+    monkeypatch.chdir(other_cwd)
+    # _run_page chdirs to project_root internally
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    assert len(app.title) == 1
+    assert app.title[0].value == "Consequence Lenses"
+
+
+def test_no_duplicate_widget_default_warning(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Keyed widgets without redundant value= must not emit Streamlit duplicate-default warning."""
+
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    # Streamlit emits duplicate-default as a warning/exception with specific text
+    # Check that no such warning is present in app's warning/exception
+    all_warnings = " ".join(str(w.value) for w in app.warning) + " ".join(
+        str(e.value) for e in getattr(app, "exception", [])
+    )
+    assert "was created with a default value but also had its value set" not in all_warnings
+    # Also ensure second rerun doesn't produce warning
+    app.run(timeout=30)
+    assert not app.exception
+    all_warnings2 = " ".join(str(w.value) for w in app.warning)
+    assert "was created with a default value" not in all_warnings2

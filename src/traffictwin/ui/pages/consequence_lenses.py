@@ -9,43 +9,23 @@ import streamlit as st
 from traffictwin.ui.components.badges import provenance_badge
 from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.components.first_run import first_run_guidance
+from traffictwin.ui.consequence_cache import session_validate_bundle
 from traffictwin.ui.consequence_lenses import (
     ConsequenceLensReport,
     build_consequence_lens_report,
 )
+from traffictwin.ui.consequence_tables import consequence_lens_table_rows
+from traffictwin.ui.formatting import format_scalar
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button
-from traffictwin.ui.services import ServiceError, validate_bundle_for_ui
-from traffictwin.ui.tables import ColumnDisplay, consequence_lens_table_rows, table_column_config
+from traffictwin.ui.services import ServiceError
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 
 def _provenance_badge(synthetic_flag: object) -> str:
     """Shared three-state provenance badge — delegates to ui.components.badges."""
 
     return provenance_badge(synthetic_flag)
-
-
-def _format_value(value: object) -> str:
-    """Lossless rendering for consequence values; readability without silent change."""
-
-    if value is None:
-        return "Unavailable"
-    # bool is subclass of int, handle before int
-    if isinstance(value, bool):
-        return str(value)
-    if isinstance(value, int):
-        return str(value)
-    if isinstance(value, float):
-        # Preserve NaN / infinities explicitly
-        if value != value:  # NaN
-            return "NaN"
-        if value == float("inf"):
-            return "Infinity"
-        if value == float("-inf"):
-            return "-Infinity"
-        # repr is lossless round-trip for Python floats
-        return repr(value)
-    return str(value)
 
 
 def _format_identity(value: object) -> str:
@@ -87,8 +67,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
         cols[3].metric("Total", len(summary.rows), border=True)
         comparable = summary.available_count + summary.partial_count
         st.caption(f"Comparable (available + partial): {comparable}")
-        if summary.warnings:
-            st.warning("\n".join(summary.warnings))
     rows = _row_dicts(report, domain)
     if rows:
         st.dataframe(
@@ -168,6 +146,12 @@ def render() -> None:
         )
     )
 
+    # Ensure widget keys exist before synchronisation to avoid duplicate-default warning
+    # (value= is redundant when keys are already seeded; we initialise explicitly).
+    if "consequence_baseline_path" not in st.session_state:
+        st.session_state["consequence_baseline_path"] = committed_baseline
+    if "consequence_variation_path" not in st.session_state:
+        st.session_state["consequence_variation_path"] = committed_variation
     # Synchronise keyed widget draft state with authoritative committed pair.
     # Streamlit ignores changed `value=` when a widget key already has persistent
     # widget state, so an external What-If Studio commit would otherwise leave
@@ -191,12 +175,10 @@ def render() -> None:
 
     baseline_input = st.text_input(
         "Baseline bundle path",
-        value=committed_baseline,
         key="consequence_baseline_path",
     )
     variation_input = st.text_input(
         "Variation bundle path",
-        value=committed_variation,
         key="consequence_variation_path",
     )
     # Do not commit draft immediately. Draft is baseline_input / variation_input.
@@ -248,8 +230,8 @@ def render() -> None:
         st.info("Variation is missing. Enter a valid variation bundle path.")
         return
 
-    baseline = validate_bundle_for_ui(baseline_path)
-    variation = validate_bundle_for_ui(variation_path)
+    baseline = session_validate_bundle(baseline_path, st.session_state)
+    variation = session_validate_bundle(variation_path, st.session_state)
 
     if not baseline.analysis_ready:
         st.error("Baseline bundle is invalid and cannot be used for consequence lenses.")
@@ -331,22 +313,14 @@ def render() -> None:
     st.subheader("Compatibility")
     compat = report.compatibility
 
-    # Support both typed model and legacy dict during transition for tests that monkeypatch
-    def _get_compat(field: str) -> object:
-        if hasattr(compat, field):
-            return getattr(compat, field)
-        if isinstance(compat, dict):
-            return compat.get(field)
-        return None
-
-    same_exp = _get_compat("same_experiment")
-    same_seed = _get_compat("same_random_seed")
-    synthetic_match = _get_compat("synthetic_match")
-    same_version = _get_compat("same_metric_version")
-    is_compat = _get_compat("is_compatible")
+    same_exp = compat.same_experiment
+    same_seed = compat.same_random_seed
+    synthetic_match = compat.synthetic_match
+    same_version = compat.same_metric_version
+    is_compat = compat.is_compatible
     # Metric versions are per-side typed fields, not dead; display both symmetrically
-    baseline_mv = _get_compat("baseline_metric_version")
-    variation_mv = _get_compat("variation_metric_version")
+    baseline_mv = compat.baseline_metric_version
+    variation_mv = compat.variation_metric_version
     # Authoritative global warnings live once at report level (not fan-out)
     warning_list: list[str] = list(report.warnings) if isinstance(report.warnings, list) else []
     with st.container(border=True):
@@ -357,12 +331,12 @@ def render() -> None:
             f"**Synthetic provenance match:** {_format_tri(synthetic_match)}"
         )
         # Symmetric metric version display — both sides visible, unknown truthfully
-        baseline_mv_disp = _format_value(baseline_mv) if baseline_mv is not None else "Unavailable"
-        # Treat empty string as unavailable via _format_value but ensure explicit
+        baseline_mv_disp = format_scalar(baseline_mv) if baseline_mv is not None else "Unavailable"
+        # Treat empty string as unavailable via format_scalar but ensure explicit
         if isinstance(baseline_mv, str) and not baseline_mv.strip():
             baseline_mv_disp = "Unavailable"
         variation_mv_disp = (
-            _format_value(variation_mv) if variation_mv is not None else "Unavailable"
+            format_scalar(variation_mv) if variation_mv is not None else "Unavailable"
         )
         if isinstance(variation_mv, str) and not variation_mv.strip():
             variation_mv_disp = "Unavailable"
@@ -388,19 +362,11 @@ def render() -> None:
         if warning_list:
             st.warning("\n".join(str(item) for item in warning_list))
     with st.expander("Advanced: raw compatibility context JSON"):
-        # Serialise typed compatibility deterministically
-        compat_payload: object
-        if hasattr(compat, "model_dump"):
-            compat_payload = compat.model_dump(mode="json")
-        elif isinstance(compat, dict):
-            compat_payload = compat
-        else:
-            compat_payload = str(compat)
         st.json(
             {
                 "baseline_context": report.baseline_identity,
                 "variation_context": report.variation_identity,
-                "compatibility": compat_payload,
+                "compatibility": compat.model_dump(mode="json"),
                 "warnings": report.warnings,
             }
         )
