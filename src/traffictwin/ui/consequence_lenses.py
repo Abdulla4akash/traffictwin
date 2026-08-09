@@ -127,6 +127,7 @@ class ConsequenceMetricRow(BaseModel):
     relative_delta: float | None = None
     unit: str | None = None
     status: str
+    direction: str
     reason_codes: list[str] = Field(default_factory=list)
     compatibility_findings: list[str] = Field(default_factory=list)
     denominator_description: str | None = None
@@ -142,6 +143,7 @@ class ConsequenceDomainSummary(BaseModel):
     domain: str
     rows: list[ConsequenceMetricRow] = Field(default_factory=list)
     available_count: int = 0
+    partial_count: int = 0
     unavailable_count: int = 0
     warnings: list[str] = Field(default_factory=list)
 
@@ -208,6 +210,7 @@ def _metric_row_from_comparison(comparison: MetricComparison) -> ConsequenceMetr
         relative_delta=comparison.relative_delta,
         unit=comparison.unit,
         status=comparison.status.value,
+        direction=comparison.direction.value,
         reason_codes=[reason.value for reason in comparison.reason_codes],
         compatibility_findings=list(comparison.compatibility_findings),
         denominator_description=DENOMINATOR_BY_KEY.get(comparison.metric_key),
@@ -230,6 +233,7 @@ def _unavailable_row_for_missing_key(metric_key: str, findings: list[str]) -> Co
         relative_delta=None,
         unit=unit,
         status="unavailable",
+        direction="unavailable",
         reason_codes=["METRIC_NOT_APPLICABLE"],
         compatibility_findings=list(findings),
         denominator_description=DENOMINATOR_BY_KEY.get(metric_key),
@@ -243,14 +247,42 @@ def _fingerprint_for_report(
     traffic: ConsequenceDomainSummary,
     vec: ConsequenceDomainSummary,
 ) -> str:
+    # Canonical stable binding of the complete projected payload.
+    # Order is deterministic (allowlist order) and values are bound, not just keys.
+    def _row_payload(row: ConsequenceMetricRow) -> dict[str, Any]:
+        return {
+            "metric_key": row.metric_key,
+            "domain": row.domain,
+            "status": row.status,
+            "direction": row.direction,
+            "baseline": row.baseline,
+            "variation": row.variation,
+            "absolute_delta": row.absolute_delta,
+            "relative_delta": row.relative_delta,
+            "unit": row.unit,
+            "reason_codes": sorted(row.reason_codes),
+        }
+
     payload: dict[str, Any] = {
-        "baseline_context": report.baseline_context,
-        "variation_context": report.variation_context,
-        "changed_seed_parameters": report.changed_seed_parameters,
-        "traffic_keys": [row.metric_key for row in traffic.rows],
-        "vec_keys": [row.metric_key for row in vec.rows],
+        "projection_version": "1.0",
+        "baseline_identity": report.baseline_context,
+        "variation_identity": report.variation_context,
+        "compatibility": {
+            "same_experiment": report.baseline_context.get("experiment_id")
+            == report.variation_context.get("experiment_id"),
+            "same_random_seed": report.baseline_context.get("random_seed")
+            == report.variation_context.get("random_seed"),
+            "same_metric_version": report.baseline_context.get("metric_version")
+            == report.variation_context.get("metric_version"),
+        },
+        "changed_seed_parameters": sorted(
+            report.changed_seed_parameters,
+            key=lambda item: str(item.get("path")),
+        ),
         "warnings": sorted(report.warnings),
         "comparison_version": report.comparison_version,
+        "traffic_rows": [_row_payload(row) for row in traffic.rows],
+        "vec_rows": [_row_payload(row) for row in vec.rows],
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
@@ -316,23 +348,25 @@ def build_consequence_lens_report_from_comparison(
             row = _unavailable_row_for_missing_key(key, ["metric is missing from one collection"])
         vec_rows.append(row)
 
-    traffic_available = sum(1 for row in traffic_rows if row.status in {"available", "partial"})
-    traffic_unavailable = len(traffic_rows) - traffic_available
-    vec_available = sum(1 for row in vec_rows if row.status in {"available", "partial"})
-    vec_unavailable = len(vec_rows) - vec_available
+    traffic_available = sum(1 for row in traffic_rows if row.status == "available")
+    traffic_partial = sum(1 for row in traffic_rows if row.status == "partial")
+    traffic_unavailable = sum(1 for row in traffic_rows if row.status == "unavailable")
+    vec_available = sum(1 for row in vec_rows if row.status == "available")
+    vec_partial = sum(1 for row in vec_rows if row.status == "partial")
+    vec_unavailable = sum(1 for row in vec_rows if row.status == "unavailable")
 
     baseline_ctx = dict(comparison.baseline_context)
     variation_ctx = dict(comparison.variation_context)
 
-    # Compatibility is a visible projection of the existing warnings and context.
+    # Compatibility preserves the authoritative comparison contract.
     same_experiment = baseline_ctx.get("experiment_id") == variation_ctx.get("experiment_id")
     same_seed = baseline_ctx.get("random_seed") == variation_ctx.get("random_seed")
     same_version = baseline_ctx.get("metric_version") == variation_ctx.get("metric_version")
     synthetic_match = baseline_ctx.get("synthetic") == variation_ctx.get("synthetic")
-    is_compatible = bool(same_experiment and same_version)
+    is_compatible = bool(same_experiment and same_version and same_seed)
     # Warnings are the authoritative compatibility findings.
     warnings = list(comparison.warnings)
-    if not same_version:
+    if not same_version and "metric collection versions differ" not in warnings:
         warnings.append("metric collection versions differ")
     compatibility: dict[str, Any] = {
         "same_experiment": same_experiment,
@@ -364,6 +398,7 @@ def build_consequence_lens_report_from_comparison(
         domain="traffic",
         rows=traffic_rows,
         available_count=traffic_available,
+        partial_count=traffic_partial,
         unavailable_count=traffic_unavailable,
         warnings=list(warnings),
     )
@@ -371,6 +406,7 @@ def build_consequence_lens_report_from_comparison(
         domain="vec",
         rows=vec_rows,
         available_count=vec_available,
+        partial_count=vec_partial,
         unavailable_count=vec_unavailable,
         warnings=list(warnings),
     )

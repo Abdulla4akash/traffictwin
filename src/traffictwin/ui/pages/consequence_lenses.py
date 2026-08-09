@@ -47,7 +47,7 @@ def _row_dicts(report: ConsequenceLensReport, domain: str) -> list[dict[str, obj
                 "absolute_delta": _format_value(row.absolute_delta),
                 "relative_delta": _format_value(row.relative_delta),
                 "unit": row.unit or "",
-                "direction": _direction(row.absolute_delta, row.status),
+                "direction": row.direction,
                 "reason_codes": ", ".join(row.reason_codes),
                 "denominator": row.denominator_description or "",
             }
@@ -55,26 +55,18 @@ def _row_dicts(report: ConsequenceLensReport, domain: str) -> list[dict[str, obj
     return rows
 
 
-def _direction(delta: float | None, status: str) -> str:
-    if status == "unavailable":
-        return "unavailable"
-    if delta is None:
-        return "unavailable"
-    if delta > 0:
-        return "increased"
-    if delta < 0:
-        return "decreased"
-    return "unchanged"
-
-
 def _render_domain_section(report: ConsequenceLensReport, domain: str, title: str) -> None:
     summary = report.traffic_summary if domain == "traffic" else report.vec_summary
     st.subheader(title)
     with st.container(border=True):
-        cols = st.columns(3)
+        cols = st.columns(4)
         cols[0].metric("Available", summary.available_count, border=True)
-        cols[1].metric("Unavailable", summary.unavailable_count, border=True)
-        cols[2].metric("Total", len(summary.rows), border=True)
+        cols[1].metric("Partial", summary.partial_count, border=True)
+        cols[2].metric("Unavailable", summary.unavailable_count, border=True)
+        cols[3].metric("Total", len(summary.rows), border=True)
+        # Comparable is available + partial, but keep separate evidence states
+        comparable = summary.available_count + summary.partial_count
+        st.caption(f"Comparable (available + partial): {comparable}")
         if summary.warnings:
             st.warning("\n".join(summary.warnings))
     rows = _row_dicts(report, domain)

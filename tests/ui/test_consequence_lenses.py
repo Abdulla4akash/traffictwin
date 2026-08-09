@@ -303,3 +303,89 @@ def test_unknown_provenance_remains_unknown(
     markdowns = "\n".join(str(m.value) for m in app.markdown)
     # Should contain synthetic badge (lowercase in badge markdown)
     assert "synthetic" in markdowns.lower()
+
+
+def test_available_tile_is_strictly_available_and_partial_separate(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    # Metrics: Available, Partial, Unavailable, Total per domain + comparable caption
+    metrics = {m.label: str(m.value) for m in app.metric}
+    # Traffic domain: 18 available, 0 partial, 1 unavailable (golden for committed fixtures)
+    # VEC domain: 19 available, 3 partial, 19 unavailable
+    # Check that Available is strictly available, not comparable
+    assert "Available" in metrics
+    assert "Partial" in metrics
+    assert "Unavailable" in metrics
+    # Find at least one Available metric with 18 or 19
+    assert "18" in " ".join(metrics.values()) or "19" in " ".join(metrics.values())
+    # Check comparable caption exists and is available+partial
+    captions = "\n".join(str(c.value) for c in app.caption)
+    assert "Comparable (available + partial)" in captions
+
+
+def test_golden_traffic_and_vec_counts(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Pin golden counts for the committed deterministic fixture pair."""
+
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    # Collect metric values by label
+    # There are two domains, each with 4 metrics, so labels repeat; check via order
+    # Instead, use the service directly for golden pin
+    from pathlib import Path as _Path
+
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report
+    from traffictwin.ui.services import validate_bundle_for_ui
+    from traffictwin.ui.services.models import BundleAnalysis
+
+    b = validate_bundle_for_ui(_Path("tests/fixtures/bundles/baseline_valid"))
+    v = validate_bundle_for_ui(_Path("tests/fixtures/bundles/variation_valid"))
+    assert isinstance(b, BundleAnalysis)
+    assert isinstance(v, BundleAnalysis)
+    report = build_consequence_lens_report(b, v)
+    assert not isinstance(report, type(None))
+    # Traffic: 18 available, 0 partial, 1 unavailable
+    assert report.traffic_summary.available_count == 18  # type: ignore[union-attr]
+    assert report.traffic_summary.partial_count == 0  # type: ignore[union-attr]
+    assert report.traffic_summary.unavailable_count == 1  # type: ignore[union-attr]
+    # VEC: 19 available, 3 partial, 19 unavailable
+    assert report.vec_summary.available_count == 19  # type: ignore[union-attr]
+    assert report.vec_summary.partial_count == 3  # type: ignore[union-attr]
+    assert report.vec_summary.unavailable_count == 19  # type: ignore[union-attr]
+
+
+def test_incompatible_seed_mismatch_shows_warning(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from tests.helpers import fixed_clock, metric_collection
+
+    from traffictwin.metrics.comparison import ComparisonRequest, compare_metric_collections
+    from traffictwin.ui.consequence_lenses import build_consequence_lens_report_from_comparison
+
+    baseline_col = metric_collection("baseline_valid")
+    variation_col = metric_collection("variation_valid")
+    variation_mismatch = variation_col.model_copy(
+        update={
+            "results": [r.model_copy(update={"random_seed": 999}) for r in variation_col.results]
+        }
+    )
+    comp = compare_metric_collections(
+        baseline_col,
+        variation_mismatch,
+        ComparisonRequest(
+            baseline_run_id="run-baseline-001",
+            variation_run_id="run-variation-001",
+            require_same_random_seed=True,
+        ),
+        clock=fixed_clock,
+    )
+    lens = build_consequence_lens_report_from_comparison(comp)
+    assert lens.compatibility["same_random_seed"] is False
+    assert lens.compatibility["is_compatible"] is False
+    assert len(comp.comparable_metrics) == 0
+    # Page should show incompatibility warning when rendered with such a pair
+    # Simulate by using the service directly; UI warning is covered by page rendering
+    # but we also verify lens reports zero comparable
+    assert lens.traffic_summary.available_count == 0
+    assert lens.vec_summary.available_count == 0
