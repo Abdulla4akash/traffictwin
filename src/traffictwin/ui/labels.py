@@ -140,7 +140,6 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
         "Explore transparent portfolio selection, candidate ranking, regret and challenge seeds "
         "over synthetic demonstration evidence only."
     ),
-    ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
     UiPage.REPORTS: "Find, download, and deliberately regenerate deterministic reports.",
