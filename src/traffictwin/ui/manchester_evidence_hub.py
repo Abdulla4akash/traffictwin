@@ -9,7 +9,7 @@ import os
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from traffictwin.integration.manchester.freshness import FreshnessTruthState
 
@@ -60,14 +60,70 @@ class ScientificGateState(StrEnum):
     BLOCKED_DEFERRED = "blocked_deferred"
 
 
+def format_software_support(state: SoftwareSupportState) -> str:
+    """Authoritative formatter for software support state."""
+    mapping = {
+        SoftwareSupportState.AVAILABLE: "AVAILABLE",
+        SoftwareSupportState.UNAVAILABLE_PROVIDER_CONTRACT: "UNAVAILABLE — adapter not implemented pending provider contract",  # noqa: E501
+        SoftwareSupportState.DEFERRED: "DEFERRED — no adapter implemented",
+    }
+    return mapping[state]
+
+
+def format_acquisition_readiness(state: AcquisitionReadinessState) -> str:
+    """Authoritative formatter for acquisition readiness."""
+    mapping = {
+        AcquisitionReadinessState.READY: "READY",
+        AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING: "NOT READY — credential unavailable",  # noqa: E501
+        AcquisitionReadinessState.UNAVAILABLE_PROVIDER_CONTRACT: "UNAVAILABLE — provider contract required",  # noqa: E501
+        AcquisitionReadinessState.UNAVAILABLE_DEFERRED: "UNAVAILABLE — deferred per design",
+    }
+    return mapping[state]
+
+
+def format_local_evidence(state: LocalEvidenceState) -> str:
+    """Authoritative formatter for local evidence state."""
+    mapping = {
+        LocalEvidenceState.ACCEPTED_AVAILABLE: "Accepted local evidence available",
+        LocalEvidenceState.NOT_ACCEPTED: "No accepted local evidence",
+        LocalEvidenceState.LIVE_AVAILABLE: "Live control available",
+        LocalEvidenceState.NO_LIVE: "No live evidence",
+        LocalEvidenceState.STATIC_AVAILABLE: "Accepted local evidence (static boundary)",
+        LocalEvidenceState.AUTHORED_AVAILABLE: "Authored input available",
+        LocalEvidenceState.UNAVAILABLE: "Unavailable — no ingestion",
+    }
+    return mapping[state]
+
+
+def format_rights_retention(state: RightsRetentionState) -> str:
+    """Authoritative formatter for rights/retention."""
+    mapping = {
+        RightsRetentionState.NOT_RECORDED: "NOT_RECORDED / OWNER_DECISION_REQUIRED",
+        RightsRetentionState.PROVIDER_CONTRACT_REQUIRED: "PROVIDER_CONTRACT_REQUIRED",
+        RightsRetentionState.RECORDED: "RECORDED",
+    }
+    return mapping[state]
+
+
+def format_scientific_gate(state: ScientificGateState) -> str:
+    """Authoritative formatter for scientific gate."""
+    mapping = {
+        ScientificGateState.BLOCKED: "BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED",
+        ScientificGateState.NOT_APPLICABLE: "NOT_APPLICABLE",
+        ScientificGateState.BLOCKED_PROVIDER_CONTRACT: "BLOCKED / PROVIDER CONTRACT REQUIRED",
+        ScientificGateState.BLOCKED_DEFERRED: "BLOCKED / DEFERRED",
+    }
+    return mapping[state]
+
+
 class ManchesterSourceReadiness(BaseModel):
     """One source readiness row with six-dimension separation and typed machine state.
 
-    Machine truth (typed enums) is identity; display prose must not contradict it.
-    Validation ensures selected operational prose cannot claim approval/availability
-    when typed state is blocked/unavailable/not_recorded, etc. Cosmetic
-    paraphrase that preserves truth validates; contradictory paraphrase is
-    rejected before fingerprint/export.
+    Typed states are primary; presentation labels are derived via authoritative
+    formatters and cannot be supplied independently. Contradictory prose is
+    impossible to inject — extra state-display inputs are rejected as unknown.
+    Source-specific explanation lives in blockers/limitations/next_action and
+    optionally scientific_gate_reasons, not in the state label.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -79,139 +135,43 @@ class ManchesterSourceReadiness(BaseModel):
     evidence_ceiling: str = Field(min_length=1)
     coverage_scope: str = Field(min_length=1)
     freshness_state: FreshnessTruthState = Field()
-    # Display prose (human-readable) — not identity-bound except for contradiction
-    software_support_state: str = Field(min_length=1)
-    configuration_state: str = Field(min_length=1)
-    local_evidence_state: str = Field(min_length=1)
-    acquisition_readiness: str = Field(min_length=1)
-    rights_retention_state: str = Field(min_length=1)
-    scientific_gate_state: str = Field(min_length=1)
-    # Typed machine state (for counts/filters/fingerprint)
+    # Typed machine state — primary identity for counts/filters/fingerprint
     software_support_typed: SoftwareSupportState = Field()
     acquisition_typed: AcquisitionReadinessState = Field()
     local_evidence_typed: LocalEvidenceState = Field()
     rights_typed: RightsRetentionState = Field()
     scientific_gate_typed: ScientificGateState = Field()
+    configuration_state: str = Field(min_length=1)
     last_receipt_summary: str | None = None
     blockers: list[str] = Field(default_factory=list)
     next_action: str = Field(min_length=1)
     limitations: list[str] = Field(default_factory=list)
+    scientific_gate_reasons: list[str] = Field(default_factory=list)
 
-    @model_validator(mode="after")
-    def _check_presentation_consistency(self) -> ManchesterSourceReadiness:
-        """Reject operational prose that contradicts typed machine state."""
-        # Scientific gate contradictions
-        sci = self.scientific_gate_state.lower()
-        sci_typed = self.scientific_gate_typed
-        if sci_typed == ScientificGateState.BLOCKED:
-            # Must not claim approved / no decision needed / publication allowed / etc.  # noqa: E501
-            for phrase in (
-                "approved",
-                "no owner decision needed",
-                "publication allowed",
-                "acceptance complete",
-            ):
-                if phrase in sci:
-                    raise ValueError(
-                        f"scientific_gate_state contradicts BLOCKED (contains '{phrase}')"  # noqa: E501
-                    )
-        elif sci_typed == ScientificGateState.BLOCKED_PROVIDER_CONTRACT:
-            for phrase in ("provider approval", "approved"):
-                if phrase in sci:
-                    raise ValueError(
-                        f"scientific_gate_state contradicts BLOCKED_PROVIDER_CONTRACT "  # noqa: E501
-                        f"(contains '{phrase}')"
-                    )
-        elif sci_typed == ScientificGateState.BLOCKED_DEFERRED:
-            for phrase in ("ingestion available", "available ingestion", "approved"):
-                if phrase in sci:
-                    raise ValueError(
-                        f"scientific_gate_state contradicts BLOCKED_DEFERRED (contains '{phrase}')"
-                    )
-        elif sci_typed == ScientificGateState.NOT_APPLICABLE:
-            for phrase in (
-                "scientifically accepted",
-                "accepted manchester evidence",
-                "manchester evidence accepted",
-            ):
-                if phrase in sci:
-                    raise ValueError(
-                        f"scientific_gate_state contradicts NOT_APPLICABLE (contains '{phrase}')"
-                    )
-        # Rights contradictions
-        rights = self.rights_retention_state.lower()
-        rights_typed = self.rights_typed
-        if rights_typed == RightsRetentionState.NOT_RECORDED:
-            for phrase in ("retention approved", "publication allowed"):
-                if phrase in rights:
-                    raise ValueError(
-                        f"rights_retention_state contradicts NOT_RECORDED (contains '{phrase}')"
-                    )
-            # also reject bare 'approved' when it claims rights approval
-            if (
-                "approved" in rights
-                and "not_recorded" not in rights
-                and (
-                    "retention approved" in rights
-                    or "publication allowed" in rights
-                    or rights.strip() == "approved"
-                )
-            ):
-                raise ValueError("rights_retention_state contradicts NOT_RECORDED (approved)")
-        elif rights_typed == RightsRetentionState.PROVIDER_CONTRACT_REQUIRED:
-            for phrase in ("recorded", "retention approved", "approved"):
-                # PROVIDER_CONTRACT_REQUIRED must not claim recorded/approved
-                if phrase in rights and "provider_contract_required" not in rights:
-                    # avoid flagging the enum literal itself
-                    if phrase == "recorded" and "provider_contract_required" in rights:
-                        continue
-                    raise ValueError(
-                        f"rights_retention_state contradicts PROVIDER_CONTRACT_REQUIRED "  # noqa: E501
-                        f"(contains '{phrase}')"
-                    )
-            # specifically if it claims recorded
-            if "recorded" in rights and "provider_contract_required" not in rights:
-                raise ValueError(
-                    "rights_retention_state contradicts PROVIDER_CONTRACT_REQUIRED "  # noqa: E501
-                    "(contains 'recorded')"
-                )
-        # Acquisition contradictions
-        acq = self.acquisition_readiness.lower()
-        acq_typed = self.acquisition_typed
-        if acq_typed in {
-            AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
-            AcquisitionReadinessState.UNAVAILABLE_PROVIDER_CONTRACT,
-            AcquisitionReadinessState.UNAVAILABLE_DEFERRED,
-        } and ("acquisition-ready" in acq or "acquisition ready" in acq):
-            raise ValueError(
-                "acquisition_readiness contradicts NOT_READY/UNAVAILABLE "  # noqa: E501
-                "(claims acquisition-ready)"
-            )
-        # Local evidence contradictions
-        local = self.local_evidence_state.lower()
-        local_typed = self.local_evidence_typed
-        if local_typed in {
-            LocalEvidenceState.NOT_ACCEPTED,
-            LocalEvidenceState.NO_LIVE,
-            LocalEvidenceState.UNAVAILABLE,
-        }:
-            # Must not claim accepted live evidence when absent
-            if "accepted local evidence available" in local:
-                raise ValueError(
-                    "local_evidence_state contradicts NOT_ACCEPTED/NO_LIVE/UNAVAILABLE (claims accepted)"  # noqa: E501
-                )
-            if "live control available" in local:
-                raise ValueError(
-                    "local_evidence_state contradicts NO_LIVE/UNAVAILABLE (claims live available)"
-                )
-            if "authored input available" in local and local_typed in {
-                LocalEvidenceState.NOT_ACCEPTED,
-                LocalEvidenceState.UNAVAILABLE,
-            }:
-                raise ValueError(
-                    "local_evidence_state contradicts UNAVAILABLE (claims authored input)"  # noqa: E501
-                )
-        return self
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def software_support_state(self) -> str:
+        return format_software_support(self.software_support_typed)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def acquisition_readiness(self) -> str:
+        return format_acquisition_readiness(self.acquisition_typed)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def local_evidence_state(self) -> str:
+        return format_local_evidence(self.local_evidence_typed)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def rights_retention_state(self) -> str:
+        return format_rights_retention(self.rights_typed)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def scientific_gate_state(self) -> str:
+        return format_scientific_gate(self.scientific_gate_typed)
 
 
 class ManchesterEvidenceHubView(BaseModel):
@@ -330,27 +290,23 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             ),
             coverage_scope="Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",  # noqa: E501
             freshness_state="live_vehicle" if bods_configured else "unavailable",
-            software_support_state="AVAILABLE — BODS live control client implemented",
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Configured"
             if bods_configured
             else "Not configured (BODS_API_KEY unavailable)",
-            local_evidence_state="Live control available"
-            if bods_configured
-            else "No live evidence",
             local_evidence_typed=LocalEvidenceState.LIVE_AVAILABLE
             if bods_configured
             else LocalEvidenceState.NO_LIVE,
-            acquisition_readiness="Acquisition-ready (BODS live control)"
-            if bods_configured
-            else "Not ready — credential unavailable",
             acquisition_typed=AcquisitionReadinessState.READY
             if bods_configured
             else AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — BODS retention, privacy, licence",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED,
+            scientific_gate_reasons=[
+                "BODS retention",
+                "privacy",
+                "licence",
+            ],
             last_receipt_summary="BODS live control state" if bods_configured else None,
             blockers=[] if bods_configured else ["BODS_API_KEY not configured"],
             next_action="Configure BODS_API_KEY and open Manchester Operations for BODS live control"  # noqa: E501
@@ -369,21 +325,19 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Historical DfT survey evidence only; never live",
             coverage_scope="DfT count points (survey, not live)",
             freshness_state="historical",
-            software_support_state="AVAILABLE — DfT catalogue client implemented (offline, no credential)",  # noqa: E501
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (historical snapshot catalogue — code available)",
-            local_evidence_state="Accepted local evidence available"
-            if dft_accepted
-            else "No accepted local evidence",
             local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
             if dft_accepted
             else LocalEvidenceState.NOT_ACCEPTED,
-            acquisition_readiness="READY — historical snapshot catalogue (no credential required)",
             acquisition_typed=AcquisitionReadinessState.READY,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — map matching, road-class, ambiguity threshold",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED,
+            scientific_gate_reasons=[
+                "map matching",
+                "road-class",
+                "ambiguity threshold",
+            ],
             last_receipt_summary="Accepted DfT snapshot" if dft_accepted else None,
             blockers=[] if dft_accepted else ["No accepted DfT snapshot catalogue"],
             next_action="Open Manchester Operations for DfT catalogue"
@@ -402,17 +356,13 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Authored scenario input only; never observed evidence",
             coverage_scope="Manually entered incident changes scenario definition only",
             freshness_state="synthetic",
-            software_support_state="AVAILABLE — authoring via Scenario Builder",
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Available via Scenario Builder",
-            local_evidence_state="Authored input available",
             local_evidence_typed=LocalEvidenceState.AUTHORED_AVAILABLE,
-            acquisition_readiness="READY — authoring via Scenario Builder",
             acquisition_typed=AcquisitionReadinessState.READY,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="NOT_APPLICABLE — authored input, not evidence",
             scientific_gate_typed=ScientificGateState.NOT_APPLICABLE,
+            scientific_gate_reasons=["authored input, not evidence"],
             last_receipt_summary="Scenario Builder authored incident",
             blockers=[],
             next_action="Open Scenario Builder to author incident/event",
@@ -429,25 +379,19 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Strategic-road operational evidence only; never Manchester city-wide road coverage",  # noqa: E501
             coverage_scope="Strategic road network only — NOT general Manchester city-road coverage",  # noqa: E501
             freshness_state="near_live" if nh_configured else "unavailable",
-            software_support_state="AVAILABLE — National Highways live control client implemented",
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Configured"
             if nh_configured
             else "Not configured (NATIONAL_HIGHWAYS_API_KEY unavailable)",
-            local_evidence_state="Live control available" if nh_configured else "No live evidence",
             local_evidence_typed=LocalEvidenceState.LIVE_AVAILABLE
             if nh_configured
             else LocalEvidenceState.NO_LIVE,
-            acquisition_readiness="Acquisition-ready (National Highways live control)"
-            if nh_configured
-            else "Not ready — credential unavailable",
             acquisition_typed=AcquisitionReadinessState.READY
             if nh_configured
             else AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — National Highways retention, licence",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED,
+            scientific_gate_reasons=["National Highways retention", "licence"],
             last_receipt_summary="National Highways live control state" if nh_configured else None,
             blockers=[] if nh_configured else ["NATIONAL_HIGHWAYS_API_KEY not configured"],
             next_action="Configure NATIONAL_HIGHWAYS_API_KEY and open Manchester Operations"
@@ -466,17 +410,13 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="No evidence ceiling — ingestion deferred, must not be added",
             coverage_scope="Deferred social media source",
             freshness_state="unavailable",
-            software_support_state="DEFERRED — no adapter implemented",
             software_support_typed=SoftwareSupportState.DEFERRED,
             configuration_state="Deferred",
-            local_evidence_state="Unavailable — no ingestion",
             local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
-            acquisition_readiness="UNAVAILABLE — deferred per design",
             acquisition_typed=AcquisitionReadinessState.UNAVAILABLE_DEFERRED,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / DEFERRED",
             scientific_gate_typed=ScientificGateState.BLOCKED_DEFERRED,
+            scientific_gate_reasons=["deferred per V2 design"],
             last_receipt_summary=None,
             blockers=["Social media ingestion deferred per V2 design"],
             next_action="No action — deferred",
@@ -490,17 +430,13 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Static geographic context only; never traffic evidence",
             coverage_scope="Greater Manchester boundary (ONS BGC 20m, E47000001/E08000003)",
             freshness_state="unavailable",
-            software_support_state="AVAILABLE — static asset bundled (no acquisition)",
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Static asset available",
-            local_evidence_state="Accepted local evidence (static boundary)",
             local_evidence_typed=LocalEvidenceState.STATIC_AVAILABLE,
-            acquisition_readiness="READY — static asset, no acquisition required",
             acquisition_typed=AcquisitionReadinessState.READY,
-            rights_retention_state="RECORDED — OGL-3.0, Contains OS data © Crown copyright 2025",
             rights_typed=RightsRetentionState.RECORDED,
-            scientific_gate_state="NOT_APPLICABLE — geographic context only",
             scientific_gate_typed=ScientificGateState.NOT_APPLICABLE,
+            scientific_gate_reasons=["geographic context only"],
             last_receipt_summary="Static ONS boundary asset",
             blockers=[],
             next_action="View on Home Manchester context map",
@@ -514,23 +450,17 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Infrastructure metadata only; no traffic telemetry unless supplied and accepted",  # noqa: E501
             coverage_scope="TfGM signal locations — reference layer, NOT traffic telemetry",
             freshness_state="unavailable",
-            software_support_state="AVAILABLE — TfGM signal catalogue client implemented",
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (TfGM catalogue code available)"
             if tfgm_accepted
             else "Ready (TfGM catalogue code available; no accepted snapshot)",
-            local_evidence_state="Accepted local evidence available"
-            if tfgm_accepted
-            else "No accepted local evidence",
             local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
             if tfgm_accepted
             else LocalEvidenceState.NOT_ACCEPTED,
-            acquisition_readiness="READY — TfGM snapshot catalogue (no credential required)",
             acquisition_typed=AcquisitionReadinessState.READY,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — infrastructure vs telemetry distinction",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED,
+            scientific_gate_reasons=["infrastructure vs telemetry distinction"],
             last_receipt_summary="Accepted TfGM snapshot" if tfgm_accepted else None,
             blockers=[] if tfgm_accepted else ["No accepted TfGM snapshot"],
             next_action="Open Manchester Operations for TfGM catalogue",
@@ -547,17 +477,13 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="No measured Manchester traffic without provider contract and adapter",
             coverage_scope="Provider-restricted measured traffic (TfGM SCOOT/UTC/UTMC/counter or NTIS) — unavailable",  # noqa: E501
             freshness_state="unavailable",
-            software_support_state="UNAVAILABLE — adapter not implemented pending provider contract",  # noqa: E501
             software_support_typed=SoftwareSupportState.UNAVAILABLE_PROVIDER_CONTRACT,
             configuration_state="UNAVAILABLE — provider contract required",
-            local_evidence_state="Unavailable — no ingestion; adapter not implemented",
             local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
-            acquisition_readiness="UNAVAILABLE — provider contract required; no acquisition implemented",  # noqa: E501
             acquisition_typed=AcquisitionReadinessState.UNAVAILABLE_PROVIDER_CONTRACT,
-            rights_retention_state="PROVIDER_CONTRACT_REQUIRED",
             rights_typed=RightsRetentionState.PROVIDER_CONTRACT_REQUIRED,
-            scientific_gate_state="BLOCKED / PROVIDER CONTRACT REQUIRED — no measured traffic without independent provider contract",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
+            scientific_gate_reasons=["no measured traffic without independent provider contract"],
             last_receipt_summary=None,
             blockers=[
                 "TfGM/NTIS measured traffic requires independent provider contract; no adapter implemented"  # noqa: E501
@@ -576,21 +502,15 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_ceiling="Historical/latest-available only per accepted contract; never live city-road traffic",  # noqa: E501
             coverage_scope="Strategic road network (WebTRIS sites, not Manchester city roads)",
             freshness_state="historical",
-            software_support_state="AVAILABLE — WebTRIS catalogue client implemented (offline, no credential)",  # noqa: E501
             software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="Ready (historical snapshot catalogue — code available)",
-            local_evidence_state="Accepted local evidence available"
-            if webtris_accepted
-            else "No accepted local evidence",
             local_evidence_typed=LocalEvidenceState.ACCEPTED_AVAILABLE
             if webtris_accepted
             else LocalEvidenceState.NOT_ACCEPTED,
-            acquisition_readiness="READY — accepted snapshot catalogue (no credential required)",
             acquisition_typed=AcquisitionReadinessState.READY,
-            rights_retention_state="NOT_RECORDED / OWNER_DECISION_REQUIRED",
             rights_typed=RightsRetentionState.NOT_RECORDED,
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — calibration objective, parameter bounds",  # noqa: E501
             scientific_gate_typed=ScientificGateState.BLOCKED,
+            scientific_gate_reasons=["calibration objective", "parameter bounds"],
             last_receipt_summary="Accepted WebTRIS snapshot" if webtris_accepted else None,
             blockers=[] if webtris_accepted else ["No accepted WebTRIS snapshot catalogue"],
             next_action="Open Manchester Operations for WebTRIS catalogue",

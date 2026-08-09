@@ -759,11 +759,13 @@ software support, acquisition readiness, local evidence, rights/retention, scien
 codes and next-action class (no secrets, no paths, no wall clock) via a canonical portable payload;
 identical logical state yields identical fingerprint, cosmetic wording does not change counts.
 
-Presentation consistency: typed states are machine truth and determine counts, filters and
-fingerprint. Human-readable detail strings are not identity-bound but must not contradict the
-typed state — e.g. a BLOCKED scientific gate must not claim APPROVED, and an UNAVAILABLE local
-evidence must not claim accepted live evidence. Contradictory prose is rejected by model validation
-before export; consistent paraphrase validates and leaves fingerprint unchanged.
+Identity binds typed readiness state plus immutable source-description semantics (source role,
+evidence ceiling and coverage scope). Runtime/status presentation labels (software support,
+acquisition readiness, local evidence, rights/retention, scientific gate) are derived from typed
+state via authoritative formatters and do not independently define identity — contradictory
+presentation is structurally impossible (extra state-display inputs are rejected as unknown).
+Source-specific explanation lives in blockers, limitations, next_action and scientific_gate_reasons,
+not in the state label.
 
 ## Provenance Explorer
 
