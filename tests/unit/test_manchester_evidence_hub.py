@@ -396,39 +396,58 @@ def test_fingerprint_stable_across_temp_roots(tmp_path: Path) -> None:
     assert v3.fingerprint != v1.fingerprint
 
 
-def test_fingerprint_excludes_wall_clock(tmp_path: Path) -> None:
-    import time
+def test_fingerprint_excludes_wall_clock(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Fingerprint excludes wall clock; different generated_at → same fingerprint."""  # noqa: E501
 
+    import datetime as dt
+    from unittest.mock import MagicMock
+
+    first = dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.UTC)
+    second = dt.datetime(2026, 1, 1, 13, 0, 0, tzinfo=dt.UTC)
+    mock_datetime = MagicMock()
+    mock_datetime.datetime.now.side_effect = [first, second]
+    mock_datetime.UTC = dt.UTC
+    monkeypatch.setattr("traffictwin.ui.manchester_evidence_hub.datetime", mock_datetime)
     v1 = build_manchester_hub_view(tmp_path)
-    time.sleep(0.02)
     v2 = build_manchester_hub_view(tmp_path)
-    # Same inputs, different wall clock => same fingerprint (generated_at excluded)
+    assert v1.generated_at != v2.generated_at
+    assert v1.generated_at == first.isoformat()
+    assert v2.generated_at == second.isoformat()
     assert v1.fingerprint == v2.fingerprint
-    # generated_at should differ but fingerprint unchanged, proving exclusion
-    assert v1.fingerprint == v2.fingerprint  # fingerprint excludes wall clock
 
 
 def test_freshness_reuses_authoritative_states() -> None:
-    """All built rows validate under the authoritative FreshnessTruthState contract."""
+    """All built rows validate under the authoritative FreshnessTruthState contract.
+
+    This test proves the production field is bound to the authoritative type,
+    not merely that emitted values happen to be within the set.
+    """  # noqa: E501
 
     from typing import get_args
 
+    # Prove the production model field is typed as the authoritative FreshnessTruthState
+    field = ManchesterSourceReadiness.model_fields["freshness_state"]
+    assert field.annotation is not None
+    assert set(get_args(field.annotation)) == set(get_args(FreshnessTruthState)), (
+        "freshness_state field must be typed as authoritative FreshnessTruthState"
+    )
     view = build_manchester_hub_view(None)
     allowed = set(get_args(FreshnessTruthState))
     for src in view.sources:
         assert src.freshness_state in allowed, (
             f"{src.source_id} freshness {src.freshness_state} not in authoritative set"
         )
-        # Also prove the production model itself enforces the type:
         # Re-validating the row through the Pydantic model must keep the same state
         restored = ManchesterSourceReadiness.model_validate(src.model_dump())
         assert restored.freshness_state == src.freshness_state
 
 
 def test_freshness_rejects_arbitrary_value() -> None:
-    """Arbitrary freshness must be rejected by the authoritative production type."""
+    """Arbitrary freshness must be rejected by the authoritative production type."""  # noqa: E501
 
-    with pytest.raises(Exception):  # noqa: B017 - Pydantic ValidationError is expected
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError) as exc_info:
         ManchesterSourceReadiness(
             source_id="probe",
             display_name="Probe",
@@ -436,7 +455,7 @@ def test_freshness_rejects_arbitrary_value() -> None:
             evidence_type="probe",
             evidence_ceiling="probe",
             coverage_scope="probe",
-            freshness_state="live",  # not in FreshnessTruthState
+            freshness_state="live",  # not in FreshnessTruthState  # type: ignore[arg-type]
             software_support_state="AVAILABLE",
             configuration_state="probe",
             local_evidence_state="probe",
@@ -445,6 +464,8 @@ def test_freshness_rejects_arbitrary_value() -> None:
             scientific_gate_state="probe",
             next_action="probe",
         )
+    errors = exc_info.value.errors()
+    assert any(err["loc"] == ("freshness_state",) for err in errors)
 
 
 def test_software_support_separate_from_acquisition(

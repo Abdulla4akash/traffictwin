@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import hashlib
 import json
 import os
@@ -312,8 +313,6 @@ def build_manchester_hub_view(
     workspace: Path | None = None,
 ) -> ManchesterEvidenceHubView:
     """Build deterministic hub view without network calls and without secrets."""
-
-    import datetime
 
     sources = _source_definitions(workspace)
     sources_sorted = sorted(sources, key=lambda s: s.source_id)
