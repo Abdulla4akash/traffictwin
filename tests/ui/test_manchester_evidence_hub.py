@@ -66,8 +66,8 @@ def test_page_renders_with_no_workspace(monkeypatch: pytest.MonkeyPatch, tmp_pat
     metrics = {m.label: m.value for m in app.metric}
     assert "Sources known" in metrics
     assert int(metrics["Sources known"]) == 9
-    # Must show acquisition-ready vs accepted distinction
-    assert "Accepted local evidence" in metrics
+    # Must show acquisition-ready vs accepted distinction (honest counts)
+    assert "Accepted" in metrics
     assert "Acquisition-ready" in metrics
 
 
@@ -376,7 +376,7 @@ def test_partial_workspace_renders_independently(
     assert "DfT" in all_text
     # Overall page must not claim whole Manchester available because one source exists
     metrics = {m.label: m.value for m in app.metric}
-    assert int(metrics["Accepted local evidence"]) < int(metrics["Sources known"])
+    assert int(metrics["Accepted"]) < int(metrics["Sources known"])
 
 
 def test_source_table_has_expected_columns(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -414,3 +414,103 @@ def test_summary_counts_not_combined_into_fake_total(
     infos = "\n".join(str(i.value) for i in app.info)
     combined = captions + infos
     assert "not combined" in combined.lower() or "Each source retains" in combined
+
+
+def test_exact_metrics_match_typed_service(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Pin exact metric labels and typed-derived counts for empty state."""
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    metrics = {m.label: m.value for m in app.metric}
+    # Five separate cards, no fake total
+    assert metrics["Sources known"] == "9"
+    assert metrics["Accepted"] == "1"
+    assert metrics["Acquisition-ready"] == "5"
+    assert metrics["Blocked"] == "7"
+    assert metrics["Unavailable"] == "7"
+    # Union caption must be honest
+    captions = "\n".join(str(c.value) for c in app.caption)
+    assert "Blocked or unavailable (unique): 7" in captions
+    assert "never exceeds known sources (9)" in captions
+
+
+def test_blockers_table_uses_typed_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Blockers table must be filtered by typed scientific/rights state, not wording."""
+    from traffictwin.ui.manchester_evidence_hub import (
+        RightsRetentionState,
+        ScientificGateState,
+    )
+
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    # Service truth: blocker row count is number of sources where
+    # scientific_gate_typed != NOT_APPLICABLE or rights_typed != RECORDED
+    from traffictwin.ui.manchester_evidence_hub import build_manchester_hub_view
+
+    view = build_manchester_hub_view(None)
+    expected = sum(
+        1
+        for s in view.sources
+        if s.scientific_gate_typed != ScientificGateState.NOT_APPLICABLE
+        or s.rights_typed != RightsRetentionState.RECORDED
+    )
+    # Dataframe second table is blockers — check row count matches typed filter
+    # First dataframe is source readiness (9 rows), second is blockers
+    assert len(app.dataframe) >= 2
+    blocker_df = app.dataframe[1].value
+    # pandas DataFrame
+    assert len(blocker_df) == expected
+
+
+def test_source_table_rendered_from_structured_state(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    df = app.dataframe[0].value
+    # Must have 9 rows, one per source, with expected columns
+    assert len(df) == 9
+    assert "source" in df.columns or "Source" in str(df.columns)
+    # Check DfT row has exact coverage and ceiling chrome (not typed enum)
+    markdowns = "\n".join(str(m.value) for m in app.markdown)
+    assert "Coverage:" in markdowns
+    assert "Software support:" in markdowns
+    assert "DfT" in markdowns
+
+
+def test_webtris_exact_typed_state_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Instead of page-wide substring soup, directly pin WebTRIS row."""
+    from traffictwin.ui.manchester_evidence_hub import build_manchester_hub_view
+
+    view = build_manchester_hub_view(None)
+    w = next(s for s in view.sources if s.source_id == "webtris")
+    assert w.freshness_state == "historical"
+    assert w.evidence_type == "historical"
+    assert w.local_evidence_typed.name in {"NOT_ACCEPTED", "ACCEPTED_AVAILABLE"}
+    # UI must show historical, not live
+    app = _run_page(monkeypatch, tmp_path)
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.caption
+    )
+    assert "historical" in all_text.lower()
+    # Expand WebTRIS detail exists
+    assert "WebTRIS" in all_text
+
+
+def test_tfgm_infra_not_telemetry_exact(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from traffictwin.ui.manchester_evidence_hub import build_manchester_hub_view
+
+    view = build_manchester_hub_view(None)
+    tfgm = next(s for s in view.sources if s.source_id == "tfgm")
+    assert tfgm.source_role == "Infrastructure/reference information"
+    assert tfgm.freshness_state == "unavailable"
+    assert tfgm.local_evidence_typed.name in {"NOT_ACCEPTED", "ACCEPTED_AVAILABLE"}
+    app = _run_page(monkeypatch, tmp_path)
+    assert not app.exception
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.caption
+    )
+    assert "infrastructure" in all_text.lower()
+    assert "NOT traffic telemetry" in all_text or "NOT telemetry" in all_text

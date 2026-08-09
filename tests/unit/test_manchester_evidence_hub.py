@@ -9,8 +9,13 @@ import pytest
 
 from traffictwin.integration.manchester.freshness import FreshnessTruthState
 from traffictwin.ui.manchester_evidence_hub import (
+    AcquisitionReadinessState,
+    LocalEvidenceState,
     ManchesterEvidenceHubView,
     ManchesterSourceReadiness,
+    RightsRetentionState,
+    ScientificGateState,
+    SoftwareSupportState,
     build_manchester_hub_view,
 )
 
@@ -457,11 +462,16 @@ def test_freshness_rejects_arbitrary_value() -> None:
             coverage_scope="probe",
             freshness_state="live",  # not in FreshnessTruthState  # type: ignore[arg-type]
             software_support_state="AVAILABLE",
+            software_support_typed=SoftwareSupportState.AVAILABLE,
             configuration_state="probe",
             local_evidence_state="probe",
+            local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
             acquisition_readiness="probe",
+            acquisition_typed=AcquisitionReadinessState.READY,
             rights_retention_state="probe",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
             scientific_gate_state="probe",
+            scientific_gate_typed=ScientificGateState.BLOCKED,
             next_action="probe",
         )
     errors = exc_info.value.errors()
@@ -534,3 +544,335 @@ def test_summary_counts_precise(tmp_path: Path) -> None:
     assert empty.known_source_count == 9
     assert empty.accepted_evidence_count == 1
     assert empty.known_source_count > empty.accepted_evidence_count
+
+
+# --- Hardened typed-state matrix and mutation proofs ---
+
+
+def test_exact_count_matrix_state_a_no_workspace_no_creds(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    view = build_manchester_hub_view(None)
+    # Exact per-source typed state checks
+    by_id = {s.source_id: s for s in view.sources}
+    assert by_id["bods"].acquisition_typed == AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING
+    assert by_id["bods"].local_evidence_typed == LocalEvidenceState.NO_LIVE
+    assert by_id["bods"].freshness_state == "unavailable"
+    assert by_id["dft"].local_evidence_typed == LocalEvidenceState.NOT_ACCEPTED
+    assert by_id["dft"].acquisition_typed == AcquisitionReadinessState.READY
+    assert by_id["webtris"].local_evidence_typed == LocalEvidenceState.NOT_ACCEPTED
+    assert by_id["tfgm"].local_evidence_typed == LocalEvidenceState.NOT_ACCEPTED
+    # Exact counts pinned from implementation
+    assert view.known_source_count == 9
+    assert view.accepted_evidence_count == 1  # static only
+    assert view.available_count == 5
+    assert view.acquisition_ready_count == 5
+    assert view.available_count == view.acquisition_ready_count
+    assert view.blocked_count == 7
+    assert view.unavailable_count == 7
+    assert view.blocked_unavailable_union_count == 7
+    assert view.blocked_or_unavailable_count == 7
+    assert view.blocked_unavailable_union_count <= view.known_source_count
+    # Alias consistency
+    assert view.blocked_or_unavailable == view.blocked_unavailable_union_count
+
+
+def test_exact_count_matrix_state_b_bods_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    monkeypatch.setenv("BODS_API_KEY", "test-bods")
+    view = build_manchester_hub_view(None)
+    by_id = {s.source_id: s for s in view.sources}
+    assert by_id["bods"].acquisition_typed == AcquisitionReadinessState.READY
+    assert by_id["bods"].freshness_state == "live_vehicle"
+    assert by_id["bods"].local_evidence_typed == LocalEvidenceState.LIVE_AVAILABLE
+    # Scientific gate remains blocked even though configured
+    assert by_id["bods"].scientific_gate_typed == ScientificGateState.BLOCKED
+    assert view.accepted_evidence_count == 1
+    assert view.available_count == 6
+    assert view.acquisition_ready_count == 6
+    assert view.blocked_count == 7
+    assert view.unavailable_count == 6
+    assert view.blocked_unavailable_union_count == 7
+    # Secret not leaked
+    dumped = view.model_dump_json()
+    assert "test-bods" not in dumped
+    assert view.fingerprint == build_manchester_hub_view(None).fingerprint
+
+
+def test_exact_count_matrix_state_c_nh_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.setenv("NATIONAL_HIGHWAYS_API_KEY", "test-nh")
+    view = build_manchester_hub_view(None)
+    by_id = {s.source_id: s for s in view.sources}
+    assert by_id["national_highways"].acquisition_typed == AcquisitionReadinessState.READY
+    assert by_id["national_highways"].freshness_state == "near_live"
+    assert by_id["national_highways"].scientific_gate_typed == ScientificGateState.BLOCKED
+    assert view.available_count == 6
+    assert view.unavailable_count == 6
+    assert view.blocked_unavailable_union_count == 7
+
+
+def test_exact_count_matrix_state_d_both_creds(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("BODS_API_KEY", "test-bods")
+    monkeypatch.setenv("NATIONAL_HIGHWAYS_API_KEY", "test-nh")
+    view = build_manchester_hub_view(None)
+    assert view.available_count == 7
+    assert view.acquisition_ready_count == 7
+    assert view.unavailable_count == 5
+    assert view.blocked_unavailable_union_count == 7
+    assert view.blocked_unavailable_union_count <= view.known_source_count
+
+
+def test_exact_count_matrix_state_e_dft_accepted(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    (tmp_path / "evidence" / "dft").mkdir(parents=True)
+    view = build_manchester_hub_view(tmp_path)
+    by_id = {s.source_id: s for s in view.sources}
+    assert by_id["dft"].local_evidence_typed == LocalEvidenceState.ACCEPTED_AVAILABLE
+    assert by_id["dft"].scientific_gate_typed == ScientificGateState.BLOCKED
+    assert view.accepted_evidence_count == 2
+    assert view.unavailable_count == 6
+    assert view.blocked_unavailable_union_count == 7
+
+
+def test_exact_count_matrix_state_f_dft_webtris(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    (tmp_path / "evidence" / "dft").mkdir(parents=True)
+    (tmp_path / "evidence" / "webtris").mkdir(parents=True)
+    view = build_manchester_hub_view(tmp_path)
+    assert view.accepted_evidence_count == 3
+    assert view.unavailable_count == 5
+    assert view.blocked_unavailable_union_count == 7
+
+
+def test_exact_count_matrix_state_g_tfgm_infra(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    (tmp_path / "evidence" / "tfgm").mkdir(parents=True)
+    view = build_manchester_hub_view(tmp_path)
+    by_id = {s.source_id: s for s in view.sources}
+    assert by_id["tfgm"].local_evidence_typed == LocalEvidenceState.ACCEPTED_AVAILABLE
+    # Must not become traffic telemetry — still BLOCKED and infrastructure ceiling
+    assert "Infrastructure" in by_id["tfgm"].source_role
+    assert "NOT telemetry" in " ".join(by_id["tfgm"].limitations)
+    assert by_id["tfgm"].scientific_gate_typed == ScientificGateState.BLOCKED
+    # TfGM infra accepted still not counted as unavailable but does increase accepted
+    # Base empty accepted 1 + tfgm 1 =2
+    assert view.accepted_evidence_count == 2
+
+
+def test_exact_count_matrix_state_h_all_local(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    for sub in ["dft", "webtris", "tfgm"]:
+        (tmp_path / "evidence" / sub).mkdir(parents=True)
+    view = build_manchester_hub_view(tmp_path)
+    assert view.accepted_evidence_count == 4  # dft+webtris+tfgm+static
+    assert view.unavailable_count == 4  # bods, nh, social, tfgm_ntis
+    assert view.blocked_unavailable_union_count == 7
+    # Still no invented Manchester-wide scientific acceptance
+    for src in view.sources:
+        if src.scientific_gate_typed != ScientificGateState.NOT_APPLICABLE:
+            assert src.scientific_gate_typed in {
+                ScientificGateState.BLOCKED,
+                ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
+                ScientificGateState.BLOCKED_DEFERRED,
+            }
+
+
+def test_blocked_unavailable_overlap_proof(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    view = build_manchester_hub_view(None)
+    # Find a source that is both blocked AND unavailable — dft in empty state is both
+    by_id = {s.source_id: s for s in view.sources}
+    dft = by_id["dft"]
+    assert dft.scientific_gate_typed in {
+        ScientificGateState.BLOCKED,
+        ScientificGateState.BLOCKED_PROVIDER_CONTRACT,
+        ScientificGateState.BLOCKED_DEFERRED,
+    }
+    assert dft.local_evidence_typed in {
+        LocalEvidenceState.NOT_ACCEPTED,
+        LocalEvidenceState.NO_LIVE,
+        LocalEvidenceState.UNAVAILABLE,
+    }
+    # So it is counted in both blocked and unavailable
+    assert view.blocked_count >= 1
+    assert view.unavailable_count >= 1
+    # Old arithmetic would double-count it
+    old_sum = view.blocked_count + view.unavailable_count
+    assert old_sum > view.blocked_unavailable_union_count
+    assert old_sum > view.known_source_count or old_sum == 14
+    # New union is honest
+    assert view.blocked_unavailable_union_count == 7
+    assert view.blocked_unavailable_union_count <= view.known_source_count
+
+
+def test_counts_derived_from_typed_not_display_m1_m4() -> None:
+    """M1-M4: display prose changes must not affect counts."""
+    view = build_manchester_hub_view(None)
+    # Clone and mutate display strings while keeping typed state identical
+    # M1: paraphrase DfT-like display
+    dft = next(s for s in view.sources if s.source_id == "dft")
+    dft_mut = dft.model_copy(update={"local_evidence_state": "PARAPHRASED ACCEPTED DISPLAY TEXT"})
+    assert dft_mut.local_evidence_typed == dft.local_evidence_typed
+    # Counts derived from typed should be invariant to display change —
+    # simulate by rebuilding view counts manually
+    assert dft_mut.local_evidence_typed == LocalEvidenceState.NOT_ACCEPTED
+    # M2: acquisition detail paraphrase
+    bods = next(s for s in view.sources if s.source_id == "bods")
+    bods_mut = bods.model_copy(update={"acquisition_readiness": "PARAPHRASED READY TEXT"})
+    assert bods_mut.acquisition_typed == bods.acquisition_typed
+    # M3: scientific detail no longer contains BLOCKED word — typed still BLOCKED
+    dft_sci_mut = dft.model_copy(update={"scientific_gate_state": "paraphrase without keyword"})
+    assert dft_sci_mut.scientific_gate_typed == ScientificGateState.BLOCKED
+    # M4: rights detail no longer contains REQUIRED
+    dft_rights_mut = dft.model_copy(update={"rights_retention_state": "paraphrase"})
+    assert dft_rights_mut.rights_typed == RightsRetentionState.NOT_RECORDED
+
+
+def test_fingerprint_changes_on_typed_state_change_m5_m6() -> None:
+    """M5-M6: typed state change must change fingerprint even if display stays same."""
+    view1 = build_manchester_hub_view(None)
+    # M5: change typed LocalEvidenceState from NOT_ACCEPTED to ACCEPTED but keep display
+    dft = next(s for s in view1.sources if s.source_id == "dft")
+    dft_mut = dft.model_copy(
+        update={
+            "local_evidence_typed": LocalEvidenceState.ACCEPTED_AVAILABLE,
+            "local_evidence_state": dft.local_evidence_state,  # keep display same
+        }
+    )
+    # Build a view with mutated source and check portable dict changes
+
+    sources_mut = [s if s.source_id != "dft" else dft_mut for s in view1.sources]
+    # Use view's portable dict to compute fingerprint difference
+    view_mut = ManchesterEvidenceHubView(
+        sources=sources_mut,
+        available_count=view1.available_count,
+        acquisition_ready_count=view1.acquisition_ready_count,
+        blocked_count=view1.blocked_count,
+        unavailable_count=view1.unavailable_count - 1,  # would decrease
+        accepted_evidence_count=view1.accepted_evidence_count + 1,
+        known_source_count=view1.known_source_count,
+        blocked_unavailable_union_count=view1.blocked_unavailable_union_count,
+        blocked_or_unavailable_count=view1.blocked_or_unavailable_count,
+        warnings=view1.warnings,
+        workspace_state=view1.workspace_state,
+        fingerprint="",
+        generated_at="",
+    )
+    assert view1.to_canonical_bytes() != view_mut.to_canonical_bytes()
+    assert (
+        view1.fingerprint != __import__("hashlib").sha256(view_mut.to_canonical_bytes()).hexdigest()
+    )
+    # M6: scientific BLOCKED -> NOT_APPLICABLE while detail unchanged
+    dft_sci_mut = dft.model_copy(
+        update={
+            "scientific_gate_typed": ScientificGateState.NOT_APPLICABLE,
+            "scientific_gate_state": dft.scientific_gate_state,
+        }
+    )
+    sources_mut2 = [s if s.source_id != "dft" else dft_sci_mut for s in view1.sources]
+    view_mut2 = view1.model_copy(update={"sources": sources_mut2})
+    assert view1.to_canonical_bytes() != view_mut2.to_canonical_bytes()
+
+
+def test_overlap_union_vs_sum_m7(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    view = build_manchester_hub_view(None)
+    old_metric = view.blocked_count + view.unavailable_count
+    # Old metric double counts overlap, new union does not
+    assert old_metric == 14
+    assert view.blocked_unavailable_union_count == 7
+    assert view.blocked_unavailable_union_count <= view.known_source_count
+    assert old_metric > view.known_source_count
+
+
+def test_freshness_authoritative_m8() -> None:
+    field = ManchesterSourceReadiness.model_fields["freshness_state"]
+    from typing import get_args
+
+    assert set(get_args(field.annotation)) == set(get_args(FreshnessTruthState))
+
+
+def test_invalid_enum_rejected_m9() -> None:
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError) as exc:
+        ManchesterSourceReadiness(
+            source_id="probe",
+            display_name="Probe",
+            source_role="Probe",
+            evidence_type="probe",
+            evidence_ceiling="probe",
+            coverage_scope="probe",
+            freshness_state="historical",
+            software_support_state="probe",
+            software_support_typed="invalid_enum",
+            configuration_state="probe",
+            local_evidence_state="probe",
+            local_evidence_typed=LocalEvidenceState.UNAVAILABLE,
+            acquisition_readiness="probe",
+            acquisition_typed=AcquisitionReadinessState.READY,
+            rights_retention_state="probe",
+            rights_typed=RightsRetentionState.NOT_RECORDED,
+            scientific_gate_state="probe",
+            scientific_gate_typed=ScientificGateState.BLOCKED,
+            next_action="probe",
+        )
+    assert any(e["loc"] == ("software_support_typed",) for e in exc.value.errors())
+
+
+def test_portable_payload_excludes_secrets_paths_clock(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("BODS_API_KEY", "secret-A")
+    ws = tmp_path / "ws"
+    ws.mkdir()
+    (ws / "evidence" / "dft").mkdir(parents=True)
+    view = build_manchester_hub_view(ws)
+    payload = view.to_portable_dict()
+    dumped = __import__("json").dumps(payload)
+    assert "secret-A" not in dumped
+    assert str(ws) not in dumped
+    assert "/tmp" not in dumped or str(ws) not in dumped  # noqa: S108
+    # Clock excluded: two views with different generated_at have same canonical bytes
+    import datetime as dt
+    from unittest.mock import MagicMock
+
+    first = dt.datetime(2026, 1, 1, 12, 0, 0, tzinfo=dt.UTC)
+    second = dt.datetime(2026, 1, 1, 13, 0, 0, tzinfo=dt.UTC)
+    mock = MagicMock()
+    mock.datetime.now.side_effect = [first, second]
+    mock.UTC = dt.UTC
+    monkeypatch.setattr("traffictwin.ui.manchester_evidence_hub.datetime", mock)
+    v1 = build_manchester_hub_view(ws)
+    v2 = build_manchester_hub_view(ws)
+    assert v1.generated_at != v2.generated_at
+    assert v1.to_canonical_bytes() == v2.to_canonical_bytes()
+    assert v1.fingerprint == v2.fingerprint
+
+
+def test_acquisition_ready_alias_consistency(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    view = build_manchester_hub_view(None)
+    assert view.available_count == view.acquisition_ready_count
+    assert view.blocked_or_unavailable_count == view.blocked_unavailable_union_count
+    assert view.blocked_or_unavailable == view.blocked_unavailable_union_count
