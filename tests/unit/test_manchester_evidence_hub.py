@@ -120,8 +120,10 @@ def test_workspace_unconfigured_state() -> None:
     assert view.accepted_evidence_count == 1  # only static boundaries
 
 
-def test_partial_availability_state(tmp_path: Path) -> None:
+def test_partial_availability_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # Create a fake accepted DfT evidence directory
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
     (tmp_path / "evidence" / "dft").mkdir(parents=True)
     view = build_manchester_hub_view(tmp_path)
     dft = next(s for s in view.sources if s.source_id == "dft")
@@ -141,10 +143,16 @@ def test_accepted_local_evidence_state(tmp_path: Path) -> None:
     assert view.accepted_evidence_count >= 3  # dft + webtris + static
 
 
-def test_acquisition_ready_not_scientifically_accepted() -> None:
+def test_acquisition_ready_not_scientifically_accepted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Ensure at least one acquisition-ready source to exercise the gate distinction
+    monkeypatch.setenv("BODS_API_KEY", "test-bods-key-for-acquisition-ready-check")
     view = build_manchester_hub_view(None)
+    found = False
     for src in view.sources:
         if "Acquisition-ready" in src.acquisition_readiness:
+            found = True
             assert (
                 "BLOCKED" in src.scientific_gate_state
                 or "REQUIRED" in src.scientific_gate_state
@@ -155,6 +163,7 @@ def test_acquisition_ready_not_scientifically_accepted() -> None:
                 "scientific" in src.scientific_gate_state.lower()
                 or "not applicable" in src.scientific_gate_state.lower()
             )
+    assert found, "Expected at least one Acquisition-ready source after configuring BODS"
 
 
 def test_rights_retention_unknown_remains_unknown() -> None:
