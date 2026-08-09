@@ -9,7 +9,7 @@ import os
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from traffictwin.integration.manchester.freshness import FreshnessTruthState
 
@@ -61,7 +61,14 @@ class ScientificGateState(StrEnum):
 
 
 class ManchesterSourceReadiness(BaseModel):
-    """One source readiness row with four-state separation and typed machine state."""
+    """One source readiness row with six-dimension separation and typed machine state.
+
+    Machine truth (typed enums) is identity; display prose must not contradict it.
+    Validation ensures selected operational prose cannot claim approval/availability
+    when typed state is blocked/unavailable/not_recorded, etc. Cosmetic
+    paraphrase that preserves truth validates; contradictory paraphrase is
+    rejected before fingerprint/export.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -72,7 +79,7 @@ class ManchesterSourceReadiness(BaseModel):
     evidence_ceiling: str = Field(min_length=1)
     coverage_scope: str = Field(min_length=1)
     freshness_state: FreshnessTruthState = Field()
-    # Display prose (human-readable)
+    # Display prose (human-readable) — not identity-bound except for contradiction
     software_support_state: str = Field(min_length=1)
     configuration_state: str = Field(min_length=1)
     local_evidence_state: str = Field(min_length=1)
@@ -89,6 +96,122 @@ class ManchesterSourceReadiness(BaseModel):
     blockers: list[str] = Field(default_factory=list)
     next_action: str = Field(min_length=1)
     limitations: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _check_presentation_consistency(self) -> ManchesterSourceReadiness:
+        """Reject operational prose that contradicts typed machine state."""
+        # Scientific gate contradictions
+        sci = self.scientific_gate_state.lower()
+        sci_typed = self.scientific_gate_typed
+        if sci_typed == ScientificGateState.BLOCKED:
+            # Must not claim approved / no decision needed / publication allowed / etc.  # noqa: E501
+            for phrase in (
+                "approved",
+                "no owner decision needed",
+                "publication allowed",
+                "acceptance complete",
+            ):
+                if phrase in sci:
+                    raise ValueError(
+                        f"scientific_gate_state contradicts BLOCKED (contains '{phrase}')"  # noqa: E501
+                    )
+        elif sci_typed == ScientificGateState.BLOCKED_PROVIDER_CONTRACT:
+            for phrase in ("provider approval", "approved"):
+                if phrase in sci:
+                    raise ValueError(
+                        f"scientific_gate_state contradicts BLOCKED_PROVIDER_CONTRACT "  # noqa: E501
+                        f"(contains '{phrase}')"
+                    )
+        elif sci_typed == ScientificGateState.BLOCKED_DEFERRED:
+            for phrase in ("ingestion available", "available ingestion", "approved"):
+                if phrase in sci:
+                    raise ValueError(
+                        f"scientific_gate_state contradicts BLOCKED_DEFERRED (contains '{phrase}')"
+                    )
+        elif sci_typed == ScientificGateState.NOT_APPLICABLE:
+            for phrase in (
+                "scientifically accepted",
+                "accepted manchester evidence",
+                "manchester evidence accepted",
+            ):
+                if phrase in sci:
+                    raise ValueError(
+                        f"scientific_gate_state contradicts NOT_APPLICABLE (contains '{phrase}')"
+                    )
+        # Rights contradictions
+        rights = self.rights_retention_state.lower()
+        rights_typed = self.rights_typed
+        if rights_typed == RightsRetentionState.NOT_RECORDED:
+            for phrase in ("retention approved", "publication allowed"):
+                if phrase in rights:
+                    raise ValueError(
+                        f"rights_retention_state contradicts NOT_RECORDED (contains '{phrase}')"
+                    )
+            # also reject bare 'approved' when it claims rights approval
+            if (
+                "approved" in rights
+                and "not_recorded" not in rights
+                and (
+                    "retention approved" in rights
+                    or "publication allowed" in rights
+                    or rights.strip() == "approved"
+                )
+            ):
+                raise ValueError("rights_retention_state contradicts NOT_RECORDED (approved)")
+        elif rights_typed == RightsRetentionState.PROVIDER_CONTRACT_REQUIRED:
+            for phrase in ("recorded", "retention approved", "approved"):
+                # PROVIDER_CONTRACT_REQUIRED must not claim recorded/approved
+                if phrase in rights and "provider_contract_required" not in rights:
+                    # avoid flagging the enum literal itself
+                    if phrase == "recorded" and "provider_contract_required" in rights:
+                        continue
+                    raise ValueError(
+                        f"rights_retention_state contradicts PROVIDER_CONTRACT_REQUIRED "  # noqa: E501
+                        f"(contains '{phrase}')"
+                    )
+            # specifically if it claims recorded
+            if "recorded" in rights and "provider_contract_required" not in rights:
+                raise ValueError(
+                    "rights_retention_state contradicts PROVIDER_CONTRACT_REQUIRED "  # noqa: E501
+                    "(contains 'recorded')"
+                )
+        # Acquisition contradictions
+        acq = self.acquisition_readiness.lower()
+        acq_typed = self.acquisition_typed
+        if acq_typed in {
+            AcquisitionReadinessState.NOT_READY_CREDENTIAL_MISSING,
+            AcquisitionReadinessState.UNAVAILABLE_PROVIDER_CONTRACT,
+            AcquisitionReadinessState.UNAVAILABLE_DEFERRED,
+        } and ("acquisition-ready" in acq or "acquisition ready" in acq):
+            raise ValueError(
+                "acquisition_readiness contradicts NOT_READY/UNAVAILABLE "  # noqa: E501
+                "(claims acquisition-ready)"
+            )
+        # Local evidence contradictions
+        local = self.local_evidence_state.lower()
+        local_typed = self.local_evidence_typed
+        if local_typed in {
+            LocalEvidenceState.NOT_ACCEPTED,
+            LocalEvidenceState.NO_LIVE,
+            LocalEvidenceState.UNAVAILABLE,
+        }:
+            # Must not claim accepted live evidence when absent
+            if "accepted local evidence available" in local:
+                raise ValueError(
+                    "local_evidence_state contradicts NOT_ACCEPTED/NO_LIVE/UNAVAILABLE (claims accepted)"  # noqa: E501
+                )
+            if "live control available" in local:
+                raise ValueError(
+                    "local_evidence_state contradicts NO_LIVE/UNAVAILABLE (claims live available)"
+                )
+            if "authored input available" in local and local_typed in {
+                LocalEvidenceState.NOT_ACCEPTED,
+                LocalEvidenceState.UNAVAILABLE,
+            }:
+                raise ValueError(
+                    "local_evidence_state contradicts UNAVAILABLE (claims authored input)"  # noqa: E501
+                )
+        return self
 
 
 class ManchesterEvidenceHubView(BaseModel):
