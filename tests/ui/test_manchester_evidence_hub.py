@@ -92,7 +92,11 @@ def test_national_highways_coverage_limitation_visible(
 ) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning) + "\n".join(str(x.value) for x in app.caption)
+    all_text = (
+        "\n".join(str(x.value) for x in app.markdown)
+        + "\n".join(str(x.value) for x in app.warning)
+        + "\n".join(str(x.value) for x in app.caption)
+    )
     assert "Strategic" in all_text or "strategic" in all_text.lower()
     assert "NOT general" in all_text or "not general" in all_text.lower()
 
@@ -100,7 +104,9 @@ def test_national_highways_coverage_limitation_visible(
 def test_dft_historical_state_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning)
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.warning
+    )
     assert "historical" in all_text.lower()
     assert "DfT" in all_text
 
@@ -122,14 +128,20 @@ def test_provider_unavailable_states_visible(
 ) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.warning) + "\n".join(str(x.value) for x in app.markdown)
+    all_text = "\n".join(str(x.value) for x in app.warning) + "\n".join(
+        str(x.value) for x in app.markdown
+    )
     assert "Not configured" in all_text or "unavailable" in all_text.lower()
 
 
 def test_scientific_gate_blocker_visible(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning) + "\n".join(str(x.value) for x in app.info)
+    all_text = (
+        "\n".join(str(x.value) for x in app.markdown)
+        + "\n".join(str(x.value) for x in app.warning)
+        + "\n".join(str(x.value) for x in app.info)
+    )
     assert "BLOCKED" in all_text or "OWNER" in all_text
 
 
@@ -138,17 +150,26 @@ def test_no_secret_values_rendered(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
     monkeypatch.setenv("NATIONAL_HIGHWAYS_API_KEY", "super-secret-nh-456")
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning) + "\n".join(str(x.value) for x in app.caption) + "\n".join(str(x.value) for x in app.info)
+    all_text = (
+        "\n".join(str(x.value) for x in app.markdown)
+        + "\n".join(str(x.value) for x in app.warning)
+        + "\n".join(str(x.value) for x in app.caption)
+        + "\n".join(str(x.value) for x in app.info)
+    )
     assert "super-secret-bods-123" not in all_text
     assert "super-secret-nh-456" not in all_text
     # Should show Configured, not secret
     assert "Configured" in all_text or "Not configured" in all_text
 
 
-def test_no_live_manchester_aggregate_claim(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_no_live_manchester_aggregate_claim(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.warning)
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.warning
+    )
     lowered = all_text.lower()
     # Must not claim live Manchester aggregate; disclaimer allowed
     if "live manchester" in lowered:
@@ -177,9 +198,8 @@ def test_no_network_during_ordinary_render(monkeypatch: pytest.MonkeyPatch, tmp_
     # Patch socket to ensure no network call
     import socket
 
-    orig = socket.socket
 
-    def fail(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def fail(*args: object, **kwargs: object) -> None:
         raise AssertionError("Network call not allowed during page render")
 
     monkeypatch.setattr(socket, "socket", fail)
@@ -193,8 +213,12 @@ def test_evidence_state_not_inferred_from_absent_values(
     app = _run_page(monkeypatch, tmp_path)
     assert not app.exception
     # Page should show explicit unavailable states, not fake inferred available
-    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(str(x.value) for x in app.caption)
-    assert "Unavailable" in all_text or "unavailable" in all_text.lower() or "No accepted" in all_text
+    all_text = "\n".join(str(x.value) for x in app.markdown) + "\n".join(
+        str(x.value) for x in app.caption
+    )
+    assert (
+        "Unavailable" in all_text or "unavailable" in all_text.lower() or "No accepted" in all_text
+    )
 
 
 def test_accessibility_heading_present(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

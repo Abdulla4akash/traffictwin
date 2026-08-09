@@ -6,11 +6,8 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-
-from traffictwin.metrics.results import JsonScalar
 
 
 class ManchesterSourceReadiness(BaseModel):
@@ -68,9 +65,15 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
     bods_configured = _env_configured("BODS_API_KEY")
     nh_configured = _env_configured("NATIONAL_HIGHWAYS_API_KEY")
     # DfT and WebTRIS are file-based historical, check workspace for accepted snapshots
-    dft_accepted = _workspace_has_accepted(workspace, "evidence/dft") or _workspace_has_accepted(workspace, "manchester/dft")
-    webtris_accepted = _workspace_has_accepted(workspace, "evidence/webtris") or _workspace_has_accepted(workspace, "manchester/webtris")
-    tfgm_accepted = _workspace_has_accepted(workspace, "evidence/tfgm") or _workspace_has_accepted(workspace, "manchester/tfgm")
+    dft_accepted = _workspace_has_accepted(workspace, "evidence/dft") or _workspace_has_accepted(
+        workspace, "manchester/dft"
+    )
+    webtris_accepted = _workspace_has_accepted(
+        workspace, "evidence/webtris"
+    ) or _workspace_has_accepted(workspace, "manchester/webtris")
+    tfgm_accepted = _workspace_has_accepted(workspace, "evidence/tfgm") or _workspace_has_accepted(
+        workspace, "manchester/tfgm"
+    )
 
     return [
         ManchesterSourceReadiness(
@@ -80,15 +83,26 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_type="historical",
             coverage_scope="DfT count points (survey, not live)",
             freshness_state="historical",
-            configuration_state="Configured" if dft_accepted else "Not configured (no accepted snapshot)",
-            local_evidence_state="Accepted local evidence available" if dft_accepted else "No accepted local evidence",
-            acquisition_readiness="Ready (historical snapshot catalogue)" if dft_accepted else "Not ready — no accepted snapshot",
+            configuration_state="Configured"
+            if dft_accepted
+            else "Not configured (no accepted snapshot)",
+            local_evidence_state="Accepted local evidence available"
+            if dft_accepted
+            else "No accepted local evidence",
+            acquisition_readiness="Ready (historical snapshot catalogue)"
+            if dft_accepted
+            else "Not ready — no accepted snapshot",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — map matching, road-class, ambiguity threshold",
+            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — map matching, road-class, ambiguity threshold",  # noqa: E501
             last_receipt_summary="Accepted DfT snapshot" if dft_accepted else None,
             blockers=[] if dft_accepted else ["No accepted DfT snapshot catalogue"],
-            next_action="Open Manchester Operations for DfT catalogue" if dft_accepted else "Acquire DfT snapshot via Manchester Operations",
-            limitations=["Historical evidence only; NOT live traffic", "Survey denominator, not instantaneous SUMO demand"],
+            next_action="Open Manchester Operations for DfT catalogue"
+            if dft_accepted
+            else "Acquire DfT snapshot via Manchester Operations",
+            limitations=[
+                "Historical evidence only; NOT live traffic",
+                "Survey denominator, not instantaneous SUMO demand",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="webtris",
@@ -97,49 +111,78 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_type="historical/latest",
             coverage_scope="Strategic road network (WebTRIS sites, not Manchester city roads)",
             freshness_state="historical/latest",
-            configuration_state="Configured" if webtris_accepted else "Not configured (no accepted snapshot)",
-            local_evidence_state="Accepted local evidence available" if webtris_accepted else "No accepted local evidence",
-            acquisition_readiness="Ready (accepted snapshot catalogue)" if webtris_accepted else "Not ready — no accepted snapshot",
+            configuration_state="Configured"
+            if webtris_accepted
+            else "Not configured (no accepted snapshot)",
+            local_evidence_state="Accepted local evidence available"
+            if webtris_accepted
+            else "No accepted local evidence",
+            acquisition_readiness="Ready (accepted snapshot catalogue)"
+            if webtris_accepted
+            else "Not ready — no accepted snapshot",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — calibration objective, parameter bounds",
+            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — calibration objective, parameter bounds",  # noqa: E501
             last_receipt_summary="Accepted WebTRIS snapshot" if webtris_accepted else None,
             blockers=[] if webtris_accepted else ["No accepted WebTRIS snapshot catalogue"],
             next_action="Open Manchester Operations for WebTRIS catalogue",
-            limitations=["Historical/latest only per accepted contract; do not call live", "Strategic road network only"],
+            limitations=[
+                "Historical/latest only per accepted contract; do not call live",
+                "Strategic road network only",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="bods",
             display_name="BODS bus positions",
             source_role="Live/recent BUS positions — bus-only",
             evidence_type="live_vehicle",
-            coverage_scope="Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",
+            coverage_scope="Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",  # noqa: E501
             freshness_state="live_vehicle" if bods_configured else "unavailable",
-            configuration_state="Configured" if bods_configured else "Not configured (BODS_API_KEY unavailable)",
-            local_evidence_state="Live control available" if bods_configured else "No live evidence",
-            acquisition_readiness="Acquisition-ready (BODS live control)" if bods_configured else "Not ready — credential unavailable",
+            configuration_state="Configured"
+            if bods_configured
+            else "Not configured (BODS_API_KEY unavailable)",
+            local_evidence_state="Live control available"
+            if bods_configured
+            else "No live evidence",
+            acquisition_readiness="Acquisition-ready (BODS live control)"
+            if bods_configured
+            else "Not ready — credential unavailable",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
             scientific_gate_state="BLOCKED / PROVIDER REQUIRED — BODS retention, privacy, licence",
             last_receipt_summary="BODS live control state" if bods_configured else None,
             blockers=[] if bods_configured else ["BODS_API_KEY not configured"],
-            next_action="Configure BODS_API_KEY and open Manchester Operations for BODS live control" if not bods_configured else "Open Manchester Operations for BODS live scene",
-            limitations=["BODS is bus-only; NOT general private-vehicle traffic", "Live/recent only when configured; not Manchester-wide flow"],
+            next_action="Configure BODS_API_KEY and open Manchester Operations for BODS live control"  # noqa: E501
+            if not bods_configured
+            else "Open Manchester Operations for BODS live scene",
+            limitations=[
+                "BODS is bus-only; NOT general private-vehicle traffic",
+                "Live/recent only when configured; not Manchester-wide flow",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="national_highways",
             display_name="National Highways",
             source_role="Strategic-road operational evidence",
             evidence_type="near_live",
-            coverage_scope="Strategic road network only — NOT general Manchester city-road coverage",
+            coverage_scope="Strategic road network only — NOT general Manchester city-road coverage",  # noqa: E501
             freshness_state="near_live" if nh_configured else "unavailable",
-            configuration_state="Configured" if nh_configured else "Not configured (NATIONAL_HIGHWAYS_API_KEY unavailable)",
+            configuration_state="Configured"
+            if nh_configured
+            else "Not configured (NATIONAL_HIGHWAYS_API_KEY unavailable)",
             local_evidence_state="Live control available" if nh_configured else "No live evidence",
-            acquisition_readiness="Acquisition-ready (National Highways live control)" if nh_configured else "Not ready — credential unavailable",
+            acquisition_readiness="Acquisition-ready (National Highways live control)"
+            if nh_configured
+            else "Not ready — credential unavailable",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / PROVIDER REQUIRED — National Highways retention, licence",
+            scientific_gate_state="BLOCKED / PROVIDER REQUIRED — National Highways retention, licence",  # noqa: E501
             last_receipt_summary="National Highways live control state" if nh_configured else None,
             blockers=[] if nh_configured else ["NATIONAL_HIGHWAYS_API_KEY not configured"],
-            next_action="Configure NATIONAL_HIGHWAYS_API_KEY and open Manchester Operations" if not nh_configured else "Open Manchester Operations for National Highways scene",
-            limitations=["Strategic-road operational evidence only; NOT Manchester city-road coverage", "Near-live per provider contract"],
+            next_action="Configure NATIONAL_HIGHWAYS_API_KEY and open Manchester Operations"
+            if not nh_configured
+            else "Open Manchester Operations for National Highways scene",
+            limitations=[
+                "Strategic-road operational evidence only; NOT Manchester city-road coverage",
+                "Near-live per provider contract",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="tfgm",
@@ -148,15 +191,24 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             evidence_type="infrastructure",
             coverage_scope="TfGM signal locations — reference layer, NOT traffic telemetry",
             freshness_state="historical" if tfgm_accepted else "unavailable",
-            configuration_state="Configured" if tfgm_accepted else "Not configured (no accepted TfGM snapshot)",
-            local_evidence_state="Accepted local evidence available" if tfgm_accepted else "No accepted local evidence",
-            acquisition_readiness="Ready (TfGM snapshot catalogue)" if tfgm_accepted else "Not ready — no accepted snapshot",
+            configuration_state="Configured"
+            if tfgm_accepted
+            else "Not configured (no accepted TfGM snapshot)",
+            local_evidence_state="Accepted local evidence available"
+            if tfgm_accepted
+            else "No accepted local evidence",
+            acquisition_readiness="Ready (TfGM snapshot catalogue)"
+            if tfgm_accepted
+            else "Not ready — no accepted snapshot",
             rights_retention_state="NOT RECORDED / OWNER DECISION REQUIRED",
-            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — infrastructure vs telemetry distinction",
+            scientific_gate_state="BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED — infrastructure vs telemetry distinction",  # noqa: E501
             last_receipt_summary="Accepted TfGM snapshot" if tfgm_accepted else None,
             blockers=[] if tfgm_accepted else ["No accepted TfGM snapshot"],
             next_action="Open Manchester Operations for TfGM catalogue",
-            limitations=["Infrastructure is NOT telemetry; TfGM metadata is reference unless telemetry supplied and accepted", "No live traffic telemetry from infrastructure alone"],
+            limitations=[
+                "Infrastructure is NOT telemetry; TfGM metadata is reference unless telemetry supplied and accepted",  # noqa: E501
+                "No live traffic telemetry from infrastructure alone",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="static_boundaries",
@@ -190,7 +242,10 @@ def _source_definitions(workspace: Path | None) -> list[ManchesterSourceReadines
             last_receipt_summary="Scenario Builder authored incident",
             blockers=[],
             next_action="Open Scenario Builder to author incident/event",
-            limitations=["Manually entered incident does NOT become observed Manchester evidence", "Changes scenario definition only"],
+            limitations=[
+                "Manually entered incident does NOT become observed Manchester evidence",
+                "Changes scenario definition only",
+            ],
         ),
         ManchesterSourceReadiness(
             source_id="social_media",
@@ -222,21 +277,37 @@ def build_manchester_hub_view(
     sources = _source_definitions(workspace)
     # Stable ordering by source_id
     sources_sorted = sorted(sources, key=lambda s: s.source_id)
-    available = sum(1 for s in sources_sorted if "Available" in s.local_evidence_state and "No " not in s.local_evidence_state)
+    available = sum(
+        1
+        for s in sources_sorted
+        if "Available" in s.local_evidence_state and "No " not in s.local_evidence_state
+    )
     blocked = sum(1 for s in sources_sorted if s.blockers)
     unavailable = len(sources_sorted) - available - blocked
     if unavailable < 0:
         unavailable = 0
     accepted = sum(1 for s in sources_sorted if "Accepted local evidence" in s.local_evidence_state)
-    workspace_state = "Workspace configured" if workspace and workspace.exists() else "No workspace — provider evidence unavailable"
+    workspace_state = (
+        "Workspace configured"
+        if workspace and workspace.exists()
+        else "No workspace — provider evidence unavailable"
+    )
     warnings: list[str] = []
     # Source-specific warnings to ensure truthfulness
     warnings.append("BODS is bus-only; not general private-vehicle traffic")
     warnings.append("National Highways is strategic-road only; not Manchester city-road coverage")
-    warnings.append("DfT is historical; WebTRIS is historical/latest per contract; TfGM is infrastructure reference")
-    if not any(s.source_id == "bods" and s.configuration_state.startswith("Configured") for s in sources_sorted):
+    warnings.append(
+        "DfT is historical; WebTRIS is historical/latest per contract; TfGM is infrastructure reference"  # noqa: E501
+    )
+    if not any(
+        s.source_id == "bods" and s.configuration_state.startswith("Configured")
+        for s in sources_sorted
+    ):
         warnings.append("BODS live evidence requires BODS_API_KEY")
-    if not any(s.source_id == "national_highways" and s.configuration_state.startswith("Configured") for s in sources_sorted):
+    if not any(
+        s.source_id == "national_highways" and s.configuration_state.startswith("Configured")
+        for s in sources_sorted
+    ):
         warnings.append("National Highways live evidence requires NATIONAL_HIGHWAYS_API_KEY")
 
     # Fingerprint binds substantive displayed state, no secrets
@@ -257,7 +328,9 @@ def build_manchester_hub_view(
         "workspace_state": workspace_state,
         "warnings": sorted(warnings),
     }
-    fingerprint = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest()
+    fingerprint = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode()
+    ).hexdigest()
     return ManchesterEvidenceHubView(
         sources=sources_sorted,
         available_count=available,
@@ -267,6 +340,5 @@ def build_manchester_hub_view(
         warnings=warnings,
         workspace_state=workspace_state,
         fingerprint=fingerprint,
-        generated_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        generated_at=datetime.datetime.now(datetime.UTC).isoformat(),
     )
-
