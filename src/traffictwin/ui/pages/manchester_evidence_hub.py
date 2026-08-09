@@ -49,16 +49,16 @@ def render() -> None:
     st.subheader("Evidence summary")
     cols = st.columns(5)
     cols[0].metric("Sources known", view.known_source_count)
-    cols[1].metric("Accepted", view.accepted_evidence_count)
+    cols[1].metric("Accepted local evidence", view.accepted_evidence_count)
     cols[2].metric("Acquisition-ready", view.acquisition_ready_count)
-    cols[3].metric("Blocked", view.blocked_count)
-    cols[4].metric("Unavailable", view.unavailable_count)
+    cols[3].metric("Blocked sources", view.blocked_count)
+    cols[4].metric("Unavailable sources", view.unavailable_count)
     st.caption(f"Workspace: {view.workspace_state} · No provider data fetched on render.")
     st.caption(
         f"Known sources (definitions): {view.known_source_count} — distinct from accepted local evidence sources: {view.accepted_evidence_count}."  # noqa: E501
     )
     st.caption(
-        f"Blocked or unavailable (unique): {view.blocked_unavailable_union_count} — never exceeds known sources ({view.known_source_count}); blocked and unavailable overlap honestly."  # noqa: E501
+        f"Blocked or unavailable sources (unique): {view.blocked_unavailable_union_count} — never exceeds known sources ({view.known_source_count}); blocked and unavailable overlap honestly."  # noqa: E501
     )
     for w in view.warnings:
         st.caption(w)
