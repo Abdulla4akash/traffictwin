@@ -198,7 +198,6 @@ def test_no_network_during_ordinary_render(monkeypatch: pytest.MonkeyPatch, tmp_
     # Patch socket to ensure no network call
     import socket
 
-
     def fail(*args: object, **kwargs: object) -> None:
         raise AssertionError("Network call not allowed during page render")
 
