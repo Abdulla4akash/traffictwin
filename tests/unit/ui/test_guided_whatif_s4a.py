@@ -22,9 +22,7 @@ def test_standalone_contains_whatif_step() -> None:
 
 
 def test_whatif_target_is_whatif_studio() -> None:
-    whatif = next(
-        step for step in steps_for_track(DemoTrack.STANDALONE) if step.key == "whatif"
-    )
+    whatif = next(step for step in steps_for_track(DemoTrack.STANDALONE) if step.key == "whatif")
 
     assert whatif.target_page is UiPage.WHATIF_STUDIO
     assert whatif.target_page != UiPage.COMPARE  # type: ignore[comparison-overlap]
