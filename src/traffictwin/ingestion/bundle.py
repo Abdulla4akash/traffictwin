@@ -33,7 +33,7 @@ from traffictwin.ingestion.cache import (
     write_failed_cache_status,
 )
 from traffictwin.ingestion.canonicalise import canonicalise_bundle
-from traffictwin.ingestion.hashes import bundle_fingerprint, sha256_file
+from traffictwin.ingestion.hashes import fingerprint_workspace, sha256_file
 from traffictwin.ingestion.loader import BundleLoadError, open_bundle
 from traffictwin.ingestion.manifest import BundleManifest
 from traffictwin.ingestion.streaming import (
@@ -119,8 +119,7 @@ def validate_bundle(path: str | Path) -> BundleValidationResult:
 
     try:
         with open_bundle(source) as workspace:
-            files = [file for file in workspace.root.rglob("*") if file.is_file()]
-            fingerprint = bundle_fingerprint(files, workspace.root)
+            fingerprint = fingerprint_workspace(workspace.root)
             manifest = _load_manifest(workspace.root, report)
             return _validate_open_workspace(
                 source,
@@ -163,8 +162,7 @@ def validate_bundle_cached(
 
     try:
         with open_bundle(source) as workspace:
-            files = [file for file in workspace.root.rglob("*") if file.is_file()]
-            fingerprint = bundle_fingerprint(files, workspace.root)
+            fingerprint = fingerprint_workspace(workspace.root)
             manifest = _load_manifest(workspace.root, report)
             if manifest is not None:
                 key = canonical_cache_key(fingerprint, manifest)
@@ -264,8 +262,7 @@ def inspect_bundle_cache(
     report = ValidationReport()
     try:
         with open_bundle(source) as workspace:
-            files = [file for file in workspace.root.rglob("*") if file.is_file()]
-            fingerprint = bundle_fingerprint(files, workspace.root)
+            fingerprint = fingerprint_workspace(workspace.root)
             manifest = _load_manifest(workspace.root, report)
             if manifest is None:
                 return unavailable_cache_status("raw manifest is missing or invalid")
@@ -361,8 +358,7 @@ def validate_bundle_streaming(
             source,
             max_uncompressed_bytes=active_config.max_bundle_uncompressed_bytes,
         ) as workspace:
-            files = [file for file in workspace.root.rglob("*") if file.is_file()]
-            fingerprint = bundle_fingerprint(files, workspace.root)
+            fingerprint = fingerprint_workspace(workspace.root)
             manifest = _load_manifest(workspace.root, report)
             if manifest is not None:
                 report.bundle_id = manifest.bundle.bundle_id
