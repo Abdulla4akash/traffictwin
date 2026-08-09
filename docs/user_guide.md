@@ -749,23 +749,26 @@ statistics from the synthetic study fixture (three development families, S5/S6 h
 optimality claims.
 
 Challenge Seed Library: seven deterministic synthetic challenges encode supervisor-requested
-situations — arena/event surge, lane-closure corridor, T1-heavy weak fleet, RSU waiting-room
-squeeze, load-aware forwarding, stale-state scheduling, and scaling strategy. Each challenge is a
+situations — arena/event surge, lane-closure corridor, T1-heavy weak fleet, Reduced-capacity stress,
+High-load forwarding context, Ordered-arrival fallback case, and Scaling stress. Each challenge is a
 fixed `ScenarioSeed` override (demand multiplier, birth-rate multiplier, class mix, fleet tier mix,
 RSU count/capacity mode, incident fields) reusing the validated seed schema. All seven are
-currently executable. Where the generic synthetic product has only one abstract capacity field,
+currently `REPRESENTABLE_ONLY`: valid and serialisable as ScenarioSeed configuration, but no generic
+current path executes that seed and yields the advertised outcome metrics. TrafficTwin does not currently
+provide a generic ScenarioSeed-to-run execution path for this challenge. Where the generic synthetic product has only one abstract capacity field,
 it is labelled exactly as `infrastructure.rsu_capacity_mode` (STANDARD/REDUCED) and
 `infrastructure.rsu_count`; waiting-room size is not conflated with compute cores. If a future
-challenge cannot be represented, it will be marked NOT YET EXECUTABLE rather than inventing a field.
+challenge cannot be represented, it will be marked `NOT_YET_EXECUTABLE` rather than inventing a field. Target
+evidence surfaces are those this challenge is intended to probe if executed.
 
-Workflow: choose a challenge seed, inspect scenario features, inspect selector decision and
-rationale, inspect all constituent strategies and ranking, inspect regret/dominance and held-out
-evidence, then continue to Scenario Builder, Experiments, Compare, Provenance or Reports. The
-explorer reads only local deterministic data and requires no provider credentials, no What-If
-Studio, and no Consequence Lenses.
+Workflow: choose a challenge seed, inspect scenario features (load intensity, T1 share, fleet tier mix,
+infrastructure capacity mode, RSU count, fleet count, demand and birth-rate multipliers), inspect selector decision and
+rationale (matched rule ID must agree with the displayed claim; CH-03 T1-heavy weak-fleet shows P1-weak-fleet shadowing P2), inspect all constituent strategies and ranking by mean regret (lower is better; metric objective itself is MAXIMISE), inspect regret/dominance and held-out
+evidence (held-out n=2, development does not train the rules — rules are predeclared), then continue to Scenario Builder, Experiments, Compare, or Provenance. The
+explorer reads only local deterministic data and requires no provider credentials and has no dependency on internal ConsequenceLensReport or WhatIfPairReceipt.
 
 Limitations: synthetic result, not Manchester or live evidence; no Kubernetes deployment; no live
-control; no causal claim; waiting-room vs compute distinction preserved.
+control; no causal claim; waiting-room vs compute distinction preserved. Illustrative held-out set: n=2. On these two synthetic seeds, the rule selector does not outperform the strongest single constituent.
 
 ## Provenance Explorer
 

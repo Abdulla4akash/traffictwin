@@ -11,8 +11,10 @@ from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button
 from traffictwin.ui.portfolio_explorer import (
+    ChallengeExecutionStatus,
     build_portfolio_explorer_view,
     get_challenge_seed_library,
+    is_selector_input,
 )
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
@@ -30,7 +32,6 @@ def render() -> None:
 
     st.title("Portfolio Explorer")
 
-    # Evidence banner
     st.warning(
         "This explorer demonstrates transparent portfolio selection over available "
         "TrafficTwin scenario evidence. Synthetic studies are not production scheduling "
@@ -53,7 +54,6 @@ def render() -> None:
     library = get_challenge_seed_library()
     challenge_ids = [c.challenge_id for c in library]
     challenge_titles = [f"{c.challenge_id} — {c.title}" for c in library]
-    # Use session state for selection to allow Scenario Builder prefill later
     default_idx = 0
     selected_title = st.selectbox(
         "Choose challenge seed",
@@ -66,64 +66,89 @@ def render() -> None:
         if selected_title
         else challenge_ids[0]
     )
-    # Persist for potential What-If Studio integration after merge
     st.session_state["selected_challenge_id"] = selected_id
     selected = next(c for c in library if c.challenge_id == selected_id)
 
-    # Show selected challenge details
     with st.container(border=True):
         st.markdown(f"**{selected.title}** (`{selected.challenge_id}`)")
         st.caption(selected.purpose)
         st.markdown(f"**Why challenging:** {selected.why_challenging}")
         st.markdown(f"**Evidence standing:** {selected.evidence_standing}")
-        # Parameter overrides table
+        # Status: truthful tri-state
+        if selected.status == ChallengeExecutionStatus.EXECUTABLE:
+            st.success("Executable via current ScenarioSeed schema.")
+        elif selected.status == ChallengeExecutionStatus.REPRESENTABLE_ONLY:
+            st.info(
+                "Representable as a validated ScenarioSeed. TrafficTwin does not currently "
+                "provide a generic ScenarioSeed-to-run execution path for this challenge."
+            )
+        else:
+            reason = selected.not_yet_executable_reason or "Not yet executable."
+            st.warning(f"NOT YET EXECUTABLE: {reason}")
+        st.markdown(f"**Execution status:** `{selected.status.value}`")
         if selected.parameter_overrides:
             param_rows = [
-                {"parameter": k, "value": json.dumps(v) if isinstance(v, dict) else str(v)}
+                {
+                    "parameter": k,
+                    "value": json.dumps(v) if isinstance(v, dict) else str(v),
+                    "selector_input": "SELECTOR INPUT — affects current selector"
+                    if is_selector_input(k)
+                    else "RECORDED IN SEED — not consumed by current selector",
+                }
                 for k, v in selected.parameter_overrides.items()
             ]
             st.dataframe(
                 param_rows,
                 hide_index=True,
                 width="stretch",
-                column_config=table_column_config(param_rows),
+                column_config=table_column_config(
+                    param_rows,
+                    overrides={
+                        "parameter": ColumnDisplay(key="parameter", label="Parameter"),
+                        "value": ColumnDisplay(key="value", label="Value"),
+                        "selector_input": ColumnDisplay(
+                            key="selector_input", label="Selector relevance"
+                        ),
+                    },
+                ),
+            )
+            st.caption(
+                "Parameter relevance derived from authoritative selector-consumed-field contract: "
+                "demand.multiplier, workload.birth_rate_multiplier, workload.class_mix[T1], "
+                "fleet.tier_mix, infrastructure.rsu_capacity_mode, workload.ordering. Other valid "
+                "ScenarioSeed fields are recorded but do not affect the current selector."
             )
         else:
             st.info("No parameter overrides.")
-        if selected.expected_evidence_surfaces:
+        if selected.target_evidence_surfaces:
             st.caption(
-                "Expected evidence surfaces: " + ", ".join(selected.expected_evidence_surfaces)
+                "Target evidence surfaces (intended to probe if executed): "
+                + ", ".join(selected.target_evidence_surfaces)
             )
         for lim in selected.limitations:
             st.caption(f"Limitation: {lim}")
-        # Capacity semantics note
         st.info(
             "Waiting-room / queue capacity, service/compute capacity, worker count, task arrival and in-flight capacity "  # noqa: E501
             "are distinct where represented. Current product exposes only `infrastructure.rsu_capacity_mode` (STANDARD/REDUCED) "  # noqa: E501
             "and `infrastructure.rsu_count`; it does not expose separate waiting-room seats or compute cores. Labels follow the current contract."  # noqa: E501
         )
-        if not selected.executable_now:
-            st.warning(
-                f"NOT YET EXECUTABLE: {selected.not_yet_executable_reason or 'Unsupported fields.'}"
-            )
-        else:
-            st.success("Executable now via current ScenarioSeed schema.")
-        # Action: open Scenario Builder (stable path)
         navigation_button(
             st.button,
             "Open Scenario Builder",
             UiPage.SCENARIO,
             key="portfolio_open_scenario_builder",
         )
+        st.caption(
+            "Values shown are not automatically prefilled in Scenario Builder; apply them manually if you continue there."  # noqa: E501
+        )
 
-    # Show full library table
     with st.expander("Advanced: full challenge library"):
         lib_rows = [
             {
                 "challenge_id": c.challenge_id,
                 "title": c.title,
                 "purpose": c.purpose,
-                "executable": "YES" if c.executable_now else "NO",
+                "status": c.status.value,
                 "standing": c.evidence_standing,
             }
             for c in library
@@ -132,12 +157,13 @@ def render() -> None:
             lib_rows, hide_index=True, width="stretch", column_config=table_column_config(lib_rows)
         )
 
-    # Portfolio view for selected challenge
     view = build_portfolio_explorer_view(selected_id)
     selection = view.selection
-    assert selection is not None
+    if selection is None:
+        st.error("Selected challenge has no portfolio selection available.")
+        st.caption("Unavailable remains unavailable; no synthetic data was inferred.")
+        return
 
-    # Scenario / challenge context
     st.subheader("Scenario context")
     with st.container(border=True):
         cols = st.columns(2)
@@ -146,7 +172,6 @@ def render() -> None:
         )
         t1 = selection.scenario_features.get("t1_share")
         cols[1].metric("T1 share", _format_value(t1) if t1 is not None else "—")
-        # Features table
         feat_rows = [
             {"feature": k, "value": _format_value(v)}
             for k, v in selection.scenario_features.items()
@@ -163,7 +188,6 @@ def render() -> None:
             f"Scenario seed: `{selection.scenario_seed_id}` · Synthetic demonstration only: `{selection.synthetic_demonstration_only}`"  # noqa: E501
         )
 
-    # Selector decision
     st.subheader("Selector decision")
     with st.container(border=True):
         st.markdown(f"**Selected strategy:** `{selection.selected_algorithm}`")
@@ -171,7 +195,6 @@ def render() -> None:
         st.markdown(f"**Matched rule:** `{rule}`")
         st.markdown(f"**Rationale:** {selection.rationale}")
         st.markdown(f"**Selector:** `{selection.selector_id}`")
-        # Show ordered rules
         ruleset = default_synthetic_portfolio_rules()
         rule_rows = [
             {
@@ -197,7 +220,6 @@ def render() -> None:
         for w in selection.warnings:
             st.caption(f"Selector limitation: {w}")
 
-    # Candidate strategies
     st.subheader("Candidate strategies")
     if view.candidate_views:
         cand_rows = [
@@ -208,7 +230,7 @@ def render() -> None:
                 "mean_score": _format_value(c.mean_score),
                 "mean_regret": _format_value(c.mean_regret),
                 "available_seeds": c.available_seed_count,
-                "failures": ", ".join(c.failure_seed_ids) or "none",
+                "seeds_not_won": ", ".join(c.seeds_not_won) or "none",
             }
             for c in view.candidate_views
         ]
@@ -216,16 +238,24 @@ def render() -> None:
             cand_rows,
             hide_index=True,
             width="stretch",
-            column_config=table_column_config(cand_rows),
+            column_config=table_column_config(
+                cand_rows,
+                overrides={
+                    "seeds_not_won": ColumnDisplay(
+                        key="seeds_not_won",
+                        label="Seeds where strategy was not winner-or-tie",
+                    )
+                },
+            ),
         )
         st.caption(
-            "Ranking is by mean regret (lower is better) on held-out synthetic seeds; winner/tie rate is descriptive, not optimal."  # noqa: E501
+            "Ranking is by mean regret (lower is better) on held-out synthetic seeds; winner/tie rate is descriptive, not optimal. "  # noqa: E501
+            "Seeds where strategy was not winner-or-tie are counted per constituent (not execution failures)."  # noqa: E501
         )
     else:
         st.warning("No candidate strategies available for this context.")
         st.caption("Unavailable remains unavailable; synthetic provenance is preserved.")
 
-    # Regret / dominance
     st.subheader("Regret / dominance")
     study = view.study_report
     if study is not None:
@@ -237,7 +267,30 @@ def render() -> None:
         st.caption(
             f"Held-out seeds: {len(study.held_out_seed_ids)} · Development seeds: {len(study.development_seed_ids)} · Metric: `{study.metric_key}`"  # noqa: E501
         )
-        # Dominance matrix
+        # n=2 limitation: compute best constituent and compare
+        if study.held_out_constituents:
+            best = max(
+                study.held_out_constituents,
+                key=lambda c: c.winner_or_tie_rate if c.winner_or_tie_rate is not None else -1,
+            )
+            held_rate = held.winner_or_tie_rate
+            best_rate = best.winner_or_tie_rate
+            n_held = len(study.held_out_seed_ids)
+            if n_held == 2 and held_rate is not None and best_rate is not None:
+                if held_rate <= best_rate:
+                    best_label = best.algorithm
+                    st.warning(
+                        f"Illustrative held-out set: n={n_held}. On these two synthetic seeds, the rule "  # noqa: E501
+                        f"selector (winner/tie {held_rate:.2f}) does not outperform the strongest single "  # noqa: E501
+                        f"constituent `{best_label}` (winner/tie {best_rate:.2f})."
+                    )
+                else:
+                    st.info(
+                        f"Held-out set: n={n_held}. Selector and best constituent winner/tie rates shown above."  # noqa: E501
+                    )
+        st.caption(
+            "The development split does not train the default rules; rules are predeclared and fixed before held-out evaluation."  # noqa: E501
+        )
         if study.dominance_matrix:
             dom_rows = [
                 {
@@ -259,7 +312,6 @@ def render() -> None:
                 )
         else:
             st.info("Dominance matrix unavailable for this study.")
-        # Synthetic standing
         synthetic_badge = badge_markdown("synthetic")
         st.markdown(
             f"**Evidence standing:** {synthetic_badge} synthetic demonstration only · Held-out study verifies workflow, not external performance."  # noqa: E501
@@ -270,7 +322,6 @@ def render() -> None:
         st.warning("Regret and dominance are unavailable for the selected challenge context.")
         st.caption("Unavailable remains unavailable; no network or provider dependency.")
 
-    # Limitations (prominent)
     st.subheader("Limitations")
     st.info(
         "Transparent rule selector, not a learned optimal controller. Synthetic result unless source explicitly differs. "  # noqa: E501
@@ -279,7 +330,6 @@ def render() -> None:
     for w in view.warnings:
         st.caption(w)
 
-    # Next actions
     st.subheader("Next actions")
     cols = st.columns(4)
     navigation_button(
@@ -293,10 +343,9 @@ def render() -> None:
         cols[3].button, "Provenance", UiPage.PROVENANCE, key="portfolio_next_provenance"
     )
     st.caption(
-        "Compare and Reports consume the same validated bundles; What-If Studio integration will use stable session paths after PR #11 merges."  # noqa: E501
+        "Compare and Reports consume the same validated bundles; What-If Studio integration uses stable session paths."  # noqa: E501
     )
 
-    # Advanced export
     with st.expander("Advanced: portfolio view JSON"):
         st.download_button(
             "Download portfolio view JSON",
