@@ -47,8 +47,8 @@ def test_manchester_context_provenance_is_exact() -> None:
     assert context.manchester.display_only is True
     # GeoJSON payload is context-only
     payload = context.greater_manchester.geojson()
-    assert "display context only" in str(payload["properties"]["accessible_label"])
-    assert payload["properties"]["official_code"] == "E47000001"
+    assert "display context only" in str(payload["properties"]["accessible_label"])  # type: ignore[index]
+    assert payload["properties"]["official_code"] == "E47000001"  # type: ignore[index]
 
 
 def test_manchester_context_requires_no_credentials_or_network(

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -117,7 +118,9 @@ def test_unchanged_fields_absent_from_ledger() -> None:
 
 def test_identical_baseline_variation_refuses(tmp_path: Path) -> None:
     ws, reg = _tmp_workspace(tmp_path)
-    req = WhatIfPairRequest(baseline_preset="baseline", pair_name="identical", experiment_id="exp-demo")
+    req = WhatIfPairRequest(
+        baseline_preset="baseline", pair_name="identical", experiment_id="exp-demo"
+    )
     from traffictwin.synthetic.whatif_pair import WhatIfPairError
 
     with pytest.raises(WhatIfPairError) as exc:
@@ -135,10 +138,14 @@ def test_both_bundles_validate_and_comparable(tmp_path: Path) -> None:
         baseline_preset="baseline",
         pair_name="comparable-test",
         experiment_id="exp-comparable",
-        variation_overrides=WhatIfVariationOverrides(congestion_multiplier=1.6, incident_enabled=True),
+        variation_overrides=WhatIfVariationOverrides(
+            congestion_multiplier=1.6, incident_enabled=True
+        ),
     )
     receipt = generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
     assert receipt.status == "ok"
+    assert receipt.baseline_bundle_path is not None
+    assert receipt.variation_bundle_path is not None
     b = validate_bundle(Path(receipt.baseline_bundle_path))
     v = validate_bundle(Path(receipt.variation_bundle_path))
     assert b.report.may_import
@@ -173,6 +180,8 @@ def test_exact_retry_is_idempotent(tmp_path: Path) -> None:
     assert r2.request_fingerprint == r1.request_fingerprint
     # registry still 2 runs, not 4
     assert Registry(reg).inspect().run_count == 2
+    assert r1.baseline_bundle_path is not None
+    assert r1.variation_bundle_path is not None
     assert Path(r1.baseline_bundle_path).exists()
     assert Path(r1.variation_bundle_path).exists()
 
@@ -250,7 +259,7 @@ def test_baseline_generation_failure_rolls_back(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail_baseline(cfg: object, dest: Path, overwrite: bool = False) -> Path:
+    def fail_baseline(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
         if "baseline" in str(dest):
             raise RuntimeError("baseline fail")
         return orig(cfg, dest, overwrite=overwrite)
@@ -280,11 +289,9 @@ def test_variation_generation_failure_rolls_back(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail_variation(cfg: object, dest: Path, overwrite: bool = False) -> Path:
+    def fail_variation(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
         # distinguish via scenario_id suffix
-        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith(
-            "-variation"
-        ):
+        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith("-variation"):
             raise RuntimeError("variation fail")
         return orig(cfg, dest, overwrite=overwrite)
 
@@ -360,7 +367,7 @@ def test_registration_failure_rolls_back(tmp_path: Path) -> None:
 
     orig_import = m.import_validated_bundle
 
-    def fail_second(result: object, registry_path: Path) -> object:
+    def fail_second(result: Any, registry_path: Path) -> Any:
         # result is BundleValidationResult
         if getattr(getattr(result, "manifest", None), "run", None) and "variation" in getattr(
             result.manifest.run, "seed_id", ""
@@ -391,10 +398,8 @@ def test_no_partial_pair_remains_on_failure(tmp_path: Path) -> None:
 
     orig = m.write_synthetic_bundle
 
-    def fail(cfg: object, dest: Path, overwrite: bool = False) -> Path:
-        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith(
-            "-variation"
-        ):
+    def fail(cfg: Any, dest: Path, overwrite: bool = False) -> Path:
+        if hasattr(cfg, "scenario_id") and str(getattr(cfg, "scenario_id")).endswith("-variation"):
             raise RuntimeError("fail")
         return orig(cfg, dest, overwrite=overwrite)
 
@@ -421,7 +426,7 @@ def test_no_partial_registry_state_remains(tmp_path: Path) -> None:
 
     orig_import = m.import_validated_bundle
 
-    def fail(result: object, registry_path: Path) -> object:
+    def fail(result: Any, registry_path: Path) -> Any:
         if getattr(getattr(result, "manifest", None), "run", None) and getattr(
             result.manifest.run, "seed_id", ""
         ).endswith("-variation"):
@@ -443,9 +448,13 @@ def test_synthetic_provenance_preserved(tmp_path: Path) -> None:
         baseline_preset="baseline",
         pair_name="provenance-test",
         experiment_id="exp-demo",
-        variation_overrides=WhatIfVariationOverrides(congestion_multiplier=1.4, incident_enabled=True),
+        variation_overrides=WhatIfVariationOverrides(
+            congestion_multiplier=1.4, incident_enabled=True
+        ),
     )
     receipt = generate_whatif_pair(req, registry_path=reg, workspace_path=ws)
+    assert receipt.baseline_bundle_path is not None
+    assert receipt.variation_bundle_path is not None
     b = validate_bundle(Path(receipt.baseline_bundle_path))
     v = validate_bundle(Path(receipt.variation_bundle_path))
     assert b.manifest is not None and v.manifest is not None
@@ -456,7 +465,9 @@ def test_synthetic_provenance_preserved(tmp_path: Path) -> None:
     assert "SYNTHETIC" in receipt.evidence_labels
     assert receipt.receipt_path is not None
     # receipt must not contain absolute private path
-    receipt_data = json.loads((ws / "bundles" / receipt.pair_id / "whatif_receipt.json").read_text())
+    receipt_data = json.loads(
+        (ws / "bundles" / receipt.pair_id / "whatif_receipt.json").read_text()
+    )
     assert not receipt_data["baseline_bundle_path"].startswith("/")
     assert not receipt_data["variation_bundle_path"].startswith("/")
 
@@ -472,7 +483,9 @@ def test_no_network_provider_sumo_vec_dependency(tmp_path: Path) -> None:
     assert "sumolib" not in source
     assert "vec_env" not in source
     # also ensure deterministic: fingerprint stable
-    req = WhatIfPairRequest(baseline_preset="baseline", pair_name="no-net", experiment_id="exp-demo")
+    req = WhatIfPairRequest(
+        baseline_preset="baseline", pair_name="no-net", experiment_id="exp-demo"
+    )
     fp = request_fingerprint(req)
     assert len(fp) == 64
     # ensure sanitise works
@@ -496,4 +509,5 @@ def test_pair_receipt_has_no_absolute_private_path(tmp_path: Path) -> None:
     assert receipt.receipt_path is not None
     assert not receipt.receipt_path.startswith("/")
     # but the receipt's baseline_bundle_path for UI is absolute (session needs it), but publication-safe receipt is relative
+    assert receipt.baseline_bundle_path is not None
     assert Path(receipt.baseline_bundle_path).is_absolute()

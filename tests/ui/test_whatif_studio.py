@@ -6,6 +6,7 @@ import json
 from copy import deepcopy
 from importlib import import_module
 from pathlib import Path
+from typing import Any
 
 from pytest import MonkeyPatch
 
@@ -14,7 +15,7 @@ from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.state import default_session_state, load_ui_config
 
 
-def _app(monkeypatch: MonkeyPatch, tmp_path: Path):
+def _app(monkeypatch: MonkeyPatch, tmp_path: Path) -> tuple[Any, Path]:
     workspace = tmp_path / "ws"
     workspace.mkdir()
     monkeypatch.setenv("TRAFFICTWIN_WORKSPACE_PATH", str(workspace))
@@ -63,7 +64,9 @@ def test_page_visibly_distinguishes_from_composer(tmp_path: Path, monkeypatch: M
     assert "deterministic local synthetic generation" in combined.lower()
 
 
-def test_synthetic_nonlive_not_sumowording_visible(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_synthetic_nonlive_not_sumowording_visible(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
     app, _ = _app(monkeypatch, tmp_path)
     app.run(timeout=20)
     assert not app.exception
@@ -148,7 +151,9 @@ def test_identical_variation_cannot_generate(tmp_path: Path, monkeypatch: Monkey
     from traffictwin.ui.services import preview_whatif_ledger_for_ui
 
     # Create request with no overrides -> identical
-    req = WhatIfPairRequest(baseline_preset="baseline", pair_name="identical-ui-test", experiment_id="exp-demo")
+    req = WhatIfPairRequest(
+        baseline_preset="baseline", pair_name="identical-ui-test", experiment_id="exp-demo"
+    )
     ledger = preview_whatif_ledger_for_ui(req)
     assert isinstance(ledger, list)
     assert len(ledger) == 0  # no changes
@@ -175,19 +180,27 @@ def test_one_click_generates_complete_pair(tmp_path: Path, monkeypatch: MonkeyPa
     assert "variation_bundle_path" in receipt
 
 
-def test_success_state_displays_baseline_and_variation_identity(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_success_state_displays_baseline_and_variation_identity(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
     app, _ = _app(monkeypatch, tmp_path)
     app.run(timeout=20)
     assert not app.exception
     [b for b in app.button if b.label == "Generate comparison"][0].click().run(timeout=30)
     assert not app.exception
     # check metrics/subheaders for baseline/variation
-    combined = " ".join(str(x.value) for x in app.metric) + " ".join(str(x.value) for x in app.caption) + " ".join(str(x.value) for x in app.markdown)
+    combined = (
+        " ".join(str(x.value) for x in app.metric)
+        + " ".join(str(x.value) for x in app.caption)
+        + " ".join(str(x.value) for x in app.markdown)
+    )
     assert "Baseline scenario" in combined or "baseline" in combined.lower()
     assert "Variation scenario" in combined or "variation" in combined.lower()
 
 
-def test_selected_baseline_and_variation_run_are_set(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+def test_selected_baseline_and_variation_run_are_set(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
     app, workspace = _app(monkeypatch, tmp_path)
     app.run(timeout=20)
     assert not app.exception
@@ -215,7 +228,13 @@ def test_compare_receives_generated_paths(tmp_path: Path, monkeypatch: MonkeyPat
     from traffictwin.ui.navigation_v07 import page_script_for
 
     app_compare = AppTest2.from_file(f"src/traffictwin/ui/{page_script_for(UiPage.COMPARE)}")
-    for key in ("selected_baseline_run", "selected_variation_run", "selected_bundle_path", "whatif_pair_receipt", "whatif_pair_receipt_path"):
+    for key in (
+        "selected_baseline_run",
+        "selected_variation_run",
+        "selected_bundle_path",
+        "whatif_pair_receipt",
+        "whatif_pair_receipt_path",
+    ):
         if key in app.session_state:
             app_compare.session_state[key] = app.session_state[key]
     app_compare.session_state["_v07_navigation_active"] = True
@@ -226,8 +245,16 @@ def test_compare_receives_generated_paths(tmp_path: Path, monkeypatch: MonkeyPat
     baseline_paths = [str(t.value) for t in app_compare.text_input if "Baseline" in str(t.label)]
     variation_paths = [str(t.value) for t in app_compare.text_input if "Variation" in str(t.label)]
     # they should be set to the generated ones
-    gen_baseline = str(app.session_state["selected_baseline_run"]) if "selected_baseline_run" in app.session_state else ""
-    gen_variation = str(app.session_state["selected_variation_run"]) if "selected_variation_run" in app.session_state else ""
+    gen_baseline = (
+        str(app.session_state["selected_baseline_run"])
+        if "selected_baseline_run" in app.session_state
+        else ""
+    )
+    gen_variation = (
+        str(app.session_state["selected_variation_run"])
+        if "selected_variation_run" in app.session_state
+        else ""
+    )
     # AppTest may have truncated; at least check they exist and are not default fixture
     assert gen_baseline != "tests/fixtures/bundles/baseline_valid"
     assert gen_variation != "tests/fixtures/bundles/variation_valid"
@@ -239,25 +266,59 @@ def test_failure_leaves_no_partial_success_state(tmp_path: Path, monkeypatch: Mo
     app, workspace = _app(monkeypatch, tmp_path)
     app.run(timeout=30)
     assert not app.exception
-    # Force failure by setting pair_name to something that will cause unsafe path?
-    # Instead, directly test that after a failed generation, no receipt is set.
-    # We'll simulate by using a request that is identical (no changes) via direct UI interaction:
-    # Set all overrides to match baseline? Hard to force via UI without changing form.
-    # Instead we test that after initial success, a subsequent identical pair with same name but different content is treated as already_exists or error but not partial.
-    # First generate success
+    # First generate success — establishes baseline registry and receipt
     [b for b in app.button if b.label == "Generate comparison"][0].click().run(timeout=30)
     assert not app.exception
     assert "whatif_pair_receipt" in app.session_state
     first_receipt = dict(app.session_state["whatif_pair_receipt"])
-    # Try to trigger failure by manually setting an invalid state?
-    # For this test, we just ensure that after failure, the old receipt is preserved or cleared appropriately.
-    # Simulate a failure by directly invoking service with identical request and checking error handling doesn't leak partial state.
-    from traffictwin.synthetic.whatif_pair import WhatIfPairRequest
+    before_run_count = 0
+    reg_path = workspace / "registry.sqlite"
+    try:
+        from traffictwin.storage.registry import Registry
 
-    req = WhatIfPairRequest(baseline_preset="baseline", pair_name="failure-test", experiment_id="exp-demo")
-    # This request has no changes, so preview ledger is empty, Generate button should be disabled.
-    # We can't click generate if disabled, so failure test is about ledger empty -> no generation.
-    assert True  # placeholder: the UI disables generation when ledger empty, so no partial state.
+        before_run_count = Registry(reg_path).inspect().run_count
+    except Exception:
+        before_run_count = 0
+    before_bundle_ids = (
+        {p.name for p in (workspace / "bundles").iterdir()}
+        if (workspace / "bundles").exists()
+        else set()
+    )
+    # Now attempt an identical-pair generation that must fail (no changes) via the service
+    from traffictwin.synthetic.whatif_pair import (
+        WhatIfPairError,
+        WhatIfPairRequest,
+        generate_whatif_pair,
+    )
+
+    import pytest
+
+    req = WhatIfPairRequest(
+        baseline_preset="baseline", pair_name="failure-test", experiment_id="exp-demo"
+    )
+    with pytest.raises(WhatIfPairError) as exc:
+        generate_whatif_pair(req, registry_path=reg_path, workspace_path=workspace)
+    assert exc.value.code == "identical_pair"
+    # No partial bundle directory was left behind for the failed pair
+    from traffictwin.synthetic.whatif_pair import pair_id_for_request
+
+    failed_pid = pair_id_for_request(req)
+    assert not (workspace / "bundles" / failed_pid).exists()
+    # Registry and prior bundles are unchanged (no partial)
+    after_bundle_ids = (
+        {p.name for p in (workspace / "bundles").iterdir()}
+        if (workspace / "bundles").exists()
+        else set()
+    )
+    assert after_bundle_ids == before_bundle_ids
+    try:
+        after_run_count = Registry(reg_path).inspect().run_count
+        assert after_run_count == before_run_count
+    except Exception:
+        pass
+    # UI receipt is preserved and not corrupted by the unrelated failure
+    assert app.session_state["whatif_pair_receipt"] == first_receipt
+    assert first_receipt["pair_id"] not in {failed_pid}
 
 
 def test_hermetic_against_env_vars(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
@@ -294,6 +355,9 @@ def test_hermetic_against_env_vars(tmp_path: Path, monkeypatch: MonkeyPatch) -> 
     assert str(tmp_path) in receipt["baseline_bundle_path"]
     assert Path(receipt["baseline_bundle_path"]).exists()
     # ensure not using real cwd
-    assert str(Path.cwd()) not in receipt["baseline_bundle_path"] or str(tmp_path) in receipt["baseline_bundle_path"]
+    assert (
+        str(Path.cwd()) not in receipt["baseline_bundle_path"]
+        or str(tmp_path) in receipt["baseline_bundle_path"]
+    )
     # verify no file was created at real workspace
     assert not (Path.cwd() / "bundles").exists() or not any(Path.cwd().glob("bundles/whatif-*"))

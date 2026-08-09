@@ -42,9 +42,12 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from traffictwin.domain.enums import TaskClass
-from traffictwin.ingestion.bundle import import_validated_bundle, validate_bundle
-from traffictwin.storage.registry import Registry, RegistryConflictError
-from traffictwin.synthetic.bundles import write_synthetic_bundle
+from traffictwin.ingestion.bundle import (
+    import_validated_bundle as import_validated_bundle,
+    validate_bundle as validate_bundle,
+)
+from traffictwin.storage.registry import Registry, RegistryConflictError as RegistryConflictError
+from traffictwin.synthetic.bundles import write_synthetic_bundle as write_synthetic_bundle
 from traffictwin.synthetic.config import (
     IncidentSpec,
     SyntheticPolicyProfile,
@@ -140,16 +143,11 @@ class WhatIfPairRequest(BaseModel):
     variation_overrides: WhatIfVariationOverrides = Field(default_factory=WhatIfVariationOverrides)
     # workspace/output target: exactly one should be supplied
     output_root: Path | None = None
-    # when True, an empty destination may be reused; non-empty refuses
-    overwrite_pair: bool = False
 
     @field_validator("pair_name")
     @classmethod
     def validate_pair_name(cls, value: str) -> str:
         sanitised = sanitise_pair_name(value)
-        if sanitised != value.strip().lower().replace("_", "-"):
-            # allow original but normalise check
-            pass
         if not _PAIR_NAME_RE.match(sanitised):
             raise ValueError(
                 "pair_name must be lowercase alphanumeric and hyphens, e.g. 'congestion-pulse'"
@@ -170,7 +168,7 @@ class WhatIfPairReceipt(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    status: Literal["ok", "already_exists", "refused", "failed"]
+    status: Literal["ok", "already_exists"]
     pair_id: str
     request_fingerprint: str
     pair_fingerprint: str
@@ -283,16 +281,19 @@ def build_whatif_configs(
     baseline_scenario_id = f"{pair_id}-baseline"
     variation_scenario_id = f"{pair_id}-variation"
 
-    # baseline from preset
+    # baseline from preset — keep original name for clean variation naming
     try:
-        baseline = preset_config(request.baseline_preset, random_seed=request.baseline_random_seed)
+        preset_baseline = preset_config(
+            request.baseline_preset, random_seed=request.baseline_random_seed
+        )
     except ValueError as exc:
         raise WhatIfPairError("invalid_preset", str(exc)) from exc
 
-    baseline = baseline.model_copy(
+    preset_name = preset_baseline.name
+    baseline = preset_baseline.model_copy(
         update={
             "scenario_id": baseline_scenario_id,
-            "name": f"{baseline.name} — what-if baseline",
+            "name": f"{preset_name} — what-if baseline",
             "experiment_id": request.experiment_id,
             "baseline_seed_id": None,
         }
@@ -304,7 +305,7 @@ def build_whatif_configs(
     variation = variation.model_copy(
         update={
             "scenario_id": variation_scenario_id,
-            "name": f"{baseline.name} — what-if variation",
+            "name": f"{preset_name} — what-if variation",
             "baseline_seed_id": f"seed-{baseline_scenario_id}",
             "experiment_id": request.experiment_id,
         }
@@ -366,11 +367,9 @@ def build_whatif_configs(
             update={"task_class_mix": {TaskClass.T1: t1, TaskClass.T2: t2, TaskClass.T3: t3}}
         )
 
-    # incident handling
-    incident_changed = False
+    # incident handling — single authoritative flow
     if overrides.incident_enabled is not None:
         if overrides.incident_enabled and not variation.incident_schedule:
-            # create default incident
             variation = variation.model_copy(
                 update={
                     "incident_schedule": [
@@ -392,14 +391,10 @@ def build_whatif_configs(
                     ]
                 }
             )
-            incident_changed = True
         elif not overrides.incident_enabled and variation.incident_schedule:
             variation = variation.model_copy(update={"incident_schedule": []})
-            incident_changed = True
-
-    # if incident is present and further fields supplied, patch it
-    if variation.incident_schedule and not incident_changed:
-        # patch existing incident
+    # if incident present, apply any field overrides
+    if variation.incident_schedule:
         incident = variation.incident_schedule[0]
         patch: dict[str, Any] = {}
         if overrides.incident_type is not None:
@@ -417,82 +412,9 @@ def build_whatif_configs(
         if overrides.event_demand_multiplier is not None:
             patch["demand_multiplier"] = overrides.event_demand_multiplier
         if patch:
-            new_incident = incident.model_copy(update=patch)
-            variation = variation.model_copy(update={"incident_schedule": [new_incident]})
-    elif variation.incident_schedule and incident_changed is False:
-        # no incident_enabled override, but other incident fields may want to patch
-        if any(
-            v is not None
-            for v in (
-                overrides.incident_type,
-                overrides.incident_location,
-                overrides.incident_severity,
-                overrides.incident_start_s,
-                overrides.incident_duration_s,
-                overrides.lanes_closed,
-                overrides.event_demand_multiplier,
+            variation = variation.model_copy(
+                update={"incident_schedule": [incident.model_copy(update=patch)]}
             )
-        ):
-            incident = variation.incident_schedule[0]
-            patch = {}
-            if overrides.incident_type is not None:
-                patch["incident_type"] = overrides.incident_type
-            if overrides.incident_location is not None:
-                patch["location"] = overrides.incident_location
-            if overrides.incident_severity is not None:
-                patch["severity"] = overrides.incident_severity
-            if overrides.incident_start_s is not None:
-                patch["timestamp_s"] = overrides.incident_start_s
-            if overrides.incident_duration_s is not None:
-                patch["duration_s"] = overrides.incident_duration_s
-            if overrides.lanes_closed is not None:
-                patch["lanes_closed"] = overrides.lanes_closed
-            if overrides.event_demand_multiplier is not None:
-                patch["demand_multiplier"] = overrides.event_demand_multiplier
-            if patch:
-                new_incident = incident.model_copy(update=patch)
-                variation = variation.model_copy(update={"incident_schedule": [new_incident]})
-
-    # handle incident_enabled True with field overrides where default was created
-    if variation.incident_schedule and overrides.incident_enabled is True:
-        # ensure patches for fields not applied during creation
-        incident = variation.incident_schedule[0]
-        patch = {}
-        if (
-            overrides.incident_type is not None
-            and incident.incident_type != overrides.incident_type
-        ):
-            patch["incident_type"] = overrides.incident_type
-        if (
-            overrides.incident_location is not None
-            and incident.location != overrides.incident_location
-        ):
-            patch["location"] = overrides.incident_location
-        if (
-            overrides.incident_severity is not None
-            and incident.severity != overrides.incident_severity
-        ):
-            patch["severity"] = overrides.incident_severity
-        if (
-            overrides.incident_start_s is not None
-            and incident.timestamp_s != overrides.incident_start_s
-        ):
-            patch["timestamp_s"] = overrides.incident_start_s
-        if (
-            overrides.incident_duration_s is not None
-            and incident.duration_s != overrides.incident_duration_s
-        ):
-            patch["duration_s"] = overrides.incident_duration_s
-        if overrides.lanes_closed is not None and incident.lanes_closed != overrides.lanes_closed:
-            patch["lanes_closed"] = overrides.lanes_closed
-        if (
-            overrides.event_demand_multiplier is not None
-            and incident.demand_multiplier != overrides.event_demand_multiplier
-        ):
-            patch["demand_multiplier"] = overrides.event_demand_multiplier
-        if patch:
-            new_incident = incident.model_copy(update=patch)
-            variation = variation.model_copy(update={"incident_schedule": [new_incident]})
 
     return baseline, variation
 
@@ -727,19 +649,20 @@ def generate_whatif_pair(
                             b_val = validate_bundle(baseline_final)
                             v_val = validate_bundle(variation_final)
                             if b_val.report.may_import and v_val.report.may_import:
-                                # check registry idempotent
                                 reg = Registry(registry_path)
-                                # attempt to verify both bundle_ids are registered
-                                # use list of records
+                                reg.initialize()
                                 records = {r.bundle_id: r for r in reg.list_bundle_import_records()}
                                 b_bid = b_val.manifest.bundle.bundle_id if b_val.manifest else None
                                 v_bid = v_val.manifest.bundle.bundle_id if v_val.manifest else None
-                                if (
+                                b_in = (
                                     b_bid in records
-                                    and v_bid in records
                                     and records[b_bid].fingerprint == b_val.fingerprint
+                                )
+                                v_in = (
+                                    v_bid in records
                                     and records[v_bid].fingerprint == v_val.fingerprint
-                                ):
+                                )
+                                if b_in and v_in:
                                     return WhatIfPairReceipt(
                                         status="already_exists",
                                         pair_id=pair_id,
@@ -770,6 +693,56 @@ def generate_whatif_pair(
                                             else receipt_path.name
                                         ),
                                     )
+                                # valid artifacts but missing registration -> re-register (F-5)
+                                if b_val.manifest and v_val.manifest:
+                                    try:
+                                        if not b_in:
+                                            import_validated_bundle(b_val, registry_path)
+                                        if not v_in:
+                                            import_validated_bundle(v_val, registry_path)
+                                        return WhatIfPairReceipt(
+                                            status="already_exists",
+                                            pair_id=pair_id,
+                                            request_fingerprint=req_fp,
+                                            pair_fingerprint=pair_fp,
+                                            experiment_id=request.experiment_id,
+                                            baseline_scenario_id=baseline_cfg.scenario_id,
+                                            variation_scenario_id=variation_cfg.scenario_id,
+                                            baseline_bundle_id=b_bid,
+                                            variation_bundle_id=v_bid,
+                                            baseline_run_id=b_val.manifest.run.run_id
+                                            if b_val.manifest
+                                            else None,
+                                            variation_run_id=v_val.manifest.run.run_id
+                                            if v_val.manifest
+                                            else None,
+                                            baseline_bundle_path=str(baseline_final),
+                                            variation_bundle_path=str(variation_final),
+                                            changed_parameters=ledger,
+                                            validation_standing="accepted",
+                                            synthetic_label="SYNTHETIC",
+                                            evidence_labels=EVIDENCE_LABELS,
+                                            warnings=[],
+                                            message=(
+                                                "Pair re-registered into fresh registry; verified."
+                                            ),
+                                            receipt_path=str(
+                                                receipt_path.relative_to(pair_root.parent)
+                                                if _is_safe_containment(
+                                                    receipt_path, pair_root.parent
+                                                )
+                                                else receipt_path.name
+                                            ),
+                                        )
+                                    except WhatIfPairError:
+                                        raise
+                                    except Exception as exc:
+                                        raise WhatIfPairError(
+                                            "corrupt_existing_pair",
+                                            f"Re-registration failed: {exc}",
+                                        ) from exc
+                        except WhatIfPairError:
+                            raise
                         except Exception:  # noqa: S110
                             pass  # not idempotent, fall through
                     # fingerprint matches but artifacts corrupt -> do not treat as success
@@ -808,8 +781,8 @@ def generate_whatif_pair(
     variation_staging: Path | None = None
     published_baseline = False
     published_variation = False
-    registered_baseline = False
-    registered_variation = False
+    baseline_created = False
+    variation_created = False
     baseline_import_result = None
     variation_import_result = None
 
@@ -937,34 +910,27 @@ def generate_whatif_pair(
                     f"Registry already contains bundle_id {bid!r} with different content.",
                 )
             # also check run_id collision
+            from traffictwin.storage.registry import RegistryNotFoundError
+
             try:
-                existing_run = reg.get_run(run_id)
-                # if run exists, payload there; fingerprint mismatch via bundle_id
-                # but if run_id exists with different bundle, already caught
-                # still, if run exists with different fingerprint, reject
+                reg.get_run(run_id)
                 if bid not in existing_records:
-                    # run exists but no bundle_import for it -> conflict
                     raise WhatIfPairError(
                         "registry_collision",
                         f"Registry already contains run_id {run_id!r} for a different bundle",
                     )
-            except Exception as e:
-                # RegistryNotFoundError means not exists, ok
-                from traffictwin.storage.registry import RegistryNotFoundError
-
-                if not isinstance(e, RegistryNotFoundError):
-                    raise
+            except RegistryNotFoundError:
+                pass
 
         # import baseline
         try:
             baseline_import_result = import_validated_bundle(baseline_validation, registry_path)
             if not (baseline_import_result.created or baseline_import_result.idempotent):
-                # treat as failure if not created nor idempotent? Actually rejected would have status
                 raise WhatIfPairError(
                     "registration_failed",
                     f"Baseline registration failed: {baseline_import_result.message}",
                 )
-            registered_baseline = True
+            baseline_created = baseline_import_result.created
         except RegistryConflictError as exc:
             raise WhatIfPairError(
                 "registration_failed", f"Baseline registration conflict: {exc}"
@@ -984,7 +950,7 @@ def generate_whatif_pair(
                     "registration_failed",
                     f"Variation registration failed: {variation_import_result.message}",
                 )
-            registered_variation = True
+            variation_created = variation_import_result.created
         except RegistryConflictError as exc:
             raise WhatIfPairError(
                 "registration_failed", f"Variation registration conflict: {exc}"
@@ -1056,13 +1022,14 @@ def generate_whatif_pair(
 
     except WhatIfPairError:
         # rollback published bundles and registry if needed, then re-raise
+        # F-4: only rollback rows we created (not idempotent)
         _rollback_on_failure(
             pair_root=pair_root,
             baseline_final=baseline_final if published_baseline else None,
             variation_final=variation_final if published_variation else None,
             registry_path=registry_path,
-            registered_baseline=registered_baseline,
-            registered_variation=registered_variation,
+            baseline_created=baseline_created,
+            variation_created=variation_created,
             baseline_bundle_id=b_bundle_id if "b_bundle_id" in locals() else None,
             variation_bundle_id=v_bundle_id if "v_bundle_id" in locals() else None,
             baseline_run_id=b_run_id if "b_run_id" in locals() else None,
@@ -1075,7 +1042,7 @@ def generate_whatif_pair(
             # if pair_root now empty, remove it
             if pair_root.exists() and pair_root.is_dir() and not any(pair_root.iterdir()):
                 pair_root.rmdir()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         raise
     except Exception as exc:
@@ -1085,8 +1052,8 @@ def generate_whatif_pair(
             baseline_final=baseline_final if published_baseline else None,
             variation_final=variation_final if published_variation else None,
             registry_path=registry_path,
-            registered_baseline=registered_baseline,
-            registered_variation=registered_variation,
+            baseline_created=baseline_created,
+            variation_created=variation_created,
             baseline_bundle_id=b_bundle_id if "b_bundle_id" in locals() else None,
             variation_bundle_id=v_bundle_id if "v_bundle_id" in locals() else None,
             baseline_run_id=b_run_id if "b_run_id" in locals() else None,
@@ -1097,7 +1064,7 @@ def generate_whatif_pair(
                 receipt_path.unlink()
             if pair_root.exists() and pair_root.is_dir() and not any(pair_root.iterdir()):
                 pair_root.rmdir()
-        except Exception:
+        except Exception:  # noqa: S110
             pass
         raise WhatIfPairError("unexpected_error", f"Pair generation failed: {exc}") from exc
     finally:
@@ -1112,8 +1079,8 @@ def _rollback_on_failure(
     baseline_final: Path | None,
     variation_final: Path | None,
     registry_path: Path,
-    registered_baseline: bool,
-    registered_variation: bool,
+    baseline_created: bool,
+    variation_created: bool,
     baseline_bundle_id: str | None,
     variation_bundle_id: str | None,
     baseline_run_id: str | None,
@@ -1122,18 +1089,14 @@ def _rollback_on_failure(
     # remove published directories if this failure was after publish
     for p in (baseline_final, variation_final):
         if p is not None and p.exists():
-            try:
-                shutil.rmtree(p, ignore_errors=True)
-            except Exception:
-                pass
+            shutil.rmtree(p, ignore_errors=True)
     # attempt to remove empty pair_root
     try:
         if pair_root.exists() and pair_root.is_dir() and not any(pair_root.iterdir()):
             pair_root.rmdir()
-    except Exception:
+    except Exception:  # noqa: S110
         pass
-    # registry rollback: delete any newly inserted bundle_import and run rows
-    # This is best-effort via direct SQL (no public API). Preserve unrelated data.
+    # registry rollback: delete only rows we created (F-4: idempotent rows preserved)
     try:
         import sqlite3
 
@@ -1141,15 +1104,14 @@ def _rollback_on_failure(
             return
         conn = sqlite3.connect(str(registry_path))
         try:
-            # only delete if we registered in this attempt
-            if registered_baseline and baseline_bundle_id:
+            if baseline_created and baseline_bundle_id:
                 conn.execute(
                     "DELETE FROM bundle_imports WHERE bundle_id = ?", (baseline_bundle_id,)
                 )
                 if baseline_run_id:
                     conn.execute("DELETE FROM runs WHERE run_id = ?", (baseline_run_id,))
                 conn.commit()
-            if registered_variation and variation_bundle_id:
+            if variation_created and variation_bundle_id:
                 conn.execute(
                     "DELETE FROM bundle_imports WHERE bundle_id = ?", (variation_bundle_id,)
                 )
@@ -1158,7 +1120,7 @@ def _rollback_on_failure(
                 conn.commit()
         finally:
             conn.close()
-    except Exception:
+    except Exception:  # noqa: S110
         pass
 
 
