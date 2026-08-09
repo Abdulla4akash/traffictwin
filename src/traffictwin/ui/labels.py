@@ -46,6 +46,7 @@ class UiPage(StrEnum):
     INFRASTRUCTURE = "Infrastructure & Congestion"
     COMPARE = "Comparison"
     JOURNEY_TIME = "Journey-Time Lens"
+    CONSEQUENCE_LENSES = "Consequence Lenses"
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
@@ -130,6 +131,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.INFRASTRUCTURE: "Inspect RSU queue, utilisation, and saturation summaries.",
     UiPage.COMPARE: "Compare baseline and variation runs without causal labels.",
     UiPage.JOURNEY_TIME: "Review imported or synthetic trip-duration evidence.",
+    UiPage.CONSEQUENCE_LENSES: (
+        "Inspect curated traffic and VEC consequence lenses over an existing "
+        "baseline/variation comparison."
+    ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
     UiPage.REPORTS: "Find, download, and deliberately regenerate deterministic reports.",

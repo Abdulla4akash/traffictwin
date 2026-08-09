@@ -283,6 +283,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/schedule:",
     ),
     V07PageSpec(
+        UiPage.CONSEQUENCE_LENSES,
+        "Results",
+        "app_pages/consequence_lenses.py",
+        "consequence-lenses",
+        ":material/layers:",
+    ),
+    V07PageSpec(
         UiPage.TEMPORAL_METRICS,
         "Results",
         "app_pages/temporal_metrics.py",

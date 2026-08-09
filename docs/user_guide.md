@@ -646,6 +646,22 @@ It shows:
 
 Use labels such as synthetic trip duration or imported trip duration. Do not interpret fixture outputs as real Manchester journey-time predictions.
 
+## Consequence Lenses
+
+Consequence Lenses projects existing deterministic comparison evidence into two curated views. It does not create new scientific metrics, rerun a simulator, or claim causality.
+
+**Journey:** select or generate baseline and variation → open Consequence Lenses → verify pair compatibility and identity → inspect Traffic consequences → inspect VEC consequences → inspect unavailable evidence and denominators → continue to full Compare → inspect Provenance → open Reports. The page works now with committed example baseline/variation, demo-workspace bundles, or any compatible pair selected through the current product. After the What-If Studio is available, its generated pair will populate the same stable session keys (`selected_baseline_run`, `selected_variation_run`) and open automatically.
+
+**Traffic consequences:** trip cohort and incomplete journeys (total records, completed, incomplete, completion rate), mean/P50/P95/min/max duration where available, traffic count and speed evidence (observation count, total/mean count, mean/P50/P95/min speed, sensor count, time coverage), and changed scenario parameters when available in the validated manifest/comparison.
+
+**VEC consequences:** task population and denominators (generated/completed tasks, completion/incomplete rates, deadline-miss rate over completed tasks with observed latency), latency (count, mean/P50/P95/P99 with support), decisions/offloading (local/V2I/V2V/unknown shares, offload rate, decision counts, drops by cause where scalar), infrastructure (observed RSU count, queue mean/max, utilisation mean/P95, saturation episodes/duration, load balance and fairness where available, per-RSU or spatial support), and contract-gated energy (mean per observed task, per completed task, energy-delay product).
+
+All rows retain exact baseline/variation values, absolute delta (Variation − baseline), relative delta where already supported by the comparison engine, unit, status, and reason codes. Relative delta is unavailable when the baseline is zero, with `BASELINE_ZERO` and `partial` status. Rates identify their denominator explicitly, for example “Completed valid tasks / generated valid tasks” for `task.completion.rate` and “Completed trips / total trip records” for `trip.completion.rate`. Completion among all offered tasks is not conflated with conditional completion among admitted tasks. Missing or partial evidence is kept unavailable, never zero-filled; unavailable rows show exact reason codes and missing-evidence findings. Energy metrics require an explicit compatible task-energy contract, otherwise they remain unavailable with `COMPARISON_PAIR_INCOMPATIBLE`.
+
+**Evidence wording:** “These are deterministic consequences observed in the selected imported or synthetic runs. They are not a live Manchester forecast or proof that the intervention caused the difference.” and “These are deterministic VEC outcomes for the selected runs. They do not prove that an algorithm, RSU placement or infrastructure intervention caused the difference.” No forecast, route recommendation, queue-clearance estimate, causal effect, live traffic claim, or optimal-policy claim is made.
+
+**Navigation:** the page is in **Results**, close to Journey-Time Lens and Compare. Use the actions to open full Compare, baseline/variation Run Overview (via Bundle Import selection), Provenance, or Reports. Compatibility shows same experiment, same random seed, metric version, synthetic/unknown standing, and warnings; an incompatible pair withholds misleading deltas. The report fingerprint and changed-parameter ledger are deterministic and downloadable as JSON.
+
 ## Diagnostics & Evidence
 
 This page displays:
