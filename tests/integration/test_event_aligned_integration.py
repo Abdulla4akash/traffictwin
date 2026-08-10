@@ -75,7 +75,11 @@ def test_end_to_end_select_align_render_export() -> None:
     assert len(rows) == len(report.metric_points)
     # Chart and table must consume same rows: check one example
     for point in report.metric_points[:2]:
-        matching = [r for r in rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]  # noqa: E501
+        matching = [
+            r
+            for r in rows
+            if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index
+        ]  # noqa: E501
         assert len(matching) == 1
 
     # Verify pairwise descriptive deltas wording not causal
@@ -152,7 +156,9 @@ def test_chart_table_row_equivalence() -> None:
     report = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="chart-table")
     # Simulate chart rows (available only) and table rows (all)
     table_rows = sorted(report.metric_points, key=lambda p: (p.run_id, p.bin_index))
-    chart_rows = [r for r in table_rows if r.status == "available" and isinstance(r.value, (int, float))]  # noqa: E501
+    chart_rows = [
+        r for r in table_rows if r.status == "available" and isinstance(r.value, (int, float))
+    ]  # noqa: E501
     # Chart must be subset of table
     for cr in chart_rows:
         assert cr in table_rows

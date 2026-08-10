@@ -91,7 +91,11 @@ def test_csv_points_uses_same_rows_as_report() -> None:
     assert len(csv_rows) == len(report.metric_points)
     # Check that every report point appears in CSV with same key fields
     for point in report.metric_points:
-        matching = [r for r in csv_rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]  # noqa: E501
+        matching = [
+            r
+            for r in csv_rows
+            if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index
+        ]  # noqa: E501
         assert len(matching) == 1
         csv_row = matching[0]
         assert float(csv_row["relative_start_s"]) == point.relative_start_s
@@ -148,11 +152,16 @@ def test_timezone_canonicalisation() -> None:
         run_id=b2.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b2.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
+
     def fixed_clock() -> datetime:
         return datetime(2026, 7, 18, 12, 0, 0, tzinfo=UTC)
 
-    report1 = build_event_aligned_report([(b1, anchor_utc), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")  # noqa: E501
-    report2 = build_event_aligned_report([(b1, anchor_plus_one), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")  # noqa: E501
+    report1 = build_event_aligned_report(
+        [(b1, anchor_utc), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test"
+    )  # noqa: E501
+    report2 = build_event_aligned_report(
+        [(b1, anchor_plus_one), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test"
+    )  # noqa: E501
     assert report1.fingerprint == report2.fingerprint
     # Canonical JSON should use Z notation
     assert "Z" in report1.canonical_json()

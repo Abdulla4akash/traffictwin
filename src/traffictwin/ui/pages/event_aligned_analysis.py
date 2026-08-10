@@ -222,7 +222,7 @@ def render() -> None:
 
     # Build button
     if st.button("Build aligned analysis", type="primary", key="build_event_aligned"):
-        result = compute_event_aligned_for_ui(
+        build_result = compute_event_aligned_for_ui(
             bundle_paths=selected,
             metric_key=str(metric_key),
             pre_duration_s=pre_duration,
@@ -233,10 +233,10 @@ def render() -> None:
             anchor_timestamps=anchor_timestamps,
             anchor_labels=[kind_label_map[str(anchor_kind)]] * len(selected),
         )
-        if isinstance(result, ServiceError):
-            st.session_state["event_aligned_report"] = result
+        if isinstance(build_result, ServiceError):
+            st.session_state["event_aligned_report"] = build_result
         else:
-            st.session_state["event_aligned_report"] = result
+            st.session_state["event_aligned_report"] = build_result
 
     report = st.session_state.get("event_aligned_report")
     if isinstance(report, ServiceError):
@@ -350,7 +350,7 @@ def render() -> None:
     st.caption(
         "Chart and table consume the same report rows. Missing bins are unavailable, not zero-filled."  # noqa: E501
     )
-    chart_rows = []
+    chart_rows: list[dict[str, object]] = []
     for point in sorted(report.metric_points, key=lambda p: (p.run_id, p.bin_index)):
         chart_rows.append(
             {

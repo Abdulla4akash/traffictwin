@@ -51,7 +51,9 @@ def _spec(metric_key: str = "task.completion.rate") -> EventAlignedWindowSpec:
     )
 
 
-def _anchors() -> tuple[tuple, tuple]:
+def _anchors() -> tuple[
+    tuple[BundleValidationResult, EventAnchor], tuple[BundleValidationResult, EventAnchor]
+]:
     from traffictwin.ingestion.bundle import validate_bundle
 
     b1 = validate_bundle(FIXTURES / "baseline_valid")
@@ -143,7 +145,7 @@ def _make_partial_energy_bundle(
                     "completed",
                 ],
                 "units": {"energy_j": "J"},
-            }  # type: ignore
+            }
         },
         provenance=ProvenanceInfo(producer="test"),
         energy_contract=contract,
@@ -154,7 +156,7 @@ def _make_partial_energy_bundle(
         manifest=manifest,
         seed=None,
         canonical=canonical,
-        evidence=EvidenceAvailability(tasks="available"),  # type: ignore
+        evidence=EvidenceAvailability(tasks="available"),
         insufficient_evidence=None,  # type: ignore
         report=ValidationReport(may_import=True, status=ImportStatus.ACCEPTED),
     )
@@ -173,7 +175,7 @@ def test_M1_naive_bundle_time_basis_excluded() -> None:  # noqa: N802
     from traffictwin.ingestion.bundle import validate_bundle
 
     b_valid = validate_bundle(FIXTURES / "baseline_valid")
-    manifest = b_valid.manifest  # type: ignore
+    manifest = b_valid.manifest
     naive_created = datetime(2026, 7, 17, 12, 0, 0)  # naive, no tzinfo
     naive_manifest = BundleManifest.model_validate(
         {
@@ -427,6 +429,7 @@ def test_M4_non_window_metric_rejected() -> None:  # noqa: N802
         from traffictwin.ui.services.models import ServiceError
 
         assert isinstance(res, ServiceError)
+        assert res.detail is not None
         assert "not window-applicable" in res.detail.lower() or "not window" in res.message.lower()
 
     ok_spec = _spec("task.completion.rate")
@@ -502,7 +505,7 @@ def test_M7_run_context_hoisted() -> None:  # noqa: N802
     with patch("traffictwin.event_aligned.service.run_context_from_bundle") as mock_rc:
         from traffictwin.metrics.engine import run_context_from_bundle as real_rc
 
-        def side_effect(result) -> object:  # noqa: ANN001
+        def side_effect(result: BundleValidationResult) -> object:
             return real_rc(result)
 
         mock_rc.side_effect = side_effect
@@ -594,7 +597,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
                 "required_columns": ["task_id"],
                 "units": {"energy_j": "J"},
             }
-        },  # type: ignore
+        },
         provenance=ProvenanceInfo(producer="test"),
         energy_contract=contract,
     )
@@ -604,7 +607,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
         manifest=manifest,
         seed=None,
         canonical=canonical,
-        evidence=EvidenceAvailability(tasks="available"),  # type: ignore
+        evidence=EvidenceAvailability(tasks="available"),
         insufficient_evidence=None,  # type: ignore
         report=ValidationReport(may_import=True, status=ImportStatus.ACCEPTED),
     )
@@ -630,7 +633,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
                 "required_columns": ["task_id"],
                 "units": {"energy_j": "J"},
             }
-        },  # type: ignore
+        },
         provenance=ProvenanceInfo(producer="test"),
         energy_contract=contract,
     )
@@ -640,7 +643,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
         manifest=manifest2,
         seed=None,
         canonical=canonical,
-        evidence=EvidenceAvailability(tasks="available"),  # type: ignore
+        evidence=EvidenceAvailability(tasks="available"),
         insufficient_evidence=None,  # type: ignore
         report=ValidationReport(may_import=True, status=ImportStatus.ACCEPTED),
     )
@@ -712,7 +715,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
         manifest=manifest,
         seed=None,
         canonical=canonical2,
-        evidence=EvidenceAvailability(tasks="available"),  # type: ignore
+        evidence=EvidenceAvailability(tasks="available"),
         insufficient_evidence=None,  # type: ignore
         report=ValidationReport(may_import=True, status=ImportStatus.ACCEPTED),
     )
@@ -722,7 +725,7 @@ def test_M9_partial_count_double_increment() -> None:  # noqa: N802
         manifest=manifest2,
         seed=None,
         canonical=canonical2,
-        evidence=EvidenceAvailability(tasks="available"),  # type: ignore
+        evidence=EvidenceAvailability(tasks="available"),
         insufficient_evidence=None,  # type: ignore
         report=ValidationReport(may_import=True, status=ImportStatus.ACCEPTED),
     )

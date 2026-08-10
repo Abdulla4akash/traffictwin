@@ -20,7 +20,7 @@ def test_event_anchor_requires_timezone_aware() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
         EventAnchor(
             kind=EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
-            anchor_time_utc=naive,  # type: ignore[arg-type]
+            anchor_time_utc=naive,
             source_label="Authored — Manual timestamp",
         )
 
@@ -55,7 +55,10 @@ def test_event_anchor_kinds_are_all_authored() -> None:
         assert kind.is_authored is True
         assert "Authored" in kind.authored_label
         assert "Observed" not in kind.authored_label
-        assert "observed" not in kind.authored_label.lower() or "not observed" in kind.authored_label.lower()  # noqa: E501
+        assert (
+            "observed" not in kind.authored_label.lower()
+            or "not observed" in kind.authored_label.lower()
+        )  # noqa: E501
         # Direct label check
         if kind == EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP:
             assert kind.authored_label == "Authored — Manual timestamp"

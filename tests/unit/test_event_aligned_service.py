@@ -16,7 +16,7 @@ from traffictwin.event_aligned.models import (
     EventAnchorKind,
 )
 from traffictwin.event_aligned.service import build_event_aligned_report
-from traffictwin.ingestion.bundle import validate_bundle
+from traffictwin.ingestion.bundle import BundleValidationResult, validate_bundle
 from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
 
 FIXTURES = Path("tests/fixtures/bundles")
@@ -35,7 +35,9 @@ def _spec(metric_key: str = "task.completion.rate") -> EventAlignedWindowSpec:
     )
 
 
-def _anchors_for_two_runs(kind: EventAnchorKind = EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP) -> tuple[tuple, tuple]:  # noqa: E501
+def _anchors_for_two_runs(
+    kind: EventAnchorKind = EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
+) -> tuple[tuple[BundleValidationResult, EventAnchor], tuple[BundleValidationResult, EventAnchor]]:
     b1 = validate_bundle(FIXTURES / "baseline_valid")
     b2 = validate_bundle(FIXTURES / "variation_valid")
     a1 = EventAnchor(
@@ -91,7 +93,7 @@ def test_naive_timestamp_rejection() -> None:
     with pytest.raises(ValueError, match="timezone-aware"):
         EventAnchor(
             kind=EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
-            anchor_time_utc=naive,  # type: ignore[arg-type]
+            anchor_time_utc=naive,
             source_label="Authored — Manual timestamp",
         )
     # Also via service: should raise
@@ -140,7 +142,6 @@ def test_two_equivalent_temporary_roots_produce_identical_fingerprint() -> None:
         shutil.copytree(src2, dst1_v)
         shutil.copytree(src2, dst2_v)
 
-
         b1_a = validate_bundle(dst1)
         b1_b = validate_bundle(dst2)
         b2_a = validate_bundle(dst1_v)
@@ -179,8 +180,12 @@ def test_two_equivalent_temporary_roots_produce_identical_fingerprint() -> None:
         def fixed_clock() -> datetime:
             return datetime(2026, 7, 18, 12, 0, 0, tzinfo=UTC)
 
-        report_a = build_event_aligned_report([(b1_a, a1), (b2_a, a2)], spec, clock=fixed_clock, report_id="identical-test")  # noqa: E501
-        report_b = build_event_aligned_report([(b1_b, a1_b), (b2_b, a2_b)], spec, clock=fixed_clock, report_id="identical-test")  # noqa: E501
+        report_a = build_event_aligned_report(
+            [(b1_a, a1), (b2_a, a2)], spec, clock=fixed_clock, report_id="identical-test"
+        )  # noqa: E501
+        report_b = build_event_aligned_report(
+            [(b1_b, a1_b), (b2_b, a2_b)], spec, clock=fixed_clock, report_id="identical-test"
+        )  # noqa: E501
         assert report_a.fingerprint == report_b.fingerprint
         assert report_a.canonical_json() == report_b.canonical_json()
 
@@ -197,7 +202,9 @@ def test_event_anchor_change_alters_identity() -> None:
         run_id=a1.run_id,
         bundle_id=a1.bundle_id,
     )
-    report2 = build_event_aligned_report([(b1, a1_changed), (b2, a2)], spec, report_id="anchor-change")  # noqa: E501
+    report2 = build_event_aligned_report(
+        [(b1, a1_changed), (b2, a2)], spec, report_id="anchor-change"
+    )  # noqa: E501
     assert report1.fingerprint != report2.fingerprint
     assert report1.canonical_json() != report2.canonical_json()
 
@@ -228,7 +235,9 @@ def test_metric_version_change_alters_identity() -> None:
         metric_version=METRIC_DEFINITIONS["traffic.speed.mean_mps"].implementation_version,
         metric_unit=METRIC_DEFINITIONS["traffic.speed.mean_mps"].unit,
     )
-    report_alt = build_event_aligned_report([(b1, a1), (b2, a2)], alt_spec, report_id="version-test")  # noqa: E501
+    report_alt = build_event_aligned_report(
+        [(b1, a1), (b2, a2)], alt_spec, report_id="version-test"
+    )  # noqa: E501
     assert report1.fingerprint != report_alt.fingerprint
 
 
@@ -285,7 +294,9 @@ def test_runs_with_different_anchor_sources() -> None:
         run_id=b2.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b2.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
-    report = build_event_aligned_report([(b1, a1), (b2, a2)], _spec(), report_id="different-sources")  # noqa: E501
+    report = build_event_aligned_report(
+        [(b1, a1), (b2, a2)], _spec(), report_id="different-sources"
+    )  # noqa: E501
     assert len(report.accepted_runs) == 2
     kinds = {r.anchor.kind for r in report.accepted_runs}
     assert EventAnchorKind.BUNDLE_DECLARED_EVENT in kinds
@@ -381,8 +392,12 @@ def test_fingerprint_excludes_generated_at_and_local_path() -> None:
     def clock2() -> datetime:
         return datetime(2026, 8, 10, 15, 30, 0, tzinfo=UTC)
 
-    report1 = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock1)  # noqa: E501
-    report2 = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock2)  # noqa: E501
+    report1 = build_event_aligned_report(
+        [(b1, a1), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock1
+    )  # noqa: E501
+    report2 = build_event_aligned_report(
+        [(b1, a1), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock2
+    )  # noqa: E501
     # Fingerprint must be identical despite different generated_at
     assert report1.fingerprint == report2.fingerprint
     assert report1.canonical_json() == report2.canonical_json()
@@ -403,7 +418,9 @@ def test_fingerprint_excludes_generated_at_and_local_path() -> None:
             run_id=b1_alt.manifest.run.run_id,  # type: ignore[union-attr]
             bundle_id=b1_alt.manifest.bundle.bundle_id,  # type: ignore[union-attr]
         )
-        report3 = build_event_aligned_report([(b1_alt, a1_alt), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock1)  # noqa: E501
+        report3 = build_event_aligned_report(
+            [(b1_alt, a1_alt), (b2, a2)], spec, report_id="fp-excludes-wc", clock=clock1
+        )  # noqa: E501
         # Fingerprint should still be identical because fingerprint excludes local path; but bundle fingerprint may differ due to? Actually bundle fingerprint is hash of bundle contents, not path, so should be same as original if contents same.  # noqa: E501
         # The key is local path string not in canonical json
         assert "different_path_bundle" not in report3.canonical_json()
@@ -448,8 +465,18 @@ def test_insufficient_temporal_range_exclusion() -> None:
     # Create minimal manifest
     manifest = BundleManifest(
         schema_version="1.0",
-        bundle=BundleInfo(bundle_id="bundle-empty", created_at=datetime(2026, 7, 17, 12, 0, 0, tzinfo=UTC), source="synthetic"),  # noqa: E501
-        run=RunInfo(run_id="run-empty", experiment_id="exp-1", seed_id="seed-1", algorithm="alg", random_seed=0),  # noqa: E501
+        bundle=BundleInfo(
+            bundle_id="bundle-empty",
+            created_at=datetime(2026, 7, 17, 12, 0, 0, tzinfo=UTC),
+            source="synthetic",
+        ),  # noqa: E501
+        run=RunInfo(
+            run_id="run-empty",
+            experiment_id="exp-1",
+            seed_id="seed-1",
+            algorithm="alg",
+            random_seed=0,
+        ),  # noqa: E501
         environment=EnvironmentInfo(name="synthetic"),
         files={},
         provenance=ProvenanceInfo(producer="test"),
@@ -481,6 +508,11 @@ def test_insufficient_temporal_range_exclusion() -> None:
         run_id=b2.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b2.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
-    report = build_event_aligned_report([(result, a_empty), (b2, a2)], _spec(), report_id="insufficient")  # noqa: E501
+    report = build_event_aligned_report(
+        [(result, a_empty), (b2, a2)], _spec(), report_id="insufficient"
+    )  # noqa: E501
     # Empty canonical run should be excluded with INSUFFICIENT_TEMPORAL_RANGE
-    assert any(r.run_id == "run-empty" and r.reason_code == "INSUFFICIENT_TEMPORAL_RANGE" for r in report.excluded_runs)  # noqa: E501
+    assert any(
+        r.run_id == "run-empty" and r.reason_code == "INSUFFICIENT_TEMPORAL_RANGE"
+        for r in report.excluded_runs
+    )  # noqa: E501

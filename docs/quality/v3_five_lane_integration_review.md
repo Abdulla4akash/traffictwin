@@ -81,11 +81,43 @@ conflict; no URL or script collision existed.
 ## 5. Non-Shared Reviewed-File Integrity
 
 For each approved SHA `S`, every file changed between `merge-base(S, main)`
-and `S` was diffed against integration HEAD. For **all five lanes** the only
-differing files are exactly the five shared registration files listed in §4.
-Every non-shared domain/service/test file from every lane is byte-identical to
-its reviewed state. No mechanical fixes, typing changes, or semantic edits
-were needed on any lane-owned file.
+and `S` was diffed against integration HEAD. At merge time, for **all five
+lanes** the only differing files were exactly the five shared registration
+files listed in §4; every non-shared file from every lane entered the
+integration byte-identical to its reviewed state.
+
+**Recorded mechanical closure (Event-Aligned lane only).** The canonical
+whole-repository gates fail at the approved Event-Aligned SHA itself: running
+`ruff format --check` and `mypy` (locked tool versions, canonical config)
+against a detached worktree at `244f5b9…` reproduces **the identical** 5
+format-failing files and 19 mypy errors later seen on the integration branch —
+this is pre-existing in the reviewed lane, not integration-introduced. Under
+the integration mandate's mechanical-fix clause, a dedicated integration-branch
+commit closes them with zero behavior change and no weakened assertion:
+
+- `ruff format` applied to the five Event-Aligned test files (formatting only).
+- Removal of exactly the 13 `# type: ignore` comments mypy reports as unused
+  (`tests/unit/test_event_aligned_blockers.py` ×9,
+  `tests/unit/test_event_aligned_models.py` ×1,
+  `tests/unit/test_event_aligned_service.py` ×1,
+  `tests/ui/test_event_aligned_page.py` ×2).
+- Precise return annotations for the two `-> tuple[tuple, tuple]` test
+  helpers (`_anchors`, `_anchors_for_two_runs`), plus the
+  `BundleValidationResult` import the annotation needs.
+- A parameter annotation for the `side_effect` test helper (replacing its
+  `noqa: ANN001`).
+- One **added** assertion (`assert res.detail is not None`) before an existing
+  `.lower()` assertion — strictly stronger, nothing weakened.
+- `src/traffictwin/ui/pages/event_aligned_analysis.py`: local variable
+  `result` renamed to `build_result` in the build-button block (it shadowed a
+  differently-typed earlier local), and `chart_rows` annotated
+  `list[dict[str, object]]`. No control flow, widget, computation, or wording
+  changed.
+
+Proof: after the closure, `ruff format --check` (1096 files), `ruff check`,
+and canonical `mypy` (1010 files) are fully green, and the complete
+Event-Aligned acceptance suite re-passes **49/49** — the same count as before
+the closure. No other lane needed any change.
 
 ## 6. Final Page Inventory (probed from the live tree)
 
@@ -194,9 +226,9 @@ jax-dependent modules collect because the CI `vec-runner` extra is installed.
 
 | Gate | Result |
 |---|---|
-| `uv run ruff format --check .` | clean (1044 files at merge time; re-run green after doc reconciliation) |
+| `uv run ruff format --check .` | clean — 1096 files (after the §5 recorded closure; the 5 failing files were pre-existing at the approved Event-Aligned SHA) |
 | `uv run ruff check .` | All checks passed |
-| `uv run mypy` (canonical config) | Success: no issues found in 958 source files |
+| `uv run mypy` (canonical config) | Success: no issues found in 1010 source files (after the §5 recorded closure; the 19 errors were pre-existing at the approved Event-Aligned SHA) |
 | `uv lock --check` | clean |
 | `git diff --check` | clean |
 
