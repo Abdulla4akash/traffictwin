@@ -11,33 +11,18 @@ Provides:
 
 from __future__ import annotations
 
-import hashlib
-import json
 from pathlib import Path
 from typing import Any
 
-from pydantic import ValidationError
-
-from traffictwin.data_contract.drift import (
-    compare_contracts,
-    compare_observation_to_contract,
-)
-from traffictwin.data_contract.exports import (
-    contract_to_canonical_dict,
-)
+from traffictwin.data_contract.drift import compare_contracts, compare_observation_to_contract
+from traffictwin.data_contract.exports import contract_to_canonical_dict
 from traffictwin.data_contract.fingerprint import fingerprint_canonical
 from traffictwin.data_contract.inspection import inspect_tabular_sample
 from traffictwin.data_contract.models import (
-    FieldContract,
-    LogicalType,
-    PublicationClass,
-    RightsAndRetentionContract,
     SchemaDriftReport,
     SchemaObservation,
     SourceContractVersion,
     SourceDataContract,
-    TimestampContract,
-    UnitContract,
 )
 
 
@@ -45,6 +30,41 @@ def fingerprint_source_contract(contract: SourceDataContract) -> str:
     """Return deterministic fingerprint for a source contract (excludes wall clock/path)."""
     canonical = contract_to_canonical_dict(contract)
     return fingerprint_canonical(canonical)
+
+
+def _version_lineage_fingerprint(
+    contract: SourceDataContract,
+    version: str,
+    parent_fingerprint: str | None,
+    amendment_reason: str | None,
+) -> str:
+    fingerprint = fingerprint_source_contract(contract)
+    payload: dict[str, Any] = {
+        "contract_fingerprint": fingerprint,
+        "version": version,
+        "source_id": contract.source_id,
+    }
+    if parent_fingerprint is not None:
+        assert amendment_reason is not None
+        payload["parent_fingerprint"] = parent_fingerprint
+        payload["amendment_reason"] = amendment_reason.strip()
+    return fingerprint_canonical(payload)
+
+
+def verify_contract_version(version: SourceContractVersion) -> None:
+    """Verify stored fingerprint matches computed lineage; raise ValueError on mismatch."""
+    # Also verify version matches contract_version for integrity
+    if version.version != version.contract.contract_version:
+        raise ValueError(
+            f"version mismatch: wrapper {version.version!r} != contract {version.contract.contract_version!r}"  # noqa: E501
+        )
+    expected = _version_lineage_fingerprint(
+        version.contract, version.version, version.parent_fingerprint, version.amendment_reason
+    )
+    if expected != version.fingerprint:
+        raise ValueError(
+            f"frozen contract fingerprint mismatch: expected {expected}, got {version.fingerprint}"
+        )
 
 
 def create_frozen_version(
@@ -59,23 +79,18 @@ def create_frozen_version(
     the new version's ``parent_fingerprint`` is set to the parent's fingerprint.
     The version number is taken from ``contract.contract_version``.
     """
-    fingerprint = fingerprint_source_contract(contract)
-    # Combine contract fingerprint + parent lineage into version fingerprint
-    lineage_payload: dict[str, Any] = {
-        "contract_fingerprint": fingerprint,
-        "version": contract.contract_version,
-        "source_id": contract.source_id,
-    }
     if parent_version is not None:
         if amendment_reason is None or not amendment_reason.strip():
             raise ValueError("amendment_reason required when parent_version is provided")
-        lineage_payload["parent_fingerprint"] = parent_version.fingerprint
-        lineage_payload["amendment_reason"] = amendment_reason.strip()
-    else:
-        if amendment_reason is not None:
-            raise ValueError("amendment_reason requires parent_version")
+    elif amendment_reason is not None:
+        raise ValueError("amendment_reason requires parent_version")
 
-    version_fingerprint = fingerprint_canonical(lineage_payload)
+    version_fingerprint = _version_lineage_fingerprint(
+        contract,
+        contract.contract_version,
+        parent_version.fingerprint if parent_version else None,
+        amendment_reason.strip() if amendment_reason else None,
+    )
 
     version = SourceContractVersion(
         version=contract.contract_version,
@@ -98,22 +113,11 @@ def create_new_version_from_parent(
         raise ValueError("parent must be frozen")
     if not amendment_reason.strip():
         raise ValueError("amendment_reason must be non-empty")
-    # Enforce version bump: updated_contract.contract_version must differ from parent
     if updated_contract.contract_version == parent.contract.contract_version:
         raise ValueError("updated contract_version must differ from parent version")
     return create_frozen_version(
         updated_contract, parent_version=parent, amendment_reason=amendment_reason
     )
-
-
-def attempt_mutate_frozen_version(
-    version: SourceContractVersion,
-    **_kwargs: Any,
-) -> None:
-    """Demonstrate that frozen versions cannot be mutated; raises TypeError/ValidationError."""
-    # Pydantic frozen model will raise ValidationError/TypeError on assignment
-    # This helper is used in tests to prove immutability.
-    version.version = "9.9.9"  # type: ignore[attr-defined]  # expected to fail
 
 
 def observe_sample(
@@ -140,6 +144,7 @@ def compare_for_drift(
     candidate_contract: SourceDataContract | None = None,
 ) -> SchemaDriftReport:
     """Compare an observation (and optional candidate contract) to a frozen contract."""
+    verify_contract_version(frozen)
     if candidate_contract is not None:
         return compare_contracts(frozen, candidate_contract, candidate_observation=observation)
     return compare_observation_to_contract(frozen, observation, candidate_contract=None)
@@ -155,8 +160,7 @@ def prepare_handoff_to_manifest(
     a caller can use to pre-populate the manifest wizard or bundle import
     workflow. The payload is redacted and excludes raw values/paths.
     """
-    if not contract_version.is_frozen:
-        raise ValueError("handoff requires a frozen contract")
+    verify_contract_version(contract_version)
     contract = contract_version.contract
     payload: dict[str, Any] = {
         "schema_version": "1.0",
@@ -181,23 +185,7 @@ def prepare_handoff_to_manifest(
     if observation is not None:
         payload["observation_fingerprint"] = observation.fingerprint
         payload["observation_id"] = observation.observation_id
-    # Deterministic fingerprint for handoff payload
     payload["handoff_fingerprint"] = fingerprint_canonical(
         {k: v for k, v in payload.items() if k != "handoff_fingerprint"}
     )
     return payload
-
-
-# ---------------------------------------------------------------------------
-# Bounded-read guard used in tests to demonstrate unbounded bypass is blocked
-# ---------------------------------------------------------------------------
-
-
-def read_with_limits(path: Path, max_bytes: int) -> bytes:
-    """Read *path* with an explicit byte limit; raises ValueError if exceeded."""
-    if max_bytes < 1:
-        raise ValueError("max_bytes must be positive")
-    size = path.stat().st_size
-    if size > max_bytes:
-        raise ValueError(f"file size {size} exceeds limit {max_bytes}")
-    return path.read_bytes()

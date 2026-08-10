@@ -12,8 +12,8 @@ from traffictwin.data_contract.models import (
     RightsAndRetentionContract,
     SourceContractVersion,
     SourceDataContract,
-    TimestampContract,
     TimeBasis,
+    TimestampContract,
     TimezoneSemantics,
     UnitContract,
 )
@@ -24,9 +24,21 @@ def _minimal_contract() -> SourceDataContract:
         source_id="test_source",
         contract_version="1.0.0",
         fields=[
-            FieldContract(field_name="timestamp", required=True, logical_type=LogicalType.TIMESTAMP, timestamp=TimestampContract(time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC)),
+            FieldContract(
+                field_name="timestamp",
+                required=True,
+                logical_type=LogicalType.TIMESTAMP,
+                timestamp=TimestampContract(
+                    time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC
+                ),
+            ),
             FieldContract(field_name="vehicle_id", required=True, logical_type=LogicalType.STRING),
-            FieldContract(field_name="speed", required=False, logical_type=LogicalType.FLOAT, unit=UnitContract(unit="mps", dimension="speed")),
+            FieldContract(
+                field_name="speed",
+                required=False,
+                logical_type=LogicalType.FLOAT,
+                unit=UnitContract(unit="mps", dimension="speed"),
+            ),
         ],
         rights=RightsAndRetentionContract(publication_class=PublicationClass.PRIVATE),
     )
@@ -34,7 +46,9 @@ def _minimal_contract() -> SourceDataContract:
 
 def test_field_contract_extra_forbidden() -> None:
     with pytest.raises(ValidationError):
-        FieldContract.model_validate({"field_name": "x", "required": True, "logical_type": "string", "unknown": "bad"})  # type: ignore[arg-type]
+        FieldContract.model_validate(
+            {"field_name": "x", "required": True, "logical_type": "string", "unknown": "bad"}
+        )  # type: ignore[arg-type]
 
 
 def test_timestamp_required_for_timestamp_type() -> None:
@@ -44,12 +58,23 @@ def test_timestamp_required_for_timestamp_type() -> None:
 
 def test_timestamp_forbidden_for_non_timestamp() -> None:
     with pytest.raises(ValidationError, match="only allowed for timestamp"):
-        FieldContract(field_name="x", required=True, logical_type=LogicalType.STRING, timestamp=TimestampContract(time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC))
+        FieldContract(
+            field_name="x",
+            required=True,
+            logical_type=LogicalType.STRING,
+            timestamp=TimestampContract(
+                time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC
+            ),
+        )
 
 
 def test_contract_version_must_be_semver() -> None:
     with pytest.raises(ValidationError, match="semantic version"):
-        SourceDataContract(source_id="src", contract_version="v1", fields=[FieldContract(field_name="a", required=True, logical_type=LogicalType.STRING)])
+        SourceDataContract(
+            source_id="src",
+            contract_version="v1",
+            fields=[FieldContract(field_name="a", required=True, logical_type=LogicalType.STRING)],
+        )
 
 
 def test_contract_duplicate_fields_forbidden() -> None:

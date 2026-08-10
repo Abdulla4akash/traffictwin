@@ -9,7 +9,6 @@ import streamlit as st
 import yaml
 from pydantic import ValidationError
 
-from traffictwin.data_contract.drift import compare_contracts, compare_observation_to_contract
 from traffictwin.data_contract.exports import (
     export_contract_json,
     export_contract_yaml,
@@ -148,7 +147,12 @@ def render(config: UiConfig) -> None:
                 "observed_count": str(fo.observed_count),
                 "null_count": str(fo.null_count),
                 "timestamp_parse_state": fo.timestamp_parse_state or "",
-                "categorical_digest": ", ".join(fo.categorical_digest or []),
+                "categorical_distinct_count": (
+                    str(fo.categorical_distinct_count)
+                    if fo.categorical_distinct_count is not None
+                    else ""
+                ),
+                "categorical_aggregate_hash": fo.categorical_aggregate_hash or "",
                 "precision": str(fo.precision) if fo.precision is not None else "",
                 "scale": str(fo.scale) if fo.scale is not None else "",
             }
@@ -375,9 +379,8 @@ def render(config: UiConfig) -> None:
     frozen = _load_frozen_from_session()
     draft_for_freeze = _load_draft_from_session(observation)
     if frozen is not None:
-        st.info(
-            f"Current frozen version: {frozen.version} (fingerprint {fingerprint_summary(frozen.fingerprint)})"
-        )
+        fp_short = fingerprint_summary(frozen.fingerprint)
+        st.info(f"Current frozen version: {frozen.version} (fingerprint {fp_short})")
         with st.expander("Advanced: frozen lineage"):
             st.json(
                 {
@@ -410,9 +413,8 @@ def render(config: UiConfig) -> None:
                             amendment_reason=amendment.strip() or "initial freeze",
                         )
                     st.session_state[SESSION_FROZEN] = new_version.model_dump(mode="json")
-                    st.success(
-                        f"Frozen version {new_version.version} created: {fingerprint_summary(new_version.fingerprint)}"
-                    )
+                    fp_new = fingerprint_summary(new_version.fingerprint)
+                    st.success(f"Frozen version {new_version.version} created: {fp_new}")
                 except Exception as exc:  # noqa: BLE001
                     st.error(f"Freeze failed: {exc}")
     with col_new:
@@ -461,6 +463,8 @@ def render(config: UiConfig) -> None:
         elif not cand_path.strip():
             st.error("Provide a candidate sample path")
         else:
+            # Atomic state: clear prior drift before new comparison to avoid stale results
+            st.session_state.pop(SESSION_DRIFT, None)
             try:
                 cand_obs = inspect_tabular_sample(
                     Path(cand_path.strip()),
@@ -470,25 +474,18 @@ def render(config: UiConfig) -> None:
                     source_label=str(cand_path),
                 )
                 st.session_state[SESSION_CANDIDATE_OBS] = cand_obs.model_dump(mode="json")
-                # Try to load candidate contract from session if authoring one; otherwise use observation only
+                # Always compare candidate contract when present (same source_id still needs unit/time/rights checks)  # noqa: E501
                 cand_contract = _load_draft_from_session(observation)
-                # If draft was from frozen, synthesize candidate contract from observation? Use drift with observation only
-                # Here we compare observation to frozen; if candidate draft exists and differs, use contract comparison
-                if (
-                    cand_contract is not None
-                    and cand_contract.source_id != frozen.contract.source_id
-                ):
-                    # Source identity differs – pass candidate contract for source drift detection
-                    report = compare_contracts(
-                        frozen, cand_contract, candidate_observation=cand_obs
-                    )
-                else:
-                    report = compare_observation_to_contract(frozen, cand_obs)
+                from traffictwin.data_contract.service import compare_for_drift
+
+                report = compare_for_drift(frozen, cand_obs, candidate_contract=cand_contract)
                 st.session_state[SESSION_DRIFT] = report.model_dump(mode="json")
-                st.success(
-                    f"Comparison complete: {report.overall_severity.value} ({len(report.findings)} findings)"
-                )
+                ov = report.overall_severity.value
+                st.success(f"Comparison complete: {ov} ({len(report.findings)} findings)")
             except Exception as exc:  # noqa: BLE001
+                # Ensure no stale drift remains displayed after failure
+                st.session_state.pop(SESSION_DRIFT, None)
+                st.session_state.pop(SESSION_CANDIDATE_OBS, None)
                 st.error(f"Comparison failed: {exc}")
 
     drift = _load_drift_from_session()
@@ -497,14 +494,14 @@ def render(config: UiConfig) -> None:
         severity = drift.overall_severity.value
         if severity == SchemaDriftSeverity.BLOCKED.value:
             badge_row(["BLOCKED", "ACTION REQUIRED"])
-            st.error(
-                f"Overall: BLOCKED — {drift.summary.get('blocked', 0)} blocked, {drift.summary.get('review_required', 0)} review-required"
-            )
+            blocked = drift.summary.get("blocked", 0)
+            review = drift.summary.get("review_required", 0)
+            st.error(f"Overall: BLOCKED — {blocked} blocked, {review} review-required")
         elif severity == SchemaDriftSeverity.REVIEW_REQUIRED.value:
             badge_row(["REVIEW REQUIRED", "MANUAL CHECK"])
-            st.warning(
-                f"Overall: REVIEW_REQUIRED — {drift.summary.get('review_required', 0)} review-required, {drift.summary.get('compatible', 0)} compatible"
-            )
+            review = drift.summary.get("review_required", 0)
+            compat = drift.summary.get("compatible", 0)
+            st.warning(f"Overall: REVIEW_REQUIRED — {review} review-required, {compat} compatible")
         else:
             badge_row(["COMPATIBLE", "NO ACTION"])
             st.success(f"Overall: COMPATIBLE — {drift.summary.get('compatible', 0)} findings")
@@ -574,15 +571,15 @@ def render(config: UiConfig) -> None:
         if frozen is None:
             st.error("Freeze a contract before preparing handoff")
         else:
-            cand_obs = _load_candidate_observation()
-            payload = prepare_handoff_to_manifest(frozen, observation=cand_obs or observation)
+            handoff_obs: SchemaObservation | None = _load_candidate_observation()
+            payload = prepare_handoff_to_manifest(frozen, observation=handoff_obs or observation)
             st.session_state["dcw_handoff_payload"] = payload
             st.success("Handoff payload prepared (import not executed)")
     handoff = st.session_state.get("dcw_handoff_payload")
     if handoff is not None:
         st.json(handoff)
         st.caption(
-            "This payload can be used to pre-populate the Manifest Inference Wizard or Bundle Import workflow."
+            "This payload can pre-populate the Manifest Inference Wizard or Bundle Import workflow."
         )
         st.download_button(
             "Download handoff JSON",
@@ -592,7 +589,8 @@ def render(config: UiConfig) -> None:
             key="dcw_handoff_json",
         )
         st.info(
-            "No data was imported automatically. Use the Manifest Inference Wizard or Bundle Import page to continue."
+            "No data was imported automatically. Use the Manifest Inference "
+            "Wizard or Bundle Import page to continue."
         )
 
 
@@ -601,7 +599,7 @@ def _load_observation_from_session() -> SchemaObservation | None:
     if raw is None:
         return None
     try:
-        from traffictwin.data_contract.models import SchemaObservation as SO
+        from traffictwin.data_contract.models import SchemaObservation as SO  # noqa: N817
 
         return SO.model_validate(raw)
     except Exception:
@@ -613,7 +611,7 @@ def _load_candidate_observation() -> SchemaObservation | None:
     if raw is None:
         return None
     try:
-        from traffictwin.data_contract.models import SchemaObservation as SO
+        from traffictwin.data_contract.models import SchemaObservation as SO  # noqa: N817
 
         return SO.model_validate(raw)
     except Exception:
@@ -625,7 +623,7 @@ def _load_draft_from_session(observation: SchemaObservation | None) -> SourceDat
     if raw is not None:
         try:
             return SourceDataContract.model_validate(raw)
-        except Exception:
+        except Exception:  # noqa: S110
             pass
     # Synthesize draft from observation if available
     if observation is None:
@@ -642,7 +640,7 @@ def _load_draft_from_session(observation: SchemaObservation | None) -> SourceDat
                 logical_type=ltype,
             )
             fields.append(fc)
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     if not fields:
         return None
@@ -691,7 +689,7 @@ def _default_fields_from_observation(observation: SchemaObservation | None) -> l
                 timestamp=ts,
             )
             fields.append(fc)
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     return fields
 
@@ -701,7 +699,11 @@ def _load_frozen_from_session() -> SourceContractVersion | None:
     if raw is None:
         return None
     try:
-        return SourceContractVersion.model_validate(raw)
+        version = SourceContractVersion.model_validate(raw)
+        from traffictwin.data_contract.service import verify_contract_version
+
+        verify_contract_version(version)
+        return version
     except Exception:
         return None
 
@@ -711,7 +713,7 @@ def _load_drift_from_session() -> SchemaDriftReport | None:
     if raw is None:
         return None
     try:
-        from traffictwin.data_contract.models import SchemaDriftReport as SDR
+        from traffictwin.data_contract.models import SchemaDriftReport as SDR  # noqa: N817
 
         return SDR.model_validate(raw)
     except Exception:

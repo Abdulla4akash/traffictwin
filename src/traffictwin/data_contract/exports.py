@@ -14,10 +14,7 @@ from typing import Any
 
 import yaml
 
-from traffictwin.data_contract.fingerprint import (
-    redact_field_name,
-    sanitise_for_csv,
-)
+from traffictwin.data_contract.fingerprint import redact_field_name, sanitise_for_csv
 from traffictwin.data_contract.models import (
     SchemaDriftReport,
     SchemaObservation,
@@ -28,17 +25,14 @@ from traffictwin.data_contract.models import (
 
 def contract_to_canonical_dict(contract: SourceDataContract) -> dict[str, Any]:
     """Return canonical dict for a contract (excludes runtime path/clock)."""
-    # Sort fields by field_name for determinism
     data = contract.model_dump(mode="json")
     data["fields"] = sorted(data["fields"], key=lambda x: x["field_name"])
-    # Ensure deterministic key ordering at top level via sort in JSON step; keep dict sorted
     return dict(sorted(data.items()))
 
 
 def version_to_canonical_dict(version: SourceContractVersion) -> dict[str, Any]:
     """Return canonical dict for a version wrapper."""
     data = version.model_dump(mode="json")
-    # Sort fields inside contract
     data["contract"]["fields"] = sorted(data["contract"]["fields"], key=lambda x: x["field_name"])
     return dict(sorted(data.items()))
 
@@ -71,7 +65,6 @@ def export_contract_json(contract: SourceDataContract) -> str:
 def export_contract_yaml(contract: SourceDataContract) -> str:
     """Export contract as deterministic YAML."""
     canonical = contract_to_canonical_dict(contract)
-    # Use safe_dump with sort_keys=True
     return yaml.safe_dump(canonical, sort_keys=True, allow_unicode=True)
 
 
@@ -124,10 +117,7 @@ def export_drift_csv(report: SchemaDriftReport) -> str:
     for finding in sorted(
         report.findings, key=lambda x: (x.severity.value, x.code, str(x.field_name))
     ):
-        field_name = finding.field_name or ""
-        # Redact secret fields
-        field_name = redact_field_name(field_name)
-        # Sanitise for formula injection
+        field_name = redact_field_name(finding.field_name or "")
         field_name = sanitise_for_csv(field_name)
         severity = sanitise_for_csv(finding.severity.value)
         code = sanitise_for_csv(finding.code)
@@ -137,7 +127,11 @@ def export_drift_csv(report: SchemaDriftReport) -> str:
 
 
 def export_observation_csv(observation: SchemaObservation) -> str:
-    """Export observation field table as CSV with redaction and formula protection."""
+    """Export observation field table as CSV with redaction and formula protection.
+
+    Portable observation contains no raw row values – only structural counts and
+    deterministic aggregate hashes for categorical domains.
+    """
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
     writer.writerow(
@@ -148,7 +142,8 @@ def export_observation_csv(observation: SchemaObservation) -> str:
             "observed_count",
             "null_count",
             "timestamp_parse_state",
-            "categorical_digest",
+            "categorical_distinct_count",
+            "categorical_aggregate_hash",
             "precision",
             "scale",
         ]
@@ -160,7 +155,10 @@ def export_observation_csv(observation: SchemaObservation) -> str:
         observed_count = str(fo.observed_count)
         null_count = str(fo.null_count)
         ts_state = sanitise_for_csv(fo.timestamp_parse_state or "")
-        cat_digest = sanitise_for_csv(",".join(fo.categorical_digest or []))
+        distinct_count = (
+            str(fo.categorical_distinct_count) if fo.categorical_distinct_count is not None else ""
+        )
+        aggregate_hash = sanitise_for_csv(fo.categorical_aggregate_hash or "")
         precision = str(fo.precision) if fo.precision is not None else ""
         scale = str(fo.scale) if fo.scale is not None else ""
         writer.writerow(
@@ -171,7 +169,8 @@ def export_observation_csv(observation: SchemaObservation) -> str:
                 observed_count,
                 null_count,
                 ts_state,
-                cat_digest,
+                distinct_count,
+                aggregate_hash,
                 precision,
                 scale,
             ]

@@ -340,7 +340,12 @@ class SourceContractVersion(StrictModel):
 
 
 class FieldObservation(StrictModel):
-    """Deterministic observation for one field."""
+    """Deterministic observation for one field.
+
+    Categorical evidence is non-reversible: portable exports contain only
+    ``categorical_distinct_count`` and a deterministic aggregate hash over
+    sorted distinct values, never raw members.
+    """
 
     field_name: str = Field(min_length=1, max_length=128)
     observed_logical_type: LogicalType = LogicalType.STRING
@@ -348,7 +353,8 @@ class FieldObservation(StrictModel):
     observed_count: int = Field(ge=0)
     null_count: int = Field(ge=0)
     timestamp_parse_state: str | None = Field(default=None, max_length=64)
-    categorical_digest: list[str] | None = Field(default=None, max_length=32)
+    categorical_distinct_count: int | None = Field(default=None, ge=0)
+    categorical_aggregate_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     precision: int | None = Field(default=None, ge=0)
     scale: int | None = Field(default=None, ge=0)
 
@@ -374,19 +380,14 @@ class FieldObservation(StrictModel):
             raise ValueError(f"timestamp_parse_state must be one of {sorted(allowed)}")
         return value
 
-    @field_validator("categorical_digest")
-    @classmethod
-    def validate_digest(cls, value: list[str] | None) -> list[str] | None:
-        if value is None:
-            return value
-        if len(set(value)) != len(value):
-            raise ValueError("categorical_digest must have unique values")
-        return sorted(value)
-
     @model_validator(mode="after")
     def validate_counts(self) -> FieldObservation:
         if self.null_count > self.observed_count:
             raise ValueError("null_count must not exceed observed_count")
+        if (self.categorical_distinct_count is None) != (self.categorical_aggregate_hash is None):
+            raise ValueError(
+                "categorical_distinct_count and categorical_aggregate_hash must both be set or both be None"  # noqa: E501
+            )
         return self
 
 
@@ -438,7 +439,7 @@ class SchemaDriftFinding(StrictModel):
     severity: SchemaDriftSeverity = SchemaDriftSeverity.COMPATIBLE
     code: str = Field(min_length=1, max_length=64, pattern=r"^[A-Z0-9_]+$")
     message: str = Field(min_length=1, max_length=512)
-    details: dict[str, str] | None = None
+    details: dict[str, str | int | float | bool | None] | None = None
 
     @field_validator("field_name")
     @classmethod
@@ -479,7 +480,7 @@ class SchemaDriftReport(StrictModel):
         allowed = {"blocked", "review_required", "compatible", "total"}
         if set(value.keys()) - allowed:
             raise ValueError(f"summary keys must be subset of {allowed}")
-        for k, v in value.items():
+        for _k, v in value.items():
             if v < 0:
                 raise ValueError("summary counts must be non-negative")
         return value

@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any  # noqa: F401  # retained for explicit-any suppression
+from typing import Any
+
+from pydantic import BaseModel
 
 
 def canonical_json_bytes(value: object) -> bytes:
@@ -41,28 +43,28 @@ def fingerprint_canonical(value: object) -> str:
     return sha256_hex(canonical_json_bytes(value))
 
 
-def canonical_contract_dict(contract: object) -> dict[str, object]:  # type: ignore[explicit-any]
+def canonical_contract_dict(contract: BaseModel) -> dict[str, Any]:
     """Return a canonical dict for a pydantic model, sorted and excluding secrets.
 
     The caller must ensure the model dump already excludes secrets/paths/clock.
     This helper enforces stable ordering invariants.
     """
     # Use model_dump mode='json' for deterministic typed output (enums as values).
-    raw = contract.model_dump(mode="json", exclude_none=False)
-    return _sort_nested(raw)
+    raw: dict[str, Any] = contract.model_dump(mode="json", exclude_none=False)
+    return _sort_nested(raw)  # type: ignore[no-any-return]
 
 
-def _sort_nested(value: object) -> object:
+def _sort_nested(value: Any) -> Any:  # noqa: ANN401
     if isinstance(value, dict):
-        return {k: _sort_nested(v) for k, v in sorted(value.items())}  # type: ignore[no-any-return]
+        return {k: _sort_nested(v) for k, v in sorted(value.items())}
     if isinstance(value, list):
         # Lists are left ordered; caller must sort semantic lists (e.g., fields by name)
         # before calling this. We recurse into elements.
-        return [_sort_nested(v) for v in value]  # type: ignore[no-any-return]
+        return [_sort_nested(v) for v in value]
     return value
 
 
-def fingerprint_contract(contract: object) -> str:
+def fingerprint_contract(contract: BaseModel) -> str:
     """Return fingerprint for a contract/version/observation/report."""
     canonical = canonical_contract_dict(contract)
     return fingerprint_canonical(canonical)

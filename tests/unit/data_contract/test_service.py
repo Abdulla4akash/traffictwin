@@ -13,15 +13,11 @@ from traffictwin.data_contract.models import (
     PublicationClass,
     RightsAndRetentionContract,
     SourceDataContract,
-    TimestampContract,
-    TimeBasis,
-    TimezoneSemantics,
 )
 from traffictwin.data_contract.service import (
     create_frozen_version,
     create_new_version_from_parent,
     prepare_handoff_to_manifest,
-    read_with_limits,
 )
 
 
@@ -38,7 +34,7 @@ def test_frozen_immutability() -> None:
     contract = _contract()
     frozen = create_frozen_version(contract)
     # Attempt to mutate via attribute assignment should raise ValidationError (frozen model)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         frozen.version = "9.9.9"  # type: ignore[attr-defined]
     # Also test that dict mutation does not affect fingerprint
     assert frozen.is_frozen is True
@@ -65,19 +61,26 @@ def test_handoff_does_not_auto_import() -> None:
     assert payload["source_id"] == "src1"
     assert "handoff_fingerprint" in payload
     # Handoff must not contain absolute path or raw values
-    assert "/tmp" not in str(payload)
+    assert "/tmp" not in str(payload)  # noqa: S108
     assert "handoff_to_manifest" in payload["purpose"]
 
 
 def test_bounded_read_bypass_blocked(tmp_path: Path) -> None:
-    p = tmp_path / "big.bin"
-    p.write_bytes(b"x" * 5000)
-    # Within limit should succeed
-    data = read_with_limits(p, max_bytes=6000)
-    assert len(data) == 5000
-    # Exceeding limit should raise
-    with pytest.raises(ValueError, match="exceeds limit"):
-        read_with_limits(p, max_bytes=1000)
+    # Bounded read is exercised via the real inspection path, not a test helper
+    p = tmp_path / "big.csv"
+    p.write_text("a\n" + "x\n" * 5000, encoding="utf-8")
+    from traffictwin.data_contract.inspection import inspect_tabular_sample
+
+    # Within reasonable limit, bounded read succeeds (truncated if needed)
+    obs = inspect_tabular_sample(
+        p, max_rows=10, max_bytes=100000, observation_id="obs_001", source_label="local"
+    )
+    assert obs.total_observed_rows == 10
+    # Exceeding limit with tiny max_bytes should raise
+    with pytest.raises(Exception, match="exceeds"):
+        inspect_tabular_sample(
+            p, max_rows=1000, max_bytes=100, observation_id="obs_001", source_label="local"
+        )
 
 
 def test_unbounded_sample_read_is_not_allowed_via_inspection(tmp_path: Path) -> None:
@@ -92,9 +95,13 @@ def test_unbounded_sample_read_is_not_allowed_via_inspection(tmp_path: Path) -> 
 
     # With max_bytes very low, should raise
     with pytest.raises(Exception, match="exceeds"):
-        inspect_tabular_sample(p, max_rows=1000, max_bytes=10, observation_id="obs_001", source_label="local")
+        inspect_tabular_sample(
+            p, max_rows=1000, max_bytes=10, observation_id="obs_001", source_label="local"
+        )
     # With max_rows low, should truncate, not read all
-    obs = inspect_tabular_sample(p, max_rows=5, max_bytes=1_000_000, observation_id="obs_001", source_label="local")
+    obs = inspect_tabular_sample(
+        p, max_rows=5, max_bytes=1_000_000, observation_id="obs_001", source_label="local"
+    )
     assert obs.total_observed_rows == 5
     assert obs.truncated is True
 
@@ -106,8 +113,12 @@ def test_fingerprint_excludes_path_and_clock(tmp_path: Path) -> None:
     p2 = tmp_path / "b.csv"
     p1.write_text("x,y\n1,2\n3,4\n", encoding="utf-8")
     p2.write_text("x,y\n1,2\n3,4\n", encoding="utf-8")
-    obs1 = inspect_tabular_sample(p1, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label=str(p1))
-    obs2 = inspect_tabular_sample(p2, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label=str(p2))
+    obs1 = inspect_tabular_sample(
+        p1, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label=str(p1)
+    )
+    obs2 = inspect_tabular_sample(
+        p2, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label=str(p2)
+    )
     # Fingerprints should be equal because source_label is redacted to local_sample and content same
     assert obs1.fingerprint == obs2.fingerprint
 
@@ -117,12 +128,14 @@ def test_raw_values_not_in_fingerprint(tmp_path: Path) -> None:
     p.write_text("token,value\nsecret123,hello\n", encoding="utf-8")
     from traffictwin.data_contract.inspection import inspect_tabular_sample
 
-    obs = inspect_tabular_sample(p, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local")
+    obs = inspect_tabular_sample(
+        p, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local"
+    )
     assert "secret123" not in obs.fingerprint
     assert "secret123" not in json_dumps_obs(obs)
 
 
-def json_dumps_obs(obs) -> str:
+def json_dumps_obs(obs: object) -> str:  # type: ignore[type-arg]
     import json
 
-    return json.dumps(obs.model_dump(mode="json"), sort_keys=True)
+    return json.dumps(obs.model_dump(mode="json"), sort_keys=True)  # type: ignore[attr-defined]

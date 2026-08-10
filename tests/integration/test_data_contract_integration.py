@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import csv
-import json
 from pathlib import Path
 
-import yaml
-
+from traffictwin.data_contract.drift import compare_observation_to_contract
 from traffictwin.data_contract.exports import (
     export_contract_json,
     export_contract_yaml,
-    export_drift_json,
     export_drift_csv,
+    export_drift_json,
     export_observation_csv,
 )
 from traffictwin.data_contract.inspection import inspect_tabular_sample
@@ -22,8 +20,8 @@ from traffictwin.data_contract.models import (
     PublicationClass,
     RightsAndRetentionContract,
     SourceDataContract,
-    TimestampContract,
     TimeBasis,
+    TimestampContract,
     TimezoneSemantics,
     UnitContract,
 )
@@ -32,7 +30,6 @@ from traffictwin.data_contract.service import (
     create_new_version_from_parent,
     prepare_handoff_to_manifest,
 )
-from traffictwin.data_contract.drift import compare_observation_to_contract
 
 
 def _write_csv(path: Path, headers: list[str], rows: list[list[str]]) -> None:
@@ -48,7 +45,9 @@ def test_end_to_end_observe_freeze_compare_export_handoff(tmp_path: Path) -> Non
     rows = [["2024-01-01T00:00:00Z", "veh1", "12.5"], ["2024-01-01T00:01:00Z", "veh2", "15.0"]]
     p1 = tmp_path / "sample.csv"
     _write_csv(p1, headers, rows)
-    obs = inspect_tabular_sample(p1, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local")
+    obs = inspect_tabular_sample(
+        p1, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local"
+    )
     assert obs.total_observed_rows == 2
     assert len(obs.field_observations) == 3
 
@@ -57,9 +56,21 @@ def test_end_to_end_observe_freeze_compare_export_handoff(tmp_path: Path) -> Non
         source_id="manchester_buses",
         contract_version="1.0.0",
         fields=[
-            FieldContract(field_name="timestamp", required=True, logical_type=LogicalType.TIMESTAMP, timestamp=TimestampContract(time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC)),
+            FieldContract(
+                field_name="timestamp",
+                required=True,
+                logical_type=LogicalType.TIMESTAMP,
+                timestamp=TimestampContract(
+                    time_basis=TimeBasis.ISO8601, timezone=TimezoneSemantics.UTC
+                ),
+            ),
             FieldContract(field_name="vehicle_id", required=True, logical_type=LogicalType.STRING),
-            FieldContract(field_name="speed", required=False, logical_type=LogicalType.FLOAT, unit=UnitContract(unit="mps", dimension="speed")),
+            FieldContract(
+                field_name="speed",
+                required=False,
+                logical_type=LogicalType.FLOAT,
+                unit=UnitContract(unit="mps", dimension="speed"),
+            ),
         ],
         rights=RightsAndRetentionContract(publication_class=PublicationClass.PRIVATE),
         notes="initial contract",
@@ -73,8 +84,14 @@ def test_end_to_end_observe_freeze_compare_export_handoff(tmp_path: Path) -> Non
     # 4. Compare later sample with drift (extra field + potential reorder)
     p2 = tmp_path / "later.csv"
     # Use float value "10.5" to keep type compatible (FLOAT expected, FLOAT observed)
-    _write_csv(p2, ["vehicle_id", "timestamp", "speed", "extra"], [["veh3", "2024-01-02T00:00:00Z", "10.5", "newval"]])
-    obs2 = inspect_tabular_sample(p2, max_rows=10, max_bytes=1_000_000, observation_id="obs_002", source_label="local")
+    _write_csv(
+        p2,
+        ["vehicle_id", "timestamp", "speed", "extra"],
+        [["veh3", "2024-01-02T00:00:00Z", "10.5", "newval"]],
+    )
+    obs2 = inspect_tabular_sample(
+        p2, max_rows=10, max_bytes=1_000_000, observation_id="obs_002", source_label="local"
+    )
     report = compare_observation_to_contract(frozen, obs2)
     # Extra field should be review_required; overall may be review due to extra field
     assert any(f.code == "OPTIONAL_FIELD_ADDED" for f in report.findings)
@@ -133,7 +150,11 @@ def test_amendment_lineage_integration(tmp_path: Path) -> None:
     # Compare observation against v2 should not flag b as extra if present
     p = tmp_path / "obs.csv"
     _write_csv(p, ["a", "b"], [["1", "2"]])
-    obs = inspect_tabular_sample(p, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local")
+    obs = inspect_tabular_sample(
+        p, max_rows=10, max_bytes=1_000_000, observation_id="obs_001", source_label="local"
+    )
     report = compare_observation_to_contract(v2, obs)
     # b is now expected, so no OPTIONAL_FIELD_ADDED for b
-    assert not any(f.field_name == "b" and f.code == "OPTIONAL_FIELD_ADDED" for f in report.findings)
+    assert not any(
+        f.field_name == "b" and f.code == "OPTIONAL_FIELD_ADDED" for f in report.findings
+    )
