@@ -162,11 +162,7 @@ def _study_or_empty_state() -> ResourceStrategyStudy | None:
 
 
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
-    try:
-        target_page = UiPage("Resource Strategy Explorer")
-    except ValueError:
-        target_page = UiPage.HOME
-    render_page_header(target_page)
+    render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
     # Ensure header is Resource Strategy Explorer regardless of enum name
     st.title("Resource Strategy Explorer")
     st.caption(

@@ -44,6 +44,7 @@ from traffictwin.ui.pages import (
     portfolio_explorer,
     provenance_explorer,
     reports,
+    resource_strategy_explorer,
     rsu_monitor,
     run_overview,
     scenario_builder,
@@ -103,6 +104,9 @@ PAGE_RENDERERS: dict[UiPage, PageRenderer] = {
     UiPage.MANCHESTER_EVIDENCE_HUB: lambda _config: manchester_evidence_hub.render(),
     UiPage.EVIDENCE: lambda _config: evidence_readiness.render(),
     UiPage.PROVENANCE: lambda _config: provenance_explorer.render(),
+    UiPage.RESOURCE_STRATEGY_EXPLORER: lambda _config: resource_strategy_explorer.render(
+        load_ui_config()
+    ),
     UiPage.REPORTS: reports.render,
     UiPage.PARTICIPANT_EVALUATION: lambda _config: participant_evaluation.render(),
     UiPage.SEARCH: search.render,

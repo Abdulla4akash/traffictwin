@@ -118,6 +118,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.MANIFEST_WIZARD: ("Advanced", "manifest-inference"),
         UiPage.SETTINGS: ("Advanced", "settings"),
         UiPage.ABOUT: ("Advanced", "about"),
+        UiPage.RESOURCE_STRATEGY_EXPLORER: ("Compare & test", "resource-strategy"),
     }
 
     assert {spec.page: (spec.group, spec.url_path) for spec in V07_PAGE_SPECS} == expected
