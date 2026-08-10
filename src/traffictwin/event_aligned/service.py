@@ -57,6 +57,16 @@ def _decimal(value: float) -> Decimal:
     return Decimal(str(value))
 
 
+def _is_partial_bin(status: str, coverage_state: CoverageState) -> bool:
+    """Return True if bin is partial under either metric-status or coverage condition."""
+
+    return status == "partial" or coverage_state == CoverageState.PARTIAL
+
+
+def _point_is_partial(point: EventAlignedMetricPoint) -> bool:
+    return _is_partial_bin(point.status, point.coverage_state)
+
+
 def _source_time_range_seconds(tables: CanonicalTables) -> tuple[float, float] | None:
     times = [
         *(record.arrival_time_s for record in tables.tasks),
@@ -400,18 +410,13 @@ def build_event_aligned_report(
             # Numeric summaries include both AVAILABLE and PARTIAL with numeric value
             if status in ("available", "partial") and value is not None:
                 per_run_available_values[run_id][phase].append(float(value))
-                if status == "available":
-                    per_run_bin_counts[run_id][phase]["available"] += 1
-                else:
-                    per_run_bin_counts[run_id][phase]["partial"] += 1
-            elif status == "available":
+            if status == "available":
                 per_run_bin_counts[run_id][phase]["available"] += 1
-            elif status == "partial":
+            # Single distinct partial bin count: metric PARTIAL OR coverage PARTIAL counts once
+            if _is_partial_bin(status, coverage_state):
                 per_run_bin_counts[run_id][phase]["partial"] += 1
             if coverage_state == CoverageState.EMPTY:
                 per_run_bin_counts[run_id][phase]["empty"] += 1
-            if coverage_state == CoverageState.PARTIAL:
-                per_run_bin_counts[run_id][phase]["partial"] += 1
 
     for run_id, phase_map in list(per_run_available_values.items()):
         for phase in EventAlignedPhase:
@@ -424,9 +429,7 @@ def build_event_aligned_report(
                     bin_counts["empty"] = sum(
                         1 for p in relevant if p.coverage_state == CoverageState.EMPTY
                     )
-                    bin_counts["partial"] = sum(
-                        1 for p in relevant if p.coverage_state == CoverageState.PARTIAL
-                    )
+                    bin_counts["partial"] = sum(1 for p in relevant if _point_is_partial(p))
                     bin_counts["available"] = sum(1 for p in relevant if p.status == "available")
                 else:
                     continue
@@ -487,7 +490,7 @@ def build_event_aligned_report(
             bin_count = len(relevant)
             available = sum(1 for p in relevant if p.status == "available")
             empty = sum(1 for p in relevant if p.coverage_state == CoverageState.EMPTY)
-            partial = sum(1 for p in relevant if p.coverage_state == CoverageState.PARTIAL)
+            partial = sum(1 for p in relevant if _point_is_partial(p))
             phase_summaries.append(
                 EventAlignedPhaseSummary(
                     run_id=run_id,
