@@ -1,4 +1,3 @@
-# mypy: disable-error-code="arg-type,unused-ignore"
 """Unit tests for Metric Contract Registry."""
 
 from __future__ import annotations
@@ -7,6 +6,7 @@ import hashlib
 import json
 import tempfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -26,7 +26,6 @@ from traffictwin.experiments.resource_strategy import (
 from traffictwin.metric_contract_registry.models import (
     MetricContract,
     MetricContractDenominator,
-    MetricContractDirection,
     MetricContractRegistry,
     MetricContractSupersession,
 )
@@ -39,8 +38,8 @@ from traffictwin.metric_contract_registry.service import (
 )
 
 
-def _valid_contract(**overrides: object) -> MetricContract:
-    base = dict(  # noqa: C408
+def _valid_contract(**overrides: Any) -> MetricContract:  # noqa: ANN401
+    base: dict[str, Any] = dict(  # noqa: C408
         metric_key="custom.test.metric",
         metric_version="1.0",
         unit="ratio",
@@ -51,8 +50,8 @@ def _valid_contract(**overrides: object) -> MetricContract:
         time_window_applicable=False,
         contract_version="1.0",
     )
-    base.update(overrides)  # type: ignore[arg-type]
-    return MetricContract(**base)  # type: ignore[arg-type]
+    base.update(overrides)
+    return MetricContract.model_validate(base)
 
 
 def _registry(contracts: list[MetricContract] | None = None) -> MetricContractRegistry:
@@ -63,8 +62,8 @@ def _registry(contracts: list[MetricContract] | None = None) -> MetricContractRe
     )
 
 
-def _valid_lifecycle(**overrides: object) -> ResourceStrategyLifecycle:
-    base = dict(  # noqa: C408
+def _valid_lifecycle(**overrides: Any) -> ResourceStrategyLifecycle:  # noqa: ANN401
+    base: dict[str, Any] = dict(  # noqa: C408
         offered=1000,
         admitted=800,
         rejected=200,
@@ -75,8 +74,8 @@ def _valid_lifecycle(**overrides: object) -> ResourceStrategyLifecycle:
         dropped=80,
         deadline_success=680,
     )
-    base.update(overrides)  # type: ignore[arg-type]
-    return ResourceStrategyLifecycle(**base)
+    base.update(overrides)
+    return ResourceStrategyLifecycle.model_validate(base)
 
 
 def _rep(rid: str, metrics: dict[str, float] | None = None) -> ResourceStrategyReplication:
@@ -98,6 +97,11 @@ def _study_with_custom_metric(
     custom_key: str = "custom.test.metric",
     custom_unit: str = "ratio",
     custom_denom: ResourceStrategyMetricDenominator = ResourceStrategyMetricDenominator.REPLICATION,
+    with_declarations: bool = True,
+    arm_b_unit: str | None = None,
+    arm_b_denom: ResourceStrategyMetricDenominator | None = None,
+    arm_b_version: str | None = None,
+    missing_arm_b_declaration: bool = False,
 ) -> ResourceStrategyStudy:
     cat = [
         ResourceStrategyMetric(
@@ -113,6 +117,21 @@ def _study_with_custom_metric(
             denominator=custom_denom,
         ),
     ]
+    decl_a = ResourceStrategyMetric(
+        metric_key=custom_key,
+        metric_version="1.0",
+        unit=custom_unit,
+        denominator=custom_denom,
+    )
+    b_unit = arm_b_unit if arm_b_unit is not None else custom_unit
+    b_denom = arm_b_denom if arm_b_denom is not None else custom_denom
+    b_version = arm_b_version if arm_b_version is not None else "1.0"
+    decl_b = ResourceStrategyMetric(
+        metric_key=custom_key,
+        metric_version=b_version,
+        unit=b_unit,
+        denominator=b_denom,
+    )
     arms = [
         ResourceStrategyArm(
             arm_id="arm_a",
@@ -120,6 +139,7 @@ def _study_with_custom_metric(
             description="A",
             strategy_type="t",
             replications=[_rep("rep_001", {custom_key: 0.42}), _rep("rep_002", {custom_key: 0.43})],
+            metric_declarations=[decl_a] if with_declarations else [],
         ),
         ResourceStrategyArm(
             arm_id="arm_b",
@@ -127,6 +147,9 @@ def _study_with_custom_metric(
             description="B",
             strategy_type="t",
             replications=[_rep("rep_001", {custom_key: 0.44}), _rep("rep_002", {custom_key: 0.45})],
+            metric_declarations=[]
+            if missing_arm_b_declaration
+            else ([decl_b] if with_declarations else []),
         ),
     ]
     return ResourceStrategyStudy.model_validate(
@@ -159,9 +182,7 @@ def test_deterministic_registry_fingerprint() -> None:
     fp2 = reg.fingerprint()
     assert fp1 == fp2
     assert len(fp1) == 64
-    # Canonical JSON stable
     assert reg.canonical_json() == reg.canonical_json()
-    # File round-trip preserves fingerprint across temp roots
     with tempfile.TemporaryDirectory() as td1, tempfile.TemporaryDirectory() as td2:
         p1 = Path(td1) / "reg.json"
         p2 = Path(td2) / "reg.json"
@@ -184,9 +205,7 @@ def test_order_independence() -> None:
 
 def test_conflicting_duplicate_refusal() -> None:
     c1 = _valid_contract(metric_key="custom.dup", unit="ratio")
-    c2 = _valid_contract(
-        metric_key="custom.dup", unit="ms"
-    )  # same key/version, different unit -> conflict
+    c2 = _valid_contract(metric_key="custom.dup", unit="ms")
     with pytest.raises(ValidationError, match="conflicting duplicate"):
         MetricContractRegistry(registry_version="1.0", contracts=[c1, c2], supersession=[])
 
@@ -194,14 +213,12 @@ def test_conflicting_duplicate_refusal() -> None:
 def test_identical_duplicate_accepted_as_redundant() -> None:
     c1 = _valid_contract(metric_key="custom.same", unit="ratio")
     c2 = _valid_contract(metric_key="custom.same", unit="ratio")
-    # Should not raise; canonical deduplicates
     reg = MetricContractRegistry(registry_version="1.0", contracts=[c1, c2], supersession=[])
     assert reg.fingerprint() == _registry([c1]).fingerprint()
     assert len(reg.deduplicated_contracts()) == 1
 
 
 def test_built_in_override_refusal() -> None:
-    # Try to override built-in task.latency.mean_ms with wrong unit
     bad = MetricContract(
         metric_key="task.latency.mean_ms",
         metric_version="1.0",
@@ -222,7 +239,6 @@ def test_built_in_override_refusal() -> None:
 
 def test_built_in_identical_redundant_accepted() -> None:
     built = build_built_in_registry()
-    # Take one built-in contract as redundant reference
     built_one = built.contracts[0]
     reg = MetricContractRegistry(registry_version="1.0", contracts=[built_one], supersession=[])
     receipt = validate_registry(reg)
@@ -236,13 +252,11 @@ def test_valid_custom_metric_remains_unavailable_without_registry() -> None:
     compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
     assert compat.status.value == "unavailable"
     assert "no registered" in compat.finding.lower()
-    # Arm aggregates must be unavailable
     for arm in report.arm_summaries:
         agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
         assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
         assert agg.aggregate_mean is None
         assert not agg.per_replication_values
-    # Pairwise unavailable
     for diff in report.pairwise_differences:
         if diff.metric_key == "custom.test.metric":
             assert diff.status.value == "unavailable"
@@ -251,17 +265,15 @@ def test_valid_custom_metric_remains_unavailable_without_registry() -> None:
 def test_same_metric_becomes_available_with_valid_registry() -> None:
     study = _study_with_custom_metric()
     reg = _registry([_valid_contract(metric_key="custom.test.metric")])
-    report = build_resource_strategy_report(study, metric_contract_registry=reg)  # type: ignore[arg-type]
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
     compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
     assert compat.status.value == "compatible"
     assert "compatible" in compat.finding.lower()
-    # Arm aggregates available
     for arm in report.arm_summaries:
         agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
         assert agg.status.value in ("available", "partial")
         assert agg.aggregate_mean is not None
         assert agg.replication_count == 2
-    # Pairwise available
     found = [d for d in report.pairwise_differences if d.metric_key == "custom.test.metric"]
     assert found
     for diff in found:
@@ -270,36 +282,24 @@ def test_same_metric_becomes_available_with_valid_registry() -> None:
 
 
 def test_one_arm_changes_unit_incompatible() -> None:
-    study = _study_with_custom_metric()
+    study = _study_with_custom_metric(arm_b_unit="ms")
     reg = _registry([_valid_contract(metric_key="custom.test.metric", unit="ratio")])
-    # Simulate per-arm contracts: arm_b uses different unit
-    arm_overrides = {
-        "arm_a": {
-            "custom.test.metric": ("1.0", "ratio", ResourceStrategyMetricDenominator.REPLICATION)
-        },
-        "arm_b": {
-            "custom.test.metric": ("1.0", "ms", ResourceStrategyMetricDenominator.REPLICATION)
-        },
-    }
-    report = build_resource_strategy_report(
-        study, metric_contract_registry=reg, arm_metric_contracts=arm_overrides
-    )  # type: ignore[arg-type]
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
     compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
     assert compat.status.value == "incompatible"
-    assert "unit" in compat.finding.lower() or "differ across arms" in compat.finding.lower()
-    # Arm aggregates unavailable
+    assert "unit" in compat.finding.lower()
+    assert "arm_b" in compat.finding.lower()
     for arm in report.arm_summaries:
         agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
         assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
         assert agg.aggregate_mean is None
-    # Pairwise unavailable
     for diff in report.pairwise_differences:
         if diff.metric_key == "custom.test.metric":
             assert diff.status.value == "unavailable"
 
 
 def test_one_arm_changes_denominator_incompatible() -> None:
-    study = _study_with_custom_metric()
+    study = _study_with_custom_metric(arm_b_denom=ResourceStrategyMetricDenominator.OFFERED_TASKS)
     reg = _registry(
         [
             _valid_contract(
@@ -307,40 +307,29 @@ def test_one_arm_changes_denominator_incompatible() -> None:
             )
         ]
     )
-    arm_overrides = {
-        "arm_a": {
-            "custom.test.metric": ("1.0", "ratio", ResourceStrategyMetricDenominator.REPLICATION)
-        },
-        "arm_b": {
-            "custom.test.metric": ("1.0", "ratio", ResourceStrategyMetricDenominator.OFFERED_TASKS)
-        },
-    }
-    report = build_resource_strategy_report(
-        study, metric_contract_registry=reg, arm_metric_contracts=arm_overrides
-    )  # type: ignore[arg-type]
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
     compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
     assert compat.status.value == "incompatible"
-    assert "denominator" in compat.finding.lower() or "differ across arms" in compat.finding.lower()
+    assert "denominator" in compat.finding.lower()
+    assert "arm_b" in compat.finding.lower()
     for arm in report.arm_summaries:
         agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
         assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
 
 
 def test_existing_built_in_golden_unchanged_without_registry() -> None:
-    # Load synthetic fixture and verify fingerprint unchanged when no registry supplied
     from pathlib import Path
 
+    EXPECTED_LEGACY_REPORT_FINGERPRINT = (  # noqa: N806
+        "c07480af8e68dc73f235e2f725d7d6caf223e285b374b286fb1ed17f0f22c375"
+    )
     study = ResourceStrategyStudy.model_validate_json(
         Path("tests/fixtures/resource_strategy/synthetic_study_v1.json").read_text()
     )
     report = build_resource_strategy_report(study)
-    # Known golden fingerprint from existing tests (should remain stable)
-    # Compute and verify deterministic
-    fp = report.fingerprint()
-    # Rebuild again must match
-    report2 = build_resource_strategy_report(study)
-    assert fp == report2.fingerprint()
-    # With no registry, built-in compatibility must be compatible
+    assert report.fingerprint() == EXPECTED_LEGACY_REPORT_FINGERPRINT
+    report2 = build_resource_strategy_report(study, metric_contract_registry=None)
+    assert report2.fingerprint() == EXPECTED_LEGACY_REPORT_FINGERPRINT
     for compat in report.compatibility:
         assert compat.status.value == "compatible", (
             f"{compat.metric_key} should be compatible without registry"
@@ -373,24 +362,23 @@ def test_no_code_fields_rejected() -> None:
 
 
 def test_numeric_bounds_validation() -> None:
-    # minimum > maximum should fail
     with pytest.raises(ValidationError, match="minimum must not exceed maximum"):
         _valid_contract(minimum=10.0, maximum=5.0)
-    # allowed_statuses too many
     with pytest.raises(ValidationError):
         _valid_contract(allowed_statuses=[f"s{i}" for i in range(33)])
-    # direction/higher_is_better inconsistency
     with pytest.raises(ValidationError, match="inconsistent"):
-        MetricContract(
-            metric_key="custom.x",
-            metric_version="1.0",
-            unit="ratio",
-            denominator=MetricContractDenominator.REPLICATION,
-            description="x",
-            higher_is_better=True,
-            direction=MetricContractDirection.LOWER_IS_BETTER,
-            time_window_applicable=False,
-            contract_version="1.0",
+        MetricContract.model_validate(
+            {
+                "metric_key": "custom.x",
+                "metric_version": "1.0",
+                "unit": "ratio",
+                "denominator": "replication",
+                "description": "x",
+                "higher_is_better": True,
+                "direction": "lower_is_better",
+                "time_window_applicable": False,
+                "contract_version": "1.0",
+            }
         )
 
 
@@ -399,9 +387,7 @@ def test_import_export_validation_and_fingerprint() -> None:
     json_text = reg.to_json()
     loaded = load_registry_from_json(json_text)
     assert loaded.fingerprint() == reg.fingerprint()
-    # Canonical JSON stable
     assert json.loads(json_text)["fingerprint"] == reg.fingerprint()
-    # CSV deterministic
     csv1 = registry_to_csv(reg)
     csv2 = registry_to_csv(loaded)
     assert csv1 == csv2
@@ -420,7 +406,6 @@ def test_supersession_lineage() -> None:
     )
     reg = MetricContractRegistry(registry_version="1.0", contracts=[c1, c2], supersession=[sup])
     assert reg.fingerprint() == reg.fingerprint()
-    # Invalid lineage (missing predecessor)
     with pytest.raises(ValidationError, match="not in registry"):
         MetricContractRegistry(
             registry_version="1.0",
@@ -437,10 +422,8 @@ def test_merge_deterministic_and_conflict() -> None:
     merged, receipt = merge_registries([reg1, reg2])
     assert len(merged.deduplicated_contracts()) == 2
     assert receipt.status.value != "rejected"
-    # Order independence of merge
     merged2, _ = merge_registries([reg2, reg1])
     assert merged.fingerprint() == merged2.fingerprint()
-    # Conflicting duplicate merge should fail
     c_conflict = _valid_contract(metric_key="custom.a", unit="ms")
     reg_conflict = MetricContractRegistry(
         registry_version="1.0", contracts=[c_conflict], supersession=[]
@@ -491,3 +474,117 @@ def test_strict_extra_forbid() -> None:
                 "extra": "nope",
             }
         )
+
+
+def test_custom_metric_with_registry_but_missing_arm_declarations_unavailable() -> None:
+    study = _study_with_custom_metric(with_declarations=False)
+    reg = _registry([_valid_contract(metric_key="custom.test.metric")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "unavailable"
+    assert (
+        "per-arm" in compat.finding.lower() or "declaration unavailable" in compat.finding.lower()
+    )
+    for arm in report.arm_summaries:
+        agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+    for diff in report.pairwise_differences:
+        if diff.metric_key == "custom.test.metric":
+            assert diff.status.value == "unavailable"
+
+
+def test_both_arms_agree_compatible() -> None:
+    study = _study_with_custom_metric()
+    reg = _registry([_valid_contract(metric_key="custom.test.metric")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "compatible"
+    for arm in report.arm_summaries:
+        agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.test.metric")
+        assert agg.status.value in ("available", "partial")
+        assert agg.aggregate_mean is not None
+    found = [d for d in report.pairwise_differences if d.metric_key == "custom.test.metric"]
+    assert found
+    for diff in found:
+        assert diff.status.value == "available"
+
+
+def test_one_arm_version_differs_incompatible() -> None:
+    study = _study_with_custom_metric(arm_b_version="2.0")
+    reg = _registry([_valid_contract(metric_key="custom.test.metric", metric_version="1.0")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "incompatible"
+    assert "version" in compat.finding.lower()
+    assert "arm_b" in compat.finding.lower()
+
+
+def test_missing_arm_declaration_unavailable_not_compatible() -> None:
+    study = _study_with_custom_metric(missing_arm_b_declaration=True)
+    reg = _registry([_valid_contract(metric_key="custom.test.metric")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "unavailable"
+    assert "per-arm" in compat.finding.lower()
+
+
+def test_registry_vs_study_catalog_unit_mismatch_incompatible() -> None:
+    study = _study_with_custom_metric(custom_unit="ratio")
+    reg = _registry([_valid_contract(metric_key="custom.test.metric", unit="ms")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "incompatible"
+    assert "unit" in compat.finding.lower()
+
+
+def test_registry_vs_study_catalog_denominator_mismatch_incompatible() -> None:
+    study = _study_with_custom_metric(custom_denom=ResourceStrategyMetricDenominator.REPLICATION)
+    reg = _registry(
+        [
+            _valid_contract(
+                metric_key="custom.test.metric", denominator=MetricContractDenominator.OFFERED_TASKS
+            )
+        ]
+    )
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.test.metric")
+    assert compat.status.value == "incompatible"
+    assert "denominator" in compat.finding.lower()
+
+
+def test_registry_key_missing_unavailable() -> None:
+    study = _study_with_custom_metric(custom_key="custom.missing")
+    reg = _registry([_valid_contract(metric_key="custom.other")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == "custom.missing")
+    assert compat.status.value == "unavailable"
+
+
+def test_legacy_study_fingerprint_unchanged() -> None:
+    from pathlib import Path
+
+    study = ResourceStrategyStudy.model_validate_json(
+        Path("tests/fixtures/resource_strategy/synthetic_study_v1.json").read_text()
+    )
+    fp = study.fingerprint()
+    study2 = ResourceStrategyStudy.model_validate(study.model_dump(mode="json"))
+    assert study2.fingerprint() == fp
+    assert not any(arm.metric_declarations for arm in study.arms)
+
+
+def test_new_declaration_binds_study_identity() -> None:
+    study_a = _study_with_custom_metric()
+    study_b = _study_with_custom_metric(arm_b_unit="ms")
+    assert study_a.fingerprint() != study_b.fingerprint()
+
+
+def test_registry_backend_error_propagates() -> None:
+    class FaultyRegistry(MetricContractRegistry):
+        def get_contract(self, *_args: Any, **_kwargs: Any) -> Any:  # noqa: ANN401
+            raise RuntimeError("sentinel registry fault")
+
+    study = _study_with_custom_metric()
+    faulty = FaultyRegistry(registry_version="1.0", contracts=[_valid_contract()], supersession=[])
+    with pytest.raises(RuntimeError, match="sentinel registry fault"):
+        build_resource_strategy_report(study, metric_contract_registry=faulty)

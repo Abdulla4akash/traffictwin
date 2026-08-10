@@ -62,7 +62,10 @@ def _load_registry_from_state() -> MetricContractRegistry | None:
         return None
 
 
-def _synthetic_study_for_preview() -> ResourceStrategyStudy:
+def _synthetic_study_for_preview(
+    include_declarations: bool = True,
+    arm_b_unit: str | None = None,
+) -> ResourceStrategyStudy:
     # Minimal synthetic study with two arms, used for preview
     import hashlib
 
@@ -99,6 +102,18 @@ def _synthetic_study_for_preview() -> ResourceStrategyStudy:
             latency_p95_ms=270.0,
         )
 
+    custom_decl_a = ResourceStrategyMetric(
+        metric_key="custom.preview.metric",
+        metric_version="1.0",
+        unit="ratio",
+        denominator=ResourceStrategyMetricDenominator.REPLICATION,
+    )
+    custom_decl_b = ResourceStrategyMetric(
+        metric_key="custom.preview.metric",
+        metric_version="1.0",
+        unit=arm_b_unit if arm_b_unit is not None else "ratio",
+        denominator=ResourceStrategyMetricDenominator.REPLICATION,
+    )
     arms = [
         ResourceStrategyArm(
             arm_id="arm_a",
@@ -106,6 +121,7 @@ def _synthetic_study_for_preview() -> ResourceStrategyStudy:
             description="Preview arm A",
             strategy_type="strongest_link_placement",
             replications=[_rep("rep_001"), _rep("rep_002"), _rep("rep_003")],
+            metric_declarations=[custom_decl_a] if include_declarations else [],
         ),
         ResourceStrategyArm(
             arm_id="arm_b",
@@ -113,6 +129,7 @@ def _synthetic_study_for_preview() -> ResourceStrategyStudy:
             description="Preview arm B",
             strategy_type="deterministic_jsq",
             replications=[_rep("rep_001"), _rep("rep_002"), _rep("rep_003")],
+            metric_declarations=[custom_decl_b] if include_declarations else [],
         ),
     ]
     metric_catalog = [
@@ -158,8 +175,9 @@ def render(config: object) -> None:  # noqa: ANN001
     _render_h1()
     st.caption(
         "Define closed metadata contracts for custom metrics — not executable formulas. "
-        "A study metric becomes comparable only when its contract is registered and every arm "
-        "agrees on version, unit, and denominator."
+        "A custom metric becomes comparable only when the registry contract, study catalog, "
+        "and every participating arm's metric declaration agree on version, unit, and denominator. "
+        "Registration alone does not establish comparability."
     )
     st.warning(
         "Registration does not implement metric computation. "
@@ -639,28 +657,20 @@ def render(config: object) -> None:  # noqa: ANN001
                             st.caption(
                                 f"Arm {arm.arm_id} correctly UNAVAILABLE due to incompatibility"
                             )
-                # Demonstrate arm mismatch
-                # Simulate one arm changes unit
-                from traffictwin.experiments.resource_strategy import (
-                    ResourceStrategyMetricDenominator as RSMD,  # noqa: N817
-                )
-
-                arm_overrides_ok = {
-                    "arm_a": {"custom.preview.metric": ("1.0", "ratio", RSMD.REPLICATION)},
-                    "arm_b": {"custom.preview.metric": ("1.0", "ratio", RSMD.REPLICATION)},
-                }
-                arm_overrides_bad_unit = {
-                    "arm_a": {"custom.preview.metric": ("1.0", "ratio", RSMD.REPLICATION)},
-                    "arm_b": {"custom.preview.metric": ("1.0", "ms", RSMD.REPLICATION)},
-                }
+                # Demonstrate arm mismatch using embedded declarations
                 if current_registry is not None and any(
                     c.metric_key == "custom.preview.metric"
                     for c in current_registry.deduplicated_contracts()
                 ):
+                    study_ok = _synthetic_study_for_preview(
+                        include_declarations=True, arm_b_unit="ratio"
+                    )
+                    study_bad = _synthetic_study_for_preview(
+                        include_declarations=True, arm_b_unit="ms"
+                    )
                     report_ok = build_resource_strategy_report(
-                        study,
+                        study_ok,
                         metric_contract_registry=current_registry,
-                        arm_metric_contracts=arm_overrides_ok,
                     )
                     compat_ok = next(
                         (
@@ -671,9 +681,8 @@ def render(config: object) -> None:  # noqa: ANN001
                         None,
                     )
                     report_bad = build_resource_strategy_report(
-                        study,
+                        study_bad,
                         metric_contract_registry=current_registry,
-                        arm_metric_contracts=arm_overrides_bad_unit,
                     )
                     compat_bad = next(
                         (
@@ -683,7 +692,7 @@ def render(config: object) -> None:  # noqa: ANN001
                         ),
                         None,
                     )
-                    st.markdown("**Cross-arm consistency check**")
+                    st.markdown("**Cross-arm consistency check (embedded declarations)**")
                     if compat_ok:
                         st.caption(
                             f"Both arms agree on unit → {compat_ok.status.value} ({compat_ok.finding[:60]})"  # noqa: E501
@@ -697,6 +706,25 @@ def render(config: object) -> None:  # noqa: ANN001
                             st.error(
                                 f"Arm unit mismatch should be INCOMPATIBLE but got {compat_bad.status.value}"  # noqa: E501
                             )
+                    # Also demonstrate missing declaration case
+                    study_missing = _synthetic_study_for_preview(include_declarations=False)
+                    report_missing = build_resource_strategy_report(
+                        study_missing,
+                        metric_contract_registry=current_registry,
+                    )
+                    compat_missing = next(
+                        (
+                            c
+                            for c in report_missing.compatibility
+                            if c.metric_key == "custom.preview.metric"
+                        ),
+                        None,
+                    )
+                    if compat_missing and compat_missing.status.value == "unavailable":
+                        st.info(
+                            "Missing arm declarations → correctly UNAVAILABLE: "
+                            "per-arm declaration unavailable"
+                        )
 
         except Exception as exc:
             st.error(f"Preview failed: {exc}")
