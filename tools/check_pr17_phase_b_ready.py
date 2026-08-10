@@ -1,32 +1,37 @@
 #!/usr/bin/env python3
 """
-Phase-B readiness check for PR #17 — merge-style-agnostic.
+Phase-B readiness check for PR #17 — merge-style-agnostic, fail-closed.
 
 Gate A: GitHub says PR #13 was actually merged (mergedAt != null).
-Gate B: live `origin/main` (or supplied --main-path) contains the reviewed
+Gate B: live `origin/main` (via --main-path + --expected-main-sha) contains the reviewed
         PR #13 product contract (file existence + content).
 
-Result states:
-  BLOCKED_PR13_OPEN          mergedAt is null -> no Phase B
-  BLOCKED_CONTENT_MISMATCH   merged but content contract not satisfied
-  READY_FOR_PHASE_B          both gates pass
+Result states (distinct exit codes):
+  READY_FOR_PHASE_B              0
+  BLOCKED_PR13_OPEN              1
+  BLOCKED_CONTENT_MISMATCH       2
+  GITHUB_QUERY_ERROR             3
+  MAIN_PATH_REVISION_MISMATCH    4
 
 This script is READ-ONLY, does not modify files, does not run SUMO/VEC.
 
 Usage:
-  python tools/check_pr17_phase_b_ready.py --pr13-merged-at 2026-08-09T12:00:00Z
-  python tools/check_pr17_phase_b_ready.py --pr13-merged-at null --main-path /tmp/main
-  # or let it query gh (if available):
-  python tools/check_pr17_phase_b_ready.py --query-gh
+  python tools/check_pr17_phase_b_ready.py  # noqa: E501
+  #   --main-path /tmp/worktree --expected-main-sha abc123  # noqa: E501
+  #   --pr13-merged-at 2026-08-09T12:00:00Z  # noqa: E501
+  python tools/check_pr17_phase_b_ready.py  # noqa: E501
+  #   --main-path /tmp/worktree --expected-main-sha abc --pr13-merged-at null  # noqa: E501
+  python tools/check_pr17_phase_b_ready.py  # noqa: E501
+  #   --main-path /tmp/worktree --expected-main-sha abc --query-gh  # noqa: E501
 
-Exit codes: 0 for READY, 1 for BLOCKED_PR13_OPEN, 2 for BLOCKED_CONTENT_MISMATCH
+Exit codes distinct; see docstring. Missing required --main-path fails via argparse (exit 2).
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
 import pathlib
-import re
 import subprocess
 import sys
 
@@ -57,6 +62,118 @@ def _read(path: pathlib.Path) -> str:
     return path.read_text(encoding="utf-8", errors="strict")
 
 
+def _actual_head_sha(main_path: pathlib.Path) -> str | None:
+    """Run git -C main_path rev-parse HEAD, return sha or None on error."""
+    try:
+        r = subprocess.run(  # noqa: S603
+            ["git", "-C", str(main_path), "rev-parse", "HEAD"],  # noqa: S603,S607
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if r.returncode != 0:
+            return None
+        return r.stdout.strip()
+    except Exception:
+        return None
+
+
+def _count_portfolio_registrations_via_ast(main_path: pathlib.Path) -> tuple[int, list[str]]:
+    """
+    Authoritative registration count for Portfolio Explorer.
+
+    Parses src/traffictwin/ui/navigation_v07.py via AST and counts V07PageSpec
+    where page=UiPage.PORTFOLIO_EXPLORER. Excludes comments/docs/tests/enum.
+    Returns (count, reasons).
+    """
+    reasons: list[str] = []
+    nav_v07_path = main_path / EXPECTED_NAV_V07
+    if not nav_v07_path.is_file():
+        return 0, [f"missing {EXPECTED_NAV_V07}"]
+    try:
+        tree = ast.parse(_read(nav_v07_path), filename=str(nav_v07_path))
+    except Exception as e:
+        return 0, [f"navigation_v07.py AST parse error: {e}"]
+    count = 0
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            # Check func is V07PageSpec
+            func = node.func
+            func_name = ""
+            if isinstance(func, ast.Name):
+                func_name = func.id
+            elif isinstance(func, ast.Attribute):
+                func_name = func.attr
+            if func_name == "V07PageSpec":
+                # Check both positional first arg and keyword page=
+                candidates = []
+                if node.args:
+                    candidates.append(node.args[0])
+                for kw in node.keywords:
+                    if kw.arg == "page":
+                        candidates.append(kw.value)
+                for val in candidates:
+                    if (
+                        isinstance(val, ast.Attribute)
+                        and val.attr == "PORTFOLIO_EXPLORER"
+                        and (
+                            isinstance(val.value, ast.Name)
+                            and val.value.id == "UiPage"
+                            or isinstance(val.value, ast.Attribute)
+                        )
+                    ):
+                        count += 1
+                        break
+    return count, reasons
+
+
+def _parse_challenge_seeds_via_ast(  # noqa: E501
+    main_path: pathlib.Path,
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """
+    Parse portfolio_explorer.py via AST to extract ChallengeSeedDefinition challenge_id and status.
+    Returns list of (challenge_id, status_str) and reasons.
+    Status_str is like "REPRESENTABLE_ONLY", "EXECUTABLE", etc.
+    """
+    reasons: list[str] = []
+    port_path = main_path / "src/traffictwin/ui/portfolio_explorer.py"
+    if not port_path.is_file():
+        return [], ["missing src/traffictwin/ui/portfolio_explorer.py"]
+    try:
+        tree = ast.parse(_read(port_path), filename=str(port_path))
+    except Exception as e:
+        return [], [f"portfolio_explorer.py AST parse error: {e}"]
+    seeds: list[tuple[str, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            func_name = ""
+            if isinstance(func, ast.Name):
+                func_name = func.id
+            elif isinstance(func, ast.Attribute):
+                func_name = func.attr
+            if func_name == "ChallengeSeedDefinition":
+                cid = None
+                status = "REPRESENTABLE_ONLY"  # default per class definition
+                for kw in node.keywords:
+                    if (
+                        kw.arg == "challenge_id"
+                        and isinstance(kw.value, ast.Constant)
+                        and isinstance(kw.value.value, str)
+                    ):
+                        cid = kw.value.value
+                    elif kw.arg == "status":
+                        # status=ChallengeExecutionStatus.REPRESENTABLE_ONLY
+                        val = kw.value
+                        if isinstance(val, ast.Attribute):
+                            status = val.attr
+                        elif isinstance(val, ast.Constant) and isinstance(val.value, str):
+                            status = val.value
+                if cid is not None and cid.startswith("CH-"):
+                    seeds.append((cid, status))
+    return seeds, reasons
+
+
 def check_content_gate(main_path: pathlib.Path) -> tuple[bool, list[str]]:
     """Check Gate B: does main_path contain PR #13 product contract?"""
     reasons: list[str] = []
@@ -67,46 +184,37 @@ def check_content_gate(main_path: pathlib.Path) -> tuple[bool, list[str]]:
         if not p.is_file():
             reasons.append(f"missing file {rel}")
 
-    # 2. labels.py contains PORTFOLIO_EXPLORER
+    # 2. labels.py contains PORTFOLIO_EXPLORER (presence, not count for page registration)
     labels = main_path / EXPECTED_LABELS
     if labels.is_file():
         txt = _read(labels)
         if "PORTFOLIO_EXPLORER" not in txt:
             reasons.append("labels.py missing PORTFOLIO_EXPLORER")
-        # exactly once for page contract (allow 1 or more but check at least once)
-        cnt = txt.count("PORTFOLIO_EXPLORER")
-        if cnt < 1:
-            reasons.append(f"labels.py PORTFOLIO_EXPLORER count {cnt} <1")
     else:
         reasons.append(f"missing {EXPECTED_LABELS}")
 
-    # 3. navigation_v07.py contains PORTFOLIO_EXPLORER
-    nav_v07 = main_path / EXPECTED_NAV_V07
-    if nav_v07.is_file():
-        txt = _read(nav_v07)
-        if "PORTFOLIO_EXPLORER" not in txt:
-            reasons.append("navigation_v07.py missing PORTFOLIO_EXPLORER")
-        # should appear at least once
-        if txt.count("PORTFOLIO_EXPLORER") < 1:
-            reasons.append("navigation_v07.py PORTFOLIO_EXPLORER count <1")
-    else:
-        reasons.append(f"missing {EXPECTED_NAV_V07}")
+    # 3. navigation_v07.py authoritative registration count ==1 (exactly once, via AST)
+    count, nav_reasons = _count_portfolio_registrations_via_ast(main_path)
+    reasons.extend(nav_reasons)
+    if count != 1 and not any("missing" in r for r in nav_reasons):
+        reasons.append(
+            f"portfolio_registration_count = {count} expected = 1 "  # noqa: E501
+            "(navigation_v07.py V07PageSpec PORTFOLIO_EXPLORER)"  # noqa: E501
+        )
 
-    # 4. navigation.py contains portfolio explorer registration
+    # 4. navigation.py contains portfolio explorer registration  # noqa: E501
     nav = main_path / EXPECTED_NAV
     if nav.is_file():
         txt = _read(nav)
-        # Look for portfolio string (lowercase) - at least one
         if "portfolio" not in txt.lower():
             reasons.append("navigation.py missing portfolio reference")
     else:
         reasons.append(f"missing {EXPECTED_NAV}")
 
-    # 5. Challenge seed library contracts
+    # 5. Challenge seed library contracts via AST (structural, not token count)
     port = main_path / "src/traffictwin/ui/portfolio_explorer.py"
     if port.is_file():
         txt = _read(port)
-        # Check ChallengeSeedDefinition and SELECTOR_CONSUMED_FIELDS exist
         if "class ChallengeSeedDefinition" not in txt:
             reasons.append("portfolio_explorer.py missing ChallengeSeedDefinition")
         if "SELECTOR_CONSUMED_FIELDS" not in txt:
@@ -115,7 +223,6 @@ def check_content_gate(main_path: pathlib.Path) -> tuple[bool, list[str]]:
             reasons.append("portfolio_explorer.py missing get_challenge_seed_library")
         if "get_challenge_seed" not in txt:
             reasons.append("portfolio_explorer.py missing get_challenge_seed")
-        # Check fingerprint semantics: must contain challenge_target_surfaces and selector_input_features  # noqa: E501
         if "challenge_target_surfaces" not in txt:
             reasons.append(
                 "portfolio_explorer.py missing fingerprint binding challenge_target_surfaces"
@@ -124,39 +231,40 @@ def check_content_gate(main_path: pathlib.Path) -> tuple[bool, list[str]]:
             reasons.append(
                 "portfolio_explorer.py missing fingerprint binding selector_input_features"
             )
-        # Check no generic ScenarioSeed→run executor (should NOT contain def run_challenge etc)
-        # We check for forbidden generic executor strings
         forbidden = ["def run_challenge", "def execute_challenge", "def run_scenario_seed"]
         for f in forbidden:
             if f in txt:
                 reasons.append(f"portfolio_explorer.py contains forbidden generic executor {f!r}")
-        # Check all seven challenge IDs present
-        for cid in EXPECTED_CHALLENGE_IDS:
-            if cid not in txt:
-                reasons.append(f"portfolio_explorer.py missing challenge seed {cid}")
-        # Check all seven remain REPRESENTABLE_ONLY
-        # Count occurrences of status=ChallengeExecutionStatus.REPRESENTABLE_ONLY
-        cnt_repr = txt.count("REPRESENTABLE_ONLY")
-        # There should be at least 7 (one per seed) + definitions; we expect exactly 7 seeds + class default = 8 occurrences  # noqa: E501
-        # Safer: ensure not 0 and ensure no other status like EXECUTABLE for seeds
-        # Check that no seed has status EXECUTABLE or NOT_YET_EXECUTABLE (should be only REPRESENTABLE_ONLY for seeds)  # noqa: E501
-        # Look for ChallengeSeedDefinition blocks with status != REPRESENTABLE_ONLY
-        # Simple: if "EXECUTABLE" appears outside StrEnum definition, it's suspicious.
-        # The StrEnum itself contains EXECUTABLE, so we check for status=.*EXECUTABLE but not in enum  # noqa: E501
-        if re.search(r"status\s*=\s*ChallengeExecutionStatus\.EXECUTABLE", txt):
+        # Structural challenge seed count
+        seeds, seed_reasons = _parse_challenge_seeds_via_ast(main_path)
+        reasons.extend(seed_reasons)
+        # Check exactly 7
+        if len(seeds) != 7:
+            reasons.append(f"challenge_seed_count = {len(seeds)} expected = 7 (found {seeds})")
+        # Check IDs exactly match expected set
+        found_ids = {cid for cid, _ in seeds}
+        expected_ids = set(EXPECTED_CHALLENGE_IDS)
+        if found_ids != expected_ids:
+            missing = expected_ids - found_ids
+            extra = found_ids - expected_ids
+            if missing:
+                for cid in sorted(missing):
+                    reasons.append(f"portfolio_explorer.py missing challenge seed {cid}")
+            if extra:
+                reasons.append(
+                    f"portfolio_explorer.py has unexpected challenge seeds {sorted(extra)}"
+                )
+        # Check all 7 are REPRESENTABLE_ONLY structurally
+        non_repr = [(cid, st) for cid, st in seeds if st != "REPRESENTABLE_ONLY"]
+        if non_repr:
+            ids = [f"{cid}={st}" for cid, st in non_repr]
             reasons.append(
-                "portfolio_explorer.py contains EXECUTABLE status (should be REPRESENTABLE_ONLY)"  # noqa: E501
+                f"non_representable_seed_ids = {ids} expected = [] (all 7 must be REPRESENTABLE_ONLY)"  # noqa: E501
             )
-        if re.search(r"status\s*=\s*ChallengeExecutionStatus\.NOT_YET_EXECUTABLE", txt):
-            reasons.append("portfolio_explorer.py contains NOT_YET_EXECUTABLE for a seed")
-        # Ensure at least 7 REPRESENTABLE_ONLY for seeds (the enum also has one)
-        if cnt_repr < 7:
-            reasons.append(f"portfolio_explorer.py REPRESENTABLE_ONLY count {cnt_repr} <7")
+        # Also ensure no status EXECUTABLE etc remains (covered by non_repr)
+        # Enum definition itself not counted because we only count ChallengeSeedDefinition calls
     else:
         reasons.append("missing src/traffictwin/ui/portfolio_explorer.py")
-
-    # 6. No duplicate Portfolio page registration check: count occurrences of portfolio_explorer in navigation files should be reasonable (1 each)  # noqa: E501
-    # Already checked existence; just ensure not 0
 
     is_ready = len(reasons) == 0
     return is_ready, reasons
@@ -164,13 +272,19 @@ def check_content_gate(main_path: pathlib.Path) -> tuple[bool, list[str]]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="PR #17 Phase-B readiness check (merge-style-agnostic)"
+        description="PR #17 Phase-B readiness check (merge-style-agnostic, fail-closed)"
     )
     parser.add_argument(
         "--main-path",
         type=pathlib.Path,
-        default=pathlib.Path.cwd(),
-        help="Path to checked-out main (default cwd)",
+        required=True,
+        help="Path to checked-out main (throwaway worktree at exact origin/main SHA)",
+    )
+    parser.add_argument(
+        "--expected-main-sha",
+        type=str,
+        required=True,
+        help="Expected git rev-parse origin/main SHA that main-path must exactly match",
     )
     parser.add_argument(
         "--pr13-merged-at",
@@ -216,8 +330,8 @@ def main(argv: list[str] | None = None) -> int:
             merged_at = j.get("mergedAt")
             print(f"gh query: PR #13 mergedAt={merged_at!r} headRefOid={j.get('headRefOid')}")
         except Exception as e:
-            print(f"ERROR querying gh: {e}", file=sys.stderr)
-            return 2
+            print(f"GITHUB_QUERY_ERROR: ERROR querying gh: {e}", file=sys.stderr)
+            return 3
 
     # Gate A
     if merged_at is None or str(merged_at).strip().lower() in ("null", "none", ""):
@@ -229,17 +343,35 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"Gate A PASS: PR #13 mergedAt={merged_at!r}")
 
-    # Gate B
+    # Verify main-path revision binding BEFORE content check
     main_path = args.main_path.resolve()
+    expected_sha = args.expected_main_sha.strip()
+    actual_sha = _actual_head_sha(main_path)
+    if actual_sha is None:
+        print(  # noqa: E501
+            f"MAIN_PATH_REVISION_MISMATCH: cannot determine HEAD of main_path={main_path}",  # noqa: E501
+            file=sys.stderr,
+        )
+        print(f"  expected-main-sha={expected_sha}")
+        return 4
+    if actual_sha != expected_sha:
+        print(  # noqa: E501
+            f"MAIN_PATH_REVISION_MISMATCH: main_path HEAD {actual_sha} != expected {expected_sha}",  # noqa: E501
+            file=sys.stderr,
+        )
+        print(f"  main_path={main_path} expected-main-sha={expected_sha} actual={actual_sha}")
+        print("  Gate B not evaluated — worktree does not match fetch.")
+        return 4
+    print(f"Main-path revision binding PASS: {actual_sha} == expected {expected_sha}")
+
+    # Gate B
     print(f"Checking Gate B content contract on main_path={main_path}")
     is_ready, reasons = check_content_gate(main_path)
     if is_ready:
         print("Gate B PASS: PR #13 product contract present on live main")
         print("READY_FOR_PHASE_B: PR #13 reports merged AND product contract exists on live main.")
-        # Informational ancestry check (not required)
         if args.pr13_head_oid:
             try:
-                # Try to check ancestry, but don't fail on it
                 r = subprocess.run(  # noqa: S603,S607
                     ["git", "merge-base", "--is-ancestor", args.pr13_head_oid, "origin/main"],  # noqa: S607
                     capture_output=True,
