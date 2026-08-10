@@ -12,7 +12,12 @@ from traffictwin.event_aligned.exports import (
     export_points_csv,
     export_report_json,
 )
-from traffictwin.event_aligned.models import EventAlignedReport, EventAlignedWindowSpec, EventAnchor, EventAnchorKind
+from traffictwin.event_aligned.models import (
+    EventAlignedReport,
+    EventAlignedWindowSpec,
+    EventAnchor,
+    EventAnchorKind,
+)
 from traffictwin.event_aligned.service import build_event_aligned_report
 from traffictwin.ingestion.bundle import validate_bundle
 from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
@@ -48,7 +53,9 @@ def compute_event_aligned_for_ui(
     """Validate UI inputs and build the deterministic event-aligned report."""
 
     if not (2 <= len(bundle_paths) <= 8):
-        return ServiceError("Event-aligned analysis requires 2 to 8 bundles.", "Select 2-8 compatible runs")
+        return ServiceError(
+            "Event-aligned analysis requires 2 to 8 bundles.", "Select 2-8 compatible runs"
+        )
 
     if len(anchor_timestamps) != len(bundle_paths):
         return ServiceError("Anchor count must match bundle count.", "Provide one anchor per run")
@@ -56,7 +63,9 @@ def compute_event_aligned_for_ui(
     try:
         definition = METRIC_DEFINITIONS.get(metric_key)
         if definition is None:
-            return ServiceError(f"Unsupported metric: {metric_key}", "Choose a window-applicable metric")
+            return ServiceError(
+                f"Unsupported metric: {metric_key}", "Choose a window-applicable metric"
+            )
 
         spec = EventAlignedWindowSpec(
             pre_duration_s=float(pre_duration_s),
@@ -82,7 +91,11 @@ def compute_event_aligned_for_ui(
             # Parse anchor
             ts_str = anchor_timestamps[idx]
             anchor_dt = _parse_anchor_datetime(ts_str)
-            label = anchor_labels[idx] if anchor_labels and idx < len(anchor_labels) else kind.authored_label
+            label = (
+                anchor_labels[idx]
+                if anchor_labels and idx < len(anchor_labels)
+                else kind.authored_label
+            )
             # Ensure label not contains observed
             if "observed" in label.lower():
                 return ServiceError("Authored anchors must not be labelled observed.", label)

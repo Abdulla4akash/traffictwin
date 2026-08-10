@@ -8,17 +8,24 @@ from pathlib import Path
 
 import streamlit as st
 
-from traffictwin.event_aligned.exports import export_phase_summaries_csv, export_points_csv, export_report_json
-from traffictwin.event_aligned.models import CoverageState, EventAlignedReport
-from traffictwin.metrics.catalogue import METRIC_DEFINITIONS, _WINDOW_ANCHORS_BY_KEY
+from traffictwin.event_aligned.exports import (
+    export_phase_summaries_csv,
+    export_points_csv,
+    export_report_json,
+)
+from traffictwin.event_aligned.models import EventAlignedReport
+from traffictwin.metrics.catalogue import _WINDOW_ANCHORS_BY_KEY, METRIC_DEFINITIONS
 from traffictwin.ui.charts import line_figure
 from traffictwin.ui.services.event_aligned import compute_event_aligned_for_ui
 from traffictwin.ui.services.models import ServiceError
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
-
 WINDOW_APPLICABLE_KEYS = sorted(_WINDOW_ANCHORS_BY_KEY.keys())
-DEFAULT_METRIC = "task.completion.rate" if "task.completion.rate" in WINDOW_APPLICABLE_KEYS else WINDOW_APPLICABLE_KEYS[0]
+DEFAULT_METRIC = (
+    "task.completion.rate"
+    if "task.completion.rate" in WINDOW_APPLICABLE_KEYS
+    else WINDOW_APPLICABLE_KEYS[0]
+)
 
 
 def _available_bundle_options() -> list[str]:
@@ -38,7 +45,10 @@ def _available_bundle_options() -> list[str]:
         if val and val not in options and Path(val).exists():
             options.append(val)
     if not options:
-        options = ["tests/fixtures/bundles/baseline_valid", "tests/fixtures/bundles/variation_valid"]
+        options = [
+            "tests/fixtures/bundles/baseline_valid",
+            "tests/fixtures/bundles/variation_valid",
+        ]
     return options
 
 
@@ -47,17 +57,21 @@ def render() -> None:
 
     st.title("Event-Aligned Analysis")
     st.caption(
-        "Align compatible temporal evidence around a declared event anchor and compare before, during "
-        "and after windows. Manual timestamps and authored incidents are labelled authored anchors, not observed incidents. "
-        "Windows use [start, end). No interpolation is performed; missing bins remain unavailable, not zero-filled. "
+        "Align compatible temporal evidence around a declared event anchor and compare before, during "  # noqa: E501
+        "and after windows. Manual timestamps and authored incidents are labelled authored anchors, not observed incidents. "  # noqa: E501
+        "Windows use [start, end). No interpolation is performed; missing bins remain unavailable, not zero-filled. "  # noqa: E501
         "Differences are descriptive during the declared event window, not causal effects."
     )
-    st.caption("Canonical time basis: utc_bundle_created_at_offset_v1 — timestamps are seconds offset from bundle created_at in UTC.")
+    st.caption(
+        "Canonical time basis: utc_bundle_created_at_offset_v1 — timestamps are seconds offset from bundle created_at in UTC."  # noqa: E501
+    )
 
     options = _available_bundle_options()
     # Run/bundle selectors
     st.subheader("1. Select runs")
-    st.caption("Choose 2 to 8 compatible runs or bundles. Metric name, version, unit and denominator compatibility is enforced.")
+    st.caption(
+        "Choose 2 to 8 compatible runs or bundles. Metric name, version, unit and denominator compatibility is enforced."  # noqa: E501
+    )
     selected = st.multiselect(
         "Bundles (2–8)",
         options,
@@ -72,21 +86,27 @@ def render() -> None:
         return
 
     st.subheader("2. Select metric")
-    metric_key = st.selectbox("Supported metric", WINDOW_APPLICABLE_KEYS, index=WINDOW_APPLICABLE_KEYS.index(DEFAULT_METRIC))
+    metric_key = st.selectbox(
+        "Supported metric",
+        WINDOW_APPLICABLE_KEYS,
+        index=WINDOW_APPLICABLE_KEYS.index(DEFAULT_METRIC),
+    )
     definition = METRIC_DEFINITIONS[str(metric_key)]
     st.caption(
-        f"Metric: `{definition.key}` | Version: `{definition.implementation_version}` | Unit: `{definition.unit}` | "
+        f"Metric: `{definition.key}` | Version: `{definition.implementation_version}` | Unit: `{definition.unit}` | "  # noqa: E501
         f"Domain: `{definition.domain.value}` | Window anchor: `{definition.time_anchor}`"
     )
     st.caption(f"Human name: {definition.human_name}")
 
     st.subheader("3. Choose event anchor")
-    st.caption("All anchors are authored, not observed. Choose from declared bundle/scenario event metadata, authored incident metadata, or a manual authored timestamp.")
+    st.caption(
+        "All anchors are authored, not observed. Choose from declared bundle/scenario event metadata, authored incident metadata, or a manual authored timestamp."  # noqa: E501
+    )
     anchor_kind = st.selectbox(
         "Event anchor kind",
         ["bundle_declared_event", "authored_incident", "manual_authored_timestamp"],
         index=2,
-        help="Manual timestamps and authored incidents are labelled authored anchors, not observed incidents.",
+        help="Manual timestamps and authored incidents are labelled authored anchors, not observed incidents.",  # noqa: E501
     )
     kind_label_map = {
         "bundle_declared_event": "Authored — Bundle declared event",
@@ -96,7 +116,9 @@ def render() -> None:
     st.caption(f"Source label: {kind_label_map[anchor_kind]}")
 
     # Per-run anchor timestamps
-    st.caption("Per-run authored timestamps (timezone-aware ISO8601). Example: 2026-07-17T12:00:05+00:00")
+    st.caption(
+        "Per-run authored timestamps (timezone-aware ISO8601). Example: 2026-07-17T12:00:05+00:00"
+    )
     anchor_timestamps: list[str] = []
     # Suggest defaults based on each bundle's created_at + 5s
     from traffictwin.ingestion.bundle import validate_bundle
@@ -108,19 +130,37 @@ def render() -> None:
             if result.manifest and result.manifest.bundle.created_at.tzinfo is not None:
                 ca = result.manifest.bundle.created_at.astimezone(UTC)
                 # Suggest 5 seconds after creation for demo
-                suggested = ca.replace(microsecond=0) + __import__("datetime").timedelta(seconds=5)
+                suggested = ca.replace(microsecond=0) + __import__("datetime").timedelta(  # noqa: S110
+                    seconds=5
+                )
                 default_ts = suggested.isoformat().replace("+00:00", "Z")
-        except Exception:
+        except Exception:  # noqa: S110
             pass
-        ts = st.text_input(f"Anchor for {Path(path_str).name}", value=default_ts, key=f"anchor_{path_str}")
+        ts = st.text_input(
+            f"Anchor for {Path(path_str).name}", value=default_ts, key=f"anchor_{path_str}"
+        )
         anchor_timestamps.append(ts)
 
     st.subheader("4. Choose windows")
     c1, c2, c3, c4 = st.columns(4)
-    pre_duration = float(c1.number_input("Pre-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="pre_dur"))
-    event_duration = float(c2.number_input("Event duration (s)", min_value=0.001, value=10.0, step=5.0, key="event_dur"))
-    post_duration = float(c3.number_input("Post-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="post_dur"))
-    bin_width = float(c4.number_input("Bin width (s)", min_value=0.001, value=5.0, step=1.0, key="bin_w"))
+    pre_duration = float(
+        c1.number_input(
+            "Pre-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="pre_dur"
+        )
+    )
+    event_duration = float(
+        c2.number_input(
+            "Event duration (s)", min_value=0.001, value=10.0, step=5.0, key="event_dur"
+        )
+    )
+    post_duration = float(
+        c3.number_input(
+            "Post-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="post_dur"
+        )
+    )
+    bin_width = float(
+        c4.number_input("Bin width (s)", min_value=0.001, value=5.0, step=1.0, key="bin_w")
+    )
 
     st.subheader("5. Preview exact half-open windows")
     # Show preview for first anchor
@@ -155,9 +195,11 @@ def render() -> None:
             st.caption(
                 f"Pre: [{rows[0]['window_start_utc']}, {rows[0]['window_end_utc']}) | "
                 f"Event: [{rows[1]['window_start_utc']}, {rows[1]['window_end_utc']}) | "
-                f"Post: [{rows[2]['window_start_utc']}, {rows[2]['window_end_utc']}) — half-open, deterministic bin boundaries."
+                f"Post: [{rows[2]['window_start_utc']}, {rows[2]['window_end_utc']}) — half-open, deterministic bin boundaries."  # noqa: E501
             )
-            st.caption(f"Total bins: {preview_spec.total_bins()} (pre {pre_duration/bin_width:.1f}, event {event_duration/bin_width:.1f}, post {post_duration/bin_width:.1f})")
+            st.caption(
+                f"Total bins: {preview_spec.total_bins()} (pre {pre_duration / bin_width:.1f}, event {event_duration / bin_width:.1f}, post {post_duration / bin_width:.1f})"  # noqa: E501
+            )
     except Exception as exc:
         st.error(f"Window preview error: {exc}")
 
@@ -199,10 +241,17 @@ def render() -> None:
         cols[0].metric("Accepted runs", len(report.accepted_runs), border=True)
         cols[1].metric("Excluded runs", len(report.excluded_runs), border=True)
         cols[2].metric("Metric points", len(report.metric_points), border=True)
-        st.caption(f"Report ID: `{report.report_id}` | Fingerprint: `{report.fingerprint[:12]}…` | Canonical time basis: `{report.canonical_time_basis}`")
-        st.caption(f"Spec: pre {report.spec.pre_duration_s}s, event {report.spec.event_duration_s}s, post {report.spec.post_duration_s}s, bin {report.spec.bin_width_s}s, metric {report.spec.metric_key} v{report.spec.metric_version} ({report.spec.metric_unit})")
+        st.caption(
+            f"Report ID: `{report.report_id}` | Fingerprint: `{report.fingerprint[:12]}…` | Canonical time basis: `{report.canonical_time_basis}`"  # noqa: E501
+        )
+        st.caption(
+            f"Spec: pre {report.spec.pre_duration_s}s, event {report.spec.event_duration_s}s, post {report.spec.post_duration_s}s, bin {report.spec.bin_width_s}s, metric {report.spec.metric_key} v{report.spec.metric_version} ({report.spec.metric_unit})"  # noqa: E501
+        )
         with st.expander("Advanced: fingerprint and canonical JSON"):
-            st.code(f"fingerprint: {report.fingerprint}\ncanonical_json: {report.canonical_json()[:800]}…", language="json")
+            st.code(
+                f"fingerprint: {report.fingerprint}\ncanonical_json: {report.canonical_json()[:800]}…",  # noqa: E501
+                language="json",
+            )
 
     # Warnings and limitations
     for w in report.warnings:
@@ -249,10 +298,12 @@ def render() -> None:
             m4.metric("Partial", summary.partial_count, border=True)
             if summary.mean_value is not None:
                 st.caption(
-                    f"Mean {summary.mean_value:.4f} | Min {summary.min_value:.4f} | Max {summary.max_value:.4f} | Median {summary.median_value:.4f} {summary.metric_unit}"
+                    f"Mean {summary.mean_value:.4f} | Min {summary.min_value:.4f} | Max {summary.max_value:.4f} | Median {summary.median_value:.4f} {summary.metric_unit}"  # noqa: E501
                 )
             else:
-                st.caption("No available numeric values for this phase (missing bins are not zero-filled).")
+                st.caption(
+                    "No available numeric values for this phase (missing bins are not zero-filled)."
+                )
 
     # Pairwise deltas
     if report.pairwise_deltas:
@@ -273,11 +324,15 @@ def render() -> None:
         for d in report.pairwise_deltas:
             st.caption(d.description)
     else:
-        st.caption("No pairwise deltas available (requires at least two accepted runs with available values).")
+        st.caption(
+            "No pairwise deltas available (requires at least two accepted runs with available values)."  # noqa: E501
+        )
 
     # Relative-time series and chart
     st.subheader("Relative-time series")
-    st.caption("Chart and table consume the same report rows. Missing bins are unavailable, not zero-filled.")
+    st.caption(
+        "Chart and table consume the same report rows. Missing bins are unavailable, not zero-filled."  # noqa: E501
+    )
     chart_rows = []
     for point in sorted(report.metric_points, key=lambda p: (p.run_id, p.bin_index)):
         chart_rows.append(
@@ -305,13 +360,17 @@ def render() -> None:
             number_formats={"coverage_fraction": "%.3f", "value": "%.4f"},
             overrides={
                 "value": ColumnDisplay(key="value", label="Metric value", hidden=False),
-                "coverage_state": ColumnDisplay(key="coverage_state", label="Coverage", hidden=False),
+                "coverage_state": ColumnDisplay(
+                    key="coverage_state", label="Coverage", hidden=False
+                ),
             },
         ),
     )
 
     # Chart: filter available only
-    available_for_chart = [r for r in chart_rows if r["status"] == "available" and isinstance(r["value"], (int, float))]
+    available_for_chart = [
+        r for r in chart_rows if r["status"] == "available" and isinstance(r["value"], (int, float))
+    ]
     if available_for_chart:
         # Build line figure per run over relative_mid_s
         # line_figure expects x_key and y_keys
@@ -325,9 +384,11 @@ def render() -> None:
             ),
             width="stretch",
         )
-        # Alternative multi-run faceting: if multiple runs, show per-run lines using same y but distinguish?
-        # For simplicity, show value vs relative_mid colored by run? Our line_figure doesn't support hue, so we note.
-        st.caption("Chart plots only available windows over already-computed values; same rows as table.")
+        # Alternative multi-run faceting: if multiple runs, show per-run lines using same y but distinguish?  # noqa: E501
+        # For simplicity, show value vs relative_mid colored by run? Our line_figure doesn't support hue, so we note.  # noqa: E501
+        st.caption(
+            "Chart plots only available windows over already-computed values; same rows as table."
+        )
     else:
         st.info("No available numeric windows to chart.", icon=":material/info:")
 
@@ -339,7 +400,7 @@ def render() -> None:
             "bin_index": p.bin_index,
             "phase": p.phase.value,
             "relative_window": f"[{p.relative_start_s}, {p.relative_end_s})",
-            "absolute_window": f"[{p.absolute_window_start_utc.isoformat().replace('+00:00','Z')}, {p.absolute_window_end_utc.isoformat().replace('+00:00','Z')})",
+            "absolute_window": f"[{p.absolute_window_start_utc.isoformat().replace('+00:00', 'Z')}, {p.absolute_window_end_utc.isoformat().replace('+00:00', 'Z')})",  # noqa: E501
             "coverage_state": p.coverage_state.value,
             "coverage_fraction": p.coverage_fraction,
             "status": p.status,
@@ -349,11 +410,15 @@ def render() -> None:
         for p in report.metric_points
     ]
     st.dataframe(gap_rows, hide_index=True, width="stretch")
-    st.caption("Empty bins stay visible with unavailable status; a missing metric is never filled with zero. Partial bins are truncated final phase bins.")
+    st.caption(
+        "Empty bins stay visible with unavailable status; a missing metric is never filled with zero. Partial bins are truncated final phase bins."  # noqa: E501
+    )
 
     # Exports
     st.subheader("Portable exports")
-    st.caption("Deterministic JSON and tabular CSV. Fingerprint excludes wall clock, rendering state, local paths and secrets.")
+    st.caption(
+        "Deterministic JSON and tabular CSV. Fingerprint excludes wall clock, rendering state, local paths and secrets."  # noqa: E501
+    )
     json_data = export_report_json(report)
     csv_points = export_points_csv(report)
     csv_summaries = export_phase_summaries_csv(report)

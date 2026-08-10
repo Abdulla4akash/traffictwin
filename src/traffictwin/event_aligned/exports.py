@@ -12,7 +12,7 @@ from traffictwin.event_aligned.models import EventAlignedReport
 def export_report_json(report: EventAlignedReport) -> str:
     """Return deterministic JSON export."""
 
-    # Use canonical dict plus fingerprint plus created_at for export, but ensure deterministic ordering.
+    # Use canonical dict plus fingerprint plus created_at for export, but ensure deterministic ordering.  # noqa: E501
     # The canonical_json excludes created_at, but export should include full deterministic content.
     data = report.model_dump(mode="json")
     # Ensure created_at uses Z notation
@@ -20,7 +20,9 @@ def export_report_json(report: EventAlignedReport) -> str:
         # Pydantic already serialized as isoformat
         pass
     # Deterministic JSON
-    return json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+    return json.dumps(
+        data, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+    )
 
 
 def export_report_json_pretty(report: EventAlignedReport) -> str:
@@ -65,8 +67,12 @@ def export_points_csv(report: EventAlignedReport) -> str:
                 "bin_index": point.bin_index,
                 "relative_start_s": point.relative_start_s,
                 "relative_end_s": point.relative_end_s,
-                "absolute_window_start_utc": point.absolute_window_start_utc.isoformat().replace("+00:00", "Z"),
-                "absolute_window_end_utc": point.absolute_window_end_utc.isoformat().replace("+00:00", "Z"),
+                "absolute_window_start_utc": point.absolute_window_start_utc.isoformat().replace(
+                    "+00:00", "Z"
+                ),
+                "absolute_window_end_utc": point.absolute_window_end_utc.isoformat().replace(
+                    "+00:00", "Z"
+                ),
                 "coverage_state": point.coverage_state.value,
                 "coverage_fraction": point.coverage_fraction,
                 "metric_key": point.metric_key,
@@ -75,7 +81,9 @@ def export_points_csv(report: EventAlignedReport) -> str:
                 "status": point.status,
                 "value": "" if point.value is None else point.value,
                 "reason_codes": ";".join(point.reason_codes),
-                "source_record_counts": json.dumps(point.source_record_counts, sort_keys=True, separators=(",", ":")),
+                "source_record_counts": json.dumps(
+                    point.source_record_counts, sort_keys=True, separators=(",", ":")
+                ),
             }
         )
     return output.getvalue()

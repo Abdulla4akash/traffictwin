@@ -132,13 +132,15 @@ class EventAlignedWindowSpec(StrictModel):
     metric_version: str = Field(min_length=1)
     metric_unit: str = Field(min_length=1)
     metric_human_name: str | None = None
-    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = "utc_bundle_created_at_offset_v1"
+    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = (
+        "utc_bundle_created_at_offset_v1"
+    )
     bin_boundary: Literal["[start,end)"] = "[start,end)"
     max_bins: int = Field(default=10_000, ge=1, le=100_000)
 
     @model_validator(mode="after")
     def validate_bin_divisibility(self) -> EventAlignedWindowSpec:
-        # Bin width must not exceed any phase duration? Not strict, but we warn if it doesn't divide.
+        # Bin width must not exceed any phase duration? Not strict, but we warn if it doesn't divide.  # noqa: E501
         # Keep simple: allow any positive width.
         return self
 
@@ -230,7 +232,9 @@ class EventAlignedMetricPoint(StrictModel):
 
     def canonical_dict(self) -> dict[str, object]:
         return {
-            "absolute_window_end_utc": self.absolute_window_end_utc.isoformat().replace("+00:00", "Z"),
+            "absolute_window_end_utc": self.absolute_window_end_utc.isoformat().replace(
+                "+00:00", "Z"
+            ),
             "absolute_window_start_utc": self.absolute_window_start_utc.isoformat().replace(
                 "+00:00", "Z"
             ),
@@ -297,7 +301,9 @@ class EventAlignedRun(StrictModel):
     seed_id: str | None = None
     algorithm: str | None = None
     anchor: EventAnchor
-    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = "utc_bundle_created_at_offset_v1"
+    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = (
+        "utc_bundle_created_at_offset_v1"
+    )
     warnings: list[str] = Field(default_factory=list)
     source_record_counts: dict[str, int] | None = None
     time_coverage_s: tuple[float, float] | None = None
@@ -413,7 +419,9 @@ class EventAlignedReport(StrictModel):
 
     schema_version: Literal["1.0"] = "1.0"
     report_id: str = Field(min_length=1)
-    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = "utc_bundle_created_at_offset_v1"
+    canonical_time_basis: Literal["utc_bundle_created_at_offset_v1"] = (
+        "utc_bundle_created_at_offset_v1"
+    )
     spec: EventAlignedWindowSpec
     accepted_runs: list[EventAlignedRun]
     excluded_runs: list[ExcludedRun]
@@ -451,11 +459,15 @@ class EventAlignedReport(StrictModel):
             "limitations": sorted(self.limitations),
             "metric_points": sorted(
                 [point.canonical_dict() for point in self.metric_points],
-                key=lambda x: (str(x.get("run_id")), int(x.get("bin_index", 0))),
+                key=lambda x: (str(x.get("run_id")), int(str(x.get("bin_index", 0)))),
             ),
             "pairwise_deltas": sorted(
                 [delta.canonical_dict() for delta in self.pairwise_deltas],
-                key=lambda x: (str(x.get("baseline_run_id")), str(x.get("variation_run_id")), str(x.get("phase"))),
+                key=lambda x: (
+                    str(x.get("baseline_run_id")),
+                    str(x.get("variation_run_id")),
+                    str(x.get("phase")),
+                ),
             ),
             "phase_summaries": sorted(
                 [summary.canonical_dict() for summary in self.phase_summaries],
@@ -471,7 +483,9 @@ class EventAlignedReport(StrictModel):
         """Return deterministic JSON without volatile fields."""
 
         payload = self.canonical_dict()
-        return json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+        return json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+        )
 
     def computed_fingerprint(self) -> str:
         """Return deterministic fingerprint over canonical JSON."""

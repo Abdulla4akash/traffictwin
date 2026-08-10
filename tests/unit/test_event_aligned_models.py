@@ -27,7 +27,6 @@ def test_event_anchor_requires_timezone_aware() -> None:
 
 def test_event_anchor_normalises_to_utc() -> None:
     # 13:00+01:00 == 12:00Z
-    dt = datetime(2026, 7, 17, 13, 0, 0, tzinfo=UTC).astimezone(UTC)  # already UTC
     # Use +01:00 explicit
     from datetime import timezone
 
@@ -56,7 +55,7 @@ def test_event_anchor_kinds_are_all_authored() -> None:
         assert kind.is_authored is True
         assert "Authored" in kind.authored_label
         assert "Observed" not in kind.authored_label
-        assert "observed" not in kind.authored_label.lower() or "not observed" in kind.authored_label.lower()
+        assert "observed" not in kind.authored_label.lower() or "not observed" in kind.authored_label.lower()  # noqa: E501
         # Direct label check
         if kind == EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP:
             assert kind.authored_label == "Authored — Manual timestamp"
@@ -92,7 +91,7 @@ def test_window_spec_preview_exact_half_open_windows() -> None:
 
 
 def test_window_spec_rejects_zero_bin_width() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError):
         EventAlignedWindowSpec(
             pre_duration_s=10,
             event_duration_s=10,

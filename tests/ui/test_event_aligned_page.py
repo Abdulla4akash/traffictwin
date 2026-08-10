@@ -12,7 +12,6 @@ from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation_v07 import page_script_for
 from traffictwin.ui.state import default_session_state
 
-
 _ENV_CLEAR = [
     "TRAFFICTWIN_WORKSPACE_PATH",
     "TRAFFICTWIN_REGISTRY_PATH",
@@ -40,7 +39,7 @@ def _run_page(
         monkeypatch.delenv(key, raising=False)
     # Fallback if page not yet registered: directly load file
     try:
-        script = page_script_for(page) if page is not None else "app_pages/event_aligned_analysis.py"
+        script = page_script_for(page) if page is not None else "app_pages/event_aligned_analysis.py"  # noqa: E501
     except Exception:
         script = "app_pages/event_aligned_analysis.py"
     app = AppTest.from_file(f"src/traffictwin/ui/{script}")
@@ -55,7 +54,7 @@ def _run_page(
     return app
 
 
-def test_event_aligned_page_has_exactly_one_title(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_event_aligned_page_has_exactly_one_title(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
     try:
         app = _run_page(monkeypatch, tmp_path)
     except Exception as exc:
@@ -67,7 +66,7 @@ def test_event_aligned_page_has_exactly_one_title(monkeypatch: pytest.MonkeyPatc
     assert app.title[0].value == "Event-Aligned Analysis"
 
 
-def test_event_aligned_page_shows_authored_label_and_preview(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_event_aligned_page_shows_authored_label_and_preview(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
     try:
         app = _run_page(monkeypatch, tmp_path)
     except Exception as exc:
@@ -80,7 +79,7 @@ def test_event_aligned_page_shows_authored_label_and_preview(monkeypatch: pytest
     joined = " ".join(captions).lower()
     assert "authored" in joined
     # Check that window preview caption exists
-    assert any("[start,end)" in c for c in captions) or any("half-open" in c.lower() for c in captions)
+    assert any("[start,end)" in c for c in captions) or any("half-open" in c.lower() for c in captions)  # noqa: E501
 
 
 def test_event_aligned_build_and_export(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -103,14 +102,19 @@ def test_event_aligned_build_and_export(monkeypatch: pytest.MonkeyPatch, tmp_pat
     assert len(app.dataframe) >= 1 or len(app.metric) >= 1
 
 
-def test_event_aligned_chart_table_equivalence(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_event_aligned_chart_table_equivalence(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
     """Chart and table must consume same report rows - verify via service directly."""
 
-    from traffictwin.event_aligned.models import EventAlignedWindowSpec, EventAnchor, EventAnchorKind
+    from datetime import UTC, datetime
+
+    from traffictwin.event_aligned.models import (
+        EventAlignedWindowSpec,
+        EventAnchor,
+        EventAnchorKind,
+    )
     from traffictwin.event_aligned.service import build_event_aligned_report
     from traffictwin.ingestion.bundle import validate_bundle
     from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
-    from datetime import UTC, datetime
 
     b1 = validate_bundle(Path("tests/fixtures/bundles/baseline_valid"))
     b2 = validate_bundle(Path("tests/fixtures/bundles/variation_valid"))

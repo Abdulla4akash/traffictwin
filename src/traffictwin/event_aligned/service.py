@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import math
-import hashlib
-import json
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from decimal import ROUND_CEILING, ROUND_FLOOR, Decimal
-from typing import Callable
+from decimal import Decimal
 
 from traffictwin.canonical.tables import CanonicalTables
 from traffictwin.event_aligned.models import (
@@ -20,16 +18,15 @@ from traffictwin.event_aligned.models import (
     EventAlignedRun,
     EventAlignedWindowSpec,
     EventAnchor,
-    EventAnchorKind,
     ExcludedRun,
     PairwiseDelta,
 )
 from traffictwin.ingestion.bundle import BundleValidationResult
 from traffictwin.metrics.catalogue import METRIC_DEFINITIONS, METRIC_VERSION
+from traffictwin.metrics.definitions import MetricDefinition
 from traffictwin.metrics.engine import compute_metrics, run_context_from_bundle, utc_now
 from traffictwin.metrics.engine_config import MetricEngineConfig
 from traffictwin.metrics.results import MetricStatus
-
 
 SCHEMA_VERSION: str = "1.0"
 CANONICAL_TIME_BASIS = "utc_bundle_created_at_offset_v1"
@@ -95,7 +92,7 @@ def _filter_tables_for_absolute_window(
     )
 
 
-def _metric_definition_for_key(metric_key: str):
+def _metric_definition_for_key(metric_key: str) -> MetricDefinition:
     definition = METRIC_DEFINITIONS.get(metric_key)
     if definition is None:
         msg = f"unsupported metric_key: {metric_key!r}"
@@ -163,13 +160,15 @@ def _build_bins_for_spec(
     # post: [event_duration, event_duration + post_duration)
     add_phase(EventAlignedPhase.PRE, -spec.pre_duration_s, 0.0)
     add_phase(EventAlignedPhase.EVENT, 0.0, spec.event_duration_s)
-    add_phase(EventAlignedPhase.POST, spec.event_duration_s, spec.event_duration_s + spec.post_duration_s)
+    add_phase(
+        EventAlignedPhase.POST, spec.event_duration_s, spec.event_duration_s + spec.post_duration_s
+    )
 
     # Enforce max_bins
     if len(bins) > spec.max_bins:
         msg = f"window request resolves to {len(bins)} bins; configured maximum is {spec.max_bins}"
         raise ValueError(msg)
-    return bins  # type: ignore[return-value]
+    return bins
 
 
 def build_event_aligned_report(
@@ -219,18 +218,18 @@ def build_event_aligned_report(
     # Also check that definition unit matches spec unit for accepted.
 
     warnings: list[str] = [
-        "Windows use [start, end). Coverage is requested-bin overlap, not inferred sensor completeness.",
+        "Windows use [start, end). Coverage is requested-bin overlap, not inferred sensor completeness.",  # noqa: E501
         "No interpolation is performed; missing bins remain unavailable and are never zero-filled.",
         "Differences are descriptive during the declared event window, not causal effects.",
-        "Manual timestamps and authored incidents are labelled authored anchors, not observed incidents.",
-        "Canonical time basis is utc_bundle_created_at_offset_v1; timestamps are seconds offset from bundle created_at.",
+        "Manual timestamps and authored incidents are labelled authored anchors, not observed incidents.",  # noqa: E501
+        "Canonical time basis is utc_bundle_created_at_offset_v1; timestamps are seconds offset from bundle created_at.",  # noqa: E501
         "Metric name, version, unit and denominator compatibility is enforced per run.",
     ]
     limitations = [
-        "Event-aligned analysis reuses the existing fixed-window metric engine; it does not implement a second metric calculation.",
-        "Task, infrastructure, traffic, trip and incident records are assigned to windows by arrival/departure/timestamp as defined in the existing window anchor policy.",
-        "Pairwise deltas are descriptive differences during the declared event window; they do not claim recovery, clearance, or causal impact.",
-        "Smoothing or interpolation is not applied; empty bins remain visible with unavailable status.",
+        "Event-aligned analysis reuses the existing fixed-window metric engine; it does not implement a second metric calculation.",  # noqa: E501
+        "Task, infrastructure, traffic, trip and incident records are assigned to windows by arrival/departure/timestamp as defined in the existing window anchor policy.",  # noqa: E501
+        "Pairwise deltas are descriptive differences during the declared event window; they do not claim recovery, clearance, or causal impact.",  # noqa: E501
+        "Smoothing or interpolation is not applied; empty bins remain visible with unavailable status.",  # noqa: E501
     ]
 
     accepted_runs: list[EventAlignedRun] = []
@@ -246,7 +245,10 @@ def build_event_aligned_report(
         run_id = result.manifest.run.run_id if result.manifest else anchor.run_id or "unknown"
         bundle_id = result.manifest.bundle.bundle_id if result.manifest else anchor.bundle_id
         # Check metric version compatibility
-        if spec.metric_version != METRIC_VERSION and spec.metric_version != definition.implementation_version:
+        if (
+            spec.metric_version != METRIC_VERSION
+            and spec.metric_version != definition.implementation_version
+        ):
             # Incompatible metric version
             excluded_runs.append(
                 ExcludedRun(
@@ -255,7 +257,7 @@ def build_event_aligned_report(
                     bundle_fingerprint=result.fingerprint,
                     reason_code="METRIC_VERSION_MISMATCH",
                     reason_detail=(
-                        f"run metric version {METRIC_VERSION!r} does not match spec version {spec.metric_version!r} "
+                        f"run metric version {METRIC_VERSION!r} does not match spec version {spec.metric_version!r} "  # noqa: E501
                         f"for metric {spec.metric_key!r}"
                     ),
                     anchor=anchor,
@@ -270,7 +272,7 @@ def build_event_aligned_report(
                     bundle_fingerprint=result.fingerprint,
                     reason_code="UNIT_MISMATCH",
                     reason_detail=(
-                        f"spec unit {spec.metric_unit!r} does not match catalogue unit {definition.unit!r} "
+                        f"spec unit {spec.metric_unit!r} does not match catalogue unit {definition.unit!r} "  # noqa: E501
                         f"for metric {spec.metric_key!r}"
                     ),
                     anchor=anchor,
@@ -291,7 +293,7 @@ def build_event_aligned_report(
             )
             continue
         # Check time coverage: need at least some overlap? But we allow empty coverage, just warn.
-        # If source has no timestamps at all, warn but still accepted? We'll consider insufficient temporal range as exclusion if no source times.
+        # If source has no timestamps at all, warn but still accepted? We'll consider insufficient temporal range as exclusion if no source times.  # noqa: E501
         bundle_created_at = _bundle_created_at_utc(result)
         time_range = _source_time_range_seconds(result.canonical, bundle_created_at)
         if time_range is None:
@@ -307,20 +309,18 @@ def build_event_aligned_report(
             )
             continue
         # Check metric applicability: ensure metric_key is window-applicable
-        if spec.metric_key not in definition.key:
-            # Already checked existence, but ensure time_window_applicable
-            if not definition.time_window_applicable:
-                excluded_runs.append(
-                    ExcludedRun(
-                        run_id=run_id,
-                        bundle_id=bundle_id,
-                        bundle_fingerprint=result.fingerprint,
-                        reason_code="METRIC_NOT_WINDOW_APPLICABLE",
-                        reason_detail=f"metric {spec.metric_key!r} is not window-applicable",
-                        anchor=anchor,
-                    )
+        if spec.metric_key not in definition.key and not definition.time_window_applicable:
+            excluded_runs.append(
+                ExcludedRun(
+                    run_id=run_id,
+                    bundle_id=bundle_id,
+                    bundle_fingerprint=result.fingerprint,
+                    reason_code="METRIC_NOT_WINDOW_APPLICABLE",
+                    reason_detail=f"metric {spec.metric_key!r} is not window-applicable",
+                    anchor=anchor,
                 )
-                continue
+            )
+            continue
         # If all checks passed, keep
         valid_entries.append((result, anchor))
 
@@ -368,7 +368,9 @@ def build_event_aligned_report(
             coverage_fraction: float = b["coverage_fraction"]  # type: ignore
             is_partial: bool = b["is_partial"]  # type: ignore
 
-            filtered = _filter_tables_for_absolute_window(result.canonical, bundle_created_at, abs_start, abs_end)
+            filtered = _filter_tables_for_absolute_window(
+                result.canonical, bundle_created_at, abs_start, abs_end
+            )
             counts = filtered.record_counts()
             total_records = sum(counts.values())
             # Determine coverage state
@@ -380,14 +382,17 @@ def build_event_aligned_report(
                 coverage_state = CoverageState.COMPLETE
 
             # Compute metric via existing engine
-            from traffictwin.evidence.availability import EvidenceAvailability
 
             # Build run_context for metric engine
             run_context = run_context_from_bundle(result)
             # Need evidence availability – reuse result.evidence
             evidence = result.evidence
             collection = compute_metrics(
-                filtered, run_context, evidence, engine_config, clock=lambda: datetime(2026, 1, 1, tzinfo=UTC)
+                filtered,
+                run_context,
+                evidence,
+                engine_config,
+                clock=lambda: datetime(2026, 1, 1, tzinfo=UTC),
             )
             # Find metric value for spec.metric_key
             by_key = collection.by_key()
@@ -429,7 +434,7 @@ def build_event_aligned_report(
                 metric_key=spec.metric_key,
                 metric_version=spec.metric_version,
                 metric_unit=spec.metric_unit,
-                status=status,  # type: ignore
+                status=status,
                 value=float(value) if isinstance(value, (int, float)) else None,
                 reason_codes=reason_codes,
                 warnings=warnings_bin,
@@ -437,7 +442,6 @@ def build_event_aligned_report(
             metric_points.append(point)
 
             # Accumulate for phase summaries
-            key = (run_id, phase)
             per_run_bin_counts[run_id][phase]["bin_count"] += 1
             if status == "available" and value is not None:
                 per_run_available_values[run_id][phase].append(float(value))
@@ -455,13 +459,17 @@ def build_event_aligned_report(
             # Also need counts for phases with zero available values but bins exist
             # Ensure every phase for each accepted run has summary, even if no available values
             if bin_counts["bin_count"] == 0:
-                # This can happen if per_run_available_values didn't create entry for phase with no available
+                # This can happen if per_run_available_values didn't create entry for phase with no available  # noqa: E501
                 # Need to ensure we still have counts; fetch from metric_points
                 relevant = [p for p in metric_points if p.run_id == run_id and p.phase == phase]
                 if relevant:
                     bin_counts["bin_count"] = len(relevant)
-                    bin_counts["empty"] = sum(1 for p in relevant if p.coverage_state == CoverageState.EMPTY)
-                    bin_counts["partial"] = sum(1 for p in relevant if p.coverage_state == CoverageState.PARTIAL)
+                    bin_counts["empty"] = sum(
+                        1 for p in relevant if p.coverage_state == CoverageState.EMPTY
+                    )
+                    bin_counts["partial"] = sum(
+                        1 for p in relevant if p.coverage_state == CoverageState.PARTIAL
+                    )
                     bin_counts["available"] = sum(1 for p in relevant if p.status == "available")
                 else:
                     continue
@@ -471,14 +479,18 @@ def build_event_aligned_report(
                 max_val = max(values)
                 sorted_vals = sorted(values)
                 n = len(sorted_vals)
-                median_val = sorted_vals[n // 2] if n % 2 == 1 else (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2.0
+                median_val = (
+                    sorted_vals[n // 2]
+                    if n % 2 == 1
+                    else (sorted_vals[n // 2 - 1] + sorted_vals[n // 2]) / 2.0
+                )
             else:
                 mean_val = None
                 min_val = None
                 max_val = None
                 median_val = None
                 warnings.append(
-                    f"Run {run_id} phase {phase.value} has no available numeric values for {spec.metric_key}."
+                    f"Run {run_id} phase {phase.value} has no available numeric values for {spec.metric_key}."  # noqa: E501
                 )
             phase_summaries.append(
                 EventAlignedPhaseSummary(
@@ -548,9 +560,9 @@ def build_event_aligned_report(
                 if base_summary.mean_value is None or var_summary.mean_value is None:
                     continue
                 # Compute absolute and relative difference (descriptive, not causal)
-                absolute = var_summary.mean_value - base_summary.mean_value  # type: ignore
+                absolute = var_summary.mean_value - base_summary.mean_value
                 if base_summary.mean_value != 0:
-                    relative = absolute / base_summary.mean_value  # type: ignore
+                    relative = absolute / base_summary.mean_value
                 else:
                     relative = None
                 description = (
@@ -582,7 +594,9 @@ def build_event_aligned_report(
     excluded_runs_sorted = sorted(excluded_runs, key=lambda r: r.run_id)
     metric_points_sorted = sorted(metric_points, key=lambda p: (p.run_id, p.bin_index))
     phase_summaries_sorted = sorted(phase_summaries, key=lambda s: (s.run_id, s.phase.value))
-    pairwise_deltas_sorted = sorted(pairwise_deltas, key=lambda d: (d.baseline_run_id, d.variation_run_id, d.phase.value))
+    pairwise_deltas_sorted = sorted(
+        pairwise_deltas, key=lambda d: (d.baseline_run_id, d.variation_run_id, d.phase.value)
+    )
     warnings_sorted = sorted(set(warnings))
     limitations_sorted = sorted(set(limitations))
 

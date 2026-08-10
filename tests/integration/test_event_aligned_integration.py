@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -76,7 +75,7 @@ def test_end_to_end_select_align_render_export() -> None:
     assert len(rows) == len(report.metric_points)
     # Chart and table must consume same rows: check one example
     for point in report.metric_points[:2]:
-        matching = [r for r in rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]
+        matching = [r for r in rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]  # noqa: E501
         assert len(matching) == 1
 
     # Verify pairwise descriptive deltas wording not causal
@@ -153,7 +152,7 @@ def test_chart_table_row_equivalence() -> None:
     report = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="chart-table")
     # Simulate chart rows (available only) and table rows (all)
     table_rows = sorted(report.metric_points, key=lambda p: (p.run_id, p.bin_index))
-    chart_rows = [r for r in table_rows if r.status == "available" and isinstance(r.value, (int, float))]
+    chart_rows = [r for r in table_rows if r.status == "available" and isinstance(r.value, (int, float))]  # noqa: E501
     # Chart must be subset of table
     for cr in chart_rows:
         assert cr in table_rows
@@ -162,7 +161,7 @@ def test_chart_table_row_equivalence() -> None:
 
 
 def test_incompatible_time_basis_handling() -> None:
-    """Incompatible time basis is currently single basis, but test that spec time basis is explicit."""
+    """Incompatible time basis is currently single basis, but test that spec time basis is explicit."""  # noqa: E501
 
     defn = METRIC_DEFINITIONS["task.completion.rate"]
     spec = EventAlignedWindowSpec(
@@ -176,7 +175,7 @@ def test_incompatible_time_basis_handling() -> None:
         canonical_time_basis="utc_bundle_created_at_offset_v1",
     )
     assert spec.canonical_time_basis == "utc_bundle_created_at_offset_v1"
-    # If someone tries to create with different basis, it would be a different spec and fingerprint changes
+    # If someone tries to create with different basis, it would be a different spec and fingerprint changes  # noqa: E501
     spec2 = EventAlignedWindowSpec(
         pre_duration_s=10,
         event_duration_s=10,

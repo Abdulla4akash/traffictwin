@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import csv
-import json
 import io
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from traffictwin.event_aligned.exports import export_points_csv, export_report_json, export_phase_summaries_csv
-from traffictwin.event_aligned.models import EventAlignedWindowSpec, EventAnchor, EventAnchorKind
+from traffictwin.event_aligned.exports import (
+    export_phase_summaries_csv,
+    export_points_csv,
+    export_report_json,
+)
+from traffictwin.event_aligned.models import (
+    EventAlignedReport,
+    EventAlignedWindowSpec,
+    EventAnchor,
+    EventAnchorKind,
+)
 from traffictwin.event_aligned.service import build_event_aligned_report
 from traffictwin.ingestion.bundle import validate_bundle
 from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
@@ -17,7 +26,7 @@ from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
 FIXTURES = Path("tests/fixtures/bundles")
 
 
-def _build_report():
+def _build_report() -> EventAlignedReport:
     b1 = validate_bundle(FIXTURES / "baseline_valid")
     b2 = validate_bundle(FIXTURES / "variation_valid")
     defn = METRIC_DEFINITIONS["task.completion.rate"]
@@ -81,7 +90,7 @@ def test_csv_points_uses_same_rows_as_report() -> None:
     assert len(csv_rows) == len(report.metric_points)
     # Check that every report point appears in CSV with same key fields
     for point in report.metric_points:
-        matching = [r for r in csv_rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]
+        matching = [r for r in csv_rows if r["run_id"] == point.run_id and int(r["bin_index"]) == point.bin_index]  # noqa: E501
         assert len(matching) == 1
         csv_row = matching[0]
         assert float(csv_row["relative_start_s"]) == point.relative_start_s
@@ -100,7 +109,7 @@ def test_phase_summaries_csv() -> None:
 
 
 def test_timezone_canonicalisation() -> None:
-    # Anchor with different timezone representation should canonicalise to same UTC and same fingerprint
+    # Anchor with different timezone representation should canonicalise to same UTC and same fingerprint  # noqa: E501
     b1 = validate_bundle(FIXTURES / "baseline_valid")
     b2 = validate_bundle(FIXTURES / "variation_valid")
     defn = METRIC_DEFINITIONS["task.completion.rate"]
@@ -121,7 +130,7 @@ def test_timezone_canonicalisation() -> None:
         run_id=b1.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b1.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
-    from datetime import timezone, timedelta
+    from datetime import timedelta, timezone
 
     plus_one = timezone(timedelta(hours=1))
     anchor_plus_one = EventAnchor(
@@ -141,8 +150,8 @@ def test_timezone_canonicalisation() -> None:
     def fixed_clock() -> datetime:
         return datetime(2026, 7, 18, 12, 0, 0, tzinfo=UTC)
 
-    report1 = build_event_aligned_report([(b1, anchor_utc), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")
-    report2 = build_event_aligned_report([(b1, anchor_plus_one), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")
+    report1 = build_event_aligned_report([(b1, anchor_utc), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")  # noqa: E501
+    report2 = build_event_aligned_report([(b1, anchor_plus_one), (b2, a2)], spec, clock=fixed_clock, report_id="tz-test")  # noqa: E501
     assert report1.fingerprint == report2.fingerprint
     # Canonical JSON should use Z notation
     assert "Z" in report1.canonical_json()
