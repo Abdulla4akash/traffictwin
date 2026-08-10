@@ -46,7 +46,38 @@ from traffictwin.ui.components.cards import section_header
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import render_page_header
 from traffictwin.ui.state import UiConfig
-from traffictwin.ui.tables import table_column_config
+from traffictwin.ui.tables import ColumnDisplay, table_column_config
+
+# ---------------------------------------------------------------------------
+# Run-matrix column configuration — identity-bearing matrix must remain visible
+# ---------------------------------------------------------------------------
+
+
+def _run_matrix_column_config(
+    matrix_rows: list[dict[str, object]],
+) -> dict[str, object]:
+    """Return column config for the preregistered run matrix.
+
+    The shared table helper hides machine IDs by default (keys ending in
+    ``_id`` and ``metric_version``/``seed_id`` via ``MACHINE_ID_COLUMNS``).
+    For a preregistered run matrix those identifiers are the experimental
+    identity and must remain visible, so every matrix column is overridden
+    with an explicit non-hidden ``ColumnDisplay``.
+    """
+
+    return table_column_config(
+        matrix_rows,
+        overrides={
+            "cell_id": ColumnDisplay(key="cell_id", label="Cell"),
+            "arm_id": ColumnDisplay(key="arm_id", label="Arm"),
+            "seed_id": ColumnDisplay(key="seed_id", label="Seed"),
+            "policy_label": ColumnDisplay(key="policy_label", label="Policy"),
+            "replication_id": ColumnDisplay(key="replication_id", label="Replication"),
+            "metric_key": ColumnDisplay(key="metric_key", label="Metric"),
+            "metric_version": ColumnDisplay(key="metric_version", label="Version"),
+            "replication_unit": ColumnDisplay(key="replication_unit", label="Replication unit"),
+        },
+    )
 
 
 def _list_registry_options(config: UiConfig) -> tuple[list[str], list[str], list[str]]:
@@ -141,7 +172,7 @@ def _default_plan(seeds: list[str], policies: list[str], metrics: list[str]) -> 
 def render(config: UiConfig) -> None:
     # Use new enum when registered, otherwise fall back to a title-only header for isolated feature commits.  # noqa: E501
     if hasattr(UiPage, "PREREGISTRATION_STUDIO"):
-        render_page_header(UiPage.PREREGISTRATION_STUDIO)  # type: ignore[attr-defined]
+        render_page_header(UiPage.PREREGISTRATION_STUDIO)
     else:
         st.caption("TrafficTwin / Preregistration Studio")
         st.title("Preregistration Studio")
@@ -489,7 +520,7 @@ def render(config: UiConfig) -> None:
                         alpha=float(alpha) if alpha and alpha != 0 else None,
                         threshold=float(threshold) if threshold and threshold != 0 else None,
                         interpretation=interpretation,
-                        comparison=comparison,  # type: ignore
+                        comparison=comparison,
                     ),
                     limitations=limitations,
                     planned_run_cells=[],
@@ -529,19 +560,12 @@ def render(config: UiConfig) -> None:
     )
     try:
         matrix = build_run_matrix(draft)
+        matrix_rows = [c.model_dump(mode="json") for c in matrix]
         st.dataframe(
-            [c.model_dump(mode="json") for c in matrix],
+            matrix_rows,
             hide_index=True,
             width="stretch",
-            column_config=table_column_config(
-                {
-                    "cell_id": "Cell",
-                    "arm_id": "Arm",
-                    "replication_id": "Replication",
-                    "metric_key": "Metric",
-                    "metric_version": "Version",
-                }
-            ),
+            column_config=_run_matrix_column_config(matrix_rows),
         )
         st.caption(f"Deterministic run cells: {len(matrix)}")
         # Store matrix in draft for export
@@ -562,17 +586,19 @@ def render(config: UiConfig) -> None:
         disabled=bool(findings),
     ):
         try:
-            frozen = freeze_plan(draft)
-            st.session_state["prereg_frozen"] = frozen
-            st.session_state["prereg_draft"] = frozen.model_copy(
+            newly_frozen = freeze_plan(draft)
+            st.session_state["prereg_frozen"] = newly_frozen
+            st.session_state["prereg_draft"] = newly_frozen.model_copy(
                 update={
                     "status": StudyPlanStatus.DRAFT,
-                    "version": frozen.version,
+                    "version": newly_frozen.version,
                     "fingerprint": None,
                     "frozen_at": None,
                 }
             )  # keep draft as new editable? But frozen is immutable
-            st.success(f"Frozen version {frozen.version} fingerprint: {frozen.fingerprint}")
+            st.success(
+                f"Frozen version {newly_frozen.version} fingerprint: {newly_frozen.fingerprint}"
+            )
         except Exception as exc:
             st.error(f"Freeze failed: {exc}")
 
@@ -663,7 +689,7 @@ def render(config: UiConfig) -> None:
                         frozen_amended = freeze_plan(amended)
                         st.session_state["prereg_frozen"] = frozen_amended
                         st.success(
-                            f"Frozen amended version {frozen_amended.version} {frozen_amended.fingerprint[:12]}…"  # noqa: E501
+                            f"Frozen amended version {frozen_amended.version} {frozen_amended.fingerprint_or_compute()[:12]}…"  # noqa: E501
                         )
                     except Exception as exc2:
                         st.error(f"Freeze amended failed: {exc2}")
@@ -788,7 +814,9 @@ def render(config: UiConfig) -> None:
         "9 · Export and verifier",
         "Deterministic JSON/YAML export and import verifier. Fingerprint excludes wall-clock, paths, secrets.",  # noqa: E501
     )
-    export_target: StudyPlan | None = (
+    # `draft` is always a StudyPlan (set at page entry), so the fallback chain
+    # can never be None; annotating it Optional produced false union-attr errors.
+    export_target: StudyPlan = (
         st.session_state.get("prereg_evidence_attached")
         or st.session_state.get("prereg_frozen")
         or draft

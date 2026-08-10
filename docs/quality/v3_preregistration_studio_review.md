@@ -9,9 +9,10 @@
 
 - **HISTORICAL ORIGINAL:** `e384e4ec35650fdc269140e5cff6aa839a61ba18` — initial PR #23 head reviewed by Claude 5: **REQUEST CHANGES** (19 blockers: READY admission, monotonic post-evidence taint, freeze silent rewrite, fingerprint immutability, unit compatibility, etc.)
 - **REMEDIATION:** `7b054a58bb8c6d66fd38fdee91255f1bfbc4376b` — Claude 5 re-review **SUBSTANTIVE GOVERNANCE LOGIC CLOSED**: all 4 primary blockers genuinely fixed, all secondary findings closed, 121 focused tests passed (25 + 41 + 3 + 3 + 49), broad suite 4365 passed / 1 failed (stale editable 0.6.0) / 8 skipped, Ruff 11→clean, strict mypy on preregistration passes.
-- **FINAL REBASED HEAD:** `90e4a52d7864600dbfb91f26269319ddfe819478` (final rebased candidate before broad suite record; this document describes the rebased candidate) — adds fail-closed EvidenceAttachment admission validator, reconciles onto live main (39 pages), refreshes editable install to 0.7.0, passes broad suite and whole-repo gates. **Not yet reviewed by Claude 5; awaiting final exact-head review.**
+- **FINAL REBASED HEAD:** `30214c43b2b398006590108c7c1af53e613eb6ec` (rebased/fail-closed admission integration candidate — `90e4a52` was interim; `30214c43` was remote PR head before this final pass) — adds fail-closed `EvidenceAttachment` admission validator, reconciles onto live main `3b7933d` (39 pages), refreshes editable to `0.7.0`, broad `4712/95/10`.
+- **FINAL HARDENING CANDIDATE:** `<NEW_SHA>` (post-`30214c43` — see §13) — preserves the `30214c43` governance, fixes run-matrix presentation via explicit `ColumnDisplay` overrides, adds column-config regression, and cleans whole-repo typing to `513` files green. **AWAITING CLAUDE 5 FINAL EXACT-HEAD REVIEW.**
 
-> All prior Claude approvals apply only to 7b054a5. This rebased SHA requires fresh exact-head review.
+> All prior Claude approvals apply only to `7b054a5`. `30214c43` and the new final candidate each require fresh exact-head review.
 
 
 ## 1. Implemented product behavior
@@ -116,3 +117,101 @@ All executed via `PYTHONPATH=.../src` with worktree src:
 - **C freeze mismatch:** authored `planned_run_cells` with wrong `cell_id` → `freeze_plan` raises `authored planned_run_cells does not match deterministic matrix`.
 - **D fingerprint:** `frozen` → `amended` → `freeze amended` → `attach_evidence` → `fingerprint before attach == after` and `parent_fingerprint` unchanged.
 - **E contradictory attachment:** `EvidenceAttachment(is_admitted=True, admission_label=UNADMITTED)` → `ValidationError`; JSON import with same → rejected.
+- **F normal valid UI evidence:** `EvidenceAttachment(is_admitted=True, admission_label=ADMITTED)` with matching `cell_id`/`metric_version` → `EVIDENCE_ATTACHED` accepted.
+
+## 13. Final hardening patch (post-30214c43) — UI matrix presentation + whole-repo typing
+
+**Trigger:** Claude 5 local review of `30214c43` found two defects before final approval:
+
+1. **Run-matrix column configuration defect** — initial naive fix used:
+
+```python
+table_column_config(matrix_rows)
+```
+
+with no overrides.  The helper defaults to `hide_machine_ids=True`, which hides
+`MACHINE_ID_COLUMNS` (`metric_version`, `seed_id`) and every key ending in
+`_id` (`cell_id`, `arm_id`, `replication_id`, …).  For the preregistered run
+matrix those fields are the experimental identity and must remain visible.
+
+2. **Whole-repo mypy still red on the branch's page file** — `mypy src/traffictwin`
+reported union-attr / unused-ignore errors only in the Preregistration Studio
+page, preventing the "513 source files Success" gate.
+
+**Correct production fix (preserved, not weakened):**
+
+- Added tiny private helper `src/traffictwin/ui/pages/preregistration_studio.py:_run_matrix_column_config(matrix_rows)`
+  that calls:
+
+```python
+table_column_config(
+    matrix_rows,
+    overrides={
+        "cell_id": ColumnDisplay(key="cell_id", label="Cell"),
+        "arm_id": ColumnDisplay(key="arm_id", label="Arm"),
+        "seed_id": ColumnDisplay(key="seed_id", label="Seed"),
+        "policy_label": ColumnDisplay(key="policy_label", label="Policy"),
+        "replication_id": ColumnDisplay(key="replication_id", label="Replication"),
+        "metric_key": ColumnDisplay(key="metric_key", label="Metric"),
+        "metric_version": ColumnDisplay(key="metric_version", label="Version"),
+        "replication_unit": ColumnDisplay(key="replication_unit", label="Replication unit"),
+    },
+)
+```
+
+Each override is an explicit non-hidden `ColumnDisplay`, so the default
+`hide_machine_ids` behaviour is intentionally overridden only for this
+identity-bearing table.  The shared helper `src/traffictwin/ui/tables.py` is
+unchanged (designed to hide machine IDs elsewhere).  Globally disabling
+`hide_machine_ids=False` would weaken privacy/presentation behaviour outside
+preregistration and was deliberately not used.
+
+- Preserved Claude's same-file type-cleanup fixes required for whole-repo
+  green:
+
+  * `export_target: StudyPlan | None` → `StudyPlan` where fallback chain can
+    never be None (saves union-attr).
+  * Removed two now-unused `type: ignore` on `render_page_header(UiPage.PREREGISTRATION_STUDIO)`
+    and `comparison=comparison`.
+  * Renamed shadowing local `frozen` → `newly_frozen` in the freeze handler.
+  * Replaced `frozen_amended.fingerprint[:12]` with
+    `frozen_amended.fingerprint_or_compute()[:12]` (type-safe, preserves value).
+
+**Identity columns:** The matrix must expose all eight `PlannedRunCell` fields —
+`cell_id`, `arm_id`, `seed_id`, `policy_label`, `replication_id`, `metric_key`,
+`metric_version`, `replication_unit` — none hidden (`config[key] is not None`),
+with labels `Cell`, `Arm`, `Seed`, `Policy`, `Replication`, `Metric`,
+`Version`, `Replication unit`.
+
+**Regression:**
+
+- New test `tests/ui/test_preregistration_studio.py:test_preregistration_run_matrix_column_config_shows_all_identity_columns`
+  builds a real run matrix via `build_run_matrix` (production service path),
+  converts via `cell.model_dump(mode="json")` as production does, obtains the
+  actual production config via `_run_matrix_column_config(matrix_rows)`, and
+  asserts `set(config) == {eight keys}` and each `config[key] is not None` plus
+  expected human labels where the Streamlit API exposes them.
+
+- **Negative proof:** Temporarily replacing the helper body with the old naive
+  `table_column_config(matrix_rows)` and re-running only that regression yields
+  `AssertionError: column 'seed_id' must not be hidden (got None)` (the first
+  identity column hidden; `cell_id`/`arm_id`/`replication_id`/`metric_version`
+  are likewise hidden).  Restoring the eight-override implementation restores
+  `PASSED`.
+
+**Final gates (after formatting):**
+
+- `uv run pytest tests/unit/test_preregistration_service.py tests/unit/test_preregistration_governance_regressions.py tests/integration/test_preregistration_workflow.py tests/ui/test_preregistration_studio.py tests/ui/test_navigation_v07.py` → **131 passed** (32+41+3+4+51; prior 130+1 new regression).
+- `uv run pytest tests/ui -q` → **716 passed** (prior 715+1; new regression lives under `tests/ui`).
+- `uv run pytest tests/unit/ui -q` → **233 passed**.
+- `uv run mypy src/traffictwin` → `Success: no issues found in 513 source files` (previously red on branch page only).
+- `uv run mypy src/traffictwin/preregistration --strict` → `Success: no issues found in 3 source files`.
+- `uv run mypy` (files = `src`+`tests`) → `Found 37 errors in 3 files (checked 967 source files)` — all in `tests/` (`test_preregistration_service.py:928`, `test_preregistration_governance_regressions.py` union-attr / unused-ignore), pre-existing, not introduced by this branch's `src` fixes; `src/traffictwin` remains green as above.  This matches the branch's expected whole-repo behaviour once `src` is green.
+- `uv run ruff check .` → `All checks passed!`
+- `uv run ruff format --check .` → `1053 files already formatted` (after `uv run ruff format .` reformatted 2 files)
+- `uv lock --check` → `Resolved 91 packages`
+- `git diff --check` → clean
+- **Diff scope:** `src/traffictwin/ui/pages/preregistration_studio.py` (+38/-18 via helper extraction, type cleanups, fingerprint helper) plus `tests/ui/test_preregistration_studio.py` (+124 new regression); no change to `models.py`, `service.py`, `navigation`, `labels`, `page_runtime`, `tables.py` (unchanged by design), `workflows`, `pyproject`, `uv.lock`.
+- **Governance smoke unchanged:** A–F all PASS as listed above; no service logic touched.
+
+> This final candidate (post-30214c43) has **not** been approved by Claude 5 at the time of writing; it awaits Claude 5 final exact-head review.

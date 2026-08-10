@@ -238,3 +238,127 @@ def test_preregistration_amendment_and_matrix_via_service() -> None:
     matrix = planned_vs_observed_matrix(attached)
     assert matrix["expected_count"] == len(frozen_amended.planned_run_cells)
     assert matrix["observed_count"] == 1
+
+
+def test_preregistration_run_matrix_column_config_shows_all_identity_columns() -> None:
+    """Regression for run-matrix presentation: all eight identity fields must remain visible.
+
+    The shared helper ``table_column_config`` hides machine IDs by default
+    (``*_id``, ``metric_version``, ``seed_id``).  The preregistered run
+    matrix is an explicit exception where those fields are the experimental
+    identity and must NOT be hidden.  This test guards the production helper
+    ``_run_matrix_column_config`` — it must expose all eight ``PlannedRunCell``
+    fields with non-None column configs.
+    """
+
+    from traffictwin.metrics.catalogue import METRIC_VERSION
+    from traffictwin.preregistration.models import (
+        AnalysisMethod,
+        CohortRule,
+        DecisionRule,
+        EstimandDefinition,
+        EvidenceMode,
+        ExclusionRule,
+        MissingnessPolicy,
+        MultiplicityPolicy,
+        OutcomeDefinition,
+        ReplicationUnit,
+        StoppingRule,
+        StudyPlan,
+        StudyQuestion,
+    )
+    from traffictwin.preregistration.service import build_run_matrix
+    from traffictwin.ui.pages.preregistration_studio import _run_matrix_column_config
+
+    plan = StudyPlan(
+        plan_id="ui-col-config-001",
+        study_question=StudyQuestion(
+            text="Does run-matrix column config preserve all identity columns correctly?",
+            hypothesis="All eight fields visible.",
+        ),
+        evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
+        primary_outcomes=[
+            OutcomeDefinition(
+                outcome_id="primary-001",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary for column-config regression.",
+            )
+        ],
+        estimand=EstimandDefinition(
+            estimand_id="est-001",
+            description="Mean difference for column-config test with sufficient length.",
+            population="common seeds",
+            effect_measure="mean_diff",
+        ),
+        replication_unit=ReplicationUnit.RANDOM_SEED,
+        replication_ids=[1, 2],
+        planned_arms=["baseline", "variation"],
+        seeds=["seed-baseline", "seed-variation"],
+        policies=["policy-a"],
+        metrics=["task.completion.rate"],
+        cohort_rules=[
+            CohortRule(rule_id="cohort-001", description="Include valid tasks for col test.")
+        ],
+        exclusion_rules=[
+            ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks for col test.")
+        ],
+        missingness_policy=MissingnessPolicy.COMPLETE_CASE,
+        analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
+        multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
+        stopping_rule=StoppingRule(
+            description="Column-config stopping rule with sufficient length.", max_replicates=2
+        ),
+        decision_rule=DecisionRule(
+            rule_type="two_sided_test",
+            alpha=0.05,
+            interpretation="Column-config interpretation with sufficient length.",
+            comparison="two_sided",
+        ),
+        limitations="Column-config limitations with sufficient length for validation.",
+        planned_run_cells=[],
+    )
+
+    matrix = build_run_matrix(plan)
+    assert len(matrix) > 0
+    matrix_rows = [cell.model_dump(mode="json") for cell in matrix]
+
+    # Production helper under test
+    config = _run_matrix_column_config(matrix_rows)
+
+    expected_keys = {
+        "cell_id",
+        "arm_id",
+        "seed_id",
+        "policy_label",
+        "replication_id",
+        "metric_key",
+        "metric_version",
+        "replication_unit",
+    }
+    # Must expose exactly the eight PlannedRunCell fields
+    assert set(config) == expected_keys
+
+    # None of the eight may be hidden (None means hidden/omitted in Streamlit)
+    for key in expected_keys:
+        assert config[key] is not None, f"column {key!r} must not be hidden (got None)"
+
+    # Verify intended human labels where the Streamlit column-config API exposes them
+    expected_labels: dict[str, str] = {
+        "cell_id": "Cell",
+        "arm_id": "Arm",
+        "seed_id": "Seed",
+        "policy_label": "Policy",
+        "replication_id": "Replication",
+        "metric_key": "Metric",
+        "metric_version": "Version",
+        "replication_unit": "Replication unit",
+    }
+    for key, expected_label in expected_labels.items():
+        col = config[key]
+        # TextColumn/NumberColumn expose .label; guard against API change
+        label = getattr(col, "label", None)
+        if label is not None:
+            assert label == expected_label, f"label for {key!r}: {label!r} != {expected_label!r}"
