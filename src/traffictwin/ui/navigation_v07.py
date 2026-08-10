@@ -360,6 +360,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/emoji_events:",
     ),
     V07PageSpec(
+        UiPage.PREREGISTRATION_STUDIO,
+        "Compare & test",
+        "app_pages/preregistration.py",
+        "preregistration",
+        ":material/verified:",
+    ),
+    V07PageSpec(
         UiPage.TOS_RESULTS,
         "Source evidence",
         "app_pages/tos_results.py",

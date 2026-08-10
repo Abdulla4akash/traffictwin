@@ -49,6 +49,7 @@ class UiPage(StrEnum):
     CONSEQUENCE_LENSES = "Consequence Lenses"
     PORTFOLIO_EXPLORER = "Portfolio Explorer"
     MANCHESTER_EVIDENCE_HUB = "Manchester Evidence Hub"
+    PREREGISTRATION_STUDIO = "Preregistration Studio"
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
@@ -144,6 +145,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.MANCHESTER_EVIDENCE_HUB: (
         "Manchester source inventory, readiness, evidence standing and activation blockers. "
         "Synthetic/manual input is not promoted to observed evidence."
+    ),
+    UiPage.PREREGISTRATION_STUDIO: (
+        "Govern a versioned scientific plan that freezes intended analyses before "
+        "evidence is attached, preserves amendments, and evaluates the decision gate."
     ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
