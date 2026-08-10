@@ -47,6 +47,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.JOURNEY_TIME,
         UiPage.CONSEQUENCE_LENSES,
         UiPage.PORTFOLIO_EXPLORER,
+        UiPage.MANCHESTER_EVIDENCE_HUB,
         UiPage.EVIDENCE,
         UiPage.PROVENANCE,
     ],

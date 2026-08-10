@@ -48,6 +48,7 @@ class UiPage(StrEnum):
     JOURNEY_TIME = "Journey-Time Lens"
     CONSEQUENCE_LENSES = "Consequence Lenses"
     PORTFOLIO_EXPLORER = "Portfolio Explorer"
+    MANCHESTER_EVIDENCE_HUB = "Manchester Evidence Hub"
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
@@ -139,6 +140,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.PORTFOLIO_EXPLORER: (
         "Explore transparent portfolio selection, candidate ranking, regret and challenge seeds "
         "over synthetic demonstration evidence only."
+    ),
+    UiPage.MANCHESTER_EVIDENCE_HUB: (
+        "Manchester source inventory, readiness, evidence standing and activation blockers. "
+        "Synthetic/manual input is not promoted to observed evidence."
     ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
