@@ -51,6 +51,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.PREREGISTRATION_STUDIO,
         UiPage.EVIDENCE,
         UiPage.PROVENANCE,
+        UiPage.STUDY_CAPSULE,
     ],
     "Project": [UiPage.PARTICIPANT_EVALUATION, UiPage.SETTINGS, UiPage.ABOUT],
 }

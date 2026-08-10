@@ -53,6 +53,7 @@ class UiPage(StrEnum):
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
+    STUDY_CAPSULE = "Study Capsule Builder"
     PARTICIPANT_EVALUATION = "Mock Evaluation Analysis"
     SEARCH = "Search"
     SETTINGS = "Settings"
@@ -153,6 +154,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
     UiPage.REPORTS: "Find, download, and deliberately regenerate deterministic reports.",
+    UiPage.STUDY_CAPSULE: (
+        "Assemble derived artifacts into a deterministic, offline-verifiable review capsule."
+    ),
     UiPage.PARTICIPANT_EVALUATION: (
         "Analyse explicitly labelled synthetic mock evaluation results; no participant data."
     ),

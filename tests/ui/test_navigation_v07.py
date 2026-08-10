@@ -115,6 +115,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.EVIDENCE: ("Evidence & reports", "diagnostics"),
         UiPage.PROVENANCE: ("Evidence & reports", "provenance"),
         UiPage.REPORTS: ("Evidence & reports", "reports"),
+        UiPage.STUDY_CAPSULE: ("Evidence & reports", "study-capsule"),
         UiPage.PARTICIPANT_EVALUATION: ("Evidence & reports", "mock-evaluation"),
         UiPage.MANIFEST_WIZARD: ("Advanced", "manifest-inference"),
         UiPage.SETTINGS: ("Advanced", "settings"),
