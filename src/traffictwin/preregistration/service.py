@@ -298,8 +298,16 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
         raise ValueError("empty replication set after generation rule")
 
     sorted_arms = sorted(arms)
-    sorted_seeds = sorted([s for s in seeds_dim if s is not None]) if seeds_dim[0] is not None else [None]
-    sorted_policies = sorted([p for p in policies_dim if p is not None]) if policies_dim[0] is not None else [None]
+    sorted_seeds = (
+        sorted([s for s in seeds_dim if s is not None])
+        if seeds_dim[0] is not None
+        else [None]
+    )
+    sorted_policies = (
+        sorted([p for p in policies_dim if p is not None])
+        if policies_dim[0] is not None
+        else [None]
+    )
     sorted_replications = sorted(replication_ids)
     sorted_primaries = sorted(primaries, key=lambda o: o.outcome_id)
 

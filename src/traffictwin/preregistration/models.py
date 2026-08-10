@@ -124,7 +124,7 @@ class ArtifactAdmission(StrEnum):
 # ---------------------------------------------------------------------------
 
 
-def is_explicitly_admitted(att: "EvidenceAttachment") -> bool:
+def is_explicitly_admitted(att: EvidenceAttachment) -> bool:
     """Authoritative admission check: only is_admitted==True counts."""
     return att.is_admitted is True
 

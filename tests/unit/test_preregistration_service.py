@@ -756,11 +756,12 @@ def test_unadmitted_evidence_remains_unadmitted() -> None:
         for c in plan.planned_run_cells
     ]
     attached_all_un = attach_evidence(plan, all_unadmitted, clock=_later_clock)
-    # Since all are unadmitted and plan evidence_mode is synthetic (not admitted research), gate logic currently checks is_admitted only for admitted_research mode
-    # For synthetic mode, unadmitted still counted as present? But spec says never reinterpret unadmitted as admitted
-    # Our implementation treats unadmitted as incompatible only for ADMITTED_RESEARCH mode, so for synthetic it would be ready
-    # To strictly enforce, we test that is_admitted flag is preserved regardless of gate
     assert all(not a.is_admitted for a in attached_all_un.evidence_attachments)
+    # All-unadmitted must never become READY; gate must be BLOCKED (incompatible) or UNAVAILABLE
+    gate_all_un = evaluate_gate(attached_all_un, attached_all_un.evidence_attachments)
+    assert gate_all_un.is_blocked or gate_all_un.is_unavailable
+    assert not gate_all_un.is_ready
+    assert any("Unadmitted evidence" in r or "not explicitly admitted" in r for r in gate_all_un.reasons)
 
 
 def test_gate_unavailable_blocked_ready_distinctions() -> None:
