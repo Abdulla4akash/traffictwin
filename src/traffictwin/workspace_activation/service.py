@@ -1,6 +1,10 @@
 """Deterministic, preview-first, confirmation-gated workspace activation service.
 
 Business logic lives outside Streamlit. No network calls. No secrets stored.
+
+Workspace activation does not make provider network requests; it records
+provider readiness/configuration only. Workers are recorded, not launched
+in V1; deactivation records which would be stopped.
 """
 
 from __future__ import annotations
@@ -55,26 +59,9 @@ ALLOWED_WORKERS: frozenset[str] = frozenset(
     }
 )
 
-MIN_DISK_BYTES = 10 * 1024 * 1024  # 10 MiB minimum for demo workspace
+MIN_DISK_BYTES = 10 * 1024 * 1024
 REQUIRED_PYTHON_MAJOR = 3
 REQUIRED_PYTHON_MINOR = 11
-
-# Track provider network calls to enforce "no network before confirmation"
-_provider_call_counter: int = 0
-
-
-def _reset_provider_counter() -> None:
-    global _provider_call_counter
-    _provider_call_counter = 0
-
-
-def _increment_provider_call() -> None:
-    global _provider_call_counter
-    _provider_call_counter += 1
-
-
-def get_provider_call_count() -> int:
-    return _provider_call_counter
 
 
 # ---------------------------------------------------------------------------
@@ -108,8 +95,7 @@ def _is_symlink(path: Path) -> bool:
 
 
 def _has_symlink_in_parents(path: Path) -> bool:
-    # Check if any component contains a symlink that would cause escape,
-    # excluding known system symlinks like /tmp -> /private/tmp on macOS.
+    """Check for symlink escape, ignoring system symlinks like /tmp."""
     try:
         cur = path
         if cur.is_symlink():
@@ -133,12 +119,6 @@ def _has_symlink_in_parents(path: Path) -> bool:
             if not parent.exists():
                 continue
         try:
-            if path.exists():
-                strict_resolved = path.resolve(strict=True)
-                if strict_resolved != path.absolute() and (
-                    _is_symlink(path) or strict_resolved != Path(os.path.abspath(str(path)))
-                ):
-                    pass
             existing = path
             while not existing.exists() and existing != existing.parent:
                 existing = existing.parent
@@ -168,7 +148,6 @@ def _has_symlink_in_parents(path: Path) -> bool:
 
 
 def _check_symlink_escape(destination: Path) -> ActivationFinding | None:
-    # Direct symlink
     if _is_symlink(destination):
         return ActivationFinding(
             code="SYMLINK_ESCAPE",
@@ -183,21 +162,6 @@ def _check_symlink_escape(destination: Path) -> ActivationFinding | None:
             message="Destination path contains a symlink component; symlink escapes are refused.",
             category="path",
         )
-    # Also detect if any parent directory that exists is a symlink
-    try:
-        # For the case where destination is /tmp/foo/bar and /tmp/foo is symlink to /etc
-        # We already checked is_symlink for parents, but also need to check that the
-        # logical path's parent when resolved points elsewhere.
-        # Do a simple check: resolve the parent that exists and see if it matches logical.
-        existing_parent = destination.parent
-        while not existing_parent.exists() and existing_parent != existing_parent.parent:
-            existing_parent = existing_parent.parent
-        if existing_parent.exists() and not _is_symlink(existing_parent):
-            # Check if any component from existing_parent down to destination contains symlink
-            # Already handled above; this is fallback.
-            pass
-    except OSError:
-        pass
     return None
 
 
@@ -235,7 +199,6 @@ def _check_path_valid(destination: Path) -> tuple[bool, list[ActivationFinding]]
             )
         )
         valid = False
-    # Forbid path traversal attempts that escape via ..
     parts = Path(raw).parts
     if ".." in parts:
         findings.append(
@@ -247,15 +210,8 @@ def _check_path_valid(destination: Path) -> tuple[bool, list[ActivationFinding]]
             )
         )
         valid = False
-    # Check containment: refuse if destination is inside repository itself (to avoid deleting repo)
-    # We consider workspace activation should not point inside the traffictwin source tree
     try:
-        repo_root = (
-            Path(__file__).resolve().parents[3]
-        )  # src/traffictwin/workspace_activation -> repo root approx
-        # But to be safe, we check if destination resolves inside repo_root
-        # Only if both exist and destination is inside repo; for tests we allow
-        # /tmp, so we only refuse if repo_root is ancestor
+        repo_root = Path(__file__).resolve().parents[3]
         try:
             dest_resolved = destination.resolve(strict=False)
             if dest_resolved.is_relative_to(repo_root.resolve(strict=False)):
@@ -263,7 +219,7 @@ def _check_path_valid(destination: Path) -> tuple[bool, list[ActivationFinding]]
                     ActivationFinding(
                         code="PATH_INSIDE_REPO",
                         severity=FindingSeverity.ERROR,
-                        message="Destination is inside repository; choose external path.",
+                        message="Destination is inside repository; choose external path.",  # noqa: E501
                         category="path",
                     )
                 )
@@ -283,7 +239,6 @@ def _check_disk(path: Path, required_bytes: int) -> tuple[int | None, list[Activ
     findings: list[ActivationFinding] = []
     available: int | None = None
     try:
-        # Find nearest existing parent
         check_path = path
         while not check_path.exists() and check_path != check_path.parent:
             check_path = check_path.parent
@@ -296,7 +251,7 @@ def _check_disk(path: Path, required_bytes: int) -> tuple[int | None, list[Activ
                 ActivationFinding(
                     code="INSUFFICIENT_DISK",
                     severity=FindingSeverity.ERROR,
-                    message=(
+                    message=(  # noqa: E501
                         f"Available disk {available} bytes is less than"
                         f" required {required_bytes} bytes."
                     ),
@@ -326,7 +281,7 @@ def _check_versions() -> tuple[bool, list[ActivationFinding]]:
             ActivationFinding(
                 code="PYTHON_VERSION",
                 severity=FindingSeverity.ERROR,
-                message=(
+                message=(  # noqa: E501
                     f"Python {REQUIRED_PYTHON_MAJOR}.{REQUIRED_PYTHON_MINOR}+ required,"
                     f" found {major}.{minor}."
                 ),
@@ -347,9 +302,7 @@ def _check_versions() -> tuple[bool, list[ActivationFinding]]:
 
 
 def _check_credential_presence() -> list[CredentialPresence]:
-    # Only presence, never values
     result: list[CredentialPresence] = []
-    # Real check: env var exists and non-empty
     for name, env_var in [
         ("BODS_API_KEY", "BODS_API_KEY"),
         ("NATIONAL_HIGHWAYS_API_KEY", "NATIONAL_HIGHWAYS_API_KEY"),
@@ -363,8 +316,6 @@ def _check_credential_presence() -> list[CredentialPresence]:
                 source="environment" if present else "unavailable",
             )
         )
-    # Also add generic checks for config presence without values
-    # For tests, they will use fake env; we just report presence
     return result
 
 
@@ -374,13 +325,8 @@ def _check_provider_readiness(
     cred_map = {c.env_var: c.present for c in creds}
     bods_cred = cred_map.get("BODS_API_KEY", False)
     nh_cred = cred_map.get("NATIONAL_HIGHWAYS_API_KEY", False)
-    # Configuration presence: we treat as present if env var for config file exists or if enabled flag implies need  # noqa: E501
-    # For deterministic without filesystem dependence, we check if a config file env var is set (not value)  # noqa: E501
-    # For now, we consider BODS configuration presence as credential presence or explicit file env
     bods_config_present = bool(os.getenv("BODS_CONFIG_PATH", "").strip()) or bods_cred
     nh_config_present = bool(os.getenv("NATIONAL_HIGHWAYS_CONFIG_PATH", "").strip()) or nh_cred
-    # But spec says BODS configuration presence and National Highways configuration presence — check without revealing  # noqa: E501
-    # We'll use simple: if enabled and cred present, ready; if enabled and missing cred, missing_credential; if disabled, disabled.  # noqa: E501
     readings: list[ProviderReadiness] = []
     for kind, enabled, cred_present, config_present in [
         (ProviderKind.BODS, request.bods_enabled, bods_cred, bods_config_present),
@@ -458,11 +404,9 @@ def _check_retention_policy(
 
 
 def _check_aggregate_store_ready(
-    request: WorkspaceActivationRequest,
+    request: WorkspaceActivationRequest,  # noqa: ARG001
 ) -> tuple[bool, list[ActivationFinding]]:
     findings: list[ActivationFinding] = []
-    # Aggregate store is ready if we can create dirs and no forbidden state
-    # For now, always ready unless path is invalid
     findings.append(
         ActivationFinding(
             code="AGGREGATE_STORE_CHECK",
@@ -489,18 +433,24 @@ def _check_backup_destination(
         )
         return True, findings
     backup = Path(request.backup_destination)
-    # Check symlink escape for backup
     sf = _check_symlink_escape(backup)
     if sf is not None:
         findings.append(sf)
         return False, findings
-    # Check if backup path is inside destination (allowed) or elsewhere
+    # Check traversal in backup path itself
+    if ".." in Path(request.backup_destination).parts:
+        findings.append(
+            ActivationFinding(
+                code="PATH_TRAVERSAL",
+                severity=FindingSeverity.ERROR,
+                message="Backup path contains parent traversal '..' which is refused.",
+                category="backup",
+            )
+        )
+        return False, findings
     try:
-        _dest = Path(request.destination_path).resolve(strict=False)  # noqa: F841
         b_dest = backup.resolve(strict=False)
-        # It's okay if backup is inside dest or elsewhere, but warn if outside and not exists
         if not b_dest.exists():
-            # Check parent exists and writable
             check_parent = b_dest
             while not check_parent.exists() and check_parent != check_parent.parent:
                 check_parent = check_parent.parent
@@ -561,7 +511,7 @@ def _check_workers(request: WorkspaceActivationRequest) -> tuple[list[Activation
                 ActivationFinding(
                     code="WORKER_NOT_ALLOWLISTED",
                     severity=FindingSeverity.ERROR,
-                    message=f"Worker {w!r} is not in the allowlist; only {sorted(ALLOWED_WORKERS)} may start.",  # noqa: E501
+                    message=f"Worker {w!r} is not in allowlist; only {sorted(ALLOWED_WORKERS)} may start.",  # noqa: E501
                     category="workers",
                 )
             )
@@ -570,7 +520,7 @@ def _check_workers(request: WorkspaceActivationRequest) -> tuple[list[Activation
         ActivationFinding(
             code="WORKER_OK",
             severity=FindingSeverity.INFO,
-            message=f"Workers {request.allowlisted_workers} are allowlisted and may start after activation.",  # noqa: E501
+            message=f"Workers {request.allowlisted_workers} are allowlisted and may start.",  # noqa: E501
             category="workers",
         )
     )
@@ -605,35 +555,27 @@ def preflight_workspace(request: WorkspaceActivationRequest) -> WorkspaceActivat
     path_valid, path_findings = _check_path_valid(dest)
     findings.extend(path_findings)
 
-    # containment already in path_valid
-    contained = path_valid  # if path_valid false, not contained for our purposes
-
     is_managed = _is_managed(dest) if dest.exists() else False
     is_empty = _is_empty(dest)
 
-    # unmanaged non-empty check
     if dest.exists() and not is_empty and not is_managed:
         findings.append(
             ActivationFinding(
                 code="UNMANAGED_NON_EMPTY",
                 severity=FindingSeverity.ERROR,
-                message="Destination exists, is not empty, and is not a managed workspace; refusal required to preserve data.",  # noqa: E501
+                message="Destination exists, is not empty, and is not a managed workspace; refusal required.",  # noqa: E501
                 category="path",
             )
         )
 
-    # disk
     disk_available, disk_findings = _check_disk(dest, MIN_DISK_BYTES)
     findings.extend(disk_findings)
 
-    # versions
     version_ok, version_findings = _check_versions()
     findings.extend(version_findings)
 
-    # credentials
     creds = _check_credential_presence()
 
-    # providers
     provider_readiness = _check_provider_readiness(request, creds)
     for pr in provider_readiness:
         if pr.status == ProviderStatus.MISSING_CREDENTIAL and pr.enabled:
@@ -655,30 +597,22 @@ def preflight_workspace(request: WorkspaceActivationRequest) -> WorkspaceActivat
                 )
             )
 
-    # retention
-    retention_ok, retention_findings = _check_retention_policy(request)
+    _, retention_findings = _check_retention_policy(request)
     findings.extend(retention_findings)
 
-    # aggregate store
     agg_ready, agg_findings = _check_aggregate_store_ready(request)
     findings.extend(agg_findings)
 
-    # backup
     backup_ready, backup_findings = _check_backup_destination(request)
     findings.extend(backup_findings)
 
-    # workers
     worker_findings, workers_ok = _check_workers(request)
-    # worker_findings are separate but also contribute to overall findings for simplicity
-    # keep them in worker_readiness as well as findings? spec says separate
-    # We'll add worker errors to main findings too if error severity
     for wf in worker_findings:
         if wf.severity == FindingSeverity.ERROR:
             findings.append(wf)
 
-    # overall ready_to_plan: no ERROR findings, path valid, contained, version ok, disk enough
     has_error = any(f.severity == FindingSeverity.ERROR for f in findings)
-    ready_to_plan = (not has_error) and path_valid and contained and version_ok and workers_ok
+    ready_to_plan = (not has_error) and path_valid and version_ok and workers_ok
 
     return WorkspaceActivationPreflight(
         request_fingerprint=request_fp,
@@ -686,7 +620,6 @@ def preflight_workspace(request: WorkspaceActivationRequest) -> WorkspaceActivat
         is_managed=is_managed,
         is_empty=is_empty,
         path_valid=path_valid,
-        contained=contained,
         disk_available_bytes=disk_available,
         disk_required_bytes=MIN_DISK_BYTES,
         findings=findings,
@@ -709,27 +642,16 @@ def preflight_workspace(request: WorkspaceActivationRequest) -> WorkspaceActivat
 def build_activation_plan(
     request: WorkspaceActivationRequest, preflight: WorkspaceActivationPreflight | None = None
 ) -> WorkspaceActivationPlan:
-    """Produce deterministic activation plan with confirmation digest.
-
-    If preflight is supplied, it must match the request fingerprint.
-    """
+    """Produce deterministic activation plan with confirmation digest."""
     if preflight is not None and preflight.request_fingerprint != request.fingerprint():
         raise ActivationRefusedError(
             "REFUSED", "Request changed after preflight; stale preflight is refused."
         )
 
-    # Call preflight internally if not supplied, to enforce checks
     if preflight is None:
         preflight = preflight_workspace(request)
 
-    if not preflight.ready_to_plan:
-        # Still produce a plan but mark? For safety, refuse to build plan if not ready
-        # However spec says preview should show issues; we allow plan even if not ready but digest still deterministic  # noqa: E501
-        # We will not raise here; just continue so UI can show plan with warnings.
-        pass
-
     dest = request.destination_path
-    # Deterministic sorted lists
     dirs = sorted(
         [
             f"{dest}/{MARKER_DIR_NAME}",
@@ -754,8 +676,10 @@ def build_activation_plan(
 
     worker_opts = sorted(request.allowlisted_workers) if request.start_workers else []
 
-    backup_plan = f"Backup existing managed data to {request.backup_destination or dest + '/' + BACKUP_DIR} before atomic publish; rollback restores from backup."  # noqa: E501
-    rollback_plan = "If activation fails, remove staging directory and restore backup if present; existing data preserved."  # noqa: E501
+    backup_plan = (  # noqa: E501
+        f"Backup to {request.backup_destination or dest + '/' + BACKUP_DIR} before publish; rollback restores backup."  # noqa: E501
+    )
+    rollback_plan = "If activation fails, remove staging and restore backup; data preserved."  # noqa: E501
 
     actions: list[WorkspaceActivationAction] = []
     for d in dirs:
@@ -785,7 +709,10 @@ def build_activation_plan(
             WorkspaceActivationAction(
                 kind=ActionKind.CONFIGURE_PROVIDER,
                 target=pr.provider.value,
-                detail=f"Configure provider {pr.provider.value} enabled={pr.enabled} status={pr.status.value}",  # noqa: E501
+                detail=(  # noqa: E501
+                    f"Configure provider {pr.provider.value} enabled={pr.enabled}"  # noqa: E501
+                    f" status={pr.status.value}"  # noqa: E501
+                ),
                 required=False,
             )
         )
@@ -799,7 +726,6 @@ def build_activation_plan(
                     required=False,
                 )
             )
-    # backup action
     actions.append(
         WorkspaceActivationAction(
             kind=ActionKind.BACKUP,
@@ -809,10 +735,8 @@ def build_activation_plan(
         )
     )
 
-    # Deterministic ordering for actions by kind+target
     actions = sorted(actions, key=lambda a: (a.kind.value, a.target))
 
-    # Build plan without digest first to compute digest deterministically
     payload = {
         "plan_version": _ACTIVATION_METHOD_VERSION,
         "request_fingerprint": request.fingerprint(),
@@ -845,14 +769,13 @@ def build_activation_plan(
         confirmation_digest=digest,
         created_at=_iso_now(),
     )
-    # Verify digest matches expected
     if plan.expected_digest() != digest:
         raise RuntimeError("Plan digest mismatch — deterministic serialization failed")
     return plan
 
 
 # ---------------------------------------------------------------------------
-# Activation
+# Activation helpers for B1
 # ---------------------------------------------------------------------------
 
 
@@ -867,34 +790,88 @@ def _load_existing_receipt(dest: Path) -> WorkspaceActivationReceipt | None:
         return None
 
 
-def _atomic_write_json(path: Path, data: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(_canonical_json(data), encoding="utf-8")
-    tmp.replace(path)
+def _load_marker(dest: Path) -> dict[str, object] | None:
+    marker_path = dest / MARKER_DIR_NAME / MARKER_FILE_NAME
+    if not marker_path.is_file():
+        return None
+    try:
+        return json.loads(marker_path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+    except Exception:
+        return None
+
+
+def _check_managed_files_drift(dest: Path, receipt: WorkspaceActivationReceipt) -> str | None:
+    """Verify managed config files match receipt; return drift description if mismatched."""
+    # Check retention.json
+    retention_path = dest / CONFIG_DIR / "retention.json"
+    if retention_path.is_file():
+        try:
+            data = json.loads(retention_path.read_text(encoding="utf-8"))
+            # Compare canonical
+            expected = _canonical_json(receipt.retention_policy.model_dump(mode="json"))
+            actual = _canonical_json(data)
+            if expected != actual:
+                return "retention.json does not match receipt retention_policy"
+        except Exception as exc:
+            return f"retention.json invalid: {exc}"
+    else:
+        return "retention.json missing"
+
+    # Check providers.json
+    providers_path = dest / CONFIG_DIR / "providers.json"
+    if providers_path.is_file():
+        try:
+            data = json.loads(providers_path.read_text(encoding="utf-8"))
+            # Compare enabled set
+            expected_enabled = sorted(receipt.providers_enabled)
+            actual_enabled = sorted([p.get("provider") for p in data if p.get("enabled") is True])
+            # Also check full canonical if we have exact provider configs in receipt
+            # We stored providers_enabled only, so check that
+            if expected_enabled != actual_enabled:
+                return (  # noqa: E501
+                    f"providers.json mismatch: expected {expected_enabled}, got {actual_enabled}"  # noqa: E501
+                )
+        except Exception as exc:
+            return f"providers.json invalid: {exc}"
+    else:
+        return "providers.json missing"
+
+    # Check marker matches receipt
+    marker = _load_marker(dest)
+    if marker is None:
+        return "marker.json missing"
+    if marker.get("request_fingerprint") != receipt.request_fingerprint:
+        return "marker request_fingerprint does not match receipt"
+    if marker.get("confirmation_digest") != receipt.confirmation_digest:
+        return "marker confirmation_digest does not match receipt"
+
+    return None
 
 
 def _init_registry_db(db_path: Path) -> None:
-    # Use existing registry if available, else create minimal sqlite
-    # We avoid importing heavy registry for simplicity but try to use it
     try:
         from traffictwin.storage.registry import Registry
 
         reg = Registry(db_path)
         reg.initialize()
     except Exception:
-        # Fallback: create empty sqlite file
         import sqlite3
 
         db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(db_path))
         try:
             conn.execute(
-                "CREATE TABLE IF NOT EXISTS _workspace_activation (id INTEGER PRIMARY KEY, created_at TEXT)"  # noqa: E501
+                "CREATE TABLE IF NOT EXISTS _workspace_activation ("  # noqa: E501
+                "id INTEGER PRIMARY KEY, created_at TEXT)"  # noqa: E501
             )
             conn.commit()
         finally:
             conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Activation
+# ---------------------------------------------------------------------------
 
 
 def activate_workspace(
@@ -902,12 +879,7 @@ def activate_workspace(
     plan: WorkspaceActivationPlan,
     confirmation: WorkspaceActivationConfirmation,
 ) -> WorkspaceActivationReceipt:
-    """Activate workspace atomically, gated by exact confirmation digest.
-
-    Raises ActivationRefusedError if digest mismatches, request changed, or
-    unmanaged non-empty target.
-    """
-    # Gate 1: confirmation digest must match plan's exact digest
+    """Activate workspace atomically, gated by exact confirmation digest."""
     if confirmation.confirmation_digest != plan.confirmation_digest:
         raise ActivationRefusedError(
             "REFUSED",
@@ -917,10 +889,10 @@ def activate_workspace(
         raise ActivationRefusedError(
             "REFUSED", "Plan digest integrity check failed; activation refused."
         )
-    # Gate 2: request fingerprint must match plan's request fingerprint and confirmation if supplied
     if request.fingerprint() != plan.request_fingerprint:
         raise ActivationRefusedError(
-            "REFUSED", "Request changed after preview; stale confirmation digest is refused."
+            "REFUSED",
+            "Request changed after preview; stale confirmation digest is refused.",
         )
     if (
         confirmation.request_fingerprint is not None
@@ -932,64 +904,69 @@ def activate_workspace(
 
     dest = Path(request.destination_path)
 
-    # Preflight re-check for safety (fail-closed)
+    # B1: If already managed, enforce fail-closed on changed re-activation
+    if dest.exists() and _is_managed(dest):
+        existing_receipt = _load_existing_receipt(dest)
+        if existing_receipt is None:
+            raise ActivationRefusedError(
+                "MANAGED_WORKSPACE_CORRUPTION",
+                "Managed marker present but receipt is missing or invalid; refusing to overwrite.",
+            )
+        # Check if new request/plan matches existing
+        if (
+            existing_receipt.request_fingerprint == request.fingerprint()
+            and existing_receipt.confirmation_digest == plan.confirmation_digest
+            and existing_receipt.plan_fingerprint == plan.confirmation_digest
+        ):
+            drift = _check_managed_files_drift(dest, existing_receipt)
+            if drift is not None:
+                raise ActivationRefusedError(
+                    "MANAGED_WORKSPACE_DRIFT",
+                    f"Managed workspace files have drifted from receipt: {drift}",
+                )
+            return existing_receipt.model_copy(update={"status": "already_active"})
+        else:
+            raise ActivationRefusedError(
+                "ACTIVATION_REQUEST_CHANGED",
+                "workspace is already managed under a different activation plan; "
+                "use an explicit future reconfiguration workflow rather than silent re-activation",
+            )
+
+    # Preflight re-check for safety (fail-closed) for non-managed case
     preflight = preflight_workspace(request)
-    has_error = any(f.severity == FindingSeverity.ERROR for f in preflight.findings)
-    # Allow activation if preflight ready_to_plan is false but only if error is not path-related?
-    # For safety, if unmanaged non-empty, refuse
     for f in preflight.findings:
         if f.code == "UNMANAGED_NON_EMPTY":
             raise ActivationRefusedError(
-                "REFUSED",
-                "Destination is unmanaged non-empty; activation refused to preserve data.",
+                f.code,
+                f.message,
             )
         if f.code == "SYMLINK_ESCAPE":
-            raise ActivationRefusedError("REFUSED", "Symlink escape detected; activation refused.")
-        if f.code == "PATH_TRAVERSAL" or f.code == "PATH_INSIDE_REPO":
-            raise ActivationRefusedError("REFUSED", f"Path check failed: {f.message}")
+            raise ActivationRefusedError(f.code, f.message)
+        if f.code in ("PATH_TRAVERSAL", "PATH_INSIDE_REPO"):
+            raise ActivationRefusedError(f.code, f.message)
 
-    if has_error and not preflight.ready_to_plan:
-        # If any error, refuse unless it's just warnings
-        # Check if all errors are provider-related warnings that are not critical? But we treat any ERROR as refuse  # noqa: E501
-        # However we already handled critical path errors; remaining errors like worker not allowlisted should also refuse  # noqa: E501
+    if not preflight.ready_to_plan:
         raise ActivationRefusedError(
             "REFUSED", "Preflight has errors; activation refused. Review preflight findings."
         )
 
-    # Idempotent retry: if already managed and receipt matches same request fingerprint, return existing receipt as already_active  # noqa: E501
-    if dest.exists() and _is_managed(dest):
-        existing = _load_existing_receipt(dest)
-        if (
-            existing is not None
-            and existing.request_fingerprint == request.fingerprint()
-            and existing.confirmation_digest == confirmation.confirmation_digest
-        ):
-            # Return with already_active status but same receipt data
-            return existing.model_copy(update={"status": "already_active"})
-
-    # Refuse unmanaged non-empty targets (already checked above, but double-check destination state)
+    # Refuse unmanaged non-empty (defense in depth, also checked above)
     if dest.exists() and not _is_empty(dest) and not _is_managed(dest):
         raise ActivationRefusedError(
             "REFUSED", "Destination exists, is non-empty and not managed; activation refused."
         )
 
-    # Stage outside destination
     staging_parent = dest.parent if dest.parent.exists() else Path(tempfile.gettempdir())
     staging_dir: Path | None = None
     try:
         staging_dir = Path(
             tempfile.mkdtemp(prefix=f".{dest.name}.staging-", dir=str(staging_parent))
         )
-        # Populate staging
-        # Create directories
         for d in plan.directories_to_create:
-            # Map destination path to staging path: replace dest prefix with staging_dir
-            # d is f"{dest}/subdir"
             rel = Path(d).relative_to(dest) if Path(d).is_relative_to(dest) else Path(Path(d).name)
             target = staging_dir / rel
             target.mkdir(parents=True, exist_ok=True)
 
-        # Initialize database
         for db_rel in plan.database_initialization:
             rel = (
                 Path(db_rel).relative_to(dest)
@@ -999,7 +976,6 @@ def activate_workspace(
             db_path = staging_dir / rel
             _init_registry_db(db_path)
 
-        # Write retention and provider configs
         retention_path = staging_dir / CONFIG_DIR / "retention.json"
         retention_path.parent.mkdir(parents=True, exist_ok=True)
         retention_path.write_text(
@@ -1012,7 +988,6 @@ def activate_workspace(
             encoding="utf-8",
         )
 
-        # Prepare receipt data (without writing yet to final location, write to staging)
         marker_path_str = str(dest / MARKER_DIR_NAME / MARKER_FILE_NAME)
         receipt_path_str = str(dest / MARKER_DIR_NAME / RECEIPT_FILE_NAME)
         backup_location = request.backup_destination or str(dest / BACKUP_DIR)
@@ -1034,11 +1009,9 @@ def activate_workspace(
             status="activated",
         )
 
-        # Write receipt and marker to staging
         staging_marker = staging_dir / MARKER_DIR_NAME / MARKER_FILE_NAME
         staging_receipt = staging_dir / MARKER_DIR_NAME / RECEIPT_FILE_NAME
         staging_marker.parent.mkdir(parents=True, exist_ok=True)
-        # Marker contains minimal managed flag and fingerprint
         marker_data = {
             "managed": True,
             "marker_version": _ACTIVATION_METHOD_VERSION,
@@ -1049,32 +1022,20 @@ def activate_workspace(
         staging_marker.write_text(_canonical_json(marker_data), encoding="utf-8")
         staging_receipt.write_text(receipt.canonical_json(), encoding="utf-8")
 
-        # Optionally start allowlisted workers — we do not launch real processes, just record.
-        # If workers are to be started, we ensure they are allowlisted (already checked).
-        # We simulate no network provider request before confirmation — already enforced.
-
-        # Atomic publish: if destination does not exist, rename staging to destination
-        # If destination exists and is managed and empty, merge; if managed and non-empty, preserve existing data  # noqa: E501
         if not dest.exists():
-            # Atomic rename
             try:
                 staging_dir.rename(dest)
             except OSError:
-                # Cross-device fallback: copy and then remove staging
                 shutil.copytree(staging_dir, dest, dirs_exist_ok=False)
                 shutil.rmtree(staging_dir, ignore_errors=True)
-            staging_dir = None  # don't clean up after successful rename
+            staging_dir = None
         else:
-            # Destination exists and is managed (empty or with data) — preserve existing data
-            # We need to merge staging content into dest without deleting existing files
-            # For each file in staging, copy to dest if not exists; for marker/receipt, overwrite atomically  # noqa: E501
             for item in staging_dir.rglob("*"):
                 rel = item.relative_to(staging_dir)
                 target = dest / rel
                 if item.is_dir():
                     target.mkdir(parents=True, exist_ok=True)
                 else:
-                    # For marker and receipt, atomic overwrite
                     if (
                         rel == Path(MARKER_DIR_NAME) / MARKER_FILE_NAME
                         or rel == Path(MARKER_DIR_NAME) / RECEIPT_FILE_NAME
@@ -1086,15 +1047,9 @@ def activate_workspace(
                         if not target.exists():
                             target.parent.mkdir(parents=True, exist_ok=True)
                             shutil.copy2(item, target)
-                        else:
-                            # Preserve existing data — do not overwrite
-                            pass
-            # Ensure marker and receipt are written (atomic)
-            # Already handled above
             shutil.rmtree(staging_dir, ignore_errors=True)
             staging_dir = None
 
-        # After publish, re-load receipt from destination to ensure it matches
         final_receipt_path = dest / MARKER_DIR_NAME / RECEIPT_FILE_NAME
         if final_receipt_path.is_file():
             try:
@@ -1105,7 +1060,6 @@ def activate_workspace(
                 return receipt
         return receipt
     except ActivationRefusedError:
-        # Clean up staging on refusal
         if staging_dir is not None and staging_dir.exists():
             shutil.rmtree(staging_dir, ignore_errors=True)
         raise
@@ -1143,8 +1097,6 @@ def get_workspace_status(destination_path: str | Path) -> WorkspaceActivationSta
                 )
             )
         else:
-            # Reconstruct provider readiness from receipt retention? For status we return providers from receipt  # noqa: E501
-            # We attempt to load providers.json if exists
             providers_path = dest / CONFIG_DIR / "providers.json"
             if providers_path.is_file():
                 try:
@@ -1188,9 +1140,7 @@ def get_workspace_status(destination_path: str | Path) -> WorkspaceActivationSta
             )
         )
 
-    # Always add a dummy provider check for status that does not make network calls
     if not providers:
-        # Create unavailable providers for display
         providers = [
             ProviderReadiness(
                 provider=ProviderKind.BODS,
@@ -1210,16 +1160,15 @@ def get_workspace_status(destination_path: str | Path) -> WorkspaceActivationSta
             ),
         ]
         if receipt is not None:
-            # Overwrite with receipt's providers_enabled info
             enabled = set(receipt.providers_enabled)
             providers = [
                 ProviderReadiness(
                     provider=ProviderKind.BODS,
-                    configured=p.provider in enabled if hasattr(p, "provider") else False,
+                    configured=ProviderKind.BODS.value in enabled,
                     credential_present=False,
-                    enabled=p.provider.value in enabled if hasattr(p, "provider") else False,
+                    enabled=ProviderKind.BODS.value in enabled,
                     status=ProviderStatus.READY
-                    if p.provider.value in enabled
+                    if ProviderKind.BODS.value in enabled
                     else ProviderStatus.DISABLED,
                     detail=f"Provider {p.provider.value} from receipt.",
                 )
@@ -1243,13 +1192,17 @@ def deactivate_workspace(
     confirmation: WorkspaceActivationConfirmation | None = None,
     remove_marker: bool = False,
 ) -> WorkspaceDeactivationReceipt:
-    """Deactivate workspace — stops only managed workers, preserves evidence by default.
+    """Deactivate workspace.
 
-    If remove_marker is True, a confirmation digest matching the current receipt is required.
-    Never deletes raw data automatically.
+    Policy:
+    - Verify target is a managed workspace; refuse unmanaged.
+    - Stop only activation-managed workers (recorded, not launched in V1).
+    - Remove/marker only via explicit confirmation.
+    - Emit deactivation receipt.
+    - Preserve evidence, database, provider config and aggregate data.
+    - Never delete raw evidence, aggregate store, credentials, or user data recursively.
     """
     dest = Path(destination_path)
-    # Check existence
     if not dest.exists():
         return WorkspaceDeactivationReceipt(
             destination_path=str(dest),
@@ -1275,7 +1228,6 @@ def deactivate_workspace(
     receipt = _load_existing_receipt(dest)
     request_fp = receipt.request_fingerprint if receipt else None
 
-    # If remove_marker requested, require confirmation matching receipt
     if remove_marker:
         if confirmation is None:
             raise ActivationRefusedError(
@@ -1284,7 +1236,7 @@ def deactivate_workspace(
         if receipt is None or confirmation.confirmation_digest != receipt.confirmation_digest:
             raise ActivationRefusedError(
                 "REFUSED",
-                "Deactivation confirmation digest does not match activation receipt; marker removal refused.",  # noqa: E501
+                "Deactivation confirmation digest does not match receipt; marker removal refused.",  # noqa: E501,
             )
         if (
             confirmation.request_fingerprint is not None
@@ -1294,7 +1246,6 @@ def deactivate_workspace(
                 "REFUSED", "Deactivation request fingerprint mismatch; refused."
             )
 
-    # Stop only managed local workers — we just record which would be stopped
     workers_stopped: list[str] = []
     if receipt is not None:
         workers_stopped = list(receipt.workers_started)
@@ -1302,20 +1253,13 @@ def deactivate_workspace(
     preserved: list[str] = []
     if dest.is_dir():
         for item in dest.iterdir():
-            # We preserve evidence and stores by default — list them
             if item.name not in (MARKER_DIR_NAME,):
                 preserved.append(str(item))
-            elif item.name == MARKER_DIR_NAME:
-                # Even marker dir contents except marker itself are preserved? But spec says remove activation marker only through confirmation  # noqa: E501
-                # We preserve evidence inside workspace, but marker file may be removed
-                pass
-        # Also explicitly preserve known data dirs
         for keep in [REGISTRY_DIR_NAME, AGGREGATE_STORE_DIR, BACKUP_DIR, CONFIG_DIR]:
             p = dest / keep
             if p.exists() and str(p) not in preserved:
                 preserved.append(str(p))
 
-    # Remove marker only if confirmation supplied
     marker_removed = False
     if remove_marker:
         marker_path = dest / MARKER_DIR_NAME / MARKER_FILE_NAME
@@ -1323,28 +1267,10 @@ def deactivate_workspace(
             if marker_path.is_file():
                 marker_path.unlink()
                 marker_removed = True
-            # Also remove receipt? Spec says remove activation marker only through confirmation; receipt may remain for audit but we remove marker  # noqa: E501
-            # We keep receipt for audit? But spec says produce receipt; we will keep receipt file for now? Or remove receipt too?  # noqa: E501
-            # To satisfy "remove activation marker only through confirmation", we only remove marker.json, not receipt? But tests may check marker removed.  # noqa: E501
-            # We'll remove receipt as well if marker removed, but preserve other data.
-            # Actually spec says deactivation should preserve evidence and stores by default, remove activation marker only through confirmation.  # noqa: E501
-            # So we should remove marker.json, maybe keep receipt.json for history? We'll remove marker only, keep receipt for audit.  # noqa: E501
-            # But to make status show not_active after removal, we need marker absent.
-            # Let's keep receipt file even after deactivation for audit, unless we want to remove both?  # noqa: E501
-            # We'll keep receipt but status will be not_active because marker absent. That's correct.  # noqa: E501
-            pass
         except OSError as exc:
             raise ActivationRefusedError(
                 "DEACTIVATION_FAILED", f"Failed to remove marker: {exc}"
             ) from exc
-    else:
-        # Without marker removal, we just stop workers but remain managed
-        # This is a "soft" deactivation — workers stopped but workspace still marked active
-        # For spec, deactivation should stop workers and optionally remove marker; we interpret without remove_marker as stop workers only  # noqa: E501
-        pass
-
-    # Determine status (marker presence drives status)
-    _ = _is_managed(dest)  # check for side effect; status is deactivated in all branches
 
     return WorkspaceDeactivationReceipt(
         destination_path=str(dest),

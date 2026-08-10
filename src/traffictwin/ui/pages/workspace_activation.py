@@ -60,8 +60,8 @@ def _render_boundary() -> None:
     st.info(
         "Local preview-first, confirmation-gated workspace activation. "
         "This is NOT public deployment or production activation. "
-        "No evidence is admitted automatically; BODS and National Highways checks show configuration and credential **presence only** (no values). "  # noqa: E501
-        "No provider request occurs before explicit confirmed activation. "
+        "Workspace activation does not make provider network requests; it records provider readiness/configuration only. "  # noqa: E501
+        "BODS and National Highways checks show configuration and credential **presence only** (no values). "  # noqa: E501
         "All actions are typed, deterministic, and bounded; incompatible requests are refused (fail-closed)."  # noqa: E501
     )
     st.caption(
@@ -203,7 +203,7 @@ def render(config: UiConfig | None = None) -> None:  # noqa: ARG001
 
         # Extra fields
         st.write(
-            f"Path valid: {pre.path_valid} | Contained: {pre.contained} | Is managed: {pre.is_managed} | Is empty: {pre.is_empty}"  # noqa: E501
+            f"Path valid: {pre.path_valid} | Is managed: {pre.is_managed} | Is empty: {pre.is_empty}"  # noqa: E501
         )
         st.write(
             f"Disk available: {pre.disk_available_bytes} bytes | Required: {pre.disk_required_bytes} bytes | Version OK: {pre.version_ok} | Ready to plan: {pre.ready_to_plan}"  # noqa: E501

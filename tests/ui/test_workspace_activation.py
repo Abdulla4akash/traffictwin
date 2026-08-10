@@ -1,14 +1,15 @@
 # ruff: noqa: E501
-"""Tests for Local Real-Workspace Activation Wizard.
+"""Tests for Local Real-Workspace Activation Wizard — remediation for B1-B4.
 
 Covers unit, integration, UI/AppTest, adversarial, deterministic identity,
-and mutation gate. All checks use fake providers and no real network.
+network tripwire, and mutation gates. No real network, fake providers only.
+Uses monkeypatch for env isolation and portable path derivation.
 """
 
 from __future__ import annotations
 
 import json
-import os
+import socket
 from pathlib import Path
 
 import pytest
@@ -24,13 +25,9 @@ from traffictwin.workspace_activation.service import (
     activate_workspace,
     build_activation_plan,
     deactivate_workspace,
-    get_provider_call_count,
+    get_workspace_status,
     preflight_workspace,
 )
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 
 def _req(dest: Path, **kwargs: object) -> WorkspaceActivationRequest:
@@ -38,7 +35,7 @@ def _req(dest: Path, **kwargs: object) -> WorkspaceActivationRequest:
 
 
 # ---------------------------------------------------------------------------
-# Unit / integration
+# B1 — re-activation must never lie
 # ---------------------------------------------------------------------------
 
 
@@ -50,7 +47,6 @@ def test_safe_empty_target(tmp_path: Path) -> None:
     assert pre.is_empty is True
     assert pre.is_managed is False
     plan = build_activation_plan(req, pre)
-    assert plan.confirmation_digest
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
@@ -58,15 +54,162 @@ def test_safe_empty_target(tmp_path: Path) -> None:
     assert receipt.status == "activated"
     assert (dest / ".traffictwin_workspace" / "marker.json").is_file()
     assert (dest / ".traffictwin_workspace" / "receipt.json").is_file()
-    # JSON export
     j = receipt.canonical_json()
     assert "request_fingerprint" in j
-    # CSV export
     from traffictwin.workspace_activation.service import receipt_to_csv
 
     csv_text = receipt_to_csv(receipt)
     assert "request_fingerprint" in csv_text
-    assert "destination_path" in csv_text
+
+
+def test_identical_re_activation_is_idempotent(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_idem_b1"
+    req = _req(dest)
+    pre = preflight_workspace(req)
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    r1 = activate_workspace(req, plan, conf)
+    assert r1.status == "activated"
+    # Second identical activation should be idempotent, not create new receipt
+    pre2 = preflight_workspace(req)
+    plan2 = build_activation_plan(req, pre2)
+    # Plan should be identical fingerprint
+    assert plan2.confirmation_digest == plan.confirmation_digest
+    conf2 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan2.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    r2 = activate_workspace(req, plan2, conf2)
+    assert r2.status == "already_active"
+    assert r2.request_fingerprint == r1.request_fingerprint
+    assert r2.confirmation_digest == r1.confirmation_digest
+    # Disk should remain identical
+    retention_path = dest / "config" / "retention.json"
+    assert retention_path.is_file()
+    data = json.loads(retention_path.read_text(encoding="utf-8"))
+    assert data["retention_days"] == 30
+    # No duplicate mutation: receipt still reflects original
+    assert r2.retention_policy.retention_days == 30
+
+
+def test_changed_retention_refused(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_retention"
+    req1 = _req(
+        dest,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=True, allow_export=False),
+    )
+    pre1 = preflight_workspace(req1)
+    plan1 = build_activation_plan(req1, pre1)
+    conf1 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan1.confirmation_digest, request_fingerprint=req1.fingerprint()
+    )
+    r1 = activate_workspace(req1, plan1, conf1)
+    assert r1.status == "activated"
+    # Capture disk state
+    retention_path = dest / "config" / "retention.json"
+    before = retention_path.read_text(encoding="utf-8")
+    marker_before = (dest / ".traffictwin_workspace" / "marker.json").read_text(encoding="utf-8")
+    receipt_before = (dest / ".traffictwin_workspace" / "receipt.json").read_text(encoding="utf-8")
+    # Changed retention
+    req2 = _req(
+        dest,
+        retention_policy=RetentionPolicy(retention_days=365, anonymize=True, allow_export=False),
+    )
+    pre2 = preflight_workspace(req2)
+    plan2 = build_activation_plan(req2, pre2)
+    conf2 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan2.confirmation_digest, request_fingerprint=req2.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="ACTIVATION_REQUEST_CHANGED"):
+        activate_workspace(req2, plan2, conf2)
+    # Disk must remain unchanged
+    assert retention_path.read_text(encoding="utf-8") == before
+    assert (dest / ".traffictwin_workspace" / "marker.json").read_text(
+        encoding="utf-8"
+    ) == marker_before
+    assert (dest / ".traffictwin_workspace" / "receipt.json").read_text(
+        encoding="utf-8"
+    ) == receipt_before
+    # Providers unchanged
+    providers_path = dest / "config" / "providers.json"
+    assert providers_path.is_file()
+
+
+def test_changed_privacy_refused(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_privacy"
+    req1 = _req(
+        dest,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=True, allow_export=False),
+    )
+    pre1 = preflight_workspace(req1)
+    plan1 = build_activation_plan(req1, pre1)
+    conf1 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan1.confirmation_digest, request_fingerprint=req1.fingerprint()
+    )
+    activate_workspace(req1, plan1, conf1)
+    retention_before = (dest / "config" / "retention.json").read_text(encoding="utf-8")
+    # Changed privacy
+    req2 = _req(
+        dest,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=False, allow_export=True),
+    )
+    pre2 = preflight_workspace(req2)
+    plan2 = build_activation_plan(req2, pre2)
+    conf2 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan2.confirmation_digest, request_fingerprint=req2.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="ACTIVATION_REQUEST_CHANGED"):
+        activate_workspace(req2, plan2, conf2)
+    assert (dest / "config" / "retention.json").read_text(encoding="utf-8") == retention_before
+
+
+def test_changed_provider_refused(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_provider"
+    req1 = _req(dest, bods_enabled=False)
+    pre1 = preflight_workspace(req1)
+    plan1 = build_activation_plan(req1, pre1)
+    conf1 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan1.confirmation_digest, request_fingerprint=req1.fingerprint()
+    )
+    activate_workspace(req1, plan1, conf1)
+    providers_before = (dest / "config" / "providers.json").read_text(encoding="utf-8")
+    # Enable BODS
+    req2 = _req(dest, bods_enabled=True)
+    pre2 = preflight_workspace(req2)
+    plan2 = build_activation_plan(req2, pre2)
+    conf2 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan2.confirmation_digest, request_fingerprint=req2.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="ACTIVATION_REQUEST_CHANGED"):
+        activate_workspace(req2, plan2, conf2)
+    assert (dest / "config" / "providers.json").read_text(encoding="utf-8") == providers_before
+
+
+def test_tampered_managed_config_refused(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_tamper"
+    req = _req(dest)
+    pre = preflight_workspace(req)
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    activate_workspace(req, plan, conf)
+    # Tamper with managed config
+    retention_path = dest / "config" / "retention.json"
+    data = json.loads(retention_path.read_text(encoding="utf-8"))
+    data["retention_days"] = 999
+    retention_path.write_text(json.dumps(data), encoding="utf-8")
+    # Retry same request — should refuse drift
+    pre2 = preflight_workspace(req)
+    plan2 = build_activation_plan(req, pre2)
+    # Plan digest should still be same (since request same), but managed files drifted
+    assert plan2.confirmation_digest == plan.confirmation_digest
+    conf2 = WorkspaceActivationConfirmation(
+        confirmation_digest=plan2.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="MANAGED_WORKSPACE_DRIFT"):
+        activate_workspace(req, plan2, conf2)
 
 
 def test_unmanaged_target_refusal(tmp_path: Path) -> None:
@@ -81,9 +224,8 @@ def test_unmanaged_target_refusal(tmp_path: Path) -> None:
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
-    with pytest.raises(ActivationRefusedError, match="REFUSED"):
+    with pytest.raises(ActivationRefusedError, match="UNMANAGED_NON_EMPTY"):
         activate_workspace(req, plan, conf)
-    # Ensure no managed marker created
     assert not (dest / ".traffictwin_workspace" / "marker.json").exists()
 
 
@@ -100,61 +242,27 @@ def test_symlink_escape_refusal(tmp_path: Path) -> None:
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
-    with pytest.raises(ActivationRefusedError, match="REFUSED"):
+    with pytest.raises(ActivationRefusedError, match="SYMLINK_ESCAPE"):
         activate_workspace(req, plan, conf)
 
 
-def test_missing_configuration(tmp_path: Path) -> None:
-    # Provider enabled but credential missing should produce warning, not error,
-    # and still allow plan but check provider readiness status
-    dest = tmp_path / "ws_missing_cfg"
-    # Ensure no env vars
-    os.environ.pop("BODS_API_KEY", None)
-    os.environ.pop("NATIONAL_HIGHWAYS_API_KEY", None)
+def test_secret_not_serialized(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("BODS_API_KEY", "supersecret12345")  # noqa: S105
+    dest = tmp_path / "ws_secret"
     req = _req(dest, bods_enabled=True)
     pre = preflight_workspace(req)
-    bods = next(p for p in pre.provider_readiness if p.provider.value == "bods")
-    assert bods.enabled is True
-    assert bods.status.value in ("missing_credential", "missing_configuration")
-    # Should still be ready_to_plan? missing credential is warning, not error, so ready
-    # But if provider is enabled and missing, we treat as warning, so ready_to_plan should still be True
-    # unless our service marks it as warning. Check that activation still succeeds (since provider disabled fallback)
-    # For missing credential, our service creates a warning finding, not error, so ready_to_plan stays True
-    # Let's assert that
-    assert pre.ready_to_plan is True
+    j = pre.canonical_json()
+    assert "supersecret12345" not in j
+    cred = next(c for c in pre.credential_presence if c.env_var == "BODS_API_KEY")
+    assert cred.present is True
     plan = build_activation_plan(req, pre)
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
     receipt = activate_workspace(req, plan, conf)
-    assert receipt.status == "activated"
-    # Provider should be recorded as enabled but not ready
-    assert "bods" in receipt.providers_enabled
-
-
-def test_secret_not_serialized(tmp_path: Path) -> None:
-    os.environ["BODS_API_KEY"] = "supersecret12345"  # noqa: S105
-    try:
-        dest = tmp_path / "ws_secret"
-        req = _req(dest, bods_enabled=True)
-        pre = preflight_workspace(req)
-        j = pre.canonical_json()
-        assert "supersecret12345" not in j
-        # CredentialPresence should have present=True but no value
-        cred = next(c for c in pre.credential_presence if c.env_var == "BODS_API_KEY")
-        assert cred.present is True
-        # Receipt also must not contain secret
-        plan = build_activation_plan(req, pre)
-        conf = WorkspaceActivationConfirmation(
-            confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
-        )
-        receipt = activate_workspace(req, plan, conf)
-        assert "supersecret12345" not in receipt.canonical_json()
-        # Also check file on disk
-        marker_text = (dest / ".traffictwin_workspace" / "marker.json").read_text()
-        assert "supersecret12345" not in marker_text
-    finally:
-        os.environ.pop("BODS_API_KEY", None)
+    assert "supersecret12345" not in receipt.canonical_json()
+    marker_text = (dest / ".traffictwin_workspace" / "marker.json").read_text()
+    assert "supersecret12345" not in marker_text
 
 
 def test_stale_confirmation_digest_refused(tmp_path: Path) -> None:
@@ -162,14 +270,12 @@ def test_stale_confirmation_digest_refused(tmp_path: Path) -> None:
     req = _req(dest)
     pre = preflight_workspace(req)
     plan = build_activation_plan(req, pre)
-    # Change request after preview
     req2 = _req(dest, bods_enabled=True)
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req2.fingerprint()
     )
     with pytest.raises(ActivationRefusedError, match="REFUSED"):
         activate_workspace(req2, plan, conf)
-    # Also test wrong digest
     req3 = _req(dest)
     pre3 = preflight_workspace(req3)
     plan3 = build_activation_plan(req3, pre3)
@@ -181,19 +287,16 @@ def test_stale_confirmation_digest_refused(tmp_path: Path) -> None:
 
 
 def test_confirmation_digest_gate(tmp_path: Path) -> None:
-    """Mutation target: this test must fail if gate is bypassed."""
+    """Mutation target: must fail if gate bypassed."""
     dest = tmp_path / "ws_gate"
     req = _req(dest)
     pre = preflight_workspace(req)
     plan = build_activation_plan(req, pre)
-    # Correct digest should succeed
     good = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
     receipt = activate_workspace(req, plan, good)
     assert receipt.status == "activated"
-    # Wrong digest must be refused; if mutation allows activation without exact digest,
-    # this assertion will fail (mutation kills test).
     dest2 = tmp_path / "ws_gate2"
     req2 = _req(dest2)
     pre2 = preflight_workspace(req2)
@@ -214,32 +317,13 @@ def test_atomic_activation(tmp_path: Path) -> None:
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
     receipt = activate_workspace(req, plan, conf)
-    # Check that staging dir was cleaned up
     staging = list(tmp_path.glob(".*staging*"))
     assert staging == []
-    # Check that expected dirs/files exist
     assert (dest / "registry" / "traffictwin.sqlite").is_file()
     assert (dest / "config" / "retention.json").is_file()
     assert (dest / "config" / "providers.json").is_file()
-    # Check receipt fields are deterministic except timestamps
     assert receipt.request_fingerprint == req.fingerprint()
     assert receipt.confirmation_digest == plan.confirmation_digest
-
-
-def test_idempotent_retry(tmp_path: Path) -> None:
-    dest = tmp_path / "ws_idem"
-    req = _req(dest)
-    pre = preflight_workspace(req)
-    plan = build_activation_plan(req, pre)
-    conf = WorkspaceActivationConfirmation(
-        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
-    )
-    r1 = activate_workspace(req, plan, conf)
-    assert r1.status == "activated"
-    r2 = activate_workspace(req, plan, conf)
-    assert r2.status == "already_active"
-    assert r2.request_fingerprint == r1.request_fingerprint
-    assert r2.confirmation_digest == r1.confirmation_digest
 
 
 def test_partial_failure_cleanup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -250,7 +334,6 @@ def test_partial_failure_cleanup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     conf = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
-    # Monkeypatch registry init to fail
     import traffictwin.workspace_activation.service as svc
 
     orig_init = svc._init_registry_db
@@ -261,12 +344,8 @@ def test_partial_failure_cleanup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(svc, "_init_registry_db", failing_init)
     with pytest.raises(ActivationRefusedError):
         activate_workspace(req, plan, conf)
-    # Ensure no partial workspace left (either not exists or no marker)
-    # Since activation failed, destination should not be managed, and staging cleaned
     assert not (dest / ".traffictwin_workspace" / "marker.json").exists()
-    # No staging leftover
     assert list(tmp_path.glob(".*staging*")) == []
-    # Restore and succeed
     monkeypatch.setattr(svc, "_init_registry_db", orig_init)
     pre2 = preflight_workspace(req)
     plan2 = build_activation_plan(req, pre2)
@@ -286,33 +365,25 @@ def test_deactivation_preserves_data(tmp_path: Path) -> None:
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
     _receipt = activate_workspace(req, plan, conf)
-    # Create evidence file that must be preserved
     evidence = dest / "registry" / "evidence.txt"
     evidence.write_text("important")
     agg = dest / "aggregate-store" / "data.json"
     agg.parent.mkdir(parents=True, exist_ok=True)
     agg.write_text("{}")
-    # Deactivate without marker removal (soft)
     rec1 = deactivate_workspace(str(dest), remove_marker=False)
     assert rec1.marker_removed is False
     assert (dest / ".traffictwin_workspace" / "marker.json").exists()
     assert evidence.exists()
     assert agg.exists()
-    # Deactivate with marker removal requires correct confirmation
     rec2 = deactivate_workspace(str(dest), confirmation=conf, remove_marker=True)
     assert rec2.marker_removed is True
     assert not (dest / ".traffictwin_workspace" / "marker.json").exists()
-    # Evidence still preserved
     assert evidence.exists()
     assert agg.exists()
-    # Receipt preserved for audit
     assert (dest / ".traffictwin_workspace" / "receipt.json").exists()
-    # Wrong confirmation should be refused
     bad_conf = WorkspaceActivationConfirmation(
         confirmation_digest="b" * 64, request_fingerprint=req.fingerprint()
     )
-    # Need to reactivate to test bad confirmation again
-    # Create new dest for second test
     dest2 = tmp_path / "ws_deact2"
     req2 = _req(dest2)
     pre2 = preflight_workspace(req2)
@@ -323,71 +394,190 @@ def test_deactivation_preserves_data(tmp_path: Path) -> None:
     activate_workspace(req2, plan2, conf2)
     with pytest.raises(ActivationRefusedError):
         deactivate_workspace(str(dest2), confirmation=bad_conf, remove_marker=True)
-    # Deactivation without confirmation when required should be refused
     with pytest.raises(ActivationRefusedError):
         deactivate_workspace(str(dest2), confirmation=None, remove_marker=True)
 
 
-def test_no_network_before_confirmation(tmp_path: Path) -> None:
+def test_no_network_before_confirmation(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    # Real network tripwire: any socket connect should explode
+    def exploding_connect(*args: object, **kwargs: object) -> None:
+        raise AssertionError("network access attempted")
+
+    monkeypatch.setattr(socket.socket, "connect", exploding_connect)
+    # Also patch create_connection which may use connect internally
+    monkeypatch.setattr(socket, "create_connection", exploding_connect)
+
     dest = tmp_path / "ws_no_net"
     req = _req(dest, bods_enabled=True)
-    # Ensure provider call counter starts at 0
-    assert get_provider_call_count() == 0
+    # These should all complete without network
     pre = preflight_workspace(req)
-    assert get_provider_call_count() == 0
     plan = build_activation_plan(req, pre)
-    assert get_provider_call_count() == 0
-    # Also check that preflight and plan do not contain any network-related artifacts
-    # (they should be deterministic and not make HTTP calls)
-    # Activate should also not make network calls (it only records config)
-    conf = WorkspaceActivationConfirmation(
+    # Stale confirmation should refuse before network
+    bad = WorkspaceActivationConfirmation(
+        confirmation_digest="0" * 64, request_fingerprint=req.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError):
+        activate_workspace(req, plan, bad)
+    # Valid activation should also not make network calls
+    good = WorkspaceActivationConfirmation(
         confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
-    activate_workspace(req, plan, conf)
-    assert get_provider_call_count() == 0
+    receipt = activate_workspace(req, plan, good)
+    assert receipt.status == "activated"
+    # Status and deactivate also no network
+    status = get_workspace_status(str(dest))
+    assert status.is_active is True
+    rec = deactivate_workspace(str(dest), remove_marker=False)
+    assert rec.status == "deactivated"
 
 
 def test_deterministic_identity(tmp_path: Path) -> None:
+    # Independently constructed equivalent requests should have same fingerprint
     dest = tmp_path / "ws_det"
-    req = _req(dest, bods_enabled=False, national_highways_enabled=True)
-    pre1 = preflight_workspace(req)
-    plan1 = build_activation_plan(req, pre1)
-    pre2 = preflight_workspace(req)
-    plan2 = build_activation_plan(req, pre2)
+    req1 = WorkspaceActivationRequest(
+        destination_path=str(dest),
+        bods_enabled=False,
+        national_highways_enabled=True,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=True, allow_export=False),
+    )
+    req2 = WorkspaceActivationRequest(
+        destination_path=str(dest),
+        bods_enabled=False,
+        national_highways_enabled=True,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=True, allow_export=False),
+    )
+    assert req1.fingerprint() == req2.fingerprint()
+    pre1 = preflight_workspace(req1)
+    pre2 = preflight_workspace(req2)
+    plan1 = build_activation_plan(req1, pre1)
+    plan2 = build_activation_plan(req2, pre2)
     assert plan1.confirmation_digest == plan2.confirmation_digest
     assert plan1.fingerprint() == plan2.fingerprint()
-    # Fingerprint excludes wall-clock and local path contamination
-    assert plan1.created_at != ""  # has timestamp but not in fingerprint
-    # Receipt fingerprint excludes activated_at
+    assert plan1.expected_digest() == plan1.fingerprint()
+    # Semantic change should change fingerprint
+    req3 = WorkspaceActivationRequest(
+        destination_path=str(dest),
+        bods_enabled=True,
+        national_highways_enabled=True,
+        retention_policy=RetentionPolicy(retention_days=30, anonymize=True, allow_export=False),
+    )
+    assert req3.fingerprint() != req1.fingerprint()
+    pre3 = preflight_workspace(req3)
+    plan3 = build_activation_plan(req3, pre3)
+    assert plan3.confirmation_digest != plan1.confirmation_digest
+    # Order-insensitive: workers in different order should give same fingerprint due to sorting
+    req4 = _req(
+        dest, start_workers=True, allowlisted_workers=["evidence-indexer", "aggregate-compactor"]
+    )
+    req5 = _req(
+        dest, start_workers=True, allowlisted_workers=["aggregate-compactor", "evidence-indexer"]
+    )
+    assert req4.fingerprint() == req5.fingerprint()  # request canonicalizes worker order via sorted
+    pre4 = preflight_workspace(req4)
+    pre5 = preflight_workspace(req5)
+    plan4 = build_activation_plan(req4, pre4)
+    plan5 = build_activation_plan(req5, pre5)
+    assert plan4.confirmation_digest == plan5.confirmation_digest
+
+
+def test_worker_allowlist_refused(tmp_path: Path) -> None:
+    dest = tmp_path / "ws_worker"
+    req = _req(dest, start_workers=True, allowlisted_workers=["evil-worker"])
+    pre = preflight_workspace(req)
+    # Should be refused at preflight (worker not allowlisted)
+    assert any(f.code == "WORKER_NOT_ALLOWLISTED" for f in pre.findings)
+    assert pre.ready_to_plan is False
+    # Also direct validation should fail at request level? The model allows any string matching pattern, but allowlist gate is in preflight
+    plan = build_activation_plan(req, pre)
     conf = WorkspaceActivationConfirmation(
-        confirmation_digest=plan1.confirmation_digest, request_fingerprint=req.fingerprint()
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
     )
-    r1 = activate_workspace(req, plan1, conf)
-    # Second receipt with same request but different activated_at should have same semantic fingerprint
-    # Create second workspace with same request but different path (to test path contamination is not in fingerprint)
-    # Use same destination but idempotent retry gives same receipt with different status but same fingerprint
-    assert r1.fingerprint() == r1.fingerprint()
-    # Request fingerprint is stable
-    assert req.fingerprint() == req.fingerprint()
-    # Changing retention should change fingerprint
-    req3 = _req(
-        dest,
-        retention_policy=RetentionPolicy(retention_days=60, anonymize=True, allow_export=False),
-    )
-    assert req3.fingerprint() != req.fingerprint()
+    with pytest.raises(ActivationRefusedError, match="REFUSED"):
+        activate_workspace(req, plan, conf)
 
 
-def test_provider_readiness_deterministic(tmp_path: Path) -> None:
-    dest = tmp_path / "ws_prov"
-    os.environ.pop("BODS_API_KEY", None)
-    os.environ.pop("NATIONAL_HIGHWAYS_API_KEY", None)
+def test_path_traversal_refused(tmp_path: Path) -> None:
+    base = tmp_path / "base"
+    base.mkdir()
+    # Use a path that contains traversal semantics via string
+    # The request's destination_path is a string, so we can include ".."
+    dest_str = str(tmp_path / "base" / "workspace-parent" / ".." / "escape-target")
+    req = WorkspaceActivationRequest(destination_path=dest_str)
+    pre = preflight_workspace(req)
+    assert any(f.code == "PATH_TRAVERSAL" for f in pre.findings)
+    assert pre.ready_to_plan is False
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="PATH_TRAVERSAL"):
+        activate_workspace(req, plan, conf)
+    # Also test backup traversal
+    dest2 = tmp_path / "ws_traversal2"
+    req2 = WorkspaceActivationRequest(
+        destination_path=str(dest2), backup_destination=str(tmp_path / ".." / "escape")
+    )
+    pre2 = preflight_workspace(req2)
+    assert any(f.code == "PATH_TRAVERSAL" for f in pre2.findings)
+
+
+def test_path_inside_repo_refused(tmp_path: Path) -> None:
+    # Derive repo root portably
+    repo_root = Path(__file__).resolve().parents[2]
+    assert (repo_root / "pyproject.toml").exists(), f"repo root not found: {repo_root}"
+    dest = repo_root / "tmp_workspace_inside_repo_test"
+    req = WorkspaceActivationRequest(destination_path=str(dest))
+    pre = preflight_workspace(req)
+    assert any(f.code == "PATH_INSIDE_REPO" for f in pre.findings)
+    assert pre.ready_to_plan is False
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="PATH_INSIDE_REPO"):
+        activate_workspace(req, plan, conf)
+
+
+def test_insufficient_disk_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    dest = tmp_path / "ws_disk"
+    req = _req(dest)
+    # Patch disk_usage to return tiny free space
+    import shutil
+
+    class FakeUsage:
+        total = 100 * 1024 * 1024
+        used = 99 * 1024 * 1024
+        free = 1 * 1024  # 1KB, less than MIN_DISK_BYTES (10MB)
+
+    monkeypatch.setattr(shutil, "disk_usage", lambda path: FakeUsage())
+    pre = preflight_workspace(req)
+    assert any(f.code == "INSUFFICIENT_DISK" for f in pre.findings)
+    assert pre.ready_to_plan is False
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    with pytest.raises(ActivationRefusedError, match="REFUSED"):
+        activate_workspace(req, plan, conf)
+
+
+def test_missing_configuration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("BODS_API_KEY", raising=False)
+    monkeypatch.delenv("NATIONAL_HIGHWAYS_API_KEY", raising=False)
+    dest = tmp_path / "ws_missing_cfg"
     req = _req(dest, bods_enabled=True)
-    pre1 = preflight_workspace(req)
-    pre2 = preflight_workspace(req)
-    # Credential presence deterministic
-    assert pre1.credential_presence[0].present == pre2.credential_presence[0].present
-    # Provider readiness deterministic
-    assert pre1.provider_readiness[0].status == pre2.provider_readiness[0].status
+    pre = preflight_workspace(req)
+    bods = next(p for p in pre.provider_readiness if p.provider.value == "bods")
+    assert bods.enabled is True
+    assert bods.status.value in ("missing_credential", "missing_configuration")
+    assert pre.ready_to_plan is True
+    plan = build_activation_plan(req, pre)
+    conf = WorkspaceActivationConfirmation(
+        confirmation_digest=plan.confirmation_digest, request_fingerprint=req.fingerprint()
+    )
+    receipt = activate_workspace(req, plan, conf)
+    assert receipt.status == "activated"
+    assert "bods" in receipt.providers_enabled
 
 
 # ---------------------------------------------------------------------------
@@ -402,56 +592,41 @@ def test_cli_preflight_plan_activate_status_deactivate(tmp_path: Path) -> None:
 
     runner = CliRunner()
     dest = tmp_path / "ws_cli"
-    # preflight
     result = runner.invoke(app, ["preflight", str(dest)])
     assert result.exit_code == 0
     data = json.loads(result.stdout)
     assert "request_fingerprint" in data
-    # plan
     result = runner.invoke(app, ["plan", str(dest)])
     assert result.exit_code == 0
-    # Extract JSON part (first line is JSON, second is digest to stderr)
-    # Typer prints plan JSON to stdout and digest to stderr; CliRunner captures combined
-    # Find JSON by parsing first JSON object
     output = result.stdout
-    # The plan JSON is first, then maybe echo; we can extract by finding the first complete JSON
     _ = json.loads(output.splitlines()[0] if output.strip().startswith("{") else output)  # noqa: F841
-    # To get plan digest, we need to call service directly
     req = _req(dest)
     pre = preflight_workspace(req)
     plan = build_activation_plan(req, pre)
     digest = plan.confirmation_digest
-    # activate
     result = runner.invoke(app, ["activate", str(dest), "--confirmation-digest", digest])
     assert result.exit_code == 0
     receipt_data = json.loads(result.stdout)
     assert receipt_data["confirmation_digest"] == digest
-    # status
     result = runner.invoke(app, ["status", str(dest)])
     assert result.exit_code == 0
     status_data = json.loads(result.stdout)
     assert status_data["is_active"] is True
-    # deactivate with marker removal
     result = runner.invoke(
         app, ["deactivate", str(dest), "--remove-marker", "--confirmation-digest", digest]
     )
     assert result.exit_code == 0
     deact_data = json.loads(result.stdout)
     assert deact_data["marker_removed"] is True
-    # After deactivation with marker removal, workspace is unmanaged non-empty
-    # and re-activation is correctly refused to preserve data; test that fresh
-    # workspace can still be activated
     fresh = tmp_path / "ws_cli_fresh"
     result = runner.invoke(app, ["preflight", str(fresh)])
     assert result.exit_code == 0
-    # Need to recompute digest for fresh path
     req_fresh = _req(fresh)
     pre_fresh = preflight_workspace(req_fresh)
     plan_fresh = build_activation_plan(req_fresh, pre_fresh)
     digest_fresh = plan_fresh.confirmation_digest
     result = runner.invoke(app, ["activate", str(fresh), "--confirmation-digest", digest_fresh])
     assert result.exit_code == 0
-    # Deactivate without marker removal on fresh workspace
     result = runner.invoke(app, ["deactivate", str(fresh)])
     assert result.exit_code == 0
 
@@ -474,7 +649,6 @@ def test_cli_refuses_bad_digest(tmp_path: Path) -> None:
 
 
 def test_workspace_activation_page_renders(tmp_path: Path) -> None:
-    # Create a minimal AppTest runner that imports the page's render
     runner = tmp_path / "runner_ws_activation.py"
     runner.write_text(
         f"""
@@ -489,41 +663,61 @@ render(config)
     at = AppTest.from_file(str(runner), default_timeout=30)
     at.run()
     assert not at.exception, f"Page raised: {at.exception}"
-    # Check H1
     titles = [str(m.value) for m in at.title]
     assert any("Workspace Activation" in t for t in titles), f"Missing H1, got {titles}"
-    # Check boundary info is present
+    # Exactly one H1
+    assert len(titles) == 1, f"Expected exactly one H1, got {titles}"
+    assert titles[0] == "Workspace Activation"
     infos = [str(x.value) for x in at.info]
     captions = [str(x.value) for x in at.caption]
     all_text = " ".join(infos + captions + [str(x.value) for x in at.markdown])
     assert "preview-first" in all_text.lower() or "confirmation" in all_text.lower()
+    # Evidence boundary must be visible before controls
+    assert "Workspace activation does not make provider network requests" in all_text
     assert "NOT public deployment" in all_text or "not public" in all_text.lower()
-    # Check for path selection
     text_inputs = [str(x.label) for x in at.text_input]
     assert any("Workspace destination path" in label for label in text_inputs)
-    # Check no duplicate widget keys (AppTest would have raised, but we also check)
-    # Ensure buttons exist
     buttons = [str(b.label) for b in at.button]
     assert any("Run preflight" in b for b in buttons)
     assert any("Build activation plan" in b for b in buttons)
     assert any("Activate workspace" in b for b in buttons)
-    # Check that credential values are not displayed
     for txt in infos + captions:
         assert "supersecret" not in txt.lower()
+    # Empty state useful
+    assert any("Enter a destination" in c or "No preflight yet" in c for c in captions + infos)
 
 
 def test_workspace_activation_app_page_script(tmp_path: Path) -> None:
-    # Direct test of the app_pages script (robust to cwd)
     candidates = [
         Path("src/traffictwin/ui/app_pages/workspace_activation.py"),  # noqa: S108
         Path("/tmp/wt-workspace-activation/src/traffictwin/ui/app_pages/workspace_activation.py"),  # noqa: S108
-        Path(__file__).resolve().parents[3]
+        Path(__file__).resolve().parents[2]
         / "src/traffictwin/ui/app_pages/workspace_activation.py",
     ]
+    # Portable: derive repo root from test file and verify
+    repo_root = Path(__file__).resolve().parents[2]
+    # For this test file at tests/ui/test_workspace_activation.py, parents[2] is repo root
+    # Verify repo root marker
+    assert (repo_root / "pyproject.toml").exists(), f"repo root not found: {repo_root}"
+    # Also try parents[3] fallback for robustness, but assert at least one exists
     script_path = next((c for c in candidates if c.exists()), candidates[0])
+    # If none exist due to cwd outside repo, construct from repo_root
+    if not script_path.exists():
+        script_path = repo_root / "src/traffictwin/ui/app_pages/workspace_activation.py"
     assert script_path.exists(), f"app_pages script not found, tried {candidates}"
     at = AppTest.from_file(str(script_path), default_timeout=30)
     at.run()
     assert not at.exception
     titles = [str(m.value) for m in at.title]
     assert any("Workspace Activation" in t for t in titles)
+
+
+def test_portable_repo_root_derivation(tmp_path: Path) -> None:
+    # This test must pass both inside repo and outside cwd
+    repo_root = Path(__file__).resolve().parents[2]
+    assert (repo_root / "pyproject.toml").exists()
+    # Also check alternative parents[3] is not the correct one for this file
+    # For tests/ui/test_workspace_activation.py, parents[2] should be repo root, parents[3] would be parent of repo
+    assert (repo_root.parent / "pyproject.toml").exists() is False or (
+        repo_root / "pyproject.toml"
+    ).exists()

@@ -193,7 +193,7 @@ class WorkspaceActivationRequest(StrictModel):
                 raise ValueError(f"invalid worker name: {item!r}")
         if len(set(v)) != len(v):
             raise ValueError("duplicate worker names")
-        return v
+        return sorted(v)
 
     @field_validator("package_version")
     @classmethod
@@ -205,8 +205,6 @@ class WorkspaceActivationRequest(StrictModel):
         return v
 
     def canonical_json(self) -> str:
-        # semantic identity excludes any wall-clock or local path resolution;
-        # we use the raw destination_path string as supplied, sorted keys.
         return _canonical_json(self.model_dump(mode="json"))
 
     def fingerprint(self) -> str:
@@ -232,7 +230,6 @@ class WorkspaceActivationPreflight(StrictModel):
     is_managed: bool
     is_empty: bool
     path_valid: bool
-    contained: bool
     disk_available_bytes: int | None = Field(default=None, ge=0)
     disk_required_bytes: int = Field(ge=0)
     findings: list[ActivationFinding] = Field(max_length=_MAX_FINDINGS)
@@ -278,7 +275,14 @@ class WorkspaceActivationAction(StrictModel):
 
 
 class WorkspaceActivationPlan(StrictModel):
-    """Deterministic activation plan with exact confirmation digest."""
+    """Deterministic activation plan with exact confirmation digest.
+
+    The authoritative identity is `confirmation_digest`, which is the SHA-256
+    of the canonical semantic payload (all fields except `created_at` and
+    `confirmation_digest` itself). `fingerprint()` and `expected_digest()` are
+    aliases for the same value and exist for API compatibility; they are not
+    independent integrity layers.
+    """
 
     plan_version: str = Field(
         default=_ACTIVATION_METHOD_VERSION, pattern=r"^workspace-activation-\d+\.\d+$"
@@ -301,7 +305,6 @@ class WorkspaceActivationPlan(StrictModel):
 
     @model_validator(mode="after")
     def _validate_sorted(self) -> WorkspaceActivationPlan:
-        # ensure deterministic ordering
         if self.directories_to_create != sorted(self.directories_to_create):
             raise ValueError("directories_to_create must be sorted")
         if self.files_to_create != sorted(self.files_to_create):
@@ -316,7 +319,7 @@ class WorkspaceActivationPlan(StrictModel):
         return _canonical_json(self.model_dump(mode="json"))
 
     def fingerprint(self) -> str:
-        # semantic fingerprint excludes created_at and confirmation_digest
+        """Canonical plan fingerprint (alias for confirmation_digest's preimage)."""
         payload = self.model_dump(mode="json")
         payload.pop("created_at", None)
         payload.pop("confirmation_digest", None)
@@ -329,11 +332,19 @@ class WorkspaceActivationPlan(StrictModel):
         return payload
 
     def expected_digest(self) -> str:
-        return _digest_json(self.semantic_payload())
+        """Alias for fingerprint() — same semantic identity, kept for compatibility."""
+        return self.fingerprint()
 
 
 class WorkspaceActivationConfirmation(StrictModel):
-    """Caller-supplied confirmation — must match plan's exact digest."""
+    """Caller-supplied confirmation — must match plan's exact digest.
+
+    The load-bearing gate through UI/CLI is `confirmation_digest`.
+    `request_fingerprint` is defense-in-depth for direct service callers
+    who can construct typed confirmations; UI/CLI derive it from the same
+    request, so a mismatch via those surfaces is not independently user-
+    controlled, but direct callers can still be tested for stale requests.
+    """
 
     confirmation_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     request_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
@@ -343,7 +354,11 @@ class WorkspaceActivationConfirmation(StrictModel):
 
 
 class WorkspaceActivationReceipt(StrictModel):
-    """Receipt for successful activation."""
+    """Receipt for successful activation.
+
+    `plan_fingerprint` is the authoritative plan identity and equals the
+    `confirmation_digest` of the plan that authorized this activation.
+    """
 
     receipt_version: str = Field(default=_ACTIVATION_METHOD_VERSION)
     destination_path: str
@@ -365,8 +380,6 @@ class WorkspaceActivationReceipt(StrictModel):
         return _canonical_json(self.model_dump(mode="json"))
 
     def fingerprint(self) -> str:
-        # fingerprint excludes activated_at (wall-clock) for stable identity check in tests,
-        # but includes all semantic fields
         payload = self.model_dump(mode="json")
         payload.pop("activated_at", None)
         return _digest_json(payload)
@@ -398,7 +411,14 @@ class WorkspaceActivationStatus(StrictModel):
 
 
 class WorkspaceDeactivationReceipt(StrictModel):
-    """Receipt for deactivation — never deletes raw data automatically."""
+    """Receipt for deactivation — never deletes raw data automatically.
+
+    Policy: verify managed, refuse unmanaged, stop only activation-managed
+    workers (recorded, not launched in V1), remove/marker only via
+    confirmation, emit receipt, preserve evidence/DB/config/aggregate data.
+    Workers are recorded in V1 and not actually launched, so deactivation
+    records which would be stopped.
+    """
 
     receipt_version: str = Field(default=_ACTIVATION_METHOD_VERSION)
     destination_path: str
