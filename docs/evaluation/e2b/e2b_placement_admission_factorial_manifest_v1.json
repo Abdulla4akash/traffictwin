@@ -74,10 +74,11 @@
     "tos_data_checkout": "/Users/akashx/AntigravityTest/worktrees/tos-data-e0-a75bbd",
     "evaluator": "/Users/akashx/AntigravityTest/vec-env-e2b/eval/eval_sumo_stage1_mc.py",
     "vec_jax": "/Users/akashx/AntigravityTest/vec-env-e2b/jaxmarl/env/vec_jax.py",
-    "resolved_imported_vec_jax": "/Users/akashx/scratch/vec-offloading-jaxmarl-fullport/env/vec_jax.py",
     "runner": "/Users/akashx/AntigravityTest/traffictwin-e2b/scripts/run_e2b_placement_admission_factorial.py",
     "validator": "/Users/akashx/AntigravityTest/traffictwin-e2b/scripts/validate_e2b_placement_admission_factorial.py",
-    "analyzer": "/Users/akashx/AntigravityTest/traffictwin-e2b/scripts/analyze_e2b_placement_admission_factorial.py"
+    "analyzer": "/Users/akashx/AntigravityTest/traffictwin-e2b/scripts/analyze_e2b_placement_admission_factorial.py",
+    "imported_vec_jax_entrypoint": "/Users/akashx/scratch/vec-offloading-jaxmarl-fullport/env/vec_jax.py",
+    "resolved_imported_vec_jax": "/Users/akashx/AntigravityTest/worktrees/vec_env-e0-0f01f4d/jaxmarl/env/vec_jax.py"
   },
   "inputs": {
     "scenario": "Manchester incident trace",
@@ -151,7 +152,8 @@
   "metrics": {
     "primary": "deadline-met tasks / all offered tasks",
     "secondary": ["deadline-met/admitted", "latency/offered", "latency/admitted", "admitted tasks", "admitted V2I", "gate rejection", "cap rejection", "execution-share range", "energy/offered"],
-    "task_replication_rule": "individual tasks are not independent statistical replicates"
+    "task_replication_rule": "individual tasks are not independent statistical replicates",
+    "strongest_link_admission_contrast_caveat": "ingress_dla - off retains the inherited difference between off's step-entry coarse saturation eligibility and ingress_dla's live per-substep eligibility; completed off had 138 unavailable V2I attempts / 13,076,234 offered tasks, and the raw contrast and interaction are not perfectly gate-only"
   },
   "gates": {
     "existing_arm_no_effect": {"path": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/existing_arm_no_effect_candidate_0e5ed2f/no_effect_validation.json", "sha256": "c13ff6a429204df64e5cee56b490a11887df7f57910f7b4c765e9e2127c5e0ad"},

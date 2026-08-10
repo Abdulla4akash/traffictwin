@@ -153,6 +153,7 @@ def main() -> int:
             "One evaluator seed and one fleet draw; no confidence interval or population inference.",
             "Tasks are accounting records, not independent statistical replicates.",
             "Three cells are immutable completed E2 outputs reused by exact hash; only ingress_dla is new.",
+            "The ingress_dla-minus-off admission contrast retains one inherited eligibility-timing difference: off uses its step-entry coarse saturation check, while ingress_dla recomputes that check against live backlog per substep. Completed off recorded 138 unavailable V2I attempts (about 1.1e-5 per offered task); the raw admission contrast and interaction therefore are not perfectly isolated gate-only effects.",
             "The frozen 17-dimensional actor does not observe current RSU load.",
             "Zero backhaul represents ideal fibre and ingress_dla performs no forwarding.",
             "One Manchester incident hour, one provisional UK-2030 fleet, one cap and fixed 1x service were tested.",

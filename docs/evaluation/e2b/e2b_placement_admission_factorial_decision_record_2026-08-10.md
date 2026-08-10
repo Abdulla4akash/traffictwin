@@ -98,6 +98,14 @@ tasks are accounting records, not independent statistical replicates. No confide
 interval, population generalisation, formal controller superiority, equivalence,
 non-inferiority or real-world optimality claim is permitted.
 
+The `ingress_dla - off` contrast is the closest available strongest-link admission contrast, but
+it is not perfectly gate-only. The completed evaluator's `off` path consumes the coarse V2I
+saturation eligibility computed at step entry, whereas every non-`off` mode (including
+`ingress_dla`) recomputes that eligibility per substep against the live backlog. Completed E2
+`off` recorded 138 unavailable V2I attempts among 13,076,234 offered tasks (about `1.1e-5` per
+offered task). This inherited timing term is small on that observed denominator but remains part
+of both `ingress_dla - off` and the factorial interaction; it is reported rather than corrected.
+
 ## Validity limitations and stop rule
 
 This is one evaluator seed, one fleet draw, one incident hour, one cap, fixed 1x

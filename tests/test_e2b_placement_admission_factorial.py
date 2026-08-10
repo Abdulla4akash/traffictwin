@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 from analyze_e2_native_placement_pilot import SCALAR_PATHS  # noqa: E402
 from analyze_e2b_placement_admission_factorial import interaction  # noqa: E402
+from run_e2b_placement_admission_factorial import resolve_imported_vec_jax  # noqa: E402
 from test_e2_native_placement_pilot import (  # noqa: E402
     manifest as e2_manifest,
     write_valid_run,
@@ -147,3 +148,10 @@ def test_frozen_manifest_is_single_arm_and_sidecar_matches() -> None:
     assert manifest["limits"]["additional_arms"] == 0
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     assert path.with_suffix(".sha256").read_text().split()[0] == digest
+
+
+def test_runner_resolves_the_actual_production_vec_jax_import() -> None:
+    path = ROOT / "docs/evaluation/e2b/e2b_placement_admission_factorial_manifest_v1.json"
+    manifest = json.loads(path.read_text())
+    resolved = resolve_imported_vec_jax(manifest)
+    assert str(resolved) == manifest["paths"]["resolved_imported_vec_jax"]

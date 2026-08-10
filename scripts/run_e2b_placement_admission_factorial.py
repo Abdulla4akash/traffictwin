@@ -12,8 +12,6 @@ import platform
 import subprocess
 import sys
 
-import jax
-
 from validate_e2b_placement_admission_factorial import validate_phase, validate_run
 
 
@@ -36,6 +34,28 @@ def package_versions() -> dict[str, str]:
     }
 
 
+def resolve_imported_vec_jax(manifest: dict) -> Path:
+    """Resolve the module imported through the evaluator's production import root."""
+    entrypoint = Path(manifest["paths"]["imported_vec_jax_entrypoint"])
+    env = {
+        **os.environ,
+        **manifest["environment"]["variables"],
+        "E2B_VEC_IMPORT_ROOT": str(entrypoint.parents[1]),
+    }
+    code = (
+        "import os, sys; from pathlib import Path; "
+        "sys.path.insert(0, os.environ['E2B_VEC_IMPORT_ROOT']); "
+        "import env.vec_jax as V; "
+        "print(Path(V.__file__).resolve())"
+    )
+    resolved = subprocess.check_output(
+        [manifest["environment"]["python_executable"], "-c", code],
+        env=env,
+        text=True,
+    ).strip()
+    return Path(resolved).resolve()
+
+
 def verify_checksum_ledger(root: Path, ledger: Path) -> None:
     for line in ledger.read_text().splitlines():
         expected, relative = line.split("  ", 1)
@@ -55,6 +75,8 @@ def write_checksums(run_dir: Path) -> None:
 
 
 def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
+    import jax
+
     manifest_sha = sha256(manifest_path)
     sidecar = manifest_path.with_suffix(".sha256")
     if not sidecar.is_file() or sidecar.read_text().split()[0] != manifest_sha:
@@ -65,6 +87,7 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
     tt_repo = Path(paths["traffictwin_checkout"])
     vec_repo = Path(paths["vec_env_checkout"])
     tos_repo = Path(paths["tos_data_checkout"])
+    imported_vec_jax = resolve_imported_vec_jax(manifest)
     identities = {
         "traffictwin_branch": git(tt_repo, "branch", "--show-current"),
         "traffictwin_commit": git(tt_repo, "rev-parse", "HEAD"),
@@ -73,12 +96,8 @@ def preflight(manifest_path: Path, manifest: dict, phase: str) -> dict:
         "tos_data_commit": git(tos_repo, "rev-parse", "HEAD"),
         "evaluator_sha256": sha256(Path(paths["evaluator"])),
         "vec_jax_sha256": sha256(Path(paths["vec_jax"])),
-        "resolved_imported_vec_jax_path": str(
-            Path(paths["resolved_imported_vec_jax"]).resolve()
-        ),
-        "resolved_imported_vec_jax_sha256": sha256(
-            Path(paths["resolved_imported_vec_jax"]).resolve()
-        ),
+        "resolved_imported_vec_jax_path": str(imported_vec_jax),
+        "resolved_imported_vec_jax_sha256": sha256(imported_vec_jax),
         "actor_sha256": sha256(Path(manifest["inputs"]["actor"]["path"])),
         "trace_sha256": sha256(Path(manifest["inputs"]["trace"]["path"])),
         "python_version": platform.python_version(),
