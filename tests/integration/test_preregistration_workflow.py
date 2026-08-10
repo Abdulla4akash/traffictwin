@@ -43,7 +43,10 @@ LATER = datetime(2026, 1, 16, 12, 0, 0, tzinfo=UTC)
 def _plan() -> StudyPlan:
     return StudyPlan(
         plan_id="integration-001",
-        study_question=StudyQuestion(text="Integration test: does variation change outcome over replicates?", hypothesis="Variation improves."),
+        study_question=StudyQuestion(
+            text="Integration test: does variation change outcome over replicates?",
+            hypothesis="Variation improves.",
+        ),
         evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
         primary_outcomes=[
             OutcomeDefinition(
@@ -65,20 +68,37 @@ def _plan() -> StudyPlan:
                 description="Secondary latency mean.",
             )
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for integration testing with sufficient length.", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(
+            estimand_id="est-001",
+            description="Mean difference for integration testing with sufficient length.",
+            population="common seeds",
+            effect_measure="mean_diff",
+        ),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[10, 20],
         planned_arms=["baseline", "variation"],
         seeds=["seed-a", "seed-b"],
         policies=["policy-x"],
         metrics=["task.completion.rate"],
-        cohort_rules=[CohortRule(rule_id="cohort-001", description="Include valid tasks integration.")],
-        exclusion_rules=[ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks integration.")],
+        cohort_rules=[
+            CohortRule(rule_id="cohort-001", description="Include valid tasks integration.")
+        ],
+        exclusion_rules=[
+            ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks integration.")
+        ],
         missingness_policy=MissingnessPolicy.COMPLETE_CASE,
         analysis_method=AnalysisMethod.PAIRED_BOOTSTRAP,
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
-        stopping_rule=StoppingRule(description="Integration stopping rule with sufficient length for validation.", max_replicates=2),
-        decision_rule=DecisionRule(rule_type="two_sided_test", alpha=0.05, interpretation="Integration decision interpretation text sufficient length.", comparison="two_sided"),
+        stopping_rule=StoppingRule(
+            description="Integration stopping rule with sufficient length for validation.",
+            max_replicates=2,
+        ),
+        decision_rule=DecisionRule(
+            rule_type="two_sided_test",
+            alpha=0.05,
+            interpretation="Integration decision interpretation text sufficient length.",
+            comparison="two_sided",
+        ),
         limitations="Integration limitations with sufficient characters for freeze.",
     )
 
@@ -127,7 +147,11 @@ def test_integration_amendment_chain() -> None:
     plan = _plan()
     frozen = freeze_plan(plan, clock=lambda: FIXED)
     # First amendment
-    amended = create_amendment(frozen, changes={"limitations": "First amendment limitations with enough length for governance."}, amendment_reason="First amendment reason sufficient for governance tracking.")
+    amended = create_amendment(
+        frozen,
+        changes={"limitations": "First amendment limitations with enough length for governance."},
+        amendment_reason="First amendment reason sufficient for governance tracking.",
+    )
     assert amended.version == 2
     assert amended.parent_fingerprint == frozen.fingerprint
     frozen2 = freeze_plan(amended, clock=lambda: LATER)
@@ -143,7 +167,11 @@ def test_integration_amendment_chain() -> None:
         admission_label=ArtifactAdmission.ADMITTED,
     )
     with_ev = attach_evidence(frozen2, [att], clock=lambda: LATER)
-    amended2 = create_amendment(with_ev, changes={"limitations": "Second amendment post evidence with sufficient length."}, amendment_reason="Second amendment post evidence reason sufficient length.")
+    amended2 = create_amendment(
+        with_ev,
+        changes={"limitations": "Second amendment post evidence with sufficient length."},
+        amendment_reason="Second amendment post evidence reason sufficient length.",
+    )
     assert amended2.revision_history[-1].is_post_evidence is True
     assert amended2.revision_history[-1].amendment_label.value == "post_evidence"
 

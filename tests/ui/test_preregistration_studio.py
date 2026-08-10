@@ -48,7 +48,7 @@ def test_preregistration_page_renders_without_crash(tmp_path: Path) -> None:
 from pathlib import Path
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.pages.preregistration_studio import render
-config = UiConfig(registry_path=Path(r"{tmp_path / 'registry.sqlite'}"))
+config = UiConfig(registry_path=Path(r"{tmp_path / "registry.sqlite"}"))
 render(config)
 """,
         encoding="utf-8",
@@ -60,7 +60,12 @@ render(config)
     titles = [str(m.value) for m in at.title]
     assert any("Preregistration Studio" in t for t in titles)
     # Check warnings/captions contain governance text
-    all_text = " ".join([str(x.value) for x in at.markdown] + [str(x.value) for x in at.caption] + [str(x.value) for x in at.warning] + [str(x.value) for x in at.info])
+    all_text = " ".join(
+        [str(x.value) for x in at.markdown]
+        + [str(x.value) for x in at.caption]
+        + [str(x.value) for x in at.warning]
+        + [str(x.value) for x in at.info]
+    )
     assert "Preregistration" in all_text or "freeze" in all_text.lower()
 
 
@@ -86,22 +91,47 @@ def test_preregistration_freeze_flow_via_service(tmp_path: Path) -> None:
 
     plan = StudyPlan(
         plan_id="ui-freeze-001",
-        study_question=StudyQuestion(text="UI freeze test question with sufficient length for validation.", hypothesis="Hyp."),
+        study_question=StudyQuestion(
+            text="UI freeze test question with sufficient length for validation.", hypothesis="Hyp."
+        ),
         evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
         primary_outcomes=[
-            OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary for UI freeze test.")
+            OutcomeDefinition(
+                outcome_id="primary-001",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary for UI freeze test.",
+            )
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for UI test with sufficient length.", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(
+            estimand_id="est-001",
+            description="Mean difference for UI test with sufficient length.",
+            population="common seeds",
+            effect_measure="mean_diff",
+        ),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[1, 2],
         planned_arms=["baseline", "variation"],
-        cohort_rules=[CohortRule(rule_id="cohort-001", description="Include valid tasks for UI test.")],
-        exclusion_rules=[ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks for UI test.")],
+        cohort_rules=[
+            CohortRule(rule_id="cohort-001", description="Include valid tasks for UI test.")
+        ],
+        exclusion_rules=[
+            ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks for UI test.")
+        ],
         missingness_policy=MissingnessPolicy.COMPLETE_CASE,
         analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
-        stopping_rule=StoppingRule(description="UI stopping rule description with sufficient length.", max_replicates=2),
-        decision_rule=DecisionRule(rule_type="two_sided_test", alpha=0.05, interpretation="UI interpretation with sufficient length.", comparison="two_sided"),
+        stopping_rule=StoppingRule(
+            description="UI stopping rule description with sufficient length.", max_replicates=2
+        ),
+        decision_rule=DecisionRule(
+            rule_type="two_sided_test",
+            alpha=0.05,
+            interpretation="UI interpretation with sufficient length.",
+            comparison="two_sided",
+        ),
         limitations="UI limitations with sufficient length for freeze validation.",
         planned_run_cells=[],
     )
@@ -130,31 +160,67 @@ def test_preregistration_amendment_and_matrix_via_service() -> None:
         StudyPlan,
         StudyQuestion,
     )
-    from traffictwin.preregistration.service import attach_evidence, create_amendment, freeze_plan, planned_vs_observed_matrix
+    from traffictwin.preregistration.service import (
+        attach_evidence,
+        create_amendment,
+        freeze_plan,
+        planned_vs_observed_matrix,
+    )
 
     plan = StudyPlan(
         plan_id="ui-amend-001",
-        study_question=StudyQuestion(text="UI amend test question with sufficient length for governance.", hypothesis="Hyp."),
+        study_question=StudyQuestion(
+            text="UI amend test question with sufficient length for governance.", hypothesis="Hyp."
+        ),
         evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
         primary_outcomes=[
-            OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary for amend test.")
+            OutcomeDefinition(
+                outcome_id="primary-001",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary for amend test.",
+            )
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for UI test with sufficient length.", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(
+            estimand_id="est-001",
+            description="Mean difference for UI test with sufficient length.",
+            population="common seeds",
+            effect_measure="mean_diff",
+        ),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[1, 2],
         planned_arms=["baseline", "variation"],
-        cohort_rules=[CohortRule(rule_id="cohort-001", description="Include valid tasks for amend test.")],
-        exclusion_rules=[ExclusionRule(rule_id="exclude-001", description="Exclude invalid tasks for amend test.")],
+        cohort_rules=[
+            CohortRule(rule_id="cohort-001", description="Include valid tasks for amend test.")
+        ],
+        exclusion_rules=[
+            ExclusionRule(
+                rule_id="exclude-001", description="Exclude invalid tasks for amend test."
+            )
+        ],
         missingness_policy=MissingnessPolicy.COMPLETE_CASE,
         analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
-        stopping_rule=StoppingRule(description="Stopping rule for amend test with sufficient length.", max_replicates=2),
-        decision_rule=DecisionRule(rule_type="two_sided_test", alpha=0.05, interpretation="Interpretation for amend test with sufficient length.", comparison="two_sided"),
+        stopping_rule=StoppingRule(
+            description="Stopping rule for amend test with sufficient length.", max_replicates=2
+        ),
+        decision_rule=DecisionRule(
+            rule_type="two_sided_test",
+            alpha=0.05,
+            interpretation="Interpretation for amend test with sufficient length.",
+            comparison="two_sided",
+        ),
         limitations="Limitations for amend test with sufficient length.",
         planned_run_cells=[],
     )
     frozen = freeze_plan(plan)
-    amended = create_amendment(frozen, changes={"limitations": "Amended UI limitations with sufficient length."}, amendment_reason="UI amendment reason sufficient for governance.")
+    amended = create_amendment(
+        frozen,
+        changes={"limitations": "Amended UI limitations with sufficient length."},
+        amendment_reason="UI amendment reason sufficient for governance.",
+    )
     assert amended.parent_fingerprint == frozen.fingerprint
     assert "limitations" in amended.revision_history[0].diff
 

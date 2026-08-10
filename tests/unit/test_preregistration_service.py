@@ -60,7 +60,10 @@ def _later_clock():
 def _base_plan(**overrides) -> StudyPlan:
     base = StudyPlan(
         plan_id="plan-unit-001",
-        study_question=StudyQuestion(text="Does variation change the primary outcome under replication?", hypothesis="Variation improves outcome."),
+        study_question=StudyQuestion(
+            text="Does variation change the primary outcome under replication?",
+            hypothesis="Variation improves outcome.",
+        ),
         evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
         primary_outcomes=[
             OutcomeDefinition(
@@ -73,7 +76,12 @@ def _base_plan(**overrides) -> StudyPlan:
             )
         ],
         secondary_outcomes=[],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference over common seeds.", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(
+            estimand_id="est-001",
+            description="Mean difference over common seeds.",
+            population="common seeds",
+            effect_measure="mean_diff",
+        ),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[1, 2, 3],
         planned_arms=["baseline", "variation"],
@@ -81,12 +89,22 @@ def _base_plan(**overrides) -> StudyPlan:
         policies=["policy-a"],
         metrics=["task.completion.rate"],
         cohort_rules=[CohortRule(rule_id="cohort-001", description="Include all valid tasks.")],
-        exclusion_rules=[ExclusionRule(rule_id="exclude-001", description="Exclude invalid source data.")],
+        exclusion_rules=[
+            ExclusionRule(rule_id="exclude-001", description="Exclude invalid source data.")
+        ],
         missingness_policy=MissingnessPolicy.COMPLETE_CASE,
         analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
-        stopping_rule=StoppingRule(description="Fixed sample with no interim looks; observe all replicates.", max_replicates=3),
-        decision_rule=DecisionRule(rule_type="two_sided_test", alpha=0.05, interpretation="Reject if p < 0.05; non-significance not equivalence.", comparison="two_sided"),
+        stopping_rule=StoppingRule(
+            description="Fixed sample with no interim looks; observe all replicates.",
+            max_replicates=3,
+        ),
+        decision_rule=DecisionRule(
+            rule_type="two_sided_test",
+            alpha=0.05,
+            interpretation="Reject if p < 0.05; non-significance not equivalence.",
+            comparison="two_sided",
+        ),
         limitations="Synthetic demo limitations: no Manchester observation claim.",
         planned_run_cells=[],
     )
@@ -157,7 +175,9 @@ def test_draft_validation_requires_complete_plan() -> None:
     # Instead test via validate after constructing with duplicate via model_copy (bypasses validator?)
     # Use raw model_validate with duplicate to trigger service check via build_run_matrix
     with pytest.raises(ValueError):
-        StudyPlan.model_validate({**_base_plan().model_dump(mode="json"), "planned_arms": ["baseline", "baseline"]})
+        StudyPlan.model_validate(
+            {**_base_plan().model_dump(mode="json"), "planned_arms": ["baseline", "baseline"]}
+        )
 
 
 def test_missingness_policy_required() -> None:
@@ -175,7 +195,11 @@ def test_stopping_rule_validation() -> None:
         _base_plan(stopping_rule=StoppingRule(description="too short", max_replicates=1))
     # Service also flags a vague stopping rule if bypassed; here we test a valid-length but still flagged via empty interpretation?
     # Use a plan with valid stopping rule but missing decision interpretation to ensure validation covers stopping/decision
-    vague = _base_plan(stopping_rule=StoppingRule(description="Valid stopping description for test.", max_replicates=1))
+    vague = _base_plan(
+        stopping_rule=StoppingRule(
+            description="Valid stopping description for test.", max_replicates=1
+        )
+    )
     # This is valid, so no findings for stopping itself
     assert not any("stopping" in f.lower() for f in validate_study_plan(vague))
 
@@ -184,26 +208,49 @@ def test_tost_equivalence_semantics() -> None:
     # TOST requires threshold and alpha and equivalence comparison
     tost_plain = _base_plan(
         analysis_method=AnalysisMethod.TOST_EQUIVALENCE,
-        decision_rule=DecisionRule(rule_type="tost", alpha=0.05, threshold=0.1, interpretation="Equivalence if both one-sided tests reject.", comparison="equivalence"),
+        decision_rule=DecisionRule(
+            rule_type="tost",
+            alpha=0.05,
+            threshold=0.1,
+            interpretation="Equivalence if both one-sided tests reject.",
+            comparison="equivalence",
+        ),
     )
     assert validate_study_plan(tost_plain) == []
 
     tost_missing_threshold = _base_plan(
         analysis_method=AnalysisMethod.TOST_EQUIVALENCE,
-        decision_rule=DecisionRule(rule_type="tost", alpha=0.05, threshold=None, interpretation="Missing threshold.", comparison="equivalence"),
+        decision_rule=DecisionRule(
+            rule_type="tost",
+            alpha=0.05,
+            threshold=None,
+            interpretation="Missing threshold.",
+            comparison="equivalence",
+        ),
     )
     assert any("threshold" in f.lower() for f in validate_study_plan(tost_missing_threshold))
 
     tost_wrong_comparison = _base_plan(
         analysis_method=AnalysisMethod.TOST_EQUIVALENCE,
-        decision_rule=DecisionRule(rule_type="tost", alpha=0.05, threshold=0.1, interpretation="Wrong comparison.", comparison="two_sided"),
+        decision_rule=DecisionRule(
+            rule_type="tost",
+            alpha=0.05,
+            threshold=0.1,
+            interpretation="Wrong comparison.",
+            comparison="two_sided",
+        ),
     )
     assert any("equivalence" in f.lower() for f in validate_study_plan(tost_wrong_comparison))
 
     # Non-TOST with equivalence comparison is incompatible
     non_tost_equiv = _base_plan(
         analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
-        decision_rule=DecisionRule(rule_type="test", alpha=0.05, interpretation="Should not be equivalence.", comparison="equivalence"),
+        decision_rule=DecisionRule(
+            rule_type="test",
+            alpha=0.05,
+            interpretation="Should not be equivalence.",
+            comparison="equivalence",
+        ),
     )
     assert any("incompatible" in f.lower() for f in validate_study_plan(non_tost_equiv))
 
@@ -211,16 +258,44 @@ def test_tost_equivalence_semantics() -> None:
 def test_multiplicity_policy_when_multiple_primaries() -> None:
     multi = _base_plan(
         primary_outcomes=[
-            OutcomeDefinition(outcome_id="p1", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary 1"),
-            OutcomeDefinition(outcome_id="p2", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Primary 2"),
+            OutcomeDefinition(
+                outcome_id="p1",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary 1",
+            ),
+            OutcomeDefinition(
+                outcome_id="p2",
+                metric_key="task.latency.mean_ms",
+                metric_version=METRIC_VERSION,
+                unit="ms",
+                denominator="observed_tasks",
+                description="Primary 2",
+            ),
         ],
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
     )
     assert any("multiplicity" in f.lower() for f in validate_study_plan(multi))
     ok_multi = _base_plan(
         primary_outcomes=[
-            OutcomeDefinition(outcome_id="p1", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary 1"),
-            OutcomeDefinition(outcome_id="p2", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Primary 2"),
+            OutcomeDefinition(
+                outcome_id="p1",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary 1",
+            ),
+            OutcomeDefinition(
+                outcome_id="p2",
+                metric_key="task.latency.mean_ms",
+                metric_version=METRIC_VERSION,
+                unit="ms",
+                denominator="observed_tasks",
+                description="Primary 2",
+            ),
         ],
         multiplicity_policy=MultiplicityPolicy.BONFERRONI,
     )
@@ -231,15 +306,40 @@ def test_primary_vs_secondary_outcomes() -> None:
     # secondary can be different metric but not duplicate id
     plan = _base_plan(
         secondary_outcomes=[
-            OutcomeDefinition(outcome_id="secondary-001", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Secondary latency."),
+            OutcomeDefinition(
+                outcome_id="secondary-001",
+                metric_key="task.latency.mean_ms",
+                metric_version=METRIC_VERSION,
+                unit="ms",
+                denominator="observed_tasks",
+                description="Secondary latency.",
+            ),
         ]
     )
     assert validate_study_plan(plan) == []
     # duplicate id should fail at model validation
     with pytest.raises(Exception):
         _base_plan(
-            primary_outcomes=[OutcomeDefinition(outcome_id="dup", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary")],
-            secondary_outcomes=[OutcomeDefinition(outcome_id="dup", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Secondary")],
+            primary_outcomes=[
+                OutcomeDefinition(
+                    outcome_id="dup",
+                    metric_key="task.completion.rate",
+                    metric_version=METRIC_VERSION,
+                    unit="ratio",
+                    denominator="generated_tasks",
+                    description="Primary",
+                )
+            ],
+            secondary_outcomes=[
+                OutcomeDefinition(
+                    outcome_id="dup",
+                    metric_key="task.latency.mean_ms",
+                    metric_version=METRIC_VERSION,
+                    unit="ms",
+                    denominator="observed_tasks",
+                    description="Secondary",
+                )
+            ],
         )
 
 
@@ -253,7 +353,14 @@ def test_denominator_and_metric_version_identity() -> None:
     # denominator distinguishes unknown (None) from provided; our validation requires denominator present
     # Unknown should remain unavailable, not guessed
     with pytest.raises(Exception):
-        OutcomeDefinition(outcome_id="bad", metric_key="k", metric_version=METRIC_VERSION, unit="ratio", denominator="", description="Bad denominator should fail")
+        OutcomeDefinition(
+            outcome_id="bad",
+            metric_key="k",
+            metric_version=METRIC_VERSION,
+            unit="ratio",
+            denominator="",
+            description="Bad denominator should fail",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -282,10 +389,30 @@ def test_freeze_immutability_and_fingerprint_deterministic() -> None:
     assert frozen.replication_ids == [1, 2, 3]
     # Unknown vs false: higher_is_better distinguishes None from False
     plan_unknown = _base_plan(
-        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary outcome for unknown test case.", higher_is_better=None)]
+        primary_outcomes=[
+            OutcomeDefinition(
+                outcome_id="primary-001",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary outcome for unknown test case.",
+                higher_is_better=None,
+            )
+        ]
     )
     plan_false = _base_plan(
-        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary outcome for false test case.", higher_is_better=False)]
+        primary_outcomes=[
+            OutcomeDefinition(
+                outcome_id="primary-001",
+                metric_key="task.completion.rate",
+                metric_version=METRIC_VERSION,
+                unit="ratio",
+                denominator="generated_tasks",
+                description="Primary outcome for false test case.",
+                higher_is_better=False,
+            )
+        ]
     )
     assert plan_unknown.compute_fingerprint() != plan_false.compute_fingerprint()
 
@@ -294,7 +421,9 @@ def test_freeze_rejects_vague_plan() -> None:
     # Use a valid question but missing other required fields for freeze validation
     vague_valid = StudyPlan(
         plan_id="vague-001",
-        study_question=StudyQuestion(text="Valid vague question with sufficient length for testing."),
+        study_question=StudyQuestion(
+            text="Valid vague question with sufficient length for testing."
+        ),
         evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
         primary_outcomes=[],
         replication_unit=ReplicationUnit.RANDOM_SEED,
@@ -306,13 +435,21 @@ def test_freeze_rejects_vague_plan() -> None:
         analysis_method=AnalysisMethod.DESCRIPTIVE,
         multiplicity_policy=MultiplicityPolicy.NONE_SINGLE_TEST,
         stopping_rule=StoppingRule(description="Valid stopping description for test."),
-        decision_rule=DecisionRule(rule_type="descriptive", interpretation="Descriptive interpretation valid for test."),
+        decision_rule=DecisionRule(
+            rule_type="descriptive", interpretation="Descriptive interpretation valid for test."
+        ),
         limitations="Limitations text for testing vague freeze.",
     )
     # Direct construction with invalid question will raise before freeze; instead use base and clear required fields via model_copy bypass?
     # Test via validate path: use _base_plan and then override to vague via model_copy with validate_assignment=False trick?
     # Simpler: create plan with minimal valid question but missingother required per validate
-    minimal = _base_plan(primary_outcomes=[], replication_ids=[], planned_arms=[], cohort_rules=[], exclusion_rules=[])
+    minimal = _base_plan(
+        primary_outcomes=[],
+        replication_ids=[],
+        planned_arms=[],
+        cohort_rules=[],
+        exclusion_rules=[],
+    )
     # Need to bypass pydantic validation for empty arms etc? _base_plan with empty arms will still pass model construction but fail service validation
     # Actually StudyPlan allows empty primary_outcomes default, so it's valid construction
     # Now try to freeze
@@ -325,12 +462,28 @@ def test_run_matrix_determinism_and_rejects() -> None:
     m1 = build_run_matrix(plan)
     m2 = build_run_matrix(plan)
     assert [c.cell_id for c in m1] == [c.cell_id for c in m2]
-    assert len(m1) == len(plan.planned_arms) * len(plan.replication_ids) * len(plan.primary_outcomes)
+    assert len(m1) == len(plan.planned_arms) * len(plan.replication_ids) * len(
+        plan.primary_outcomes
+    )
 
     # duplicate cells should be rejected at freeze time: try to freeze with duplicate cells provided
     dup_cells = [
-        PlannedRunCell(cell_id="cell-0001", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version=METRIC_VERSION),
-        PlannedRunCell(cell_id="cell-0001", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version=METRIC_VERSION),
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version=METRIC_VERSION,
+        ),
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version=METRIC_VERSION,
+        ),
     ]
     dup_plan = _base_plan(planned_run_cells=dup_cells)
     # Validation should catch duplicate
@@ -340,7 +493,16 @@ def test_run_matrix_determinism_and_rejects() -> None:
         freeze_plan(dup_plan, clock=_fixed_clock)
 
     # ambiguous arm
-    bad_arm_cell = [PlannedRunCell(cell_id="cell-0001", arm_id="unknown-arm", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version=METRIC_VERSION)]
+    bad_arm_cell = [
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="unknown-arm",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version=METRIC_VERSION,
+        )
+    ]
     bad_arm_plan = _base_plan(planned_run_cells=bad_arm_cell)
     assert any("ambiguous" in f.lower() for f in validate_study_plan(bad_arm_plan))
 
@@ -350,18 +512,46 @@ def test_run_matrix_determinism_and_rejects() -> None:
         build_run_matrix(empty_rep)
 
     # inconsistent metric version
-    bad_version_cell = [PlannedRunCell(cell_id="cell-0001", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version="9.9")]
+    bad_version_cell = [
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version="9.9",
+        )
+    ]
     bad_ver_plan = _base_plan(planned_run_cells=bad_version_cell)
     assert any("inconsistent" in f.lower() for f in validate_study_plan(bad_ver_plan))
 
     # decision rule incompatible with analysis method (already tested) also impacts matrix? but matrix build doesn't check, freeze does
-    incompat = _base_plan(analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE, decision_rule=DecisionRule(rule_type="test", interpretation="Bad comparison text for test", comparison="equivalence"))
+    incompat = _base_plan(
+        analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
+        decision_rule=DecisionRule(
+            rule_type="test",
+            interpretation="Bad comparison text for test",
+            comparison="equivalence",
+        ),
+    )
     assert any("incompatible" in f.lower() for f in validate_study_plan(incompat))
 
     # undeclared post-hoc primary outcome in cells
-    posthoc_cell = [PlannedRunCell(cell_id="cell-0001", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="not.predeclared.metric", metric_version=METRIC_VERSION)]
+    posthoc_cell = [
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="not.predeclared.metric",
+            metric_version=METRIC_VERSION,
+        )
+    ]
     posthoc_plan = _base_plan(planned_run_cells=posthoc_cell)
-    assert any("undeclared" in f.lower() or "post-hoc" in f.lower() for f in validate_study_plan(posthoc_plan))
+    assert any(
+        "undeclared" in f.lower() or "post-hoc" in f.lower()
+        for f in validate_study_plan(posthoc_plan)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -371,7 +561,11 @@ def test_run_matrix_determinism_and_rejects() -> None:
 
 def test_parent_linked_amendment_and_exact_diff() -> None:
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
-    amended = create_amendment(parent, changes={"limitations": "Amended limitations with more detail for reproducibility."}, amendment_reason="Clarify limitations to meet 12 char and add detail for review.")
+    amended = create_amendment(
+        parent,
+        changes={"limitations": "Amended limitations with more detail for reproducibility."},
+        amendment_reason="Clarify limitations to meet 12 char and add detail for review.",
+    )
     assert amended.parent_fingerprint == parent.fingerprint
     assert amended.parent_version == parent.version
     assert amended.version == parent.version + 1
@@ -380,11 +574,18 @@ def test_parent_linked_amendment_and_exact_diff() -> None:
     assert rev.parent_fingerprint == parent.fingerprint
     assert "limitations" in rev.diff
     assert rev.diff["limitations"]["old"] == parent.limitations
-    assert rev.diff["limitations"]["new"] == "Amended limitations with more detail for reproducibility."
+    assert (
+        rev.diff["limitations"]["new"]
+        == "Amended limitations with more detail for reproducibility."
+    )
     # Ensure parent bytes preserved
     assert parent.fingerprint == amended.parent_fingerprint
     # Amendment diff is deterministic
-    amended2 = create_amendment(parent, changes={"limitations": "Amended limitations with more detail for reproducibility."}, amendment_reason="Clarify limitations to meet 12 char and add detail for review.")
+    amended2 = create_amendment(
+        parent,
+        changes={"limitations": "Amended limitations with more detail for reproducibility."},
+        amendment_reason="Clarify limitations to meet 12 char and add detail for review.",
+    )
     assert amended.revision_history[0].diff == amended2.revision_history[0].diff
     # Frozen parent never edited in place
     assert parent.status == StudyPlanStatus.FROZEN
@@ -393,7 +594,11 @@ def test_parent_linked_amendment_and_exact_diff() -> None:
 
 def test_amendment_changing_parent_fingerprint_is_caught() -> None:
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
-    amended = create_amendment(parent, changes={"limitations": "New limitations text for amendment testing."}, amendment_reason="Provide reason with sufficient length for testing.")
+    amended = create_amendment(
+        parent,
+        changes={"limitations": "New limitations text for amendment testing."},
+        amendment_reason="Provide reason with sufficient length for testing.",
+    )
     # Mutating parent fingerprint should be detectable: if we tamper, verification fails
     tampered = amended.model_copy(update={"parent_fingerprint": "0" * 64})
     assert tampered.parent_fingerprint != parent.fingerprint
@@ -404,7 +609,11 @@ def test_amendment_changing_parent_fingerprint_is_caught() -> None:
 def test_pre_vs_post_evidence_amendment_label() -> None:
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
     # Pre-evidence amendment
-    pre = create_amendment(parent, changes={"limitations": "Pre-evidence amendment limitations text."}, amendment_reason="Pre-evidence reason with enough characters.")
+    pre = create_amendment(
+        parent,
+        changes={"limitations": "Pre-evidence amendment limitations text."},
+        amendment_reason="Pre-evidence reason with enough characters.",
+    )
     assert pre.revision_history[0].amendment_label.value == "pre_evidence"
     assert pre.revision_history[0].is_post_evidence is False
 
@@ -420,7 +629,11 @@ def test_pre_vs_post_evidence_amendment_label() -> None:
     )
     with_evidence = attach_evidence(parent, [att], clock=_later_clock)
     assert with_evidence.status == StudyPlanStatus.EVIDENCE_ATTACHED
-    post = create_amendment(with_evidence, changes={"limitations": "Post-evidence amendment limitations text."}, amendment_reason="Post-evidence reason with enough characters for governance.")
+    post = create_amendment(
+        with_evidence,
+        changes={"limitations": "Post-evidence amendment limitations text."},
+        amendment_reason="Post-evidence reason with enough characters for governance.",
+    )
     assert post.revision_history[-1].amendment_label.value == "post_evidence"
     assert post.revision_history[-1].is_post_evidence is True
 
@@ -633,7 +846,9 @@ def test_export_and_verify_plan() -> None:
     imported_yaml = import_plan_yaml(yaml_export)
     assert imported_yaml.plan_id == plan.plan_id
     # Tamper should fail verification
-    tampered = imported_json.model_copy(update={"limitations": "Tampered limitations text for test verification."})
+    tampered = imported_json.model_copy(
+        update={"limitations": "Tampered limitations text for test verification."}
+    )
     ok2, _ = verify_plan(tampered)
     assert ok2 is False
     # Malformed should fail closed
@@ -678,7 +893,11 @@ def test_end_to_end_draft_validate_freeze_amend_attach_gate_export() -> None:
     assert frozen.status == StudyPlanStatus.FROZEN
     assert frozen.fingerprint is not None
     # Amend
-    amended = create_amendment(frozen, changes={"limitations": "Amended limitations for end-to-end test with sufficient length."}, amendment_reason="End-to-end amendment reason that is long enough for governance.")
+    amended = create_amendment(
+        frozen,
+        changes={"limitations": "Amended limitations for end-to-end test with sufficient length."},
+        amendment_reason="End-to-end amendment reason that is long enough for governance.",
+    )
     assert amended.version == 2
     # Freeze amended
     frozen_amended = freeze_plan(amended, clock=_later_clock)
@@ -726,7 +945,11 @@ def test_mutation_editing_frozen_in_place_is_caught() -> None:
 def test_mutation_amendment_changing_parent_fingerprint_is_caught() -> None:
     """Mutation 2: amendment must preserve parent fingerprint."""
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
-    child = create_amendment(parent, changes={"limitations": "Child limitations with sufficient length for test."}, amendment_reason="Amendment reason sufficient for governance test.")
+    child = create_amendment(
+        parent,
+        changes={"limitations": "Child limitations with sufficient length for test."},
+        amendment_reason="Amendment reason sufficient for governance test.",
+    )
     assert child.parent_fingerprint == parent.fingerprint
     # Mutant that changes parent fingerprint would make this fail
     assert child.parent_fingerprint == parent.compute_fingerprint()
@@ -736,8 +959,22 @@ def test_mutation_duplicate_cells_rejected() -> None:
     """Mutation 3: duplicate run cells must be rejected."""
     plan = _base_plan()
     dup = [
-        PlannedRunCell(cell_id="cell-0001", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version=METRIC_VERSION),
-        PlannedRunCell(cell_id="cell-0002", arm_id="baseline", policy_label="policy-a", replication_id=1, metric_key="task.completion.rate", metric_version=METRIC_VERSION),
+        PlannedRunCell(
+            cell_id="cell-0001",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version=METRIC_VERSION,
+        ),
+        PlannedRunCell(
+            cell_id="cell-0002",
+            arm_id="baseline",
+            policy_label="policy-a",
+            replication_id=1,
+            metric_key="task.completion.rate",
+            metric_version=METRIC_VERSION,
+        ),
         # Same composite arm/rep/metric but different cell_id -> still duplicate composite
     ]
     dup_plan = _base_plan(planned_run_cells=dup)
@@ -785,12 +1022,42 @@ def test_mutation_post_evidence_primary_replacement_without_amendment_is_blocked
     attached = attach_evidence(parent, [att], clock=_later_clock)
     # Try to replace primary outcome directly without amendment (simulating mutant that allows in-place edit)
     # Our model should prevent editing frozen in place: we test that direct copy without amendment changes fingerprint and gate would be blocked if not via amendment
-    tampered = attached.model_copy(update={"primary_outcomes": [OutcomeDefinition(outcome_id="primary-001", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Tampered primary outcome")]})
+    tampered = attached.model_copy(
+        update={
+            "primary_outcomes": [
+                OutcomeDefinition(
+                    outcome_id="primary-001",
+                    metric_key="task.latency.mean_ms",
+                    metric_version=METRIC_VERSION,
+                    unit="ms",
+                    denominator="observed_tasks",
+                    description="Tampered primary outcome",
+                )
+            ]
+        }
+    )
     # Gate should be blocked because observed metric_key no longer matches new primary
     gate = evaluate_gate(tampered, tampered.evidence_attachments)
     # Since observed is task.completion.rate but new primary is latency, missing should be flagged
     assert gate.status.value in ("unavailable", "blocked")
     # Correct path is via amendment: new version with diff
-    amended = create_amendment(parent, changes={"primary_outcomes": [OutcomeDefinition(outcome_id="primary-001", metric_key="task.latency.mean_ms", metric_version=METRIC_VERSION, unit="ms", denominator="observed_tasks", description="Amended primary outcome via governance")]}, amendment_reason="Post-evidence primary outcome replacement via proper amendment with reason.")
+    amended = create_amendment(
+        parent,
+        changes={
+            "primary_outcomes": [
+                OutcomeDefinition(
+                    outcome_id="primary-001",
+                    metric_key="task.latency.mean_ms",
+                    metric_version=METRIC_VERSION,
+                    unit="ms",
+                    denominator="observed_tasks",
+                    description="Amended primary outcome via governance",
+                )
+            ]
+        },
+        amendment_reason="Post-evidence primary outcome replacement via proper amendment with reason.",
+    )
     # Amended should have post_evidence label
-    assert amended.revision_history[-1].is_post_evidence is True or parent.evidence_attached_at is None  # parent not yet attached, so this is pre; but test logic holds
+    assert (
+        amended.revision_history[-1].is_post_evidence is True or parent.evidence_attached_at is None
+    )  # parent not yet attached, so this is pre; but test logic holds
