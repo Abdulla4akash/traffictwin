@@ -7,6 +7,11 @@ import json
 import streamlit as st
 
 from traffictwin.experiments.portfolio import default_synthetic_portfolio_rules
+from traffictwin.ui.challenge_whatif_bridge import (
+    PENDING_WHATIF_CHALLENGE_DRAFT_KEY,
+    build_challenge_whatif_draft,
+    draft_to_handoff_dict,
+)
 from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button
@@ -141,6 +146,98 @@ def render() -> None:
         st.caption(
             "Values shown are not automatically prefilled in Scenario Builder; apply them manually if you continue there."  # noqa: E501
         )
+
+        # --- Challenge → What-If bridge: prepare supported values ---
+        draft = build_challenge_whatif_draft(selected)
+        st.subheader("What-If Bridge")
+        st.caption(
+            "Transfer supported challenge parameters to What-If Studio. "
+            "Unsupported fields are shown explicitly and not silently dropped."
+        )
+        with st.container(border=True):
+            st.markdown(
+                f"**{draft.challenge_title}** (`{draft.challenge_id}`) · "
+                f"Status: `{draft.mapping_status.value}`"
+            )
+            st.caption(
+                f"Supported in What-If Studio: {len(draft.supported_fields)} · "
+                f"Not represented by current What-If controls: {len(draft.unsupported_fields)}"
+            )
+            if draft.supported_fields:
+                sup_rows = [
+                    {
+                        "challenge_path": f.challenge_path,
+                        "challenge_value": json.dumps(f.challenge_value)
+                        if isinstance(f.challenge_value, dict)
+                        else str(f.challenge_value),
+                        "whatif_field": f.whatif_field,
+                        "mapped_value": json.dumps(f.mapped_value)
+                        if isinstance(f.mapped_value, dict)
+                        else str(f.mapped_value),
+                    }
+                    for f in draft.supported_fields
+                ]
+                st.markdown("**Supported — will be prefilled:**")
+                st.dataframe(
+                    sup_rows,
+                    hide_index=True,
+                    width="stretch",
+                    column_config=table_column_config(sup_rows),
+                )
+            else:
+                st.info("No challenge fields are representable with current What-If controls.")
+
+            if draft.unsupported_fields:
+                unsup_rows = [
+                    {
+                        "challenge_path": f.challenge_path,
+                        "challenge_value": json.dumps(f.challenge_value)
+                        if isinstance(f.challenge_value, dict)
+                        else str(f.challenge_value),
+                        "reason": f.reason,
+                    }
+                    for f in draft.unsupported_fields
+                ]
+                st.markdown("**Not applied — unsupported by current What-If controls:**")
+                st.dataframe(
+                    unsup_rows,
+                    hide_index=True,
+                    width="stretch",
+                    column_config=table_column_config(unsup_rows),
+                )
+                st.warning(
+                    "Only the supported subset will be prefilled. "
+                    "The generated What-If pair must not be interpreted as exact "
+                    "execution of the original challenge."
+                )
+            for w in draft.warnings:
+                st.caption(f"Bridge: {w}")
+            st.caption(
+                "Challenge parameters are applied as intervention inputs against the "
+                "baseline preset you choose in What-If Studio."
+            )
+            # Prepare button — writes handoff and navigates
+            if st.button(
+                "Prepare supported values in What-If Studio",
+                key="portfolio_prepare_whatif",
+                disabled=(draft.mapping_status == "NOT_MAPPABLE" and not draft.supported_fields),
+            ):
+                st.session_state[PENDING_WHATIF_CHALLENGE_DRAFT_KEY] = draft_to_handoff_dict(draft)
+                # Reset fingerprint so What-If Studio will seed this exact draft once
+                st.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
+                st.session_state["whatif_challenge_prefill_applied"] = False
+                # Navigate via pending key (works inside callbacks and direct)
+                st.session_state["_v07_pending_page"] = UiPage.WHATIF_STUDIO.value
+                st.success(
+                    f"Prepared {len(draft.supported_fields)} supported field(s) from "
+                    f"{draft.challenge_id}. Opening What-If Studio…"
+                )
+                st.rerun()
+            if draft.mapping_status.value == "NOT_MAPPABLE" and not draft.supported_fields:
+                st.caption(
+                    "No supported What-If fields for this challenge. "
+                    "Manual Scenario Builder remains available."
+                )
 
     with st.expander("Advanced: full challenge library"):
         lib_rows = [

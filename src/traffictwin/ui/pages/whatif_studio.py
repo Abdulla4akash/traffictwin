@@ -7,10 +7,15 @@ from pathlib import Path
 
 import streamlit as st
 
-from traffictwin.synthetic.config import SyntheticPolicyProfile
 from traffictwin.synthetic.whatif_pair import (
     STUDIO_EVIDENCE_SENTENCE,
     receipt_to_portable_dict,
+)
+from traffictwin.ui.challenge_whatif_bridge import (
+    PENDING_WHATIF_CHALLENGE_DRAFT_KEY,
+    ChallengeWhatIfDraft,
+    draft_from_handoff_dict,
+    is_valid_handoff_dict,
 )
 from traffictwin.ui.components.badges import badge_markdown, badge_row
 from traffictwin.ui.components.cards import section_header
@@ -28,6 +33,59 @@ from traffictwin.ui.services import (
 )
 from traffictwin.ui.state import UiConfig
 from traffictwin.ui.tables import table_column_config
+from traffictwin.ui.whatif_controls import (
+    DEFAULT_WHATIF_WIDGET_VALUES,
+    WHATIF_CONTROL_SPEC,
+    WHATIF_WIDGET_KEYS,
+)
+
+
+def _ensure_whatif_widget_defaults() -> None:
+    for key, default in DEFAULT_WHATIF_WIDGET_VALUES.items():
+        if key not in st.session_state:
+            # Deep-copy mutable defaults (no mutable containers currently, but guard future)
+            import copy
+
+            st.session_state[key] = copy.deepcopy(default)
+
+
+def _reset_whatif_widgets_to_defaults() -> None:
+    """Reset the complete What-If control set to authoritative stock defaults."""
+    import copy
+
+    for key, default in DEFAULT_WHATIF_WIDGET_VALUES.items():
+        st.session_state[key] = copy.deepcopy(default)
+
+
+def _seed_widgets_from_draft(draft: ChallengeWhatIfDraft) -> None:
+    ov = draft.whatif_overrides
+    mapping = {
+        "congestion_multiplier": WHATIF_WIDGET_KEYS["congestion_multiplier"],
+        "task_arrival_rate": WHATIF_WIDGET_KEYS["task_arrival_rate"],
+        "vehicle_count": WHATIF_WIDGET_KEYS["vehicle_count"],
+        "rsu_count": WHATIF_WIDGET_KEYS["rsu_count"],
+        "rsu_capacity": WHATIF_WIDGET_KEYS["rsu_capacity"],
+        "random_seed": WHATIF_WIDGET_KEYS["random_seed"],
+        "incident_type": WHATIF_WIDGET_KEYS["incident_type"],
+        "incident_location": WHATIF_WIDGET_KEYS["incident_location"],
+        "incident_start_s": WHATIF_WIDGET_KEYS["incident_start_s"],
+        "incident_duration_s": WHATIF_WIDGET_KEYS["incident_duration_s"],
+        "lanes_closed": WHATIF_WIDGET_KEYS["lanes_closed"],
+        "event_demand_multiplier": WHATIF_WIDGET_KEYS["event_demand_multiplier"],
+        "incident_enabled": WHATIF_WIDGET_KEYS["incident_enabled"],
+    }
+    for field, widget_key in mapping.items():
+        if field in ov:
+            st.session_state[widget_key] = ov[field]
+    if "task_mix_t1" in ov:
+        st.session_state[WHATIF_WIDGET_KEYS["task_mix_t1"]] = ov["task_mix_t1"]
+    if "task_mix_t2" in ov:
+        st.session_state[WHATIF_WIDGET_KEYS["task_mix_t2"]] = ov["task_mix_t2"]
+    if "task_mix_t3" in ov:
+        st.session_state[WHATIF_WIDGET_KEYS["task_mix_t3"]] = ov["task_mix_t3"]
+    # Policy profile text if ever mapped (not currently)
+    if "policy_profile" in ov:
+        st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] = ov["policy_profile"]
 
 
 def render(config: UiConfig) -> None:
@@ -62,23 +120,109 @@ def render(config: UiConfig) -> None:
         f"Active workspace: `{effective_workspace_path}` | Registry: `{effective_registry_path}`"
     )
 
-    # Single form for all inputs — one authoritative value flow, no session_state read
+    # --- Ensure defaults and challenge prefill (stable keyed widget state) ---
+    _ensure_whatif_widget_defaults()
+
+    pending_raw = st.session_state.get(PENDING_WHATIF_CHALLENGE_DRAFT_KEY)
+    challenge_draft: ChallengeWhatIfDraft | None = None
+    if pending_raw is not None and is_valid_handoff_dict(pending_raw):
+        try:
+            challenge_draft = draft_from_handoff_dict(pending_raw)
+        except Exception:  # noqa: BLE001 - defensive handoff parse
+            challenge_draft = None
+
+    # Apply prefill exactly once per draft fingerprint — full reset then overlay
+    applied_fp = st.session_state.get("whatif_challenge_prefill_applied_fingerprint")
+    if challenge_draft is not None and applied_fp != challenge_draft.fingerprint:
+        _reset_whatif_widgets_to_defaults()
+        _seed_widgets_from_draft(challenge_draft)
+        st.session_state["whatif_challenge_prefill_applied_fingerprint"] = (
+            challenge_draft.fingerprint
+        )
+        st.session_state["whatif_challenge_prefill_applied"] = True
+
+    if challenge_draft is not None:
+        with st.container(border=True):
+            st.markdown(
+                f"**Prepared from {challenge_draft.challenge_id} — "
+                f"{challenge_draft.challenge_title}**"
+            )
+            st.markdown(f"Status: `{challenge_draft.mapping_status.value}`")
+            st.caption(
+                f"Supported in What-If Studio: {len(challenge_draft.supported_fields)} · "
+                f"Not represented by current What-If controls: "
+                f"{len(challenge_draft.unsupported_fields)}"
+            )
+            if challenge_draft.supported_fields:
+                st.markdown("**Applied automatically:**")
+                for fld in challenge_draft.supported_fields:
+                    st.caption(
+                        f"`{fld.challenge_path}` → `{fld.whatif_field}` = "
+                        f"`{fld.mapped_value}` — {fld.rationale}"
+                    )
+            if challenge_draft.unsupported_fields:
+                st.markdown("**Not applied — unsupported by current What-If controls:**")
+                for ufld in challenge_draft.unsupported_fields:
+                    st.caption(
+                        f"`{ufld.challenge_path}` = `{ufld.challenge_value}` — {ufld.reason}"
+                    )
+                st.warning(
+                    "Only the supported subset will be prefilled. "
+                    "The generated What-If pair must not be interpreted as exact "
+                    "execution of the original challenge."
+                )
+            for w in challenge_draft.warnings:
+                st.caption(f"Bridge: {w}")
+            st.caption(
+                "Challenge parameters are applied as intervention inputs against the "
+                "baseline preset you choose."
+            )
+            st.caption("Unmapped controls keep ordinary What-If Studio defaults.")
+            st.caption("The actual generated ledger is authoritative.")
+            st.caption(f"Bridge fingerprint: `{challenge_draft.fingerprint[:12]}`")
+            if st.button("Reset to stock defaults", key="whatif_clear_challenge_prefill"):
+                st.session_state.pop(PENDING_WHATIF_CHALLENGE_DRAFT_KEY, None)
+                st.session_state["whatif_challenge_prefill_applied_fingerprint"] = None
+                st.session_state["whatif_challenge_prefill_applied"] = False
+                _reset_whatif_widgets_to_defaults()
+                st.rerun()
+
+    # Single form — keyed widgets, no redundant value= (session_state is truth)
+    # Ensure preset/policy validity before widget creation
+    presets = synthetic_preset_names_for_ui()
+    if st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]] not in presets:
+        st.session_state[WHATIF_WIDGET_KEYS["baseline_preset"]] = presets[0]
+    policy_options = synthetic_policy_options_for_ui()
+    if st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] not in policy_options:
+        st.session_state[WHATIF_WIDGET_KEYS["policy_profile"]] = policy_options[0]
     with st.form("whatif_form"):
         section_header("Stage 1 · choose baseline", "Existing supported synthetic preset.")
-        presets = synthetic_preset_names_for_ui()
-        baseline_preset = st.selectbox("Baseline preset", presets, index=0)
+        baseline_preset = st.selectbox(
+            "Baseline preset",
+            presets,
+            key=WHATIF_WIDGET_KEYS["baseline_preset"],
+        )
         st.caption(
-            f"Baseline preset `{baseline_preset}` is a deterministic synthetic "
-            "starting point. Nothing is executed yet."
+            f"Baseline preset `{st.session_state[WHATIF_WIDGET_KEYS['baseline_preset']]}` "
+            "is a deterministic synthetic starting point. Nothing is executed yet."
         )
 
         section_header("Pair identity", "Stable pair identifier and experiment grouping.")
         cols = st.columns(2)
         pair_name = cols[0].text_input(
-            "Pair name (sanitised, e.g. congestion-pulse)", value="congestion-pulse"
+            "Pair name (sanitised, e.g. congestion-pulse)",
+            key=WHATIF_WIDGET_KEYS["pair_name"],
         )
-        experiment_id = cols[1].text_input("Experiment ID", value="exp-whatif-demo")
-        baseline_seed = st.number_input("Baseline random seed", min_value=0, value=7, step=1)
+        experiment_id = cols[1].text_input(
+            "Experiment ID",
+            key=WHATIF_WIDGET_KEYS["experiment_id"],
+        )
+        baseline_seed = st.number_input(
+            "Baseline random seed",
+            min_value=WHATIF_CONTROL_SPEC["baseline_random_seed"]["min"],
+            step=1,
+            key=WHATIF_WIDGET_KEYS["baseline_random_seed"],
+        )
 
         section_header(
             "Stage 2 · define variation",
@@ -92,45 +236,110 @@ def render(config: UiConfig) -> None:
 
         st.markdown("**Incident / event**")
         c1, c2, c3, c4 = st.columns(4)
-        incident_enabled = c1.checkbox("Enable synthetic incident/event", value=True)
-        incident_type = c2.text_input("Event type", value="synthetic_congestion_pulse")
-        incident_location = c3.text_input("Location", value="synthetic-corridor-a")
-        incident_severity = c4.text_input("Severity", value="moderate")
+        incident_enabled = c1.checkbox(
+            "Enable synthetic incident/event",
+            key=WHATIF_WIDGET_KEYS["incident_enabled"],
+        )
+        incident_type = c2.text_input(
+            "Event type",
+            key=WHATIF_WIDGET_KEYS["incident_type"],
+        )
+        incident_location = c3.text_input(
+            "Location",
+            key=WHATIF_WIDGET_KEYS["incident_location"],
+        )
+        incident_severity = c4.text_input(
+            "Severity",
+            key=WHATIF_WIDGET_KEYS["incident_severity"],
+        )
         c1, c2, c3, c4 = st.columns(4)
-        incident_start = c1.number_input("Start time (s)", min_value=0.0, value=120.0)
-        incident_duration = c2.number_input("Duration (s)", min_value=1.0, value=60.0)
-        lanes_closed = c3.number_input("Lanes closed", min_value=0, value=1, step=1)
+        incident_start = c1.number_input(
+            "Start time (s)",
+            min_value=float(WHATIF_CONTROL_SPEC["incident_start_s"]["min"]),
+            key=WHATIF_WIDGET_KEYS["incident_start_s"],
+        )
+        incident_duration = c2.number_input(
+            "Duration (s)",
+            min_value=float(WHATIF_CONTROL_SPEC["incident_duration_s"]["min"]),
+            key=WHATIF_WIDGET_KEYS["incident_duration_s"],
+        )
+        lanes_closed = c3.number_input(
+            "Lanes closed",
+            min_value=int(WHATIF_CONTROL_SPEC["lanes_closed"]["min"]),
+            step=1,
+            key=WHATIF_WIDGET_KEYS["lanes_closed"],
+        )
         event_demand_multiplier = c4.number_input(
-            "Event demand multiplier", min_value=0.1, value=1.3, step=0.1
+            "Event demand multiplier",
+            min_value=float(WHATIF_CONTROL_SPEC["event_demand_multiplier"]["min"]),
+            step=float(WHATIF_CONTROL_SPEC["event_demand_multiplier"]["step"] or 0.1),
+            key=WHATIF_WIDGET_KEYS["event_demand_multiplier"],
         )
 
         st.markdown("**Demand / congestion**")
         c1, c2, c3 = st.columns(3)
         congestion_multiplier = c1.number_input(
-            "Congestion multiplier", min_value=0.25, max_value=3.0, value=1.65, step=0.05
+            "Congestion multiplier",
+            min_value=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["min"]),
+            max_value=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["max"]),
+            step=float(WHATIF_CONTROL_SPEC["congestion_multiplier"]["step"] or 0.05),
+            key=WHATIF_WIDGET_KEYS["congestion_multiplier"],
         )
-        vehicle_count = c2.number_input("Vehicle count", min_value=1, value=20, step=1)
+        vehicle_count = c2.number_input(
+            "Vehicle count",
+            min_value=int(WHATIF_CONTROL_SPEC["vehicle_count"]["min"]),
+            step=1,
+            key=WHATIF_WIDGET_KEYS["vehicle_count"],
+        )
         task_arrival_rate = c3.number_input(
-            "Task arrival rate", min_value=0.001, value=0.18, step=0.01, format="%.3f"
+            "Task arrival rate",
+            min_value=float(WHATIF_CONTROL_SPEC["task_arrival_rate"]["min"]),
+            step=float(WHATIF_CONTROL_SPEC["task_arrival_rate"]["step"] or 0.01),
+            format="%.3f",
+            key=WHATIF_WIDGET_KEYS["task_arrival_rate"],
         )
 
         st.markdown("**Task mix (must sum to 1.0)**")
         c1, c2, c3 = st.columns(3)
-        task_t1 = c1.number_input("T1 share", min_value=0.0, max_value=1.0, value=0.30, step=0.05)
-        task_t2 = c2.number_input("T2 share", min_value=0.0, max_value=1.0, value=0.40, step=0.05)
-        task_t3 = c3.number_input("T3 share", min_value=0.0, max_value=1.0, value=0.30, step=0.05)
+        task_t1 = c1.number_input(
+            "T1 share",
+            min_value=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["min"]),
+            max_value=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["max"]),
+            step=float(WHATIF_CONTROL_SPEC["task_mix_t1"]["step"] or 0.05),
+            key=WHATIF_WIDGET_KEYS["task_mix_t1"],
+        )
+        task_t2 = c2.number_input(
+            "T2 share",
+            min_value=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["min"]),
+            max_value=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["max"]),
+            step=float(WHATIF_CONTROL_SPEC["task_mix_t2"]["step"] or 0.05),
+            key=WHATIF_WIDGET_KEYS["task_mix_t2"],
+        )
+        task_t3 = c3.number_input(
+            "T3 share",
+            min_value=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["min"]),
+            max_value=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["max"]),
+            step=float(WHATIF_CONTROL_SPEC["task_mix_t3"]["step"] or 0.05),
+            key=WHATIF_WIDGET_KEYS["task_mix_t3"],
+        )
 
         st.markdown("**Infrastructure / policy**")
         c1, c2, c3 = st.columns(3)
-        rsu_count = c1.number_input("RSU count", min_value=1, value=2, step=1)
-        rsu_capacity = c2.number_input("RSU capacity", min_value=1.0, value=22.0)
-        policy_options = synthetic_policy_options_for_ui()
+        rsu_count = c1.number_input(
+            "RSU count",
+            min_value=int(WHATIF_CONTROL_SPEC["rsu_count"]["min"]),
+            step=1,
+            key=WHATIF_WIDGET_KEYS["rsu_count"],
+        )
+        rsu_capacity = c2.number_input(
+            "RSU capacity",
+            min_value=float(WHATIF_CONTROL_SPEC["rsu_capacity"]["min"]),
+            key=WHATIF_WIDGET_KEYS["rsu_capacity"],
+        )
         policy_profile = c3.selectbox(
             "Synthetic policy profile",
             policy_options,
-            index=policy_options.index(SyntheticPolicyProfile.BALANCED.value)
-            if SyntheticPolicyProfile.BALANCED.value in policy_options
-            else 0,
+            key=WHATIF_WIDGET_KEYS["policy_profile"],
         )
 
         # Two submit buttons operating on the same current form values
@@ -138,7 +347,7 @@ def render(config: UiConfig) -> None:
         preview_submitted = cols[0].form_submit_button("Preview changed ledger")
         generate_submitted = cols[1].form_submit_button("Generate comparison")
 
-    # Build request directly from widget return values (single source of truth)
+    # Build request from widget return values (post-form, reflect session_state)
     def _build_request() -> WhatIfPairRequest | ServiceError:
         try:
             overrides = WhatIfVariationOverrides(
@@ -275,11 +484,58 @@ def render(config: UiConfig) -> None:
                 st.session_state["selected_baseline_run"] = result.baseline_bundle_path or ""
                 st.session_state["selected_variation_run"] = result.variation_bundle_path or ""
                 st.session_state["whatif_pair_receipt_path"] = result.receipt_path or ""
+                # Capture generation-bound challenge context (HIGH-2)
+                gen_context: dict[str, object] | None = None
+                if (
+                    challenge_draft is not None
+                    and st.session_state.get("whatif_challenge_prefill_applied_fingerprint")
+                    == challenge_draft.fingerprint
+                ):
+                    # Check if user edited after prefill
+                    drafted = challenge_draft.whatif_overrides
+                    actual = request.variation_overrides.model_dump(exclude_none=True)
+                    # Compare drafted fields to actual; any mismatch = user edited
+                    edited = False
+                    for k, v in drafted.items():
+                        if k not in actual:
+                            edited = True
+                            break
+                        av = actual.get(k)
+                        # float tolerance
+                        if isinstance(v, float) and isinstance(av, float):
+                            if abs(float(v) - float(av)) > 1e-9:
+                                edited = True
+                                break
+                        elif v != av:
+                            edited = True
+                            break
+                    gen_context = {
+                        "challenge_id": challenge_draft.challenge_id,
+                        "challenge_title": challenge_draft.challenge_title,
+                        "challenge_fingerprint": challenge_draft.fingerprint,
+                        "mapping_status": challenge_draft.mapping_status.value,
+                        "supported_count": len(challenge_draft.supported_fields),
+                        "unsupported_count": len(challenge_draft.unsupported_fields),
+                        "pair_id": result.pair_id,
+                        "request_fingerprint": result.request_fingerprint,
+                        "user_edited": edited,
+                    }
+                else:
+                    gen_context = None
+                st.session_state["last_whatif_generation_challenge_context"] = gen_context
                 st.rerun()
 
     # Also handle preview submission feedback (ledger already shown above, no extra action needed)
     if preview_submitted and can_generate:
         st.info("Ledger preview updated from current form values.")
+
+    # Show challenge source vs actual ledger distinction before generation
+    if challenge_draft is not None and can_generate:
+        st.info(
+            "Challenge source fields above are separate from the actual What-If "
+            "changed-parameter ledger below. Only the ledger determines what will be "
+            "generated."
+        )
 
     # Success state display (survives reruns)
     receipt_raw = st.session_state.get("whatif_pair_receipt")
@@ -288,14 +544,92 @@ def render(config: UiConfig) -> None:
             from traffictwin.synthetic.whatif_pair import WhatIfPairReceipt as _Receipt
 
             receipt = _Receipt.model_validate(receipt_raw)
-        except Exception:
+        except Exception:  # noqa: BLE001 - defensive receipt parse
             receipt = None
         if receipt is not None:
             status_label = "already exists" if receipt.status == "already_exists" else "generated"
+            # Generation-bound provenance (HIGH-2): read captured context, not current draft
+            gen_ctx = st.session_state.get("last_whatif_generation_challenge_context")
+            _challenge_note = ""
+            _challenge_for_receipt: ChallengeWhatIfDraft | dict[str, object] | None = None
+            # Only show challenge wording when context belongs to this receipt
+            if (
+                isinstance(gen_ctx, dict)
+                and gen_ctx.get("pair_id") == receipt.pair_id
+                and gen_ctx.get("challenge_id")
+            ):
+                cid = str(gen_ctx.get("challenge_id"))
+                mapped = int(gen_ctx.get("supported_count") or 0)
+                unsup = int(gen_ctx.get("unsupported_count") or 0)
+                edited = bool(gen_ctx.get("user_edited"))
+                if unsup > 0:
+                    if edited:
+                        _challenge_note = (
+                            f" Started from the supported subset of {cid} "
+                            f"({mapped} mapped, {unsup} unsupported); "
+                            f"user-editable What-If values and the generated "
+                            f"ledger are authoritative. "
+                            f"This must not be interpreted as exact execution of {cid}."
+                        )
+                    else:
+                        _challenge_note = (
+                            f" Generated from the supported subset of {cid} "
+                            f"({mapped} mapped, {unsup} unsupported). "
+                            f"This must not be interpreted as exact execution of {cid}."
+                        )
+                else:
+                    if edited:
+                        _challenge_note = (
+                            f" Started from the supported {cid} prefill "
+                            f"({mapped} field(s)); user-editable What-If values and the "
+                            f"generated ledger are authoritative."
+                        )
+                    else:
+                        _challenge_note = f" Generated from supported fields of {cid}."
+                _challenge_for_receipt = gen_ctx  # truthy marker
             st.success(
                 f"What-if pair {status_label}: `{receipt.pair_id}` · "
                 f"request fingerprint `{receipt.request_fingerprint[:12]}`"
+                + (_challenge_note or "")
             )
+            if _challenge_note and isinstance(gen_ctx, dict):
+                cid = str(gen_ctx.get("challenge_id"))
+                mapped = int(gen_ctx.get("supported_count") or 0)
+                unsup = int(gen_ctx.get("unsupported_count") or 0)
+                edited = bool(gen_ctx.get("user_edited"))
+                if unsup > 0:
+                    if edited:
+                        st.warning(
+                            f"Started from the supported subset of {cid} — "
+                            f"{mapped} field(s) mapped, {unsup} field(s) not "
+                            f"representable by current What-If controls; "
+                            f"user edits were applied before generation. "
+                            f"User-editable What-If values and the generated "
+                            f"ledger are authoritative. "
+                            f"This is not exact execution of the original challenge."
+                        )
+                    else:
+                        st.warning(
+                            f"Generated a What-If pair prepared from the supported subset of "
+                            f"{cid} — "
+                            f"{mapped} field(s) mapped, "
+                            f"{unsup} field(s) not "
+                            f"representable by current What-If controls. "
+                            f"This is not exact execution of the original challenge."
+                        )
+                else:
+                    if edited:
+                        st.info(
+                            f"Started from the supported {cid} prefill "
+                            f"({mapped} field(s)); user-editable What-If values and the "
+                            f"generated ledger are authoritative."
+                        )
+                    else:
+                        st.info(
+                            f"Generated a What-If pair prepared from "
+                            f"{mapped} "
+                            f"supported field(s) of {cid}."
+                        )
             with st.container(border=True):
                 st.markdown(f"{badge_markdown('synthetic')} **Pair receipt** · `{receipt.pair_id}`")
                 cols = st.columns(3)
