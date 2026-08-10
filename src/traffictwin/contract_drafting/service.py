@@ -20,7 +20,13 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
-from traffictwin.data_contract.fingerprint import fingerprint_canonical
+from pydantic import ValidationError
+
+from traffictwin.data_contract.fingerprint import (
+    fingerprint_canonical,
+    redact_field_name,
+    sanitise_for_csv,
+)
 from traffictwin.data_contract.inspection import inspect_tabular_sample
 from traffictwin.data_contract.models import (
     FieldContract,
@@ -477,22 +483,25 @@ def _build_recommendations(
         # Nullable: if nullable_frequency > 0 -> nullable true
         recommended_nullable = fc.nullable_frequency > 0
 
-        # Timestamp semantics
+        # Timestamp semantics — conservative, never overstating evidence
         timestamp_contract_dict: dict[str, str | bool | None] | None = None
         if candidate_type == LogicalType.TIMESTAMP and fc.timestamp_consensus:
             tc = fc.timestamp_consensus
-            # Build timestamp semantics recommendation
-            # Use consistent parse states to infer time_basis and timezone
-            if tc.is_mixed_timezone:
-                # mixed -> unknown and flag finding
+            # Conservative contract: requires_timezone=True ONLY if EVERY
+            # relevant sample is aware and there is no naive, no ambiguity,
+            # no failure, no mixed, and is_consistent.
+            if tc.is_mixed_timezone or tc.is_ambiguous or not tc.is_consistent:
                 time_basis = TimeBasis.UNKNOWN.value
                 timezone = TimezoneSemantics.UNKNOWN.value
                 requires_tz = False
-            elif "parsed_with_tz" in tc.parse_states:
+            elif set(tc.parse_states) == {"parsed_with_tz"}:
+                # All-aware, consistent: allowed to require timezone,
+                # but do not claim UTC unless evidence genuinely establishes UTC.
+                # Inspection only distinguishes aware vs naive, so use UNKNOWN.
                 time_basis = TimeBasis.ISO8601.value
-                timezone = TimezoneSemantics.UTC.value
+                timezone = TimezoneSemantics.UNKNOWN.value
                 requires_tz = True
-            elif "parsed_naive" in tc.parse_states:
+            elif set(tc.parse_states) == {"parsed_naive"}:
                 time_basis = TimeBasis.ISO8601.value
                 timezone = TimezoneSemantics.NAIVE_LOCAL.value
                 requires_tz = False
@@ -928,14 +937,13 @@ def prepare_handoff(
     # This ensures compatibility with SourceDataContract editing
     try:
         _validated = SourceDataContract.model_validate(contract_dict)
-        # Use dumped version to ensure sorted fields and correct serialization
-        contract_canonical = _validated.model_dump(mode="json")
-        contract_canonical["fields"] = sorted(
-            contract_canonical["fields"], key=lambda x: str(x["field_name"])
-        )
-    except Exception:
-        # Fall back to raw dict if validation fails (should not happen)
-        contract_canonical = contract_dict
+    except ValidationError as exc:
+        raise ValueError(f"draft contract validation failed: {exc}") from exc
+    # Use dumped version to ensure sorted fields and correct serialization
+    contract_canonical = _validated.model_dump(mode="json")
+    contract_canonical["fields"] = sorted(
+        contract_canonical["fields"], key=lambda x: str(x["field_name"])
+    )
 
     # Deterministic handoff fingerprint: canonical JSON of payload without fingerprint
     payload_for_fp: dict[str, Any] = {
@@ -1024,24 +1032,38 @@ def export_report_csv(report: ContractDraftReport) -> str:
         is_mixed = ""
         if fc.timestamp_consensus:
             is_mixed = str(fc.timestamp_consensus.is_mixed_timezone)
+        # Apply formula-injection protection and field-name redaction
+        field_name_safe = sanitise_for_csv(redact_field_name(fc.field_name))
+        consensus_type_safe = sanitise_for_csv(
+            fc.type_consensus.consensus_type.value if fc.type_consensus.consensus_type else ""
+        )
+        is_mixed_safe = sanitise_for_csv(is_mixed)
+        prec_range_safe = sanitise_for_csv(prec_range)
+        scale_range_safe = sanitise_for_csv(scale_range)
+        d_range_safe = sanitise_for_csv(d_range)
+        unit_safe = sanitise_for_csv(rec.unit if rec else "unknown")
+        confidence_safe = sanitise_for_csv(rec.confidence.value if rec else "")
+        hash_stable_safe = sanitise_for_csv(
+            str(fc.categorical_consensus.is_hash_stable) if fc.categorical_consensus else ""
+        )
         writer.writerow(
             [
-                fc.field_name,
+                field_name_safe,
                 str(fc.presence.present_in_samples),
                 str(fc.presence.total_samples),
                 f"{fc.presence.presence_frequency:.3f}",
-                fc.type_consensus.consensus_type.value if fc.type_consensus.consensus_type else "",
+                consensus_type_safe,
                 str(fc.type_consensus.is_conflicting),
                 f"{fc.nullable_frequency:.3f}",
-                is_mixed,
-                prec_range,
-                scale_range,
-                d_range,
-                str(fc.categorical_consensus.is_hash_stable) if fc.categorical_consensus else "",
+                is_mixed_safe,
+                prec_range_safe,
+                scale_range_safe,
+                d_range_safe,
+                hash_stable_safe,
                 str(rec.recommended_required) if rec else "",
                 str(rec.recommended_nullable) if rec else "",
-                rec.unit if rec else "unknown",
-                rec.confidence.value if rec else "",
+                unit_safe,
+                confidence_safe,
             ]
         )
     return output.getvalue()

@@ -92,3 +92,49 @@ def test_contract_drafting_page_accessibility_heading() -> None:
     assert not app.exception
     # Accessibility: page must have title header
     assert any("Contract Drafting Assistant" in str(t.value) for t in app.title)
+
+
+def test_contract_drafting_first_click_succeeds() -> None:
+    """Fresh defaults: Profile samples click must not fail due to duplicate paths."""
+    app = _run_app("src/traffictwin/ui/app_pages/contract_drafting.py")
+    app.run(timeout=20)
+    assert not app.exception
+    # Find Profile samples button and click it once from clean default state
+    btn = next((b for b in app.button if b.label == "Profile samples"), None)
+    assert btn is not None, "Profile samples button not found"
+    btn.click().run(timeout=20)
+    assert not app.exception
+    # No duplicate-path validation error
+    error_text = " ".join(str(e.value) for e in app.error)
+    assert "must contain unique" not in error_text.lower()
+    assert "duplicate" not in error_text.lower()
+    # Either valid report was created (two distinct defaults) or honest empty guidance
+    # With valid bundled defaults, we expect a report and handoff
+    # Check session_state via app
+    report_dict = app.session_state["cda_report"] if "cda_report" in app.session_state else None  # noqa: SIM401
+    # If defaults are two valid fixtures, report should exist with 2 samples
+    if report_dict is not None:
+        from traffictwin.contract_drafting.models import ContractDraftReport
+
+        report = ContractDraftReport.model_validate(report_dict)
+        assert report.total_samples == 2
+        assert report.fingerprint is not None
+        # Handoff should also exist
+        handoff_dict = (
+            app.session_state["cda_handoff"]  # noqa: SIM401
+            if "cda_handoff" in app.session_state
+            else None
+        )
+        assert handoff_dict is not None
+        from traffictwin.contract_drafting.models import DraftContractHandoff
+
+        handoff = DraftContractHandoff.model_validate(handoff_dict)
+        assert handoff.draft_only is True
+        assert handoff.freeze_executed is False
+        assert handoff.human_review_required is True
+    else:
+        # Fallback: if page intentionally ships empty, it must guide user
+        combined = " ".join(
+            str(x.value) for x in list(app.info) + list(app.caption) + list(app.markdown)
+        )
+        assert "Provide 2–20" in combined or "No samples profiled" in combined

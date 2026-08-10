@@ -30,9 +30,10 @@ def _empty_state() -> None:
     st.info(
         "No samples profiled yet. Provide 2–20 local tabular sample paths "
         "(CSV, CSV.GZ, or flat Parquet) under the workspace, then select "
-        "`Profile samples`. The synthetic fixture at "
-        "`tests/fixtures/manifest_inference/value_patterns/tasks_expected.csv` "
-        "can be duplicated to explore the workflow."
+        "`Profile samples`. Synthetic fixtures at "
+        "`tests/fixtures/bundles/baseline_valid/tasks.csv` and "
+        "`tests/fixtures/bundles/variation_valid/tasks.csv` can be used to "
+        "explore the workflow."
     )
     st.caption(
         "Supported: plain CSV, gzip CSV (.csv.gz), flat scalar Parquet. "
@@ -72,12 +73,14 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         "Each sample is validated independently via the existing safe readers."
     )
 
-    # Keep inputs in session state for AppTest determinism
-    default_sample = "tests/fixtures/manifest_inference/value_patterns/tasks_expected.csv"
+    # Keep inputs in session state for AppTest determinism — two distinct
+    # verified-existing bundled fixtures so first click is valid.
+    default_sample_a = "tests/fixtures/bundles/baseline_valid/tasks.csv"
+    default_sample_b = "tests/fixtures/bundles/variation_valid/tasks.csv"
     raw_text = st.text_area(
         "Sample paths (2–20, one per line)",
         value=str(
-            st.session_state.get("cda_sample_paths_text", f"{default_sample}\n{default_sample}")
+            st.session_state.get("cda_sample_paths_text", f"{default_sample_a}\n{default_sample_b}")
         ),
         height=140,
         key="cda_sample_paths_input",
