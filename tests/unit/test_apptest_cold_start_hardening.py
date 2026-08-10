@@ -180,6 +180,7 @@ def test_wrapper_restored_at_session_end_via_uninstall() -> None:
 # ---------------------------------------------------------------------------
 
 _saved_modules: dict[str, object] = {}
+_saved_runtime_state: dict[str, object] = {}
 
 
 def _make_fake_module() -> types.ModuleType:
@@ -222,40 +223,99 @@ def _make_fake_module() -> types.ModuleType:
 
 
 def _install_fake(fake_mod: types.ModuleType) -> None:
-    # Save originals
+    # Snapshot original sys.modules and runtime state before any mutation.
+    # This fixes the historical leak where fake streamlit polluted later tests
+    # with "module 'streamlit' has no attribute 'secrets'" and stacked wrappers.
     for name in ("streamlit", "streamlit.testing", "streamlit.testing.v1"):
         _saved_modules[name] = sys.modules.get(name)
-    # Install fake hierarchy
-    sys.modules["streamlit"] = types.ModuleType("streamlit")
-    sys.modules["streamlit"].testing = sys.modules.get("streamlit.testing") or types.ModuleType(  # type: ignore[attr-defined]
-        "streamlit.testing"
-    )
-    sys.modules["streamlit.testing"] = sys.modules["streamlit"].testing
-    sys.modules["streamlit.testing.v1"] = fake_mod
-    # Reset installer state
-    from tests._apptest_runtime import reset_apptest_cold_state, uninstall_apptest_run_patch
-
+    # Snapshot runtime flags while still on real modules.
     try:
-        uninstall_apptest_run_patch()
+        import tests._apptest_runtime as _rt
+
+        _saved_runtime_state["installed"] = bool(getattr(_rt, "_installed", False))
+        _saved_runtime_state["original"] = getattr(_rt, "_original_run", None)
+        _saved_runtime_state["has_run_first"] = bool(getattr(_rt, "_has_run_first", False))
+        # If real was installed, uninstall while still on real to restore original cleanly.
+        if _saved_runtime_state["installed"]:
+            from tests._apptest_runtime import reset_apptest_cold_state, uninstall_apptest_run_patch
+
+            try:
+                uninstall_apptest_run_patch()
+            except Exception:
+                pass
+            # Reset will be done again after fake install; keep has_run_first saved.
+            reset_apptest_cold_state()
     except Exception:
         pass
+    # Install fake hierarchy after real has been correctly unwound.
+    sys.modules["streamlit"] = types.ModuleType("streamlit")
+    sys.modules["streamlit"].testing = types.ModuleType("streamlit.testing")  # type: ignore[attr-defined]
+    sys.modules["streamlit.testing"] = sys.modules["streamlit"].testing  # type: ignore[attr-defined]
+    sys.modules["streamlit.testing.v1"] = fake_mod
+    # Ensure fake starts unpatched with fresh cold state.
+    from tests._apptest_runtime import reset_apptest_cold_state
+
     reset_apptest_cold_state()
 
 
 def _uninstall_fake(fake_mod: types.ModuleType) -> None:  # noqa: ARG001
-    from tests._apptest_runtime import reset_apptest_cold_state, uninstall_apptest_run_patch
-
+    # If fake was patched, uninstall while fake still present to avoid
+    # capturing real original incorrectly and stacking wrappers.
     try:
-        uninstall_apptest_run_patch()
+        from tests._apptest_runtime import reset_apptest_cold_state, uninstall_apptest_run_patch
+
+        try:
+            uninstall_apptest_run_patch()
+        except Exception:
+            pass
+        reset_apptest_cold_state()
     except Exception:
         pass
-    reset_apptest_cold_state()
+    # Restore sys.modules to real.
     for name, orig in list(_saved_modules.items()):
         if orig is None:
             sys.modules.pop(name, None)
         else:
             sys.modules[name] = orig  # type: ignore[assignment]
     _saved_modules.clear()
+    # Restore runtime state to what it was before fake.
+    try:
+        import tests._apptest_runtime as _rt
+
+        was_installed = bool(_saved_runtime_state.get("installed", False))
+        was_has_first = bool(_saved_runtime_state.get("has_run_first", False))
+        cur_installed = bool(getattr(_rt, "_installed", False))
+        if was_installed and not cur_installed:
+            from tests._apptest_runtime import install_apptest_run_patch
+
+            try:
+                install_apptest_run_patch()
+            except ModuleNotFoundError as exc:
+                if exc.name is None or not exc.name.startswith("streamlit"):
+                    raise
+            except Exception:
+                raise
+            # Restore has_run_first as it was before fake episode.
+            try:
+                _rt._has_run_first = was_has_first  # type: ignore[attr-defined]
+            except Exception:
+                pass
+        elif not was_installed and cur_installed:
+            from tests._apptest_runtime import uninstall_apptest_run_patch
+
+            try:
+                uninstall_apptest_run_patch()
+            except Exception:
+                pass
+        else:
+            # Installed state matches, but has_run_first may still need restore.
+            try:
+                _rt._has_run_first = was_has_first  # type: ignore[attr-defined]
+            except Exception:
+                pass
+    except Exception:
+        pass
+    _saved_runtime_state.clear()
 
 
 # ---------------------------------------------------------------------------
