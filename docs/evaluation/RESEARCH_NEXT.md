@@ -2,9 +2,10 @@
 
 **Status date:** 2026-08-10
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 and the original E2 pilot closed; bounded E2b missing-cell pre-run gates active
-**Execution authority:** direct Abdulla instruction dated 10 August 2026 authorises only one
-`ingress_dla` arm and its four-cell descriptive analysis
+**Current phase:** E1 and the original E2 pilot closed; bounded one-seed E2b missing-cell experiment
+complete and ready for review
+**Execution authority:** stopped after the predeclared E2b exit; do not start another seed, arm,
+E3 or another experiment
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -126,6 +127,37 @@ establishes:
 - E2b production two-RSU probe: passed all 67 checks; `ingress_dla` admitted 17 tasks at ingress
   RSU 0, gate-rejected 143, cap-rejected zero, forwarded zero and conserved work, while the prior
   off/jsq/dla probe summaries and arrays remained exact by hash;
+- E2b reviewed identities: TrafficTwin reviewed execution commit
+  `f4e1897d6c17cf106880303a6be839407abe663e`, vec_env commit
+  `0e5ed2f79b50011fe0475a5c2069978f9fdd778d`, tos-data commit
+  `a75bbdb1a956f828ee0e9b97b33506bd32d31b85`, and manifest SHA-256
+  `9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91`;
+- E2b independent review: the initial `REQUEST_CHANGES` record is retained; the contrast-timing
+  caveat and actual imported-`vec_jax` binding were fixed, and Claude then returned exact
+  `APPROVE` after independently passing 15 TrafficTwin tests, 13 vec_env tests and all hash checks;
+- E2b repeated-smoke gate: both serial ten-step `ingress_dla` repeats passed, with exact scientific
+  summaries excluding wall time, byte-identical existing/path arrays, exact completed-E2
+  task/fleet/action identities, byte-identical logits, zero forwarding and both work ledgers conserved;
+- E2b single full arm: the only new 3,600-step `ingress_dla` run passed every identity, numerical,
+  task, path, accounting and V2I/vehicle-work conservation check; it offered the common 13,076,234
+  tasks, admitted 10,424,749 tasks and attained `0.715773211` over offered and `0.897826701` over
+  admitted tasks;
+- E2b path observation: 2,652,389 V2I attempts, 580,907 admitted V2I tasks, 2,071,344 gate
+  rejections, zero cap rejections, 138 unavailable attempts, zero forwarding and a diagonal-only
+  ingress-to-execution matrix; execution-share range was `0.060050920`;
+- E2b placement effects: JSQ minus off without the gate remains `-0.007937454`; DLA minus
+  ingress-DLA with the same gate is `-0.020833292`, so JSQ placement had lower observed offered
+  attainment even with the gate in this draw;
+- E2b admission effects: ingress-DLA minus off under strongest-link is `+0.032153983`; DLA minus
+  JSQ under JSQ remains `+0.019258144`; the placement-by-admission interaction is `-0.012895838`;
+- E2b mechanism observation: the one-draw result is consistent with deadline-aware admission
+  providing the observed attainment benefit while JSQ placement reduced it in both admission
+  states; this is descriptive mechanism evidence, not population generalisation or controller
+  superiority;
+- E2b timing limitation: `off` uses a step-entry coarse saturation eligibility while non-`off`
+  modes use a live per-substep check, so the strongest-link admission contrast and interaction are
+  not perfectly gate-only; observed unavailable counts were nevertheless 138 in both `off` and
+  `ingress_dla`;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -134,18 +166,23 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-Complete only the predeclared E2b gate sequence in
-[e2b_placement_admission_factorial_manifest_v1.json](e2b/e2b_placement_admission_factorial_manifest_v1.json):
-push two private stacked draft branches, obtain independent Claude exact `APPROVE`, run two serial
-ten-step `ingress_dla` smokes, then exactly one 3,600-step `ingress_dla` arm. Reuse completed E2
-`off`, `jsq` and `dla` only after their immutable checksum ledger verifies. Produce the declared
-four-cell raw contrasts and stop.
+**Stop and review the completed bounded E2b mechanism-decomposition experiment. Do not start
+another seed, arm, E3, scaling, learning or another experiment.**
+
+The exact contract is the
+[E2b manifest](e2b/e2b_placement_admission_factorial_manifest_v1.json), SHA-256
+`9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91`. Direct observations and
+limitations are in the [pilot report](e2b/e2b_placement_admission_factorial_report_2026-08-10.md);
+machine-readable results are in the [four-cell comparison](e2b/e2b_placement_admission_factorial_comparison_v1.json),
+[validation](e2b/e2b_placement_admission_factorial_validation_v1.json),
+[path/admission summary](e2b/e2b_placement_admission_path_summary_v1.json) and
+[evidence index](e2b/e2b_placement_admission_evidence_index_v1.json).
 
 ### Exit condition
 
-The E2b full arm is forbidden until both draft PRs exist and independent Claude returns exact
-`APPROVE` for the complete diffs, exact commits and E2b manifest. The exact exit after one valid
-full arm and analysis is researcher review and stop.
+The E2b exit condition is complete. Both draft PRs remain unmerged, exact `APPROVE` preceded the
+two passed smokes and single passed full arm, and all declared evidence records now exist. The
+exact exit action is researcher review and stop.
 
 ## What follows after this gate
 
@@ -157,7 +194,7 @@ requires a new direct instruction.
 
 Do not start:
 
-- any E2/E2b arm other than the single authorised `ingress_dla` full cell;
+- any additional E2/E2b seed or arm;
 - P2C or DLA-P2C;
 - E3 or any nonzero-backhaul run;
 - static/reactive/proactive scaling;
