@@ -554,6 +554,13 @@ from traffictwin.storage.registry import (
     RegistryError,
     RegistryNotFoundError,
 )
+from traffictwin.study_capsule import (
+    StudyCapsuleError,
+    StudyCapsuleRequest,
+    create_study_capsule_archive,
+    study_capsule_contract,
+    verify_study_capsule,
+)
 from traffictwin.synthetic.bundles import write_synthetic_bundle
 from traffictwin.synthetic.config import load_synthetic_scenario_config
 from traffictwin.synthetic.experiments import (
@@ -642,6 +649,10 @@ participant_app = typer.Typer(
     no_args_is_help=True,
     help="Analyse explicitly labelled synthetic mock participant results.",
 )
+capsule_app = typer.Typer(
+    no_args_is_help=True,
+    help="Deterministic analysis-level study capsule builder and verifier.",
+)
 app.add_typer(registry_app, name="registry")
 app.add_typer(bundle_app, name="bundle")
 app.add_typer(metrics_app, name="metrics")
@@ -653,6 +664,7 @@ app.add_typer(synthetic_app, name="synthetic")
 app.add_typer(demo_app, name="demo")
 app.add_typer(report_app, name="report")
 app.add_typer(archive_app, name="archive")
+app.add_typer(capsule_app, name="capsule")
 app.add_typer(release_app, name="release")
 app.add_typer(integration_app, name="integration")
 app.add_typer(participant_app, name="participant-evaluation")
@@ -1254,6 +1266,94 @@ def archive_verify_command(
         typer.echo(f"valid: {str(verification.valid).lower()}")
         typer.echo(f"archive_sha256: {verification.archive_sha256 or 'unavailable'}")
         typer.echo(f"object_id: {verification.object_id or 'unavailable'}")
+        typer.echo(f"members: {verification.member_count}")
+        typer.echo(f"checksums: {verification.checksum_count}")
+        for error in verification.errors:
+            typer.echo(f"error: {error}")
+    if not verification.valid:
+        raise typer.Exit(code=1)
+
+
+@capsule_app.command("contract")
+def capsule_contract_command(
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Show the versioned Study Capsule contract."""
+
+    contract = study_capsule_contract()
+    if output_format == "json":
+        payload = contract.model_dump(mode="json")
+        payload["fingerprint"] = contract.fingerprint()
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+        return
+    if output_format != "text":
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(f"capability: {contract.capability_id}")
+    typer.echo(f"contract_version: {contract.contract_version}")
+    typer.echo(f"contract_fingerprint: {contract.fingerprint()}")
+    typer.echo(f"schema_version: {contract.schema_version}")
+    typer.echo(f"member_kinds: {', '.join(sorted(contract.member_kinds))}")
+    typer.echo("publication_policies: " + ", ".join(sorted(contract.publication_policies)))
+    typer.echo(f"required_members: {', '.join(contract.required_members)}")
+
+
+@capsule_app.command("create")
+def capsule_create_command(
+    request: Annotated[
+        Path,
+        typer.Argument(
+            exists=True, dir_okay=False, readable=True, help="Path to capsule request JSON"
+        ),
+    ],
+    destination: Annotated[Path, typer.Argument(dir_okay=False, help="Destination ZIP path")],
+    overwrite: Annotated[bool, typer.Option("--overwrite")] = False,
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Build a verified deterministic Study Capsule ZIP from a request JSON file."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    try:
+        raw = request.read_bytes()
+        req = StudyCapsuleRequest.model_validate_json(raw)
+        receipt = create_study_capsule_archive(req, destination, overwrite=overwrite)
+    except (OSError, StudyCapsuleError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if output_format == "json":
+        typer.echo(receipt.model_dump_json(indent=2))
+        return
+    typer.echo(f"archive: {destination}")
+    typer.echo(f"capsule_id: {receipt.capsule_id}")
+    typer.echo(f"archive_sha256: {receipt.archive_sha256}")
+    typer.echo(f"archive_size: {receipt.archive_size}")
+    typer.echo(f"members: {receipt.member_count}")
+    typer.echo(f"embedded: {receipt.embedded_count}")
+    typer.echo(f"referenced: {receipt.referenced_count}")
+    typer.echo(f"excluded: {receipt.excluded_count}")
+    typer.echo("verified: true")
+
+
+@capsule_app.command("verify")
+def capsule_verify_command(
+    archive: Annotated[Path, typer.Argument(exists=True, dir_okay=False, readable=True)],
+    output_format: Annotated[str, typer.Option("--format")] = "text",
+) -> None:
+    """Verify a Study Capsule ZIP offline without extraction or mutation."""
+
+    if output_format not in {"text", "json"}:
+        typer.echo("only --format text or json is supported", err=True)
+        raise typer.Exit(code=1)
+    verification = verify_study_capsule(archive)
+    if output_format == "json":
+        typer.echo(verification.model_dump_json(indent=2))
+    else:
+        typer.echo(f"valid: {str(verification.valid).lower()}")
+        typer.echo(f"status: {verification.status.value}")
+        typer.echo(f"archive_sha256: {verification.archive_sha256 or 'unavailable'}")
+        typer.echo(f"capsule_id: {verification.capsule_id or 'unavailable'}")
         typer.echo(f"members: {verification.member_count}")
         typer.echo(f"checksums: {verification.checksum_count}")
         for error in verification.errors:
