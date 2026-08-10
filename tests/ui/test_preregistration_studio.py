@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from streamlit.testing.v1 import AppTest
 
 from traffictwin.ui.state import UiConfig
@@ -15,7 +14,7 @@ def _app(path: Path) -> AppTest:
     # We test the page's render function via AppTest on the wrapper script if available,
     # otherwise test the page module directly.
     # Since navigation not yet registered, we run the page script directly.
-    # The page is at src/traffictwin/ui/pages/preregistration_studio.py but AppTest expects a script file.
+    # The page is at src/traffictwin/ui/pages/preregistration_studio.py but AppTest expects a script file.  # noqa: E501
     # We create a minimal runner that calls the page render via UiConfig.
     # Instead, we test via direct import and AppTest on a tiny script that imports render.
 
@@ -37,7 +36,7 @@ render(config)
 
 def test_preregistration_page_renders_without_crash(tmp_path: Path) -> None:
     # Use a temporary registry path
-    config = UiConfig(registry_path=tmp_path / "registry.sqlite")
+    UiConfig(registry_path=tmp_path / "registry.sqlite")
     # Import page and run via AppTest using file that calls render
     from traffictwin.ui.pages.preregistration_studio import render  # noqa: F401
 
@@ -76,8 +75,8 @@ def test_preregistration_freeze_flow_via_service(tmp_path: Path) -> None:
         AnalysisMethod,
         CohortRule,
         DecisionRule,
-        EvidenceMode,
         EstimandDefinition,
+        EvidenceMode,
         ExclusionRule,
         MissingnessPolicy,
         MultiplicityPolicy,
@@ -148,9 +147,9 @@ def test_preregistration_amendment_and_matrix_via_service() -> None:
         ArtifactAdmission,
         CohortRule,
         DecisionRule,
+        EstimandDefinition,
         EvidenceAttachment,
         EvidenceMode,
-        EstimandDefinition,
         ExclusionRule,
         MissingnessPolicy,
         MultiplicityPolicy,

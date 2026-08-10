@@ -299,9 +299,7 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
 
     sorted_arms = sorted(arms)
     sorted_seeds = (
-        sorted([s for s in seeds_dim if s is not None])
-        if seeds_dim[0] is not None
-        else [None]
+        sorted([s for s in seeds_dim if s is not None]) if seeds_dim[0] is not None else [None]
     )
     sorted_policies = (
         sorted([p for p in policies_dim if p is not None])

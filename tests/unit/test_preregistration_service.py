@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 
@@ -14,9 +15,9 @@ from traffictwin.preregistration.models import (
     ArtifactAdmission,
     CohortRule,
     DecisionRule,
+    EstimandDefinition,
     EvidenceAttachment,
     EvidenceMode,
-    EstimandDefinition,
     ExclusionRule,
     MissingnessPolicy,
     MultiplicityPolicy,
@@ -35,7 +36,6 @@ from traffictwin.preregistration.service import (
     evaluate_gate,
     export_plan_json,
     export_plan_yaml,
-    fingerprint_plan,
     freeze_plan,
     import_plan_json,
     import_plan_yaml,
@@ -44,20 +44,19 @@ from traffictwin.preregistration.service import (
     verify_plan,
 )
 
-
 FIXED_NOW = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
 FIXED_LATER = datetime(2026, 1, 16, 12, 0, 0, tzinfo=UTC)
 
 
-def _fixed_clock():
+def _fixed_clock() -> datetime:
     return FIXED_NOW
 
 
-def _later_clock():
+def _later_clock() -> datetime:
     return FIXED_LATER
 
 
-def _base_plan(**overrides) -> StudyPlan:
+def _base_plan(**overrides: Any) -> StudyPlan:  # noqa: ANN401
     base = StudyPlan(
         plan_id="plan-unit-001",
         study_question=StudyQuestion(
@@ -170,9 +169,9 @@ def test_draft_validation_requires_complete_plan() -> None:
     assert any("replication" in f.lower() for f in validate_study_plan(empty_repl))
 
     # duplicate arms
-    dup_arms = _base_plan(planned_arms=["baseline", "baseline"])
+    _base_plan(planned_arms=["baseline", "baseline"])  # noqa: F841
     # model validator will raise before service; test service with direct construction bypass?
-    # Instead test via validate after constructing with duplicate via model_copy (bypasses validator?)
+    # Instead test via validate after constructing with duplicate via model_copy (bypasses validator?)  # noqa: E501
     # Use raw model_validate with duplicate to trigger service check via build_run_matrix
     with pytest.raises(ValueError):
         StudyPlan.model_validate(
@@ -191,10 +190,10 @@ def test_missingness_policy_required() -> None:
 
 def test_stopping_rule_validation() -> None:
     # Model enforces description ≥12, so short description fails at construction (fail-closed)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         _base_plan(stopping_rule=StoppingRule(description="too short", max_replicates=1))
-    # Service also flags a vague stopping rule if bypassed; here we test a valid-length but still flagged via empty interpretation?
-    # Use a plan with valid stopping rule but missing decision interpretation to ensure validation covers stopping/decision
+    # Service also flags a vague stopping rule if bypassed; here we test a valid-length but still flagged via empty interpretation?  # noqa: E501
+    # Use a plan with valid stopping rule but missing decision interpretation to ensure validation covers stopping/decision  # noqa: E501
     vague = _base_plan(
         stopping_rule=StoppingRule(
             description="Valid stopping description for test.", max_replicates=1
@@ -318,7 +317,7 @@ def test_primary_vs_secondary_outcomes() -> None:
     )
     assert validate_study_plan(plan) == []
     # duplicate id should fail at model validation
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         _base_plan(
             primary_outcomes=[
                 OutcomeDefinition(
@@ -350,9 +349,9 @@ def test_denominator_and_metric_version_identity() -> None:
     frozen = freeze_plan(plan, clock=_fixed_clock)
     assert frozen.primary_outcomes[0].denominator == "generated_tasks"
     assert frozen.primary_outcomes[0].metric_version == METRIC_VERSION
-    # denominator distinguishes unknown (None) from provided; our validation requires denominator present
+    # denominator distinguishes unknown (None) from provided; our validation requires denominator present  # noqa: E501
     # Unknown should remain unavailable, not guessed
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         OutcomeDefinition(
             outcome_id="bad",
             metric_key="k",
@@ -419,7 +418,7 @@ def test_freeze_immutability_and_fingerprint_deterministic() -> None:
 
 def test_freeze_rejects_vague_plan() -> None:
     # Use a valid question but missing other required fields for freeze validation
-    vague_valid = StudyPlan(
+    StudyPlan(  # noqa: F841
         plan_id="vague-001",
         study_question=StudyQuestion(
             text="Valid vague question with sufficient length for testing."
@@ -440,8 +439,8 @@ def test_freeze_rejects_vague_plan() -> None:
         ),
         limitations="Limitations text for testing vague freeze.",
     )
-    # Direct construction with invalid question will raise before freeze; instead use base and clear required fields via model_copy bypass?
-    # Test via validate path: use _base_plan and then override to vague via model_copy with validate_assignment=False trick?
+    # Direct construction with invalid question will raise before freeze; instead use base and clear required fields via model_copy bypass?  # noqa: E501
+    # Test via validate path: use _base_plan and then override to vague via model_copy with validate_assignment=False trick?  # noqa: E501
     # Simpler: create plan with minimal valid question but missingother required per validate
     minimal = _base_plan(
         primary_outcomes=[],
@@ -450,7 +449,7 @@ def test_freeze_rejects_vague_plan() -> None:
         cohort_rules=[],
         exclusion_rules=[],
     )
-    # Need to bypass pydantic validation for empty arms etc? _base_plan with empty arms will still pass model construction but fail service validation
+    # Need to bypass pydantic validation for empty arms etc? _base_plan with empty arms will still pass model construction but fail service validation  # noqa: E501
     # Actually StudyPlan allows empty primary_outcomes default, so it's valid construction
     # Now try to freeze
     with pytest.raises(ValueError, match="not freezable"):
@@ -531,7 +530,7 @@ def test_run_matrix_determinism_and_rejects() -> None:
     bad_ver_plan = _base_plan(planned_run_cells=bad_version_cell)
     assert any("inconsistent" in f.lower() for f in validate_study_plan(bad_ver_plan))
 
-    # decision rule incompatible with analysis method (already tested) also impacts matrix? but matrix build doesn't check, freeze does
+    # decision rule incompatible with analysis method (already tested) also impacts matrix? but matrix build doesn't check, freeze does  # noqa: E501
     incompat = _base_plan(
         analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE,
         decision_rule=DecisionRule(
@@ -608,7 +607,7 @@ def test_amendment_changing_parent_fingerprint_is_caught() -> None:
     # Mutating parent fingerprint should be detectable: if we tamper, verification fails
     tampered = amended.model_copy(update={"parent_fingerprint": "0" * 64})
     assert tampered.parent_fingerprint != parent.fingerprint
-    # The service ensures parent fingerprint is preserved; tampering is not via service but direct mutation - test that service created correct linkage
+    # The service ensures parent fingerprint is preserved; tampering is not via service but direct mutation - test that service created correct linkage  # noqa: E501
     assert amended.parent_fingerprint == parent.fingerprint
 
 
@@ -646,7 +645,7 @@ def test_pre_vs_post_evidence_amendment_label() -> None:
 
 def test_editing_frozen_plan_in_place_is_prevented() -> None:
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
-    # Direct assignment should not affect parent if we use model_copy correctly; but service must reject freeze of frozen
+    # Direct assignment should not affect parent if we use model_copy correctly; but service must reject freeze of frozen  # noqa: E501
     with pytest.raises(ValueError):
         freeze_plan(parent, clock=_fixed_clock)
     # Attempt to create amendment without reason should fail
@@ -761,12 +760,14 @@ def test_unadmitted_evidence_remains_unadmitted() -> None:
     gate_all_un = evaluate_gate(attached_all_un, attached_all_un.evidence_attachments)
     assert gate_all_un.is_blocked or gate_all_un.is_unavailable
     assert not gate_all_un.is_ready
-    assert any("Unadmitted evidence" in r or "not explicitly admitted" in r for r in gate_all_un.reasons)
+    assert any(
+        "Unadmitted evidence" in r or "not explicitly admitted" in r for r in gate_all_un.reasons
+    )
 
 
 def test_gate_unavailable_blocked_ready_distinctions() -> None:
     plan = freeze_plan(_base_plan(), clock=_fixed_clock)
-    # No primary outcome -> unavailable (construct plan with no primary but frozen should not happen; test evaluate directly)
+    # No primary outcome -> unavailable (construct plan with no primary but frozen should not happen; test evaluate directly)  # noqa: E501
     no_primary = _base_plan(primary_outcomes=[])
     # evaluate_gate should return unavailable
     gate_no_primary = evaluate_gate(no_primary, [])
@@ -964,7 +965,7 @@ def test_mutation_amendment_changing_parent_fingerprint_is_caught() -> None:
 
 def test_mutation_duplicate_cells_rejected() -> None:
     """Mutation 3: duplicate run cells must be rejected."""
-    plan = _base_plan()
+    _base_plan()  # noqa: F841
     dup = [
         PlannedRunCell(
             cell_id="cell-0001",
@@ -992,9 +993,9 @@ def test_mutation_duplicate_cells_rejected() -> None:
 
 def test_mutation_gate_ready_with_missing_primary_is_blocked() -> None:
     """Mutation 4: gate must not be ready if primary outcome missing."""
-    # Create a frozen plan, then manually remove primary outcome and try to evaluate gate with full evidence
+    # Create a frozen plan, then manually remove primary outcome and try to evaluate gate with full evidence  # noqa: E501
     plan = freeze_plan(_base_plan(), clock=_fixed_clock)
-    # Simulate mutant that would allow gate ready even with no primary: we test that gate is unavailable when primary missing
+    # Simulate mutant that would allow gate ready even with no primary: we test that gate is unavailable when primary missing  # noqa: E501
     no_primary = plan.model_copy(update={"primary_outcomes": []})
     all_atts = [
         EvidenceAttachment(
@@ -1014,7 +1015,7 @@ def test_mutation_gate_ready_with_missing_primary_is_blocked() -> None:
 
 
 def test_mutation_post_evidence_primary_replacement_without_amendment_is_blocked() -> None:
-    """Mutation 5: post-evidence replacement of primary outcome without amendment must be detected via gate/immutability."""
+    """Mutation 5: post-evidence replacement of primary outcome without amendment must be detected via gate/immutability."""  # noqa: E501
     parent = freeze_plan(_base_plan(), clock=_fixed_clock)
     # Attach evidence
     att = EvidenceAttachment(
@@ -1027,8 +1028,8 @@ def test_mutation_post_evidence_primary_replacement_without_amendment_is_blocked
         admission_label=ArtifactAdmission.ADMITTED,
     )
     attached = attach_evidence(parent, [att], clock=_later_clock)
-    # Try to replace primary outcome directly without amendment (simulating mutant that allows in-place edit)
-    # Our model should prevent editing frozen in place: we test that direct copy without amendment changes fingerprint and gate would be blocked if not via amendment
+    # Try to replace primary outcome directly without amendment (simulating mutant that allows in-place edit)  # noqa: E501
+    # Our model should prevent editing frozen in place: we test that direct copy without amendment changes fingerprint and gate would be blocked if not via amendment  # noqa: E501
     tampered = attached.model_copy(
         update={
             "primary_outcomes": [
@@ -1062,12 +1063,14 @@ def test_mutation_post_evidence_primary_replacement_without_amendment_is_blocked
                 )
             ]
         },
-        amendment_reason="Post-evidence primary outcome replacement via proper amendment with reason.",
+        amendment_reason="Post-evidence primary outcome replacement via proper amendment with reason.",  # noqa: E501
     )
     # Amended should have post_evidence label
     assert (
         amended.revision_history[-1].is_post_evidence is True or parent.evidence_attached_at is None
     )  # parent not yet attached, so this is pre; but test logic holds
+
+
 def test_evidence_attachment_contradiction_unadmitted_true_rejected() -> None:
     """A: UNADMITTED + is_admitted=True -> ValidationError."""
     with pytest.raises(Exception) as exc:
@@ -1083,6 +1086,7 @@ def test_evidence_attachment_contradiction_unadmitted_true_rejected() -> None:
     msg = str(exc.value)
     assert "UNADMITTED" in msg and "is_admitted" in msg
 
+
 def test_evidence_attachment_unadmitted_false_accepted() -> None:
     """B: UNADMITTED + False -> accepted."""
     att = EvidenceAttachment(
@@ -1097,6 +1101,7 @@ def test_evidence_attachment_unadmitted_false_accepted() -> None:
     assert att.is_admitted is False
     assert att.admission_label == ArtifactAdmission.UNADMITTED
 
+
 def test_evidence_attachment_admitted_true_accepted() -> None:
     """C: ADMITTED + True -> accepted."""
     att = EvidenceAttachment(
@@ -1109,6 +1114,7 @@ def test_evidence_attachment_admitted_true_accepted() -> None:
         admission_label=ArtifactAdmission.ADMITTED,
     )
     assert att.is_admitted is True
+
 
 def test_evidence_attachment_synthetic_false_accepted() -> None:
     """D: synthetic/imported + False -> accepted."""
@@ -1144,6 +1150,7 @@ def test_evidence_attachment_synthetic_false_accepted() -> None:
     )
     assert att_syn_true.is_admitted is True
 
+
 def test_evidence_attachment_contradiction_via_import_rejected() -> None:
     """E: JSON import containing UNADMITTED+true -> rejected."""
     plan = freeze_plan(_base_plan(), clock=_fixed_clock)
@@ -1164,8 +1171,9 @@ def test_evidence_attachment_contradiction_via_import_rejected() -> None:
         }
     ]
     payload = json.dumps(data)
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         import_plan_json(payload)
+
 
 def test_evidence_attachment_ui_produced_remains_valid() -> None:
     """F: Normal UI-produced attachment remains valid."""
@@ -1182,6 +1190,7 @@ def test_evidence_attachment_ui_produced_remains_valid() -> None:
     # should validate and attach
     attached = attach_evidence(plan, [good], clock=_later_clock)
     assert len(attached.evidence_attachments) == 1
+
 
 def test_evidence_attachment_historical_false_accepted() -> None:
     """Historical label with is_admitted=False is valid (non-admitted historical)."""

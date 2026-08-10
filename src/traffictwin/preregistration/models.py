@@ -403,11 +403,9 @@ class EvidenceAttachment(StrictModel):
         return s or None
 
     @model_validator(mode="after")
-    def validate_admission_consistency(self) -> "EvidenceAttachment":
+    def validate_admission_consistency(self) -> EvidenceAttachment:
         if self.is_admitted is True and self.admission_label == ArtifactAdmission.UNADMITTED:
-            raise ValueError(
-                "is_admitted=True cannot be combined with admission_label=UNADMITTED"
-            )
+            raise ValueError("is_admitted=True cannot be combined with admission_label=UNADMITTED")
         return self
 
 
