@@ -94,6 +94,55 @@ def test_contract_drafting_page_accessibility_heading() -> None:
     assert any("Contract Drafting Assistant" in str(t.value) for t in app.title)
 
 
+def test_contract_drafting_shows_sensitive_name_with_review_signal() -> None:
+    """UI must preserve sensitive-looking field name and surface review finding."""
+    from traffictwin.contract_drafting.service import build_draft_report
+
+    tmp = Path(tempfile.mkdtemp())
+    p1 = tmp / "sens1.csv"
+    p2 = tmp / "sens2.csv"
+    with p1.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["api_key", "ok"])
+        w.writerow(["k1", "1"])
+    with p2.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["api_key", "ok"])
+        w.writerow(["k2", "2"])
+    report = build_draft_report([p1, p2])
+
+    app = _run_app("src/traffictwin/ui/app_pages/contract_drafting.py")
+    app.session_state["cda_report"] = report.model_dump(mode="json")
+    from traffictwin.contract_drafting.service import prepare_handoff
+
+    handoff = prepare_handoff(report, source_id="test_src")
+    app.session_state["cda_handoff"] = handoff.model_dump(mode="json")
+    app.run(timeout=20)
+    assert not app.exception
+    # Field name must not be redacted/hidden
+    all_text = " ".join(
+        str(x.value)
+        for x in list(app.dataframe)
+        + list(app.markdown)
+        + list(app.caption)
+        + list(app.info)
+        + list(app.warning)
+        + list(app.success)
+    )
+    # At least one dataframe should contain the exact name
+    # Check via dataframe content or overall text
+    assert "api_key" in all_text or any("api_key" in str(df.value) for df in app.dataframe)
+    assert "[REDACTED" not in all_text
+    # Review signal must be visible (finding or privacy flag)
+    # Look for privacy-related text in info/warning/markdown
+    combined = " ".join(
+        str(x.value)
+        for x in list(app.info) + list(app.warning) + list(app.markdown) + list(app.caption)
+    )
+    # The report's finding should be rendered somewhere
+    assert "PRIVACY_REVIEW_REQUIRED" in combined or "privacy" in combined.lower()
+
+
 def test_contract_drafting_first_click_succeeds() -> None:
     """Fresh defaults: Profile samples click must not fail due to duplicate paths."""
     app = _run_app("src/traffictwin/ui/app_pages/contract_drafting.py")

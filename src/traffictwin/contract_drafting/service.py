@@ -24,7 +24,6 @@ from pydantic import ValidationError
 
 from traffictwin.data_contract.fingerprint import (
     fingerprint_canonical,
-    redact_field_name,
     sanitise_for_csv,
 )
 from traffictwin.data_contract.inspection import inspect_tabular_sample
@@ -70,11 +69,18 @@ _PRIVACY_KEYWORDS = frozenset(
         "ssn",
         "personal",
         "private",
+        "private_key",
         "user_id",
         "userid",
         "customer",
         "patient",
         "student",
+        "password",
+        "secret",
+        "api_key",
+        "apikey",
+        "token",
+        "credential",
     }
 )
 
@@ -989,7 +995,17 @@ def export_report_json(report: ContractDraftReport) -> str:
 
 
 def export_report_csv(report: ContractDraftReport) -> str:
-    """CSV export for tabular consensus (deterministic, redacted, no raw values)."""
+    """CSV export for tabular consensus (deterministic, no raw values).
+
+    Spreadsheet formula safety follows the repository-wide CSV convention:
+    any cell starting with ``=``, ``+``, ``-``, ``@`` after leading whitespace
+    is prefixed with ``'`` via ``sanitise_for_csv`` (see
+    ``traffictwin.data_contract.fingerprint``). This deliberately also
+    prefixes legitimate negative numbers like ``-40`` as ``'-40``.
+    Field names are preserved exact (no redaction) to keep schema identity
+    consistent across JSON, handoff, and UI; sensitive-looking names instead
+    surface as explicit ``PRIVACY_REVIEW_REQUIRED`` findings.
+    """
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
     writer.writerow(
@@ -1032,8 +1048,8 @@ def export_report_csv(report: ContractDraftReport) -> str:
         is_mixed = ""
         if fc.timestamp_consensus:
             is_mixed = str(fc.timestamp_consensus.is_mixed_timezone)
-        # Apply formula-injection protection and field-name redaction
-        field_name_safe = sanitise_for_csv(redact_field_name(fc.field_name))
+        # Apply formula-injection protection; preserve exact field identity
+        field_name_safe = sanitise_for_csv(fc.field_name)
         consensus_type_safe = sanitise_for_csv(
             fc.type_consensus.consensus_type.value if fc.type_consensus.consensus_type else ""
         )

@@ -317,8 +317,8 @@ def test_no_shell_injection_or_code_execution(tmp_path: Path) -> None:
     assert report.fingerprint is not None
 
 
-def test_csv_formula_injection_protected(tmp_path: Path) -> None:
-    """CSV export must neutralise formula-like user-controlled values."""
+def test_csv_formula_capable_cells_are_sanitised(tmp_path: Path) -> None:
+    """Formula-capable export cells (e.g. user unit) are sanitised via repo helper."""
     p1 = tmp_path / "f1.csv"
     p2 = tmp_path / "f2.csv"
     _write_csv(p1, ["value"], [["1"], ["2"]])
@@ -332,8 +332,7 @@ def test_csv_formula_injection_protected(tmp_path: Path) -> None:
     # Must be sanitised with leading apostrophe per repository convention
     assert "'=HYPERLINK" in csv_text
     assert "\n=HYPERLINK" not in csv_text
-    # Test other triggers via direct exporter check with synthetic report
-    # Use a second report with + and @ triggers
+    # Other triggers via direct exporter check with synthetic report
     report2 = build_draft_report([p1, p2], user_unit_suggestions={"value": "+cmd"})
     csv2 = export_report_csv(report2)
     assert "'+cmd" in csv2
@@ -342,12 +341,25 @@ def test_csv_formula_injection_protected(tmp_path: Path) -> None:
     assert "'@SUM" in csv3
     report4 = build_draft_report([p1, p2], user_unit_suggestions={"value": "-1+1"})
     csv4 = export_report_csv(report4)
+    # Leading '-' is also escaped per repo convention (e.g. '-40' -> ''-40')
     assert "'-1+1" in csv4
     # Ordinary safe text must remain unchanged (no spurious prefix)
     report_safe = build_draft_report([p1, p2], user_unit_suggestions={"value": "ratio"})
     csv_safe = export_report_csv(report_safe)
     assert "ratio" in csv_safe
     assert "'ratio" not in csv_safe
+
+
+def test_formula_like_field_names_are_refused_upstream(tmp_path: Path) -> None:
+    """Hostile headers like =HYPERLINK are rejected by field-name validation."""
+    p1 = tmp_path / "hostile1.csv"
+    p2 = tmp_path / "hostile2.csv"
+    # Field name starting with '=' should be rejected at model/validation boundary
+    # before it can become a draft report schema field.
+    _write_csv(p1, ["=HYPERLINK"], [["1"], ["2"]])
+    _write_csv(p2, ["=HYPERLINK"], [["3"], ["4"]])
+    with pytest.raises(Exception, match="field_name"):
+        build_draft_report([p1, p2])
 
 
 def test_timestamp_contract_aware_only(tmp_path: Path) -> None:
@@ -469,3 +481,158 @@ def test_invalid_handoff_rejected(tmp_path: Path) -> None:
         prepare_handoff(report, source_id="test_source", contract_version="not-a-semver")
     # Also test invalid source_id? But contract_version is the easy candidate
     # Ensure no handoff is returned (exception path)
+
+
+def test_schema_identity_no_redaction_collapse(tmp_path: Path) -> None:
+    """Distinct sensitive fields must remain distinct across all exports — no redaction collapse."""
+    p1 = tmp_path / "s1.csv"
+    p2 = tmp_path / "s2.csv"
+    _write_csv(p1, ["api_key", "password", "ok"], [["a1", "p1", "1"], ["a2", "p2", "2"]])
+    _write_csv(p2, ["api_key", "password", "ok"], [["a3", "p3", "3"], ["a4", "p4", "4"]])
+    report = build_draft_report([p1, p2])
+    # Report JSON
+    report_json = export_report_json(report)
+    report_data = json.loads(report_json)
+    json_fields = sorted([f["field_name"] for f in report_data["field_consensus"]])
+    assert json_fields == ["api_key", "ok", "password"]
+    # CSV
+    csv_text = export_report_csv(report)
+    # Parse CSV header+rows to extract field names
+    lines = csv_text.strip().splitlines()
+    reader = csv.DictReader(lines)
+    csv_fields = sorted([row["field_name"].lstrip("'") for row in reader])
+    # CSV field names after sanitise should still be distinct; sanitise does not redact
+    # Check no generic placeholder
+    assert "[REDACTED_SECRET_FIELD]" not in csv_text
+    assert csv_fields == ["api_key", "ok", "password"]
+    # Handoff
+    handoff = prepare_handoff(report, source_id="test_src", contract_version="1.0.0")
+    handoff_fields = sorted(
+        [f["field_name"] for f in handoff.draft_contract["fields"]]  # type: ignore[attr-defined]
+    )
+    assert handoff_fields == ["api_key", "ok", "password"]
+    handoff_json = export_handoff_json(handoff)
+    assert "[REDACTED_SECRET_FIELD]" not in handoff_json
+    assert "api_key" in handoff_json and "password" in handoff_json
+    # Distinctness
+    api_key_val = "api_key"  # noqa: S105
+    password_val = "password"  # noqa: S105
+    assert api_key_val != password_val
+    # CSV set matches JSON set
+    assert csv_fields == json_fields
+    assert json_fields == handoff_fields
+
+
+def test_no_false_positive_redaction(tmp_path: Path) -> None:
+    """Ordinary identifiers containing token/secret substrings must not be redacted."""
+    p1 = tmp_path / "fp1.csv"
+    p2 = tmp_path / "fp2.csv"
+    headers = ["access_token_count", "tokenised_route_id", "secretariat_office"]
+    _write_csv(p1, headers, [["1", "a", "x"], ["2", "b", "y"]])
+    _write_csv(p2, headers, [["3", "c", "z"], ["4", "d", "w"]])
+    report = build_draft_report([p1, p2])
+    csv_text = export_report_csv(report)
+    report_json = export_report_json(report)
+    handoff = prepare_handoff(report, source_id="test_src", contract_version="1.0.0")
+    handoff_json = export_handoff_json(handoff)
+    for name in headers:
+        assert name in csv_text, f"{name} missing or redacted in CSV"
+        assert name in report_json, f"{name} missing in report JSON"
+        assert name in handoff_json, f"{name} missing in handoff"
+        assert "[REDACTED" not in csv_text or name in csv_text
+    # All three remain distinct
+    assert len(set(headers)) == 3
+    # Verify CSV field set matches JSON
+    csv_fields = set()
+    lines = csv_text.strip().splitlines()
+    reader = csv.DictReader(lines)
+    for row in reader:
+        csv_fields.add(row["field_name"].lstrip("'"))
+    json_fields = {f["field_name"] for f in json.loads(report_json)["field_consensus"]}
+    assert csv_fields == json_fields
+    assert csv_fields == set(headers)
+
+
+def test_cross_surface_schema_identity(tmp_path: Path) -> None:
+    """All portable surfaces must agree on exact schema identifiers."""
+    p1 = tmp_path / "c1.csv"
+    p2 = tmp_path / "c2.csv"
+    headers = [
+        "api_key",
+        "password",
+        "ok",
+        "access_token_count",
+        "tokenised_route_id",
+        "secretariat_office",
+    ]
+    _write_csv(p1, headers, [["a1", "p1", "1", "1", "a", "x"], ["a2", "p2", "2", "2", "b", "y"]])
+    _write_csv(p2, headers, [["a3", "p3", "3", "3", "c", "z"], ["a4", "p4", "4", "4", "d", "w"]])
+    report = build_draft_report([p1, p2])
+    # Collect from each surface
+    consensus_names = sorted([fc.field_name for fc in report.field_consensus])
+    draft_names = sorted([df.field_name for df in report.draft_fields])
+    report_json_names = sorted(
+        [f["field_name"] for f in json.loads(export_report_json(report))["field_consensus"]]
+    )
+    csv_names = sorted(
+        [
+            row["field_name"].lstrip("'")
+            for row in csv.DictReader(export_report_csv(report).strip().splitlines())
+        ]
+    )
+    handoff = prepare_handoff(report, source_id="test_src", contract_version="1.0.0")
+    handoff_names = sorted(
+        [f["field_name"] for f in handoff.draft_contract["fields"]]  # type: ignore[attr-defined]
+    )
+    handoff_json_names = sorted(
+        [
+            f["field_name"]
+            for f in json.loads(export_handoff_json(handoff))["draft_contract"]["fields"]
+        ]
+    )
+    expected = sorted(headers)
+    for surface, names in [
+        ("field_consensus", consensus_names),
+        ("draft_fields", draft_names),
+        ("report_json", report_json_names),
+        ("csv", csv_names),
+        ("handoff", handoff_names),
+        ("handoff_json", handoff_json_names),
+    ]:
+        assert names == expected, f"{surface} mismatch: {names} vs {expected}"
+    # No generic redaction token anywhere
+    for text in [
+        export_report_json(report),
+        export_report_csv(report),
+        export_handoff_json(handoff),
+    ]:
+        assert "[REDACTED_SECRET_FIELD]" not in text
+        assert "[REDACTED" not in text or "api_key" in text  # ensure not hiding
+
+
+def test_privacy_finding_for_sensitive_name(tmp_path: Path) -> None:
+    """Sensitive-looking names must produce review findings but remain exact."""
+    p1 = tmp_path / "pr1.csv"
+    p2 = tmp_path / "pr2.csv"
+    _write_csv(p1, ["api_key", "ok"], [["k1", "1"], ["k2", "2"]])
+    _write_csv(p2, ["api_key", "ok"], [["k3", "3"], ["k4", "4"]])
+    report = build_draft_report([p1, p2])
+    # Recommendation must flag privacy review
+    rec = next(df for df in report.draft_fields if df.field_name == "api_key")
+    assert rec.privacy_review_required is True
+    # Finding must exist for exact field
+    assert any(
+        f.field_name == "api_key" and f.code == "PRIVACY_REVIEW_REQUIRED" for f in report.findings
+    )
+    # Schema name must still be exact in exports
+    assert "api_key" in export_report_json(report)
+    assert "api_key" in export_report_csv(report)
+    handoff = prepare_handoff(report, source_id="test_src", contract_version="1.0.0")
+    assert "api_key" in export_handoff_json(handoff)
+    # No raw values leaked
+    for text in [
+        export_report_json(report),
+        export_report_csv(report),
+        export_handoff_json(handoff),
+    ]:
+        assert "k1" not in text and "k2" not in text
