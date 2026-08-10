@@ -116,7 +116,7 @@ FETCHED_MAIN_SHA="$(git rev-parse origin/main)"
 rm -rf /tmp/pr17-main-check && mkdir -p /tmp/pr17-main-check
 git worktree add --detach /tmp/pr17-main-check "$FETCHED_MAIN_SHA"
 .venv/bin/python tools/check_pr17_phase_b_ready.py --main-path /tmp/pr17-main-check --expected-main-sha "$FETCHED_MAIN_SHA" --pr13-merged-at "$MERGED_AT"
-# Require READY_FOR_PHASE_B (exit 0). Exit codes: 0 READY, 1 BLOCKED_PR13_OPEN, 2 BLOCKED_CONTENT_MISMATCH, 3 GITHUB_QUERY_ERROR, 4 MAIN_PATH_REVISION_MISMATCH → stop.
+# Require READY_FOR_PHASE_B (exit 0). Exit codes: 0 READY, 1 BLOCKED_PR13_OPEN, 2 BLOCKED_CONTENT_MISMATCH, 3 GITHUB_QUERY_ERROR, 4 MAIN_PATH_REVISION_MISMATCH, 5 MAIN_PATH_NOT_DETACHED, 6 MAIN_PATH_DIRTY → stop.
 git worktree remove --force /tmp/pr17-main-check
 # 6. Require READY_FOR_PHASE_B (both gates). If BLOCKED, stop and investigate.
 # 7. Record hosted CI status: healthy OR CI_INFRASTRUCTURE_BLOCKED
@@ -269,7 +269,9 @@ The checker reports distinct exit codes (no silent default):
 - **BLOCKED_CONTENT_MISMATCH** (exit 2) — `mergedAt != null` but fetched main does not satisfy expected Portfolio/Challenge product contract → No Phase B, investigate merge result.
 - **GITHUB_QUERY_ERROR** (exit 3) — `gh` query failed → distinct from content mismatch; retry query, do not proceed.
 - **MAIN_PATH_REVISION_MISMATCH** (exit 4) — `main_path` HEAD != `expected-main-sha` (wrong worktree or stale fetch) → fail closed, do not evaluate Gate B.
-- **READY_FOR_PHASE_B** (exit 0) — `mergedAt != null` AND `main_path` HEAD == `expected-main-sha` AND product contract passes (portfolio exactly once via AST, CH-01..CH-07 exactly 7 REPRESENTABLE_ONLY via AST) → Only then may owner authorize Phase-B replay.
+- **MAIN_PATH_NOT_DETACHED** (exit 5) — `main_path` is a branch checkout (populated rehearsal/current worktree) → structurally refused even at the right SHA; Gate B only ever reads a throwaway detached worktree created from freshly fetched `origin/main`.
+- **MAIN_PATH_DIRTY** (exit 6) — `main_path` working tree not clean (or state unknowable) → refused before any content read; tree content could deviate from the bound revision.
+- **READY_FOR_PHASE_B** (exit 0) — `mergedAt != null` AND `main_path` HEAD == `expected-main-sha` AND detached+clean AND product contract passes (portfolio exactly once via AST, CH-01..CH-07 exactly 7 REPRESENTABLE_ONLY via AST) → Only then may owner authorize Phase-B replay.
 
 Missing required `--main-path` or `--expected-main-sha` fails via argparse (exit 2, no default to cwd). Do not equate `2d7e85f is ancestor` with readiness.
 
@@ -292,13 +294,17 @@ Plus: `mergedAt null` on good content → **BLOCKED_PR13_OPEN** (exit 1, verifie
 
 This proves the old ancestry check fails for squash/rebase where the new semantic checker still returns READY, which is why the packet was changed. The rehearsal-populated tree cannot be mistaken for fetched origin/main: without `--expected-main-sha` the checker requires the argument; with a wrong SHA it returns MAIN_PATH_REVISION_MISMATCH (4), not READY.
 
-Fail-closed checker `tools/check_pr17_phase_b_ready.py` (requires --main-path + --expected-main-sha, AST exactly-once portfolio and structural 7×REPRESENTABLE_ONLY) plus `tests/unit/test_pr17_phase_b_readiness.py` (15 tests, fail-closed) executed on `rehearsal/pr17-phase-b-v1`:
+Fail-closed checker `tools/check_pr17_phase_b_ready.py` (requires --main-path + --expected-main-sha, structural detached+clean throwaway-worktree binding, AST exactly-once portfolio and structural 7×REPRESENTABLE_ONLY) plus `tests/unit/test_pr17_phase_b_readiness.py` (21 tests, fail-closed) executed on `rehearsal/pr17-phase-b-v1`:
 
 - `test_missing_required_main_path` → PASS (argparse exit 2)
 - `test_wrong_worktree_sha_despite_complete_content` → PASS (exit 4 MAIN_PATH_REVISION_MISMATCH)
 - `test_pr13_not_merged_blocked` → PASS (exit 1)
 - `test_github_query_error_is_distinct` → PASS (exit 3 distinct)
-- `test_merged_ready_on_valid_main` → PASS (exit 0)
+- `test_merged_ready_on_valid_main` → PASS (exit 0, detached throwaway worktree)
+- `test_merge_style_agnostic_ready[merge|squash|rebase]` → PASS ×3 (merge-, squash- and rebase-style integrated PR13 all READY)
+- `test_populated_branch_checkout_refused_not_detached` → PASS (exit 5 — populated rehearsal branch checkout at its own exact SHA refused)
+- `test_dirty_detached_worktree_refused` → PASS (exit 6 — uncommitted mutation refused before Gate B)
+- `test_github_auth_failure_is_distinct` → PASS (exit 3 — gh HTTP 401 path distinct from content mismatch)
 - `test_merged_blocked_content_mismatch_missing_file` → PASS (exit 2)
 - `test_missing_portfolio_registration` → PASS (exit 2, count 0 ≠1)
 - `test_duplicate_portfolio_registration` → PASS (exit 2, count 2 ≠1)
@@ -310,7 +316,7 @@ Fail-closed checker `tools/check_pr17_phase_b_ready.py` (requires --main-path + 
 - `test_content_gate_direct` → PASS
 - `test_content_gate_missing_portfolio` → PASS
 
-See `.venv/bin/python -m pytest tests/unit/test_pr17_phase_b_readiness.py -q` → 15 passed.
+See `uv run --no-sync pytest tests/unit/test_pr17_phase_b_readiness.py -q` → 21 passed (2026-08-10, this lane).
 
 ---
 

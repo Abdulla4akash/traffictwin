@@ -12,6 +12,14 @@ Result states (distinct exit codes):
   BLOCKED_CONTENT_MISMATCH       2
   GITHUB_QUERY_ERROR             3
   MAIN_PATH_REVISION_MISMATCH    4
+  MAIN_PATH_NOT_DETACHED         5
+  MAIN_PATH_DIRTY                6
+
+Gate B only ever inspects a throwaway DETACHED worktree created from exact freshly
+fetched `origin/main`: a branch checkout (rehearsal/current worktree) is refused
+structurally (exit 5) and a dirty tree is refused structurally (exit 6), both
+BEFORE any content is read. Revision binding (exit 4) is checked first, so a
+wrong-SHA worktree fails even if its content happens to match.
 
 This script is READ-ONLY, does not modify files, does not run SUMO/VEC.
 
@@ -76,6 +84,32 @@ def _actual_head_sha(main_path: pathlib.Path) -> str | None:
         return r.stdout.strip()
     except Exception:
         return None
+
+
+def _checked_out_branch(main_path: pathlib.Path) -> str | None:
+    """Return the branch name if main_path is a branch checkout, None if detached."""
+    r = subprocess.run(  # noqa: S603
+        ["git", "-C", str(main_path), "symbolic-ref", "-q", "HEAD"],  # noqa: S607
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout.strip() or "(unknown ref)"
+
+
+def _status_porcelain(main_path: pathlib.Path) -> str | None:
+    """Return `git status --porcelain` output, or None on error."""
+    r = subprocess.run(  # noqa: S603
+        ["git", "-C", str(main_path), "status", "--porcelain"],  # noqa: S607
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if r.returncode != 0:
+        return None
+    return r.stdout
 
 
 def _count_portfolio_registrations_via_ast(main_path: pathlib.Path) -> tuple[int, list[str]]:
@@ -363,6 +397,38 @@ def main(argv: list[str] | None = None) -> int:
         print("  Gate B not evaluated — worktree does not match fetch.")
         return 4
     print(f"Main-path revision binding PASS: {actual_sha} == expected {expected_sha}")
+
+    # Structural throwaway-worktree binding: Gate B must only ever read a DETACHED,
+    # CLEAN worktree created from freshly fetched origin/main — a populated
+    # rehearsal/current branch checkout is refused even at the right SHA.
+    branch = _checked_out_branch(main_path)
+    if branch is not None:
+        print(
+            f"MAIN_PATH_NOT_DETACHED: main_path is a branch checkout ({branch}); "
+            "Gate B requires a throwaway detached worktree created from exact "
+            "freshly fetched origin/main",
+            file=sys.stderr,
+        )
+        print(f"  main_path={main_path}")
+        print("  Gate B not evaluated — refusing populated rehearsal/current worktree.")
+        return 5
+    dirty = _status_porcelain(main_path)
+    if dirty is None:
+        print(
+            f"MAIN_PATH_DIRTY: cannot determine working-tree status of main_path={main_path}",
+            file=sys.stderr,
+        )
+        print("  Gate B not evaluated — fail closed on unknown tree state.")
+        return 6
+    if dirty.strip():
+        print(
+            f"MAIN_PATH_DIRTY: main_path working tree is not clean:\n{dirty.rstrip()}",
+            file=sys.stderr,
+        )
+        print(f"  main_path={main_path}")
+        print("  Gate B not evaluated — tree content could deviate from the bound revision.")
+        return 6
+    print("Main-path throwaway-worktree binding PASS: detached HEAD, clean tree")
 
     # Gate B
     print(f"Checking Gate B content contract on main_path={main_path}")

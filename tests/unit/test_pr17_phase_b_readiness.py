@@ -14,6 +14,15 @@ from tools.check_pr17_phase_b_ready import check_content_gate
 
 REHEARSAL_MAIN = pathlib.Path.cwd()
 
+CONTRACT_FILES = [
+    "src/traffictwin/ui/portfolio_explorer.py",
+    "src/traffictwin/ui/pages/portfolio_explorer.py",
+    "src/traffictwin/ui/app_pages/portfolio_explorer.py",
+    "src/traffictwin/ui/labels.py",
+    "src/traffictwin/ui/navigation_v07.py",
+    "src/traffictwin/ui/navigation.py",
+]
+
 
 def _expected_sha(path: pathlib.Path) -> str:
     """Get git HEAD sha for path."""
@@ -24,6 +33,58 @@ def _expected_sha(path: pathlib.Path) -> str:
         check=True,
     )
     return r.stdout.strip()
+
+
+def _git(cwd: pathlib.Path, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=cwd, capture_output=True, check=False)
+
+
+def _detach(path: pathlib.Path) -> None:
+    """Detach HEAD so the fixture matches the throwaway-worktree contract."""
+    _git(path, "checkout", "--detach")
+
+
+def _copy_contract(dst_root: pathlib.Path) -> None:
+    for rel in CONTRACT_FILES:
+        src = REHEARSAL_MAIN / rel
+        dst = dst_root / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(src, dst)
+
+
+def _make_integrated_repo(tmp_path: pathlib.Path, style: str) -> tuple[pathlib.Path, str]:
+    """Build a synthetic repo whose main integrates the PR13 contract via merge/squash/rebase,
+    then expose it as a throwaway detached worktree (the only shape Gate B accepts)."""
+    repo = tmp_path / "repo"
+    repo.mkdir(parents=True, exist_ok=True)
+    _git(repo, "init", "-b", "main")
+    _git(repo, "config", "user.email", "test@test.com")
+    _git(repo, "config", "user.name", "test")
+    (repo / "README.md").write_text("base\n")
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "base")
+    _git(repo, "checkout", "-b", "pr13")
+    _copy_contract(repo)
+    _git(repo, "add", ".")
+    _git(repo, "commit", "-m", "pr13 contract")
+    if style == "merge":
+        _git(repo, "checkout", "main")
+        _git(repo, "merge", "--no-ff", "pr13", "-m", "merge pr13")
+    elif style == "squash":
+        _git(repo, "checkout", "main")
+        _git(repo, "merge", "--squash", "pr13")
+        _git(repo, "commit", "-m", "squash pr13")
+    elif style == "rebase":
+        _git(repo, "checkout", "pr13")
+        _git(repo, "rebase", "main")
+        _git(repo, "checkout", "main")
+        _git(repo, "merge", "--ff-only", "pr13")
+    else:  # pragma: no cover - guard against typo'd parametrization
+        raise ValueError(f"unknown style {style!r}")
+    sha = _expected_sha(repo)
+    worktree = tmp_path / f"wt-{style}"
+    _git(repo, "worktree", "add", "--detach", str(worktree), sha)
+    return worktree, sha
 
 
 def test_missing_required_main_path() -> None:
@@ -67,6 +128,7 @@ def test_wrong_worktree_sha_despite_complete_content(tmp_path: pathlib.Path) -> 
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     actual = _expected_sha(tmp_path)
     # Pass expected sha of REHEARSAL_MAIN (different) to trigger mismatch
     expected = _expected_sha(REHEARSAL_MAIN)
@@ -140,8 +202,51 @@ def test_github_query_error_is_distinct(monkeypatch: pytest.MonkeyPatch) -> None
     assert rc == 3
 
 
-def test_merged_ready_on_valid_main() -> None:
-    """Valid main with mergedAt -> READY."""
+def test_merged_ready_on_valid_main(tmp_path: pathlib.Path) -> None:
+    """Valid detached throwaway worktree with mergedAt -> READY."""
+    worktree, sha = _make_integrated_repo(tmp_path, "merge")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "tools/check_pr17_phase_b_ready.py",
+            "--main-path",
+            str(worktree),
+            "--expected-main-sha",
+            sha,
+            "--pr13-merged-at",
+            "2026-08-09T12:00:00Z",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert "READY_FOR_PHASE_B" in result.stdout
+    assert result.returncode == 0
+
+
+@pytest.mark.parametrize("style", ["merge", "squash", "rebase"])
+def test_merge_style_agnostic_ready(tmp_path: pathlib.Path, style: str) -> None:
+    """Merge-, squash- and rebase-style integrated PR13 must all be READY."""
+    worktree, sha = _make_integrated_repo(tmp_path, style)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "tools/check_pr17_phase_b_ready.py",
+            "--main-path",
+            str(worktree),
+            "--expected-main-sha",
+            sha,
+            "--pr13-merged-at",
+            "2026-08-09T12:00:00Z",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert "READY_FOR_PHASE_B" in result.stdout, result.stdout + result.stderr
+    assert result.returncode == 0
+
+
+def test_populated_branch_checkout_refused_not_detached() -> None:
+    """The populated rehearsal branch checkout at its own exact SHA must be refused."""
     expected = _expected_sha(REHEARSAL_MAIN)
     result = subprocess.run(
         [
@@ -157,8 +262,58 @@ def test_merged_ready_on_valid_main() -> None:
         capture_output=True,
         text=True,
     )
-    assert "READY_FOR_PHASE_B" in result.stdout
-    assert result.returncode == 0
+    assert "MAIN_PATH_NOT_DETACHED" in result.stdout + result.stderr
+    assert result.returncode == 5
+
+
+def test_dirty_detached_worktree_refused(tmp_path: pathlib.Path) -> None:
+    """A detached worktree with uncommitted edits must be refused before Gate B."""
+    worktree, sha = _make_integrated_repo(tmp_path, "merge")
+    port = worktree / "src/traffictwin/ui/portfolio_explorer.py"
+    port.write_text(port.read_text() + "\n# uncommitted mutation\n")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "tools/check_pr17_phase_b_ready.py",
+            "--main-path",
+            str(worktree),
+            "--expected-main-sha",
+            sha,
+            "--pr13-merged-at",
+            "2026-08-09T12:00:00Z",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert "MAIN_PATH_DIRTY" in result.stdout + result.stderr
+    assert result.returncode == 6
+
+
+def test_github_auth_failure_is_distinct(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A gh auth/API failure (non-zero exit) must be GITHUB_QUERY_ERROR, not a content verdict."""
+    original_run = subprocess.run
+
+    def fake_run(*args: object, **kwargs: object) -> object:  # noqa: ANN002,ANN202
+        cmd = args[0] if args else kwargs.get("args", [])
+        if isinstance(cmd, list) and "gh" in cmd:
+            raise subprocess.CalledProcessError(
+                1, cmd, output="", stderr="gh: HTTP 401 Bad credentials"
+            )
+        return original_run(*args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    from tools.check_pr17_phase_b_ready import main
+
+    rc = main(
+        [
+            "--main-path",
+            str(REHEARSAL_MAIN),
+            "--expected-main-sha",
+            _expected_sha(REHEARSAL_MAIN),
+            "--query-gh",
+        ]
+    )
+    assert rc == 3
 
 
 def test_merged_blocked_content_mismatch_missing_file(tmp_path: pathlib.Path) -> None:
@@ -172,6 +327,7 @@ def test_merged_blocked_content_mismatch_missing_file(tmp_path: pathlib.Path) ->
     subprocess.run(
         ["git", "commit", "--allow-empty", "-m", "init"], cwd=tmp_path, capture_output=True
     )
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -219,6 +375,7 @@ def test_missing_portfolio_registration(tmp_path: pathlib.Path) -> None:
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -265,6 +422,7 @@ def test_duplicate_portfolio_registration(tmp_path: pathlib.Path) -> None:
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -323,6 +481,7 @@ def test_six_challenge_seeds_blocked(tmp_path: pathlib.Path) -> None:
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -372,6 +531,7 @@ def test_one_non_representable_challenge_blocked(tmp_path: pathlib.Path) -> None
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -418,6 +578,7 @@ def test_enum_definition_does_not_inflate_count(tmp_path: pathlib.Path) -> None:
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
@@ -459,6 +620,7 @@ def test_valid_seven_seed_contract(tmp_path: pathlib.Path) -> None:
     subprocess.run(["git", "config", "user.name", "test"], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, capture_output=True)
     subprocess.run(["git", "commit", "-m", "init"], cwd=tmp_path, capture_output=True)
+    _detach(tmp_path)
     expected = _expected_sha(tmp_path)
     result = subprocess.run(
         [
