@@ -76,39 +76,40 @@ Previous hardening review (Claude 3 at `d2167cc`) verified behavioral/security f
 
 ## Tests
 
-### Collect-Only (at final hardened head)
+### Collect-Only (at final head post M4/M10)
 
-- `PYTHONPATH=src pytest tests/unit/data_contract --collect-only -q` → **60 tests** collected
+- `PYTHONPATH=src pytest tests/unit/data_contract --collect-only -q` → **61 tests** collected (60 + M10)
 - `PYTHONPATH=src pytest tests/integration/test_data_contract_integration.py --collect-only -q` → **2 tests** collected
-- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py --collect-only -q` → **3 tests** collected
+- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py --collect-only -q` → **4 tests** collected (3 + M4 UI)
 - `PYTHONPATH=src pytest tests/ui/test_navigation_v07.py --collect-only -q` → **51 tests** collected
 
-Feature distinct total (unit + integration + workbench UI): **65** (60 + 2 + 3). Navigation **51** reported separately; not double-counted into feature total.
+Feature distinct total (unit + integration + workbench UI): **67** (61 + 2 + 4). Navigation **51** reported separately; not double-counted into feature total.
 
 ### Executed (serial, no `-n`)
 
-- `PYTHONPATH=src pytest tests/unit/data_contract -q` → 60 passed
+- `PYTHONPATH=src pytest tests/unit/data_contract -q` → 61 passed
 - `PYTHONPATH=src pytest tests/integration/test_data_contract_integration.py -q` → 2 passed
-- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py -q` → 3 passed
+- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py -q` → 4 passed
 - `PYTHONPATH=src pytest tests/ui/test_navigation_v07.py -q` → 51 passed
 
 All tests execute real production paths (bounded readers, `SourceDataContract` validation, `create_frozen_version` immutability, `compare_*` deterministic logic, `export_*` canonical serialisation, `AppTest` via `page_script_for(UiPage.DATA_CONTRACT_WORKBENCH)`).
 
-### Adversarial / Mutation Evidence (hardening mutants M1–M9)
+### Adversarial / Mutation Evidence (hardening mutants M1–M10)
 
-Executed on hardening head `f81a899` (pre-rebase) and preserved unchanged through rebase to `d2167cc` (production files byte-equivalent; `git diff --name-only d2167cc HEAD -- src` empty for this closure). Additional structural tests added in `test_hardening.py` at `d2167cc`.
+Re-run at final head `e8721f8` and at new final head (post M4/M10). Production `src/traffictwin/data_contract` unchanged from `d2167cc` (`git diff --name-only d2167cc HEAD -- src` empty for test/doc-only closure; lane-scoped files verified). Prior `f81a899` is loose unreferenced object, not used as evidence anchor.
 
 | ID | Mutation | Production function | Test | Exact failure | Restored |
 |---|---|---|---|---|---|
 | M1 | Change `TimestampContract` details to `dict[str,str]` or assume `any(has_tz)` → crash / silent wrong `parse_ambiguous` | `drift._classify_timestamp_drift`, `inspection.inspect_tabular_sample` mixed tz | `test_timestamp_mixed_aware_naive_is_ambiguous`, `test_timestamp_mixed_with_utc_contract_is_blocked` | `TIMESTAMP_PARSE_FAILED` `BLOCKED` not raised / `AttributeError` on details | Yes |
-| M2 | Retain raw categorical values in portable observation | `inspection.inspect_tabular_sample`, `models.FieldObservation` | `test_privacy_invariant`, `test_raw_values_not_in_observation_export` | `assert "Jane Doe" not in export_observation_json` fails | Yes (now `categorical_distinct_count`/`categorical_aggregate_hash` only) |
+| M2 | Retain raw categorical values in portable observation | `inspection.inspect_tabular_sample`, `models.FieldObservation` | `test_privacy_invariant` + `test_mutation_raw_values_in_portable_output_fails` (real exports) | `assert "Jane Doe" not in export_observation_json` / `assert "ghp_FAKE" not in j` fails | Yes (now `categorical_distinct_count`/`categorical_aggregate_hash` only) |
 | M3 | Use `any(has_tz)` instead of `all(has_tz)` / `all(not has_tz)` for mixed tz | `inspection.inspect_tabular_sample` | `test_timestamp_mixed_aware_naive_is_ambiguous` | mixed naive/aware incorrectly `parsed_with_tz` instead of `parse_ambiguous` | Yes |
-| M4 | UI `if candidate_contract and candidate_contract.source_id != frozen.contract.source_id` bypasses same-source unit/time/rights checks | `ui/pages/data_contract_workbench.py` (`compare_for_drift` wrapper) | `test_rights_*`, `test_drift_reachability_matrix` via UI seeded state | unit/time/rights `BLOCKED` not shown for same source_id | Yes (always `compare_for_drift` with `candidate_contract`) |
+| M4 | UI `if candidate_contract and candidate_contract.source_id != frozen.contract.source_id` bypasses same-source unit/time/rights checks | `ui/pages/data_contract_workbench.py` (`compare_for_drift` wrapper) | **At `e8721f8` SURVIVED**: `test_drift_reachability_matrix` (domain only) did NOT exercise UI wiring; all 65 feature tests still passed with mutant. **At final head KILLED** by `test_ui_same_source_candidate_contract_unit_change_is_blocked` (AppTest compare-button, same `source_id` `mps→kmh`) | `compatible` instead of `blocked`; `UNIT_CHANGED_INCOMPATIBLY` absent; `assert 'compatible' == 'blocked'` | Yes (always `compare_for_drift` with `candidate_contract`) |
 | M5 | Rights comparison only `publication_class`; ignore `contains_personal_data` / `retention_days` | `drift._compare_rights` | `test_rights_personal_data_change_is_blocked`, `test_rights_retention_increase_is_blocked` | `PERSONAL_DATA_CLASSIFICATION_CHANGED` / `RETENTION_PERIOD_INCREASED` `BLOCKED` not raised | Yes |
 | M6 | Allow arbitrary suffix / outside-workspace path | `inspection.inspect_tabular_sample` allowlist | `test_workspace_containment` | `allowed.csv.gz`/`.parquet` should pass but `.conf`/`.env`/`.txt`/`/etc/hosts` should raise `unsupported sample format` | Yes |
 | M7 | Candidate field comparison driven only by observation fields (`observed_map`) | `drift.compare_contracts` | `test_field_set_union_required_removed_hidden_by_observation` | `REQUIRED_FIELD_REMOVED` hidden when sample still contains column | Yes (contract union) |
 | M8 | No frozen-fingerprint verification on load | `service.verify_contract_version` | `test_fingerprint_verification` | tampered `contract` or `version` does not raise `fingerprint mismatch`/`version mismatch` | Yes |
 | M9 | Bypass `max_bytes` / bounded reader | `inspection.inspect_tabular_sample` via `iter_declared_table_chunks` | `test_mutation_unbounded_read_bypass_fails`, `test_bounded_read_bypass_blocked` | `match="exceeds"` not raised | Yes |
+| M10 | Reintroduce `if not is_under_allowed and "/pytest" in str(resolved) and "tmp" in str(resolved): is_under_allowed=True` substring bypass | `inspection._resolve_safe_sample_path` | `test_workspace_containment_rejects_outside_pytest_tmp_substring` (isolated roots, `monkeypatch.chdir` + `tempfile.gettempdir`) | `DID NOT RAISE` – outside `pytest/tmp/exfiltrated.csv` admitted | Yes |
 
 Surviving non-equivalent mutants: none observed in this lane; the above were restored. Bounded-row truncation mutant (`truncated` flag) caught by `test_bounded_reads_truncate_and_respect_limits`.
 
@@ -162,12 +163,12 @@ Surviving non-equivalent mutants: none observed in this lane; the above were res
 
 **How to verify (executable as written)**
 
-- `PYTHONPATH=src pytest tests/unit/data_contract -q` → 60 passed
+- `PYTHONPATH=src pytest tests/unit/data_contract -q` → 61 passed (60 + M10)
 - `PYTHONPATH=src pytest tests/integration/test_data_contract_integration.py -q` → 2 passed
-- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py -q` → 3 passed
-- `PYTHONPATH=src pytest tests/ui/test_navigation_v07.py -q` → 51 passed
+- `PYTHONPATH=src pytest tests/ui/test_data_contract_workbench.py -q` → 4 passed (3 + M4 UI)
+- `PYTHONPATH=src pytest tests/ui/test_navigation_v07.py -q` → 51 passed (feature total 67 = 61+2+4)
 - `uv run ruff check .` → All checks passed
-- `uv run ruff format --check .` → 951 files already formatted (worktree)
+- `uv run ruff format --check .` → 1062 files already formatted (final)
 - `uv run mypy` → `Success: no issues found in 976 source files`
 - `uv lock --check` → `Resolved 91 packages`
 - `git diff --check` → clean
@@ -176,9 +177,10 @@ Surviving non-equivalent mutants: none observed in this lane; the above were res
 ## Live-Main Reconciliation (closed)
 
 - Base at feature start: `73264bd`
-- Live main at hardening: `3b7933dfecf05b579ff9c223729128109a933d93`
-- Final rebased hardening head: `d2167cc444b6f166004a20d4e32401bbd452e4b3` (three commits rebased onto `3b7933d`: `9243dbb`, `9b5cd61`, `d2167cc`)
-- Navigation: `39/39` (`len(V07_PAGE_SPECS) == len(UiPage) == 39`; `docs/ui_conventions.md` updated to 39)
-- Conflict markers: none committed (`rg -n "<<<<<<<|=======" --` clean, verified at `d2167cc`)
+- Live main at hardening: `3b7933dfecf05b579ff9c223729128109a933d93` (no rebase in this pass)
+- Hardened rebased head: `d2167cc444b6f166004a20d4e32401bbd452e4b3` (three commits rebased onto `3b7933d`: `9243dbb`, `9b5cd61`, `d2167cc`)
+- Closure heads: `e8721f8bbf0b53a6779ec22df5a37938447bff62` (mypy/doc) + final head (containment M10 + UI M4 + doc corrections, no rebase, `src` unchanged `d2167cc→final`)
+- Navigation: `39/39` (`len(V07_PAGE_SPECS) == len(UiPage) == 39`; `docs/ui_conventions.md` 39)
+- Conflict markers: none committed (verified `grep -rn "^<<<<<<< HEAD"` clean at `d2167cc` and final)
 - Dynamic count: yes (`assert len(V07_PAGE_SPECS) == len(UiPage)` retained)
 - No intermediate 34-page count landed.
