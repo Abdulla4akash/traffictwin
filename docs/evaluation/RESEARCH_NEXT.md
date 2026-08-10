@@ -2,10 +2,10 @@
 
 **Status date:** 2026-08-10
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 and the original E2 pilot closed; bounded one-seed E2b missing-cell experiment
-complete and ready for review
-**Execution authority:** stopped after the predeclared E2b exit; do not start another seed, arm,
-E3 or another experiment
+**Current phase:** E1, E2 and E2b closed; bounded E2c matched gated-placement replication
+predeclared and awaiting independent review
+**Execution authority:** after exact independent Claude `APPROVE`, run only the 16 declared
+ten-step smokes and eight ordered 3,600-step `ingress_dla`/`dla` cells for fleet seeds 1–4
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -158,6 +158,14 @@ establishes:
   modes use a live per-substep check, so the strongest-link admission contrast and interaction are
   not perfectly gate-only; observed unavailable counts were nevertheless 138 in both `off` and
   `ingress_dla`;
+- direct E2c instruction: replicate only the gate-held placement contrast, `dla - ingress_dla`,
+  over new matched fleet seeds 1–4; seed 0 generated the hypothesis and is excluded from the
+  primary four-draw Student-t interval;
+- E2c feasibility audit: vec_env commit `0e5ed2f79b50011fe0475a5c2069978f9fdd778d`
+  already implements both modes, the shared live per-substep deadline gate, native path arrays and
+  required outcome taxonomy, so no vec_env or tos-data change is authorised or required;
+- E2c selected backend: `macos_arm64_cpu_jax_0_4_30`, projected at 18.543 evaluator hours and
+  1.563 GiB of new raw output, with a 30-hour limit and twice-projected-output free-space gate;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -166,35 +174,33 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Stop and review the completed bounded E2b mechanism-decomposition experiment. Do not start
-another seed, arm, E3, scaling, learning or another experiment.**
+**Prepare and independently review the bounded E2c package, then execute only the eight fixed
+cells in manifest order if and only if Claude returns exact `APPROVE`.**
 
-The exact contract is the
-[E2b manifest](e2b/e2b_placement_admission_factorial_manifest_v1.json), SHA-256
-`9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91`. Direct observations and
-limitations are in the [pilot report](e2b/e2b_placement_admission_factorial_report_2026-08-10.md);
-machine-readable results are in the [four-cell comparison](e2b/e2b_placement_admission_factorial_comparison_v1.json),
-[validation](e2b/e2b_placement_admission_factorial_validation_v1.json),
-[path/admission summary](e2b/e2b_placement_admission_path_summary_v1.json) and
-[evidence index](e2b/e2b_placement_admission_evidence_index_v1.json).
+The exact E2c contract is the
+[E2c manifest](e2c/e2c_gated_placement_multidraw_manifest_v1.json), with its SHA-256 sidecar. The
+[decision record](e2c/e2c_gated_placement_multidraw_decision_record_2026-08-10.md) explains why
+seed 0 is prior pilot evidence and why only placement differs in the new matched pairs.
 
 ### Exit condition
 
-The E2b exit condition is complete. Both draft PRs remain unmerged, exact `APPROVE` preceded the
-two passed smokes and single passed full arm, and all declared evidence records now exist. The
-exact exit action is researcher review and stop.
+The E2c exit condition requires exact independent review, all 16 repeated smokes, all eight full
+cells, four passed paired validations, the primary four-draw analysis, the separately labelled
+seed-0-to-4 descriptive summary and final checksum/evidence records. Stop immediately on any
+manifest gate failure.
 
 ## What follows after this gate
 
-Nothing follows automatically. Researcher review must decide what the four-cell mechanism evidence
-supports. Another fleet seed, E2 replication, E3/backhaul, scaling, P2C, learning or retraining
-requires a new direct instruction.
+Nothing follows automatically. After the bounded E2c evidence package, researcher review must
+decide what the matched placement evidence supports. Another fleet seed, E3/backhaul, scaling,
+P2C, learning or retraining requires a new direct instruction.
 
 ## Explicitly not next
 
 Do not start:
 
-- any additional E2/E2b seed or arm;
+- `off`, `jsq` or any E2c arm other than `ingress_dla` and `dla`;
+- any fleet seed outside 1–4 or a seed-0 rerun;
 - P2C or DLA-P2C;
 - E3 or any nonzero-backhaul run;
 - static/reactive/proactive scaling;
