@@ -65,7 +65,7 @@ def _plan() -> StudyPlan:
                 description="Secondary latency mean.",
             )
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean diff", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for integration testing with sufficient length.", population="common seeds", effect_measure="mean_diff"),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[10, 20],
         planned_arms=["baseline", "variation"],

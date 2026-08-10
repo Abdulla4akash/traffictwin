@@ -91,7 +91,7 @@ def test_preregistration_freeze_flow_via_service(tmp_path: Path) -> None:
         primary_outcomes=[
             OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary for UI freeze test.")
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean diff", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for UI test with sufficient length.", population="common seeds", effect_measure="mean_diff"),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[1, 2],
         planned_arms=["baseline", "variation"],
@@ -139,7 +139,7 @@ def test_preregistration_amendment_and_matrix_via_service() -> None:
         primary_outcomes=[
             OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary for amend test.")
         ],
-        estimand=EstimandDefinition(estimand_id="est-001", description="Mean diff", population="common seeds", effect_measure="mean_diff"),
+        estimand=EstimandDefinition(estimand_id="est-001", description="Mean difference for UI test with sufficient length.", population="common seeds", effect_measure="mean_diff"),
         replication_unit=ReplicationUnit.RANDOM_SEED,
         replication_ids=[1, 2],
         planned_arms=["baseline", "variation"],

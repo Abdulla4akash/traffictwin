@@ -531,13 +531,14 @@ def attach_evidence(
     # But if we keep fingerprint, gate evaluation must be based on attachments not fingerprint.
     # We'll keep fingerprint same as parent.
 
-    # Ensure we don't lose parent fingerprint
-    if updated.fingerprint is None:
-        updated = updated.model_copy(update={"fingerprint": plan.fingerprint})
+    # Compute new fingerprint for evidence-attached version, preserving parent trace
+    original_fp = plan.fingerprint
+    # Recompute fingerprint to include attachments and new status, while preserving parent link
+    new_fp = updated.compute_fingerprint()
+    if updated.parent_fingerprint is None:
+        updated = updated.model_copy(update={"parent_fingerprint": original_fp, "fingerprint": new_fp})
     else:
-        # Keep parent fingerprint for governance trace
-        # Store original fingerprint in parent_fingerprint if not already?
-        pass
+        updated = updated.model_copy(update={"fingerprint": new_fp})
 
     return updated
 

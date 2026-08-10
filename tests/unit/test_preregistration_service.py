@@ -170,9 +170,14 @@ def test_missingness_policy_required() -> None:
 
 
 def test_stopping_rule_validation() -> None:
-    bad = _base_plan(stopping_rule=StoppingRule(description="too short", max_replicates=1))
-    findings = validate_study_plan(bad)
-    assert any("stopping" in f.lower() for f in findings)
+    # Model enforces description ≥12, so short description fails at construction (fail-closed)
+    with pytest.raises(Exception):
+        _base_plan(stopping_rule=StoppingRule(description="too short", max_replicates=1))
+    # Service also flags a vague stopping rule if bypassed; here we test a valid-length but still flagged via empty interpretation?
+    # Use a plan with valid stopping rule but missing decision interpretation to ensure validation covers stopping/decision
+    vague = _base_plan(stopping_rule=StoppingRule(description="Valid stopping description for test.", max_replicates=1))
+    # This is valid, so no findings for stopping itself
+    assert not any("stopping" in f.lower() for f in validate_study_plan(vague))
 
 
 def test_tost_equivalence_semantics() -> None:
@@ -277,18 +282,19 @@ def test_freeze_immutability_and_fingerprint_deterministic() -> None:
     assert frozen.replication_ids == [1, 2, 3]
     # Unknown vs false: higher_is_better distinguishes None from False
     plan_unknown = _base_plan(
-        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary", higher_is_better=None)]
+        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary outcome for unknown test case.", higher_is_better=None)]
     )
     plan_false = _base_plan(
-        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary", higher_is_better=False)]
+        primary_outcomes=[OutcomeDefinition(outcome_id="primary-001", metric_key="task.completion.rate", metric_version=METRIC_VERSION, unit="ratio", denominator="generated_tasks", description="Primary outcome for false test case.", higher_is_better=False)]
     )
     assert plan_unknown.compute_fingerprint() != plan_false.compute_fingerprint()
 
 
 def test_freeze_rejects_vague_plan() -> None:
-    vague = StudyPlan(
+    # Use a valid question but missing other required fields for freeze validation
+    vague_valid = StudyPlan(
         plan_id="vague-001",
-        study_question=StudyQuestion(text="Short? no"),  # will fail via validator, so use valid but missing other fields?
+        study_question=StudyQuestion(text="Valid vague question with sufficient length for testing."),
         evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE,
         primary_outcomes=[],
         replication_unit=ReplicationUnit.RANDOM_SEED,
@@ -349,7 +355,7 @@ def test_run_matrix_determinism_and_rejects() -> None:
     assert any("inconsistent" in f.lower() for f in validate_study_plan(bad_ver_plan))
 
     # decision rule incompatible with analysis method (already tested) also impacts matrix? but matrix build doesn't check, freeze does
-    incompat = _base_plan(analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE, decision_rule=DecisionRule(rule_type="test", interpretation="Bad comp", comparison="equivalence"))
+    incompat = _base_plan(analysis_method=AnalysisMethod.PAIRED_MEAN_DIFFERENCE, decision_rule=DecisionRule(rule_type="test", interpretation="Bad comparison text for test", comparison="equivalence"))
     assert any("incompatible" in f.lower() for f in validate_study_plan(incompat))
 
     # undeclared post-hoc primary outcome in cells
