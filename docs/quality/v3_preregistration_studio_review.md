@@ -214,4 +214,20 @@ with labels `Cell`, `Arm`, `Seed`, `Policy`, `Replication`, `Metric`,
 - **Diff scope:** `src/traffictwin/ui/pages/preregistration_studio.py` (+38/-18 via helper extraction, type cleanups, fingerprint helper) plus `tests/ui/test_preregistration_studio.py` (+124 new regression); no change to `models.py`, `service.py`, `navigation`, `labels`, `page_runtime`, `tables.py` (unchanged by design), `workflows`, `pyproject`, `uv.lock`.
 - **Governance smoke unchanged:** A–F all PASS as listed above; no service logic touched.
 
-> This final candidate (post-30214c43) has **not** been approved by Claude 5 at the time of writing; it awaits Claude 5 final exact-head review.
+> This hardening candidate (`85c784a` via `fda1538`) correctly made `src/traffictwin` green (513) but canonical `uv run mypy` still failed with 37 branch-owned test errors as above. The following cleanup and rebase close that gap.
+
+## 14. Canonical mypy branch-owned cleanup and rebase onto live main 4f8d83a
+
+- **Starting head for this final pass:** `85c784af08ed9e21386d7d7e374b2c369e77da7f` (hardening candidate — matrix fix + regression, `src` green, but canonical `uv run mypy` → `Found 37 errors in 3 files (checked 967)`: `28` in `tests/unit/test_preregistration_governance_regressions.py` + `7` in `tests/unit/test_preregistration_service.py` + `2` in `tests/integration/test_preregistration_workflow.py` — 36 `union-attr` on `DecisionGateReport | None` + 1 `unused-ignore` at `governance:369`, all files created by PR #23, therefore branch-owned not pre-existing as previously mischaracterised).
+
+- **Test-typing commit `622883e12877fc2317d613496754ac425f61ce57` — `test(prereg): make canonical mypy gate explicit and clean`:** for every optional `gate_report` access adds `assert gate_report is not None` (or `assert gate is not None` when bound) before dereference — pattern `assert gate is not None; assert gate.status == ...` — not `if`-guard weakening, not `cast`, not `type: ignore`, not `pyproject` change. Removes the one genuinely unused `# type: ignore` at `governance:369`. No governance result or fixture changed; missing `gate_report` still fails the test via the new assert.
+
+- **After cleanup, before rebase:** `uv run mypy` → `Success: no issues found in 967 source files`; `uv run mypy src/traffictwin` → `513 Success`; `uv run mypy src/traffictwin/preregistration --strict` → `3 Success`; focused `131 passed`; `ruff format` `1053 formatted` (after `1 file reformatted`); `ruff check` `All checks`; `uv lock` `91`; `git diff --check` clean.
+
+- **Live main at rebase:** `4f8d83aefea98e6f5f489de20b83f111c3754c62` (`git log --oneline 3b7933d..origin/main` → `4f8d83a docs: add detailed Muse workflow guide` — docs-only, no code). `OLD_REMOTE_HEAD` for lease = `85c784af08ed9e21386d7d7e374b2c369e77da7f`; local head before rebase = `00248b0` (which became `622883e` after format amend).
+
+- **Rebase:** `git rebase origin/main` — `19` steps, `Successfully rebased and updated refs/heads/agent/product-v3-preregistration-studio-v1.` No conflicts (docs-only delta). New intermediate head `8cf360643234fe73ac8af65a8f75861202f7e107` then after `ruff format` amend became `622883e12877fc2317d613496754ac425f61ce57` (same content, formatted). `git merge-base HEAD origin/main == 4f8d83a` verified.
+
+- **Post-rebase gates (final):** `uv run mypy` → `Success: no issues found in 967 source files`; `uv run mypy src/traffictwin` → `513 Success`; `uv run mypy src/traffictwin/preregistration --strict` → `3 Success`; `uv run pytest ... -q` → `131 passed`; `uv run pytest tests/ui -q` → `716 passed`; `uv run pytest tests/unit/ui -q` → `233 passed`; `uv run pytest tests/ui/test_accessibility.py -q` → `322 passed`; `uv run ruff format --check .` → `1053 files already formatted`; `uv run ruff check .` → `All checks passed!`; `uv lock --check` → `91`; `git diff --check` clean; matrix probe `8 columns` all `config[key] is not None` (`cell_id`/`arm_id`/`seed_id`/`replication_id`/`metric_version` naive → `None`); governance smoke A–F all `PASS`.
+
+> **Final candidate after this rebase (see PR head) awaits Claude 5 final exact-head review. Previous approvals for `7b054a5`/`85c784a` do not cover it; the 37 canonical mypy errors were branch-owned and are now fixed.**
