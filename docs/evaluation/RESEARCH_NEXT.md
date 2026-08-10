@@ -1,9 +1,10 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-09
+**Status date:** 2026-08-10
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 closed; bounded one-seed E2 native-placement pilot complete and ready for review
-**Execution authority:** stopped after the predeclared E2 exit; do not start another E2 seed, E3 or another experiment
+**Current phase:** E1 and the original E2 pilot closed; bounded E2b missing-cell pre-run gates active
+**Execution authority:** direct Abdulla instruction dated 10 August 2026 authorises only one
+`ingress_dla` arm and its four-cell descriptive analysis
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -115,6 +116,16 @@ establishes:
   admitted tasks; it combines placement and admission and cannot isolate either mechanism;
 - E2 statistical status: one evaluator seed and one fleet draw, descriptive only; tasks are not
   independent replicates and no controller-superiority or population-generalisation claim is supported;
+- direct E2b instruction: add only `ingress_dla`, meaning strongest-link execution plus the exact
+  existing deadline-aware admission gate, to complete the missing placement × admission cell;
+- E2b vec_env candidate: branch `agent/e2b-ingress-deadline-admission-v1` at
+  `0e5ed2f79b50011fe0475a5c2069978f9fdd778d`; it adds no RNG split, actor input, queue field or
+  output field and leaves existing mode branches intact;
+- E2b existing-arm no-effect gate: passed for `off`, `jsq` and `dla`; scientific summaries and
+  every existing/path/action/logit array agreed exactly against E2 parent `e11f4445...`;
+- E2b production two-RSU probe: passed all 67 checks; `ingress_dla` admitted 17 tasks at ingress
+  RSU 0, gate-rejected 143, cap-rejected zero, forwarded zero and conserved work, while the prior
+  off/jsq/dla probe summaries and arrays remained exact by hash;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -123,44 +134,30 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Stop and review the completed bounded E2 native-placement pilot. Do not start another E2 seed,
-E3, scaling, learning or another experiment.**
-
-The pilot is governed by
-[e2_native_placement_pilot_manifest_v1.json](e2/e2_native_placement_pilot_manifest_v1.json),
-SHA-256 `53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8`.
-It fixes one Manchester incident draw, cap 2.5x/6,220 tasks per RSU, fixed 1x service, zero
-backhaul, physical queue semantics, the frozen 17-dimensional actor, and only `off`, `jsq` and
-`dla`.
-
-The [pilot report](e2/e2_native_placement_pilot_report_2026-08-09.md) separates direct
-observations, declared contrasts and limitations. The governing
-[validation](e2/e2_native_placement_pilot_validation_v1.json) passed every smoke, full-arm,
-cross-arm, path, accounting and conservation gate. The
-[comparison](e2/e2_native_placement_pilot_comparison_v1.json) contains the exact raw one-draw
-contrasts, while the [path summary](e2/e2_native_placement_path_forwarding_summary_v1.json)
-contains ingress, selected-target, execution, forwarding and per-RSU evidence. The
-[evidence index](e2/e2_native_placement_evidence_index_v1.json) records the exact raw-output
-locators and checksum ledgers outside Git.
+Complete only the predeclared E2b gate sequence in
+[e2b_placement_admission_factorial_manifest_v1.json](e2b/e2b_placement_admission_factorial_manifest_v1.json):
+push two private stacked draft branches, obtain independent Claude exact `APPROVE`, run two serial
+ten-step `ingress_dla` smokes, then exactly one 3,600-step `ingress_dla` arm. Reuse completed E2
+`off`, `jsq` and `dla` only after their immutable checksum ledger verifies. Produce the declared
+four-cell raw contrasts and stop.
 
 ### Exit condition
 
-The one-seed E2 gate is closed. The three full arms completed serially within their individual
-10,800-second limits, and all final evidence records are complete. The exact exit action is
-researcher review and stop.
+The E2b full arm is forbidden until both draft PRs exist and independent Claude returns exact
+`APPROVE` for the complete diffs, exact commits and E2b manifest. The exact exit after one valid
+full arm and analysis is researcher review and stop.
 
 ## What follows after this gate
 
-Nothing follows automatically. A new direct researcher instruction is required before choosing
-among E2 multi-seed expansion, an E3 nonzero-backhaul sensitivity, or any later scaling or learning
-work. Researcher review must first decide whether the observed JSQ deadline harm despite much lower
-execution imbalance, and the DLA admission/attainment trade-off, justify another bounded experiment.
+Nothing follows automatically. Researcher review must decide what the four-cell mechanism evidence
+supports. Another fleet seed, E2 replication, E3/backhaul, scaling, P2C, learning or retraining
+requires a new direct instruction.
 
 ## Explicitly not next
 
 Do not start:
 
-- another E2 seed or arm without a new direct researcher instruction;
+- any E2/E2b arm other than the single authorised `ingress_dla` full cell;
 - P2C or DLA-P2C;
 - E3 or any nonzero-backhaul run;
 - static/reactive/proactive scaling;
