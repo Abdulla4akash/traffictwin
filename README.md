@@ -210,6 +210,29 @@ Implemented:
 - A non-geographic vehicle coordinate replay, automated desktop/mobile screenshots, and basic
   accessibility regression checks.
 - Descriptive analysis for explicitly labelled synthetic mock participant results only.
+- Event-aligned before/during/after comparison of 2-8 compatible runs around a declared event
+  anchor, reusing the fixed-window metric engine with explicit half-open windows, unavailable
+  (never zero-filled) missing bins, distinct-bin partial coverage, per-run anchor provenance,
+  descriptive (non-causal) event-window differences, and deterministic JSON/CSV exports. UI only;
+  the sequential bounded engine has no CLI and no Manchester live evidence.
+- Deterministic analysis-level study capsules: byte-identical offline-verifiable ZIP archives over
+  derived artifacts with binary member support, per-member checksums, a capsule identity bound to
+  the actual embedded bytes, tampered/malformed verification states, and a `capsule` CLI. Raw
+  imported/historical evidence is reference/exclude only, and the unsigned archive proves internal
+  integrity, not creator authenticity.
+- Versioned source data contracts with bounded local sample observation, frozen fingerprinted
+  contract lineage, deterministic blocked/review-required/compatible schema-drift classification,
+  privacy/retention drift detection, and portable exports that never contain raw categorical row
+  values. Local bounded samples only; no provider or network call, and compatibility is not
+  evidence-quality acceptance.
+- Read-only resource-strategy study exploration across traffic/VEC policy arms with matched-cohort
+  descriptive comparison, per-metric compatibility auditing, fail-closed unregistered-metric
+  handling, incompatible metrics gated from arm aggregates, complete self-qualifying pairwise
+  interpretations, and portable JSON round-trip over synthetic or separately admitted evidence.
+- Preregistration governance for versioned scientific plans: freeze-time validation with an
+  immutable fingerprint and deterministic run matrix, pre/post-evidence amendment lineage,
+  explicit-admission evidence attachment, and an UNAVAILABLE/BLOCKED/READY decision gate.
+  Governance only — freezing is not scientific approval and no research is executed automatically.
 
 Not live or production-complete in the v0.7 release line:
 

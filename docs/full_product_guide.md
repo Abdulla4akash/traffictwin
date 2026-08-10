@@ -1209,26 +1209,34 @@ For a configured standalone workspace, prefer `traffictwin demo launch .demo`.
 | SUMO Output Import | Validate/import declared SUMO 1.27 tripinfo and summary outputs | Launch SUMO or infer FCD/traffic-flow semantics |
 | TOS Data Import | Inspect and optionally register external source summaries | Canonicalise the full package or modify it |
 | Comparison | Describe baseline-versus-variation metric deltas | Infer causality automatically |
+| What-If Studio | Generate a deterministic synthetic baseline/intervention pair through the local generator and register it for Compare | Run SUMO/VEC/provider feeds, forecast live traffic, or promote synthetic input to observed evidence |
+| Consequence Lenses | Project existing comparison evidence into curated traffic and VEC consequence views with exact deltas, denominators, and reason codes | Create new metrics, rerun a simulator, zero-fill unavailable rows, or claim causality |
+| Data Contract Workbench | Observe a bounded local sample's schema, author and freeze versioned fingerprinted source contracts, and classify drift as blocked/review-required/compatible | Call providers, store credentials, auto-import data, expose raw categorical values, or treat compatibility as evidence acceptance |
 | Statistical Study | Evaluate a predeclared compatible paired contrast, per-family N-way policy ranking, paired TOST equivalence claim, approved versioned regression gate, or prospective paired power plan | Select a favourable subgroup, impute missing runs, infer a margin/tolerance/effect/variance, self-approve a golden, calculate retrospective power, treat non-significance/regression pass as equivalence, or prove causality |
+| Preregistration Studio | Freeze versioned scientific plans with immutable fingerprints and deterministic run matrices, govern pre/post-evidence amendments, attach explicitly admitted evidence, and evaluate the UNAVAILABLE/BLOCKED/READY decision gate | Execute research, approve science, admit unadmitted evidence, or treat a process exit as a decision rule |
+| Resource Strategy Explorer | Inspect admitted or explicitly synthetic resource-strategy studies with matched-cohort descriptive comparison, per-metric compatibility audit, and complete self-qualifying pairwise interpretations | Declare a winner/best/optimal strategy, aggregate incompatible metrics, accept unregistered metric contracts, or run anything |
 | TOS Results | Explore source evaluation matrix and paired campaigns | Rank algorithms causally |
 | TOS Mobility & RSU Replay | Inspect source mobility, RSU pressure, and task samples | Provide persistent vehicle identity or live state |
 | TOS Training & Audit | Review training history, generalisation labels, and exports | Retrain a policy |
 | Triviality & Winner Map | Inspect R3/R5, rankings, regret, and synthetic portfolio evidence | Train a selector |
 | Run Overview | Present task, latency, contract-gated energy, offload, and evidence KPIs | Replace unavailable metrics with zero or infer energy semantics from a unit label |
 | Temporal Metrics | Explore 60 applicable metrics over a declared fixed-window contract and download JSON | Hide empty/partial windows or call range overlap sensor completeness |
+| Event-Aligned Analysis | Align 2-8 compatible runs around a declared event anchor and compare before/during/after windows with explicit coverage, per-run anchor provenance, and deterministic JSON/CSV exports | Interpolate or zero-fill missing bins, accept naive timestamps, claim causal event effects, or provide a CLI |
+| Portfolio Explorer | Surface the transparent portfolio selector, challenge seed library, and descriptive held-out winner/regret/dominance evidence | Train a policy, deploy anywhere, optimise live Manchester traffic, or prove causal superiority |
 | Energy Evidence | Inspect exact energy contracts/coverage and evaluate R8 configuration | Convert units, admit partial energy, or claim statistical/hardware/causal anomaly |
 | Replay | Logical historical playback and non-geographic coordinate view | Launch simulation or show a geographic/live map |
 | Infrastructure & Congestion | Queue, utilisation, RSU summaries, saturation | Prove infrastructure causality |
 | Fairness Evidence | Inspect evidence-gated vehicle-tier/RSU measures and evaluate selected R7 operational disparity configuration | Infer protected attributes, drop thin groups, tune post hoc, or claim causal fairness |
 | Threshold Sensitivity | Evaluate every R5/R7/R8 point in a bounded grid and explicitly exchange complete configs | Hide statuses, calibrate/recommend a threshold, lower support, or silently persist controls |
 | Spatial & RSU Evidence | Inspect exact V2I target-RSU outcomes and contracted source-frame grid summaries | Infer nearest targets, task positions, geography, or causality |
-| About | Inspect version metadata and the trusted custom-metric boundary | Upload, discover, or sandbox plugin code |
+| Manchester Evidence Hub | Supervisor-readable inventory of Manchester source semantics and six machine-typed readiness dimensions per source | Invent an acquisition path, fetch network data on render, or decide scientific policy |
+| Study Capsule Builder | Assemble derived analysis artifacts into a deterministic, offline-verifiable ZIP capsule with checksums and a content-bound identity (UI and CLI) | Embed raw imported/historical evidence, sign the archive, or assert scientific acceptance |
 | Journey-Time Lens | Imported or synthetic trip-duration summaries | Predict live Manchester journeys |
 | Diagnostics & Evidence | EvidencePack, R0-R8 status, typed cross-rule relationships, retained originals, findings, and constrained prose | Rank causes, change confidence, hide suppressed results, or produce LLM diagnoses |
 | Provenance Explorer | Trace metrics, rules, rows, and run metadata | Assign causal weights |
 | Mock Evaluation Analysis | Analyse labelled synthetic mock records | Analyse unapproved participant data |
 | Settings | Store session-scoped UI preferences | Create accounts or persistent profiles |
-| About | Show versions, commit, licence status, and limitations | Assert deployment or integration readiness |
+| About | Show versions, commit, licence status, limitations, and the trusted custom-metric boundary | Upload, discover, or sandbox plugin code, or assert deployment or integration readiness |
 
 ## CLI Cookbook
 

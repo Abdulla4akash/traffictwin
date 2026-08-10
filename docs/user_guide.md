@@ -303,6 +303,32 @@ probability. Tied file kinds begin with no selection. The wizard does not import
 infer physical units from numeric magnitude, or invent run/environment metadata. See the
 [complete manifest inference contract](integration/manifest_inference_wizard.md).
 
+## Data Contract Workbench
+
+Data Contract Workbench preserves what a tabular source is expected to provide and explains how a
+later sample differs. Load a bounded local sample (plain CSV, gzip CSV, or flat scalar Parquet with
+explicit row and byte limits) to observe its schema: field names, logical types, nullability,
+timestamp parse states, structural categorical evidence, and precision/scale. Author each field's
+identity, required/optional standing, logical type, unit, timestamp semantics (time basis,
+timezone, format hint), source identifier, and privacy/publication classification, then freeze a
+versioned contract. Frozen versions are immutable, fingerprinted, and linked to their parent
+version with an amendment reason; fingerprints are verified on load.
+
+Comparing a later sample against a frozen contract produces deterministic drift findings in three
+severities: **Blocked** (required field removed, incompatible logical type, time-basis/timezone
+change, unit change, source-identity change, privacy weakening, personal-data change, retention
+increase), **Review-required** (optional field added, required becomes nullable, categorical domain
+change, precision narrowing, timestamp formatting change, retention decrease), and **Compatible**
+(column reordering, equivalent representation, optional field absent). Contract, observation, and
+drift reports export as deterministic JSON/YAML/CSV; a handoff payload points toward Manifest
+Inference and Bundle Import without executing any import.
+
+Boundaries: the workbench reads local bounded samples only — it never calls TfGM, NTIS, National
+Highways, BODS, or any other provider, and stores no credentials. Portable observation output never
+contains raw categorical row values, only a distinct count and an aggregate hash. Mixed-timezone
+timestamp evidence fails closed. Schema compatibility is a structural statement; it is not
+evidence-quality acceptance or scientific approval.
+
 ## Discover And Inspect External Sources
 
 Before using a SUMO or TOS-specific workflow, the OPS-05 CLI can identify the reviewed adapter and
@@ -925,6 +951,24 @@ claims outside the highlights, every warning and limitation, and fingerprinted s
 Download PDF, HTML, Markdown, or JSON. PDF generation refuses content that needs a second page; it
 never deletes caveats. See [one-page executive summary](executive_summary.md).
 
+## Study Capsule Builder
+
+Study Capsule Builder assembles already-derived analysis artifacts — typed report JSON, exported
+metric/statistical tables, Markdown summaries, and declared binary members — into one
+deterministic, offline-verifiable review capsule. Declare the study identity and version, choose
+each logical member with an explicit embed/reference/exclude policy, and build. The result is a
+byte-identical ZIP for the same inputs, with per-member SHA-256 checksums, a manifest, and a
+`capsule_id` bound to the actual embedded bytes, so two capsules with different content can never
+share an identity. Verification re-hashes every member: blank checksums report **tampered**,
+missing checksum entries report **malformed**, and the logical member count is reconciled against
+the archive entry count. The same builder and verifier are available from the CLI via
+`traffictwin capsule`.
+
+Boundaries: raw imported or historical research evidence cannot be embedded — reference or exclude
+it explicitly. The capsule is an unsigned archive: internal integrity verification proves the
+bytes are unchanged, not who created them. Building a capsule asserts nothing about scientific
+acceptance of its contents.
+
 ## Search
 
 Search covers findings, append-only annotations, report metadata/text, runs, experiments, and
@@ -1004,6 +1048,43 @@ Review the required common-seed pairs, total baseline-plus-variation runs, achie
 approximate power, labels, warnings, assumptions, and provenance. This is a prospective planning
 aid—not guaranteed achieved power or evidence about a completed study. Download deterministic
 JSON/Markdown/CSV. See [paired common-seed power analysis](power_analysis.md).
+
+## Preregistration Studio
+
+Preregistration Studio governs a versioned scientific plan: what was declared before evidence,
+what changed, and whether the declared decision gate can be evaluated. Draft a plan — study
+question, evidence mode, primary outcomes with metric version/unit/denominator, replication unit
+and identifiers, planned arms, cohort and exclusion rules, missingness policy, analysis method
+(with alpha/threshold where applicable; TOST equivalence requires an explicit margin and basis),
+multiplicity policy, stopping rule, and decision interpretation. Freezing validates the complete
+plan, derives a deterministic run-cell matrix (every identity column stays visible), and produces
+an immutable SHA-256 fingerprint. A frozen plan is never edited in place: amendments create a new
+version linked to the parent fingerprint with a field-level diff, labelled `pre_evidence` or
+`post_evidence`; post-evidence taint carries through descendant versions.
+
+Evidence is attached by immutable artifact fingerprint with an explicit admission state.
+Unadmitted evidence is never reinterpreted as admitted, and the decision gate reports
+**UNAVAILABLE** (required evidence missing), **BLOCKED** (extra, incompatible, or unadmitted
+evidence in admitted-research mode), or **READY** (all expected cells present and compatible).
+
+Boundaries: this is governance only. Freezing a plan is not scientific approval, a successful
+process exit is never a decision rule, and the studio never executes research, imports raw
+research data, or reads active research output directories.
+
+## Resource Strategy Explorer
+
+Resource Strategy Explorer inspects admitted or explicitly synthetic resource-strategy studies
+across traffic/VEC policy arms with matched-cohort descriptive comparison. Select a study to see
+per-arm summaries, queue and resource cost views, a per-metric compatibility audit
+(version/unit/denominator against the registered contract), and complete pairwise interpretations
+that always carry both arm identities, direction, magnitude, unit, and the qualifier
+"descriptive only". Reports round-trip as portable deterministic JSON and export as Markdown/CSV.
+
+Boundaries: the page is read-only over synthetic or separately admitted study evidence — it runs
+nothing. Metrics without a registered compatibility contract fail closed as UNAVAILABLE, an
+incompatible metric is gated out of arm summaries entirely (no numeric aggregates), reserved
+metric keys cannot be shadowed by supplied values, and no winner/best/optimal claim is made
+anywhere.
 
 ## Trusted Custom Metrics For Developers
 
