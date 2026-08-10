@@ -165,6 +165,7 @@ class BaselineStatus(StrEnum):
     SUPERSEDED = "superseded"
     WITHDRAWN = "withdrawn"
     UNAVAILABLE = "unavailable"
+    BLOCKED = "blocked"
 
 
 class BaselineLedgerEventKind(StrEnum):
@@ -178,17 +179,30 @@ class BaselineLedgerEventKind(StrEnum):
     RESTORED_AS_NEW_PROMOTION = "restored_as_new_promotion"
 
 
+class BaselinePromotionOperation(StrEnum):
+    """Typed promotion operation."""
+
+    PROMOTE = "promote"
+    SUPERSEDE = "supersede"
+    RESTORE = "restore"
+
+
 # ---------------------------------------------------------------------------
 # Small models
 # ---------------------------------------------------------------------------
 
 
 class BaselineScope(StrictModel):
-    """Purpose/scope definition for a baseline lane."""
+    """Purpose/scope definition for a baseline lane with typed evidence policy."""
 
     scope_id: str = Field(min_length=2, max_length=128)
     purpose: str = Field(min_length=12, max_length=2000)
     cohort_definition: str = Field(min_length=8, max_length=2000)
+    allowed_evidence_standings: tuple[BaselineEvidenceStanding, ...] = Field(
+        default=(BaselineEvidenceStanding.ADMITTED_RESEARCH,),
+        min_length=1,
+        max_length=16,
+    )
 
     @field_validator("scope_id")
     @classmethod
@@ -205,8 +219,41 @@ class BaselineScope(StrictModel):
             raise ValueError("value must contain non-space characters")
         return stripped
 
+    @field_validator("allowed_evidence_standings", mode="before")
+    @classmethod
+    def validate_allowed_before(cls, v: object) -> tuple[BaselineEvidenceStanding, ...]:
+        if not isinstance(v, (list, tuple)):
+            raise ValueError("allowed_evidence_standings must be a list or tuple")
+        items = list(v)
+        if not items:
+            raise ValueError("allowed_evidence_standings must be non-empty")
+        # Coerce to enum and validate
+        coerced: list[BaselineEvidenceStanding] = []
+        for item in items:
+            try:
+                ev = (
+                    item
+                    if isinstance(item, BaselineEvidenceStanding)
+                    else BaselineEvidenceStanding(item)
+                )  # noqa: E501
+            except ValueError as exc:
+                raise ValueError(f"unsupported evidence standing: {item}") from exc
+            if ev is BaselineEvidenceStanding.UNAVAILABLE:
+                raise ValueError("UNAVAILABLE must never be an allowed policy value")
+            coerced.append(ev)
+        if len(set(coerced)) != len(coerced):
+            raise ValueError("allowed_evidence_standings must not contain duplicates")
+        # Canonicalize: sorted by value string
+        canonical = tuple(sorted(set(coerced), key=lambda x: x.value))
+        # If original order was different but set same, we canonicalize to sorted
+        return canonical
+
     def canonical_payload(self) -> dict[str, Any]:
-        return self.model_dump(mode="json")
+        # Ensure allowed standings are serialized as sorted value strings for fingerprint stability
+        payload = self.model_dump(mode="json")
+        # model_dump already gives list of strings sorted via validator, but ensure canonical order
+        payload["allowed_evidence_standings"] = sorted(payload["allowed_evidence_standings"])
+        return payload
 
     def fingerprint(self) -> str:
         return _fingerprint(self.canonical_payload())
@@ -276,18 +323,23 @@ class BaselineCandidate(StrictModel):
             raise ValueError("created_at must be timezone-aware")
         return v
 
+    @model_validator(mode="after")
+    def validate_cohort_matches_scope(self) -> BaselineCandidate:
+        if self.cohort_definition != self.scope.cohort_definition:
+            raise ValueError("candidate cohort_definition must equal scope cohort_definition")
+        return self
+
     def canonical_payload(self) -> dict[str, Any]:
         payload = self.model_dump(mode="json")
-        # Exclude volatile wall-clock for semantic identity? Keep created_at normalized for
-        # deterministic re-fingerprinting in tests via fixed clock, but fingerprint for
-        # promotion gate uses exact artifact fingerprint verification, not wall-clock.
-        # For registry identity, we include created_at as declared.
+        # Ensure scope's allowed standings are canonical sorted
+        if "scope" in payload and "allowed_evidence_standings" in payload["scope"]:
+            payload["scope"]["allowed_evidence_standings"] = sorted(
+                payload["scope"]["allowed_evidence_standings"]
+            )
         return payload
 
     def fingerprint(self) -> str:
         payload = self.canonical_payload()
-        # Normalise timestamps for deterministic fingerprint comparison in tests
-        # that use fixed clocks – include but ensure stable sorting via mode json.
         return _fingerprint(payload)
 
     def to_json(self) -> str:
@@ -334,7 +386,6 @@ class BaselineApproval(StrictModel):
         return v
 
     def canonical_payload(self) -> dict[str, Any]:
-        # approval_fingerprint is derived, exclude it from its own input
         payload = self.model_dump(mode="json", exclude={"approval_fingerprint"})
         return payload
 
@@ -420,8 +471,18 @@ class BaselineRecord(StrictModel):
             raise ValueError("created_at must be timezone-aware")
         return v
 
+    @model_validator(mode="after")
+    def validate_cohort(self) -> BaselineRecord:
+        if self.cohort_definition != self.scope.cohort_definition:
+            raise ValueError("record cohort_definition must equal scope cohort_definition")
+        return self
+
     def canonical_payload(self) -> dict[str, Any]:
         payload = self.model_dump(mode="json", exclude={"record_fingerprint"})
+        if "scope" in payload and "allowed_evidence_standings" in payload["scope"]:
+            payload["scope"]["allowed_evidence_standings"] = sorted(
+                payload["scope"]["allowed_evidence_standings"]
+            )
         return payload
 
     def compute_fingerprint(self) -> str:
@@ -538,11 +599,6 @@ class BaselineRegistry(StrictModel):
 
     def canonical_payload(self) -> dict[str, Any]:
         payload = self.model_dump(mode="json", exclude={"registry_fingerprint"})
-        # Normalise wall-clock for semantic identity: ledger timestamps remain
-        # but created_at is normalised to keep deterministic fingerprint across
-        # re-serialisation with fixed clocks; include ledger entry fingerprints
-        # rather than volatile timestamps in identity? We include ledger as
-        # stored; fingerprint recomputes over canonical payload.
         return payload
 
     def compute_fingerprint(self) -> str:
@@ -565,6 +621,7 @@ class BaselinePromotionRequest(StrictModel):
     registry_parent_fingerprint: str = Field(min_length=64, max_length=64)
     requested_by: str = Field(min_length=3, max_length=128)
     requested_at: datetime
+    operation: BaselinePromotionOperation = BaselinePromotionOperation.PROMOTE
 
     @field_validator("candidate_id", "scope_id")
     @classmethod
@@ -627,8 +684,15 @@ class BaselinePromotionReceipt(StrictModel):
     def validate_receipt(self) -> BaselinePromotionReceipt:
         if self.status is BaselineStatus.ACTIVE and self.promoted_record is None:
             raise ValueError("ACTIVE receipt requires promoted_record")
-        if self.status is not BaselineStatus.ACTIVE and self.promoted_record is not None:
-            raise ValueError("non-ACTIVE receipt must not carry promoted_record")
+        if (
+            self.status not in (BaselineStatus.ACTIVE, BaselineStatus.BLOCKED)
+            and self.promoted_record is not None
+        ):
+            raise ValueError("only ACTIVE/BLOCKED receipts may carry promoted_record logic")
+        if self.status is BaselineStatus.BLOCKED and self.promoted_record is not None:
+            raise ValueError("BLOCKED receipt must not carry promoted_record")
+        if self.status is BaselineStatus.UNAVAILABLE and self.promoted_record is not None:
+            raise ValueError("UNAVAILABLE receipt must not carry promoted_record")
         return self
 
     def canonical_payload(self) -> dict[str, Any]:
@@ -648,11 +712,12 @@ class BaselineCompatibilityAudit(StrictModel):
     candidate_id: str = Field(min_length=2, max_length=128)
     scope_id: str = Field(min_length=2, max_length=128)
     artifact_fingerprint_verified: bool
-    compatibility_passed: bool
+    scope_compatible: bool
     evidence_policy_satisfied: bool
+    source_standing_satisfied: bool
     approval_binds: bool
     no_stale_parent: bool
-    no_conflicting_active: bool
+    operation_preconditions_satisfied: bool
     findings: list[str] = Field(default_factory=list, max_length=64)
     passed: bool
     audit_fingerprint: str = Field(min_length=64, max_length=64)
@@ -679,11 +744,12 @@ class BaselineCompatibilityAudit(StrictModel):
     def validate_passed(self) -> BaselineCompatibilityAudit:
         expected = (
             self.artifact_fingerprint_verified
-            and self.compatibility_passed
+            and self.scope_compatible
             and self.evidence_policy_satisfied
+            and self.source_standing_satisfied
             and self.approval_binds
             and self.no_stale_parent
-            and self.no_conflicting_active
+            and self.operation_preconditions_satisfied
         )
         if self.passed is not expected:
             raise ValueError("passed must equal conjunction of all gate checks")

@@ -8,13 +8,19 @@ from typing import Annotated
 
 import typer
 
-from traffictwin.baseline_registry.models import BaselineRegistry, BaselineScope
+from traffictwin.baseline_registry.models import (
+    BaselineEvidenceStanding,
+    BaselinePromotionOperation,
+    BaselineRegistry,
+    BaselineScope,
+)
 from traffictwin.baseline_registry.service import (
     approve_candidate,
     build_candidate,
     create_empty_registry,
     promote_baseline,
     register_candidate,
+    restore_baseline_as_new_promotion,
     supersede_baseline,
     validate_registry_json,
 )
@@ -41,6 +47,20 @@ def _save_registry(path: Path, registry: BaselineRegistry) -> None:
     path.write_text(registry.to_json(), encoding="utf-8")
 
 
+def _parse_allowed_evidence(value: str) -> tuple[BaselineEvidenceStanding, ...]:
+    if not value.strip():
+        raise ValueError("allowed_evidence_standings must be non-empty")
+    parts = [p.strip() for p in value.split(",") if p.strip()]
+    standings: list[BaselineEvidenceStanding] = []
+    for p in parts:
+        try:
+            standings.append(BaselineEvidenceStanding(p))
+        except ValueError as exc:
+            raise ValueError(f"unsupported evidence standing: {p}") from exc
+    # deduplicate and sort for canonical
+    return tuple(sorted(set(standings), key=lambda x: x.value))
+
+
 @app.command("validate")
 def validate_cmd(
     registry_path: Annotated[
@@ -50,7 +70,7 @@ def validate_cmd(
     """Validate a registry JSON file."""
     try:
         reg = validate_registry_json(registry_path.read_bytes())
-        typer.echo(  # noqa: E501
+        typer.echo(
             f"Valid registry: {len(reg.ledger)} ledger entries, "
             f"{len(reg.candidates)} candidates, {len(reg.active_baselines)} active"
         )
@@ -78,6 +98,12 @@ def register_cmd(
     source_standing: Annotated[
         str, typer.Option("--source-standing", help="Source standing")
     ] = "verified",
+    allowed_evidence_standings: Annotated[
+        str,
+        typer.Option(
+            "--allowed-evidence-standings", help="Comma-separated allowed evidence standings"
+        ),
+    ] = "admitted_research",
     regression_gate_policy: Annotated[
         str, typer.Option("--regression-gate-policy", help="Policy")
     ] = "STA-04 exact policy for baseline promotion",
@@ -93,7 +119,17 @@ def register_cmd(
 ) -> None:
     """Register a candidate baseline."""
     registry = _load_registry(registry_path)
-    scope = BaselineScope(scope_id=scope_id, purpose=purpose, cohort_definition=cohort)
+    try:
+        allowed = _parse_allowed_evidence(allowed_evidence_standings)
+    except ValueError as exc:
+        typer.echo(f"Invalid allowed evidence: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    scope = BaselineScope(
+        scope_id=scope_id,
+        purpose=purpose,
+        cohort_definition=cohort,
+        allowed_evidence_standings=allowed,
+    )
     contracts = [c.strip() for c in metric_contracts.split(",") if c.strip()]
     try:
         candidate = build_candidate(
@@ -112,7 +148,7 @@ def register_cmd(
         new_registry = register_candidate(registry, candidate, actor="cli")
         _save_registry(registry_path, new_registry)
         typer.echo(
-            f"Registered candidate {candidate_id} with fingerprint "  # noqa: E501
+            f"Registered candidate {candidate_id} with fingerprint "
             f"{candidate.artifact_fingerprint[:12]}…"
         )
     except Exception as exc:
@@ -174,12 +210,15 @@ def promote_cmd(
         registry_parent_fingerprint=registry.registry_fingerprint,
         requested_by=requested_by,
         requested_at=datetime.now(UTC),
+        operation=BaselinePromotionOperation.PROMOTE,
     )
     new_registry, receipt = promote_baseline(registry, request)
     _save_registry(registry_path, new_registry)
-    if receipt.status.value == "active":
+    from traffictwin.baseline_registry.models import BaselineStatus
+
+    if receipt.status == BaselineStatus.ACTIVE:
         typer.echo(
-            f"Promoted {candidate_id} -> "  # noqa: E501
+            f"Promoted {candidate_id} -> "
             f"{receipt.promoted_record.baseline_id if receipt.promoted_record else ''}"
         )
     else:
@@ -198,14 +237,76 @@ def supersede_cmd(
 ) -> None:
     """Supersede active baseline in a scope."""
     registry = _load_registry(registry_path)
-    new_registry, receipt = supersede_baseline(
-        registry, scope_id=scope_id, superseding_candidate_id=candidate_id, actor=actor
+    if candidate_id not in registry.candidates:
+        typer.echo(f"Candidate {candidate_id!r} not found", err=True)
+        raise typer.Exit(code=1)
+    candidate = registry.candidates[candidate_id]
+    approval = registry.approvals.get(candidate_id)
+    if approval is None:
+        typer.echo("No approval exists for candidate – BLOCKED", err=True)
+        raise typer.Exit(code=1)
+    from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+    request = BaselinePromotionRequest(
+        candidate_id=candidate_id,
+        scope_id=scope_id,
+        artifact_fingerprint=candidate.artifact_fingerprint,
+        approval_fingerprint=approval.approval_fingerprint,
+        registry_parent_fingerprint=registry.registry_fingerprint,
+        requested_by=actor,
+        requested_at=datetime.now(UTC),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    new_registry, receipt = supersede_baseline(registry, request)
     _save_registry(registry_path, new_registry)
-    if receipt.status.value == "active":
+    from traffictwin.baseline_registry.models import BaselineStatus
+
+    if receipt.status == BaselineStatus.ACTIVE:
         typer.echo(f"Superseded {scope_id} with {candidate_id}")
     else:
         typer.echo(f"Supersede BLOCKED: {'; '.join(receipt.blocked_reasons)}", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command("restore")
+def restore_cmd(
+    scope_id: Annotated[str, typer.Option("--scope-id", help="Scope ID")],
+    candidate_id: Annotated[str, typer.Option("--candidate-id", help="Candidate to restore")],
+    actor: Annotated[str, typer.Option("--actor", help="Actor")] = "operator",
+    registry_path: Annotated[
+        Path, typer.Option("--registry", help="Registry JSON path")
+    ] = _default_registry_path(),  # noqa: B008
+) -> None:
+    """Restore a previously superseded candidate as a new promotion."""
+    registry = _load_registry(registry_path)
+    if candidate_id not in registry.candidates:
+        typer.echo(f"Candidate {candidate_id!r} not found", err=True)
+        raise typer.Exit(code=1)
+    candidate = registry.candidates[candidate_id]
+    approval = registry.approvals.get(candidate_id)
+    if approval is None:
+        typer.echo("No approval exists for candidate – BLOCKED", err=True)
+        raise typer.Exit(code=1)
+    from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+    request = BaselinePromotionRequest(
+        candidate_id=candidate_id,
+        scope_id=scope_id,
+        artifact_fingerprint=candidate.artifact_fingerprint,
+        approval_fingerprint=approval.approval_fingerprint,
+        registry_parent_fingerprint=registry.registry_fingerprint,
+        requested_by=actor,
+        requested_at=datetime.now(UTC),
+        operation=BaselinePromotionOperation.RESTORE,
+    )
+    new_registry, receipt = restore_baseline_as_new_promotion(registry, request)
+    _save_registry(registry_path, new_registry)
+    from traffictwin.baseline_registry.models import BaselineStatus
+
+    if receipt.status == BaselineStatus.ACTIVE:
+        typer.echo(f"Restored {candidate_id} in scope {scope_id}")
+    else:
+        typer.echo(f"Restore BLOCKED: {'; '.join(receipt.blocked_reasons)}", err=True)
         raise typer.Exit(code=1)
 
 
@@ -225,19 +326,19 @@ def show_cmd(
     typer.echo(f"Candidates: {len(registry.candidates)}")
     for cand_id, cand in sorted(registry.candidates.items()):
         typer.echo(
-            f"  - {cand_id} scope={cand.scope.scope_id} "  # noqa: E501
+            f"  - {cand_id} scope={cand.scope.scope_id} "
             f"fp={cand.artifact_fingerprint[:12]}… {cand.evidence_standing.value}"
         )
     typer.echo(f"Active baselines: {len(registry.active_baselines)}")
     for scope, rec in sorted(registry.active_baselines.items()):
         typer.echo(
-            f"  - {scope} -> {rec.baseline_id} "  # noqa: E501
+            f"  - {scope} -> {rec.baseline_id} "
             f"candidate={rec.candidate_id} fp={rec.artifact_fingerprint[:12]}…"
         )
     typer.echo(f"Ledger: {len(registry.ledger)} entries")
     for entry in registry.ledger:
         typer.echo(
-            f"  [{entry.entry_index}] {entry.event_kind.value} "  # noqa: E501
+            f"  [{entry.entry_index}] {entry.event_kind.value} "
             f"scope={entry.scope_id} candidate={entry.candidate_id or '-'} "
             f"baseline={entry.baseline_id or '-'}"
         )

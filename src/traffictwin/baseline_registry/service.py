@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from collections.abc import Callable
 from datetime import UTC, datetime
 
@@ -13,6 +12,7 @@ from traffictwin.baseline_registry.models import (
     BaselineCompatibilityAudit,
     BaselineLedgerEntry,
     BaselineLedgerEventKind,
+    BaselinePromotionOperation,
     BaselinePromotionReceipt,
     BaselinePromotionRequest,
     BaselineRecord,
@@ -27,19 +27,12 @@ from traffictwin.baseline_registry.models import (
 
 MAX_JSON_BYTES = 2_000_000
 _LIMITATIONS = [
-    "Promotion requires an explicit approval binding the exact candidate "  # noqa: E501
-    "and scope; the newest candidate is never promoted automatically.",
-    "Rollback is represented only by promoting a previous candidate "  # noqa: E501
-    "through a new ledger event; historical records are never edited.",
-    "Evidence and source standing are declared and checked at "  # noqa: E501
-    "promotion; synthetic evidence is never relabelled as observed.",
-    "Regression-gate policy is declared per baseline; this registry "  # noqa: E501
-    "does not claim causality, optimality, or production readiness.",
-    "Portable exports exclude local paths, retrieval clocks, and "  # noqa: E501
-    "secrets; fingerprints use deterministic canonical JSON.",
+    "Promotion requires an explicit approval binding the exact candidate and scope; the newest candidate is never promoted automatically.",  # noqa: E501
+    "Rollback is represented only by promoting a previous candidate through a new ledger event; historical records are never edited.",  # noqa: E501
+    "Evidence and source standing are declared and checked at promotion; synthetic evidence is never relabelled as observed.",  # noqa: E501
+    "Regression-gate policy is declared per baseline; this registry does not claim causality, optimality, or production readiness.",  # noqa: E501
+    "Portable exports exclude local paths, retrieval clocks, and secrets; fingerprints use deterministic canonical JSON.",  # noqa: E501
 ]
-
-_IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,127}$")
 
 
 def utc_now() -> datetime:
@@ -63,7 +56,6 @@ def create_empty_registry(
 ) -> BaselineRegistry:
     """Return a new empty registry."""
     now = _now_or_fixed(clock)
-    # Compute fingerprint over payload without registry_fingerprint
     temp = BaselineRegistry(
         schema_version=BASELINE_SCHEMA_VERSION,
         created_at=now,
@@ -75,10 +67,6 @@ def create_empty_registry(
     )
     fp = temp.compute_fingerprint()
     return temp.model_copy(update={"registry_fingerprint": fp})
-
-
-def _recompute_registry_fingerprint(registry: BaselineRegistry) -> str:
-    return registry.compute_fingerprint()
 
 
 def _next_entry_index(registry: BaselineRegistry) -> int:
@@ -117,15 +105,6 @@ def _build_ledger_entry(
     )
     fp = provisional.compute_fingerprint()
     return provisional.model_copy(update={"entry_fingerprint": fp})
-
-
-def _validate_no_path(value: str | None, field_name: str) -> None:
-    if value is None:
-        return
-    # reuse helper from models – simple check for absolute path markers
-    if "://" in value or (value.startswith("/") and "/" in value[1:]):
-        # crude – but model validators already enforce; keep fail-closed
-        raise ValueError(f"{field_name} must not contain absolute paths")
 
 
 # ---------------------------------------------------------------------------
@@ -212,6 +191,7 @@ def candidates_to_csv(registry: BaselineRegistry) -> str:
             "schema_version",
             "evidence_standing",
             "source_standing",
+            "allowed_evidence_standings",
             "regression_gate_policy",
             "created_at",
         ],
@@ -228,6 +208,9 @@ def candidates_to_csv(registry: BaselineRegistry) -> str:
                 "schema_version": cand.schema_version,
                 "evidence_standing": cand.evidence_standing.value,
                 "source_standing": cand.source_standing.value,
+                "allowed_evidence_standings": ",".join(
+                    s.value for s in cand.scope.allowed_evidence_standings
+                ),
                 "regression_gate_policy": cand.regression_gate_policy,
                 "created_at": cand.created_at.isoformat(),
             }
@@ -250,6 +233,7 @@ def active_baselines_to_csv(registry: BaselineRegistry) -> str:
             "artifact_type",
             "evidence_standing",
             "source_standing",
+            "allowed_evidence_standings",
             "approval_fingerprint",
             "effective_date",
             "superseded_baseline_fingerprint",
@@ -269,6 +253,9 @@ def active_baselines_to_csv(registry: BaselineRegistry) -> str:
                 "artifact_type": rec.artifact_type.value,
                 "evidence_standing": rec.evidence_standing.value,
                 "source_standing": rec.source_standing.value,
+                "allowed_evidence_standings": ",".join(
+                    s.value for s in rec.scope.allowed_evidence_standings
+                ),
                 "approval_fingerprint": rec.approval_fingerprint,
                 "effective_date": rec.effective_date.isoformat(),
                 "superseded_baseline_fingerprint": rec.superseded_baseline_fingerprint or "",
@@ -305,29 +292,27 @@ def build_candidate(
         BaselineSourceStanding,
     )
 
-    # Coerce enums fail-closed
-    try:
-        at = (
-            BaselineArtifactType(artifact_type) if isinstance(artifact_type, str) else artifact_type
-        )
-    except ValueError as exc:
-        raise ValueError(f"unsupported artifact_type: {artifact_type}") from exc
-    try:
-        ev = (
-            BaselineEvidenceStanding(evidence_standing)
-            if isinstance(evidence_standing, str)
-            else evidence_standing
-        )
-    except ValueError as exc:
-        raise ValueError(f"unsupported evidence_standing: {evidence_standing}") from exc
-    try:
-        ss = (
-            BaselineSourceStanding(source_standing)
-            if isinstance(source_standing, str)
-            else source_standing
-        )
-    except ValueError as exc:
-        raise ValueError(f"unsupported source_standing: {source_standing}") from exc
+    if isinstance(artifact_type, str):
+        try:
+            at = BaselineArtifactType(artifact_type)
+        except ValueError as exc:
+            raise ValueError(f"unsupported artifact_type: {artifact_type}") from exc
+    else:
+        at = artifact_type  # type: ignore[assignment]
+    if isinstance(evidence_standing, str):
+        try:
+            ev = BaselineEvidenceStanding(evidence_standing)
+        except ValueError as exc:
+            raise ValueError(f"unsupported evidence_standing: {evidence_standing}") from exc
+    else:
+        ev = evidence_standing  # type: ignore[assignment]
+    if isinstance(source_standing, str):
+        try:
+            ss = BaselineSourceStanding(source_standing)
+        except ValueError as exc:
+            raise ValueError(f"unsupported source_standing: {source_standing}") from exc
+    else:
+        ss = source_standing  # type: ignore[assignment]
 
     now = _now_or_fixed(clock)
     cand = BaselineCandidate(
@@ -347,6 +332,10 @@ def build_candidate(
     return cand
 
 
+def _scope_semantic_fingerprint(scope: BaselineScope) -> str:
+    return scope.fingerprint()
+
+
 def register_candidate(
     registry: BaselineRegistry,
     candidate: BaselineCandidate,
@@ -355,13 +344,32 @@ def register_candidate(
     note: str | None = None,
     clock: Callable[[], datetime] | None = None,
 ) -> BaselineRegistry:
-    """Append a candidate_registered event. Fail-closed on duplicates / bounds."""
+    """Append a candidate_registered event. Fail-closed on duplicates / policy drift."""
     if candidate.candidate_id in registry.candidates:
         raise ValueError(f"candidate_id {candidate.candidate_id!r} already registered")
-
-    # Enforce bounded candidates
     if len(registry.candidates) >= 500:
         raise ValueError("candidate limit reached")
+
+    # Scope policy stability: if same scope_id already exists, require semantic fingerprint match
+    existing_scopes: list[BaselineScope] = []
+    for c in registry.candidates.values():
+        if c.scope.scope_id == candidate.scope.scope_id:
+            existing_scopes.append(c.scope)
+    for rec in registry.active_baselines.values():
+        if rec.scope.scope_id == candidate.scope.scope_id:
+            existing_scopes.append(rec.scope)
+    if existing_scopes:
+        expected_fp = _scope_semantic_fingerprint(existing_scopes[0])
+        cand_fp = _scope_semantic_fingerprint(candidate.scope)
+        if cand_fp != expected_fp:
+            raise ValueError(
+                f"scope_id {candidate.scope.scope_id!r} already exists with different policy; "
+                f"use a new/versioned scope_id for policy change"
+            )
+        # Also ensure all existing scopes with same id have same fingerprint
+        for s in existing_scopes[1:]:
+            if _scope_semantic_fingerprint(s) != expected_fp:
+                raise ValueError("inconsistent scope policy already in registry")
 
     now = _now_or_fixed(clock)
     parent_fp = registry.registry_fingerprint
@@ -410,7 +418,6 @@ def approve_candidate(
     candidate = registry.candidates[candidate_id]
 
     now = _now_or_fixed(clock)
-    # Approval binds exact candidate fingerprint and scope
     provisional = BaselineApproval(
         approval_id=f"approval-{candidate_id}",
         candidate_id=candidate_id,
@@ -424,11 +431,7 @@ def approve_candidate(
     fp = provisional.compute_fingerprint()
     approval = provisional.model_copy(update={"approval_fingerprint": fp})
 
-    # Check no stale parent? approvals are new, but we check registry fingerprint binds.
-    # Store approval – overwrite if exists? For explicit review, allow re-approval but ledger keeps history.  # noqa: E501
-    # We treat approvals dict as last approval per candidate, but ledger tracks all.
     new_approvals = dict(registry.approvals)
-    # If already approved with different fingerprint, treat as new promotion? Keep latest.
     new_approvals[candidate_id] = approval
 
     parent_fp = registry.registry_fingerprint
@@ -457,55 +460,146 @@ def approve_candidate(
 
 
 # ---------------------------------------------------------------------------
-# Compatibility audit
+# Helpers for restore history
+# ---------------------------------------------------------------------------
+
+
+def _previous_baseline_history_for_candidate(
+    registry: BaselineRegistry, candidate_id: str, scope_id: str
+) -> tuple[bool, str | None]:
+    """Return (was_previously_active, superseded_reason).
+
+    Checks ledger for a prior PROMOTED or RESTORED_AS_NEW_PROMOTION for this candidate/scope
+    that was later superseded (i.e., a SUPERSEDED event for that baseline exists).
+    """
+    # Find promotion events for candidate
+    promotion_events = [
+        e
+        for e in registry.ledger
+        if e.candidate_id == candidate_id
+        and e.scope_id == scope_id
+        and e.event_kind
+        in (BaselineLedgerEventKind.PROMOTED, BaselineLedgerEventKind.RESTORED_AS_NEW_PROMOTION)
+        and e.baseline_id is not None
+    ]
+    if not promotion_events:
+        return False, "candidate was never previously promoted in this scope"
+
+    # For each promotion, check if its baseline was later superseded
+    for prom in promotion_events:
+        baseline_id = prom.baseline_id
+        # Look for SUPERSEDED event that points at this baseline (old baseline being superseded)
+        superseded_events = [
+            e
+            for e in registry.ledger
+            if e.event_kind == BaselineLedgerEventKind.SUPERSEDED
+            and e.baseline_id == baseline_id
+            and e.scope_id == scope_id
+        ]
+        if superseded_events:
+            return True, None
+        # Also check if baseline is not currently active but was superseded
+        # If candidate is not currently active, and there is a superseded event after promotion
+        # Simpler: if candidate not active and promotion exists, and superseded event
+        # But to be precise, we require explicit superseded event for that baseline.
+        # If not superseded, then candidate is still active or was never superseded.
+        # If promotion exists but no superseded, then it might still be active.
+        # For now, only superseded history counts.
+    return False, "candidate has no superseded prior baseline in this scope"
+
+
+def _is_restorable_candidate(registry: BaselineRegistry, candidate_id: str, scope_id: str) -> bool:
+    ok, _ = _previous_baseline_history_for_candidate(registry, candidate_id, scope_id)
+    return ok
+
+
+def list_restorable_candidates(registry: BaselineRegistry, scope_id: str) -> list[str]:
+    """Return candidate_ids that are restorable in the given scope."""
+    restorable: list[str] = []
+    for cand_id, cand in registry.candidates.items():
+        if cand.scope.scope_id != scope_id:
+            continue
+        if _is_restorable_candidate(registry, cand_id, scope_id):
+            # Also candidate not already active
+            active = registry.active_baselines.get(scope_id)
+            if active is not None and active.candidate_id == cand_id:
+                continue
+            restorable.append(cand_id)
+    return sorted(restorable)
+
+
+# ---------------------------------------------------------------------------
+# Authoritative promotion gate
 # ---------------------------------------------------------------------------
 
 
 def _audit_promotion_gate(
     registry: BaselineRegistry,
     request: BaselinePromotionRequest,
-    candidate: BaselineCandidate,
+    candidate: BaselineCandidate | None,
     approval: BaselineApproval | None,
 ) -> BaselineCompatibilityAudit:
     findings: list[str] = []
 
-    # 1. candidate exists – already checked caller ensures
-    # 2. exact artifact fingerprint verified
+    # Determine candidate existence first
+    if candidate is None:
+        # All other checks false when missing
+        audit = BaselineCompatibilityAudit(
+            candidate_id=request.candidate_id,
+            scope_id=request.scope_id,
+            artifact_fingerprint_verified=False,
+            scope_compatible=False,
+            evidence_policy_satisfied=False,
+            source_standing_satisfied=False,
+            approval_binds=False,
+            no_stale_parent=(request.registry_parent_fingerprint == registry.registry_fingerprint),
+            operation_preconditions_satisfied=False,
+            findings=[f"candidate {request.candidate_id!r} does not exist"],
+            passed=False,
+            audit_fingerprint="0" * 64,
+        )
+        return audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
+
+    # 1. artifact fingerprint verified
     artifact_verified = candidate.artifact_fingerprint == request.artifact_fingerprint
     if not artifact_verified:
         findings.append(
-            f"artifact fingerprint mismatch: candidate {candidate.artifact_fingerprint[:12]}… != request {request.artifact_fingerprint[:12]}…"  # noqa: E501
+            f"artifact fingerprint mismatch: candidate {candidate.artifact_fingerprint[:12]}…"
         )
 
-    # 3. compatibility audit passes – for baseline registry, compatibility means
-    #    metric contracts, cohort, schema etc are internally consistent and
-    #    candidate's standing satisfies policy? We'll define compatibility_passed as
-    #    artifact_verified and no absolute path contamination (already validated) and
-    #    metric contracts non-empty or allowed.
-    compatibility_passed = artifact_verified and len(candidate.metric_contracts) <= 64
-    if not compatibility_passed and artifact_verified:
-        findings.append("compatibility check failed for candidate contracts")
+    # 2. scope compatible: request scope == candidate scope, cohort definitions match, scope policy stable  # noqa: E501
+    scope_compatible = (
+        request.scope_id == candidate.scope.scope_id
+        and candidate.cohort_definition == candidate.scope.cohort_definition
+    )
+    if not scope_compatible:
+        if request.scope_id != candidate.scope.scope_id:
+            findings.append(
+                f"request scope {request.scope_id!r} does not match candidate scope {candidate.scope.scope_id!r}"  # noqa: E501
+            )
+        else:
+            findings.append("candidate cohort does not match scope cohort")
 
-    # 4. evidence standing satisfies declared baseline policy
-    # Policy is a string; we interpret "requires admitted" etc. Fail-closed:
-    # if policy contains "admitted" then evidence_standing must be admitted.
-    # For now, allow any standing except UNAVAILABLE; but if policy says "admitted"
-    # then require admitted.
-    policy = candidate.regression_gate_policy.lower()
-    evidence_satisfied = True
-    if "admitted" in policy and candidate.evidence_standing.value != "admitted_research":
-        evidence_satisfied = False
-        findings.append(
-            f"evidence standing {candidate.evidence_standing.value!r} does not satisfy policy requiring admitted"  # noqa: E501
-        )
-    if (
-        candidate.evidence_standing.value == "unavailable"
-        or candidate.source_standing.value == "unavailable"
-    ):
-        evidence_satisfied = False
-        findings.append("evidence or source standing is unavailable")
+    # 3. evidence policy satisfied: candidate.evidence_standing in allowed, not UNAVAILABLE
+    evidence_satisfied = (
+        candidate.evidence_standing in candidate.scope.allowed_evidence_standings
+        and candidate.evidence_standing.value != "unavailable"
+    )
+    if not evidence_satisfied:
+        if candidate.evidence_standing.value == "unavailable":
+            findings.append("evidence standing is unavailable")
+        else:
+            allowed = ", ".join(s.value for s in candidate.scope.allowed_evidence_standings)
+            findings.append(
+                f"evidence standing {candidate.evidence_standing.value!r} not in allowed {allowed!r}"  # noqa: E501
+            )
 
-    # 5 & 6. explicit approval exists and binds exact candidate and scope + fingerprint
+    # 4. source standing satisfied: not UNAVAILABLE
+    source_satisfied = candidate.source_standing.value != "unavailable"
+    if not source_satisfied:
+        findings.append("source standing is unavailable")
+
+    # 5. approval binds
     approval_binds = False
     if approval is None:
         findings.append("no explicit approval exists for candidate")
@@ -518,7 +612,6 @@ def _audit_promotion_gate(
             == candidate.artifact_fingerprint
         )
         binds_approval_fp = approval.approval_fingerprint == request.approval_fingerprint
-        # Approval must bind exact candidate and scope
         approval_binds = binds_candidate and binds_scope and binds_fingerprint and binds_approval_fp
         if not binds_candidate:
             findings.append("approval candidate_id does not match request")
@@ -528,457 +621,118 @@ def _audit_promotion_gate(
             findings.append("approval artifact fingerprint does not match request/candidate")
         if not binds_approval_fp:
             findings.append("approval fingerprint mismatch")
-        # Also check stale approval: approval must be for current candidate fingerprint, not older
-        # If candidate fingerprint changed after approval, this already fails binds_fingerprint.
 
-    # 7. no stale parent registry
+    # 6. no stale parent
     no_stale_parent = request.registry_parent_fingerprint == registry.registry_fingerprint
     if not no_stale_parent:
         findings.append(
             f"stale parent registry: request {request.registry_parent_fingerprint[:12]}… != current {registry.registry_fingerprint[:12]}…"  # noqa: E501
         )
 
-    # 8. no conflicting active baseline in same scope – but promotion will supersede active if exists.  # noqa: E501
-    # Conflict means there is active baseline in same scope and promotion is not superseding? We treat  # noqa: E501
-    # as blocked if active exists and request does not supersede? Actually spec says "no conflicting active baseline in the same scope."  # noqa: E501
-    # For initial promotion, conflict if active already exists in that scope (duplicate active scope refusal)  # noqa: E501
-    # So we block if active exists for that scope – supersession should go through supersede path, not promote?  # noqa: E501
-    # However supersede is logically a promotion that replaces active; we allow promotion to replace active but must record superseded fingerprint.  # noqa: E501
-    # To satisfy duplicate active refusal test, we need to block a second promote without supersede.
-    # We'll define no_conflicting_active = True if no active in scope, OR if active exists but promotion is intended to supersede (i.e., we will record superseded). But spec lists superseded as separate event, so promote should be blocked if active exists.  # noqa: E501
-    # For simplicity: no_conflicting_active = (request.scope_id not in registry.active_baselines)
-    # If active exists, gate fails. The supersede function will handle replacing active via its own gate but also checks same.  # noqa: E501
-    # We'll allow promote to supersede if caller uses supersede path; for direct promote we block.
-    # However to support supersession test, supersede function will allow replacement.
-    # So for promote gate, conflicting active = False if active exists.
-    no_conflicting_active = request.scope_id not in registry.active_baselines
-    if not no_conflicting_active:
-        findings.append(f"conflicting active baseline already exists in scope {request.scope_id!r}")
+    # 7. operation preconditions
+    op = request.operation
+    active = registry.active_baselines.get(request.scope_id)
+    operation_ok = False
+    if op == BaselinePromotionOperation.PROMOTE:
+        # No active baseline may exist
+        if active is None:
+            operation_ok = True
+        else:
+            findings.append(
+                f"conflicting active baseline already exists in scope {request.scope_id!r}"
+            )
+    elif op == BaselinePromotionOperation.SUPERSEDE:
+        if active is None:
+            findings.append(f"no active baseline in scope {request.scope_id!r} to supersede")
+        elif active.candidate_id == request.candidate_id:
+            findings.append("supersede candidate is already active")
+        else:
+            operation_ok = True
+    elif op == BaselinePromotionOperation.RESTORE:
+        # Must have been previously active and superseded, not currently active, and approval etc already checked  # noqa: E501
+        if active is None:
+            findings.append("no active baseline in scope for restore to supersede")
+        else:
+            if active.candidate_id == request.candidate_id:
+                findings.append("restore candidate is already active")
+            else:
+                was_active, reason = _previous_baseline_history_for_candidate(
+                    registry, request.candidate_id, request.scope_id
+                )
+                if not was_active:
+                    findings.append(
+                        f"restore requires a previously active superseded candidate: {reason}"
+                    )
+                else:
+                    operation_ok = True
+    else:
+        findings.append(f"unknown operation {op!r}")
 
     passed = bool(
         artifact_verified
-        and compatibility_passed
+        and scope_compatible
         and evidence_satisfied
+        and source_satisfied
         and approval_binds
         and no_stale_parent
-        and no_conflicting_active
+        and operation_ok
     )
 
     if passed:
         findings.append("all promotion gate checks passed")
 
-    provisional = BaselineCompatibilityAudit(
+    audit = BaselineCompatibilityAudit(
         candidate_id=request.candidate_id,
         scope_id=request.scope_id,
         artifact_fingerprint_verified=artifact_verified,
-        compatibility_passed=compatibility_passed,
+        scope_compatible=scope_compatible,
         evidence_policy_satisfied=evidence_satisfied,
+        source_standing_satisfied=source_satisfied,
         approval_binds=approval_binds,
         no_stale_parent=no_stale_parent,
-        no_conflicting_active=no_conflicting_active,
+        operation_preconditions_satisfied=operation_ok,
         findings=findings,
         passed=passed,
         audit_fingerprint="0" * 64,
     )
-    fp = provisional.compute_fingerprint()
-    return provisional.model_copy(update={"audit_fingerprint": fp})
+    return audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
 
 
 # ---------------------------------------------------------------------------
-# Promotion
+# Promotion helpers
 # ---------------------------------------------------------------------------
 
 
-def promote_baseline(
-    registry: BaselineRegistry,
+def _promotion_failure_receipt(
     request: BaselinePromotionRequest,
-    *,
-    clock: Callable[[], datetime] | None = None,
-) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
-    """Try to promote a candidate. Fail-closed with blocked receipt on any gate failure."""
+    audit: BaselineCompatibilityAudit,
+    clock: Callable[[], datetime] | None,
+) -> BaselinePromotionReceipt:
     now = _now_or_fixed(clock)
-
-    # Verify candidate exists
-    candidate = registry.candidates.get(request.candidate_id)
-    if candidate is None:
-        audit = BaselineCompatibilityAudit(
-            candidate_id=request.candidate_id,
-            scope_id=request.scope_id,
-            artifact_fingerprint_verified=False,
-            compatibility_passed=False,
-            evidence_policy_satisfied=False,
-            approval_binds=False,
-            no_stale_parent=(request.registry_parent_fingerprint == registry.registry_fingerprint),
-            no_conflicting_active=(request.scope_id not in registry.active_baselines),
-            findings=[f"candidate {request.candidate_id!r} does not exist"],
-            passed=False,
-            audit_fingerprint="0" * 64,
-        )
-        audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-        receipt = BaselinePromotionReceipt(
-            request=request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    # Fetch approval (exact)
-    approval = registry.approvals.get(request.candidate_id)
-
-    audit = _audit_promotion_gate(registry, request, candidate, approval)
-
-    if not audit.passed:
-        receipt = BaselinePromotionReceipt(
-            request=request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    # Gate passed – create BaselineRecord
-    # Superseded fingerprint is previous active's record fingerprint if any, else None (but gate ensures no active, so None)  # noqa: E501
-    superseded_fp = None
-    # Since promotion gate blocked if active exists, superseded is None for promote.
-    # For supersede path, we handle separately.
-
-    # Build record fingerprint via provisional
-    provisional_record = BaselineRecord(
-        baseline_id=f"baseline-{candidate.candidate_id}",
-        scope=candidate.scope,
-        artifact_fingerprint=candidate.artifact_fingerprint,
-        artifact_type=candidate.artifact_type,
-        schema_version=candidate.schema_version,
-        metric_contracts=list(candidate.metric_contracts),
-        cohort_definition=candidate.cohort_definition,
-        evidence_standing=candidate.evidence_standing,
-        source_standing=candidate.source_standing,
-        approval_fingerprint=approval.approval_fingerprint
-        if approval
-        else request.approval_fingerprint,
-        effective_date=now.date(),
-        superseded_baseline_fingerprint=superseded_fp,
-        regression_gate_policy=candidate.regression_gate_policy,
-        limitations=candidate.limitations,
-        candidate_id=candidate.candidate_id,
-        status=BaselineStatus.ACTIVE,
-        created_at=now,
-        record_fingerprint="0" * 64,
-    )
-    record_fp = provisional_record.compute_fingerprint()
-    record = provisional_record.model_copy(update={"record_fingerprint": record_fp})
-
-    # Append promotion ledger entry
-    parent_fp = registry.registry_fingerprint
-    entry = _build_ledger_entry(
-        entry_index=_next_entry_index(registry),
-        event_kind=BaselineLedgerEventKind.PROMOTED,
-        timestamp=now,
-        scope_id=candidate.scope.scope_id,
-        candidate_id=candidate.candidate_id,
-        baseline_id=record.baseline_id,
-        artifact_fingerprint=candidate.artifact_fingerprint,
-        approval_fingerprint=record.approval_fingerprint,
-        superseded_fingerprint=superseded_fp,
-        registry_parent_fingerprint=parent_fp,
-        actor=request.requested_by,
-        note="promoted",
-    )
-
-    new_active = dict(registry.active_baselines)
-    new_active[candidate.scope.scope_id] = record
-    new_ledger = list(registry.ledger)
-    new_ledger.append(entry)
-
-    new_registry = registry.model_copy(
-        update={"active_baselines": new_active, "ledger": new_ledger}
-    )
-    new_registry_fp = new_registry.compute_fingerprint()
-    new_registry = new_registry.model_copy(update={"registry_fingerprint": new_registry_fp})
-
     receipt = BaselinePromotionReceipt(
         request=request,
-        status=BaselineStatus.ACTIVE,
-        promoted_record=record,
-        blocked_reasons=[],
+        status=BaselineStatus.BLOCKED,
+        promoted_record=None,
+        blocked_reasons=list(audit.findings),
         audit=audit,
         receipt_fingerprint="0" * 64,
         created_at=now,
     )
-    receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-    return new_registry, receipt
+    return receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
 
 
-# ---------------------------------------------------------------------------
-# Supersession
-# ---------------------------------------------------------------------------
-
-
-def supersede_baseline(
-    registry: BaselineRegistry,
-    *,
-    scope_id: str,
-    superseding_candidate_id: str,
-    actor: str,
-    note: str | None = None,
-    clock: Callable[[], datetime] | None = None,
-) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
-    """Supersede the active baseline in a scope with a new candidate.
-
-    This is a promotion that replaces an existing active baseline. The old
-    active's fingerprint is recorded as superseded_baseline_fingerprint and
-    a SUPERSEDED ledger entry plus PROMOTED entry are appended (two events
-    or one combined superseded+promoted? We model as one PROMOTED with
-    superseded fingerprint plus a SUPERSEDED marker entry for audit).
-
-    For append-only invariant, we never mutate the old record – we mark it
-    superseded via a ledger event and insert the new active record.
-    """
-    now = _now_or_fixed(clock)
-
-    if scope_id not in registry.active_baselines:
-        # No active to supersede – treat as blocked
-        dummy_request = BaselinePromotionRequest(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint="0" * 64,
-            approval_fingerprint="0" * 64,
-            registry_parent_fingerprint=registry.registry_fingerprint,
-            requested_by=actor,
-            requested_at=now,
-        )
-        audit = BaselineCompatibilityAudit(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint_verified=False,
-            compatibility_passed=False,
-            evidence_policy_satisfied=False,
-            approval_binds=False,
-            no_stale_parent=True,
-            no_conflicting_active=False,
-            findings=[f"no active baseline in scope {scope_id!r} to supersede"],
-            passed=False,
-            audit_fingerprint="0" * 64,
-        )
-        audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-        receipt = BaselinePromotionReceipt(
-            request=dummy_request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    if superseding_candidate_id not in registry.candidates:
-        dummy_request = BaselinePromotionRequest(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint="0" * 64,
-            approval_fingerprint="0" * 64,
-            registry_parent_fingerprint=registry.registry_fingerprint,
-            requested_by=actor,
-            requested_at=now,
-        )
-        audit = BaselineCompatibilityAudit(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint_verified=False,
-            compatibility_passed=False,
-            evidence_policy_satisfied=False,
-            approval_binds=False,
-            no_stale_parent=True,
-            no_conflicting_active=False,
-            findings=[f"superseding candidate {superseding_candidate_id!r} does not exist"],
-            passed=False,
-            audit_fingerprint="0" * 64,
-        )
-        audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-        receipt = BaselinePromotionReceipt(
-            request=dummy_request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    candidate = registry.candidates[superseding_candidate_id]
-    if candidate.scope.scope_id != scope_id:
-        dummy_request = BaselinePromotionRequest(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint=candidate.artifact_fingerprint,
-            approval_fingerprint=registry.approvals.get(
-                superseding_candidate_id, candidate
-            ).artifact_fingerprint
-            if isinstance(registry.approvals.get(superseding_candidate_id), BaselineApproval)
-            else "0" * 64,
-            registry_parent_fingerprint=registry.registry_fingerprint,
-            requested_by=actor,
-            requested_at=now,
-        )
-        # Use actual approval fingerprint if available
-        approval_fp = (
-            registry.approvals[superseding_candidate_id].approval_fingerprint
-            if superseding_candidate_id in registry.approvals
-            else "0" * 64
-        )
-        dummy_request = dummy_request.model_copy(update={"approval_fingerprint": approval_fp})
-        audit = BaselineCompatibilityAudit(
-            candidate_id=superseding_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint_verified=False,
-            compatibility_passed=False,
-            evidence_policy_satisfied=False,
-            approval_binds=False,
-            no_stale_parent=True,
-            no_conflicting_active=False,
-            findings=[
-                f"candidate scope {candidate.scope.scope_id!r} does not match supersede scope {scope_id!r}"  # noqa: E501
-            ],
-            passed=False,
-            audit_fingerprint="0" * 64,
-        )
-        audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-        receipt = BaselinePromotionReceipt(
-            request=dummy_request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    approval = registry.approvals.get(superseding_candidate_id)
-    active_record = registry.active_baselines[scope_id]
-
-    # Build request that would pass the promotion gate except for conflicting active – for supersede we need a relaxed check  # noqa: E501
-    # So we perform a dedicated supersede audit where no_conflicting_active is allowed to be False but we treat it as ok if superseding.  # noqa: E501
-    # We'll reuse _audit_promotion_gate but override its no_conflicting_active logic for supersede.
-
-    request = BaselinePromotionRequest(
-        candidate_id=superseding_candidate_id,
-        scope_id=scope_id,
-        artifact_fingerprint=candidate.artifact_fingerprint,
-        approval_fingerprint=approval.approval_fingerprint if approval else "0" * 64,
-        registry_parent_fingerprint=registry.registry_fingerprint,
-        requested_by=actor,
-        requested_at=now,
-    )
-
-    # Run gate but allow active conflict – compute audit manually for supersede
-    findings: list[str] = []
-    artifact_verified = candidate.artifact_fingerprint == request.artifact_fingerprint
-    if not artifact_verified:
-        findings.append("artifact fingerprint mismatch for supersede")
-
-    compatibility_passed = artifact_verified and len(candidate.metric_contracts) <= 64
-    evidence_satisfied = True
-    if (
-        "admitted" in candidate.regression_gate_policy.lower()
-        and candidate.evidence_standing.value != "admitted_research"
-    ):
-        evidence_satisfied = False
-        findings.append(
-            "evidence standing does not satisfy policy requiring admitted for supersede"
-        )
-    if (
-        candidate.evidence_standing.value == "unavailable"
-        or candidate.source_standing.value == "unavailable"
-    ):
-        evidence_satisfied = False
-        findings.append("evidence or source standing is unavailable for supersede")
-
-    approval_binds = False
-    if approval is None:
-        findings.append("no explicit approval for superseding candidate")
-    else:
-        approval_binds = (
-            approval.candidate_id == request.candidate_id
-            and approval.scope_id == request.scope_id
-            and approval.artifact_fingerprint == request.artifact_fingerprint
-            and approval.approval_fingerprint == request.approval_fingerprint
-        )
-        if not approval_binds:
-            findings.append(
-                "approval does not bind exact candidate/scope/fingerprint for supersede"
-            )
-
-    no_stale_parent = request.registry_parent_fingerprint == registry.registry_fingerprint
-    if not no_stale_parent:
-        findings.append("stale parent registry for supersede")
-
-    # For supersede, we intentionally allow active exists; so no_conflicting_active is True if we are superseding (i.e., active exists)  # noqa: E501
-    # To keep audit passed semantics, we treat no_conflicting_active as True for supersede case when active exists.  # noqa: E501
-    # But we still record that we supersede.
-    no_conflicting_active_supersede = True  # supersede explicitly allows replacing active
-
-    passed = bool(
-        artifact_verified
-        and compatibility_passed
-        and evidence_satisfied
-        and approval_binds
-        and no_stale_parent
-        and no_conflicting_active_supersede
-    )
-
-    if not passed:
-        findings.append("supersede gate blocked")
-
-    audit = BaselineCompatibilityAudit(
-        candidate_id=superseding_candidate_id,
-        scope_id=scope_id,
-        artifact_fingerprint_verified=artifact_verified,
-        compatibility_passed=compatibility_passed,
-        evidence_policy_satisfied=evidence_satisfied,
-        approval_binds=approval_binds,
-        no_stale_parent=no_stale_parent,
-        no_conflicting_active=no_conflicting_active_supersede,
-        findings=findings if not passed else findings + ["all supersede gate checks passed"],
-        passed=passed,
-        audit_fingerprint="0" * 64,
-    )
-    # Need to ensure findings + passed aligns – if passed, the last finding includes pass note, but audit validator expects findings consistent.  # noqa: E501
-    # Already handled.
-    audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-
-    if not passed:
-        receipt = BaselinePromotionReceipt(
-            request=request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    assert approval is not None  # for mypy: passed requires approval_binds
-    # Create new active record with superseded fingerprint
-    superseded_fp = active_record.record_fingerprint
-    provisional_record = BaselineRecord(
-        baseline_id=f"baseline-{candidate.candidate_id}",
+def _build_promotion_record(
+    candidate: BaselineCandidate,
+    approval: BaselineApproval,
+    superseded_fp: str | None,
+    now: datetime,
+) -> BaselineRecord:
+    # Determine baseline_id: for promote/supersede, use baseline-{candidate_id}; for restore, use suffix to avoid clash  # noqa: E501
+    baseline_id = f"baseline-{candidate.candidate_id}"
+    # For restore, caller will adjust if needed to avoid id clash – but we keep deterministic
+    # If baseline_id already exists historically, we append suffix via ledger length? Caller handles.  # noqa: E501
+    provisional = BaselineRecord(
+        baseline_id=baseline_id,
         scope=candidate.scope,
         artifact_fingerprint=candidate.artifact_fingerprint,
         artifact_type=candidate.artifact_type,
@@ -997,28 +751,162 @@ def supersede_baseline(
         created_at=now,
         record_fingerprint="0" * 64,
     )
-    record_fp = provisional_record.compute_fingerprint()
-    record = provisional_record.model_copy(update={"record_fingerprint": record_fp})
+    fp = provisional.compute_fingerprint()
+    return provisional.model_copy(update={"record_fingerprint": fp})
 
-    # Ledger: first SUPERSEDED entry marking old baseline superseded, then PROMOTED entry for new one.  # noqa: E501
-    # For append-only simplicity we add two entries atomically.
+
+# ---------------------------------------------------------------------------
+# Promotion (core)
+# ---------------------------------------------------------------------------
+
+
+def promote_baseline(
+    registry: BaselineRegistry,
+    request: BaselinePromotionRequest,
+    *,
+    clock: Callable[[], datetime] | None = None,
+) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
+    """Try to promote a candidate. Fail-closed with BLOCKED receipt."""
+    if request.operation != BaselinePromotionOperation.PROMOTE:
+        # Operation mismatch is a blocked precondition
+        candidate = registry.candidates.get(request.candidate_id)
+        approval = registry.approvals.get(request.candidate_id)
+        audit = _audit_promotion_gate(registry, request, candidate, approval)
+        # Overwrite findings to indicate operation mismatch if not already
+        if "unknown operation" not in " ".join(audit.findings):
+            # Already handled by gate (scope mismatch etc), but ensure blocked
+            pass
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    candidate = registry.candidates.get(request.candidate_id)
+    approval = registry.approvals.get(request.candidate_id)
+    audit = _audit_promotion_gate(registry, request, candidate, approval)
+    if not audit.passed:
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    assert candidate is not None
+    assert approval is not None
+    now = _now_or_fixed(clock)
+    # Superseded is None for promote (no active)
+    record = _build_promotion_record(candidate, approval, None, now)
+
     parent_fp = registry.registry_fingerprint
+    entry = _build_ledger_entry(
+        entry_index=_next_entry_index(registry),
+        event_kind=BaselineLedgerEventKind.PROMOTED,
+        timestamp=now,
+        scope_id=candidate.scope.scope_id,
+        candidate_id=candidate.candidate_id,
+        baseline_id=record.baseline_id,
+        artifact_fingerprint=candidate.artifact_fingerprint,
+        approval_fingerprint=record.approval_fingerprint,
+        superseded_fingerprint=None,
+        registry_parent_fingerprint=parent_fp,
+        actor=request.requested_by,
+        note="promoted",
+    )
+
+    new_active = dict(registry.active_baselines)
+    new_active[candidate.scope.scope_id] = record
+    new_ledger = list(registry.ledger)
+    new_ledger.append(entry)
+
+    new_registry = registry.model_copy(
+        update={"active_baselines": new_active, "ledger": new_ledger}
+    )
+    new_fp = new_registry.compute_fingerprint()
+    new_registry = new_registry.model_copy(update={"registry_fingerprint": new_fp})
+
+    receipt = BaselinePromotionReceipt(
+        request=request,
+        status=BaselineStatus.ACTIVE,
+        promoted_record=record,
+        blocked_reasons=[],
+        audit=audit,
+        receipt_fingerprint="0" * 64,
+        created_at=now,
+    )
+    receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
+    return new_registry, receipt
+
+
+# ---------------------------------------------------------------------------
+# Supersession (core) – accepts typed request
+# ---------------------------------------------------------------------------
+
+
+def supersede_baseline(
+    registry: BaselineRegistry,
+    request: BaselinePromotionRequest | None = None,
+    *,
+    clock: Callable[[], datetime] | None = None,
+    scope_id: str | None = None,
+    superseding_candidate_id: str | None = None,
+    actor: str | None = None,
+) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
+    """Supersede the active baseline in a scope with a new candidate via request.
+
+    Supports both new request-based and legacy compat signatures.
+    """
+    # Legacy compat dispatch
+    if request is None and scope_id is not None and superseding_candidate_id is not None:
+        return supersede_baseline_compat(
+            registry,
+            scope_id=scope_id,
+            superseding_candidate_id=superseding_candidate_id,
+            actor=actor or "operator",
+            clock=clock,
+        )
+    if request is None:
+        raise TypeError(
+            "supersede_baseline requires either request or scope_id/superseding_candidate_id"
+        )
+    assert isinstance(request, BaselinePromotionRequest)
+    if request.operation != BaselinePromotionOperation.SUPERSEDE:
+        candidate = registry.candidates.get(request.candidate_id)
+        approval = registry.approvals.get(request.candidate_id)
+        audit = _audit_promotion_gate(registry, request, candidate, approval)
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    candidate = registry.candidates.get(request.candidate_id)
+    approval = registry.approvals.get(request.candidate_id)
+    audit = _audit_promotion_gate(registry, request, candidate, approval)
+    if not audit.passed:
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    assert candidate is not None
+    assert approval is not None
+    now = _now_or_fixed(clock)
+    active_record = registry.active_baselines.get(request.scope_id)
+    assert active_record is not None  # gate ensures
+
+    superseded_fp = active_record.record_fingerprint
+    record = _build_promotion_record(candidate, approval, superseded_fp, now)
+    # Ensure baseline_id uniqueness if already exists historically
+    # If baseline_id collides with existing ledger baseline_id, suffix with ledger length
+    existing_ids = {e.baseline_id for e in registry.ledger if e.baseline_id}
+    if record.baseline_id in existing_ids:
+        record = record.model_copy(
+            update={"baseline_id": f"{record.baseline_id}-{len(registry.ledger)}"}
+        )
+        record = record.model_copy(update={"record_fingerprint": record.compute_fingerprint()})
+
+    parent_fp = registry.registry_fingerprint
+    # SUPERSEDED entry describes OLD active record
     superseded_entry = _build_ledger_entry(
         entry_index=_next_entry_index(registry),
         event_kind=BaselineLedgerEventKind.SUPERSEDED,
         timestamp=now,
-        scope_id=scope_id,
-        candidate_id=superseding_candidate_id,
+        scope_id=request.scope_id,
+        candidate_id=active_record.candidate_id,
         baseline_id=active_record.baseline_id,
         artifact_fingerprint=active_record.artifact_fingerprint,
         approval_fingerprint=active_record.approval_fingerprint,
         superseded_fingerprint=superseded_fp,
         registry_parent_fingerprint=parent_fp,
-        actor=actor,
-        note=note or f"superseded {active_record.baseline_id}",
+        actor=request.requested_by,
+        note=f"superseded {active_record.baseline_id}",
     )
-    # Compute intermediate registry fingerprint for second entry's parent? But spec says ledger is append-only; second entry's parent should be fingerprint after first entry.  # noqa: E501
-    # We model registry with both entries appended sequentially – second entry's parent is fingerprint after first entry insertion.  # noqa: E501
     interim_registry = registry.model_copy(
         update={"ledger": list(registry.ledger) + [superseded_entry]}
     )
@@ -1028,19 +916,19 @@ def supersede_baseline(
         entry_index=_next_entry_index(registry) + 1,
         event_kind=BaselineLedgerEventKind.PROMOTED,
         timestamp=now,
-        scope_id=scope_id,
-        candidate_id=superseding_candidate_id,
+        scope_id=request.scope_id,
+        candidate_id=candidate.candidate_id,
         baseline_id=record.baseline_id,
         artifact_fingerprint=candidate.artifact_fingerprint,
         approval_fingerprint=record.approval_fingerprint,
         superseded_fingerprint=superseded_fp,
         registry_parent_fingerprint=interim_fp,
-        actor=actor,
-        note=note or f"superseding promotion {record.baseline_id}",
+        actor=request.requested_by,
+        note=f"superseding promotion {record.baseline_id}",
     )
 
     new_active = dict(registry.active_baselines)
-    new_active[scope_id] = record
+    new_active[request.scope_id] = record
     new_ledger = list(registry.ledger) + [superseded_entry, promoted_entry]
 
     new_registry = registry.model_copy(
@@ -1062,6 +950,47 @@ def supersede_baseline(
     return new_registry, receipt
 
 
+def supersede_baseline_compat(
+    registry: BaselineRegistry,
+    *,
+    scope_id: str,
+    superseding_candidate_id: str,
+    actor: str,
+    note: str | None = None,
+    clock: Callable[[], datetime] | None = None,
+) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
+    """Compat wrapper that builds a SUPERSEDE request from legacy args."""
+    candidate = registry.candidates.get(superseding_candidate_id)
+    approval = registry.approvals.get(superseding_candidate_id)
+    now = _now_or_fixed(clock)
+    if candidate is None:
+        req = BaselinePromotionRequest(
+            candidate_id=superseding_candidate_id,
+            scope_id=scope_id,
+            artifact_fingerprint="0" * 64,
+            approval_fingerprint="0" * 64,
+            registry_parent_fingerprint=registry.registry_fingerprint,
+            requested_by=actor,
+            requested_at=now,
+            operation=BaselinePromotionOperation.SUPERSEDE,
+        )
+        audit = _audit_promotion_gate(registry, req, None, None)
+        return registry, _promotion_failure_receipt(req, audit, clock)
+    art_fp = candidate.artifact_fingerprint
+    appr_fp = approval.approval_fingerprint if approval else "0" * 64
+    req = BaselinePromotionRequest(
+        candidate_id=superseding_candidate_id,
+        scope_id=scope_id,
+        artifact_fingerprint=art_fp,
+        approval_fingerprint=appr_fp,
+        registry_parent_fingerprint=registry.registry_fingerprint,
+        requested_by=actor,
+        requested_at=now,
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    return supersede_baseline(registry, req, clock=clock)
+
+
 # ---------------------------------------------------------------------------
 # Withdraw
 # ---------------------------------------------------------------------------
@@ -1075,7 +1004,7 @@ def withdraw_candidate(
     note: str | None = None,
     clock: Callable[[], datetime] | None = None,
 ) -> BaselineRegistry:
-    """Mark a candidate as withdrawn via ledger event. Does not delete history."""
+    """Mark a candidate as withdrawn via ledger event."""
     if candidate_id not in registry.candidates:
         raise ValueError(f"candidate {candidate_id!r} does not exist")
     candidate = registry.candidates[candidate_id]
@@ -1095,9 +1024,6 @@ def withdraw_candidate(
         actor=actor,
         note=note,
     )
-    # We keep candidate in dict but mark ledger; active baselines unchanged
-    # Optionally remove from candidates dict? Spec says never edit historical records but withdrawal is new event.  # noqa: E501
-    # We'll keep candidate but add withdrawn status via ledger; not removing from dict preserves history.  # noqa: E501
     new_ledger = list(registry.ledger) + [entry]
     new_registry = registry.model_copy(update={"ledger": new_ledger})
     new_fp = new_registry.compute_fingerprint()
@@ -1105,155 +1031,57 @@ def withdraw_candidate(
 
 
 # ---------------------------------------------------------------------------
-# Restore as new promotion (rollback via new event)
+# Restore as new promotion (rollback via new event) – core uses same gate
 # ---------------------------------------------------------------------------
 
 
 def restore_baseline_as_new_promotion(
     registry: BaselineRegistry,
+    request: BaselinePromotionRequest | None = None,
     *,
-    scope_id: str,
-    restore_candidate_id: str,
-    actor: str,
-    note: str | None = None,
     clock: Callable[[], datetime] | None = None,
+    scope_id: str | None = None,
+    restore_candidate_id: str | None = None,
+    actor: str | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
     """Promote a previously superseded candidate as a new promotion event.
 
-    Rollback is never an edit; it is a fresh promotion with kind restored_as_new_promotion.
+    Supports both new request-based and legacy compat signatures.
     """
+    if request is None and scope_id is not None and restore_candidate_id is not None:
+        return restore_baseline_as_new_promotion_compat(
+            registry,
+            scope_id=scope_id,
+            restore_candidate_id=restore_candidate_id,
+            actor=actor or "operator",
+            clock=clock,
+        )
+    if request is None:
+        raise TypeError("restore requires either request or scope_id/restore_candidate_id")
+    assert isinstance(request, BaselinePromotionRequest)
+    if request.operation != BaselinePromotionOperation.RESTORE:
+        candidate = registry.candidates.get(request.candidate_id)
+        approval = registry.approvals.get(request.candidate_id)
+        audit = _audit_promotion_gate(registry, request, candidate, approval)
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    candidate = registry.candidates.get(request.candidate_id)
+    approval = registry.approvals.get(request.candidate_id)
+    audit = _audit_promotion_gate(registry, request, candidate, approval)
+    if not audit.passed:
+        return registry, _promotion_failure_receipt(request, audit, clock)
+
+    assert candidate is not None
+    assert approval is not None
     now = _now_or_fixed(clock)
-
-    if restore_candidate_id not in registry.candidates:
-        raise ValueError(f"candidate {restore_candidate_id!r} does not exist")
-    candidate = registry.candidates[restore_candidate_id]
-    if candidate.scope.scope_id != scope_id:
-        raise ValueError(
-            f"candidate scope {candidate.scope.scope_id!r} != restore scope {scope_id!r}"
-        )
-
-    approval = registry.approvals.get(restore_candidate_id)
-    if approval is None:
-        # Fail-closed: need approval
-        dummy_request = BaselinePromotionRequest(
-            candidate_id=restore_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint=candidate.artifact_fingerprint,
-            approval_fingerprint="0" * 64,
-            registry_parent_fingerprint=registry.registry_fingerprint,
-            requested_by=actor,
-            requested_at=now,
-        )
-        audit = BaselineCompatibilityAudit(
-            candidate_id=restore_candidate_id,
-            scope_id=scope_id,
-            artifact_fingerprint_verified=True,
-            compatibility_passed=True,
-            evidence_policy_satisfied=True,
-            approval_binds=False,
-            no_stale_parent=True,
-            no_conflicting_active=True,
-            findings=["no approval for restore candidate"],
-            passed=False,
-            audit_fingerprint="0" * 64,
-        )
-        audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-        receipt = BaselinePromotionReceipt(
-            request=dummy_request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    # Check that this candidate was previously promoted and then superseded? For restore we allow any prior candidate.  # noqa: E501
-    # Require that there is an active baseline currently (otherwise simple promote would do). But restore should work even if active exists – it will supersede.  # noqa: E501
-    # We'll reuse supersede logic but emit RESTORED_AS_NEW_PROMOTION event kind instead of PROMOTED.
-
-    # Build request
-    request = BaselinePromotionRequest(
-        candidate_id=restore_candidate_id,
-        scope_id=scope_id,
-        artifact_fingerprint=candidate.artifact_fingerprint,
-        approval_fingerprint=approval.approval_fingerprint,
-        registry_parent_fingerprint=registry.registry_fingerprint,
-        requested_by=actor,
-        requested_at=now,
-    )
-
-    # Audit similar to supersede but we check explicit restore conditions
-    findings: list[str] = []
-    artifact_verified = candidate.artifact_fingerprint == request.artifact_fingerprint
-    approval_binds = (
-        approval.candidate_id == request.candidate_id
-        and approval.scope_id == request.scope_id
-        and approval.artifact_fingerprint == request.artifact_fingerprint
-        and approval.approval_fingerprint == request.approval_fingerprint
-    )
-    if not approval_binds:
-        findings.append("approval does not bind restore candidate")
-
-    no_stale_parent = request.registry_parent_fingerprint == registry.registry_fingerprint
-    if not no_stale_parent:
-        findings.append("stale parent for restore")
-
-    evidence_satisfied = (
-        candidate.evidence_standing.value != "unavailable"
-        and candidate.source_standing.value != "unavailable"
-    )
-    if not evidence_satisfied:
-        findings.append("evidence or source unavailable for restore")
-
-    compatibility_passed = artifact_verified
-    if not compatibility_passed:
-        findings.append("compatibility failed for restore")
-
-    passed = bool(
-        artifact_verified
-        and approval_binds
-        and no_stale_parent
-        and evidence_satisfied
-        and compatibility_passed
-    )
-
-    audit = BaselineCompatibilityAudit(
-        candidate_id=restore_candidate_id,
-        scope_id=scope_id,
-        artifact_fingerprint_verified=artifact_verified,
-        compatibility_passed=compatibility_passed,
-        evidence_policy_satisfied=evidence_satisfied,
-        approval_binds=approval_binds,
-        no_stale_parent=no_stale_parent,
-        no_conflicting_active=True,  # restore allows replacing active, so treat as non-conflicting
-        findings=findings if not passed else findings + ["restore gate passed"],
-        passed=passed,
-        audit_fingerprint="0" * 64,
-    )
-    audit = audit.model_copy(update={"audit_fingerprint": audit.compute_fingerprint()})
-
-    if not passed:
-        receipt = BaselinePromotionReceipt(
-            request=request,
-            status=BaselineStatus.UNAVAILABLE,
-            promoted_record=None,
-            blocked_reasons=list(audit.findings),
-            audit=audit,
-            receipt_fingerprint="0" * 64,
-            created_at=now,
-        )
-        receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
-        return registry, receipt
-
-    # Determine superseded fingerprint if active exists
-    active = registry.active_baselines.get(scope_id)
+    active = registry.active_baselines.get(request.scope_id)
+    # gate already ensured active exists and restore history ok; but double-check
     superseded_fp = active.record_fingerprint if active else None
 
-    provisional_record = BaselineRecord(
-        baseline_id=f"baseline-{candidate.candidate_id}-restore-{len(registry.ledger)}",
+    # Build new record with unique baseline_id to avoid clash
+    provisional_id = f"baseline-{candidate.candidate_id}-restore-{len(registry.ledger)}"
+    provisional = BaselineRecord(
+        baseline_id=provisional_id,
         scope=candidate.scope,
         artifact_fingerprint=candidate.artifact_fingerprint,
         artifact_type=candidate.artifact_type,
@@ -1272,10 +1100,9 @@ def restore_baseline_as_new_promotion(
         created_at=now,
         record_fingerprint="0" * 64,
     )
-    record_fp = provisional_record.compute_fingerprint()
-    record = provisional_record.model_copy(update={"record_fingerprint": record_fp})
+    record_fp = provisional.compute_fingerprint()
+    record = provisional.model_copy(update={"record_fingerprint": record_fp})
 
-    # Ledger: if active exists, emit SUPERSEDED then RESTORED_AS_NEW_PROMOTION; else just RESTORED_AS_NEW_PROMOTION  # noqa: E501
     new_ledger = list(registry.ledger)
     parent_fp = registry.registry_fingerprint
 
@@ -1284,39 +1111,38 @@ def restore_baseline_as_new_promotion(
             entry_index=len(new_ledger),
             event_kind=BaselineLedgerEventKind.SUPERSEDED,
             timestamp=now,
-            scope_id=scope_id,
-            candidate_id=restore_candidate_id,
+            scope_id=request.scope_id,
+            candidate_id=active.candidate_id,
             baseline_id=active.baseline_id,
             artifact_fingerprint=active.artifact_fingerprint,
             approval_fingerprint=active.approval_fingerprint,
             superseded_fingerprint=superseded_fp,
             registry_parent_fingerprint=parent_fp,
-            actor=actor,
-            note=note or f"superseded for restore {record.baseline_id}",
+            actor=request.requested_by,
+            note=f"superseded for restore {record.baseline_id}",
         )
         new_ledger.append(superseded_entry)
         interim_registry = registry.model_copy(update={"ledger": new_ledger})
-        interim_fp = interim_registry.compute_fingerprint()
-        parent_fp = interim_fp
+        parent_fp = interim_registry.compute_fingerprint()
 
     restore_entry = _build_ledger_entry(
         entry_index=len(new_ledger),
         event_kind=BaselineLedgerEventKind.RESTORED_AS_NEW_PROMOTION,
         timestamp=now,
-        scope_id=scope_id,
-        candidate_id=restore_candidate_id,
+        scope_id=request.scope_id,
+        candidate_id=candidate.candidate_id,
         baseline_id=record.baseline_id,
         artifact_fingerprint=candidate.artifact_fingerprint,
         approval_fingerprint=approval.approval_fingerprint,
         superseded_fingerprint=superseded_fp,
         registry_parent_fingerprint=parent_fp,
-        actor=actor,
-        note=note or f"restored {restore_candidate_id}",
+        actor=request.requested_by,
+        note=f"restored {request.candidate_id}",
     )
     new_ledger.append(restore_entry)
 
     new_active = dict(registry.active_baselines)
-    new_active[scope_id] = record
+    new_active[request.scope_id] = record
 
     new_registry = registry.model_copy(
         update={"active_baselines": new_active, "ledger": new_ledger}
@@ -1335,6 +1161,53 @@ def restore_baseline_as_new_promotion(
     )
     receipt = receipt.model_copy(update={"receipt_fingerprint": receipt.compute_fingerprint()})
     return new_registry, receipt
+
+
+def restore_baseline_as_new_promotion_compat(
+    registry: BaselineRegistry,
+    *,
+    scope_id: str,
+    restore_candidate_id: str,
+    actor: str,
+    note: str | None = None,
+    clock: Callable[[], datetime] | None = None,
+) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
+    """Compat wrapper for restore that builds request."""
+    candidate = registry.candidates.get(restore_candidate_id)
+    approval = registry.approvals.get(restore_candidate_id)
+    now = _now_or_fixed(clock)
+    if candidate is None:
+        req = BaselinePromotionRequest(
+            candidate_id=restore_candidate_id,
+            scope_id=scope_id,
+            artifact_fingerprint="0" * 64,
+            approval_fingerprint="0" * 64,
+            registry_parent_fingerprint=registry.registry_fingerprint,
+            requested_by=actor,
+            requested_at=now,
+            operation=BaselinePromotionOperation.RESTORE,
+        )
+        audit = _audit_promotion_gate(registry, req, None, None)
+        return registry, _promotion_failure_receipt(req, audit, clock)
+    # Scope mismatch will be caught by gate as scope_compatible false
+    art_fp = candidate.artifact_fingerprint
+    appr_fp = approval.approval_fingerprint if approval else "0" * 64
+    req = BaselinePromotionRequest(
+        candidate_id=restore_candidate_id,
+        scope_id=scope_id,
+        artifact_fingerprint=art_fp,
+        approval_fingerprint=appr_fp,
+        registry_parent_fingerprint=registry.registry_fingerprint,
+        requested_by=actor,
+        requested_at=now,
+        operation=BaselinePromotionOperation.RESTORE,
+    )
+    return restore_baseline_as_new_promotion(registry, req, clock=clock)
+
+
+# Backwards compat aliases for old API names
+def _legacy_supersede_wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN202,ANN002,ANN003
+    return supersede_baseline_compat(*args, **kwargs)
 
 
 # ---------------------------------------------------------------------------

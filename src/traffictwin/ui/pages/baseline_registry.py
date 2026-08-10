@@ -9,6 +9,7 @@ import streamlit as st
 from traffictwin.baseline_registry.models import (
     BaselineArtifactType,
     BaselineEvidenceStanding,
+    BaselinePromotionOperation,
     BaselineRegistry,
     BaselineScope,
     BaselineSourceStanding,
@@ -19,6 +20,7 @@ from traffictwin.baseline_registry.service import (
     build_candidate,
     candidates_to_csv,
     create_empty_registry,
+    list_restorable_candidates,
     promote_baseline,
     register_candidate,
     registry_limitations,
@@ -48,6 +50,7 @@ def _get_registry() -> BaselineRegistry:
                 scope_id="scope-demo-traffic",
                 purpose="Traffic corridor mean journey-time comparison for controlled evaluation",
                 cohort_definition="Matched random seeds 1..5 under synthetic signal plan A",
+                allowed_evidence_standings=(BaselineEvidenceStanding.ADMITTED_RESEARCH,),
             )
             cand_a = build_candidate(
                 candidate_id="candidate-demo-a",
@@ -323,6 +326,12 @@ def render(config: object) -> None:  # noqa: ARG001
                 options=[s.value for s in BaselineSourceStanding],
                 key="baseline_reg_source",
             )
+            reg_allowed = st.multiselect(
+                "Allowed evidence standings (typed policy)",
+                options=[e.value for e in BaselineEvidenceStanding if e.value != "unavailable"],
+                default=["admitted_research"],
+                key="baseline_reg_allowed",
+            )
             reg_policy = st.text_input(
                 "Regression gate policy",
                 value="STA-04 exact synthetic baseline policy",
@@ -341,8 +350,18 @@ def render(config: object) -> None:  # noqa: ARG001
             submitted_reg = st.form_submit_button("Register candidate")
         if submitted_reg:
             try:
+                allowed_tuple = (
+                    tuple(BaselineEvidenceStanding(v) for v in reg_allowed)
+                    if reg_allowed
+                    else (BaselineEvidenceStanding.ADMITTED_RESEARCH,)
+                )
+                # Canonicalize sorted
+                allowed_tuple = tuple(sorted(set(allowed_tuple), key=lambda x: x.value))
                 scope = BaselineScope(
-                    scope_id=reg_scope_id, purpose=reg_purpose, cohort_definition=reg_cohort
+                    scope_id=reg_scope_id,
+                    purpose=reg_purpose,
+                    cohort_definition=reg_cohort,
+                    allowed_evidence_standings=allowed_tuple,
                 )
                 contracts = [c.strip() for c in reg_metric.split(",") if c.strip()]
                 cand = build_candidate(
@@ -427,6 +446,7 @@ def render(config: object) -> None:  # noqa: ARG001
                     registry_parent_fingerprint=registry.registry_fingerprint,
                     requested_by=prom_actor,
                     requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.PROMOTE,
                 )
                 _, receipt = promote_baseline(registry, req)
                 st.session_state["baseline_last_audit"] = receipt.audit
@@ -440,6 +460,7 @@ def render(config: object) -> None:  # noqa: ARG001
                     registry_parent_fingerprint=registry.registry_fingerprint,
                     requested_by=prom_actor,
                     requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.PROMOTE,
                 )
                 new_reg, receipt = promote_baseline(registry, req)
                 st.session_state["baseline_last_audit"] = receipt.audit
@@ -477,29 +498,85 @@ def render(config: object) -> None:  # noqa: ARG001
         else:
             st.error(f"Supersede BLOCKED: {'; '.join(receipt.blocked_reasons)}")
 
-    # Restore form
+    # Restore form — uses typed restorable selector to avoid typo/missing
     with st.form("baseline_restore_form"):
         st.markdown("**Restore prior baseline as new promotion (rollback via new event)**")
         res_scope = st.text_input("Scope ID", value="scope-demo-traffic", key="baseline_res_scope")
-        res_cand = st.text_input(
-            "Restore candidate ID", value="candidate-demo-a", key="baseline_res_cand"
-        )
+        restorable_opts = list_restorable_candidates(registry, res_scope) if res_scope else []
+        if restorable_opts:
+            res_cand = st.selectbox(
+                "Restore candidate ID (only previously superseded)",
+                options=restorable_opts,
+                key="baseline_res_cand_select",
+            )
+        else:
+            st.caption(  # noqa: E501
+                "No restorable candidates in this scope (must have been previously active and superseded)."  # noqa: E501
+            )
+            res_cand = st.text_input(
+                "Restore candidate ID (fallback)", value="", key="baseline_res_cand_fallback"
+            )
         res_actor = st.text_input("Actor", value="operator", key="baseline_res_actor")
         submitted_res = st.form_submit_button("Restore as new promotion")
     if submitted_res:
-        new_reg, receipt = restore_baseline_as_new_promotion(
-            registry, scope_id=res_scope, restore_candidate_id=res_cand, actor=res_actor
-        )
-        st.session_state["baseline_last_audit"] = receipt.audit
-        if receipt.status.value == "active":
-            assert receipt.promoted_record is not None
-            _set_registry(new_reg)
-            st.success(
-                f"Restored {res_cand} in {res_scope} -> {receipt.promoted_record.baseline_id}"
-            )
-            st.rerun()
+        if not res_cand:
+            st.error("Restore candidate required — BLOCKED")
         else:
-            st.error(f"Restore BLOCKED: {'; '.join(receipt.blocked_reasons)}")
+            from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+            cand_obj = registry.candidates.get(res_cand)
+            appr_obj = registry.approvals.get(res_cand)
+            if cand_obj is None:
+                req = BaselinePromotionRequest(
+                    candidate_id=res_cand,
+                    scope_id=res_scope,
+                    artifact_fingerprint="0" * 64,
+                    approval_fingerprint="0" * 64,
+                    registry_parent_fingerprint=registry.registry_fingerprint,
+                    requested_by=res_actor,
+                    requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.RESTORE,
+                )
+                _, receipt = restore_baseline_as_new_promotion(registry, req)
+                st.session_state["baseline_last_audit"] = receipt.audit
+                st.error(f"Restore BLOCKED: {'; '.join(receipt.blocked_reasons)}")
+            elif appr_obj is None:
+                st.error("No approval exists for candidate — BLOCKED")
+                req = BaselinePromotionRequest(
+                    candidate_id=res_cand,
+                    scope_id=res_scope,
+                    artifact_fingerprint=cand_obj.artifact_fingerprint,
+                    approval_fingerprint="0" * 64,
+                    registry_parent_fingerprint=registry.registry_fingerprint,
+                    requested_by=res_actor,
+                    requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.RESTORE,
+                )
+                _, receipt = restore_baseline_as_new_promotion(registry, req)
+                st.session_state["baseline_last_audit"] = receipt.audit
+                st.error(f"Restore BLOCKED: {'; '.join(receipt.blocked_reasons)}")
+            else:
+                req = BaselinePromotionRequest(
+                    candidate_id=res_cand,
+                    scope_id=res_scope,
+                    artifact_fingerprint=cand_obj.artifact_fingerprint,
+                    approval_fingerprint=appr_obj.approval_fingerprint,
+                    registry_parent_fingerprint=registry.registry_fingerprint,
+                    requested_by=res_actor,
+                    requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.RESTORE,
+                )
+                new_reg, receipt = restore_baseline_as_new_promotion(registry, req)
+                st.session_state["baseline_last_audit"] = receipt.audit
+                if receipt.status.value == "active":
+                    assert receipt.promoted_record is not None
+                    _set_registry(new_reg)
+                    st.success(  # noqa: E501
+                        f"Restored {res_cand} in {res_scope} -> {receipt.promoted_record.baseline_id}"  # noqa: E501
+                    )
+                    st.rerun()
+                else:
+                    st.error(f"Restore BLOCKED: {'; '.join(receipt.blocked_reasons)}")
 
     # ------------------------------------------------------------------
     # Registry timeline
