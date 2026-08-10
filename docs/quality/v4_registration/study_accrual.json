@@ -6,5 +6,5 @@
   "renderer": "traffictwin.ui.pages.study_accrual:render",
   "group": "Results",
   "description": "Deterministic monitor showing how collected and reviewed evidence compares with the frozen preregistered plan over time.",
-  "icon": "monitoring"
+  "icon": ":material/monitoring:"
 }

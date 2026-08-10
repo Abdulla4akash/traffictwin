@@ -1,4 +1,4 @@
-"""Integration tests for accrual monitor — end-to-end plan → report."""
+"""Integration tests for accrual monitor — remediation."""
 
 from __future__ import annotations
 
@@ -24,6 +24,11 @@ from traffictwin.preregistration.models import (
     StudyQuestion,
 )
 from traffictwin.preregistration.service import attach_evidence, freeze_plan
+from traffictwin.study_accrual.models import (
+    AccrualReviewDecision,
+    AccrualReviewHandoff,
+    AccrualReviewState,
+)
 from traffictwin.study_accrual.service import build_accrual_report
 
 FIXED = datetime(2026, 1, 10, 12, 0, 0, tzinfo=UTC)
@@ -106,20 +111,18 @@ def test_integration_freeze_attach_monitor_reconciles() -> None:
     attached = attach_evidence(plan, atts, clock=lambda: ATTACH)
     report = build_accrual_report(attached)
     s = report.snapshot
-    # Reconciliation as per service
     total_expected_states = (
         s.planned_missing_count
         + s.attached_unadmitted_count
-        + s.attached_admitted_count
         + s.complete_count
         + s.incompatible_count
         + s.rejected_count
         + s.withdrawn_count
+        + s.duplicate_count
     )
     assert total_expected_states == s.expected_count
     assert s.attached_count == s.expected_count - s.planned_missing_count
     assert s.remaining_count == s.expected_count - s.complete_count
-    # No extra
     assert s.extra_count == 0
     assert report.fingerprint is not None
     assert len(report.fingerprint) == 64
@@ -128,40 +131,55 @@ def test_integration_freeze_attach_monitor_reconciles() -> None:
 def test_integration_partial_accrual_with_blockers() -> None:
     plan = _frozen_plan()
     cells = sorted(plan.planned_run_cells, key=lambda c: c.cell_id)
-    # Only attach half, with one unadmitted
     half = cells[:2]
     atts = [_att(half[0].cell_id, is_admitted=True), _att(half[1].cell_id, is_admitted=False)]
     attached = plan.model_copy(
         update={
             "evidence_attachments": sorted(atts, key=lambda a: a.cell_id),
-            "status": attached_status(plan),
+            "status": plan.model_copy(update={}).status,  # keep original status logic via attach
             "evidence_attached_at": ATTACH,
             "fingerprint": plan.fingerprint,
         }
     )
+    # Use proper attach for valid path
+    attached = attach_evidence(plan, atts, clock=lambda: ATTACH)
     report = build_accrual_report(attached)
     assert report.snapshot.planned_missing_count > 0
     assert report.snapshot.attached_unadmitted_count == 1
-    assert report.blockers  # Should have blockers due to incomplete accrual
+    assert report.blockers
+    # Invariant: blocked warning => blockers non-empty
+    has_blocked = any(w.severity == "blocked" for w in report.warnings)
+    if has_blocked:
+        assert report.blockers
 
 
-def attached_status(plan: StudyPlan):  # type: ignore[no-untyped-def]  # noqa: ANN201
-    from traffictwin.preregistration.models import StudyPlanStatus
-
-    return StudyPlanStatus.EVIDENCE_ATTACHED
-
-
-def test_integration_with_generic_review_and_power_fingerprint() -> None:
+def test_integration_with_typed_review_and_power_fingerprint() -> None:
     plan = _frozen_plan()
-    # Add power plan fingerprint
     plan_with_power = plan.model_copy(
         update={"power_plan_fingerprint": hashlib.sha256(b"power").hexdigest()}
     )
+    # Need to recompute fingerprint after power field? power is excluded from canonical, so fingerprint unchanged; but we must keep.  # noqa: E501
+    plan_with_power = plan_with_power.model_copy(
+        update={"fingerprint": plan_with_power.compute_fingerprint()}
+    )
+    # Re-freeze? Simpler: just use plan with power after freeze then attach
+    # Attach needs to preserve fingerprint
     cells = sorted(plan_with_power.planned_run_cells, key=lambda c: c.cell_id)
     atts = [_att(c.cell_id) for c in cells]
+    # attach via service will compute evidence_state
     attached = attach_evidence(plan_with_power, atts, clock=lambda: ATTACH)
-    generic = {"rejected_cells": [cells[0].cell_id], "interim_looks_used": 2}
-    report = build_accrual_report(attached, generic_review_payload=generic)
+    handoff = AccrualReviewHandoff(
+        schema_version="1.0",
+        decisions=[
+            AccrualReviewDecision(
+                cell_id=cells[0].cell_id,
+                state=AccrualReviewState.REJECTED,
+                reason="integration reject long enough",
+            )
+        ],
+        interim_looks_used=2,
+    )
+    report = build_accrual_report(attached, review_handoff=handoff)
     assert report.power_plan_fingerprint == plan_with_power.power_plan_fingerprint
     assert report.snapshot.power_plan_fingerprint == plan_with_power.power_plan_fingerprint
     assert report.snapshot.rejected_count == 1
@@ -177,6 +195,33 @@ def test_integration_csv_export_contains_all_cells() -> None:
     report = build_accrual_report(attached)
     csv_text = export_cells_csv(report)
     lines = csv_text.strip().split("\n")
-    # header + one row per cell
     assert len(lines) == 1 + len(report.cells)
     assert lines[0].startswith("cell_id")
+
+
+def test_ready_gate_rejected_overlay_still_blocked() -> None:
+    plan = _frozen_plan()
+    cells = sorted(plan.planned_run_cells, key=lambda c: c.cell_id)
+    atts = [_att(c.cell_id) for c in cells]
+    attached = attach_evidence(plan, atts, clock=lambda: ATTACH)
+    # attached gate should be READY
+    assert attached.gate_report is not None
+    assert attached.gate_report.status.value == "ready"
+    handoff = AccrualReviewHandoff(
+        schema_version="1.0",
+        decisions=[
+            AccrualReviewDecision(
+                cell_id=cells[0].cell_id,
+                state=AccrualReviewState.REJECTED,
+                reason="overlay reason long enough",
+            )
+        ],
+    )
+    report = build_accrual_report(attached, review_handoff=handoff)
+    assert report.snapshot.rejected_count == 1
+    assert report.snapshot.admitted_count == report.snapshot.expected_count - 1
+    assert report.blockers
+    assert any("rejected" in b.lower() for b in report.blockers)
+    cell = next(c for c in report.cells if c.cell_id == cells[0].cell_id)
+    assert cell.latest_decision == "rejected"
+    assert cell.status.value == "rejected"

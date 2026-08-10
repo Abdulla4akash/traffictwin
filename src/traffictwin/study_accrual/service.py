@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from collections import Counter
-from typing import Any
+from collections import Counter, defaultdict
 
 from traffictwin.preregistration.models import (
     EvidenceAttachment,
@@ -12,12 +11,15 @@ from traffictwin.preregistration.models import (
     StudyPlanStatus,
     is_explicitly_admitted,
 )
+from traffictwin.preregistration.service import evaluate_gate_with_reasons
 from traffictwin.study_accrual.models import (
     AccrualCellEntry,
     AccrualCellStatus,
     AccrualDeviation,
     AccrualDeviationCode,
     AccrualReport,
+    AccrualReviewHandoff,
+    AccrualReviewState,
     AccrualSnapshot,
     AccrualTimelineEntry,
     AccrualWarning,
@@ -28,16 +30,12 @@ from traffictwin.study_accrual.models import (
 MAX_CELLS = 10000
 
 
-def _expected_unit_map(plan: StudyPlan) -> dict[str, str]:
-    return {o.metric_key: o.unit for o in plan.primary_outcomes}
-
-
-def _expected_version_map(plan: StudyPlan) -> dict[str, str]:
-    return {c.cell_id: c.metric_version for c in plan.planned_run_cells}
-
-
 def _expected_cell_map(plan: StudyPlan) -> dict[str, PlannedRunCell]:
     return {c.cell_id: c for c in plan.planned_run_cells}
+
+
+def _expected_unit_map(plan: StudyPlan) -> dict[str, str]:
+    return {o.metric_key: o.unit for o in plan.primary_outcomes}
 
 
 def _detect_duplicate_attachments(
@@ -60,10 +58,20 @@ def _first_observed_time(
     return _normalise_timestamp(attachment.attached_at)
 
 
-def _latest_decision(attachment: EvidenceAttachment | None) -> str | None:
+def _latest_decision(
+    attachment: EvidenceAttachment | None,
+    review_state: AccrualReviewState | None,
+) -> str | None:
     if attachment is None:
         return None
-    if attachment.incompatibility_reason is not None:
+    if review_state == AccrualReviewState.REJECTED:
+        return "rejected"
+    if review_state == AccrualReviewState.WITHDRAWN:
+        return "withdrawn"
+    if (
+        attachment.incompatibility_reason is not None
+        and "not explicitly admitted" not in attachment.incompatibility_reason.lower()
+    ):
         return f"incompatible: {attachment.incompatibility_reason}"
     if is_explicitly_admitted(attachment):
         return "admitted"
@@ -81,20 +89,17 @@ def _compatibility_label(
         return "extra"
     exp_ver = cell.metric_version
     exp_unit = _expected_unit_map(plan).get(cell.metric_key)
-    # Direct metric/unit mismatch check; admission failure is not incompatibility
     if attachment.observed_metric_version != exp_ver:
         return f"incompatible: metric_version mismatch expected {exp_ver!r} observed {attachment.observed_metric_version!r}"  # noqa: E501
     if exp_unit is not None and attachment.observed_unit != exp_unit:
         return f"incompatible: unit mismatch expected {exp_unit!r} observed {attachment.observed_unit!r}"  # noqa: E501
     if attachment.observed_metric_key != cell.metric_key:
         return f"incompatible: metric_key mismatch expected {cell.metric_key!r} observed {attachment.observed_metric_key!r}"  # noqa: E501
-    # If stored incompatibility_reason is about admission, treat as compatible for compatibility label  # noqa: E501
-    # but admission state will show unadmitted
     if (
         attachment.incompatibility_reason is not None
         and "not explicitly admitted" not in attachment.incompatibility_reason.lower()
     ):
-        return f"incompatible: {attachment.incompatibility_reason}"
+        return f"incompatible: {attachment.incompatibility_reason}"  # noqa: E501
     return "compatible"
 
 
@@ -105,22 +110,20 @@ def _is_incompatible(
 ) -> tuple[bool, str | None]:
     if attachment is None or cell is None:
         return False, None
-    # Only version/unit/key mismatches are incompatibilities; admission failure is separate state
     exp_ver = cell.metric_version
     if attachment.observed_metric_version != exp_ver:
         return (
             True,
             f"metric_version mismatch expected {exp_ver!r} observed {attachment.observed_metric_version!r}",  # noqa: E501
-        )
+        )  # noqa: E501
     exp_unit = _expected_unit_map(plan).get(cell.metric_key)
     if exp_unit is not None and attachment.observed_unit != exp_unit:
-        return True, f"unit mismatch expected {exp_unit!r} observed {attachment.observed_unit!r}"
+        return True, f"unit mismatch expected {exp_unit!r} observed {attachment.observed_unit!r}"  # noqa: E501
     if attachment.observed_metric_key != cell.metric_key:
         return (
             True,
             f"metric_key mismatch expected {cell.metric_key!r} observed {attachment.observed_metric_key!r}",  # noqa: E501
-        )
-    # Check stored incompatibility_reason only if it indicates metric/unit mismatch, not pure admission  # noqa: E501
+        )  # noqa: E501
     if (
         attachment.incompatibility_reason is not None
         and "not explicitly admitted" not in attachment.incompatibility_reason.lower()
@@ -145,61 +148,209 @@ def _attachment_state_label(attachment: EvidenceAttachment | None, is_duplicate:
     return "attached"
 
 
+def _verify_plan_fingerprint(plan: StudyPlan) -> str | None:
+    """Return error message if fingerprint invalid, else None."""
+    if plan.status == StudyPlanStatus.DRAFT:
+        return None
+    if plan.fingerprint is None:
+        return "frozen StudyPlan fingerprint is missing"
+    computed = plan.compute_fingerprint()
+    if plan.fingerprint != computed:
+        return "frozen StudyPlan fingerprint does not match current semantic payload"
+    return None
+
+
+def _verify_evidence_state_fingerprint(plan: StudyPlan) -> str | None:
+    if not plan.evidence_attachments:
+        return None
+    if plan.evidence_state_fingerprint is None:
+        return "evidence_state_fingerprint is missing for plan with attachments"
+    computed = plan.compute_evidence_state_fingerprint()
+    if plan.evidence_state_fingerprint != computed:
+        return "evidence_state_fingerprint does not match current evidence attachments"
+    return None
+
+
+def _derive_replicate_counts(
+    plan: StudyPlan, attachment_by_cell: dict[str, EvidenceAttachment], duplicate_ids: set[str]
+) -> tuple[int, int]:
+    planned_ids = {c.replication_id for c in plan.planned_run_cells}
+    planned_count = len(planned_ids)
+    # Observed: distinct replication_id where at least one expected cell for that replicate has an attachment  # noqa: E501
+    # and that attachment is not duplicate-blocked? For duplicate, still consider observed but blocked.  # noqa: E501
+    # Use expected cell map to find replication_id for each cell_id
+    cell_map = _expected_cell_map(plan)
+    observed_ids: set[int] = set()
+    for cell_id, att in attachment_by_cell.items():  # noqa: B007
+        if cell_id in duplicate_ids:
+            # Duplicate still counts as observed for replicate, but does not prove non-duplicate completion  # noqa: E501
+            # We count it but it will be blocked separately
+            if cell_id in cell_map:
+                observed_ids.add(cell_map[cell_id].replication_id)
+            continue
+        if cell_id in cell_map:
+            observed_ids.add(cell_map[cell_id].replication_id)
+        # Extra cells do not contribute (no planned replication_id)
+    observed_count = len(observed_ids)
+    return planned_count, observed_count
+
+
 def build_accrual_report(
     plan: StudyPlan,
     *,
-    rejected_cell_ids: set[str] | None = None,
-    withdrawn_cell_ids: set[str] | None = None,
-    interim_looks_used: int | None = None,
-    generic_review_payload: dict[str, Any] | None = None,
+    review_handoff: AccrualReviewHandoff | None = None,
 ) -> AccrualReport:
     """Build deterministic accrual report without mutating the plan.
 
+    - Verifies frozen plan and evidence-state fingerprints (fail-closed).
     - Does not admit evidence automatically.
     - Does not change plan status.
-    - Fail-closed: validates bounded inputs.
-    - Order-independent fingerprint via sorted cells/deviations.
+    - Fail-closed bounded inputs.
+    - Order-independent fingerprint.
     """
-    # Bounded inputs guard
     if len(plan.planned_run_cells) > MAX_CELLS:
         raise ValueError(f"planned_run_cells exceeds limit {MAX_CELLS}")
     if len(plan.evidence_attachments) > MAX_CELLS:
         raise ValueError(f"evidence_attachments exceeds limit {MAX_CELLS}")
 
-    rejected_cell_ids = set(rejected_cell_ids or set())
-    withdrawn_cell_ids = set(withdrawn_cell_ids or set())
+    # B1 verification
+    fp_error = _verify_plan_fingerprint(plan)
+    if fp_error is not None:
+        snapshot = AccrualSnapshot(
+            plan_id=plan.plan_id,
+            plan_fingerprint=plan.fingerprint,
+            plan_version=plan.version,
+            plan_status=plan.status.value,
+            expected_count=len(plan.planned_run_cells),
+            attached_count=0,
+            admitted_count=0,
+            rejected_count=0,
+            incompatible_count=0,
+            extra_count=0,
+            remaining_count=len(plan.planned_run_cells),
+            complete_count=0,
+            attached_unadmitted_count=0,
+            planned_missing_count=len(plan.planned_run_cells),
+            withdrawn_count=0,
+            duplicate_count=0,
+            post_evidence_amendment_count=sum(
+                1 for r in plan.revision_history if r.is_post_evidence
+            ),
+            power_plan_fingerprint=plan.power_plan_fingerprint,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
+        )
+        stopping = StoppingProgress(
+            max_replicates=plan.stopping_rule.max_replicates,
+            interim_looks_allowed=plan.stopping_rule.interim_looks,
+            interim_looks_used=review_handoff.interim_looks_used
+            if review_handoff and review_handoff.interim_looks_used is not None
+            else 0,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
+            expected_count=len(plan.planned_run_cells),
+            attached_count=0,
+            admitted_count=0,
+            remaining=len(plan.planned_run_cells),
+            is_overrun=False,
+            overrun_by=0,
+            status="unavailable: plan fingerprint mismatch",
+        )
+        report = AccrualReport(
+            snapshot=snapshot,
+            cells=[],
+            deviations=[],
+            warnings=[
+                AccrualWarning(
+                    code="FINGERPRINT_MISMATCH",
+                    message=fp_error,
+                    severity="blocked",
+                )
+            ],
+            stopping_progress=stopping,
+            timeline=[],
+            amendment_history=[
+                r.model_dump(mode="json")
+                for r in sorted(plan.revision_history, key=lambda x: x.version)
+            ],
+            blockers=[fp_error],
+            power_plan_fingerprint=plan.power_plan_fingerprint,
+            is_unavailable=True,
+            unavailable_reason=fp_error,
+        )
+        report = report.model_copy(update={"fingerprint": report.compute_fingerprint()})
+        return report
 
-    # Parse generic review payload if provided (optional handoff contract)
-    if generic_review_payload is not None:
-        # Generic JSON may contain rejected/withdrawn lists without breaking identity
-        for key in ("rejected_cells", "rejected_cell_ids", "rejected"):
-            if key in generic_review_payload:
-                val = generic_review_payload[key]
-                if isinstance(val, list):
-                    rejected_cell_ids.update(str(x).strip() for x in val if str(x).strip())
-        for key in ("withdrawn_cells", "withdrawn_cell_ids", "withdrawn"):
-            if key in generic_review_payload:
-                val = generic_review_payload[key]
-                if isinstance(val, list):
-                    withdrawn_cell_ids.update(str(x).strip() for x in val if str(x).strip())
-        # interim looks may be in payload
-        for key in ("interim_looks", "interim_looks_used", "looks"):
-            if key in generic_review_payload and interim_looks_used is None:
-                try:  # noqa: SIM105
-                    interim_looks_used = int(generic_review_payload[key])
-                except Exception:  # noqa: S110
-                    pass
+    # B2 evidence-state verification (only if attachments present)
+    ev_error = _verify_evidence_state_fingerprint(plan)
+    if ev_error is not None:
+        snapshot = AccrualSnapshot(
+            plan_id=plan.plan_id,
+            plan_fingerprint=plan.fingerprint,
+            plan_version=plan.version,
+            plan_status=plan.status.value,
+            expected_count=len(plan.planned_run_cells),
+            attached_count=0,
+            admitted_count=0,
+            rejected_count=0,
+            incompatible_count=0,
+            extra_count=0,
+            remaining_count=len(plan.planned_run_cells),
+            complete_count=0,
+            attached_unadmitted_count=0,
+            planned_missing_count=len(plan.planned_run_cells),
+            withdrawn_count=0,
+            duplicate_count=0,
+            post_evidence_amendment_count=sum(
+                1 for r in plan.revision_history if r.is_post_evidence
+            ),
+            power_plan_fingerprint=plan.power_plan_fingerprint,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
+        )
+        stopping = StoppingProgress(
+            max_replicates=plan.stopping_rule.max_replicates,
+            interim_looks_allowed=plan.stopping_rule.interim_looks,
+            interim_looks_used=review_handoff.interim_looks_used
+            if review_handoff and review_handoff.interim_looks_used is not None
+            else 0,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
+            expected_count=len(plan.planned_run_cells),
+            attached_count=0,
+            admitted_count=0,
+            remaining=len(plan.planned_run_cells),
+            is_overrun=False,
+            overrun_by=0,
+            status="unavailable: evidence-state fingerprint mismatch",
+        )
+        report = AccrualReport(
+            snapshot=snapshot,
+            cells=[],
+            deviations=[],
+            warnings=[
+                AccrualWarning(
+                    code="EVIDENCE_STATE_MISMATCH",
+                    message=ev_error,
+                    severity="blocked",
+                )
+            ],
+            stopping_progress=stopping,
+            timeline=[],
+            amendment_history=[
+                r.model_dump(mode="json")
+                for r in sorted(plan.revision_history, key=lambda x: x.version)
+            ],
+            blockers=[ev_error],
+            power_plan_fingerprint=plan.power_plan_fingerprint,
+            is_unavailable=True,
+            unavailable_reason=ev_error,
+        )
+        report = report.model_copy(update={"fingerprint": report.compute_fingerprint()})
+        return report
 
-    if interim_looks_used is None:
-        interim_looks_used = 0
-    if interim_looks_used < 0:
-        raise ValueError("interim_looks_used must be non-negative")
-    if interim_looks_used > 100:
-        raise ValueError("interim_looks_used bounded to <=100")
-
-    # Unavailable states — explicit, never silently computed
+    # Unavailable draft/no cells
     if plan.status == StudyPlanStatus.DRAFT:
-        # Draft has no frozen identity; monitor is unavailable
         snapshot = AccrualSnapshot(
             plan_id=plan.plan_id,
             plan_fingerprint=None,
@@ -214,18 +365,24 @@ def build_accrual_report(
             remaining_count=len(plan.planned_run_cells),
             complete_count=0,
             attached_unadmitted_count=0,
-            attached_admitted_count=0,
             planned_missing_count=len(plan.planned_run_cells),
             withdrawn_count=0,
+            duplicate_count=0,
             post_evidence_amendment_count=sum(
                 1 for r in plan.revision_history if r.is_post_evidence
             ),
             power_plan_fingerprint=plan.power_plan_fingerprint,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
         )
         stopping = StoppingProgress(
             max_replicates=plan.stopping_rule.max_replicates,
             interim_looks_allowed=plan.stopping_rule.interim_looks,
-            interim_looks_used=interim_looks_used,
+            interim_looks_used=review_handoff.interim_looks_used
+            if review_handoff and review_handoff.interim_looks_used is not None
+            else 0,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
             expected_count=len(plan.planned_run_cells),
             attached_count=0,
             admitted_count=0,
@@ -274,18 +431,24 @@ def build_accrual_report(
             remaining_count=0,
             complete_count=0,
             attached_unadmitted_count=0,
-            attached_admitted_count=0,
             planned_missing_count=0,
             withdrawn_count=0,
+            duplicate_count=0,
             post_evidence_amendment_count=sum(
                 1 for r in plan.revision_history if r.is_post_evidence
             ),
             power_plan_fingerprint=plan.power_plan_fingerprint,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
         )
         stopping = StoppingProgress(
             max_replicates=plan.stopping_rule.max_replicates,
             interim_looks_allowed=plan.stopping_rule.interim_looks,
-            interim_looks_used=interim_looks_used,
+            interim_looks_used=review_handoff.interim_looks_used
+            if review_handoff and review_handoff.interim_looks_used is not None
+            else 0,
+            planned_replicate_count=0,
+            observed_replicate_count=0,
             expected_count=0,
             attached_count=0,
             admitted_count=0,
@@ -321,22 +484,166 @@ def build_accrual_report(
 
     expected_map = _expected_cell_map(plan)
     expected_ids = set(expected_map.keys())
-    # Detect duplicates before deduping
     duplicate_ids = _detect_duplicate_attachments(plan.evidence_attachments)
-    # Build attachment map deduped (last wins) but record duplicate deviations
-    attachment_by_cell: dict[str, EvidenceAttachment] = {}
-    for att in sorted(plan.evidence_attachments, key=lambda a: a.cell_id):
-        # For dedup, keep first encountered sorted order; duplicates already flagged
-        if att.cell_id not in attachment_by_cell:
-            attachment_by_cell[att.cell_id] = att
-        else:
-            # Keep earliest for determinism; duplicate already flagged
-            pass
 
-    # Also count extra not in expected
-    extra_cell_ids = sorted(set(attachment_by_cell.keys()) - expected_ids)
+    # Build raw attachment list grouped by cell_id for duplicate handling
+    # For non-duplicate, keep single; for duplicate, keep list but do not select one as authoritative  # noqa: E501
+    attachment_groups: dict[str, list[EvidenceAttachment]] = defaultdict(list)
+    for att in plan.evidence_attachments:
+        attachment_groups[att.cell_id].append(att)
 
-    # Post-evidence amendment count
+    # For service internal, create a dict for non-duplicate singletons (used for replicate counts etc)  # noqa: E501
+    # But we will not select one for duplicate cells; we mark duplicate and do not use its content
+    single_attachment_by_cell: dict[str, EvidenceAttachment] = {}
+    for cell_id, group in attachment_groups.items():
+        if len(group) == 1 and cell_id not in duplicate_ids:
+            single_attachment_by_cell[cell_id] = group[0]
+        # For duplicate_ids, we don't populate single map; they remain blocked
+
+    # Extra cells: those not in expected, regardless of duplicate
+    extra_cell_ids = sorted(set(attachment_groups.keys()) - expected_ids)
+
+    # Review handoff validation
+    review_by_cell: dict[str, AccrualReviewState] = {}
+    interim_looks_used = 0
+    if review_handoff is not None:
+        # Pydantic already validated schema, duplicates, blank, bounds
+        interim_looks_used = review_handoff.interim_looks_used or 0
+        for dec in review_handoff.decisions:
+            # For this V1, keep review decisions scoped to expected planned cells only
+            if dec.cell_id not in expected_ids:
+                # Refuse: review decision for extra or non-planned cell
+                snapshot = AccrualSnapshot(
+                    plan_id=plan.plan_id,
+                    plan_fingerprint=plan.fingerprint,
+                    plan_version=plan.version,
+                    plan_status=plan.status.value,
+                    expected_count=len(expected_ids),
+                    attached_count=0,
+                    admitted_count=0,
+                    rejected_count=0,
+                    incompatible_count=0,
+                    extra_count=len(extra_cell_ids),
+                    remaining_count=len(expected_ids),
+                    complete_count=0,
+                    attached_unadmitted_count=0,
+                    planned_missing_count=len(expected_ids),
+                    withdrawn_count=0,
+                    duplicate_count=len(duplicate_ids),
+                    post_evidence_amendment_count=sum(
+                        1 for r in plan.revision_history if r.is_post_evidence
+                    ),
+                    power_plan_fingerprint=plan.power_plan_fingerprint,
+                    planned_replicate_count=0,
+                    observed_replicate_count=0,
+                )
+                stopping = StoppingProgress(
+                    max_replicates=plan.stopping_rule.max_replicates,
+                    interim_looks_allowed=plan.stopping_rule.interim_looks,
+                    interim_looks_used=interim_looks_used,
+                    planned_replicate_count=0,
+                    observed_replicate_count=0,
+                    expected_count=len(expected_ids),
+                    attached_count=0,
+                    admitted_count=0,
+                    remaining=len(expected_ids),
+                    is_overrun=False,
+                    overrun_by=0,
+                    status="unavailable: review decision for non-expected cell",
+                )
+                report = AccrualReport(
+                    snapshot=snapshot,
+                    cells=[],
+                    deviations=[],
+                    warnings=[
+                        AccrualWarning(
+                            code="REVIEW_SCOPE_MISMATCH",
+                            message=f"Review decision for cell {dec.cell_id!r} not in planned matrix; extra review not supported in V1.",  # noqa: E501
+                            severity="blocked",
+                        )
+                    ],
+                    stopping_progress=stopping,
+                    timeline=[],
+                    amendment_history=[
+                        r.model_dump(mode="json")
+                        for r in sorted(plan.revision_history, key=lambda x: x.version)
+                    ],
+                    blockers=[
+                        f"Review handoff contains cell {dec.cell_id!r} outside planned matrix."
+                    ],
+                    power_plan_fingerprint=plan.power_plan_fingerprint,
+                    is_unavailable=True,
+                    unavailable_reason="Review decision references non-planned cell.",
+                )
+                report = report.model_copy(update={"fingerprint": report.compute_fingerprint()})
+                return report
+            if dec.cell_id not in attachment_groups:
+                snapshot = AccrualSnapshot(
+                    plan_id=plan.plan_id,
+                    plan_fingerprint=plan.fingerprint,
+                    plan_version=plan.version,
+                    plan_status=plan.status.value,
+                    expected_count=len(expected_ids),
+                    attached_count=0,
+                    admitted_count=0,
+                    rejected_count=0,
+                    incompatible_count=0,
+                    extra_count=len(extra_cell_ids),
+                    remaining_count=len(expected_ids),
+                    complete_count=0,
+                    attached_unadmitted_count=0,
+                    planned_missing_count=len(expected_ids),
+                    withdrawn_count=0,
+                    duplicate_count=len(duplicate_ids),
+                    post_evidence_amendment_count=sum(
+                        1 for r in plan.revision_history if r.is_post_evidence
+                    ),
+                    power_plan_fingerprint=plan.power_plan_fingerprint,
+                    planned_replicate_count=0,
+                    observed_replicate_count=0,
+                )
+                stopping = StoppingProgress(
+                    max_replicates=plan.stopping_rule.max_replicates,
+                    interim_looks_allowed=plan.stopping_rule.interim_looks,
+                    interim_looks_used=interim_looks_used,
+                    planned_replicate_count=0,
+                    observed_replicate_count=0,
+                    expected_count=len(expected_ids),
+                    attached_count=0,
+                    admitted_count=0,
+                    remaining=len(expected_ids),
+                    is_overrun=False,
+                    overrun_by=0,
+                    status="unavailable: review decision for missing evidence",
+                )
+                report = AccrualReport(
+                    snapshot=snapshot,
+                    cells=[],
+                    deviations=[],
+                    warnings=[
+                        AccrualWarning(
+                            code="REVIEW_MISSING_EVIDENCE",
+                            message=f"Review decision for cell {dec.cell_id!r} has no attached evidence; cannot reject/withdraw missing evidence.",  # noqa: E501
+                            severity="blocked",
+                        )
+                    ],
+                    stopping_progress=stopping,
+                    timeline=[],
+                    amendment_history=[
+                        r.model_dump(mode="json")
+                        for r in sorted(plan.revision_history, key=lambda x: x.version)
+                    ],
+                    blockers=[f"Review decision for {dec.cell_id!r} has no evidence attached."],
+                    power_plan_fingerprint=plan.power_plan_fingerprint,
+                    is_unavailable=True,
+                    unavailable_reason="Review decision requires attached evidence.",
+                )
+                report = report.model_copy(update={"fingerprint": report.compute_fingerprint()})
+                return report
+            review_by_cell[dec.cell_id] = dec.state
+    else:
+        interim_looks_used = 0
+
     post_evidence_count = sum(1 for r in plan.revision_history if r.is_post_evidence)
 
     cells: list[AccrualCellEntry] = []
@@ -345,30 +652,88 @@ def build_accrual_report(
     timeline: list[AccrualTimelineEntry] = []
     blockers: list[str] = []
 
-    # Counters for mutually exclusive final states
     status_counter: Counter[AccrualCellStatus] = Counter()
 
-    # Stopping progress counters (to be computed after loop)
-    admitted_for_progress = 0
-
-    # For each expected cell, determine single final status
+    # For each expected cell, determine single final status — mutually exclusive
     for cell_id in sorted(expected_ids):
         cell = expected_map[cell_id]
-        attachment = attachment_by_cell.get(cell_id)
         is_dup = cell_id in duplicate_ids
-
-        # Determine withdrawn/rejected before other checks — explicit unavailable states
-        is_withdrawn = cell_id in withdrawn_cell_ids
-        is_rejected = cell_id in rejected_cell_ids
-
-        # Determine incompatibility (metric/unit) — typed, not inferred beyond explicit records
-        incompat_flag, incompat_reason = _is_incompatible(plan, cell, attachment)
-
-        # Determine deviation reason for this cell (for display)
+        review_state = review_by_cell.get(cell_id)
+        status: AccrualCellStatus | None = None
         deviation_reason: str | None = None
 
-        # Status assignment — mutually exclusive, priority order ensures no double-count
-        status: AccrualCellStatus
+        # Duplicate takes precedence: fail-closed, no authoritative selection
+        if is_dup:
+            status = AccrualCellStatus.DUPLICATE
+            deviation_reason = "duplicate_attachment: multiple evidence records for same cell"
+            deviations.append(
+                AccrualDeviation(
+                    code=AccrualDeviationCode.DUPLICATE_ATTACHMENT,
+                    cell_id=cell_id,
+                    message=f"Duplicate attachment for cell {cell_id}",
+                    details={"duplicate": True},
+                )
+            )
+            # Timeline for duplicate
+            for att in attachment_groups[cell_id]:
+                try:
+                    ts = _normalise_timestamp(att.attached_at) if att.attached_at else None
+                except ValueError:
+                    ts = None
+                timeline.append(
+                    AccrualTimelineEntry(
+                        timestamp=ts,
+                        event_type="duplicate_evidence_observed",
+                        cell_id=cell_id,
+                        message=f"Duplicate evidence observed for cell {cell_id}",
+                        details={"duplicate": True, "admission_state": _admission_state_label(att)},
+                    )
+                )
+            # For duplicate, we do not evaluate attachment content; we create a cell entry with no attachment-derived fields  # noqa: E501
+            # Use first group's first attachment for display but mark as duplicate (no authoritative)  # noqa: E501
+            # Choose earliest attached_at for first_observed deterministically (sorted)
+            first_att = sorted(
+                attachment_groups[cell_id],
+                key=lambda a: a.attached_at.isoformat() if a.attached_at else "",
+            )[0]
+            cell_entry = AccrualCellEntry(
+                cell_id=cell_id,
+                arm_id=cell.arm_id,
+                seed_id=cell.seed_id,
+                policy_label=cell.policy_label,
+                replication_id=cell.replication_id,
+                metric_key=cell.metric_key,
+                metric_version=cell.metric_version,
+                replication_unit=cell.replication_unit.value,
+                expected_identity={
+                    "cell_id": cell.cell_id,
+                    "arm_id": cell.arm_id,
+                    "seed_id": cell.seed_id,
+                    "policy_label": cell.policy_label,
+                    "replication_id": cell.replication_id,
+                    "metric_key": cell.metric_key,
+                    "metric_version": cell.metric_version,
+                    "replication_unit": cell.replication_unit.value,
+                },
+                attachment_state="duplicate_attached",
+                admission_state="conflicting",
+                compatibility="conflicting",
+                first_observed_time=_first_observed_time(first_att),
+                latest_decision=review_state.value.lower() if review_state else "duplicate",
+                deviation_reason=deviation_reason,
+                status=status,
+            )
+            cells.append(cell_entry)
+            status_counter[status] += 1
+            continue
+
+        # Non-duplicate: get single attachment if exists
+        attachment = single_attachment_by_cell.get(cell_id)
+        is_withdrawn = review_state == AccrualReviewState.WITHDRAWN
+        is_rejected = review_state == AccrualReviewState.REJECTED
+
+        incompat_flag, incompat_reason = _is_incompatible(plan, cell, attachment)
+
         if attachment is None:
             status = AccrualCellStatus.PLANNED_MISSING
             deviation_reason = "missing_cell: no evidence attached for expected cell"
@@ -407,7 +772,6 @@ def build_accrual_report(
             )
         elif incompat_flag:
             status = AccrualCellStatus.INCOMPATIBLE
-            # Determine which mismatch code
             if attachment is not None and attachment.observed_metric_version != cell.metric_version:
                 code = AccrualDeviationCode.METRIC_CONTRACT_MISMATCH
                 deviation_reason = f"metric_contract_mismatch: {incompat_reason}"
@@ -419,7 +783,6 @@ def build_accrual_report(
                 code = AccrualDeviationCode.UNIT_MISMATCH
                 deviation_reason = f"unit_mismatch: {incompat_reason}"
             else:
-                # Covers metric_key mismatch or generic incompatibility_reason
                 if incompat_reason and "unit" in incompat_reason.lower():
                     code = AccrualDeviationCode.UNIT_MISMATCH
                 else:
@@ -435,44 +798,21 @@ def build_accrual_report(
             )
         elif not is_explicitly_admitted(attachment):
             status = AccrualCellStatus.ATTACHED_UNADMITTED
-            deviation_reason = None  # Not a deviation, just pending admission
-            # No deviation code for simply unadmitted; monitoring shows pending
+            deviation_reason = None
         else:
-            # is_admitted True and compatible
-            # Distinguish complete vs attached_admitted based on post_evidence amendment
-            # If any post-evidence amendment exists, admitted evidence collected before amendment is not clean  # noqa: E501
-            # We treat all admitted cells as attached_admitted when post_evidence_count>0, else complete  # noqa: E501
-            # This keeps both statuses exercised and respects monitoring boundary (no plan change)
-            if post_evidence_count > 0:
-                status = AccrualCellStatus.ATTACHED_ADMITTED
-                # No per-cell deviation for amendment; plan-level deviation added later
-            else:
-                status = AccrualCellStatus.COMPLETE
-            admitted_for_progress += 1
-            # deviation_reason stays None for clean complete
+            # Compatible admitted and not rejected/withdrawn → COMPLETE (even if post-evidence amendment exists)  # noqa: E501
+            status = AccrualCellStatus.COMPLETE
+            deviation_reason = None
 
-        # Duplicate is a separate deviation but does not change mutually exclusive status
-        # (already counted once). Add duplicate deviation if applicable.
-        if is_dup:
-            # Add duplicate deviation (plan-level but per-cell)
-            # Avoid double-adding if already present for this cell
-            deviations.append(
-                AccrualDeviation(
-                    code=AccrualDeviationCode.DUPLICATE_ATTACHMENT,
-                    cell_id=cell_id,
-                    message=f"Duplicate attachment for cell {cell_id}",
-                    details={"duplicate": True},
-                )
-            )
-            # If status was already determined, keep it; duplicate is additional evidence but status remains  # noqa: E501
-
-        status_counter[status] += 1
-
-        # Build timeline entries for this cell if attachment exists
+        # Timeline for non-duplicate attachment
         if attachment is not None and attachment.attached_at is not None:
+            try:
+                ts_norm = _normalise_timestamp(attachment.attached_at)
+            except ValueError:
+                ts_norm = None
             timeline.append(
                 AccrualTimelineEntry(
-                    timestamp=_normalise_timestamp(attachment.attached_at),
+                    timestamp=ts_norm,
                     event_type="evidence_attached",
                     cell_id=cell_id,
                     message=f"Evidence attached for cell {cell_id}",
@@ -482,10 +822,17 @@ def build_accrual_report(
                     },
                 )
             )
-            # If gate report exists, add decision timeline? Use plan gate for each cell?
-            # Not per-cell, but overall gate will be added later.
+            if review_state is not None:
+                timeline.append(
+                    AccrualTimelineEntry(
+                        timestamp=None,
+                        event_type="review_decision",
+                        cell_id=cell_id,
+                        message=f"Review {review_state.value} for cell {cell_id}",
+                        details={"review_state": review_state.value},
+                    )
+                )
 
-        # Expected identity dict for display
         expected_identity = {
             "cell_id": cell.cell_id,
             "arm_id": cell.arm_id,
@@ -497,6 +844,7 @@ def build_accrual_report(
             "replication_unit": cell.replication_unit.value,
         }
 
+        latest_decision_val = _latest_decision(attachment, review_state)
         cell_entry = AccrualCellEntry(
             cell_id=cell_id,
             arm_id=cell.arm_id,
@@ -507,20 +855,26 @@ def build_accrual_report(
             metric_version=cell.metric_version,
             replication_unit=cell.replication_unit.value,
             expected_identity=expected_identity,
-            attachment_state=_attachment_state_label(attachment, is_dup),
+            attachment_state=_attachment_state_label(attachment, False),
             admission_state=_admission_state_label(attachment),
             compatibility=_compatibility_label(plan, cell, attachment),
             first_observed_time=_first_observed_time(attachment),
-            latest_decision=_latest_decision(attachment),
+            latest_decision=latest_decision_val,
             deviation_reason=deviation_reason,
             status=status,
         )
         cells.append(cell_entry)
+        status_counter[status] += 1
 
-    # Handle extra cells (observed but not expected)
+    # Handle extra cells (observed but not expected) — never increase replicate count
     for cell_id in extra_cell_ids:
-        attachment = attachment_by_cell[cell_id]
-        is_dup = cell_id in duplicate_ids
+        group = attachment_groups[cell_id]
+        # For extra, also consider duplicate? Extra with duplicate is still extra + duplicate
+        is_dup_extra = len(group) > 1
+        # Pick first for display but mark appropriately
+        attachment = sorted(
+            group, key=lambda a: a.attached_at.isoformat() if a.attached_at else ""
+        )[0]
         status_counter[AccrualCellStatus.EXTRA] += 1
         deviations.append(
             AccrualDeviation(
@@ -530,7 +884,7 @@ def build_accrual_report(
                 details={"observed_metric": attachment.observed_metric_key},
             )
         )
-        if is_dup:
+        if is_dup_extra:
             deviations.append(
                 AccrualDeviation(
                     code=AccrualDeviationCode.DUPLICATE_ATTACHMENT,
@@ -539,16 +893,21 @@ def build_accrual_report(
                     details={"duplicate": True, "extra": True},
                 )
             )
+        try:
+            ts_norm = (
+                _normalise_timestamp(attachment.attached_at) if attachment.attached_at else None
+            )
+        except ValueError:
+            ts_norm = None
         timeline.append(
             AccrualTimelineEntry(
-                timestamp=_normalise_timestamp(attachment.attached_at),
+                timestamp=ts_norm,
                 event_type="extra_evidence_observed",
                 cell_id=cell_id,
                 message=f"Extra evidence observed for cell {cell_id}",
                 details={"extra": True},
             )
         )
-        # Extra cells have no expected identity
         cell_entry = AccrualCellEntry(
             cell_id=cell_id,
             arm_id=None,
@@ -559,17 +918,16 @@ def build_accrual_report(
             metric_version=attachment.observed_metric_version,
             replication_unit=None,
             expected_identity=None,
-            attachment_state=_attachment_state_label(attachment, is_dup),
+            attachment_state=_attachment_state_label(attachment, is_dup_extra),
             admission_state=_admission_state_label(attachment),
             compatibility="extra",
             first_observed_time=_first_observed_time(attachment),
-            latest_decision=_latest_decision(attachment),
+            latest_decision=_latest_decision(attachment, None),
             deviation_reason="extra_cell: observed evidence not in planned matrix",
             status=AccrualCellStatus.EXTRA,
         )
         cells.append(cell_entry)
 
-    # Sort cells deterministically for stable fingerprint and display
     cells = sorted(cells, key=lambda c: c.cell_id)
 
     # Plan-level deviations: post_evidence_amendment
@@ -588,9 +946,13 @@ def build_accrual_report(
                         },
                     )
                 )
+                try:
+                    ts_norm = _normalise_timestamp(rev.created_at)
+                except ValueError:
+                    ts_norm = None
                 timeline.append(
                     AccrualTimelineEntry(
-                        timestamp=_normalise_timestamp(rev.created_at),
+                        timestamp=ts_norm,
                         event_type="post_evidence_amendment",
                         cell_id=None,
                         message=f"Amendment v{rev.version} after evidence: {rev.amendment_reason[:60]}",  # noqa: E501
@@ -598,91 +960,83 @@ def build_accrual_report(
                     )
                 )
 
-    # Stopping rule progress
+    # Stopping progress via distinct replication IDs
     max_replicates = plan.stopping_rule.max_replicates
     interim_allowed = plan.stopping_rule.interim_looks
     expected_count = len(expected_ids)
+    # Use helper to compute replicate counts
+    planned_replicate_count, observed_replicate_count = _derive_replicate_counts(
+        plan, single_attachment_by_cell, duplicate_ids
+    )
+    # For observed count, include duplicate-blocked replicates as observed but still blocked (they are attached)  # noqa: E501
+    # Already counted via single map? For duplicate we used duplicate_ids to still count via single map missing, so we need to patch:  # noqa: E501
+    # For duplicate cells, they are not in single map, so they would be missed. So we need to recompute observed including duplicates  # noqa: E501
+    # Do explicit: collect distinct replication_id where any expected cell for that replicate has an attachment group (any)  # noqa: E501
+    all_observed_reps: set[int] = set()
+    for cell_id in attachment_groups:
+        if cell_id in expected_map:
+            # Only expected cells contribute to replicate count, extra does not
+            all_observed_reps.add(expected_map[cell_id].replication_id)
+    planned_replicate_count = len({c.replication_id for c in plan.planned_run_cells})
+    observed_replicate_count = len(all_observed_reps)
+
+    # Now compute attached/admitted counts for snapshot
     attached_count = sum(
         status_counter[s]
         for s in (
             AccrualCellStatus.ATTACHED_UNADMITTED,
-            AccrualCellStatus.ATTACHED_ADMITTED,
             AccrualCellStatus.COMPLETE,
             AccrualCellStatus.INCOMPATIBLE,
             AccrualCellStatus.REJECTED,
             AccrualCellStatus.WITHDRAWN,
+            AccrualCellStatus.DUPLICATE,
         )
         if s in status_counter
     )
-    # admitted_count defined as explicitly admitted and not withdrawn/rejected/incompatible? Use counter logic  # noqa: E501
-    admitted_count = (
-        status_counter[AccrualCellStatus.COMPLETE]
-        + status_counter[AccrualCellStatus.ATTACHED_ADMITTED]
-    )
+    admitted_count = status_counter[AccrualCellStatus.COMPLETE]
     incompatible_count = status_counter[AccrualCellStatus.INCOMPATIBLE]
     rejected_count = status_counter[AccrualCellStatus.REJECTED]
     withdrawn_count = status_counter[AccrualCellStatus.WITHDRAWN]
     extra_count = status_counter[AccrualCellStatus.EXTRA]
     planned_missing_count = status_counter[AccrualCellStatus.PLANNED_MISSING]
     attached_unadmitted_count = status_counter[AccrualCellStatus.ATTACHED_UNADMITTED]
-    attached_admitted_count = status_counter[AccrualCellStatus.ATTACHED_ADMITTED]
+    duplicate_count = status_counter[AccrualCellStatus.DUPLICATE]
     complete_count = status_counter[AccrualCellStatus.COMPLETE]
 
     remaining_count = expected_count - complete_count
     if remaining_count < 0:
         remaining_count = 0
 
-    # Stopping overrun detection — explicit, not inferred without record
     is_overrun = False
     overrun_by = 0
     status_str = "on_track"
-    if max_replicates is not None:
-        # Overrun if attached exceeds expected or max_replicates * something
-        # Fail-closed: we compare attached_count vs expected_count and vs max_replicates
-        # If max_replicates is smaller than expected (unlikely), use max
-        effective_max = max_replicates
-        # If stopping rule describes max_replicates as total draws, overrun when attached > max
-        if attached_count > effective_max:
-            is_overrun = True
-            overrun_by = attached_count - effective_max
-            status_str = "overrun"
-            deviations.append(
-                AccrualDeviation(
-                    code=AccrualDeviationCode.STOPPING_RULE_OVERRUN,
-                    cell_id=None,
-                    message=f"Stopping rule overrun: attached {attached_count} exceeds max_replicates {effective_max} by {overrun_by}",  # noqa: E501
-                    details={
-                        "max_replicates": effective_max,
-                        "attached_count": attached_count,
-                        "overrun_by": overrun_by,
-                    },
-                )
+    if max_replicates is not None and observed_replicate_count > max_replicates:
+        is_overrun = True
+        overrun_by = observed_replicate_count - max_replicates
+        status_str = "overrun"
+        deviations.append(
+            AccrualDeviation(
+                code=AccrualDeviationCode.STOPPING_RULE_OVERRUN,
+                cell_id=None,
+                message=f"Stopping rule overrun: observed replicates {observed_replicate_count} exceeds max_replicates {max_replicates} by {overrun_by}",  # noqa: E501
+                details={
+                    "max_replicates": max_replicates,
+                    "observed_replicate_count": observed_replicate_count,
+                    "overrun_by": overrun_by,
+                },
             )
-            timeline.append(
-                AccrualTimelineEntry(
-                    timestamp=None,
-                    event_type="stopping_rule_overrun",
-                    cell_id=None,
-                    message=f"Stopping rule overrun by {overrun_by}",
-                    details={"max_replicates": effective_max, "attached": attached_count},
-                )
+        )
+        timeline.append(
+            AccrualTimelineEntry(
+                timestamp=None,
+                event_type="stopping_rule_overrun",
+                cell_id=None,
+                message=f"Stopping rule overrun by {overrun_by}",
+                details={"max_replicates": max_replicates, "observed": observed_replicate_count},
             )
-        elif attached_count > expected_count:
-            # This would also be extra cells, but extra already counted; overrun relative to expected  # noqa: E501
-            is_overrun = True
-            overrun_by = attached_count - expected_count
-            status_str = "overrun"
-            deviations.append(
-                AccrualDeviation(
-                    code=AccrualDeviationCode.STOPPING_RULE_OVERRUN,
-                    cell_id=None,
-                    message=f"Stopping rule overrun: attached {attached_count} exceeds expected {expected_count} by {overrun_by}",  # noqa: E501
-                    details={"expected_count": expected_count, "attached_count": attached_count},
-                )
-            )
+        )
 
     if interim_looks_used > interim_allowed:
-        # Unplanned interim look — only if explicit count exceeds allowed
         deviations.append(
             AccrualDeviation(
                 code=AccrualDeviationCode.UNPLANNED_INTERIM_LOOK,
@@ -709,43 +1063,104 @@ def build_accrual_report(
             )
         )
 
-    # Gate blockers: reflect current gate status if not READY
-    if plan.gate_report is not None:
-        if plan.gate_report.status.value != "ready":
-            blockers.append(
-                f"Gate status: {plan.gate_report.status.value} — {'; '.join(plan.gate_report.reasons[:2])}"  # noqa: E501
-            )
-            # Also add timeline entry for gate decision
-            timeline.append(
-                AccrualTimelineEntry(
-                    timestamp=None,
-                    event_type="gate_decision",
+    # Recompute gate using authoritative implementation for comparison
+    # Use raw attachments that are singletons? For duplicate case, pass all attachments to see duplicate blocker  # noqa: E501
+    # Build list for gate: use the non-duplicate singles plus one per duplicate group? But duplicate detection should be triggered via passing all groups flattened  # noqa: E501
+    gate_attachments: list[EvidenceAttachment] = []
+    for cell_id, group in attachment_groups.items():
+        if cell_id in expected_ids:
+            # For expected, gate should see all attachments (including duplicates) to detect duplicates  # noqa: E501
+            gate_attachments.extend(group)
+        else:
+            # Extra cells: each extra attachment
+            gate_attachments.extend(group)
+    # Also include missing? No.
+
+    try:
+        recomputed_gate, _ = evaluate_gate_with_reasons(plan, gate_attachments)
+    except Exception:
+        recomputed_gate = None
+
+    # Compare stored gate if exists
+    if plan.gate_report is not None and recomputed_gate is not None:
+        # Material inconsistency check: status differs or missing/extra/incompatible lists differ
+        stored = plan.gate_report
+        # Consider mismatch if status differs or counts differ
+        if (
+            stored.status != recomputed_gate.status
+            or set(stored.missing_cells) != set(recomputed_gate.missing_cells)
+            or set(stored.extra_cells) != set(recomputed_gate.extra_cells)
+            or set(stored.incompatible_cells) != set(recomputed_gate.incompatible_cells)
+        ):
+            deviations.append(
+                AccrualDeviation(
+                    code=AccrualDeviationCode.GATE_REPORT_MISMATCH,
                     cell_id=None,
-                    message=f"Gate {plan.gate_report.status.value}: {'; '.join(plan.gate_report.reasons[:1])}",  # noqa: E501
+                    message="Stored preregistration gate report mismatches recomputed gate context",
                     details={
-                        "status": plan.gate_report.status.value,
-                        "missing_cells": plan.gate_report.missing_cells[:3],
-                        "extra_cells": plan.gate_report.extra_cells[:3],
+                        "stored_status": stored.status.value,
+                        "recomputed_status": recomputed_gate.status.value,
+                        "stored_missing": sorted(stored.missing_cells)[:3],
+                        "recomputed_missing": sorted(recomputed_gate.missing_cells)[:3],
                     },
                 )
             )
-        # Add incompatibility blockers
-        if plan.gate_report.incompatible_cells:
-            blockers.append(
-                f"Incompatible cells block gate: {', '.join(plan.gate_report.incompatible_cells[:3])}"  # noqa: E501
+            warnings.append(
+                AccrualWarning(
+                    code="GATE_REPORT_MISMATCH",
+                    message="Stored preregistration gate report is stale vs current evidence; recomputed gate context is shown.",  # noqa: E501
+                    severity="warning",
+                )
             )
-    else:
-        # No gate report yet — blocker if not enough evidence
-        if attached_count < expected_count:
-            blockers.append(
-                f"Accrual incomplete: {attached_count}/{expected_count} cells attached; gate unavailable."  # noqa: E501
+            timeline.append(
+                AccrualTimelineEntry(
+                    timestamp=None,
+                    event_type="gate_report_mismatch",
+                    cell_id=None,
+                    message=f"Gate mismatch stored {stored.status.value} vs recomputed {recomputed_gate.status.value}",  # noqa: E501
+                    details={
+                        "stored": stored.status.value,
+                        "recomputed": recomputed_gate.status.value,
+                    },
+                )
             )
-        if admitted_count < expected_count:
             blockers.append(
-                f"Admission incomplete: {admitted_count}/{expected_count} admitted; gate not ready."
+                "Stored preregistration gate report mismatches current recomputed gate context."
             )
 
-    # Warnings for deviations that block
+    # Derive blockers from current accrual state first — authoritative
+    # Current expected cells in these states block clean accrual
+    blocking_states = {
+        AccrualCellStatus.PLANNED_MISSING,
+        AccrualCellStatus.ATTACHED_UNADMITTED,
+        AccrualCellStatus.INCOMPATIBLE,
+        AccrualCellStatus.REJECTED,
+        AccrualCellStatus.WITHDRAWN,
+        AccrualCellStatus.DUPLICATE,
+    }
+    current_blocking_count = sum(status_counter[s] for s in blocking_states if s in status_counter)
+    if current_blocking_count > 0:
+        # Add blocker for each category present
+        for state in sorted(blocking_states, key=lambda s: s.value):
+            cnt = status_counter.get(state, 0)
+            if cnt > 0:
+                blockers.append(
+                    f"Accrual blocker: {cnt} cells in {state.value} require resolution."
+                )
+    # Post-evidence amendment blocker
+    if post_evidence_count > 0:
+        warnings.append(
+            AccrualWarning(
+                code="POST_EVIDENCE_AMENDMENT",
+                message=f"{post_evidence_count} post-evidence amendments require review before decision.",  # noqa: E501
+                severity="warning",
+            )
+        )
+        blockers.append(
+            f"{post_evidence_count} post-evidence amendments; plan was amended after evidence collection; study governance blocked."  # noqa: E501
+        )
+
+    # Warnings for deviations that block (but blockers already added above)
     if incompatible_count > 0:
         warnings.append(
             AccrualWarning(
@@ -754,8 +1169,6 @@ def build_accrual_report(
                 severity="blocked",
             )
         )
-        if not blockers:
-            blockers.append(f"{incompatible_count} incompatible cells block decision.")
     if extra_count > 0:
         warnings.append(
             AccrualWarning(
@@ -780,52 +1193,85 @@ def build_accrual_report(
                 severity="warning",
             )
         )
-    if post_evidence_count > 0:
+    if duplicate_count > 0:
         warnings.append(
             AccrualWarning(
-                code="POST_EVIDENCE_AMENDMENT",
-                message=f"{post_evidence_count} post-evidence amendments require review before decision.",  # noqa: E501
-                severity="warning",
+                code="DUPLICATE_ATTACHMENT",
+                message=f"{duplicate_count} cells have duplicate evidence records; no authoritative attachment selected.",  # noqa: E501
+                severity="blocked",
             )
         )
-        blockers.append(
-            f"{post_evidence_count} post-evidence amendments; plan was amended after evidence collection."  # noqa: E501
+
+    # Gate context adds information but does not remove current blockers
+    if recomputed_gate is not None:
+        if recomputed_gate.status.value != "ready":
+            # Add recomputed gate context as blocker if not already blocked
+            if recomputed_gate.missing_cells:
+                blockers.append(
+                    f"Recomputed preregistration gate: {recomputed_gate.status.value} — missing {', '.join(recomputed_gate.missing_cells[:3])}"  # noqa: E501
+                )
+            elif recomputed_gate.incompatible_cells:
+                blockers.append(
+                    f"Recomputed preregistration gate: {recomputed_gate.status.value} — incompatible {', '.join(recomputed_gate.incompatible_cells[:3])}"  # noqa: E501
+                )
+            else:
+                blockers.append(
+                    f"Recomputed preregistration gate: {recomputed_gate.status.value} — {'; '.join(recomputed_gate.reasons[:1])}"  # noqa: E501
+                )
+        else:
+            # Even if gate ready, if we have current blockers, we keep them — stored READY does not suppress  # noqa: E501
+            if (
+                current_blocking_count == 0
+                and post_evidence_count == 0
+                and not is_overrun
+                and interim_looks_used <= interim_allowed
+            ):
+                # No blockers, gate ready context is positive but not a blocker
+                pass
+            else:
+                # Gate ready but we still have blockers, keep blockers
+                pass
+        # Always add timeline for gate
+        timeline.append(
+            AccrualTimelineEntry(
+                timestamp=None,
+                event_type="recomputed_gate",
+                cell_id=None,
+                message=f"Recomputed gate {recomputed_gate.status.value}: {'; '.join(recomputed_gate.reasons[:1])}",  # noqa: E501
+                details={"status": recomputed_gate.status.value},
+            )
         )
 
-    # Ensure blockers are deterministic sorted
+    # Ensure blockers invariant: if any warning blocked then blockers non-empty
+    has_blocked_warning = any(w.severity == "blocked" for w in warnings)
+    if has_blocked_warning and not blockers:
+        blockers.append("Accrual blocked: see warnings with blocked severity.")
+
     blockers = sorted(set(blockers))
-
-    # Sort deviations deterministically (already partly) for fingerprint stability
     deviations = sorted(deviations, key=lambda d: (d.code.value, d.cell_id or ""))
-
-    # Sort timeline deterministically
     timeline = sorted(timeline, key=lambda t: (t.timestamp or "", t.event_type, t.cell_id or ""))
 
-    # Build snapshot — must reconcile counts, no double-counting
-    # Reconciliation invariant: expected_count == sum of expected-cell statuses
+    # Reconciliation
     expected_status_sum = (
         planned_missing_count
         + attached_unadmitted_count
-        + attached_admitted_count
         + complete_count
         + incompatible_count
         + rejected_count
         + withdrawn_count
+        + duplicate_count
     )
-    # Fail-closed: if invariant broken, raise rather than silently misrepresent
     if expected_status_sum != expected_count:
         raise ValueError(
             f"count reconciliation failed: expected_status_sum {expected_status_sum} != expected_count {expected_count}"  # noqa: E501
         )
-    # attached_count already computed as sum of statuses with attachment
-    # Verify attached reconciliation
     recomputed_attached = (
         attached_unadmitted_count
-        + attached_admitted_count
         + complete_count
         + incompatible_count
         + rejected_count
         + withdrawn_count
+        + duplicate_count
     )
     if recomputed_attached != attached_count:
         raise ValueError(
@@ -846,17 +1292,21 @@ def build_accrual_report(
         remaining_count=remaining_count,
         complete_count=complete_count,
         attached_unadmitted_count=attached_unadmitted_count,
-        attached_admitted_count=attached_admitted_count,
         planned_missing_count=planned_missing_count,
         withdrawn_count=withdrawn_count,
+        duplicate_count=duplicate_count,
         post_evidence_amendment_count=post_evidence_count,
         power_plan_fingerprint=plan.power_plan_fingerprint,
+        planned_replicate_count=planned_replicate_count,
+        observed_replicate_count=observed_replicate_count,
     )
 
     stopping = StoppingProgress(
         max_replicates=max_replicates,
         interim_looks_allowed=interim_allowed,
         interim_looks_used=interim_looks_used,
+        planned_replicate_count=planned_replicate_count,
+        observed_replicate_count=observed_replicate_count,
         expected_count=expected_count,
         attached_count=attached_count,
         admitted_count=admitted_count,
@@ -883,6 +1333,5 @@ def build_accrual_report(
         is_unavailable=False,
         unavailable_reason=None,
     )
-    # Compute deterministic fingerprint
     report = report.model_copy(update={"fingerprint": report.compute_fingerprint()})
     return report

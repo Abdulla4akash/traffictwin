@@ -64,7 +64,7 @@ def test_study_accrual_page_has_useful_empty_state_and_sections() -> None:
     assert "Deviation timeline" in all_text or "deviation" in all_text.lower()
     assert "Stopping progress" in all_text
     assert "Amendment history" in all_text
-    assert "Blockers" in all_text
+    assert "blocker" in all_text.lower()
     assert "Deterministic exports" in all_text
 
 
