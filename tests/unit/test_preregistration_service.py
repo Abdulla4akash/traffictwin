@@ -692,7 +692,9 @@ def test_evidence_attachment_by_fingerprint_and_reconciliation() -> None:
     ]
     attached_all = attach_evidence(plan, all_atts, clock=_later_clock)
     gate_all = attached_all.gate_report
+    assert gate_all is not None
     assert gate_all.status.value == "ready"
+    assert gate_all is not None
     assert gate_all.is_ready is True
 
     # Extra cell
@@ -706,7 +708,9 @@ def test_evidence_attachment_by_fingerprint_and_reconciliation() -> None:
         admission_label=ArtifactAdmission.ADMITTED,
     )
     with_extra = attach_evidence(plan, all_atts + [extra_att], clock=_later_clock)
+    assert with_extra.gate_report is not None
     assert with_extra.gate_report.status.value == "blocked"
+    assert with_extra.gate_report is not None
     assert "cell-9999" in with_extra.gate_report.extra_cells
 
     # Incompatible version
@@ -722,7 +726,9 @@ def test_evidence_attachment_by_fingerprint_and_reconciliation() -> None:
     # Replace first att with bad version
     incompat_atts = [bad_version_att] + all_atts[1:]
     with_incompat = attach_evidence(plan, incompat_atts, clock=_later_clock)
+    assert with_incompat.gate_report is not None
     assert with_incompat.gate_report.status.value == "blocked"
+    assert with_incompat.gate_report is not None
     assert sorted(expected_ids)[0] in with_incompat.gate_report.incompatible_cells
 
 
@@ -925,6 +931,7 @@ def test_end_to_end_draft_validate_freeze_amend_attach_gate_export() -> None:
     ]
     attached = attach_evidence(frozen_amended, all_atts, clock=_later_clock)
     assert attached.status == StudyPlanStatus.EVIDENCE_ATTACHED
+    assert attached.gate_report is not None
     assert attached.gate_report.status.value == "ready"
     # Export and verify
     exported = export_plan_json(attached)

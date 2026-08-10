@@ -128,8 +128,11 @@ def test_blocker1_synthetic_all_unadmitted_not_ready() -> None:
     plan = _frozen_plan(evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE)
     atts = _all_attachments(plan, admitted=False, label=ArtifactAdmission.UNADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status != DecisionGateStatus.READY
+    assert attached.gate_report is not None
     assert attached.gate_report.is_ready is False
+    assert attached.gate_report is not None
     assert (
         "not explicitly admitted" in " ".join(attached.gate_report.reasons).lower()
         or attached.gate_report.incompatible_cells
@@ -140,6 +143,7 @@ def test_blocker1_imported_all_unadmitted_not_ready() -> None:
     plan = _frozen_plan(evidence_mode=EvidenceMode.IMPORTED_EVIDENCE)
     atts = _all_attachments(plan, admitted=False, label=ArtifactAdmission.UNADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status != DecisionGateStatus.READY
 
 
@@ -147,6 +151,7 @@ def test_blocker1_historical_all_unadmitted_not_ready() -> None:
     plan = _frozen_plan(evidence_mode=EvidenceMode.HISTORICAL_OBSERVATION)
     atts = _all_attachments(plan, admitted=False, label=ArtifactAdmission.UNADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status != DecisionGateStatus.READY
 
 
@@ -155,6 +160,7 @@ def test_blocker1_admitted_research_label_admitted_but_not_admitted_flag() -> No
     # Label says ADMITTED but flag is False -> must not be READY
     atts = _all_attachments(plan, admitted=False, label=ArtifactAdmission.ADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status != DecisionGateStatus.READY
 
 
@@ -162,10 +168,12 @@ def test_blocker1_synthetic_label_but_flag_false() -> None:
     plan = _frozen_plan(evidence_mode=EvidenceMode.ADMITTED_RESEARCH)
     atts = _all_attachments(plan, admitted=False, label=ArtifactAdmission.SYNTHETIC)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status != DecisionGateStatus.READY
     # also test imported label
     atts2 = _all_attachments(plan, admitted=False, label=ArtifactAdmission.IMPORTED)
     attached2 = attach_evidence(plan, atts2, clock=lambda: LATER)
+    assert attached2.gate_report is not None
     assert attached2.gate_report.status != DecisionGateStatus.READY
 
 
@@ -173,8 +181,11 @@ def test_blocker1_all_admitted_compatible_ready() -> None:
     plan = _frozen_plan(evidence_mode=EvidenceMode.SYNTHETIC_EVIDENCE)
     atts = _all_attachments(plan, admitted=True, label=ArtifactAdmission.ADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.READY
+    assert attached.gate_report is not None
     assert attached.gate_report.is_ready is True
+    assert attached.gate_report is not None
     assert "compatible admitted evidence" in " ".join(attached.gate_report.reasons).lower()
 
 
@@ -182,13 +193,17 @@ def test_blocker1_ready_reason_truthful() -> None:
     plan = _frozen_plan()
     atts = _all_attachments(plan, admitted=True, label=ArtifactAdmission.ADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.READY
+    assert attached.gate_report is not None
     assert "admitted" in " ".join(attached.gate_report.reasons).lower()
     # Unadmitted must not have admitted wording
     unad = _all_attachments(plan, admitted=False, label=ArtifactAdmission.UNADMITTED)
     attached2 = attach_evidence(plan, unad, clock=lambda: LATER)
+    assert attached2.gate_report is not None
     if attached2.gate_report.status == DecisionGateStatus.READY:
         pytest.fail("unadmitted must not be READY")
+    assert attached2.gate_report is not None
     assert "compatible admitted evidence" not in " ".join(attached2.gate_report.reasons).lower()
 
 
@@ -366,7 +381,7 @@ def test_blocker3_extra_cell_raises() -> None:
     built = build_run_matrix(plan)
     _extra = built + [  # noqa: F841
         EvidenceAttachment.model_fields  # dummy to get extra cell: create extra PlannedRunCell
-    ]  # type: ignore
+    ]
     # Actually create extra cell with same structure but different replication
     from traffictwin.preregistration.models import PlannedRunCell
 
@@ -498,6 +513,7 @@ def test_blocker5_exact_unit_compatible() -> None:
     atts = _all_attachments(plan, True, ArtifactAdmission.ADMITTED)
     # All have correct unit ratio, should be ready
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.READY
 
 
@@ -508,8 +524,11 @@ def test_blocker5_wrong_unit_blocks() -> None:
     bad = atts[0].model_copy(update={"observed_unit": "ms"})
     atts2 = [bad] + atts[1:]
     attached = attach_evidence(plan, atts2, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.BLOCKED
+    assert attached.gate_report is not None
     assert atts[0].cell_id in attached.gate_report.incompatible_cells
+    assert attached.gate_report is not None
     assert "unit mismatch" in attached.gate_report.incompatibility_reasons[atts[0].cell_id].lower()
 
 
@@ -520,6 +539,7 @@ def test_blocker5_wrong_unit_with_correct_version_still_blocked() -> None:
         update={"observed_unit": "count", "observed_metric_version": METRIC_VERSION}
     )
     attached = attach_evidence(plan, [bad] + atts[1:], clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.BLOCKED
 
 
@@ -533,7 +553,9 @@ def test_blocker6_version_mismatch_reason() -> None:
     atts = _all_attachments(plan, True, ArtifactAdmission.ADMITTED)
     bad = atts[0].model_copy(update={"observed_metric_version": "9.9"})
     attached = attach_evidence(plan, [bad] + atts[1:], clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.incompatible_cells
+    assert attached.gate_report is not None
     reason = attached.gate_report.incompatibility_reasons[bad.cell_id]
     assert "metric_version mismatch" in reason.lower()
     # Also check attachment itself has reason
@@ -545,8 +567,11 @@ def test_blocker6_admission_failure_reason() -> None:
     atts = _all_attachments(plan, False, ArtifactAdmission.UNADMITTED)
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
     # All should be incompatible due to admission
+    assert attached.gate_report is not None
     assert attached.gate_report.incompatible_cells
+    assert attached.gate_report is not None
     for cid in attached.gate_report.incompatible_cells:
+        assert attached.gate_report is not None
         assert (
             "not explicitly admitted" in attached.gate_report.incompatibility_reasons[cid].lower()
         )
@@ -599,6 +624,7 @@ def test_blocker7_distinct_cells_ok() -> None:
     atts = _all_attachments(plan, True, ArtifactAdmission.ADMITTED)
     # Distinct cells should not raise
     attached = attach_evidence(plan, atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status == DecisionGateStatus.READY
 
 

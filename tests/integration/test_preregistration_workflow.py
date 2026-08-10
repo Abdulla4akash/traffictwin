@@ -192,5 +192,7 @@ def test_integration_gate_blocked_on_incompatible() -> None:
         for c in frozen.planned_run_cells
     ]
     attached = attach_evidence(frozen, bad_atts, clock=lambda: LATER)
+    assert attached.gate_report is not None
     assert attached.gate_report.status.value == "blocked"
+    assert attached.gate_report is not None
     assert len(attached.gate_report.incompatible_cells) == len(frozen.planned_run_cells)
