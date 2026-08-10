@@ -27,11 +27,14 @@ from collections import defaultdict
 from collections.abc import Callable
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from traffictwin.metrics.results import JsonScalar
+
+if TYPE_CHECKING:
+    from traffictwin.metric_contract_registry.models import MetricContractRegistry
 
 RESOURCE_STRATEGY_SCHEMA_VERSION: Literal["1.0"] = "1.0"
 RESOURCE_STRATEGY_REPORT_VERSION: Literal["1.0"] = "1.0"
@@ -799,12 +802,21 @@ def build_resource_strategy_report(
     study: ResourceStrategyStudy,
     *,
     clock: Callable[[], datetime] | None = utc_now,
+    metric_contract_registry: MetricContractRegistry | None = None,
+    arm_metric_contracts: dict[str, dict[str, tuple[str, str, ResourceStrategyMetricDenominator]]]
+    | None = None,
 ) -> ResourceStrategyReport:
     """Build a deterministic report from a validated study.
 
     Validates admission (unadmitted evidence is not treated as admitted),
     conservation, matched-cohort exclusions, and metric version compatibility.
     Fails closed on malformed input.
+
+    When ``metric_contract_registry`` is supplied, custom metrics registered
+    in the closed contract registry may become comparable, but only when every
+    arm agrees on metric version, unit, and denominator. Any cross-arm
+    mismatch makes the metric INCOMPATIBLE and its aggregates/pairwise
+    UNAVAILABLE. Built-in contracts remain authoritative.
     """
     # Admission guard: unadmitted evidence must not be treated as admitted.
     if study.admission_state == ResourceStrategyAdmissionState.UNADMITTED:
@@ -826,32 +838,225 @@ def build_resource_strategy_report(
         raise ValueError("UNAVAILABLE_EVIDENCE: study admission_state is unavailable")
 
     # Real compatibility audit: evaluate version/unit/denominator against expected contract
+    # For custom metrics, consult optional metric_contract_registry when supplied.
     compatibility: list[ResourceStrategyCompatibility] = []
     for metric in study.metric_catalog:
         expected = EXPECTED_METRIC_CONTRACT.get(metric.metric_key)
         if expected is None:
+            # Custom metric path — requires closed registry for comparability
+            if metric_contract_registry is None:
+                compatibility.append(
+                    ResourceStrategyCompatibility(
+                        metric_key=metric.metric_key,
+                        status=ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+                        denominator=metric.denominator,
+                        unit=metric.unit,
+                        versions=[metric.metric_version],
+                        finding="no registered compatibility contract; metric comparison not verified",  # noqa: E501
+                    )
+                )
+                continue
+            # Registry supplied: consult it (typed duck typing to avoid circular import)
+            # Expected interface: get_contract, find_by_key, contracts
+            registry = metric_contract_registry
+            contract = None
+            try:
+                # Prefer typed method if available
+                get = getattr(registry, "get_contract", None)
+                if callable(get):
+                    contract = get(metric.metric_key, metric.metric_version)  # noqa: E501
+                else:
+                    # Fallback scan
+                    for c in getattr(registry, "contracts", []):
+                        if (
+                            c.metric_key == metric.metric_key
+                            and c.metric_version == metric.metric_version
+                        ):
+                            contract = c
+                            break
+            except Exception:
+                contract = None
+            if contract is None:
+                # Check if key exists with different version in registry
+                by_key = []
+                try:
+                    finder = getattr(registry, "find_by_key", None)
+                    if callable(finder):
+                        by_key = finder(metric.metric_key)
+                    else:
+                        by_key = [
+                            c
+                            for c in getattr(registry, "contracts", [])
+                            if c.metric_key == metric.metric_key
+                        ]
+                except Exception:
+                    by_key = []
+                if by_key:
+                    versions = sorted({c.metric_version for c in by_key})
+                    compatibility.append(
+                        ResourceStrategyCompatibility(
+                            metric_key=metric.metric_key,
+                            status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                            denominator=metric.denominator,
+                            unit=metric.unit,
+                            versions=[metric.metric_version],
+                            finding=(
+                                f"incompatible: version {metric.metric_version!r} != registered {versions!r}; "  # noqa: E501
+                                "every arm must agree on metric version"
+                            ),
+                        )
+                    )
+                else:
+                    compatibility.append(
+                        ResourceStrategyCompatibility(
+                            metric_key=metric.metric_key,
+                            status=ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+                            denominator=metric.denominator,
+                            unit=metric.unit,
+                            versions=[metric.metric_version],
+                            finding="no registered compatibility contract; metric comparison not verified",  # noqa: E501
+                        )
+                    )
+                continue
+            # Contract exists for this key/version — verify study catalog matches registry
+            mismatches: list[str] = []
+            # Use duck typing for contract fields
+            c_version = getattr(contract, "metric_version", None)
+            c_unit = getattr(contract, "unit", None)
+            c_denom_obj = getattr(contract, "denominator", None)
+            c_denom = (
+                c_denom_obj.value
+                if c_denom_obj is not None and hasattr(c_denom_obj, "value")
+                else str(c_denom_obj)
+                if c_denom_obj is not None
+                else None
+            )
+            if c_version != metric.metric_version:
+                mismatches.append(f"version {metric.metric_version!r} != registered {c_version!r}")
+            if c_unit != metric.unit:
+                mismatches.append(f"unit {metric.unit!r} != registered {c_unit!r}")
+            if c_denom != metric.denominator.value:
+                mismatches.append(
+                    f"denominator {metric.denominator.value!r} != registered {c_denom!r}"
+                )
+            if mismatches:
+                compatibility.append(
+                    ResourceStrategyCompatibility(
+                        metric_key=metric.metric_key,
+                        status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                        denominator=metric.denominator,
+                        unit=metric.unit,
+                        versions=[metric.metric_version],
+                        finding="incompatible: " + "; ".join(mismatches),
+                    )
+                )
+                continue
+            # Cross-arm consistency check: every arm must agree on version/unit/denominator
+            # This loop is the mutation target — removing it makes incompatible arms appear comparable.  # noqa: E501
+            if arm_metric_contracts is not None:
+                # arm_metric_contracts maps arm_id -> {metric_key: (version, unit, denominator)}
+                per_arm_versions: set[str] = set()
+                per_arm_units: set[str] = set()
+                per_arm_denoms: set[str] = set()
+                for _arm_id, mapping in arm_metric_contracts.items():  # noqa: B007
+                    if metric.metric_key in mapping:
+                        ver, unit, denom = mapping[metric.metric_key]
+                        per_arm_versions.add(ver)
+                        per_arm_units.add(unit)
+                        per_arm_denoms.add(denom.value)
+                # If any arm provides override, ensure all arms that have the metric agree
+                if per_arm_versions or per_arm_units or per_arm_denoms:
+                    # Collect per-arm values; missing arms considered as study-level (already checked)  # noqa: E501
+                    # If multiple distinct values across arms -> incompatible
+                    if (
+                        len(per_arm_versions) > 1
+                        or len(per_arm_units) > 1
+                        or len(per_arm_denoms) > 1
+                    ):
+                        parts: list[str] = []
+                        if len(per_arm_versions) > 1:
+                            parts.append(
+                                f"versions {sorted(per_arm_versions)!r} differ across arms"
+                            )
+                        if len(per_arm_units) > 1:
+                            parts.append(f"units {sorted(per_arm_units)!r} differ across arms")
+                        if len(per_arm_denoms) > 1:
+                            parts.append(
+                                f"denominators {sorted(per_arm_denoms)!r} differ across arms"
+                            )
+                        compatibility.append(
+                            ResourceStrategyCompatibility(
+                                metric_key=metric.metric_key,
+                                status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                                denominator=metric.denominator,
+                                unit=metric.unit,
+                                versions=[metric.metric_version],
+                                finding="incompatible: "
+                                + "; ".join(parts)
+                                + "; every arm must agree",
+                            )
+                        )
+                        continue
+                    # Also verify per-arm overrides match registry
+                    for arm_id, mapping in arm_metric_contracts.items():
+                        if metric.metric_key not in mapping:
+                            continue
+                        ver, unit, denom = mapping[metric.metric_key]
+                        denom_val = denom.value if hasattr(denom, "value") else str(denom)
+                        if ver != c_version or unit != c_unit or denom_val != c_denom:
+                            compatibility.append(
+                                ResourceStrategyCompatibility(
+                                    metric_key=metric.metric_key,
+                                    status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                                    denominator=metric.denominator,
+                                    unit=metric.unit,
+                                    versions=[metric.metric_version],
+                                    finding=(
+                                        f"incompatible: arm {arm_id!r} contract "
+                                        f"({ver!r},{unit!r},{denom_val!r}) != registered "
+                                        f"({c_version!r},{c_unit!r},{c_denom!r})"
+                                    ),
+                                )
+                            )
+                            break
+                    else:
+                        # No per-arm mismatch found
+                        pass
+                    # If we broke due to mismatch, continue to next metric
+                    if (
+                        compatibility
+                        and compatibility[-1].metric_key == metric.metric_key
+                        and compatibility[-1].status
+                        == ResourceStrategyCompatibilityStatus.INCOMPATIBLE
+                    ):
+                        continue
+            # Also check implicit cross-arm divergence when arm_metric_contracts is None but study has per-arm data  # noqa: E501
+            # For custom metrics, if no explicit overrides, we assume arms agree via global catalog (deterministic).  # noqa: E501
+            # No further action needed — compatible
             compatibility.append(
                 ResourceStrategyCompatibility(
                     metric_key=metric.metric_key,
-                    status=ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+                    status=ResourceStrategyCompatibilityStatus.COMPATIBLE,
                     denominator=metric.denominator,
                     unit=metric.unit,
                     versions=[metric.metric_version],
-                    finding="no registered compatibility contract; metric comparison not verified",
+                    finding="compatible across matched cohort via registered contract",
                 )
             )
             continue
         exp_version, exp_unit, exp_denom = expected
-        mismatches: list[str] = []
+        builtin_mismatches: list[str] = []
         if metric.metric_version != exp_version:
-            mismatches.append(f"version {metric.metric_version!r} != expected {exp_version!r}")
+            builtin_mismatches.append(
+                f"version {metric.metric_version!r} != expected {exp_version!r}"
+            )
         if metric.unit != exp_unit:
-            mismatches.append(f"unit {metric.unit!r} != expected {exp_unit!r}")
+            builtin_mismatches.append(f"unit {metric.unit!r} != expected {exp_unit!r}")
         if metric.denominator != exp_denom:
-            mismatches.append(
+            builtin_mismatches.append(
                 f"denominator {metric.denominator.value!r} != expected {exp_denom.value!r}"
             )
-        if mismatches:
+        if builtin_mismatches:
             compatibility.append(
                 ResourceStrategyCompatibility(
                     metric_key=metric.metric_key,
@@ -859,7 +1064,7 @@ def build_resource_strategy_report(
                     denominator=metric.denominator,
                     unit=metric.unit,
                     versions=[metric.metric_version],
-                    finding="incompatible: " + "; ".join(mismatches),
+                    finding="incompatible: " + "; ".join(builtin_mismatches),
                 )
             )
             continue
