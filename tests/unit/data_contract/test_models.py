@@ -48,7 +48,7 @@ def test_field_contract_extra_forbidden() -> None:
     with pytest.raises(ValidationError):
         FieldContract.model_validate(
             {"field_name": "x", "required": True, "logical_type": "string", "unknown": "bad"}
-        )  # type: ignore[arg-type]
+        )
 
 
 def test_timestamp_required_for_timestamp_type() -> None:
@@ -96,7 +96,7 @@ def test_source_contract_version_frozen_immutability() -> None:
     version = create_frozen_version(contract)
     assert version.is_frozen is True
     with pytest.raises(ValidationError):
-        version.version = "9.9.9"  # type: ignore[attr-defined]
+        version.version = "9.9.9"  # type: ignore[misc]
 
 
 def test_amendment_requires_parent() -> None:

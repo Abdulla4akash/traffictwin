@@ -35,7 +35,7 @@ def test_frozen_immutability() -> None:
     frozen = create_frozen_version(contract)
     # Attempt to mutate via attribute assignment should raise ValidationError (frozen model)
     with pytest.raises(Exception):  # noqa: B017
-        frozen.version = "9.9.9"  # type: ignore[attr-defined]
+        frozen.version = "9.9.9"  # type: ignore[misc]
     # Also test that dict mutation does not affect fingerprint
     assert frozen.is_frozen is True
 
@@ -135,7 +135,7 @@ def test_raw_values_not_in_fingerprint(tmp_path: Path) -> None:
     assert "secret123" not in json_dumps_obs(obs)
 
 
-def json_dumps_obs(obs: object) -> str:  # type: ignore[type-arg]
+def json_dumps_obs(obs: object) -> str:
     import json
 
     return json.dumps(obs.model_dump(mode="json"), sort_keys=True)  # type: ignore[attr-defined]

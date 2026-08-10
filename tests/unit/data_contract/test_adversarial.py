@@ -177,9 +177,9 @@ def test_mutation_frozen_editable_fails() -> None:
     )
     frozen = create_frozen_version(contract)
     with pytest.raises(Exception):  # noqa: B017
-        frozen.version = "2.0.0"  # type: ignore[attr-defined]
+        frozen.version = "2.0.0"  # type: ignore[misc]
     with pytest.raises(Exception):  # noqa: B017
-        frozen.contract.source_id = "hacked"  # type: ignore[attr-defined]
+        frozen.contract.source_id = "hacked"  # type: ignore[misc]
 
 
 def test_mutation_unbounded_read_bypass_fails(tmp_path: Path) -> None:

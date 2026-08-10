@@ -306,11 +306,11 @@ def test_fingerprint_verification(tmp_path: Path) -> None:
     )
     tampered = frozen.model_copy(update={"contract": tampered_contract})
     with pytest.raises(ValueError, match="fingerprint mismatch"):
-        verify_contract_version(tampered)  # type: ignore[arg-type]
+        verify_contract_version(tampered)
     # Tamper version
     tampered2 = frozen.model_copy(update={"version": "9.9.9"})
     with pytest.raises(ValueError, match="mismatch"):
-        verify_contract_version(tampered2)  # type: ignore[arg-type]
+        verify_contract_version(tampered2)
 
 
 def test_numeric_inference_scientific(tmp_path: Path) -> None:
