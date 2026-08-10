@@ -133,11 +133,7 @@ def _build_default_members(
         ev_val = evidence_overrides.get(key, default_ev.value)
         policy = StudyCapsulePublicationPolicy(policy_val)
         ev = StudyCapsuleEvidenceLabel(ev_val)
-        members.append(
-            default_synthetic_member(
-                kind, logical_id, evidence_label=ev, policy=policy
-            )
-        )
+        members.append(default_synthetic_member(kind, logical_id, evidence_label=ev, policy=policy))
     return members
 
 
@@ -153,9 +149,7 @@ def _raw_like(ev: StudyCapsuleEvidenceLabel) -> bool:
 def render(config: UiConfig) -> None:  # noqa: ARG001
     """Render the Study Capsule Builder page."""
 
-    render_page_header(
-        st.session_state.get("_active_ui_page", UiPage.STUDY_CAPSULE)
-    )
+    render_page_header(st.session_state.get("_active_ui_page", UiPage.STUDY_CAPSULE))
     st.caption(
         "Assemble selected derived artifacts into a deterministic, "
         "offline-verifiable review package. Raw imported evidence is referenced "
@@ -317,9 +311,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         "Not a proof of scientific validity",
         key="capsule_limitations",
     )
-    limitations = [
-        line.strip() for line in limitations_text.splitlines() if line.strip()
-    ]
+    limitations = [line.strip() for line in limitations_text.splitlines() if line.strip()]
 
     unavailable_col1, unavailable_col2 = st.columns(2)
     with unavailable_col1:
@@ -329,12 +321,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             key="capsule_unavail_kind",
         )
     with unavailable_col2:
-        unavailable_id = st.text_input(
-            "Unavailable logical ID", value="", key="capsule_unavail_id"
-        )
-    unavailable_reason = st.text_input(
-        "Unavailable reason", value="", key="capsule_unavail_reason"
-    )
+        unavailable_id = st.text_input("Unavailable logical ID", value="", key="capsule_unavail_id")
+    unavailable_reason = st.text_input("Unavailable reason", value="", key="capsule_unavail_reason")
 
     unavailable_entries: list[StudyCapsuleUnavailable] = []
     if unavailable_kind and unavailable_id and unavailable_reason:
@@ -357,9 +345,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             selected_kinds, policy_overrides, evidence_overrides
         )
         preview_req = StudyCapsuleRequest(
-            creation_date=creation_date
-            if isinstance(creation_date, date)
-            else date(2026, 8, 9),
+            creation_date=creation_date if isinstance(creation_date, date) else date(2026, 8, 9),
             study_id=study_id,
             study_version=study_version,
             study_title=study_title or None,
@@ -404,9 +390,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     st.subheader("6. Build capsule")
     if st.button("Build study capsule", type="primary", key="capsule_build"):
         try:
-            members = _build_default_members(
-                selected_kinds, policy_overrides, evidence_overrides
-            )
+            members = _build_default_members(selected_kinds, policy_overrides, evidence_overrides)
             final_req = StudyCapsuleRequest(
                 creation_date=creation_date
                 if isinstance(creation_date, date)

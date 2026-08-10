@@ -10,6 +10,8 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from traffictwin.study_capsule import (
     StudyCapsuleAdmissionLabel,
     StudyCapsuleEvidenceLabel,
@@ -25,7 +27,6 @@ from traffictwin.study_capsule import (
     default_synthetic_member,
     verify_study_capsule_bytes,
 )
-
 
 PUB_DATE = date(2026, 8, 9)
 
@@ -76,8 +77,26 @@ def test_integration_diverse_member_kinds(tmp_path: Path) -> None:
     )
     built = build_study_capsule(req)
     # All embedded except RO_CRATE_REFERENCE
-    assert len([m for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED]) == 10
-    assert len([m for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT]) == 1
+    assert (
+        len(
+            [
+                m
+                for m in built.manifest.members
+                if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
+            ]
+        )
+        == 10
+    )
+    assert (
+        len(
+            [
+                m
+                for m in built.manifest.members
+                if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
+            ]
+        )
+        == 1
+    )
     # Archive is deterministic and verifiable
     dest = tmp_path / "integration.zip"
     receipt = create_study_capsule_archive(req, dest)
@@ -103,7 +122,7 @@ def test_integration_imported_raw_defaults_to_reference(tmp_path: Path) -> None:
             policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
             content=b"should fail",
         )
-        assert False, "should have raised"
+        pytest.fail("raw imported evidence embedding should be rejected")
     except ValueError as exc:
         assert "raw imported evidence" in str(exc).lower()
 
@@ -131,6 +150,7 @@ def test_integration_imported_raw_defaults_to_reference(tmp_path: Path) -> None:
 
 def test_integration_deterministic_archive_across_equivalent_roots(tmp_path: Path) -> None:
     """Two builds from equivalent logical artifacts must be byte-identical."""
+
     def make_req() -> StudyCapsuleRequest:
         return StudyCapsuleRequest(
             creation_date=PUB_DATE,
@@ -190,11 +210,9 @@ def test_integration_verifier_detects_tamper_missing_extra(tmp_path: Path) -> No
     assert not ver2.valid
 
     # Extra
-    members3 = {n: z.read(n) for n in zipfile.ZipFile(io.BytesIO(original)).infolist() for z in []}  # placeholder
-    # Simpler: reuse members from before
     buf = io.BytesIO(original)
     with zipfile.ZipFile(buf, "r") as z:
-        members3 = {n: z.read(n) for n in z.namelist()}
+        members3: dict[str, bytes] = {n: z.read(n) for n in z.namelist()}
     members3["artifacts/extra.json"] = b"{}"
     extra = _zip_bytes(members3)
     ver3 = verify_study_capsule_bytes(extra)
@@ -214,7 +232,11 @@ def test_integration_manifest_binds_all_required_fields(tmp_path: Path) -> None:
         ],
         limitations=["limitation A", "limitation B"],
         unavailable=[
-            StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.COMPARISON_REPORT, logical_id="comp-missing", reason="no comparison yet")
+            StudyCapsuleUnavailable(
+                kind=StudyCapsuleMemberKind.COMPARISON_REPORT,
+                logical_id="comp-missing",
+                reason="no comparison yet",
+            )
         ],
     )
     built = build_study_capsule(req)
@@ -233,6 +255,6 @@ def test_integration_manifest_binds_all_required_fields(tmp_path: Path) -> None:
     assert len(m.unavailable) == 1
     assert m.software.version is not None
     assert len(m.manifest_fingerprint) == 64
-    # No absolute paths
-    assert "/tmp" not in m.model_dump_json()
+    # No absolute paths - use tmp_path to avoid hardcoded /tmp (S108)
+    assert str(tmp_path) not in m.model_dump_json()
     assert "secret" not in m.model_dump_json().lower() or "not" in m.model_dump_json().lower()

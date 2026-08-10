@@ -88,9 +88,27 @@ def test_preview_matches_manifest_production_path() -> None:
     )
     preview = preview_membership(req)
     built = build_study_capsule(req)
-    expected_embedded = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED])
-    expected_referenced = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT])
-    expected_excluded = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EXCLUDE])
+    expected_embedded = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
+        ]
+    )
+    expected_referenced = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
+        ]
+    )
+    expected_excluded = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.EXCLUDE
+        ]
+    )
     assert preview["embedded"] == expected_embedded
     assert preview["referenced"] == expected_referenced
     assert preview["excluded"] == expected_excluded
@@ -102,7 +120,13 @@ def test_ui_build_receipt_via_production_service(tmp_path: Path) -> None:
     built = build_study_capsule(req)
     # Simulate UI preview check before build
     preview = preview_membership(req)
-    assert preview["embedded"] == sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED])
+    assert preview["embedded"] == sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
+        ]
+    )
     # Simulate UI build: create archive
     dest = tmp_path / "ui-build.zip"
     receipt = create_study_capsule_archive(req, dest)
@@ -184,7 +208,14 @@ def test_apptest_renders_study_capsule_page() -> None:
 
     # Collect rendered text
     texts: list[str] = []
-    for coll in (result.title, result.subheader, result.markdown, result.caption, result.info, result.warning):
+    for coll in (
+        result.title,
+        result.subheader,
+        result.markdown,
+        result.caption,
+        result.info,
+        result.warning,
+    ):
         try:
             texts.extend(str(getattr(item, "value", "")) for item in coll)
         except Exception:  # noqa: S112
@@ -229,8 +260,14 @@ def test_preview_unavailable_not_empty_with_data() -> None:
         ),
     ]
     unavailable = [
-        StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.PROVENANCE_GRAPH, logical_id="prov-1", reason="not generated"),
-        StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.EVIDENCE_PACK, logical_id="ev-2", reason="privacy"),
+        StudyCapsuleUnavailable(
+            kind=StudyCapsuleMemberKind.PROVENANCE_GRAPH,
+            logical_id="prov-1",
+            reason="not generated",
+        ),
+        StudyCapsuleUnavailable(
+            kind=StudyCapsuleMemberKind.EVIDENCE_PACK, logical_id="ev-2", reason="privacy"
+        ),
     ]
     req = StudyCapsuleRequest(
         creation_date="2026-01-01",
@@ -258,7 +295,9 @@ def test_public_demo_member_helper_exists() -> None:
     assert hasattr(sc, "build_demo_member")
     assert hasattr(sc, "default_synthetic_member")
     # Must not be private
-    assert not hasattr(sc, "_json_bytes") or True  # _json_bytes removed; build_demo_member is the public surface
+    assert (
+        not hasattr(sc, "_json_bytes") or True
+    )  # _json_bytes removed; build_demo_member is the public surface
     assert inspect.isfunction(sc.build_demo_member)
     # It should produce a valid request member
     m = sc.build_demo_member(sc.StudyCapsuleMemberKind.SCENARIO_SEED, "public-1")

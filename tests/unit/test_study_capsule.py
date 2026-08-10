@@ -382,7 +382,11 @@ def test_reference_only_members_not_embedded(tmp_path: Path) -> None:
     assert len(embedded_paths) == 1
     assert all("ro_crate_reference" not in p for p in embedded_paths)
     # Referenced member present in manifest but not in zip payload beyond manifest/checksums
-    referenced = [m for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT]
+    referenced = [
+        m
+        for m in built.manifest.members
+        if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
+    ]
     assert len(referenced) == 1
     assert referenced[0].logical_id == "crate-1"
     # Verify zip does not contain referenced payload
@@ -407,7 +411,9 @@ def test_excluded_members_recorded_with_reasons(tmp_path: Path) -> None:
         ],
     )
     built = build_study_capsule(req)
-    excluded = [m for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EXCLUDE]
+    excluded = [
+        m for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EXCLUDE
+    ]
     assert len(excluded) == 1
     assert excluded[0].exclusion_reason == "raw imported evidence excluded per policy"
     assert len(built.manifest.exclusions) == 1
@@ -518,7 +524,10 @@ def test_undeclared_extra_member_rejected(tmp_path: Path) -> None:
     tampered = _zip_bytes(members)
     ver = verify_study_capsule_bytes(tampered)
     assert ver.valid is False
-    assert any("does not match archive payload" in e or "checksum inventory does not match" in e for e in ver.errors)
+    assert any(
+        "does not match archive payload" in e or "checksum inventory does not match" in e
+        for e in ver.errors
+    )
 
 
 def test_duplicate_member_rejected(tmp_path: Path) -> None:
@@ -566,7 +575,9 @@ def test_traversal_member_rejected(tmp_path: Path) -> None:
         # Add a minimal valid manifest? For traversal test we just want verifier to reject traversal regardless of other checks.
     ver = verify_study_capsule_bytes(buf.getvalue())
     assert ver.valid is False
-    assert any("unsafe" in e.lower() or "traversal" in e.lower() or "unsafe" in e for e in ver.errors)
+    assert any(
+        "unsafe" in e.lower() or "traversal" in e.lower() or "unsafe" in e for e in ver.errors
+    )
 
 
 def test_unsupported_schema_version_distinguished(tmp_path: Path) -> None:
@@ -577,13 +588,19 @@ def test_unsupported_schema_version_distinguished(tmp_path: Path) -> None:
     manifest = json.loads(members["capsule-manifest.json"])
     manifest["schema_version"] = "9.9"
     # Re-serialize without updating fingerprint (so also tampered)
-    members["capsule-manifest.json"] = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+    members["capsule-manifest.json"] = json.dumps(
+        manifest, sort_keys=True, separators=(",", ":")
+    ).encode()
     # Need to keep checksums consistent: update checksum for manifest
     # But we want to test unsupported version detection; verifier should flag unsupported
     # We'll recompute checksums to be consistent, so the only error is version.
     # Recompute checksums dict
-    new_checksums = {name: _sha256(content) for name, content in members.items() if name != "checksums.sha256"}
-    members["checksums.sha256"] = "".join(f"{d}  {n}\n" for n, d in sorted(new_checksums.items())).encode()
+    new_checksums = {
+        name: _sha256(content) for name, content in members.items() if name != "checksums.sha256"
+    }
+    members["checksums.sha256"] = "".join(
+        f"{d}  {n}\n" for n, d in sorted(new_checksums.items())
+    ).encode()
     tampered = _zip_bytes(members)
     ver = verify_study_capsule_bytes(tampered)
     assert ver.valid is False
@@ -598,8 +615,12 @@ def test_malformed_manifest_rejected(tmp_path: Path) -> None:
         members = {n: z.read(n) for n in z.namelist()}
     members["capsule-manifest.json"] = b"not json {{{"
     # Update checksum for manifest to keep checksum valid but manifest malformed
-    new_checksums = {name: _sha256(content) for name, content in members.items() if name != "checksums.sha256"}
-    members["checksums.sha256"] = "".join(f"{d}  {n}\n" for n, d in sorted(new_checksums.items())).encode()
+    new_checksums = {
+        name: _sha256(content) for name, content in members.items() if name != "checksums.sha256"
+    }
+    members["checksums.sha256"] = "".join(
+        f"{d}  {n}\n" for n, d in sorted(new_checksums.items())
+    ).encode()
     tampered = _zip_bytes(members)
     ver = verify_study_capsule_bytes(tampered)
     assert ver.valid is False
@@ -678,7 +699,9 @@ def test_manifest_fingerprint_is_canonical() -> None:
     # Recompute fingerprint via canonical JSON without manifest_fingerprint
     payload = built.manifest.model_dump(mode="json")
     payload.pop("manifest_fingerprint")
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    canonical = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
     expected = _sha256(canonical.encode())
     assert built.manifest.manifest_fingerprint == expected
     assert built.manifest.fingerprint() == expected
@@ -727,9 +750,27 @@ def test_preview_matches_manifest() -> None:
     )
     preview = preview_membership(req)
     built = build_study_capsule(req)
-    manifest_embedded = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED])
-    manifest_ref = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT])
-    manifest_excl = sorted([f"{m.kind.value}:{m.logical_id}" for m in built.manifest.members if m.policy is StudyCapsulePublicationPolicy.EXCLUDE])
+    manifest_embedded = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
+        ]
+    )
+    manifest_ref = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
+        ]
+    )
+    manifest_excl = sorted(
+        [
+            f"{m.kind.value}:{m.logical_id}"
+            for m in built.manifest.members
+            if m.policy is StudyCapsulePublicationPolicy.EXCLUDE
+        ]
+    )
     assert preview["embedded"] == manifest_embedded
     assert preview["referenced"] == manifest_ref
     assert preview["excluded"] == manifest_excl
@@ -752,7 +793,11 @@ def test_end_to_end_build_verify_tamper_reject(tmp_path: Path) -> None:
         ],
         limitations=["e2e test"],
         unavailable=[
-            StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.PROVENANCE_GRAPH, logical_id="prov-missing", reason="not generated")
+            StudyCapsuleUnavailable(
+                kind=StudyCapsuleMemberKind.PROVENANCE_GRAPH,
+                logical_id="prov-missing",
+                reason="not generated",
+            )
         ],
     )
     dest = tmp_path / "e2e.zip"
@@ -844,7 +889,9 @@ def test_manifest_fingerprint_matches_written_payload(tmp_path: Path) -> None:
     # The stored fingerprint must equal hash of canonical without fingerprint
     payload = dict(parsed)
     stored = payload.pop("manifest_fingerprint")
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    canonical = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
     expected = _sha256(canonical.encode("utf-8"))
     assert stored == expected
     assert stored == built.manifest.manifest_fingerprint
@@ -1066,3 +1113,312 @@ def test_study_description_none_vs_value_identity(tmp_path: Path) -> None:
     built_none = build_study_capsule(req_none)
     built_val = build_study_capsule(req_val)
     assert built_none.manifest.manifest_fingerprint != built_val.manifest.manifest_fingerprint
+
+
+# ---------------------------------------------------------------------------
+# Capsule_id content-binding (new medium regression, sections 6-8)
+# ---------------------------------------------------------------------------
+
+
+def test_capsule_id_same_bytes_same_id() -> None:
+    fp = _fingerprint("scenario_seed", "seed-bind")
+    m = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-bind",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b'{"metric": 1}',
+    )
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-bind-same",
+        capsule_title="bind same",
+        members=[m],
+    )
+    b1 = build_study_capsule(req)
+    b2 = build_study_capsule(req)
+    assert b1.manifest.capsule_id == b2.manifest.capsule_id
+    assert b1.manifest.manifest_fingerprint == b2.manifest.manifest_fingerprint
+
+
+def test_capsule_id_same_declared_fp_different_bytes_differs() -> None:
+    fp = _fingerprint("scenario_seed", "seed-diff")
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-diff",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b'{"metric": 1}',
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-diff",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b'{"metric": 999999}',
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-diff",
+        capsule_title="diff",
+        members=[m_a],
+    )
+    req_b = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-diff",
+        capsule_title="diff",
+        members=[m_b],
+    )
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id != b_b.manifest.capsule_id
+    assert b_a.manifest.manifest_fingerprint != b_b.manifest.manifest_fingerprint
+    # Archive bytes also differ
+    assert b_a.members != b_b.members
+
+
+def test_capsule_id_binary_one_byte_mutation_differs() -> None:
+    fp = _fingerprint("deterministic_report", "bin-id")
+    data_a = b"\x00\xff\x80ABC"
+    data_b = b"\x00\xff\x80ABD"  # one byte changed
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.DETERMINISTIC_REPORT,
+        logical_id="bin-id",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=data_a,
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.DETERMINISTIC_REPORT,
+        logical_id="bin-id",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=data_b,
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-bin-id",
+        capsule_title="bin id",
+        members=[m_a],
+    )
+    req_b = req_a.model_copy(update={"members": [m_b]})
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id != b_b.manifest.capsule_id
+
+
+def test_capsule_id_same_bytes_different_tmp_root_same_id(tmp_path: Path) -> None:
+    fp = _fingerprint("scenario_seed", "seed-root")
+    m = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-root",
+        fingerprint=fp,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b"same bytes",
+    )
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-root",
+        capsule_title="root",
+        members=[m],
+    )
+    # Build from two different temp roots - use create_study_capsule_archive which does atomic replace
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td1:
+        p1 = Path(td1) / "a.zip"
+        r1 = create_study_capsule_archive(req, p1)
+    with tempfile.TemporaryDirectory() as td2:
+        p2 = Path(td2) / "b.zip"
+        r2 = create_study_capsule_archive(req, p2)
+    assert r1.capsule_id == r2.capsule_id
+    assert r1.manifest_fingerprint == r2.manifest_fingerprint
+    assert (
+        r1.archive_sha256 != r2.archive_sha256 or r1.archive_sha256 == r2.archive_sha256
+    )  # archives are byte-identical so hash same
+    # Actually archives should be byte-identical
+    with tempfile.TemporaryDirectory() as td1:
+        p1 = Path(td1) / "a.zip"
+        create_study_capsule_archive(req, p1)
+        b1 = p1.read_bytes()
+    with tempfile.TemporaryDirectory() as td2:
+        p2 = Path(td2) / "b.zip"
+        create_study_capsule_archive(req, p2)
+        b2 = p2.read_bytes()
+    assert b1 == b2
+
+
+def test_capsule_id_same_bytes_different_declared_fp_differs() -> None:
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-fp-diff",
+        fingerprint="a" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b"same content",
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+        logical_id="seed-fp-diff",
+        fingerprint="b" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b"same content",
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-fp",
+        capsule_title="fp",
+        members=[m_a],
+    )
+    req_b = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-fp",
+        capsule_title="fp",
+        members=[m_b],
+    )
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id != b_b.manifest.capsule_id
+
+
+def test_capsule_id_reference_same_fp_same_id() -> None:
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.RO_CRATE_REFERENCE,
+        logical_id="ref-1",
+        fingerprint="c" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.RO_CRATE_REFERENCE,
+        logical_id="ref-1",
+        fingerprint="c" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ref",
+        capsule_title="ref",
+        members=[m_a],
+    )
+    req_b = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ref",
+        capsule_title="ref",
+        members=[m_b],
+    )
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id == b_b.manifest.capsule_id
+
+
+def test_capsule_id_reference_different_fp_differs() -> None:
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.RO_CRATE_REFERENCE,
+        logical_id="ref-1",
+        fingerprint="c" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.RO_CRATE_REFERENCE,
+        logical_id="ref-1",
+        fingerprint="d" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ref2",
+        capsule_title="ref2",
+        members=[m_a],
+    )
+    req_b = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ref2",
+        capsule_title="ref2",
+        members=[m_b],
+    )
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id != b_b.manifest.capsule_id
+
+
+def test_capsule_id_exclude_reason_changes_id() -> None:
+    m_a = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.EVIDENCE_PACK,
+        logical_id="ex-1",
+        fingerprint="e" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EXCLUDE,
+        exclusion_reason="privacy",
+    )
+    m_b = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.EVIDENCE_PACK,
+        logical_id="ex-1",
+        fingerprint="e" * 64,
+        evidence_label=StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EXCLUDE,
+        exclusion_reason="legal hold",
+    )
+    req_a = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ex",
+        capsule_title="ex",
+        members=[m_a],
+    )
+    req_b = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ex",
+        capsule_title="ex",
+        members=[m_b],
+    )
+    b_a = build_study_capsule(req_a)
+    b_b = build_study_capsule(req_b)
+    assert b_a.manifest.capsule_id != b_b.manifest.capsule_id
+
+
+def test_study_version_plus_build_metadata_accepted(tmp_path: Path) -> None:
+    for valid in ["1.0+build.2", "2.1.0-rc.1+sha.abc123", "1.0+exp.sha.5114f85"]:
+        req = StudyCapsuleRequest(
+            creation_date=PUBLICATION_DATE,
+            study_id="study-plus",
+            study_version=valid,
+            capsule_title="plus",
+            members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+        )
+        built = build_study_capsule(req)
+        assert built.manifest.study.study_version == valid
+        dest = tmp_path / f"plus-{valid.replace('+', '_')}.zip"
+        create_study_capsule_archive(req, dest)
+        ver = verify_study_capsule(dest)
+        assert ver.valid is True
+
+    for bad in ["/v1+build", "C:\\v1+build", "1.0+build 2", "1.0:build"]:
+        with pytest.raises(ValueError):
+            StudyCapsuleRequest(
+                creation_date=PUBLICATION_DATE,
+                study_id="study-bad-plus",
+                study_version=bad,
+                capsule_title="bad",
+                members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+            )
+
+
+def test_warnings_field_removed(tmp_path: Path) -> None:
+    req = _request()
+    dest = tmp_path / "warn.zip"
+    create_study_capsule_archive(req, dest)
+    ver = verify_study_capsule(dest)
+    assert not hasattr(ver, "warnings")
+    # Also check manifest has no warnings
+    built = build_study_capsule(req)
+    assert not hasattr(built.manifest, "warnings")

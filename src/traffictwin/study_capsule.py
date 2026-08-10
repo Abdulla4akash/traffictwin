@@ -55,7 +55,7 @@ REQUIRED_ARCHIVE_MEMBERS: tuple[str, ...] = (
 _FIXED_ZIP_TIMESTAMP: tuple[int, int, int, int, int, int] = (1980, 1, 1, 0, 0, 0)
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
-_STUDY_VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+_STUDY_VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+\-]{0,63}$")
 
 # Absolute-path patterns that must be redacted / rejected in portable text.
 _WINDOWS_PATH = re.compile(r"(?i)(?<![\w])(?:[a-z]:[\\/][^\s\"'<>]+)")
@@ -291,7 +291,7 @@ class StudyCapsuleRequest(StudyCapsuleModel):
         default="1.0",
         min_length=1,
         max_length=64,
-        pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._+\-]{0,63}$",
     )
     study_title: str | None = Field(default=None, min_length=1, max_length=300)
     study_description: str | None = Field(default=None, min_length=1, max_length=2000)
@@ -380,15 +380,11 @@ class StudyCapsuleRequest(StudyCapsuleModel):
 
     def canonical_json(self) -> str:
         # Exclude raw bytes from JSON identity; metadata binds binary via hash/size
-        payload = self.model_dump(
-            mode="json", exclude={"members": {"__all__": {"content"}}}
-        )
+        payload = self.model_dump(mode="json", exclude={"members": {"__all__": {"content"}}})
         return _canonical_json(payload)
 
     def fingerprint(self) -> str:
-        payload = self.model_dump(
-            mode="json", exclude={"members": {"__all__": {"content"}}}
-        )
+        payload = self.model_dump(mode="json", exclude={"members": {"__all__": {"content"}}})
         return _sha256(_canonical_json(payload).encode("utf-8"))
 
 
@@ -475,7 +471,7 @@ class StudyCapsuleStudyIdentity(StudyCapsuleModel):
     study_version: str = Field(
         min_length=1,
         max_length=64,
-        pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._+\-]{0,63}$",
     )
     study_title: str | None = Field(default=None, min_length=1, max_length=300)
     study_description: str | None = Field(default=None, min_length=1, max_length=2000)
@@ -489,9 +485,7 @@ class StudyCapsuleStudyIdentity(StudyCapsuleModel):
     @classmethod
     def _sid_version_ok(cls, v: str) -> str:
         if not _STUDY_VERSION_RE.fullmatch(v):
-            raise ValueError(
-                "study_version must be a safe identifier 1-64 chars"
-            )
+            raise ValueError("study_version must be a safe identifier 1-64 chars")
         if _safe_text(v) != v:
             raise ValueError("study_version must not contain absolute local paths")
         if _contains_secret_hint(v):
@@ -610,7 +604,6 @@ class StudyCapsuleVerification(StudyCapsuleModel):
     archive_entry_count: int = Field(default=0, ge=0)
     checksum_count: int = Field(default=0, ge=0)
     errors: list[str] = Field(default_factory=list)
-    warnings: list[str] = Field(default_factory=list)
     embedded_members: list[str] = Field(default_factory=list)
     referenced_members: list[str] = Field(default_factory=list)
     excluded_members: list[str] = Field(default_factory=list)
@@ -853,15 +846,35 @@ def build_study_capsule(request: StudyCapsuleRequest) -> BuiltStudyCapsule:
         manifest_fingerprint="0" * 64,
     )
 
-    # Compute capsule_id deterministically from contract, request fingerprint, software
+    # Compute capsule_id deterministically: bind actual bytes for EMBED members
+    # For each member, bind stable logical identity + policy + declared fingerprint
+    # plus computed content SHA for EMBED / exclusion reason for EXCLUDE.
+    # This ensures same declared fingerprint + different bytes -> different capsule_id.
+    member_identities: list[dict[str, str]] = []
+    for m in manifest_members_sorted:
+        entry: dict[str, str] = {
+            "kind": m.kind.value,
+            "logical_id": m.logical_id,
+            "policy": m.policy.value,
+            "fingerprint": m.fingerprint,
+        }
+        if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED:
+            assert m.sha256 is not None
+            entry["content_sha256"] = m.sha256
+        elif m.policy is StudyCapsulePublicationPolicy.EXCLUDE:
+            assert m.exclusion_reason is not None
+            entry["exclusion_reason"] = m.exclusion_reason
+        # REFERENCE_BY_FINGERPRINT: declared fingerprint is the identity, no extra field
+        member_identities.append(entry)
+
     capsule_id_source = _canonical_json(
         {
             "contract_version": STUDY_CAPSULE_CONTRACT_VERSION,
+            "creation_date": request.creation_date.isoformat(),
+            "members": member_identities,
             "request_fingerprint": request.fingerprint(),
             "software": software.model_dump(mode="json"),
             "study_identity": study_identity.model_dump(mode="json"),
-            "member_fingerprints": sorted([m.fingerprint for m in manifest_members_sorted]),
-            "creation_date": request.creation_date.isoformat(),
         }
     )
     capsule_id = "urn:traffictwin:study-capsule:" + _sha256(capsule_id_source.encode("utf-8"))
@@ -1059,9 +1072,7 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             capsule_id = manifest.capsule_id
             expected_fp = manifest.fingerprint()
             if manifest.manifest_fingerprint != expected_fp:
-                errors.append(
-                    "manifest fingerprint mismatch: capsule has been tampered"
-                )
+                errors.append("manifest fingerprint mismatch: capsule has been tampered")
                 if status is StudyCapsuleVerificationStatus.VALID:
                     status = StudyCapsuleVerificationStatus.TAMPERED
             manifest_fingerprint = manifest.manifest_fingerprint
@@ -1087,9 +1098,7 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
         # Always validate coverage, even when empty (blank file)
         expected_checksum_members = set(members) - {"checksums.sha256"}
         if set(checksums) != expected_checksum_members:
-            errors.append(
-                "checksum inventory does not match archive payload members"
-            )
+            errors.append("checksum inventory does not match archive payload members")
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.TAMPERED
         for name, expected in checksums.items():
@@ -1104,45 +1113,30 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             status = StudyCapsuleVerificationStatus.MALFORMED
 
     if manifest is not None:
-        embedded = {
-            m.archive_path for m in manifest.members if m.archive_path is not None
-        }
+        embedded = {m.archive_path for m in manifest.members if m.archive_path is not None}
         embedded_expected = {p for p in embedded if p is not None}
         actual_payload = set(members) - {
             "capsule-manifest.json",
             "checksums.sha256",
         }
         if embedded_expected != actual_payload:
-            errors.append(
-                "manifest embedded inventory does not match archive payload members"
-            )
+            errors.append("manifest embedded inventory does not match archive payload members")
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.TAMPERED
         for entry in manifest.members:
             if entry.archive_path is not None:
                 content = members.get(entry.archive_path)
                 if content is None:
-                    errors.append(
-                        f"manifest payload is missing: {entry.archive_path}"
-                    )
+                    errors.append(f"manifest payload is missing: {entry.archive_path}")
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
                     continue
-                if len(content) != entry.content_size or _sha256(
-                    content
-                ) != entry.sha256:
-                    errors.append(
-                        f"manifest size/checksum mismatch: {entry.archive_path}"
-                    )
+                if len(content) != entry.content_size or _sha256(content) != entry.sha256:
+                    errors.append(f"manifest size/checksum mismatch: {entry.archive_path}")
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
-                if (
-                    entry.sha256 is not None
-                    and checksums.get(entry.archive_path) != entry.sha256
-                ):
-                    errors.append(
-                        f"checksum file disagrees with manifest: {entry.archive_path}"
-                    )
+                if entry.sha256 is not None and checksums.get(entry.archive_path) != entry.sha256:
+                    errors.append(f"checksum file disagrees with manifest: {entry.archive_path}")
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
 
@@ -1190,7 +1184,6 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
         archive_entry_count=archive_entry_count,
         checksum_count=checksum_count,
         errors=sorted(set(errors)),
-        warnings=[],
         embedded_members=sorted(embedded_members_audit),
         referenced_members=sorted(referenced_members_audit),
         excluded_members=sorted(excluded_members_audit),
@@ -1495,6 +1488,4 @@ def build_demo_member(
 ) -> StudyCapsuleMemberInput:
     """Public helper for UI/demo to build a member without duplicating fingerprint logic."""
 
-    return default_synthetic_member(
-        kind, logical_id, evidence_label=evidence_label, policy=policy
-    )
+    return default_synthetic_member(kind, logical_id, evidence_label=evidence_label, policy=policy)

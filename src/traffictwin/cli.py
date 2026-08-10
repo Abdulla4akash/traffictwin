@@ -1336,9 +1336,7 @@ def capsule_create_command(
     typer.echo(f"excluded: {receipt.excluded_count}")
     typer.echo(f"unavailable: {receipt.unavailable_count}")
     typer.echo("verified: true (internal integrity)")
-    typer.echo(
-        "note: valid proves internal integrity, not external authenticity"
-    )
+    typer.echo("note: valid proves internal integrity, not external authenticity")
 
 
 @capsule_app.command("verify")
