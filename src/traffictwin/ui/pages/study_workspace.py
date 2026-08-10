@@ -197,8 +197,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         "Upload or enter a path; no payloads are stored inside the manifest — only fingerprint references."
     )
 
-    default_path = Path("tests/fixtures/study_workspace/synthetic_workspace_v1.json")
-    path_str = st.session_state.get("study_workspace_path", str(default_path))
+    path_str = st.session_state.get("study_workspace_path", "")
 
     col_a, col_b = st.columns([3, 1])
     with col_a:
@@ -214,9 +213,10 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
 
     with col_b:
         if st.button("Load synthetic fixture", key="study_workspace_load_fixture"):
-            # Create or point at synthetic fixture if exists; otherwise build demo.
-            st.session_state["study_workspace_path"] = str(default_path)
-            st.session_state.pop("study_workspace_uploaded_text", None)
+            demo = _default_manifest()
+            # Store validated typed representation through same boundary
+            st.session_state["study_workspace_uploaded_text"] = demo.model_dump_json()
+            st.session_state["study_workspace_path"] = ""
             st.rerun()
 
     uploaded = st.file_uploader(
@@ -340,9 +340,21 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             st.caption(
                 f"Inferred from explicit artifact standings; no declared stage supplied. Derived: `{derived_stage.value}`"
             )
-        # Small stage progression hint
-        all_stages = [s.value for s in WorkspaceLifecycleStage]
+        # Normal lifecycle progression (BLOCKED is separate validation state)
+        normal_progression = [
+            WorkspaceLifecycleStage.DRAFT,
+            WorkspaceLifecycleStage.CONTRACTED,
+            WorkspaceLifecycleStage.PREREGISTERED,
+            WorkspaceLifecycleStage.COLLECTING,
+            WorkspaceLifecycleStage.EVIDENCE_REVIEW,
+            WorkspaceLifecycleStage.ANALYSIS_READY,
+            WorkspaceLifecycleStage.ANALYSIS_COMPLETE,
+            WorkspaceLifecycleStage.REVIEW_READY,
+            WorkspaceLifecycleStage.ARCHIVED,
+        ]
+        all_stages = [s.value for s in normal_progression]
         st.caption(f"Lifecycle order: {' → '.join(all_stages)}")
+        st.caption("BLOCKED is a validation state that can interrupt progression.")
 
     # ------------------------------------------------------------------
     # Artifact inventory grouped by role
@@ -383,13 +395,16 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                     column_config=table_column_config(rows),
                     key=f"study_workspace_inventory_{kind_value}",
                 )
-                # Badge summary row
-                badge_cols = st.columns(len(refs))
-                for col, ref in zip(badge_cols, refs, strict=False):
-                    with col:
-                        st.caption(_badge_for_standing(ref.standing))
-                        st.caption(_badge_for_compatibility(ref.compatibility_standing))
-                        st.caption(_badge_for_availability(ref.availability))
+                # Badge summary row (bounded layout: max 4 per row)
+                max_cols = 4
+                for i in range(0, len(refs), max_cols):
+                    chunk = refs[i : i + max_cols]
+                    badge_cols = st.columns(len(chunk))
+                    for col, ref in zip(badge_cols, chunk, strict=False):
+                        with col:
+                            st.caption(_badge_for_standing(ref.standing))
+                            st.caption(_badge_for_compatibility(ref.compatibility_standing))
+                            st.caption(_badge_for_availability(ref.availability))
 
     # ------------------------------------------------------------------
     # Evidence / admission standing summary (before blockers)

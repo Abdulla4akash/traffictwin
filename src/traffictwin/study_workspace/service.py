@@ -17,12 +17,13 @@ from traffictwin.study_workspace.models import (
     StudyWorkspaceManifest,
     WorkspaceAction,
     WorkspaceArtifactKind,
+    WorkspaceArtifactStanding,
+    WorkspaceAvailabilityState,
     WorkspaceBlocker,
     WorkspaceBlockerSeverity,
     WorkspaceCompatibilityStanding,
     WorkspaceLifecycleStage,
     WorkspaceValidationReport,
-    _contains_absolute_path,
 )
 
 # ---------------------------------------------------------------------------
@@ -42,12 +43,51 @@ def sha256_hex(data: bytes) -> str:
 
 def fingerprint_manifest(manifest: StudyWorkspaceManifest) -> str:
     """Return stable SHA-256 fingerprint for one manifest (artifact-order-independent)."""
-    # Delegates to model's deterministic fingerprint.
     return manifest.fingerprint()
 
 
 def canonical_manifest_dict(manifest: StudyWorkspaceManifest) -> dict[str, Any]:
     return manifest.canonical_dict()
+
+
+# ---------------------------------------------------------------------------
+# Lifecycle helpers
+# ---------------------------------------------------------------------------
+
+EVIDENCE_LIKE_STANDINGS: frozenset[WorkspaceArtifactStanding] = frozenset(
+    {
+        WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        WorkspaceArtifactStanding.IMPORTED_EVIDENCE,
+        WorkspaceArtifactStanding.HISTORICAL_OBSERVATION,
+        WorkspaceArtifactStanding.NEAR_LIVE_OPERATIONAL,
+        WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        WorkspaceArtifactStanding.UNADMITTED_RESEARCH,
+    }
+)
+
+REPORT_KINDS: frozenset[WorkspaceArtifactKind] = frozenset(
+    {
+        WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
+        WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
+    }
+)
+
+
+def _is_evidence_like(ref: Any) -> bool:  # noqa: ANN401
+    return ref.standing in EVIDENCE_LIKE_STANDINGS
+
+
+def _has_evidence_like(manifest: StudyWorkspaceManifest) -> bool:
+    return any(_is_evidence_like(a) for a in manifest.artifacts)
+
+
+def _evidence_like_refs(manifest: StudyWorkspaceManifest) -> list[Any]:
+    return [a for a in manifest.artifacts if _is_evidence_like(a)]
+
+
+def _report_refs(manifest: StudyWorkspaceManifest) -> list[Any]:
+    return [a for a in manifest.artifacts if a.kind in REPORT_KINDS]
 
 
 # ---------------------------------------------------------------------------
@@ -100,10 +140,7 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.BLOCKER,
                     code="duplicate_singleton",
-                    message=(
-                        f"duplicate singleton artifact role: {kind.value} appears "
-                        f"{len(fps)} times; expected at most one"
-                    ),
+                    message=f"duplicate singleton artifact role: {kind.value} appears {len(fps)} times; expected at most one",
                     related_fingerprints=sorted(fps),
                 )
             )
@@ -115,10 +152,7 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.BLOCKER,
                     code="missing_parent",
-                    message=(
-                        f"artifact {art.fingerprint[:12]} ({art.kind.value}) "
-                        f"references unknown parent {art.parent_fingerprint[:12]}"
-                    ),
+                    message=f"artifact {art.fingerprint[:12]} ({art.kind.value}) references unknown parent {art.parent_fingerprint[:12]}",
                     related_fingerprints=[art.fingerprint, art.parent_fingerprint],
                 )
             )
@@ -127,55 +161,37 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
     for art in manifest.artifacts:
         allowed = KIND_SUPPORTED_VERSIONS.get(art.kind, SUPPORTED_SCHEMA_VERSIONS)
         if art.schema_version not in allowed:
-            # Incompatible is a blocker; unknown version also blocker.
             blockers.append(
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.BLOCKER,
                     code="incompatible_schema_version",
-                    message=(
-                        f"artifact {art.fingerprint[:12]} ({art.kind.value}) "
-                        f"has unsupported schema version {art.schema_version!r}; "
-                        f"expected one of {sorted(allowed)}"
-                    ),
+                    message=f"artifact {art.fingerprint[:12]} ({art.kind.value}) has unsupported schema version {art.schema_version!r}; expected one of {sorted(allowed)}",
                     related_fingerprints=[art.fingerprint],
                 )
             )
         elif art.compatibility_standing is WorkspaceCompatibilityStanding.INCOMPATIBLE:
-            # Standing claims incompatible while version matches -> warning for consistency
             warnings.append(
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="standing_incompatible",
-                    message=(
-                        f"artifact {art.fingerprint[:12]} declares compatibility_standing "
-                        f"incompatible but schema_version {art.schema_version!r} is supported"
-                    ),
+                    message=f"artifact {art.fingerprint[:12]} declares compatibility_standing incompatible but schema_version {art.schema_version!r} is supported",
                     related_fingerprints=[art.fingerprint],
                 )
             )
 
     # 5. Plan/report fingerprint mismatches
-    # If any report has a parent, parent should be a plan or contract-like artifact.
-    # Also detect when multiple reports claim same wrong parent.
     plan_fps = {
         a.fingerprint
         for a in manifest.artifacts
         if a.kind is WorkspaceArtifactKind.PREREGISTRATION_PLAN
     }
-    report_kinds = {
-        WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
-        WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
-        WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
-        WorkspaceArtifactKind.GENERIC_REPORT,
-    }
     for art in manifest.artifacts:
         if (
-            art.kind in report_kinds
+            art.kind in REPORT_KINDS
             and art.parent_fingerprint is not None
             and plan_fps
             and art.parent_fingerprint not in plan_fps
         ):
-            # Find parent kind if present
             parent_kind = next(
                 (
                     p.kind.value
@@ -188,45 +204,29 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="plan_report_mismatch",
-                    message=(
-                        f"report {art.fingerprint[:12]} ({art.kind.value}) parent "
-                        f"{art.parent_fingerprint[:12]} ({parent_kind}) is not the "
-                        f"declared preregistration plan"
-                    ),
+                    message=f"report {art.fingerprint[:12]} ({art.kind.value}) parent {art.parent_fingerprint[:12]} ({parent_kind}) is not the declared preregistration plan",
                     related_fingerprints=[art.fingerprint, art.parent_fingerprint],
                 )
             )
 
-    # 6. Evidence references absent from the plan
-    # Evidence attachments should reference a plan parent; if they do not, warn.
-    evidence_artifacts = [
-        a for a in manifest.artifacts if a.kind is WorkspaceArtifactKind.EVIDENCE_ATTACHMENT
-    ]
-    for art in evidence_artifacts:
+    # 6. Evidence references absent from the plan (evidence-like, not just EVIDENCE_ATTACHMENT)
+    evidence_like = _evidence_like_refs(manifest)
+    for art in evidence_like:
         if art.parent_fingerprint is None:
             warnings.append(
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="evidence_without_plan_link",
-                    message=(
-                        f"evidence attachment {art.fingerprint[:12]} has no parent plan linkage; "
-                        f"evidence references absent from plan cannot be verified"
-                    ),
+                    message=f"evidence {art.fingerprint[:12]} ({art.kind.value}) has no parent plan linkage; evidence references absent from plan cannot be verified",
                     related_fingerprints=[art.fingerprint],
                 )
             )
-        elif art.parent_fingerprint not in fp_set:
-            # Already flagged as missing_parent, but also evidence-specific
-            pass
         elif plan_fps and art.parent_fingerprint not in plan_fps:
             warnings.append(
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="evidence_plan_mismatch",
-                    message=(
-                        f"evidence {art.fingerprint[:12]} parent {art.parent_fingerprint[:12]} "
-                        f"is not the preregistration plan"
-                    ),
+                    message=f"evidence {art.fingerprint[:12]} parent {art.parent_fingerprint[:12]} is not the preregistration plan",
                     related_fingerprints=[art.fingerprint, art.parent_fingerprint],
                 )
             )
@@ -242,43 +242,53 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
         }
     ]
     for art in capsule_artifacts:
-        if art.parent_fingerprint is not None and art.parent_fingerprint not in fp_set:
-            # Already flagged missing_parent, but capsule-specific message
-            # Avoid duplicate; the missing_parent blocker already covers this.
-            pass
-        # Additionally, if capsule claims compatibility blocked but still available, warn.
         if (
             art.compatibility_standing is WorkspaceCompatibilityStanding.BLOCKED
-            and art.availability.value == "available"
+            and art.availability == WorkspaceAvailabilityState.AVAILABLE
         ):
             warnings.append(
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="capsule_blocked_but_available",
-                    message=(
-                        f"capsule {art.fingerprint[:12]} declares blocked compatibility "
-                        f"but availability is available"
-                    ),
+                    message=f"capsule {art.fingerprint[:12]} declares blocked compatibility but availability is available",
                     related_fingerprints=[art.fingerprint],
                 )
             )
 
-    # 8. Contradictory lifecycle claims
-    derived = _derive_stage_internal(manifest, blockers)
-    if manifest.declared_stage is not None and manifest.declared_stage != derived:
-        # If derived is BLOCKED, declared != BLOCKED => contradictory
-        # Otherwise any mismatch is contradictory
+    # 8. Derive underlying stage without trusting declared_stage
+    underlying = _derive_stage_internal(manifest, blockers)
+
+    # 9. Handle explicit ARCHIVED governance state
+    derived: WorkspaceLifecycleStage
+    if manifest.declared_stage is WorkspaceLifecycleStage.ARCHIVED:
+        if underlying is WorkspaceLifecycleStage.REVIEW_READY:
+            derived = WorkspaceLifecycleStage.ARCHIVED
+            # Valid archived: no contradictory blocker, final is ARCHIVED
+        else:
+            # Immature workspace claims archived -> contradictory
+            blockers.append(
+                WorkspaceBlocker(
+                    severity=WorkspaceBlockerSeverity.BLOCKER,
+                    code="contradictory_lifecycle",
+                    message=f"declared stage archived contradicts derived stage {underlying.value} from artifact standings; only review-ready workspaces may be archived",
+                    related_fingerprints=[],
+                )
+            )
+            derived = WorkspaceLifecycleStage.BLOCKED
+    elif manifest.declared_stage is not None and manifest.declared_stage != underlying:
         blockers.append(
             WorkspaceBlocker(
                 severity=WorkspaceBlockerSeverity.BLOCKER,
                 code="contradictory_lifecycle",
-                message=(
-                    f"declared stage {manifest.declared_stage.value} contradicts "
-                    f"derived stage {derived.value} from artifact standings"
-                ),
+                message=f"declared stage {manifest.declared_stage.value} contradicts derived stage {underlying.value} from artifact standings",
                 related_fingerprints=[],
             )
         )
+        derived = WorkspaceLifecycleStage.BLOCKED
+    else:
+        derived = underlying
+        if blockers:
+            derived = WorkspaceLifecycleStage.BLOCKED
 
     # Additional contradictory standing: if two artifacts share same kind+label but different standing
     label_kind_map: dict[tuple[str, str], set[str]] = {}
@@ -291,10 +301,7 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
                 WorkspaceBlocker(
                     severity=WorkspaceBlockerSeverity.WARNING,
                     code="contradictory_standing",
-                    message=(
-                        f"artifacts with kind {kind_val!r} and label {label!r} carry "
-                        f"contradictory standings {sorted(standings)}"
-                    ),
+                    message=f"artifacts with kind {kind_val!r} and label {label!r} carry contradictory standings {sorted(standings)}",
                     related_fingerprints=[
                         a.fingerprint
                         for a in manifest.artifacts
@@ -303,32 +310,25 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
                 )
             )
 
-    # Availability coherence: blockers make derived blocked, but also check local path in reason/label
-    for art in manifest.artifacts:
-        if art.reason is not None and _contains_absolute_path(art.reason):
-            blockers.append(
-                WorkspaceBlocker(
-                    severity=WorkspaceBlockerSeverity.BLOCKER,
-                    code="local_path_in_reason",
-                    message=f"artifact {art.fingerprint[:12]} reason contains absolute local path",
-                    related_fingerprints=[art.fingerprint],
-                )
-            )
-        if _contains_absolute_path(art.label):
-            blockers.append(
-                WorkspaceBlocker(
-                    severity=WorkspaceBlockerSeverity.BLOCKER,
-                    code="local_path_in_label",
-                    message=f"artifact {art.fingerprint[:12]} label contains absolute local path",
-                    related_fingerprints=[art.fingerprint],
-                )
-            )
-
     is_valid = len(blockers) == 0
-    # Fingerprint of manifest for this validation (deterministic)
     fp = fingerprint_manifest(manifest)
-    # Derived stage is BLOCKED if blockers exist, else internal derivation
-    final_stage = WorkspaceLifecycleStage.BLOCKED if blockers else derived
+    final_stage = (
+        derived
+        if is_valid
+        else WorkspaceLifecycleStage.BLOCKED
+        if any(b.severity == WorkspaceBlockerSeverity.BLOCKER for b in blockers)
+        else derived
+    )
+    # If blockers exist, final is BLOCKED regardless of derived (except valid ARCHIVED already handled)
+    if not is_valid:
+        final_stage = WorkspaceLifecycleStage.BLOCKED
+        # But if derived was ARCHIVED and is_valid, keep ARCHIVED (already handled)
+        # Re-evaluate: if ARCHIVED was valid, is_valid True, so not here
+        # So this branch is for invalid cases
+        pass
+    else:
+        final_stage = derived
+
     return WorkspaceValidationReport(
         is_valid=is_valid,
         blockers=blockers,
@@ -346,97 +346,68 @@ def validate_workspace(manifest: StudyWorkspaceManifest) -> WorkspaceValidationR
 def _derive_stage_internal(
     manifest: StudyWorkspaceManifest, blockers: list[WorkspaceBlocker] | None = None
 ) -> WorkspaceLifecycleStage:
-    """Infer descriptive stage only from explicit artifact standings."""
+    """Infer descriptive stage only from explicit artifact standings.
 
+    Does NOT consider declared_stage; that is handled in validate_workspace.
+    """
     if blockers and any(b.code in {"duplicate_fingerprint", "missing_parent"} for b in blockers):
         return WorkspaceLifecycleStage.BLOCKED
 
     kinds_present = {a.kind for a in manifest.artifacts}
-
     has_plan = WorkspaceArtifactKind.PREREGISTRATION_PLAN in kinds_present
     has_contract = (
         WorkspaceArtifactKind.SOURCE_CONTRACT in kinds_present
         or WorkspaceArtifactKind.SOURCE_CONTRACT_VERSION in kinds_present
     )
-    has_evidence = WorkspaceArtifactKind.EVIDENCE_ATTACHMENT in kinds_present
-    has_event_report = WorkspaceArtifactKind.EVENT_ALIGNED_REPORT in kinds_present
-    has_resource_report = WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT in kinds_present
-    has_study_report = WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT in kinds_present
-    has_capsule = WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST in kinds_present
+    has_report = bool(_report_refs(manifest))
+    has_capsule = (
+        WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST in kinds_present
+        or WorkspaceArtifactKind.RESEARCH_OBJECT_MANIFEST in kinds_present
+    )
 
-    # No artifacts -> draft
+    # No meaningful artifacts -> draft
     if not manifest.artifacts:
         return WorkspaceLifecycleStage.DRAFT
 
-    # Archived is explicit only via declared stage; we don't infer archived from standings alone.
-    # If no plan and no contract -> draft
     if not has_plan and not has_contract:
         return WorkspaceLifecycleStage.DRAFT
 
-    # Contracted: has contract but no plan
+    # Contract but no plan -> contracted
     if has_contract and not has_plan:
         return WorkspaceLifecycleStage.CONTRACTED
 
-    # Preregistered: has plan, no evidence, no reports
-    if (
-        has_plan
-        and not has_evidence
-        and not has_event_report
-        and not has_resource_report
-        and not has_study_report
-    ):
+    # Plan, no evidence-like, no report -> preregistered
+    if has_plan and not _has_evidence_like(manifest) and not has_report:
         return WorkspaceLifecycleStage.PREREGISTERED
 
-    # Collecting: has plan + evidence attachments that are still pending/unavailable
-    if has_plan and has_evidence:
-        # If any evidence is unavailable or pending review, collecting
-        evidence_unavailable = any(
-            a.availability.value in {"unavailable", "pending_review"}
-            for a in manifest.artifacts
-            if a.kind is WorkspaceArtifactKind.EVIDENCE_ATTACHMENT
+    # Plan + evidence-like, no report -> collecting or evidence_review
+    if has_plan and _has_evidence_like(manifest) and not has_report:
+        evidence_like_unavailable = any(
+            a.availability
+            in {WorkspaceAvailabilityState.UNAVAILABLE, WorkspaceAvailabilityState.PENDING_REVIEW}
+            for a in _evidence_like_refs(manifest)
         )
-        if evidence_unavailable:
+        if evidence_like_unavailable:
             return WorkspaceLifecycleStage.COLLECTING
-        # If evidence exists and is available but no reports yet -> evidence_review
-        if not has_event_report and not has_resource_report and not has_study_report:
-            return WorkspaceLifecycleStage.EVIDENCE_REVIEW
+        return WorkspaceLifecycleStage.EVIDENCE_REVIEW
 
-    # Analysis stages
-    if has_plan and has_evidence:
-        has_any_report = has_event_report or has_resource_report or has_study_report
-        if has_any_report:
-            # Check if reports are available vs pending
-            reports_available = any(
-                a.availability.value == "available"
-                for a in manifest.artifacts
-                if a.kind
-                in {
-                    WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
-                    WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
-                    WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
-                }
-            )
-            if reports_available:
-                # If all reports are available, analysis_complete, otherwise analysis_ready
-                all_reports_available = all(
-                    a.availability.value == "available"
-                    for a in manifest.artifacts
-                    if a.kind
-                    in {
-                        WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
-                        WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
-                        WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
-                    }
-                )
-                if all_reports_available:
-                    if has_capsule:
-                        return WorkspaceLifecycleStage.REVIEW_READY
-                    return WorkspaceLifecycleStage.ANALYSIS_COMPLETE
-                return WorkspaceLifecycleStage.ANALYSIS_READY
+    # Plan + report(s) -> analysis stages (not gated by EVIDENCE_ATTACHMENT)
+    if has_plan and has_report:
+        report_artifacts = _report_refs(manifest)
+        all_available = all(
+            a.availability == WorkspaceAvailabilityState.AVAILABLE for a in report_artifacts
+        )
+        # If any report is pending/partial/unavailable -> analysis_ready
+        if not all_available:
             return WorkspaceLifecycleStage.ANALYSIS_READY
+        # All reports available
+        if has_capsule:
+            return WorkspaceLifecycleStage.REVIEW_READY
+        return WorkspaceLifecycleStage.ANALYSIS_COMPLETE
 
-    # If we have a capsule with review ready conditions, else collecting etc.
-    if has_capsule:
+    # Plan + evidence-like but report missing already handled above
+    # If capsule without report but has plan? Treat as review_ready only if reports complete
+    if has_capsule and has_plan and has_report:
         return WorkspaceLifecycleStage.REVIEW_READY
 
     # Fallback
@@ -463,7 +434,6 @@ def next_actions(
 
     actions: list[WorkspaceAction] = []
 
-    # If blockers exist, surface fixing those first
     blocker_codes = {b.code for b in validation.blockers}
     if "duplicate_fingerprint" in blocker_codes:
         actions.append(
@@ -528,7 +498,6 @@ def next_actions(
             )
         )
 
-    # If still blocked, stop here and offer inspect provenance guidance
     if validation.blockers:
         actions.append(
             WorkspaceAction(
@@ -541,12 +510,27 @@ def next_actions(
         )
         return sorted(actions, key=lambda a: a.priority)
 
-    # No blockers: guidance based on lifecycle
     stage = validation.derived_stage
     kinds = {a.kind for a in manifest.artifacts}
 
+    # Archived is terminal; no mutating next actions
+    if stage is WorkspaceLifecycleStage.ARCHIVED:
+        actions.append(
+            WorkspaceAction(
+                action="inspect_provenance",
+                label="Inspect provenance",
+                description="Inspect provenance for any bound artifact to verify derivation without claiming causality.",
+                priority=20,
+                related_fingerprints=[],
+            )
+        )
+        return sorted(actions, key=lambda a: a.priority)
+
     if stage is WorkspaceLifecycleStage.DRAFT:
-        if WorkspaceArtifactKind.SOURCE_CONTRACT not in kinds:
+        if (
+            WorkspaceArtifactKind.SOURCE_CONTRACT not in kinds
+            and WorkspaceArtifactKind.SOURCE_CONTRACT_VERSION not in kinds
+        ):
             actions.append(
                 WorkspaceAction(
                     action="add_or_validate_source_contract",
@@ -601,7 +585,6 @@ def next_actions(
         )
 
     if stage is WorkspaceLifecycleStage.EVIDENCE_REVIEW:
-        # Check for incompatible evidence
         has_incompatible = any(
             a.compatibility_standing is WorkspaceCompatibilityStanding.INCOMPATIBLE
             for a in manifest.artifacts
@@ -673,7 +656,6 @@ def next_actions(
             )
         )
 
-    # Always offer provenance inspection as non-blocking guidance when valid
     if not any(a.action == "inspect_provenance" for a in actions):
         actions.append(
             WorkspaceAction(

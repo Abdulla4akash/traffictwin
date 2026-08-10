@@ -31,7 +31,6 @@ def _safe_label(value: str, fallback: str) -> str:
     s = value.strip()
     if not s:
         return fallback
-    # Redact absolute path fragments if ever present (adapters should not be given local paths).
     return s
 
 
@@ -42,28 +41,68 @@ def _safe_label(value: str, fallback: str) -> str:
 
 def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
     """Adapt a preregistration ``StudyPlan`` to a workspace reference."""
-    # Import lazily to avoid hard dependency if plan schema evolves.
     try:
         fingerprint = getattr(plan, "fingerprint", None)
-        if fingerprint is None:
-            # Try compute method if available
+        if (
+            isinstance(fingerprint, str)
+            and len(fingerprint) == 64
+            and all(c in "0123456789abcdef" for c in fingerprint.lower())
+        ):
+            fp = fingerprint.lower()
+        else:
+            # Try deterministic compute mechanisms
+            fp = None
             compute = getattr(plan, "compute_fingerprint", None)
             if callable(compute):
-                fingerprint = compute()
-            else:
-                fingerprint = getattr(plan, "plan_id", "unknown")
-                # Derive deterministic fingerprint from plan_id if no real fingerprint
-                fingerprint = hashlib.sha256(str(fingerprint).encode()).hexdigest()
-        else:
-            # If fingerprint is set but empty, compute
-            if not isinstance(fingerprint, str) or len(fingerprint) != 64:
-                fingerprint = hashlib.sha256(str(fingerprint).encode()).hexdigest()
+                try:
+                    candidate = compute()
+                    if isinstance(candidate, str) and len(candidate) == 64:
+                        fp = candidate.lower()
+                except Exception:
+                    fp = None
+            if fp is None:
+                # Try canonical payload methods
+                canonical = None
+                if hasattr(plan, "canonical_payload") and callable(plan.canonical_payload):
+                    try:
+                        payload = plan.canonical_payload()
+                        canonical = _hex64_of_canonical(payload)
+                    except Exception:
+                        canonical = None
+                if (
+                    canonical is None
+                    and hasattr(plan, "canonical_json")
+                    and callable(plan.canonical_json)
+                ):
+                    try:
+                        j = plan.canonical_json()
+                        if isinstance(j, str):
+                            fp = hashlib.sha256(j.encode("utf-8")).hexdigest()
+                        else:
+                            canonical = None
+                    except Exception:
+                        canonical = None
+                    else:
+                        if fp is None and canonical is None:
+                            # canonical_json succeeded but fp not set yet
+                            pass
+                if fp is None and canonical is not None:
+                    fp = canonical
+            if fp is None and hasattr(plan, "model_dump"):
+                try:
+                    dump = plan.model_dump(mode="json")
+                    fp = _hex64_of_canonical(dump)
+                except Exception:
+                    fp = None
+            if fp is None:
+                # Fail closed: cannot bind content via plan_id alone
+                raise ValueError(
+                    "StudyPlan has no authoritative fingerprint and no deterministic content representation"
+                )
 
         schema_version = getattr(plan, "schema_version", "1.0")
-        # Evidence mode and status drive standing and availability
         status = getattr(plan, "status", None)
         status_str = str(status).lower() if status is not None else "draft"
-
         if "frozen" in status_str or "evidence_attached" in status_str or "decided" in status_str:
             availability = WorkspaceAvailabilityState.AVAILABLE
         elif "draft" in status_str:
@@ -71,19 +110,14 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
         else:
             availability = WorkspaceAvailabilityState.AVAILABLE
 
-        # Standing: authored configuration for plans (they are governance)
         standing = WorkspaceArtifactStanding.AUTHORED_CONFIGURATION
-
-        # Compatibility: assume compatible if schema is 1.0
         compat = (
             WorkspaceCompatibilityStanding.COMPATIBLE
             if str(schema_version) == "1.0"
             else WorkspaceCompatibilityStanding.UNKNOWN
         )
-
         plan_id = getattr(plan, "plan_id", "plan")
         label = _safe_label(str(plan_id), "preregistration-plan")
-
         parent_fp = getattr(plan, "parent_fingerprint", None)
         if isinstance(parent_fp, str):
             parent_fp = parent_fp.lower()
@@ -94,7 +128,7 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
 
         return WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.PREREGISTRATION_PLAN,
-            fingerprint=str(fingerprint).lower(),
+            fingerprint=str(fp).lower(),
             schema_version=str(schema_version),
             label=label,
             standing=standing,
@@ -128,7 +162,6 @@ def source_contract_to_ref(version: Any) -> WorkspaceArtifactRef:  # noqa: ANN40
             source_id = getattr(contract, "source_id", source_id)
 
         standing = WorkspaceArtifactStanding.AUTHORED_CONFIGURATION
-
         fingerprint_val = str(fingerprint).lower()
         parent_fp = getattr(version, "parent_fingerprint", None)
         if isinstance(parent_fp, str):
@@ -155,7 +188,6 @@ def source_contract_to_ref(version: Any) -> WorkspaceArtifactRef:  # noqa: ANN40
 def source_data_contract_to_ref(contract: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
     """Adapt a ``SourceDataContract`` (unversioned) to a workspace reference."""
     try:
-        # Derive fingerprint deterministically from contract content
         from traffictwin.data_contract.fingerprint import fingerprint_contract
 
         fp = fingerprint_contract(contract)
@@ -171,25 +203,22 @@ def source_data_contract_to_ref(contract: Any) -> WorkspaceArtifactRef:  # noqa:
             availability=WorkspaceAvailabilityState.AVAILABLE,
         )
     except Exception:
-        # Fallback: hash the JSON dump
         try:
-            dump = (
-                contract.model_dump(mode="json")
-                if hasattr(contract, "model_dump")
-                else str(contract)
-            )
-            fp = _hex64_of_canonical(dump)
-            schema_version = getattr(contract, "schema_version", "1.0")
-            source_id = getattr(contract, "source_id", "source-contract")
-            return WorkspaceArtifactRef(
-                kind=WorkspaceArtifactKind.SOURCE_CONTRACT,
-                fingerprint=fp,
-                schema_version=str(schema_version),
-                label=_safe_label(str(source_id), "source-contract"),
-                standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
-                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
-                availability=WorkspaceAvailabilityState.AVAILABLE,
-            )
+            if hasattr(contract, "model_dump"):
+                dump = contract.model_dump(mode="json")
+                fp = _hex64_of_canonical(dump)
+                schema_version = getattr(contract, "schema_version", "1.0")
+                source_id = getattr(contract, "source_id", "source-contract")
+                return WorkspaceArtifactRef(
+                    kind=WorkspaceArtifactKind.SOURCE_CONTRACT,
+                    fingerprint=fp,
+                    schema_version=str(schema_version),
+                    label=_safe_label(str(source_id), "source-contract"),
+                    standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+                    compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                    availability=WorkspaceAvailabilityState.AVAILABLE,
+                )
+            raise ValueError("contract has no deterministic representation")
         except Exception as exc:
             raise ValueError(f"source_data_contract adapter failed: {exc}") from exc
 
@@ -206,21 +235,21 @@ def event_aligned_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: A
         if isinstance(fingerprint, str) and len(fingerprint) == 64:
             fp = fingerprint.lower()
         else:
-            # Use computed fingerprint if available
             computed = getattr(report, "computed_fingerprint", None)
             if callable(computed):
                 fp = str(computed()).lower()
-            elif hasattr(report, "canonical_json"):
+            elif hasattr(report, "canonical_json") and callable(report.canonical_json):
                 fp = hashlib.sha256(report.canonical_json().encode()).hexdigest()
-            else:
-                dump = (
-                    report.model_dump(mode="json") if hasattr(report, "model_dump") else str(report)
-                )
+            elif hasattr(report, "model_dump"):
+                dump = report.model_dump(mode="json")
                 fp = _hex64_of_canonical(dump)
+            else:
+                raise ValueError("EventAlignedReport has no deterministic fingerprint")
+            if not isinstance(fp, str) or len(fp) != 64:
+                raise ValueError("EventAlignedReport fingerprint invalid")
 
         schema_version = getattr(report, "schema_version", "1.0")
         report_id = getattr(report, "report_id", "event-aligned-report")
-
         return WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
             fingerprint=fp,
@@ -242,27 +271,23 @@ def event_aligned_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: A
 def resource_strategy_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
     """Adapt a ``ResourceStrategyReport`` to a workspace reference."""
     try:
-        # ResourceStrategyReport has report_fingerprint and study_fingerprint
         fp = getattr(report, "report_fingerprint", None)
         if not isinstance(fp, str) or len(fp) != 64:
-            # Fallback to generic fingerprint
             maybe = getattr(report, "fingerprint", None)
             if isinstance(maybe, str) and len(maybe) == 64:
                 fp = maybe
-            else:
-                dump = (
-                    report.model_dump(mode="json") if hasattr(report, "model_dump") else str(report)
-                )
+            elif hasattr(report, "model_dump"):
+                dump = report.model_dump(mode="json")
                 fp = _hex64_of_canonical(dump)
+            else:
+                raise ValueError("ResourceStrategyReport has no deterministic fingerprint")
         fp = str(fp).lower()
-
-        # Schema or report version binding
+        if len(fp) != 64:
+            raise ValueError("ResourceStrategyReport fingerprint invalid")
         schema_version = getattr(report, "schema_version", None) or getattr(
             report, "report_version", "1.0"
         )
-        # Study id
         study_id = getattr(report, "study_id", "resource-strategy-study")
-
         return WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
             fingerprint=fp,
@@ -286,22 +311,19 @@ def study_capsule_manifest_to_ref(manifest: Any) -> WorkspaceArtifactRef:  # noq
     try:
         fp = getattr(manifest, "manifest_fingerprint", None)
         if not isinstance(fp, str) or len(fp) != 64:
-            # Try fingerprint method
             meth = getattr(manifest, "fingerprint", None)
             if callable(meth):
                 fp = meth()
-            else:
-                dump = (
-                    manifest.model_dump(mode="json")
-                    if hasattr(manifest, "model_dump")
-                    else str(manifest)
-                )
+            elif hasattr(manifest, "model_dump"):
+                dump = manifest.model_dump(mode="json")
                 fp = _hex64_of_canonical(dump)
+            else:
+                raise ValueError("StudyCapsuleManifest has no deterministic fingerprint")
         fp = str(fp).lower()
-
+        if len(fp) != 64:
+            raise ValueError("StudyCapsuleManifest fingerprint invalid")
         schema_version = getattr(manifest, "schema_version", "1.0")
         capsule_title = getattr(manifest, "capsule_title", "study-capsule")
-
         return WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
             fingerprint=fp,
@@ -320,14 +342,15 @@ def study_capsule_receipt_to_ref(receipt: Any) -> WorkspaceArtifactRef:  # noqa:
     try:
         fp = getattr(receipt, "manifest_fingerprint", None)
         if not isinstance(fp, str) or len(fp) != 64:
-            dump = (
-                receipt.model_dump(mode="json") if hasattr(receipt, "model_dump") else str(receipt)
-            )
-            fp = _hex64_of_canonical(dump)
+            if hasattr(receipt, "model_dump"):
+                dump = receipt.model_dump(mode="json")
+                fp = _hex64_of_canonical(dump)
+            else:
+                raise ValueError("StudyCapsuleReceipt has no deterministic fingerprint")
         fp = str(fp).lower()
-
+        if len(fp) != 64:
+            raise ValueError("StudyCapsuleReceipt fingerprint invalid")
         capsule_id = getattr(receipt, "capsule_id", "study-capsule-receipt")
-
         return WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.STUDY_CAPSULE_RECEIPT,
             fingerprint=fp,
@@ -351,32 +374,90 @@ def generic_report_to_ref(
     *,
     kind: WorkspaceArtifactKind = WorkspaceArtifactKind.GENERIC_REPORT,
     label: str = "generic-report",
+    standing: WorkspaceArtifactStanding,
 ) -> WorkspaceArtifactRef:
-    """Adapt any model with a fingerprint or dump to a generic reference."""
+    """Adapt any model with a deterministic fingerprint to a generic reference.
+
+    Requires explicit standing; fails closed if no deterministic identity exists.
+    """
     try:
+        fp_val: str | None = None
+        # 1. existing valid stored fingerprint
         fp = getattr(report, "fingerprint", None)
-        if isinstance(fp, str) and len(fp) == 64:
+        if isinstance(fp, str) and len(fp) == 64 and all(c in "0123456789abcdefABCDEF" for c in fp):
             fp_val = fp.lower()
         else:
-            # Try computed
+            # 2. computed_fingerprint()
             comp = getattr(report, "computed_fingerprint", None)
             if callable(comp):
-                fp_val = str(comp()).lower()
-            elif hasattr(report, "model_dump"):
-                dump = report.model_dump(mode="json")
-                fp_val = _hex64_of_canonical(dump)
-            else:
-                fp_val = hashlib.sha256(str(report).encode()).hexdigest()
+                try:
+                    candidate = comp()
+                    if isinstance(candidate, str) and len(candidate) == 64:
+                        fp_val = candidate.lower()
+                except Exception:
+                    fp_val = None
+            # 3. canonical_json / canonical_payload
+            if (
+                fp_val is None
+                and hasattr(report, "canonical_json")
+                and callable(report.canonical_json)
+            ):
+                try:
+                    j = report.canonical_json()
+                    if isinstance(j, str):
+                        fp_val = hashlib.sha256(j.encode("utf-8")).hexdigest()
+                except Exception:
+                    fp_val = None
+            if (
+                fp_val is None
+                and hasattr(report, "canonical_payload")
+                and callable(report.canonical_payload)
+            ):
+                try:
+                    payload = report.canonical_payload()
+                    fp_val = _hex64_of_canonical(payload)
+                except Exception:
+                    fp_val = None
+            # 4. model_dump(mode="json")
+            if fp_val is None and hasattr(report, "model_dump"):
+                try:
+                    dump = report.model_dump(mode="json")
+                    fp_val = _hex64_of_canonical(dump)
+                except Exception:
+                    fp_val = None
+            # 5. JSON-serializable primitive/list/dict
+            if (
+                fp_val is None
+                and isinstance(report, (dict, list, str, int, float, bool))
+                or isinstance(report, type(None))
+            ):
+                try:
+                    fp_val = _hex64_of_canonical(report)
+                except Exception:
+                    fp_val = None
+            # 6. Fail closed if no deterministic representation
+            if fp_val is None or not isinstance(fp_val, str) or len(fp_val) != 64:
+                raise ValueError(
+                    "generic report has no deterministic fingerprint; provide a valid fingerprint, computed_fingerprint, canonical_json, or model_dump"
+                )
 
         schema_version = getattr(report, "schema_version", "1.0")
-        report_label = getattr(report, "report_id", getattr(report, "trace_id", label))
+        # Label resolution: explicit label param wins, but honour report's own ids if present and label is default
+        report_label = label
+        if label == "generic-report":
+            # Try to extract meaningful label from object without inventing identity
+            candidate_label = getattr(
+                report, "report_id", getattr(report, "trace_id", getattr(report, "label", None))
+            )
+            if isinstance(candidate_label, str) and candidate_label.strip():
+                report_label = candidate_label
 
         return WorkspaceArtifactRef(
             kind=kind,
-            fingerprint=fp_val,
+            fingerprint=fp_val.lower(),
             schema_version=str(schema_version),
             label=_safe_label(str(report_label), label),
-            standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+            standing=standing,
             compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
             availability=WorkspaceAvailabilityState.AVAILABLE,
         )
@@ -386,5 +467,8 @@ def generic_report_to_ref(
 
 def provenance_trace_to_ref(trace: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
     return generic_report_to_ref(
-        trace, kind=WorkspaceArtifactKind.PROVENANCE_TRACE, label="provenance-trace"
+        trace,
+        kind=WorkspaceArtifactKind.PROVENANCE_TRACE,
+        label="provenance-trace",
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
     )

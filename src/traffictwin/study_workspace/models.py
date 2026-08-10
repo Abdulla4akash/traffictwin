@@ -438,15 +438,6 @@ class StudyWorkspaceManifest(StrictModel):
             _validate_safe_text(val, "provenance value")
         return v
 
-    @field_validator("artifacts")
-    @classmethod
-    def validate_artifacts_unique_fp(
-        cls, v: list[WorkspaceArtifactRef]
-    ) -> list[WorkspaceArtifactRef]:
-        # Individual duplicate check is done in service, but early unique label check.
-        # Allow validation to pass here; service will produce blockers.
-        return v
-
     def canonical_dict(self) -> dict[str, object]:
         """Return deterministic canonical dict excluding wall-clock and fingerprint."""
         # Exclude wall-clock like fields (none) and sort artifacts deterministically.

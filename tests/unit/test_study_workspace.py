@@ -11,6 +11,7 @@ import pytest
 
 from traffictwin.study_workspace.adapters import (
     event_aligned_report_to_ref,
+    generic_report_to_ref,
     provenance_trace_to_ref,
     resource_strategy_report_to_ref,
     source_contract_to_ref,
@@ -49,11 +50,23 @@ def _ref(
     label: str = "label-1",
     schema: str = "1.0",
     parent: str | None = None,
-    standing: WorkspaceArtifactStanding = WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+    standing: WorkspaceArtifactStanding | None = None,
     compat: WorkspaceCompatibilityStanding = WorkspaceCompatibilityStanding.COMPATIBLE,
     avail: WorkspaceAvailabilityState = WorkspaceAvailabilityState.AVAILABLE,
     reason: str | None = None,
 ) -> WorkspaceArtifactRef:
+    if standing is None:
+        # Governance kinds default to authored, others to synthetic
+        if kind in {
+            WorkspaceArtifactKind.SOURCE_CONTRACT,
+            WorkspaceArtifactKind.SOURCE_CONTRACT_VERSION,
+            WorkspaceArtifactKind.PREREGISTRATION_PLAN,
+            WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+            WorkspaceArtifactKind.RESEARCH_OBJECT_MANIFEST,
+        }:
+            standing = WorkspaceArtifactStanding.AUTHORED_CONFIGURATION
+        else:
+            standing = WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
     return WorkspaceArtifactRef(
         kind=kind,
         fingerprint=_fp(seed),
@@ -982,3 +995,517 @@ def test_evidence_without_plan_link_warning() -> None:
     m = _manifest(c, p, ev)
     report = validate_workspace(m)
     assert any(w.code == "evidence_without_plan_link" for w in report.warnings)
+
+
+# ---------------------------------------------------------------------------
+# New remediation: ARCHIVED, analysis without EVIDENCE_ATTACHMENT, full lifecycle, adapters
+# ---------------------------------------------------------------------------
+
+
+def _contract_and_plan(
+    contract_seed: str = "c-arch", plan_seed: str = "p-arch"
+) -> tuple[WorkspaceArtifactRef, WorkspaceArtifactRef]:
+    c = _ref(kind=WorkspaceArtifactKind.SOURCE_CONTRACT, seed=contract_seed, label="contract")
+    p = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.PREREGISTRATION_PLAN,
+        fingerprint=_fp(plan_seed),
+        schema_version="1.0",
+        label="plan",
+        parent_fingerprint=_fp(contract_seed),
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    return c, p
+
+
+def _review_ready_manifest(
+    declared: WorkspaceLifecycleStage | None = None,
+) -> StudyWorkspaceManifest:
+    c, p = _contract_and_plan()
+    ev = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("ev-review-ready"),
+        schema_version="1.0",
+        label="metric-evidence",
+        parent_fingerprint=_fp("p-arch"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
+        fingerprint=_fp("rep-review-ready"),
+        schema_version="1.0",
+        label="stat-report",
+        parent_fingerprint=_fp("p-arch"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-review-ready"),
+        schema_version="1.0",
+        label="capsule",
+        parent_fingerprint=_fp("rep-review-ready"),
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    return _manifest(c, p, ev, rep, cap, declared_stage=declared)
+
+
+def test_review_ready_without_archived_declaration_is_review_ready() -> None:
+    m = _review_ready_manifest(declared=None)
+    report = validate_workspace(m)
+    assert report.is_valid
+    assert report.derived_stage == WorkspaceLifecycleStage.REVIEW_READY
+    actions = next_actions(m, report)
+    assert any(a.action == "archive_workspace" for a in actions)
+    assert not any(a.action == "freeze_preregistration_plan" for a in actions)
+
+
+def test_review_ready_declared_archived_is_valid_archived() -> None:
+    m = _review_ready_manifest(declared=WorkspaceLifecycleStage.ARCHIVED)
+    report = validate_workspace(m)
+    assert report.is_valid, report.blockers
+    assert report.derived_stage == WorkspaceLifecycleStage.ARCHIVED
+    assert not any(b.code == "contradictory_lifecycle" for b in report.blockers)
+    actions = next_actions(m, report)
+    assert not any(a.action == "archive_workspace" for a in actions)
+    assert not any(a.action == "freeze_preregistration_plan" for a in actions)
+    assert not any(a.action == "run_supported_analysis" for a in actions)
+    # provenance inspection may remain
+    assert any(a.action == "inspect_provenance" for a in actions)
+
+
+def test_draft_declared_archived_is_invalid() -> None:
+    m = _manifest(declared_stage=WorkspaceLifecycleStage.ARCHIVED)
+    report = validate_workspace(m)
+    assert not report.is_valid
+    assert any(b.code == "contradictory_lifecycle" for b in report.blockers)
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+
+
+def test_contracted_declared_archived_is_invalid() -> None:
+    c = _ref(kind=WorkspaceArtifactKind.SOURCE_CONTRACT, seed="c-contracted-arch", label="c")
+    m = _manifest(c, declared_stage=WorkspaceLifecycleStage.ARCHIVED)
+    report = validate_workspace(m)
+    assert not report.is_valid
+    assert any(b.code == "contradictory_lifecycle" for b in report.blockers)
+
+
+def test_preregistered_declared_archived_is_invalid() -> None:
+    c, p = _contract_and_plan("c-pre-arch", "p-pre-arch")
+    m = _manifest(c, p, declared_stage=WorkspaceLifecycleStage.ARCHIVED)
+    report = validate_workspace(m)
+    assert not report.is_valid
+    assert any(b.code == "contradictory_lifecycle" for b in report.blockers)
+
+
+def test_plan_plus_finished_report_no_evidence_attachment_is_analysis_complete() -> None:
+    c, p = _contract_and_plan("c-no-ev", "p-no-ev")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-no-ev"),
+        schema_version="1.0",
+        label="event-report",
+        parent_fingerprint=_fp("p-no-ev"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.is_valid
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_COMPLETE
+    actions = next_actions(m, report)
+    assert not any(a.action == "freeze_preregistration_plan" for a in actions)
+    assert any(a.action == "prepare_study_capsule" for a in actions)
+
+
+def test_metric_collection_evidence_like_supports_lifecycle() -> None:
+    c, p = _contract_and_plan("c-metric", "p-metric")
+    metric = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("metric-ev"),
+        schema_version="1.0",
+        label="metric-collection",
+        parent_fingerprint=_fp("p-metric"),
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, metric)
+    report = validate_workspace(m)
+    # With available metric collection and no report -> evidence_review, not draft
+    assert report.derived_stage == WorkspaceLifecycleStage.EVIDENCE_REVIEW
+
+
+def test_metric_collection_pending_is_collecting() -> None:
+    c, p = _contract_and_plan("c-metric-pend", "p-metric-pend")
+    metric = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("metric-pend"),
+        schema_version="1.0",
+        label="metric-pending",
+        parent_fingerprint=_fp("p-metric-pend"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.PENDING_REVIEW,
+        reason="pending collection",
+    )
+    m = _manifest(c, p, metric)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.COLLECTING
+
+
+def test_pending_report_is_analysis_ready() -> None:
+    c, p = _contract_and_plan("c-pend-rep", "p-pend-rep")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
+        fingerprint=_fp("rep-pending"),
+        schema_version="1.0",
+        label="stat-pending",
+        parent_fingerprint=_fp("p-pend-rep"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.PENDING_REVIEW,
+        reason="report pending",
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_READY
+
+
+def test_available_report_is_analysis_complete() -> None:
+    c, p = _contract_and_plan("c-avail-rep", "p-avail-rep")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-avail"),
+        schema_version="1.0",
+        label="event-avail",
+        parent_fingerprint=_fp("p-avail-rep"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_COMPLETE
+
+
+def test_report_plus_capsule_is_review_ready() -> None:
+    c, p = _contract_and_plan("c-rev-plus", "p-rev-plus")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT,
+        fingerprint=_fp("rep-rev-plus"),
+        schema_version="1.0",
+        label="resource-report",
+        parent_fingerprint=_fp("p-rev-plus"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-rev-plus"),
+        schema_version="1.0",
+        label="capsule",
+        parent_fingerprint=_fp("rep-rev-plus"),
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, cap)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.REVIEW_READY
+
+
+def test_lifecycle_matrix_all_ten_states() -> None:
+    # Table-driven: build real manifests for each of the 10 stages
+    cases: list[tuple[WorkspaceLifecycleStage, StudyWorkspaceManifest]] = []
+
+    # DRAFT: no artifacts
+    cases.append((WorkspaceLifecycleStage.DRAFT, _manifest()))
+
+    # CONTRACTED: contract only
+    c_only = _ref(kind=WorkspaceArtifactKind.SOURCE_CONTRACT, seed="m-contracted", label="c")
+    cases.append((WorkspaceLifecycleStage.CONTRACTED, _manifest(c_only)))
+
+    # PREREGISTERED: contract + plan
+    c1, p1 = _contract_and_plan("m-pre-c", "m-pre-p")
+    cases.append((WorkspaceLifecycleStage.PREREGISTERED, _manifest(c1, p1)))
+
+    # COLLECTING: plan + pending metric collection
+    c2, p2 = _contract_and_plan("m-col-c", "m-col-p")
+    metric_pending = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("m-col-metric"),
+        schema_version="1.0",
+        label="metric-pending",
+        parent_fingerprint=_fp("m-col-p"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.PENDING_REVIEW,
+        reason="pending",
+    )
+    cases.append((WorkspaceLifecycleStage.COLLECTING, _manifest(c2, p2, metric_pending)))
+
+    # EVIDENCE_REVIEW: plan + available metric
+    c3, p3 = _contract_and_plan("m-ev-c", "m-ev-p")
+    metric_avail = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("m-ev-metric"),
+        schema_version="1.0",
+        label="metric-avail",
+        parent_fingerprint=_fp("m-ev-p"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cases.append((WorkspaceLifecycleStage.EVIDENCE_REVIEW, _manifest(c3, p3, metric_avail)))
+
+    # ANALYSIS_READY: plan + pending report
+    c4, p4 = _contract_and_plan("m-ar-c", "m-ar-p")
+    rep_pending = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("m-ar-rep"),
+        schema_version="1.0",
+        label="rep-pending",
+        parent_fingerprint=_fp("m-ar-p"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.PENDING_REVIEW,
+        reason="pending",
+    )
+    cases.append((WorkspaceLifecycleStage.ANALYSIS_READY, _manifest(c4, p4, rep_pending)))
+
+    # ANALYSIS_COMPLETE: plan + available report (no evidence_attachment)
+    c5, p5 = _contract_and_plan("m-ac-c", "m-ac-p")
+    rep_avail = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STATISTICAL_STUDY_REPORT,
+        fingerprint=_fp("m-ac-rep"),
+        schema_version="1.0",
+        label="rep-avail",
+        parent_fingerprint=_fp("m-ac-p"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cases.append((WorkspaceLifecycleStage.ANALYSIS_COMPLETE, _manifest(c5, p5, rep_avail)))
+
+    # REVIEW_READY: plan + report + capsule
+    c6, p6 = _contract_and_plan("m-rr-c", "m-rr-p")
+    rep_rr = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("m-rr-rep"),
+        schema_version="1.0",
+        label="rep-rr",
+        parent_fingerprint=_fp("m-rr-p"),
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap_rr = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("m-rr-cap"),
+        schema_version="1.0",
+        label="cap-rr",
+        parent_fingerprint=_fp("m-rr-rep"),
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cases.append((WorkspaceLifecycleStage.REVIEW_READY, _manifest(c6, p6, rep_rr, cap_rr)))
+
+    # ARCHIVED: review_ready + declared archived
+    cases.append(
+        (
+            WorkspaceLifecycleStage.ARCHIVED,
+            _review_ready_manifest(declared=WorkspaceLifecycleStage.ARCHIVED),
+        )
+    )
+
+    # BLOCKED: duplicate fingerprint
+    dup = _ref(seed="m-block-dup", label="dup")
+    dup2 = WorkspaceArtifactRef(
+        kind=dup.kind,
+        fingerprint=dup.fingerprint,
+        schema_version="1.0",
+        label="dup2",
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cases.append((WorkspaceLifecycleStage.BLOCKED, _manifest(dup, dup2)))
+
+    for expected, manifest in cases:
+        report = validate_workspace(manifest)
+        assert report.derived_stage == expected, (
+            f"expected {expected}, got {report.derived_stage} for manifest {manifest.workspace_id}"
+        )
+
+
+def test_generic_adapter_requires_explicit_standing_admitted() -> None:
+    from pydantic import BaseModel
+
+    class DummyModel(BaseModel):
+        model_config = {"extra": "forbid"}
+        fingerprint: str = _fp("generic-admitted")
+        schema_version: str = "1.0"
+        report_id: str = "rep-admitted"
+
+    dummy = DummyModel()
+    ref = generic_report_to_ref(
+        dummy,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="dummy",
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+    )
+    assert ref.standing == WorkspaceArtifactStanding.ADMITTED_RESEARCH
+
+
+def test_generic_adapter_requires_explicit_standing_unadmitted() -> None:
+    from pydantic import BaseModel
+
+    class DummyModel(BaseModel):
+        model_config = {"extra": "forbid"}
+        fingerprint: str = _fp("generic-unadmitted")
+        schema_version: str = "1.0"
+        report_id: str = "rep-unadmitted"
+
+    dummy = DummyModel()
+    ref = generic_report_to_ref(
+        dummy,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="dummy2",
+        standing=WorkspaceArtifactStanding.UNADMITTED_RESEARCH,
+    )
+    assert ref.standing == WorkspaceArtifactStanding.UNADMITTED_RESEARCH
+
+
+def test_generic_adapter_fails_closed_on_opaque_object() -> None:
+    class Opaque:
+        pass
+
+    opaque = Opaque()
+    with pytest.raises(ValueError, match="no deterministic"):
+        generic_report_to_ref(
+            opaque,
+            kind=WorkspaceArtifactKind.GENERIC_REPORT,
+            label="opaque",
+            standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        )
+
+
+def test_generic_adapter_deterministic_for_canonical_objects() -> None:
+    from pydantic import BaseModel
+
+    class CanonicalModel(BaseModel):
+        model_config = {"extra": "forbid"}
+        schema_version: str = "1.0"
+        report_id: str = "same-id"
+        value: int = 42
+
+    a = CanonicalModel()
+    b = CanonicalModel()
+    ra = generic_report_to_ref(
+        a,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="canon",
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+    )
+    rb = generic_report_to_ref(
+        b,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="canon",
+        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+    )
+    assert ra.fingerprint == rb.fingerprint
+
+
+def test_provenance_trace_does_not_fabricate_synthetic() -> None:
+    from traffictwin.provenance.models import (
+        ProvenanceNode,
+        ProvenanceNodeType,
+        ProvenanceTrace,
+        TraceCompleteness,
+        TraceCompletenessSummary,
+    )
+
+    trace = ProvenanceTrace(
+        trace_id="trace-provenance-test",
+        root_node_id="n1",
+        nodes=[
+            ProvenanceNode(node_id="n1", node_type=ProvenanceNodeType.METRIC_RESULT, label="metric")
+        ],
+        edges=[],
+        generated_at=datetime.now(UTC),
+        completeness=TraceCompletenessSummary(overall=TraceCompleteness.COMPLETE),
+    )
+    ref = provenance_trace_to_ref(trace)
+    assert ref.standing != WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
+    assert ref.standing == WorkspaceArtifactStanding.NOT_APPLICABLE
+
+
+def test_study_plan_fallback_binds_content_not_id() -> None:
+    from pydantic import BaseModel
+
+    # Two plan-like objects with same plan_id but different bodies, no authoritative fingerprint
+    class PlanLike(BaseModel):
+        model_config = {"extra": "forbid"}
+        plan_id: str
+        body: str
+        schema_version: str = "1.0"
+
+        def model_dump(self, **kwargs: object) -> dict[str, object]:
+            return {
+                "plan_id": self.plan_id,
+                "body": self.body,
+                "schema_version": self.schema_version,
+            }
+
+    p1 = PlanLike(plan_id="same-id", body="body-a")
+    p2 = PlanLike(plan_id="same-id", body="body-b")
+    r1 = study_plan_to_ref(p1)
+    r2 = study_plan_to_ref(p2)
+    # Must not be SHA256(plan_id) only, so different bodies => different fingerprints
+    assert r1.fingerprint != r2.fingerprint
+    # Also ensure they are not just hash of plan_id
+    import hashlib
+
+    id_only = hashlib.sha256(b"same-id").hexdigest()
+    assert r1.fingerprint != id_only
+    assert r2.fingerprint != id_only
+
+
+def test_authored_and_static_not_treated_as_evidence() -> None:
+    c, p = _contract_and_plan("c-authored-check", "p-authored-check")
+    authored_ref = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("authored-not-evidence"),
+        schema_version="1.0",
+        label="authored-metric",
+        parent_fingerprint=_fp("p-authored-check"),
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    static_ref = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp("static-not-evidence"),
+        schema_version="1.0",
+        label="static-metric",
+        parent_fingerprint=_fp("p-authored-check"),
+        standing=WorkspaceArtifactStanding.STATIC_GEOGRAPHIC,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, authored_ref, static_ref)
+    report = validate_workspace(m)
+    # With only authored/static refs, no evidence-like, so still preregistered (plan only)
+    # But we have plan + authored refs, but evidence-like is false, so should be PREREGISTERED, not EVIDENCE_REVIEW
+    # Add a real evidence-like later to ensure transition
+    assert report.derived_stage == WorkspaceLifecycleStage.PREREGISTERED

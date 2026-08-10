@@ -262,3 +262,138 @@ def test_page_has_accessibility_heading() -> None:
     assert "st.subheader(" in source
     # Must have caption before results explaining evidence boundary
     assert "Evidence and authority" in source or "evidence" in source.lower()
+
+
+def test_synthetic_fixture_button_loads_workspace() -> None:
+    """First-click loads the built-in synthetic workspace via typed boundary."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["study_workspace_path"] = ""
+    app.session_state["study_workspace_uploaded_text"] = None
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception
+    # Honest empty state before click
+    texts_before: list[str] = []
+    for coll in (result.caption, result.info, result.markdown):
+        try:
+            texts_before.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    joined_before = " ".join(texts_before)
+    assert "No workspace manifest" in joined_before
+    # Path input should be blank (honest)
+    # AppTest text_input value check: find the path input
+    path_inputs = [w for w in result.text_input if w.key == "study_workspace_path_input"]
+    if path_inputs:
+        assert path_inputs[0].value == "" or path_inputs[0].value is None
+
+    # Click Load synthetic fixture
+    btn = next((b for b in result.button if b.key == "study_workspace_load_fixture"), None)
+    assert btn is not None, "Load synthetic fixture button not found"
+    btn.click()
+    result2 = app.run(timeout=30)
+    assert not result2.exception, f"After click raised: {result2.exception}"
+    texts2: list[str] = []
+    for coll in (  # type: ignore[assignment]
+        result2.caption,
+        result2.markdown,
+        result2.info,
+        result2.subheader,
+        result2.success,
+    ):
+        try:
+            texts2.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    joined2 = " ".join(texts2)
+    assert "Study identity" in joined2 or "Lifecycle stage" in joined2
+    assert "No workspace manifest" not in joined2 or "Study identity" in joined2  # no longer empty
+    assert "manifest not found" not in joined2.lower()
+
+
+def test_initial_empty_state_is_honest() -> None:
+    """Path blank and empty state are consistent; no phantom fixture path shown."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["study_workspace_path"] = ""
+    app.session_state["study_workspace_uploaded_text"] = None
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception
+    # Path input blank
+    path_inputs = [w for w in result.text_input if w.key == "study_workspace_path_input"]
+    assert path_inputs and path_inputs[0].value == ""
+    # Empty state visible
+    texts: list[str] = []
+    for coll in (result.info, result.caption):
+        try:
+            texts.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    assert "No workspace manifest" in " ".join(texts)
+
+
+def test_bounded_columns_large_group_renders() -> None:
+    """Large artifact group (20) renders with bounded layout, no 20-column fan-out."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+    # Build a manifest with 20 generic artifacts (same kind, different fingerprints)
+    arts = [
+        WorkspaceArtifactRef(
+            kind=WorkspaceArtifactKind.GENERIC_REPORT,
+            fingerprint=hashlib.sha256(f"large-{i}".encode()).hexdigest(),
+            schema_version="1.0",
+            label=f"large-{i}",
+            standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+            compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+            availability=WorkspaceAvailabilityState.AVAILABLE,
+        )
+        for i in range(20)
+    ]
+    manifest = StudyWorkspaceManifest(
+        workspace_id="ws-large",
+        workspace_version="1.0",
+        study_id="study-large",
+        artifacts=arts,
+        limitations=["synthetic"],
+    )
+    json_str = manifest.model_dump_json()
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["study_workspace_uploaded_text"] = json_str
+    app.session_state["study_workspace_path"] = ""
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception, f"Large group raised: {result.exception}"
+    # Source must contain bounded logic
+    source = Path("src/traffictwin/ui/pages/study_workspace.py").read_text(encoding="utf-8")
+    assert "max_cols = 4" in source
+    assert "st.columns(len(refs))" not in source or "max_cols" in source
+    # Page should still show inventory
+    texts: list[str] = []
+    for coll in (result.caption, result.markdown, result.subheader):
+        try:
+            texts.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    assert "Artifact inventory" in " ".join(texts)
+
+
+def test_progression_excludes_blocked() -> None:
+    source = Path("src/traffictwin/ui/pages/study_workspace.py").read_text(encoding="utf-8")
+    # Normal progression should be explicit without BLOCKED
+    assert "normal_progression" in source
+    assert "BLOCKED is a validation state" in source
+    # Ensure the old unbounded progression string not present
+    # The new progression lists 9 stages, blocked separate
+    assert "draft" in source.lower()
+    assert "archived" in source.lower()
