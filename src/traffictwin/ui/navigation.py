@@ -23,6 +23,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.SCENARIO_MUTATION,
         UiPage.WHATIF_STUDIO,
         UiPage.SCENARIO,
+        UiPage.DATA_CONTRACT_WORKBENCH,
         UiPage.MANIFEST_WIZARD,
         UiPage.BUNDLE_IMPORT,
         UiPage.SUMO_IMPORT,

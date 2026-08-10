@@ -88,6 +88,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.SCENARIO_MUTATION: ("Build & run", "scenario-mutations"),
         UiPage.WHATIF_STUDIO: ("Build & run", "whatif-studio"),
         UiPage.SCENARIO: ("Build & run", "scenario-builder"),
+        UiPage.DATA_CONTRACT_WORKBENCH: ("Build & run", "data-contract"),
         UiPage.BUNDLE_IMPORT: ("Build & run", "bundle-import"),
         UiPage.SUMO_IMPORT: ("Build & run", "sumo"),
         UiPage.TOS_DATA: ("Build & run", "tos-import"),

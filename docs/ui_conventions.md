@@ -70,7 +70,7 @@ An unavailable value is **never** hidden, estimated, defaulted, or replaced with
 the missing evidence and reason codes on screen verbatim. Prefer it when unavailability is the
 main thing a section has to report.
 
-Five of the 38 pages currently use it; the rest express unavailability inline. That is not
+Five of the 39 pages currently use it; the rest express unavailability inline. That is not
 automatically wrong — a state badge carrying the state with a caption explaining *why* is a correct
 pattern, and several pages use it deliberately. What is wrong is a caption as the *only* signal,
 because a caption is the least prominent element available and de-emphasising an unavailable state

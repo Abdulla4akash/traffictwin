@@ -56,6 +56,7 @@ class UiPage(StrEnum):
     REPORTS = "Reports"
     STUDY_CAPSULE = "Study Capsule Builder"
     PARTICIPANT_EVALUATION = "Mock Evaluation Analysis"
+    DATA_CONTRACT_WORKBENCH = "Data Contract Workbench"
     SEARCH = "Search"
     SETTINGS = "Settings"
     ABOUT = "About"
@@ -163,6 +164,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     ),
     UiPage.PARTICIPANT_EVALUATION: (
         "Analyse explicitly labelled synthetic mock evaluation results; no participant data."
+    ),
+    UiPage.DATA_CONTRACT_WORKBENCH: (
+        "Preserve what a source is expected to provide and explain how a later sample "
+        "differs, with versioned contracts and deterministic drift findings."
     ),
     UiPage.SEARCH: (
         "Search findings, annotations, reports, runs, experiments, and evidence references."

@@ -234,6 +234,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/edit_road:",
     ),
     V07PageSpec(
+        UiPage.DATA_CONTRACT_WORKBENCH,
+        "Build & run",
+        "app_pages/data_contract.py",
+        "data-contract",
+        ":material/contract:",
+    ),
+    V07PageSpec(
         UiPage.BUNDLE_IMPORT,
         "Build & run",
         "app_pages/bundle_import.py",
