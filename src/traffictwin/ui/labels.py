@@ -38,6 +38,7 @@ class UiPage(StrEnum):
     OPERATIONS = "Replay"
     RUN_OVERVIEW = "Run Overview"
     TEMPORAL_METRICS = "Temporal Metrics"
+    EVENT_ALIGNED_ANALYSIS = "Event-Aligned Analysis"
     ENERGY = "Energy Evidence"
     FAIRNESS = "Fairness Evidence"
     THRESHOLD_SENSITIVITY = "Threshold Sensitivity"
@@ -49,13 +50,17 @@ class UiPage(StrEnum):
     CONSEQUENCE_LENSES = "Consequence Lenses"
     PORTFOLIO_EXPLORER = "Portfolio Explorer"
     MANCHESTER_EVIDENCE_HUB = "Manchester Evidence Hub"
+    PREREGISTRATION_STUDIO = "Preregistration Studio"
     EVIDENCE = "Diagnostics & Evidence"
     PROVENANCE = "Provenance Explorer"
     REPORTS = "Reports"
+    STUDY_CAPSULE = "Study Capsule Builder"
     PARTICIPANT_EVALUATION = "Mock Evaluation Analysis"
+    DATA_CONTRACT_WORKBENCH = "Data Contract Workbench"
     SEARCH = "Search"
     SETTINGS = "Settings"
     ABOUT = "About"
+    RESOURCE_STRATEGY_EXPLORER = "Resource Strategy Explorer"
 
 
 PAGE_DESCRIPTIONS: dict[UiPage, str] = {
@@ -114,6 +119,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.TEMPORAL_METRICS: (
         "Compute deterministic metrics over declared aligned half-open time windows."
     ),
+    UiPage.EVENT_ALIGNED_ANALYSIS: (
+        "Align compatible evidence around a declared event anchor and compare before, during and after windows."  # noqa: E501
+    ),
     UiPage.ENERGY: (
         "Inspect contract-gated task energy and evaluate the deterministic R8 candidate."
     ),
@@ -145,17 +153,32 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
         "Manchester source inventory, readiness, evidence standing and activation blockers. "
         "Synthetic/manual input is not promoted to observed evidence."
     ),
+    UiPage.PREREGISTRATION_STUDIO: (
+        "Govern a versioned scientific plan that freezes intended analyses before "
+        "evidence is attached, preserves amendments, and evaluates the decision gate."
+    ),
     UiPage.EVIDENCE: "Inspect evidence availability and deterministic diagnostic hypotheses.",
     UiPage.PROVENANCE: "Trace displayed results back to source rows and bundle context.",
     UiPage.REPORTS: "Find, download, and deliberately regenerate deterministic reports.",
+    UiPage.STUDY_CAPSULE: (
+        "Assemble derived artifacts into a deterministic, offline-verifiable review capsule."
+    ),
     UiPage.PARTICIPANT_EVALUATION: (
         "Analyse explicitly labelled synthetic mock evaluation results; no participant data."
+    ),
+    UiPage.DATA_CONTRACT_WORKBENCH: (
+        "Preserve what a source is expected to provide and explain how a later sample "
+        "differs, with versioned contracts and deterministic drift findings."
     ),
     UiPage.SEARCH: (
         "Search findings, annotations, reports, runs, experiments, and evidence references."
     ),
     UiPage.SETTINGS: "Adjust local UI preferences for replay, reports, and demo workflow.",
     UiPage.ABOUT: "Review package, schema, metric, diagnostic, and generator versions.",
+    UiPage.RESOURCE_STRATEGY_EXPLORER: (
+        "Inspect admitted or explicitly synthetic resource-strategy studies "
+        "across traffic/VEC policies with matched-cohort comparison."
+    ),
 }
 
 

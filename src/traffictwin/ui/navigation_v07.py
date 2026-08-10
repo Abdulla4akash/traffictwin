@@ -234,6 +234,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/edit_road:",
     ),
     V07PageSpec(
+        UiPage.DATA_CONTRACT_WORKBENCH,
+        "Build & run",
+        "app_pages/data_contract.py",
+        "data-contract",
+        ":material/contract:",
+    ),
+    V07PageSpec(
         UiPage.BUNDLE_IMPORT,
         "Build & run",
         "app_pages/bundle_import.py",
@@ -295,6 +302,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         "app_pages/temporal_metrics.py",
         "temporal-metrics",
         ":material/timeline:",
+    ),
+    V07PageSpec(
+        UiPage.EVENT_ALIGNED_ANALYSIS,
+        "Results",
+        "app_pages/event_aligned_analysis.py",
+        "event-aligned-analysis",
+        ":material/event:",
     ),
     V07PageSpec(
         UiPage.ENERGY,
@@ -360,6 +374,20 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/emoji_events:",
     ),
     V07PageSpec(
+        UiPage.PREREGISTRATION_STUDIO,
+        "Compare & test",
+        "app_pages/preregistration.py",
+        "preregistration",
+        ":material/verified:",
+    ),
+    V07PageSpec(
+        UiPage.RESOURCE_STRATEGY_EXPLORER,
+        "Compare & test",
+        "app_pages/resource_strategy.py",
+        "resource-strategy",
+        ":material/hub:",
+    ),
+    V07PageSpec(
         UiPage.TOS_RESULTS,
         "Source evidence",
         "app_pages/tos_results.py",
@@ -421,6 +449,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         "app_pages/mock_evaluation.py",
         "mock-evaluation",
         ":material/assignment_ind:",
+    ),
+    V07PageSpec(
+        UiPage.STUDY_CAPSULE,
+        "Evidence & reports",
+        "app_pages/study_capsule.py",
+        "study-capsule",
+        ":material/archive:",
     ),
     V07PageSpec(
         UiPage.MANIFEST_WIZARD,
