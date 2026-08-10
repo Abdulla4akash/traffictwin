@@ -35,10 +35,10 @@ from traffictwin.ui.state import default_session_state
 def test_candidate_inventory_covers_every_current_page_once() -> None:
     validate_v07_page_specs()
 
-    assert len(V07_PAGE_SPECS) == 38 == len(UiPage)
+    assert len(V07_PAGE_SPECS) == len(UiPage)
     assert {spec.page for spec in V07_PAGE_SPECS} == set(UiPage)
-    assert len({spec.script for spec in V07_PAGE_SPECS}) == 38
-    assert len({spec.url_path for spec in V07_PAGE_SPECS}) == 38
+    assert len({spec.script for spec in V07_PAGE_SPECS}) == len(UiPage)
+    assert len({spec.url_path for spec in V07_PAGE_SPECS}) == len(UiPage)
     assert tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) == V07_NORMATIVE_GROUPS
     assert set(PAGE_RENDERERS) == set(UiPage)
 
@@ -88,6 +88,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.SCENARIO_MUTATION: ("Build & run", "scenario-mutations"),
         UiPage.WHATIF_STUDIO: ("Build & run", "whatif-studio"),
         UiPage.SCENARIO: ("Build & run", "scenario-builder"),
+        UiPage.DATA_CONTRACT_WORKBENCH: ("Build & run", "data-contract"),
         UiPage.BUNDLE_IMPORT: ("Build & run", "bundle-import"),
         UiPage.SUMO_IMPORT: ("Build & run", "sumo"),
         UiPage.TOS_DATA: ("Build & run", "tos-import"),
