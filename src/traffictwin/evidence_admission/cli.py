@@ -2,6 +2,9 @@
 
 Registered during Fable integration via docs/quality/v4_registration/*_cli.json.
 This module does not wire itself into the shared CLI.
+
+Process-local only; no durable store. Separate CLI processes and UI browser
+sessions do not share state. No database work in this pass.
 """
 
 from __future__ import annotations
@@ -33,7 +36,8 @@ from traffictwin.evidence_admission.service import (
 app = typer.Typer(
     help=(
         "Evidence Admission Inbox — human review queue between validation "
-        "and preregistration admission. Validation is not admission."
+        "and preregistration admission. Validation is not admission. "
+        "Process-local only; no durable store."
     ),
     no_args_is_help=True,
 )

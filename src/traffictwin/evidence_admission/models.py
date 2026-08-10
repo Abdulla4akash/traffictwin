@@ -45,7 +45,7 @@ MAX_FINDINGS = 32
 
 def _fingerprint(payload: object) -> str:
     canonical = json.dumps(
-        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
@@ -78,7 +78,11 @@ class StrictModel(BaseModel):
     """Strict base rejecting unknown fields and validating on assignment."""
 
     model_config = ConfigDict(
-        extra="forbid", populate_by_name=True, validate_assignment=True, str_strip_whitespace=False
+        extra="forbid",
+        populate_by_name=True,
+        validate_assignment=True,
+        str_strip_whitespace=False,
+        frozen=True,
     )
 
 
@@ -290,8 +294,6 @@ class EvidenceReviewDecision(StrictModel):
 
     def canonical_payload(self) -> dict[str, Any]:
         data = self.model_dump(mode="json")
-        # Exclude fingerprint memoisation if present (none stored, but for symmetry)
-        data.pop("fingerprint", None)
         return data
 
     def fingerprint(self) -> str:
@@ -309,7 +311,7 @@ class EvidenceReviewLedger(StrictModel):
 
     case_id: str = Field(min_length=1, max_length=MAX_CASE_ID_LENGTH)
     case_fingerprint: str = Field(description="64-char hex case fingerprint")
-    decisions: list[EvidenceReviewDecision] = Field(default_factory=list)
+    decisions: tuple[EvidenceReviewDecision, ...] = Field(default_factory=tuple)
 
     @field_validator("case_id")
     @classmethod
@@ -536,12 +538,6 @@ class EvidenceAdmissionExport(StrictModel):
             raise ValueError("admission export attachment must have is_admitted=True")
         if self.attachment.admission_label != ArtifactAdmission.ADMITTED:
             raise ValueError("admission export attachment must have admission_label=admitted")
-        if (
-            self.attachment.cell_id != self.case_id
-            and self.attachment.artifact_fingerprint != self.case_fingerprint
-        ):
-            # cell_id should match the prereg cell, not case id; this check is not strict here.
-            pass
         return self
 
     def canonical_payload(self) -> dict[str, Any]:
@@ -587,13 +583,18 @@ class EvidenceReviewReceipt(StrictModel):
     def validate_hex(cls, v: str) -> str:
         return _validate_hex64(v, "fingerprint")
 
-    @field_validator("reason", "reviewer_label")
+    @field_validator("reason")
     @classmethod
-    def validate_text(cls, v: str) -> str:
+    def validate_reason(cls, v: str) -> str:
         s = v.strip()
         if not s:
             raise ValueError("value must contain non-space characters")
         return s
+
+    @field_validator("reviewer_label")
+    @classmethod
+    def validate_reviewer(cls, v: str) -> str:
+        return _validate_identifier(v, "reviewer_label")
 
     @field_validator("decision_timestamp")
     @classmethod

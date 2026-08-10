@@ -2,8 +2,8 @@
 
 Business logic lives outside Streamlit. Every decision is hash-chained and
 append-only; in-place editing is never permitted. Export is fail-closed and
-requires the latest state to be admitted, matching fingerprints, compatible
-metric identity, an unchanged cell binding, no newer withdrawal, and a verified
+requires a verified non-genesis ledger whose current state is ADMITTED, whose
+tail matches the case anchor, and whose cached case state agrees with the
 ledger. Validation is not admission.
 """
 
@@ -15,6 +15,7 @@ import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
+from traffictwin.data_contract.fingerprint import sanitise_for_csv
 from traffictwin.evidence_admission.models import (
     CompatibilityStanding,
     EvidenceAdmissionExport,
@@ -87,6 +88,64 @@ def _utc_now() -> datetime:
     return datetime.now(UTC)
 
 
+def allowed_transitions_from(
+    state: EvidenceReviewState,
+) -> tuple[EvidenceReviewState, ...]:
+    """Return authoritative allowed targets from one review state."""
+    return tuple(tgt for (src, tgt) in sorted(_ALLOWED, key=lambda p: p[1].value) if src == state)
+
+
+def _case_ledger_consistency_violations(
+    case: EvidenceReviewCase,
+    ledger: EvidenceReviewLedger,
+) -> list[str]:
+    violations: list[str] = []
+    if case.case_id != ledger.case_id:
+        violations.append(f"case/ledger case_id mismatch: {case.case_id!r} vs {ledger.case_id!r}")
+    if case.fingerprint() != ledger.case_fingerprint:
+        violations.append("case fingerprint does not match ledger case_fingerprint")
+    chain_violations = ledger.verify()
+    if chain_violations:
+        violations.extend(chain_violations)
+    if case.ledger_tail_fingerprint != ledger.tail_fingerprint:
+        violations.append(
+            f"case tail anchor mismatch: case {case.ledger_tail_fingerprint[:8]}… "
+            f"vs ledger {ledger.tail_fingerprint[:8]}…"
+        )
+    # Derived ledger state must agree with cached case state
+    expected_state = ledger.current_state
+    if expected_state is None:
+        if case.current_state != EvidenceReviewState.PENDING:
+            violations.append(
+                f"case state {case.current_state.value!r} disagrees with empty ledger "
+                f"(expected {EvidenceReviewState.PENDING.value!r})"
+            )
+    else:
+        if case.current_state != expected_state:
+            violations.append(
+                f"case state {case.current_state.value!r} disagrees with ledger state "
+                f"{expected_state.value!r}"
+            )
+    return violations
+
+
+def _assert_case_ledger_consistency(
+    case: EvidenceReviewCase,
+    ledger: EvidenceReviewLedger,
+) -> None:
+    violations = _case_ledger_consistency_violations(case, ledger)
+    if violations:
+        raise LedgerVerificationError("; ".join(violations))
+
+
+def verify_case_with_ledger(
+    case: EvidenceReviewCase,
+    ledger: EvidenceReviewLedger,
+) -> list[str]:
+    """Public helper: verify case+ledger pair integrity (portable, no store)."""
+    return _case_ledger_consistency_violations(case, ledger)
+
+
 # ---------------------------------------------------------------------------
 # In-memory inbox store
 # ---------------------------------------------------------------------------
@@ -104,6 +163,8 @@ class EvidenceAdmissionInboxService:
     This service holds cases and their append-only ledgers. It never
     automatically admits evidence, never zero-fills missing evidence,
     and never exposes local paths in exported fingerprints.
+    The decision ledger is authoritative; the cached case snapshot must
+    always agree with it.
     """
 
     def __init__(self) -> None:
@@ -139,12 +200,7 @@ class EvidenceAdmissionInboxService:
                 f"duplicate cell/candidate binding refused: cell {expected_preregistration_cell_id!r} "  # noqa: E501
                 f"already bound to case {self._binding_index[binding_key]!r}"
             )
-        ts = (
-            (created_at.astimezone(UTC) if created_at is not None else _utc_now())
-            if True
-            else _utc_now()
-        )
-        # Normalize hex lower
+        ts = created_at.astimezone(UTC) if created_at is not None else _utc_now()
         cand_fp = candidate_artifact_fingerprint.strip().lower()
         src_fp = source_contract_result_fingerprint.strip().lower()
         case = EvidenceReviewCase(
@@ -175,28 +231,39 @@ class EvidenceAdmissionInboxService:
             ledger_tail_fingerprint=_GENESIS,
         )
         case_fp = case.fingerprint()
-        ledger = EvidenceReviewLedger(case_id=case.case_id, case_fingerprint=case_fp, decisions=[])
+        ledger = EvidenceReviewLedger(case_id=case.case_id, case_fingerprint=case_fp, decisions=())
+        # Verify fresh pair is internally consistent (pending + genesis)
+        _assert_case_ledger_consistency(case, ledger)
         self._cases[case.case_id] = _StoredCase(case=case, ledger=ledger)
         self._binding_index[binding_key] = case.case_id
-        return case
+        return case.model_copy(deep=True)
 
     def get_case(self, case_id: str) -> EvidenceReviewCase:
         stored = self._cases.get(case_id)
         if stored is None:
             raise EvidenceAdmissionError(f"unknown case {case_id!r}")
-        return stored.case
+        return stored.case.model_copy(deep=True)
 
     def get_ledger(self, case_id: str) -> EvidenceReviewLedger:
         stored = self._cases.get(case_id)
         if stored is None:
             raise EvidenceAdmissionError(f"unknown case {case_id!r}")
-        return stored.ledger
+        return stored.ledger.model_copy(deep=True)
 
     def list_cases(self) -> list[EvidenceReviewCase]:
-        return [s.case for s in self._cases.values()]
+        return [s.case.model_copy(deep=True) for s in self._cases.values()]
 
     def list_ledgers(self) -> list[EvidenceReviewLedger]:
-        return [s.ledger for s in self._cases.values()]
+        return [s.ledger.model_copy(deep=True) for s in self._cases.values()]
+
+    def case_snapshots(
+        self,
+    ) -> list[tuple[EvidenceReviewCase, EvidenceReviewLedger]]:
+        """Public snapshot of case+ledger pairs (defensive copies, no private store exposure)."""
+        return [
+            (s.case.model_copy(deep=True), s.ledger.model_copy(deep=True))
+            for s in self._cases.values()
+        ]
 
     # -- decisions -----------------------------------------------------------
 
@@ -216,13 +283,14 @@ class EvidenceAdmissionInboxService:
         stored = self._cases.get(case_id)
         if stored is None:
             raise EvidenceAdmissionError(f"unknown case {case_id!r}")
-        ledger = stored.ledger
-        case = stored.case
+        # Verify existing stored state first — corrupted tail must not be extended
+        _assert_case_ledger_consistency(stored.case, stored.ledger)
 
-        # Duplicate decision ID refusal (across this ledger)
+        ledger = stored.ledger
+        stored_case = stored.case
+
         if any(d.decision_id == decision_id for d in ledger.decisions):
             raise DuplicateDecisionError(f"duplicate decision_id {decision_id!r} refused")
-        # Also guard global duplicate across all ledgers? keep per-ledger as spec.
 
         expected_prev = ledger.tail_fingerprint
         provided_prev = (
@@ -232,12 +300,14 @@ class EvidenceAdmissionInboxService:
         )
         if provided_prev != expected_prev:
             raise StaleParentError(
-                f"stale previous fingerprint refused: expected {expected_prev[:8]}… "  # noqa: E501
-                f"got {provided_prev[:8]}…"  # noqa: E501
+                f"stale previous fingerprint refused: expected {expected_prev[:8]}… "
+                f"got {provided_prev[:8]}…"
             )
 
-        # Invalid transition refusal (fail-closed)
-        current = case.current_state
+        # Derive current state from ledger (authoritative), not cached case alone
+        current = ledger.current_state
+        if current is None:
+            current = EvidenceReviewState.PENDING
         if (current, decision) not in _ALLOWED:
             raise TransitionRefusedError(
                 f"transition {current.value!r} -> {decision.value!r} is not allowed"
@@ -256,9 +326,7 @@ class EvidenceAdmissionInboxService:
             decision_timestamp=ts,
             requested_information_fields=list(requested_information_fields or []),
         )
-        # Verify entry fingerprint chain link before mutating
-        # (The entry's previous must equal the previous tail exactly.)
-        new_decisions = list(ledger.decisions) + [entry]
+        new_decisions = ledger.decisions + (entry,)
         new_ledger = EvidenceReviewLedger(
             case_id=ledger.case_id,
             case_fingerprint=ledger.case_fingerprint,
@@ -268,22 +336,22 @@ class EvidenceAdmissionInboxService:
         if violations:
             raise LedgerVerificationError("; ".join(violations))
 
-        # Update stored case and ledger atomically
-        updated_case = case.model_copy(
+        updated_case = stored_case.model_copy(
             update={
-                "current_state": decision,
+                "current_state": new_ledger.current_state,
                 "updated_at": ts,
                 "ledger_tail_fingerprint": new_ledger.tail_fingerprint,
             }
         )
+        _assert_case_ledger_consistency(updated_case, new_ledger)
         self._cases[case_id] = _StoredCase(case=updated_case, ledger=new_ledger)
-        return entry
+        return entry.model_copy(deep=True)
 
     def verify_ledger(self, case_id: str) -> list[str]:
         stored = self._cases.get(case_id)
         if stored is None:
             raise EvidenceAdmissionError(f"unknown case {case_id!r}")
-        return stored.ledger.verify()
+        return _case_ledger_consistency_violations(stored.case, stored.ledger)
 
     # -- export --------------------------------------------------------------
 
@@ -300,13 +368,9 @@ class EvidenceAdmissionInboxService:
     ) -> EvidenceAdmissionExport:
         """Export an admitted EvidenceAttachment, fail-closed.
 
-        Guards:
-        - latest case state is admitted
-        - artifact fingerprint matches reviewed candidate
-        - cell binding is unchanged
-        - metric/version/unit remain compatible
-        - no newer withdrawal exists (implied by latest==admitted)
-        - ledger verifies
+        The decision ledger is the ONLY authority for admission.
+        Requires a verified non-genesis ledger whose current state is ADMITTED,
+        whose tail matches the case anchor, and whose cached case state agrees.
         """
         stored = self._cases.get(case_id)
         if stored is None:
@@ -314,30 +378,29 @@ class EvidenceAdmissionInboxService:
         case = stored.case
         ledger = stored.ledger
 
-        # Ledger must verify
-        violations = ledger.verify()
+        # Full case/ledger consistency (includes ledger.verify and tail anchor)
+        violations = _case_ledger_consistency_violations(case, ledger)
         if violations:
             raise LedgerVerificationError("; ".join(violations))
 
-        # Latest state must be admitted (fail-closed for pending/rejected/withdrawn)
-        if case.current_state != EvidenceReviewState.ADMITTED:
+        ledger_state = ledger.current_state
+        if ledger_state != EvidenceReviewState.ADMITTED:
             raise ExportRefusedError(
-                f"export refused: latest state is {case.current_state.value!r}, not admitted"
+                f"export refused: ledger state is {ledger_state.value!r} "
+                f"if present else None, not admitted"
+                if ledger_state is not None
+                else "export refused: ledger has no admitted decision, not admitted"
             )
-
-        # No newer withdrawal (redundant with above, but explicit)
-        if (
-            any(d.decision == EvidenceReviewState.WITHDRAWN for d in ledger.decisions)
-            and case.current_state != EvidenceReviewState.ADMITTED
-        ):
-            raise ExportRefusedError("export refused: a withdrawal exists after admission")
+        if not ledger.decisions:
+            raise ExportRefusedError("export refused: ledger has no decisions")
+        if ledger.tail_fingerprint == _GENESIS:
+            raise ExportRefusedError("export refused: genesis ledger tail can never admit")
 
         # Fingerprint and binding checks (fail-closed)
-        cand_fp = (
-            artifact_fingerprint.strip().lower()
-            if artifact_fingerprint is not None
-            else case.candidate_artifact_fingerprint
-        )
+        if artifact_fingerprint is not None:
+            cand_fp = artifact_fingerprint.strip().lower()
+        else:
+            cand_fp = case.candidate_artifact_fingerprint
         cell = cell_id.strip() if cell_id is not None else case.expected_preregistration_cell_id
         m_key = metric_key.strip() if metric_key is not None else case.observed_metric_key
         m_ver = (
@@ -360,11 +423,10 @@ class EvidenceAdmissionInboxService:
         if m_unit != case.observed_metric_unit:
             raise ExportRefusedError("export refused: observed unit mismatch blocks export")
 
-        # Compatibility standing must be compatible (explicit refusal if not)
         if case.compatibility_standing != CompatibilityStanding.COMPATIBLE:
             raise ExportRefusedError(
-                f"export refused: compatibility standing is {case.compatibility_standing.value!r}, "  # noqa: E501
-                "not compatible"  # noqa: E501
+                f"export refused: compatibility standing is {case.compatibility_standing.value!r}, "
+                "not compatible"
             )
 
         ts = clock.astimezone(UTC) if clock is not None else _utc_now()
@@ -380,7 +442,6 @@ class EvidenceAdmissionInboxService:
             attached_at=ts,
         )
         export_id = f"export-{case.case_id}"
-        # Compute export fingerprint deterministically (portable, no paths)
         canonical = {
             "export_id": export_id,
             "case_id": case.case_id,
@@ -390,7 +451,6 @@ class EvidenceAdmissionInboxService:
             "exported_at": "<normalised>",
         }
         fp = _fingerprint(canonical)
-        # Validate via model
         export = EvidenceAdmissionExport(
             export_id=export_id,
             case_id=case.case_id,
@@ -400,18 +460,27 @@ class EvidenceAdmissionInboxService:
             exported_at=ts,
             fingerprint=fp,
         )
-        # Double-check computed fingerprint matches stored one (deterministic)
         expected_fp = export.computed_fingerprint()
         if export.fingerprint != expected_fp:
             raise EvidenceAdmissionError(
                 "export fingerprint mismatch: deterministic serialization failed"
             )
+        if export.ledger_tail_fingerprint == _GENESIS:
+            raise ExportRefusedError("export refused: genesis ledger tail can never admit")
         return export
 
     # -- queue helpers -------------------------------------------------------
 
     def cases_by_state(self, state: EvidenceReviewState) -> list[EvidenceReviewCase]:
-        return [s.case for s in self._cases.values() if s.case.current_state == state]
+        # Derive state from ledger (authoritative) rather than trusting cached snapshot alone,
+        # but stored pair is already guaranteed consistent, so both agree.
+        result: list[EvidenceReviewCase] = []
+        for stored in self._cases.values():
+            ledger_state = stored.ledger.current_state
+            derived = ledger_state if ledger_state is not None else EvidenceReviewState.PENDING
+            if derived == state:
+                result.append(stored.case.model_copy(deep=True))
+        return result
 
     def pending_queue(self) -> list[EvidenceReviewCase]:
         return self.cases_by_state(EvidenceReviewState.PENDING)
@@ -424,9 +493,14 @@ class EvidenceAdmissionInboxService:
 
     def rejected_or_withdrawn_history(self) -> list[EvidenceReviewCase]:
         return [
-            s.case
+            s.case.model_copy(deep=True)
             for s in self._cases.values()
-            if s.case.current_state in (EvidenceReviewState.REJECTED, EvidenceReviewState.WITHDRAWN)
+            if (
+                s.ledger.current_state
+                if s.ledger.current_state is not None
+                else EvidenceReviewState.PENDING
+            )
+            in (EvidenceReviewState.REJECTED, EvidenceReviewState.WITHDRAWN)
         ]
 
 
@@ -449,9 +523,26 @@ def ledger_to_json(ledger: EvidenceReviewLedger) -> str:
 def ledger_from_json(text: str) -> EvidenceReviewLedger:
     data = json.loads(text)
     decisions = [EvidenceReviewDecision.model_validate(item) for item in data.get("decisions", [])]
-    return EvidenceReviewLedger(
-        case_id=data["case_id"], case_fingerprint=data["case_fingerprint"], decisions=decisions
+    ledger = EvidenceReviewLedger(
+        case_id=data["case_id"],
+        case_fingerprint=data["case_fingerprint"],
+        decisions=tuple(decisions),
     )
+    # Verify integrity of the deserialized artifact
+    chain_violations = ledger.verify()
+    if chain_violations:
+        raise LedgerVerificationError("; ".join(chain_violations))
+    if data.get("decision_count") != len(ledger.decisions):
+        raise LedgerVerificationError(
+            f"decision_count mismatch: expected {data.get('decision_count')!r} "
+            f"got {len(ledger.decisions)!r}"
+        )
+    if data.get("tail_fingerprint") != ledger.tail_fingerprint:
+        raise LedgerVerificationError(
+            f"tail_fingerprint mismatch: expected {data.get('tail_fingerprint')!r} "
+            f"got {ledger.tail_fingerprint!r}"
+        )
+    return ledger
 
 
 def case_to_json(case: EvidenceReviewCase) -> str:
@@ -460,6 +551,7 @@ def case_to_json(case: EvidenceReviewCase) -> str:
 
 
 def case_from_json(text: str) -> EvidenceReviewCase:
+    # Typed model validation only; a case JSON alone cannot verify its external ledger chain.
     return EvidenceReviewCase.model_validate_json(text)
 
 
@@ -484,26 +576,30 @@ def review_summary_to_csv(service: EvidenceAdmissionInboxService) -> str:
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fieldnames=columns, lineterminator="\n")
     writer.writeheader()
-    for stored in sorted(service._cases.values(), key=lambda s: s.case.case_id):
-        case = stored.case
-        ledger = stored.ledger
+    for case, ledger in sorted(service.case_snapshots(), key=lambda pair: pair[0].case_id):
         writer.writerow(
             {
-                "case_id": case.case_id,
-                "candidate_artifact_fingerprint": case.candidate_artifact_fingerprint,
-                "expected_preregistration_cell_id": case.expected_preregistration_cell_id,
-                "observed_metric_key": case.observed_metric_key,
-                "observed_metric_version": case.observed_metric_version,
-                "observed_metric_unit": case.observed_metric_unit,
-                "evidence_mode": case.evidence_mode.value,
-                "source_contract_result_fingerprint": case.source_contract_result_fingerprint,
-                "rights_privacy_standing": case.rights_privacy_standing.value,
-                "validation_standing": case.validation_standing.value,
-                "compatibility_standing": case.compatibility_standing.value,
-                "current_state": case.current_state.value,
-                "ledger_tail_fingerprint": ledger.tail_fingerprint,
-                "finding_count": len(case.findings),
-                "decision_count": len(ledger.decisions),
+                "case_id": sanitise_for_csv(case.case_id),
+                "candidate_artifact_fingerprint": sanitise_for_csv(
+                    case.candidate_artifact_fingerprint
+                ),
+                "expected_preregistration_cell_id": sanitise_for_csv(
+                    case.expected_preregistration_cell_id
+                ),
+                "observed_metric_key": sanitise_for_csv(case.observed_metric_key),
+                "observed_metric_version": sanitise_for_csv(case.observed_metric_version),
+                "observed_metric_unit": sanitise_for_csv(case.observed_metric_unit),
+                "evidence_mode": sanitise_for_csv(case.evidence_mode.value),
+                "source_contract_result_fingerprint": sanitise_for_csv(
+                    case.source_contract_result_fingerprint
+                ),
+                "rights_privacy_standing": sanitise_for_csv(case.rights_privacy_standing.value),
+                "validation_standing": sanitise_for_csv(case.validation_standing.value),
+                "compatibility_standing": sanitise_for_csv(case.compatibility_standing.value),
+                "current_state": sanitise_for_csv(case.current_state.value),
+                "ledger_tail_fingerprint": sanitise_for_csv(ledger.tail_fingerprint),
+                "finding_count": sanitise_for_csv(str(len(case.findings))),
+                "decision_count": sanitise_for_csv(str(len(ledger.decisions))),
             }
         )
     return output.getvalue()
@@ -526,6 +622,17 @@ def build_receipt(
     decision: EvidenceReviewDecision,
 ) -> EvidenceReviewReceipt:
     """Build a portable receipt for one decision without credential data."""
+    violations = _case_ledger_consistency_violations(case, ledger)
+    if violations:
+        raise LedgerVerificationError("; ".join(violations))
+    if decision not in ledger.decisions:
+        raise LedgerVerificationError(
+            f"decision {decision.decision_id!r} not committed to ledger {ledger.case_id!r}"
+        )
+    # Ensure decision fingerprint is exactly present (verify membership already implies, but check)
+    found = next((d for d in ledger.decisions if d.decision_id == decision.decision_id), None)
+    if found is None or found.fingerprint() != decision.fingerprint():
+        raise LedgerVerificationError("decision fingerprint mismatch with ledger entry")
     tail = ledger.tail_fingerprint
     receipt_id = f"receipt-{decision.decision_id}"
     canonical = {
@@ -543,7 +650,6 @@ def build_receipt(
         "requested_information_fields": decision.requested_information_fields,
         "fingerprint": "<placeholder>",
     }
-    # Compute fingerprint over normalised payload
     tmp = dict(canonical)
     tmp.pop("fingerprint", None)
     fp = _fingerprint(tmp)
@@ -562,7 +668,6 @@ def build_receipt(
         requested_information_fields=decision.requested_information_fields,
         fingerprint=fp,
     )
-    # Deterministic check
     expected = receipt.computed_fingerprint()
     if receipt.fingerprint != expected:
         raise EvidenceAdmissionError("receipt fingerprint mismatch")

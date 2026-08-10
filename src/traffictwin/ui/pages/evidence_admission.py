@@ -27,14 +27,27 @@ from traffictwin.evidence_admission.service import (
     EvidenceAdmissionError,
     EvidenceAdmissionInboxService,
     admitted_attachment_to_json,
+    allowed_transitions_from,
     build_receipt,
     case_to_json,
-    get_global_service,
     ledger_to_json,
     receipt_to_json,
     review_summary_to_csv,
 )
 from traffictwin.ui.state import UiConfig
+
+SESSION_SERVICE_KEY = "evidence_admission_service"
+
+
+def _get_service() -> EvidenceAdmissionInboxService:
+    if SESSION_SERVICE_KEY not in st.session_state:
+        st.session_state[SESSION_SERVICE_KEY] = EvidenceAdmissionInboxService()
+    svc = st.session_state[SESSION_SERVICE_KEY]
+    # Defensive: ensure the stored object is the expected type (tests may inject)
+    if not isinstance(svc, EvidenceAdmissionInboxService):
+        svc = EvidenceAdmissionInboxService()
+        st.session_state[SESSION_SERVICE_KEY] = svc
+    return svc
 
 
 def _boundary_caption() -> str:
@@ -58,7 +71,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         "creates a new ledger entry — nothing is edited in place."
     )
 
-    service = get_global_service()
+    service = _get_service()
 
     st.subheader("Pending queue")
     _render_queue(
@@ -125,8 +138,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         return
 
     st.caption(
-        f"Case fingerprint: {case.fingerprint()[:16]}…  Ledger tail: "  # noqa: E501
-        f"{ledger.tail_fingerprint[:16]}…"  # noqa: E501
+        f"Case fingerprint: {case.fingerprint()[:16]}…  "
+        f"Ledger tail: {ledger.tail_fingerprint[:16]}…"
     )
 
     st.subheader("Findings and source standing")
@@ -172,8 +185,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
 
     st.subheader("Explicit decision")
     st.caption(
-        "No automatic decision is made. Choose a transition, provide a reason, "
-        "and identify the reviewer."  # noqa: E501
+        "No automatic decision is made. Choose a transition, provide a reason, and identify the reviewer."  # noqa: E501
     )
     _render_decision_form(service, case, ledger)
 
@@ -240,26 +252,18 @@ def _render_decision_form(
 ) -> None:
     current = case.current_state.value
     st.caption(
-        f"Current state is **{current}**. Only the allowed transitions from that state "  # noqa: E501
-        "will be accepted."  # noqa: E501
+        f"Current state is **{current}**. Only the allowed transitions from that state will be accepted."  # noqa: E501
     )
 
-    allowed_map: dict[str, list[str]] = {
-        "pending": ["needs_information", "admitted", "rejected"],
-        "needs_information": ["pending", "admitted", "rejected"],
-        "admitted": ["withdrawn"],
-        "rejected": ["pending"],
-        "withdrawn": [],
-    }
-    options = allowed_map.get(current, [])
-    if not options:
+    allowed = [s.value for s in allowed_transitions_from(case.current_state)]
+    if not allowed:
         st.info(f"No further decisions are allowed from the terminal state {current!r}.")
         return
 
     with st.form(key="evidence_admission_decision_form"):
         decision = st.selectbox(
             "Decision (target state)",
-            options=options,
+            options=allowed,
             key="evidence_admission_decision_choice",
         )
         reason = st.text_area(
