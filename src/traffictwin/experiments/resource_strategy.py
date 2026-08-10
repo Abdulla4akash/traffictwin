@@ -34,7 +34,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from traffictwin.metrics.results import JsonScalar
 
 RESOURCE_STRATEGY_SCHEMA_VERSION: Literal["1.0"] = "1.0"
-RESOURCE_STRATEGY_METHOD_VERSION: Literal["1.0"] = "1.0"
 RESOURCE_STRATEGY_REPORT_VERSION: Literal["1.0"] = "1.0"
 
 MIN_STRATEGY_ARMS = 2
@@ -78,6 +77,80 @@ class ResourceStrategyMetricDenominator(StrEnum):
     COMPLETED_TASKS = "completed_tasks"
     REPLICATION = "replication"
     UNKNOWN = "unknown"
+
+
+RESERVED_METRIC_KEYS: frozenset[str] = frozenset(
+    {
+        "task.completion.rate_offered",
+        "task.completion.rate_admitted",
+        "task.deadline_success.rate_offered",
+        "task.deadline_success.rate_admitted",
+        "task.offered.count",
+        "task.admitted.count",
+        "task.rejected.count",
+        "task.forwarded.count",
+        "task.started.count",
+        "task.compute_completed.count",
+        "task.returned.count",
+        "task.dropped.count",
+        "task.deadline_success.count",
+        "task.latency.mean_ms",
+        "task.latency.p95_ms",
+        "infra.queue_length.mean",
+        "infra.load_balance.jain",
+        "infra.utilisation.mean",
+        "task.energy.mean_j",
+        "resource.cost.units",
+    }
+)
+
+# Expected canonical contract for compatibility audit
+EXPECTED_METRIC_CONTRACT: dict[str, tuple[str, str, ResourceStrategyMetricDenominator]] = {  # noqa: E501
+    "task.completion.rate_offered": (
+        "1.0",
+        "ratio",
+        ResourceStrategyMetricDenominator.OFFERED_TASKS,
+    ),
+    "task.completion.rate_admitted": (
+        "1.0",
+        "ratio",
+        ResourceStrategyMetricDenominator.ADMITTED_TASKS,
+    ),
+    "task.deadline_success.rate_offered": (
+        "1.0",
+        "ratio",
+        ResourceStrategyMetricDenominator.OFFERED_TASKS,
+    ),
+    "task.deadline_success.rate_admitted": (
+        "1.0",
+        "ratio",
+        ResourceStrategyMetricDenominator.ADMITTED_TASKS,
+    ),
+    "task.latency.mean_ms": ("1.0", "ms", ResourceStrategyMetricDenominator.COMPLETED_TASKS),
+    "task.latency.p95_ms": ("1.0", "ms", ResourceStrategyMetricDenominator.COMPLETED_TASKS),
+    "infra.queue_length.mean": ("1.0", "tasks", ResourceStrategyMetricDenominator.REPLICATION),
+    "infra.load_balance.jain": ("1.0", "ratio", ResourceStrategyMetricDenominator.REPLICATION),
+    "infra.utilisation.mean": ("1.0", "fraction", ResourceStrategyMetricDenominator.REPLICATION),
+    "task.energy.mean_j": ("1.0", "J", ResourceStrategyMetricDenominator.COMPLETED_TASKS),
+    "resource.cost.units": ("1.0", "cost_units", ResourceStrategyMetricDenominator.REPLICATION),
+    "task.offered.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.OFFERED_TASKS),
+    "task.admitted.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.ADMITTED_TASKS),
+    "task.rejected.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.OFFERED_TASKS),
+    "task.forwarded.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.ADMITTED_TASKS),
+    "task.started.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.ADMITTED_TASKS),
+    "task.compute_completed.count": (
+        "1.0",
+        "tasks",
+        ResourceStrategyMetricDenominator.ADMITTED_TASKS,
+    ),
+    "task.returned.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.COMPLETED_TASKS),
+    "task.dropped.count": ("1.0", "tasks", ResourceStrategyMetricDenominator.ADMITTED_TASKS),
+    "task.deadline_success.count": (
+        "1.0",
+        "tasks",
+        ResourceStrategyMetricDenominator.OFFERED_TASKS,
+    ),
+}
 
 
 class ResourceStrategyMetricStatus(StrEnum):
@@ -215,6 +288,16 @@ class ResourceStrategyReplication(BaseModel):
                 raise ValueError(f"metric {key!r} value must be finite, got {value!r}")
         return values
 
+    @model_validator(mode="after")
+    def validate_reserved_metrics_not_supplied(self) -> ResourceStrategyReplication:
+        for key in self.metrics:
+            if key in RESERVED_METRIC_KEYS:
+                raise ValueError(
+                    f"reserved metric {key!r} must not be supplied in rep.metrics; "
+                    "lifecycle/typed fields are authoritative"
+                )
+        return self
+
     @field_validator(
         "queue_length_mean",
         "queue_balance_jain",
@@ -312,7 +395,9 @@ class ResourceStrategyStudy(BaseModel):
     replication_unit: ResourceStrategyReplicationUnit = (
         ResourceStrategyReplicationUnit.REPLICATION_ID
     )
-    arms: list[ResourceStrategyArm] = Field(min_length=2, max_length=8)
+    arms: list[ResourceStrategyArm] = Field(
+        min_length=MIN_STRATEGY_ARMS, max_length=MAX_STRATEGY_ARMS
+    )
     common_matched_replication_ids: list[str] = Field(default_factory=list)
     excluded_replication_ids: list[ResourceStrategyExclusion] = Field(default_factory=list)
     metric_catalog: list[ResourceStrategyMetric] = Field(min_length=1)
@@ -478,13 +563,14 @@ class ResourceStrategyStudy(BaseModel):
         )
 
     def fingerprint(self) -> str:
-        return hashlib.sha256(self.canonical_json().encode("utf-8")).hexdigest()
+        return _fingerprint(self.canonical_payload())
 
     def to_json(self) -> str:
         payload = self.model_dump(mode="json")
-        # Normalise generated_at to preserve fingerprint determinism.
+        # Portable JSON must remain model-valid; generated_at is not identity-bearing.
+        # Normalise wall clock to null for deterministic, re-importable export.
         if payload.get("generated_at") is not None:
-            payload["generated_at"] = "<normalised>"
+            payload["generated_at"] = None
         return json.dumps(payload, indent=2, sort_keys=True, allow_nan=False)
 
 
@@ -665,12 +751,12 @@ class ResourceStrategyReport(BaseModel):
         )
 
     def fingerprint(self) -> str:
-        return hashlib.sha256(self.canonical_json().encode("utf-8")).hexdigest()
+        return _fingerprint(self.canonical_payload())
 
     def to_json(self) -> str:
         payload = self.model_dump(mode="json")
         if payload.get("generated_at") is not None:
-            payload["generated_at"] = "<normalised>"
+            payload["generated_at"] = None
         return json.dumps(payload, indent=2, sort_keys=True, allow_nan=False)
 
 
@@ -739,11 +825,33 @@ def build_resource_strategy_report(
     if study.admission_state == ResourceStrategyAdmissionState.UNAVAILABLE:
         raise ValueError("UNAVAILABLE_EVIDENCE: study admission_state is unavailable")
 
-    # Metric compatibility: ensure version and denominator consistency
-    # is already enforced by catalog uniqueness, but cross-arm metric
-    # values must be finite where supplied.
+    # Real compatibility audit: evaluate version/unit/denominator against expected contract
     compatibility: list[ResourceStrategyCompatibility] = []
     for metric in study.metric_catalog:
+        expected = EXPECTED_METRIC_CONTRACT.get(metric.metric_key)
+        if expected is not None:
+            exp_version, exp_unit, exp_denom = expected
+            mismatches: list[str] = []
+            if metric.metric_version != exp_version:
+                mismatches.append(f"version {metric.metric_version!r} != expected {exp_version!r}")
+            if metric.unit != exp_unit:
+                mismatches.append(f"unit {metric.unit!r} != expected {exp_unit!r}")
+            if metric.denominator != exp_denom:
+                mismatches.append(
+                    f"denominator {metric.denominator.value!r} != expected {exp_denom.value!r}"
+                )
+            if mismatches:
+                compatibility.append(
+                    ResourceStrategyCompatibility(
+                        metric_key=metric.metric_key,
+                        status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                        denominator=metric.denominator,
+                        unit=metric.unit,
+                        versions=[metric.metric_version],
+                        finding="incompatible: " + "; ".join(mismatches),
+                    )
+                )
+                continue
         compatibility.append(
             ResourceStrategyCompatibility(
                 metric_key=metric.metric_key,
@@ -960,9 +1068,39 @@ def build_resource_strategy_report(
                             mean_b=agg_b.aggregate_mean,
                             mean_difference_b_minus_a=None,
                             median_difference_b_minus_a=None,
-                            interpretation="unavailable for descriptive comparison",
+                            interpretation=(
+                                f"{arm_b.arm_id} vs {arm_a.arm_id} unavailable "
+                                f"for {metric_def.metric_key} ({metric_def.unit}); descriptive only"
+                            ),
                             status=ResourceStrategyMetricStatus.UNAVAILABLE,
                             reason="one or both arms unavailable for this metric",
+                        )
+                    )
+                    continue
+                # Check compatibility: incompatible metrics do not enter ordinary comparison
+                compat = next((c for c in compatibility if c.metric_key == key), None)
+                if (
+                    compat is not None
+                    and compat.status == ResourceStrategyCompatibilityStatus.INCOMPATIBLE
+                ):
+                    pairwise.append(
+                        ResourceStrategyPairwiseDifference(
+                            metric_key=key,
+                            metric_version=metric_def.metric_version,
+                            unit=metric_def.unit,
+                            denominator=metric_def.denominator,
+                            arm_a=arm_a.arm_id,
+                            arm_b=arm_b.arm_id,
+                            mean_a=agg_a.aggregate_mean,
+                            mean_b=agg_b.aggregate_mean,
+                            mean_difference_b_minus_a=None,
+                            median_difference_b_minus_a=None,
+                            interpretation=(
+                                f"{arm_b.arm_id} vs {arm_a.arm_id} incompatible metric "
+                                f"{key} ({compat.finding}); descriptive only"
+                            ),
+                            status=ResourceStrategyMetricStatus.UNAVAILABLE,
+                            reason=f"incompatible contract: {compat.finding}",
                         )
                     )
                     continue
@@ -974,19 +1112,27 @@ def build_resource_strategy_report(
                     mean_diff = agg_b.aggregate_mean - agg_a.aggregate_mean
                 if agg_a.aggregate_median is not None and agg_b.aggregate_median is not None:
                     median_diff = agg_b.aggregate_median - agg_a.aggregate_median
-                # Interpretation is neutral descriptive wording
+                # Interpretation is neutral descriptive wording, self-qualifying and portable
                 if mean_diff is None:
-                    interp = "descriptive difference unavailable"
+                    interp = (
+                        f"{arm_b.arm_id} vs {arm_a.arm_id} descriptive difference unavailable "
+                        f"for {metric_def.metric_key} ({metric_def.unit}); descriptive only"
+                    )
                 elif abs(mean_diff) < 1e-12:
-                    interp = "mean difference near zero; descriptive only"
+                    interp = (
+                        f"{arm_b.arm_id} mean equal to {arm_a.arm_id} "
+                        f"(difference 0 {metric_def.unit}); descriptive only"
+                    )
                 elif mean_diff > 0:
-                    higher = f"{arm_b.arm_id} mean higher than {arm_a.arm_id} "
-                    f"by {mean_diff:.6g} {metric_def.unit}; descriptive only"
-                    interp = higher
+                    interp = (
+                        f"{arm_b.arm_id} mean higher than {arm_a.arm_id} "
+                        f"by {mean_diff:.6g} {metric_def.unit}; descriptive only"
+                    )
                 else:
-                    lower = f"{arm_b.arm_id} mean lower than {arm_a.arm_id} "
-                    f"by {abs(mean_diff):.6g} {metric_def.unit}; descriptive only"
-                    interp = lower
+                    interp = (
+                        f"{arm_b.arm_id} mean lower than {arm_a.arm_id} "
+                        f"by {abs(mean_diff):.6g} {metric_def.unit}; descriptive only"
+                    )
                 pairwise.append(
                     ResourceStrategyPairwiseDifference(
                         metric_key=key,
@@ -1069,7 +1215,7 @@ def load_resource_strategy_study_from_json(
     return validate_resource_strategy_study_dict(data)
 
 
-def load_resource_strategy_study_file(path: str | pathlib.Path) -> ResourceStrategyStudy:  # noqa: ANN401
+def load_resource_strategy_study_file(path: str | pathlib.Path) -> ResourceStrategyStudy:
     p = pathlib.Path(path)
     text = p.read_text(encoding="utf-8")
     return load_resource_strategy_study_from_json(text)
@@ -1241,4 +1387,6 @@ def _num(value: float | None) -> str:
 def _csv_num(value: float | None) -> str:
     if value is None:
         return ""
-    return f"{value:.12g}"
+    # Use repr for round-trip-safe representation (17 significant digits for float64)
+    # Preserve finite values losslessly; CSV is presentation but numeric fidelity is maintained.
+    return repr(float(value))

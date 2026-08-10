@@ -771,7 +771,7 @@
       "replication_id": "rep_005"
     }
   ],
-  "generated_at": "<normalised>",
+  "generated_at": null,
   "limitations": [
     "Synthetic demonstration evidence only; not Manchester observation.",
     "Offered-task attainment and admitted-task attainment are distinct denominators; do not substitute one for the other.",
@@ -972,7 +972,7 @@
       "arm_a": "jsq",
       "arm_b": "jsq_deadline_aware",
       "denominator": "offered_tasks",
-      "interpretation": "mean difference near zero; descriptive only",
+      "interpretation": "jsq_deadline_aware mean equal to jsq (difference 0 ratio); descriptive only",
       "mean_a": 0.6785000000000001,
       "mean_b": 0.6785000000000001,
       "mean_difference_b_minus_a": 0.0,
@@ -1321,7 +1321,7 @@
     "generated_by": "deterministic_fixture_generator"
   },
   "replication_unit": "replication_id",
-  "report_fingerprint": "b25c54d70e8f1f11354523d882e0facaee6e15e327b6506bf47f7b92b2ed77c1",
+  "report_fingerprint": "c07480af8e68dc73f235e2f725d7d6caf223e285b374b286fb1ed17f0f22c375",
   "schema_version": "1.0",
   "source_fingerprint": "804d785897bf24da704878e016617b33adeb3844cc275ebd972de69d0cfdf0fe",
   "study_fingerprint": "a0c1a751571732d431cd7a12b69f833fadb36b424e5089cfbbbaf95d8b922116",
