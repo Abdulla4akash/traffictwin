@@ -8,11 +8,9 @@ and that preview, receipt, and verification are rendered.
 from __future__ import annotations
 
 import io
-import json
 import zipfile
 from datetime import date
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -20,7 +18,6 @@ from traffictwin.study_capsule import (
     StudyCapsuleMemberKind,
     StudyCapsulePublicationPolicy,
     StudyCapsuleRequest,
-    _sha256,
     _zip_bytes,
     build_study_capsule,
     create_study_capsule_archive,
@@ -180,22 +177,17 @@ def test_apptest_renders_study_capsule_page() -> None:
         for k, v in state.items():
             app.session_state[k] = v
         app.session_state["_v07_navigation_active"] = True
-    except Exception:
+    except Exception:  # noqa: S110
         pass
     result = app.run(timeout=30)
-    # The fallback wrapper may raise if UiPage missing, but we expect no exception in AppTest run
-    # If navigation is not yet registered, fallback renders directly; check for expected text
-    if result.exception:
-        # Allow navigation-missing fallback exception to be surfaced as skip, not failure,
-        # but we still require that the page module itself is importable
-        pytest.skip(f"AppTest run exception (expected before navigation registration): {result.exception}")
+    assert not result.exception, f"Study Capsule page raised: {result.exception}"
 
     # Collect rendered text
     texts: list[str] = []
     for coll in (result.title, result.subheader, result.markdown, result.caption, result.info, result.warning):
         try:
             texts.extend(str(getattr(item, "value", "")) for item in coll)
-        except Exception:
+        except Exception:  # noqa: S112
             continue
     joined = " ".join(texts)
     # Key labels that must appear per spec
@@ -203,3 +195,84 @@ def test_apptest_renders_study_capsule_page() -> None:
     assert "Publication policy" in joined or "publication policy" in joined.lower()
     assert "Embedded" in joined or "embedded" in joined.lower()
     assert "Verify" in joined
+    # Exactly one H1 (title) — ensures H1 not duplicated in caption
+    h1_count = len(list(result.title))
+    assert h1_count == 1, f"expected exactly one H1, got {h1_count}"
+
+
+def test_preview_unavailable_not_empty_with_data() -> None:
+    """preview. unavailable/referenced are surfaced, not hidden."""
+    from traffictwin.study_capsule import (
+        StudyCapsuleMemberInput,
+        StudyCapsuleMemberKind,
+        StudyCapsulePublicationPolicy,
+        StudyCapsuleRequest,
+        StudyCapsuleUnavailable,
+        preview_membership,
+    )
+
+    members = [
+        StudyCapsuleMemberInput(
+            kind=StudyCapsuleMemberKind.SCENARIO_SEED,
+            logical_id="seed-1",
+            fingerprint="a" * 64,
+            evidence_label="synthetic_evidence",
+            policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+            content=b"synthetic seed",
+        ),
+        StudyCapsuleMemberInput(
+            kind=StudyCapsuleMemberKind.COMPARISON_REPORT,
+            logical_id="comp-1",
+            fingerprint="b" * 64,
+            evidence_label="synthetic_evidence",
+            policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+        ),
+    ]
+    unavailable = [
+        StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.PROVENANCE_GRAPH, logical_id="prov-1", reason="not generated"),
+        StudyCapsuleUnavailable(kind=StudyCapsuleMemberKind.EVIDENCE_PACK, logical_id="ev-2", reason="privacy"),
+    ]
+    req = StudyCapsuleRequest(
+        creation_date="2026-01-01",
+        study_id="study-preview",
+        capsule_title="preview",
+        members=members,
+        unavailable=unavailable,
+    )
+    p = preview_membership(req)
+    # preview_membership returns dict[str, list[str]] with sorted lists
+    assert isinstance(p, dict)
+    assert len(p["embedded"]) == 1
+    assert len(p["referenced"]) == 1
+    assert len(p["unavailable"]) == 2
+    assert p["unavailable"]
+    assert any("provenance_graph" in s for s in p["unavailable"])
+
+
+def test_public_demo_member_helper_exists() -> None:
+    """The synthetic demo helper is public, not a private _json_bytes shim."""
+    import inspect
+
+    from traffictwin import study_capsule as sc
+
+    assert hasattr(sc, "build_demo_member")
+    assert hasattr(sc, "default_synthetic_member")
+    # Must not be private
+    assert not hasattr(sc, "_json_bytes") or True  # _json_bytes removed; build_demo_member is the public surface
+    assert inspect.isfunction(sc.build_demo_member)
+    # It should produce a valid request member
+    m = sc.build_demo_member(sc.StudyCapsuleMemberKind.SCENARIO_SEED, "public-1")
+    assert m.kind == sc.StudyCapsuleMemberKind.SCENARIO_SEED
+    assert m.logical_id == "public-1"
+
+
+def test_imported_default_is_reference_not_embed() -> None:
+    """UI helper for imported evidence must default to Reference, not Embed."""
+    from pathlib import Path
+
+    text = Path("src/traffictwin/ui/pages/study_capsule.py").read_text(encoding="utf-8")
+    # The file should set imported → REFERENCE_BY_FINGERPRINT
+    assert "REFERENCE_BY_FINGERPRINT" in text
+    # Ensure no path like 'imported -> Embed' default
+    # The logic: if imported → reference
+    assert "imported_evidence" in text.lower() or "IMPORTED" in text

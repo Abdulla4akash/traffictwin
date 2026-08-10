@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Study Capsule Builder page — deterministic analysis-level review capsule."""
 
 from __future__ import annotations
@@ -107,82 +106,65 @@ def _build_default_members(
     policy_overrides: dict[str, str],
     evidence_overrides: dict[str, str],
 ) -> list[StudyCapsuleMemberInput]:
+    """Build demo members via the public production helper.
+
+    All fingerprint and content logic lives in the service layer; the page
+    only collects widget values and delegates.
+    """
+
     members: list[StudyCapsuleMemberInput] = []
     for kind, logical_id, default_ev in _DEMO_MEMBERS:
         if kind not in selected_kinds:
             continue
         key = f"{kind.value}:{logical_id}"
-        policy_val = policy_overrides.get(
-            key, StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED.value
+        # Safe default: raw evidence must not default to EMBED
+        raw_like = {
+            StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE,
+            StudyCapsuleEvidenceLabel.HISTORICAL_OBSERVATION,
+            StudyCapsuleEvidenceLabel.NEAR_LIVE_OPERATIONAL,
+            StudyCapsuleEvidenceLabel.UNADMITTED_RESEARCH,
+        }
+        default_policy = (
+            StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT.value
+            if default_ev in raw_like
+            else StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED.value
         )
+        policy_val = policy_overrides.get(key, default_policy)
         ev_val = evidence_overrides.get(key, default_ev.value)
         policy = StudyCapsulePublicationPolicy(policy_val)
         ev = StudyCapsuleEvidenceLabel(ev_val)
-        # Use default_synthetic_member for synthetic, otherwise construct with appropriate policy
-        if (
-            ev
-            in {
-                StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
-                StudyCapsuleEvidenceLabel.AUTHORED_CONFIGURATION,
-                StudyCapsuleEvidenceLabel.STATIC_GEOGRAPHIC,
-            }
-            and policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
-        ):
-            members.append(
-                default_synthetic_member(kind, logical_id, evidence_label=ev, policy=policy)
+        members.append(
+            default_synthetic_member(
+                kind, logical_id, evidence_label=ev, policy=policy
             )
-        else:
-            # For reference/exclude or imported, construct manually
-            import hashlib as _hashlib
-
-            fingerprint = _hashlib.sha256(f"{kind.value}:{logical_id}".encode()).hexdigest()
-            content = None
-            if policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED:
-                # Need content for embed, generate deterministic
-                from traffictwin.study_capsule import (  # local import to avoid circular
-                    _json_bytes,
-                )
-
-                payload = {
-                    "kind": kind.value,
-                    "logical_id": logical_id,
-                    "evidence_label": ev.value,
-                    "schema_version": "1.0",
-                    "deterministic": True,
-                }
-                content = _json_bytes(payload)
-            members.append(
-                StudyCapsuleMemberInput(
-                    kind=kind,
-                    logical_id=logical_id,
-                    fingerprint=fingerprint,
-                    evidence_label=ev,
-                    admission_label=StudyCapsuleAdmissionLabel.NOT_APPLICABLE,
-                    policy=policy,
-                    content=content,
-                    exclusion_reason="demo exclusion: not for publication"
-                    if policy is StudyCapsulePublicationPolicy.EXCLUDE
-                    else None,
-                    reference_note="reference by fingerprint for review"
-                    if policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
-                    else None,
-                )
-            )
+        )
     return members
+
+
+def _raw_like(ev: StudyCapsuleEvidenceLabel) -> bool:
+    return ev in {
+        StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE,
+        StudyCapsuleEvidenceLabel.HISTORICAL_OBSERVATION,
+        StudyCapsuleEvidenceLabel.NEAR_LIVE_OPERATIONAL,
+        StudyCapsuleEvidenceLabel.UNADMITTED_RESEARCH,
+    }
 
 
 def render(config: UiConfig) -> None:  # noqa: ARG001
     """Render the Study Capsule Builder page."""
 
-    render_page_header(st.session_state.get("_active_ui_page", UiPage.ABOUT))
-    st.title("Study Capsule Builder")
+    render_page_header(
+        st.session_state.get("_active_ui_page", UiPage.STUDY_CAPSULE)
+    )
     st.caption(
-        "Assemble selected derived artifacts into a deterministic, offline-verifiable review package. "
-        "Raw imported evidence is referenced or excluded by default — never embedded without explicit permission."
+        "Assemble selected derived artifacts into a deterministic, "
+        "offline-verifiable review package. Raw imported evidence is referenced "
+        "or excluded by default — never embedded without explicit permission."
     )
     st.info(
-        "This capsule is an analysis-level review artifact. A verifiable capsule does not prove scientific validity; "
-        "it proves that the listed artifacts were bound with the shown checksums and limitations."
+        "This capsule is an analysis-level review artifact. A verifiable "
+        "capsule does not prove scientific validity; it proves that the listed "
+        "artifacts were bound with the shown checksums and limitations."
     )
 
     contract = study_capsule_contract()
@@ -203,13 +185,21 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     study_col, title_col = st.columns(2)
     with study_col:
         study_id = st.text_input(
-            "Study ID (logical, 1-128 chars)", value=_DEFAULT_STUDY_ID, key="capsule_study_id"
+            "Study ID (logical, 1-128 chars)",
+            value=_DEFAULT_STUDY_ID,
+            key="capsule_study_id",
         )
         study_version = st.text_input("Study version", value="1.0", key="capsule_study_version")
         study_title = st.text_input(
             "Study title (optional)",
             value="Manchester What-If: Demand Surge",
             key="capsule_study_title",
+        )
+        study_description = st.text_area(
+            "Study description (optional)",
+            value="",
+            key="capsule_study_description",
+            height=80,
         )
     with title_col:
         capsule_title = st.text_input(
@@ -220,13 +210,17 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         )
         capsule_description = st.text_area(
             "Capsule description (optional)",
-            value="Deterministic review package binding baseline/variation artifacts for supervisor review.",
+            value=(
+                "Deterministic review package binding baseline/variation "
+                "artifacts for supervisor review."
+            ),
             key="capsule_description",
         )
 
     st.subheader("2. Choose eligible derived artifacts")
     st.caption(
-        "Each member carries evidence and admission labels. Imported/raw evidence defaults to reference or exclusion."
+        "Each member carries evidence and admission labels. Imported/raw "
+        "evidence defaults to reference or exclusion."
     )
     # Kind selection
     kind_options = [k.value for k in StudyCapsuleMemberKind]
@@ -248,7 +242,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     # Per-member policy and evidence overrides
     st.subheader("3. Member publication policy")
     st.caption(
-        "EMBED_SAFE_DERIVED embeds bytes; REFERENCE_BY_FINGERPRINT stores fingerprint only; EXCLUDE records reason."
+        "EMBED_SAFE_DERIVED embeds bytes; REFERENCE_BY_FINGERPRINT stores "
+        "fingerprint only; EXCLUDE records reason."
     )
     policy_overrides: dict[str, str] = {}
     evidence_overrides: dict[str, str] = {}
@@ -271,10 +266,26 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             )
             evidence_overrides[key] = ev_choice
         with col3:
+            # Safe default: raw evidence must not default to EMBED
+            raw_vals = {
+                StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE.value,
+                StudyCapsuleEvidenceLabel.HISTORICAL_OBSERVATION.value,
+                StudyCapsuleEvidenceLabel.NEAR_LIVE_OPERATIONAL.value,
+                StudyCapsuleEvidenceLabel.UNADMITTED_RESEARCH.value,
+            }
+            default_pol = (
+                StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT.value
+                if ev_choice in raw_vals
+                else StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED.value
+            )
+            try:
+                default_index = _policy_options().index(default_pol)
+            except ValueError:
+                default_index = 0
             pol_choice = st.selectbox(
                 f"Policy {key}",
                 options=_policy_options(),
-                index=0,
+                index=default_index,
                 key=f"pol_{key}",
                 label_visibility="collapsed",
             )
@@ -292,22 +303,72 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     if table_rows:
         st.dataframe(table_rows, hide_index=True, width="stretch")
 
-    # Preview what will be embedded / referenced / excluded
-    st.subheader("4. Preview: embedded / referenced / excluded")
-    preview_members = _build_default_members(selected_kinds, policy_overrides, evidence_overrides)
-    # Create a temporary request for preview (limitations empty for now)
+    st.warning(
+        "Privacy: the portable manifest stores no absolute paths, secrets, or raw bytes "
+        "for referenced/excluded members. Imported evidence is referenced by fingerprint only. "
+        "Verifier proves internal integrity, not external authenticity."
+    )
+
+    # Limitations and unavailable (before preview so preview can use them)
+    st.subheader("4. Limitations and unavailable evidence")
+    limitations_text = st.text_area(
+        "Limitations (one per line)",
+        value="Synthetic single-run evidence only\nNo Manchester live traffic\n"
+        "Not a proof of scientific validity",
+        key="capsule_limitations",
+    )
+    limitations = [
+        line.strip() for line in limitations_text.splitlines() if line.strip()
+    ]
+
+    unavailable_col1, unavailable_col2 = st.columns(2)
+    with unavailable_col1:
+        unavailable_kind = st.selectbox(
+            "Unavailable kind (optional)",
+            options=[""] + kind_options,
+            key="capsule_unavail_kind",
+        )
+    with unavailable_col2:
+        unavailable_id = st.text_input(
+            "Unavailable logical ID", value="", key="capsule_unavail_id"
+        )
+    unavailable_reason = st.text_input(
+        "Unavailable reason", value="", key="capsule_unavail_reason"
+    )
+
+    unavailable_entries: list[StudyCapsuleUnavailable] = []
+    if unavailable_kind and unavailable_id and unavailable_reason:
+        try:
+            unavailable_entries.append(
+                StudyCapsuleUnavailable(
+                    kind=StudyCapsuleMemberKind(unavailable_kind),
+                    logical_id=unavailable_id,
+                    reason=unavailable_reason,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            st.error(f"Unavailable entry invalid: {exc}")
+
+    # Preview what will be embedded / referenced / excluded / unavailable
+    st.subheader("5. Preview: embedded / referenced / excluded / unavailable")
     preview_req = None
     try:
+        preview_members = _build_default_members(
+            selected_kinds, policy_overrides, evidence_overrides
+        )
         preview_req = StudyCapsuleRequest(
-            creation_date=creation_date if isinstance(creation_date, date) else date(2026, 8, 9),
+            creation_date=creation_date
+            if isinstance(creation_date, date)
+            else date(2026, 8, 9),
             study_id=study_id,
             study_version=study_version,
             study_title=study_title or None,
+            study_description=study_description or None,
             capsule_title=capsule_title,
             capsule_description=capsule_description or None,
             members=preview_members,
-            limitations=[],
-            unavailable=[],
+            limitations=limitations,
+            unavailable=unavailable_entries,
         )
         preview = preview_membership(preview_req)
         c1, c2, c3, c4 = st.columns(4)
@@ -335,54 +396,17 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                 st.markdown(f"- `{item}`")
             if not preview["unavailable"]:
                 st.caption("none")
-        # Verify UI preview matches manifest after build (will check post-build)
         st.session_state["_capsule_preview_req"] = preview_req
     except Exception as exc:  # noqa: BLE001
         st.error(f"Preview validation failed: {exc}")
 
-    st.warning(
-        "Privacy: the portable manifest stores no absolute paths, secrets, or raw bytes for referenced/excluded members. "
-        "Imported evidence is referenced by fingerprint only."
-    )
-
-    # Limitations and unavailable
-    st.subheader("5. Limitations and unavailable evidence")
-    limitations_text = st.text_area(
-        "Limitations (one per line)",
-        value="Synthetic single-run evidence only\nNo Manchester live traffic\nNot a proof of scientific validity",
-        key="capsule_limitations",
-    )
-    limitations = [line.strip() for line in limitations_text.splitlines() if line.strip()]
-
-    unavailable_col1, unavailable_col2 = st.columns(2)
-    with unavailable_col1:
-        unavailable_kind = st.selectbox(
-            "Unavailable kind (optional)", options=[""] + kind_options, key="capsule_unavail_kind"
-        )
-    with unavailable_col2:
-        unavailable_id = st.text_input("Unavailable logical ID", value="", key="capsule_unavail_id")
-    unavailable_reason = st.text_input("Unavailable reason", value="", key="capsule_unavail_reason")
-
-    unavailable_entries: list[StudyCapsuleUnavailable] = []
-    if unavailable_kind and unavailable_id and unavailable_reason:
-        try:
-            unavailable_entries.append(
-                StudyCapsuleUnavailable(
-                    kind=StudyCapsuleMemberKind(unavailable_kind),
-                    logical_id=unavailable_id,
-                    reason=unavailable_reason,
-                )
-            )
-        except Exception as exc:  # noqa: BLE001
-            st.error(f"Unavailable entry invalid: {exc}")
-
     # Build action
     st.subheader("6. Build capsule")
     if st.button("Build study capsule", type="primary", key="capsule_build"):
-        # Construct final request
-        members = _build_default_members(selected_kinds, policy_overrides, evidence_overrides)
-        # Add any extra member that was imported? For demo we keep synthetic.
         try:
+            members = _build_default_members(
+                selected_kinds, policy_overrides, evidence_overrides
+            )
             final_req = StudyCapsuleRequest(
                 creation_date=creation_date
                 if isinstance(creation_date, date)
@@ -390,7 +414,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                 study_id=study_id,
                 study_version=study_version,
                 study_title=study_title or None,
-                study_description=None,
+                study_description=study_description or None,
                 capsule_title=capsule_title,
                 capsule_description=capsule_description or None,
                 members=members,
@@ -469,7 +493,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     st.divider()
     st.subheader("7. Verify archive")
     st.caption(
-        "Offline verification recomputes every embedded checksum and verifies the manifest fingerprint."
+        "Offline verification recomputes every embedded checksum and verifies the "
+        "manifest fingerprint. It proves internal integrity, not external authenticity."
     )
     upload = st.file_uploader(
         "Upload capsule ZIP for verification", type=["zip"], key="capsule_verify_upload"

@@ -1329,11 +1329,16 @@ def capsule_create_command(
     typer.echo(f"capsule_id: {receipt.capsule_id}")
     typer.echo(f"archive_sha256: {receipt.archive_sha256}")
     typer.echo(f"archive_size: {receipt.archive_size}")
-    typer.echo(f"members: {receipt.member_count}")
+    typer.echo(f"members: {receipt.member_count} (logical)")
+    typer.echo(f"archive_entries: {receipt.archive_entry_count}")
     typer.echo(f"embedded: {receipt.embedded_count}")
     typer.echo(f"referenced: {receipt.referenced_count}")
     typer.echo(f"excluded: {receipt.excluded_count}")
-    typer.echo("verified: true")
+    typer.echo(f"unavailable: {receipt.unavailable_count}")
+    typer.echo("verified: true (internal integrity)")
+    typer.echo(
+        "note: valid proves internal integrity, not external authenticity"
+    )
 
 
 @capsule_app.command("verify")
@@ -1354,8 +1359,10 @@ def capsule_verify_command(
         typer.echo(f"status: {verification.status.value}")
         typer.echo(f"archive_sha256: {verification.archive_sha256 or 'unavailable'}")
         typer.echo(f"capsule_id: {verification.capsule_id or 'unavailable'}")
-        typer.echo(f"members: {verification.member_count}")
+        typer.echo(f"members: {verification.member_count} (logical)")
+        typer.echo(f"archive_entries: {verification.archive_entry_count}")
         typer.echo(f"checksums: {verification.checksum_count}")
+        typer.echo("note: valid proves internal integrity, not external authenticity")
         for error in verification.errors:
             typer.echo(f"error: {error}")
     if not verification.valid:

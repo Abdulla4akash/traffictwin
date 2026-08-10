@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import io
 import json
-import tempfile
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -13,7 +12,6 @@ from pathlib import Path
 import pytest
 
 from traffictwin.study_capsule import (
-    StudyCapsuleAdmissionLabel,
     StudyCapsuleError,
     StudyCapsuleEvidenceLabel,
     StudyCapsuleMemberInput,
@@ -32,7 +30,6 @@ from traffictwin.study_capsule import (
     verify_study_capsule,
     verify_study_capsule_bytes,
 )
-
 
 PUBLICATION_DATE = date(2026, 8, 9)
 
@@ -258,7 +255,7 @@ def test_manifest_contains_no_absolute_paths(tmp_path: Path) -> None:
     req = _request()
     built = build_study_capsule(req)
     manifest_text = built.members["capsule-manifest.json"].decode("utf-8")
-    assert "/tmp" not in manifest_text or "[redacted absolute path]" in manifest_text
+    assert "/tmp" not in manifest_text or "[redacted absolute path]" in manifest_text  # noqa: S108
     # No member path should be absolute
     for key in built.members:
         assert not key.startswith("/")
@@ -476,8 +473,7 @@ def test_verifier_trusts_not_manifest_without_hashing(tmp_path: Path) -> None:
     with zipfile.ZipFile(buf, "r") as z:
         members = {n: z.read(n) for n in z.namelist()}
     # Parse manifest and keep its sha256 lying, but tamper payload
-    manifest_raw = members["capsule-manifest.json"]
-    manifest_json = json.loads(manifest_raw)
+    _manifest_json = json.loads(members["capsule-manifest.json"])
     # Find embedded member path
     embedded_path = next(k for k in members if k.startswith("artifacts/"))
     # Tamper payload bytes but keep checksums.sha256 lying by not updating manifest entry
@@ -697,7 +693,7 @@ def test_portable_identity_excludes_tmp_path(tmp_path: Path) -> None:
     assert built1.manifest.capsule_id == built2.manifest.capsule_id
     manifest_json = built1.manifest.model_dump_json()
     assert str(tmp_path) not in manifest_json
-    assert "/tmp" not in manifest_json or "[redacted" in manifest_json
+    assert "/tmp" not in manifest_json or "[redacted" in manifest_json  # noqa: S108
 
 
 # ---------------------------------------------------------------------------
@@ -795,3 +791,278 @@ def test_cli_create_and_verify_via_library(tmp_path: Path) -> None:
     ver = verify_study_capsule(dest)
     assert ver.valid is True
     assert ver.capsule_id == receipt.capsule_id
+
+
+# ---------------------------------------------------------------------------
+# Regressions for Claude findings (HIGH 1,2,4,6,8, etc.)
+# ---------------------------------------------------------------------------
+
+
+def test_study_version_valid_build_verify(tmp_path: Path) -> None:
+    for valid in ["v1", "1.0", "study-2026-08", "candidate_b"]:
+        req = StudyCapsuleRequest(
+            creation_date=PUBLICATION_DATE,
+            study_id="study-version-valid",
+            study_version=valid,
+            capsule_title="valid version",
+            members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+        )
+        built = build_study_capsule(req)
+        dest = tmp_path / f"valid-{valid}.zip"
+        _receipt = create_study_capsule_archive(req, dest)
+        ver = verify_study_capsule(dest)
+        assert ver.valid is True
+        assert built.manifest.study.study_version == valid
+
+
+def test_study_version_rejects_unsafe(tmp_path: Path) -> None:
+    for bad in ["/tmp/evil", "v1\n", "v1\r\n", "secret=123", "a" * 65, "bad version"]:  # noqa: S108
+        with pytest.raises(ValueError):
+            StudyCapsuleRequest(
+                creation_date=PUBLICATION_DATE,
+                study_id="study-bad",
+                study_version=bad,
+                capsule_title="bad",
+                members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+            )
+    # Control char
+    with pytest.raises(ValueError):
+        StudyCapsuleRequest(
+            creation_date=PUBLICATION_DATE,
+            study_id="study-bad",
+            study_version="v\x01",
+            capsule_title="bad",
+            members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+        )
+
+
+def test_manifest_fingerprint_matches_written_payload(tmp_path: Path) -> None:
+    req = _request(study_id="study-fp-match")
+    built = build_study_capsule(req)
+    manifest_bytes = built.members["capsule-manifest.json"]
+    parsed = json.loads(manifest_bytes)
+    # The stored fingerprint must equal hash of canonical without fingerprint
+    payload = dict(parsed)
+    stored = payload.pop("manifest_fingerprint")
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+    expected = _sha256(canonical.encode("utf-8"))
+    assert stored == expected
+    assert stored == built.manifest.manifest_fingerprint
+    # Also verify via manifest.fingerprint() method
+    assert built.manifest.fingerprint() == expected
+
+
+def test_binary_member_hello_embeds_verifies(tmp_path: Path) -> None:
+    member = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.DETERMINISTIC_REPORT,
+        logical_id="bin-hello",
+        fingerprint=_fingerprint("deterministic_report", "bin-hello"),
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=b"hello",
+    )
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-binary",
+        capsule_title="binary hello",
+        members=[member],
+    )
+    built = build_study_capsule(req)
+    assert built.members["artifacts/deterministic_report/bin-hello.md"] == b"hello"
+    dest = tmp_path / "bin-hello.zip"
+    create_study_capsule_archive(req, dest)
+    ver = verify_study_capsule(dest)
+    assert ver.valid is True
+
+
+def test_binary_member_arbitrary_embeds_verifies(tmp_path: Path) -> None:
+    # Includes NUL, high bytes, invalid UTF-8
+    for data in [b"\x00\xff\x80ABC", b"\x89PNG\r\n\x1a\n\x00\x00", b"%PDF-1.4 binary \x00\xff"]:
+        member = StudyCapsuleMemberInput(
+            kind=StudyCapsuleMemberKind.DETERMINISTIC_REPORT,
+            logical_id=f"bin-{_sha256(data)[:8]}",
+            fingerprint=_sha256(data),
+            evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+            policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+            content=data,
+        )
+        req = StudyCapsuleRequest(
+            creation_date=PUBLICATION_DATE,
+            study_id="study-binary2",
+            capsule_title="binary arbitrary",
+            members=[member],
+        )
+        built = build_study_capsule(req)
+        dest = tmp_path / f"bin-{_sha256(data)[:8]}.zip"
+        create_study_capsule_archive(req, dest)
+        ver = verify_study_capsule(dest)
+        assert ver.valid is True
+        # Archive member bytes exactly equal original
+        buf = io.BytesIO(dest.read_bytes())
+        with zipfile.ZipFile(buf, "r") as z:
+            archived = z.read(f"artifacts/deterministic_report/{member.logical_id}.md")
+        assert archived == data
+        # Manifest contains checksum/size, not raw binary encoding
+        manifest = json.loads(built.members["capsule-manifest.json"].decode("utf-8"))
+        entry = next(m for m in manifest["members"] if m["logical_id"] == member.logical_id)
+        assert entry["sha256"] == _sha256(data)
+        assert entry["content_size"] == len(data)
+        assert "content" not in entry
+
+
+def test_binary_mutation_rejected(tmp_path: Path) -> None:
+    data = b"\x00\xff\x80ABC"
+    member = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.DETERMINISTIC_REPORT,
+        logical_id="bin-mut",
+        fingerprint=_fingerprint("deterministic_report", "bin-mut"),
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=data,
+    )
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-bin-mut",
+        capsule_title="binary mut",
+        members=[member],
+    )
+    dest = tmp_path / "bin-mut.zip"
+    create_study_capsule_archive(req, dest)
+    original = dest.read_bytes()
+    buf = io.BytesIO(original)
+    with zipfile.ZipFile(buf, "r") as z:
+        members = {n: z.read(n) for n in z.namelist()}
+    # One-byte mutation
+    target = next(k for k in members if k.startswith("artifacts/"))
+    members[target] = members[target][:-1] + b"X"
+    tampered = _zip_bytes(members)
+    ver = verify_study_capsule_bytes(tampered)
+    assert ver.valid is False
+    assert ver.status is StudyCapsuleVerificationStatus.TAMPERED
+
+
+def test_blank_checksums_rejected_for_reference_only(tmp_path: Path) -> None:
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-ref-only",
+        capsule_title="ref only",
+        members=[
+            StudyCapsuleMemberInput(
+                kind=StudyCapsuleMemberKind.COMPARISON_REPORT,
+                logical_id="comp-ref",
+                fingerprint=_fingerprint("comparison_report", "comp-ref"),
+                evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+                policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+            )
+        ],
+    )
+    dest = tmp_path / "ref-only.zip"
+    create_study_capsule_archive(req, dest)
+    # Valid reference-only should verify
+    ver = verify_study_capsule(dest)
+    assert ver.valid is True
+    # Blank checksums should be rejected
+    buf = io.BytesIO(dest.read_bytes())
+    with zipfile.ZipFile(buf, "r") as z:
+        members = {n: z.read(n) for n in z.namelist()}
+    members["checksums.sha256"] = b""
+    tampered = _zip_bytes(members)
+    ver2 = verify_study_capsule_bytes(tampered)
+    assert ver2.valid is False
+    # Missing checksums also rejected
+    del members["checksums.sha256"]
+    # Need to re-add with blank to avoid KeyError? Actually test missing
+    buf2 = io.BytesIO(dest.read_bytes())
+    with zipfile.ZipFile(buf2, "r") as z:
+        members2 = {n: z.read(n) for n in z.namelist()}
+    del members2["checksums.sha256"]
+    tampered2 = _zip_bytes(members2)
+    ver3 = verify_study_capsule_bytes(tampered2)
+    assert ver3.valid is False
+
+
+def test_receipt_logical_vs_archive_counts(tmp_path: Path) -> None:
+    # 3 embedded logical members → member_count 3, archive_entry_count 5 (manifest+checksums+3)
+    req = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-counts",
+        capsule_title="counts",
+        members=[
+            default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1"),
+            default_synthetic_member(StudyCapsuleMemberKind.RUN_SUMMARY, "run-1"),
+            default_synthetic_member(StudyCapsuleMemberKind.EVIDENCE_PACK, "ev-1"),
+        ],
+    )
+    dest = tmp_path / "counts.zip"
+    receipt = create_study_capsule_archive(req, dest)
+    assert receipt.member_count == 3
+    assert receipt.embedded_count == 3
+    assert receipt.referenced_count == 0
+    assert receipt.excluded_count == 0
+    assert receipt.archive_entry_count == 5
+    # Mix
+    req2 = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-counts2",
+        capsule_title="counts2",
+        members=[
+            default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1"),
+            StudyCapsuleMemberInput(
+                kind=StudyCapsuleMemberKind.COMPARISON_REPORT,
+                logical_id="comp-1",
+                fingerprint=_fingerprint("comparison_report", "comp-1"),
+                evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+                policy=StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT,
+            ),
+            StudyCapsuleMemberInput(
+                kind=StudyCapsuleMemberKind.EVIDENCE_PACK,
+                logical_id="ev-2",
+                fingerprint=_fingerprint("evidence_pack", "ev-2"),
+                evidence_label=StudyCapsuleEvidenceLabel.IMPORTED_EVIDENCE,
+                policy=StudyCapsulePublicationPolicy.EXCLUDE,
+                exclusion_reason="privacy",
+            ),
+        ],
+    )
+    dest2 = tmp_path / "counts2.zip"
+    receipt2 = create_study_capsule_archive(req2, dest2)
+    assert receipt2.member_count == 3
+    assert receipt2.embedded_count == 1
+    assert receipt2.referenced_count == 1
+    assert receipt2.excluded_count == 1
+    assert receipt2.archive_entry_count == 3  # manifest+checksums+1 embedded
+
+
+def test_study_description_identity_visible(tmp_path: Path) -> None:
+    base = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-desc",
+        study_version="1.0",
+        study_title="title",
+        study_description="first description",
+        capsule_title="capsule",
+        members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+    )
+    built1 = build_study_capsule(base)
+    # Changing description must change manifest visibly and fingerprint
+    altered = base.model_copy(update={"study_description": "second description"})
+    built2 = build_study_capsule(altered)
+    assert built1.manifest.manifest_fingerprint != built2.manifest.manifest_fingerprint
+    assert built1.manifest.study.study_description == "first description"
+    assert built2.manifest.study.study_description == "second description"
+    assert built1.manifest.capsule_id != built2.manifest.capsule_id
+
+
+def test_study_description_none_vs_value_identity(tmp_path: Path) -> None:
+    req_none = StudyCapsuleRequest(
+        creation_date=PUBLICATION_DATE,
+        study_id="study-desc2",
+        study_version="1.0",
+        capsule_title="capsule",
+        members=[default_synthetic_member(StudyCapsuleMemberKind.SCENARIO_SEED, "seed-1")],
+        study_description=None,
+    )
+    req_val = req_none.model_copy(update={"study_description": "desc"})
+    built_none = build_study_capsule(req_none)
+    built_val = build_study_capsule(req_val)
+    assert built_none.manifest.manifest_fingerprint != built_val.manifest.manifest_fingerprint

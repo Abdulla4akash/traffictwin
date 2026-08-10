@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Deterministic analysis-level Study Capsule for TrafficTwin.
 
 Study Capsules bind a logical study identity, selected derived artifacts,
@@ -56,6 +55,7 @@ REQUIRED_ARCHIVE_MEMBERS: tuple[str, ...] = (
 _FIXED_ZIP_TIMESTAMP: tuple[int, int, int, int, int, int] = (1980, 1, 1, 0, 0, 0)
 _SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
+_STUDY_VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 
 # Absolute-path patterns that must be redacted / rejected in portable text.
 _WINDOWS_PATH = re.compile(r"(?i)(?<![\w])(?:[a-z]:[\\/][^\s\"'<>]+)")
@@ -245,11 +245,14 @@ class StudyCapsuleMemberInput(StudyCapsuleModel):
             and self.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED
         ):
             raise ValueError(
-                "raw imported evidence must use reference_by_fingerprint or exclude, not embed_safe_derived"
+                "raw imported evidence must use reference_by_fingerprint or "
+                "exclude, not embed_safe_derived"
             )
-        # Analyst note requires explicit policy handling – embed only if evidence is authored/synthetic.
+        # Analyst note requires explicit policy handling – embed only if
+        # evidence is authored/synthetic.
         if self.kind is StudyCapsuleMemberKind.ANALYST_NOTE and self.evidence_label in raw_like:
-            # Analyst notes about raw observations are allowed but must not embed raw bytes as derived.
+            # Analyst notes about raw observations are allowed but must not
+            # embed raw bytes as derived.
             # We already block embedding for raw_like, so this is covered.
             pass
         return self
@@ -284,7 +287,12 @@ class StudyCapsuleRequest(StudyCapsuleModel):
     schema_version: Literal["1.0"] = STUDY_CAPSULE_SCHEMA_VERSION
     creation_date: date
     study_id: str = Field(min_length=1, max_length=128)
-    study_version: str = Field(default="1.0", min_length=1, max_length=64)
+    study_version: str = Field(
+        default="1.0",
+        min_length=1,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+    )
     study_title: str | None = Field(default=None, min_length=1, max_length=300)
     study_description: str | None = Field(default=None, min_length=1, max_length=2000)
     capsule_title: str = Field(min_length=1, max_length=300)
@@ -298,6 +306,22 @@ class StudyCapsuleRequest(StudyCapsuleModel):
     @classmethod
     def _study_id_ok(cls, v: str) -> str:
         return _validate_identifier(v, "study_id")
+
+    @field_validator("study_version")
+    @classmethod
+    def _study_version_ok(cls, v: str) -> str:
+        if not _STUDY_VERSION_RE.fullmatch(v):
+            raise ValueError(
+                "study_version must be a safe identifier 1-64 chars, "
+                "alphanumeric start, only letters, numbers, dots, underscores, hyphens"
+            )
+        if _safe_text(v) != v:
+            raise ValueError("study_version must not contain absolute local paths")
+        if _contains_secret_hint(v):
+            raise ValueError("study_version must not contain secrets")
+        if any(ord(c) < 32 or ord(c) == 127 for c in v):
+            raise ValueError("study_version must not contain control characters")
+        return v
 
     @field_validator("limitations")
     @classmethod
@@ -334,7 +358,10 @@ class StudyCapsuleRequest(StudyCapsuleModel):
             if key in seen:
                 raise ValueError(f"duplicate member logical identity: {key}")
             seen.add(key)
-        # Unique fingerprints? Not required but check duplicates not allowed across members with same policy? allow same fingerprint for different kinds? keep strict: fingerprints must be unique unless explicitly excluded members with same fingerprint? simplify: forbid duplicate fingerprints for non-excluded members.
+        # Unique fingerprints? Check duplicates not allowed across members.
+        # Keep strict: fingerprints must be unique unless explicitly excluded
+        # members with same fingerprint. Simplify: forbid duplicate fingerprints
+        # for non-excluded members.
         non_excluded_fps = [
             m.fingerprint
             for m in self.members
@@ -352,10 +379,17 @@ class StudyCapsuleRequest(StudyCapsuleModel):
         return self
 
     def canonical_json(self) -> str:
-        return _canonical_json(self.model_dump(mode="json"))
+        # Exclude raw bytes from JSON identity; metadata binds binary via hash/size
+        payload = self.model_dump(
+            mode="json", exclude={"members": {"__all__": {"content"}}}
+        )
+        return _canonical_json(payload)
 
     def fingerprint(self) -> str:
-        return _sha256(self.canonical_json().encode("utf-8"))
+        payload = self.model_dump(
+            mode="json", exclude={"members": {"__all__": {"content"}}}
+        )
+        return _sha256(_canonical_json(payload).encode("utf-8"))
 
 
 class StudyCapsuleMember(StudyCapsuleModel):
@@ -438,13 +472,43 @@ class StudyCapsuleStudyIdentity(StudyCapsuleModel):
     """Logical study identity bound into the manifest."""
 
     study_id: str = Field(min_length=1, max_length=128)
-    study_version: str = Field(min_length=1, max_length=64)
+    study_version: str = Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+    )
     study_title: str | None = Field(default=None, min_length=1, max_length=300)
+    study_description: str | None = Field(default=None, min_length=1, max_length=2000)
 
     @field_validator("study_id")
     @classmethod
     def _sid_ok(cls, v: str) -> str:
         return _validate_identifier(v, "study_id")
+
+    @field_validator("study_version")
+    @classmethod
+    def _sid_version_ok(cls, v: str) -> str:
+        if not _STUDY_VERSION_RE.fullmatch(v):
+            raise ValueError(
+                "study_version must be a safe identifier 1-64 chars"
+            )
+        if _safe_text(v) != v:
+            raise ValueError("study_version must not contain absolute local paths")
+        if _contains_secret_hint(v):
+            raise ValueError("study_version must not contain secrets")
+        if any(ord(c) < 32 or ord(c) == 127 for c in v):
+            raise ValueError("study_version must not contain control characters")
+        return v
+
+    @field_validator("study_title", "study_description")
+    @classmethod
+    def _safe_text_ok(cls, v: str | None) -> str | None:
+        if v is not None:
+            if _safe_text(v) != v:
+                raise ValueError("study text must not contain absolute local paths")
+            if _contains_secret_hint(v):
+                raise ValueError("study text must not contain secrets")
+        return v
 
 
 class StudyCapsuleSoftware(StudyCapsuleModel):
@@ -494,10 +558,13 @@ class StudyCapsuleManifest(StudyCapsuleModel):
         return self
 
     def canonical_json(self) -> str:
-        # Exclude self-referential fingerprint? manifest_fingerprint is included because it is
-        # derived deterministically; but for fingerprint recomputation we need stable.
-        # To avoid circularity, fingerprint is defined as sha256(canonical_json without manifest_fingerprint)
-        # However we store manifest_fingerprint as computed. For verification we recompute without it.
+        # Exclude self-referential fingerprint? manifest_fingerprint is included
+        # because it is derived deterministically; but for fingerprint
+        # recomputation we need stable.
+        # To avoid circularity, fingerprint is defined as
+        # sha256(canonical_json without manifest_fingerprint)
+        # However we store manifest_fingerprint as computed. For verification we
+        # recompute without it.
         return _canonical_json(self.model_dump(mode="json"))
 
     def fingerprint(self) -> str:
@@ -519,11 +586,12 @@ class StudyCapsuleReceipt(StudyCapsuleModel):
     archive_size: int = Field(gt=0)
     capsule_id: str = Field(pattern=r"^urn:traffictwin:study-capsule:[0-9a-f]{64}$")
     manifest_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
-    member_count: int = Field(ge=0)
+    member_count: int = Field(ge=0, description="Logical study members")
     embedded_count: int = Field(ge=0)
     referenced_count: int = Field(ge=0)
     excluded_count: int = Field(ge=0)
     unavailable_count: int = Field(ge=0)
+    archive_entry_count: int = Field(ge=0, description="Total ZIP entries")
     deterministic_zip: bool = True
     verified_before_publication: bool = True
 
@@ -536,7 +604,10 @@ class StudyCapsuleVerification(StudyCapsuleModel):
     archive_sha256: str | None = None
     capsule_id: str | None = None
     manifest_fingerprint: str | None = None
-    member_count: int = Field(default=0, ge=0)
+    member_count: int = Field(
+        default=0, ge=0, description="Logical members when manifest available"
+    )
+    archive_entry_count: int = Field(default=0, ge=0)
     checksum_count: int = Field(default=0, ge=0)
     errors: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
@@ -601,8 +672,10 @@ def study_capsule_contract() -> StudyCapsuleContract:
         },
         deterministic_publication=[
             "Caller supplies creation_date; all derived timestamps use midnight UTC on that date.",
-            "Archive members are sorted, uncompressed, and carry one fixed ZIP timestamp and permission mode.",
-            "The complete capsule is built and verified in memory before atomic destination replacement.",
+            "Archive members are sorted, uncompressed, and carry one fixed ZIP timestamp "
+            "and permission mode.",
+            "The complete capsule is built and verified in memory before atomic "
+            "destination replacement.",
             "Two builds from equivalent logical artifacts produce byte-identical archives.",
         ],
         required_members=list(REQUIRED_ARCHIVE_MEMBERS),
@@ -611,8 +684,9 @@ def study_capsule_contract() -> StudyCapsuleContract:
             "the receipt fingerprints the complete ZIP bytes."
         ),
         redaction_policy=(
-            "Absolute POSIX, Windows, home-relative, and file-URI paths are redacted from "
-            "derived JSON; archive inventory paths are crate-relative."
+            "Absolute POSIX, Windows, home-relative, and file-URI paths are "
+            "rejected at validation; archive inventory paths are "
+            "crate-relative."
         ),
         limits={
             "max_members": MAX_CAPSULE_MEMBERS,
@@ -622,9 +696,15 @@ def study_capsule_contract() -> StudyCapsuleContract:
             "max_archive_total_bytes": MAX_ARCHIVE_TOTAL_BYTES,
         },
         exclusions=[
-            "No registry, cache, credentials, external package, simulator, or network resource is copied.",
+            "No registry, cache, credentials, external package, simulator, or "
+            "network resource is copied.",
             "No DOI, licence, or scientific validity is inferred.",
             "A verifiable capsule does not prove scientific validity.",
+            "Verifier proves internal integrity (checksums, manifest fingerprint, "
+            "inventory) but does not prove external authenticity or "
+            "non-repudiation; an attacker able to rewrite the entire archive "
+            "can create a new internally valid capsule. SHA-256 alone is not "
+            "authenticity.",
         ],
     )
 
@@ -659,9 +739,10 @@ def build_study_capsule(request: StudyCapsuleRequest) -> BuiltStudyCapsule:
             _validate_archive_name(safe_path)
             if safe_path in members:
                 raise StudyCapsuleError(f"duplicate capsule member path: {safe_path}")
-            # Ensure content does not contain secrets / absolute paths? Content is bytes, not validated as text necessarily.
-            # But we can check if content decodes as utf-8, then redact? We simply ensure no absolute path leakage by
-            # scanning utf-8 decodable payload.
+            # Ensure content does not contain secrets / absolute paths?
+            # Content is bytes, not validated as text necessarily. But we can
+            # check if content decodes as utf-8, then redact. We simply ensure
+            # no absolute path leakage by scanning utf-8 decodable payload.
             try:
                 text = inp.content.decode("utf-8")
                 if _safe_text(text) != text:
@@ -746,6 +827,7 @@ def build_study_capsule(request: StudyCapsuleRequest) -> BuiltStudyCapsule:
         study_id=request.study_id,
         study_version=request.study_version,
         study_title=request.study_title,
+        study_description=request.study_description,
     )
 
     # Sort manifest members stably for deterministic manifest
@@ -794,14 +876,16 @@ def build_study_capsule(request: StudyCapsuleRequest) -> BuiltStudyCapsule:
 
     # Add manifest and checksums to members dict
     members["capsule-manifest.json"] = _json_bytes(manifest.model_dump(mode="json"))
-    # checksums covers every member except itself? For capsule, checksums shall cover every payload member
-    # including manifest but not itself. We'll compute after adding manifest, then add checksums.
-    # For deterministic, checksums file is computed from sorted members (excluding checksums itself)
+    # checksums covers every member except itself? For capsule, checksums shall
+    # cover every payload member including manifest but not itself. We'll compute
+    # after adding manifest, then add checksums. For deterministic, checksums
+    # file is computed from sorted members (excluding checksums itself)
     checksums = {name: _sha256(content) for name, content in sorted(members.items())}
     members["checksums.sha256"] = _checksum_bytes(checksums)
 
-    # Also add a simple readme/metadata: we can include a capsule-readme.md as embedded? But not required.
-    # Ensure deterministic ordering, no duplicate paths, within limits.
+    # Also add a simple readme/metadata: we can include a capsule-readme.md as
+    # embedded? But not required. Ensure deterministic ordering, no duplicate
+    # paths, within limits.
     if len(members) > MAX_ARCHIVE_FILE_COUNT:
         raise StudyCapsuleError("study capsule exceeds archive file-count ceiling")
     if sum(len(c) for c in members.values()) > MAX_ARCHIVE_TOTAL_BYTES:
@@ -810,8 +894,9 @@ def build_study_capsule(request: StudyCapsuleRequest) -> BuiltStudyCapsule:
     # Final sorted members dict
     sorted_members_dict = dict(sorted(members.items()))
 
-    # Verify that manifest's checksums correspond? That's verifier's job, but builder should also self-check.
-    # Ensure no absolute path leakage in manifest json
+    # Verify that manifest's checksums correspond? That's verifier's job, but
+    # builder should also self-check. Ensure no absolute path leakage in
+    # manifest json
     manifest_json_text = sorted_members_dict["capsule-manifest.json"].decode("utf-8")
     if _safe_text(manifest_json_text) != manifest_json_text:
         raise StudyCapsuleError("capsule manifest must not contain absolute local paths")
@@ -884,11 +969,12 @@ def create_study_capsule_archive(
         archive_size=len(archive),
         capsule_id=built.manifest.capsule_id,
         manifest_fingerprint=built.manifest.manifest_fingerprint,
-        member_count=len(built.members),
+        member_count=len(built.manifest.members),
         embedded_count=embedded,
         referenced_count=referenced,
         excluded_count=excluded,
         unavailable_count=len(built.manifest.unavailable),
+        archive_entry_count=len(built.members),
     )
 
 
@@ -923,10 +1009,10 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
 
     archive_sha256 = _sha256(payload)
     errors: list[str] = []
-    warnings: list[str] = []
     capsule_id: str | None = None
     manifest_fingerprint: str | None = None
     checksum_count = 0
+    archive_entry_count = 0
     member_count = 0
     status = StudyCapsuleVerificationStatus.VALID
 
@@ -941,7 +1027,7 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
     try:
         with zipfile.ZipFile(io.BytesIO(payload)) as archive:
             infos = archive.infolist()
-            member_count = len(infos)
+            archive_entry_count = len(infos)
             _validate_archive_infos(infos)
             members = {info.filename: archive.read(info) for info in infos}
     except (OSError, StudyCapsuleError, zipfile.BadZipFile, RuntimeError) as exc:
@@ -949,43 +1035,37 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             valid=False,
             status=StudyCapsuleVerificationStatus.MALFORMED,
             archive_sha256=archive_sha256,
-            member_count=member_count,
+            archive_entry_count=archive_entry_count,
             errors=[str(exc)],
         )
 
-    # Required members
     missing_required = sorted(set(REQUIRED_ARCHIVE_MEMBERS) - set(members))
     if missing_required:
         errors.append("missing required members: " + ", ".join(missing_required))
         status = StudyCapsuleVerificationStatus.MALFORMED
 
-    # Duplicate check already in _validate_archive_infos, but also check traversal already.
-
-    # Parse manifest
     manifest: StudyCapsuleManifest | None = None
     if "capsule-manifest.json" in members:
         raw_manifest = members["capsule-manifest.json"]
         try:
-            # First ensure valid JSON
             parsed = json.loads(raw_manifest)
             if not isinstance(parsed, dict):
                 raise ValueError("manifest must be a JSON object")
-            # Check schema version early for unsupported_version discrimination
             sv = parsed.get("schema_version")
             if sv is not None and sv != STUDY_CAPSULE_SCHEMA_VERSION:
                 errors.append(f"unsupported capsule schema_version: {sv}")
                 status = StudyCapsuleVerificationStatus.UNSUPPORTED_VERSION
             manifest = StudyCapsuleManifest.model_validate_json(raw_manifest)
             capsule_id = manifest.capsule_id
-            # Verify canonical fingerprint by recomputation (do not trust stored value blindly)
             expected_fp = manifest.fingerprint()
             if manifest.manifest_fingerprint != expected_fp:
-                errors.append("manifest fingerprint mismatch: capsule has been tampered")
-                # This is a tampering signal - distinguish from malformed
+                errors.append(
+                    "manifest fingerprint mismatch: capsule has been tampered"
+                )
                 if status is StudyCapsuleVerificationStatus.VALID:
                     status = StudyCapsuleVerificationStatus.TAMPERED
             manifest_fingerprint = manifest.manifest_fingerprint
-            # Also verify that stored manifest_fingerprint in json matches recomputed – ensures offline.
+            member_count = len(manifest.members)
         except (ValueError, json.JSONDecodeError) as exc:
             errors.append(f"invalid capsule manifest: {exc}")
             if status is not StudyCapsuleVerificationStatus.UNSUPPORTED_VERSION:
@@ -995,7 +1075,6 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.MALFORMED
 
-    # Checksums
     checksums: dict[str, str] = {}
     if "checksums.sha256" in members:
         try:
@@ -1005,76 +1084,73 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             errors.append(str(exc))
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.MALFORMED
-
-    # Checksum inventory must match archive payload members (excluding checksums.sha256 itself)
-    # Note: manifest is included in checksums; verify.
-    if checksums:
+        # Always validate coverage, even when empty (blank file)
         expected_checksum_members = set(members) - {"checksums.sha256"}
         if set(checksums) != expected_checksum_members:
-            errors.append("checksum inventory does not match archive payload members")
+            errors.append(
+                "checksum inventory does not match archive payload members"
+            )
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.TAMPERED
-        # Verify each checksum by recomputing bytes (do not trust manifest)
         for name, expected in checksums.items():
             content = members.get(name)
             if content is None or _sha256(content) != expected:
                 errors.append(f"checksum mismatch: {name}")
                 if status is StudyCapsuleVerificationStatus.VALID:
                     status = StudyCapsuleVerificationStatus.TAMPERED
+    else:
+        # Missing already reported via missing_required, but ensure status
+        if not missing_required and status is StudyCapsuleVerificationStatus.VALID:
+            status = StudyCapsuleVerificationStatus.MALFORMED
 
-    # Manifest inventory vs archive payload (embedded members)
-    embedded_expected: set[str] = set()
-    referenced: list[str] = []
-    excluded: list[str] = []
-    unavailable: list[str] = []
     if manifest is not None:
-        # Embedded members must exactly match archive payload minus manifest+checksums
-        embedded = {m.archive_path for m in manifest.members if m.archive_path is not None}
-        # Filter None
+        embedded = {
+            m.archive_path for m in manifest.members if m.archive_path is not None
+        }
         embedded_expected = {p for p in embedded if p is not None}
-        actual_payload = set(members) - {"capsule-manifest.json", "checksums.sha256"}
+        actual_payload = set(members) - {
+            "capsule-manifest.json",
+            "checksums.sha256",
+        }
         if embedded_expected != actual_payload:
-            errors.append("manifest embedded inventory does not match archive payload members")
+            errors.append(
+                "manifest embedded inventory does not match archive payload members"
+            )
             if status is StudyCapsuleVerificationStatus.VALID:
                 status = StudyCapsuleVerificationStatus.TAMPERED
-        # Verify each embedded member's sha256/size against actual bytes
         for entry in manifest.members:
             if entry.archive_path is not None:
                 content = members.get(entry.archive_path)
                 if content is None:
-                    errors.append(f"manifest payload is missing: {entry.archive_path}")
+                    errors.append(
+                        f"manifest payload is missing: {entry.archive_path}"
+                    )
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
                     continue
-                if len(content) != entry.content_size or _sha256(content) != entry.sha256:
-                    errors.append(f"manifest size/checksum mismatch: {entry.archive_path}")
+                if len(content) != entry.content_size or _sha256(
+                    content
+                ) != entry.sha256:
+                    errors.append(
+                        f"manifest size/checksum mismatch: {entry.archive_path}"
+                    )
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
-                # Also verify against checksums file entry
-                if entry.sha256 is not None and checksums.get(entry.archive_path) != entry.sha256:
-                    errors.append(f"checksum file disagrees with manifest: {entry.archive_path}")
+                if (
+                    entry.sha256 is not None
+                    and checksums.get(entry.archive_path) != entry.sha256
+                ):
+                    errors.append(
+                        f"checksum file disagrees with manifest: {entry.archive_path}"
+                    )
                     if status is StudyCapsuleVerificationStatus.VALID:
                         status = StudyCapsuleVerificationStatus.TAMPERED
-        # Collect audit lists
-        for m in manifest.members:
-            label = f"{m.kind.value}:{m.logical_id}"
-            if m.policy is StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED:
-                embedded_expected.add(label)  # overload for reporting
-            if m.policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT:
-                referenced.append(label)
-            elif m.policy is StudyCapsulePublicationPolicy.EXCLUDE:
-                excluded.append(label)
-        for u in manifest.unavailable:
-            unavailable.append(f"{u.kind.value}:{u.logical_id}")
 
-    # Final status discrimination
     is_valid = not errors
     if is_valid:
         status = StudyCapsuleVerificationStatus.VALID
     else:
-        # If status still VALID but errors present, classify
         if status is StudyCapsuleVerificationStatus.VALID:
-            # Heuristic: checksum mismatches / fingerprint mismatches => tampered, version issues => unsupported, rest => malformed
             tampered_hints = (
                 "checksum mismatch",
                 "fingerprint mismatch",
@@ -1088,7 +1164,6 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
             else:
                 status = StudyCapsuleVerificationStatus.MALFORMED
 
-    # Build audit lists for response
     embedded_members_audit: list[str] = []
     referenced_members_audit: list[str] = []
     excluded_members_audit: list[str] = []
@@ -1112,9 +1187,10 @@ def verify_study_capsule_bytes(payload: bytes) -> StudyCapsuleVerification:
         capsule_id=capsule_id,
         manifest_fingerprint=manifest_fingerprint,
         member_count=member_count,
+        archive_entry_count=archive_entry_count,
         checksum_count=checksum_count,
         errors=sorted(set(errors)),
-        warnings=warnings,
+        warnings=[],
         embedded_members=sorted(embedded_members_audit),
         referenced_members=sorted(referenced_members_audit),
         excluded_members=sorted(excluded_members_audit),
@@ -1204,10 +1280,11 @@ def _validate_archive_infos(infos: list[zipfile.ZipInfo]) -> None:
     names = [info.filename for info in infos]
     if len(names) != len(set(names)):
         raise StudyCapsuleError("study-capsule archive contains duplicate members")
-    # Stable ordering check - we enforce during build but verify here as tamper detection:
-    # Not strictly required to reject unsorted, but we can ensure ordering is stable?
-    # The spec says verifier must reject duplicate and traversal, but ordering is not required for validity
-    # but deterministic build must produce stable ordering.
+    # Stable ordering check - we enforce during build but verify here as tamper
+    # detection: not strictly required to reject unsorted, but we can ensure
+    # ordering is stable. The spec says verifier must reject duplicate and
+    # traversal, but ordering is not required for validity but deterministic
+    # build must produce stable ordering.
     total = 0
     for info in infos:
         _validate_archive_name(info.filename)
@@ -1277,7 +1354,7 @@ def _zip_bytes(members: dict[str, bytes]) -> bytes:
 def _json_bytes(payload: object) -> bytes:
     return (
         json.dumps(
-            _redact_value(payload),
+            payload,
             indent=2,
             sort_keys=True,
             ensure_ascii=False,
@@ -1392,7 +1469,6 @@ def default_synthetic_member(
         }
         content = _json_bytes(payload)
     fingerprint = _sha256((kind.value + ":" + logical_id).encode("utf-8"))
-    # Ensure fingerprint is 64 hex (sha256 already)
     return StudyCapsuleMemberInput(
         kind=kind,
         logical_id=logical_id,
@@ -1407,4 +1483,18 @@ def default_synthetic_member(
         reference_note="fingerprint reference for review"
         if policy is StudyCapsulePublicationPolicy.REFERENCE_BY_FINGERPRINT
         else None,
+    )
+
+
+def build_demo_member(
+    kind: StudyCapsuleMemberKind,
+    logical_id: str,
+    *,
+    evidence_label: StudyCapsuleEvidenceLabel = StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+    policy: StudyCapsulePublicationPolicy = StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+) -> StudyCapsuleMemberInput:
+    """Public helper for UI/demo to build a member without duplicating fingerprint logic."""
+
+    return default_synthetic_member(
+        kind, logical_id, evidence_label=evidence_label, policy=policy
     )
