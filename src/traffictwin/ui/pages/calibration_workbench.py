@@ -149,8 +149,8 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
     st.caption(
         "Each metric declares key, version, unit, denominator, weight, alignment "  # noqa: E501
         "requirement, and missingness policy. "
-        "Weights are combined only after unit-specific errors are divided "  # noqa: E501
-        "by their declared scales. "
+        "Scalar objective is the dimensionless weighted mean normalized error "  # noqa: E501
+        "Σ(weight×mae/scale)/Σweight. "
         "Changing weights or scales changes the declared decision rule; it does "  # noqa: E501
         "not make a candidate scientifically validated."
     )
@@ -202,7 +202,19 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
         "Temporal alignment uses half-open windows [start,end) with bin_width, "  # noqa: E501
         "sensor/link mapping, "
         "unit compatibility, coverage audit, exclusion reasons, and "  # noqa: E501
-        "missing-bin handling (never zero-filled)."
+        "missing-bin handling (never zero-filled). Coverage gate is per-metric for positive-weight metrics."  # noqa: E501
+    )
+    coverage_pct = st.slider(
+        "Minimum coverage required per objective metric",
+        min_value=0,
+        max_value=100,
+        value=100,
+        step=1,
+        key="calibration_coverage_threshold_pct",
+        help="Candidates below this coverage for any positive-weight metric are excluded from ranking. Lowering the threshold explicitly permits partial-support comparisons; missing values are still never zero-filled.",  # noqa: E501
+    )
+    st.caption(
+        f"Threshold: {coverage_pct}% — candidates below this coverage for any positive-weight metric are excluded from ranking."  # noqa: E501
     )
     alignment = CalibrationAlignmentSpec(
         window_start_utc=observed.window_start_utc,
@@ -211,7 +223,7 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
         window_semantics="[start,end)",
         temporal_tolerance_s=0.0,
         sensor_mapping={},
-        coverage_threshold=0.0,
+        coverage_threshold=coverage_pct / 100.0,
     )
     st.json(alignment.model_dump(mode="json"))
 

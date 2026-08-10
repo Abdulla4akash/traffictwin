@@ -17,6 +17,7 @@ from traffictwin.calibration.fixtures import (
     make_candidate_missing,
     make_candidate_poor,
     make_candidate_temporal_misaligned,
+    make_default_study,
     make_observed_fixture,
     make_three_candidate_study,
     synthetic_bin_width,
@@ -1324,3 +1325,588 @@ def test_bin_outside_window_refused() -> None:
             metric_units=obs.metric_units,
             bins=[bad_bin],
         )
+
+
+def test_default_study_excludes_missing_evidence_and_ranks_good_fit() -> None:
+
+    study = make_default_study()
+    assert study.alignment_spec.coverage_threshold == 1.0
+    report = build_calibration_report(study)
+    # missing candidate should be excluded due per-metric coverage
+    missing = next(
+        s for s in report.candidate_summaries if s.candidate_id == "candidate_missing_evidence"
+    )
+    assert missing.status.value == "excluded"
+    assert missing.exclusion is not None
+    assert missing.exclusion.reason_code == "COVERAGE_INSUFFICIENT"
+    assert (
+        "per-metric" in missing.exclusion.reason_detail.lower()
+        or "coverage" in missing.exclusion.reason_detail.lower()
+    )
+    assert missing.candidate_id not in report.ranking
+    # good fit available and ranked first
+    good = next(s for s in report.candidate_summaries if s.candidate_id == "candidate_good_fit")
+    assert good.status.value == "available"
+    assert report.ranking[0] == "candidate_good_fit"
+    # per-metric flow coverage for missing
+    flow_res = next(m for m in missing.metric_results if m.metric_key == "flow.count")
+    assert flow_res.count_paired == 1
+    # eligible flow is 8 (observed flow non-missing 8)
+    assert flow_res.count_paired + flow_res.count_missing_simulation == 8
+    assert flow_res.coverage_percentage == 12.5
+    # low MAE on paired bin cannot win
+    assert flow_res.mae is not None
+    assert flow_res.mae < 5.0
+
+
+def test_per_metric_coverage_gate_enforced() -> None:
+    obs = make_observed_fixture()
+    # Create candidate with flow 1/8 paired, speed 8/8 -> aggregate 56% but per-metric flow fails threshold 1.0  # noqa: E501
+    flow_vals: dict[tuple[str, int], float | None] = {
+        ("sensor_A", 0): 101.0,
+        ("sensor_A", 1): None,
+        ("sensor_A", 2): None,
+        ("sensor_A", 3): None,
+        ("sensor_B", 0): None,
+        ("sensor_B", 1): None,
+        ("sensor_B", 2): None,
+        ("sensor_B", 3): None,
+    }
+    speed_vals = {
+        ("sensor_A", 0): 12.5,
+        ("sensor_A", 1): 13.0,
+        ("sensor_A", 2): 12.8,
+        ("sensor_A", 3): 12.6,
+        ("sensor_B", 0): 11.0,
+        ("sensor_B", 1): 11.2,
+        ("sensor_B", 2): 11.5,
+        ("sensor_B", 3): 11.3,
+    }
+    from traffictwin.calibration.fixtures import _make_candidate_bins
+
+    bins = _make_candidate_bins(flow_values=flow_vals, speed_values=speed_vals)
+    payload = {
+        "bins": [
+            b.canonical_dict()
+            for b in sorted(bins, key=lambda x: (x.sensor_id, x.window_index, x.metric_key))
+        ],
+        "candidate_id": "candidate_per_metric_test",
+    }
+    fp = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    cand = CalibrationCandidate(
+        candidate_id="candidate_per_metric_test",
+        fingerprint=fp,
+        label="per-metric test",
+        window_start_utc=synthetic_window_start(),
+        window_end_utc=synthetic_window_end(),
+        bin_width_s=synthetic_bin_width(),
+        sensor_ids=["sensor_A", "sensor_B"],
+        metric_units={"flow.count": "veh/h", "traffic.speed.mean_mps": "m/s"},
+        bins=bins,
+    )
+    specs = [
+        CalibrationMetricSpec(
+            metric_key="flow.count",
+            metric_version="1.0",
+            unit="veh/h",
+            denominator="per_sensor_per_hour",
+            weight=0.5,
+            objective_scale=100.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+        CalibrationMetricSpec(
+            metric_key="traffic.speed.mean_mps",
+            metric_version="1.0",
+            unit="m/s",
+            denominator="per_sensor_per_window",
+            weight=0.5,
+            objective_scale=5.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+    ]
+    alignment = CalibrationAlignmentSpec(
+        window_start_utc=synthetic_window_start(),
+        window_end_utc=synthetic_window_end(),
+        bin_width_s=synthetic_bin_width(),
+        window_semantics="[start,end)",
+        temporal_tolerance_s=0.0,
+        sensor_mapping={},
+        coverage_threshold=1.0,
+    )
+    study = CalibrationStudy(
+        study_id="per_metric_test",
+        study_name="Per Metric Test",
+        observed=obs,
+        candidates=[cand],
+        metric_specs=specs,
+        alignment_spec=alignment,
+    )
+    report = build_calibration_report(study)
+    summary = report.candidate_summaries[0]
+    assert summary.status.value == "excluded"
+    assert summary.exclusion is not None
+    assert summary.exclusion.reason_code == "COVERAGE_INSUFFICIENT"
+    assert (
+        "flow.count" in summary.exclusion.reason_detail
+        or "coverage" in summary.exclusion.reason_detail.lower()
+    )
+    assert summary.candidate_id not in report.ranking
+    # With threshold 0.0 it would be available
+    alignment_low = CalibrationAlignmentSpec(
+        window_start_utc=synthetic_window_start(),
+        window_end_utc=synthetic_window_end(),
+        bin_width_s=synthetic_bin_width(),
+        window_semantics="[start,end)",
+        temporal_tolerance_s=0.0,
+        sensor_mapping={},
+        coverage_threshold=0.0,
+    )
+    study_low = CalibrationStudy(
+        study_id="per_metric_test_low",
+        study_name="Per Metric Test Low",
+        observed=obs,
+        candidates=[cand],
+        metric_specs=specs,
+        alignment_spec=alignment_low,
+    )
+    report_low = build_calibration_report(study_low)
+    assert report_low.candidate_summaries[0].status.value == "available"
+    assert report_low.candidate_summaries[0].candidate_id in report_low.ranking
+
+
+def test_observed_missing_eligibility_and_diagnostic() -> None:
+    obs = make_observed_fixture()
+    # Make observed with one missing value
+    bins_missing_obs: list[CalibrationBin] = []
+    for b in obs.bins:
+        if b.sensor_id == "sensor_A" and b.window_index == 0 and b.metric_key == "flow.count":
+            bins_missing_obs.append(
+                CalibrationBin(
+                    sensor_id=b.sensor_id,
+                    window_index=b.window_index,
+                    window_start_utc=b.window_start_utc,
+                    window_end_utc=b.window_end_utc,
+                    metric_key=b.metric_key,
+                    value=None,
+                    unit=b.unit,
+                )
+            )
+        else:
+            bins_missing_obs.append(b)
+    payload = {
+        "bins": [
+            x.canonical_dict()
+            for x in sorted(
+                bins_missing_obs, key=lambda x: (x.sensor_id, x.window_index, x.metric_key)
+            )
+        ],
+        "observed_id": "obs_missing_one",
+    }
+    fp = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    obs_missing = CalibrationObservedReference(
+        observed_id="obs_missing_one",
+        fingerprint=fp,
+        evidence_label=obs.evidence_label,
+        window_start_utc=obs.window_start_utc,
+        window_end_utc=obs.window_end_utc,
+        bin_width_s=obs.bin_width_s,
+        sensor_ids=obs.sensor_ids,
+        metric_units=obs.metric_units,
+        bins=bins_missing_obs,
+    )
+    # Candidate with matching missing (absent) for that bin, and good values for rest
+    good = make_candidate_good()
+    # Remove candidate bin corresponding to missing observed bin as well (make it None too) — but eligible counts 15, paired 15  # noqa: E501
+    # Actually candidate still has value for that bin, but observed missing means eligible 15, paired 15 if candidate has other 15  # noqa: E501
+    # Create candidate that has all except the missing observed one also missing (so not penalized)
+    cand_bins = []
+    for b in good.bins:
+        if b.sensor_id == "sensor_A" and b.window_index == 0 and b.metric_key == "flow.count":
+            # make candidate also missing for that window
+            cand_bins.append(
+                CalibrationBin(
+                    sensor_id=b.sensor_id,
+                    window_index=b.window_index,
+                    window_start_utc=b.window_start_utc,
+                    window_end_utc=b.window_end_utc,
+                    metric_key=b.metric_key,
+                    value=None,
+                    unit=b.unit,
+                )
+            )
+        else:
+            cand_bins.append(b)
+    payload_cand = {
+        "bins": [
+            x.canonical_dict()
+            for x in sorted(cand_bins, key=lambda x: (x.sensor_id, x.window_index, x.metric_key))
+        ],
+        "candidate_id": "candidate_observed_missing_test",
+    }
+    fp_cand = hashlib.sha256(
+        json.dumps(payload_cand, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    cand = CalibrationCandidate(
+        candidate_id="candidate_observed_missing_test",
+        fingerprint=fp_cand,
+        label="observed missing test",
+        window_start_utc=good.window_start_utc,
+        window_end_utc=good.window_end_utc,
+        bin_width_s=good.bin_width_s,
+        sensor_ids=good.sensor_ids,
+        metric_units=good.metric_units,
+        bins=cand_bins,
+    )
+    specs = [
+        CalibrationMetricSpec(
+            metric_key="flow.count",
+            metric_version="1.0",
+            unit="veh/h",
+            denominator="per_sensor_per_hour",
+            weight=0.5,
+            objective_scale=100.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+        CalibrationMetricSpec(
+            metric_key="traffic.speed.mean_mps",
+            metric_version="1.0",
+            unit="m/s",
+            denominator="per_sensor_per_window",
+            weight=0.5,
+            objective_scale=5.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+    ]
+    alignment = CalibrationAlignmentSpec(
+        window_start_utc=synthetic_window_start(),
+        window_end_utc=synthetic_window_end(),
+        bin_width_s=synthetic_bin_width(),
+        window_semantics="[start,end)",
+        temporal_tolerance_s=0.0,
+        sensor_mapping={},
+        coverage_threshold=1.0,
+    )
+    study = CalibrationStudy(
+        study_id="obs_missing_test",
+        study_name="Obs Missing Test",
+        observed=obs_missing,
+        candidates=[cand],
+        metric_specs=specs,
+        alignment_spec=alignment,
+    )
+    report = build_calibration_report(study)
+    summary = report.candidate_summaries[0]
+    # Eligible is 15 (16-1 missing observed), paired 15 (since candidate missing corresponds to observed missing, not counted as eligible, but other 15 are paired)  # noqa: E501
+    # Our candidate has 15 good bins + 1 missing that aligns with observed missing (so not eligible, not paired, but not extra)  # noqa: E501
+    # Actually observed missing 1 means total eligible 15, candidate missing for that same key means paired should be 15? Let's assert coverage 100%  # noqa: E501
+    assert summary.alignment_audit.coverage_percentage == 100.0
+    assert summary.alignment_audit.total_bins == 15
+    assert summary.alignment_audit.is_excluded is False
+    assert summary.status.value == "available"
+    # diagnostic reports missing observed
+    flow_res = next(m for m in summary.metric_results if m.metric_key == "flow.count")
+    assert flow_res.count_missing_observed == 1
+    assert (
+        flow_res.count_paired == 7
+    )  # flow has 8 originally minus 1 missing observed =7 eligible, all paired
+    assert flow_res.coverage_percentage == 100.0
+
+
+def test_unavailable_positive_weight_alignment_false() -> None:
+    obs = make_observed_fixture()
+    ws = synthetic_window_start()
+    we = synthetic_window_end()
+    bw = synthetic_bin_width()
+    # Candidate with flow all missing, speed available
+    speed_vals: dict[tuple[str, int], float | None] = {
+        ("sensor_A", 0): 12.5,
+        ("sensor_A", 1): 13.0,
+        ("sensor_A", 2): 12.8,
+        ("sensor_A", 3): 12.6,
+        ("sensor_B", 0): 11.0,
+        ("sensor_B", 1): 11.2,
+        ("sensor_B", 2): 11.5,
+        ("sensor_B", 3): 11.3,
+    }
+    bins: list[CalibrationBin] = []
+    for sensor in ["sensor_A", "sensor_B"]:
+        for idx in range(4):
+            start = ws + timedelta(seconds=idx * bw)
+            end = start + timedelta(seconds=bw)
+            bins.append(
+                CalibrationBin(
+                    sensor_id=sensor,
+                    window_index=idx,
+                    window_start_utc=start,
+                    window_end_utc=end,
+                    metric_key="flow.count",
+                    value=None,
+                    unit="veh/h",
+                )
+            )
+            bins.append(
+                CalibrationBin(
+                    sensor_id=sensor,
+                    window_index=idx,
+                    window_start_utc=start,
+                    window_end_utc=end,
+                    metric_key="traffic.speed.mean_mps",
+                    value=speed_vals[(sensor, idx)],
+                    unit="m/s",
+                )
+            )
+    payload = {
+        "bins": [
+            b.canonical_dict()
+            for b in sorted(bins, key=lambda x: (x.sensor_id, x.window_index, x.metric_key))
+        ],
+        "candidate_id": "candidate_flow_unavailable_align_false",
+    }
+    fp = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    cand = CalibrationCandidate(
+        candidate_id="candidate_flow_unavailable_align_false",
+        fingerprint=fp,
+        label="flow unavailable align false",
+        window_start_utc=ws,
+        window_end_utc=we,
+        bin_width_s=bw,
+        sensor_ids=["sensor_A", "sensor_B"],
+        metric_units={"flow.count": "veh/h", "traffic.speed.mean_mps": "m/s"},
+        bins=bins,
+    )
+    specs = [
+        CalibrationMetricSpec(
+            metric_key="flow.count",
+            metric_version="1.0",
+            unit="veh/h",
+            denominator="per_sensor_per_hour",
+            weight=0.5,
+            objective_scale=100.0,
+            alignment_required=False,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+        CalibrationMetricSpec(
+            metric_key="traffic.speed.mean_mps",
+            metric_version="1.0",
+            unit="m/s",
+            denominator="per_sensor_per_window",
+            weight=0.5,
+            objective_scale=5.0,
+            alignment_required=False,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+    ]
+    alignment = CalibrationAlignmentSpec(
+        window_start_utc=ws,
+        window_end_utc=we,
+        bin_width_s=bw,
+        window_semantics="[start,end)",
+        temporal_tolerance_s=0.0,
+        sensor_mapping={},
+        coverage_threshold=0.0,
+    )
+    study = CalibrationStudy(
+        study_id="unavailable_align_false",
+        study_name="Unavailable Align False",
+        observed=obs,
+        candidates=[cand],
+        metric_specs=specs,
+        alignment_spec=alignment,
+    )
+    report = build_calibration_report(study)
+    summary = report.candidate_summaries[0]
+    # Should be UNAVAILABLE not AVAILABLE, with explicit exclusion
+    assert summary.status.value == "unavailable"
+    assert summary.exclusion is not None
+    assert summary.exclusion.reason_code in ("OBJECTIVE_UNAVAILABLE", "MISSING_REQUIRED_METRIC")
+    assert summary.weighted_objective is None
+    assert summary.candidate_id not in report.ranking
+
+
+def test_unit_mismatch_semantic_deduplication() -> None:
+    obs = make_observed_fixture()
+    # Create candidate with same wrong unit in both metric_units and every bin (veh/min for flow)
+    flow_vals: dict[tuple[str, int], float | None] = {
+        ("sensor_A", 0): 100.0,
+        ("sensor_A", 1): 118.0,
+        ("sensor_A", 2): 111.0,
+        ("sensor_A", 3): 106.0,
+        ("sensor_B", 0): 91.0,
+        ("sensor_B", 1): 96.0,
+        ("sensor_B", 2): 101.0,
+        ("sensor_B", 3): 99.0,
+    }
+    speed_vals = {
+        ("sensor_A", 0): 12.6,
+        ("sensor_A", 1): 12.9,
+        ("sensor_A", 2): 12.9,
+        ("sensor_A", 3): 12.7,
+        ("sensor_B", 0): 11.1,
+        ("sensor_B", 1): 11.3,
+        ("sensor_B", 2): 11.6,
+        ("sensor_B", 3): 11.4,
+    }
+    from traffictwin.calibration.fixtures import _make_candidate_bins
+
+    bins = _make_candidate_bins(flow_values=flow_vals, speed_values=speed_vals, flow_unit="veh/min")
+    payload = {
+        "bins": [
+            b.canonical_dict()
+            for b in sorted(bins, key=lambda x: (x.sensor_id, x.window_index, x.metric_key))
+        ],
+        "candidate_id": "candidate_dedup_test",
+    }
+    fp = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode()
+    ).hexdigest()
+    cand = CalibrationCandidate(
+        candidate_id="candidate_dedup_test",
+        fingerprint=fp,
+        label="dedup test",
+        window_start_utc=synthetic_window_start(),
+        window_end_utc=synthetic_window_end(),
+        bin_width_s=synthetic_bin_width(),
+        sensor_ids=["sensor_A", "sensor_B"],
+        metric_units={"flow.count": "veh/min", "traffic.speed.mean_mps": "m/s"},
+        bins=bins,
+    )
+    specs = [
+        CalibrationMetricSpec(
+            metric_key="flow.count",
+            metric_version="1.0",
+            unit="veh/h",
+            denominator="per_sensor_per_hour",
+            weight=0.5,
+            objective_scale=100.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+        CalibrationMetricSpec(
+            metric_key="traffic.speed.mean_mps",
+            metric_version="1.0",
+            unit="m/s",
+            denominator="per_sensor_per_window",
+            weight=0.5,
+            objective_scale=5.0,
+            alignment_required=True,
+            missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+        ),
+    ]
+    study = CalibrationStudy(
+        study_id="dedup_test",
+        study_name="Dedup Test",
+        observed=obs,
+        candidates=[cand],
+        metric_specs=specs,
+        alignment_spec=CalibrationAlignmentSpec(
+            window_start_utc=synthetic_window_start(),
+            window_end_utc=synthetic_window_end(),
+            bin_width_s=synthetic_bin_width(),
+            window_semantics="[start,end)",
+            temporal_tolerance_s=0.0,
+            sensor_mapping={},
+            coverage_threshold=0.0,
+        ),
+    )
+    report = build_calibration_report(study)
+    summary = report.candidate_summaries[0]
+    assert summary.alignment_audit.unit_compatible is False
+    # Should be at most 1 candidate-side message for flow.count, not duplicated per-bin
+    flow_candidate_msgs = [
+        m for m in summary.alignment_audit.unit_mismatches if "flow.count" in m and "candidate" in m
+    ]
+    assert len(flow_candidate_msgs) == 1
+    # Message should list distinct units
+    assert "veh/min" in flow_candidate_msgs[0]
+    assert "veh/h" in flow_candidate_msgs[0]
+    # No duplicate byte-identical messages
+    assert len(summary.alignment_audit.unit_mismatches) == len(
+        set(summary.alignment_audit.unit_mismatches)
+    )
+
+
+def test_weighted_mean_documentation_and_formula() -> None:
+    study = make_three_candidate_study()
+    report = build_calibration_report(study)
+    # LIMITATIONS must describe weighted mean
+    assert any("weighted mean" in lim.lower() for lim in report.limitations)
+    assert any("Σ(weight" in lim or "weighted mean" in lim.lower() for lim in report.limitations)
+    # Verify arithmetic: weighted_objective = Σ w·norm / Σ w
+    good = next(s for s in report.candidate_summaries if s.candidate_id == "candidate_good_fit")
+    if good.metric_results:
+        # Compute expected
+        specs_by_key = {s.metric_key: s for s in study.metric_specs}
+        weighted_sum = sum(
+            specs_by_key[m.metric_key].weight * m.normalized_mae
+            for m in good.metric_results
+            if m.normalized_mae is not None and specs_by_key[m.metric_key].weight > 0
+        )
+        total_w_float = sum(
+            float(specs_by_key[m.metric_key].weight)
+            for m in good.metric_results
+            if specs_by_key[m.metric_key].weight > 0
+        )
+        expected = weighted_sum / total_w_float if total_w_float else None
+        assert good.weighted_objective == expected
+
+
+def test_default_study_weight_cannot_resurrect_missing() -> None:
+
+    # Test both weight regimes: flow-heavy and speed-heavy, missing should never be in ranking
+    obs = make_observed_fixture()
+    missing = make_candidate_missing()
+    good = make_candidate_good()
+    poor = make_candidate_poor()
+    for w_flow, w_speed in [(0.9, 0.1), (0.1, 0.9)]:
+        specs = [
+            CalibrationMetricSpec(
+                metric_key="flow.count",
+                metric_version="1.0",
+                unit="veh/h",
+                denominator="per_sensor_per_hour",
+                weight=w_flow,
+                objective_scale=100.0,
+                alignment_required=True,
+                missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+            ),
+            CalibrationMetricSpec(
+                metric_key="traffic.speed.mean_mps",
+                metric_version="1.0",
+                unit="m/s",
+                denominator="per_sensor_per_window",
+                weight=w_speed,
+                objective_scale=5.0,
+                alignment_required=True,
+                missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
+            ),
+        ]
+        alignment = CalibrationAlignmentSpec(
+            window_start_utc=synthetic_window_start(),
+            window_end_utc=synthetic_window_end(),
+            bin_width_s=synthetic_bin_width(),
+            window_semantics="[start,end)",
+            temporal_tolerance_s=0.0,
+            sensor_mapping={},
+            coverage_threshold=1.0,
+        )
+        study = CalibrationStudy(
+            study_id=f"weight_resurrect_{str(w_flow).replace('.', '_')}",
+            study_name="Weight Resurrect",
+            observed=obs,
+            candidates=[good, poor, missing],
+            metric_specs=specs,
+            alignment_spec=alignment,
+        )
+        report = build_calibration_report(study)
+        assert "candidate_missing_evidence" not in report.ranking
+        assert report.ranking[0] in ("candidate_good_fit", "candidate_poor_fit")

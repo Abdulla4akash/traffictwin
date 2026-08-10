@@ -76,6 +76,7 @@ class ExclusionReasonCode(StrEnum):
     MISSING_REQUIRED_METRIC = "MISSING_REQUIRED_METRIC"
     INSUFFICIENT_PAIRED_BINS = "INSUFFICIENT_PAIRED_BINS"
     METRIC_NOT_FOUND = "METRIC_NOT_FOUND"
+    OBJECTIVE_UNAVAILABLE = "OBJECTIVE_UNAVAILABLE"
 
 
 # ---------------------------------------------------------------------------

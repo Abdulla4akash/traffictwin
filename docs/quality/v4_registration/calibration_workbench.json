@@ -1,5 +1,5 @@
 {
-  "description": "Read-only, descriptive comparison of admitted observed evidence with simulation candidates using half-open windows and fingerprint binding",
+  "description": "Read-only, descriptive comparison of admitted observed evidence with simulation candidates using half-open windows, fingerprint binding, and dimensionless weighted mean normalized error Σ(weight×mae/scale)/Σweight with per-metric coverage gate",
   "enum_name": "CALIBRATION_WORKBENCH",
   "group": "Compare & test",
   "icon": ":material/tune:",

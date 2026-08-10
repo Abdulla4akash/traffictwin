@@ -32,10 +32,9 @@ EVIDENCE_BOUNDARY = (
 LIMITATIONS = [
     "Descriptive fit only — no parameter tuning is performed.",
     "Half-open window semantics [start,end) are enforced; bins not overlapping are unmatched.",
-    "Missing evidence is never zero-filled; unavailable bins are skipped.",
+    "Missing evidence is never zero-filled; unavailable bins are skipped and coverage is reduced; ranking eligibility is determined by declared per-metric coverage gate, not by fabricating values.",  # noqa: E501
     "Relative error is computed only with a safe non-zero denominator.",
-    "Weighted declared normalized objective ranks candidates only when every required component is available and compatible.",  # noqa: E501
-    "Scalar objective uses explicit declared per-metric normalization scales to become dimensionless; raw MAEs of different units are never summed.",  # noqa: E501
+    "Weighted declared normalized objective ranks candidates only when every required positive-weight component is available and compatible; scalar objective is the dimensionless weighted mean normalized error Σ(weight_i × (mae_i/scale_i)) / Σ weight_i, not a simple sum; raw MAEs of different units are never summed without normalization.",  # noqa: E501
     "Lowest declared normalized objective among compatible candidates is not a validated model claim.",  # noqa: E501
     "No synthetic evidence is relabelled as observed.",
     "No production-readiness or Manchester evidence is claimed unless genuine admitted evidence is supplied.",  # noqa: E501
@@ -87,33 +86,33 @@ def _compute_alignment_audit(
     elif end_diff > tol:
         temporal_reason = f"window_end misalignment {end_diff:.1f}s > tolerance {tol:.1f}s"
 
-    # Unit compatibility: check observed AND candidate against spec, deduplicate
+    # Unit compatibility: check observed AND candidate against spec, semantically deduplicated
+    # At most one observed-side and one candidate-side record per metric.
     mismatch_set: set[str] = set()
     for spec in specs:
-        # Observed metric_units
+        # Collect distinct actual units observed for this metric (from metric_units and bins)
+        observed_units: set[str] = set()
         obs_unit = observed.metric_units.get(spec.metric_key)
-        if obs_unit is not None and obs_unit != spec.unit:
-            mismatch_set.add(f"{spec.metric_key}: observed expected {spec.unit!r} got {obs_unit!r}")
-        # Candidate metric_units
+        if obs_unit is not None:
+            observed_units.add(obs_unit)
+        observed_units.update({b.unit for b in observed.bins if b.metric_key == spec.metric_key})
+        candidate_units: set[str] = set()
         cand_unit = candidate.metric_units.get(spec.metric_key)
-        if cand_unit is not None and cand_unit != spec.unit:
+        if cand_unit is not None:
+            candidate_units.add(cand_unit)
+        candidate_units.update({b.unit for b in candidate.bins if b.metric_key == spec.metric_key})
+        # Emit at most one per side per metric, listing distinct actual units found
+        obs_mismatch = sorted([u for u in observed_units if u != spec.unit])
+        if obs_mismatch:
             mismatch_set.add(
-                f"{spec.metric_key}: candidate expected {spec.unit!r} got {cand_unit!r}"
+                f"{spec.metric_key}: observed units {sorted(obs_mismatch)!r} expected {spec.unit!r}"
             )
-        # If not in metric_units, check per-bin units: observed bins
-        obs_bin_units = {b.unit for b in observed.bins if b.metric_key == spec.metric_key}
-        for u in obs_bin_units:
-            if u != spec.unit:
-                mismatch_set.add(
-                    f"{spec.metric_key}: observed bin unit {u!r} != spec {spec.unit!r}"
-                )
-        cand_bin_units = {b.unit for b in candidate.bins if b.metric_key == spec.metric_key}
-        for u in cand_bin_units:
-            if u != spec.unit:
-                mismatch_set.add(
-                    f"{spec.metric_key}: candidate bin unit {u!r} != spec {spec.unit!r}"
-                )
-        # If units sets disagree internally but we already captured spec mismatch, deduplicate is enough  # noqa: E501
+        cand_mismatch = sorted([u for u in candidate_units if u != spec.unit])
+        if cand_mismatch:
+            mismatch_set.add(
+                f"{spec.metric_key}: candidate units "  # noqa: E501
+                f"{sorted(cand_mismatch)!r} expected {spec.unit!r}"
+            )
     mismatches = sorted(mismatch_set)
     unit_compatible = len(mismatches) == 0
 
@@ -329,7 +328,10 @@ def _compute_metric_results_and_residuals(
     audit: CalibrationAlignmentAudit,
     sensor_mapping: dict[str, str],
 ) -> tuple[list[CalibrationMetricResult], list[CalibrationResidual], float]:
-    if audit.is_excluded:
+    if (
+        audit.is_excluded
+        and audit.exclusion_reason_code != ExclusionReasonCode.COVERAGE_INSUFFICIENT.value
+    ):
         return [], [], 0.0
 
     # Build candidate index keyed by candidate sensor
@@ -564,6 +566,7 @@ def build_calibration_report(study: CalibrationStudy) -> CalibrationReport:
         exclusion: CalibrationExclusion | None = None
         status = CalibrationStatus.AVAILABLE
 
+        weighted_objective: float | None = None
         if audit.is_excluded:
             status = CalibrationStatus.EXCLUDED
             exclusion = CalibrationExclusion(
@@ -574,61 +577,136 @@ def build_calibration_report(study: CalibrationStudy) -> CalibrationReport:
                 failing_metric=None,
             )
             exclusions.append(exclusion)
-            weighted_objective: float | None = None
             candidate_coverage = audit.coverage_percentage
-            metric_results = []
-            residuals = []
-        else:
-            candidate_coverage = overall_coverage if metric_results else audit.coverage_percentage
-            weighted_objective = _compute_weighted_objective(
-                metric_results=metric_results, specs=study.metric_specs
-            )
-            if weighted_objective is None:
-                any_missing_required = any(
-                    (not r.is_available)
-                    for r in metric_results
-                    for s in study.metric_specs
-                    if s.metric_key == r.metric_key and s.alignment_required and s.weight > 0
-                )
-                # Also missing scale triggers unavailable
-                any_missing_scale = any(
-                    s.weight > 0 and (s.objective_scale is None or s.objective_scale <= 0)
-                    for s in study.metric_specs
-                )
-                if any_missing_required or any_missing_scale:
-                    status = CalibrationStatus.UNAVAILABLE
-                    missing_metric = next(
-                        (r.metric_key for r in metric_results if not r.is_available), None
+            # For coverage insufficient we keep metric_results for per-metric inspection;
+            # for unit/temporal/sensor mismatch we clear to avoid misleading numeric comparison  # noqa: E501
+            if audit.exclusion_reason_code == ExclusionReasonCode.COVERAGE_INSUFFICIENT.value:
+                # keep metric_results/residuals for display; weighted objective remains None  # noqa: E501
+                weighted_objective = None
+                # do not clear metric_results/residuals
+            else:
+                weighted_objective = None
+                metric_results = []
+                residuals = []
+            # handle early append and continue to avoid double-handling
+            # we need to set status and push summary directly
+            if audit.exclusion_reason_code == ExclusionReasonCode.COVERAGE_INSUFFICIENT.value:
+                candidate_summaries.append(
+                    CalibrationCandidateSummary(
+                        candidate_id=candidate.candidate_id,
+                        fingerprint=candidate.fingerprint,
+                        label=candidate.label,
+                        status=status,
+                        alignment_audit=audit,
+                        metric_results=metric_results,
+                        residuals=residuals,
+                        coverage_percentage=candidate_coverage,
+                        weighted_objective=weighted_objective,
+                        exclusion=exclusion,
                     )
-                    # Determine failing metric for scale vs missing
-                    if any_missing_scale:
-                        failing = next(
-                            (
-                                s.metric_key
+                )
+                continue
+        else:
+            # Per-metric coverage gate: each positive-weight metric must satisfy threshold
+            threshold = study.alignment_spec.coverage_threshold
+            per_metric_fail: list[str] = []
+            spec_by_key = {s.metric_key: s for s in study.metric_specs}
+            for res in metric_results:
+                spec = spec_by_key.get(res.metric_key)
+                if (
+                    spec is not None
+                    and spec.weight > 0
+                    and res.coverage_percentage + 1e-9 < threshold * 100.0
+                ):
+                    per_metric_fail.append(
+                        f"{res.metric_key} {res.coverage_percentage:.1f}% < threshold {threshold * 100:.1f}%"  # noqa: E501
+                    )
+            if per_metric_fail:
+                status = CalibrationStatus.EXCLUDED
+                exclusion = CalibrationExclusion(
+                    candidate_id=candidate.candidate_id,
+                    reason_code=ExclusionReasonCode.COVERAGE_INSUFFICIENT.value,
+                    reason_detail="per-metric coverage below threshold: "
+                    + "; ".join(per_metric_fail),
+                    failing_metric=per_metric_fail[0].split()[0],
+                )
+                exclusions.append(exclusion)
+                weighted_objective = None
+                candidate_coverage = (
+                    overall_coverage if metric_results else audit.coverage_percentage
+                )
+                # Keep metric_results/residuals for display but not ranked
+            else:
+                candidate_coverage = (
+                    overall_coverage if metric_results else audit.coverage_percentage
+                )
+                weighted_objective = _compute_weighted_objective(
+                    metric_results=metric_results, specs=study.metric_specs
+                )
+                if weighted_objective is None:
+                    # Any positive-weight metric unavailable makes objective unavailable  # noqa: E501
+                    # regardless of alignment_required
+                    any_missing_required = any(
+                        (not r.is_available)
+                        for r in metric_results
+                        for s in study.metric_specs
+                        if s.metric_key == r.metric_key and s.weight > 0
+                    )
+                    # Also missing scale triggers unavailable
+                    any_missing_scale = any(
+                        s.weight > 0 and (s.objective_scale is None or s.objective_scale <= 0)
+                        for s in study.metric_specs
+                    )
+                    if any_missing_required or any_missing_scale:
+                        status = CalibrationStatus.UNAVAILABLE
+                        missing_metric = next(
+                            (r.metric_key for r in metric_results if not r.is_available), None
+                        )
+                        # Determine failing metric for scale vs missing
+                        if any_missing_scale:
+                            failing = next(
+                                (
+                                    s.metric_key
+                                    for s in study.metric_specs
+                                    if s.weight > 0
+                                    and (s.objective_scale is None or s.objective_scale <= 0)
+                                ),
+                                None,
+                            )
+                            exclusion = CalibrationExclusion(
+                                candidate_id=candidate.candidate_id,
+                                reason_code=ExclusionReasonCode.MISSING_REQUIRED_METRIC.value,
+                                reason_detail="positive-weight metric missing scale; objective unavailable",  # noqa: E501
+                                failing_metric=failing,
+                            )
+                        else:
+                            needs_objective_unavailable = any(
+                                (not r.is_available)
+                                for r in metric_results
                                 for s in study.metric_specs
-                                if s.weight > 0
-                                and (s.objective_scale is None or s.objective_scale <= 0)
-                            ),
-                            None,
-                        )
-                        exclusion = CalibrationExclusion(
-                            candidate_id=candidate.candidate_id,
-                            reason_code=ExclusionReasonCode.MISSING_REQUIRED_METRIC.value,
-                            reason_detail="positive-weight metric missing scale; objective unavailable",  # noqa: E501
-                            failing_metric=failing,
-                        )
+                                if s.metric_key == r.metric_key
+                                and s.weight > 0
+                                and not s.alignment_required
+                            )
+                            if needs_objective_unavailable and missing_metric is not None:
+                                exclusion = CalibrationExclusion(
+                                    candidate_id=candidate.candidate_id,
+                                    reason_code=ExclusionReasonCode.OBJECTIVE_UNAVAILABLE.value,
+                                    reason_detail="positive-weight objective component unavailable; objective unavailable",  # noqa: E501
+                                    failing_metric=missing_metric,
+                                )
+                            else:
+                                exclusion = CalibrationExclusion(
+                                    candidate_id=candidate.candidate_id,
+                                    reason_code=ExclusionReasonCode.MISSING_REQUIRED_METRIC.value,
+                                    reason_detail="required metric has no paired bins; objective unavailable",  # noqa: E501
+                                    failing_metric=missing_metric,
+                                )
+                        exclusions.append(exclusion)
                     else:
-                        exclusion = CalibrationExclusion(
-                            candidate_id=candidate.candidate_id,
-                            reason_code=ExclusionReasonCode.MISSING_REQUIRED_METRIC.value,
-                            reason_detail="required metric has no paired bins; objective unavailable",  # noqa: E501
-                            failing_metric=missing_metric,
-                        )
-                    exclusions.append(exclusion)
+                        status = CalibrationStatus.AVAILABLE
                 else:
                     status = CalibrationStatus.AVAILABLE
-            else:
-                status = CalibrationStatus.AVAILABLE
 
         candidate_summaries.append(
             CalibrationCandidateSummary(

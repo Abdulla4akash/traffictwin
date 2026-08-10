@@ -427,7 +427,7 @@ def make_default_study() -> CalibrationStudy:
         window_semantics="[start,end)",
         temporal_tolerance_s=0.0,
         sensor_mapping={},
-        coverage_threshold=0.0,
+        coverage_threshold=1.0,
     )
     return CalibrationStudy(
         study_id="calibration_demo_study",
