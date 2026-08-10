@@ -1068,3 +1068,130 @@ def test_mutation_post_evidence_primary_replacement_without_amendment_is_blocked
     assert (
         amended.revision_history[-1].is_post_evidence is True or parent.evidence_attached_at is None
     )  # parent not yet attached, so this is pre; but test logic holds
+def test_evidence_attachment_contradiction_unadmitted_true_rejected() -> None:
+    """A: UNADMITTED + is_admitted=True -> ValidationError."""
+    with pytest.raises(Exception) as exc:
+        EvidenceAttachment(
+            artifact_fingerprint="a" * 64,
+            cell_id="cell-0001",
+            observed_metric_key="task.completion.rate",
+            observed_metric_version=METRIC_VERSION,
+            observed_unit="ratio",
+            is_admitted=True,
+            admission_label=ArtifactAdmission.UNADMITTED,
+        )
+    msg = str(exc.value)
+    assert "UNADMITTED" in msg and "is_admitted" in msg
+
+def test_evidence_attachment_unadmitted_false_accepted() -> None:
+    """B: UNADMITTED + False -> accepted."""
+    att = EvidenceAttachment(
+        artifact_fingerprint="b" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=False,
+        admission_label=ArtifactAdmission.UNADMITTED,
+    )
+    assert att.is_admitted is False
+    assert att.admission_label == ArtifactAdmission.UNADMITTED
+
+def test_evidence_attachment_admitted_true_accepted() -> None:
+    """C: ADMITTED + True -> accepted."""
+    att = EvidenceAttachment(
+        artifact_fingerprint="c" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=True,
+        admission_label=ArtifactAdmission.ADMITTED,
+    )
+    assert att.is_admitted is True
+
+def test_evidence_attachment_synthetic_false_accepted() -> None:
+    """D: synthetic/imported + False -> accepted."""
+    att_syn = EvidenceAttachment(
+        artifact_fingerprint="d" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=False,
+        admission_label=ArtifactAdmission.SYNTHETIC,
+    )
+    assert att_syn.is_admitted is False
+    att_imp = EvidenceAttachment(
+        artifact_fingerprint="e" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=False,
+        admission_label=ArtifactAdmission.IMPORTED,
+    )
+    assert att_imp.is_admitted is False
+    # synthetic+True is also allowed (independent boolean)
+    att_syn_true = EvidenceAttachment(
+        artifact_fingerprint="f" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=True,
+        admission_label=ArtifactAdmission.SYNTHETIC,
+    )
+    assert att_syn_true.is_admitted is True
+
+def test_evidence_attachment_contradiction_via_import_rejected() -> None:
+    """E: JSON import containing UNADMITTED+true -> rejected."""
+    plan = freeze_plan(_base_plan(), clock=_fixed_clock)
+    data = json.loads(export_plan_json(plan))
+    # inject contradictory evidence attachment
+    data["evidence_attachments"] = [
+        {
+            "artifact_fingerprint": "f" * 64,
+            "cell_id": plan.planned_run_cells[0].cell_id,
+            "artifact_type": "metric_collection",
+            "observed_metric_key": "task.completion.rate",
+            "observed_metric_version": METRIC_VERSION,
+            "observed_unit": "ratio",
+            "is_admitted": True,
+            "admission_label": "unadmitted",
+            "incompatibility_reason": None,
+            "attached_at": None,
+        }
+    ]
+    payload = json.dumps(data)
+    with pytest.raises(Exception):
+        import_plan_json(payload)
+
+def test_evidence_attachment_ui_produced_remains_valid() -> None:
+    """F: Normal UI-produced attachment remains valid."""
+    plan = freeze_plan(_base_plan(), clock=_fixed_clock)
+    good = EvidenceAttachment(
+        artifact_fingerprint="1" * 64,
+        cell_id=plan.planned_run_cells[0].cell_id,
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=False,
+        admission_label=ArtifactAdmission.SYNTHETIC,
+    )
+    # should validate and attach
+    attached = attach_evidence(plan, [good], clock=_later_clock)
+    assert len(attached.evidence_attachments) == 1
+
+def test_evidence_attachment_historical_false_accepted() -> None:
+    """Historical label with is_admitted=False is valid (non-admitted historical)."""
+    att = EvidenceAttachment(
+        artifact_fingerprint="9" * 64,
+        cell_id="cell-0001",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=False,
+        admission_label=ArtifactAdmission.HISTORICAL,
+    )
+    assert att.admission_label == ArtifactAdmission.HISTORICAL
