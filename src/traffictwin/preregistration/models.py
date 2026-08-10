@@ -5,34 +5,34 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from collections.abc import Callable
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from traffictwin.domain.scenario import _validate_identifier  # reuse identifier validation
+from traffictwin.domain.scenario import _validate_identifier
 
 # ---------------------------------------------------------------------------
 # Base
 # ---------------------------------------------------------------------------
-
-IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]*$")
-
-
-def _validate_plan_identifier(value: str, field_name: str) -> str:
-    if not IDENTIFIER_RE.fullmatch(value):
-        raise ValueError(
-            f"{field_name} must start with alphanumeric and contain only letters, numbers, dots, underscores, colons, or hyphens"
-        )
-    return value
 
 
 class StrictModel(BaseModel):
     """Base that rejects unknown fields and validates on assignment."""
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True, validate_assignment=True)
+
+
+# Reuse authoritative identifier validation; preregistration owns no separate regex.
+
+
+def _validate_plan_identifier(value: str, field_name: str) -> str:
+    # Delegate to authoritative helper to avoid duplication
+    result = _validate_identifier(value, field_name)
+    if result is None:
+        raise ValueError(f"{field_name} must not be empty")
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -117,6 +117,16 @@ class ArtifactAdmission(StrEnum):
     SYNTHETIC = "synthetic"
     IMPORTED = "imported"
     HISTORICAL = "historical"
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def is_explicitly_admitted(att: EvidenceAttachment) -> bool:  # type: ignore  # forward ref
+    """Authoritative admission check: only is_admitted==True counts."""
+    return att.is_admitted is True
 
 
 # ---------------------------------------------------------------------------
@@ -271,7 +281,7 @@ class DecisionRule(StrictModel):
     alpha: float | None = None
     threshold: float | None = None
     interpretation: str = Field(min_length=12)
-    comparison: Literal["two_sided", "one_sided_greater", "one_sided_less", "equivalence"] = "two_sided"
+    comparison: Literal["two_sided", "one_sided_greater", "one_sided_less", "equivalence"] = "two_sided"  # noqa: E501
 
     @field_validator("rule_type", "interpretation")
     @classmethod
@@ -288,7 +298,7 @@ class DecisionRule(StrictModel):
             return None
         if not (0 < v < 1):
             raise ValueError("alpha must be between 0 and 1 exclusive")
-        if not (v == v and v not in (float("inf"), float("-inf"))):  # finite check
+        if not (v == v and v not in (float("inf"), float("-inf"))):
             raise ValueError("alpha must be finite")
         return v
 
@@ -300,12 +310,6 @@ class DecisionRule(StrictModel):
         if v != v or v in (float("inf"), float("-inf")):
             raise ValueError("threshold must be finite")
         return v
-
-    @model_validator(mode="after")
-    def validate_rule(self) -> DecisionRule:
-        # At least one of alpha or threshold must be provided for decision-capable rules
-        # But allow none for descriptive? We'll enforce in service validation instead.
-        return self
 
 
 class PlannedRunCell(StrictModel):
@@ -376,7 +380,6 @@ class EvidenceAttachment(StrictModel):
         s = v.strip()
         if len(s) < 16:
             raise ValueError("artifact_fingerprint must contain at least 16 characters")
-        # basic hex check
         if not re.fullmatch(r"[0-9a-fA-F]+", s):
             raise ValueError("artifact_fingerprint must be hex")
         return s.lower()
@@ -404,6 +407,7 @@ class DecisionGateReport(StrictModel):
     missing_cells: list[str] = Field(default_factory=list)
     extra_cells: list[str] = Field(default_factory=list)
     incompatible_cells: list[str] = Field(default_factory=list)
+    incompatibility_reasons: dict[str, str] = Field(default_factory=dict)
     is_ready: bool = False
     is_blocked: bool = False
     is_unavailable: bool = False
@@ -411,9 +415,17 @@ class DecisionGateReport(StrictModel):
     @model_validator(mode="after")
     def validate_flags(self) -> DecisionGateReport:
         if self.status == DecisionGateStatus.READY:
-            if not self.is_ready or self.is_blocked or self.is_unavailable:
-                # Auto-correct flags to stay consistent but allow explicit setting in tests?
-                pass
+            if not (self.is_ready is True and self.is_blocked is False and self.is_unavailable is False):  # noqa: E501
+                raise ValueError("READY status requires is_ready=True and is_blocked/is_unavailable=False")  # noqa: E501
+            if self.missing_cells or self.extra_cells or self.incompatible_cells:
+                raise ValueError("READY status cannot have missing/extra/incompatible cells")
+        elif self.status in (DecisionGateStatus.BLOCKED, DecisionGateStatus.UNAVAILABLE):
+            if self.is_ready is True:
+                raise ValueError(f"{self.status.value} status cannot have is_ready=True")
+            if self.status == DecisionGateStatus.BLOCKED and self.is_blocked is not True:
+                raise ValueError("BLOCKED status requires is_blocked=True")
+            if self.status == DecisionGateStatus.UNAVAILABLE and self.is_unavailable is not True:
+                raise ValueError("UNAVAILABLE status requires is_unavailable=True")
         return self
 
 
@@ -461,6 +473,7 @@ class StudyPlan(StrictModel):
     evidence_attachments: list[EvidenceAttachment] = Field(default_factory=list)
     gate_report: DecisionGateReport | None = None
     fingerprint: str | None = None
+    evidence_state_fingerprint: str | None = None
 
     @field_validator("plan_id")
     @classmethod
@@ -487,7 +500,7 @@ class StudyPlan(StrictModel):
             raise ValueError("replication_ids must not contain duplicates")
         return sorted(v)
 
-    @field_validator("replication_generation_rule", "power_plan_reference", "power_plan_fingerprint")
+    @field_validator("replication_generation_rule", "power_plan_reference", "power_plan_fingerprint")  # noqa: E501
     @classmethod
     def validate_optional_text(cls, v: str | None) -> str | None:
         if v is None:
@@ -521,34 +534,41 @@ class StudyPlan(StrictModel):
         secondary_ids = {o.outcome_id for o in self.secondary_outcomes}
         if primary_ids & secondary_ids:
             raise ValueError("primary and secondary outcome_ids must not overlap")
-        # also check metric version consistency is done in service, not here
         return self
 
     def canonical_payload(self) -> dict[str, Any]:
-        """Return deterministic payload for fingerprinting, excluding wall-clock and volatile fields."""
+        """Return deterministic payload for fingerprinting, excluding wall-clock and volatile fields."""  # noqa: E501
         data = self.model_dump(mode="json", by_alias=True)
-        # Normalise wall-clock fields
         for key in ("created_at", "frozen_at", "evidence_attached_at"):
             if key in data:
                 data[key] = "<normalised>"
-        # Normalise revision history timestamps
         if "revision_history" in data:
             for rev in data["revision_history"]:
                 rev["created_at"] = "<normalised>"
-        if "evidence_attachments" in data:
-            for att in data["evidence_attachments"]:
-                if att.get("attached_at") is not None:
-                    att["attached_at"] = "<normalised>"
-        if "gate_report" in data and data["gate_report"] is not None:
-            # gate report has no timestamp, keep as is
-            pass
-        # Exclude fingerprint itself from payload to avoid circularity
+        # Fingerprints are identities; frozen fingerprint must not bind post-freeze evidence or status
+        data.pop("status", None)
         data.pop("fingerprint", None)
-        # Exclude revision diff rendering state? Keep diff as is but ensure stable ordering via json dumps sort_keys
+        data.pop("evidence_state_fingerprint", None)
+        data.pop("gate_report", None)
+        data.pop("evidence_attachments", None)
+        data.pop("evidence_attached_at", None)
         return data
 
     def compute_fingerprint(self) -> str:
         payload = self.canonical_payload()
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def compute_evidence_state_fingerprint(self) -> str:
+        """Deterministic identity for the evidence-attached state, separate from frozen plan."""
+        payload = {
+            "fingerprint": self.fingerprint,
+            "evidence_attachments": [a.model_dump(mode="json") for a in sorted(self.evidence_attachments, key=lambda x: x.cell_id)],  # noqa: E501
+        }
+        # Normalise attached_at
+        for item in payload["evidence_attachments"]:
+            if item.get("attached_at") is not None:
+                item["attached_at"] = "<normalised>"
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -558,7 +578,6 @@ class StudyPlan(StrictModel):
         return self.compute_fingerprint()
 
 
-# Helper for deterministic diff
 def field_level_diff(old: dict[str, Any], new: dict[str, Any]) -> dict[str, dict[str, Any]]:
     """Return deterministic field-level diff between two canonical payloads."""
     diff: dict[str, dict[str, Any]] = {}
@@ -566,9 +585,22 @@ def field_level_diff(old: dict[str, Any], new: dict[str, Any]) -> dict[str, dict
     for key in all_keys:
         old_val = old.get(key)
         new_val = new.get(key)
-        # Use json dumps for comparison to handle nested structures deterministically
-        old_canonical = json.dumps(old_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if old_val is not None else None
-        new_canonical = json.dumps(new_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if new_val is not None else None
+        old_canonical = json.dumps(old_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if old_val is not None else None  # noqa: E501
+        new_canonical = json.dumps(new_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if new_val is not None else None  # noqa: E501
         if old_canonical != new_canonical:
             diff[key] = {"old": old_val, "new": new_val}
     return diff
+
+
+def has_evidence_in_lineage(plan: StudyPlan) -> bool:
+    """Monotonic taint: True if any ancestor or current plan has ever seen evidence."""
+    if plan.evidence_attached_at is not None:
+        return True
+    if plan.status in (StudyPlanStatus.EVIDENCE_ATTACHED, StudyPlanStatus.DECIDED, StudyPlanStatus.CLOSED):  # noqa: E501
+        return True
+    if plan.evidence_attachments:
+        return True
+    for rev in plan.revision_history:
+        if rev.is_post_evidence or rev.amendment_label == AmendmentLabel.POST_EVIDENCE:
+            return True
+    return False

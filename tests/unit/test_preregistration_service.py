@@ -462,9 +462,15 @@ def test_run_matrix_determinism_and_rejects() -> None:
     m1 = build_run_matrix(plan)
     m2 = build_run_matrix(plan)
     assert [c.cell_id for c in m1] == [c.cell_id for c in m2]
-    assert len(m1) == len(plan.planned_arms) * len(plan.replication_ids) * len(
-        plan.primary_outcomes
+    # Matrix now includes seeds and policies dimensions
+    expected = (
+        len(plan.planned_arms)
+        * (len(plan.seeds) if plan.seeds else 1)
+        * (len(plan.policies) if plan.policies else 1)
+        * len(plan.replication_ids)
+        * len(plan.primary_outcomes)
     )
+    assert len(m1) == expected
 
     # duplicate cells should be rejected at freeze time: try to freeze with duplicate cells provided
     dup_cells = [

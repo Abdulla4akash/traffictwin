@@ -107,17 +107,18 @@ def test_integration_build_and_freeze_and_attach() -> None:
     plan = _plan()
     assert validate_study_plan(plan) == []
     matrix = build_run_matrix(plan)
-    assert len(matrix) == 4  # 2 arms *2 reps *1 primary
+    # 2 arms *2 seeds *1 policy *2 reps *1 primary =8
+    assert len(matrix) == 8
     frozen = freeze_plan(plan, clock=lambda: FIXED)
     assert frozen.status == StudyPlanStatus.FROZEN
-    assert len(frozen.planned_run_cells) == 4
+    assert len(frozen.planned_run_cells) == 8
     # Export / import round-trip
     exported = export_plan_json(frozen)
     imported = import_plan_json(exported)
     assert imported.fingerprint == frozen.fingerprint
 
     # Verify matrix preserved
-    assert len(imported.planned_run_cells) == 4
+    assert len(imported.planned_run_cells) == 8
 
     # Attach evidence for all cells
     atts = [
@@ -135,8 +136,8 @@ def test_integration_build_and_freeze_and_attach() -> None:
     attached = attach_evidence(frozen, atts, clock=lambda: LATER)
     assert attached.status == StudyPlanStatus.EVIDENCE_ATTACHED
     cov = planned_vs_observed_matrix(attached)
-    assert cov["expected_count"] == 4
-    assert cov["observed_count"] == 4
+    assert cov["expected_count"] == 8
+    assert cov["observed_count"] == 8
     assert all(r["status"] == "present" for r in cov["rows"] if r["arm_id"] is not None)
     gate = attached.gate_report
     assert gate is not None
