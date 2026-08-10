@@ -1,0 +1,5 @@
+{
+  "command": "replay",
+  "module": "traffictwin.reproducibility_replay.cli:app",
+  "help": "Verify and replay allowlisted deterministic analyses with fingerprint receipts."
+}

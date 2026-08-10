@@ -1,0 +1,10 @@
+{
+  "enum_name": "REPRODUCIBILITY_REPLAY",
+  "label": "Reproducibility Replay",
+  "url": "reproducibility-replay",
+  "script": "app_pages/reproducibility_replay.py",
+  "renderer": "traffictwin.ui.pages.reproducibility_replay:render",
+  "group": "Evidence & reports",
+  "description": "Replay verified capsule artifacts via allowlisted deterministic adapters and emit receipt with fingerprint comparison.",
+  "icon": "replay"
+}
