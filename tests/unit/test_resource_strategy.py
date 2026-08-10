@@ -15,12 +15,14 @@ from pydantic import ValidationError
 from traffictwin.experiments.resource_strategy import (
     ResourceStrategyAdmissionState,
     ResourceStrategyArm,
+    ResourceStrategyCompatibilityStatus,
     ResourceStrategyEvidenceMode,
     ResourceStrategyExclusion,
     ResourceStrategyExclusionCode,
     ResourceStrategyLifecycle,
     ResourceStrategyMetric,
     ResourceStrategyMetricDenominator,
+    ResourceStrategyMetricStatus,
     ResourceStrategyReplication,
     ResourceStrategyReplicationUnit,
     ResourceStrategyStudy,
@@ -889,6 +891,21 @@ def test_compatibility_audit_real() -> None:
             or "incompatible" in (d.reason or "").lower()
             or "incompatible" in d.interpretation.lower()
         )
+    # E2. arm summaries must be gated to UNAVAILABLE with no numeric values
+    for arm in report_bad.arm_summaries:
+        agg = next(
+            a for a in arm.metric_aggregates if a.metric_key == "task.completion.rate_offered"
+        )  # noqa: E501
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+        assert agg.aggregate_median is None
+        assert agg.aggregate_min is None
+        assert agg.aggregate_max is None
+        assert not agg.per_replication_values
+        assert agg.replication_count == 0
+        assert "task.completion.rate_offered" in arm.unavailable_metrics
+        assert "incompatible" in (agg.reason or "").lower()
+    # pairwise already checked
     # F/G: exports carry finding tested via earlier markdown/json checks
     md_bad = resource_strategy_report_to_markdown(report_bad)
     assert "incompatible" in md_bad.lower()
@@ -920,8 +937,8 @@ def test_reserved_metric_authority() -> None:
             lifecycle=_valid_lifecycle(),
             metrics={"task.completion.rate_admitted": 0.999},
         )
-    # D: non-reserved metric preserved exactly
-    # Use a non-reserved key that is in catalog but not derived: e.g., add custom metric
+    # D: non-reserved metric preserved at Study layer but gated at Report
+    # Study holds custom metric, but without contract report must not certify comparability  # noqa: E501
     custom_cat = _catalog() + [
         ResourceStrategyMetric(
             metric_key="custom.accuracy",
@@ -935,37 +952,41 @@ def test_reserved_metric_authority() -> None:
         lifecycle=_valid_lifecycle(),
         metrics={"custom.accuracy": 0.123456789},
     )
-    rep2 = _valid_replication("rep_002")
-    # Need to give both arms same custom metric value via rep.metrics
-    arms = [
-        ResourceStrategyArm(
-            arm_id="arm_a",
-            label="A",
-            description="d",
-            strategy_type="t",
-            replications=[rep_custom, rep2],
-        ),
-        ResourceStrategyArm(
-            arm_id="arm_b",
-            label="B",
-            description="d",
-            strategy_type="t",
-            replications=[rep_custom, rep2],
-        ),
-    ]
-    study_custom = _study(
-        arms=arms, metric_catalog=custom_cat, common_matched_replication_ids=["rep_001", "rep_002"]
+    # Study preservation: Study holds the metric input
+    assert rep_custom.metrics["custom.accuracy"] == pytest.approx(0.123456789)
+    study_custom_raw = _study(
+        arms=[
+            ResourceStrategyArm(
+                arm_id="arm_a",
+                label="A",
+                description="d",
+                strategy_type="t",
+                replications=[rep_custom, _valid_replication("rep_002")],
+            ),
+            ResourceStrategyArm(
+                arm_id="arm_b",
+                label="B",
+                description="d",
+                strategy_type="t",
+                replications=[rep_custom, _valid_replication("rep_002")],
+            ),
+        ],
+        metric_catalog=custom_cat,
+        common_matched_replication_ids=["rep_001", "rep_002"],
     )
-    report_custom = build_resource_strategy_report(study_custom)
-    agg_custom = next(
-        a
-        for a in report_custom.arm_summaries[0].metric_aggregates
-        if a.metric_key == "custom.accuracy"
-    )
-    assert agg_custom.aggregate_mean == pytest.approx(
-        0.0617283945
-    ) or agg_custom.per_replication_values["rep_001"] == pytest.approx(0.123456789)
-    assert agg_custom.per_replication_values["rep_001"] == pytest.approx(0.123456789)
+    assert any(m.metric_key == "custom.accuracy" for m in study_custom_raw.metric_catalog)
+    # Report gating: without registered contract, report must be UNAVAILABLE
+    report_custom = build_resource_strategy_report(study_custom_raw)
+    comp_custom = next(c for c in report_custom.compatibility if c.metric_key == "custom.accuracy")
+    assert comp_custom.status == ResourceStrategyCompatibilityStatus.UNAVAILABLE
+    assert "no registered compatibility contract" in comp_custom.finding.lower()
+    for arm in report_custom.arm_summaries:
+        agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.accuracy")
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+        assert not agg.per_replication_values
+        assert agg.replication_count == 0
+        assert "custom.accuracy" in arm.unavailable_metrics
 
 
 def test_csv_numeric_fidelity() -> None:
@@ -982,56 +1003,139 @@ def test_csv_numeric_fidelity() -> None:
         assert float(csv_line) == float(val)
     # Also test actual CSV export uses repr
     _ = resource_strategy_report_to_csv(report)
-    # Check that csv contains repr-style for at least one aggregate
-    # Force a replication with high-precision metric via custom study
+    # Check CSV fidelity via a compatible metric with high-precision typed value
+    # Use queue_length_mean (compatible) with high-precision value
+    high_val = 2024123.123456789
+    rep_high = _valid_replication("rep_001", queue_length_mean=high_val)
+    rep_norm = _valid_replication("rep_002", queue_length_mean=7.5)
+    study_high = _study(
+        arms=[
+            ResourceStrategyArm(
+                arm_id="arm_a",
+                label="A",
+                description="d",
+                strategy_type="t",
+                replications=[rep_high, rep_norm],
+            ),
+            ResourceStrategyArm(
+                arm_id="arm_b",
+                label="B",
+                description="d",
+                strategy_type="t",
+                replications=[rep_high, rep_norm],
+            ),
+        ],
+        common_matched_replication_ids=["rep_001", "rep_002"],
+    )
+    report_high = build_resource_strategy_report(study_high)
+    csv_high = resource_strategy_report_to_csv(report_high)
+    found_queue = [line for line in csv_high.splitlines() if "infra.queue_length.mean" in line]
+    assert found_queue, "queue length rows must appear in CSV"
+    # At least one row should contain repr of high_val
+    assert any(repr(high_val) in line for line in found_queue), f"repr {repr(high_val)} not in CSV"
+    for line in found_queue:
+        if repr(high_val) in line:
+            cols = line.split(",")
+            # aggregate_mean is 9th column (0-index 8)
+            agg_mean_str = cols[8]
+            # Aggregate is mean of high_val and 7.5; check repr presence  # noqa: E501
+            assert float(agg_mean_str) == pytest.approx((high_val + 7.5) / 2)
+
+
+def test_compatibility_gating_propagates_to_arm_aggregates() -> None:
+    # Incompatible must gate arm aggregates, not just compatibility/pairwise  # noqa: E501
+    cat_bad = _catalog()
+    cat_bad[0] = ResourceStrategyMetric(
+        metric_key="task.completion.rate_offered",
+        metric_version="1.0",
+        unit="wrong",
+        denominator=ResourceStrategyMetricDenominator.OFFERED_TASKS,
+    )
+    study_bad = _study(metric_catalog=cat_bad)
+    report_bad = build_resource_strategy_report(study_bad)
+    comp = next(
+        c for c in report_bad.compatibility if c.metric_key == "task.completion.rate_offered"
+    )
+    assert comp.status == ResourceStrategyCompatibilityStatus.INCOMPATIBLE
+    # All arm aggregates for that metric must be UNAVAILABLE with no numeric values
+    for arm in report_bad.arm_summaries:
+        agg = next(
+            a for a in arm.metric_aggregates if a.metric_key == "task.completion.rate_offered"
+        )  # noqa: E501
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+        assert agg.aggregate_median is None
+        assert agg.aggregate_min is None
+        assert agg.aggregate_max is None
+        assert not agg.per_replication_values
+        assert agg.replication_count == 0
+        assert "task.completion.rate_offered" in arm.unavailable_metrics
+        assert "incompatible" in (agg.reason or "").lower()
+    # Pairwise also unavailable
+    for d in report_bad.pairwise_differences:
+        if d.metric_key == "task.completion.rate_offered":
+            assert d.status == ResourceStrategyMetricStatus.UNAVAILABLE
+            assert d.mean_difference_b_minus_a is None
+
+
+def test_unknown_metric_contract_is_unavailable() -> None:
     custom_cat = _catalog() + [
         ResourceStrategyMetric(
-            metric_key="custom.high",
+            metric_key="custom.unknown_metric",
             metric_version="1.0",
             unit="ratio",
             denominator=ResourceStrategyMetricDenominator.REPLICATION,
         )
     ]
-    rep_high = ResourceStrategyReplication(
+    rep1 = ResourceStrategyReplication(
         replication_id="rep_001",
         lifecycle=_valid_lifecycle(),
-        metrics={"custom.high": 0.12345678901234567},
+        metrics={"custom.unknown_metric": 0.5},
     )
-    rep_norm = _valid_replication("rep_002")
-    arms_high = [
-        ResourceStrategyArm(
-            arm_id="arm_a",
-            label="A",
-            description="d",
-            strategy_type="t",
-            replications=[rep_high, rep_norm],
-        ),
-        ResourceStrategyArm(
-            arm_id="arm_b",
-            label="B",
-            description="d",
-            strategy_type="t",
-            replications=[rep_high, rep_norm],
-        ),
-    ]
-    study_high = _study(
-        arms=arms_high,
+    rep2 = ResourceStrategyReplication(
+        replication_id="rep_002",
+        lifecycle=_valid_lifecycle(),
+        metrics={"custom.unknown_metric": 0.6},
+    )
+    study_unknown = _study(
+        arms=[
+            ResourceStrategyArm(
+                arm_id="arm_a",
+                label="A",
+                description="d",
+                strategy_type="t",
+                replications=[rep1, rep2],
+            ),
+            ResourceStrategyArm(
+                arm_id="arm_b",
+                label="B",
+                description="d",
+                strategy_type="t",
+                replications=[rep1, rep2],
+            ),
+        ],
         metric_catalog=custom_cat,
         common_matched_replication_ids=["rep_001", "rep_002"],
     )
-    report_high = build_resource_strategy_report(study_high)
-    csv_high = resource_strategy_report_to_csv(report_high)
-    # CSV uses repr, so parsed value must round-trip exactly; check parsed float matches original
-    found_custom = [line for line in csv_high.splitlines() if "custom.high" in line]
-    assert found_custom, "custom.high rows must appear in CSV"
-    for line in found_custom:
-        # aggregate_mean is 9th column (0-index 8)
-        cols = line.split(",")
-        agg_mean_str = cols[8]
-        assert agg_mean_str, "aggregate_mean must be present"
-        assert float(agg_mean_str) == 0.12345678901234567
-        # Ensure repr fidelity: string must be repr of that float
-        assert agg_mean_str == repr(0.12345678901234567)
+    report_unknown = build_resource_strategy_report(study_unknown)
+    comp = next(  # noqa: E501
+        c for c in report_unknown.compatibility if c.metric_key == "custom.unknown_metric"
+    )
+    assert comp.status == ResourceStrategyCompatibilityStatus.UNAVAILABLE
+    assert "no registered compatibility contract" in comp.finding.lower()
+    assert "not verified" in comp.finding.lower()
+    # Arm aggregates must be gated
+    for arm in report_unknown.arm_summaries:
+        agg = next(a for a in arm.metric_aggregates if a.metric_key == "custom.unknown_metric")
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+        assert not agg.per_replication_values
+        assert agg.replication_count == 0
+        assert "custom.unknown_metric" in arm.unavailable_metrics
+    # Pairwise also unavailable
+    for d in report_unknown.pairwise_differences:
+        if d.metric_key == "custom.unknown_metric":
+            assert d.status == ResourceStrategyMetricStatus.UNAVAILABLE
 
 
 def test_synthetic_report_golden_is_service_produced() -> None:

@@ -780,7 +780,7 @@ def _compute_matched_replication_ids(
     return sorted(common)
 
 
-def _fingerprint(payload: object) -> str:  # noqa: ANN401
+def _fingerprint(payload: object) -> str:
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     ).hexdigest()
@@ -829,29 +829,40 @@ def build_resource_strategy_report(
     compatibility: list[ResourceStrategyCompatibility] = []
     for metric in study.metric_catalog:
         expected = EXPECTED_METRIC_CONTRACT.get(metric.metric_key)
-        if expected is not None:
-            exp_version, exp_unit, exp_denom = expected
-            mismatches: list[str] = []
-            if metric.metric_version != exp_version:
-                mismatches.append(f"version {metric.metric_version!r} != expected {exp_version!r}")
-            if metric.unit != exp_unit:
-                mismatches.append(f"unit {metric.unit!r} != expected {exp_unit!r}")
-            if metric.denominator != exp_denom:
-                mismatches.append(
-                    f"denominator {metric.denominator.value!r} != expected {exp_denom.value!r}"
+        if expected is None:
+            compatibility.append(
+                ResourceStrategyCompatibility(
+                    metric_key=metric.metric_key,
+                    status=ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+                    denominator=metric.denominator,
+                    unit=metric.unit,
+                    versions=[metric.metric_version],
+                    finding="no registered compatibility contract; metric comparison not verified",
                 )
-            if mismatches:
-                compatibility.append(
-                    ResourceStrategyCompatibility(
-                        metric_key=metric.metric_key,
-                        status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
-                        denominator=metric.denominator,
-                        unit=metric.unit,
-                        versions=[metric.metric_version],
-                        finding="incompatible: " + "; ".join(mismatches),
-                    )
+            )
+            continue
+        exp_version, exp_unit, exp_denom = expected
+        mismatches: list[str] = []
+        if metric.metric_version != exp_version:
+            mismatches.append(f"version {metric.metric_version!r} != expected {exp_version!r}")
+        if metric.unit != exp_unit:
+            mismatches.append(f"unit {metric.unit!r} != expected {exp_unit!r}")
+        if metric.denominator != exp_denom:
+            mismatches.append(
+                f"denominator {metric.denominator.value!r} != expected {exp_denom.value!r}"
+            )
+        if mismatches:
+            compatibility.append(
+                ResourceStrategyCompatibility(
+                    metric_key=metric.metric_key,
+                    status=ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                    denominator=metric.denominator,
+                    unit=metric.unit,
+                    versions=[metric.metric_version],
+                    finding="incompatible: " + "; ".join(mismatches),
                 )
-                continue
+            )
+            continue
         compatibility.append(
             ResourceStrategyCompatibility(
                 metric_key=metric.metric_key,
@@ -880,8 +891,33 @@ def build_resource_strategy_report(
         # Initialize metric aggregates structures
         metric_aggregates: list[ResourceStrategyMetricAggregate] = []
         unavailable: list[str] = []
+        # Authoritative compatibility lookup for gating
+        compatibility_by_key = {c.metric_key: c for c in compatibility}
         for metric_def in sorted(study.metric_catalog, key=lambda m: m.metric_key):
             key = metric_def.metric_key
+            compat_entry = compatibility_by_key.get(key)
+            if compat_entry is not None and compat_entry.status in (
+                ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+            ):
+                metric_aggregates.append(
+                    ResourceStrategyMetricAggregate(
+                        metric_key=key,
+                        metric_version=metric_def.metric_version,
+                        unit=metric_def.unit,
+                        denominator=metric_def.denominator,
+                        status=ResourceStrategyMetricStatus.UNAVAILABLE,
+                        replication_count=0,
+                        per_replication_values={},
+                        aggregate_mean=None,
+                        aggregate_median=None,
+                        aggregate_min=None,
+                        aggregate_max=None,
+                        reason=compat_entry.finding,
+                    )
+                )
+                unavailable.append(key)
+                continue
             # Gather per-replication values for matched ids where replication exists
             # and metric value is present. For denominators, we compute
             # attainment metrics from lifecycle where needed; otherwise use
@@ -1052,6 +1088,38 @@ def build_resource_strategy_report(
                 agg_b = next((a for a in sum_b.metric_aggregates if a.metric_key == key), None)
                 if agg_a is None or agg_b is None:
                     continue
+                # Check compatibility first: incompatible/unavailable do not enter comparison  # noqa: E501
+                compat = next((c for c in compatibility if c.metric_key == key), None)
+                if compat is not None and compat.status in (
+                    ResourceStrategyCompatibilityStatus.INCOMPATIBLE,
+                    ResourceStrategyCompatibilityStatus.UNAVAILABLE,
+                ):
+                    pairwise.append(
+                        ResourceStrategyPairwiseDifference(
+                            metric_key=key,
+                            metric_version=metric_def.metric_version,
+                            unit=metric_def.unit,
+                            denominator=metric_def.denominator,
+                            arm_a=arm_a.arm_id,
+                            arm_b=arm_b.arm_id,
+                            mean_a=agg_a.aggregate_mean,
+                            mean_b=agg_b.aggregate_mean,
+                            mean_difference_b_minus_a=None,
+                            median_difference_b_minus_a=None,
+                            interpretation=(
+                                f"{arm_b.arm_id} vs {arm_a.arm_id} unavailable "
+                                f"for {metric_def.metric_key} ({metric_def.unit}); descriptive only"
+                                if compat.status == ResourceStrategyCompatibilityStatus.UNAVAILABLE
+                                else f"{arm_b.arm_id} vs {arm_a.arm_id} incompatible metric "
+                                f"{key} ({compat.finding}); descriptive only"
+                            ),
+                            status=ResourceStrategyMetricStatus.UNAVAILABLE,
+                            reason=compat.finding
+                            if compat.status == ResourceStrategyCompatibilityStatus.UNAVAILABLE
+                            else f"incompatible contract: {compat.finding}",
+                        )
+                    )
+                    continue
                 if (
                     agg_a.status == ResourceStrategyMetricStatus.UNAVAILABLE
                     or agg_b.status == ResourceStrategyMetricStatus.UNAVAILABLE
@@ -1074,33 +1142,6 @@ def build_resource_strategy_report(
                             ),
                             status=ResourceStrategyMetricStatus.UNAVAILABLE,
                             reason="one or both arms unavailable for this metric",
-                        )
-                    )
-                    continue
-                # Check compatibility: incompatible metrics do not enter ordinary comparison
-                compat = next((c for c in compatibility if c.metric_key == key), None)
-                if (
-                    compat is not None
-                    and compat.status == ResourceStrategyCompatibilityStatus.INCOMPATIBLE
-                ):
-                    pairwise.append(
-                        ResourceStrategyPairwiseDifference(
-                            metric_key=key,
-                            metric_version=metric_def.metric_version,
-                            unit=metric_def.unit,
-                            denominator=metric_def.denominator,
-                            arm_a=arm_a.arm_id,
-                            arm_b=arm_b.arm_id,
-                            mean_a=agg_a.aggregate_mean,
-                            mean_b=agg_b.aggregate_mean,
-                            mean_difference_b_minus_a=None,
-                            median_difference_b_minus_a=None,
-                            interpretation=(
-                                f"{arm_b.arm_id} vs {arm_a.arm_id} incompatible metric "
-                                f"{key} ({compat.finding}); descriptive only"
-                            ),
-                            status=ResourceStrategyMetricStatus.UNAVAILABLE,
-                            reason=f"incompatible contract: {compat.finding}",
                         )
                     )
                     continue
