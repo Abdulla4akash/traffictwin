@@ -1,313 +1,186 @@
-# V3 Study Capsule Review — Analysis-Level Review Capsule
+# V3 Study Capsule Review — Analysis-Level Review Capsule (Final Hardening)
 
 **Feature:** Study Capsule Builder (agent/product-v3-study-capsule-v1)
-**Base:** origin/main `73264bd125ead979cd2615d5e4b50c2cfe6c50ae` (Merge PR #12)
+**PR:** #25 — Study Capsule Builder
+**Base (live):** origin/main `3b7933dfecf05b579ff9c223729128109a933d93` (Merge PR #15 Manchester Activation)
 **Capability:** OPS-04-CAPSULE — deterministic, offline-verifiable analysis-level review capsule
+**Schema:** `schema_version=1.0`, `contract_version=traffictwin-study-capsule-v1` (DRAFT, unpublished)
 **Date:** 2026-08-10
-**Author:** Muse (Muse Spark)
+**Author:** Muse Code (Muse Spark) — lane worker
 
-## 1. Product Behaviour Implemented
+## 1. Historical Heads and Reviews
 
-The Study Capsule Builder assembles selected TrafficTwin derived artifacts into one
-portable, deterministic ZIP and manifest suitable for supervisor/examiner offline review.
-It is distinct from the generic RO-Crate system (`research_object.py`) — it binds
-analysis-level objects (scenario/study, run references, comparison, report, provenance,
-limitations) with bounded publication policies.
+### A. Initial implementation head
+- **8356ab8d44cf5adb9f3a5557b7aecbd272b39733** — first deterministic Study Capsule builder + UI page + CLI, 38 unit +5 integration +5 UI + navigation (37 pages).
+
+### B. Claude 4 original review (at 8356ab8)
+- **12 findings** + **TEST13** (REQUEST CHANGES):
+  - F1 unsafe/path-like `study_version` (e.g. `/opt/builds/v2`, `C:\rel\v2`) not rejected in both Request and StudyIdentity
+  - F2 arbitrary binary `PNG/PDF/b"\x00\xff\x80"` embed crash / UTF-8 assumption
+  - F3 UI default member building outside try/error boundary
+  - F4 blank `checksums.sha256` accepted for reference-only capsules
+  - F5 unsigned `capsule_id` authenticity not disclosed
+  - F6 receipt `member_count` vs `archive_entry_count` conflation
+  - F7 dead verifier locals/audit code
+  - F8 `study_description` identity/manifest asymmetry
+  - F9 duplicate H1 / fallback
+  - F10 unavailable preview hardcoded empty
+  - F11 duplicated fingerprint/JSON logic, UI private `_json_bytes`
+  - F12 blanket `E501` noqa
+  - TEST13 `if result.exception: pytest.skip` escape
+
+### C. Remediation head
+- **9304c852f6f151870f38ff6eb20c29e0e70639b9** — 3 commits (7ebad2a feat capsule, c84de93 feat nav, 9304c85 fix 12+TEST13). Branch rebased onto 3b7933d, PR #25 `OPEN DRAFT mergeable=true`.
+
+### D. Claude 4 verification at 9304c85
+- **All original 12 + TEST13 genuinely fixed** (independent exact-head re-review). Invariants F1–F12, TEST13 frozen and preserved in this pass.
+
+### E. New medium regression at 9304c85
+- **capsule_id lost actual embedded-content binding** after binary-support redesign: `capsule_id_source` used only `member_fingerprints` (caller-declared logical fingerprints) and `request_fingerprint` (which excludes `content` bytes). Reproduction: same declared fingerprint + `{"metric":1}` vs `{"metric":999999}` → `capsule_id` equal, `manifest_fingerprint` and archive bytes differ — two different packages share one `capsule_id`.
+
+### F. Final hardening head
+- **5633524** (fix capsule identity, SemVer +, warnings, CI) + this doc commit → final `see git rev-parse HEAD (this doc commit)` after push (see git log). Whole-repo CI now green (see §11).
+
+## 2. Product Behaviour (Current)
 
 ### Typed contracts
+- `StudyCapsuleMemberKind` (11): `scenario_seed`, `run_summary`, `validation_result`, `comparison_report`, `consequence_report`, `evidence_pack`, `diagnostic_result`, `provenance_graph`, `deterministic_report`, `analyst_note`, `ro_crate_reference`
+- `StudyCapsulePublicationPolicy`: `embed_safe_derived`, `reference_by_fingerprint`, `exclude`
+- `StudyCapsuleEvidenceLabel`: 9 values; `StudyCapsuleAdmissionLabel`: 3
+- `StudyCapsuleMemberInput` / `StudyCapsuleMember` / `StudyCapsuleUnavailable` / `StudyCapsuleRequest` / `StudyCapsuleStudyIdentity` / `StudyCapsuleManifest` / `StudyCapsuleReceipt` / `StudyCapsuleVerification` / `StudyCapsuleContract` — all `extra="forbid"`, `validate_assignment=True`, `_safe_text`/`_contains_secret_hint`/`_STUDY_VERSION_RE` checks.
 
-- `StudyCapsuleMemberKind` — 11 kinds: `scenario_seed`, `run_summary`, `validation_result`,
-  `comparison_report`, `consequence_report`, `evidence_pack`, `diagnostic_result`,
-  `provenance_graph`, `deterministic_report`, `analyst_note`, `ro_crate_reference`.
-- `StudyCapsulePublicationPolicy` — `embed_safe_derived`, `reference_by_fingerprint`, `exclude`.
-- `StudyCapsuleEvidenceLabel` — `authored_configuration`, `synthetic_evidence`,
-  `imported_evidence`, `historical_observation`, `near_live_operational`, `admitted_research`,
-  `unadmitted_research`, `static_geographic`, `unavailable`.
-- `StudyCapsuleAdmissionLabel` — `admitted`, `unadmitted`, `not_applicable`.
-- `StudyCapsuleMemberInput` / `StudyCapsuleMember` / `StudyCapsuleUnavailable`
-- `StudyCapsuleRequest` / `StudyCapsuleManifest` / `StudyCapsuleReceipt` / `StudyCapsuleVerification`
-- `StudyCapsuleContract`
+### Publication policy
+- `EMBED_SAFE_DERIVED` requires `content: bytes` (1–10 MB), computes `sha256`+`content_size`+`archive_path` (`artifacts/<kind>/<logical_id>.yaml|json|md`); binary allowed (try utf-8 decode, skip text checks on `UnicodeDecodeError`).
+- `REFERENCE_BY_FINGERPRINT` stores `fingerprint` only, no bytes.
+- `EXCLUDE` stores `exclusion_reason` + `StudyCapsuleExclusion`.
 
-All models are strict (`extra="forbid"`, `validate_assignment=True`) and reject absolute
-paths and secret hints via `_safe_text` / `_contains_secret_hint`.
+Raw imported evidence (`imported_evidence`, `historical_observation`, `near_live_operational`, `unadmitted_research`) rejected if `EMBED_SAFE_DERIVED` is requested — UI defaults to `REFERENCE` for imported.
 
-### Publication policy enforcement
+### Capsule identity (content-bound, §6–7)
+- `capsule_id = urn:traffictwin:study-capsule:sha256(canonical_json(payload))` where payload includes:
+  - `contract_version`, `creation_date`, `request_fingerprint` (portable request JSON without raw bytes), `software`, `study_identity`, and
+  - `members: [{kind, logical_id, policy, fingerprint, [content_sha256 for EMBED], [exclusion_reason for EXCLUDE]}]` sorted by `kind+logical_id`.
+- For `EMBED_SAFE_DERIVED`: binds `computed content_sha256` (`_sha256(content)`) to stable `kind+logical_id+policy+fingerprint` — same declared fingerprint + different bytes → different `capsule_id` and `manifest_fingerprint`; binary `b"\x00\xff\x80ABC"` vs one-byte change → different `capsule_id`.
+- For `REFERENCE_BY_FINGERPRINT`: same declared fingerprint → same identity (no local bytes).
+- For `EXCLUDE`: changing `exclusion_reason` → different `capsule_id`.
+- No local filesystem path, no raw bytes, no wall clock in identity; archive paths excluded (use logical `kind+logical_id`).
 
-- `EMBED_SAFE_DERIVED` requires `content` bytes, produces `archive_path` + `sha256` + `content_size`.
-- `REFERENCE_BY_FINGERPRINT` stores fingerprint only, no bytes in archive.
-- `EXCLUDE` stores only `exclusion_reason` and aggregate `StudyCapsuleExclusion`.
-- Raw imported evidence (`imported_evidence`, `historical_observation`,
-  `near_live_operational`, `unadmitted_research`) is rejected if `EMBED_SAFE_DERIVED` is requested
-  — model validator raises `ValueError`. This satisfies “Raw imported evidence must default to
-  reference or exclusion, not embedding.”
+Tests A–G (see §8) prove the above.
 
 ### Manifest binding
+- `StudyCapsuleManifest` binds `schema_version`, `capability_id`, `contract_version`, `capsule_id`, `study` (`study_id`, `study_version` with `+` support, `study_title`, `study_description`), `creation_date`, `members` (sorted), `exclusions`, `unavailable`, `limitations`, `evidence_summary`, `software`, `manifest_fingerprint = sha256(canonical_json_without_fingerprint)`.
 
-`StudyCapsuleManifest` binds:
-
-- `schema_version`, `capability_id`, `contract_version`
-- `capsule_id` (`urn:traffictwin:study-capsule:<sha256(...)>`)
-- `study` (`study_id`, `study_version`, `study_title`)
-- `creation_date`
-- `members` (kind, logical_id, fingerprint, evidence/admission labels, policy, `archive_path`/`sha256`/`content_size` for embedded, `exclusion_reason` for excluded)
-- `exclusions` (explicit aggregate with reason)
-- `unavailable` (explicit missing categories with reason)
-- `limitations`, `evidence_summary`
-- `software` (package version, python version, schema/contract versions)
-- `manifest_fingerprint` (deterministic `sha256(canonical_json_without_fingerprint)`)
-
-No absolute paths, secrets, or local filesystem roots appear in the portable manifest.
-`selected artifact kinds` and `artifact logical fingerprints` are bound via the sorted
-`members` list; `member publication policies` via `policy`; `checksums` via `sha256`;
-`limitations` and `software/schema versions` via dedicated fields.
-
-Portable identity excludes wall-clock (caller supplies `creation_date`), rendering state,
-local paths and secrets; uses stable ordering (`sorted` by kind+logical_id), `sort_keys=True`
-canonical JSON, lossless numeric preservation (`allow_nan=False`), and distinguishes
-`unknown` from `false` via explicit enums (`evidence_label`, `admission_label`).
+Portable identity excludes wall-clock, rendering state, local paths, secrets; stable ordering, `sort_keys` canonical JSON, `allow_nan=False`.
 
 ### Archive semantics
-
-- Deterministic ZIP: `ZIP_STORED`, `_FIXED_ZIP_TIMESTAMP = (1980,1,1,0,0,0)`, `external_attr = 0o100644 << 16`, `create_system = 3`.
-- Stable member ordering: `sorted(members.items())` both for `members` dict and for `checksums.sha256`.
-- Normalised permissions (above) and timestamps.
-- Canonical JSON (`indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False`) for all JSON payloads.
-- No duplicate paths (builder checks `if crate_path in members`, verifier checks `len(names) != len(set(names))`).
-- No traversal (`PurePosixPath` checks for `is_absolute` or `..`/`.`).
-- No symlink escape (`external_attr` symlink bits rejected, `is_symlink` checks on destination).
-- Exact checksums (`checksums.sha256` covers every payload member except itself).
-- Atomic publication (`NamedTemporaryFile` + `os.fsync` + `os.replace`; cleanup on failure).
-- Explicit existing-destination policy (`overwrite=False` raises `FileExistsError`).
-- Byte-identical archives for equivalent logical artifacts (verified).
+- Deterministic ZIP: `ZIP_STORED`, `_FIXED_ZIP_TIMESTAMP=(1980,1,1,0,0,0)`, `external_attr=0o100644<<16`, `create_system=3`, `sorted(members.items())`, canonical JSON `sort_keys`, no dup/traversal/symlink, `checksums.sha256` covers every payload member except itself, atomic `NamedTemporaryFile+fsync+os.replace`, `overwrite=False` raises `FileExistsError`, byte-identical for equivalent logical artifacts.
 
 ### Verifier
+- `verify_study_capsule_bytes` offline, recomputes every `sha256`, rejects missing/extra/duplicate/traversal, verifies `manifest_fingerprint`, distinguishes `malformed`/`tampered`/`unsupported_version`, no network.
 
-`verify_study_capsule_bytes` is offline and:
-
-- Recomputes every embedded-member checksum via `_sha256(content)` — never trusts manifest.
-- Rejects missing members (`manifest embedded inventory != actual payload`).
-- Rejects undeclared extra members (same check).
-- Rejects duplicate archive names (via `_validate_archive_infos`).
-- Rejects traversal entries (via `_validate_archive_name`).
-- Verifies canonical manifest fingerprint (`manifest.fingerprint()` recomputed without stored field).
-- Distinguishes `malformed` (bad JSON, bad structure), `tampered` (checksum/fingerprint mismatch, inventory mismatch), `unsupported_version` (schema_version mismatch preserved even when validation fails).
-- Operates offline (no network, no registry).
-
-### Member types
-
-Supported initial set drawn from TrafficTwin artifacts:
-
-- `scenario_seed` — authored configuration
-- `run_summary` / `validation_result` — run-level summaries
-- `comparison_report` / `consequence_report` — metrics comparison
-- `evidence_pack` / `diagnostic_result` — evidence & diagnostics
-- `provenance_graph` — PRO-02 style export
-- `deterministic_report` — markdown/html report
-- `analyst_note` — where publication policy permits
-- `ro_crate_reference` — existing RO-Crate by fingerprint reference
-
-Not every kind must be embedded; reference/exclude are first-class.
-
-### UI workflow (thin over library)
-
-`src/traffictwin/ui/pages/study_capsule.py` provides:
-
-1. Study/experiment context selection (study_id, title, version, creation_date, capsule title/description)
-2. Eligible derived artifacts multi-select from demo library (`_DEMO_MEMBERS`)
-3. Per-member evidence & admission labels and publication policy selectors (table)
-4. Include/reference/exclude preview (`preview_membership` → four columns)
-5. Privacy/path warning (“portable manifest stores no absolute paths…”)
-6. Build action → `build_study_capsule` + `create_study_capsule_archive` (thin call)
-7. Receipt + fingerprint display and archive download (`st.download_button`)
-8. Verification upload/path + `verify_study_capsule_bytes` call (thin)
-9. Verification result and member audit (four columns embedded/referenced/excluded/unavailable, errors)
-
-The page contains no metric, validation, or hashing logic — all logic is in `study_capsule.py`.
+### UI (thin)
+- Single `render_page_header` H1; caption/info disclose method; demo library via `default_synthetic_member`/`build_demo_member` (no `hashlib`/`_json_bytes` in UI); both default-member builds inside `try`; preview uses real `unavailable_entries` (four columns embedded/referenced/excluded/unavailable); contract expander shows versioned contract.
 
 ### CLI
+- `traffictwin capsule contract`, `create <request.json> <dest.zip> [--overwrite]`, `verify <archive.zip>` — prints `members (logical)`, `archive_entries`, `embedded/referenced/excluded/unavailable`, `verified: true (internal integrity)` + `note: valid proves internal integrity, not external authenticity`.
 
-`traffictwin capsule` sub-app:
+## 3. Whole-Repo CI Gates (Not Narrowed)
 
-- `traffictwin capsule contract [--format text|json]` — shows capability, contract version, fingerprint, kinds, policies, required members.
-- `traffictwin capsule create <request.json> <dest.zip> [--overwrite] [--format text|json]` — builds from a portable `StudyCapsuleRequest` JSON file (uses `model_validate_json` → `create_study_capsule_archive`).
-- `traffictwin capsule verify <archive.zip> [--format text|json]` — offline verification (uses `verify_study_capsule`).
+Claude at 9304c85 found 3 blockers; now fixed:
 
-## 2. Fixture / Synthetic Demonstration Evidence
+| Gate | Command | Collected | Result |
+|------|---------|-----------|--------|
+| ruff format | `uv run ruff format --check .` | 1050 files | **1050 already formatted** (6 files reformatted) |
+| ruff check | `uv run ruff check .` | — | **All checks passed** (was I001 at tests/integration:4, B011 assert False at 124, S108 /tmp at 262) |
+| mypy | `uv run mypy` | 964 files | **Success: no issues** (was 4 errors at tests/integration:212 need type annotation for `z` → fixed to `dict[str, bytes]`) |
+| uv lock | `uv lock --check` | 91 packages | **Resolved 91 packages** |
+| git diff --check | `git diff --check` | — | **No whitespace errors** |
 
-All artifacts in tests and demo are synthetic, explicitly labelled `synthetic_evidence` or
-`authored_configuration`. Deterministic dummy JSON payloads are generated via
-`_json_bytes({"kind":..., "logical_id":..., "evidence_label":..., "deterministic": True})`
-and fingerprinted via `sha256(kind:logical_id)`. No Manchester observation is relabelled.
+No weakening of `.github/workflows`, `pyproject.toml` (`line-length=100` retained), Ruff/mypy config.
 
-Available synthetic bundles (`tests/fixtures/bundles/baseline_valid`) are not directly embedded
-as raw evidence — the capsule embeds only derived artifacts (reports, evidence packs, etc.),
-matching the “raw imported evidence must default to reference” rule.
+## 4. Ruff Fixes Detail ( §4)
 
-## 3. Unavailable / Future Integrations
+- **4A I001** at `tests/integration:4`: sorted import block (`import pytest` after stdlib, before `from traffictwin`). Fixed via canonical ordering, no `noqa`.
+- **4B B011** at `tests/integration:124`: `assert False, "should have raised"` → `pytest.fail("raw imported evidence embedding should be rejected")` (not `assert 0`).
+- **4C S108** at `tests/integration:262`: `"/tmp"` → `str(tmp_path)` (absolute temp path from `pytest` fixture), preserving absolute-path rejection semantics without hardcoded `/tmp`.
 
-- Real Manchester evidence activation (BODS/National Highways live feeds) — not required; capsule records such evidence as `UNAVAILABLE` with reason.
-- Generic RO-Crate publication — deliberately not recreated; capsule references RO-Crates by fingerprint only.
-- VEC research outputs beyond `ro_crate_reference` — admitted research would be referenced, not auto-imported.
-- Ethereum/IPFS persistence, DOI, or scientific-validity attestation — excluded per contract.
-- Simulation launch (SUMO/VEC) — never started; capsule binds already-derived artifacts only.
-- Path remapping for external `vec_env` / `tos-data` — untouched.
+## 5. Mypy Fix Detail ( §5)
 
-## 4. Tests Actually Run at Exact Head
+- `tests/integration:212` `Need type annotation for "z"` cascaded to `Key expression has incompatible type "str"; expected "ZipInfo"` etc. Root cause: dead placeholder `members3 = {n: z.read(n) for n in ZipFile(...).infolist() for z in []}` inferred `dict[ZipInfo, Any]`. Fixed by removing placeholder and typing `with zipfile.ZipFile(buf, "r") as z: members3: dict[str, bytes] = {n: z.read(n) for n in z.namelist()}` — precise `dict[str, bytes]` (name→bytes), `964 files Success`.
 
-All commands executed with `E2` active → serial, no `pytest -n`, no SUMO/VEC.
+## 6. Capsule_id Regression and Fix ( §6–10)
 
-| Suite | Command | Collected | Executed | Result |
-|-------|---------|-----------|----------|--------|
-| Feature unit | `uv run --with pytest pytest tests/unit/test_study_capsule.py -v` | 38 | 38 | **38 passed** |
-| Integration | `uv run --with pytest pytest tests/integration/test_study_capsule_integration.py -v` | 5 | 5 | **5 passed** |
-| UI/AppTest | `uv run --with pytest pytest tests/ui/test_study_capsule_ui.py -v` | 5 | 5 | **5 passed** |
-| Combined feature | `uv run --with pytest pytest tests/unit/test_study_capsule.py tests/integration/test_study_capsule_integration.py tests/ui/test_study_capsule_ui.py -v` | 48 | 48 | **48 passed** |
+- **Repro** at 9304c85: `StudyCapsuleMemberInput(kind=SCENARIO_SEED, logical_id="seed-diff", fingerprint=fp, content=b'{"metric":1}')` vs `content=b'{"metric":999999}'` same `fp` → old `capsule_id` equal (`26dd487b...`), new `manifest_fingerprint`/`archive bytes` differ.
+- **Fix**: `member_identities` list binds `content_sha256` for `EMBED` (computed `_sha256(content)`) to `kind+logical_id+policy+fingerprint`.
+- **Design** (see §2 identity): `members` sorted list of `{kind, logical_id, policy, fingerprint, [content_sha256], [exclusion_reason]}` in `capsule_id_source`; no raw bytes, no local path.
+- **Tests A–G** added in `tests/unit/test_study_capsule.py`: same bytes same id; same fp different bytes → diff; binary one-byte diff → diff; same bytes across `tempfile.TemporaryDirectory` roots → same id + byte-identical ZIP; same bytes different declared fp → diff; reference same/diff fp; exclude reason change → diff.
+- **M10 mutation**: removed `entry["content_sha256"] = m.sha256` line, kept `fingerprint`; `test_capsule_id_same_declared_fp_different_bytes_differs` failed: `assert 'urn:...26dd487b...' != 'urn:...26dd487b...'` → equal when inequality required; restored.
 
-Additionally, the verifier smoke was executed via `uv run python -c` (see §7) and showed
-deterministic byte-identical archives and tamper detection.
+## 7. Low Fixes
 
-## 5. Tests Inherited from Earlier Commits
+- **study_version** (§11): regex `^[A-Za-z0-9][A-Za-z0-9._+\-]{0,63}$` (was `._-`), accepts `1.0+build.2`, `2.1.0-rc.1+sha.abc123`; still rejects `/v1+build`, `C:\v1+build`, whitespace, `:` `/` `\`, control, empty, oversize (65 chars). Tests `test_study_version_plus_build_metadata_accepted`.
+- **warnings** (§12): `StudyCapsuleVerification.warnings: list[str]` removed (no production producer; `grep -rn .warnings` showed only `warnings=[]` at `study_capsule.py:1167`; UI had no rendering); `rg` shows no callers; authenticity limitation is a `limitation`, not a dynamic warning. Tests `test_warnings_field_removed` assert `not hasattr(ver, "warnings")`.
 
-The feature does not delete or weaken existing tests. The following neighbouring suites were
-checked via focused serial runs (E2-safe) before final commit:
+## 8. Quality Document Rewrite ( §13–15)
 
-- `tests/unit/test_research_object.py` — 0 collected when run in isolation? (not executed as broad sweep due to E2).
-  Deferred broad validation is listed in §6. The feature’s own tests reuse the same deterministic
-  ZIP primitives (`_FIXED_ZIP_TIMESTAMP`, `ZIP_STORED`, `checksums.sha256`).
+- Historical head 8356ab8, original 12+TEST13, remediation 9304c85 (all verified fixed), new finding (capsule_id), final head `see git rev-parse HEAD (this doc commit)` (this doc commit).
+- **Authenticity boundary** (§14): verification establishes structural validity, `manifest_fingerprint` consistency, `checksums` consistency, embedded-byte integrity against archive's own declarations; does **NOT** establish who created, trusted issuer, non-repudiation, external authenticity — fully rewritten unsigned archive with recomputed IDs/checksums may verify internally (honest limitation, not a bug; `content-bound deterministic identity` language).
+- **Identity contract change under schema_version 1.0** (§15): `study_description` entered portable identity and `content_sha256` entered `capsule_id` while feature remained DRAFT unpublished; `schema_version` stays `1.0`; no released compatibility promise; document states “Identity semantics evolved while the feature remained an unpublished draft; there is no released 1.0 archive compatibility promise yet.”
 
-## 6. Validation Deferred Because of Active Research
+## 9. Re-prove Determinism ( §19)
 
-E2 check: `pgrep -fl 'e2-native|eval_sumo|run_e1|vec'` showed
+After fix, reproved:
 
-```
-9284 eval_sumo_stage1_mc.py --trace ... --actor ... --out-json .../full/dla/run_1/summary.json
-87359 run_e2_native_placement_pilot.py --manifest .../e2_native_placement_pilot_manifest_v1.json --phase full
-```
+- A two equivalent builds from different `tempfile.TemporaryDirectory` roots → byte-identical ZIP
+- B same logical input → same `capsule_id`
+- C same logical input → same `manifest_fingerprint`
+- D same embedded bytes → stable `sha256`
+- E different embedded bytes → different `capsule_id`
+- F different embedded bytes → different `manifest_fingerprint`
+- G archive verification `valid`
+- H one-byte post-build tamper → `tampered`
+- I missing `checksums.sha256` member → `malformed`
+- J blank `checksums.sha256` → `tampered`
+- K reference-only canonical zero-entry `checksums` → `valid`
 
-E2 (`e2-native-placement-pilot-v1`) was active throughout. Therefore:
+All above covered by `test_capsule_id_*`, `test_blank_checksums_rejected_for_reference_only`, `test_integration_verifier_detects_tamper_missing_extra`, `test_integration_deterministic_archive_across_equivalent_roots`, etc.
 
-- No broad `pytest -n` (serial only).
-- No SUMO, VEC, or evaluator launch.
-- No broad `pytest tests/` sweep (would be CPU-heavy and risk interference). Only focused
-  feature tests (above) and a single-file neighbouring check were run.
-- Full lint/type gates were run only on changed files via `uv run --with ruff` / `uv run --with mypy`
-  (see §11). A full repository `mypy --strict` and `ruff check` sweep is deferred.
-- `uv lock --check` was executed (see §11) but not a full reinstall.
+## 10. Tests Run (Serial, No SUMO/VEC)
 
-This matches the task instruction: “run tests serially; never use pytest -n; do not start SUMO/VEC…”.
+- E2 check at start: `pgrep -fl e2-native|native-placement|eval_sumo|run_e1|vec` → no E2 jobs (only `claude --safe-mode` review at prompt), system load ~2.66, but still serial; no SUMO/VEC/evaluator launched; no raw E2 outputs / `diss` / `external/vec_env` / `tos-data` touched.
+- Commands (after final code):
+  - `pytest tests/unit/test_study_capsule.py -v` : 58 collected → 58 passed
+  - `pytest tests/integration/test_study_capsule_integration.py tests/ui/test_study_capsule_ui.py tests/ui/test_navigation_v07.py -q` : 64 passed
+  - Combined feature + navigation = 122 passed (unit 58 + integration 5 + UI 8 + nav 51 after rebase; includes new capsule_id tests)
+  - Collect-only counts reported before execution (58, 64).
 
-## 7. Known Infrastructure CI Blocker
+## 11. Mutation Table
 
-GitHub Actions is infrastructure-blocked by account billing/spending state (as noted in the
-task prompt). Workflow YAML was not changed; no workflow was weakened.
+| # | Mutation | Test Failed | Exact Assertion | Restored |
+|---|----------|-------------|-----------------|----------|
+| M1 | skip checksum recomputation | `test_verifier_trusts_not_manifest_without_hashing` | `assert ver.valid is False` was True | Yes |
+| M2 | remove `_POSIX_ABS` redaction | `test_absolute_path_in_text_rejected` | no raise | Yes |
+| M3 | unsorted ZIP | `test_archive_members_are_stably_ordered` | `names != sorted(names)` | Yes |
+| M4 | remove traversal check | `test_traversal_member_rejected` | `assert ver.valid is False` was True | Yes |
+| M5 | remove duplicate check | `test_duplicate_member_rejected` | accepted | Yes |
+| M6 | remove atomic temp+fsync+replace | `test_atomic_failure_no_partial_after_failure` | partial left | Yes |
+| M10 | remove `content_sha256` from `capsule_id_source` | `test_capsule_id_same_declared_fp_different_bytes_differs` | `assert 'urn:...26dd48...' != 'urn:...26dd48...'` failed (equal) | Yes |
 
-## 8. Reused Primitives
+## 12. Remaining Limitations
 
-- `traffictwin.release.metadata.current_release_metadata` for software version.
-- Canonical JSON via `json.dumps(sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)` (same as `research_object.py`).
-- SHA-256 via `hashlib.sha256`.
-- Deterministic ZIP pattern (`_FIXED_ZIP_TIMESTAMP`, `ZIP_STORED`, `0o100644`, `create_system=3`, `sorted(members.items())`) copied from `research_object.py` but implemented independently for the new capsule schema.
-- `pydantic` strict models (`extra="forbid"`).
-- Streamlit tables/badges helpers are used in the page for audit display, but no metric logic is duplicated.
+- Demo-library driven member selection; future hydration from SQLite registry possible without schema change.
+- Size limits 10 MB / 50 MB; larger evidence referenced.
+- CLI expects pre-built `Request` JSON; future UI can emit it.
+- Analyst notes are JSON snapshots; rich media requires new `encoding_format`.
+- Unsigned format: see §8 authenticity boundary.
 
-## 9. Architecture and Shared-File Isolation
+## 13. PR Body and Merge State
 
-- **Domain logic** lives in one new file: `src/traffictwin/study_capsule.py` (1 280 lines, strict mypy, ruff clean).
-- **UI page** lives in `src/traffictwin/ui/pages/study_capsule.py` (thin, calls production services) plus a fallback wrapper `src/traffictwin/ui/app_pages/study_capsule.py` that gracefully degrades before navigation registration.
-- **CLI** adds a new `capsule` Typer app in `src/traffictwin/cli.py` (isolated import block + new `capsule_app`).
-- **Tests** are in new files only: `tests/unit/test_study_capsule.py`, `tests/integration/test_study_capsule_integration.py`, `tests/ui/test_study_capsule_ui.py`.
-- **Docs** are new: `docs/quality/v3_study_capsule_review.md` (this file).
+- PR #25 body will be updated after push to distinguish: INITIAL 8356ab8, ORIGINAL REVIEW 12+TEST13, HARDENED 9304c85 (all fixed), NEW REGRESSION + CI, FINAL `see git rev-parse HEAD (this doc commit)` with whole-repo gates; no claim of Claude approval.
+- PR remains `OPEN DRAFT base main` — **DO NOT MERGE, DO NOT MARK READY**.
 
-Shared registration surfaces (`labels.py`, `navigation_v07.py`, `page_runtime.py`, navigation tests,
-user-guide index) are **intentionally untouched** in the domain commits. They will be modified
-only in the final isolated registration commit, containing the minimal additive navigation spec
-(derive page count from live base + 1, do not assume 36).
+## 14. Review Brief
 
-No rehearsal branch, safety tag, PR #21 research artifact, `external/vec_env`, `tos-data`, or raw
-E0/E1/E2 outputs were modified.
-
-## 10. Mutation Table — Adversarial Proof
-
-Each row is a restored mutation: the mutant was injected, the listed test failed with the shown
-assertion, then the mutant was restored.
-
-| # | Mutation (file:line) | Test that failed | Exact assertion that failed | Restored |
-|---|----------------------|------------------|-----------------------------|----------|
-| 1 | `src/traffictwin/study_capsule.py:verify_study_capsule_bytes` — skip checksum recomputation, trust `manifest.sha256` directly (`if entry.sha256 is None: pass` instead of `if _sha256(content) != entry.sha256`) | `test_verifier_trusts_not_manifest_without_hashing` | `assert ver.valid is False` → was `True` (verifier accepted tampered bytes) ; `assert ver.status is TAMPERED` | **Yes** |
-| 2 | `src/traffictwin/study_capsule.py:_safe_text` — remove `_POSIX_ABS` redaction, allow `/tmp/secret/file` to enter manifest | `test_absolute_path_in_text_rejected` (and `test_windows_path_rejected`, `test_manifest_contains_no_absolute_paths`) | `with pytest.raises(ValueError)` → no raise (path entered manifest) ; `assert "/tmp" not in manifest_text` failed | **Yes** |
-| 3 | `src/traffictwin/study_capsule.py:_zip_bytes` — iterate `members.items()` without `sorted()`, write nondeterministic order | `test_archive_members_are_stably_ordered` | `assert names == sorted(names)` failed (archive names were insertion-order: `['artifacts/run_summary/run-z.json', 'artifacts/scenario_seed/seed-a.yaml', ...] != sorted`) ; also `test_deterministic_archive_byte_identical` showed `b1 != b2` | **Yes** |
-| 4 | `src/traffictwin/study_capsule.py:_validate_archive_name` — remove traversal check (`if ".." in parts` → removed) | `test_traversal_member_rejected` | `assert ver.valid is False` → was `True` (verifier accepted `../../evil.txt`) | **Yes** |
-| 5 | `src/traffictwin/study_capsule.py:_validate_archive_infos` — remove duplicate-name check (`if len(names) != len(set(names))`) | `test_duplicate_member_rejected` | `assert ver.valid is False` → was `True` (duplicate accepted) | **Yes** |
-| 6 | `src/traffictwin/study_capsule.py:create_study_capsule_archive` — remove temp-file + `os.fsync` + `os.replace` atomic block, write directly via `Path.write_bytes(archive)` | `test_atomic_failure_no_partial_after_failure` | `assert not dest.exists()` failed (partial file left after validation error) ; `test_existing_destination_behavior` showed original bytes truncated on failed overwrite attempt | **Yes** |
-
-Five required categories are covered: 1 (hash trusting), 2 (absolute path), 3 (nondeterministic order), 4 (traversal/duplicate), 5 (partial file).
-
-Surviving non-equivalent mutants: none observed among the above; the deterministic ZIP timestamp check (`info.date_time != _FIXED_ZIP_TIMESTAMP`) would be a surviving mutant if relaxed, but it is already enforced and tested via `test_traversal_member_rejected`'s timestamp variant and `verify`’s `_validate_archive_infos`.
-
-## 11. Lint / Type / Lock / Diff Gates
-
-| Gate | Command (worktree) | Result |
-|------|--------------------|--------|
-| ruff check | `uv run --with ruff ruff check src/traffictwin/study_capsule.py` | All checks passed |
-| ruff format | `uv run --with ruff ruff format --check src/traffictwin/study_capsule.py` | 1 file already formatted |
-| ruff check (page) | `uv run --with ruff ruff check src/traffictwin/ui/pages/study_capsule.py` | All checks passed |
-| ruff check (cli) | `uv run --with ruff ruff check src/traffictwin/cli.py` | All checks passed |
-| mypy strict | `uv run --with mypy python -m mypy src/traffictwin/study_capsule.py --strict` | Success: no issues |
-| mypy strict (page) | `uv run --with mypy python -m mypy src/traffictwin/ui/pages/study_capsule.py --strict` | Success (checked via absolute path) |
-| uv lock | `uv lock --check` | (executed, see island; no dependency added) |
-| git diff --check | `git diff --check` | No whitespace errors |
-
-Full repository `ruff check` / `mypy` sweep is deferred due to E2 (see §6).
-
-## 12. Evidence and Claim Boundaries
-
-All evidence is **synthetic** (`synthetic_evidence`, `authored_configuration`) or `imported_evidence`
-referenced by fingerprint. The capsule never:
-
-- relabels synthetic data as Manchester observation;
-- treats manual incidents as observations;
-- treats BODS buses as general traffic;
-- claims credentials imply scientific acceptance;
-- claims causal effects, optimality, superiority or production readiness;
-- calls simulated resource control Kubernetes deployment;
-- calls a frozen study plan scientific approval;
-- exposes credentials, secrets, absolute local paths or private raw data.
-
-The manifest limitation `"Not a proof of scientific validity"` is retained and the page
-shows it explicitly. Verifiable does not mean valid.
-
-## 13. E2 / Process Isolation Evidence
-
-- `pgrep -fl 'e2-native|eval_sumo|run_e1|vec'` at prompt creation showed two active processes (see §6).
-- Tests were run serially (`pytest` without `-n`), no SUMO/VEC/evaluator was started,
-  no process was signalled/reniced, no broad CPU sweep was done.
-- Capsule never packages active E2 output (it binds only caller-supplied derived artifact bytes).
-
-## 14. Shared-File / Other-PR Isolation
-
-- No existing PR branch (13–22) was cherry-picked, rebased, or pushed to.
-- `origin/main` was fetched and used as base (`73264bd`).
-- New worktree `/Users/akashx/AntigravityTest/worktrees/study-capsule-v1` isolates the lane.
-- Reused primitives (canonical JSON, SHA-256) are copied, not forked.
-- Final navigation registration will be a separate last commit; until then, `labels.py`,
-  `navigation_v07.py`, `page_runtime.py`, and user-guide indexes are untouched, avoiding
-  conflicts with four parallel feature PRs.
-
-## 15. Remaining Limitations
-
-- Study/artifact selection is demo-library driven (synthetic `_DEMO_MEMBERS`); a future
-  iteration can hydrate members from the real SQLite registry (e.g., `list_workspace_reports`,
-  `Experiment`, `Run`) without changing the capsule schema.
-- Capsule size limits (`MAX_MEMBER_BYTES = 10 MB`, `MAX_ARCHIVE_TOTAL_BYTES = 50 MB`) are
-  intentionally bounded for review packages; larger evidence should be referenced, not embedded.
-- Analyst notes are JSON snapshots; rich media (images) would require a new `encoding_format`.
-- The offline CLI `capsule create` currently expects a pre-built `StudyCapsuleRequest` JSON file;
-  a future UX can emit that JSON directly from the UI’s “Download request JSON”.
-
-## 16. Review Brief for Claude Reviewer (Exact Head)
-
-- **Branch:** `agent/product-v3-study-capsule-v1` (from `origin/main` `73264bd`).
-- **Changed files (domain commits):** `src/traffictwin/study_capsule.py` (+1 280), `src/traffictwin/ui/pages/study_capsule.py` (+~460), `src/traffictwin/ui/app_pages/study_capsule.py` (+12), `src/traffictwin/cli.py` (+~90, new `capsule` app), three new test files (48 tests), `docs/quality/v3_study_capsule_review.md`.
-- **Final head:** review `git log --oneline` for exact SHA after final registration commit (registration commit will add `UiPage.STUDY_CAPSULE`, `navigation_v07` spec + `page_runtime` entry, navigation test update).
-- **Page count:** derive from live base `len(UiPage)` + 1; do not assume 36.
-- **Focus for reviewer:** (a) deterministic manifest fingerprint excludes wall-clock/paths, (b) raw imported evidence cannot be embedded, (c) verifier recomputes hashes and distinguishes `malformed`/`tampered`/`unsupported_version`, (d) ZIP is normalised and atomic, (e) UI is thin over the library.
+- Branch `agent/product-v3-study-capsule-v1` from `3b7933d`, final head `see git rev-parse HEAD (this doc commit)` (check `git rev-parse HEAD`).
+- Changed files 9304c85→NEW: `src/traffictwin/study_capsule.py` (capsule_id, version, warnings), `tests/integration/...` (CI fixes), `tests/unit/...` (capsule_id tests), `docs/quality/...` (this rewrite), plus formatting touches to `cli.py`/`ui/pages` (pure formatting).
+- Focus: content-bound `capsule_id`, whole-repo CI (format/check/mypy/lock/diff), SemVer `+`, warnings removal, determinism, authenticity boundary, binary identity, counts, zero-embed checksums, study_description, single H1, public helper, AppTest fail-not-skip.
