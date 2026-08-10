@@ -222,19 +222,8 @@ def _resolve_safe_sample_path(path: Path) -> Path:
     # Approved roots
     cwd_root = Path.cwd().resolve()
     tmp_root = Path(tempfile.gettempdir()).resolve()
-    # Also allow /private/tmp on macOS (real path for /tmp)
     allowed_roots = {cwd_root, tmp_root}
-    # On macOS, /tmp is symlink to /private/tmp; resolve handles, but also check parents
-    # For pytest tmp_path under /private/var/folders, that is not under /tmp; allow any
-    # path that is under tmp_root's parent? Instead, allow any path that exists and is
-    # under tmp_root OR is a temp file that is under system's temp? For simplicity,
-    # if path is under /private/var/folders (macOS temp), allow it if it contains "pytest"
-    # or "tmp". Check string.
-    resolved_str = str(resolved)
     is_under_allowed = any(resolved == root or root in resolved.parents for root in allowed_roots)
-    # Special allow for macOS pytest temp: /private/var/folders/.../pytest-*
-    if not is_under_allowed and "/pytest" in resolved_str and "tmp" in resolved_str:
-        is_under_allowed = True
     if not is_under_allowed:
         # Also allow if path is under /tmp/traffictwin-data-contract (our worktree) which is under cwd? Actually worktree is /tmp/traffictwin-data-contract, which is under /tmp, so covered.  # noqa: E501
         raise TabularReadError(

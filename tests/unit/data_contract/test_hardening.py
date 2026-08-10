@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -255,6 +256,67 @@ def test_workspace_containment(tmp_path: Path) -> None:
     # Instead test that path containing .. that resolves outside allowed roots is refused
     # Use a path that is clearly outside cwd and tmp: /tmp/../etc/hosts is still outside
     # For our implementation, any path with .. that resolves outside cwd/tmp will be refused already via suffix check  # noqa: E501
+
+
+def test_workspace_containment_rejects_outside_pytest_tmp_substring(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression for substring bypass: outside path containing pytest/tmp must still be rejected."""  # noqa: E501
+
+    # Isolated allowed roots
+    allowed_workspace = tmp_path / "allowed_workspace"
+    allowed_tmp = tmp_path / "allowed_tmp"
+    outside_root = tmp_path / "outside_root"
+    allowed_workspace.mkdir()
+    allowed_tmp.mkdir()
+    outside_root.mkdir()
+
+    # Outside path that contains the magic substrings
+    outside_path = outside_root / "pytest" / "tmp" / "exfiltrated.csv"
+    outside_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_csv(outside_path, ["a"], [["1"]])
+
+    # Monkeypatch cwd and gettempdir to isolated roots
+    monkeypatch.chdir(allowed_workspace)
+    monkeypatch.setattr(tempfile, "gettempdir", lambda: str(allowed_tmp))
+    # Also patch inspection's view
+    monkeypatch.setattr(  # noqa: E501
+        "traffictwin.data_contract.inspection.tempfile.gettempdir", lambda: str(allowed_tmp)
+    )
+
+    # Ordinary outside path must be refused
+    with pytest.raises(Exception, match="sample path escapes approved workspace"):
+        inspect_tabular_sample(
+            outside_path,
+            max_rows=10,
+            max_bytes=1_000_000,
+            observation_id="obs_001",
+            source_label="local",
+        )
+
+    # Valid file under allowed tmp must be accepted
+    allowed_file = allowed_tmp / "allowed.csv"
+    _write_csv(allowed_file, ["a"], [["1"]])
+    obs = inspect_tabular_sample(
+        allowed_file,
+        max_rows=10,
+        max_bytes=1_000_000,
+        observation_id="obs_001",
+        source_label="local",
+    )
+    assert obs.total_observed_rows == 1
+
+    # Valid file under allowed workspace must be accepted
+    ws_file = allowed_workspace / "ws.csv"
+    _write_csv(ws_file, ["a"], [["1"]])
+    obs2 = inspect_tabular_sample(
+        ws_file,
+        max_rows=10,
+        max_bytes=1_000_000,
+        observation_id="obs_001",
+        source_label="local",
+    )
+    assert obs2.total_observed_rows == 1
 
 
 def test_field_set_union_required_removed_hidden_by_observation(tmp_path: Path) -> None:

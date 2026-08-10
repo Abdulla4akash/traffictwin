@@ -178,3 +178,105 @@ def test_data_contract_workbench_blocked_review_compatible_summaries() -> None:
     assert any("Blocked" in label for label in labels)
     assert any("Review" in label for label in labels)
     assert any("Compatible" in label for label in labels)
+
+
+def test_ui_same_source_candidate_contract_unit_change_is_blocked(tmp_path: Path) -> None:
+    """M4 regression: same source_id candidate contract unit change must be BLOCKED via UI compare."""  # noqa: E501
+    app_test = vars(import_module("streamlit.testing.v1"))["AppTest"]  # noqa: N806
+    import csv
+
+    from traffictwin.data_contract.models import (
+        FieldContract,
+        LogicalType,
+        PublicationClass,
+        RightsAndRetentionContract,
+        SourceDataContract,
+        UnitContract,
+    )
+    from traffictwin.data_contract.service import create_frozen_version
+
+    # Frozen: source_id same-source, speed mps
+    frozen_contract = SourceDataContract(
+        source_id="same-source",
+        contract_version="1.0.0",
+        fields=[
+            FieldContract(
+                field_name="speed",
+                required=True,
+                logical_type=LogicalType.FLOAT,
+                unit=UnitContract(unit="mps", dimension="speed"),
+            )
+        ],
+        rights=RightsAndRetentionContract(publication_class=PublicationClass.PRIVATE),
+    )
+    frozen = create_frozen_version(frozen_contract)
+
+    # Candidate: same source_id, speed kmh (incompatible unit change)
+    candidate_contract = SourceDataContract(
+        source_id="same-source",
+        contract_version="1.0.1",
+        fields=[
+            FieldContract(
+                field_name="speed",
+                required=True,
+                logical_type=LogicalType.FLOAT,
+                unit=UnitContract(unit="kmh", dimension="speed"),
+            )
+        ],
+        rights=RightsAndRetentionContract(publication_class=PublicationClass.PRIVATE),
+    )
+
+    # Candidate sample file (under allowed tmp_path) with speed column
+    cand_file = tmp_path / "candidate.csv"
+    with cand_file.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["speed"])
+        w.writerow(["1.5"])
+        w.writerow(["2.5"])
+
+    app = app_test.from_file(
+        f"src/traffictwin/ui/{page_script_for(UiPage.DATA_CONTRACT_WORKBENCH)}"
+    )  # noqa: E501
+    for key, value in deepcopy(default_session_state(load_ui_config())).items():
+        app.session_state[key] = value
+    app.session_state["_v07_navigation_active"] = True
+    app.session_state["dcw_frozen_version"] = frozen.model_dump(mode="json")
+    app.session_state["dcw_draft_contract"] = candidate_contract.model_dump(mode="json")
+    # Candidate path and limits
+    app.session_state["dcw_candidate_path"] = str(cand_file)
+    app.session_state["dcw_cand_max_rows"] = 1000
+    app.session_state["dcw_max_bytes"] = 2_000_000
+    # Original observation not needed but set empty to avoid synthesis confusion
+    app.run(timeout=20)
+    assert not app.exception
+
+    # Find and click the compare button
+    compare_buttons = [b for b in app.button if b.label == "Compare candidate to frozen contract"]
+    assert compare_buttons, "Compare button not found"
+    compare_buttons[0].click().run(timeout=20)
+    assert not app.exception
+
+    # Drift must be BLOCKED with UNIT_CHANGED_INCOMPATIBLY, even though source_id identical
+    if "dcw_drift_report" in app.session_state:
+        drift_raw = app.session_state["dcw_drift_report"]
+    else:
+        # Fallback for AppTest session_state that behaves like dict
+        drift_raw = dict(app.session_state).get("dcw_drift_report")
+    assert drift_raw is not None, (
+        "drift report not created; candidate-contract comparison was skipped"
+    )
+    drift = drift_raw  # already dict
+    # Check overall severity
+    assert drift["overall_severity"] == "blocked", (
+        "same-source_id unit change was not blocked; candidate-contract comparison was skipped"
+    )
+    findings = drift.get("findings", [])
+    assert any(f.get("code") == "UNIT_CHANGED_INCOMPATIBLY" for f in findings), (
+        f"UNIT_CHANGED_INCOMPATIBLY not found in {findings}"
+    )
+    # Also ensure metric or error shows blocked
+    assert (
+        any("blocked" in str(metric.label).lower() for metric in app.metric)
+        or any("BLOCKED" in str(w.value) for w in app.warning)
+        or any("BLOCKED" in str(e.value) for e in app.error)
+    )
