@@ -39,10 +39,6 @@ def test_candidate_inventory_covers_every_current_page_once() -> None:
     assert {spec.page for spec in V07_PAGE_SPECS} == set(UiPage)
     assert len({spec.script for spec in V07_PAGE_SPECS}) == 38
     assert len({spec.url_path for spec in V07_PAGE_SPECS}) == 38
-    assert len(V07_PAGE_SPECS) == 38 == len(UiPage)
-    assert {spec.page for spec in V07_PAGE_SPECS} == set(UiPage)
-    assert len({spec.script for spec in V07_PAGE_SPECS}) == 38
-    assert len({spec.url_path for spec in V07_PAGE_SPECS}) == 38
     assert tuple(dict.fromkeys(spec.group for spec in V07_PAGE_SPECS)) == V07_NORMATIVE_GROUPS
     assert set(PAGE_RENDERERS) == set(UiPage)
 

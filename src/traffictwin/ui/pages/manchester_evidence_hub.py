@@ -232,5 +232,5 @@ def render() -> None:
         )
 
     st.caption(
-        "This hub never displays API keys, Bearer [REDACTED] or raw credentials; it shows Configured / Not configured only. No network call is made on render."  # noqa: E501
+        "This hub never displays API keys, bearer tokens or raw credentials; it shows Configured / Not configured only. No network call is made on render."  # noqa: E501
     )

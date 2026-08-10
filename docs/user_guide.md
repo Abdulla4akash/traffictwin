@@ -770,6 +770,7 @@ explorer reads only local deterministic data and requires no provider credential
 
 Limitations: synthetic result, not Manchester or live evidence; no Kubernetes deployment; no live
 control; no causal claim; waiting-room vs compute distinction preserved. Illustrative held-out set: n=2. On these two synthetic seeds, the rule selector does not outperform the strongest single constituent.
+
 ## Manchester Evidence Hub (V2-M1)
 
 Manchester Evidence Hub provides a supervisor-readable source inventory and activation readiness
@@ -801,7 +802,7 @@ synthetic), configuration (Configured / Not configured), local accepted evidence
 readiness, rights/retention (NOT RECORDED / OWNER DECISION REQUIRED unless explicitly recorded),
 and scientific gate state (BLOCKED / OWNER-SCIENTIFIC DECISION REQUIRED for map matching,
 ambiguity threshold, road-class, calibration objective, parameter bounds, uncertainty, 174
-map-review decisions, viable demand — not implemented here). No API key or Bearer [REDACTED] is
+map-review decisions, viable demand — not implemented here). No API key or bearer token is
 displayed; only Configured / Not configured.
 
 Use **Open Manchester Operations** for detailed source use and explicit acquisition controls,
