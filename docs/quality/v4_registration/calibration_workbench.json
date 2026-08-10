@@ -1,0 +1,10 @@
+{
+  "enum_name": "CALIBRATION_WORKBENCH",
+  "label": "Calibration Workbench",
+  "url": "calibration",
+  "script": "app_pages/calibration_workbench.py",
+  "renderer": "traffictwin.ui.pages.calibration_workbench:render",
+  "group": "Compare & test",
+  "description": "Read-only, descriptive comparison of admitted observed evidence with simulation candidates using half-open windows and fingerprint binding",
+  "icon": "material-tuning"
+}
