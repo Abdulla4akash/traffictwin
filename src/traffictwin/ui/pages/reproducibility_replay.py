@@ -332,7 +332,7 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
         receipt = build_receipt(plan, executions, refusals)
         st.session_state["repro_replay_receipt"] = receipt.model_dump(mode="json")
         st.session_state["repro_replay_receipt_canonical"] = receipt.canonical_json()
-        st.session_state["repro_replay_receipt_csv"] = receipt_to_csv(receipt)
+        st.session_state["repro_replay_receipt_csv_data"] = receipt_to_csv(receipt)
         st.session_state["repro_replay_plan_fp"] = plan.fingerprint()
         st.session_state["repro_replay_receipt_fp"] = receipt.receipt_fingerprint
         st.success(
@@ -397,7 +397,7 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
         )
         st.download_button(
             "Download receipt CSV",
-            data=st.session_state.get("repro_replay_receipt_csv", "").encode("utf-8"),
+            data=st.session_state.get("repro_replay_receipt_csv_data", "").encode("utf-8"),
             file_name="replay-receipt.csv",
             mime="text/csv",
             key="repro_replay_receipt_csv",

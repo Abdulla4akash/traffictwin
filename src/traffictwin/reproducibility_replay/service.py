@@ -101,8 +101,34 @@ def _fingerprint_bytes(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def _receipt_id(plan_fingerprint: str) -> str:
-    return "urn:traffictwin:replay-receipt:" + _fingerprint({"plan_fp": plan_fingerprint})[:16]
+def _receipt_id(plan_fingerprint: str, execution_binding: str | None = None) -> str:
+    payload: dict[str, str] = {"plan_fp": plan_fingerprint}
+    if execution_binding is not None:
+        payload["execution_binding"] = execution_binding
+    return "urn:traffictwin:replay-receipt:" + _fingerprint(payload)[:16]
+
+
+def _execution_binding_fingerprint(
+    executions: list[ReplayExecution],
+    selected: list[tuple[ReplayArtifactKind, str]] | None = None,
+) -> str:
+    # Deterministically bind actual execution  # noqa: E501
+    parts: list[dict[str, str]] = []
+    for exe in sorted(executions, key=lambda e: (e.artifact_kind.value, e.logical_id)):
+        parts.append(
+            {
+                "artifact_kind": exe.artifact_kind.value,
+                "logical_id": exe.logical_id,
+                "actual_fingerprint": exe.actual_output_fingerprint or "",
+                "expected_fingerprint": exe.expected_output_fingerprint,
+                "status": exe.status.value,
+            }
+        )
+    # Also bind explicit selection order if provided
+    if selected is not None:
+        sel_parts = sorted(f"{k.value}:{v}" for k, v in selected)
+        parts.append({"selected": ",".join(sel_parts)})
+    return _fingerprint(parts)
 
 
 def _contains_unsafe_path(value: str) -> bool:
@@ -373,19 +399,38 @@ def _required_inputs_for_payload(
             pid = payload.get("plan_id")
             if isinstance(pid, str) and pid:
                 inputs["plan_fingerprint"] = _fingerprint(pid)
-        cells = payload.get("planned_run_cells") or payload.get("evidence_attachments")
-        if isinstance(cells, list):
-            inputs["cells_fingerprint"] = _fingerprint(cells)
+        # Evidence state is required for gate replay — honestly represent attachment fingerprints
+        ev_attachments = payload.get("evidence_attachments")
+        if isinstance(ev_attachments, list):
+            inputs["evidence_state_fingerprint"] = _fingerprint(ev_attachments)
+        elif isinstance(payload.get("evidence_state_fingerprint"), str) and _SHA256_RE.fullmatch(
+            str(payload.get("evidence_state_fingerprint"))
+        ):
+            inputs["evidence_state_fingerprint"] = str(payload["evidence_state_fingerprint"])
+        else:
+            # Fallback: fingerprint of planned cells as evidence state proxy
+            cells = payload.get("planned_run_cells")
+            if isinstance(cells, list):
+                inputs["evidence_state_fingerprint"] = _fingerprint(cells)
     elif kind is ReplayArtifactKind.COMPARISON_REPORT:
-        for key in ("baseline_context", "variation_context", "baseline_run_id", "variation_run_id"):
-            val = payload.get(key)
-            if val is not None:
-                inputs[key] = _fingerprint(val)
-        bcp = payload.get("baseline_context") or payload.get("baseline")
-        vcp = payload.get("variation_context") or payload.get("variation")
-        if isinstance(bcp, dict) and isinstance(vcp, dict):
-            inputs["baseline_fingerprint"] = _fingerprint(bcp)
-            inputs["variation_fingerprint"] = _fingerprint(vcp)
+        # Honest inputs: separate collections + request
+        b_coll = payload.get("baseline_collection")
+        if isinstance(b_coll, dict):
+            inputs["baseline_collection_fingerprint"] = _fingerprint(b_coll)
+        elif isinstance(payload.get("baseline_context"), dict):
+            # Fallback: fingerprint context as collection proxy, but label honestly as collection
+            inputs["baseline_collection_fingerprint"] = _fingerprint(payload["baseline_context"])
+        v_coll2 = payload.get("variation_collection")
+        if isinstance(v_coll2, dict):
+            inputs["variation_collection_fingerprint"] = _fingerprint(v_coll2)
+        elif isinstance(payload.get("variation_context"), dict):
+            inputs["variation_collection_fingerprint"] = _fingerprint(payload["variation_context"])
+        # Comparison request fingerprint is required
+        req = payload.get("comparison_request") or payload.get("request")
+        if isinstance(req, dict):
+            inputs["comparison_request_fingerprint"] = _fingerprint(req)
+        elif isinstance(payload.get("comparison_version"), str):
+            inputs["comparison_request_fingerprint"] = _fingerprint(payload["comparison_version"])
     # Filter to only those that are hex64-compatible fingerprint values; for non-hex inputs we already fingerprinted.  # noqa: E501
     filtered: dict[str, str] = {}
     for k, v in inputs.items():
@@ -756,15 +801,37 @@ def build_replay_plan(
         entries, key=lambda e: ((e.artifact_kind.value if e.artifact_kind else ""), e.logical_id)
     )  # noqa: E501
 
-    # Bounded plan size check (fail-closed: truncate is not allowed; warn if large)
+    # Bounded plan size check — fail-closed: do not silently truncate
     if len(entries_sorted) > MAX_REPLAY_ENTRIES:
-        warnings.append(f"plan entries {len(entries_sorted)} exceeds bounded {MAX_REPLAY_ENTRIES}")
+        # Fail closed with explicit typed refusal  # noqa: E501
+        return ReplayPlan(
+            capsule_id=capsule_id,
+            manifest_fingerprint=manifest_fp,
+            verification_status=verification_status,
+            entries=[
+                ReplayPlanEntry(
+                    artifact_kind=None,
+                    logical_id="plan-overflow",
+                    status=ReplayStatus.FAILED,
+                    replayable=False,
+                    expected_output_fingerprint=None,
+                    reason=(  # noqa: E501
+                        f"plan entries {len(entries_sorted)} exceeds bounded maximum "
+                        f"{MAX_REPLAY_ENTRIES}; replay refused to avoid silent truncation"
+                    ),
+                    request=None,
+                )
+            ],
+            warnings=warnings
+            + [f"plan entries {len(entries_sorted)} exceeds bounded {MAX_REPLAY_ENTRIES}"],
+            limitations=limitations,
+        )
 
     return ReplayPlan(
         capsule_id=capsule_id,
         manifest_fingerprint=manifest_fp,
         verification_status=verification_status,
-        entries=entries_sorted[:MAX_REPLAY_ENTRIES],
+        entries=entries_sorted,
         warnings=warnings,
         limitations=limitations,
     )
@@ -854,12 +921,15 @@ def _execute_prereg_gate(payload: dict[str, Any]) -> tuple[str, dict[str, Any], 
     }
     payload = payload_clean
     try:
-        # Payload may be StudyPlan with attachments, or gate report directly.
+        # StudyPlan path — honest fingerprint comparison
         if "planned_run_cells" in payload or "primary_outcomes" in payload:
             plan = StudyPlan.model_validate(payload)
-            # For reproducibility, fingerprint the StudyPlan canonical, not the gate report,
-            # to match expected extraction which is based on StudyPlan payload.
-            # Gate evaluation still performed for validation but not used for fingerprint.  # noqa: E501
+            stored = payload.get("fingerprint")
+            if not isinstance(stored, str) or not _SHA256_RE.fullmatch(stored):
+                return "failed", {}, "prereg StudyPlan missing stored fingerprint for verification"
+            # Independently recompute fingerprint from canonical payload  # noqa: E501
+            recomputed = plan.compute_fingerprint()
+            # Genuinely evaluate the gate — must not be discarded, participates in validation
             try:
                 attachments_data = payload.get("evidence_attachments") or []
                 attachments = [
@@ -867,33 +937,38 @@ def _execute_prereg_gate(payload: dict[str, Any]) -> tuple[str, dict[str, Any], 
                     for a in attachments_data
                     if isinstance(a, dict)
                 ]
-                _gate = evaluate_gate(plan, attachments)
-            except Exception:  # noqa: S110
-                pass
-            # Fingerprint is stored fingerprint, matching expected extraction
-            fp = getattr(plan, "fingerprint", None)
-            if isinstance(fp, str) and fp:
+                gate = evaluate_gate(plan, attachments)
+                # Gate must be produced; if evaluation fails, it's a real failure, not a silent pass
+                # We keep the gate for potential output but fingerprint remains that of the plan
+                _gate_portable = gate.model_dump(mode="json")
+            except Exception as exc:
+                return "failed", {}, f"prereg gate evaluation failed: {exc}"
+            # Compare stored vs recomputed — body tamper must yield mismatched
+            if recomputed != stored:
                 portable = plan.model_dump(mode="json")
-                return fp, portable, None
+                return (  # noqa: E501
+                    "mismatched",
+                    portable,
+                    "stored fingerprint does not match recomputed canonical fingerprint",
+                )
+            # On match, return recomputed as actual
             portable = plan.model_dump(mode="json")
-            for vol in ("generated_at", "computed_at"):
-                portable.pop(vol, None)
-            fp = _fingerprint(portable)
-            return fp, portable, None
+            return recomputed, portable, None
         if "status" in payload and "missing_cells" in payload:
-            # Gate report itself
-            portable = dict(payload)
-            for vol in ("generated_at", "computed_at"):
-                portable.pop(vol, None)
-            fp = _fingerprint(portable)
-            return fp, portable, None
+            # Fabricated gate report without independent StudyPlan cannot be honestly replayed
+            return (  # noqa: E501
+                "failed",
+                {},
+                "standalone gate report without frozen StudyPlan is not independently replayable",
+            )
         return "failed", {}, "prereg payload not a study plan or gate report"
     except Exception as exc:
+        # Do not swallow validation errors with broad pass — surface as failed
         return "failed", {}, f"prereg gate execution failed: {exc}"
 
 
 def _execute_comparison(payload: dict[str, Any]) -> tuple[str, dict[str, Any], str | None]:
-    from traffictwin.metrics.comparison import ComparisonReport, ComparisonRequest
+    from traffictwin.metrics.comparison import ComparisonRequest
     from traffictwin.metrics.results import MetricCollection
 
     payload_clean = {
@@ -901,16 +976,16 @@ def _execute_comparison(payload: dict[str, Any]) -> tuple[str, dict[str, Any], s
     }
     payload = payload_clean
     try:
-        # Payload may be a comparison report
+        # Payload may be a comparison report — but hashing the supplied report alone is not a replay
         if "baseline_context" in payload and "variation_context" in payload:
-            report = ComparisonReport.model_validate(payload)
-            # Use report's canonical dump excluding generated_at, matching extraction
-            copy = report.model_dump(mode="json")
-            copy.pop("generated_at", None)
-            # Strip provenance for stability if needed, but keep deterministic
-            # Use canonical of copy for fingerprint to match expected extraction
-            fp = _fingerprint(copy)
-            return fp, copy, None
+            # Standalone ComparisonReport without independent collections cannot be honestly replayed  # noqa: E501
+            return (
+                "failed",
+                {},
+                "standalone ComparisonReport without independent MetricCollections "  # noqa: E501
+                "is not replayable",
+            )
+
         # Or payload contains two collections
         if "baseline_collection" in payload and "variation_collection" in payload:
             from traffictwin.metrics.comparison import compare_metric_collections
@@ -1136,9 +1211,13 @@ def build_receipt(
     plan: ReplayPlan,
     executions: list[ReplayExecution],
     refusals: list[ReplayRefusal] | None = None,
+    *,
+    selected: list[tuple[ReplayArtifactKind, str]] | None = None,
 ) -> ReplayReceipt:
     plan_fp = plan.fingerprint()
-    receipt_id = _receipt_id(plan_fp)
+    # Bind receipt identity to what was actually executed, not just the plan
+    binding = _execution_binding_fingerprint(executions, selected)
+    receipt_id = _receipt_id(plan_fp, binding)
     comparisons: list[ReplayComparison] = []
     mismatches: list[ReplayMismatch] = []
     matched = 0

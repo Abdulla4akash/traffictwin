@@ -239,7 +239,14 @@ class ReplayReceipt(StrictModel):
             ),
             "executed_count": self.executed_count,
             "executions": sorted(
-                [e.model_dump(mode="json") for e in self.executions],
+                [
+                    {
+                        k: v
+                        for k, v in e.model_dump(mode="json").items()
+                        if k not in {"generated_at", "output_preview"}
+                    }
+                    for e in self.executions
+                ],
                 key=lambda x: (x.get("artifact_kind", ""), x.get("logical_id", "")),
             ),
             "failed_count": self.failed_count,

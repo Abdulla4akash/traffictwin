@@ -33,7 +33,7 @@ ADAPTER_REGISTRY: dict[ReplayArtifactKind, ReplayAdapterDescriptor] = {
     ReplayArtifactKind.PREREGISTRATION_GATE: ReplayAdapterDescriptor(
         artifact_kind=ReplayArtifactKind.PREREGISTRATION_GATE,
         supported_schema_versions=["1.0"],
-        required_input_fingerprints=["plan_fingerprint"],
+        required_input_fingerprints=["plan_fingerprint", "evidence_state_fingerprint"],
         typed_request_model="StudyPlan+EvidenceAttachment[]",
         service_callable="traffictwin.preregistration.service:evaluate_gate",
         expected_output_type="traffictwin.preregistration.models:DecisionGateReport",
@@ -43,8 +43,9 @@ ADAPTER_REGISTRY: dict[ReplayArtifactKind, ReplayAdapterDescriptor] = {
         artifact_kind=ReplayArtifactKind.COMPARISON_REPORT,
         supported_schema_versions=["1.0"],
         required_input_fingerprints=[
-            "baseline_fingerprint",
-            "variation_fingerprint",
+            "baseline_collection_fingerprint",
+            "variation_collection_fingerprint",
+            "comparison_request_fingerprint",
         ],
         typed_request_model="MetricCollection+ComparisonRequest",
         service_callable="traffictwin.metrics.comparison:compare_metric_collections",
