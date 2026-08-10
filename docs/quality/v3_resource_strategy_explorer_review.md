@@ -1,142 +1,196 @@
 # Resource Strategy Explorer Review — v3
 
 Date: 2026-08-10
-Base SHA: 73264bd125ead979cd2615d5e4b50c2cfe6c50ae
 Feature branch: agent/product-v3-resource-strategy-explorer-v1
-Reviewer target: Assigned Claude reviewer (per task brief)
+Base: origin/main
 
-## Summary
+## Provenance
 
-The Resource Strategy Explorer is a read-only decision-support feature for inspecting admitted or explicitly synthetic resource-strategy studies across traffic/VEC policies. It does not execute a scheduler, control an RSU, launch VEC, or claim optimality. It provides matched-cohort comparison with explicit missingness, offered/admitted denominator separation, lifecycle conservation validation, queue/load-balance evidence, and optional resource-cost evidence.
+- **Old Claude-reviewed head (REQUEST CHANGES):** `e5111da400c729f18334ccade90c66646eb1a7a3`
+  - Claude 1 found 6 defect classes: (1) pairwise interpretation missing magnitude/unit/descriptive qualifier (dangling f-string), (2) `synthetic_report_v1.json` invalid/non-service-produced (fingerprint mismatch, `<normalised>` sentinel), (3) JSON export not re-importable with real `generated_at`, (4) compatibility audit always `COMPATIBLE` (dead `INCOMPATIBLE`), (5) reserved metric values silently overridden, (6) dead constants/helpers and CSV/noqa cleanup.
 
-## Product Behavior Implemented
+- **Remediation head at task start:** `a0937174f7c8a1346d0d88337082cbe70c2d6163`
+  - Contains remediation commit `015b48b927785fb9bcb30d498cc3e84b37340f94` —
+    `fix(resource-strategy): address Muse 1 blockers 2-6 — compatible audit, reserved metrics, portable JSON, complete pairwise, golden verification, csv fidelity`
+  - Prior commits: `b29ae60` navigation 37, `8bde790` review record, `4eff660` thin page, `6f429d7` domain model.
 
-- Typed study artifact with schema version, study ID, source fingerprint, evidence mode, admission state, replication unit, 2–8 strategy arms, common matched replication IDs, excluded IDs with reasons, metric catalog (name/version/unit/denominator), per-replication values where permitted, aggregate values, limitations, provenance.
-- Complete matched-cohort as intersection of replication IDs across all arms minus excluded IDs, sorted deterministically; excluded replication cannot silently enter matched cohort (validated).
-- Offered vs admitted denominator metrics kept separate (e.g., task.completion.rate_offered vs rate_admitted); descriptive pairwise differences preserve denominator; completed is not deadline-success.
-- Lifecycle conservation: offered == admitted + rejected; admitted >= forwarded/started; started >= compute_completed >= returned >= deadline_success; admitted >= dropped; dropped + returned <= admitted. Fail-closed on inconsistency.
-- Deterministic arm summaries (mean/median/min/max) and pairwise descriptive differences (B − A) with neutral wording; no winner/best/optimal headline unless admitted contract defines it.
-- Queue/load-balance view (infra.queue_length.mean, infra.load_balance.jain, infra.utilisation.mean), energy, latency, forwarding, and optional resource-cost evidence.
-- Typed unavailable states where metrics not supplied; per-replication missingness shown as partial.
-- Synthetic fixture with three strategies: strongest-link placement, deterministic JSQ, deterministic JSQ + deadline-aware admission; labelled synthetic demonstration evidence; not presented as actual E2 result; not Manchester observation.
-- Portable JSON/CSV/Markdown exports; deterministic canonical JSON and SHA-256 fingerprinting; excludes wall clock, rendering state, local paths, secrets; stable ordering; losslessly preserves numeric values; distinguishes unknown (None) from false (0.0).
-- UI thin over typed service: page consumes build_resource_strategy_report.
+- **Live main at task start:** `3b7933dfecf05b579ff9c223729128109a933d93` (Manchester Evidence Hub merged via #15, Challenge bridge via #17, Portfolio Explorer via #13)
+- **Starting main for this rebase:** `3b7933dfecf05b579ff9c223729128109a933d93`
+- **Final integrated review head:** to be filled after final push (see `git rev-parse HEAD`)
 
-## Architecture and Reused Primitives
+## Closure Table — Claude Findings vs Remediation
 
-- Reuses existing canonicalisation (json.dumps sort_keys, separators, allow_nan=False), fingerprinting (SHA-256), Pydantic BaseModel extra="forbid", table_column_config, badge_markdown, fingerprint_summary, first_run_guidance, navigation helpers.
-- Domain module: `src/traffictwin/experiments/resource_strategy.py`
-- UI page: `src/traffictwin/ui/pages/resource_strategy_explorer.py` (thin)
-- App script: `src/traffictwin/ui/app_pages/resource_strategy.py`
-- Fixtures: `tests/fixtures/resource_strategy/synthetic_study_v1.json` and `synthetic_report_v1.json`
-- No new dependency.
+| Claude Finding | Old Behavior (e5111da) | Current Production Fix (015b48b + HEAD) | Real Test | Mutation | Status |
+|---|---|---|---|---|---|
+| 1. Complete portable pairwise interpretation | Dangling `higher = f"{arm_b} mean higher..."` + stray `f"by ..."` → interpretation `"strongest_link mean higher than jsq "` without magnitude/unit/`descriptive only`; flowed to UI + Markdown | `src/traffictwin/experiments/resource_strategy.py:1120` now uses parenthesised f-strings: `"<B> mean higher than <A> by {mag:.6g} {unit}; descriptive only"` and `lower`/`equal`/`unavailable` variants, all self-contained with both arm IDs, direction, magnitude, unit, qualifier | `test_pairwise_interpretations_are_complete_and_self_qualifying` checks every pairwise for arm_a/arm_b/unit/`descriptive only`/magnitude/direction, zero case `equal` + qualifier, JSON/Markdown equality | M1 restore dangling f-string → `test_pairwise...` fails `unit ratio missing in '...mean higher than jsq '` | **CLOSED** |
+| 2. Golden report must be real or absent | `synthetic_report_v1.json` had `generated_at="<normalised>"` (model invalid), fingerprint `b5fe...` mismatched content, interpretations differed | Regenerated via `build_resource_strategy_report(study)` with deterministic clock, `generated_at=null`, fingerprint `c07480af8e68dc...` verifies (`report_fingerprint == fingerprint()`), canonical payload deterministic, no sentinel, no absolute paths, `evidence_mode=synthetic_demonstration` preserved | `test_synthetic_report_golden_is_service_produced` validates model, fingerprint, `canonical_payload` equality, interpretation exactness, no sentinel/path | M2 tamper interpretation without fingerprint → `assert report_fingerprint == fingerprint()` fails `e819... != c074...` | **CLOSED** (retained+verified) |
+| 3. Portable JSON round-trip | `to_json()` set `generated_at="<normalised>"` (datetime\|None field) → `model_validate_json` fails | `to_json()` now sets `generated_at=None` (portable, model-valid), `fingerprint()` via `_fingerprint(canonical_payload())` excludes wall clock | `test_report_json_roundtrip_with_populated_generated_at` builds with `clock=lambda: 2026-08-10`, round-trips, preserves identity/fingerprint, different clocks same identity, no sentinel | M3 restore `"<normalised>"` → `assert "<normalised>" not in js` fails | **CLOSED** |
+| 4. Compatibility audit must actually fail | Always `COMPATIBLE` for every metric, `INCOMPATIBLE` dead | Central `EXPECTED_METRIC_CONTRACT` (20 keys) + `RESERVED_METRIC_KEYS`; `build_resource_strategy_report` evaluates version/unit/denominator vs expected, emits `INCOMPATIBLE` with `finding="incompatible: version..."`, pairwise for incompatible becomes `UNAVAILABLE` with `incompatible metric ...` interpretation | `test_compatibility_audit_real` covers A compatible, B version mismatch, C unit mismatch, D denominator mismatch, E not ordinary pairwise, F/G JSON/Markdown/UI | M4 force always `COMPATIBLE` → `assert comp.status == incompatible` fails `compatible == incompatible` | **CLOSED** |
+| 5. Reserved metric authority | `rep.metrics["task.completion.rate_offered"]=0.0001` validated, builder silently ignored and recomputed 0.7 | `RESERVED_METRIC_KEYS` (20) central; `@model_validator` rejects any reserved key in `rep.metrics` with `reserved metric ... must not be supplied` | `test_reserved_metric_authority` A canonical computed, B/C conflicting offered/admitted rejected, D custom preserved, E offered/admitted distinct | M5 remove validator → `with pytest.raises(ValidationError)` fails `DID NOT RAISE` | **CLOSED** |
+| 6. Dead constants/helpers | `RESOURCE_STRATEGY_METHOD_VERSION` unused, `MIN/MAX` defined but `Field(min_length=2,max_length=8)` hardcoded, `_fingerprint` unused | Removed `METHOD_VERSION`, `Field(min_length=MIN_STRATEGY_ARMS,max_length=MAX_STRATEGY_ARMS)`, `fingerprint()` routes through `_fingerprint(payload)` | `grep` audit: `MIN/MAX` at 39/399 used, `_fingerprint` at 783 used, `METHOD_VERSION` absent | M7 hardcode 2,8 → `grep min_length=MIN` fails (surviving but dead constant would be flagged by ruff) | **CLOSED** |
+| Minor CSV | `f"{value:.12g}"` not round-trip safe | `_csv_num` now `repr(float(value))` lossless | `test_csv_numeric_fidelity` checks `2024123.123456789`, `0.12345678901234567`, `1.000...002` parse exact | M6 restore `:.12g` → `assert float(agg) == 0.12345678901234567` fails `0.123456789012 != 0.12345678901234566` | **CLOSED** |
+| Minor noqa | Stale `# noqa: ANN401` on `load_...` and dangling B018 missed | Removed stale noqa, remaining 6 suppressions justified (`E501` line length, `ANN401` payload, `S110` try/except) | `uv run --with ruff ruff check` All checks passed, `format --check` passed | — | **CLOSED** |
 
-## Typed Contracts and Identity Policy
+## Residual Defects Discovered During Verification
 
-- `ResourceStrategyStudy`, `ResourceStrategyArm`, `ResourceStrategyReplication` (with `ResourceStrategyLifecycle`), `ResourceStrategyMetric`, `ResourceStrategyExclusion`/`ResourceStrategyExclusionCode`, `ResourceStrategyCompatibility`, `ResourceStrategyReport` (with `ResourceStrategyArmSummary`, `ResourceStrategyMetricAggregate`, `ResourceStrategyPairwiseDifference`), `ResourceStrategyEvidenceMode`, `ResourceStrategyAdmissionState`, `ResourceStrategyReplicationUnit`, `ResourceStrategyMetricDenominator`.
+- None in production logic. One mutation-induced file left-behind (`Field(min_length=2,max_length=8)` from M7 `set -e` abort) was detected via `git status` and restored before rebase. Navigation count stale (38→39) after Manchester merge was corrected via `tests/ui/test_navigation_v07.py` bump to 39.
 
-Identity:
+## Files Changed During THIS Task (vs origin/main 3b7933d)
 
-- Binds every scientifically meaningful field: arms (sorted by arm_id), replications (sorted by replication_id), metrics (sorted by key), exclusions (sorted), limitations (sorted), provenance (sorted), etc.
-- Excludes generated_at (normalised to "<normalised>"), file paths, wall clock, rendering state, secrets.
-- Stable ordering via sorted keys and separators (",", ":").
-- Avoids default=str; uses explicit enum .value.
-- Preserves numeric values losslessly via float conversion where finite.
-- Distinguishes unknown (None) from false (0.0/False); extra="forbid" at boundaries.
-- Fail-closed on malformed lifecycle, duplicate IDs, missing metric keys, unsorted matched IDs, excluded in matched cohort, inconsistent evidence/admission combos, incompatible metric versions.
-
-## Changed Files
-
-- `src/traffictwin/experiments/resource_strategy.py` (new)
-- `src/traffictwin/ui/pages/resource_strategy_explorer.py` (new)
-- `src/traffictwin/ui/app_pages/resource_strategy.py` (new)
-- `src/traffictwin/ui/labels.py` (add RESOURCE_STRATEGY_EXPLORER)
-- `src/traffictwin/ui/navigation.py` (register in Analysis)
-- `src/traffictwin/ui/navigation_v07.py` (add V07 spec in Compare & test)
-- `src/traffictwin/ui/page_runtime.py` (register renderer)
-- `tests/ui/test_navigation_v07.py` (update 36→37)
-- `tests/fixtures/resource_strategy/*` (fixtures)
-- `tests/unit/test_resource_strategy.py` (new)
-- `tests/unit/ui/test_resource_strategy_explorer_page.py` (new)
-- `tests/integration/test_resource_strategy_flow.py` (new)
+- `src/traffictwin/experiments/resource_strategy.py` (remediation already in 015b48b, preserved)
+- `src/traffictwin/ui/app_pages/resource_strategy.py` (existing, preserved)
+- `src/traffictwin/ui/pages/resource_strategy_explorer.py` (existing, preserved; uses `d.interpretation` directly)
+- `src/traffictwin/ui/labels.py` (adds `RESOURCE_STRATEGY_EXPLORER`, preserves `MANCHESTER_EVIDENCE_HUB` + `PORTFOLIO_EXPLORER`)
+- `src/traffictwin/ui/navigation.py` (preserves Manchester+Resource Strategy)
+- `src/traffictwin/ui/navigation_v07.py` (preserves both)
+- `src/traffictwin/ui/page_runtime.py` (preserves both)
+- `tests/fixtures/resource_strategy/*` (verified golden)
+- `tests/unit/test_resource_strategy.py` (27 tests, includes M1-M6 kill tests)
+- `tests/unit/ui/test_resource_strategy_explorer_page.py` (9 tests)
+- `tests/integration/test_resource_strategy_flow.py` (2 tests)
+- `tests/ui/test_navigation_v07.py` (39-page inventory)
 - `docs/quality/v3_resource_strategy_explorer_review.md` (this file)
 
-## Tests Executed
+No edits to `diss`, `vec_env`, `tos-data`, `e2b_outputs`, or PR 13-22 branches.
 
-- Feature unit: 21 tests (`tests/unit/test_resource_strategy.py`) — all passed.
-- Feature UI: 9 tests (`tests/unit/ui/test_resource_strategy_explorer_page.py`) — all passed.
-- Integration: 2 tests (`tests/integration/test_resource_strategy_flow.py`) — all passed.
-- Navigation: 49 tests (`tests/ui/test_navigation_v07.py`) — all passed after update.
-- Total feature: 32 (21+9+2) plus navigation 49 = 81 relevant.
+## Pairwise Examples (production output from synthetic_study_v1.json)
 
-Ruff and format: passed for domain, page, and test files after fixes.
+- Positive: `jsq_deadline_aware mean higher than jsq by 0.017 ratio; descriptive only` (task.completion.rate_offered, 0.6955 vs 0.6785)
+- Negative: `strongest_link mean lower than jsq by 0.021 ratio; descriptive only` (same metric, 0.657 vs 0.678)
+- Zero: `jsq_deadline_aware mean equal to jsq (difference 0 ratio); descriptive only` (task.completion.rate_offered tie, 0.6785 vs 0.6785)
 
-Mypy strict: passed for domain and page.
+All 30 pairwise rows contain both arm IDs, unit, `descriptive only`; non-zero contain magnitude/direction; zero contains `equal` + qualifier.
 
-E2 process isolation: E2 (`eval_sumo_stage1_mc.py` and `run_e2_native_placement_pilot.py`) was active during development; tests were run serially (no -n), no SUMO/VEC launch, no evaluator started, no signals sent.
+## JSON + Markdown + UI Equality Proof
 
-## Mutation Table
+- `uv run python /tmp/verify_pairwise.py` → `JSON preserves exact interpretation`, `Markdown preserves exact interpretation`, UI `pairwise_rows` uses `"interpretation": d.interpretation` directly (src/traffictwin/ui/pages/resource_strategy_explorer.py:381), no recomputation; page caption `Jain load-balance ... descriptive only` is supplemental, not sole qualifier.
 
-Five required adversarial proofs; all restored. Three executed as real temporary mutations (as noted), two via direct unit tests that would fail if guard removed.
+## Golden Fixture Disposition
 
-| # | Mutation | Test that failed | Exact assertion | Restored? | Surviving non-equivalent mutants |
-|---|----------|------------------|-----------------|-----------|----------------------------------|
-| 1 | Remove admission guard so UNADMITTED study builds report as ADMITTED (delete `if admission_state == UNADMITTED: raise` in `build_resource_strategy_report`) | `test_unadmitted_evidence_not_treated_as_admitted` | `with pytest.raises(ValueError, match="UNADMITTED_EVIDENCE"): build_resource_strategy_report(unadmitted_study)` failed — no exception raised | Yes — restored guard | None observed |
-| 2 | Swap offered/admitted denominator computation (make `rate_offered` use `admitted` and `rate_admitted` use `offered`) | `test_offered_vs_admitted_denominators_kept_separate` | `assert offered.aggregate_mean < admitted.aggregate_mean` failed — values inverted (0.90 < 0.73) | Yes — restored correct denominator | None |
-| 3 | Remove excluded-minus-matched filtering so excluded rep enters matched cohort (make `_compute_matched...` not subtract excluded) | `test_excluded_replication_silently_entering_matched_cohort_is_rejected` and `test_exact_matched_cohort_calculation` | `with pytest.raises(ValidationError, match="must not appear in matched cohort\|does not match computed")` failed — study validated with excluded in matched | Yes — restored subtraction | None |
-| 4 | Make study fingerprint include local file path (add `path` to `canonical_payload`) | `test_local_source_path_not_entering_fingerprint` and `test_deterministic_identity_across_temporary_roots` | `assert loaded1.fingerprint() == fp` failed — fingerprints differed per temp dir (e.g., `a0c1...` vs `9f2e...`) | Yes — removed path from payload; fingerprint now path-independent | None |
-| 5 | Remove lifecycle conservation check (delete `if offered != admitted+rejected: raise`) | `test_malformed_lifecycle_totals_fail_closed` and `test_inconsistent_lifecycle_totals_being_accepted_is_prevented` | `with pytest.raises(ValidationError, match="LIFECYCLE_CONSERVATION_VIOLATED")` failed — no exception for offered 1000, admitted 800, rejected 100 | Yes — restored validator | None |
+- **Retained+verified:** `tests/fixtures/resource_strategy/synthetic_report_v1.json` (42877 chars, `generated_at=null`, fingerprint `c07480af...`, canonical_payload equals regen, interpretations exact, no sentinel/path, label preserved, test pins via `canonical_payload` equality).
 
-All five were demonstrated by temporarily editing `src/traffictwin/experiments/resource_strategy.py`, re-running the relevant test (serial, no -n), observing failure, then restoring. The permanent test suite now guards each.
+## Portable JSON Proof
+
+- Build with `generated_at=2026-08-10T12:00:00+00:00` → `to_json` → `generated_at=null`, `model_validate_json` succeeds, `study_id`/`study_fingerprint`/`report_fingerprint` preserved, different clocks `2026` vs `2030` same `fingerprint()` and `canonical_payload`, no `<normalised>`.
+
+## Compatibility Negative Examples
+
+- `task.completion.rate_offered` version `2.0` → `incompatible: version '2.0' != expected '1.0'`
+- Same key unit `wrong` → `incompatible: unit 'wrong' != expected 'ratio'`
+- Same key denominator `admitted_tasks` vs `offered_tasks` → `incompatible: denominator 'admitted_tasks' != expected 'offered_tasks'`
+- Incompatible metric pairwise becomes `UNAVAILABLE` with `incompatible metric ...; descriptive only`, not ordinary comparison; UI advanced view (`compatibility`/`incompatible` in page) and JSON/Markdown carry `incompatible`.
+
+## Reserved Metric Negative Proof
+
+- `ResourceStrategyReplication(..., metrics={"task.completion.rate_offered": 0.0001})` → `ValidationError: reserved metric 'task.completion.rate_offered' must not be supplied`
+- Same for `task.completion.rate_admitted`; `custom.accuracy` preserved (`0.123456789`); offered/admitted denominators distinct (`rate_offered` ≠ `rate_admitted`).
+
+## Arm-Bound / Dead-Helper Audit
+
+- `rg` → `MIN_STRATEGY_ARMS=2` at 39, used at `Field(min_length=MIN...,max_length=MAX...)` 399; `MAX=8`; `METHOD_VERSION` absent; `def _fingerprint` at 783 used by both `Study.fingerprint()` and `Report.fingerprint()`.
+
+## CSV Numeric Fidelity Proof
+
+- `2024123.123456789 -> 2024123.123456789 -> equal True`
+- `0.12345678901234566 -> 0.12345678901234566 -> equal True` (repr of `0.12345678901234567` is `0.12345678901234566` due to float64)
+- `1.0000000000000002 -> 1.0000000000000002 -> equal True`
+- CSV `custom.high` aggregate `0.12345678901234566` parses to same float; `repr` lossless.
+
+## Test Power Audit
+
+- All 27 unit tests assert production behavior (not counts): strict validation, unknown vs false, fingerprint determinism, arm ordering, metric identity, admission state, exclusion reasons, matched cohort, version mismatch, lifecycle conservation, denominator separation, admission guards, path exclusion, queue/cost, export matching, pairwise completeness, round-trip, compatibility real, reserved authority, CSV fidelity, golden pin.
+- No `or True`, broad `or` escape, optional `if` assertions, fake fingerprint, local reimplementation without service call.
+- UI tests (9) exercise empty, synthetic label, unadmitted refusal, export matching, no winner headline, queue view, limitations/provenance via AppTest with real service.
+- Integration 2 tests exercise load→build→export flow.
+
+## Exact Test Collection Counts
+
+- `tests/unit/test_resource_strategy.py`: 27
+- `tests/unit/ui/test_resource_strategy_explorer_page.py`: 9
+- `tests/integration/test_resource_strategy_flow.py`: 2
+- `tests/ui/test_navigation_v07.py`: 51 (after 39-page bump; 38 spec + 13 ancillary validation tests)
+- Total focused: 89 passed
+
+## Mutation Table M1–M7
+
+| Mutation | Test | Exact Failure | Restored |
+|---|---|---|---|
+| M1 dangling f-string | `test_pairwise_interpretations_are_complete…` | `AssertionError: unit ratio missing in 'jsq_deadline_aware mean higher than jsq '` | yes |
+| M2 golden tamper (interpretation) | `test_synthetic_report_golden_is_service_produced` | `AssertionError: 'c07480af...' == 'e81961af...' fingerprint mismatch` | yes |
+| M3 `<normalised>` | `test_report_json_roundtrip…` | `AssertionError: '<normalised>' is contained here: ...` | yes |
+| M4 always COMPATIBLE | `test_compatibility_audit_real` | `AssertionError: 'compatible' == 'incompatible'` | yes |
+| M5 silent reserved override | `test_reserved_metric_authority` | `Failed: DID NOT RAISE ValidationError` | yes |
+| M6 old `%.12g` | `test_csv_numeric_fidelity` | `AssertionError: 0.123456789012 == 0.12345678901234566` | yes |
+| M7 hardcode 2,8 | N/A (dead constant audit via grep) | `min_length=MIN...` absent would be flagged; equivalent at runtime (same limits) | restored before rebase |
+
+No non-equivalent survivor.
 
 ## Lint/Type/Lock/Diff Gates
 
-- `ruff check` — passed (fixed via `--fix` and manual breaks) for domain, page, and test files.
-- `ruff format --check` — passed.
-- `mypy --strict` — passed for `src/traffictwin/experiments/resource_strategy.py` and `src/traffictwin/ui/pages/resource_strategy_explorer.py` (ignore-missing-imports for streamlit).
-- `uv lock --check` — not modified (no new dependency); lock unchanged.
-- `git diff --check` — no trailing whitespace or conflict markers after fixes.
+- `uv run --with ruff ruff check src/traffictwin/experiments/resource_strategy.py src/traffictwin/ui/pages/resource_strategy_explorer.py tests/unit/test_resource_strategy.py tests/unit/ui/test_resource_strategy_explorer_page.py tests/integration/test_resource_strategy_flow.py` → **All checks passed**
+- `uv run --with ruff ruff format --check` → **5 files already formatted** (after fixes)
+- `uv run --with mypy mypy src/traffictwin/experiments/resource_strategy.py src/traffictwin/ui/pages/resource_strategy_explorer.py --ignore-missing-imports` → **Success**
+- `uv lock --check` → **Resolved 91 packages**
+- `git diff --check` → **no trailing whitespace/conflict markers**
 
-GI infrastructure check: GitHub Actions presently infrastructure-blocked by billing (task notes); no workflow YAML changed.
+Ruff B018 reason: old dangling `f"by ..."` was a string expression at module scope inside a function body but not assigned; current ruff with `B018` would flag `Unnecessary expression` but old branch's `ruff check` scope at e5111da was via `uv run --with ruff ruff check src/traffictwin/experiments/resource_strategy.py` (single file) and that file at that time did not have `B018` enabled in `pyproject.toml` `select`? Actually current `pyproject.toml` has `select = ["E","F","I","UP","B"]` includes `B`, but the old file's line `f"by {mean_diff}..."` was on next line indented same as `higher =` but without backslash, so it was parsed as a separate expression statement — B018 should have fired, but the CI at e5111da used `ruff check` without `--select B`? Current verification shows `rg` would have caught; historical miss likely due to `uv run --with ruff ruff check` vs `uv run --no-sync ruff check` missing binary (as observed this task: `Failed to spawn ruff` without `--with`). No speculation beyond config.
 
-## Evidence and Claim Boundaries
+## Re-proof of Sound Properties
 
-- Synthetic fixture is explicitly labelled “SYNTHETIC DEMONSTRATION — not the actual E2 result and not Manchester observation.”
-- No claim of scientific acceptance, causal effect, optimality, superiority, production readiness, Kubernetes deployment, or frozen study plan as scientific approval.
-- Credentials, secrets, absolute local paths, private raw data not exposed; portable JSON excludes paths.
-- Missing/incompatible fields remain unavailable/unsupported, not guessed.
-- No manual incident treated as observation; BODS buses not treated as general traffic; no synthetic relabelled as Manchester observation.
-- No scheduler/RSU control, no VEC launch, no import of PR #21 raw output.
+- A lifecycle conservation 8 relationships all fail closed (offered≠admitted+rejected etc.)
+- B matched cohort = intersection minus excluded (synthetic: 4 matched, 1 excluded RSU_OUTAGE)
+- C declared matched cohort cross-checked (`must not contain duplicates` sorted, `does not match computed`)
+- D offered/admitted denominators separate typing/computation (`rate_offered` vs `rate_admitted`)
+- E canonical identity excludes local path (provenance path does not affect fingerprint)
+- F excludes `generated_at` (different clocks same fingerprint)
+- G-J admission guards: UNADMITTED/REJECTED/PENDING/UNAVAILABLE all raise `UN..._EVIDENCE` before results
+- K thin page: `build_resource_strategy_report` + `resource_strategy_report_to_*` only, no metric recomputation
+- L-O no scheduler/RSU/VEC/SUMO/k8s import or execution in domain module
+- P no winner/best/optimal without contract; all pairwise say `descriptive only`
 
-## E2 / Process Isolation Evidence
+## Live-Main Navigation Reconciliation
 
-- At start: `pgrep -fl 'e2-native-placement-pilot-v1|native-placement|eval_sumo|run_e1|analyze_e1|vec'` found:
-  - `9284 ... eval_sumo_stage1_mc.py ... --trace ...trace_inc_fullrsu.npz ... --out-json .../e2-native-placement-pilot-v1/full/dla/run_1/summary.json ...`
-  - `87359 ... run_e2_native_placement_pilot.py --manifest ...`
-- During feature work: tests run serially (`pytest` without `-n`), no `pytest -n`, no SUMO, no VEC, no evaluator started, no `pgrep` signals sent, no broad CPU sweeps except focused tests.
-- No modification of PR #21 (`agent/e2-native-placement-pilot-v1`) or PR #22, no read of active E2 output directories, no raw E0/E1/E2 import.
+- Starting main: `3b7933dfecf05b579ff9c223729128109a933d93` (Manchester hub #15)
+- Previous branch inventory: 38 pages (Portfolio+Resource Strategy, without Manchester)
+- After `git rebase origin/main` (6 commits replayed): `335ab65` then `92d84a2`
+- Integrated inventory: **39 pages** = `len(UiPage)==39==len(V07_PAGE_SPECS)` (HOME … RESOURCE_STRATEGY_EXPLORER + MANCHESTER_EVIDENCE_HUB + PORTFOLIO_EXPLORER)
+- Overlap files handled: `docs/user_guide.md`, `labels.py`, `navigation.py`, `navigation_v07.py`, `page_runtime.py`, `test_navigation_v07.py`, `app_pages/*` — preserved both Manchester and Resource Strategy (verified `grep` shows 50:PORTFOLIO,51:MANCHESTER,59:RESOURCE_STRATEGY)
+- Manchester files present: `src/traffictwin/ui/manchester_evidence_hub.py`, `src/traffictwin/ui/pages/manchester_evidence_hub.py`, `tests/ui/test_manchester_evidence_hub.py` etc.
 
-## Shared-File / Other-PR Isolation
+## Dynamic Page Count
 
-- Protected PRs verified at start: 13–22 all OPEN, draft, MERGEABLE, base main, respective heads (2d7e85f, a9ec532, 34cdcac, 24f8b5c, bb30fd4, 1ec74cd, 0202b6e, ea37dd3, b2ce160, bf2e909).
-- No reuse of old worktree; created fresh isolated worktree at `/Users/akashx/AntigravityTest/worktrees/traffictwin-resource-strategy-explorer` from `origin/main` 73264bd.
-- No edits to existing PR branches, rehearsal branches, safety tags; no cherry-pick, no merge, no auto-merge, no PR ready marking.
-- Did not touch `/Users/akashx/AntigravityTest/diss`, external vec_env, tos-data, raw E0/E1/E2 outputs.
-- Reused existing primitives (canonicalisation, hashing, validation, tables, badges, registry) rather than recreating.
-- Final registration commit isolated; domain tests not mixed into it.
+- `uv run python -c "from traffictwin.ui.labels import UiPage; print(len(UiPage))"` → **39**
+
+## Force-with-Lease Details
+
+- Pre-rebase remote: `a0937174f7c8a1346d0d88337082cbe70c2d6163`
+- First push after 3b7933d rebase: `git push --force-with-lease=agent/product-v3-resource-strategy-explorer-v1:a093717 origin agent/product-v3-resource-strategy-explorer-v1` → new SHA `92d84a2` (and final doc bump)
+- Final push with doc update uses same lease guard.
+
+## E2 Process State
+
+- Before task: `pgrep -fl` found `38493 e2_instrumentation_no_effect.py` and `38624 eval_sumo_stage1_mc.py` (JSQ candidate)
+- After task: same two observed (no kill/restart/renice), `ps` shows ongoing `eval_sumo` at 100% CPU
+- Tests run serially (`pytest ... -q` without `-n`), no SUMO/VEC/evaluator launch, no broad sweeps
+
+## Proof Untouched
+
+- `ls /Users/akashx/AntigravityTest/diss` not accessed; `vec_env`/`tos-data`/`e2b_outputs` not modified (only read `synthetic_study` fixture); `git status` shows only 14 feature files + navigation test.
+
+## PR Body / Review Claims Corrected
+
+- Old body claimed 81 tests at e5111da and 37 pages; new body (to be pushed) states 89 tests at final head, 39 pages, remediation commit 015b48b, final integrated SHA, separate old/new verification sections, no claim that old e5111da gates represent final.
 
 ## Remaining Limitations
 
-- Fixture is synthetic demonstration only; admitted research evidence requires separate admission gate not implemented here.
-- Queue/load-balance evidence limited to matched 4 replications; rep_005 excluded.
-- No learned selector; no Kubernetes deployment; no E2 or Manchester activation.
-- UI page is read-only; no study creation or admission workflow.
-- Some edge metrics (e.g., resource cost) optional; where not supplied, shown as unavailable.
+- Synthetic only; admitted research evidence requires separate admission gate
+- 4 matched replications; rep_005 excluded
+- No learned selector, no Kubernetes, no E2 import
+- Read-only inspection; no study creation workflow
+- Some metrics unavailable where not supplied (typed `partial`)
 
-## Exact-Head Review Brief for Assigned Claude Reviewer
+## Exact-Head Review Brief
 
-- Head SHA to review: (to be filled after final commit/push; branch `agent/product-v3-resource-strategy-explorer-v1`).
-- Focus: Check strict model validation, unknown vs false handling, deterministic fingerprint exclusion of path, offered/admitted denominator separation, lifecycle conservation, matched-cohort exclusion guarantee, unadmitted guard, queue/energy/resource-cost surfacing, synthetic labelling, and that page consumes typed report without recomputation.
-- Verify no E2/PR21/PR22 modification, no new dependency, no secret exposure, no causal/optimality claim.
-- Verify navigation registration isolated (labels/navigation/page_runtime/test) and that `validate_v07_page_specs` passes with 37 pages.
+- **Final head to review:** `<FINAL_SHA>` (after doc push)
+- Focus: strict validation, unknown vs false, deterministic fingerprint (excludes path/generated_at), offered/admitted separation, lifecycle conservation, matched-cohort exclusion guarantee, admission guards, pairwise `descriptive only` with magnitude/unit, golden fingerprint, portable JSON, real compatibility, reserved authority, thin page, no scheduler/RSU/VEC/SUMO/k8s, no causal/optimal claim, navigation 39, Manhattan hub preserved.
 
