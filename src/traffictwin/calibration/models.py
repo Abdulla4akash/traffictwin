@@ -21,12 +21,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # ---------------------------------------------------------------------------
 
 
-class StrictModel(BaseModel):
-    """Base model that rejects unknown fields."""
-
-    model_config = ConfigDict(extra="forbid", populate_by_name=True, validate_assignment=True)
-
-
 class FrozenStrictModel(BaseModel):
     """Immutable strict model."""
 
@@ -65,14 +59,6 @@ class CalibrationStatus(StrEnum):
     EXCLUDED = "excluded"
 
 
-class Direction(StrEnum):
-    """Declared optimisation direction for a metric."""
-
-    LOWER_IS_BETTER = "lower_is_better"
-    HIGHER_IS_BETTER = "higher_is_better"
-    NEUTRAL = "neutral"
-
-
 class MissingnessPolicy(StrEnum):
     """How missing evidence is handled — never zero-filled."""
 
@@ -104,8 +90,8 @@ class CalibrationMetricSpec(FrozenStrictModel):
     metric_version: str = Field(min_length=1, max_length=32)
     unit: str = Field(min_length=1, max_length=64)
     denominator: str | None = Field(default=None, max_length=128)
-    direction: Direction = Direction.LOWER_IS_BETTER
     weight: float = Field(ge=0, le=10, allow_inf_nan=False)
+    objective_scale: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     alignment_required: bool = True
     missingness_policy: MissingnessPolicy = MissingnessPolicy.EXCLUDE_BIN
 
@@ -126,14 +112,26 @@ class CalibrationMetricSpec(FrozenStrictModel):
             raise ValueError("unit/metric_version/denominator must be non-empty when provided")
         return value.strip()
 
+    @model_validator(mode="after")
+    def validate_scale_for_weight(self) -> CalibrationMetricSpec:
+        if self.weight > 0 and self.objective_scale is None:
+            raise ValueError("objective_scale must be set (>0) when weight > 0")
+        if self.objective_scale is not None and not (
+            self.objective_scale > 0
+            and abs(self.objective_scale) != float("inf")
+            and not isinstance(self.objective_scale, bool)
+        ):
+            raise ValueError("objective_scale must be positive finite")
+        return self
+
     def canonical_dict(self) -> dict[str, Any]:
         return {
             "alignment_required": self.alignment_required,
             "denominator": self.denominator,
-            "direction": self.direction.value,
             "metric_key": self.metric_key,
             "metric_version": self.metric_version,
             "missingness_policy": self.missingness_policy.value,
+            "objective_scale": self.objective_scale,
             "unit": self.unit,
             "weight": self.weight,
         }
@@ -167,7 +165,6 @@ class CalibrationAlignmentSpec(FrozenStrictModel):
     def validate_window(self) -> CalibrationAlignmentSpec:
         if self.window_end_utc <= self.window_start_utc:
             raise ValueError("window_end_utc must be after window_start_utc")
-        # sensor_mapping keys/values must be non-empty identifiers
         for k, v in self.sensor_mapping.items():
             if not k.strip() or not v.strip():
                 raise ValueError("sensor_mapping keys and values must be non-empty")
@@ -226,9 +223,6 @@ class CalibrationBin(FrozenStrictModel):
     def validate_half_open(self) -> CalibrationBin:
         if self.window_end_utc <= self.window_start_utc:
             raise ValueError("window_end must be after window_start")
-        if "observed" in self.sensor_id.lower():
-            # sensor_id is just an identifier; allow observed prefix but not label
-            pass
         return self
 
     def canonical_dict(self) -> dict[str, Any]:
@@ -290,10 +284,31 @@ class CalibrationObservedReference(FrozenStrictModel):
     def validate_window_and_bins(self) -> CalibrationObservedReference:
         if self.window_end_utc <= self.window_start_utc:
             raise ValueError("observed window_end must be after window_start")
-        # bins must be within window and half-open aligned
+        # duplicate key check
+        seen: set[tuple[str, int, str]] = set()
         for b in self.bins:
             if b.sensor_id not in self.sensor_ids:
                 raise ValueError(f"bin sensor_id {b.sensor_id!r} not in sensor_ids")
+            # window must lie inside parent window half-open
+            if b.window_start_utc < self.window_start_utc or b.window_end_utc > self.window_end_utc:
+                raise ValueError("bin window outside parent window")
+            # width must be compatible with parent bin_width (exact or final partial allowed)
+            # For this V1 we require exact bin_width for simplicity (no partial bins beyond spec)
+            width = (b.window_end_utc - b.window_start_utc).total_seconds()
+            if abs(width - self.bin_width_s) > 1e-9:
+                raise ValueError(f"bin width {width} != parent bin_width {self.bin_width_s}")
+            # window_index consistency: (start - parent_start)/bin_width should equal index
+            expected_index = int(
+                round(
+                    (b.window_start_utc - self.window_start_utc).total_seconds() / self.bin_width_s
+                )
+            )
+            if expected_index != b.window_index:
+                raise ValueError("bin window_index inconsistent with window_start")
+            key = (b.sensor_id, b.window_index, b.metric_key)
+            if key in seen:
+                raise ValueError(f"duplicate observed bin key {key}")
+            seen.add(key)
         return self
 
     def canonical_dict(self) -> dict[str, Any]:
@@ -360,9 +375,26 @@ class CalibrationCandidate(FrozenStrictModel):
     def validate_window(self) -> CalibrationCandidate:
         if self.window_end_utc <= self.window_start_utc:
             raise ValueError("candidate window_end must be after window_start")
+        seen: set[tuple[str, int, str]] = set()
         for b in self.bins:
             if b.sensor_id not in self.sensor_ids:
                 raise ValueError(f"bin sensor_id {b.sensor_id!r} not in sensor_ids")
+            if b.window_start_utc < self.window_start_utc or b.window_end_utc > self.window_end_utc:
+                raise ValueError("bin window outside parent candidate window")
+            width = (b.window_end_utc - b.window_start_utc).total_seconds()
+            if abs(width - self.bin_width_s) > 1e-9:
+                raise ValueError(f"bin width {width} != parent bin_width {self.bin_width_s}")
+            expected_index = int(
+                round(
+                    (b.window_start_utc - self.window_start_utc).total_seconds() / self.bin_width_s
+                )
+            )
+            if expected_index != b.window_index:
+                raise ValueError("bin window_index inconsistent with window_start")
+            key = (b.sensor_id, b.window_index, b.metric_key)
+            if key in seen:
+                raise ValueError(f"duplicate candidate bin key {key}")
+            seen.add(key)
         return self
 
     def canonical_dict(self) -> dict[str, Any]:
@@ -405,15 +437,12 @@ class CalibrationStudy(FrozenStrictModel):
 
     @model_validator(mode="after")
     def validate_study(self) -> CalibrationStudy:
-        # candidate ids unique
         ids = [c.candidate_id for c in self.candidates]
         if len(set(ids)) != len(ids):
             raise ValueError("candidate_id must be unique within study")
         keys = [m.metric_key for m in self.metric_specs]
         if len(set(keys)) != len(keys):
             raise ValueError("metric_key must be unique within metric_specs")
-        # fingerprint binding: observed and candidates must have fingerprints
-        # alignment window should match observed window within tolerance or study is still buildable but audit will exclude  # noqa: E501
         return self
 
     def canonical_dict(self) -> dict[str, Any]:
@@ -453,6 +482,7 @@ class CalibrationAlignmentAudit(FrozenStrictModel):
     total_bins: int = Field(ge=0)
     available_bins: int = Field(ge=0)
     missing_bins: int = Field(ge=0)
+    extra_candidate_bin_count: int = Field(ge=0)
     is_excluded: bool
     exclusion_reason_code: str | None = None
     exclusion_detail: str | None = None
@@ -464,6 +494,7 @@ class CalibrationAlignmentAudit(FrozenStrictModel):
             "coverage_percentage": self.coverage_percentage,
             "exclusion_detail": self.exclusion_detail,
             "exclusion_reason_code": self.exclusion_reason_code,
+            "extra_candidate_bin_count": self.extra_candidate_bin_count,
             "is_excluded": self.is_excluded,
             "missing_bins": self.missing_bins,
             "missing_sensor_ids": sorted(self.missing_sensor_ids),
@@ -494,6 +525,8 @@ class CalibrationMetricResult(FrozenStrictModel):
     rmse: float | None = Field(default=None, allow_inf_nan=False)
     mean_signed_error: float | None = Field(default=None, allow_inf_nan=False)
     relative_error_mean: float | None = Field(default=None, allow_inf_nan=False)
+    normalized_mae: float | None = Field(default=None, allow_inf_nan=False)
+    objective_scale: float | None = Field(default=None, gt=0, allow_inf_nan=False)
     coverage_percentage: float = Field(ge=0, le=100, allow_inf_nan=False)
     is_available: bool
 
@@ -508,6 +541,8 @@ class CalibrationMetricResult(FrozenStrictModel):
             "mean_signed_error": self.mean_signed_error,
             "metric_key": self.metric_key,
             "metric_version": self.metric_version,
+            "normalized_mae": self.normalized_mae,
+            "objective_scale": self.objective_scale,
             "relative_error_mean": self.relative_error_mean,
             "rmse": self.rmse,
             "unit": self.unit,

@@ -19,7 +19,6 @@ from traffictwin.calibration.models import (
     CalibrationCandidate,
     CalibrationMetricSpec,
     CalibrationStudy,
-    Direction,
     MissingnessPolicy,
 )
 from traffictwin.calibration.service import (
@@ -34,7 +33,8 @@ EVIDENCE_NOTICE = (
     "Observed evidence is admitted only when bound by fingerprint; synthetic demonstration "
     "evidence is explicitly labelled 'Synthetic demonstration evidence'. No causality is claimed. "
     "No candidate is declared validated, optimal, or true calibration. The weighted objective "
-    "ranks candidates only as 'lowest declared objective among compatible candidates' when every "
+    "ranks candidates only as 'lowest declared normalized objective "  # noqa: E501
+    "among compatible candidates' when every "
     "required component is available and compatible."
 )
 
@@ -52,8 +52,8 @@ def _default_specs() -> list[CalibrationMetricSpec]:
             metric_version="1.0",
             unit="veh/h",
             denominator="per_sensor_per_hour",
-            direction=Direction.LOWER_IS_BETTER,
             weight=0.6,
+            objective_scale=100.0,
             alignment_required=True,
             missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
         ),
@@ -62,8 +62,8 @@ def _default_specs() -> list[CalibrationMetricSpec]:
             metric_version="1.0",
             unit="m/s",
             denominator="per_sensor_per_window",
-            direction=Direction.LOWER_IS_BETTER,
             weight=0.4,
+            objective_scale=5.0,
             alignment_required=True,
             missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
         ),
@@ -86,8 +86,9 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
     st.title("Calibration Workbench")
     st.caption(
         "Compare & test — Observed-to-Simulation Calibration Workbench. "
-        "Read-only descriptive comparison of admitted observed evidence with simulation candidates. "  # noqa: E501
-        "Windows use [start,end); missing bins are skipped, never zero-filled."
+        "Read-only descriptive comparison of admitted observed evidence "
+        "with simulation candidates. Windows use [start,end); "
+        "missing bins are skipped, never zero-filled."
     )
     st.info(EVIDENCE_NOTICE)
     st.warning(LIMITATIONS_NOTICE)
@@ -98,16 +99,17 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
     # Observed artifact selection
     st.subheader("Observed evidence")
     st.caption(
-        "Fingerprint-bound observed reference. Synthetic demo is labelled synthetic demonstration evidence."  # noqa: E501
+        "Fingerprint-bound observed reference. Synthetic demo is labelled "
+        "synthetic demonstration evidence."
     )
     st.markdown(f"**Observed ID:** `{observed.observed_id}`")
     st.markdown(f"**Fingerprint:** `{observed.fingerprint[:16]}…` `{observed.fingerprint}`")
     st.markdown(f"**Label:** {observed.evidence_label}")
+    st.markdown(f"**Window:** `{observed.window_start_utc.isoformat()}`")
+    st.markdown(f"**to:** `{observed.window_end_utc.isoformat()}`")
     st.markdown(
-        f"**Window:** `{observed.window_start_utc.isoformat()}` to `{observed.window_end_utc.isoformat()}`"  # noqa: E501
-    )
-    st.markdown(
-        f"**Bin width:** `{observed.bin_width_s}` s, semantics `[start,end)`, sensors `{', '.join(observed.sensor_ids)}`"  # noqa: E501
+        f"**Bin width:** `{observed.bin_width_s}` s, semantics `[start,end)`, "
+        f"sensors `{', '.join(observed.sensor_ids)}`"
     )
     st.markdown(f"**Metric units:** `{observed.metric_units}`")
     st.markdown(f"**Bin count:** `{len(observed.bins)}`")
@@ -119,7 +121,6 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
     st.subheader("Simulation candidates")
     st.caption("Select one or more imported simulation candidates. Each is bound by fingerprint.")
     options = list(all_cands.keys())
-    # Default selection includes good, poor, incompatible as per spec three candidates
     default_selection = ["candidate_good_fit", "candidate_poor_fit", "candidate_incompatible"]
     selected_ids = st.multiselect(
         "Candidates",
@@ -130,33 +131,39 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
     )
     if not selected_ids:
         st.info(
-            "No candidates selected. Choose at least one simulation candidate to build the calibration comparison. "  # noqa: E501
-            "Synthetic demonstration candidates are available above: good-fit, poor-fit, and incompatible/missing."  # noqa: E501
+            "No candidates selected. Choose at least one simulation candidate to build "  # noqa: E501
+            "the calibration comparison. "
+            "Synthetic demonstration candidates are available above: good-fit, poor-fit, "  # noqa: E501
+            "and incompatible/missing."
         )
         st.stop()
 
-    # Show selected candidate fingerprints
     for cid in selected_ids:
         cand = all_cands[cid]
         st.markdown(
             f"- **{cand.candidate_id}** — `{cand.label}` | fingerprint `{cand.fingerprint[:12]}…` | unit {cand.metric_units}"  # noqa: E501
         )
 
-    # Metric / weight editor
+    # Metric / weight / scale editor
     st.subheader("Metric specification & weights")
     st.caption(
-        "Each metric declares key, version, unit, denominator, direction, weight, alignment requirement, and missingness policy. "  # noqa: E501
-        "Weights control the weighted declared objective; objective is available only when every required component is compatible."  # noqa: E501
+        "Each metric declares key, version, unit, denominator, weight, alignment "  # noqa: E501
+        "requirement, and missingness policy. "
+        "Weights are combined only after unit-specific errors are divided "  # noqa: E501
+        "by their declared scales. "
+        "Changing weights or scales changes the declared decision rule; it does "  # noqa: E501
+        "not make a candidate scientifically validated."
     )
     default_specs = _default_specs()
     edited_specs: list[CalibrationMetricSpec] = []
     for idx, spec in enumerate(default_specs):
         with st.container(border=True):
             st.markdown(
-                f"**Metric {idx + 1}:** `{spec.metric_key}` v{spec.metric_version} unit `{spec.unit}`"  # noqa: E501
+                f"**Metric {idx + 1}:** `{spec.metric_key}` v{spec.metric_version} "  # noqa: E501
+                f"unit `{spec.unit}`"
             )
             st.caption(
-                f"Denominator: {spec.denominator} | Direction: {spec.direction.value} | Missingness: {spec.missingness_policy.value}"  # noqa: E501
+                f"Denominator: {spec.denominator} | Missingness: {spec.missingness_policy.value}"
             )
             weight = st.slider(
                 f"Weight for {spec.metric_key}",
@@ -166,25 +173,36 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
                 step=0.1,
                 key=f"calibration_weight_{spec.metric_key}",
             )
-            # Keep other fields same but allow weight editing
+            scale = st.number_input(
+                f"Objective scale for {spec.metric_key} [{spec.unit}]",
+                min_value=0.01,
+                max_value=10000.0,
+                value=float(spec.objective_scale) if spec.objective_scale else 1.0,
+                step=0.1,
+                key=f"calibration_scale_{spec.metric_key}",
+                help="Positive finite scale in same unit as metric; errors divided "  # noqa: E501
+                "by this to become dimensionless",
+            )
             edited_specs.append(
                 CalibrationMetricSpec(
                     metric_key=spec.metric_key,
                     metric_version=spec.metric_version,
                     unit=spec.unit,
                     denominator=spec.denominator,
-                    direction=spec.direction,
                     weight=weight,
+                    objective_scale=scale if weight > 0 else None,
                     alignment_required=spec.alignment_required,
                     missingness_policy=spec.missingness_policy,
                 )
             )
 
-    # Alignment spec editor (thin - show but allow no edit for simplicity, but still explicit)
+    # Alignment spec
     st.subheader("Alignment specification")
     st.caption(
-        "Temporal alignment uses half-open windows [start,end) with bin_width, sensor/link mapping, "  # noqa: E501
-        "unit compatibility, coverage audit, exclusion reasons, and missing-bin handling (never zero-filled)."  # noqa: E501
+        "Temporal alignment uses half-open windows [start,end) with bin_width, "  # noqa: E501
+        "sensor/link mapping, "
+        "unit compatibility, coverage audit, exclusion reasons, and "  # noqa: E501
+        "missing-bin handling (never zero-filled)."
     )
     alignment = CalibrationAlignmentSpec(
         window_start_utc=observed.window_start_utc,
@@ -199,8 +217,6 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
 
     # Build report
     if st.button("Build calibration report", key="calibration_build_report", type="primary"):
-        st.session_state["calibration_last_report_json"] = None  # clear previous
-        # Build study
         selected_candidates = [all_cands[cid] for cid in selected_ids]
         study = CalibrationStudy(
             study_id="calibration_demo_study",
@@ -212,27 +228,36 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
             alignment_spec=alignment,
         )
         report = build_calibration_report(study)
-        st.session_state["calibration_last_report"] = report.model_dump(mode="json")
         st.session_state["calibration_last_report_obj"] = report
         st.success(f"Built report `{report.report_id}` with fingerprint `{report.fingerprint}`")
 
     report_obj = st.session_state.get("calibration_last_report_obj")
     if report_obj is None:
         st.info(
-            "No report built yet. Adjust metric weights and press 'Build calibration report' to see "  # noqa: E501
+            "No report built yet. Adjust metric weights and press "  # noqa: E501
+            "'Build calibration report' to see "
             "alignment audit, exclusions, residuals, and candidate ranking. "
             "Empty state: build required before results are shown."
         )
         return
 
-    # From here, render typed service outputs only — no recomputation
-
+    # Evidence and authority standing BEFORE results - product invariant
     st.subheader("Evidence and authority standing")
     st.info(report_obj.evidence_boundary)
     st.caption(f"Report fingerprint: `{report_obj.fingerprint}`")
     st.caption(f"Observed fingerprint: `{report_obj.observed_fingerprint}`")
     st.caption(
-        "Candidates are ranked only as 'lowest declared objective among compatible candidates'"
+        "Candidates are ranked only as 'lowest declared normalized "  # noqa: E501
+        "objective among compatible candidates'"
+    )
+
+    # Ranking explanation before ranking
+    st.caption(
+        "Ranking uses the lowest declared dimensionless weighted normalized error among candidates that pass alignment, unit, coverage and required-metric gates."  # noqa: E501
+    )
+    st.caption(
+        "Changing weights or scales changes the declared decision rule; it does "  # noqa: E501
+        "not make a candidate scientifically validated."  # noqa: E501
     )
 
     # Alignment audit
@@ -252,11 +277,12 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
                 "total_bins": a.total_bins,
                 "available_bins": a.available_bins,
                 "missing_bins": a.missing_bins,
+                "extra_bins": a.extra_candidate_bin_count,
                 "excluded": a.is_excluded,
                 "exclusion_code": a.exclusion_reason_code or "",
             }
         )
-    st.dataframe(audit_rows, use_container_width=True, hide_index=True)
+    st.dataframe(audit_rows, width="stretch", hide_index=True)
 
     # Exclusion table
     st.subheader("Exclusions")
@@ -270,15 +296,15 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
             }
             for e in report_obj.exclusions
         ]
-        st.dataframe(excl_rows, use_container_width=True, hide_index=True)
+        st.dataframe(excl_rows, width="stretch", hide_index=True)
     else:
         st.caption("No exclusions — all selected candidates passed alignment and unit checks.")
 
     # Candidate summary
     st.subheader("Candidate summary")
     st.caption(
-        "Descriptive fit: MAE, RMSE, signed error, relative error (safe denominator), coverage %, weighted declared objective."  # noqa: E501
-    )
+        "Descriptive fit: MAE, RMSE, signed error, relative error (safe denominator), coverage %, weighted declared normalized objective (dimensionless)."  # noqa: E501
+    )  # noqa: E501
     summary_rows = []
     for s in report_obj.candidate_summaries:
         summary_rows.append(
@@ -291,20 +317,20 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
                 "exclusion": s.exclusion.reason_code if s.exclusion else "",
             }
         )
-    st.dataframe(summary_rows, use_container_width=True, hide_index=True)
+    st.dataframe(summary_rows, width="stretch", hide_index=True)
 
     # Ranking
     if report_obj.ranking:
         st.markdown(
-            f"**Lowest declared objective among compatible candidates:** `{report_obj.ranking[0]}`"
+            f"**Lowest declared normalized objective among compatible candidates:** `{report_obj.ranking[0]}`"  # noqa: E501
         )
         st.caption(f"Full ranking (compatible only): {report_obj.ranking}")
     else:
         st.caption(
-            "No compatible candidates with a declared objective — ranking unavailable (requires every required component available)."  # noqa: E501
-        )
+            "No compatible candidates with a declared normalized objective — ranking unavailable (requires every required component available)."  # noqa: E501
+        )  # noqa: E501
 
-    # Per-metric results
+    # Per-metric fit
     st.subheader("Per-metric fit")
     metric_rows = []
     for s in report_obj.candidate_summaries:
@@ -325,12 +351,16 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
                     "rel_err_mean": round(m.relative_error_mean, 4)
                     if m.relative_error_mean is not None
                     else None,
+                    "norm_mae": round(m.normalized_mae, 4)
+                    if m.normalized_mae is not None
+                    else None,
+                    "scale": m.objective_scale,
                     "coverage_%": round(m.coverage_percentage, 1),
                     "available": m.is_available,
                 }
             )
     if metric_rows:
-        st.dataframe(metric_rows, use_container_width=True, hide_index=True)
+        st.dataframe(metric_rows, width="stretch", hide_index=True)
     else:
         st.caption("No per-metric results — all candidates excluded or no paired bins.")
 
@@ -358,17 +388,13 @@ def render(config: object | None = None) -> None:  # noqa: ARG001
                 }
             )
     if residual_rows:
-        st.dataframe(residual_rows, use_container_width=True, hide_index=True)
-        # Simple plot: MAE per candidate (if available)
-        try:
-            chart_data = {}
-            for s in report_obj.candidate_summaries:
-                if s.weighted_objective is not None:
-                    chart_data[s.candidate_id] = s.weighted_objective
-            if chart_data:
-                st.bar_chart(chart_data)
-        except Exception:  # noqa: S110
-            pass
+        st.dataframe(residual_rows, width="stretch", hide_index=True)
+        chart_data = {}
+        for s in report_obj.candidate_summaries:
+            if s.weighted_objective is not None:
+                chart_data[s.candidate_id] = s.weighted_objective
+        if chart_data:
+            st.bar_chart(chart_data)
     else:
         st.caption("No residuals — candidates excluded or no paired bins.")
 

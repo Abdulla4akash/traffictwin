@@ -14,7 +14,6 @@ from traffictwin.calibration.models import (
     CalibrationResidual,
     CalibrationStatus,
     CalibrationStudy,
-    Direction,
     MissingnessPolicy,
 )
 
@@ -32,6 +31,5 @@ __all__ = [
     "CalibrationResidual",
     "CalibrationStatus",
     "CalibrationStudy",
-    "Direction",
     "MissingnessPolicy",
 ]

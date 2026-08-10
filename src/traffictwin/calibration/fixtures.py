@@ -18,7 +18,6 @@ from traffictwin.calibration.models import (
     CalibrationMetricSpec,
     CalibrationObservedReference,
     CalibrationStudy,
-    Direction,
     MissingnessPolicy,
 )
 
@@ -33,8 +32,8 @@ _METRIC_SPECS: list[CalibrationMetricSpec] = [
         metric_version="1.0",
         unit="veh/h",
         denominator="per_sensor_per_hour",
-        direction=Direction.LOWER_IS_BETTER,
         weight=0.6,
+        objective_scale=100.0,
         alignment_required=True,
         missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
     ),
@@ -43,8 +42,8 @@ _METRIC_SPECS: list[CalibrationMetricSpec] = [
         metric_version="1.0",
         unit="m/s",
         denominator="per_sensor_per_window",
-        direction=Direction.LOWER_IS_BETTER,
         weight=0.4,
+        objective_scale=5.0,
         alignment_required=True,
         missingness_policy=MissingnessPolicy.EXCLUDE_BIN,
     ),
@@ -65,8 +64,6 @@ def _fingerprint_for_payload(payload: object) -> str:
 def make_observed_fixture() -> CalibrationObservedReference:
     """Create synthetic observed fixture with complete coverage."""
     bins: list[CalibrationBin] = []
-    # 4 windows * 2 sensors * 2 metrics = 16 bins
-    # Deterministic values
     flow_values = {
         ("sensor_A", 0): 100.0,
         ("sensor_A", 1): 120.0,
@@ -90,7 +87,6 @@ def make_observed_fixture() -> CalibrationObservedReference:
     for sensor in _SENSORS:
         for idx in range(4):
             ws, we = _bin_window(idx)
-            # flow
             bins.append(
                 CalibrationBin(
                     sensor_id=sensor,
@@ -113,7 +109,6 @@ def make_observed_fixture() -> CalibrationObservedReference:
                     unit="m/s",
                 )
             )
-    # fingerprint is stable hash over bins + metadata
     payload = {
         "bins": [
             b.canonical_dict()
@@ -150,7 +145,6 @@ def _make_candidate_bins(
     bins: list[CalibrationBin] = []
     for sensor in sensors:
         for idx in range(4):
-            # Recalculate window based on offset from original start
             ws = window_start + timedelta(seconds=idx * bin_width)
             we = ws + timedelta(seconds=bin_width)
             bins.append(
@@ -282,7 +276,6 @@ def make_candidate_incompatible() -> CalibrationCandidate:
         ("sensor_B", 2): 100.0,
         ("sensor_B", 3): 98.0,
     }
-    # Half missing speed values
     speed_values: dict[tuple[str, int], float | None] = {
         ("sensor_A", 0): 12.5,
         ("sensor_A", 1): None,
@@ -293,7 +286,6 @@ def make_candidate_incompatible() -> CalibrationCandidate:
         ("sensor_B", 2): None,
         ("sensor_B", 3): 11.3,
     }
-    # Use wrong unit for flow to trigger unit mismatch exclusion
     bins = _make_candidate_bins(
         flow_values=flow_values,
         speed_values=speed_values,
