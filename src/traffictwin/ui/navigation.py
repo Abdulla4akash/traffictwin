@@ -37,6 +37,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.TRIVIALITY,
         UiPage.RUN_OVERVIEW,
         UiPage.TEMPORAL_METRICS,
+        UiPage.EVENT_ALIGNED_ANALYSIS,
         UiPage.ENERGY,
         UiPage.FAIRNESS,
         UiPage.THRESHOLD_SENSITIVITY,

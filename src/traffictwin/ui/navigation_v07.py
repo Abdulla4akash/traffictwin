@@ -297,6 +297,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/timeline:",
     ),
     V07PageSpec(
+        UiPage.EVENT_ALIGNED_ANALYSIS,
+        "Results",
+        "app_pages/event_aligned_analysis.py",
+        "event-aligned-analysis",
+        ":material/event:",
+    ),
+    V07PageSpec(
         UiPage.ENERGY,
         "Results",
         "app_pages/energy.py",
