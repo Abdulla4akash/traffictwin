@@ -108,10 +108,16 @@ git ls-remote --tags origin refs/tags/pr17-pre-phase-b-bb30fd4  # must show 0d1f
 # 4. Verify PR #13: mergedAt != null (Gate A)
 gh pr view 13 --repo Abdulla4akash/traffictwin --json state,mergedAt,headRefOid,mergeCommit,baseRefName
 # must be: mergedAt != null (ISO timestamp)
-# 5. Run merge-style-agnostic PR13 content/readiness check against live origin/main (Gate B)
-python3 tools/check_pr17_phase_b_ready.py --pr13-merged-at "$(gh pr view 13 --repo Abdulla4akash/traffictwin --json mergedAt --jq .mergedAt)" --main-path "$(git rev-parse --show-toplevel)"
-# or on synthetic checkout: python3 tools/check_pr17_phase_b_ready.py --pr13-merged-at "$MERGED_AT" --main-path /tmp/checkout
-# Require READY_FOR_PHASE_B (exit 0). BLOCKED_PR13_OPEN (exit 1) or BLOCKED_CONTENT_MISMATCH (exit 2) → stop.
+# 5. Run merge-style-agnostic PR13 content/readiness check against fetched origin/main (Gate B) — FAIL-CLOSED
+# Both --main-path AND --expected-main-sha are REQUIRED (no cwd default); mismatch fails closed.
+MERGED_AT="$(gh pr view 13 --repo Abdulla4akash/traffictwin --json mergedAt --jq .mergedAt)"
+FETCHED_MAIN_SHA="$(git rev-parse origin/main)"
+# Create throwaway worktree at exact fetched SHA (do not reuse rehearsal checkout)
+rm -rf /tmp/pr17-main-check && mkdir -p /tmp/pr17-main-check
+git worktree add --detach /tmp/pr17-main-check "$FETCHED_MAIN_SHA"
+.venv/bin/python tools/check_pr17_phase_b_ready.py --main-path /tmp/pr17-main-check --expected-main-sha "$FETCHED_MAIN_SHA" --pr13-merged-at "$MERGED_AT"
+# Require READY_FOR_PHASE_B (exit 0). Exit codes: 0 READY, 1 BLOCKED_PR13_OPEN, 2 BLOCKED_CONTENT_MISMATCH, 3 GITHUB_QUERY_ERROR, 4 MAIN_PATH_REVISION_MISMATCH → stop.
+git worktree remove --force /tmp/pr17-main-check
 # 6. Require READY_FOR_PHASE_B (both gates). If BLOCKED, stop and investigate.
 # 7. Record hosted CI status: healthy OR CI_INFRASTRUCTURE_BLOCKED
 gh run list --repo Abdulla4akash/traffictwin --limit 5
@@ -243,9 +249,9 @@ At minimum establish from live main:
 
 - Portfolio Explorer production module exists (`src/traffictwin/ui/portfolio_explorer.py`)
 - Portfolio Explorer page exists (`src/traffictwin/ui/pages/portfolio_explorer.py`, `src/traffictwin/ui/app_pages/portfolio_explorer.py`)
-- Portfolio page is registered (`src/traffictwin/ui/labels.py` + `navigation_v07.py` contain `PORTFOLIO_EXPLORER` exactly once)
+- Portfolio page is registered exactly once via AST (`src/traffictwin/ui/navigation_v07.py` `V07PageSpec(UiPage.PORTFOLIO_EXPLORER)` count==1, positional+keyword; `labels.py` contains `PORTFOLIO_EXPLORER`)
 - Challenge Seed Library data/contracts exist (`ChallengeSeedDefinition`, `get_challenge_seed_library`)
-- All seven challenge seeds remain `REPRESENTABLE_ONLY` (no `EXECUTABLE`/`NOT_YET_EXECUTABLE` for seeds; IDs `CH-01`..`CH-07` present)
+- All seven challenge seeds are `REPRESENTABLE_ONLY` counted structurally via AST `ChallengeSeedDefinition(status=ChallengeExecutionStatus.REPRESENTABLE_ONLY)` exactly 7 (IDs `CH-01`..`CH-07` present, enum definition not counted, no EXECUTABLE/NOT_YET_EXECUTABLE)
 - Authoritative selector-consumed contract exists (`SELECTOR_CONSUMED_FIELDS`, `is_selector_input`)
 - Portfolio production fingerprint includes reviewed evidence semantics (`challenge_target_surfaces`, `selector_input_features`)
 - No generic ScenarioSeed→run executor appeared (no `def run_challenge` etc.)
@@ -255,15 +261,17 @@ The script `tools/check_pr17_phase_b_ready.py` implements Gate B exactly from `s
 
 ---
 
-## Merge-style-agnostic readiness states
+## Merge-style-agnostic readiness states (fail-closed, 5 states)
 
-The checker/packet reports:
+The checker reports distinct exit codes (no silent default):
 
-- **BLOCKED_PR13_OPEN** — `mergedAt == null` → No Phase B.
-- **BLOCKED_CONTENT_MISMATCH** — `mergedAt != null` but current main does not satisfy expected Portfolio/Challenge product contract → No Phase B, investigate merge result.
-- **READY_FOR_PHASE_B** — `mergedAt != null` AND product contract exists on live main → Only then may owner authorize Phase-B replay.
+- **BLOCKED_PR13_OPEN** (exit 1) — `mergedAt == null` → No Phase B.
+- **BLOCKED_CONTENT_MISMATCH** (exit 2) — `mergedAt != null` but fetched main does not satisfy expected Portfolio/Challenge product contract → No Phase B, investigate merge result.
+- **GITHUB_QUERY_ERROR** (exit 3) — `gh` query failed → distinct from content mismatch; retry query, do not proceed.
+- **MAIN_PATH_REVISION_MISMATCH** (exit 4) — `main_path` HEAD != `expected-main-sha` (wrong worktree or stale fetch) → fail closed, do not evaluate Gate B.
+- **READY_FOR_PHASE_B** (exit 0) — `mergedAt != null` AND `main_path` HEAD == `expected-main-sha` AND product contract passes (portfolio exactly once via AST, CH-01..CH-07 exactly 7 REPRESENTABLE_ONLY via AST) → Only then may owner authorize Phase-B replay.
 
-Do not equate `2d7e85f is ancestor` with readiness.
+Missing required `--main-path` or `--expected-main-sha` fails via argparse (exit 2, no default to cwd). Do not equate `2d7e85f is ancestor` with readiness.
 
 ---
 
@@ -276,22 +284,33 @@ Starting from `origin/main` + PR #13 contribution, constructed three synthetic o
 | Normal merge commit (`merge --no-ff 2d7e85f`) | TRUE | PASS | **READY** |
 | Squash merge (`merge --squash 2d7e85f` as one commit) | FALSE | PASS | **READY** |
 | Rebase-style (`cherry-pick origin/main..2d7e85f`, 8 commits) | FALSE | PASS | **READY** |
-| Negative control (merged true but `portfolio_explorer.py` removed) | TRUE | FAIL (missing file) | **BLOCKED_CONTENT_MISMATCH** |
+| Negative control (merged true but `portfolio_explorer.py` removed) | TRUE | FAIL (missing file) | **BLOCKED_CONTENT_MISMATCH** (exit 2) |
+| Wrong-worktree with full content but mismatched SHA | TRUE | not evaluated (SHA mismatch) | **MAIN_PATH_REVISION_MISMATCH** (exit 4) |
+| GitHub query failure (gh not found / API error) | — | — | **GITHUB_QUERY_ERROR** (exit 3, distinct) |
 
-Plus: `mergedAt null` on good content → **BLOCKED_PR13_OPEN** (verified).
+Plus: `mergedAt null` on good content → **BLOCKED_PR13_OPEN** (exit 1, verified).
 
-This proves the old ancestry check fails for squash/rebase where the new semantic checker still returns READY, which is why the packet was changed.
+This proves the old ancestry check fails for squash/rebase where the new semantic checker still returns READY, which is why the packet was changed. The rehearsal-populated tree cannot be mistaken for fetched origin/main: without `--expected-main-sha` the checker requires the argument; with a wrong SHA it returns MAIN_PATH_REVISION_MISMATCH (4), not READY.
 
-Lightweight checker `tools/check_pr17_phase_b_ready.py` plus `tests/unit/test_pr17_phase_b_readiness.py` (6 tests) were executed on `rehearsal/pr17-phase-b-v1`:
+Fail-closed checker `tools/check_pr17_phase_b_ready.py` (requires --main-path + --expected-main-sha, AST exactly-once portfolio and structural 7×REPRESENTABLE_ONLY) plus `tests/unit/test_pr17_phase_b_readiness.py` (15 tests, fail-closed) executed on `rehearsal/pr17-phase-b-v1`:
 
-- `test_pr13_not_merged_blocked` → PASS
-- `test_merged_blocked_content_mismatch_missing_file` → PASS
-- `test_merged_ready_on_rehearsal` → PASS
-- `test_merged_challenge_status_changed_blocked` → PASS (EXECUTABLE triggers BLOCKED)
+- `test_missing_required_main_path` → PASS (argparse exit 2)
+- `test_wrong_worktree_sha_despite_complete_content` → PASS (exit 4 MAIN_PATH_REVISION_MISMATCH)
+- `test_pr13_not_merged_blocked` → PASS (exit 1)
+- `test_github_query_error_is_distinct` → PASS (exit 3 distinct)
+- `test_merged_ready_on_valid_main` → PASS (exit 0)
+- `test_merged_blocked_content_mismatch_missing_file` → PASS (exit 2)
+- `test_missing_portfolio_registration` → PASS (exit 2, count 0 ≠1)
+- `test_duplicate_portfolio_registration` → PASS (exit 2, count 2 ≠1)
+- `test_six_challenge_seeds_blocked` → PASS (exit 2, count 6 ≠7)
+- `test_one_non_representable_challenge_blocked` → PASS (exit 2, EXECUTABLE)
+- `test_enum_definition_does_not_inflate_count` → PASS (enum not counted, still 7)
+- `test_valid_seven_seed_contract` → PASS (7 REPRESENTABLE_ONLY)
+- `test_rehearsal_tree_is_rejected_when_expected_main_sha_differs` → PASS (origin SHA vs rehearsal tree → 4)
 - `test_content_gate_direct` → PASS
 - `test_content_gate_missing_portfolio` → PASS
 
-See `uv run --no-sync python -m pytest tests/unit/test_pr17_phase_b_readiness.py -q`.
+See `.venv/bin/python -m pytest tests/unit/test_pr17_phase_b_readiness.py -q` → 15 passed.
 
 ---
 
@@ -328,4 +347,19 @@ After PR #13 merges, owner executes Phase-B procedure above, pushes official PR 
 - Optional bundle `~/AntigravityTest/traffictwin-pr17-phase-b.bundle` (see §14) is secondary offline backup; remote branch/tag are primary.
 - Official `agent/product-challenge-whatif-bridge-v2` remains `bb30fd4` until Phase-B.
 - PR #13, PR #14, PR #16, PR #15, research `/diss` untouched by this packet creation (read-only `git fetch` and `gh pr view`).
+
+---
+
+## 9. Pass-6 fail-closed hardening (P6-1..4) — this packet revision
+
+This revision (353f61d) closes Claude Pass-6 fail-open findings; official product code unchanged (still 8-file bridge, 2726/31).
+
+- **P6-1 missing --main-path defaults to rehearsal** → fixed: `--main-path` and `--expected-main-sha` both `required=True`; `main_path HEAD --expected-main-sha binding via `git -C main_path rev-parse HEAD` returns `MAIN_PATH_REVISION_MISMATCH (4)` on mismatch or undeterminable HEAD; rehearsal tree with origin SHA is rejected (test_rehearsal_tree_is_rejected...).
+- **P6-2 portfolio count used `<1` not `==1` (duplicate passes)** → fixed: AST walker for `V07PageSpec(UiPage.PORTFOLIO_EXPLORER)` positional first arg or `page=` keyword, `count !=1` → BLOCKED with `portfolio_registration_count = {count} expected =1`; tests `test_missing_portfolio_registration` (0) and `test_duplicate_portfolio_registration` (2) both assert exit 2.
+- **P6-3 challenge count used substring token (enum inflated, non-REPRESENTABLE not checked)** → fixed: parse `ChallengeSeedDefinition` calls via AST, extract `(challenge_id,status)` where `challenge_id.startswith("CH-")`, count must be 7, IDs must equal `CH-01..CH-07` set, every status must be `REPRESENTABLE_ONLY` (else `non_representable_seed_ids`); enum `class ChallengeExecutionStatus: REPRESENTABLE_ONLY` not counted; tests `test_six_challenge_seeds_blocked`, `test_one_non_representable...`, `test_enum_definition_does_not_inflate_count`.
+- **P6-4 GitHub query error mapped to BLOCKED_CONTENT_MISMATCH** → fixed: `except Exception: return 3` with `GITHUB_QUERY_ERROR` message, distinct from `BLOCKED_CONTENT_MISMATCH (2)`; test `test_github_query_error_is_distinct` asserts exit 3.
+
+Exit-code contract (documented in checker docstring): `0 READY_FOR_PHASE_B, 1 BLOCKED_PR13_OPEN, 2 BLOCKED_CONTENT_MISMATCH, 3 GITHUB_QUERY_ERROR, 4 MAIN_PATH_REVISION_MISMATCH`. Packet step 5 and synthetic table above reflect this contract.
+
+No workflow edits; CI remains `CI_INFRASTRUCTURE_BLOCKED` (billing) — see CI section.
 
