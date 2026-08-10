@@ -6,6 +6,8 @@
 **Date:** 2026-08-10
 **Remote before push:** `origin/agent/product-v3-event-aligned-analysis-v1` at `7fcf883b5e6b65a30146c4c2139b0de4c2f5e5d4`
 **Head after fixes + reconciliation:** `7c9cddd5de3f7a5e29f7d93ff0a3a21d9f276d8d` (after reordering, fix before register)
+**Claude re-review of 933cbdf:** REQUEST CHANGES (F2 bomb weak, F3 vacuous, new partial_count double+2 regression)
+**New head after surgical fix:** `1025c6bf64c02f38102509f427e621e22ec96a40`
 
 ## 1. Product goal
 
@@ -95,31 +97,38 @@ Commit history after reconciliation (reordered fix before register):
 - fd15853 fix(event-aligned): address Claude review blockers (naive 1970, max_bins preflight, PARTIAL, catalogue guard, JSON determinism, engine-contract, hoist)
 - 7c9cddd feat(event-aligned): register Event-Aligned Analysis page (isolated)
 
-## 6. Test counts (observed, serial due to E2 inactive at verification)
+## 6. Test counts (observed, serial, E2 active → no -n/SUMO/VEC)
 
 - `test_event_aligned_models.py`: 8 collected, 8 passed
 - `test_event_aligned_service.py`: 14 collected, 14 passed
 - `test_event_aligned_exports.py`: 5 collected, 5 passed
-- `test_event_aligned_blockers.py`: 9 collected, 9 passed (M1–M8)
+- `test_event_aligned_blockers.py`: 14 collected, 14 passed (M1–M9 + partial_count semantics + invariant)
 - `test_event_aligned_integration.py`: 4 collected, 4 passed
 - `test_event_aligned_page.py`: 4 collected, 4 passed
 - `test_navigation_v07.py`: 51 collected, 51 passed (including event_aligned_analysis smoke)
-- Full feature suite (above 6 files + integration): 44 collected, 44 passed (serial)
-- Combined with navigation: 95 collected, 95 passed
+- Full feature suite (above 6 files + integration): 49 collected, 49 passed (serial, 8.77s)
+- Combined with navigation: 100 collected, 100 passed (49+51)
 - No `pytest -n`, no SUMO/VEC launch, focused gates first.
 
-## 7. Mutation table (M1–M8 blocker regressions)
+**At 933cbdf:** same 8/14/5/9/4/4/51 = 44+51=95. At 933cbdf M3 was vacuous (zero PARTIAL service points, fallback assert True) and partial_count double-counted (partial 2 for bin 1). At 1025c6b M3 is real (2 PARTIAL points via energy contract), M9 and invariant added, M2 bomb added → 49+51=100.
 
-| Mutation | Test that failed | Exact assertion | Restored |
-|---|---|---|---|
-| M1 naive `bundle.created_at` fallback to 1970 (no tz check) — real evidence becomes false empty | `test_M1_naive_bundle_time_basis_excluded` — `assert len(report.excluded_runs)==1` and `excluded.reason_code=="INVALID_TIME_BASIS"`; counterpart `test_M1_tz_aware_accepted` | `AssertionError: assert 0 == 1` (run incorrectly accepted) | Yes |
-| M2 `max_bins` checked only after materialisation (100M bins) | `test_M2_max_bins_preflight_before_materialisation` — `with pytest.raises(ValueError, match="maximum")` on spec with 200001 bins; checks preflight before loop | `AssertionError: DID NOT RAISE` or hang | Yes |
-| M3 PARTIAL numeric discarded (`value = None` for partial) | `test_M3_partial_numeric_preserved` — constructs real engine PARTIAL via dense tasks fixture, asserts `p.value is not None` and `summary.available_or_partial` includes partial, CSV `value!=""`, pairwise non-None | `AssertionError: assert None is not None` | Yes |
-| M4 non-window-applicable metric accepted | `test_M4_non_window_metric_rejected` — `with pytest.raises(ValueError, match="not window-applicable")` using private catalogue guard bypass | `AssertionError: DID NOT RAISE` | Yes |
-| M5 JSON includes `created_at_utc` (non-deterministic) | `test_M5_json_determinism_across_clocks` — two reports with different clocks have `fingerprint` equal and `export_report_json(r1)==export_report_json(r2)` | `AssertionError: fingerprints differ` | Yes |
-| M6 compatibility bypass (fake per-run version accepted) | `test_M6_compatibility_engine_contract` — spec version mismatching authoritative definition raises `ValueError` | `AssertionError: DID NOT RAISE` | Yes |
-| M7 `run_context` inside bin loop (N× cost) | `test_M7_run_context_hoisted` — monkeypatches `run_context_from_bundle` call count `assert count==len(valid_runs)` not `len(bins)` | `AssertionError: 36 != 2` | Yes |
-| M8 warning ownership misplaced | `test_m8_warning_ownership` — `assert "PARTIAL" in report.warnings` or `summary`? actually `assert warning in report.warnings` not per-run, checks ownership | `AssertionError: not found` | Yes |
+## 7. Mutation table (M1–M9 blocker regressions)
+
+At `933cbdf`: M3 was vacuous — `test_M3_partial_numeric_preserved` produced zero `status=="partial"` points via `build_event_aligned_report`, fell through `if not found_partial:` to engine-only `assert True`, so reverting `status in ("available","partial")` to `status=="available"` left all 44 feature tests green. `partial_count` also double-counted bins that were both metric-partial and coverage-partial (bin 1 → partial 2). Corrected at `1025c6b`.
+
+| Mutation | Test that failed | Exact assertion | Restored | Provenance |
+|---|---|---|---|---|
+| M1 naive `bundle.created_at` fallback to 1970 | `test_M1_naive_bundle_time_basis_excluded` — `assert len(excluded)==1 and code=="INVALID_TIME_BASIS"` vs `test_M1_tz_aware_accepted` | `AssertionError: assert 0 == 1` (run incorrectly accepted) | Yes | 933cbdf and 1025c6b |
+| M2 `max_bins` checked only after materialisation (100M bins) — old could hang 90s | `test_M2_max_bins_preflight_before_materialisation` — structural bomb `patch(_build_bins_for_spec, bomb)` + `pytest.raises(ValueError, match="configured maximum|exceeds")` | `Failed: bin materialisation was reached before max_bins preflight` (bomb, not hang); direct `_build_bins_for_spec` also raises | Yes | 1025c6b (strengthened; old had time<1s but mutant relied on external timeout) |
+| M3 PARTIAL numeric discarded (`value=None` for partial) | `test_M3_partial_numeric_preserved` — real service PARTIAL via `_make_partial_energy_bundle` (2 tasks same bin, energy per_completed): `assert partial_points` unconditional, `assert p.value is not None and p.value==1.0`, `assert s.partial_count==1 and s.mean==1.0`, `assert pairwise baseline==1.0`, `assert "1.0" in csv_points` and `assert "1.0" in json`, `assert p.coverage_state` | `AssertionError: PARTIAL must retain numeric value / assert None is not None` (first occurrence) or `assert mean==1.0 got None` (second) | Yes | 1025c6b (real engine; 933cbdf had `if not found_partial: assert True` vacuous) |
+| M4 non-window-applicable metric accepted | `test_M4_non_window_metric_rejected` — `with pytest.raises(ValueError, match="not window-applicable")` + UI `ServiceError` | `AssertionError: DID NOT RAISE` | Yes | 933cbdf and 1025c6b |
+| M5 JSON includes `created_at_utc` | `test_M5_json_determinism_across_clocks` — `r1.fingerprint==r2.fingerprint and j1==j2 and "created_at_utc" not in j1` | `AssertionError: fingerprints differ` | Yes | 933cbdf and 1025c6b |
+| M6 compatibility bypass | `test_M6_compatibility_engine_contract` — `ValueError match "does not match authoritative"` + warning `single current engine contract` | `AssertionError: DID NOT RAISE` | Yes | 933cbdf and 1025c6b |
+| M7 `run_context` inside bin loop | `test_M7_run_context_hoisted` — `assert mock_rc.call_count==2 not 30` | `AssertionError: 36 !=2` | Yes | 933cbdf and 1025c6b |
+| M8 warning ownership | `test_m8_warning_ownership` — `assert "has no available..." not in report.warnings and "No available..." in summary.warnings` | `AssertionError: not found` | Yes | 933cbdf and 1025c6b |
+| M9 partial_count double increment (metric PARTIAL + coverage PARTIAL counted twice) | `test_M9_partial_count_double_increment` — one bin both conditions: `assert s.partial_count==1 not 2` and `assert 0<=partial<=bin_count` + invariant `test_partial_count_invariant_across_report` | `AssertionError: partial_count should be 1 not 2` (got 2) | Yes | 1025c6b (new regression at 933cbdf, not tested) |
+
+Additional semantics tests: `test_partial_count_metric_only` (partial+complete →1), `test_partial_count_coverage_only` (available+partial→1), `test_partial_count_neither` (available+complete→0), `test_partial_count_invariant_across_report` (0≤partial≤bin).
 
 Additional pre-existing mutations (half-open, labelled authored, version mismatch, zero-fill, fingerprint exclusions, row order, anchor change) remain covered by `test_event_aligned_service.py` (see section 7 prior). All restored.
 
