@@ -13,9 +13,8 @@ ADAPTER_REGISTRY: dict[ReplayArtifactKind, ReplayAdapterDescriptor] = {
         artifact_kind=ReplayArtifactKind.EVENT_ALIGNED_REPORT,
         supported_schema_versions=["1.0"],
         required_input_fingerprints=[
-            "bundle_fingerprints",
-            "metric_version",
-            "canonical_time_basis",
+            "spec_fingerprint",
+            "anchor_fingerprint",
         ],
         typed_request_model="EventAlignedWindowSpec+EventAnchor[]",
         service_callable="traffictwin.event_aligned.service:build_event_aligned_report",
@@ -34,7 +33,7 @@ ADAPTER_REGISTRY: dict[ReplayArtifactKind, ReplayAdapterDescriptor] = {
     ReplayArtifactKind.PREREGISTRATION_GATE: ReplayAdapterDescriptor(
         artifact_kind=ReplayArtifactKind.PREREGISTRATION_GATE,
         supported_schema_versions=["1.0"],
-        required_input_fingerprints=["plan_fingerprint", "evidence_attachments"],
+        required_input_fingerprints=["plan_fingerprint"],
         typed_request_model="StudyPlan+EvidenceAttachment[]",
         service_callable="traffictwin.preregistration.service:evaluate_gate",
         expected_output_type="traffictwin.preregistration.models:DecisionGateReport",
@@ -44,8 +43,8 @@ ADAPTER_REGISTRY: dict[ReplayArtifactKind, ReplayAdapterDescriptor] = {
         artifact_kind=ReplayArtifactKind.COMPARISON_REPORT,
         supported_schema_versions=["1.0"],
         required_input_fingerprints=[
-            "baseline_collection_fingerprint",
-            "variation_collection_fingerprint",
+            "baseline_fingerprint",
+            "variation_fingerprint",
         ],
         typed_request_model="MetricCollection+ComparisonRequest",
         service_callable="traffictwin.metrics.comparison:compare_metric_collections",

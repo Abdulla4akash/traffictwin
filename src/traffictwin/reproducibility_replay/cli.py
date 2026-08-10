@@ -125,7 +125,7 @@ def plan_command(
     typer.echo(f"entries: {len(plan.entries)}")
     for entry in plan.entries:
         typer.echo(
-            f"- {entry.artifact_kind.value}:{entry.logical_id} {entry.status.value} replayable={entry.replayable} reason={entry.reason}"  # noqa: E501
+            f"- {(entry.artifact_kind.value if entry.artifact_kind else '')}:{entry.logical_id} {entry.status.value} replayable={entry.replayable} reason={entry.reason}"  # noqa: E501
         )
     for w in plan.warnings:
         typer.echo(f"warning: {w}", err=True)
@@ -155,7 +155,10 @@ def run_command(
         typer.echo("available replayable entries:", err=True)
         for e in plan.entries:
             if e.replayable:
-                typer.echo(f"  {e.artifact_kind.value}:{e.logical_id}", err=True)
+                typer.echo(  # noqa: E501
+                    f"  {(e.artifact_kind.value if e.artifact_kind else '')}:{e.logical_id}",
+                    err=True,
+                )
         raise typer.Exit(code=1)
 
     selected: list[tuple[ReplayArtifactKind, str]] = []
@@ -164,6 +167,21 @@ def run_command(
             typer.echo(f"invalid --select spec {spec!r}; expected kind:logical_id", err=True)
             raise typer.Exit(code=1)
         kind_str, logical_id = spec.split(":", 1)
+        if not logical_id.strip():
+            typer.echo(f"invalid --select spec {spec!r}; logical_id must be non-empty", err=True)
+            raise typer.Exit(code=1)
+        if (  # noqa: E501
+            "/" in logical_id
+            or "\\" in logical_id
+            or logical_id.startswith("~")
+            or ".." in logical_id
+        ):
+            typer.echo(  # noqa: E501
+                f"invalid --select logical_id {logical_id!r}; "  # noqa: E501
+                "must be a safe identifier without paths",  # noqa: E501
+                err=True,
+            )
+            raise typer.Exit(code=1)
         try:
             kind = ReplayArtifactKind(kind_str)
         except ValueError as exc:
@@ -216,7 +234,24 @@ def compare_command(
 ) -> None:
     """Show expected vs actual fingerprint comparisons from a receipt."""
     data = _load_json(receipt_path)
-    # Light validation: ensure comparisons present
+    # Verify receipt fingerprint integrity before showing comparisons
+    try:
+        from traffictwin.reproducibility_replay.models import ReplayReceipt
+
+        receipt = ReplayReceipt.model_validate(data)
+        computed = receipt.computed_fingerprint()
+        if computed != receipt.receipt_fingerprint:
+            typer.echo(
+                f"receipt fingerprint mismatch: expected {receipt.receipt_fingerprint} "  # noqa: E501
+                f"computed {computed}",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+    except SystemExit:
+        raise
+    except Exception as exc:
+        typer.echo(f"invalid receipt: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
     comparisons = data.get("comparisons") or []
     mismatches = data.get("mismatches") or []
     if json_output:
@@ -248,6 +283,24 @@ def show_receipt_command(
 ) -> None:
     """Display a receipt (JSON or canonical payload)."""
     data = _load_json(receipt_path)
+    # Verify fingerprint before display
+    try:
+        from traffictwin.reproducibility_replay.models import ReplayReceipt
+
+        receipt_obj = ReplayReceipt.model_validate(data)
+        computed = receipt_obj.computed_fingerprint()
+        if computed != receipt_obj.receipt_fingerprint:
+            typer.echo(
+                f"receipt fingerprint mismatch: expected {receipt_obj.receipt_fingerprint} "  # noqa: E501
+                f"computed {computed}",
+                err=True,
+            )
+            raise typer.Exit(code=1)
+    except SystemExit:
+        raise
+    except Exception as exc:
+        typer.echo(f"invalid receipt: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
     if canonical:
         # Recompute canonical if possible
         try:

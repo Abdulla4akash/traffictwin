@@ -117,7 +117,7 @@ class ReplayRequest(StrictModel):
 class ReplayPlanEntry(StrictModel):
     """One entry in a replay plan."""
 
-    artifact_kind: ReplayArtifactKind
+    artifact_kind: ReplayArtifactKind | None = None
     logical_id: str = Field(min_length=1, max_length=128)
     status: ReplayStatus
     replayable: bool

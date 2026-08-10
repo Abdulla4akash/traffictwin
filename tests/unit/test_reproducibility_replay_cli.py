@@ -153,7 +153,7 @@ def test_cli_run_with_selection(tmp_path: Path) -> None:
     plan = build_replay_plan_from_capsule_bytes(capsule_bytes)
     replayable = [e for e in plan.entries if e.replayable]
     assert replayable, "need at least one replayable entry"
-    spec = f"{replayable[0].artifact_kind.value}:{replayable[0].logical_id}"
+    spec = f"{(replayable[0].artifact_kind.value if replayable[0].artifact_kind else '')}:{replayable[0].logical_id}"
     result = runner.invoke(app, ["run", str(capsule), "--select", spec, "--json"])
     assert result.exit_code == 0
     data = json.loads(result.stdout)
@@ -194,7 +194,7 @@ def test_cli_compare_and_show_receipt(tmp_path: Path) -> None:
 
     plan = build_replay_plan_from_capsule_bytes(capsule_bytes)
     replayable = [e for e in plan.entries if e.replayable][0]
-    spec = f"{replayable.artifact_kind.value}:{replayable.logical_id}"
+    spec = f"{(replayable.artifact_kind.value if replayable.artifact_kind else '')}:{replayable.logical_id}"
     run_result = runner.invoke(app, ["run", str(capsule), "--select", spec, "--json"])
     assert run_result.exit_code == 0
     receipt_data = json.loads(run_result.stdout)

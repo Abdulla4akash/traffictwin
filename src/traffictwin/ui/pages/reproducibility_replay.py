@@ -65,25 +65,25 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
     uploaded = st.file_uploader(
         "Upload capsule ZIP",
         type=["zip"],
-        key="replay_capsule_uploader",
+        key="repro_replay_capsule_uploader",
     )
     path_str = st.text_input(
         "Or capsule path",
         value="",
         placeholder="path/to/study-capsule.zip",
-        key="replay_capsule_path_input",
+        key="repro_replay_capsule_path_input",
         help="Local path to a capsule ZIP for offline verification.",
     )
     standalone_uploader = st.file_uploader(
         "Or upload standalone artifact JSON (fingerprinted derived artifact)",
         type=["json"],
-        key="replay_artifact_uploader",
+        key="repro_replay_artifact_uploader",
     )
     standalone_text = st.text_area(
         "Or paste artifact JSON",
         value="",
         placeholder='{"schema_version":"1.0","report_id":"..."}',
-        key="replay_artifact_text",
+        key="repro_replay_artifact_text",
         height=120,
     )
 
@@ -239,7 +239,7 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
     if replayable:
         rows = [
             {
-                "artifact_kind": e.artifact_kind.value,
+                "artifact_kind": (e.artifact_kind.value if e.artifact_kind else ""),
                 "logical_id": e.logical_id,
                 "status": e.status.value,
                 "expected_fingerprint": _fingerprint_preview(e.expected_output_fingerprint),
@@ -255,14 +255,14 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
             data=plan_to_json(plan).encode("utf-8"),
             file_name="replay-plan.json",
             mime="application/json",
-            key="replay_plan_download",
+            key="repro_replay_plan_download",
         )
         st.download_button(
             "Download plan CSV",
             data=plan_entries_to_csv(plan).encode("utf-8"),
             file_name="replay-plan.csv",
             mime="text/csv",
-            key="replay_plan_csv",
+            key="repro_replay_plan_csv",
         )
     else:
         st.caption("No replayable analyses in this capsule or artifact set.")
@@ -271,7 +271,7 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
     if unavailable:
         rows_u = [
             {
-                "artifact_kind": e.artifact_kind.value,
+                "artifact_kind": (e.artifact_kind.value if e.artifact_kind else ""),
                 "logical_id": e.logical_id,
                 "status": e.status.value,
                 "reason": e.reason,
@@ -292,22 +292,24 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
         )
         return
 
-    options = [f"{e.artifact_kind.value}:{e.logical_id}" for e in replayable]
+    options = [
+        f"{(e.artifact_kind.value if e.artifact_kind else '')}:{e.logical_id}" for e in replayable
+    ]
     selected_specs = st.multiselect(
         "Choose entries to replay",
         options,
         default=[],
-        key="replay_selected_specs",
+        key="repro_replay_selected_specs",
         help="Explicit selection is required; unselected replayable entries are not executed.",
     )
 
     # Preserve selection across reruns for display
-    if "replay_receipt" in st.session_state and not selected_specs:
+    if "repro_replay_receipt" in st.session_state and not selected_specs:
         # Show last receipt even without current selection
         with st.expander("Last receipt", expanded=False):
-            st.json(st.session_state["replay_receipt"])
+            st.json(st.session_state["repro_replay_receipt"])
 
-    run_clicked = st.button("Run selected replays", type="primary", key="replay_run_button")
+    run_clicked = st.button("Run selected replays", type="primary", key="repro_replay_run_button")
 
     if run_clicked:
         if not selected_specs:
@@ -328,25 +330,25 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
 
         executions, refusals = execute_replay(plan, selected=selected)
         receipt = build_receipt(plan, executions, refusals)
-        st.session_state["replay_receipt"] = receipt.model_dump(mode="json")
-        st.session_state["replay_receipt_canonical"] = receipt.canonical_json()
-        st.session_state["replay_receipt_csv"] = receipt_to_csv(receipt)
-        st.session_state["replay_plan_fp"] = plan.fingerprint()
-        st.session_state["replay_receipt_fp"] = receipt.receipt_fingerprint
+        st.session_state["repro_replay_receipt"] = receipt.model_dump(mode="json")
+        st.session_state["repro_replay_receipt_canonical"] = receipt.canonical_json()
+        st.session_state["repro_replay_receipt_csv"] = receipt_to_csv(receipt)
+        st.session_state["repro_replay_plan_fp"] = plan.fingerprint()
+        st.session_state["repro_replay_receipt_fp"] = receipt.receipt_fingerprint
         st.success(
             f"Replay completed: {receipt.executed_count} executed · {receipt.matched_count} matched · {receipt.mismatched_count} mismatched · {receipt.failed_count} failed"  # noqa: E501
         )
         st.json(receipt.model_dump(mode="json"))
-    elif "replay_receipt" in st.session_state:
+    elif "repro_replay_receipt" in st.session_state:
         # Show receipt without re-running
         st.subheader("Receipt")
-        st.json(st.session_state["replay_receipt"])
+        st.json(st.session_state["repro_replay_receipt"])
     else:
         st.info("Choose at least one replayable entry and press Run selected replays.")
 
     # --- Comparison details ---
-    if "replay_receipt" in st.session_state:
-        receipt_data = st.session_state["replay_receipt"]
+    if "repro_replay_receipt" in st.session_state:
+        receipt_data = st.session_state["repro_replay_receipt"]
         executions_data = receipt_data.get("executions", [])
         if executions_data:
             st.subheader("Expected versus actual fingerprint")
@@ -391,14 +393,14 @@ def render(config: object) -> None:  # noqa: ANN001,ARG001
             data=json.dumps(receipt_data, indent=2, sort_keys=True).encode("utf-8"),
             file_name="replay-receipt.json",
             mime="application/json",
-            key="replay_receipt_json",
+            key="repro_replay_receipt_json",
         )
         st.download_button(
             "Download receipt CSV",
-            data=st.session_state.get("replay_receipt_csv", "").encode("utf-8"),
+            data=st.session_state.get("repro_replay_receipt_csv", "").encode("utf-8"),
             file_name="replay-receipt.csv",
             mime="text/csv",
-            key="replay_receipt_csv",
+            key="repro_replay_receipt_csv",
         )
         with st.expander("Canonical receipt payload (deterministic)", expanded=False):
-            st.code(st.session_state.get("replay_receipt_canonical", "{}"), language="json")
+            st.code(st.session_state.get("repro_replay_receipt_canonical", "{}"), language="json")

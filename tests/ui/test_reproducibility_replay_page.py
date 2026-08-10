@@ -137,3 +137,85 @@ def test_duplicate_widget_keys_none(monkeypatch: pytest.MonkeyPatch) -> None:
     keys: set[str] = set()
     # AppTest does not expose key directly, but we can check no exception proves uniqueness
     assert len(keys) == len(keys)
+
+
+def test_reproducibility_replay_post_upload_shows_plan(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Post-upload: uploading a capsule shows plan and replayable entries."""
+    import json  # noqa: I001
+    from pathlib import Path  # noqa: I001
+    from traffictwin.study_capsule import (  # noqa: I001
+        StudyCapsuleEvidenceLabel,
+        StudyCapsuleMemberKind,
+        StudyCapsulePublicationPolicy,
+        StudyCapsuleRequest,
+        StudyCapsuleMemberInput,
+        _sha256,
+        build_study_capsule,
+    )
+    from traffictwin.study_capsule import _zip_bytes
+
+    # Build a capsule with a synthetic resource report
+    report_text = Path("tests/fixtures/resource_strategy/synthetic_report_v1.json").read_text(
+        encoding="utf-8"
+    )
+    report = json.loads(report_text)
+    content_bytes = json.dumps(
+        report, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
+    ).encode("utf-8")
+    inp = StudyCapsuleMemberInput(
+        kind=StudyCapsuleMemberKind.CONSEQUENCE_REPORT,
+        logical_id="post-upload-test",
+        fingerprint=_sha256(b"post-upload-test"),
+        evidence_label=StudyCapsuleEvidenceLabel.SYNTHETIC_EVIDENCE,
+        policy=StudyCapsulePublicationPolicy.EMBED_SAFE_DERIVED,
+        content=content_bytes,
+    )
+    req = StudyCapsuleRequest(
+        creation_date="2026-08-09",
+        study_id="replay-ui-post-upload-001",
+        capsule_title="Post Upload Test Capsule",
+        members=[inp],
+        limitations=["ui post-upload"],
+    )
+    built = build_study_capsule(req)
+    capsule_bytes = _zip_bytes(built.members)
+
+    for key in _ENV_CLEAR:
+        monkeypatch.delenv(key, raising=False)
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/reproducibility_replay.py")
+    try:
+        from traffictwin.ui.state import default_session_state, load_ui_config
+
+        state = deepcopy(default_session_state(load_ui_config()))
+        state["_v07_navigation_active"] = True
+        for k, v in state.items():
+            app.session_state[k] = v
+    except Exception:  # noqa: S110
+        pass
+    app.run(timeout=30)
+    assert not app.exception
+    # Simulate uploading capsule bytes via file_uploader
+    # AppTest file_uploader upload: set value
+    assert len(app.file_uploader) >= 1
+    # Upload capsule
+
+    app.file_uploader[0].set_value([("test-capsule.zip", capsule_bytes, "application/zip")])
+    app.run(timeout=30)
+    assert not app.exception
+    # After upload, plan should be displayed
+    texts = []
+    for coll in (app.subheader, app.markdown, app.dataframe, app.caption):
+        try:
+            for item in coll:
+                val = getattr(item, "value", "")
+                if isinstance(val, str):
+                    texts.append(val)
+                elif isinstance(val, list):
+                    texts.append(str(val))
+                else:
+                    texts.append(str(val))
+        except Exception:  # noqa: S112
+            continue
+    joined = " ".join(texts)
+    # Should contain replayable or plan
+    assert "Replay plan" in joined or "replayable" in joined.lower() or "post-upload-test" in joined
