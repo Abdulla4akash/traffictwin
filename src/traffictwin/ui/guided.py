@@ -92,6 +92,38 @@ STANDALONE_STEPS: tuple[GuidedDemoStep, ...] = (
         ),
     ),
     GuidedDemoStep(
+        key="whatif",
+        title="Build a what-if experiment",
+        target_page=UiPage.WHATIF_STUDIO,
+        input_label=(
+            "A deterministic synthetic preset and a closed intervention set "
+            "(incident, demand, task, infrastructure, policy)."
+        ),
+        operation_label=(
+            "Review the deterministic changed-parameter ledger and generate a "
+            "transactional baseline/variation pair locally."
+        ),
+        output_label=(
+            "A validated compatible pair and selected baseline/variation paths for Compare."
+        ),
+        boundary=(
+            "What-If Studio generates a deterministic synthetic baseline/variation "
+            "pair locally. It does not run SUMO, VEC, a provider feed, or an admitted "
+            "research campaign. It is not Manchester observation and not a live "
+            "traffic forecast. Do not confuse with Platform → What-If Composer, which "
+            "predicts from a bounded surrogate fit and drafts unsigned campaigns and "
+            "cannot approve or execute research."
+        ),
+        instruction=(
+            "Open What-If Studio, choose a deterministic synthetic baseline preset, "
+            "make a meaningful intervention from the closed set, preview and inspect "
+            "what changed in the ledger, then generate the comparison pair. On success "
+            "the studio sets selected_baseline_run and selected_variation_run for the "
+            "next Compare stage; you may also Skip this stage and use the committed demo "
+            "fixtures via Bundle Import — either path keeps Compare reachable."
+        ),
+    ),
+    GuidedDemoStep(
         key="compare",
         title="Compare baseline and stress",
         target_page=UiPage.COMPARE,
