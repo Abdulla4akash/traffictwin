@@ -1,0 +1,10 @@
+{
+  "enum_name": "EVENT_SCENARIO_BRIDGE",
+  "label": "Event-to-Scenario Bridge",
+  "url": "event-scenario-bridge",
+  "script": "app_pages/event_scenario_bridge.py",
+  "renderer": "traffictwin.ui.pages.event_scenario_bridge:render",
+  "group": "Build & run",
+  "description": "Deterministic unexecuted bridge from a declared authored event to four reviewable handoffs.",
+  "icon": "compare_arrows"
+}
