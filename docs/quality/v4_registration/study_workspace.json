@@ -1,0 +1,10 @@
+{
+  "enum_name": "STUDY_WORKSPACE",
+  "label": "Study Workspace",
+  "url": "study-workspace",
+  "script": "app_pages/study_workspace.py",
+  "renderer": "traffictwin.ui.pages.study_workspace:render",
+  "group": "Build & run",
+  "description": "Reference and explain existing research artifacts with derived lifecycle and lineage.",
+  "icon": "hub"
+}
