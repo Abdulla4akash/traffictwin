@@ -16,7 +16,7 @@ Base: origin/main
 
 - **Live main at task start:** `3b7933dfecf05b579ff9c223729128109a933d93` (Manchester Evidence Hub merged via #15, Challenge bridge via #17, Portfolio Explorer via #13)
 - **Starting main for this rebase:** `3b7933dfecf05b579ff9c223729128109a933d93`
-- **Final integrated review head:** to be filled after final push (see `git rev-parse HEAD`)
+- **Final integrated review head:** `50f030bb8d5cf159750df94399335b549a25da59` (this commit before doc fill; see `git log`)
 
 ## Closure Table — Claude Findings vs Remediation
 
@@ -191,6 +191,6 @@ Ruff B018 reason: old dangling `f"by ..."` was a string expression at module sco
 
 ## Exact-Head Review Brief
 
-- **Final head to review:** `<FINAL_SHA>` (after doc push)
+- **Final head to review:** `50f030bb8d5cf159750df94399335b549a25da59` (this integrated head)
 - Focus: strict validation, unknown vs false, deterministic fingerprint (excludes path/generated_at), offered/admitted separation, lifecycle conservation, matched-cohort exclusion guarantee, admission guards, pairwise `descriptive only` with magnitude/unit, golden fingerprint, portable JSON, real compatibility, reserved authority, thin page, no scheduler/RSU/VEC/SUMO/k8s, no causal/optimal claim, navigation 39, Manhattan hub preserved.
 
