@@ -10,25 +10,18 @@ from traffictwin.event_aligned.models import EventAlignedReport
 
 
 def export_report_json(report: EventAlignedReport) -> str:
-    """Return deterministic JSON export."""
+    """Return deterministic JSON export (portable, wall-clock independent)."""
 
-    # Use canonical dict plus fingerprint plus created_at for export, but ensure deterministic ordering.  # noqa: E501
-    # The canonical_json excludes created_at, but export should include full deterministic content.
-    data = report.model_dump(mode="json")
-    # Ensure created_at uses Z notation
-    if data.get("created_at_utc") is not None:
-        # Pydantic already serialized as isoformat
-        pass
-    # Deterministic JSON
+    data = report.to_portable_dict()
     return json.dumps(
         data, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False
-    )
+    )  # noqa: E501
 
 
 def export_report_json_pretty(report: EventAlignedReport) -> str:
     """Return pretty JSON for human inspection (still deterministic)."""
 
-    data = report.model_dump(mode="json")
+    data = report.to_portable_dict()
     return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=True, allow_nan=False)
 
 

@@ -61,10 +61,11 @@ def test_json_export_is_deterministic() -> None:
     json1 = export_report_json(report)
     json2 = export_report_json(report)
     assert json1 == json2
-    # Must be canonical sort_keys
     data = json.loads(json1)
     assert data["fingerprint"] == report.fingerprint
-    # Ensure no wall clock leakage: fingerprint must equal computed
+    # Portable JSON must not contain wall-clock created_at_utc
+    assert "created_at_utc" not in data
+    assert "created_at_utc" not in json1
     assert report.verify_fingerprint()
 
 

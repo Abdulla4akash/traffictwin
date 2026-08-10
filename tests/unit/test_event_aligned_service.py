@@ -205,7 +205,6 @@ def test_event_anchor_change_alters_identity() -> None:
 def test_metric_version_change_alters_identity() -> None:
     (b1, a1), (b2, a2) = _anchors_for_two_runs()
     spec1 = _spec()
-    # Manually construct spec with different version
     spec2 = EventAlignedWindowSpec(
         pre_duration_s=10,
         event_duration_s=10,
@@ -216,8 +215,21 @@ def test_metric_version_change_alters_identity() -> None:
         metric_unit="ratio",
     )
     report1 = build_event_aligned_report([(b1, a1), (b2, a2)], spec1, report_id="version-test")
-    report2 = build_event_aligned_report([(b1, a1), (b2, a2)], spec2, report_id="version-test")
-    assert report1.fingerprint != report2.fingerprint
+    # Spec with wrong version fails closed (engine-contract compatibility)
+    with pytest.raises(ValueError, match="does not match authoritative"):
+        build_event_aligned_report([(b1, a1), (b2, a2)], spec2, report_id="version-test")
+    # Valid version change via different metric still alters identity
+    alt_spec = EventAlignedWindowSpec(
+        pre_duration_s=10,
+        event_duration_s=10,
+        post_duration_s=10,
+        bin_width_s=5,
+        metric_key="traffic.speed.mean_mps",
+        metric_version=METRIC_DEFINITIONS["traffic.speed.mean_mps"].implementation_version,
+        metric_unit=METRIC_DEFINITIONS["traffic.speed.mean_mps"].unit,
+    )
+    report_alt = build_event_aligned_report([(b1, a1), (b2, a2)], alt_spec, report_id="version-test")  # noqa: E501
+    assert report1.fingerprint != report_alt.fingerprint
 
 
 def test_row_order_not_altering_identity() -> None:
@@ -293,7 +305,7 @@ def test_incompatible_metric_version_rejected() -> None:
         post_duration_s=10,
         bin_width_s=5,
         metric_key="task.completion.rate",
-        metric_version="9.9.9",  # incompatible
+        metric_version="9.9.9",  # incompatible - fails closed at spec validation
         metric_unit="ratio",
     )
     a1 = EventAnchor(
@@ -310,12 +322,8 @@ def test_incompatible_metric_version_rejected() -> None:
         run_id=b2.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b2.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
-    report = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="incompat-version")
-    assert len(report.excluded_runs) == 2
-    assert len(report.accepted_runs) == 0
-    for excl in report.excluded_runs:
-        assert excl.reason_code == "METRIC_VERSION_MISMATCH"
-        assert "does not match spec version" in excl.reason_detail
+    with pytest.raises(ValueError, match="does not match authoritative"):
+        build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="incompat-version")
 
 
 def test_incompatible_unit_rejected() -> None:
@@ -328,7 +336,7 @@ def test_incompatible_unit_rejected() -> None:
         bin_width_s=5,
         metric_key="task.completion.rate",
         metric_version="1.0",
-        metric_unit="seconds",  # wrong unit
+        metric_unit="seconds",  # wrong unit - fails closed
     )
     a1 = EventAnchor(
         kind=EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
@@ -344,23 +352,23 @@ def test_incompatible_unit_rejected() -> None:
         run_id=b2.manifest.run.run_id,  # type: ignore[union-attr]
         bundle_id=b2.manifest.bundle.bundle_id,  # type: ignore[union-attr]
     )
-    report = build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="incompat-unit")
-    assert len(report.excluded_runs) == 2
-    assert all(e.reason_code == "UNIT_MISMATCH" for e in report.excluded_runs)
+    with pytest.raises(ValueError, match="does not match authoritative unit"):
+        build_event_aligned_report([(b1, a1), (b2, a2)], spec, report_id="incompat-unit")
 
 
 def test_missing_bins_not_zero_filled() -> None:
     (b1, a1), (b2, a2) = _anchors_for_two_runs()
     report = build_event_aligned_report([(b1, a1), (b2, a2)], _spec(), report_id="zero-fill")
-    # Find unavailable points
-    unavailable = [p for p in report.metric_points if p.status != "available"]
+    unavailable = [p for p in report.metric_points if p.status == "unavailable"]
     assert len(unavailable) > 0
     for p in unavailable:
         assert p.value is None, "Missing bins must be None, not zero-filled"
-        assert p.value != 0 or p.value is None  # Explicit: not zero
-        # Ensure we don't silently have value 0 for unavailable
-        if p.status == "unavailable":
-            assert p.value is None
+        assert p.value != 0
+    # Partial points must retain numeric value (not zero-filled blank)
+    partials = [p for p in report.metric_points if p.status == "partial"]
+    for p in partials:
+        assert p.value is not None, "Partial numeric values must be preserved"
+        assert p.value != 0 or isinstance(p.value, float)
 
 
 def test_fingerprint_excludes_generated_at_and_local_path() -> None:

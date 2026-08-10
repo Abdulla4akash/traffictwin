@@ -113,4 +113,4 @@ def test_coverage_state_values() -> None:
     assert CoverageState.COMPLETE.value == "complete"
     assert CoverageState.EMPTY.value == "empty"
     assert CoverageState.PARTIAL.value == "partial"
-    assert CoverageState.EXCLUDED.value == "excluded"
+    # EXCLUDED removed: exclusions are via ExcludedRun, not CoverageState

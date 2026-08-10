@@ -1,7 +1,6 @@
 """Event-aligned analysis domain."""
 
 from traffictwin.event_aligned.models import (
-    EventAlignedCompatibility,
     EventAlignedMetricPoint,
     EventAlignedPhase,
     EventAlignedPhaseSummary,
@@ -15,7 +14,6 @@ from traffictwin.event_aligned.models import (
 )
 
 __all__ = [
-    "EventAlignedCompatibility",
     "EventAlignedMetricPoint",
     "EventAlignedPhase",
     "EventAlignedPhaseSummary",

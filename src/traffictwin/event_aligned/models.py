@@ -59,7 +59,6 @@ class CoverageState(StrEnum):
     COMPLETE = "complete"
     PARTIAL = "partial"
     EMPTY = "empty"
-    EXCLUDED = "excluded"
 
 
 class EventAnchor(StrictModel):
@@ -137,12 +136,6 @@ class EventAlignedWindowSpec(StrictModel):
     )
     bin_boundary: Literal["[start,end)"] = "[start,end)"
     max_bins: int = Field(default=10_000, ge=1, le=100_000)
-
-    @model_validator(mode="after")
-    def validate_bin_divisibility(self) -> EventAlignedWindowSpec:
-        # Bin width must not exceed any phase duration? Not strict, but we warn if it doesn't divide.  # noqa: E501
-        # Keep simple: allow any positive width.
-        return self
 
     def canonical_dict(self) -> dict[str, object]:
         return {
@@ -343,29 +336,6 @@ class ExcludedRun(StrictModel):
         }
 
 
-class EventAlignedCompatibility(StrictModel):
-    """Compatibility check for metric name/version/unit/denominator."""
-
-    metric_key: str
-    expected_version: str
-    expected_unit: str
-    expected_denom: str | None = None
-    compatible: bool
-    reason_code: str | None = None
-    reason_detail: str | None = None
-
-    def canonical_dict(self) -> dict[str, object]:
-        return {
-            "compatible": self.compatible,
-            "expected_denom": self.expected_denom,
-            "expected_unit": self.expected_unit,
-            "expected_version": self.expected_version,
-            "metric_key": self.metric_key,
-            "reason_code": self.reason_code,
-            "reason_detail": self.reason_detail,
-        }
-
-
 class PairwiseDelta(StrictModel):
     """Descriptive difference during the declared event window."""
 
@@ -442,6 +412,13 @@ class EventAlignedReport(StrictModel):
             msg = "created_at_utc must be timezone-aware when present"
             raise ValueError(msg)
         return value.astimezone(UTC)
+
+    def to_portable_dict(self) -> dict[str, object]:
+        """Return portable deterministic payload for JSON export and fingerprint."""
+
+        data = self.canonical_dict()
+        data["fingerprint"] = self.fingerprint
+        return data
 
     def canonical_dict(self) -> dict[str, object]:
         """Return canonical dict excluding volatile fields."""

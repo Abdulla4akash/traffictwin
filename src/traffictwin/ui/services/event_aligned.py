@@ -20,12 +20,11 @@ from traffictwin.event_aligned.models import (
 )
 from traffictwin.event_aligned.service import build_event_aligned_report
 from traffictwin.ingestion.bundle import validate_bundle
-from traffictwin.metrics.catalogue import METRIC_DEFINITIONS
+from traffictwin.metrics.catalogue import METRIC_DEFINITIONS, window_metric_catalogue
 from traffictwin.ui.services.models import ServiceError
 
 
 def _parse_anchor_datetime(value: str) -> datetime:
-    # Accept ISO8601 with timezone
     try:
         dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError as exc:
@@ -56,17 +55,21 @@ def compute_event_aligned_for_ui(
         return ServiceError(
             "Event-aligned analysis requires 2 to 8 bundles.", "Select 2-8 compatible runs"
         )
-
     if len(anchor_timestamps) != len(bundle_paths):
         return ServiceError("Anchor count must match bundle count.", "Provide one anchor per run")
-
     try:
+        # Validate metric via public window catalogue (not private _WINDOW_ANCHORS_BY_KEY)
+        window_keys = set(window_metric_catalogue())
+        if metric_key not in window_keys:
+            return ServiceError(
+                f"Metric {metric_key!r} is not window-applicable.",
+                "Choose a window-applicable metric",
+            )
         definition = METRIC_DEFINITIONS.get(metric_key)
         if definition is None:
             return ServiceError(
                 f"Unsupported metric: {metric_key}", "Choose a window-applicable metric"
             )
-
         spec = EventAlignedWindowSpec(
             pre_duration_s=float(pre_duration_s),
             event_duration_s=float(event_duration_s),
@@ -77,9 +80,14 @@ def compute_event_aligned_for_ui(
             metric_unit=definition.unit,
             metric_human_name=definition.human_name,
         )
-
+        # Preflight total bins before building (reuse windowed.py pattern)
+        total = spec.total_bins()
+        if total > spec.max_bins:
+            return ServiceError(
+                f"Window request resolves to {total} bins; configured maximum is {spec.max_bins}.",
+                "Reduce durations or increase bin width",
+            )
         kind = EventAnchorKind(anchor_kind)
-
         runs_with_anchors: list[tuple[object, EventAnchor]] = []
         for idx, path_str in enumerate(bundle_paths):
             path = Path(path_str)
@@ -88,7 +96,6 @@ def compute_event_aligned_for_ui(
             result = validate_bundle(path)
             if result.manifest is None:
                 return ServiceError(f"Bundle manifest missing for {path}", str(path))
-            # Parse anchor
             ts_str = anchor_timestamps[idx]
             anchor_dt = _parse_anchor_datetime(ts_str)
             label = (
@@ -96,7 +103,6 @@ def compute_event_aligned_for_ui(
                 if anchor_labels and idx < len(anchor_labels)
                 else kind.authored_label
             )
-            # Ensure label not contains observed
             if "observed" in label.lower():
                 return ServiceError("Authored anchors must not be labelled observed.", label)
             anchor = EventAnchor(
@@ -108,7 +114,6 @@ def compute_event_aligned_for_ui(
                 bundle_id=result.manifest.bundle.bundle_id,
             )
             runs_with_anchors.append((result, anchor))
-
         report = build_event_aligned_report(
             runs_with_anchors,  # type: ignore[arg-type]
             spec,

@@ -14,13 +14,13 @@ from traffictwin.event_aligned.exports import (
     export_report_json,
 )
 from traffictwin.event_aligned.models import EventAlignedReport
-from traffictwin.metrics.catalogue import _WINDOW_ANCHORS_BY_KEY, METRIC_DEFINITIONS
+from traffictwin.metrics.catalogue import METRIC_DEFINITIONS, window_metric_catalogue
 from traffictwin.ui.charts import line_figure
 from traffictwin.ui.services.event_aligned import compute_event_aligned_for_ui
 from traffictwin.ui.services.models import ServiceError
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
-WINDOW_APPLICABLE_KEYS = sorted(_WINDOW_ANCHORS_BY_KEY.keys())
+WINDOW_APPLICABLE_KEYS = sorted(window_metric_catalogue())
 DEFAULT_METRIC = (
     "task.completion.rate"
     if "task.completion.rate" in WINDOW_APPLICABLE_KEYS
@@ -145,21 +145,38 @@ def render() -> None:
     c1, c2, c3, c4 = st.columns(4)
     pre_duration = float(
         c1.number_input(
-            "Pre-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="pre_dur"
+            "Pre-event duration (s)",
+            min_value=0.001,
+            max_value=100000.0,
+            value=10.0,
+            step=5.0,
+            key="pre_dur",
         )
     )
     event_duration = float(
         c2.number_input(
-            "Event duration (s)", min_value=0.001, value=10.0, step=5.0, key="event_dur"
+            "Event duration (s)",
+            min_value=0.001,
+            max_value=100000.0,
+            value=10.0,
+            step=5.0,
+            key="event_dur",
         )
     )
     post_duration = float(
         c3.number_input(
-            "Post-event duration (s)", min_value=0.001, value=10.0, step=5.0, key="post_dur"
+            "Post-event duration (s)",
+            min_value=0.001,
+            max_value=100000.0,
+            value=10.0,
+            step=5.0,
+            key="post_dur",
         )
     )
     bin_width = float(
-        c4.number_input("Bin width (s)", min_value=0.001, value=5.0, step=1.0, key="bin_w")
+        c4.number_input(
+            "Bin width (s)", min_value=0.001, max_value=10000.0, value=5.0, step=1.0, key="bin_w"
+        )
     )
 
     st.subheader("5. Preview exact half-open windows")
