@@ -1,0 +1,491 @@
+{
+  "admission_state": "synthetic_demonstration",
+  "arms": [
+    {
+      "arm_id": "strongest_link",
+      "description": "Baseline strongest-link placement without load awareness; synthetic demonstration.",
+      "label": "Strongest-link placement",
+      "replications": [
+        {
+          "energy_mean_j": 45.0,
+          "forwarding_rate": 0.4634146341463415,
+          "latency_mean_ms": 180.0,
+          "latency_p95_ms": 320.0,
+          "lifecycle": {
+            "admitted": 820,
+            "compute_completed": 700,
+            "deadline_success": 620,
+            "dropped": 120,
+            "forwarded": 380,
+            "offered": 1000,
+            "rejected": 180,
+            "returned": 680,
+            "started": 780
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.72,
+          "queue_length_mean": 12.3,
+          "replication_id": "rep_001",
+          "resource_cost_units": 120.0,
+          "utilisation_mean": 0.78
+        },
+        {
+          "energy_mean_j": 45.5,
+          "forwarding_rate": 0.4634146341463415,
+          "latency_mean_ms": 185.0,
+          "latency_p95_ms": 325.0,
+          "lifecycle": {
+            "admitted": 818,
+            "compute_completed": 699,
+            "deadline_success": 619,
+            "dropped": 120,
+            "forwarded": 381,
+            "offered": 1000,
+            "rejected": 182,
+            "returned": 679,
+            "started": 779
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.71,
+          "queue_length_mean": 12.5,
+          "replication_id": "rep_002",
+          "resource_cost_units": 122.0,
+          "utilisation_mean": 0.79
+        },
+        {
+          "energy_mean_j": 46.0,
+          "forwarding_rate": 0.4634146341463415,
+          "latency_mean_ms": 184.0,
+          "latency_p95_ms": 330.0,
+          "lifecycle": {
+            "admitted": 816,
+            "compute_completed": 698,
+            "deadline_success": 618,
+            "dropped": 120,
+            "forwarded": 382,
+            "offered": 1000,
+            "rejected": 184,
+            "returned": 678,
+            "started": 778
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.7,
+          "queue_length_mean": 13.3,
+          "replication_id": "rep_003",
+          "resource_cost_units": 124.0,
+          "utilisation_mean": 0.8
+        },
+        {
+          "energy_mean_j": 46.5,
+          "forwarding_rate": 0.4634146341463415,
+          "latency_mean_ms": 189.0,
+          "latency_p95_ms": 335.0,
+          "lifecycle": {
+            "admitted": 814,
+            "compute_completed": 697,
+            "deadline_success": 617,
+            "dropped": 120,
+            "forwarded": 383,
+            "offered": 1000,
+            "rejected": 186,
+            "returned": 677,
+            "started": 777
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.69,
+          "queue_length_mean": 13.5,
+          "replication_id": "rep_004",
+          "resource_cost_units": 126.0,
+          "utilisation_mean": 0.81
+        },
+        {
+          "energy_mean_j": 47.0,
+          "forwarding_rate": 0.4634146341463415,
+          "latency_mean_ms": 188.0,
+          "latency_p95_ms": 340.0,
+          "lifecycle": {
+            "admitted": 812,
+            "compute_completed": 696,
+            "deadline_success": 616,
+            "dropped": 120,
+            "forwarded": 384,
+            "offered": 1000,
+            "rejected": 188,
+            "returned": 676,
+            "started": 776
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.6799999999999999,
+          "queue_length_mean": 14.3,
+          "replication_id": "rep_005",
+          "resource_cost_units": 128.0,
+          "utilisation_mean": 0.8200000000000001
+        }
+      ],
+      "strategy_type": "strongest_link_placement"
+    },
+    {
+      "arm_id": "jsq",
+      "description": "Deterministic join-shortest-queue placement; synthetic demonstration.",
+      "label": "Deterministic JSQ",
+      "replications": [
+        {
+          "energy_mean_j": 42.0,
+          "forwarding_rate": 0.49411764705882355,
+          "latency_mean_ms": 150.0,
+          "latency_p95_ms": 260.0,
+          "lifecycle": {
+            "admitted": 850,
+            "compute_completed": 740,
+            "deadline_success": 680,
+            "dropped": 100,
+            "forwarded": 420,
+            "offered": 1000,
+            "rejected": 150,
+            "returned": 720,
+            "started": 800
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.88,
+          "queue_length_mean": 8.0,
+          "replication_id": "rep_001",
+          "resource_cost_units": 110.0,
+          "utilisation_mean": 0.71
+        },
+        {
+          "energy_mean_j": 42.3,
+          "forwarding_rate": 0.49411764705882355,
+          "latency_mean_ms": 151.5,
+          "latency_p95_ms": 263.0,
+          "lifecycle": {
+            "admitted": 849,
+            "compute_completed": 739,
+            "deadline_success": 679,
+            "dropped": 100,
+            "forwarded": 421,
+            "offered": 1000,
+            "rejected": 151,
+            "returned": 719,
+            "started": 799
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.885,
+          "queue_length_mean": 8.3,
+          "replication_id": "rep_002",
+          "resource_cost_units": 111.0,
+          "utilisation_mean": 0.705
+        },
+        {
+          "energy_mean_j": 42.6,
+          "forwarding_rate": 0.49411764705882355,
+          "latency_mean_ms": 153.0,
+          "latency_p95_ms": 266.0,
+          "lifecycle": {
+            "admitted": 848,
+            "compute_completed": 738,
+            "deadline_success": 678,
+            "dropped": 100,
+            "forwarded": 422,
+            "offered": 1000,
+            "rejected": 152,
+            "returned": 718,
+            "started": 798
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.89,
+          "queue_length_mean": 8.6,
+          "replication_id": "rep_003",
+          "resource_cost_units": 112.0,
+          "utilisation_mean": 0.7
+        },
+        {
+          "energy_mean_j": 42.9,
+          "forwarding_rate": 0.49411764705882355,
+          "latency_mean_ms": 154.5,
+          "latency_p95_ms": 269.0,
+          "lifecycle": {
+            "admitted": 847,
+            "compute_completed": 737,
+            "deadline_success": 677,
+            "dropped": 100,
+            "forwarded": 423,
+            "offered": 1000,
+            "rejected": 153,
+            "returned": 717,
+            "started": 797
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.895,
+          "queue_length_mean": 8.9,
+          "replication_id": "rep_004",
+          "resource_cost_units": 113.0,
+          "utilisation_mean": 0.695
+        },
+        {
+          "energy_mean_j": 43.2,
+          "forwarding_rate": 0.49411764705882355,
+          "latency_mean_ms": 156.0,
+          "latency_p95_ms": 272.0,
+          "lifecycle": {
+            "admitted": 846,
+            "compute_completed": 736,
+            "deadline_success": 676,
+            "dropped": 100,
+            "forwarded": 424,
+            "offered": 1000,
+            "rejected": 154,
+            "returned": 716,
+            "started": 796
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.9,
+          "queue_length_mean": 9.2,
+          "replication_id": "rep_005",
+          "resource_cost_units": 114.0,
+          "utilisation_mean": 0.69
+        }
+      ],
+      "strategy_type": "deterministic_jsq"
+    },
+    {
+      "arm_id": "jsq_deadline_aware",
+      "description": "JSQ placement with deadline-aware admission control; synthetic demonstration.",
+      "label": "Deterministic JSQ + deadline-aware admission",
+      "replications": [
+        {
+          "energy_mean_j": 40.0,
+          "forwarding_rate": 0.5,
+          "latency_mean_ms": 155.0,
+          "latency_p95_ms": 270.0,
+          "lifecycle": {
+            "admitted": 800,
+            "compute_completed": 720,
+            "deadline_success": 680,
+            "dropped": 80,
+            "forwarded": 400,
+            "offered": 1000,
+            "rejected": 200,
+            "returned": 700,
+            "started": 760
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.9,
+          "queue_length_mean": 7.5,
+          "replication_id": "rep_001",
+          "resource_cost_units": 115.0,
+          "utilisation_mean": 0.69
+        },
+        {
+          "energy_mean_j": 40.2,
+          "forwarding_rate": 0.5,
+          "latency_mean_ms": 156.2,
+          "latency_p95_ms": 272.0,
+          "lifecycle": {
+            "admitted": 799,
+            "compute_completed": 719,
+            "deadline_success": 679,
+            "dropped": 80,
+            "forwarded": 401,
+            "offered": 1000,
+            "rejected": 201,
+            "returned": 699,
+            "started": 759
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.903,
+          "queue_length_mean": 7.7,
+          "replication_id": "rep_002",
+          "resource_cost_units": 116.0,
+          "utilisation_mean": 0.6869999999999999
+        },
+        {
+          "energy_mean_j": 40.4,
+          "forwarding_rate": 0.5,
+          "latency_mean_ms": 157.4,
+          "latency_p95_ms": 274.0,
+          "lifecycle": {
+            "admitted": 798,
+            "compute_completed": 718,
+            "deadline_success": 678,
+            "dropped": 80,
+            "forwarded": 402,
+            "offered": 1000,
+            "rejected": 202,
+            "returned": 698,
+            "started": 758
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.906,
+          "queue_length_mean": 7.9,
+          "replication_id": "rep_003",
+          "resource_cost_units": 117.0,
+          "utilisation_mean": 0.6839999999999999
+        },
+        {
+          "energy_mean_j": 40.6,
+          "forwarding_rate": 0.5,
+          "latency_mean_ms": 158.6,
+          "latency_p95_ms": 276.0,
+          "lifecycle": {
+            "admitted": 797,
+            "compute_completed": 717,
+            "deadline_success": 677,
+            "dropped": 80,
+            "forwarded": 403,
+            "offered": 1000,
+            "rejected": 203,
+            "returned": 697,
+            "started": 757
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.909,
+          "queue_length_mean": 8.1,
+          "replication_id": "rep_004",
+          "resource_cost_units": 118.0,
+          "utilisation_mean": 0.6809999999999999
+        },
+        {
+          "energy_mean_j": 40.8,
+          "forwarding_rate": 0.5,
+          "latency_mean_ms": 159.8,
+          "latency_p95_ms": 278.0,
+          "lifecycle": {
+            "admitted": 796,
+            "compute_completed": 716,
+            "deadline_success": 676,
+            "dropped": 80,
+            "forwarded": 404,
+            "offered": 1000,
+            "rejected": 204,
+            "returned": 696,
+            "started": 756
+          },
+          "metrics": {},
+          "queue_balance_jain": 0.912,
+          "queue_length_mean": 8.3,
+          "replication_id": "rep_005",
+          "resource_cost_units": 119.0,
+          "utilisation_mean": 0.6779999999999999
+        }
+      ],
+      "strategy_type": "deterministic_jsq_deadline_aware"
+    }
+  ],
+  "common_matched_replication_ids": [
+    "rep_001",
+    "rep_002",
+    "rep_003",
+    "rep_004"
+  ],
+  "evidence_mode": "synthetic_demonstration",
+  "excluded_replication_ids": [
+    {
+      "arm_id": null,
+      "code": "RSU_OUTAGE",
+      "detail": "All arms missing effective coverage for rep_005.",
+      "reason": "Simulated RSU outage in replication rep_005; excluded from matched cohort.",
+      "replication_id": "rep_005"
+    }
+  ],
+  "generated_at": "2026-08-10T00:47:48.046439Z",
+  "limitations": [
+    "Synthetic demonstration evidence only; not Manchester observation.",
+    "Offered-task attainment and admitted-task attainment are distinct denominators; do not substitute one for the other.",
+    "Completed is not deadline-success; deadline-success requires returned tasks meeting deadline.",
+    "Queue and utilisation evidence is limited to the matched 4 replications; rep_005 is excluded due to simulated outage.",
+    "Resource-cost evidence is synthetic and not a production-cost guarantee.",
+    "No winner, best, or optimal claim is made; comparisons are descriptive only."
+  ],
+  "metric_catalog": [
+    {
+      "denominator": "offered_tasks",
+      "description": "Completed over offered tasks",
+      "metric_key": "task.completion.rate_offered",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "admitted_tasks",
+      "description": "Completed over admitted tasks",
+      "metric_key": "task.completion.rate_admitted",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "offered_tasks",
+      "description": "Deadline success over offered",
+      "metric_key": "task.deadline_success.rate_offered",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "admitted_tasks",
+      "description": "Deadline success over admitted",
+      "metric_key": "task.deadline_success.rate_admitted",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "completed_tasks",
+      "description": "Mean latency",
+      "metric_key": "task.latency.mean_ms",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ms"
+    },
+    {
+      "denominator": "completed_tasks",
+      "description": "P95 latency",
+      "metric_key": "task.latency.p95_ms",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ms"
+    },
+    {
+      "denominator": "replication",
+      "description": "Mean queue length",
+      "metric_key": "infra.queue_length.mean",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "tasks"
+    },
+    {
+      "denominator": "replication",
+      "description": "Jain load balance",
+      "metric_key": "infra.load_balance.jain",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "replication",
+      "description": "Mean utilisation",
+      "metric_key": "infra.utilisation.mean",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "fraction"
+    },
+    {
+      "denominator": "replication",
+      "description": "Resource cost",
+      "metric_key": "resource.cost.units",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "cost_units"
+    }
+  ],
+  "provenance": {
+    "description": "Three synthetic strategies resembling strongest-link, JSQ, and JSQ+deadline-aware admission.",
+    "evidence_label": "SYNTHETIC DEMONSTRATION",
+    "fixture": "resource_strategy_synthetic_v1",
+    "generated_by": "deterministic_fixture_generator"
+  },
+  "replication_unit": "replication_id",
+  "schema_version": "1.0",
+  "source_fingerprint": "804d785897bf24da704878e016617b33adeb3844cc275ebd972de69d0cfdf0fe",
+  "study_id": "synthetic_resource_strategy_v1"
+}
