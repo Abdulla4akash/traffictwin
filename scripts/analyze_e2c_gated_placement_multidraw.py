@@ -123,6 +123,15 @@ def descriptive_summary(values: list[float]) -> dict[str, Any]:
     }
 
 
+def paired_differences(
+    records: dict[int, dict[str, dict[str, Any]]], path: tuple[str, ...]
+) -> dict[str, float]:
+    return {
+        str(seed): at(records[seed]["dla"], path) - at(records[seed]["ingress_dla"], path)
+        for seed in sorted(records)
+    }
+
+
 def load_npz(path: Path) -> dict[str, np.ndarray]:
     with np.load(path, allow_pickle=False) as archive:
         return {key: archive[key] for key in archive.files}
@@ -195,6 +204,21 @@ def verify_seed0_reuse(manifest: dict[str, Any]) -> None:
                 raise RuntimeError(f"seed-0 {arm} reuse drift: {filename}")
 
 
+def verify_manifest_snapshot(manifest_path: Path, manifest: dict[str, Any], raw_root: Path) -> None:
+    snapshot = raw_root / "manifest_snapshot.json"
+    sidecar = raw_root / "manifest_snapshot.sha256"
+    if not snapshot.is_file() or not sidecar.is_file():
+        raise RuntimeError("campaign manifest snapshot is missing at analysis")
+    manifest_sha = sha256(manifest_path)
+    if (
+        sidecar.read_text(encoding="utf-8").split()[0] != manifest_sha
+        or sha256(snapshot) != manifest_sha
+        or snapshot.read_bytes() != manifest_path.read_bytes()
+        or json.loads(snapshot.read_text(encoding="utf-8")) != manifest
+    ):
+        raise RuntimeError("campaign manifest snapshot differs at analysis")
+
+
 def write_raw_evidence_index(raw_root: Path) -> tuple[Path, Path, int]:
     index_path = raw_root / "raw_evidence_index.json"
     ledger_path = raw_root / "checksums.sha256"
@@ -240,6 +264,7 @@ def main() -> int:
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     raw_root = Path(manifest["outputs"]["raw_root"])
+    verify_manifest_snapshot(args.manifest, manifest, raw_root)
     campaign_status = raw_root / "campaign_execution_status.json"
     if (
         not campaign_status.is_file()
@@ -317,13 +342,7 @@ def main() -> int:
         arm: arm_record(Path(manifest["seed0_reuse"][arm]["root"]))
         for arm in ("ingress_dla", "dla")
     }
-    primary_by_seed = {
-        str(seed): float(
-            records[seed]["dla"]["offered_task_deadline_attainment"]
-            - records[seed]["ingress_dla"]["offered_task_deadline_attainment"]
-        )
-        for seed in sorted(records)
-    }
+    primary_by_seed = paired_differences(records, ("offered_task_deadline_attainment",))
     primary_values = [primary_by_seed[str(seed)] for seed in sorted(records)]
     primary = primary_summary(primary_values)
     seed0_difference = float(
@@ -334,10 +353,7 @@ def main() -> int:
 
     secondary: dict[str, Any] = {}
     for metric, path in SECONDARY_PATHS.items():
-        raw = {
-            str(seed): at(records[seed]["dla"], path) - at(records[seed]["ingress_dla"], path)
-            for seed in sorted(records)
-        }
+        raw = paired_differences(records, path)
         secondary[metric] = {
             "direction": "dla_minus_ingress_dla",
             "raw_paired_differences_by_fleet_seed": raw,
@@ -540,6 +556,9 @@ executed or forwarded. Backhaul latency was zero by design.
 - Four new provisional fleet draws, one fixed evaluator seed and one Manchester incident hour.
 - One cap, fixed 1x service, ideal zero-cost backhaul and no ordinary-traffic control.
 - The frozen actor does not observe current RSU load or select an execution RSU.
+- In the inherited evaluator, DLA chooses one common `argmin(rsu_busy_ms)` JSQ target per
+  substep, so that substep's eligible V2I traffic shares one selected target; execution-imbalance
+  and deadline observations must be read under this convention.
 - Deadline attainment is evaluator success, not confirmed physical task-result return.
 - No physical deployment, Kubernetes execution, scaling, P2C, learning, prediction or retraining.
 - The controlled simulator intervention does not establish real-world causality or

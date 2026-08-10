@@ -86,8 +86,9 @@ array tolerance contract. No other backend is permitted.
 Completed seed-0 full cells measured 8,901.2 seconds for `ingress_dla` and 7,787.5 seconds for
 `dla`. Four new pairs therefore project to 66,754.8 evaluator seconds (18.543 hours), below the
 30-hour maximum. Their full outputs plus the matching smoke footprint project to 1,677,780,708
-bytes (1.563 GiB). Predeclaration observed 245.108 GiB free, over 156 times the required
-twice-projected-output gate. Runtime and storage are rechecked before every cell.
+bytes (1.563 GiB). Predeclaration observed 245.108 GiB free, 156.86 times the single projected
+output and 78.43 times the required twice-projected-output gate. Runtime and storage are rechecked
+before every cell.
 
 ## Predeclared analysis
 

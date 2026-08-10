@@ -205,6 +205,30 @@ def initialise_or_verify_campaign_root(
             raise RuntimeError("campaign manifest snapshot hash changed after launch")
 
 
+def verify_review_gate(
+    review_path: Path, identities: dict[str, Any], manifest_sha: str
+) -> dict[str, Any]:
+    if not review_path.is_file():
+        raise RuntimeError("independent Claude review evidence is missing")
+    review: dict[str, Any] = json.loads(review_path.read_text(encoding="utf-8"))
+    review_expected = {
+        "verdict": "APPROVE",
+        "traffictwin_commit": identities["traffictwin_commit"],
+        "vec_env_commit": identities["vec_env_commit"],
+        "manifest_sha256": manifest_sha,
+    }
+    review_mismatches = {
+        key: {"observed": review.get(key), "expected": value}
+        for key, value in review_expected.items()
+        if review.get(key) != value
+    }
+    if review_mismatches:
+        raise RuntimeError(
+            f"Claude APPROVE mismatch: {json.dumps(review_mismatches, sort_keys=True)}"
+        )
+    return review
+
+
 def preflight(
     manifest_path: Path, manifest: dict[str, Any], cell: dict[str, Any]
 ) -> dict[str, Any]:
@@ -294,24 +318,7 @@ def preflight(
 
     closed = verify_closed_prerequisites(manifest)
     review_path = Path(manifest["review_gate"]["verdict_path"])
-    if not review_path.is_file():
-        raise RuntimeError("independent Claude review evidence is missing")
-    review = json.loads(review_path.read_text(encoding="utf-8"))
-    review_expected = {
-        "verdict": "APPROVE",
-        "traffictwin_commit": identities["traffictwin_commit"],
-        "vec_env_commit": identities["vec_env_commit"],
-        "manifest_sha256": manifest_sha,
-    }
-    review_mismatches = {
-        key: {"observed": review.get(key), "expected": value}
-        for key, value in review_expected.items()
-        if review.get(key) != value
-    }
-    if review_mismatches:
-        raise RuntimeError(
-            f"Claude APPROVE mismatch: {json.dumps(review_mismatches, sort_keys=True)}"
-        )
+    review = verify_review_gate(review_path, identities, manifest_sha)
 
     remaining_cells = [
         candidate

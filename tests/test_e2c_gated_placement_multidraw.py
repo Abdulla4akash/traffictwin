@@ -13,10 +13,16 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from analyze_e2c_gated_placement_multidraw import (  # noqa: E402
     mechanism_record,
+    paired_differences,
     primary_summary,
+    verify_manifest_snapshot,
+    write_raw_evidence_index,
 )
 from run_e2c_gated_placement_multidraw import (  # noqa: E402
+    initialise_or_verify_campaign_root,
     verify_order_and_prior_gates,
+    verify_review_gate,
+    write_json_new,
 )
 from validate_e2c_gated_placement_multidraw import (  # noqa: E402
     cell_name,
@@ -75,6 +81,12 @@ def test_primary_summary_uses_four_draws_and_df3_interval() -> None:
     assert result["seed0_included"] is False
     assert result["tasks_used_as_independent_replicates"] is False
     assert result["sign_counts"] == {"negative": 4, "zero": 0, "positive": 0}
+    assert result["mean"] == pytest.approx(-0.025)
+    assert result["sample_standard_deviation"] == pytest.approx(0.012909944487358056)
+    assert result["standard_error"] == pytest.approx(0.006454972243679028)
+    assert result["confidence_interval"]["critical_value"] == pytest.approx(3.182446305284263)
+    assert result["confidence_interval"]["lower"] == pytest.approx(-0.045542602567608795)
+    assert result["confidence_interval"]["upper"] == pytest.approx(-0.0044573974323912115)
     assert result["decision"] == (
         "evidence_of_directional_difference_within_bounded_four_draw_replication"
     )
@@ -83,6 +95,78 @@ def test_primary_summary_uses_four_draws_and_df3_interval() -> None:
 def test_primary_summary_refuses_seed0_augmented_sample() -> None:
     with pytest.raises(ValueError, match="exactly four"):
         primary_summary([-0.02, -0.01, -0.03, -0.04, -0.02])
+
+
+def test_primary_difference_is_dla_minus_ingress_dla() -> None:
+    records = {
+        1: {
+            "ingress_dla": {"offered_task_deadline_attainment": 0.72},
+            "dla": {"offered_task_deadline_attainment": 0.69},
+        },
+        2: {
+            "ingress_dla": {"offered_task_deadline_attainment": 0.68},
+            "dla": {"offered_task_deadline_attainment": 0.70},
+        },
+    }
+    assert paired_differences(records, ("offered_task_deadline_attainment",)) == pytest.approx(
+        {"1": -0.03, "2": 0.02}
+    )
+
+
+def test_review_gate_requires_exact_approve_and_identity(tmp_path: Path) -> None:
+    review = tmp_path / "review.json"
+    identities = {"traffictwin_commit": "tt", "vec_env_commit": "vec"}
+    payload = {
+        "verdict": "APPROVE_WITH_MINOR_FIXES",
+        "traffictwin_commit": "tt",
+        "vec_env_commit": "vec",
+        "manifest_sha256": "manifest",
+    }
+    review.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="Claude APPROVE mismatch"):
+        verify_review_gate(review, identities, "manifest")
+    payload["verdict"] = "APPROVE"
+    review.write_text(json.dumps(payload), encoding="utf-8")
+    assert verify_review_gate(review, identities, "manifest")["verdict"] == "APPROVE"
+    payload["traffictwin_commit"] = "drift"
+    review.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="Claude APPROVE mismatch"):
+        verify_review_gate(review, identities, "manifest")
+
+
+def test_campaign_root_and_json_writes_refuse_overwrite(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest = {"outputs": {"raw_root": str(tmp_path / "raw")}}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    initialise_or_verify_campaign_root(manifest_path, manifest, 1)
+    with pytest.raises(RuntimeError, match="undeclared pre-launch entries"):
+        initialise_or_verify_campaign_root(manifest_path, manifest, 1)
+    destination = tmp_path / "evidence.json"
+    write_json_new(destination, {"status": "first"})
+    with pytest.raises(FileExistsError):
+        write_json_new(destination, {"status": "replacement"})
+
+
+def test_analysis_refuses_manifest_snapshot_drift_and_root_index_overwrite(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest = {"outputs": {"raw_root": str(tmp_path)}}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    snapshot = tmp_path / "manifest_snapshot.json"
+    snapshot.write_bytes(manifest_path.read_bytes())
+    (tmp_path / "manifest_snapshot.sha256").write_text(
+        f"{hashlib.sha256(snapshot.read_bytes()).hexdigest()}  manifest_snapshot.json\n",
+        encoding="utf-8",
+    )
+    verify_manifest_snapshot(manifest_path, manifest, tmp_path)
+    snapshot.write_text('{"drift": true}', encoding="utf-8")
+    with pytest.raises(RuntimeError, match="snapshot differs"):
+        verify_manifest_snapshot(manifest_path, manifest, tmp_path)
+    snapshot.write_bytes(manifest_path.read_bytes())
+    write_raw_evidence_index(tmp_path)
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        write_raw_evidence_index(tmp_path)
 
 
 def write_cross_arm_run(root: Path, *, action: int = 1, logit_delta: float = 0.0) -> dict:
