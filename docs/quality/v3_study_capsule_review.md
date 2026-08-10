@@ -38,8 +38,8 @@
 ### E. New medium regression at 9304c85
 - **capsule_id lost actual embedded-content binding** after binary-support redesign: `capsule_id_source` used only `member_fingerprints` (caller-declared logical fingerprints) and `request_fingerprint` (which excludes `content` bytes). Reproduction: same declared fingerprint + `{"metric":1}` vs `{"metric":999999}` → `capsule_id` equal, `manifest_fingerprint` and archive bytes differ — two different packages share one `capsule_id`.
 
-### F. Final hardening head
-- **5633524** (fix capsule identity, SemVer +, warnings, CI) + this doc commit → final `see git rev-parse HEAD (this doc commit)` after push (see git log). Whole-repo CI now green (see §11).
+### F. Final Claude-reviewed implementation head
+- **83337f30bde645d7c43354409a374d5c2b8f39df** — final implementation candidate reviewed independently by Claude 4 after capsule identity, SemVer, warnings, CI, tests, and quality-document hardening. Any later commit that changes only this review document is documentation-only and does not alter the reviewed production/test tree. Whole-repo CI green (see §3).
 
 ## 2. Product Behaviour (Current)
 
@@ -123,7 +123,7 @@ No weakening of `.github/workflows`, `pyproject.toml` (`line-length=100` retaine
 
 ## 8. Quality Document Rewrite ( §13–15)
 
-- Historical head 8356ab8, original 12+TEST13, remediation 9304c85 (all verified fixed), new finding (capsule_id), final head `see git rev-parse HEAD (this doc commit)` (this doc commit).
+- Historical head 8356ab8, original 12+TEST13, remediation 9304c85 (all verified fixed), new finding (capsule_id), final implementation head `83337f30bde645d7c43354409a374d5c2b8f39df` (Claude-reviewed implementation candidate; any later doc-only cleanup does not change production/test tree).
 - **Authenticity boundary** (§14): verification establishes structural validity, `manifest_fingerprint` consistency, `checksums` consistency, embedded-byte integrity against archive's own declarations; does **NOT** establish who created, trusted issuer, non-repudiation, external authenticity — fully rewritten unsigned archive with recomputed IDs/checksums may verify internally (honest limitation, not a bug; `content-bound deterministic identity` language).
 - **Identity contract change under schema_version 1.0** (§15): `study_description` entered portable identity and `content_sha256` entered `capsule_id` while feature remained DRAFT unpublished; `schema_version` stays `1.0`; no released compatibility promise; document states “Identity semantics evolved while the feature remained an unpublished draft; there is no released 1.0 archive compatibility promise yet.”
 
@@ -176,11 +176,11 @@ All above covered by `test_capsule_id_*`, `test_blank_checksums_rejected_for_ref
 
 ## 13. PR Body and Merge State
 
-- PR #25 body will be updated after push to distinguish: INITIAL 8356ab8, ORIGINAL REVIEW 12+TEST13, HARDENED 9304c85 (all fixed), NEW REGRESSION + CI, FINAL `see git rev-parse HEAD (this doc commit)` with whole-repo gates; no claim of Claude approval.
+- PR #25 body was updated to record the initial head 8356ab8, Claude 4's original findings, remediation at 9304c85, final implementation head `83337f30bde645d7c43354409a374d5c2b8f39df`, exact whole-repo gates, tests, identity contract, and remaining limitations; no claim of Claude approval beyond the verified implementation at `83337f3`.
 - PR remains `OPEN DRAFT base main` — **DO NOT MERGE, DO NOT MARK READY**.
 
 ## 14. Review Brief
 
-- Branch `agent/product-v3-study-capsule-v1` from `3b7933d`, final head `see git rev-parse HEAD (this doc commit)` (check `git rev-parse HEAD`).
+- Branch `agent/product-v3-study-capsule-v1` from `3b7933d`, final Claude-reviewed implementation head `83337f30bde645d7c43354409a374d5c2b8f39df` (check `git rev-parse HEAD` for any later doc-only head).
 - Changed files 9304c85→NEW: `src/traffictwin/study_capsule.py` (capsule_id, version, warnings), `tests/integration/...` (CI fixes), `tests/unit/...` (capsule_id tests), `docs/quality/...` (this rewrite), plus formatting touches to `cli.py`/`ui/pages` (pure formatting).
 - Focus: content-bound `capsule_id`, whole-repo CI (format/check/mypy/lock/diff), SemVer `+`, warnings removal, determinism, authenticity boundary, binary identity, counts, zero-embed checksums, study_description, single H1, public helper, AppTest fail-not-skip.
