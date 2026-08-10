@@ -1,0 +1,6 @@
+"""Direct Streamlit page script for the candidate v0.7 router."""
+
+from traffictwin.ui.labels import UiPage
+from traffictwin.ui.page_runtime import run_page_script
+
+run_page_script(UiPage.RESOURCE_STRATEGY_EXPLORER)

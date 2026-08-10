@@ -60,6 +60,7 @@ class UiPage(StrEnum):
     SEARCH = "Search"
     SETTINGS = "Settings"
     ABOUT = "About"
+    RESOURCE_STRATEGY_EXPLORER = "Resource Strategy Explorer"
 
 
 PAGE_DESCRIPTIONS: dict[UiPage, str] = {
@@ -174,6 +175,10 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     ),
     UiPage.SETTINGS: "Adjust local UI preferences for replay, reports, and demo workflow.",
     UiPage.ABOUT: "Review package, schema, metric, diagnostic, and generator versions.",
+    UiPage.RESOURCE_STRATEGY_EXPLORER: (
+        "Inspect admitted or explicitly synthetic resource-strategy studies "
+        "across traffic/VEC policies with matched-cohort comparison."
+    ),
 }
 
 

@@ -381,6 +381,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/verified:",
     ),
     V07PageSpec(
+        UiPage.RESOURCE_STRATEGY_EXPLORER,
+        "Compare & test",
+        "app_pages/resource_strategy.py",
+        "resource-strategy",
+        ":material/hub:",
+    ),
+    V07PageSpec(
         UiPage.TOS_RESULTS,
         "Source evidence",
         "app_pages/tos_results.py",

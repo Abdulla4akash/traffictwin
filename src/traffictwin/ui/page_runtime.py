@@ -47,6 +47,7 @@ from traffictwin.ui.pages import (
     preregistration_studio,
     provenance_explorer,
     reports,
+    resource_strategy_explorer,
     rsu_monitor,
     run_overview,
     scenario_builder,
@@ -110,6 +111,9 @@ PAGE_RENDERERS: dict[UiPage, PageRenderer] = {
     UiPage.PREREGISTRATION_STUDIO: preregistration_studio.render,
     UiPage.EVIDENCE: lambda _config: evidence_readiness.render(),
     UiPage.PROVENANCE: lambda _config: provenance_explorer.render(),
+    UiPage.RESOURCE_STRATEGY_EXPLORER: lambda _config: resource_strategy_explorer.render(
+        load_ui_config()
+    ),
     UiPage.REPORTS: reports.render,
     UiPage.STUDY_CAPSULE: study_capsule.render,
     UiPage.PARTICIPANT_EVALUATION: lambda _config: participant_evaluation.render(),

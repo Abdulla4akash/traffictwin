@@ -1,0 +1,1329 @@
+{
+  "admission_state": "synthetic_demonstration",
+  "arm_summaries": [
+    {
+      "arm_id": "jsq",
+      "label": "Deterministic JSQ",
+      "lifecycle_totals": {
+        "admitted": 3394,
+        "compute_completed": 2954,
+        "deadline_success": 2714,
+        "dropped": 400,
+        "forwarded": 1686,
+        "offered": 4000,
+        "rejected": 606,
+        "returned": 2874,
+        "started": 3194
+      },
+      "matched_replication_ids": [
+        "rep_001",
+        "rep_002",
+        "rep_003",
+        "rep_004"
+      ],
+      "metric_aggregates": [
+        {
+          "aggregate_max": 0.895,
+          "aggregate_mean": 0.8875,
+          "aggregate_median": 0.8875,
+          "aggregate_min": 0.88,
+          "denominator": "replication",
+          "metric_key": "infra.load_balance.jain",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.88,
+            "rep_002": 0.885,
+            "rep_003": 0.89,
+            "rep_004": 0.895
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 8.9,
+          "aggregate_mean": 8.45,
+          "aggregate_median": 8.45,
+          "aggregate_min": 8.0,
+          "denominator": "replication",
+          "metric_key": "infra.queue_length.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 8.0,
+            "rep_002": 8.3,
+            "rep_003": 8.6,
+            "rep_004": 8.9
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "tasks"
+        },
+        {
+          "aggregate_max": 0.71,
+          "aggregate_mean": 0.7024999999999999,
+          "aggregate_median": 0.7024999999999999,
+          "aggregate_min": 0.695,
+          "denominator": "replication",
+          "metric_key": "infra.utilisation.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.71,
+            "rep_002": 0.705,
+            "rep_003": 0.7,
+            "rep_004": 0.695
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "fraction"
+        },
+        {
+          "aggregate_max": 113.0,
+          "aggregate_mean": 111.5,
+          "aggregate_median": 111.5,
+          "aggregate_min": 110.0,
+          "denominator": "replication",
+          "metric_key": "resource.cost.units",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 110.0,
+            "rep_002": 111.0,
+            "rep_003": 112.0,
+            "rep_004": 113.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "cost_units"
+        },
+        {
+          "aggregate_max": 0.8705882352941177,
+          "aggregate_mean": 0.8703592327808697,
+          "aggregate_median": 0.8703594128497455,
+          "aggregate_min": 0.8701298701298701,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.completion.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.8705882352941177,
+            "rep_002": 0.8704358068315665,
+            "rep_003": 0.8702830188679245,
+            "rep_004": 0.8701298701298701
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.74,
+          "aggregate_mean": 0.7384999999999999,
+          "aggregate_median": 0.7384999999999999,
+          "aggregate_min": 0.737,
+          "denominator": "offered_tasks",
+          "metric_key": "task.completion.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.74,
+            "rep_002": 0.739,
+            "rep_003": 0.738,
+            "rep_004": 0.737
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.8,
+          "aggregate_mean": 0.7996460870249805,
+          "aggregate_median": 0.7996463653132431,
+          "aggregate_min": 0.7992916174734357,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.deadline_success.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.8,
+            "rep_002": 0.7997644287396938,
+            "rep_003": 0.7995283018867925,
+            "rep_004": 0.7992916174734357
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.68,
+          "aggregate_mean": 0.6785000000000001,
+          "aggregate_median": 0.6785000000000001,
+          "aggregate_min": 0.677,
+          "denominator": "offered_tasks",
+          "metric_key": "task.deadline_success.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.68,
+            "rep_002": 0.679,
+            "rep_003": 0.678,
+            "rep_004": 0.677
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 154.5,
+          "aggregate_mean": 152.25,
+          "aggregate_median": 152.25,
+          "aggregate_min": 150.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.mean_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 150.0,
+            "rep_002": 151.5,
+            "rep_003": 153.0,
+            "rep_004": 154.5
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        },
+        {
+          "aggregate_max": 269.0,
+          "aggregate_mean": 264.5,
+          "aggregate_median": 264.5,
+          "aggregate_min": 260.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.p95_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 260.0,
+            "rep_002": 263.0,
+            "rep_003": 266.0,
+            "rep_004": 269.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        }
+      ],
+      "replication_count_matched": 4,
+      "replication_count_total": 5,
+      "strategy_type": "deterministic_jsq",
+      "unavailable_metrics": []
+    },
+    {
+      "arm_id": "jsq_deadline_aware",
+      "label": "Deterministic JSQ + deadline-aware admission",
+      "lifecycle_totals": {
+        "admitted": 3194,
+        "compute_completed": 2874,
+        "deadline_success": 2714,
+        "dropped": 320,
+        "forwarded": 1606,
+        "offered": 4000,
+        "rejected": 806,
+        "returned": 2794,
+        "started": 3034
+      },
+      "matched_replication_ids": [
+        "rep_001",
+        "rep_002",
+        "rep_003",
+        "rep_004"
+      ],
+      "metric_aggregates": [
+        {
+          "aggregate_max": 0.909,
+          "aggregate_mean": 0.9045000000000001,
+          "aggregate_median": 0.9045000000000001,
+          "aggregate_min": 0.9,
+          "denominator": "replication",
+          "metric_key": "infra.load_balance.jain",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.9,
+            "rep_002": 0.903,
+            "rep_003": 0.906,
+            "rep_004": 0.909
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 8.1,
+          "aggregate_mean": 7.8,
+          "aggregate_median": 7.800000000000001,
+          "aggregate_min": 7.5,
+          "denominator": "replication",
+          "metric_key": "infra.queue_length.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 7.5,
+            "rep_002": 7.7,
+            "rep_003": 7.9,
+            "rep_004": 8.1
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "tasks"
+        },
+        {
+          "aggregate_max": 0.69,
+          "aggregate_mean": 0.6855,
+          "aggregate_median": 0.6855,
+          "aggregate_min": 0.6809999999999999,
+          "denominator": "replication",
+          "metric_key": "infra.utilisation.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.69,
+            "rep_002": 0.6869999999999999,
+            "rep_003": 0.6839999999999999,
+            "rep_004": 0.6809999999999999
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "fraction"
+        },
+        {
+          "aggregate_max": 118.0,
+          "aggregate_mean": 116.5,
+          "aggregate_median": 116.5,
+          "aggregate_min": 115.0,
+          "denominator": "replication",
+          "metric_key": "resource.cost.units",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 115.0,
+            "rep_002": 116.0,
+            "rep_003": 117.0,
+            "rep_004": 118.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "cost_units"
+        },
+        {
+          "aggregate_max": 0.9,
+          "aggregate_mean": 0.8998119513611849,
+          "aggregate_median": 0.8998121084940135,
+          "aggregate_min": 0.8996235884567126,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.completion.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.9,
+            "rep_002": 0.899874843554443,
+            "rep_003": 0.899749373433584,
+            "rep_004": 0.8996235884567126
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.72,
+          "aggregate_mean": 0.7184999999999999,
+          "aggregate_median": 0.7184999999999999,
+          "aggregate_min": 0.717,
+          "denominator": "offered_tasks",
+          "metric_key": "task.completion.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.72,
+            "rep_002": 0.719,
+            "rep_003": 0.718,
+            "rep_004": 0.717
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.85,
+          "aggregate_mean": 0.8497179270417774,
+          "aggregate_median": 0.8497181627410202,
+          "aggregate_min": 0.849435382685069,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.deadline_success.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.85,
+            "rep_002": 0.8498122653316645,
+            "rep_003": 0.849624060150376,
+            "rep_004": 0.849435382685069
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.68,
+          "aggregate_mean": 0.6785000000000001,
+          "aggregate_median": 0.6785000000000001,
+          "aggregate_min": 0.677,
+          "denominator": "offered_tasks",
+          "metric_key": "task.deadline_success.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.68,
+            "rep_002": 0.679,
+            "rep_003": 0.678,
+            "rep_004": 0.677
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 158.6,
+          "aggregate_mean": 156.8,
+          "aggregate_median": 156.8,
+          "aggregate_min": 155.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.mean_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 155.0,
+            "rep_002": 156.2,
+            "rep_003": 157.4,
+            "rep_004": 158.6
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        },
+        {
+          "aggregate_max": 276.0,
+          "aggregate_mean": 273.0,
+          "aggregate_median": 273.0,
+          "aggregate_min": 270.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.p95_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 270.0,
+            "rep_002": 272.0,
+            "rep_003": 274.0,
+            "rep_004": 276.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        }
+      ],
+      "replication_count_matched": 4,
+      "replication_count_total": 5,
+      "strategy_type": "deterministic_jsq_deadline_aware",
+      "unavailable_metrics": []
+    },
+    {
+      "arm_id": "strongest_link",
+      "label": "Strongest-link placement",
+      "lifecycle_totals": {
+        "admitted": 3268,
+        "compute_completed": 2794,
+        "deadline_success": 2474,
+        "dropped": 480,
+        "forwarded": 1526,
+        "offered": 4000,
+        "rejected": 732,
+        "returned": 2714,
+        "started": 3114
+      },
+      "matched_replication_ids": [
+        "rep_001",
+        "rep_002",
+        "rep_003",
+        "rep_004"
+      ],
+      "metric_aggregates": [
+        {
+          "aggregate_max": 0.72,
+          "aggregate_mean": 0.705,
+          "aggregate_median": 0.705,
+          "aggregate_min": 0.69,
+          "denominator": "replication",
+          "metric_key": "infra.load_balance.jain",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.72,
+            "rep_002": 0.71,
+            "rep_003": 0.7,
+            "rep_004": 0.69
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 13.5,
+          "aggregate_mean": 12.9,
+          "aggregate_median": 12.9,
+          "aggregate_min": 12.3,
+          "denominator": "replication",
+          "metric_key": "infra.queue_length.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 12.3,
+            "rep_002": 12.5,
+            "rep_003": 13.3,
+            "rep_004": 13.5
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "tasks"
+        },
+        {
+          "aggregate_max": 0.81,
+          "aggregate_mean": 0.795,
+          "aggregate_median": 0.795,
+          "aggregate_min": 0.78,
+          "denominator": "replication",
+          "metric_key": "infra.utilisation.mean",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.78,
+            "rep_002": 0.79,
+            "rep_003": 0.8,
+            "rep_004": 0.81
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "fraction"
+        },
+        {
+          "aggregate_max": 126.0,
+          "aggregate_mean": 123.0,
+          "aggregate_median": 123.0,
+          "aggregate_min": 120.0,
+          "denominator": "replication",
+          "metric_key": "resource.cost.units",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 120.0,
+            "rep_002": 122.0,
+            "rep_003": 124.0,
+            "rep_004": 126.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "cost_units"
+        },
+        {
+          "aggregate_max": 0.8562653562653563,
+          "aggregate_mean": 0.8549598192743326,
+          "aggregate_median": 0.8549576921233041,
+          "aggregate_min": 0.8536585365853658,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.completion.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.8536585365853658,
+            "rep_002": 0.8545232273838631,
+            "rep_003": 0.8553921568627451,
+            "rep_004": 0.8562653562653563
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.7,
+          "aggregate_mean": 0.6984999999999999,
+          "aggregate_median": 0.6984999999999999,
+          "aggregate_min": 0.697,
+          "denominator": "offered_tasks",
+          "metric_key": "task.completion.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.7,
+            "rep_002": 0.699,
+            "rep_003": 0.698,
+            "rep_004": 0.697
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.757985257985258,
+          "aggregate_mean": 0.7570398691296891,
+          "aggregate_median": 0.7570383287789444,
+          "aggregate_min": 0.7560975609756098,
+          "denominator": "admitted_tasks",
+          "metric_key": "task.deadline_success.rate_admitted",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.7560975609756098,
+            "rep_002": 0.7567237163814181,
+            "rep_003": 0.7573529411764706,
+            "rep_004": 0.757985257985258
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 0.62,
+          "aggregate_mean": 0.6185,
+          "aggregate_median": 0.6185,
+          "aggregate_min": 0.617,
+          "denominator": "offered_tasks",
+          "metric_key": "task.deadline_success.rate_offered",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 0.62,
+            "rep_002": 0.619,
+            "rep_003": 0.618,
+            "rep_004": 0.617
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ratio"
+        },
+        {
+          "aggregate_max": 189.0,
+          "aggregate_mean": 184.5,
+          "aggregate_median": 184.5,
+          "aggregate_min": 180.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.mean_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 180.0,
+            "rep_002": 185.0,
+            "rep_003": 184.0,
+            "rep_004": 189.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        },
+        {
+          "aggregate_max": 335.0,
+          "aggregate_mean": 327.5,
+          "aggregate_median": 327.5,
+          "aggregate_min": 320.0,
+          "denominator": "completed_tasks",
+          "metric_key": "task.latency.p95_ms",
+          "metric_version": "1.0",
+          "per_replication_values": {
+            "rep_001": 320.0,
+            "rep_002": 325.0,
+            "rep_003": 330.0,
+            "rep_004": 335.0
+          },
+          "reason": null,
+          "replication_count": 4,
+          "status": "available",
+          "unit": "ms"
+        }
+      ],
+      "replication_count_matched": 4,
+      "replication_count_total": 5,
+      "strategy_type": "strongest_link_placement",
+      "unavailable_metrics": []
+    }
+  ],
+  "common_matched_replication_ids": [
+    "rep_001",
+    "rep_002",
+    "rep_003",
+    "rep_004"
+  ],
+  "compatibility": [
+    {
+      "denominator": "offered_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.completion.rate_offered",
+      "status": "compatible",
+      "unit": "ratio",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "admitted_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.completion.rate_admitted",
+      "status": "compatible",
+      "unit": "ratio",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "offered_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.deadline_success.rate_offered",
+      "status": "compatible",
+      "unit": "ratio",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "admitted_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.deadline_success.rate_admitted",
+      "status": "compatible",
+      "unit": "ratio",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "completed_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.latency.mean_ms",
+      "status": "compatible",
+      "unit": "ms",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "completed_tasks",
+      "finding": "compatible across matched cohort",
+      "metric_key": "task.latency.p95_ms",
+      "status": "compatible",
+      "unit": "ms",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "replication",
+      "finding": "compatible across matched cohort",
+      "metric_key": "infra.queue_length.mean",
+      "status": "compatible",
+      "unit": "tasks",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "replication",
+      "finding": "compatible across matched cohort",
+      "metric_key": "infra.load_balance.jain",
+      "status": "compatible",
+      "unit": "ratio",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "replication",
+      "finding": "compatible across matched cohort",
+      "metric_key": "infra.utilisation.mean",
+      "status": "compatible",
+      "unit": "fraction",
+      "versions": [
+        "1.0"
+      ]
+    },
+    {
+      "denominator": "replication",
+      "finding": "compatible across matched cohort",
+      "metric_key": "resource.cost.units",
+      "status": "compatible",
+      "unit": "cost_units",
+      "versions": [
+        "1.0"
+      ]
+    }
+  ],
+  "evidence_mode": "synthetic_demonstration",
+  "excluded_replication_ids": [
+    {
+      "arm_id": null,
+      "code": "RSU_OUTAGE",
+      "detail": "All arms missing effective coverage for rep_005.",
+      "reason": "Simulated RSU outage in replication rep_005; excluded from matched cohort.",
+      "replication_id": "rep_005"
+    }
+  ],
+  "generated_at": null,
+  "limitations": [
+    "Synthetic demonstration evidence only; not Manchester observation.",
+    "Offered-task attainment and admitted-task attainment are distinct denominators; do not substitute one for the other.",
+    "Completed is not deadline-success; deadline-success requires returned tasks meeting deadline.",
+    "Queue and utilisation evidence is limited to the matched 4 replications; rep_005 is excluded due to simulated outage.",
+    "Resource-cost evidence is synthetic and not a production-cost guarantee.",
+    "No winner, best, or optimal claim is made; comparisons are descriptive only."
+  ],
+  "metric_catalog": [
+    {
+      "denominator": "offered_tasks",
+      "description": "Completed over offered tasks",
+      "metric_key": "task.completion.rate_offered",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "admitted_tasks",
+      "description": "Completed over admitted tasks",
+      "metric_key": "task.completion.rate_admitted",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "offered_tasks",
+      "description": "Deadline success over offered",
+      "metric_key": "task.deadline_success.rate_offered",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "admitted_tasks",
+      "description": "Deadline success over admitted",
+      "metric_key": "task.deadline_success.rate_admitted",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "completed_tasks",
+      "description": "Mean latency",
+      "metric_key": "task.latency.mean_ms",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ms"
+    },
+    {
+      "denominator": "completed_tasks",
+      "description": "P95 latency",
+      "metric_key": "task.latency.p95_ms",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ms"
+    },
+    {
+      "denominator": "replication",
+      "description": "Mean queue length",
+      "metric_key": "infra.queue_length.mean",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "tasks"
+    },
+    {
+      "denominator": "replication",
+      "description": "Jain load balance",
+      "metric_key": "infra.load_balance.jain",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "ratio"
+    },
+    {
+      "denominator": "replication",
+      "description": "Mean utilisation",
+      "metric_key": "infra.utilisation.mean",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "fraction"
+    },
+    {
+      "denominator": "replication",
+      "description": "Resource cost",
+      "metric_key": "resource.cost.units",
+      "metric_version": "1.0",
+      "per_replication_disclosed": true,
+      "unit": "cost_units"
+    }
+  ],
+  "pairwise_differences": [
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "replication",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 0.017 ratio; descriptive only",
+      "mean_a": 0.8875,
+      "mean_b": 0.9045000000000001,
+      "mean_difference_b_minus_a": 0.017000000000000126,
+      "median_difference_b_minus_a": 0.017000000000000126,
+      "metric_key": "infra.load_balance.jain",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "replication",
+      "interpretation": "jsq_deadline_aware mean lower than jsq by 0.65 tasks; descriptive only",
+      "mean_a": 8.45,
+      "mean_b": 7.8,
+      "mean_difference_b_minus_a": -0.6499999999999995,
+      "median_difference_b_minus_a": -0.6499999999999986,
+      "metric_key": "infra.queue_length.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "tasks"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "replication",
+      "interpretation": "jsq_deadline_aware mean lower than jsq by 0.017 fraction; descriptive only",
+      "mean_a": 0.7024999999999999,
+      "mean_b": 0.6855,
+      "mean_difference_b_minus_a": -0.016999999999999904,
+      "median_difference_b_minus_a": -0.016999999999999904,
+      "metric_key": "infra.utilisation.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "fraction"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "replication",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 5 cost_units; descriptive only",
+      "mean_a": 111.5,
+      "mean_b": 116.5,
+      "mean_difference_b_minus_a": 5.0,
+      "median_difference_b_minus_a": 5.0,
+      "metric_key": "resource.cost.units",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "cost_units"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "admitted_tasks",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 0.0294527 ratio; descriptive only",
+      "mean_a": 0.8703592327808697,
+      "mean_b": 0.8998119513611849,
+      "mean_difference_b_minus_a": 0.029452718580315174,
+      "median_difference_b_minus_a": 0.029452695644268,
+      "metric_key": "task.completion.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "offered_tasks",
+      "interpretation": "jsq_deadline_aware mean lower than jsq by 0.02 ratio; descriptive only",
+      "mean_a": 0.7384999999999999,
+      "mean_b": 0.7184999999999999,
+      "mean_difference_b_minus_a": -0.020000000000000018,
+      "median_difference_b_minus_a": -0.020000000000000018,
+      "metric_key": "task.completion.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "admitted_tasks",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 0.0500718 ratio; descriptive only",
+      "mean_a": 0.7996460870249805,
+      "mean_b": 0.8497179270417774,
+      "mean_difference_b_minus_a": 0.050071840016796876,
+      "median_difference_b_minus_a": 0.05007179742777712,
+      "metric_key": "task.deadline_success.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "offered_tasks",
+      "interpretation": "jsq_deadline_aware mean equal to jsq (difference 0 ratio); descriptive only",
+      "mean_a": 0.6785000000000001,
+      "mean_b": 0.6785000000000001,
+      "mean_difference_b_minus_a": 0.0,
+      "median_difference_b_minus_a": 0.0,
+      "metric_key": "task.deadline_success.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "completed_tasks",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 4.55 ms; descriptive only",
+      "mean_a": 152.25,
+      "mean_b": 156.8,
+      "mean_difference_b_minus_a": 4.550000000000011,
+      "median_difference_b_minus_a": 4.550000000000011,
+      "metric_key": "task.latency.mean_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "jsq_deadline_aware",
+      "denominator": "completed_tasks",
+      "interpretation": "jsq_deadline_aware mean higher than jsq by 8.5 ms; descriptive only",
+      "mean_a": 264.5,
+      "mean_b": 273.0,
+      "mean_difference_b_minus_a": 8.5,
+      "median_difference_b_minus_a": 8.5,
+      "metric_key": "task.latency.p95_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean lower than jsq by 0.1825 ratio; descriptive only",
+      "mean_a": 0.8875,
+      "mean_b": 0.705,
+      "mean_difference_b_minus_a": -0.1825,
+      "median_difference_b_minus_a": -0.1825,
+      "metric_key": "infra.load_balance.jain",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq by 4.45 tasks; descriptive only",
+      "mean_a": 8.45,
+      "mean_b": 12.9,
+      "mean_difference_b_minus_a": 4.450000000000001,
+      "median_difference_b_minus_a": 4.450000000000001,
+      "metric_key": "infra.queue_length.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "tasks"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq by 0.0925 fraction; descriptive only",
+      "mean_a": 0.7024999999999999,
+      "mean_b": 0.795,
+      "mean_difference_b_minus_a": 0.09250000000000014,
+      "median_difference_b_minus_a": 0.09250000000000014,
+      "metric_key": "infra.utilisation.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "fraction"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq by 11.5 cost_units; descriptive only",
+      "mean_a": 111.5,
+      "mean_b": 123.0,
+      "mean_difference_b_minus_a": 11.5,
+      "median_difference_b_minus_a": 11.5,
+      "metric_key": "resource.cost.units",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "cost_units"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "admitted_tasks",
+      "interpretation": "strongest_link mean lower than jsq by 0.0153994 ratio; descriptive only",
+      "mean_a": 0.8703592327808697,
+      "mean_b": 0.8549598192743326,
+      "mean_difference_b_minus_a": -0.015399413506537063,
+      "median_difference_b_minus_a": -0.015401720726441415,
+      "metric_key": "task.completion.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "offered_tasks",
+      "interpretation": "strongest_link mean lower than jsq by 0.04 ratio; descriptive only",
+      "mean_a": 0.7384999999999999,
+      "mean_b": 0.6984999999999999,
+      "mean_difference_b_minus_a": -0.040000000000000036,
+      "median_difference_b_minus_a": -0.040000000000000036,
+      "metric_key": "task.completion.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "admitted_tasks",
+      "interpretation": "strongest_link mean lower than jsq by 0.0426062 ratio; descriptive only",
+      "mean_a": 0.7996460870249805,
+      "mean_b": 0.7570398691296891,
+      "mean_difference_b_minus_a": -0.0426062178952914,
+      "median_difference_b_minus_a": -0.04260803653429868,
+      "metric_key": "task.deadline_success.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "offered_tasks",
+      "interpretation": "strongest_link mean lower than jsq by 0.06 ratio; descriptive only",
+      "mean_a": 0.6785000000000001,
+      "mean_b": 0.6185,
+      "mean_difference_b_minus_a": -0.06000000000000005,
+      "median_difference_b_minus_a": -0.06000000000000005,
+      "metric_key": "task.deadline_success.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "completed_tasks",
+      "interpretation": "strongest_link mean higher than jsq by 32.25 ms; descriptive only",
+      "mean_a": 152.25,
+      "mean_b": 184.5,
+      "mean_difference_b_minus_a": 32.25,
+      "median_difference_b_minus_a": 32.25,
+      "metric_key": "task.latency.mean_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    },
+    {
+      "arm_a": "jsq",
+      "arm_b": "strongest_link",
+      "denominator": "completed_tasks",
+      "interpretation": "strongest_link mean higher than jsq by 63 ms; descriptive only",
+      "mean_a": 264.5,
+      "mean_b": 327.5,
+      "mean_difference_b_minus_a": 63.0,
+      "median_difference_b_minus_a": 63.0,
+      "metric_key": "task.latency.p95_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean lower than jsq_deadline_aware by 0.1995 ratio; descriptive only",
+      "mean_a": 0.9045000000000001,
+      "mean_b": 0.705,
+      "mean_difference_b_minus_a": -0.19950000000000012,
+      "median_difference_b_minus_a": -0.19950000000000012,
+      "metric_key": "infra.load_balance.jain",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq_deadline_aware by 5.1 tasks; descriptive only",
+      "mean_a": 7.8,
+      "mean_b": 12.9,
+      "mean_difference_b_minus_a": 5.1000000000000005,
+      "median_difference_b_minus_a": 5.1,
+      "metric_key": "infra.queue_length.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "tasks"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq_deadline_aware by 0.1095 fraction; descriptive only",
+      "mean_a": 0.6855,
+      "mean_b": 0.795,
+      "mean_difference_b_minus_a": 0.10950000000000004,
+      "median_difference_b_minus_a": 0.10950000000000004,
+      "metric_key": "infra.utilisation.mean",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "fraction"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "replication",
+      "interpretation": "strongest_link mean higher than jsq_deadline_aware by 6.5 cost_units; descriptive only",
+      "mean_a": 116.5,
+      "mean_b": 123.0,
+      "mean_difference_b_minus_a": 6.5,
+      "median_difference_b_minus_a": 6.5,
+      "metric_key": "resource.cost.units",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "cost_units"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "admitted_tasks",
+      "interpretation": "strongest_link mean lower than jsq_deadline_aware by 0.0448521 ratio; descriptive only",
+      "mean_a": 0.8998119513611849,
+      "mean_b": 0.8549598192743326,
+      "mean_difference_b_minus_a": -0.04485213208685224,
+      "median_difference_b_minus_a": -0.044854416370709416,
+      "metric_key": "task.completion.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "offered_tasks",
+      "interpretation": "strongest_link mean lower than jsq_deadline_aware by 0.02 ratio; descriptive only",
+      "mean_a": 0.7184999999999999,
+      "mean_b": 0.6984999999999999,
+      "mean_difference_b_minus_a": -0.020000000000000018,
+      "median_difference_b_minus_a": -0.020000000000000018,
+      "metric_key": "task.completion.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "admitted_tasks",
+      "interpretation": "strongest_link mean lower than jsq_deadline_aware by 0.0926781 ratio; descriptive only",
+      "mean_a": 0.8497179270417774,
+      "mean_b": 0.7570398691296891,
+      "mean_difference_b_minus_a": -0.09267805791208827,
+      "median_difference_b_minus_a": -0.0926798339620758,
+      "metric_key": "task.deadline_success.rate_admitted",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "offered_tasks",
+      "interpretation": "strongest_link mean lower than jsq_deadline_aware by 0.06 ratio; descriptive only",
+      "mean_a": 0.6785000000000001,
+      "mean_b": 0.6185,
+      "mean_difference_b_minus_a": -0.06000000000000005,
+      "median_difference_b_minus_a": -0.06000000000000005,
+      "metric_key": "task.deadline_success.rate_offered",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ratio"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "completed_tasks",
+      "interpretation": "strongest_link mean higher than jsq_deadline_aware by 27.7 ms; descriptive only",
+      "mean_a": 156.8,
+      "mean_b": 184.5,
+      "mean_difference_b_minus_a": 27.69999999999999,
+      "median_difference_b_minus_a": 27.69999999999999,
+      "metric_key": "task.latency.mean_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    },
+    {
+      "arm_a": "jsq_deadline_aware",
+      "arm_b": "strongest_link",
+      "denominator": "completed_tasks",
+      "interpretation": "strongest_link mean higher than jsq_deadline_aware by 54.5 ms; descriptive only",
+      "mean_a": 273.0,
+      "mean_b": 327.5,
+      "mean_difference_b_minus_a": 54.5,
+      "median_difference_b_minus_a": 54.5,
+      "metric_key": "task.latency.p95_ms",
+      "metric_version": "1.0",
+      "reason": null,
+      "status": "available",
+      "unit": "ms"
+    }
+  ],
+  "provenance": {
+    "description": "Three synthetic strategies resembling strongest-link, JSQ, and JSQ+deadline-aware admission.",
+    "evidence_label": "SYNTHETIC DEMONSTRATION",
+    "fixture": "resource_strategy_synthetic_v1",
+    "generated_by": "deterministic_fixture_generator"
+  },
+  "replication_unit": "replication_id",
+  "report_fingerprint": "c07480af8e68dc73f235e2f725d7d6caf223e285b374b286fb1ed17f0f22c375",
+  "schema_version": "1.0",
+  "source_fingerprint": "804d785897bf24da704878e016617b33adeb3844cc275ebd972de69d0cfdf0fe",
+  "study_fingerprint": "a0c1a751571732d431cd7a12b69f833fadb36b424e5089cfbbbaf95d8b922116",
+  "study_id": "synthetic_resource_strategy_v1"
+}
