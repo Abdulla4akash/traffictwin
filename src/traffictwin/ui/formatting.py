@@ -79,3 +79,34 @@ def format_metric_detail(metric: MetricValue | None) -> str:
         return metric.unit
     reasons = ", ".join(reason.value for reason in metric.reason_codes)
     return reasons or metric.status.value
+
+
+def format_scalar(value: object) -> str:
+    """Lossless scalar display for consequence/comparison tables.
+
+    Single authoritative contract:
+    * None -> "Unavailable"
+    * bool -> "True"/"False" (bool before int)
+    * int -> decimal string
+    * finite float -> repr (shortest round-trip)
+    * NaN -> "NaN", +Inf -> "Infinity", -Inf -> "-Infinity"
+    * other -> str(value)
+
+    Preserves 2024123.0 -> "2024123.0" and round-trip fidelity.
+    """
+
+    if value is None:
+        return "Unavailable"
+    if isinstance(value, bool):
+        return str(value)
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        if value != value:  # NaN
+            return "NaN"
+        if value == float("inf"):
+            return "Infinity"
+        if value == float("-inf"):
+            return "-Infinity"
+        return repr(value)
+    return str(value)

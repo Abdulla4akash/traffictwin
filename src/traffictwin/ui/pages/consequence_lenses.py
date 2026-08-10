@@ -6,53 +6,54 @@ from pathlib import Path
 
 import streamlit as st
 
-from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.badges import provenance_badge
 from traffictwin.ui.components.cards import fingerprint_summary
 from traffictwin.ui.components.first_run import first_run_guidance
+from traffictwin.ui.consequence_cache import session_validate_bundle
 from traffictwin.ui.consequence_lenses import (
     ConsequenceLensReport,
     build_consequence_lens_report,
 )
+from traffictwin.ui.consequence_tables import consequence_lens_table_rows
+from traffictwin.ui.formatting import format_scalar
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.navigation import navigation_button
-from traffictwin.ui.services import ServiceError, validate_bundle_for_ui
+from traffictwin.ui.services import ServiceError
 from traffictwin.ui.tables import ColumnDisplay, table_column_config
 
 
 def _provenance_badge(synthetic_flag: object) -> str:
-    if synthetic_flag is None:
-        return ":gray-badge[UNKNOWN]"
-    return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
+    """Shared three-state provenance badge — delegates to ui.components.badges."""
+
+    return provenance_badge(synthetic_flag)
 
 
-def _format_value(value: object) -> str:
+def _format_identity(value: object) -> str:
+    """Return display for run/seed/bundle identifiers; None/empty → Unavailable."""
+
     if value is None:
         return "Unavailable"
-    if isinstance(value, float):
-        return f"{value:.6g}"
-    return str(value)
+    if isinstance(value, str) and not value.strip():
+        return "Unavailable"
+    # Use truncated fingerprint for long IDs, otherwise raw
+    text = str(value).strip()
+    return fingerprint_summary(text)
+
+
+def _format_tri(value: object) -> str:
+    """Tri-state display: True→yes, False→no, None/unknown→unknown."""
+
+    if value is True:
+        return "yes"
+    if value is False:
+        return "no"
+    return "unknown"
 
 
 def _row_dicts(report: ConsequenceLensReport, domain: str) -> list[dict[str, object]]:
-    summary = report.traffic_summary if domain == "traffic" else report.vec_summary
-    rows: list[dict[str, object]] = []
-    for row in summary.rows:
-        rows.append(
-            {
-                "metric_key": row.metric_key,
-                "label": row.label,
-                "status": row.status,
-                "baseline": _format_value(row.baseline),
-                "variation": _format_value(row.variation),
-                "absolute_delta": _format_value(row.absolute_delta),
-                "relative_delta": _format_value(row.relative_delta),
-                "unit": row.unit or "",
-                "direction": row.direction,
-                "reason_codes": ", ".join(row.reason_codes),
-                "denominator": row.denominator_description or "",
-            }
-        )
-    return rows
+    """Thin page wrapper — delegates to shared ui.tables helper."""
+
+    return consequence_lens_table_rows(report, domain)
 
 
 def _render_domain_section(report: ConsequenceLensReport, domain: str, title: str) -> None:
@@ -64,11 +65,8 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
         cols[1].metric("Partial", summary.partial_count, border=True)
         cols[2].metric("Unavailable", summary.unavailable_count, border=True)
         cols[3].metric("Total", len(summary.rows), border=True)
-        # Comparable is available + partial, but keep separate evidence states
         comparable = summary.available_count + summary.partial_count
         st.caption(f"Comparable (available + partial): {comparable}")
-        if summary.warnings:
-            st.warning("\n".join(summary.warnings))
     rows = _row_dicts(report, domain)
     if rows:
         st.dataframe(
@@ -90,7 +88,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
         )
     else:
         st.info(f"No {domain} consequence rows available.")
-    # Unavailable reasons visible
     unavailable = [row for row in summary.rows if row.status == "unavailable"]
     if unavailable:
         st.caption(f"{len(unavailable)} {domain} metrics are unavailable with exact reason codes.")
@@ -109,7 +106,6 @@ def _render_domain_section(report: ConsequenceLensReport, domain: str, title: st
                 width="stretch",
                 column_config=table_column_config(reason_rows),
             )
-    # Denominator wording
     denom_rows = [row for row in summary.rows if row.denominator_description is not None]
     if denom_rows:
         with st.expander(f"Advanced: {domain} denominator definitions"):
@@ -133,32 +129,60 @@ def render() -> None:
 
     st.title("Consequence Lenses")
 
+    # Draft vs committed state: widget values are draft (consequence_*_path),
+    # committed cross-page keys are selected_baseline_run / selected_variation_run
+    # which represent last known valid selections. We must not clobber committed
+    # state with empty/invalid draft input.
+    committed_baseline = str(
+        st.session_state.get(
+            "selected_baseline_run",
+            "tests/fixtures/bundles/baseline_valid",
+        )
+    )
+    committed_variation = str(
+        st.session_state.get(
+            "selected_variation_run",
+            "tests/fixtures/bundles/variation_valid",
+        )
+    )
+
+    # Ensure widget keys exist before synchronisation to avoid duplicate-default warning
+    # (value= is redundant when keys are already seeded; we initialise explicitly).
+    if "consequence_baseline_path" not in st.session_state:
+        st.session_state["consequence_baseline_path"] = committed_baseline
+    if "consequence_variation_path" not in st.session_state:
+        st.session_state["consequence_variation_path"] = committed_variation
+    # Synchronise keyed widget draft state with authoritative committed pair.
+    # Streamlit ignores changed `value=` when a widget key already has persistent
+    # widget state, so an external What-If Studio commit would otherwise leave
+    # stale draft paths visible and re-commit the stale pair. Detect external
+    # change via a marker and explicitly seed the widget keys from the new
+    # committed pair before constructing the keyed widgets.
+    current_pair = (committed_baseline, committed_variation)
+    last_synced = st.session_state.get("_consequence_last_synced_pair")
+    # Normalise stored marker to tuple of strings for robust comparison
+    if isinstance(last_synced, (list, tuple)) and len(last_synced) == 2:
+        try:
+            last_pair = (str(last_synced[0]), str(last_synced[1]))
+        except Exception:  # pragma: no cover - defensive
+            last_pair = None
+    else:
+        last_pair = None
+    if last_pair != current_pair:
+        st.session_state["consequence_baseline_path"] = committed_baseline
+        st.session_state["consequence_variation_path"] = committed_variation
+        st.session_state["_consequence_last_synced_pair"] = current_pair
+
     baseline_input = st.text_input(
         "Baseline bundle path",
-        value=str(
-            st.session_state.get(
-                "selected_baseline_run",
-                "tests/fixtures/bundles/baseline_valid",
-            )
-        ),
         key="consequence_baseline_path",
     )
     variation_input = st.text_input(
         "Variation bundle path",
-        value=str(
-            st.session_state.get(
-                "selected_variation_run",
-                "tests/fixtures/bundles/variation_valid",
-            )
-        ),
         key="consequence_variation_path",
     )
-    baseline_path = Path(baseline_input)
-    variation_path = Path(variation_input)
-    st.session_state["selected_baseline_run"] = str(baseline_path)
-    st.session_state["selected_variation_run"] = str(variation_path)
-
-    # Empty and failure states
+    # Do not commit draft immediately. Draft is baseline_input / variation_input.
+    # Committed state is updated atomically only after both inputs are valid.
     baseline_str = baseline_input.strip()
     variation_str = variation_input.strip()
     if not baseline_str or not variation_str:
@@ -177,6 +201,11 @@ def render() -> None:
             key_prefix="consequence_no_pair",
         )
         return
+
+    # Resolve draft strings to paths only after confirming non-empty; Path("") would
+    # normalize to "." and must never be written back to committed session state.
+    baseline_path = Path(baseline_str)
+    variation_path = Path(variation_str)
 
     if not baseline_path.exists() and not variation_path.exists():
         st.error("Both baseline and variation bundle paths do not exist.")
@@ -201,8 +230,8 @@ def render() -> None:
         st.info("Variation is missing. Enter a valid variation bundle path.")
         return
 
-    baseline = validate_bundle_for_ui(baseline_path)
-    variation = validate_bundle_for_ui(variation_path)
+    baseline = session_validate_bundle(baseline_path, st.session_state)
+    variation = session_validate_bundle(variation_path, st.session_state)
 
     if not baseline.analysis_ready:
         st.error("Baseline bundle is invalid and cannot be used for consequence lenses.")
@@ -222,41 +251,44 @@ def render() -> None:
             st.caption(report.detail)
         return
 
-    # Baseline and variation identities
+    # Atomic commit: only after both bundles are valid and report built do we
+    # update the authoritative cross-page session keys. This prevents blank or
+    # invalid draft input from poisoning selected state and keeps the pair atomic.
+    st.session_state["selected_baseline_run"] = str(baseline_path)
+    st.session_state["selected_variation_run"] = str(variation_path)
+    # Keep the synchronisation marker in step with the authoritative pair so
+    # our own commit is not misinterpreted as an external change on next render
+    # and invalid blank/invalid drafts do not falsely mark sync.
+    st.session_state["_consequence_last_synced_pair"] = (
+        str(baseline_path),
+        str(variation_path),
+    )
+
+    # Baseline and variation identities (logical only, no absolute paths)
     st.subheader("Pair identity")
     with st.container(border=True):
         cols = st.columns(2)
         with cols[0]:
             st.markdown("**Baseline**")
-            st.code(str(baseline.source_path), language=None)
             baseline_prov = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
-            baseline_run = fingerprint_summary(str(report.evidence_standing.get("baseline_run_id")))
-            baseline_seed = fingerprint_summary(
-                str(report.evidence_standing.get("baseline_seed_id"))
-            )
+            # Use helper that returns Unavailable for None
+            baseline_run = _format_identity(report.evidence_standing.get("baseline_run_id"))
+            baseline_seed = _format_identity(report.evidence_standing.get("baseline_seed_id"))
+            # For fingerprint we use logical report fingerprint, not bundle path
             st.markdown(
                 f"**Provenance:** {baseline_prov} "
                 f"**Run:** `{baseline_run}` **Seed:** `{baseline_seed}`"
             )
-            fp = fingerprint_summary(str(report.evidence_standing.get("baseline_fingerprint")))
-            st.caption(f"Bundle fingerprint: `{fp}`")
         with cols[1]:
             st.markdown("**Variation**")
-            st.code(str(variation.source_path), language=None)
             variation_prov = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
-            variation_run = fingerprint_summary(
-                str(report.evidence_standing.get("variation_run_id"))
-            )
-            variation_seed = fingerprint_summary(
-                str(report.evidence_standing.get("variation_seed_id"))
-            )
+            variation_run = _format_identity(report.evidence_standing.get("variation_run_id"))
+            variation_seed = _format_identity(report.evidence_standing.get("variation_seed_id"))
             st.markdown(
                 f"**Provenance:** {variation_prov} "
                 f"**Run:** `{variation_run}` **Seed:** `{variation_seed}`"
             )
-            var_fp = fingerprint_summary(str(report.evidence_standing.get("variation_fingerprint")))
-            st.caption(f"Bundle fingerprint: `{var_fp}`")
-        st.caption(f"Report fingerprint: `{fingerprint_summary(report.fingerprint)}`")
+        st.caption(f"Report fingerprint: `{_format_identity(report.fingerprint)}`")
         if report.fingerprint:
             with st.expander("Advanced: full fingerprints and identities"):
                 st.json(
@@ -267,33 +299,62 @@ def render() -> None:
                         "fingerprint": report.fingerprint,
                     }
                 )
+        # Local paths are NOT part of report identity; show only as local debug if needed
+        with st.expander("Advanced: local bundle paths (not part of report identity)"):
+            st.caption("LOCAL PATH — NOT PART OF REPORT IDENTITY. For local debugging only.")
+            st.json(
+                {
+                    "baseline_local_path": str(baseline.source_path),
+                    "variation_local_path": str(variation.source_path),
+                }
+            )
 
-    # Compatibility status
+    # Compatibility status (tri-state) — typed model, single authoritative warnings
     st.subheader("Compatibility")
     compat = report.compatibility
-    same_exp = bool(compat.get("same_experiment"))
-    same_seed = bool(compat.get("same_random_seed"))
-    synthetic_match = bool(compat.get("synthetic_match"))
-    same_version = bool(compat.get("same_metric_version"))
-    warnings = compat.get("warnings")
-    warning_list: list[str] = warnings if isinstance(warnings, list) else []
+
+    same_exp = compat.same_experiment
+    same_seed = compat.same_random_seed
+    synthetic_match = compat.synthetic_match
+    same_version = compat.same_metric_version
+    is_compat = compat.is_compatible
+    # Metric versions are per-side typed fields, not dead; display both symmetrically
+    baseline_mv = compat.baseline_metric_version
+    variation_mv = compat.variation_metric_version
+    # Authoritative global warnings live once at report level (not fan-out)
+    warning_list: list[str] = list(report.warnings) if isinstance(report.warnings, list) else []
     with st.container(border=True):
         st.markdown(
-            f"**Same experiment:** {'yes' if same_exp else 'no'} · "
-            f"**Same random seed:** {'yes' if same_seed else 'no'} · "
-            f"**Same metric version:** {'yes' if same_version else 'no'} · "
-            f"**Synthetic provenance match:** {'yes' if synthetic_match else 'no'}"
+            f"**Same experiment:** {_format_tri(same_exp)} · "
+            f"**Same random seed:** {_format_tri(same_seed)} · "
+            f"**Same metric version:** {_format_tri(same_version)} · "
+            f"**Synthetic provenance match:** {_format_tri(synthetic_match)}"
         )
-        st.markdown(f"**Metric version:** {report.baseline_identity.get('metric_version')}")
+        # Symmetric metric version display — both sides visible, unknown truthfully
+        baseline_mv_disp = format_scalar(baseline_mv) if baseline_mv is not None else "Unavailable"
+        # Treat empty string as unavailable via format_scalar but ensure explicit
+        if isinstance(baseline_mv, str) and not baseline_mv.strip():
+            baseline_mv_disp = "Unavailable"
+        variation_mv_disp = (
+            format_scalar(variation_mv) if variation_mv is not None else "Unavailable"
+        )
+        if isinstance(variation_mv, str) and not variation_mv.strip():
+            variation_mv_disp = "Unavailable"
+        st.markdown(
+            f"**Baseline metric version:** `{baseline_mv_disp}` · "
+            f"**Variation metric version:** `{variation_mv_disp}`"
+        )
         base_badge = _provenance_badge(report.evidence_standing.get("baseline_synthetic"))
         var_badge = _provenance_badge(report.evidence_standing.get("variation_synthetic"))
         st.markdown(f"**Baseline:** {base_badge} **Variation:** {var_badge}")
-        if not synthetic_match:
+        if synthetic_match is False:
             st.warning(
                 "Synthetic provenance mismatch: baseline and variation have different "
                 "synthetic/imported standing."
             )
-        if not bool(compat.get("is_compatible")):
+        elif synthetic_match is None:
+            st.warning("Synthetic provenance is unknown; compatibility cannot be confirmed.")
+        if not bool(is_compat):
             st.warning(
                 "Pair is not fully compatible. Deltas for mismatched metrics "
                 "are withheld with exact reasons."
@@ -305,7 +366,7 @@ def render() -> None:
             {
                 "baseline_context": report.baseline_identity,
                 "variation_context": report.variation_identity,
-                "compatibility": compat,
+                "compatibility": compat.model_dump(mode="json"),
                 "warnings": report.warnings,
             }
         )
@@ -385,9 +446,11 @@ def render() -> None:
         "or continue to full Compare."
     )
     with st.expander("Advanced: consequence lens JSON export"):
+        # Canonical portable export (deterministic, no absolute paths)
+        portable_json = report.to_json()
         st.download_button(
             "Download consequence lens JSON",
-            data=report.to_json(),
+            data=portable_json,
             file_name=(
                 f"{report.fingerprint[:12]}-lens.json"
                 if report.fingerprint
@@ -396,7 +459,8 @@ def render() -> None:
             mime="application/json",
             key="consequence_download_json",
         )
-        st.json(report.model_dump(mode="json"))
+        # Show portable payload only (no local paths)
+        st.json(report.to_portable_dict() | {"fingerprint": report.fingerprint})
 
     st.caption(
         "Direction is neutral and does not imply improvement or causality. Variation − baseline."

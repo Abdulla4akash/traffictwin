@@ -9,7 +9,7 @@ import streamlit as st
 from traffictwin.metrics.comparison import ComparisonReport
 from traffictwin.provenance.completeness import provenance_completeness_report_to_csv
 from traffictwin.provenance.differences import difference_contribution_report_to_csv
-from traffictwin.ui.components.badges import badge_markdown
+from traffictwin.ui.components.badges import badge_markdown, provenance_badge
 from traffictwin.ui.components.first_run import first_run_guidance
 from traffictwin.ui.labels import UiPage
 from traffictwin.ui.services import (
@@ -24,11 +24,9 @@ from traffictwin.ui.tables import ColumnDisplay, comparison_rows, table_column_c
 
 
 def _provenance_badge(synthetic_flag: object) -> str:
-    """Render a three-state provenance badge without collapsing unknown to a definite state."""
+    """Shared three-state provenance badge — delegates to ui.components.badges."""
 
-    if synthetic_flag is None:
-        return ":gray-badge[UNKNOWN]"
-    return badge_markdown("synthetic") if bool(synthetic_flag) else ":gray-badge[IMPORTED]"
+    return provenance_badge(synthetic_flag)
 
 
 def _render_missing_pair_guidance(*, key_prefix: str, message: str) -> None:
