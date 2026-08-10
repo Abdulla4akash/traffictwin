@@ -1,9 +1,11 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-09
+**Status date:** 2026-08-10
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1 closed; bounded one-seed E2 native-placement pilot complete and ready for review
-**Execution authority:** stopped after the predeclared E2 exit; do not start another E2 seed, E3 or another experiment
+**Current phase:** E1 and the original E2 pilot closed; bounded one-seed E2b missing-cell experiment
+complete and ready for review
+**Execution authority:** stopped after the predeclared E2b exit; do not start another seed, arm,
+E3 or another experiment
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -115,6 +117,47 @@ establishes:
   admitted tasks; it combines placement and admission and cannot isolate either mechanism;
 - E2 statistical status: one evaluator seed and one fleet draw, descriptive only; tasks are not
   independent replicates and no controller-superiority or population-generalisation claim is supported;
+- direct E2b instruction: add only `ingress_dla`, meaning strongest-link execution plus the exact
+  existing deadline-aware admission gate, to complete the missing placement × admission cell;
+- E2b vec_env candidate: branch `agent/e2b-ingress-deadline-admission-v1` at
+  `0e5ed2f79b50011fe0475a5c2069978f9fdd778d`; it adds no RNG split, actor input, queue field or
+  output field and leaves existing mode branches intact;
+- E2b existing-arm no-effect gate: passed for `off`, `jsq` and `dla`; scientific summaries and
+  every existing/path/action/logit array agreed exactly against E2 parent `e11f4445...`;
+- E2b production two-RSU probe: passed all 67 checks; `ingress_dla` admitted 17 tasks at ingress
+  RSU 0, gate-rejected 143, cap-rejected zero, forwarded zero and conserved work, while the prior
+  off/jsq/dla probe summaries and arrays remained exact by hash;
+- E2b reviewed identities: TrafficTwin reviewed execution commit
+  `f4e1897d6c17cf106880303a6be839407abe663e`, vec_env commit
+  `0e5ed2f79b50011fe0475a5c2069978f9fdd778d`, tos-data commit
+  `a75bbdb1a956f828ee0e9b97b33506bd32d31b85`, and manifest SHA-256
+  `9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91`;
+- E2b independent review: the initial `REQUEST_CHANGES` record is retained; the contrast-timing
+  caveat and actual imported-`vec_jax` binding were fixed, and Claude then returned exact
+  `APPROVE` after independently passing 15 TrafficTwin tests, 13 vec_env tests and all hash checks;
+- E2b repeated-smoke gate: both serial ten-step `ingress_dla` repeats passed, with exact scientific
+  summaries excluding wall time, byte-identical existing/path arrays, exact completed-E2
+  task/fleet/action identities, byte-identical logits, zero forwarding and both work ledgers conserved;
+- E2b single full arm: the only new 3,600-step `ingress_dla` run passed every identity, numerical,
+  task, path, accounting and V2I/vehicle-work conservation check; it offered the common 13,076,234
+  tasks, admitted 10,424,749 tasks and attained `0.715773211` over offered and `0.897826701` over
+  admitted tasks;
+- E2b path observation: 2,652,389 V2I attempts, 580,907 admitted V2I tasks, 2,071,344 gate
+  rejections, zero cap rejections, 138 unavailable attempts, zero forwarding and a diagonal-only
+  ingress-to-execution matrix; execution-share range was `0.060050920`;
+- E2b placement effects: JSQ minus off without the gate remains `-0.007937454`; DLA minus
+  ingress-DLA with the same gate is `-0.020833292`, so JSQ placement had lower observed offered
+  attainment even with the gate in this draw;
+- E2b admission effects: ingress-DLA minus off under strongest-link is `+0.032153983`; DLA minus
+  JSQ under JSQ remains `+0.019258144`; the placement-by-admission interaction is `-0.012895838`;
+- E2b mechanism observation: the one-draw result is consistent with deadline-aware admission
+  providing the observed attainment benefit while JSQ placement reduced it in both admission
+  states; this is descriptive mechanism evidence, not population generalisation or controller
+  superiority;
+- E2b timing limitation: `off` uses a step-entry coarse saturation eligibility while non-`off`
+  modes use a live per-substep check, so the strongest-link admission contrast and interaction are
+  not perfectly gate-only; observed unavailable counts were nevertheless 138 in both `off` and
+  `ingress_dla`;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -123,44 +166,35 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Stop and review the completed bounded E2 native-placement pilot. Do not start another E2 seed,
-E3, scaling, learning or another experiment.**
+**Stop and review the completed bounded E2b mechanism-decomposition experiment. Do not start
+another seed, arm, E3, scaling, learning or another experiment.**
 
-The pilot is governed by
-[e2_native_placement_pilot_manifest_v1.json](e2/e2_native_placement_pilot_manifest_v1.json),
-SHA-256 `53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8`.
-It fixes one Manchester incident draw, cap 2.5x/6,220 tasks per RSU, fixed 1x service, zero
-backhaul, physical queue semantics, the frozen 17-dimensional actor, and only `off`, `jsq` and
-`dla`.
-
-The [pilot report](e2/e2_native_placement_pilot_report_2026-08-09.md) separates direct
-observations, declared contrasts and limitations. The governing
-[validation](e2/e2_native_placement_pilot_validation_v1.json) passed every smoke, full-arm,
-cross-arm, path, accounting and conservation gate. The
-[comparison](e2/e2_native_placement_pilot_comparison_v1.json) contains the exact raw one-draw
-contrasts, while the [path summary](e2/e2_native_placement_path_forwarding_summary_v1.json)
-contains ingress, selected-target, execution, forwarding and per-RSU evidence. The
-[evidence index](e2/e2_native_placement_evidence_index_v1.json) records the exact raw-output
-locators and checksum ledgers outside Git.
+The exact contract is the
+[E2b manifest](e2b/e2b_placement_admission_factorial_manifest_v1.json), SHA-256
+`9383ec767dccf2f390b498e0c20283a74cd64fa521d6137fe23ce38d0022af91`. Direct observations and
+limitations are in the [pilot report](e2b/e2b_placement_admission_factorial_report_2026-08-10.md);
+machine-readable results are in the [four-cell comparison](e2b/e2b_placement_admission_factorial_comparison_v1.json),
+[validation](e2b/e2b_placement_admission_factorial_validation_v1.json),
+[path/admission summary](e2b/e2b_placement_admission_path_summary_v1.json) and
+[evidence index](e2b/e2b_placement_admission_evidence_index_v1.json).
 
 ### Exit condition
 
-The one-seed E2 gate is closed. The three full arms completed serially within their individual
-10,800-second limits, and all final evidence records are complete. The exact exit action is
-researcher review and stop.
+The E2b exit condition is complete. Both draft PRs remain unmerged, exact `APPROVE` preceded the
+two passed smokes and single passed full arm, and all declared evidence records now exist. The
+exact exit action is researcher review and stop.
 
 ## What follows after this gate
 
-Nothing follows automatically. A new direct researcher instruction is required before choosing
-among E2 multi-seed expansion, an E3 nonzero-backhaul sensitivity, or any later scaling or learning
-work. Researcher review must first decide whether the observed JSQ deadline harm despite much lower
-execution imbalance, and the DLA admission/attainment trade-off, justify another bounded experiment.
+Nothing follows automatically. Researcher review must decide what the four-cell mechanism evidence
+supports. Another fleet seed, E2 replication, E3/backhaul, scaling, P2C, learning or retraining
+requires a new direct instruction.
 
 ## Explicitly not next
 
 Do not start:
 
-- another E2 seed or arm without a new direct researcher instruction;
+- any additional E2/E2b seed or arm;
 - P2C or DLA-P2C;
 - E3 or any nonzero-backhaul run;
 - static/reactive/proactive scaling;
