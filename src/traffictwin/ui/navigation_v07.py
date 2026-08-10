@@ -423,6 +423,13 @@ V07_PAGE_SPECS: tuple[V07PageSpec, ...] = (
         ":material/assignment_ind:",
     ),
     V07PageSpec(
+        UiPage.STUDY_CAPSULE,
+        "Evidence & reports",
+        "app_pages/study_capsule.py",
+        "study-capsule",
+        ":material/archive:",
+    ),
+    V07PageSpec(
         UiPage.MANIFEST_WIZARD,
         "Advanced",
         "app_pages/manifest_inference.py",

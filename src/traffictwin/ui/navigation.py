@@ -50,6 +50,7 @@ PAGE_GROUPS: dict[str, list[UiPage]] = {
         UiPage.MANCHESTER_EVIDENCE_HUB,
         UiPage.EVIDENCE,
         UiPage.PROVENANCE,
+        UiPage.STUDY_CAPSULE,
     ],
     "Project": [UiPage.PARTICIPANT_EVALUATION, UiPage.SETTINGS, UiPage.ABOUT],
 }
