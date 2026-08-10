@@ -1,0 +1,10 @@
+{
+  "enum_name": "EVIDENCE_ADMISSION_INBOX",
+  "label": "Evidence Admission Inbox",
+  "url": "evidence-admission",
+  "script": "app_pages/evidence_admission.py",
+  "renderer": "traffictwin.ui.pages.evidence_admission:render",
+  "group": "Evidence & reports",
+  "description": "Human review queue between validated artifacts and preregistered evidence attachment, where validation alone never admits evidence.",
+  "icon": "fact_check"
+}

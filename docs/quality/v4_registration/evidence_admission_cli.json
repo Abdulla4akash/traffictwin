@@ -1,0 +1,5 @@
+{
+  "command": "evidence-admission",
+  "module": "traffictwin.evidence_admission.cli:app",
+  "help": "Evidence admission inbox — human review queue for preregistration attachment"
+}
