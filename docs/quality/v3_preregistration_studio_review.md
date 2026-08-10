@@ -9,7 +9,7 @@
 
 - **HISTORICAL ORIGINAL:** `e384e4ec35650fdc269140e5cff6aa839a61ba18` — initial PR #23 head reviewed by Claude 5: **REQUEST CHANGES** (19 blockers: READY admission, monotonic post-evidence taint, freeze silent rewrite, fingerprint immutability, unit compatibility, etc.)
 - **REMEDIATION:** `7b054a58bb8c6d66fd38fdee91255f1bfbc4376b` — Claude 5 re-review **SUBSTANTIVE GOVERNANCE LOGIC CLOSED**: all 4 primary blockers genuinely fixed, all secondary findings closed, 121 focused tests passed (25 + 41 + 3 + 3 + 49), broad suite 4365 passed / 1 failed (stale editable 0.6.0) / 8 skipped, Ruff 11→clean, strict mypy on preregistration passes.
-- **FINAL REBASED HEAD:** `8cac59852f4274c47434b355ce8ccd9eabf5a013` (final rebased candidate before broad suite record; this document describes the rebased candidate) — adds fail-closed EvidenceAttachment admission validator, reconciles onto live main (39 pages), refreshes editable install to 0.7.0, passes broad suite and whole-repo gates. **Not yet reviewed by Claude 5; awaiting final exact-head review.**
+- **FINAL REBASED HEAD:** `90e4a52d7864600dbfb91f26269319ddfe819478` (final rebased candidate before broad suite record; this document describes the rebased candidate) — adds fail-closed EvidenceAttachment admission validator, reconciles onto live main (39 pages), refreshes editable install to 0.7.0, passes broad suite and whole-repo gates. **Not yet reviewed by Claude 5; awaiting final exact-head review.**
 
 > All prior Claude approvals apply only to 7b054a5. This rebased SHA requires fresh exact-head review.
 
