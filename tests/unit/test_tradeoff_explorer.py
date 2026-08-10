@@ -99,18 +99,20 @@ def _two_metric_specs_with_constraints(
     constraint_on_first: TradeoffConstraint | None = None,
 ) -> list[TradeoffMetricSpec]:
     return [
-        _spec(
-            "metric.throughput",
-            TradeoffDirection.MAXIMIZE,
+        TradeoffMetricSpec(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
             unit="ratio",
-            denom=TradeoffDenominator.REPLICATION,
-            constraint=constraint_on_first,
+            denominator=TradeoffDenominator.OFFERED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
+            hard_constraint=constraint_on_first,
         ),
-        _spec(
-            "metric.latency",
-            TradeoffDirection.MINIMIZE,
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
             unit="ms",
-            denom=TradeoffDenominator.COMPLETED_TASKS,
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MINIMIZE,
         ),
     ]
 
@@ -127,13 +129,19 @@ def test_strict_validation_rejects_extra_fields() -> None:
             arm_id="a",
             label="A",
             description="d",
-            observations=[_obs("a", "metric.throughput", 0.8), _obs("a", "metric.latency", 100.0)],
+            observations=[
+                _obs("a", "task.completion.rate_offered", 0.8),
+                _obs("a", "task.latency.mean_ms", 100.0),
+            ],
         ),
         TradeoffArm(
             arm_id="b",
             label="B",
             description="d",
-            observations=[_obs("b", "metric.throughput", 0.7), _obs("b", "metric.latency", 120.0)],
+            observations=[
+                _obs("b", "task.completion.rate_offered", 0.7),
+                _obs("b", "task.latency.mean_ms", 120.0),
+            ],
         ),
     ]
     study = _study(specs, arms)
@@ -189,8 +197,8 @@ def test_bounded_inputs_enforced_arms() -> None:
                     label="A",
                     description="d",
                     observations=[
-                        _obs("a", "metric.throughput", 0.8),
-                        _obs("a", "metric.latency", 100.0),
+                        _obs("a", "task.completion.rate_offered", 0.8),
+                        _obs("a", "task.latency.mean_ms", 100.0),
                     ],
                 )
             ],
@@ -212,10 +220,10 @@ def test_clear_two_arm_dominance() -> None:
             description="d",
             strategy_type="s1",
             observations=[
-                _obs("arm_a", "metric.throughput", 0.95, unit="ratio"),
+                _obs("arm_a", "task.completion.rate_offered", 0.95, unit="ratio"),
                 _obs(
                     "arm_a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     80.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -228,10 +236,10 @@ def test_clear_two_arm_dominance() -> None:
             description="d",
             strategy_type="s2",
             observations=[
-                _obs("arm_b", "metric.throughput", 0.80, unit="ratio"),
+                _obs("arm_b", "task.completion.rate_offered", 0.80, unit="ratio"),
                 _obs(
                     "arm_b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     150.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -278,10 +286,10 @@ def test_tradeoff_non_dominated_pair() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("arm_a", "metric.throughput", 0.95, unit="ratio"),
+                _obs("arm_a", "task.completion.rate_offered", 0.95, unit="ratio"),
                 _obs(
                     "arm_a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     150.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -293,10 +301,10 @@ def test_tradeoff_non_dominated_pair() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("arm_b", "metric.throughput", 0.80, unit="ratio"),
+                _obs("arm_b", "task.completion.rate_offered", 0.80, unit="ratio"),
                 _obs(
                     "arm_b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     80.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -433,7 +441,7 @@ def test_incompatible_metric_withheld() -> None:
             direction=TradeoffDirection.MAXIMIZE,
         ),
         _spec(
-            "metric.latency",
+            "task.latency.mean_ms",
             TradeoffDirection.MINIMIZE,
             unit="ms",
             denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -455,7 +463,7 @@ def test_incompatible_metric_withheld() -> None:
                 ),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -477,7 +485,7 @@ def test_incompatible_metric_withheld() -> None:
                 ),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     120.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -517,10 +525,10 @@ def test_missing_metric_unavailable() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("arm_a", "metric.throughput", 0.90),
+                _obs("arm_a", "task.completion.rate_offered", 0.90),
                 _obs(
                     "arm_a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     None,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -533,10 +541,10 @@ def test_missing_metric_unavailable() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("arm_b", "metric.throughput", 0.80),
+                _obs("arm_b", "task.completion.rate_offered", 0.80),
                 _obs(
                     "arm_b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     80.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -549,7 +557,7 @@ def test_missing_metric_unavailable() -> None:
     feas_a = next(f for f in report.feasibility if f.arm_id == "arm_a")
     assert feas_a.status == TradeoffStatus.UNAVAILABLE
     assert feas_a.is_feasible is False
-    assert "metric.latency" in feas_a.unavailable_metrics
+    assert "task.latency.mean_ms" in feas_a.unavailable_metrics
     assert any(
         f.code == "MISSING_METRIC_UNAVAILABLE" and f.arm_id == "arm_a" for f in report.findings
     )
@@ -563,23 +571,49 @@ def test_missing_metric_unavailable() -> None:
 
 
 def test_metric_direction_correctness() -> None:
-    # Same values but test that direction matters
+    # Same values but test that direction matters — use COMPATIBLE metrics
     specs_max = [
-        _spec("m1", TradeoffDirection.MAXIMIZE),
-        _spec(
-            "m2", TradeoffDirection.MINIMIZE, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS
+        TradeoffMetricSpec(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=TradeoffDenominator.OFFERED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
+        ),
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
+            unit="ms",
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MINIMIZE,
         ),
     ]
-    # Arm A: higher m1 (better for maximize), higher m2 (worse for minimize)
-    # Arm B: lower m1 (worse), lower m2 (better) => trade-off, both frontier
+    # Arm A: higher throughput (better for maximize), higher latency (worse for minimize)
+    # Arm B: lower throughput (worse), lower latency (better) => trade-off, both frontier
     arms_tradeoff = [
         TradeoffArm(
             arm_id="a",
             label="A",
             description="d",
             observations=[
-                _obs("a", "m1", 10.0),
-                _obs("a", "m2", 100.0, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.95,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
             ],
         ),
         TradeoffArm(
@@ -587,8 +621,24 @@ def test_metric_direction_correctness() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "m1", 8.0),
-                _obs("b", "m2", 80.0, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.80,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
             ],
         ),
     ]
@@ -598,9 +648,19 @@ def test_metric_direction_correctness() -> None:
 
     # Now test dominance when both metrics favor A
     specs_min_both = [
-        _spec("m1", TradeoffDirection.MAXIMIZE),
-        _spec(
-            "m2", TradeoffDirection.MINIMIZE, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS
+        TradeoffMetricSpec(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=TradeoffDenominator.OFFERED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
+        ),
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
+            unit="ms",
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MINIMIZE,
         ),
     ]
     arms_dominance = [
@@ -609,8 +669,24 @@ def test_metric_direction_correctness() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "m1", 10.0),
-                _obs("a", "m2", 80.0, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.95,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
             ],
         ),
         TradeoffArm(
@@ -618,31 +694,57 @@ def test_metric_direction_correctness() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "m1", 8.0),
-                _obs("b", "m2", 100.0, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.80,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
             ],
         ),
     ]
     study_dom = _study(specs_min_both, arms_dominance)
     report_dom = build_tradeoff_report(study_dom)
-    # A dominates B because higher m1 and lower m2
+    # A dominates B because higher throughput and lower latency
     assert report_dom.frontier.frontier_arm_ids == ["a"]
     dom_a_b = next(
         d for d in report_dom.dominance if d.dominator_arm_id == "a" and d.dominated_arm_id == "b"
     )
     assert dom_a_b.dominates is True
 
-    # If we reverse direction of m2 to MAXIMIZE, then A no longer dominates B (now A has lower m2 but maximize wants higher, so B better on m2)  # noqa: E501
+    # If we reverse direction of latency to MAXIMIZE, then A no longer dominates B  # noqa: E501
     # Then they would trade off.
     specs_reversed = [
-        _spec("m1", TradeoffDirection.MAXIMIZE),
-        _spec(
-            "m2", TradeoffDirection.MAXIMIZE, unit="ms", denom=TradeoffDenominator.COMPLETED_TASKS
+        TradeoffMetricSpec(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=TradeoffDenominator.OFFERED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
+        ),
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
+            unit="ms",
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
         ),
     ]
     study_rev = _study(specs_reversed, arms_dominance)
     report_rev = build_tradeoff_report(study_rev)
-    # Now A better on m1, B better on m2 => both frontier, no dominance
+    # Now A better on throughput, B better on latency (when latency maximize, higher is better, so B 100 > A 80, B better) => both frontier  # noqa: E501
     assert sorted(report_rev.frontier.frontier_arm_ids) == ["a", "b"]
     dom_rev = next(
         d for d in report_rev.dominance if d.dominator_arm_id == "a" and d.dominated_arm_id == "b"
@@ -663,10 +765,10 @@ def test_deterministic_frontier_and_fingerprint() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("arm_a", "metric.throughput", 0.9),
+                _obs("arm_a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "arm_a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -678,10 +780,10 @@ def test_deterministic_frontier_and_fingerprint() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("arm_b", "metric.throughput", 0.85),
+                _obs("arm_b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "arm_b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     110.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -693,10 +795,10 @@ def test_deterministic_frontier_and_fingerprint() -> None:
             label="C",
             description="d",
             observations=[
-                _obs("arm_c", "metric.throughput", 0.80),
+                _obs("arm_c", "task.completion.rate_offered", 0.80),
                 _obs(
                     "arm_c",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -725,10 +827,10 @@ def test_input_order_independence() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("arm_a", "metric.throughput", 0.9),
+                _obs("arm_a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "arm_a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -740,10 +842,10 @@ def test_input_order_independence() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("arm_b", "metric.throughput", 0.85),
+                _obs("arm_b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "arm_b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     110.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -786,10 +888,10 @@ def test_no_winner_language() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.9),
+                _obs("a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     80.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -801,10 +903,10 @@ def test_no_winner_language() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.8),
+                _obs("b", "task.completion.rate_offered", 0.8),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -815,39 +917,61 @@ def test_no_winner_language() -> None:
     study = _study(specs, arms)
     report = build_tradeoff_report(study)
     md = tradeoff_report_to_markdown(report)
-    _js = report.to_json()  # noqa: F841
-    # Allowed phrase is "no winner, best, or optimal claim" — disallowed is claiming best/optimal/winner/recommended positively  # noqa: E501
-    # Check that report does not claim optimal/best in a positive sense beyond the disclaimer
-    # We allow the disclaimer that contains "no winner" etc.
-    # So verify that specific positive claims are absent
-    assert "recommended policy" not in md.lower()
-    # The dominance wording must be correct
-    for dom in report.dominance:
-        assert "dominates under declared metrics" in dom.reason or "does not dominate" in dom.reason
-        assert "best" not in dom.reason.lower()
-        assert "optimal" not in dom.reason.lower()
-        assert "winner" not in dom.reason.lower()
-    # Frontier description must use allowed language
+    js_text = report.to_json()
+    csv_text = tradeoff_report_to_csv(report)
+    frontier_csv = tradeoff_frontier_to_csv(report)
+
+    # Collect all textual outputs that could contain decision language
+    combined_texts = [
+        md,
+        js_text,
+        csv_text,
+        frontier_csv,
+        report.frontier.description,
+    ]
+    combined_texts.extend(d.reason for d in report.dominance)
+    combined_texts.extend(f.message for f in report.findings)
+    combined = " ".join(combined_texts)
+
+    # Allowed negated disclaimer strings that may contain forbidden tokens
+    allowed_disclaimers = [
+        "no best, optimal, winner, or recommended claim is made unless a declared scalar decision rule explicitly selects one",  # noqa: E501
+        "no winner, best, or optimal claim is made unless",
+        "descriptive dominance only; no best, optimal, winner, or recommended claim is made",
+        "no best, optimal, winner",
+        "descriptive frontier",
+        "non-dominated",
+        "feasible under declared metrics and constraints",
+        "dominates under declared metrics",
+        "does not dominate under declared metrics",
+        "violates declared constraint",
+        "descriptive frontier; non-dominated and feasible under declared metrics",
+    ]
+
+    # Sanitize: remove allowed disclaimers case-insensitively
+    sanitized = combined.lower()
+    for disc in allowed_disclaimers:
+        sanitized = sanitized.replace(disc.lower(), "")
+
+    forbidden_tokens = ["best", "optimal", "winner", "recommended", "recommendation"]
+    for token in forbidden_tokens:
+        assert token not in sanitized, (
+            f"forbidden decision language '{token}' found outside allowed disclaimer in report outputs: {sanitized[:500]!r}"  # noqa: E501
+        )
+
+    # Also pin that at least one allowed disclaimer is present (proves disclaimer exists)
+    assert "no best, optimal, winner, or recommended claim is made" in md.lower()
+    # Frontier and dominance must use allowed wording
     assert (
         "non-dominated" in report.frontier.description.lower()
         or "descriptive frontier" in report.frontier.description.lower()
     )
-    assert "best" not in report.frontier.description.lower()
-    assert "optimal" not in report.frontier.description.lower()
-    assert "winner" not in report.frontier.description.lower()
-    # Overall report findings must not contain winner language except where disclaimer
-    # Count occurrences of disallowed words outside disclaimer context
-    lower_md = md.lower()
-    # Remove the disclaimer sentence before checking
-    disclaimer_removed = lower_md.replace(
-        "descriptive differences only; no winner, best, or optimal claim is made unless", ""
-    )
-    disclaimer_removed = disclaimer_removed.replace("no best, optimal, winner", "")
-    # After removal, those words should not appear as standalone claims
-    # We check that md does not contain " best " or " optimal " in a positive claim (heuristic)
-    assert " best policy" not in lower_md
-    assert " optimal policy" not in lower_md
-    assert " winner" not in disclaimer_removed or "no winner" in disclaimer_removed
+    for dom in report.dominance:
+        assert "dominates under declared metrics" in dom.reason or "does not dominate" in dom.reason
+
+    # CSV and JSON should also not contain positive claims
+    assert "best" not in csv_text.lower() or "no best" in csv_text.lower()
+    assert "optimal" not in csv_text.lower() or "no optimal" in csv_text.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -864,10 +988,15 @@ def test_matched_replication_robustness() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.90, per_rep={"rep_001": 0.91, "rep_002": 0.89}),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.completion.rate_offered",
+                    0.90,
+                    per_rep={"rep_001": 0.91, "rep_002": 0.89},
+                ),
+                _obs(
+                    "a",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -880,10 +1009,15 @@ def test_matched_replication_robustness() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.85, per_rep={"rep_001": 0.86, "rep_002": 0.84}),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.completion.rate_offered",
+                    0.85,
+                    per_rep={"rep_001": 0.86, "rep_002": 0.84},
+                ),
+                _obs(
+                    "b",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -910,10 +1044,10 @@ def test_missing_per_replication_robustness_unavailable() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.9),
+                _obs("a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -925,10 +1059,10 @@ def test_missing_per_replication_robustness_unavailable() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.85),
+                _obs("b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -954,10 +1088,10 @@ def test_exports_contain_expected_fields() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.9),
+                _obs("a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -969,10 +1103,10 @@ def test_exports_contain_expected_fields() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.85),
+                _obs("b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1010,10 +1144,10 @@ def test_unadmitted_evidence_fails_closed() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.9),
+                _obs("a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1025,10 +1159,10 @@ def test_unadmitted_evidence_fails_closed() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.85),
+                _obs("b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1061,7 +1195,7 @@ def test_unknown_metric_unavailable() -> None:
             direction=TradeoffDirection.MAXIMIZE,
         ),
         _spec(
-            "metric.latency",
+            "task.latency.mean_ms",
             TradeoffDirection.MINIMIZE,
             unit="ms",
             denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1076,7 +1210,7 @@ def test_unknown_metric_unavailable() -> None:
                 _obs("a", "custom.unknown.metric", 0.5, unit="ratio"),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     80.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1091,7 +1225,7 @@ def test_unknown_metric_unavailable() -> None:
                 _obs("b", "custom.unknown.metric", 0.6, unit="ratio"),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1126,10 +1260,10 @@ def test_fingerprint_excludes_wall_clock() -> None:
             label="A",
             description="d",
             observations=[
-                _obs("a", "metric.throughput", 0.9),
+                _obs("a", "task.completion.rate_offered", 0.9),
                 _obs(
                     "a",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     90.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1141,10 +1275,10 @@ def test_fingerprint_excludes_wall_clock() -> None:
             label="B",
             description="d",
             observations=[
-                _obs("b", "metric.throughput", 0.85),
+                _obs("b", "task.completion.rate_offered", 0.85),
                 _obs(
                     "b",
-                    "metric.latency",
+                    "task.latency.mean_ms",
                     100.0,
                     unit="ms",
                     denom=TradeoffDenominator.COMPLETED_TASKS,
@@ -1159,3 +1293,329 @@ def test_fingerprint_excludes_wall_clock() -> None:
     r2 = build_tradeoff_report(s1, clock=lambda: datetime(2030, 1, 1, tzinfo=UTC))
     assert r1.fingerprint() == r2.fingerprint()
     assert r1.report_fingerprint == r2.report_fingerprint
+
+
+# ---------------------------------------------------------------------------
+# B1 regression: unregistered metric constraint must be fail-closed
+# ---------------------------------------------------------------------------
+
+
+def test_unregistered_metric_constraint_fail_closed() -> None:
+    # Claude repro: custom metric UNAVAILABLE, constraint <=0.5, value 0.99 should NOT be feasible
+    specs = [
+        TradeoffMetricSpec(
+            metric_key="custom.made_up.metric",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=TradeoffDenominator.REPLICATION,
+            direction=TradeoffDirection.MAXIMIZE,
+            hard_constraint=TradeoffConstraint(
+                metric_key="custom.made_up.metric",
+                operator=TradeoffConstraintOperator.LE,
+                threshold=0.5,
+                reason="must be <=0.5",
+            ),
+        ),
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
+            unit="ms",
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MINIMIZE,
+        ),
+    ]
+    arms = [
+        TradeoffArm(
+            arm_id="arm_a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="arm_a",
+                    metric_key="custom.made_up.metric",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.REPLICATION,
+                    value=0.99,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="arm_a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=90.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="arm_b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="arm_b",
+                    metric_key="custom.made_up.metric",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.REPLICATION,
+                    value=0.40,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="arm_b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms)
+    report = build_tradeoff_report(study)
+    comp = next(c for c in report.compatibility if c.metric_key == "custom.made_up.metric")
+    assert comp.status.value == "unavailable"
+    assert "no registered compatibility" in comp.finding.lower()
+    feas_a = next(f for f in report.feasibility if f.arm_id == "arm_a")
+    feas_b = next(f for f in report.feasibility if f.arm_id == "arm_b")
+    assert feas_a.is_feasible is False
+    assert feas_a.status == TradeoffStatus.UNAVAILABLE
+    assert "custom.made_up.metric" in feas_a.unavailable_metrics
+    assert feas_b.is_feasible is False
+    assert feas_b.status == TradeoffStatus.UNAVAILABLE
+    assert not any(
+        f.code == "CONSTRAINT_VIOLATED" and f.metric_key == "custom.made_up.metric"
+        for f in report.findings
+    )
+    assert all("custom.made_up.metric" not in d.comparisons for d in report.dominance)
+    assert report.frontier.frontier_arm_ids == []
+    assert report.frontier.dominated_arm_ids == []
+    assert any(f.code == "CONSTRAINT_SENSITIVITY_UNAVAILABLE" for f in report.findings)
+    assert "frontier_without_constraints" not in report.sensitivity
+
+
+# ---------------------------------------------------------------------------
+# B2 regressions
+# ---------------------------------------------------------------------------
+
+
+def test_stability_no_matched_ids_unavailable() -> None:
+    specs = _two_metric_specs_with_constraints()
+    arms = [
+        TradeoffArm(
+            arm_id="a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.90,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=90.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.85,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms, matched_replication_ids=[])
+    report = build_tradeoff_report(study)
+    assert report.replication_stability["a"] is None
+    assert report.replication_stability["b"] is None
+    assert any(f.code == "REPLICATION_STABILITY_UNAVAILABLE" for f in report.findings)
+    data = json.loads(report.to_json())
+    assert data["replication_stability"]["a"] is None
+    csv_text = tradeoff_report_to_csv(report)
+    assert ",," in csv_text or csv_text.count(",,") >= 1
+    md = tradeoff_report_to_markdown(report)
+    assert "stability unavailable" in md.lower()
+
+
+def test_stability_matched_ids_but_no_per_rep_values_unavailable() -> None:
+    specs = _two_metric_specs_with_constraints()
+    arms = [
+        TradeoffArm(
+            arm_id="a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.90,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={},
+                    replication_count=1,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=90.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={},
+                    replication_count=1,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.85,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={},
+                    replication_count=1,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={},
+                    replication_count=1,
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms, matched_replication_ids=["rep_001", "rep_002"])
+    report = build_tradeoff_report(study)
+    assert report.replication_stability["a"] is None
+    assert report.replication_stability["b"] is None
+    assert any(f.code == "REPLICATION_STABILITY_UNAVAILABLE" for f in report.findings)
+    data = json.loads(report.to_json())
+    assert data["replication_stability"]["a"] is None
+
+
+def test_stability_genuine_zero() -> None:
+    specs = _two_metric_specs_with_constraints()
+    arms = [
+        TradeoffArm(
+            arm_id="a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.90,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 0.91, "rep_002": 0.89},
+                    replication_count=2,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 78.0, "rep_002": 82.0},
+                    replication_count=2,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.80,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 0.81, "rep_002": 0.79},
+                    replication_count=2,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=120.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 118.0, "rep_002": 122.0},
+                    replication_count=2,
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms, matched_replication_ids=["rep_001", "rep_002"])
+    report = build_tradeoff_report(study)
+    assert report.frontier.frontier_arm_ids == ["a"]
+    assert report.replication_stability["a"] == 1.0
+    assert report.replication_stability["b"] == 0.0
+    assert report.replication_stability["b"] is not None
+    data = json.loads(report.to_json())
+    assert data["replication_stability"]["a"] == 1.0
+    assert data["replication_stability"]["b"] == 0.0
+    csv_text = tradeoff_frontier_to_csv(report)
+    assert "1" in csv_text
+    assert "0" in csv_text
+    md = tradeoff_report_to_markdown(report)
+    assert "stability 1.000" in md.lower()
+    assert "stability 0.000" in md.lower()

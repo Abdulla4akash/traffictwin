@@ -151,7 +151,6 @@ class TradeoffMetricSpec(BaseModel):
     denominator: TradeoffDenominator
     direction: TradeoffDirection
     hard_constraint: TradeoffConstraint | None = None
-    display_normalization: str | None = Field(default=None, max_length=128)
     description: str = Field(default="", max_length=512)
     per_replication_disclosed: bool = True
 
@@ -454,7 +453,7 @@ class TradeoffReport(BaseModel):
     findings: list[TradeoffFinding] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
     provenance: dict[str, JsonScalar] = Field(default_factory=dict)
-    replication_stability: dict[str, float] = Field(default_factory=dict)
+    replication_stability: dict[str, float | None] = Field(default_factory=dict)
     sensitivity: dict[str, Any] = Field(default_factory=dict)
     generated_at: datetime | None = None
     report_fingerprint: str = Field(default="", pattern=r"^([0-9a-f]{64})?$")
@@ -535,15 +534,6 @@ def _is_better(value_a: float, value_b: float, direction: TradeoffDirection) -> 
     if value_a == value_b:
         return True, False
     return False, False
-
-
-def _check_constraint(value: float | None, constraint: TradeoffConstraint) -> bool | None:
-    if value is None:
-        return None
-    violated = constraint.is_violated(value)
-    if violated is None:
-        return None
-    return not violated  # True if satisfies
 
 
 # Expected contract from resource strategy for known keys (authoritative on main)
@@ -735,36 +725,19 @@ def build_tradeoff_report(
                 )
                 continue
             if key in unavailable_keys:
-                # Unknown/unregistered — treat as unavailable unless authoritative contract existed (none here)  # noqa: E501
-                # Still withhold numeric? Spec says unknown remains unavailable; no numeric aggregate for incompatible only  # noqa: E501
-                # For unavailable we also treat as unavailable but we keep the raw value if status is available? However spec says no numeric aggregate for incompatible metric.  # noqa: E501
-                # For unavailable we keep value but flag finding.
-                obs = obs_by_key.get(key)
-                if obs is None or obs.status == TradeoffStatus.UNAVAILABLE or obs.value is None:
-                    unavailable_metrics.append(key)
-                    values[key] = None
-                    statuses[key] = TradeoffStatus.UNAVAILABLE
-                    findings.append(
-                        TradeoffFinding(
-                            code="MISSING_METRIC_UNAVAILABLE",
-                            metric_key=key,
-                            arm_id=arm.arm_id,
-                            message=f"Metric {key!r} unavailable for arm {arm.arm_id!r}; reason: {obs.reason if obs else 'not observed'}",  # noqa: E501
-                            severity="info",
-                        )
-                    )
-                    has_unavailable = True
-                    continue
-                # If observation is present but contract unavailable, still allow value but audit marks unavailable  # noqa: E501
-                values[key] = obs.value
-                statuses[key] = obs.status
+                # Compatibility UNAVAILABLE: no registered contract; metric excluded from
+                # feasibility, constraints, and dominance (compatibility first, analysis second)  # noqa: E501
+                unavailable_metrics.append(key)
+                values[key] = None
+                statuses[key] = TradeoffStatus.UNAVAILABLE
+                has_unavailable = True
                 findings.append(
                     TradeoffFinding(
-                        code="UNREGISTERED_METRIC_UNAVAILABLE",
+                        code="UNAVAILABLE_METRIC_EXCLUDED",
                         metric_key=key,
                         arm_id=arm.arm_id,
-                        message=f"Metric {key!r} has no registered compatibility contract; treated as descriptive only",  # noqa: E501
-                        severity="info",
+                        message=f"Metric {key!r} has no registered compatibility contract; metric excluded from feasibility, constraints and dominance",  # noqa: E501
+                        severity="warning",
                     )
                 )
                 continue
@@ -844,11 +817,14 @@ def build_tradeoff_report(
 
     # Pareto dominance among feasible arms only
     dominance: list[TradeoffDominance] = []
-    # Use only compatible and feasible-available metrics for dominance
+    # Only COMPATIBLE metrics enter dominance (compatibility first)  # noqa: E501
+    compatible_keys = {
+        c.metric_key for c in compatibility if c.status == TradeoffCompatibilityStatus.COMPATIBLE
+    }
     compatible_feasible_specs = [
         s
         for s in sorted(study.metric_specs, key=lambda s: s.metric_key)
-        if s.metric_key not in incompatible_keys
+        if s.metric_key in compatible_keys
     ]
     dominated_by: dict[str, list[str]] = defaultdict(list)
     # Compute pairwise dominance
@@ -961,7 +937,7 @@ def build_tradeoff_report(
     )
 
     # Matched-replication robustness
-    replication_stability: dict[str, float] = {}
+    replication_stability: dict[str, float | None] = {}
     if study.matched_replication_ids and any(
         any(v is not None for v in obs.per_replication_values.values())
         for arm in study.arms
@@ -1052,11 +1028,15 @@ def build_tradeoff_report(
             cnt = rep_counts.get(aid, 0)
             front = rep_frontier_counts.get(aid, 0)
             if cnt > 0 and total_reps_with_data > 0:
-                # Stability = proportion of replications where arm was on frontier given it was feasible  # noqa: E501
+                # Stability = proportion of replications where arm was on frontier (genuine zero if never)  # noqa: E501
                 replication_stability[aid] = front / total_reps_with_data
             else:
-                replication_stability[aid] = 0.0
+                # No eligible frontier data for this arm -> unavailable, not 0.0
+                replication_stability[aid] = None
         if total_reps_with_data == 0:
+            # No complete eligible replication -> stability unavailable (not 0.0)
+            for aid in feasible_ids_sorted:
+                replication_stability[aid] = None
             findings.append(
                 TradeoffFinding(
                     code="REPLICATION_STABILITY_UNAVAILABLE",
@@ -1066,6 +1046,9 @@ def build_tradeoff_report(
             )
         else:
             for aid, stab in sorted(replication_stability.items()):
+                # Only emit numeric stability where computed; None remains unavailable
+                if stab is None:
+                    continue
                 findings.append(
                     TradeoffFinding(
                         code="REPLICATION_STABILITY",
@@ -1075,9 +1058,9 @@ def build_tradeoff_report(
                     )
                 )
     else:
-        # No matched replication ids or no per-replication data
+        # No matched replication ids or no per-replication data -> unavailable, not 0.0
         for aid in feasible_ids_sorted:
-            replication_stability[aid] = 0.0
+            replication_stability[aid] = None
         if study.matched_replication_ids:
             findings.append(
                 TradeoffFinding(
@@ -1086,64 +1069,88 @@ def build_tradeoff_report(
                     severity="info",
                 )
             )
-
-    # Sensitivity: frontier without constraints
-    sensitivity: dict[str, Any] = {}
-    if any(s.hard_constraint is not None for s in study.metric_specs):
-        # Compute frontier ignoring constraints (but still respecting compatibility/feasibility for missing)  # noqa: E501
-        # All arms that are not unavailable/incompatible (i.e., feasible or infeasible due only to constraints) become candidates  # noqa: E501
-        candidates = []
-        for f in feasibility:
-            if f.status in (TradeoffStatus.FEASIBLE, TradeoffStatus.INFEASIBLE):
-                candidates.append(f.arm_id)
-        candidates_sorted = sorted(candidates)
-        # Use same dominance logic but over candidates ignoring violations
-        dominated_no_constraint: set[str] = set()
-        for a_id in candidates_sorted:
-            for b_id in candidates_sorted:
-                if a_id == b_id or b_id in dominated_no_constraint:
-                    continue
-                a_vals = arm_value_map[a_id]
-                b_vals = arm_value_map[b_id]
-                at_least2 = True
-                strict2 = False
-                missing2 = False
-                for spec in compatible_feasible_specs:
-                    va = a_vals.get(spec.metric_key)
-                    vb = b_vals.get(spec.metric_key)
-                    if va is None or vb is None:
-                        missing2 = True
-                        at_least2 = False
-                        break
-                    better2, strict_b2 = _is_better(va, vb, spec.direction)
-                    if not better2:
-                        at_least2 = False
-                        break
-                    if strict_b2:
-                        strict2 = True
-                if at_least2 and strict2 and not missing2:
-                    dominated_no_constraint.add(b_id)
-        frontier_no_constraint = [
-            aid for aid in candidates_sorted if aid not in dominated_no_constraint
-        ]
-        sensitivity["frontier_without_constraints"] = sorted(frontier_no_constraint)
-        sensitivity["frontier_with_constraints"] = frontier_ids_sorted
-        if sorted(frontier_no_constraint) != frontier_ids_sorted:
+        else:
             findings.append(
                 TradeoffFinding(
-                    code="SENSITIVITY_CONSTRAINT_IMPACT",
-                    message=f"Descriptive frontier changes when declared constraints are removed: with={frontier_ids_sorted} without={sorted(frontier_no_constraint)}",  # noqa: E501
+                    code="REPLICATION_STABILITY_UNAVAILABLE",
+                    message="Matched-replication stability unavailable: no matched replication IDs declared",  # noqa: E501
+                    severity="info",
+                )
+            )
+
+    # Sensitivity: frontier without constraints (only when all constraint-bearing metrics are COMPATIBLE)  # noqa: E501
+    sensitivity: dict[str, Any] = {}
+    if any(s.hard_constraint is not None for s in study.metric_specs):
+        # If any declared constrained metric is not COMPATIBLE, sensitivity is unavailable  # noqa: E501
+        constrained_keys = {
+            s.metric_key for s in study.metric_specs if s.hard_constraint is not None
+        }
+        unavailable_constrained = constrained_keys - compatible_keys
+        incompatible_constrained = constrained_keys & incompatible_keys
+        if unavailable_constrained or incompatible_constrained:
+            sensitivity = {}
+            findings.append(
+                TradeoffFinding(
+                    code="CONSTRAINT_SENSITIVITY_UNAVAILABLE",
+                    message=f"Constraint sensitivity unavailable: constrained metric(s) not COMPATIBLE: {sorted(unavailable_constrained | incompatible_constrained)}; no with/without comparison made",  # noqa: E501
                     severity="info",
                 )
             )
         else:
-            findings.append(
-                TradeoffFinding(
-                    code="SENSITIVITY_CONSTRAINT_NO_IMPACT",
-                    message="Descriptive frontier unchanged when declared constraints are removed",
-                    severity="info",
+            # Compute frontier ignoring constraints (but still respecting compatibility)
+            # All arms that are not unavailable/incompatible (i.e., feasible or infeasible due only to constraints) become candidates  # noqa: E501
+            candidates = []
+            for f in feasibility:
+                if f.status in (TradeoffStatus.FEASIBLE, TradeoffStatus.INFEASIBLE):
+                    candidates.append(f.arm_id)
+            candidates_sorted = sorted(candidates)
+            # Use same dominance logic but over candidates ignoring violations
+            dominated_no_constraint: set[str] = set()
+            for a_id in candidates_sorted:
+                for b_id in candidates_sorted:
+                    if a_id == b_id or b_id in dominated_no_constraint:
+                        continue
+                    a_vals = arm_value_map[a_id]
+                    b_vals = arm_value_map[b_id]
+                    at_least2 = True
+                    strict2 = False
+                    missing2 = False
+                    for spec in compatible_feasible_specs:
+                        va = a_vals.get(spec.metric_key)
+                        vb = b_vals.get(spec.metric_key)
+                        if va is None or vb is None:
+                            missing2 = True
+                            at_least2 = False
+                            break
+                        better2, strict_b2 = _is_better(va, vb, spec.direction)
+                        if not better2:
+                            at_least2 = False
+                            break
+                        if strict_b2:
+                            strict2 = True
+                    if at_least2 and strict2 and not missing2:
+                        dominated_no_constraint.add(b_id)
+            frontier_no_constraint = [
+                aid for aid in candidates_sorted if aid not in dominated_no_constraint
+            ]
+            sensitivity["frontier_without_constraints"] = sorted(frontier_no_constraint)
+            sensitivity["frontier_with_constraints"] = frontier_ids_sorted
+            if sorted(frontier_no_constraint) != frontier_ids_sorted:
+                findings.append(
+                    TradeoffFinding(
+                        code="SENSITIVITY_CONSTRAINT_IMPACT",
+                        message=f"Descriptive frontier changes when declared constraints are removed: with={frontier_ids_sorted} without={sorted(frontier_no_constraint)}",  # noqa: E501
+                        severity="info",
+                    )
                 )
-            )
+            else:
+                findings.append(
+                    TradeoffFinding(
+                        code="SENSITIVITY_CONSTRAINT_NO_IMPACT",
+                        message="Descriptive frontier unchanged when declared constraints are removed",  # noqa: E501
+                        severity="info",
+                    )
+                )
 
     # Assemble report
     generated_at_val: datetime | None = None
@@ -1360,7 +1367,6 @@ def tradeoff_study_from_resource_strategy_study(
                 denominator=denom,
                 direction=direction,
                 hard_constraint=hc,
-                display_normalization=None,
                 description=cat.description if hasattr(cat, "description") else "",
             )
         )
@@ -1627,11 +1633,21 @@ def tradeoff_report_to_markdown(report: TradeoffReport) -> str:
     else:
         lines.append("No dominance relationships (fewer than two feasible arms).")
     lines.extend(["", "## Matched-Replication Stability", ""])
-    if report.replication_stability:
+    # Distinguish None (unavailable) from 0.0 (genuine zero)
+    numeric_stabs = {k: v for k, v in report.replication_stability.items() if v is not None}
+    if numeric_stabs:
         for arm_id, stab in sorted(report.replication_stability.items()):
-            lines.append(f"- `{_cell(arm_id)}`: stability {stab:.3f}")
+            if stab is None:
+                lines.append(f"- `{_cell(arm_id)}`: stability unavailable")
+            else:
+                lines.append(f"- `{_cell(arm_id)}`: stability {stab:.3f}")
     else:
-        lines.append("Stability not available.")
+        # No numeric stability -> check if any entries are None (unavailable) vs empty
+        if report.replication_stability:
+            for arm_id, _stab in sorted(report.replication_stability.items()):
+                lines.append(f"- `{_cell(arm_id)}`: stability unavailable")
+        else:
+            lines.append("Stability not available.")
     if report.sensitivity:
         lines.extend(["", "## Sensitivity to Declared Constraints", ""])
         lines.append(
@@ -1689,6 +1705,8 @@ def tradeoff_report_to_csv(report: TradeoffReport) -> str:
     # For now emit feasibility status per arm with blank value; consumer can join with study JSON for values.  # noqa: E501
     for feas in sorted(report.feasibility, key=lambda f: f.arm_id):
         for spec in sorted(report.metric_specs, key=lambda s: s.metric_key):
+            stab = report.replication_stability.get(feas.arm_id)
+            stab_str = f"{stab:.6g}" if stab is not None else ""
             writer.writerow(
                 [
                     report.study_id,
@@ -1704,7 +1722,7 @@ def tradeoff_report_to_csv(report: TradeoffReport) -> str:
                     feas.status.value,
                     str(feas.is_feasible),
                     str(feas.arm_id in frontier_set),
-                    f"{report.replication_stability.get(feas.arm_id, 0.0):.6g}",
+                    stab_str,
                 ]
             )
     return output.getvalue()
@@ -1716,13 +1734,15 @@ def tradeoff_frontier_to_csv(report: TradeoffReport) -> str:
     writer.writerow(["arm_id", "on_frontier", "feasible", "dominated_by", "stability"])
     frontier_set = set(report.frontier.frontier_arm_ids)
     for feas in sorted(report.feasibility, key=lambda f: f.arm_id):
+        stab2 = report.replication_stability.get(feas.arm_id)
+        stab2_str = f"{stab2:.6g}" if stab2 is not None else ""
         writer.writerow(
             [
                 feas.arm_id,
                 str(feas.arm_id in frontier_set),
                 str(feas.is_feasible),
                 ";".join(report.frontier.dominated_by.get(feas.arm_id, [])),
-                f"{report.replication_stability.get(feas.arm_id, 0.0):.6g}",
+                stab2_str,
             ]
         )
     return output.getvalue()

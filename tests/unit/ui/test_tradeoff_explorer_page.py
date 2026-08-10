@@ -171,3 +171,215 @@ def test_page_exports_match_report() -> None:
     j = report.to_json()
     assert "/Users" not in j
     assert "/tmp" not in j  # noqa: S108
+
+
+def test_page_accessibility_regression() -> None:
+    app = _page_app().run(timeout=30)
+    assert not app.exception, app.exception
+    # Exactly one H1 and non-empty
+    titles = [str(t.value).strip() for t in app.title]
+    assert len(titles) == 1
+    assert titles[0] == "Multi-Objective Trade-Off Explorer"
+    assert len(titles[0]) > 0
+    # Boundary notice rendered before result claims (evidence/authority before frontier)
+    body = _text(app)
+    lower = body.lower()
+    assert "evidence boundary" in lower
+    assert "authority boundary" in lower
+    assert "pareto frontier" in lower
+    # Evidence/authority appear in warnings/info which are rendered before result tables
+    # Check that at least one warning/info contains boundary (they are top of page)
+    assert (
+        any("evidence boundary" in str(x.value).lower() for x in app.warning)
+        or "evidence boundary" in lower
+    )
+    assert (
+        any("authority boundary" in str(x.value).lower() for x in app.info)
+        or "authority boundary" in lower
+    )
+    # Empty state useful already tested separately, but ensure result state renders after valid fixture  # noqa: E501
+    assert "Compatibility audit" in body
+    assert "Per-arm feasibility" in body
+    # Controls have usable labels where inspectable
+    # Multiselect for metrics and selectboxes for direction should have non-empty labels
+    for ms in app.multiselect:
+        assert str(ms.label).strip() != ""
+    for sb in app.selectbox:
+        assert str(sb.label).strip() != ""
+
+
+def test_page_stability_distinguishes_unavailable_from_zero() -> None:
+    # Directly test the report logic that underlies the page: ensure None vs 0.0 distinction
+    import hashlib
+    import json
+
+    from traffictwin.experiments.tradeoff_explorer import (
+        TradeoffArm,
+        TradeoffDenominator,
+        TradeoffDirection,
+        TradeoffMetricSpec,
+        TradeoffObservation,
+        TradeoffStatus,
+        TradeoffStudy,
+        build_tradeoff_report,
+        tradeoff_report_to_csv,
+        tradeoff_report_to_markdown,
+    )
+
+    def _study_no_rep(specs, arms, matched_ids):  # type: ignore[no-untyped-def]  # noqa: ANN001,ANN202
+        return TradeoffStudy(
+            study_id="stab_ui_test",
+            source_fingerprint=hashlib.sha256(b"stab").hexdigest(),
+            arms=arms,
+            metric_specs=specs,
+            matched_replication_ids=matched_ids,
+        )
+
+    specs = [
+        TradeoffMetricSpec(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=TradeoffDenominator.OFFERED_TASKS,
+            direction=TradeoffDirection.MAXIMIZE,
+        ),
+        TradeoffMetricSpec(
+            metric_key="task.latency.mean_ms",
+            metric_version="1.0",
+            unit="ms",
+            denominator=TradeoffDenominator.COMPLETED_TASKS,
+            direction=TradeoffDirection.MINIMIZE,
+        ),
+    ]
+    # Case A: no matched IDs -> unavailable, not 0.0
+    arms_a = [
+        TradeoffArm(
+            arm_id="a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.9,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.8,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=100.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+    ]
+    study_no = _study_no_rep(specs, arms_a, [])  # type: ignore[no-untyped-call]
+    report_no = build_tradeoff_report(study_no)
+    assert report_no.replication_stability["a"] is None
+    assert json.loads(report_no.to_json())["replication_stability"]["a"] is None
+    assert tradeoff_report_to_markdown(report_no).lower().count("stability unavailable") >= 1
+    # CSV stability column should be empty for unavailable, not 0.000
+    csv_no = tradeoff_report_to_csv(report_no)
+    # Find a line for arm a; stability is last column, should be empty
+    for line in csv_no.splitlines()[1:]:
+        if ",a," in line and "task.completion.rate_offered" in line:
+            assert line.endswith(",") or line.rstrip().endswith('""') or ",," in line
+            break
+    # Case C: genuine zero where B never on frontier but complete data
+    arms_c = [
+        TradeoffArm(
+            arm_id="a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.9,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 0.91, "rep_002": 0.89},
+                    replication_count=2,
+                ),
+                TradeoffObservation(
+                    arm_id="a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 78.0, "rep_002": 82.0},
+                    replication_count=2,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.8,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 0.81, "rep_002": 0.79},
+                    replication_count=2,
+                ),
+                TradeoffObservation(
+                    arm_id="b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=120.0,
+                    status=TradeoffStatus.AVAILABLE,
+                    per_replication_values={"rep_001": 118.0, "rep_002": 122.0},
+                    replication_count=2,
+                ),
+            ],
+        ),
+    ]
+    study_c = _study_no_rep(specs, arms_c, ["rep_001", "rep_002"])  # type: ignore[no-untyped-call]
+    report_c = build_tradeoff_report(study_c)
+    assert report_c.replication_stability["b"] == 0.0
+    assert report_c.replication_stability["b"] is not None
+    assert json.loads(report_c.to_json())["replication_stability"]["b"] == 0.0
+    assert "stability 0.000" in tradeoff_report_to_markdown(report_c).lower()

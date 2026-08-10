@@ -773,13 +773,18 @@ def _render_report(report: object, study: TradeoffStudy, rs_source: bool = False
     st.caption(
         "Per-replication descriptive frontier stability over the matched cohort. Unavailable when per-replication values are not disclosed."  # noqa: E501
     )
-    if report.replication_stability:
+    # Distinguish None (unavailable) from 0.0 (genuine zero)  # noqa: E501
+    # Only consider numeric stabilities for chart; unavailable is not 0.0
+    numeric_stabs = {k: v for k, v in report.replication_stability.items() if v is not None}
+    has_any_stability_key = bool(report.replication_stability)
+    if has_any_stability_key:
         stab_rows = []
         for arm_id, stab in sorted(report.replication_stability.items()):
+            stab_display = f"{stab:.3f}" if stab is not None else "Unavailable"
             stab_rows.append(
                 {
                     "arm_id": arm_id,
-                    "stability_on_frontier": f"{stab:.3f}",
+                    "stability_on_frontier": stab_display,
                     "is_feasible": str(
                         any(f.arm_id == arm_id and f.is_feasible for f in report.feasibility)
                     ),
@@ -791,12 +796,17 @@ def _render_report(report: object, study: TradeoffStudy, rs_source: bool = False
             width="stretch",
             column_config=table_column_config(stab_rows),
         )
+        # Bar chart only numeric values; None excluded
         try:
-            chart_data = {k: float(v) for k, v in report.replication_stability.items()}
+            chart_data = {k: float(v) for k, v in numeric_stabs.items()}
             if chart_data:
                 st.bar_chart(chart_data, horizontal=False)
                 st.caption(
-                    "Stability = proportion of matched replications where the arm was on the descriptive frontier (feasible arms only)."  # noqa: E501
+                    "Stability = proportion of matched replications where the arm was on the descriptive frontier (feasible arms only). Unavailable is not zero."  # noqa: E501
+                )
+            elif has_any_stability_key:
+                st.info(
+                    "Matched-replication stability unavailable for all arms (no complete per-replication evidence); no bar chart rendered."  # noqa: E501
                 )
         except Exception:  # noqa: S110
             pass
@@ -839,8 +849,9 @@ def _render_report(report: object, study: TradeoffStudy, rs_source: bool = False
         if finding.code in (
             "MISSING_METRIC_UNAVAILABLE",
             "INCOMPATIBLE_METRIC_WITHHELD",
-            "UNREGISTERED_METRIC_UNAVAILABLE",
+            "UNAVAILABLE_METRIC_EXCLUDED",
             "CONSTRAINT_VIOLATED",
+            "CONSTRAINT_SENSITIVITY_UNAVAILABLE",
         ):
             finding_rows.append(
                 {
