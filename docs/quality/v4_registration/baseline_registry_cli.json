@@ -1,0 +1,5 @@
+{
+  "command": "baseline",
+  "module": "traffictwin.baseline_registry.cli:app",
+  "help": "Manage baseline candidates, approvals, and promotion workflow."
+}

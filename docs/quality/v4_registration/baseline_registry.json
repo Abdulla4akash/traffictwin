@@ -1,0 +1,10 @@
+{
+  "enum_name": "BASELINE_REGISTRY",
+  "label": "Baseline Registry",
+  "url": "baseline-registry",
+  "script": "app_pages/baseline_registry.py",
+  "renderer": "traffictwin.ui.pages.baseline_registry:render",
+  "group": "Evidence & reports",
+  "description": "Declare and promote the exact artifact that is the current baseline for a purpose through explicit review.",
+  "icon": "material-flag"
+}
