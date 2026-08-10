@@ -23,6 +23,7 @@ from traffictwin.baseline_registry.service import (
     build_candidate,
     candidates_to_csv,
     create_empty_registry,
+    is_candidate_withdrawn,
     list_restorable_candidates,
     promote_baseline,
     register_candidate,
@@ -34,6 +35,7 @@ from traffictwin.baseline_registry.service import (
     supersede_baseline,
     supersede_baseline_compat,
     validate_registry_json,
+    verify_registry,
     withdraw_candidate,
 )
 from traffictwin.baseline_registry.sta04_adapter import (
@@ -64,6 +66,7 @@ __all__ = [
     "build_candidate",
     "candidates_to_csv",
     "create_empty_registry",
+    "is_candidate_withdrawn",
     "list_restorable_candidates",
     "promote_baseline",
     "register_candidate",
@@ -75,5 +78,6 @@ __all__ = [
     "supersede_baseline",
     "supersede_baseline_compat",
     "validate_registry_json",
+    "verify_registry",
     "withdraw_candidate",
 ]

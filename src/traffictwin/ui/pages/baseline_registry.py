@@ -294,7 +294,7 @@ def render(config: object) -> None:  # noqa: ARG001
                 "Candidate ID", value="candidate-002", key="baseline_reg_cand_id"
             )
             reg_scope_id = st.text_input(
-                "Scope ID", value="scope-demo-traffic", key="baseline_reg_scope"
+                "Candidate scope ID", value="scope-demo-traffic", key="baseline_reg_scope"
             )
             reg_purpose = st.text_input(
                 "Purpose",
@@ -476,32 +476,83 @@ def render(config: object) -> None:  # noqa: ARG001
     with st.form("baseline_supersede_form"):
         st.markdown("**Supersede active baseline**")
         sup_scope = st.text_input(
-            "Scope ID to supersede", value="scope-demo-traffic", key="baseline_sup_scope"
+            "Supersede scope ID", value="scope-demo-traffic", key="baseline_sup_scope"
         )
         sup_cand = st.text_input(
             "Superseding candidate ID", value="candidate-002", key="baseline_sup_cand"
         )
-        sup_actor = st.text_input("Actor", value="operator", key="baseline_sup_actor")
+        sup_actor = st.text_input("Supersede actor", value="operator", key="baseline_sup_actor")
         submitted_sup = st.form_submit_button("Supersede")
     if submitted_sup:
-        new_reg, receipt = supersede_baseline(
-            registry, scope_id=sup_scope, superseding_candidate_id=sup_cand, actor=sup_actor
-        )
-        st.session_state["baseline_last_audit"] = receipt.audit
-        if receipt.status.value == "active":
-            assert receipt.promoted_record is not None
-            _set_registry(new_reg)
-            st.success(
-                f"Superseded {sup_scope} with {sup_cand} -> {receipt.promoted_record.baseline_id}"
+        if sup_cand not in registry.candidates:
+            st.error(f"Candidate {sup_cand!r} does not exist — BLOCKED")
+            # Fail-closed audit via explicit request with zero fingerprints
+            from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+            req = BaselinePromotionRequest(
+                candidate_id=sup_cand,
+                scope_id=sup_scope,
+                artifact_fingerprint="0" * 64,
+                approval_fingerprint="0" * 64,
+                registry_parent_fingerprint=registry.registry_fingerprint,
+                requested_by=sup_actor,
+                requested_at=datetime.now(UTC),
+                operation=BaselinePromotionOperation.SUPERSEDE,
             )
-            st.rerun()
-        else:
+            _, receipt = supersede_baseline(registry, req)
+            st.session_state["baseline_last_audit"] = receipt.audit
             st.error(f"Supersede BLOCKED: {'; '.join(receipt.blocked_reasons)}")
+        else:
+            cand = registry.candidates[sup_cand]
+            approval = registry.approvals.get(sup_cand)  # type: ignore[assignment]
+            if approval is None:
+                st.error("No approval exists for candidate — BLOCKED")
+                from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+                req = BaselinePromotionRequest(
+                    candidate_id=sup_cand,
+                    scope_id=sup_scope,
+                    artifact_fingerprint=cand.artifact_fingerprint,
+                    approval_fingerprint="0" * 64,
+                    registry_parent_fingerprint=registry.registry_fingerprint,
+                    requested_by=sup_actor,
+                    requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.SUPERSEDE,
+                )
+                _, receipt = supersede_baseline(registry, req)
+                st.session_state["baseline_last_audit"] = receipt.audit
+                st.error(f"Supersede BLOCKED: {'; '.join(receipt.blocked_reasons)}")
+            else:
+                from traffictwin.baseline_registry.models import BaselinePromotionRequest
+
+                req = BaselinePromotionRequest(
+                    candidate_id=sup_cand,
+                    scope_id=sup_scope,
+                    artifact_fingerprint=cand.artifact_fingerprint,
+                    approval_fingerprint=approval.approval_fingerprint,
+                    registry_parent_fingerprint=registry.registry_fingerprint,
+                    requested_by=sup_actor,
+                    requested_at=datetime.now(UTC),
+                    operation=BaselinePromotionOperation.SUPERSEDE,
+                )
+                new_reg, receipt = supersede_baseline(registry, req)
+                st.session_state["baseline_last_audit"] = receipt.audit
+                if receipt.status.value == "active":
+                    assert receipt.promoted_record is not None
+                    _set_registry(new_reg)
+                    st.success(
+                        f"Superseded {sup_scope} with {sup_cand} -> {receipt.promoted_record.baseline_id}"  # noqa: E501
+                    )
+                    st.rerun()
+                else:
+                    st.error(f"Supersede BLOCKED: {'; '.join(receipt.blocked_reasons)}")
 
     # Restore form — uses typed restorable selector to avoid typo/missing
     with st.form("baseline_restore_form"):
         st.markdown("**Restore prior baseline as new promotion (rollback via new event)**")
-        res_scope = st.text_input("Scope ID", value="scope-demo-traffic", key="baseline_res_scope")
+        res_scope = st.text_input(
+            "Restore scope ID", value="scope-demo-traffic", key="baseline_res_scope"
+        )
         restorable_opts = list_restorable_candidates(registry, res_scope) if res_scope else []
         if restorable_opts:
             res_cand = st.selectbox(
@@ -516,7 +567,7 @@ def render(config: object) -> None:  # noqa: ARG001
             res_cand = st.text_input(
                 "Restore candidate ID (fallback)", value="", key="baseline_res_cand_fallback"
             )
-        res_actor = st.text_input("Actor", value="operator", key="baseline_res_actor")
+        res_actor = st.text_input("Restore actor", value="operator", key="baseline_res_actor")
         submitted_res = st.form_submit_button("Restore as new promotion")
     if submitted_res:
         if not res_cand:
@@ -658,9 +709,7 @@ def render(config: object) -> None:  # noqa: ARG001
     # Withdraw candidate expander
     with st.expander("Withdraw candidate (append-only)"):
         w_cand = st.text_input("Candidate ID to withdraw", value="", key="baseline_withdraw_cand")
-        w_actor = st.text_input(
-            "Actor for withdraw", value="operator", key="baseline_withdraw_actor"
-        )
+        w_actor = st.text_input("Withdraw actor", value="operator", key="baseline_withdraw_actor")
         if st.button("Withdraw", key="baseline_withdraw_button"):
             if not w_cand:
                 st.error("Candidate ID required")

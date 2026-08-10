@@ -100,10 +100,12 @@ def test_baseline_registry_cli_commands() -> None:
     runner = CliRunner()
     with tempfile.TemporaryDirectory() as td:
         reg_path = pathlib.Path(td) / "reg.json"
-        # validate on empty (should create empty and validate)
+        # init must be explicit
+        result = runner.invoke(app, ["init", "--registry", str(reg_path)])
+        assert result.exit_code == 0, result.output
+        # validate on empty should now succeed
         result = runner.invoke(app, ["validate", "--registry", str(reg_path)])
-        # Should either succeed with empty or error – but not crash
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, result.output
         # register
         result = runner.invoke(
             app,
@@ -149,3 +151,125 @@ def test_baseline_registry_cli_commands() -> None:
         assert out.exists()
         data = json.loads(out.read_text())
         assert "candidates" in data
+
+
+def test_baseline_registry_cli_missing_path_fails() -> None:
+    import pathlib
+    import tempfile
+
+    from typer.testing import CliRunner
+
+    from traffictwin.baseline_registry.cli import app
+
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as td:
+        missing = pathlib.Path(td) / "typo.json"
+        # All commands that load registry must fail closed on missing path
+        for args in [
+            ["show", "--registry", str(missing)],
+            ["approve", "--candidate-id", "x", "--registry", str(missing)],
+            ["promote", "--candidate-id", "x", "--registry", str(missing)],
+            ["supersede", "--scope-id", "s", "--candidate-id", "x", "--registry", str(missing)],
+            ["restore", "--scope-id", "s", "--candidate-id", "x", "--registry", str(missing)],
+            ["validate", "--registry", str(missing)],
+        ]:
+            result = runner.invoke(app, args)
+            assert result.exit_code != 0, (
+                f"expected non-zero for {args} got {result.exit_code} output {result.output}"
+            )
+
+
+def test_baseline_registry_cli_init_and_register_flow() -> None:
+    import pathlib
+    import tempfile
+
+    from typer.testing import CliRunner
+
+    from traffictwin.baseline_registry.cli import app
+
+    runner = CliRunner()
+    with tempfile.TemporaryDirectory() as td:
+        reg_path = pathlib.Path(td) / "reg.json"
+        # init creates empty
+        result = runner.invoke(app, ["init", "--registry", str(reg_path)])
+        assert result.exit_code == 0
+        assert reg_path.exists()
+        # second init should fail
+        result = runner.invoke(app, ["init", "--registry", str(reg_path)])
+        assert result.exit_code != 0
+        # now register should work
+        result = runner.invoke(
+            app,
+            [
+                "register",
+                "--candidate-id",
+                "cli-cand-001",
+                "--scope-id",
+                "cli-scope",
+                "--purpose",
+                "CLI test purpose with sufficient length for validation",
+                "--cohort",
+                "Matched seeds 1..3 for CLI test cohort definition",
+                "--artifact-fingerprint",
+                "a" * 64,
+                "--registry",
+                str(reg_path),
+            ],
+        )
+        assert result.exit_code == 0, result.output
+
+
+def test_baseline_registry_page_no_duplicate_labels() -> None:
+    import pathlib
+    import re
+    import tempfile
+
+    from streamlit.testing.v1 import AppTest
+
+    def normalize(label: str) -> str:
+        # Same normalization as global accessibility test: lower, strip, collapse spaces
+        return re.sub(r"\s+", " ", label.strip().lower())
+
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    runner = tmp / "runner.py"
+    runner.write_text(
+        """
+from traffictwin.ui.pages.baseline_registry import render
+from traffictwin.ui.state import load_ui_config
+render(load_ui_config())
+""",
+        encoding="utf-8",
+    )
+    at = AppTest.from_file(str(runner), default_timeout=30)
+    at.run()
+    assert not at.exception
+    # Collect all text_input labels
+    labels: list[str] = []
+    for w in at.text_input:
+        try:
+            label = w.label
+        except Exception:
+            label = str(w)
+        labels.append(str(label))
+    for w2 in at.selectbox:
+        try:
+            label2 = w2.label
+        except Exception:
+            label2 = str(w2)
+        labels.append(str(label2))
+    # Normalize and check duplicates
+    normed = [normalize(lbl) for lbl in labels if lbl]
+    # Filter out empty
+    seen: dict[str, int] = {}
+    dups = []
+    for n in normed:
+        seen[n] = seen.get(n, 0) + 1
+        if seen[n] == 2:
+            dups.append(n)
+    assert not dups, f"duplicate normalized labels found: {dups} raw labels {labels}"
+    # Also ensure one H1
+    titles = [str(t.value) for t in at.title]
+    assert len([t for t in titles if "Baseline Registry" in t]) >= 1
+    # Ensure no exception and boundary text
+    warnings = [str(w.value) for w in at.warning]
+    assert any("never promoted automatically" in w for w in warnings)

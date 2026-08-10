@@ -333,14 +333,18 @@ def test_supersession() -> None:
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
     first_fp = reg.active_baselines[scope.scope_id].record_fingerprint
-    # Supersede with second
-    reg, receipt = supersede_baseline(
-        reg,
+    # Supersede with second via explicit typed request
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, receipt = supersede_baseline(reg, req_sup, clock=fixed_clock)
     assert receipt.status == BaselineStatus.ACTIVE
     assert receipt.promoted_record is not None
     assert receipt.promoted_record.superseded_baseline_fingerprint == first_fp
@@ -382,23 +386,31 @@ def test_restoring_prior_baseline_creates_new_event() -> None:
         requested_at=fixed_clock(),
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
-    reg, _ = supersede_baseline(
-        reg,
+    req_sup2 = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, _ = supersede_baseline(reg, req_sup2, clock=fixed_clock)
     assert reg.active_baselines[scope.scope_id].candidate_id == "cand-002"
     ledger_len_before = len(reg.ledger)
-    # Restore first as new promotion (rollback)
-    reg, receipt = restore_baseline_as_new_promotion(
-        reg,
+    # Restore first as new promotion (rollback) via typed request
+    req_restore = BaselinePromotionRequest(
+        candidate_id="cand-001",
         scope_id=scope.scope_id,
-        restore_candidate_id="cand-001",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.RESTORE,
     )
+    reg, receipt = restore_baseline_as_new_promotion(reg, req_restore, clock=fixed_clock)
     assert receipt.status == BaselineStatus.ACTIVE
     assert receipt.promoted_record is not None
     # Must not have edited history: ledger grew, previous entries still there
@@ -720,13 +732,17 @@ def test_restore_stale_parent_blocked() -> None:
         operation=BaselinePromotionOperation.PROMOTE,
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
-    reg, _ = supersede_baseline(
-        reg,
+    req_sup_tmp = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, _ = supersede_baseline(reg, req_sup_tmp, clock=fixed_clock)
     old_parent = reg.registry_fingerprint
     # change parent
     cand3 = make_candidate("cand-003", make_scope("scope-other"), fingerprint="c" * 64)
@@ -779,13 +795,17 @@ def test_restore_wrong_artifact_blocked() -> None:
         operation=BaselinePromotionOperation.PROMOTE,
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
-    reg, _ = supersede_baseline(
-        reg,
+    req_sup_tmp = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, _ = supersede_baseline(reg, req_sup_tmp, clock=fixed_clock)
     # Wrong artifact fingerprint for restore
     req_bad = BaselinePromotionRequest(
         candidate_id="cand-001",
@@ -833,13 +853,17 @@ def test_restore_wrong_approval_blocked() -> None:
         operation=BaselinePromotionOperation.PROMOTE,
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
-    reg, _ = supersede_baseline(
-        reg,
+    req_sup_tmp = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, _ = supersede_baseline(reg, req_sup_tmp, clock=fixed_clock)
     req_bad = BaselinePromotionRequest(
         candidate_id="cand-001",
         scope_id=scope.scope_id,
@@ -886,13 +910,17 @@ def test_restore_scope_mismatch_blocked() -> None:
         operation=BaselinePromotionOperation.PROMOTE,
     )
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
-    reg, _ = supersede_baseline(
-        reg,
+    req_sup_tmp = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, _ = supersede_baseline(reg, req_sup_tmp, clock=fixed_clock)
     # Scope mismatch
     req_bad = BaselinePromotionRequest(
         candidate_id="cand-001",
@@ -942,13 +970,17 @@ def test_superseded_entry_points_at_old_baseline() -> None:
     reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
     old_baseline_id = reg.active_baselines[scope.scope_id].baseline_id
     old_fp = reg.active_baselines[scope.scope_id].record_fingerprint
-    reg, receipt = supersede_baseline(
-        reg,
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
         scope_id=scope.scope_id,
-        superseding_candidate_id="cand-002",
-        actor="operator",
-        clock=fixed_clock,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
     )
+    reg, receipt = supersede_baseline(reg, req_sup, clock=fixed_clock)
     assert receipt.status == BaselineStatus.ACTIVE
     superseded_entries = [e for e in reg.ledger if e.event_kind.value == "superseded"]
     assert len(superseded_entries) >= 1
@@ -958,6 +990,505 @@ def test_superseded_entry_points_at_old_baseline() -> None:
         for e in superseded_entries
     )
     assert found, f"superseded entries: {superseded_entries}"
+
+
+def test_withdrawn_promote_blocked() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock)
+    reg, appr = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    from traffictwin.baseline_registry.service import is_candidate_withdrawn, withdraw_candidate
+
+    reg = withdraw_candidate(reg, candidate_id="cand-001", actor="operator", clock=fixed_clock)
+    assert is_candidate_withdrawn(reg, "cand-001", scope.scope_id) is True
+    req = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    _, receipt = promote_baseline(reg, req, clock=fixed_clock)
+    assert receipt.status == BaselineStatus.BLOCKED
+    assert any("withdrawn" in r.lower() for r in receipt.blocked_reasons)
+    assert receipt.audit is not None
+    assert receipt.audit.operation_preconditions_satisfied is False
+    assert receipt.audit.passed is False
+
+
+def test_withdrawn_supersede_blocked() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand1 = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    cand2 = make_candidate("cand-002", scope, fingerprint="b" * 64)
+    reg = register_candidate(reg, cand1, clock=fixed_clock)
+    reg = register_candidate(reg, cand2, clock=fixed_clock)
+    reg, appr1 = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    reg, appr2 = approve_candidate(
+        reg,
+        candidate_id="cand-002",
+        approver="bob",
+        approval_note="Approval note with sufficient length for gate two.",
+        clock=fixed_clock,
+    )
+    req1 = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
+    from traffictwin.baseline_registry.service import withdraw_candidate
+
+    reg = withdraw_candidate(reg, candidate_id="cand-002", actor="operator", clock=fixed_clock)
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    _, receipt = supersede_baseline(reg, req_sup, clock=fixed_clock)
+    assert receipt.status == BaselineStatus.BLOCKED
+    assert any("withdrawn" in r.lower() for r in receipt.blocked_reasons)
+
+
+def test_withdrawn_restore_blocked() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand1 = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    cand2 = make_candidate("cand-002", scope, fingerprint="b" * 64)
+    reg = register_candidate(reg, cand1, clock=fixed_clock)
+    reg = register_candidate(reg, cand2, clock=fixed_clock)
+    reg, appr1 = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    reg, appr2 = approve_candidate(
+        reg,
+        candidate_id="cand-002",
+        approver="bob",
+        approval_note="Approval note with sufficient length for gate two.",
+        clock=fixed_clock,
+    )
+    req1 = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    reg, _ = supersede_baseline(reg, req_sup, clock=fixed_clock)
+    # Now cand-001 is superseded and restorable, but withdraw it
+    from traffictwin.baseline_registry.service import list_restorable_candidates, withdraw_candidate
+
+    reg = withdraw_candidate(reg, candidate_id="cand-001", actor="operator", clock=fixed_clock)
+    # Should not be listed as restorable
+    assert "cand-001" not in list_restorable_candidates(reg, scope.scope_id)
+    req_res = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.RESTORE,
+    )
+    _, receipt = restore_baseline_as_new_promotion(reg, req_res, clock=fixed_clock)
+    assert receipt.status == BaselineStatus.BLOCKED
+    assert any("withdrawn" in r.lower() for r in receipt.blocked_reasons)
+
+
+def test_withdrawn_not_in_restorable() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand1 = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    cand2 = make_candidate("cand-002", scope, fingerprint="b" * 64)
+    reg = register_candidate(reg, cand1, clock=fixed_clock)
+    reg = register_candidate(reg, cand2, clock=fixed_clock)
+    reg, appr1 = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    reg, appr2 = approve_candidate(
+        reg,
+        candidate_id="cand-002",
+        approver="bob",
+        approval_note="Approval note with sufficient length for gate two.",
+        clock=fixed_clock,
+    )
+    req1 = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    reg, _ = supersede_baseline(reg, req_sup, clock=fixed_clock)
+    from traffictwin.baseline_registry.service import list_restorable_candidates, withdraw_candidate
+
+    # Before withdraw, cand-001 is restorable
+    assert "cand-001" in list_restorable_candidates(reg, scope.scope_id)
+    reg = withdraw_candidate(reg, candidate_id="cand-001", actor="operator", clock=fixed_clock)
+    assert "cand-001" not in list_restorable_candidates(reg, scope.scope_id)
+
+
+def test_verify_registry_rejects_tampered_ledger_note() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock, note="original note")
+    # Tamper ledger note without updating fingerprint
+    tampered = reg.model_copy(deep=True)
+    # Modify first ledger entry's note
+    entry = tampered.ledger[0].model_copy(
+        update={"note": '=HYPERLINK("http://evil.example","click")'}
+    )
+    # Keep old entry fingerprint (tampered note vs fingerprint mismatch)
+    tampered = tampered.model_copy(update={"ledger": [entry] + tampered.ledger[1:]})
+    # Recompute registry fingerprint so only ledger entry check catches tampering
+    tampered = tampered.model_copy(update={"registry_fingerprint": tampered.compute_fingerprint()})
+    # validate should reject via ledger entry fingerprint mismatch
+    payload = tampered.model_dump(mode="json")
+    import json
+
+    raw = json.dumps(payload)
+    from traffictwin.baseline_registry.service import validate_registry_json
+
+    with pytest.raises((ValueError, Exception)):
+        validate_registry_json(raw)
+
+
+def test_verify_registry_rejects_tampered_actor() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock, actor="alice")
+    tampered = reg.model_copy(deep=True)
+    entry = tampered.ledger[0].model_copy(update={"actor": "evil"})
+    tampered = tampered.model_copy(update={"ledger": [entry] + tampered.ledger[1:]})
+    import json
+
+    raw = json.dumps(tampered.model_dump(mode="json"))
+    from traffictwin.baseline_registry.service import validate_registry_json
+
+    with pytest.raises((ValueError, Exception)):
+        validate_registry_json(raw)
+
+
+def test_verify_registry_rejects_tampered_approval() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope()
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock)
+    reg, appr = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    tampered = reg.model_copy(deep=True)
+    # Tamper approval note but keep fingerprint
+    appr_tam = tampered.approvals["cand-001"].model_copy(update={"approval_note": "tampered note"})
+    tampered.approvals["cand-001"] = appr_tam
+    import json
+
+    raw = json.dumps(tampered.model_dump(mode="json"))
+    from traffictwin.baseline_registry.service import validate_registry_json
+
+    with pytest.raises((ValueError, Exception)):
+        validate_registry_json(raw)
+
+
+def test_verify_registry_rejects_tampered_active_record() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope()
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock)
+    reg, appr = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    req = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, _ = promote_baseline(reg, req, clock=fixed_clock)
+    tampered = reg.model_copy(deep=True)
+    rec = tampered.active_baselines[scope.scope_id].model_copy(
+        update={"limitations": "tampered limitations"}
+    )
+    tampered.active_baselines[scope.scope_id] = rec
+    import json
+
+    raw = json.dumps(tampered.model_dump(mode="json"))
+    from traffictwin.baseline_registry.service import validate_registry_json
+
+    with pytest.raises((ValueError, Exception)):
+        validate_registry_json(raw)
+
+
+def test_verify_registry_accepts_clean_roundtrip() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope()
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock)
+
+    raw = reg.to_json()
+    from traffictwin.baseline_registry.service import validate_registry_json
+
+    reloaded = validate_registry_json(raw)
+    assert reloaded.registry_fingerprint == reg.registry_fingerprint
+
+
+def test_verify_registry_rejects_noncontiguous_index() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope()
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock)
+    tampered = reg.model_copy(deep=True)
+    # Duplicate index: set second entry index to 0 if exists, or create gap
+    if len(tampered.ledger) >= 1:
+        entry = tampered.ledger[0].model_copy(update={"entry_index": 5})
+        # Keep fingerprint as is but now index mismatch will cause contiguous check fail, but also fingerprint mismatch? We need to recompute fingerprint for that entry to keep fingerprint valid but index wrong  # noqa: E501
+        # Recompute fingerprint with new index
+        entry = entry.model_copy(update={"entry_fingerprint": entry.compute_fingerprint()})
+        tampered = tampered.model_copy(update={"ledger": [entry]})
+        # Recompute registry fingerprint to keep registry fingerprint valid, but ledger index still non-contiguous  # noqa: E501
+        # But our verify will catch non-contiguous even if registry fingerprint matches recomputed
+        tampered = tampered.model_copy(
+            update={"registry_fingerprint": tampered.compute_fingerprint()}
+        )
+        import json
+
+        raw = json.dumps(tampered.model_dump(mode="json"))
+        from traffictwin.baseline_registry.service import validate_registry_json
+
+        with pytest.raises((ValueError, Exception)):
+            validate_registry_json(raw)
+
+
+def test_csv_injection_ledger_note_sanitized() -> None:
+    from traffictwin.baseline_registry.service import registry_to_csv
+
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    # Use malicious note
+    reg = register_candidate(
+        reg, cand, clock=fixed_clock, note='=HYPERLINK("http://evil.example","click")'
+    )
+    csv_out = registry_to_csv(reg)
+    # Sanitised should prefix with '
+    assert "'=HYPERLINK" in csv_out or "'=HYPERLINK" in csv_out.replace('"', "")
+    # Also check that original payload without prefix is not present as live formula cell at start of field  # noqa: E501
+    # The CSV field for note should start with '=
+    lines = csv_out.splitlines()
+    assert any("'=HYPERLINK" in line for line in lines)  # noqa: E741
+
+
+def test_csv_injection_variants_sanitized() -> None:
+    from traffictwin.baseline_registry.service import (
+        active_baselines_to_csv,
+        candidates_to_csv,
+        registry_to_csv,
+    )
+
+    scope = make_scope("scope-a")
+    # Test each prefix = + @ -
+    for prefix in ["=", "+", "@", "-"]:
+        malicious = prefix + 'HYPERLINK("http://evil.example","click")'
+        # Actually regression_gate_policy is the field that could be formula; use candidate with malicious policy  # noqa: E501
+        # Use a fresh registry for each to avoid duplicate candidate
+        r = create_empty_registry(clock=fixed_clock)
+        cand2 = make_candidate("cand-001", scope, fingerprint="a" * 64, policy=malicious)
+        r = register_candidate(r, cand2, clock=fixed_clock, note=malicious)
+        r, appr = approve_candidate(
+            r,
+            candidate_id="cand-001",
+            approver="alice",
+            approval_note="Approval note with sufficient length for gate.",
+            clock=fixed_clock,
+        )
+        req = BaselinePromotionRequest(
+            candidate_id="cand-001",
+            scope_id=scope.scope_id,
+            artifact_fingerprint="a" * 64,
+            approval_fingerprint=appr.approval_fingerprint,
+            registry_parent_fingerprint=r.registry_fingerprint,
+            requested_by="operator",
+            requested_at=fixed_clock(),
+            operation=BaselinePromotionOperation.PROMOTE,
+        )
+        r, _ = promote_baseline(r, req, clock=fixed_clock)
+        # Check all three exporters
+        for func in [registry_to_csv, candidates_to_csv, active_baselines_to_csv]:
+            out = func(r)
+            assert f"'{prefix}" in out, f"expected sanitised prefix {prefix!r} in {func.__name__}"
+
+
+def test_csv_safe_string_unchanged() -> None:
+    from traffictwin.baseline_registry.service import registry_to_csv
+
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    reg = register_candidate(reg, cand, clock=fixed_clock, note="normal note without formula")
+    csv_out = registry_to_csv(reg)
+    assert "normal note without formula" in csv_out
+    assert "'normal" not in csv_out
+
+
+def test_empty_registry_deterministic_fingerprint() -> None:
+
+    from traffictwin.baseline_registry.service import create_empty_registry
+
+    reg1 = create_empty_registry(
+        clock=lambda: __import__("datetime").datetime(
+            2026, 1, 15, 12, 0, tzinfo=__import__("datetime").UTC
+        )
+    )
+    reg2 = create_empty_registry(
+        clock=lambda: __import__("datetime").datetime(
+            2026, 1, 16, 12, 0, tzinfo=__import__("datetime").UTC
+        )
+    )
+    assert reg1.registry_fingerprint == reg2.registry_fingerprint
+    # JSON can still carry different created_at
+    assert reg1.created_at != reg2.created_at
+    assert reg1.to_json() != reg2.to_json()
+    # But canonical fingerprint same
+    assert reg1.compute_fingerprint() == reg2.compute_fingerprint()
+
+
+def test_supersede_typed_request_bad_approval_blocked() -> None:
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand1 = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    cand2 = make_candidate("cand-002", scope, fingerprint="b" * 64)
+    reg = register_candidate(reg, cand1, clock=fixed_clock)
+    reg = register_candidate(reg, cand2, clock=fixed_clock)
+    reg, appr1 = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    reg, appr2 = approve_candidate(
+        reg,
+        candidate_id="cand-002",
+        approver="bob",
+        approval_note="Approval note with sufficient length for gate two.",
+        clock=fixed_clock,
+    )
+    req1 = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, _ = promote_baseline(reg, req1, clock=fixed_clock)
+    # Correct approval should be eligible
+    req_good = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    _, receipt_good = supersede_baseline(reg, req_good, clock=fixed_clock)
+    assert receipt_good.status == BaselineStatus.ACTIVE
+    # Wrong approval fingerprint should be blocked and audit should show approval_binds False
+    req_bad = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint="0" * 64,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    _, receipt_bad = supersede_baseline(reg, req_bad, clock=fixed_clock)
+    assert receipt_bad.status == BaselineStatus.BLOCKED
+    assert receipt_bad.audit is not None
+    assert receipt_bad.audit.approval_binds is False
 
 
 def test_mutation_bypass_approval_would_fail() -> None:

@@ -598,7 +598,7 @@ class BaselineRegistry(StrictModel):
         return self
 
     def canonical_payload(self) -> dict[str, Any]:
-        payload = self.model_dump(mode="json", exclude={"registry_fingerprint"})
+        payload = self.model_dump(mode="json", exclude={"registry_fingerprint", "created_at"})
         return payload
 
     def compute_fingerprint(self) -> str:

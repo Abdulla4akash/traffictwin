@@ -34,12 +34,17 @@ def _default_registry_path() -> Path:
 
 def _load_registry(path: Path) -> BaselineRegistry:
     if not path.exists():
-        return create_empty_registry()
+        typer.echo(f"Registry file {path} does not exist – use 'init' to create", err=True)
+        raise typer.Exit(code=1)
     try:
         return validate_registry_json(path.read_bytes())
     except Exception as exc:
         typer.echo(f"Could not load registry: {exc}", err=True)
         raise typer.Exit(code=1) from exc
+
+
+def _require_registry_or_fail(path: Path) -> BaselineRegistry:
+    return _load_registry(path)
 
 
 def _save_registry(path: Path, registry: BaselineRegistry) -> None:
@@ -77,6 +82,23 @@ def validate_cmd(
     except Exception as exc:
         typer.echo(f"Invalid registry: {exc}", err=True)
         raise typer.Exit(code=1) from exc
+
+
+@app.command("init")
+def init_cmd(
+    registry_path: Annotated[
+        Path, typer.Option("--registry", help="Registry JSON path")
+    ] = _default_registry_path(),  # noqa: B008
+) -> None:
+    """Initialize a new empty registry file."""
+    if registry_path.exists():
+        typer.echo(f"Registry file {registry_path} already exists", err=True)
+        raise typer.Exit(code=1)
+    registry = create_empty_registry()
+    _save_registry(registry_path, registry)
+    typer.echo(
+        f"Initialized empty registry at {registry_path} fingerprint={registry.registry_fingerprint[:12]}…"  # noqa: E501
+    )  # noqa: E501
 
 
 @app.command("register")

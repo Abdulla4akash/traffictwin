@@ -20,6 +20,7 @@ from traffictwin.baseline_registry.models import (
     BaselineScope,
     BaselineStatus,
 )
+from traffictwin.data_contract.fingerprint import sanitise_for_csv
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -107,6 +108,69 @@ def _build_ledger_entry(
     return provisional.model_copy(update={"entry_fingerprint": fp})
 
 
+def verify_registry(registry: BaselineRegistry) -> None:
+    """Verify internal fingerprint integrity of a registry.
+
+    Checks ledger entry fingerprints, approval fingerprints, active record
+    fingerprints, registry fingerprint, and ledger index contiguity.
+    Raises ValueError fail-closed on any mismatch.
+    """
+    # Ledger entries
+    seen_indices: set[int] = set()
+    for entry in registry.ledger:
+        expected = entry.compute_fingerprint()
+        if expected != entry.entry_fingerprint:
+            raise ValueError(
+                f"ledger entry {entry.entry_index} fingerprint mismatch "
+                f"({entry.event_kind.value} scope={entry.scope_id!r})"
+            )
+        if entry.entry_index in seen_indices:
+            raise ValueError(f"duplicate ledger entry_index {entry.entry_index}")
+        seen_indices.add(entry.entry_index)
+    # Contiguous indices 0..n-1
+    n = len(registry.ledger)
+    if n and seen_indices != set(range(n)):
+        raise ValueError(
+            f"ledger entry_index not contiguous unique 0..{n - 1}: got {sorted(seen_indices)}"
+        )
+    # Approvals
+    for cid, appr in registry.approvals.items():
+        expected = appr.compute_fingerprint()
+        if expected != appr.approval_fingerprint:
+            raise ValueError(f"approval fingerprint mismatch for candidate {cid!r}")
+    # Active records
+    for scope_id, rec in registry.active_baselines.items():
+        expected = rec.compute_fingerprint()
+        if expected != rec.record_fingerprint:
+            raise ValueError(
+                f"active record fingerprint mismatch for scope {scope_id!r} "
+                f"candidate={rec.candidate_id!r}"
+            )
+    # Registry fingerprint
+    expected_reg = registry.compute_fingerprint()
+    if expected_reg != registry.registry_fingerprint:
+        raise ValueError(
+            f"registry fingerprint mismatch: expected {expected_reg[:12]}… "
+            f"got {registry.registry_fingerprint[:12]}…"
+        )
+
+
+def is_candidate_withdrawn(registry: BaselineRegistry, candidate_id: str, scope_id: str) -> bool:
+    """Return True if candidate has a WITHDRAWN event for the scope.
+
+    Because withdrawal is append-only and has no reinstatement event,
+    any WITHDRAWN ledger entry for the exact candidate+scope makes it ineligible.
+    """
+    for entry in registry.ledger:
+        if (
+            entry.event_kind == BaselineLedgerEventKind.WITHDRAWN
+            and entry.candidate_id == candidate_id
+            and entry.scope_id == scope_id
+        ):
+            return True
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Boundaries
 # ---------------------------------------------------------------------------
@@ -122,7 +186,9 @@ def validate_registry_json(
     data = payload.encode("utf-8") if isinstance(payload, str) else payload
     if len(data) > maximum_bytes:
         raise ValueError(f"registry JSON exceeds {maximum_bytes} bytes")
-    return BaselineRegistry.model_validate_json(data)
+    registry = BaselineRegistry.model_validate_json(data)
+    verify_registry(registry)
+    return registry
 
 
 def registry_to_json(registry: BaselineRegistry) -> str:
@@ -159,18 +225,18 @@ def registry_to_csv(registry: BaselineRegistry) -> str:
         writer.writerow(
             {
                 "entry_index": entry.entry_index,
-                "event_kind": entry.event_kind.value,
-                "timestamp": entry.timestamp.isoformat(),
-                "scope_id": entry.scope_id,
-                "candidate_id": entry.candidate_id or "",
-                "baseline_id": entry.baseline_id or "",
-                "artifact_fingerprint": entry.artifact_fingerprint or "",
-                "approval_fingerprint": entry.approval_fingerprint or "",
-                "superseded_fingerprint": entry.superseded_fingerprint or "",
-                "registry_parent_fingerprint": entry.registry_parent_fingerprint,
-                "entry_fingerprint": entry.entry_fingerprint,
-                "actor": entry.actor or "",
-                "note": entry.note or "",
+                "event_kind": sanitise_for_csv(entry.event_kind.value),
+                "timestamp": sanitise_for_csv(entry.timestamp.isoformat()),
+                "scope_id": sanitise_for_csv(entry.scope_id),
+                "candidate_id": sanitise_for_csv(entry.candidate_id or ""),
+                "baseline_id": sanitise_for_csv(entry.baseline_id or ""),
+                "artifact_fingerprint": sanitise_for_csv(entry.artifact_fingerprint or ""),
+                "approval_fingerprint": sanitise_for_csv(entry.approval_fingerprint or ""),
+                "superseded_fingerprint": sanitise_for_csv(entry.superseded_fingerprint or ""),
+                "registry_parent_fingerprint": sanitise_for_csv(entry.registry_parent_fingerprint),
+                "entry_fingerprint": sanitise_for_csv(entry.entry_fingerprint),
+                "actor": sanitise_for_csv(entry.actor or ""),
+                "note": sanitise_for_csv(entry.note or ""),
             }
         )
     return output.getvalue()
@@ -201,18 +267,18 @@ def candidates_to_csv(registry: BaselineRegistry) -> str:
     for cand in sorted(registry.candidates.values(), key=lambda c: c.candidate_id):
         writer.writerow(
             {
-                "candidate_id": cand.candidate_id,
-                "scope_id": cand.scope.scope_id,
-                "artifact_fingerprint": cand.artifact_fingerprint,
-                "artifact_type": cand.artifact_type.value,
-                "schema_version": cand.schema_version,
-                "evidence_standing": cand.evidence_standing.value,
-                "source_standing": cand.source_standing.value,
-                "allowed_evidence_standings": ",".join(
-                    s.value for s in cand.scope.allowed_evidence_standings
+                "candidate_id": sanitise_for_csv(cand.candidate_id),
+                "scope_id": sanitise_for_csv(cand.scope.scope_id),
+                "artifact_fingerprint": sanitise_for_csv(cand.artifact_fingerprint),
+                "artifact_type": sanitise_for_csv(cand.artifact_type.value),
+                "schema_version": sanitise_for_csv(cand.schema_version),
+                "evidence_standing": sanitise_for_csv(cand.evidence_standing.value),
+                "source_standing": sanitise_for_csv(cand.source_standing.value),
+                "allowed_evidence_standings": sanitise_for_csv(
+                    ",".join(s.value for s in cand.scope.allowed_evidence_standings)
                 ),
-                "regression_gate_policy": cand.regression_gate_policy,
-                "created_at": cand.created_at.isoformat(),
+                "regression_gate_policy": sanitise_for_csv(cand.regression_gate_policy),
+                "created_at": sanitise_for_csv(cand.created_at.isoformat()),
             }
         )
     return output.getvalue()
@@ -246,21 +312,23 @@ def active_baselines_to_csv(registry: BaselineRegistry) -> str:
     for rec in sorted(registry.active_baselines.values(), key=lambda r: r.scope.scope_id):
         writer.writerow(
             {
-                "baseline_id": rec.baseline_id,
-                "scope_id": rec.scope.scope_id,
-                "candidate_id": rec.candidate_id,
-                "artifact_fingerprint": rec.artifact_fingerprint,
-                "artifact_type": rec.artifact_type.value,
-                "evidence_standing": rec.evidence_standing.value,
-                "source_standing": rec.source_standing.value,
-                "allowed_evidence_standings": ",".join(
-                    s.value for s in rec.scope.allowed_evidence_standings
+                "baseline_id": sanitise_for_csv(rec.baseline_id),
+                "scope_id": sanitise_for_csv(rec.scope.scope_id),
+                "candidate_id": sanitise_for_csv(rec.candidate_id),
+                "artifact_fingerprint": sanitise_for_csv(rec.artifact_fingerprint),
+                "artifact_type": sanitise_for_csv(rec.artifact_type.value),
+                "evidence_standing": sanitise_for_csv(rec.evidence_standing.value),
+                "source_standing": sanitise_for_csv(rec.source_standing.value),
+                "allowed_evidence_standings": sanitise_for_csv(
+                    ",".join(s.value for s in rec.scope.allowed_evidence_standings)
                 ),
-                "approval_fingerprint": rec.approval_fingerprint,
-                "effective_date": rec.effective_date.isoformat(),
-                "superseded_baseline_fingerprint": rec.superseded_baseline_fingerprint or "",
-                "regression_gate_policy": rec.regression_gate_policy,
-                "record_fingerprint": rec.record_fingerprint,
+                "approval_fingerprint": sanitise_for_csv(rec.approval_fingerprint),
+                "effective_date": sanitise_for_csv(rec.effective_date.isoformat()),
+                "superseded_baseline_fingerprint": sanitise_for_csv(
+                    rec.superseded_baseline_fingerprint or ""
+                ),
+                "regression_gate_policy": sanitise_for_csv(rec.regression_gate_policy),
+                "record_fingerprint": sanitise_for_csv(rec.record_fingerprint),
             }
         )
     return output.getvalue()
@@ -345,6 +413,7 @@ def register_candidate(
     clock: Callable[[], datetime] | None = None,
 ) -> BaselineRegistry:
     """Append a candidate_registered event. Fail-closed on duplicates / policy drift."""
+    verify_registry(registry)
     if candidate.candidate_id in registry.candidates:
         raise ValueError(f"candidate_id {candidate.candidate_id!r} already registered")
     if len(registry.candidates) >= 500:
@@ -413,6 +482,7 @@ def approve_candidate(
     clock: Callable[[], datetime] | None = None,
 ) -> tuple[BaselineRegistry, BaselineApproval]:
     """Create an explicit approval for the exact candidate."""
+    verify_registry(registry)
     if candidate_id not in registry.candidates:
         raise ValueError(f"candidate {candidate_id!r} does not exist")
     candidate = registry.candidates[candidate_id]
@@ -518,6 +588,8 @@ def list_restorable_candidates(registry: BaselineRegistry, scope_id: str) -> lis
     restorable: list[str] = []
     for cand_id, cand in registry.candidates.items():
         if cand.scope.scope_id != scope_id:
+            continue
+        if is_candidate_withdrawn(registry, cand_id, scope_id):
             continue
         if _is_restorable_candidate(registry, cand_id, scope_id):
             # Also candidate not already active
@@ -629,11 +701,16 @@ def _audit_promotion_gate(
             f"stale parent registry: request {request.registry_parent_fingerprint[:12]}… != current {registry.registry_fingerprint[:12]}…"  # noqa: E501
         )
 
-    # 7. operation preconditions
+    # 7. operation preconditions (including withdrawal)
     op = request.operation
     active = registry.active_baselines.get(request.scope_id)
     operation_ok = False
-    if op == BaselinePromotionOperation.PROMOTE:
+    # Withdrawal is authoritative precondition for all operations
+    is_withdrawn = is_candidate_withdrawn(registry, request.candidate_id, request.scope_id)
+    if is_withdrawn:
+        findings.append("candidate is withdrawn and cannot be promoted")
+        operation_ok = False
+    elif op == BaselinePromotionOperation.PROMOTE:
         # No active baseline may exist
         if active is None:
             operation_ok = True
@@ -767,6 +844,7 @@ def promote_baseline(
     clock: Callable[[], datetime] | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
     """Try to promote a candidate. Fail-closed with BLOCKED receipt."""
+    verify_registry(registry)
     if request.operation != BaselinePromotionOperation.PROMOTE:
         # Operation mismatch is a blocked precondition
         candidate = registry.candidates.get(request.candidate_id)
@@ -837,30 +915,12 @@ def promote_baseline(
 
 def supersede_baseline(
     registry: BaselineRegistry,
-    request: BaselinePromotionRequest | None = None,
+    request: BaselinePromotionRequest,
     *,
     clock: Callable[[], datetime] | None = None,
-    scope_id: str | None = None,
-    superseding_candidate_id: str | None = None,
-    actor: str | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
-    """Supersede the active baseline in a scope with a new candidate via request.
-
-    Supports both new request-based and legacy compat signatures.
-    """
-    # Legacy compat dispatch
-    if request is None and scope_id is not None and superseding_candidate_id is not None:
-        return supersede_baseline_compat(
-            registry,
-            scope_id=scope_id,
-            superseding_candidate_id=superseding_candidate_id,
-            actor=actor or "operator",
-            clock=clock,
-        )
-    if request is None:
-        raise TypeError(
-            "supersede_baseline requires either request or scope_id/superseding_candidate_id"
-        )
+    """Supersede the active baseline via explicit typed request."""
+    verify_registry(registry)
     assert isinstance(request, BaselinePromotionRequest)
     if request.operation != BaselinePromotionOperation.SUPERSEDE:
         candidate = registry.candidates.get(request.candidate_id)
@@ -960,6 +1020,7 @@ def supersede_baseline_compat(
     clock: Callable[[], datetime] | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
     """Compat wrapper that builds a SUPERSEDE request from legacy args."""
+    verify_registry(registry)
     candidate = registry.candidates.get(superseding_candidate_id)
     approval = registry.approvals.get(superseding_candidate_id)
     now = _now_or_fixed(clock)
@@ -1005,6 +1066,7 @@ def withdraw_candidate(
     clock: Callable[[], datetime] | None = None,
 ) -> BaselineRegistry:
     """Mark a candidate as withdrawn via ledger event."""
+    verify_registry(registry)
     if candidate_id not in registry.candidates:
         raise ValueError(f"candidate {candidate_id!r} does not exist")
     candidate = registry.candidates[candidate_id]
@@ -1037,27 +1099,12 @@ def withdraw_candidate(
 
 def restore_baseline_as_new_promotion(
     registry: BaselineRegistry,
-    request: BaselinePromotionRequest | None = None,
+    request: BaselinePromotionRequest,
     *,
     clock: Callable[[], datetime] | None = None,
-    scope_id: str | None = None,
-    restore_candidate_id: str | None = None,
-    actor: str | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
-    """Promote a previously superseded candidate as a new promotion event.
-
-    Supports both new request-based and legacy compat signatures.
-    """
-    if request is None and scope_id is not None and restore_candidate_id is not None:
-        return restore_baseline_as_new_promotion_compat(
-            registry,
-            scope_id=scope_id,
-            restore_candidate_id=restore_candidate_id,
-            actor=actor or "operator",
-            clock=clock,
-        )
-    if request is None:
-        raise TypeError("restore requires either request or scope_id/restore_candidate_id")
+    """Promote a previously superseded candidate as a new promotion event."""
+    verify_registry(registry)
     assert isinstance(request, BaselinePromotionRequest)
     if request.operation != BaselinePromotionOperation.RESTORE:
         candidate = registry.candidates.get(request.candidate_id)
@@ -1173,6 +1220,7 @@ def restore_baseline_as_new_promotion_compat(
     clock: Callable[[], datetime] | None = None,
 ) -> tuple[BaselineRegistry, BaselinePromotionReceipt]:
     """Compat wrapper for restore that builds request."""
+    verify_registry(registry)
     candidate = registry.candidates.get(restore_candidate_id)
     approval = registry.approvals.get(restore_candidate_id)
     now = _now_or_fixed(clock)
@@ -1203,11 +1251,6 @@ def restore_baseline_as_new_promotion_compat(
         operation=BaselinePromotionOperation.RESTORE,
     )
     return restore_baseline_as_new_promotion(registry, req, clock=clock)
-
-
-# Backwards compat aliases for old API names
-def _legacy_supersede_wrapper(*args, **kwargs):  # type: ignore[no-untyped-def]  # noqa: ANN202,ANN002,ANN003
-    return supersede_baseline_compat(*args, **kwargs)
 
 
 # ---------------------------------------------------------------------------
