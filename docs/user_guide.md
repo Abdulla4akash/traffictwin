@@ -73,8 +73,9 @@ generates a deterministic synthetic baseline/variation pair locally — SYNTHETI
 LOCAL. It is not Manchester observation, not a live traffic forecast, and does not run SUMO, VEC,
 a provider feed, or an admitted research campaign.” **Consequence Lenses** (**Results → Consequence Lenses**)
 is now implemented as a curated traffic/VEC consequence view over the existing deterministic
-comparison engine; further Portfolio/Challenge functionality (Portfolio Explorer, Challenge Seeds, etc.)
-remains upcoming and is not wired here.
+comparison engine; Portfolio Explorer and Challenge Seeds (**Results → Portfolio Explorer**) are
+likewise implemented in this build — challenge seeds are representable-only declarations with no
+generic execution path (see the Portfolio Explorer section below).
 
 ## Guided Demo
 
