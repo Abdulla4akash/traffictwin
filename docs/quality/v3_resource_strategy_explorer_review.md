@@ -16,7 +16,8 @@ Base: origin/main
 
 - **Live main at task start:** `3b7933dfecf05b579ff9c223729128109a933d93` (Manchester Evidence Hub merged via #15, Challenge bridge via #17, Portfolio Explorer via #13)
 - **Starting main for this rebase:** `3b7933dfecf05b579ff9c223729128109a933d93`
-- **Final integrated review head:** `50f030bb8d5cf159750df94399335b549a25da59` (this commit before doc fill; see `git log`)
+- **Final integrated review head (after Claude 1 final review):** `fbd7ca2a7dd36ff9ab16433a8e875eb3f39aa8da` (gates incompatible metrics from arm aggregates)
+- **Previous integrated head at edcfe2b Claude review:** `edcfe2bbadf9f2aec279537ead4e553751bcab65` — Claude verified detection/pairwise but found arm summaries still AVAILABLE
 
 ## Closure Table — Claude Findings vs Remediation
 
@@ -30,6 +31,9 @@ Base: origin/main
 | 6. Dead constants/helpers | `RESOURCE_STRATEGY_METHOD_VERSION` unused, `MIN/MAX` defined but `Field(min_length=2,max_length=8)` hardcoded, `_fingerprint` unused | Removed `METHOD_VERSION`, `Field(min_length=MIN_STRATEGY_ARMS,max_length=MAX_STRATEGY_ARMS)`, `fingerprint()` routes through `_fingerprint(payload)` | `grep` audit: `MIN/MAX` at 39/399 used, `_fingerprint` at 783 used, `METHOD_VERSION` absent | M7 hardcode 2,8 → `grep min_length=MIN` fails (surviving but dead constant would be flagged by ruff) | **CLOSED** |
 | Minor CSV | `f"{value:.12g}"` not round-trip safe | `_csv_num` now `repr(float(value))` lossless | `test_csv_numeric_fidelity` checks `2024123.123456789`, `0.12345678901234567`, `1.000...002` parse exact | M6 restore `:.12g` → `assert float(agg) == 0.12345678901234567` fails `0.123456789012 != 0.12345678901234566` | **CLOSED** |
 | Minor noqa | Stale `# noqa: ANN401` on `load_...` and dangling B018 missed | Removed stale noqa, remaining 6 suppressions justified (`E501` line length, `ANN401` payload, `S110` try/except) | `uv run --with ruff ruff check` All checks passed, `format --check` passed | — | **CLOSED** |
+
+
+**Addendum after Claude 1 final review (edcfe2b → fbd7ca2):** Claude found arm summaries still AVAILABLE for INCOMPATIBLE metrics despite compatibility/pairwise being INCOMPATIBLE/UNAVAILABLE. Fixed via authoritative compatibility_by_key gating before per-replication aggregation, with UNAVAILABLE status, empty per_replication_values, replication_count 0, reason propagated, and added to unavailable_metrics. Unknown metrics now correctly report UNAVAILABLE with "no registered compatibility contract; metric comparison not verified" instead of false COMPATIBLE. Stale `# noqa: ANN401` on `_fingerprint` removed. M8 (aggregate-gating) added.
 
 ## Residual Defects Discovered During Verification
 
@@ -105,8 +109,8 @@ All 30 pairwise rows contain both arm IDs, unit, `descriptive only`; non-zero co
 
 ## Exact Test Collection Counts
 
-- `tests/unit/test_resource_strategy.py`: 27
-- `tests/unit/ui/test_resource_strategy_explorer_page.py`: 9
+- `tests/unit/test_resource_strategy.py`: 31
+- `tests/unit/ui/test_resource_strategy_explorer_page.py`: 10
 - `tests/integration/test_resource_strategy_flow.py`: 2
 - `tests/ui/test_navigation_v07.py`: 51 (after 39-page bump; 38 spec + 13 ancillary validation tests)
 - Total focused: 89 passed
@@ -191,6 +195,6 @@ Ruff B018 reason: old dangling `f"by ..."` was a string expression at module sco
 
 ## Exact-Head Review Brief
 
-- **Final head to review:** `50f030bb8d5cf159750df94399335b549a25da59` (this integrated head)
+- **Final head to review:** `fbd7ca2a7dd36ff9ab16433a8e875eb3f39aa8da` (this surgical fix head, ready for Claude final)
 - Focus: strict validation, unknown vs false, deterministic fingerprint (excludes path/generated_at), offered/admitted separation, lifecycle conservation, matched-cohort exclusion guarantee, admission guards, pairwise `descriptive only` with magnitude/unit, golden fingerprint, portable JSON, real compatibility, reserved authority, thin page, no scheduler/RSU/VEC/SUMO/k8s, no causal/optimal claim, navigation 39, Manhattan hub preserved.
 
