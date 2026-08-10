@@ -18,6 +18,8 @@ Base: origin/main
 - **Starting main for this rebase:** `3b7933dfecf05b579ff9c223729128109a933d93`
 - **Final integrated review head (after Claude 1 final review):** `fbd7ca2a7dd36ff9ab16433a8e875eb3f39aa8da` (gates incompatible metrics from arm aggregates)
 - **Previous integrated head at edcfe2b Claude review:** `edcfe2bbadf9f2aec279537ead4e553751bcab65` — Claude verified detection/pairwise but found arm summaries still AVAILABLE
+- **Head with withdrawn scoped sign-off:** `e9efc849c71273b9832f9e8f54192de87ce63fce` — Claude at e9efc84 verified all six tracked domain/product findings closed and initially gave a scoped "ship it" recommendation (focused suite 92 passed, golden, compatibility gating). After broader coverage Claude withdrew that overall sign-off because `tests/ui/test_accessibility.py` revealed a Resource Strategy-specific duplicate-H1 defect (see Accessibility section). Six original findings remain closed; new finding is independent.
+- **Doc-only head:** `6ac3a98fc9917361f7a16297e6aca7318d32cfae` — corrects 31→29 / 94→92 counts and documents 20-key contract limitation; no src/tests change from e9efc84 (implementation frozen)
 
 ## Closure Table — Claude Findings vs Remediation
 
@@ -129,6 +131,23 @@ All 30 pairwise rows contain both arm IDs, unit, `descriptive only`; non-zero co
 
 No non-equivalent survivor.
 
+## Accessibility / heading invariant
+
+- **Before (6ac3a98):** `src/traffictwin/ui/pages/resource_strategy_explorer.py:render` did `render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)` (which emits `st.title(page.value)` == "Resource Strategy Explorer") **plus** an explicit `st.title("Resource Strategy Explorer")` with comment `# Ensure header is Resource Strategy Explorer regardless of enum name` → duplicate identical H1. Fresh-process `uv run --with pytest pytest tests/ui/test_accessibility.py -q` at 6ac3a98: `1 failed, 321 passed` — only failing page `RESOURCE_STRATEGY_EXPLORER` (`assert len(app.title) <= 1` fails `2 <= 1`, `AssertionError: RESOURCE_STRATEGY_EXPLORER declares 2 titles` at `tests/ui/test_accessibility.py:122`).
+- **After (fix):** `render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)` only — authoritative H1. Explicit second `st.title` and its now-false comment deleted. No `st.header`/`st.subheader`/`st.markdown("# ...")`/HTML H1 replacement.
+- **Result:** `tests/ui/test_accessibility.py -q` → all pass (expected `322 passed`, 38 page instances passed + global checks; fresh process). Fix is intentionally presentation-only; domain/report identity unchanged.
+- **Lesson:** Focused set (`tests/unit/test_resource_strategy.py` 29 + `tests/unit/ui/test_resource_strategy_explorer_page.py` 10 + `tests/integration/test_resource_strategy_flow.py` 2 + `tests/ui/test_navigation_v07.py` 51 = 92) omitted `tests/ui/test_accessibility.py` even though that invariant automatically enrolls every new `UiPage`. Navigation alone does not cover global page invariants. Minimum UI acceptance for a new `UiPage` must include page-specific AppTest, navigation test, **and** accessibility invariant.
+
+## Broad-suite state/stub pollution (pre-existing, not PR-owned)
+
+- Live main unit baseline: `95 failed / 3641 passed` (broad `tests/unit`).
+- PR branch broad-unit (before heading fix): `105 failed / 3670 passed` → delta `+10 failed / +29 passed` = 10 new Resource Strategy page tests being victims of pre-existing `AttributeError: module 'streamlit' has no attribute 'secrets'` stub pollution that also causes ~89 other broader failures on main. Mechanism is shared Streamlit stub pollution across broad collection, not PR logic.
+- Accessibility blocker is **independent**: reproduces in a fresh process with only `tests/ui/test_accessibility.py` collected, on exactly `RESOURCE_STRATEGY_EXPLORER`, regardless of broad-suite pollution.
+- Two findings kept separate:
+  - **A. Broad-suite pollution — PRE-EXISTING ON MAIN**, not caused by PR #26; causes many UI tests (including 10 new page tests) to fail later in broad execution.
+  - **B. Accessibility defect — PR-owned**, fresh-process, only Resource Strategy page fails, cause duplicate identical `st.title`, fix delete explicit second title.
+- No `st.secrets` hack or global cleanup in PR #26; that belongs in separate cleanup.
+
 ## Lint/Type/Lock/Diff Gates
 
 - `uv run --with ruff ruff check src/traffictwin/experiments/resource_strategy.py src/traffictwin/ui/pages/resource_strategy_explorer.py tests/unit/test_resource_strategy.py tests/unit/ui/test_resource_strategy_explorer_page.py tests/integration/test_resource_strategy_flow.py` → **All checks passed**
@@ -205,8 +224,10 @@ Future extension: support study-declared/custom compatibility contracts with exp
 - Read-only inspection; no study creation workflow
 - Some metrics unavailable where not supplied (typed `partial`)
 
-## Exact-Head Review Brief
+## Exact-Head Review Brief — history and current status
 
-- **Final head to review:** `fbd7ca2a7dd36ff9ab16433a8e875eb3f39aa8da` (this surgical fix head, ready for Claude final)
-- Focus: strict validation, unknown vs false, deterministic fingerprint (excludes path/generated_at), offered/admitted separation, lifecycle conservation, matched-cohort exclusion guarantee, admission guards, pairwise `descriptive only` with magnitude/unit, golden fingerprint, portable JSON, real compatibility, reserved authority, thin page, no scheduler/RSU/VEC/SUMO/k8s, no causal/optimal claim, navigation 39, Manhattan hub preserved.
+- At `e9efc84`, Claude verified all six tracked domain/product findings closed and initially gave a scoped "ship it" recommendation. That sign-off is recorded as **INITIAL SCOPED SIGN-OFF — LATER WITHDRAWN** after broader coverage revealed the duplicate-H1 accessibility defect.
+- At `6ac3a98`, Claude confirmed the 92 focused tests remain meaningful and the six original findings remain closed, but on a fresh-process `tests/ui/test_accessibility.py` run found the Resource Strategy page as the sole failing page (1 failed / 322 passed → 321 passed before fix). This finding is independent of the compatibility/domain work.
+- **Current fix head to review (after duplicate-H1 removal):** `863945297becfbd5f421924bd5218375d3560d04` — see also `fbd7ca2a7dd36ff9ab16433a8e875eb3f39aa8da` (last domain gating fix) and `6ac3a98fc9917361f7a16297e6aca7318d32cfae` (doc-only)
+- Focus for accessibility re-review: diff 6ac3a98 → NEW_SHA is one-file deletion (`st.title` + comment) in `src/traffictwin/ui/pages/resource_strategy_explorer.py`; `render_page_header` remains authoritative H1; `tests/ui/test_accessibility.py` all green (expected 322 passed); Resource Strategy 41 green (29+10+2); navigation 51 green (39 pages); compatibility-gating still green; golden fingerprint `c07480af8e68dc73f235e2f725d7d6caf223e285b374b286fb1ed17f0f22c375` unchanged; no unrelated production changes; docs correctly retract stale final "SHIP IT".
 

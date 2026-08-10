@@ -163,8 +163,6 @@ def _study_or_empty_state() -> ResourceStrategyStudy | None:
 
 def render(config: object) -> None:  # noqa: ANN001 - UiConfig duck-type to keep thin
     render_page_header(UiPage.RESOURCE_STRATEGY_EXPLORER)
-    # Ensure header is Resource Strategy Explorer regardless of enum name
-    st.title("Resource Strategy Explorer")
     st.caption(
         "Inspect admitted or explicitly synthetic resource-strategy studies across "
         "traffic/VEC policies. This view does not execute a scheduler, control an RSU, "
