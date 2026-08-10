@@ -1,0 +1,43 @@
+{
+  "documents": [
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_pilot_validation_v1.json",
+      "sha256": "30f6d117402e91decf8581b2b42030c0f9795881dd5eaef1a380bbf6408f0d38"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_pilot_comparison_v1.json",
+      "sha256": "67d626ca4e6b60afb6beb5c9d4c8cc2bf7b15c72922eba633194848439fe3d52"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_path_forwarding_summary_v1.json",
+      "sha256": "54721d9a4b403e36e99123394193db06d7b6c596e66121975001a8d02196287e"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_pilot_report_2026-08-09.md",
+      "sha256": "eb0b6433d92f4a88c6613949e4226e71b6876900eb558872b94dec82ce96ec3c"
+    },
+    {
+      "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_supervisor_summary_2026-08-09.md",
+      "sha256": "a39b2a58d7e35f4a2b82ea1cd5b04c17ebfa869761cd5258f16cf0548678282d"
+    }
+  ],
+  "full_run_locators": {
+    "dla": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/dla/run_1",
+    "jsq": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/jsq/run_1",
+    "off": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/off/run_1"
+  },
+  "manifest": {
+    "path": "/Users/akashx/AntigravityTest/traffictwin-e2/docs/evaluation/e2/e2_native_placement_pilot_manifest_v1.json",
+    "sha256": "53bcd2e26b913b64ce0c4546da7c01cb7f9290382a036a20ce9fd28229ed02a8"
+  },
+  "raw_checksums": {
+    "path": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/checksums.sha256",
+    "sha256": "f33e974b3dbbfc0865a0b4d986c8bbfaf504424e4187aa5ba809e610384390d3"
+  },
+  "raw_index": {
+    "path": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/raw_evidence_index.json",
+    "sha256": "8920f45c00975e80d67a2cf0eab9570003c244e21cc59c468b95a5c151f3a280"
+  },
+  "raw_root": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1",
+  "schema_version": "e2_native_placement_evidence_index_v1"
+}
