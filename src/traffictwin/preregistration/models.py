@@ -124,7 +124,7 @@ class ArtifactAdmission(StrEnum):
 # ---------------------------------------------------------------------------
 
 
-def is_explicitly_admitted(att: EvidenceAttachment) -> bool:  # type: ignore  # forward ref
+def is_explicitly_admitted(att: "EvidenceAttachment") -> bool:
     """Authoritative admission check: only is_admitted==True counts."""
     return att.is_admitted is True
 
@@ -281,7 +281,9 @@ class DecisionRule(StrictModel):
     alpha: float | None = None
     threshold: float | None = None
     interpretation: str = Field(min_length=12)
-    comparison: Literal["two_sided", "one_sided_greater", "one_sided_less", "equivalence"] = "two_sided"  # noqa: E501
+    comparison: Literal["two_sided", "one_sided_greater", "one_sided_less", "equivalence"] = (
+        "two_sided"  # noqa: E501
+    )
 
     @field_validator("rule_type", "interpretation")
     @classmethod
@@ -415,8 +417,12 @@ class DecisionGateReport(StrictModel):
     @model_validator(mode="after")
     def validate_flags(self) -> DecisionGateReport:
         if self.status == DecisionGateStatus.READY:
-            if not (self.is_ready is True and self.is_blocked is False and self.is_unavailable is False):  # noqa: E501
-                raise ValueError("READY status requires is_ready=True and is_blocked/is_unavailable=False")  # noqa: E501
+            if not (
+                self.is_ready is True and self.is_blocked is False and self.is_unavailable is False
+            ):  # noqa: E501
+                raise ValueError(
+                    "READY status requires is_ready=True and is_blocked/is_unavailable=False"
+                )  # noqa: E501
             if self.missing_cells or self.extra_cells or self.incompatible_cells:
                 raise ValueError("READY status cannot have missing/extra/incompatible cells")
         elif self.status in (DecisionGateStatus.BLOCKED, DecisionGateStatus.UNAVAILABLE):
@@ -500,7 +506,9 @@ class StudyPlan(StrictModel):
             raise ValueError("replication_ids must not contain duplicates")
         return sorted(v)
 
-    @field_validator("replication_generation_rule", "power_plan_reference", "power_plan_fingerprint")  # noqa: E501
+    @field_validator(
+        "replication_generation_rule", "power_plan_reference", "power_plan_fingerprint"
+    )  # noqa: E501
     @classmethod
     def validate_optional_text(cls, v: str | None) -> str | None:
         if v is None:
@@ -545,7 +553,7 @@ class StudyPlan(StrictModel):
         if "revision_history" in data:
             for rev in data["revision_history"]:
                 rev["created_at"] = "<normalised>"
-        # Fingerprints are identities; frozen fingerprint must not bind post-freeze evidence or status
+        # Fingerprints are identities; frozen fingerprint must not bind post-freeze evidence or status  # noqa: E501
         data.pop("status", None)
         data.pop("fingerprint", None)
         data.pop("evidence_state_fingerprint", None)
@@ -563,12 +571,15 @@ class StudyPlan(StrictModel):
         """Deterministic identity for the evidence-attached state, separate from frozen plan."""
         payload = {
             "fingerprint": self.fingerprint,
-            "evidence_attachments": [a.model_dump(mode="json") for a in sorted(self.evidence_attachments, key=lambda x: x.cell_id)],  # noqa: E501
+            "evidence_attachments": [
+                a.model_dump(mode="json")
+                for a in sorted(self.evidence_attachments, key=lambda x: x.cell_id)
+            ],  # noqa: E501
         }
         # Normalise attached_at
-        for item in payload["evidence_attachments"]:
-            if item.get("attached_at") is not None:
-                item["attached_at"] = "<normalised>"
+        for item in payload["evidence_attachments"]:  # type: ignore[union-attr]
+            if item.get("attached_at") is not None:  # type: ignore[union-attr]
+                item["attached_at"] = "<normalised>"  # type: ignore[index]
         canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
@@ -585,8 +596,16 @@ def field_level_diff(old: dict[str, Any], new: dict[str, Any]) -> dict[str, dict
     for key in all_keys:
         old_val = old.get(key)
         new_val = new.get(key)
-        old_canonical = json.dumps(old_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if old_val is not None else None  # noqa: E501
-        new_canonical = json.dumps(new_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True) if new_val is not None else None  # noqa: E501
+        old_canonical = (
+            json.dumps(old_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+            if old_val is not None
+            else None
+        )  # noqa: E501
+        new_canonical = (
+            json.dumps(new_val, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+            if new_val is not None
+            else None
+        )  # noqa: E501
         if old_canonical != new_canonical:
             diff[key] = {"old": old_val, "new": new_val}
     return diff
@@ -596,7 +615,11 @@ def has_evidence_in_lineage(plan: StudyPlan) -> bool:
     """Monotonic taint: True if any ancestor or current plan has ever seen evidence."""
     if plan.evidence_attached_at is not None:
         return True
-    if plan.status in (StudyPlanStatus.EVIDENCE_ATTACHED, StudyPlanStatus.DECIDED, StudyPlanStatus.CLOSED):  # noqa: E501
+    if plan.status in (
+        StudyPlanStatus.EVIDENCE_ATTACHED,
+        StudyPlanStatus.DECIDED,
+        StudyPlanStatus.CLOSED,
+    ):  # noqa: E501
         return True
     if plan.evidence_attachments:
         return True

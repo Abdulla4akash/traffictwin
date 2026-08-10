@@ -64,7 +64,9 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
             findings.append("duplicate primary outcome_id")
         versions = {o.metric_version for o in plan.primary_outcomes}
         if len(versions) > 1:
-            findings.append(f"inconsistent metric versions across primary outcomes: {sorted(versions)}")  # noqa: E501
+            findings.append(
+                f"inconsistent metric versions across primary outcomes: {sorted(versions)}"
+            )  # noqa: E501
         secondary_versions = {o.metric_version for o in plan.secondary_outcomes}
         if secondary_versions and secondary_versions != versions:
             findings.append(
@@ -72,7 +74,9 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
             )
 
     if not plan.replication_ids and not plan.replication_generation_rule:
-        findings.append("empty replication set: replication_ids or replication_generation_rule is required")  # noqa: E501
+        findings.append(
+            "empty replication set: replication_ids or replication_generation_rule is required"
+        )  # noqa: E501
     if plan.replication_ids:
         if len(plan.replication_ids) == 0:
             findings.append("replication_ids must not be empty")
@@ -107,7 +111,9 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
     }
     if method in alpha_required_methods:
         if rule.alpha is None and rule.threshold is None:
-            findings.append(f"decision rule must provide alpha or threshold for analysis_method {method.value!r}")  # noqa: E501
+            findings.append(
+                f"decision rule must provide alpha or threshold for analysis_method {method.value!r}"  # noqa: E501
+            )  # noqa: E501
         if method == AnalysisMethod.TOST_EQUIVALENCE:
             if rule.threshold is None:
                 findings.append("TOST equivalence requires a threshold (equivalence margin)")
@@ -116,16 +122,27 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
             if rule.comparison != "equivalence":
                 findings.append("TOST equivalence decision_rule must use comparison='equivalence'")
         if method != AnalysisMethod.TOST_EQUIVALENCE and rule.comparison == "equivalence":
-            findings.append(f"analysis_method {method.value!r} is incompatible with equivalence comparison")  # noqa: E501
+            findings.append(
+                f"analysis_method {method.value!r} is incompatible with equivalence comparison"
+            )  # noqa: E501
 
     if len(plan.primary_outcomes) > 1:  # noqa: SIM102
-        if plan.multiplicity_policy in (MultiplicityPolicy.NONE_SINGLE_TEST, MultiplicityPolicy.NOT_APPLICABLE):  # noqa: E501
+        if plan.multiplicity_policy in (
+            MultiplicityPolicy.NONE_SINGLE_TEST,
+            MultiplicityPolicy.NOT_APPLICABLE,
+        ):  # noqa: E501
             findings.append("multiplicity policy required when multiple primary outcomes exist")
 
-    if not plan.stopping_rule.description.strip() or len(plan.stopping_rule.description.strip()) < 12:  # noqa: E501
+    if (
+        not plan.stopping_rule.description.strip()
+        or len(plan.stopping_rule.description.strip()) < 12
+    ):  # noqa: E501
         findings.append("stopping_rule.description must contain at least 12 characters")
 
-    if not plan.decision_rule.interpretation.strip() or len(plan.decision_rule.interpretation.strip()) < 12:  # noqa: E501
+    if (
+        not plan.decision_rule.interpretation.strip()
+        or len(plan.decision_rule.interpretation.strip()) < 12
+    ):  # noqa: E501
         findings.append("decision_rule.interpretation must contain at least 12 characters")
 
     if not plan.limitations.strip() or len(plan.limitations.strip()) < 12:
@@ -135,12 +152,25 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
         cell_ids = [c.cell_id for c in plan.planned_run_cells]
         if len(set(cell_ids)) != len(cell_ids):
             findings.append("duplicate run cells: cell_id duplicates")
-        composites = [(c.arm_id, c.seed_id, c.policy_label, c.replication_id, c.metric_key, c.metric_version, c.replication_unit.value) for c in plan.planned_run_cells]  # noqa: E501
+        composites = [
+            (
+                c.arm_id,
+                c.seed_id,
+                c.policy_label,
+                c.replication_id,
+                c.metric_key,
+                c.metric_version,
+                c.replication_unit.value,
+            )
+            for c in plan.planned_run_cells
+        ]  # noqa: E501
         if len(set(composites)) != len(composites):
             findings.append("duplicate run cells: arm/seed/policy/replication/metric duplicates")
         for cell in plan.planned_run_cells:
             if cell.arm_id not in plan.planned_arms:
-                findings.append(f"run cell {cell.cell_id!r} has ambiguous arm {cell.arm_id!r} not in planned_arms")  # noqa: E501
+                findings.append(
+                    f"run cell {cell.cell_id!r} has ambiguous arm {cell.arm_id!r} not in planned_arms"  # noqa: E501
+                )  # noqa: E501
         primary_keys = {o.metric_key for o in plan.primary_outcomes}
         cell_keys = {c.metric_key for c in plan.planned_run_cells}
         for pk in primary_keys:
@@ -152,17 +182,23 @@ def validate_study_plan(plan: StudyPlan) -> list[str]:
                 findings.append(
                     f"run cell {cell.cell_id!r} has inconsistent metric_version {cell.metric_version!r} not in primary outcomes {sorted(primary_versions)}"  # noqa: E501
                 )
-        allowed_keys = {o.metric_key for o in plan.primary_outcomes} | {o.metric_key for o in plan.secondary_outcomes}  # noqa: E501
+        allowed_keys = {o.metric_key for o in plan.primary_outcomes} | {
+            o.metric_key for o in plan.secondary_outcomes
+        }  # noqa: E501
         for cell in plan.planned_run_cells:
             if cell.metric_key not in allowed_keys:
-                findings.append(f"run cell {cell.cell_id!r} has undeclared post-hoc metric {cell.metric_key!r}")  # noqa: E501
+                findings.append(
+                    f"run cell {cell.cell_id!r} has undeclared post-hoc metric {cell.metric_key!r}"
+                )  # noqa: E501
         if len(plan.planned_run_cells) > MAX_CELLS:
             findings.append(f"run matrix exceeds limit {MAX_CELLS}")
     else:
         if plan.planned_arms and (plan.replication_ids or plan.replication_generation_rule):
             pass
         else:
-            findings.append("planned_run_cells is empty and cannot be derived from arms/replication")  # noqa: E501
+            findings.append(
+                "planned_run_cells is empty and cannot be derived from arms/replication"
+            )  # noqa: E501
 
     if plan.evidence_mode == EvidenceMode.UNAVAILABLE:
         findings.append("evidence_mode must not be unavailable for a freezable plan")
@@ -247,8 +283,8 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
     if repl_count == 0:
         raise ValueError("empty replication set after generation rule")
     # Determine seeds/policies dimensions: if empty, treat as 1 (metadata-only)
-    seeds_dim = plan.seeds if plan.seeds else [None]  # type: ignore
-    policies_dim = plan.policies if plan.policies else [None]  # type: ignore
+    seeds_dim: list[str | None] = list(plan.seeds) if plan.seeds else [None]
+    policies_dim: list[str | None] = list(plan.policies) if plan.policies else [None]
     # But spec says every selector must affect matrix; if seeds/policies empty, 1 is correct.  # noqa: E501
     # If non-empty, each must be represented.
     arms = plan.planned_arms
@@ -262,8 +298,8 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
         raise ValueError("empty replication set after generation rule")
 
     sorted_arms = sorted(arms)
-    sorted_seeds = sorted(seeds_dim) if seeds_dim[0] is not None else [None]
-    sorted_policies = sorted(policies_dim) if policies_dim[0] is not None else [None]
+    sorted_seeds = sorted([s for s in seeds_dim if s is not None]) if seeds_dim[0] is not None else [None]
+    sorted_policies = sorted([p for p in policies_dim if p is not None]) if policies_dim[0] is not None else [None]
     sorted_replications = sorted(replication_ids)
     sorted_primaries = sorted(primaries, key=lambda o: o.outcome_id)
 
@@ -277,15 +313,31 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
                     for outcome in sorted_primaries:
                         # Canonical seed/policy mapping: if dim 1 (None), use arm fallback for cell fields to keep legacy compat,  # noqa: E501
                         # but still ensure matrix size reflects dimensions. For determinism, use seed/pol when present.  # noqa: E501
-                        seed_id = seed_val if seed_val is not None else (plan.seeds[0] if plan.seeds else None)  # noqa: E501
+                        seed_id = (
+                            seed_val
+                            if seed_val is not None
+                            else (plan.seeds[0] if plan.seeds else None)
+                        )  # noqa: E501
                         # If seeds_dim has multiple, seed_id is current val; else fallback.  # noqa: E501
                         if seeds_dim[0] is not None:
                             seed_id = seed_val
-                        policy_label = pol_val if pol_val is not None else (plan.policies[0] if plan.policies else arm)  # noqa: E501
+                        policy_label = (
+                            pol_val
+                            if pol_val is not None
+                            else (plan.policies[0] if plan.policies else arm)
+                        )  # noqa: E501
                         if policies_dim[0] is not None:
                             policy_label = pol_val  # type: ignore
                         cell_id = f"cell-{seq:04d}"
-                        composite = (arm, seed_id, policy_label, rep, outcome.metric_key, outcome.metric_version, plan.replication_unit.value)  # noqa: E501
+                        composite = (
+                            arm,
+                            seed_id,
+                            policy_label,
+                            rep,
+                            outcome.metric_key,
+                            outcome.metric_version,
+                            plan.replication_unit.value,
+                        )  # noqa: E501
                         if composite in seen:
                             raise ValueError(f"duplicate run cells: {composite}")
                         seen.add(composite)
@@ -294,7 +346,7 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
                                 cell_id=cell_id,
                                 arm_id=arm,
                                 seed_id=seed_id,
-                                policy_label=policy_label,  # type: ignore
+                                policy_label=policy_label,
                                 replication_id=rep,
                                 metric_key=outcome.metric_key,
                                 metric_version=outcome.metric_version,
@@ -307,8 +359,16 @@ def build_run_matrix(plan: StudyPlan) -> list[PlannedRunCell]:
     return cells
 
 
-def _canonical_cell_key(cell: PlannedRunCell) -> tuple:
-    return (cell.arm_id, cell.seed_id, cell.policy_label, cell.replication_id, cell.metric_key, cell.metric_version, cell.replication_unit.value)  # noqa: E501
+def _canonical_cell_key(cell: PlannedRunCell) -> tuple[str, str | None, str, int, str, str, str]:
+    return (
+        cell.arm_id,
+        cell.seed_id,
+        cell.policy_label,
+        cell.replication_id,
+        cell.metric_key,
+        cell.metric_version,
+        cell.replication_unit.value,
+    )  # noqa: E501
 
 
 def fingerprint_plan(plan: StudyPlan) -> str:
@@ -345,7 +405,9 @@ def freeze_plan(plan: StudyPlan, *, clock: Callable[[], datetime] | None = None)
             if extra:
                 details.append(f"extra authored cells: {sorted(extra)[:3]}")
             if len(built_set) != len(provided_set):
-                details.append(f"count mismatch built={len(built_set)} provided={len(provided_set)}")  # noqa: E501
+                details.append(
+                    f"count mismatch built={len(built_set)} provided={len(provided_set)}"
+                )  # noqa: E501
             raise ValueError(
                 f"authored planned_run_cells does not match deterministic matrix; {'; '.join(details)}"  # noqa: E501
             )
@@ -375,8 +437,15 @@ def create_amendment(
     evidence_attached_at: datetime | None = None,
 ) -> StudyPlan:
     """Create a new version as child of a frozen plan. Preserves parent fingerprint bytes immutably."""  # noqa: E501
-    if parent.status not in (StudyPlanStatus.FROZEN, StudyPlanStatus.EVIDENCE_ATTACHED, StudyPlanStatus.DECIDED, StudyPlanStatus.CLOSED):  # noqa: E501
-        raise ValueError(f"only frozen or later plans can be amended; parent status is {parent.status.value!r}")  # noqa: E501
+    if parent.status not in (
+        StudyPlanStatus.FROZEN,
+        StudyPlanStatus.EVIDENCE_ATTACHED,
+        StudyPlanStatus.DECIDED,
+        StudyPlanStatus.CLOSED,
+    ):  # noqa: E501
+        raise ValueError(
+            f"only frozen or later plans can be amended; parent status is {parent.status.value!r}"
+        )  # noqa: E501
     if not amendment_reason.strip() or len(amendment_reason.strip()) < 12:
         raise ValueError("amendment_reason must contain at least 12 characters")
     if parent.fingerprint is None:
@@ -395,7 +464,16 @@ def create_amendment(
     parent_payload = parent.model_dump(mode="json", by_alias=True)
     new_payload = dict(parent_payload)
     for key, value in changes.items():
-        if key in ("plan_id", "fingerprint", "frozen_at", "created_at", "evidence_attached_at", "parent_fingerprint", "revision_history", "evidence_state_fingerprint"):  # noqa: E501
+        if key in (
+            "plan_id",
+            "fingerprint",
+            "frozen_at",
+            "created_at",
+            "evidence_attached_at",
+            "parent_fingerprint",
+            "revision_history",
+            "evidence_state_fingerprint",
+        ):  # noqa: E501
             raise ValueError(f"field {key!r} cannot be changed via amendment")
         new_payload[key] = value
 
@@ -444,7 +522,9 @@ def attach_evidence(
 ) -> StudyPlan:
     """Attach imported evidence by fingerprint to a frozen plan. Returns new plan with EVIDENCE_ATTACHED status."""  # noqa: E501
     if plan.status not in (StudyPlanStatus.FROZEN, StudyPlanStatus.EVIDENCE_ATTACHED):
-        raise ValueError(f"evidence can only be attached to FROZEN or EVIDENCE_ATTACHED plans; current {plan.status.value!r}")  # noqa: E501
+        raise ValueError(
+            f"evidence can only be attached to FROZEN or EVIDENCE_ATTACHED plans; current {plan.status.value!r}"  # noqa: E501
+        )  # noqa: E501
     if plan.fingerprint is None:
         raise ValueError("plan must have a fingerprint before attaching evidence")
     if not attachments:
@@ -479,9 +559,13 @@ def attach_evidence(
         }
     )
     # Gate evaluation will also compute incompatibility reasons and set them on copies
-    gate, enriched_attachments = evaluate_gate_with_reasons(updated, sorted(normalized, key=lambda a: a.cell_id))  # noqa: E501
+    gate, enriched_attachments = evaluate_gate_with_reasons(
+        updated, sorted(normalized, key=lambda a: a.cell_id)
+    )  # noqa: E501
     # Enrich attachments with incompatibility reasons
-    updated = updated.model_copy(update={"evidence_attachments": enriched_attachments, "gate_report": gate})  # noqa: E501
+    updated = updated.model_copy(
+        update={"evidence_attachments": enriched_attachments, "gate_report": gate}
+    )  # noqa: E501
     # Keep frozen fingerprint immutable
     updated = updated.model_copy(update={"fingerprint": frozen_fp})
     # Compute separate evidence-state fingerprint
@@ -576,7 +660,9 @@ def evaluate_gate_with_reasons(
             exp_ver = expected_versions[cell_id]
             if att.observed_metric_version != exp_ver:
                 is_incompat = True
-                reason_parts.append(f"metric_version mismatch: expected {exp_ver!r} observed {att.observed_metric_version!r}")  # noqa: E501
+                reason_parts.append(
+                    f"metric_version mismatch: expected {exp_ver!r} observed {att.observed_metric_version!r}"  # noqa: E501
+                )  # noqa: E501
             # Unit compatibility
             exp_unit = expected_units.get(cell_id)
             if exp_unit is None:
@@ -584,11 +670,15 @@ def evaluate_gate_with_reasons(
                 reason_parts.append(f"missing expected unit for {cell_id!r}")
             elif att.observed_unit != exp_unit:
                 is_incompat = True
-                reason_parts.append(f"unit mismatch: expected {exp_unit!r} observed {att.observed_unit!r}")  # noqa: E501
+                reason_parts.append(
+                    f"unit mismatch: expected {exp_unit!r} observed {att.observed_unit!r}"
+                )  # noqa: E501
             # Admission check: authoritative is is_admitted
             if not is_explicitly_admitted(att):
                 is_incompat = True
-                reason_parts.append(f"not explicitly admitted: is_admitted={att.is_admitted!r} label={att.admission_label.value!r}")  # noqa: E501
+                reason_parts.append(
+                    f"not explicitly admitted: is_admitted={att.is_admitted!r} label={att.admission_label.value!r}"  # noqa: E501
+                )  # noqa: E501
         else:
             # extra cell will be handled separately, but also mark incompat
             pass
@@ -596,7 +686,9 @@ def evaluate_gate_with_reasons(
         # Also if observed metric_key not in primary, treat as incompat? Extra already, but keep
         if att.observed_metric_key not in primary_keys and cell_id in expected_cell_ids:  # noqa: SIM102
             # Primary metric mismatch
-            if att.observed_metric_key != next((c.metric_key for c in plan.planned_run_cells if c.cell_id == cell_id), None):  # noqa: E501
+            if att.observed_metric_key != next(
+                (c.metric_key for c in plan.planned_run_cells if c.cell_id == cell_id), None
+            ):  # noqa: E501
                 is_incompat = True
                 reason_parts.append(f"metric_key mismatch for {cell_id!r}")
 
@@ -680,7 +772,9 @@ def evaluate_gate_with_reasons(
     return report, enriched_list
 
 
-def evaluate_gate(plan: StudyPlan, attachments: list[EvidenceAttachment] | None = None) -> DecisionGateReport:  # noqa: E501
+def evaluate_gate(
+    plan: StudyPlan, attachments: list[EvidenceAttachment] | None = None
+) -> DecisionGateReport:  # noqa: E501
     """Evaluate whether decision gate can be evaluated."""
     report, _ = evaluate_gate_with_reasons(plan, attachments)
     return report
@@ -689,6 +783,7 @@ def evaluate_gate(plan: StudyPlan, attachments: list[EvidenceAttachment] | None 
 # ---------------------------------------------------------------------------
 # Exports
 # ---------------------------------------------------------------------------
+
 
 def export_plan_json(plan: StudyPlan) -> str:
     """Return deterministic JSON export."""
@@ -707,7 +802,16 @@ def export_plan_csv(cells: list[PlannedRunCell]) -> str:
     output = io.StringIO()
     writer = csv.DictWriter(
         output,
-        fieldnames=["cell_id", "arm_id", "seed_id", "policy_label", "replication_id", "metric_key", "metric_version", "replication_unit"],  # noqa: E501
+        fieldnames=[
+            "cell_id",
+            "arm_id",
+            "seed_id",
+            "policy_label",
+            "replication_id",
+            "metric_key",
+            "metric_version",
+            "replication_unit",
+        ],  # noqa: E501
     )
     writer.writeheader()
     for cell in sorted(cells, key=lambda c: c.cell_id):
@@ -778,7 +882,10 @@ def planned_vs_observed_matrix(plan: StudyPlan) -> dict[str, Any]:
                     "replication_id": exp.replication_id,
                     "expected_metric": exp.metric_key,
                     "expected_version": exp.metric_version,
-                    "expected_unit": next((o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key), None),  # noqa: E501
+                    "expected_unit": next(
+                        (o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key),
+                        None,
+                    ),  # noqa: E501
                     "observed": False,
                     "observed_version": None,
                     "observed_unit": None,
@@ -788,9 +895,14 @@ def planned_vs_observed_matrix(plan: StudyPlan) -> dict[str, Any]:
                 }
             )
         else:
-            is_compat = att.observed_metric_version == exp.metric_version and att.observed_unit == next(  # noqa: E501
-                (o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key), None
-            ) and is_explicitly_admitted(att)
+            is_compat = (
+                att.observed_metric_version == exp.metric_version
+                and att.observed_unit
+                == next(  # noqa: E501
+                    (o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key), None
+                )
+                and is_explicitly_admitted(att)
+            )
             rows.append(
                 {
                     "cell_id": cell_id,
@@ -798,7 +910,10 @@ def planned_vs_observed_matrix(plan: StudyPlan) -> dict[str, Any]:
                     "replication_id": exp.replication_id,
                     "expected_metric": exp.metric_key,
                     "expected_version": exp.metric_version,
-                    "expected_unit": next((o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key), None),  # noqa: E501
+                    "expected_unit": next(
+                        (o.unit for o in plan.primary_outcomes if o.metric_key == exp.metric_key),
+                        None,
+                    ),  # noqa: E501
                     "observed": True,
                     "observed_version": att.observed_metric_version,
                     "observed_unit": att.observed_unit,
@@ -822,7 +937,8 @@ def planned_vs_observed_matrix(plan: StudyPlan) -> dict[str, Any]:
                 "observed_unit": att.observed_unit,
                 "is_admitted": att.is_admitted,
                 "status": "extra",
-                "incompatibility_reason": att.incompatibility_reason or "extra cell not in planned matrix",  # noqa: E501
+                "incompatibility_reason": att.incompatibility_reason
+                or "extra cell not in planned matrix",  # noqa: E501
             }
         )
     return {"rows": rows, "expected_count": len(expected), "observed_count": len(observed)}
