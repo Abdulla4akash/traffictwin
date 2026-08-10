@@ -102,18 +102,18 @@ All 30 pairwise rows contain both arm IDs, unit, `descriptive only`; non-zero co
 
 ## Test Power Audit
 
-- All 27 unit tests assert production behavior (not counts): strict validation, unknown vs false, fingerprint determinism, arm ordering, metric identity, admission state, exclusion reasons, matched cohort, version mismatch, lifecycle conservation, denominator separation, admission guards, path exclusion, queue/cost, export matching, pairwise completeness, round-trip, compatibility real, reserved authority, CSV fidelity, golden pin.
+- All 29 unit tests assert production behavior (not counts): strict validation, unknown vs false, fingerprint determinism, arm ordering, metric identity, admission state, exclusion reasons, matched cohort, version mismatch, lifecycle conservation, denominator separation, admission guards, path exclusion, queue/cost, export matching, pairwise completeness, round-trip, compatibility real, reserved authority, CSV fidelity, golden pin, compatibility gating (M8), unknown contract.
 - No `or True`, broad `or` escape, optional `if` assertions, fake fingerprint, local reimplementation without service call.
-- UI tests (9) exercise empty, synthetic label, unadmitted refusal, export matching, no winner headline, queue view, limitations/provenance via AppTest with real service.
+- UI tests (10) exercise empty, synthetic label, unadmitted refusal, export matching, no winner headline, queue view, limitations/provenance, and incompatible-metric gating via AppTest with real service.
 - Integration 2 tests exercise load→build→export flow.
 
 ## Exact Test Collection Counts
 
-- `tests/unit/test_resource_strategy.py`: 31
+- `tests/unit/test_resource_strategy.py`: 29
 - `tests/unit/ui/test_resource_strategy_explorer_page.py`: 10
 - `tests/integration/test_resource_strategy_flow.py`: 2
 - `tests/ui/test_navigation_v07.py`: 51 (after 39-page bump; 38 spec + 13 ancillary validation tests)
-- Total focused: 89 passed
+- Total focused: 92 passed (historical at edcfe2b: 27+9+2+51=89)
 
 ## Mutation Table M1–M7
 
@@ -186,6 +186,18 @@ Ruff B018 reason: old dangling `f"by ..."` was a string expression at module sco
 - Old body claimed 81 tests at e5111da and 37 pages; new body (to be pushed) states 89 tests at final head, 39 pages, remediation commit 015b48b, final integrated SHA, separate old/new verification sections, no claim that old e5111da gates represent final.
 
 ## Remaining Limitations
+
+Metric comparison is currently limited to keys registered in the 20-key `EXPECTED_METRIC_CONTRACT`. A study may contain valid custom/domain-specific metrics, but unregistered metric keys are treated as `UNAVAILABLE` for arm aggregation and pairwise comparison (`no registered compatibility contract; metric comparison not verified`). Supporting additional custom metrics currently requires registering their expected version/unit/denominator contract in source.
+
+The upload-your-own-study path can load studies containing custom metrics, but those metrics will not render comparative numeric arm results until a compatibility contract is registered.
+
+Future extension: support study-declared/custom compatibility contracts with explicit cross-arm validation. This is not implemented in this pass; the current strict fail-closed behavior is preserved:
+
+- KNOWN + COMPATIBLE → numeric arm aggregates available, pairwise descriptive comparison available
+- KNOWN + INCOMPATIBLE → aggregates unavailable, pairwise unavailable
+- UNKNOWN/UNREGISTERED CONTRACT → compatibility unavailable, aggregates unavailable, pairwise unavailable
+
+
 
 - Synthetic only; admitted research evidence requires separate admission gate
 - 4 matched replications; rep_005 excluded
