@@ -97,6 +97,7 @@ def test_candidate_inventory_matches_normative_routes_and_groups() -> None:
         UiPage.JOURNEY_TIME: ("Results", "journey-time"),
         UiPage.CONSEQUENCE_LENSES: ("Results", "consequence-lenses"),
         UiPage.TEMPORAL_METRICS: ("Results", "temporal-metrics"),
+        UiPage.EVENT_ALIGNED_ANALYSIS: ("Results", "event-aligned-analysis"),
         UiPage.ENERGY: ("Results", "energy"),
         UiPage.FAIRNESS: ("Results", "fairness"),
         UiPage.INFRASTRUCTURE: ("Results", "infrastructure"),

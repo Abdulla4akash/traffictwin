@@ -543,6 +543,10 @@ The result shows the exact baseline/episode/recovery ordinals, temporal fingerpr
 and unavailable reasons. Gaps break runs; the page does not infer an event or causal relationship.
 See [Temporal diagnosis](temporal_diagnosis.md).
 
+## Event-Aligned Analysis
+
+Event-Aligned Analysis aligns 2–8 compatible runs around a declared event anchor and compares before, during and after windows. Select bundles, a window-applicable metric, an anchor kind (bundle-declared event, authored incident, or manual authored timestamp) with a timezone-aware UTC timestamp per run, and pre/event/post durations plus bin width. Preview shows exact half-open windows `[anchor - pre, anchor)`, `[anchor, anchor + event)`, `[anchor + event, anchor + event + post)`. Choose **Build aligned analysis** to compute relative-time metric points reusing the existing fixed-window metric engine — no interpolation, missing bins remain unavailable not zero-filled, empty/partial/complete coverage is explicit, and half-open `[start,end)` is reused. Inspect the relative-time chart (same rows as the table), before/during/after summaries, coverage gap table, excluded-run reasons, per-run authored anchor provenance, and pairwise descriptive differences during the declared event window (not causal effects). Download deterministic JSON and CSV exports; the fingerprint binds every meaningful field with stable ordering and excludes wall clock, local paths and secrets.
+
 ## Energy Evidence
 
 Energy Evidence shows the three `MET-03` task-energy outputs together with their exact semantic-

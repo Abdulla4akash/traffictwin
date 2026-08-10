@@ -38,6 +38,7 @@ class UiPage(StrEnum):
     OPERATIONS = "Replay"
     RUN_OVERVIEW = "Run Overview"
     TEMPORAL_METRICS = "Temporal Metrics"
+    EVENT_ALIGNED_ANALYSIS = "Event-Aligned Analysis"
     ENERGY = "Energy Evidence"
     FAIRNESS = "Fairness Evidence"
     THRESHOLD_SENSITIVITY = "Threshold Sensitivity"
@@ -115,6 +116,9 @@ PAGE_DESCRIPTIONS: dict[UiPage, str] = {
     UiPage.RUN_OVERVIEW: "Review run-level metrics computed by the Phase 3 engine.",
     UiPage.TEMPORAL_METRICS: (
         "Compute deterministic metrics over declared aligned half-open time windows."
+    ),
+    UiPage.EVENT_ALIGNED_ANALYSIS: (
+        "Align compatible evidence around a declared event anchor and compare before, during and after windows."  # noqa: E501
     ),
     UiPage.ENERGY: (
         "Inspect contract-gated task energy and evaluate the deterministic R8 candidate."
