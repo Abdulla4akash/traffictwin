@@ -16,6 +16,7 @@ from traffictwin.study_workspace.models import (
     WorkspaceArtifactStanding,
     WorkspaceAvailabilityState,
     WorkspaceCompatibilityStanding,
+    WorkspaceLifecycleStage,
 )
 
 
@@ -526,3 +527,93 @@ def test_wrapper_does_not_swallow_renderer_exception(monkeypatch: pytest.MonkeyP
     # Should have exception, not be swallowed
     assert result.exception is not None, "Wrapper swallowed exception, expected propagation"
     assert "synthetic renderer failure" in str(result.exception)
+
+
+def test_declared_derived_stage_caption_shows_actual_values() -> None:
+    """Regression for lost f-prefix: caption must show real stages, not literals."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+
+    # Build a manifest where derived stage is known and declared_stage is explicit.
+    # Use plan + report + capsule -> derived REVIEW_READY, declared REVIEW_READY.
+    c_fp = _fp("ui-cap-c")
+    p_fp = _fp("ui-cap-p")
+    rep_fp = _fp("ui-cap-rep")
+    cap_fp = _fp("ui-cap-cap")
+    manifest = StudyWorkspaceManifest(
+        workspace_id="ws-ui-declared",
+        workspace_version="1.0",
+        study_id="study-ui-declared",
+        artifacts=[
+            WorkspaceArtifactRef(
+                kind=WorkspaceArtifactKind.SOURCE_CONTRACT,
+                fingerprint=c_fp,
+                schema_version="1.0",
+                label="contract-declared",
+                standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                availability=WorkspaceAvailabilityState.AVAILABLE,
+            ),
+            WorkspaceArtifactRef(
+                kind=WorkspaceArtifactKind.PREREGISTRATION_PLAN,
+                fingerprint=p_fp,
+                schema_version="1.0",
+                label="plan-declared",
+                parent_fingerprint=c_fp,
+                standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                availability=WorkspaceAvailabilityState.AVAILABLE,
+            ),
+            WorkspaceArtifactRef(
+                kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+                fingerprint=rep_fp,
+                schema_version="1.0",
+                label="report-declared",
+                parent_fingerprint=p_fp,
+                standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                availability=WorkspaceAvailabilityState.AVAILABLE,
+            ),
+            WorkspaceArtifactRef(
+                kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+                fingerprint=cap_fp,
+                schema_version="1.0",
+                label="capsule-declared",
+                standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                availability=WorkspaceAvailabilityState.AVAILABLE,
+            ),
+        ],
+        declared_stage=WorkspaceLifecycleStage.REVIEW_READY,
+    )
+    # Also need to ensure derived is REVIEW_READY: with plan+report+capsule and compatible/unavailable resolved, it should be REVIEW_READY
+    # Provide explicit JSON via uploaded_text path
+    json_str = manifest.model_dump_json()
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["study_workspace_uploaded_text"] = json_str
+    app.session_state["study_workspace_path"] = ""
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception, f"Render raised: {result.exception}"
+    # Find caption containing Declared stage
+    texts: list[str] = []
+    for coll in (result.caption, result.info, result.markdown, result.warning):
+        try:
+            texts.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    joined = " ".join(texts)
+    # Concrete values must appear
+    assert "review_ready" in joined.lower() or "REVIEW_READY" in joined, (
+        f"Missing review_ready in {joined[:800]}"
+    )
+    # Also check literal placeholders do NOT appear
+    assert "{manifest.declared_stage.value}" not in joined, (
+        f"Literal placeholder leaked: {joined[:800]}"
+    )
+    assert "{derived_stage.value}" not in joined, f"Literal placeholder leaked: {joined[:800]}"
+    # Ensure the caption shows both declared and derived
+    assert "Declared stage:" in joined
+    assert "Derived stage:" in joined

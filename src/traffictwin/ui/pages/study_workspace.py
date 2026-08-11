@@ -347,8 +347,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         st.markdown(f"{_badge_for_stage(derived_stage)} **{derived_stage.value.upper()}**")
         if manifest.declared_stage is not None:
             st.caption(
-                "Declared stage: `{manifest.declared_stage.value}` "
-                "· Derived stage: `{derived_stage.value}`"
+                f"Declared stage: `{manifest.declared_stage.value}` "
+                f"· Derived stage: `{derived_stage.value}`"
             )
             if manifest.declared_stage != derived_stage:
                 st.error("Declared stage contradicts derived stage — see blocker panel.")
