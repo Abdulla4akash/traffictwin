@@ -588,3 +588,84 @@ def test_registry_backend_error_propagates() -> None:
     faulty = FaultyRegistry(registry_version="1.0", contracts=[_valid_contract()], supersession=[])
     with pytest.raises(RuntimeError, match="sentinel registry fault"):
         build_resource_strategy_report(study, metric_contract_registry=faulty)
+
+
+def test_registry_contract_must_match_study_catalog_even_when_all_arms_match_registry() -> None:
+    custom_key = "custom.test.metric"
+    # Study catalog says ratio, registry says ms, both arms declare ms
+    # Arms agree with registry but catalog disagrees — must be INCOMPATIBLE
+    catalog = [
+        ResourceStrategyMetric(
+            metric_key="task.completion.rate_offered",
+            metric_version="1.0",
+            unit="ratio",
+            denominator=ResourceStrategyMetricDenominator.OFFERED_TASKS,
+        ),
+        ResourceStrategyMetric(
+            metric_key=custom_key,
+            metric_version="1.0",
+            unit="ratio",
+            denominator=ResourceStrategyMetricDenominator.REPLICATION,
+        ),
+    ]
+    decl_ms_a = ResourceStrategyMetric(
+        metric_key=custom_key,
+        metric_version="1.0",
+        unit="ms",
+        denominator=ResourceStrategyMetricDenominator.REPLICATION,
+    )
+    decl_ms_b = ResourceStrategyMetric(
+        metric_key=custom_key,
+        metric_version="1.0",
+        unit="ms",
+        denominator=ResourceStrategyMetricDenominator.REPLICATION,
+    )
+    arms = [
+        ResourceStrategyArm(
+            arm_id="arm_a",
+            label="Arm A",
+            description="A",
+            strategy_type="t",
+            replications=[_rep("rep_001", {custom_key: 0.42}), _rep("rep_002", {custom_key: 0.43})],
+            metric_declarations=[decl_ms_a],
+        ),
+        ResourceStrategyArm(
+            arm_id="arm_b",
+            label="Arm B",
+            description="B",
+            strategy_type="t",
+            replications=[_rep("rep_001", {custom_key: 0.44}), _rep("rep_002", {custom_key: 0.45})],
+            metric_declarations=[decl_ms_b],
+        ),
+    ]
+    study = ResourceStrategyStudy.model_validate(
+        {
+            "schema_version": "1.0",
+            "study_id": "test_study",
+            "source_fingerprint": hashlib.sha256(b"test").hexdigest(),
+            "evidence_mode": ResourceStrategyEvidenceMode.SYNTHETIC_DEMONSTRATION.value,
+            "admission_state": ResourceStrategyAdmissionState.SYNTHETIC_DEMONSTRATION.value,
+            "replication_unit": "replication_id",
+            "arms": [a.model_dump(mode="json") for a in arms],
+            "common_matched_replication_ids": ["rep_001", "rep_002"],
+            "excluded_replication_ids": [],
+            "metric_catalog": [m.model_dump(mode="json") for m in catalog],
+            "limitations": [],
+            "provenance": {},
+            "generated_at": None,
+        }
+    )
+    reg = _registry([_valid_contract(metric_key=custom_key, unit="ms")])
+    report = build_resource_strategy_report(study, metric_contract_registry=reg)
+    compat = next(c for c in report.compatibility if c.metric_key == custom_key)
+    assert compat.status.value == "incompatible"
+    # Finding must identify registry-vs-study-catalog mismatch, not arm mismatch
+    assert "unit 'ratio' != registered 'ms'" in compat.finding
+    for arm in report.arm_summaries:
+        agg = next(a for a in arm.metric_aggregates if a.metric_key == custom_key)
+        assert agg.status == ResourceStrategyMetricStatus.UNAVAILABLE
+        assert agg.aggregate_mean is None
+        assert not agg.per_replication_values
+    for diff in report.pairwise_differences:
+        if diff.metric_key == custom_key:
+            assert diff.status.value == "unavailable"
