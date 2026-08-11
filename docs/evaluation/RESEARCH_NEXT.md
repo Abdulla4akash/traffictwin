@@ -2,10 +2,10 @@
 
 **Status date:** 2026-08-11
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
-**Current phase:** E1, E2, E2b and the bounded E2c matched gated-placement replication are closed;
-the E2c post-run F1 reporting amendment awaits fresh independent exact-head review
-**Execution authority:** none; E2c has completed all authorised cells and no further experiment is
-authorised without a new direct researcher instruction
+**Current phase:** E1, E2, E2b and E2c are closed; the newly authorised E2d per-task sequential
+least-busy placement robustness package is predeclared and awaits exact independent pre-run review
+**Execution authority:** none until independent Claude returns exact `APPROVE` for the exact E2d
+TrafficTwin head, vec_env candidate head and frozen manifest SHA-256
 
 This is the repository's **highest-authority operational record for what research task happens
 next**. Agents must read it before dated audits, checklists, experiment reports or implementation
@@ -204,6 +204,16 @@ establishes:
   [explicit amendment record](e2c/e2c_postrun_reporting_amendment_2026-08-11.md) preserves the
   historical evidence-index hash and confirms that no scientific evidence, manifest, statistic,
   validation, configuration, raw output or checksum ledger changed;
+- E2c frozen reporting-amendment head: `1a08d6e148a1e8c430da39c3d575eda3f8ea5929`; E2c remains
+  closed and immutable;
+- direct E2d instruction: add only `per_task_dla`, meaning per-task sequential least-busy
+  (shortest-workload) placement plus the inherited deadline-aware gate, and compare its four new
+  seed-1-to-4 cells with exact reused E2c `ingress_dla` and common-target `dla` evidence;
+- E2d source audit: `rsu_busy_ms` is remaining compute service workload in milliseconds; inherited
+  `dla` selects one lowest-index `argmin` across all RSUs per substep, while the new mode recomputes
+  that target in ascending padded vehicle-slot order after every admitted service reservation;
+- E2d pre-run boundary: only synthetic fixture/unit probes are complete; no Manchester replay,
+  smoke or full E2d cell may run before exact independent approval of the frozen identities;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -212,41 +222,37 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Fresh independent exact-head review of the reporting-only E2c F1 amendment.**
+**Independent exact-head review of the complete E2d pre-run package.**
 
-The exact E2c contract is the
-[E2c manifest](e2c/e2c_gated_placement_multidraw_manifest_v1.json), with its SHA-256 sidecar. The
-[decision record](e2c/e2c_gated_placement_multidraw_decision_record_2026-08-10.md) explains why
-seed 0 is prior pilot evidence and why only placement differs in the new matched pairs. The
-[completed report](e2c/e2c_gated_placement_multidraw_report_2026-08-10.md),
-[validation](e2c/e2c_gated_placement_multidraw_validation_v1.json),
-[comparison](e2c/e2c_gated_placement_multidraw_comparison_v1.json),
-[mechanism summary](e2c/e2c_gated_placement_mechanism_summary_v1.json) and
-[evidence index](e2c/e2c_gated_placement_multidraw_evidence_index_v1.json) are the authoritative
-completed records. The
-[post-run reporting amendment](e2c/e2c_postrun_reporting_amendment_2026-08-11.md) records why the
-supervisor summary changed after execution without rewriting the historical evidence index.
+The exact E2d contract is the
+[E2d manifest](e2d/e2d_per_task_placement_robustness_manifest_v1.json), with its SHA-256 sidecar.
+The [decision record](e2d/e2d_per_task_placement_robustness_decision_record_2026-08-11.md) freezes
+the source-level terminology, candidate ordering, tie-breaking, causal workload update, inherited
+three-iteration mapping, estimands and claims. Review must cover the complete TrafficTwin and
+vec_env diffs, manifest, synthetic production probes, tests, E2c reuse bindings, runtime/storage
+gates, stop rules and permission boundaries.
 
 ### Exit condition
 
-E2c met its scientific exit condition: exact independent approval, all 16 repeated smokes, all
-eight full cells, four paired validations, the primary four-draw analysis, the separately labelled
-seed-0-to-4 descriptive summary and final checksum/evidence records passed. The final repository
-head is not frozen until the reporting-only amendment receives fresh independent exact-head review.
-No evaluator run is part of that review gate.
+E2d Phase 1 exits only when the implementation and predeclared package are committed and pushed in
+two clean draft branches and an exact review packet is returned. Trace execution remains blocked
+until the human supplies independent Claude's exact `APPROVE` for all three frozen identities.
+`APPROVE_WITH_MINOR_FIXES` is not execution authority; any changed head or manifest requires a
+fresh review.
 
 ## What follows after this gate
 
-Nothing follows automatically. After the bounded E2c evidence package, researcher review must
-decide what the matched placement evidence supports. Another fleet seed, E3/backhaul, scaling,
-P2C, learning or retraining requires a new direct instruction.
+After exact approval only, the frozen E2d runner may perform eight existing-mode ten-step replays,
+eight repeated new-mode ten-step smokes and four serial `per_task_dla` full cells. Nothing follows
+automatically after E2d; successful completion stops for independent post-run evidence review.
 
 ## Explicitly not next
 
 Do not start:
 
-- `off`, `jsq` or any E2c arm other than `ingress_dla` and `dla`;
-- any fleet seed outside 1–4 or a seed-0 rerun;
+- any E2d trace replay, smoke or full cell before exact independent approval;
+- any full `ingress_dla` or `dla` rerun, or any `off`/`jsq` run;
+- any fleet seed outside 1–4 or any seed-0 E2d run;
 - P2C or DLA-P2C;
 - E3 or any nonzero-backhaul run;
 - static/reactive/proactive scaling;
