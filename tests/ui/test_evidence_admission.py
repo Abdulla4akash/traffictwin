@@ -559,3 +559,196 @@ def test_ui_decision_form_submission_creates_ledger_entry(
     # History contains admitted decision
     history_text = " ".join(frame.value.to_csv(index=False) for frame in app.dataframe)
     assert "admitted" in history_text.lower()
+
+
+def test_b3_summary_export_corrupt_does_not_crash_inbox(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    """B3: one corrupt case must not crash whole inbox; valid case remains usable."""
+    from datetime import UTC, datetime
+
+    svc = EvidenceAdmissionInboxService()
+    # aaa-good valid
+    svc.create_case(
+        case_id="aaa-good",
+        candidate_artifact_fingerprint=_hex("art-aaa-good"),
+        expected_preregistration_cell_id="cell-good",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version="1.0",
+        observed_metric_unit="ratio",
+        evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+        source_contract_result_fingerprint=_hex("con-good"),
+        rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+        validation_standing=ValidationStanding.VALIDATED,
+        compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        created_at=datetime(2026, 8, 10, 12, 0, tzinfo=UTC),
+    )
+    svc.append_decision(
+        case_id="aaa-good",
+        decision_id="dec-aaa-1",
+        decision=EvidenceReviewState.ADMITTED,
+        reason="admit good",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    # zzz-bad corrupt: cached ADMITTED with empty ledger
+    svc.create_case(
+        case_id="zzz-bad",
+        candidate_artifact_fingerprint=_hex("art-zzz-bad"),
+        expected_preregistration_cell_id="cell-bad",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version="1.0",
+        observed_metric_unit="ratio",
+        evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+        source_contract_result_fingerprint=_hex("con-bad"),
+        rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+        validation_standing=ValidationStanding.VALIDATED,
+        compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        created_at=datetime(2026, 8, 10, 12, 0, tzinfo=UTC),
+    )
+    case_bad = svc.get_case("zzz-bad")
+    ledger_bad = svc.get_ledger("zzz-bad")
+    corrupted = case_bad.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
+    svc._cases["zzz-bad"] = type(svc._cases["zzz-bad"])(case=corrupted, ledger=ledger_bad)
+
+    app = _app(monkeypatch, tmp_path / "workspace")
+    _inject_service(app, svc)
+    # Ensure aaa-good is selected (default sorted case_ids gives aaa-good first)
+    app.run(timeout=20)
+    assert not app.exception
+    # Valid case detail still renders (not taken down by corrupt summary)
+    # Select aaa-good explicitly if needed
+    try:
+        sel = next(s for s in app.selectbox if s.label == "Select case for detail and decision")
+        if sel.value != "aaa-good":
+            sel.set_value("aaa-good").run(timeout=20)
+    except StopIteration:
+        pass
+    app.run(timeout=20)
+    assert not app.exception
+    # Valid case detail area still renders — check for aaa-good in tables/captions
+    tables_text = " ".join(frame.value.to_csv(index=False) for frame in app.dataframe)
+    assert "aaa-good" in tables_text or any("aaa-good" in str(c.value) for c in app.caption)
+    # Error explains review-summary export is unavailable/refused and names zzz-bad
+    errors = " ".join(str(e.value) for e in app.error)
+    assert "zzz-bad" in errors
+    assert (
+        "review-summary" in errors.lower()
+        or "review-summary csv" in errors.lower()
+        or "unavailable" in errors.lower()
+        or "refused" in errors.lower()
+    )
+    assert "integrity" in errors.lower() or "verification" in errors.lower()
+    # Review-summary CSV download button is absent (withheld)
+    assert not [b for b in app.download_button if "review summary csv" in str(b.label).lower()]
+    # Case JSON / ledger JSON controls for valid selected case remain available
+    assert any("ledger json" in str(b.label).lower() for b in app.download_button)
+    assert any("case json" in str(b.label).lower() for b in app.download_button)
+
+
+def test_b4_queue_displays_ledger_derived_state(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
+    """B4: queue tables must not display cached state; pending queue shows pending for corrupt."""
+    from datetime import UTC, datetime
+
+    svc = EvidenceAdmissionInboxService()
+    svc.create_case(
+        case_id="zzz-bad",
+        candidate_artifact_fingerprint=_hex("art-zzz-bad2"),
+        expected_preregistration_cell_id="cell-bad2",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version="1.0",
+        observed_metric_unit="ratio",
+        evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+        source_contract_result_fingerprint=_hex("con-bad2"),
+        rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+        validation_standing=ValidationStanding.VALIDATED,
+        compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        created_at=datetime(2026, 8, 10, 12, 0, tzinfo=UTC),
+    )
+    case_bad = svc.get_case("zzz-bad")
+    ledger_bad = svc.get_ledger("zzz-bad")
+    corrupted = case_bad.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
+    svc._cases["zzz-bad"] = type(svc._cases["zzz-bad"])(case=corrupted, ledger=ledger_bad)
+
+    app = _app(monkeypatch, tmp_path / "workspace")
+    _inject_service(app, svc)
+    app.run(timeout=20)
+    assert not app.exception
+    # Inspect Pending queue dataframe (should contain zzz-bad with state pending, not admitted)
+    found = False
+    for df in app.dataframe:
+        val = df.value if hasattr(df, "value") else None
+        if val is None:
+            continue
+        import pandas as pd  # type: ignore[import-untyped]
+
+        if not isinstance(val, pd.DataFrame):
+            continue
+        if "case_id" not in val.columns or "state" not in val.columns:
+            continue
+        # Look for Pending queue rows (we know zzz-bad should be in pending via ledger-derived)
+        if (val["case_id"] == "zzz-bad").any():
+            row = val[val["case_id"] == "zzz-bad"]
+            assert not row.empty
+            state_val = str(row.iloc[0]["state"])
+            assert state_val == "pending", (
+                f"expected pending but got {state_val!r} (must not be admitted)"
+            )
+            assert state_val != "admitted"
+            found = True
+            break
+    assert found, "zzz-bad not found in Pending queue dataframe with ledger-derived state"
+
+
+def test_b5_history_does_not_claim_pair_integrity_on_forensic_failure(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    """B5: history must never claim pair integrity on forensic failure; tail anchor mismatch."""
+    from datetime import UTC, datetime
+
+    svc = EvidenceAdmissionInboxService()
+    svc.create_case(
+        case_id="case-tail-mismatch",
+        candidate_artifact_fingerprint=_hex("art-tail"),
+        expected_preregistration_cell_id="cell-tail",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version="1.0",
+        observed_metric_unit="ratio",
+        evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+        source_contract_result_fingerprint=_hex("con-tail"),
+        rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+        validation_standing=ValidationStanding.VALIDATED,
+        compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        created_at=datetime(2026, 8, 10, 12, 0, tzinfo=UTC),
+    )
+    svc.append_decision(
+        case_id="case-tail-mismatch",
+        decision_id="dec-1",
+        decision=EvidenceReviewState.ADMITTED,
+        reason="admit",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    ledger = svc.get_ledger("case-tail-mismatch")
+    case = svc.get_case("case-tail-mismatch")
+    # Create tail anchor mismatch but keep ledger chain clean: corrupt case tail
+    corrupted_case = case.model_copy(update={"ledger_tail_fingerprint": "f" * 64})
+    svc._cases["case-tail-mismatch"] = type(svc._cases["case-tail-mismatch"])(
+        case=corrupted_case, ledger=ledger
+    )
+    # Verify ledger chain itself is still clean
+    assert ledger.verify() == []
+    # But pair is inconsistent
+    from traffictwin.evidence_admission.service import verify_case_with_ledger
+
+    assert verify_case_with_ledger(corrupted_case, ledger) != []
+
+    app = _app(monkeypatch, tmp_path / "workspace")
+    _inject_service(app, svc)
+    app.run(timeout=20)
+    assert not app.exception
+    errors = " ".join(str(e.value) for e in app.error)
+    assert "integrity" in errors.lower() or "mismatch" in errors.lower() or "tail" in errors.lower()
+    # Chain may still verify, but must not claim pair integrity
+    all_text = " ".join([str(c.value) for c in app.caption] + [str(e.value) for e in app.error])
+    assert "pair integrity verified" not in all_text.lower()

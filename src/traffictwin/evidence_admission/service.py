@@ -45,8 +45,6 @@ class EvidenceAdmissionError(ValueError):
 class DuplicateCaseError(EvidenceAdmissionError):
     """Duplicate case_id refused; existing review case cannot be replaced."""
 
-    pass
-
 
 class DuplicateBindingError(EvidenceAdmissionError):
     """Duplicate cell/candidate binding refused."""

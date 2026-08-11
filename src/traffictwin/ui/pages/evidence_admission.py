@@ -74,23 +74,56 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
 
     service = _get_service()
 
+    # Queue membership and displayed state both ledger-derived via snapshots
+    snapshots = service.case_snapshots()
+    pending_snaps = [
+        (c, ledger)
+        for c, ledger in snapshots
+        if (
+            ledger.current_state
+            if ledger.current_state is not None
+            else EvidenceReviewState.PENDING
+        )
+        == EvidenceReviewState.PENDING
+    ]
+    needs_snaps = [
+        (c, ledger)
+        for c, ledger in snapshots
+        if ledger.current_state == EvidenceReviewState.NEEDS_INFORMATION
+    ]
+    admitted_snaps = [
+        (c, ledger)
+        for c, ledger in snapshots
+        if ledger.current_state == EvidenceReviewState.ADMITTED
+    ]
+    rejected_withdrawn_snaps = [
+        (c, ledger)
+        for c, ledger in snapshots
+        if (
+            ledger.current_state
+            if ledger.current_state is not None
+            else EvidenceReviewState.PENDING
+        )
+        in (EvidenceReviewState.REJECTED, EvidenceReviewState.WITHDRAWN)
+    ]
+
     st.subheader("Pending queue")
     _render_queue(
-        service.pending_queue(),
+        pending_snaps,
         empty_message="No cases are pending review.",
         key="pending",
     )
 
     st.subheader("Needs information queue")
     _render_queue(
-        service.needs_information_queue(),
+        needs_snaps,
         empty_message="No cases are waiting for additional information.",
         key="needs_information",
     )
 
     st.subheader("Admitted history")
     _render_queue(
-        service.admitted_history(),
+        admitted_snaps,
         empty_message=(
             "No cases have been admitted. Only an explicit admitted decision creates "
             "an admitted attachment."
@@ -100,7 +133,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
 
     st.subheader("Rejected and withdrawn history")
     _render_queue(
-        service.rejected_or_withdrawn_history(),
+        rejected_withdrawn_snaps,
         empty_message="No cases have been rejected or withdrawn.",
         key="rejected_withdrawn",
     )
@@ -231,18 +264,25 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     _render_create_demo(service)
 
 
-def _render_queue(cases: Sequence[EvidenceReviewCase], *, empty_message: str, key: str) -> None:
-    if not cases:
+def _render_queue(
+    snapshots: Sequence[tuple[EvidenceReviewCase, EvidenceReviewLedger]],
+    *,
+    empty_message: str,
+    key: str,
+) -> None:
+    if not snapshots:
         st.info(empty_message)
         return
     rows: list[dict[str, str]] = []
-    for c in cases:
+    for c, ledger in snapshots:
+        ledger_state = ledger.current_state
+        display_state = ledger_state if ledger_state is not None else EvidenceReviewState.PENDING
         rows.append(
             {
                 "case_id": c.case_id,
                 "cell_id": c.expected_preregistration_cell_id,
                 "metric": f"{c.observed_metric_key}@{c.observed_metric_version}",
-                "state": c.current_state.value,
+                "state": display_state.value,
                 "rights": c.rights_privacy_standing.value,
             }
         )
@@ -279,16 +319,14 @@ def _render_decision_form(
     service: EvidenceAdmissionInboxService,
     case: EvidenceReviewCase,
     ledger: EvidenceReviewLedger,
-    display_state: EvidenceReviewState | None = None,
+    display_state: EvidenceReviewState,
 ) -> None:
-    # Derive authoritative display state from ledger; fallback to case for forensic path
-    effective = display_state if display_state is not None else case.current_state
-    current = effective.value
+    current = display_state.value
     st.caption(
         f"Current state is **{current}**. Only the allowed transitions from that state will be accepted."  # noqa: E501
     )
 
-    allowed = [s.value for s in allowed_transitions_from(effective)]
+    allowed = [s.value for s in allowed_transitions_from(display_state)]
     if not allowed:
         st.info(f"No further decisions are allowed from the terminal state {current!r}.")
         return
@@ -392,8 +430,7 @@ def _render_history(ledger: EvidenceReviewLedger) -> None:
     else:
         st.caption(
             "Decision hash chain verifies: every entry's previous fingerprint matches "
-            "its predecessor and decision IDs are unique. "
-            "Case/ledger pair integrity verified above."
+            "its predecessor and decision IDs are unique."
         )
 
 
@@ -484,7 +521,19 @@ def _render_exports(
 
 
 def _render_summary_exports(service: EvidenceAdmissionInboxService) -> None:
-    csv_text = review_summary_to_csv(service)
+    try:
+        csv_text = review_summary_to_csv(service)
+    except EvidenceAdmissionError as exc:
+        offending: list[str] = []
+        for case, ledger in service.case_snapshots():
+            if verify_case_with_ledger(case, ledger):
+                offending.append(case.case_id)
+        detail = f": {', '.join(sorted(offending))}" if offending else ""
+        st.error(
+            f"Review-summary CSV is unavailable because one or more case/ledger pairs "
+            f"failed integrity verification{detail}: {exc}"
+        )
+        return
     st.download_button(
         "Download review summary CSV",
         data=csv_text.encode("utf-8"),

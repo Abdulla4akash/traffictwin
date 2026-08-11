@@ -597,7 +597,18 @@ def test_review_summary_csv_fails_closed_on_inconsistent_pair_and_uses_ledger_st
     csv_text = review_summary_to_csv(svc)
     assert "case-csv-ok" in csv_text
     assert "admitted" in csv_text
-    assert "1" in csv_text  # decision_count
+    # Parse typed CSV column rather than raw substring
+    import csv
+    import io
+
+    reader = csv.DictReader(io.StringIO(csv_text))
+    rows = list(reader)
+    assert any(
+        r["case_id"] == "case-csv-ok"
+        and r["current_state"] == "admitted"
+        and r["decision_count"] == "1"
+        for r in rows
+    )
 
     # Construct inconsistent cached state: case says admitted but ledger empty
     svc2, case_id2 = _svc_case("case-csv-bad", "cell-csv-bad")
