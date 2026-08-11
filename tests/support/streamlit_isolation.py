@@ -40,11 +40,6 @@ _RELEVANT_ENV_VARS: tuple[str, ...] = (
     "STREAMLIT_BROWSER_GATHER_USAGE_STATS",
 )
 
-# Sentinel for absent.
-_ABSENT = object()
-
-_SENTINEL = _ABSENT
-
 
 @dataclass(frozen=True)
 class StreamlitIsolationSnapshot:
@@ -167,20 +162,16 @@ def _restore_streamlit_modules(snapshot: StreamlitIsolationSnapshot) -> None:
     if cur_is_fake:
         # Leaked fake — remove all current streamlit keys not in snapshot,
         # then restore snapshot's real tree.
-        import contextlib
-
         for key in list(cur_mods.keys()):
             if key not in snapshot_mods:
-                with contextlib.suppress(KeyError):
-                    sys.modules.pop(key, None)
+                sys.modules.pop(key, None)
         for key, val in snapshot_mods.items():
             if sys.modules.get(key) is not val:
                 sys.modules[key] = val
         # Also handle snapshot empty + fake: pop everything
         if not snapshot_mods:
             for key in list(cur_mods.keys()):
-                with contextlib.suppress(KeyError):
-                    sys.modules.pop(key, None)
+                sys.modules.pop(key, None)
         return
 
     # Current is real or absent — restore missing/changed snapshot keys,
@@ -239,12 +230,9 @@ def _restore_cwd(snapshot: StreamlitIsolationSnapshot) -> None:
 
 
 def _restore_env(snapshot: StreamlitIsolationSnapshot) -> None:
-    import contextlib
-
     for var, val in snapshot.env.items():
         if val is None:
-            with contextlib.suppress(KeyError):
-                os.environ.pop(var, None)
+            os.environ.pop(var, None)
         else:
             os.environ[var] = val
 
@@ -445,17 +433,15 @@ def has_meaningful_streamlit_leak(leak: dict[str, object]) -> bool:
 
     Returns True only for actual state leaks that the guard should report:
     - streamlit module presence/identity changed to a fake (sys_modules)
-    - AppTest wrapper installation state leaked (apptest_installed)
     - cwd / finder where applicable (cwd, finder_present)
 
-    Transient AppTest execution state such as ``has_run_first`` or
-    ``apptest_run_id_changed`` alone is NOT meaningful and is ignored to avoid
-    noise on normal AppTest tests. Likewise, informational fields like
-    ``streamlit_has_secrets`` / ``streamlit_id`` alone are not meaningful.
-    Selected environment changes (``env``) are not considered isolation leaks
-    for the guard's warning path — env is restored but not warned.
+    Legitimate first-AppTest initialization (``apptest_installed`` false→true)
+    is not a leak by itself and is ignored; a fake still warns via
+    ``sys_modules``. Transient ``has_run_first`` or ``apptest_run_id_changed``
+    alone and informational ``streamlit_has_secrets`` / ``streamlit_id`` are
+    also ignored. ``env`` alone is not warned (restored but not leaked).
     """
-    meaningful_keys = {"sys_modules", "apptest_installed", "cwd", "finder_present"}
+    meaningful_keys = {"sys_modules", "cwd", "finder_present"}
     return any(key in leak for key in meaningful_keys)
 
 

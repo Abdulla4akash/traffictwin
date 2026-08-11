@@ -3,18 +3,19 @@
 """Regression and guard tests for Streamlit/Pytest isolation.
 
 Covers:
-- same-process polluter->victim regression
+- same-process polluter->victim regression (with AppTest rendering)
 - diagnostic helper does not leak secrets
 - adversarial/mutation proof helpers
-- real-fixture end-to-end subprocess coverage
+- helper-level meaningful-leak predicate
+
+Subprocess proofs are in ``test_streamlit_isolation_subprocess.py`` to avoid
+parent-process AppTest poisoning (BLOCKER B1).
 """
 
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
-import tempfile
 import types
 from pathlib import Path
 
@@ -74,91 +75,6 @@ def _victim_can_render() -> bool:
         if "has no attribute" in msg or "secrets" in msg or "_tree" in msg:
             return False
         return False
-
-
-# ---------------------------------------------------------------------------
-# Helper to run a probe file through the real autouse fixture via subprocess.
-# ---------------------------------------------------------------------------
-
-
-def _run_probe_subprocess(
-    probe_source: str, capfd: object | None = None
-) -> subprocess.CompletedProcess[str]:
-    """Create a temporary probe under ``tests/`` and run it via the real guard.
-
-    When called from inside a pytest test that has ``capfd`` capture active,
-    the subprocess's ``capture_output=True`` can deadlock with pytest's FD
-    capture and trigger a segfault (exit -11). To avoid that, we temporarily
-    disable pytest's capture via ``capfd.disabled()`` when a ``capfd`` fixture
-    is supplied, and we also isolate the subprocess with ``start_new_session``
-    and a clean env (removing ``PYTEST_CURRENT_TEST``).
-    """
-    repo_root = Path(__file__).resolve().parents[2]
-    # Use a temp file inside tests/ so tests/conftest.py applies.
-    fd, probe_path_str = tempfile.mkstemp(
-        dir=str(repo_root / "tests"),
-        prefix="_tmp_probe_",
-        suffix=".py",
-    )
-    os.close(fd)
-    probe_path = Path(probe_path_str)
-    try:
-        probe_path.write_text(probe_source, encoding="utf-8")
-        # Run pytest on that single file serially, with warnings always shown.
-        # Use sys.executable -m pytest to avoid uv indirection segfault.
-        env = dict(os.environ)
-        env.pop("PYTEST_CURRENT_TEST", None)
-        env.pop("UV_RUN_RECURSION_DEPTH", None)
-        env.pop("UV", None)
-        # Ensure src is on path via pythonpath; pyproject already sets pythonpath=["."].
-        cmd = [
-            sys.executable,
-            "-m",
-            "pytest",
-            str(probe_path),
-            "-v",
-            "-s",
-            "-W",
-            "always::pytest.PytestWarning",
-            "-p",
-            "no:cacheprovider",
-        ]
-        # Disable pytest's FD capture around the subprocess call when possible.
-        # ``capfd`` is an optional fixture passed by the caller.
-        if capfd is not None:
-            try:
-                disabled = capfd.disabled  # type: ignore[attr-defined]
-            except AttributeError:
-                disabled = None
-            if disabled is not None:
-                with disabled():  # type: ignore[no-untyped-call]
-                    result = subprocess.run(  # noqa: S603 - trusted local probe file
-                        cmd,
-                        cwd=str(repo_root),
-                        capture_output=True,
-                        text=True,
-                        timeout=60,
-                        env=env,
-                        stdin=subprocess.DEVNULL,
-                        start_new_session=True,
-                    )
-                return result
-        result = subprocess.run(  # noqa: S603 - trusted local probe file
-            cmd,
-            cwd=str(repo_root),
-            capture_output=True,
-            text=True,
-            timeout=60,
-            env=env,
-            stdin=subprocess.DEVNULL,
-            start_new_session=True,
-        )
-        return result
-    finally:
-        import contextlib
-
-        with contextlib.suppress(FileNotFoundError):
-            probe_path.unlink()
 
 
 # ---------------------------------------------------------------------------
@@ -355,130 +271,6 @@ def test_mutation_restore_actually_restores() -> None:
     restore_streamlit_snapshot(before)
 
 
-# ---------------------------------------------------------------------------
-# Real-fixture end-to-end: passing polluter must emit visible warning via guard
-# ---------------------------------------------------------------------------
-
-
-def test_real_fixture_passing_polluter_emits_warning_and_victim_passes(
-    capfd: pytest.CaptureFixture[str],
-) -> None:
-    """End-to-end via real autouse fixture: polluter passes, warning visible, victim restored."""
-    probe = """
-import types
-import sys
-import importlib
-
-def test_a_leaks_fake_streamlit_and_passes():
-    fake = types.ModuleType("streamlit.testing.v1")
-    class FakeAppTest:
-        def run(self, timeout=None, **kwargs):
-            return self
-    fake.AppTest = FakeAppTest
-    sys.modules["streamlit"] = types.ModuleType("streamlit")
-    sys.modules["streamlit.testing"] = types.ModuleType("streamlit.testing")
-    sys.modules["streamlit.testing.v1"] = fake
-    assert True
-
-def test_b_victim_sees_real_streamlit():
-    import importlib
-    m = importlib.import_module("streamlit")
-    assert hasattr(m, "secrets"), "real streamlit must have secrets after guard"
-    from streamlit.testing.v1 import AppTest
-    app = AppTest.from_file("src/traffictwin/ui/app_pages/resource_strategy.py")
-    from copy import deepcopy
-    from traffictwin.ui.state import default_session_state, load_ui_config
-    for k, v in deepcopy(default_session_state(load_ui_config())).items():
-        app.session_state[k] = v
-    app.session_state["_v07_navigation_active"] = True
-    app.session_state["resource_strategy_study_path"] = (  # noqa: E501 - fixture path
-        "tests/fixtures/resource_strategy/synthetic_study_v1.json"
-    )
-    result = app.run(timeout=30)
-    assert not result.exception
-"""
-    result = _run_probe_subprocess(probe, capfd=capfd)
-    combined = result.stdout + result.stderr
-    assert result.returncode == 0, (
-        f"probe should pass (2 passed) but got {result.returncode}:\\n{combined}"
-    )
-    assert "2 passed" in combined, f"expected 2 passed: {combined}"
-    assert "Streamlit isolation leak detected after" in combined, f"warning missing: {combined}"
-    # Must include polluter node id
-    assert "test_a_leaks_fake_streamlit_and_passes" in combined
-    assert "sys_modules" in combined
-    assert "state was restored by the isolation guard" in combined
-    assert "real Streamlit capability absent or fake detected" in combined
-    # Secret-safe: probe does not set secrets, but ensure no secret leakage pattern
-    assert "BODS_API_KEY" not in combined or "secret" not in combined.lower()
-
-
-def test_real_fixture_legitimate_import_is_not_a_leak(capfd: pytest.CaptureFixture[str]) -> None:
-    """Legitimate lazy import of real streamlit must NOT be reported as leak."""
-    probe = """
-import importlib
-
-def test_a_legitimate_import():
-    import importlib
-    import sys
-    m = importlib.import_module("streamlit")
-    assert hasattr(m, "secrets")
-    assert True
-
-def test_b_still_real():
-    import sys
-    import importlib
-    m = importlib.import_module("streamlit")
-    assert hasattr(m, "secrets")
-    assert "streamlit" in sys.modules
-"""
-    result = _run_probe_subprocess(probe, capfd=capfd)
-    combined = result.stdout + result.stderr
-    assert result.returncode == 0, f"legitimate import probe failed: {combined}"
-    assert "2 passed" in combined, f"expected 2 passed: {combined}"
-    # Must NOT have leak warning for innocent import
-    assert "Streamlit isolation leak detected after" not in combined, (
-        f"false positive for legitimate import: {combined}"
-    )
-
-
-def test_real_fixture_has_run_first_is_process_scoped(capfd: pytest.CaptureFixture[str]) -> None:
-    """Process-scoped has_run_first: second test must see first-run consumed."""
-    probe = """
-from tests._apptest_runtime import reset_apptest_cold_state
-from tests.support.streamlit_isolation import capture_streamlit_snapshot
-
-def test_a_consumes_first_run():
-    from streamlit.testing.v1 import AppTest
-    from copy import deepcopy
-    from traffictwin.ui.state import default_session_state, load_ui_config
-    # Ensure clean start
-    reset_apptest_cold_state()
-    before = capture_streamlit_snapshot()
-    assert before.apptest_has_run_first is False
-    app = AppTest.from_file("src/traffictwin/ui/app_pages/resource_strategy.py")
-    for k, v in deepcopy(default_session_state(load_ui_config())).items():
-        app.session_state[k] = v
-    app.session_state["_v07_navigation_active"] = True
-    app.session_state["resource_strategy_study_path"] = (  # noqa: E501 - fixture path
-        "tests/fixtures/resource_strategy/synthetic_study_v1.json"
-    )
-    app.run(timeout=30)
-    after = capture_streamlit_snapshot()
-    assert after.apptest_has_run_first is True
-
-def test_b_sees_still_consumed():
-    from tests.support.streamlit_isolation import capture_streamlit_snapshot
-    snap = capture_streamlit_snapshot()
-    # Guard must NOT have rewound has_run_first; second test sees True
-    assert snap.apptest_has_run_first is True, "has_run_first must remain True process-scoped"
-"""
-    result = _run_probe_subprocess(probe, capfd=capfd)
-    combined = result.stdout + result.stderr
-    assert result.returncode == 0, f"process-scoped probe failed: {combined}"
-    assert "2 passed" in combined, f"expected 2 passed: {combined}"
-
-
 def test_has_meaningful_predicate_avoids_noise() -> None:
     """Predicate must not warn on every AppTest test; env alone is not meaningful."""
     from tests.support.streamlit_isolation import has_meaningful_streamlit_leak
@@ -570,29 +362,3 @@ def test_diagnose_legitimate_import_not_meaningful() -> None:
     leak3 = diagnose_streamlit_leak(after, capture_streamlit_snapshot())
     assert has_meaningful_streamlit_leak(leak3) is True
     restore_streamlit_snapshot(after)
-
-
-def test_reporting_only_mutation_proves_warning_independent() -> None:
-    """Reporting-only mutation: disabling warning must be detectable, restore still works."""
-    from tests.support import streamlit_isolation as iso
-
-    before = capture_streamlit_snapshot()
-    _ = _emulate_polluter_install_fake()
-    after = capture_streamlit_snapshot()
-    leak = diagnose_streamlit_leak(before, after)
-    assert iso.has_meaningful_streamlit_leak(leak) is True
-    orig = iso.has_meaningful_streamlit_leak
-    try:
-        iso.has_meaningful_streamlit_leak = lambda leak: False  # type: ignore[assignment]
-        assert iso.has_meaningful_streamlit_leak(leak) is False
-        restore_streamlit_snapshot(before)
-        assert hasattr(sys.modules["streamlit"], "secrets")
-        assert _victim_can_render()
-    finally:
-        iso.has_meaningful_streamlit_leak = orig  # type: ignore[assignment]
-    before2 = capture_streamlit_snapshot()
-    _ = _emulate_polluter_install_fake()
-    after2 = capture_streamlit_snapshot()
-    leak2 = diagnose_streamlit_leak(before2, after2)
-    assert iso.has_meaningful_streamlit_leak(leak2) is True
-    restore_streamlit_snapshot(before2)
