@@ -308,6 +308,58 @@ def test_confirmation_digest_gate(tmp_path: Path) -> None:
         activate_workspace(req2, plan2, bad)
 
 
+def test_tampered_plan_with_stale_digest_is_refused(tmp_path: Path) -> None:
+    """Regression for plan content integrity gate (Gate 2).
+
+    Gate 2 proves the current plan body still hashes to confirmation_digest.
+    Attack: keep original request and confirmation_digest unchanged, but
+    construct a new typed WorkspaceActivationPlan with an attacker-chosen
+    directory under the destination while intentionally retaining the old
+    confirmation_digest. Activation must be refused via
+    plan.expected_digest() != plan.confirmation_digest before any mutation.
+    """
+    dest = tmp_path / "ws_tampered_plan"
+    req = _req(dest)
+    pre = preflight_workspace(req)
+    plan = build_activation_plan(req, pre)
+    original_digest = plan.confirmation_digest
+    request_fp = req.fingerprint()
+    # Sanity: gate would pass for untampered plan
+    assert plan.expected_digest() == original_digest
+    assert plan.request_fingerprint == request_fp
+    # Forge: same request_fingerprint and confirmation_digest, but body changed
+    attacker_dir = f"{dest}/attacker-chosen-directory"
+    forged_dirs = sorted([*plan.directories_to_create, attacker_dir])
+    forged_plan = plan.model_copy(
+        update={
+            "directories_to_create": forged_dirs,
+            "confirmation_digest": original_digest,
+        }
+    )
+    # Forged plan must still satisfy Pydantic sorting/model validity so it
+    # reaches the activation integrity gate rather than failing at validation.
+    assert forged_plan.directories_to_create == sorted(forged_plan.directories_to_create)
+    assert forged_plan.request_fingerprint == request_fp
+    assert forged_plan.confirmation_digest == original_digest
+    assert forged_plan.expected_digest() != original_digest
+    confirmation = WorkspaceActivationConfirmation(
+        confirmation_digest=original_digest,
+        request_fingerprint=request_fp,
+    )
+    with pytest.raises(ActivationRefusedError, match="Plan digest integrity"):
+        activate_workspace(req, forged_plan, confirmation)
+    # Critical: no mutation occurred
+    assert not (dest / ".traffictwin_workspace" / "marker.json").exists()
+    assert not (dest / ".traffictwin_workspace" / "receipt.json").exists()
+    assert not (dest / "attacker-chosen-directory").exists()
+    # No staging directory left behind (gate fails before staging, but check)
+    assert list(tmp_path.glob(".*staging*")) == []
+    # Destination must not be considered active
+    status = get_workspace_status(str(dest))
+    assert status.is_active is False
+    assert status.is_managed is False
+
+
 def test_atomic_activation(tmp_path: Path) -> None:
     dest = tmp_path / "ws_atomic"
     req = _req(dest)
