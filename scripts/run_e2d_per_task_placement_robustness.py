@@ -13,7 +13,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from validate_e2d_per_task_placement_robustness import (
     cell_name,
@@ -490,7 +490,7 @@ def run_once(
     write_json_new(run_dir / "run_validation.json", validation)
     if validation["status"] != "passed":
         raise RuntimeError(f"run validation failed for {phase}: {run_dir}")
-    return validation
+    return cast(dict[str, Any], validation)
 
 
 def run_replay_gate(manifest_path: Path, manifest: dict[str, Any]) -> dict[str, Any]:
