@@ -10,6 +10,6 @@ from traffictwin.ui.state import load_ui_config
 st.session_state["_active_ui_route"] = "evidence-admission"
 st.sidebar.caption(
     "Human review between validation and admission; validation is not admission, "
-    "and no attachment is created automatically."  # noqa: E501
+    "and no attachment is created automatically."
 )
 render(load_ui_config())

@@ -42,6 +42,12 @@ class EvidenceAdmissionError(ValueError):
     """Base refused/unavailable error for the inbox service."""
 
 
+class DuplicateCaseError(EvidenceAdmissionError):
+    """Duplicate case_id refused; existing review case cannot be replaced."""
+
+    pass
+
+
 class DuplicateBindingError(EvidenceAdmissionError):
     """Duplicate cell/candidate binding refused."""
 
@@ -191,6 +197,13 @@ class EvidenceAdmissionInboxService:
         created_at: datetime | None = None,
     ) -> EvidenceReviewCase:
         """Create a new pending case, refusing duplicate cell/candidate bindings."""
+        # Reject duplicate case_id before any mutation (append-only, immutable identity)
+        norm_case_id = case_id.strip()
+        if norm_case_id in self._cases:
+            raise DuplicateCaseError(
+                f"duplicate case_id {norm_case_id!r} refused; "  # noqa: E501
+                "existing review case cannot be replaced"
+            )
         binding_key = (
             candidate_artifact_fingerprint.strip().lower(),
             expected_preregistration_cell_id.strip(),
@@ -369,8 +382,8 @@ class EvidenceAdmissionInboxService:
         """Export an admitted EvidenceAttachment, fail-closed.
 
         The decision ledger is the ONLY authority for admission.
-        Requires a verified non-genesis ledger whose current state is ADMITTED,
-        whose tail matches the case anchor, and whose cached case state agrees.
+        Requires a verified case/ledger pair whose ledger current_state is ADMITTED,
+        plus binding and compatibility checks. Non-empty/non-genesis is implied by ADMITTED.
         """
         stored = self._cases.get(case_id)
         if stored is None:
@@ -394,10 +407,6 @@ class EvidenceAdmissionInboxService:
                     "export refused: ledger has no admission decision; "
                     "current ledger state is unavailable"
                 )
-        if not ledger.decisions:
-            raise ExportRefusedError("export refused: ledger has no decisions")
-        if ledger.tail_fingerprint == _GENESIS:
-            raise ExportRefusedError("export refused: genesis ledger tail can never admit")
 
         # Fingerprint and binding checks (fail-closed)
         if artifact_fingerprint is not None:
@@ -468,8 +477,6 @@ class EvidenceAdmissionInboxService:
             raise EvidenceAdmissionError(
                 "export fingerprint mismatch: deterministic serialization failed"
             )
-        if export.ledger_tail_fingerprint == _GENESIS:
-            raise ExportRefusedError("export refused: genesis ledger tail can never admit")
         return export
 
     # -- queue helpers -------------------------------------------------------
@@ -580,6 +587,11 @@ def review_summary_to_csv(service: EvidenceAdmissionInboxService) -> str:
     writer = csv.DictWriter(output, fieldnames=columns, lineterminator="\n")
     writer.writeheader()
     for case, ledger in sorted(service.case_snapshots(), key=lambda pair: pair[0].case_id):
+        violations = verify_case_with_ledger(case, ledger)
+        if violations:
+            raise LedgerVerificationError("; ".join(violations))
+        ledger_state = ledger.current_state
+        display_state = ledger_state if ledger_state is not None else EvidenceReviewState.PENDING
         writer.writerow(
             {
                 "case_id": sanitise_for_csv(case.case_id),
@@ -599,7 +611,7 @@ def review_summary_to_csv(service: EvidenceAdmissionInboxService) -> str:
                 "rights_privacy_standing": sanitise_for_csv(case.rights_privacy_standing.value),
                 "validation_standing": sanitise_for_csv(case.validation_standing.value),
                 "compatibility_standing": sanitise_for_csv(case.compatibility_standing.value),
-                "current_state": sanitise_for_csv(case.current_state.value),
+                "current_state": sanitise_for_csv(display_state.value),
                 "ledger_tail_fingerprint": sanitise_for_csv(ledger.tail_fingerprint),
                 "finding_count": sanitise_for_csv(str(len(case.findings))),
                 "decision_count": sanitise_for_csv(str(len(ledger.decisions))),

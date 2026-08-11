@@ -86,13 +86,17 @@ def test_zero_decision_attack_corrupted_case_is_refused() -> None:
 
 
 def test_genesis_tail_can_never_export() -> None:
+    # After Q1 dead-guard removal, genesis is implied by empty ADMITTED check.
+    # Real protection is case/ledger consistency: forged ADMITTED with empty ledger must be refused.
     svc, case_id = _svc_case("case-genesis", "cell-genesis")
-    # Even if we could set case state to admitted, genesis must refuse
     ledger = svc.get_ledger(case_id)
     assert ledger.tail_fingerprint == "0" * 64
+    assert ledger.current_state is None
     case = svc.get_case(case_id)
     corrupted = case.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
     svc._cases[case_id] = type(svc._cases[case_id])(case=corrupted, ledger=ledger)
+    violations = svc.verify_ledger(case_id)
+    assert any("disagrees with empty ledger" in v for v in violations)
     with pytest.raises((ExportRefusedError, LedgerVerificationError)):
         svc.export_admitted_attachment(case_id)
 
@@ -481,3 +485,204 @@ def test_export_refusal_message_is_human_readable() -> None:
     assert "unavailable" in msg_pend.lower() or "no admission" in msg_pend.lower()
     assert "if present" not in msg_pend
     assert "else None" not in msg_pend
+
+
+def test_duplicate_case_id_refuses_and_is_transactional() -> None:
+    """B1: duplicate case_id must be refused before any mutation; original ledger preserved."""
+    from traffictwin.evidence_admission.service import DuplicateBindingError, DuplicateCaseError
+
+    svc, case_id = _svc_case("case-dup", "cellA")
+    artifact_a = _hex("art-case-dup")
+    # Admit original
+    svc.append_decision(
+        case_id=case_id,
+        decision_id="dec-1",
+        decision=EvidenceReviewState.ADMITTED,
+        reason="admit original",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    assert svc.export_admitted_attachment(case_id).attachment.is_admitted is True
+    original_case = svc.get_case(case_id)
+    original_ledger = svc.get_ledger(case_id)
+    original_tail = original_ledger.tail_fingerprint
+    original_cell = original_case.expected_preregistration_cell_id
+    assert original_cell == "cellA"
+    assert original_ledger.current_state == EvidenceReviewState.ADMITTED
+
+    # Attempt duplicate case_id with different cellB (same artifact)
+    with pytest.raises(DuplicateCaseError, match="duplicate case_id"):
+        svc.create_case(
+            case_id=case_id,
+            candidate_artifact_fingerprint=artifact_a,
+            expected_preregistration_cell_id="cellB",
+            observed_metric_key="task.completion.rate",
+            observed_metric_version="1.0",
+            observed_metric_unit="ratio",
+            evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+            source_contract_result_fingerprint=_hex("con-case-dup"),
+            rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+            validation_standing=ValidationStanding.VALIDATED,
+            compatibility_standing=CompatibilityStanding.COMPATIBLE,
+            created_at=datetime(2026, 8, 10, 12, 2, tzinfo=UTC),
+        )
+
+    # Transactional: original unchanged
+    assert svc.get_case(case_id).expected_preregistration_cell_id == "cellA"
+    assert svc.get_ledger(case_id).tail_fingerprint == original_tail
+    assert svc.get_ledger(case_id).current_state == EvidenceReviewState.ADMITTED
+    assert svc.export_admitted_attachment(case_id).attachment.cell_id == "cellA"
+
+    # Binding index consistency: old binding still occupied, new binding free
+    with pytest.raises(DuplicateBindingError, match="duplicate cell/candidate binding"):
+        svc.create_case(
+            case_id="other-case",
+            candidate_artifact_fingerprint=artifact_a,
+            expected_preregistration_cell_id="cellA",
+            observed_metric_key="task.completion.rate",
+            observed_metric_version="1.0",
+            observed_metric_unit="ratio",
+            evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+            source_contract_result_fingerprint=_hex("con-other"),
+            rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+            validation_standing=ValidationStanding.VALIDATED,
+            compatibility_standing=CompatibilityStanding.COMPATIBLE,
+            created_at=datetime(2026, 8, 10, 12, 3, tzinfo=UTC),
+        )
+    # New binding with different case_id should succeed (was not inserted by failed attempt)
+    new_case = svc.create_case(
+        case_id="new-case",
+        candidate_artifact_fingerprint=artifact_a,
+        expected_preregistration_cell_id="cellB",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version="1.0",
+        observed_metric_unit="ratio",
+        evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+        source_contract_result_fingerprint=_hex("con-new"),
+        rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+        validation_standing=ValidationStanding.VALIDATED,
+        compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        created_at=datetime(2026, 8, 10, 12, 4, tzinfo=UTC),
+    )
+    assert new_case.case_id == "new-case"
+    assert new_case.expected_preregistration_cell_id == "cellB"
+    # Also duplicate case_id with same binding must still be refused
+    with pytest.raises(DuplicateCaseError):
+        svc.create_case(
+            case_id=case_id,
+            candidate_artifact_fingerprint=artifact_a,
+            expected_preregistration_cell_id="cellA",
+            observed_metric_key="task.completion.rate",
+            observed_metric_version="1.0",
+            observed_metric_unit="ratio",
+            evidence_mode=EvidenceMode.IMPORTED_EVIDENCE,
+            source_contract_result_fingerprint=_hex("con-dup2"),
+            rights_privacy_standing=RightsPrivacyStanding.ALLOWED,
+            validation_standing=ValidationStanding.VALIDATED,
+            compatibility_standing=CompatibilityStanding.COMPATIBLE,
+        )
+
+
+def test_review_summary_csv_fails_closed_on_inconsistent_pair_and_uses_ledger_state() -> None:
+    """B2 CSV: valid admitted row uses ledger state; inconsistent pair refuses entire CSV."""
+    svc, case_id = _svc_case("case-csv-ok", "cell-csv-ok")
+    svc.append_decision(
+        case_id=case_id,
+        decision_id="dec-1",
+        decision=EvidenceReviewState.ADMITTED,
+        reason="admit",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    csv_text = review_summary_to_csv(svc)
+    assert "case-csv-ok" in csv_text
+    assert "admitted" in csv_text
+    assert "1" in csv_text  # decision_count
+
+    # Construct inconsistent cached state: case says admitted but ledger empty
+    svc2, case_id2 = _svc_case("case-csv-bad", "cell-csv-bad")
+    assert svc2.get_ledger(case_id2).current_state is None
+    case2 = svc2.get_case(case_id2)
+    corrupted = case2.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
+    svc2._cases[case_id2] = type(svc2._cases[case_id2])(
+        case=corrupted, ledger=svc2.get_ledger(case_id2)
+    )
+    with pytest.raises(LedgerVerificationError):
+        review_summary_to_csv(svc2)
+
+    # Also ledger-derived state: pending empty should write pending, not cached
+    svc3, case_id3 = _svc_case("case-csv-pending", "cell-csv-pending")
+    csv3 = review_summary_to_csv(svc3)
+    assert "pending" in csv3
+
+
+def test_cli_duplicate_case_id_is_refused_and_original_remains() -> None:
+    """B1 CLI: create-demo duplicate case_id refused, original export still succeeds."""
+    from typer.testing import CliRunner
+
+    from traffictwin.evidence_admission.cli import app
+    from traffictwin.evidence_admission.service import reset_global_service
+
+    runner = CliRunner()
+    reset_global_service()
+
+    # create-demo c1 cellA
+    result = runner.invoke(app, ["create-demo", "c1", "cellA"])
+    assert result.exit_code == 0, result.output + (result.stderr or "")
+
+    # decide admitted
+    result = runner.invoke(
+        app, ["decide", "c1", "admitted", "--reason", "admit", "--reviewer", "r1"]
+    )
+    assert result.exit_code == 0, result.output + (result.stderr or "")
+
+    # export succeeds
+    result = runner.invoke(app, ["export", "c1"])
+    assert result.exit_code == 0, result.output + (result.stderr or "")
+    assert "admitted" in result.output.lower()
+
+    # duplicate create-demo c1 cellB should be refused
+    result = runner.invoke(app, ["create-demo", "c1", "cellB"])
+    assert result.exit_code != 0
+    combined = (result.output or "") + (result.stderr or "")
+    assert "duplicate case_id" in combined.lower()
+    assert (
+        "cannot be replaced" in combined.lower()
+        or "already exists" in combined.lower()
+        or "duplicate" in combined.lower()
+    )
+
+    # original export still succeeds
+    result = runner.invoke(app, ["export", "c1"])
+    assert result.exit_code == 0
+    assert "cellA" in result.output
+
+    # ledger decision_count retained
+    result = runner.invoke(app, ["ledger", "c1"])
+    assert result.exit_code == 0
+    payload = json.loads(result.output)
+    assert payload["decision_count"] == 1
+    assert payload["case_id"] == "c1"
+
+    reset_global_service()
+
+
+def test_cli_receipt_unknown_decision_reports_deterministic_error() -> None:
+    """Q5: CLI receipt unknown decision id must have real error, not blank."""
+    from typer.testing import CliRunner
+
+    from traffictwin.evidence_admission.cli import app
+    from traffictwin.evidence_admission.service import reset_global_service
+
+    runner = CliRunner()
+    reset_global_service()
+    runner.invoke(app, ["create-demo", "c1", "cellA"])
+    runner.invoke(app, ["decide", "c1", "admitted", "--reason", "admit", "--reviewer", "r1"])
+    result = runner.invoke(app, ["receipt", "c1", "does-not-exist"])
+    assert result.exit_code != 0
+    combined = (result.output or "") + (result.stderr or "")
+    assert "does-not-exist" in combined
+    assert "not found" in combined.lower()
+    assert "c1" in combined
+    assert result.stdout.count("\n") < 10  # no traceback dump
+    reset_global_service()

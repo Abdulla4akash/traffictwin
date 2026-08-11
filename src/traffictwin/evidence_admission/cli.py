@@ -227,11 +227,18 @@ def receipt(
     try:
         case = service.get_case(case_id)
         ledger = service.get_ledger(case_id)
-        decision = next(d for d in ledger.decisions if d.decision_id == decision_id)
-    except (EvidenceAdmissionError, StopIteration) as exc:
+    except EvidenceAdmissionError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
-    rec = build_receipt(case=case, ledger=ledger, decision=decision)
+    decision = next((d for d in ledger.decisions if d.decision_id == decision_id), None)
+    if decision is None:
+        typer.echo(f"Decision {decision_id!r} not found for case {case_id!r}", err=True)
+        raise typer.Exit(1)
+    try:
+        rec = build_receipt(case=case, ledger=ledger, decision=decision)
+    except EvidenceAdmissionError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
     typer.echo(receipt_to_json(rec))
 
 

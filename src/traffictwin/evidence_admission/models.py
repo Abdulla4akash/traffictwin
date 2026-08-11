@@ -468,7 +468,7 @@ class EvidenceReviewCase(StrictModel):
     def canonical_payload(self) -> dict[str, Any]:
         """Deterministic payload for identity, excluding wall-clock and transient ledger tail."""
         data = self.model_dump(mode="json")
-        # Exclude volatile timestamps from identity? Keep semantic but normalise
+        # Exclude volatile timestamps from identity; keep semantic but normalise
         for key in ("created_at", "updated_at"):
             data[key] = "<normalised>"
         # Ledger tail is derived chain state, not semantic identity of the binding
@@ -478,9 +478,6 @@ class EvidenceReviewCase(StrictModel):
         # Remove findings ordering variance by sorting
         if "findings" in data and isinstance(data["findings"], list):
             data["findings"] = sorted(data["findings"], key=lambda x: x.get("code", ""))
-        if data.get("candidate_binding") is not None:
-            # Already in top-level fields; keep but ensure deterministic order
-            pass
         return data
 
     def fingerprint(self) -> str:

@@ -231,9 +231,16 @@ def test_case_detail_shows_findings_and_standing_before_decision_controls(
     assert not app.exception
     captions = _captions(app)
     assert "rights standing" in captions.lower() or "validation" in captions.lower()
-    assert any("decision" in str(s.label).lower() for s in app.selectbox)
+    # Must use actual decision control, not the case selector
+    decision_boxes = [s for s in app.selectbox if s.label == "Decision (target state)"]
+    assert len(decision_boxes) == 1, (
+        f"expected Decision (target state) selectbox, got {[s.label for s in app.selectbox]}"
+    )
     assert any("reason" in str(t.label).lower() for t in app.text_area)
     assert any("reviewer" in str(t.label).lower() for t in app.text_input)
+    # Prove findings/standing tables exist before decision controls
+    # At least two dataframes (findings/standing) should be present and decision form is rendered
+    assert len(app.dataframe) >= 2
 
 
 def test_attachment_preview_is_unavailable_for_pending_case(
@@ -338,7 +345,7 @@ def test_ui_transition_options_derive_from_authoritative_table(
 ) -> None:
     from traffictwin.evidence_admission.service import allowed_transitions_from
 
-    # The UI helper must not drift from the service table; prove via service helper
+    # Service table is authoritative
     assert set(allowed_transitions_from(EvidenceReviewState.PENDING)) == {
         EvidenceReviewState.NEEDS_INFORMATION,
         EvidenceReviewState.ADMITTED,
@@ -347,9 +354,208 @@ def test_ui_transition_options_derive_from_authoritative_table(
     assert set(allowed_transitions_from(EvidenceReviewState.ADMITTED)) == {
         EvidenceReviewState.WITHDRAWN
     }
-    # UI page itself uses allowed_transitions_from; we verify the page renders without exception
-    svc = _make_service_with_case("case-trans", "cell-trans")
+    assert set(allowed_transitions_from(EvidenceReviewState.WITHDRAWN)) == set()
+
+    # UI pending: rendered Decision selectbox options must equal service table
+    svc_pending = _make_service_with_case("case-trans-pending", "cell-trans-pending")
+    app_pending = _app(monkeypatch, tmp_path / "workspace_pending")
+    _inject_service(app_pending, svc_pending)
+    app_pending.run(timeout=20)
+    assert not app_pending.exception
+    pending_box = next(s for s in app_pending.selectbox if s.label == "Decision (target state)")
+    expected_pending = sorted(
+        s.value for s in allowed_transitions_from(EvidenceReviewState.PENDING)
+    )
+    assert sorted(pending_box.options) == expected_pending
+
+    # UI admitted: only withdrawn
+    svc_adm = _make_service_with_case(
+        "case-trans-adm", "cell-trans-adm", state=EvidenceReviewState.ADMITTED
+    )
+    app_adm = _app(monkeypatch, tmp_path / "workspace_adm")
+    _inject_service(app_adm, svc_adm)
+    app_adm.run(timeout=20)
+    assert not app_adm.exception
+    adm_box = next(s for s in app_adm.selectbox if s.label == "Decision (target state)")
+    assert adm_box.options == ["withdrawn"]
+
+    # Withdrawn is terminal: no Decision selectbox, terminal message present
+    svc_wd = _make_service_with_case(
+        "case-trans-wd", "cell-trans-wd", state=EvidenceReviewState.ADMITTED
+    )
+    # append withdrawn
+    from datetime import UTC, datetime
+
+    svc_wd.append_decision(
+        case_id="case-trans-wd",
+        decision_id="dec-case-trans-wd-2",
+        decision=EvidenceReviewState.WITHDRAWN,
+        reason="withdraw",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 2, tzinfo=UTC),
+    )
+    app_wd = _app(monkeypatch, tmp_path / "workspace_wd")
+    _inject_service(app_wd, svc_wd)
+    app_wd.run(timeout=20)
+    assert not app_wd.exception
+    assert not [s for s in app_wd.selectbox if s.label == "Decision (target state)"]
+    assert any("terminal" in str(i.value).lower() for i in app_wd.info)
+
+
+def test_ui_duplicate_case_id_shows_error_and_preserves_original(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    # B1 UI: duplicate case_id via demo form must be refused, original admitted preserved
+    from datetime import UTC, datetime
+
+    svc = EvidenceAdmissionInboxService()
     app = _app(monkeypatch, tmp_path / "workspace")
     _inject_service(app, svc)
     app.run(timeout=20)
     assert not app.exception
+    # Create demo c1 cellA via UI
+    app.text_input(key="evidence_admission_demo_case_id").set_value("c1").run(timeout=20)
+    app.text_input(key="evidence_admission_demo_cell").set_value("cellA").run(timeout=20)
+    app.button(key="evidence_admission_create_demo").click().run(timeout=20)
+    assert not app.exception
+    # Record admitted decision via service (prefer UI but service is deterministic)
+    svc2: EvidenceAdmissionInboxService = app.session_state[SESSION_SERVICE_KEY]
+    svc2.append_decision(
+        case_id="c1",
+        decision_id="dec-c1-1",
+        decision=EvidenceReviewState.ADMITTED,
+        reason="admit",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    app.run(timeout=20)
+    assert not app.exception
+    # Verify admitted
+    assert svc2.get_ledger("c1").current_state == EvidenceReviewState.ADMITTED
+    # Attempt duplicate c1 cellB
+    app.text_input(key="evidence_admission_demo_case_id").set_value("c1").run(timeout=20)
+    app.text_input(key="evidence_admission_demo_cell").set_value("cellB").run(timeout=20)
+    app.button(key="evidence_admission_create_demo").click().run(timeout=20)
+    assert not app.exception
+    # Require error visible with duplicate identity language
+    errors = " ".join(str(e.value) for e in app.error)
+    assert "duplicate" in errors.lower()
+    assert "c1" in errors
+    # Original remains admitted
+    svc3: EvidenceAdmissionInboxService = app.session_state[SESSION_SERVICE_KEY]
+    assert svc3.get_case("c1").expected_preregistration_cell_id == "cellA"
+    assert svc3.get_ledger("c1").current_state == EvidenceReviewState.ADMITTED
+    assert len(svc3.get_ledger("c1").decisions) == 1
+    # History still rendered (admitted decision present in dataframe)
+    tables_text = " ".join(frame.value.to_csv(index=False) for frame in app.dataframe)
+    assert "c1" in tables_text
+
+
+def test_ui_inconsistent_pair_fails_closed_and_hides_controls(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    # B2: deliberately inconsistent case+ledger must fail closed
+
+    svc = _make_service_with_case("case-bad", "cell-bad")
+    ledger = svc.get_ledger("case-bad")
+    case = svc.get_case("case-bad")
+    corrupted = case.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
+    svc._cases["case-bad"] = type(svc._cases["case-bad"])(case=corrupted, ledger=ledger)
+    app = _app(monkeypatch, tmp_path / "workspace")
+    _inject_service(app, svc)
+    app.run(timeout=20)
+    assert not app.exception
+    errors = " ".join(str(e.value) for e in app.error)
+    assert (
+        "integrity" in errors.lower()
+        or "mismatch" in errors.lower()
+        or "disagrees" in errors.lower()
+    )
+    # Must reference integrity/state/tail
+    assert any(k in errors.lower() for k in ["integrity", "state", "tail", "mismatch"])
+    # Normal decision form absent
+    assert not [s for s in app.selectbox if s.label == "Decision (target state)"]
+    # No attachment/receipt download for inconsistent
+    assert not [b for b in app.download_button if "admitted attachment" in str(b.label).lower()]
+    assert not [
+        b
+        for b in app.download_button
+        if "receipt" in str(b.label).lower() and "latest" in str(b.label).lower()
+    ]
+    # Must NOT present Current state = admitted as valid standing
+    # The standing table for invalid pair is not rendered; only forensic
+    # Check normal Current state = admitted is not shown as trustworthy
+    # We assert error path did not render normal pair integrity caption
+    captions = _captions(app)
+    assert "pair integrity verified" not in captions.lower()
+
+
+def test_ui_positive_control_pending_and_admitted_states(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    # B2 positive: valid pending shows pending, admitted shows withdrawn option
+    from traffictwin.evidence_admission.service import allowed_transitions_from
+
+    svc_pending = _make_service_with_case("case-pos-pending", "cell-pos-pending")
+    app_pending = _app(monkeypatch, tmp_path / "workspace_pending")
+    _inject_service(app_pending, svc_pending)
+    app_pending.run(timeout=20)
+    assert not app_pending.exception
+    # Current state display should be pending
+    # Find the standing dataframe and check Current state value
+    # The UI renders display_state derived from ledger; for empty ledger should be pending
+    assert any("pending" in str(c.value).lower() for c in app_pending.caption) or any(
+        "pending" in frame.value.to_csv(index=False) for frame in app_pending.dataframe
+    )
+    pending_box = next(s for s in app_pending.selectbox if s.label == "Decision (target state)")
+    assert sorted(pending_box.options) == sorted(
+        s.value for s in allowed_transitions_from(EvidenceReviewState.PENDING)
+    )
+
+    svc_adm = _make_service_with_case(
+        "case-pos-adm", "cell-pos-adm", state=EvidenceReviewState.ADMITTED
+    )
+    app_adm = _app(monkeypatch, tmp_path / "workspace_adm")
+    _inject_service(app_adm, svc_adm)
+    app_adm.run(timeout=20)
+    assert not app_adm.exception
+    adm_box = next(s for s in app_adm.selectbox if s.label == "Decision (target state)")
+    assert adm_box.options == ["withdrawn"]
+
+
+def test_ui_decision_form_submission_creates_ledger_entry(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    # Q2: real AppTest for decision form submission
+    svc = _make_service_with_case("case-q2", "cell-q2")
+    app = _app(monkeypatch, tmp_path / "workspace")
+    _inject_service(app, svc)
+    app.run(timeout=20)
+    assert not app.exception
+    # Initial pending, options include admitted
+    pending_box = next(s for s in app.selectbox if s.label == "Decision (target state)")
+    assert "admitted" in pending_box.options
+    # Fill form: select admitted, reason, reviewer
+    pending_box.set_value("admitted").run(timeout=20)
+    app.text_area(key="evidence_admission_reason").set_value("admit for q2").run(timeout=20)
+    app.text_input(key="evidence_admission_reviewer").set_value("reviewer-q2").run(timeout=20)
+    # Click the form submit button by label (key is FormSubmitter:...)
+    btn = next(b for b in app.button if b.label == "Record decision")
+    btn.click().run(timeout=20)
+    app.run(timeout=20)
+    # Verify ledger
+    session_svc: EvidenceAdmissionInboxService = app.session_state[SESSION_SERVICE_KEY]
+    ledger = session_svc.get_ledger("case-q2")
+    assert len(ledger.decisions) == 1
+    assert ledger.current_state == EvidenceReviewState.ADMITTED
+    assert session_svc.verify_ledger("case-q2") == []
+    # Page shows admitted state
+    assert any("admitted" in str(c.value).lower() for c in app.caption) or any(
+        "admitted" in frame.value.to_csv(index=False) for frame in app.dataframe
+    )
+    # Decision options now == ["withdrawn"]
+    adm_box = next(s for s in app.selectbox if s.label == "Decision (target state)")
+    assert adm_box.options == ["withdrawn"]
+    # History contains admitted decision
+    history_text = " ".join(frame.value.to_csv(index=False) for frame in app.dataframe)
+    assert "admitted" in history_text.lower()

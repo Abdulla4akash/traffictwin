@@ -33,6 +33,7 @@ from traffictwin.evidence_admission.service import (
     ledger_to_json,
     receipt_to_json,
     review_summary_to_csv,
+    verify_case_with_ledger,
 )
 from traffictwin.ui.state import UiConfig
 
@@ -137,6 +138,34 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         st.error(str(exc))
         return
 
+    # Authoritative pair check — do not trust cached case state alone
+    violations = verify_case_with_ledger(case, ledger)
+    if violations:
+        st.error(
+            "Case/ledger integrity verification failed for case "
+            f"{selected_case_id!r}: " + "; ".join(violations)
+        )
+        st.error(
+            "The cached case state cannot be trusted until the pair is repaired/reloaded. "
+            "No decision or admitted export is available."
+        )
+        st.caption(
+            f"Forensic — Case fingerprint: {case.fingerprint()[:16]}…  "
+            f"Ledger tail: {ledger.tail_fingerprint[:16]}… (pair invalid)"
+        )
+        st.subheader("Findings and source standing (forensic — pair invalid)")
+        _render_standings(case)
+        _render_findings(case)
+        st.info("Decision and attachment controls are withheld due to integrity failure.")
+        st.subheader("Append-only history (forensic)")
+        _render_history(ledger)
+        _render_create_demo(service)
+        return
+
+    # Valid pair — derive display state from ledger (authoritative)
+    ledger_state = ledger.current_state
+    display_state = ledger_state if ledger_state is not None else EvidenceReviewState.PENDING
+
     st.caption(
         f"Case fingerprint: {case.fingerprint()[:16]}…  "
         f"Ledger tail: {ledger.tail_fingerprint[:16]}…"
@@ -172,7 +201,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             {"Field": "Rights / privacy standing", "Value": case.rights_privacy_standing.value},
             {"Field": "Validation standing", "Value": case.validation_standing.value},
             {"Field": "Compatibility standing", "Value": case.compatibility_standing.value},
-            {"Field": "Current state", "Value": case.current_state.value},
+            {"Field": "Current state", "Value": display_state.value},
         ],
         hide_index=True,
         width="stretch",
@@ -182,12 +211,13 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         "Privacy and evidence standing are shown before any decision controls. "
         "A case with restricted rights, failed validation, or incompatibility remains blocked."
     )
+    st.caption("Case/ledger pair integrity verified — ledger state is authoritative.")
 
     st.subheader("Explicit decision")
     st.caption(
         "No automatic decision is made. Choose a transition, provide a reason, and identify the reviewer."  # noqa: E501
     )
-    _render_decision_form(service, case, ledger)
+    _render_decision_form(service, case, ledger, display_state)
 
     st.subheader("Append-only history")
     _render_history(ledger)
@@ -249,13 +279,16 @@ def _render_decision_form(
     service: EvidenceAdmissionInboxService,
     case: EvidenceReviewCase,
     ledger: EvidenceReviewLedger,
+    display_state: EvidenceReviewState | None = None,
 ) -> None:
-    current = case.current_state.value
+    # Derive authoritative display state from ledger; fallback to case for forensic path
+    effective = display_state if display_state is not None else case.current_state
+    current = effective.value
     st.caption(
         f"Current state is **{current}**. Only the allowed transitions from that state will be accepted."  # noqa: E501
     )
 
-    allowed = [s.value for s in allowed_transitions_from(case.current_state)]
+    allowed = [s.value for s in allowed_transitions_from(effective)]
     if not allowed:
         st.info(f"No further decisions are allowed from the terminal state {current!r}.")
         return
@@ -355,11 +388,12 @@ def _render_history(ledger: EvidenceReviewLedger) -> None:
     st.dataframe(rows, hide_index=True, width="stretch", key="evidence_admission_history")
     violations = ledger.verify()
     if violations:
-        st.error("Ledger verification failed: " + "; ".join(violations))
+        st.error("Ledger hash chain verification failed: " + "; ".join(violations))
     else:
         st.caption(
-            "Ledger verifies: every entry's previous fingerprint matches its predecessor and "
-            "decision IDs are unique."
+            "Decision hash chain verifies: every entry's previous fingerprint matches "
+            "its predecessor and decision IDs are unique. "
+            "Case/ledger pair integrity verified above."
         )
 
 
