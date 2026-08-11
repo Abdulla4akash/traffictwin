@@ -17,6 +17,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
+from traffictwin.data_contract.fingerprint import sanitise_for_csv
 from traffictwin.reproducibility_replay.adapters import (
     ADAPTER_REGISTRY,
     ALLOWLISTED_REPLAY_KINDS,
@@ -1318,12 +1319,12 @@ def receipt_to_csv(receipt: ReplayReceipt) -> str:
     for exe in sorted(receipt.executions, key=lambda e: (e.artifact_kind.value, e.logical_id)):
         writer.writerow(
             {
-                "artifact_kind": exe.artifact_kind.value,
-                "logical_id": exe.logical_id,
-                "status": exe.status.value,
-                "expected_fingerprint": exe.expected_output_fingerprint,
-                "actual_fingerprint": exe.actual_output_fingerprint or "",
-                "reason": exe.reason,
+                "artifact_kind": sanitise_for_csv(exe.artifact_kind.value),
+                "logical_id": sanitise_for_csv(exe.logical_id),
+                "status": sanitise_for_csv(exe.status.value),
+                "expected_fingerprint": sanitise_for_csv(exe.expected_output_fingerprint),
+                "actual_fingerprint": sanitise_for_csv(exe.actual_output_fingerprint or ""),
+                "reason": sanitise_for_csv(exe.reason or ""),
             }
         )
     return output.getvalue()
@@ -1357,12 +1358,12 @@ def plan_entries_to_csv(plan: ReplayPlan) -> str:
     ):
         writer.writerow(
             {
-                "artifact_kind": (e.artifact_kind.value if e.artifact_kind else ""),
-                "logical_id": e.logical_id,
-                "status": e.status.value,
-                "replayable": str(e.replayable),
-                "reason": e.reason,
-                "expected_fingerprint": e.expected_output_fingerprint or "",
+                "artifact_kind": sanitise_for_csv(e.artifact_kind.value if e.artifact_kind else ""),
+                "logical_id": sanitise_for_csv(e.logical_id),
+                "status": sanitise_for_csv(e.status.value),
+                "replayable": sanitise_for_csv(str(e.replayable)),
+                "reason": sanitise_for_csv(e.reason or ""),
+                "expected_fingerprint": sanitise_for_csv(e.expected_output_fingerprint or ""),
             }
         )
     return output.getvalue()

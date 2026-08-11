@@ -643,10 +643,7 @@ def test_fabricated_regression_prereg_body_tamper_with_stored_fingerprint_unchan
     assert len(exes_tampered) == 1
     # Must be mismatched — authentic was matched, tampered with same stored fingerprint must not be matched
     assert exes_tampered[0].status == ReplayStatus.MISMATCHED
-    assert (
-        exes_tampered[0].actual_output_fingerprint != stored_fp
-        or exes_tampered[0].status == ReplayStatus.MISMATCHED
-    )
+    assert exes_tampered[0].actual_output_fingerprint != stored_fp
 
 
 def test_fabricated_regression_comparison_valid_data_tamper() -> None:
@@ -1115,3 +1112,178 @@ def test_generated_at_does_not_contaminate_receipt_identity() -> None:
     # Ensure volatile not in canonical
     assert "2026" not in receipt1.canonical_json()
     assert "2027" not in receipt2.canonical_json()
+
+
+def test_receipt_csv_sanitizes_formula_like_text_cells() -> None:
+    """Receipt CSV must neutralise spreadsheet-formula prefixes in textual cells."""
+    import csv
+    import io
+
+    from traffictwin.reproducibility_replay.models import (
+        ReplayExecution,
+        ReplayReceipt,
+        ReplayStatus,
+    )
+    from traffictwin.reproducibility_replay.service import receipt_to_csv
+
+    # Hostile inputs covering =, +, -, @ plus safe text
+    hostile_logical = '=HYPERLINK("http://evil","click")'
+    hostile_reason = "=cmd|calc"
+    # Create a receipt with executions containing hostile text
+    exe_hostile = ReplayExecution(
+        artifact_kind=ReplayArtifactKind.EVENT_ALIGNED_REPORT,
+        logical_id=hostile_logical,
+        request_fingerprint="a" * 64,
+        actual_output_fingerprint="b" * 64,
+        expected_output_fingerprint="b" * 64,
+        status=ReplayStatus.MATCHED,
+        reason=hostile_reason,
+        output_preview=None,
+    )
+    exe_plus = ReplayExecution(
+        artifact_kind=ReplayArtifactKind.RESOURCE_STRATEGY_REPORT,
+        logical_id="+SUM(A1:A10)",
+        request_fingerprint="c" * 64,
+        actual_output_fingerprint="d" * 64,
+        expected_output_fingerprint="d" * 64,
+        status=ReplayStatus.MISMATCHED,
+        reason="-evil",
+        output_preview=None,
+    )
+    exe_at = ReplayExecution(
+        artifact_kind=ReplayArtifactKind.COMPARISON_REPORT,
+        logical_id="@malicious",
+        request_fingerprint="e" * 64,
+        actual_output_fingerprint="f" * 64,
+        expected_output_fingerprint="f" * 64,
+        status=ReplayStatus.MATCHED,
+        reason="safe normal text",
+        output_preview=None,
+    )
+    # Build a dummy plan for receipt
+    from traffictwin.reproducibility_replay.models import ReplayPlan
+
+    plan = ReplayPlan(
+        capsule_id="test-capsule",
+        manifest_fingerprint="0" * 64,
+        verification_status="standalone",
+        entries=[],
+        warnings=[],
+        limitations=[],
+    )
+    receipt = ReplayReceipt(
+        receipt_id="urn:traffictwin:replay-receipt:0123456789abcdef",
+        receipt_fingerprint="0" * 64,
+        plan_fingerprint=plan.fingerprint(),
+        capsule_id="test-capsule",
+        manifest_fingerprint="0" * 64,
+        executed_count=3,
+        executions=[exe_hostile, exe_plus, exe_at],
+        refusals=[],
+        matched_count=2,
+        mismatched_count=1,
+        failed_count=0,
+        warnings=[],
+        limitations=[],
+    )
+    csv_text = receipt_to_csv(receipt)
+    # Robust parsing: ensure no raw formula cell
+    reader = csv.DictReader(io.StringIO(csv_text))
+    rows = list(reader)
+    assert len(rows) == 3
+    # Check hostile logical_id sanitized
+    # Find rows by sanitized content
+    # The CSV should contain apostrophe-prefixed versions
+    assert "'=HYPERLINK" in csv_text
+    assert "'=cmd|calc" in csv_text
+    assert "'+SUM" in csv_text
+    assert "'-evil" in csv_text
+    assert "'@malicious" in csv_text
+    # Raw dangerous cells must NOT appear as cell starts without apostrophe
+    # e.g., newline + =cmd should not exist
+    assert "\n=HYPERLINK" not in csv_text
+    assert "\n=cmd" not in csv_text
+    assert "\n+SUM" not in csv_text
+    # For - and @, check they are prefixed; raw after comma+quote would still be inside CSV quoting but must be prefixed
+    # Verify via parsed rows that sanitized values start with '
+    for r in rows:
+        if "HYPERLINK" in r["logical_id"]:
+            assert r["logical_id"].startswith("'=")
+        if r["logical_id"] == "'+SUM(A1:A10)":
+            assert r["logical_id"].startswith("'+")
+        if r["logical_id"] == "'@malicious":
+            assert r["logical_id"].startswith("'@")
+        if r["reason"] == "'-evil":
+            assert r["reason"].startswith("'-")
+    # Safe text must remain unchanged (no spurious quoting)
+    at_row = [r for r in rows if r["logical_id"] == "'@malicious"][0]
+    assert at_row["reason"] == "safe normal text"
+
+
+def test_plan_entries_csv_sanitizes_formula_like_text_cells() -> None:
+    """Plan CSV must neutralise formula prefixes in textual cells."""
+    import csv
+    import io
+
+    from traffictwin.reproducibility_replay.models import ReplayPlan, ReplayPlanEntry, ReplayStatus
+    from traffictwin.reproducibility_replay.service import plan_entries_to_csv
+
+    hostile_entries = [
+        ReplayPlanEntry(
+            artifact_kind=ReplayArtifactKind.EVENT_ALIGNED_REPORT,
+            logical_id='=HYPERLINK("http://evil","x")',
+            status=ReplayStatus.REPLAYABLE,
+            replayable=True,
+            expected_output_fingerprint="a" * 64,
+            reason="+SUM(A1:A10)",
+            request=None,
+        ),
+        ReplayPlanEntry(
+            artifact_kind=ReplayArtifactKind.PREREGISTRATION_GATE,
+            logical_id="-evil-id",
+            status=ReplayStatus.MISMATCHED,
+            replayable=False,
+            expected_output_fingerprint="b" * 64,
+            reason="@at-risk",
+            request=None,
+        ),
+        ReplayPlanEntry(
+            artifact_kind=None,
+            logical_id="safe-id",
+            status=ReplayStatus.NOT_REPLAYABLE,
+            replayable=False,
+            expected_output_fingerprint=None,
+            reason="safe normal text unchanged",
+            request=None,
+        ),
+    ]
+    plan = ReplayPlan(
+        capsule_id="test-plan",
+        manifest_fingerprint="0" * 64,
+        verification_status="standalone",
+        entries=hostile_entries,
+        warnings=[],
+        limitations=[],
+    )
+    csv_text = plan_entries_to_csv(plan)
+    reader = csv.DictReader(io.StringIO(csv_text))
+    rows = list(reader)
+    assert len(rows) == 3
+    # Check sanitized
+    assert "'=HYPERLINK" in csv_text
+    assert "'+SUM" in csv_text
+    assert "'-evil-id" in csv_text
+    assert "'@at-risk" in csv_text
+    # Raw not present at cell boundary
+    assert "\n=HYPERLINK" not in csv_text
+    assert "\n+SUM" not in csv_text
+    # Safe text unchanged
+    safe_row = [r for r in rows if r["logical_id"] == "safe-id"][0]
+    assert safe_row["logical_id"] == "safe-id"
+    assert safe_row["reason"] == "safe normal text unchanged"
+    # Prefix sanitized rows start with '
+    for r in rows:
+        if "HYPERLINK" in r["logical_id"]:
+            assert r["logical_id"].startswith("'=")
+        if r["logical_id"] == "'-evil-id":
+            assert r["logical_id"].startswith("'-")
