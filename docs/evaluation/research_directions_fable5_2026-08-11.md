@@ -11,9 +11,16 @@ were written BEFORE E2b/E2c completed and recommend work that is now done.
   E2b (placement × admission factorial: admission gate +3.2 pp, placement −2.1 pp offered
   attainment), E2c (replication: DLA − ingress_DLA ≈ −2.1 pp, same sign on fleet seeds 0/1/2).
 - Actor: frozen `mappo_modelc_17dim__envs128__lr3e-3__seed100` (17-dim obs, NO RSU-load term).
-- GPU path PROVEN: A100 backend feasibility gate passed on Colab 2026-08-09
-  (`~/AntigravityTest/a100_gate_outputs/a100-backend-feasibility-v1/`). CSF3 SLURM scripts
-  exist in `vec_env/slurm/` (incl. `run_marl_csf.sh`). CSF access applied for; Colab Pro active.
+- GPU path: MIXED VERDICT from the A100 feasibility gate (2026-08-09,
+  `~/AntigravityTest/a100_gate_outputs/a100-backend-feasibility-v1/`). The pinned
+  jax 0.4.30 CUDA stack installs and runs (primitive gate PASSED, real A100-SXM4-40GB).
+  BUT the ten-step cross-backend comparison FAILED (`decision_gate: fail`): one
+  `veh_action` element FLIPS on the A100 (exact_required), float arrays differ at 1e-3
+  to 1e-2 ms, and two same-command A100 runs were not byte-identical while Mac repeats
+  were exact. CONSEQUENCE: evaluator/science runs stay on the Mac — Colab-run evaluation
+  would fail the project's own identity gates. Colab/CSF are for TRAINING only; trained
+  checkpoints come back and are evaluated locally. CSF3 SLURM scripts exist in
+  `vec_env/slurm/` (incl. `run_marl_csf.sh`). CSF access applied for; Colab Pro active.
 - Data permission from Randy is WRITTEN. Co-authorship offered.
 
 ## Experiments, ranked (do in this order)
