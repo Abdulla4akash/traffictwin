@@ -8,9 +8,9 @@ import io
 import json
 import re
 from datetime import UTC, datetime
-from pathlib import PurePosixPath
 from typing import Any
 
+from traffictwin.data_contract.fingerprint import sanitise_for_csv
 from traffictwin.event_scenario_bridge.models import (
     BridgeFinding,
     BridgeStatus,
@@ -19,7 +19,6 @@ from traffictwin.event_scenario_bridge.models import (
     EventScenarioBridgeManifest,
     EventScenarioBridgeRequest,
     ExperimentPlanHandoff,
-    MutationKind,
     PreregistrationDraftHandoff,
     ScenarioSeedHandoff,
 )
@@ -65,13 +64,13 @@ def _event_fingerprint(event: DeclaredEventReference) -> str:
 
 
 def _assert_no_absolute_path(value: str, field_name: str) -> None:
-    if _WINDOWS_PATH.search(value) or _FILE_URI.search(value) or _HOME_PATH.search(value):
+    if (
+        _WINDOWS_PATH.search(value)
+        or _FILE_URI.search(value)
+        or _HOME_PATH.search(value)
+        or _POSIX_ABS.search(value)
+    ):
         msg = f"{field_name} must not contain an absolute path or file URI"
-        raise EventScenarioBridgeError(msg)
-    # POSIX check: reject absolute paths with at least 2 segments (avoid flagging URLs)
-    # Only consider values that look like filesystem paths
-    if PurePosixPath(value).is_absolute() and "/" in value.strip("/") and value.count("/") >= 2:
-        msg = f"{field_name} must not contain an absolute path"
         raise EventScenarioBridgeError(msg)
 
 
@@ -79,13 +78,19 @@ def _validate_no_path_in_request(request: EventScenarioBridgeRequest) -> None:
     for field_name, value in [
         ("title", request.title),
         ("description", request.description),
+        ("event_reference.event_kind", request.event_reference.event_kind),
         ("event_reference.source_label", request.event_reference.source_label),
         ("event_reference.provenance_detail", request.event_reference.provenance_detail or ""),
+        ("event_reference.bundle_id", request.event_reference.bundle_id or ""),
+        ("event_reference.incident_id", request.event_reference.incident_id or ""),
         ("impact_envelope.affected_area_label", request.impact_envelope.affected_area_label or ""),
     ]:
         _assert_no_absolute_path(value, field_name)
     for proposal in request.mutation_proposals:
         _assert_no_absolute_path(proposal.target_description, "mutation target_description")
+        if proposal.table_kind is not None:
+            table_kind = proposal.table_kind
+            _assert_no_absolute_path(table_kind, "mutation table_kind")
     for metric in request.intended_metrics:
         _assert_no_absolute_path(metric, "intended_metrics item")
     for window in request.intended_windows:
@@ -179,13 +184,6 @@ def build_event_scenario_bridge_manifest(
     - metric/window compatibility is advisory (warn not refuse) but closed kinds are strict.
     """
     _validate_no_path_in_request(request)
-
-    # Additional fail-closed: reject unsupported mutation representations
-    # The model already restricts to closed kinds, but double-check for raw inputs
-    for proposal in request.mutation_proposals:
-        if proposal.mutation_kind not in tuple(MutationKind):
-            msg = f"unsupported mutation kind: {proposal.mutation_kind!r}"
-            raise EventScenarioBridgeError(msg)
 
     # Validate metric keys against catalogue (advisory warn if unknown, not refused;
     # but we enforce known-set for determinism — unknown metrics produce a finding)
@@ -338,7 +336,8 @@ def build_event_scenario_bridge_manifest(
             "experiment_plan_handoff": plan_handoff,
         }
     )
-    assert final.verify_fingerprint(), "bridge fingerprint must verify against canonical"
+    if not final.verify_fingerprint():
+        raise EventScenarioBridgeError("internal bridge fingerprint verification failed")
     return final
 
 
@@ -351,12 +350,6 @@ def export_bridge_csv(manifest: EventScenarioBridgeManifest) -> str:
     """Return deterministic CSV for handoff summary (tabular export)."""
     output = io.StringIO()
     writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
-
-    # Formula-injection protection: prefix risky cell values
-    def _safe(value: str) -> str:
-        if value and value[0] in ("=", "+", "-", "@", "\t", "\r"):
-            return "'" + value
-        return value
 
     writer.writerow(
         [
@@ -377,13 +370,13 @@ def export_bridge_csv(manifest: EventScenarioBridgeManifest) -> str:
     ):
         writer.writerow(
             [
-                _safe(handoff.handoff_id),
-                _safe(handoff.handoff_kind),
-                _safe(handoff.execution_status),
+                sanitise_for_csv(handoff.handoff_id),
+                sanitise_for_csv(handoff.handoff_kind),
+                sanitise_for_csv(handoff.execution_status),
                 str(handoff.evidence_created),
                 str(handoff.admission_created),
-                _safe(handoff.bridge_fingerprint[:16] + "…"),
-                _safe(handoff.event_fingerprint[:16] + "…"),
+                sanitise_for_csv(handoff.bridge_fingerprint[:16] + "…"),
+                sanitise_for_csv(handoff.event_fingerprint[:16] + "…"),
             ]
         )
     # Findings rows
@@ -391,6 +384,10 @@ def export_bridge_csv(manifest: EventScenarioBridgeManifest) -> str:
     writer.writerow(["finding_id", "severity", "description"])
     for finding in sorted(manifest.findings, key=lambda f: f.finding_id):
         writer.writerow(
-            [_safe(finding.finding_id), _safe(finding.severity), _safe(finding.description)]
+            [
+                sanitise_for_csv(finding.finding_id),
+                sanitise_for_csv(finding.severity),
+                sanitise_for_csv(finding.description),
+            ]
         )
     return output.getvalue()

@@ -12,7 +12,6 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$")
-_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 _MAX_METRICS = 16
 _MAX_WINDOWS = 8
 _MAX_LINKS = 64
@@ -125,8 +124,6 @@ class EventImpactEnvelope(StrictModel):
     event_duration_s: float = Field(gt=0, le=1_000_000)
     post_duration_s: float = Field(gt=0, le=1_000_000)
     bin_width_s: float = Field(gt=0, le=1_000_000)
-    window_start_offset_s: float | None = Field(default=None)
-    window_end_offset_s: float | None = Field(default=None)
     bin_boundary: Literal["[start,end)"] = "[start,end)"
 
     @field_validator("affected_links")
@@ -140,13 +137,6 @@ class EventImpactEnvelope(StrictModel):
 
     @model_validator(mode="after")
     def validate_window_consistency(self) -> EventImpactEnvelope:
-        if (
-            self.window_start_offset_s is not None
-            and self.window_end_offset_s is not None
-            and self.window_end_offset_s <= self.window_start_offset_s
-        ):
-            msg = "window_end_offset_s must be greater than window_start_offset_s"
-            raise ValueError(msg)
         # bin_width must divide windows sensibly — total bins bounded
         total = self.pre_duration_s + self.event_duration_s + self.post_duration_s
         import math
@@ -166,8 +156,6 @@ class EventImpactEnvelope(StrictModel):
             "event_duration_s": self.event_duration_s,
             "post_duration_s": self.post_duration_s,
             "pre_duration_s": self.pre_duration_s,
-            "window_end_offset_s": self.window_end_offset_s,
-            "window_start_offset_s": self.window_start_offset_s,
         }
 
     def preview_windows(self, anchor_utc: datetime) -> dict[str, tuple[datetime, datetime]]:
@@ -199,9 +187,6 @@ class MutationKind(StrEnum):
     ROAD_CLEARING = "road_clearing"
     RSU_REMOVAL = "rsu_removal"
     TIMESTAMP_EVENT_WINDOW_ADJUSTMENT = "timestamp_event_window_adjustment"
-
-
-_SUPPORTED_MUTATION_KINDS = tuple(MutationKind)
 
 
 class ScenarioMutationProposal(StrictModel):
@@ -286,6 +271,15 @@ class EventScenarioBridgeRequest(StrictModel):
     intended_metrics: list[str] = Field(min_length=1, max_length=_MAX_METRICS)
     intended_windows: list[str] = Field(default_factory=list, max_length=_MAX_WINDOWS)
     evidence_standing: EvidenceStanding = EvidenceStanding.AUTHORED_CONFIGURATION
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        lowered = value.lower()
+        for term in ["causal", "caused", "proves", "proven"]:
+            if term in lowered:
+                raise ValueError("title must not claim causality; use descriptive what-if wording")
+        return value
 
     @field_validator("bridge_id")
     @classmethod

@@ -6,5 +6,5 @@
   "renderer": "traffictwin.ui.pages.event_scenario_bridge:render",
   "group": "Build & run",
   "description": "Deterministic unexecuted bridge from a declared authored event to four reviewable handoffs.",
-  "icon": "compare_arrows"
+  "icon": ":material/alt_route:"
 }

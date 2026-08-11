@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from datetime import UTC, datetime
 
 import streamlit as st
+from pydantic import ValidationError
 
 from traffictwin.event_scenario_bridge.models import (
     DeclaredEventReference,
@@ -76,6 +79,65 @@ def _parse_iso_utc(raw: str) -> datetime | EventScenarioBridgeError:
         raise
     except Exception as exc:  # noqa: BLE001
         return EventScenarioBridgeError(f"Anchor time must be ISO8601 UTC: {exc}")
+
+
+def _form_input_fingerprint(
+    *,
+    event_id: str,
+    event_kind: str,
+    anchor_raw: str,
+    source_label: str,
+    provenance_detail: str,
+    artifact_fp: str,
+    bundle_id: str,
+    baseline_seed_id: str,
+    baseline_fp: str,
+    area_label: str,
+    affected_links_raw: str,
+    pre_s: float,
+    event_s: float,
+    post_s: float,
+    bin_w: float,
+    mutation_inputs: list[dict[str, object]],
+    intended_metrics: list[str],
+    intended_windows: list[str],
+    bridge_id: str,
+    bridge_title: str,
+    bridge_desc: str,
+    evidence_standing: str,
+) -> str:
+    payload = {
+        "affected_links_raw": affected_links_raw,
+        "anchor_raw": anchor_raw,
+        "area_label": area_label,
+        "artifact_fp": artifact_fp,
+        "baseline_fp": baseline_fp,
+        "baseline_seed_id": baseline_seed_id,
+        "bin_w": bin_w,
+        "bridge_desc": bridge_desc,
+        "bridge_id": bridge_id,
+        "bridge_title": bridge_title,
+        "bundle_id": bundle_id,
+        "event_id": event_id,
+        "event_kind": event_kind,
+        "event_s": event_s,
+        "evidence_standing": evidence_standing,
+        "intended_metrics": sorted(intended_metrics),
+        "intended_windows": sorted(intended_windows),
+        "mutation_inputs": mutation_inputs,
+        "post_s": post_s,
+        "pre_s": pre_s,
+        "provenance_detail": provenance_detail,
+        "source_label": source_label,
+    }
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    )
+    return hashlib.sha256(canonical.encode()).hexdigest()
 
 
 def _metric_options() -> list[str]:
@@ -245,17 +307,19 @@ def render() -> None:  # noqa: C901,PLR0915 — UI is intentionally verbose but 
             st.markdown(f"**Mutation {idx + 1}**")
             mc1, mc2 = st.columns(2)
             kind = mc1.selectbox(
-                "Kind",
+                f"Mutation {idx + 1} kind",
                 list(_MUTATION_LABELS.keys()),
                 format_func=lambda k: _MUTATION_LABELS[k],
                 key=f"esb_mut_kind_{idx}",
             )
             target = mc2.text_input(
-                "Target description", value=f"what-if change {idx + 1}", key=f"esb_mut_target_{idx}"
+                f"Mutation {idx + 1} target description",
+                value=f"what-if change {idx + 1}",
+                key=f"esb_mut_target_{idx}",
             )
             row = st.columns(4)
             lanes = row[0].number_input(
-                "Lanes closed",
+                f"Mutation {idx + 1} lanes closed",
                 min_value=0,
                 max_value=16,
                 value=1,
@@ -263,16 +327,18 @@ def render() -> None:  # noqa: C901,PLR0915 — UI is intentionally verbose but 
                 key=f"esb_mut_lanes_{idx}",
             )
             demand = row[1].number_input(
-                "Demand multiplier",
+                f"Mutation {idx + 1} demand multiplier",
                 min_value=0.01,
                 max_value=100.0,
                 value=1.5,
                 step=0.1,
                 key=f"esb_mut_demand_{idx}",
             )
-            rsu = row[2].text_input("RSU ID", value="rsu-1", key=f"esb_mut_rsu_{idx}")
+            rsu = row[2].text_input(
+                f"Mutation {idx + 1} RSU ID", value="rsu-1", key=f"esb_mut_rsu_{idx}"
+            )
             jitter = row[3].number_input(
-                "Timestamp jitter (s)",
+                f"Mutation {idx + 1} timestamp jitter (s)",
                 min_value=0.1,
                 max_value=3600.0,
                 value=60.0,
@@ -328,6 +394,32 @@ def render() -> None:  # noqa: C901,PLR0915 — UI is intentionally verbose but 
     # -------------------------------------------------------------------
     # Preview — deterministic handoffs, no execution
     # -------------------------------------------------------------------
+    # Compute current form fingerprint for stale-preview guard
+    current_form_fp = _form_input_fingerprint(
+        event_id=event_id,
+        event_kind=event_kind,
+        anchor_raw=anchor_raw,
+        source_label=source_label,
+        provenance_detail=provenance_detail,
+        artifact_fp=artifact_fp,
+        bundle_id=bundle_id,
+        baseline_seed_id=baseline_seed_id,
+        baseline_fp=baseline_fp,
+        area_label=area_label,
+        affected_links_raw=affected_links_raw,
+        pre_s=float(pre_s),
+        event_s=float(event_s),
+        post_s=float(post_s),
+        bin_w=float(bin_w),
+        mutation_inputs=mutation_inputs,
+        intended_metrics=intended_metrics,
+        intended_windows=intended_windows,
+        bridge_id=bridge_id,
+        bridge_title=bridge_title,
+        bridge_desc=bridge_desc,
+        evidence_standing=evidence_standing,
+    )
+
     if st.button("Preview bridge handoffs", type="primary", key="esb_preview"):
         error_msg = _build_and_store(
             event_id=event_id,
@@ -355,10 +447,21 @@ def render() -> None:  # noqa: C901,PLR0915 — UI is intentionally verbose but 
         )
         if error_msg is not None:
             st.error(error_msg)
+        else:
+            # On successful preview, store current form fingerprint alongside manifest
+            st.session_state["event_scenario_bridge_form_fingerprint"] = current_form_fp
 
     stored = st.session_state.get("event_scenario_bridge_manifest")
+    stored_fp = st.session_state.get("event_scenario_bridge_form_fingerprint")
     if stored is not None:
-        _render_handoffs(stored)
+        # Stale-preview guard: if form changed since last preview, withhold preview/exports
+        if stored_fp is not None and current_form_fp != stored_fp:
+            st.warning(
+                "Inputs changed since the last preview. The previous fingerprint-bound preview is stale; "  # noqa: E501
+                "preview again to regenerate it."
+            )
+        else:
+            _render_handoffs(stored)
 
 
 def _build_and_store(  # noqa: PLR0913
@@ -389,10 +492,12 @@ def _build_and_store(  # noqa: PLR0913
     parsed_anchor = _parse_iso_utc(anchor_raw)
     if isinstance(parsed_anchor, EventScenarioBridgeError):
         st.session_state["event_scenario_bridge_manifest"] = None
+        st.session_state["event_scenario_bridge_form_fingerprint"] = None
         return str(parsed_anchor)
     # Validate baseline fingerprint early with a friendlier message
     if not baseline_fp.strip():
         st.session_state["event_scenario_bridge_manifest"] = None
+        st.session_state["event_scenario_bridge_form_fingerprint"] = None
         return "Baseline seed fingerprint is required — missing baseline is refused."
     affected_links = (
         [s.strip() for s in affected_links_raw.split(",") if s.strip()]
@@ -447,6 +552,8 @@ def _build_and_store(  # noqa: PLR0913
             elif kind == MutationKind.RSU_REMOVAL.value:
                 rsu_id = str(inp["rsu"]).strip()
                 if not rsu_id:
+                    st.session_state["event_scenario_bridge_manifest"] = None
+                    st.session_state["event_scenario_bridge_form_fingerprint"] = None
                     return "RSU removal requires an RSU ID."
                 proposals.append(
                     ScenarioMutationProposal(
@@ -464,8 +571,12 @@ def _build_and_store(  # noqa: PLR0913
                     )
                 )
             else:
+                st.session_state["event_scenario_bridge_manifest"] = None
+                st.session_state["event_scenario_bridge_form_fingerprint"] = None
                 return f"Unsupported mutation kind: {kind}"
         if not intended_metrics:
+            st.session_state["event_scenario_bridge_manifest"] = None
+            st.session_state["event_scenario_bridge_form_fingerprint"] = None
             return "Select at least one intended metric."
         request = EventScenarioBridgeRequest(
             bridge_id=bridge_id.strip(),
@@ -483,18 +594,37 @@ def _build_and_store(  # noqa: PLR0913
         manifest = build_event_scenario_bridge_manifest(request)
         st.session_state["event_scenario_bridge_manifest"] = manifest
         return None
+    except ValidationError as exc:
+        st.session_state["event_scenario_bridge_manifest"] = None
+        st.session_state["event_scenario_bridge_form_fingerprint"] = None
+        try:
+            err = exc.errors()[0]
+            loc = ".".join(str(x) for x in err.get("loc", []))
+            msg = err.get("msg", str(exc))
+            if loc:
+                return (  # noqa: E501
+                    f"Study title is invalid: {msg}"
+                    if "title" in loc
+                    else f"{loc} is invalid: {msg}"
+                )
+            return f"The bridge request is invalid: {msg}"
+        except Exception:
+            return f"The bridge request is invalid: {exc}"
     except EventScenarioBridgeError as exc:
         st.session_state["event_scenario_bridge_manifest"] = None
+        st.session_state["event_scenario_bridge_form_fingerprint"] = None
         return str(exc)
     except Exception as exc:  # noqa: BLE001
         st.session_state["event_scenario_bridge_manifest"] = None
+        st.session_state["event_scenario_bridge_form_fingerprint"] = None
         return f"The bridge request is invalid: {exc}"
 
 
 def _render_handoffs(manifest: object) -> None:  # noqa: C901
     from traffictwin.event_scenario_bridge.models import EventScenarioBridgeManifest
 
-    assert isinstance(manifest, EventScenarioBridgeManifest)
+    if not isinstance(manifest, EventScenarioBridgeManifest):
+        raise TypeError("manifest must be an EventScenarioBridgeManifest")
     st.divider()
     section_header(
         "Bridge handoff preview", "Deterministic, unexecuted — review before any execution."

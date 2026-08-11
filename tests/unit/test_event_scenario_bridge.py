@@ -6,6 +6,7 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from pydantic import ValidationError
 
 from traffictwin.event_scenario_bridge.models import (
     BridgeFinding,
@@ -16,6 +17,7 @@ from traffictwin.event_scenario_bridge.models import (
     ScenarioMutationProposal,
 )
 from traffictwin.event_scenario_bridge.service import (
+    EventScenarioBridgeError,
     build_event_scenario_bridge_manifest,
     export_bridge_csv,
     export_bridge_json,
@@ -68,8 +70,8 @@ def _request(**overrides: object) -> EventScenarioBridgeRequest:
         "intended_metrics": ["task.completion.rate", "trip.duration.mean_s"],
         "intended_windows": ["pre", "event", "post"],
     }
-    base.update(overrides)  # type: ignore[arg-type]
-    return EventScenarioBridgeRequest.model_validate(base)  # type: ignore[arg-type]
+    base.update(overrides)
+    return EventScenarioBridgeRequest.model_validate(base)
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +171,7 @@ def test_no_local_path_in_portable_output() -> None:
 
 
 def test_invalid_mutation_refused() -> None:
-    with pytest.raises(Exception, match="lane_closure requires lanes_closed"):
+    with pytest.raises(ValidationError, match="lane_closure requires lanes_closed"):
         ScenarioMutationProposal(
             mutation_kind=MutationKind.LANE_CLOSURE,
             target_description="missing lanes",
@@ -177,14 +179,14 @@ def test_invalid_mutation_refused() -> None:
 
 
 def test_unsupported_mutation_refused() -> None:
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(ValidationError):
         ScenarioMutationProposal.model_validate(
             {"mutation_kind": "arbitrary_shell_exec", "target_description": "evil"}
         )
 
 
 def test_missing_baseline_refused() -> None:
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(ValidationError):
         EventScenarioBridgeRequest.model_validate(
             {
                 "bridge_id": "bridge-001",
@@ -200,7 +202,7 @@ def test_missing_baseline_refused() -> None:
 
 
 def test_unsupported_mutation_via_rsu_without_id() -> None:
-    with pytest.raises(Exception, match="rsu_removal requires rsu_id"):
+    with pytest.raises(ValidationError, match="rsu_removal requires rsu_id"):
         ScenarioMutationProposal(
             mutation_kind=MutationKind.RSU_REMOVAL,
             target_description="remove rsu",
@@ -208,19 +210,19 @@ def test_unsupported_mutation_via_rsu_without_id() -> None:
 
 
 def test_bridge_requires_at_least_one_mutation() -> None:
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(ValidationError):
         _request(mutation_proposals=[])
 
 
 def test_authored_event_must_not_be_labelled_observed() -> None:
-    with pytest.raises(Exception, match="must not be labelled observed"):
+    with pytest.raises(ValidationError, match="must not be labelled observed"):
         DeclaredEventReference(
             event_id="event-001",
             event_kind="Observed accident",
             anchor_time_utc=_utc(),
             source_label="Authored \u2014 Manual timestamp",
         )
-    with pytest.raises(Exception, match="must not be labelled observed"):
+    with pytest.raises(ValidationError, match="must not be labelled observed"):
         DeclaredEventReference(
             event_id="event-001",
             event_kind="Authored closure",
@@ -230,20 +232,33 @@ def test_authored_event_must_not_be_labelled_observed() -> None:
 
 
 def test_findings_must_not_claim_causality() -> None:
-    with pytest.raises(Exception, match="must not claim causality"):
+    with pytest.raises(ValidationError, match="must not claim causality"):
         BridgeFinding(finding_id="f-001", description="This caused the delay")
 
 
-def test_window_end_must_be_after_start() -> None:
-    with pytest.raises(Exception, match="must be greater than"):
-        EventImpactEnvelope(
-            affected_links=[],
-            pre_duration_s=600,
-            event_duration_s=600,
-            post_duration_s=600,
-            bin_width_s=60,
-            window_start_offset_s=100,
-            window_end_offset_s=50,
+def test_event_impact_envelope_rejects_unknown_window_offsets() -> None:
+    # Window offsets were removed; extra fields must be rejected via strict extra=forbid  # noqa: E501
+    with pytest.raises(ValidationError):
+        EventImpactEnvelope.model_validate(
+            {
+                "affected_links": [],
+                "pre_duration_s": 600,
+                "event_duration_s": 600,
+                "post_duration_s": 600,
+                "bin_width_s": 60,
+                "window_start_offset_s": -300,
+            }
+        )
+    with pytest.raises(ValidationError):
+        EventImpactEnvelope.model_validate(
+            {
+                "affected_links": [],
+                "pre_duration_s": 600,
+                "event_duration_s": 600,
+                "post_duration_s": 600,
+                "bin_width_s": 60,
+                "window_end_offset_s": 300,
+            }
         )
 
 
@@ -276,7 +291,7 @@ def test_csv_has_formula_injection_protection() -> None:
 
 
 def test_bounded_demand_change_requires_multiplier() -> None:
-    with pytest.raises(Exception, match="demand_multiplier"):
+    with pytest.raises(ValidationError, match="demand_multiplier"):
         ScenarioMutationProposal(
             mutation_kind=MutationKind.BOUNDED_DEMAND_CHANGE,
             target_description="change demand",
@@ -284,7 +299,7 @@ def test_bounded_demand_change_requires_multiplier() -> None:
 
 
 def test_road_clearing_with_nonzero_lanes_refused() -> None:
-    with pytest.raises(Exception, match="road_clearing"):
+    with pytest.raises(ValidationError, match="road_clearing"):
         ScenarioMutationProposal(
             mutation_kind=MutationKind.ROAD_CLEARING,
             target_description="clear road",
@@ -293,7 +308,7 @@ def test_road_clearing_with_nonzero_lanes_refused() -> None:
 
 
 def test_timestamp_adjustment_requires_jitter() -> None:
-    with pytest.raises(Exception, match="timestamp_jitter_s"):
+    with pytest.raises(ValidationError, match="timestamp_jitter_s"):
         ScenarioMutationProposal(
             mutation_kind=MutationKind.TIMESTAMP_EVENT_WINDOW_ADJUSTMENT,
             target_description="jitter time",
@@ -304,17 +319,17 @@ def test_naive_anchor_rejected() -> None:
     import datetime as dt
 
     naive = dt.datetime(2026, 7, 17, 12, 0, 0)
-    with pytest.raises(Exception, match="timezone-aware"):
+    with pytest.raises(ValidationError, match="timezone-aware"):
         DeclaredEventReference(
             event_id="event-001",
             event_kind="Authored closure",
-            anchor_time_utc=naive,  # type: ignore[arg-type]
+            anchor_time_utc=naive,
             source_label="Authored \u2014 Manual timestamp",
         )
 
 
 def test_extra_forbid_on_strict_models() -> None:
-    with pytest.raises(Exception):  # noqa: B017
+    with pytest.raises(ValidationError):
         DeclaredEventReference(  # type: ignore[call-arg]
             event_id="event-001",
             event_kind="Authored closure",
@@ -322,3 +337,149 @@ def test_extra_forbid_on_strict_models() -> None:
             source_label="Authored \u2014 Manual timestamp",
             unknown_field="should fail",
         )
+
+
+def test_b1_embedded_posix_paths_refused_on_multiple_surfaces() -> None:
+    hostile = "baseline sourced from /Users/akashx/AntigravityTest/diss/net.xml"
+    # title
+    with pytest.raises(EventScenarioBridgeError):
+        build_event_scenario_bridge_manifest(_request(title=hostile))
+    # description
+    with pytest.raises(EventScenarioBridgeError):
+        build_event_scenario_bridge_manifest(_request(description=hostile))
+    # event provenance_detail
+    ref = _event_ref().model_copy(update={"provenance_detail": hostile})
+    with pytest.raises(EventScenarioBridgeError):
+        build_event_scenario_bridge_manifest(_request(event_reference=ref))
+    # affected_area_label
+    env = EventImpactEnvelope(
+        affected_links=["link-a"],
+        affected_area_label=hostile,
+        pre_duration_s=600,
+        event_duration_s=600,
+        post_duration_s=600,
+        bin_width_s=60,
+    )
+    with pytest.raises(EventScenarioBridgeError):
+        build_event_scenario_bridge_manifest(_request(impact_envelope=env))
+    # mutation target_description
+    hostile_proposal = ScenarioMutationProposal(
+        mutation_kind=MutationKind.LANE_CLOSURE,
+        target_description=hostile,
+        lanes_closed=1,
+    )
+    with pytest.raises(EventScenarioBridgeError):
+        build_event_scenario_bridge_manifest(_request(mutation_proposals=[hostile_proposal]))
+
+
+def test_b1_other_path_forms_refused() -> None:
+    for hostile, _field in [
+        ("see ~/secret file", "description"),
+        ("load file:///tmp/file", "description"),
+        (r"C:\Users\foo\bar.xml", "description"),
+    ]:
+        with pytest.raises(EventScenarioBridgeError):
+            build_event_scenario_bridge_manifest(_request(description=hostile))
+    # Also via mutation table_kind
+    for hostile in ["~/secret", "file:///tmp/file", r"C:\Users\foo"]:
+        proposal = ScenarioMutationProposal(
+            mutation_kind=MutationKind.LANE_CLOSURE,
+            target_description="ok target",
+            lanes_closed=1,
+            table_kind=hostile,
+        )
+        with pytest.raises(EventScenarioBridgeError):
+            build_event_scenario_bridge_manifest(_request(mutation_proposals=[proposal]))
+
+
+def test_csv_sanitizes_formula_like_text_cells() -> None:
+    manifest = build_event_scenario_bridge_manifest(_request())
+    # Create hostile finding via model copy
+    hostile_desc = '=HYPERLINK("http://evil","click")'
+    # Build a hostile manifest by copying and adding finding
+    # Use the service's findings builder indirectly: create a copy with extra finding
+    from traffictwin.event_scenario_bridge.models import BridgeFinding
+
+    hostile_finding = BridgeFinding(
+        finding_id="finding-hostile",
+        description=hostile_desc,
+        severity="info",
+    )
+    # Create a new manifest with hostile finding via model_copy
+    hostile_manifest = manifest.model_copy(
+        update={"findings": [*manifest.findings, hostile_finding]}
+    )
+    csv_text = export_bridge_csv(hostile_manifest)
+    # Raw formula must not appear as cell start, sanitized with leading '
+    assert hostile_desc not in csv_text
+    assert "'=HYPERLINK" in csv_text
+    # Also test other prefixes
+    for prefix, fid in [("+cmd", "find-plus"), ("-evil", "find-minus"), ("@evil", "find-at")]:
+        f = BridgeFinding(finding_id=fid, description=prefix + " payload", severity="info")
+        m2 = manifest.model_copy(update={"findings": [*manifest.findings, f]})
+        csv2 = export_bridge_csv(m2)
+        assert f"'{prefix}" in csv2
+    # Safe ordinary text unchanged
+    safe_f = BridgeFinding(
+        finding_id="safe-001", description="Normal finding text", severity="info"
+    )
+    m3 = manifest.model_copy(update={"findings": [*manifest.findings, safe_f]})
+    csv3 = export_bridge_csv(m3)
+    assert "Normal finding text" in csv3
+    assert "'Normal finding text" not in csv3
+
+
+def test_title_must_not_claim_causality() -> None:
+    with pytest.raises(ValidationError, match="must not claim causality"):
+        _request(title="Causal analysis of authored closure event")
+    with pytest.raises(ValidationError, match="must not claim causality"):
+        _request(title="This caused the outage")
+    with pytest.raises(ValidationError, match="must not claim causality"):
+        _request(title="Study proves the effect")
+    # Non-causal title should pass
+    req = _request(title="What-if study for authored closure — unexecuted design")
+    manifest = build_event_scenario_bridge_manifest(req)
+    assert manifest.request.title == "What-if study for authored closure — unexecuted design"
+
+
+def test_unknown_metric_produces_advisory_warning_and_preserved() -> None:
+    req = _request(intended_metrics=["task.completion.rate", "unknown.custom.metric"])
+    manifest = build_event_scenario_bridge_manifest(req)
+    # Advisory warning about bounded reference catalogue
+    assert any(
+        "bounded reference catalogue" in w.lower() or "not in the bounded" in w.lower()
+        for w in manifest.warnings
+    )
+    assert "unknown.custom.metric" in manifest.request.intended_metrics
+    # Manifest still OK
+    assert manifest.verify_fingerprint()
+    # Unknown metric preserved as authored label
+    assert "unknown.custom.metric" in manifest.request.intended_metrics
+
+
+def test_unknown_window_produces_advisory_warning_and_preserved() -> None:
+    req = _request(intended_windows=["pre", "event", "custom_window"])
+    manifest = build_event_scenario_bridge_manifest(req)
+    assert any(
+        "non-standard" in w.lower() or "authored scope" in w.lower() for w in manifest.warnings
+    )
+    assert "custom_window" in manifest.request.intended_windows
+    assert manifest.verify_fingerprint()
+
+
+def test_half_open_windows_exact_boundaries() -> None:
+    env = EventImpactEnvelope(
+        affected_links=[],
+        pre_duration_s=600,
+        event_duration_s=600,
+        post_duration_s=600,
+        bin_width_s=60,
+    )
+    anchor = _utc()
+    windows = env.preview_windows(anchor)
+    assert windows["pre"][1] == windows["event"][0]
+    assert windows["event"][1] == windows["post"][0]
+    # Durations exact
+    assert (windows["pre"][1] - windows["pre"][0]).total_seconds() == 600
+    assert (windows["event"][1] - windows["event"][0]).total_seconds() == 600
+    assert (windows["post"][1] - windows["post"][0]).total_seconds() == 600
