@@ -149,10 +149,25 @@ def validate_manifest_contract(manifest: dict[str, Any]) -> None:
             start=1,
         )
     ]
+    expected_smokes = [
+        {
+            "smoke_index": index,
+            "cell_index": seed,
+            "fleet_seed": seed,
+            "arm": "per_task_dla",
+            "repeat": repeat,
+        }
+        for index, (seed, repeat) in enumerate(
+            ((seed, repeat) for seed in (1, 2, 3, 4) for repeat in (1, 2)),
+            start=1,
+        )
+    ]
     if cells != expected_cells:
         raise RuntimeError("manifest full-cell order is not the authorised four-cell order")
     if manifest["existing_mode_replay_order"] != expected_replays:
         raise RuntimeError("manifest replay order is not the authorised eight-probe order")
+    if manifest["smoke_gate"]["order"] != expected_smokes:
+        raise RuntimeError("manifest smoke order is not the authorised eight-run order")
     if set(manifest["arms"]) != {"ingress_dla", "dla", "per_task_dla"}:
         raise RuntimeError("manifest arm inventory changed")
     if manifest["arms"]["per_task_dla"]["rsu_lb"] != "per_task_dla":
@@ -231,13 +246,18 @@ def remaining_projection(
         replays = 8
         smokes = 8
         fulls = 4
-    else:
-        if cell_index is None:
-            raise ValueError("cell_index required for cell projection")
-        remaining_cells = 5 - cell_index
+    elif phase == "smoke_gate":
         replays = 0
-        smokes = remaining_cells * 2
-        fulls = remaining_cells
+        smokes = 8
+        fulls = 4
+    elif phase == "full_cell":
+        if cell_index is None:
+            raise ValueError("cell_index required for full-cell projection")
+        replays = 0
+        smokes = 0
+        fulls = 5 - cell_index
+    else:
+        raise ValueError(f"unknown E2d execution phase: {phase}")
     wall = (
         replays * float(limits["projected_ten_step_wall_seconds"])
         + smokes * float(limits["projected_ten_step_wall_seconds"])
@@ -539,44 +559,45 @@ def run_replay_gate(manifest_path: Path, manifest: dict[str, Any]) -> dict[str, 
     return result
 
 
-def verify_prior_cell_order(manifest: dict[str, Any], cell_index: int) -> None:
-    replay_status = Path(manifest["outputs"]["raw_root"]) / "replay_gate_status.json"
-    if (
-        not replay_status.is_file()
-        or json.loads(replay_status.read_text(encoding="utf-8")).get("status") != "passed"
-    ):
-        raise RuntimeError("all eight existing-mode replay probes have not passed")
-    for prior in manifest["full_cell_order"]:
-        if int(prior["cell_index"]) >= cell_index:
-            continue
-        status_path = cell_root(manifest, prior) / "cell_status.json"
-        if (
-            not status_path.is_file()
-            or json.loads(status_path.read_text(encoding="utf-8")).get("status") != "passed"
-        ):
-            raise RuntimeError(f"prior E2d cell did not pass: {cell_name(prior)}")
+def require_passed_status(path: Path, description: str) -> dict[str, Any]:
+    if not path.is_file():
+        raise RuntimeError(f"{description} is absent")
+    record: dict[str, Any] = json.loads(path.read_text(encoding="utf-8"))
+    if record.get("status") != "passed":
+        raise RuntimeError(f"{description} has not passed")
+    return record
 
 
-def run_cell(manifest_path: Path, manifest: dict[str, Any], cell: dict[str, Any]) -> dict[str, Any]:
-    cell_index = int(cell["cell_index"])
-    root = cell_root(manifest, cell)
-    if root.exists():
-        raise FileExistsError(f"refusing to overwrite E2d cell: {root}")
-    verify_prior_cell_order(manifest, cell_index)
-    preflight_record = preflight(manifest_path, manifest, phase="cell", cell_index=cell_index)
-    root.mkdir(parents=True, exist_ok=False)
-    write_json_new(root / "cell_preflight.json", preflight_record)
-    identities = preflight_record["identities"]
-    try:
+def verify_replay_gate_passed(manifest: dict[str, Any]) -> dict[str, Any]:
+    raw_root = Path(manifest["outputs"]["raw_root"])
+    status = require_passed_status(raw_root / "replay_gate_status.json", "global replay gate")
+    if status.get("replays_planned") != 8 or status.get("replays_passed") != 8:
+        raise RuntimeError("global replay gate does not bind all eight declared probes")
+    return status
+
+
+def verify_all_smoke_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
+    verify_replay_gate_passed(manifest)
+    raw_root = Path(manifest["outputs"]["raw_root"])
+    status = require_passed_status(raw_root / "smoke_gate_status.json", "global smoke gate")
+    if status.get("smokes_planned") != 8 or status.get("smokes_passed") != 8:
+        raise RuntimeError("global smoke gate does not bind all eight declared smokes")
+
+    cells = {int(cell["cell_index"]): cell for cell in manifest["full_cell_order"]}
+    expected_records: list[dict[str, Any]] = []
+    verified: list[dict[str, Any]] = []
+    for cell in manifest["full_cell_order"]:
+        root = cell_root(manifest, cell)
+        stored_path = root / "smoke_validation.json"
+        stored = require_passed_status(stored_path, f"smoke validation for {cell_name(cell)}")
+        if stored.get("cell") != cell:
+            raise RuntimeError(f"smoke validation cell identity drift: {cell_name(cell)}")
         smoke_runs = [
-            run_once(
-                manifest,
-                cell,
+            validate_run(
                 root / "smoke" / f"run_{repeat}",
-                max_steps=int(manifest["design"]["smoke_steps"]),
-                phase="new_arm_smoke",
-                repeat=repeat,
-                identities=identities,
+                manifest=manifest,
+                run=cell,
+                expected_steps=int(manifest["design"]["smoke_steps"]),
             )
             for repeat in (1, 2)
         ]
@@ -589,21 +610,179 @@ def run_cell(manifest_path: Path, manifest: dict[str, Any], cell: dict[str, Any]
             )
             for arm in ("ingress_dla", "dla")
         }
-        smoke_validation = {
-            "schema_version": "e2d_smoke_validation_v1",
-            "status": (
-                "passed"
-                if repeated["pass"] and all(item["pass"] for item in baseline_identity.values())
-                else "failed"
-            ),
-            "cell": cell,
-            "repeat": repeated,
-            "identity_against_reused_e2c": baseline_identity,
-        }
-        write_json_new(root / "smoke_validation.json", smoke_validation)
-        if smoke_validation["status"] != "passed":
-            raise RuntimeError(f"E2d repeated-smoke gate failed: {cell_name(cell)}")
+        passed = (
+            all(run["status"] == "passed" for run in smoke_runs)
+            and repeated["pass"]
+            and all(item["pass"] for item in baseline_identity.values())
+        )
+        if not passed:
+            raise RuntimeError(f"stored smoke evidence no longer validates: {cell_name(cell)}")
+        expected_records.append(
+            {
+                "cell": cell,
+                "smoke_validation": str(stored_path),
+                "smokes_passed": 2,
+            }
+        )
+        verified.append(
+            {
+                "cell": cell,
+                "repeat": repeated,
+                "identity_against_reused_e2c": baseline_identity,
+            }
+        )
 
+    if status.get("records") != expected_records:
+        raise RuntimeError("global smoke-gate record inventory or order drifted")
+    if set(cells) != {1, 2, 3, 4}:
+        raise RuntimeError("full-cell inventory drifted after smoke execution")
+    return {"status": "passed", "global_status": status, "verified": verified}
+
+
+def run_smoke_gate(manifest_path: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    raw_root = Path(manifest["outputs"]["raw_root"])
+    status_path = raw_root / "smoke_gate_status.json"
+    failure_path = raw_root / "smoke_gate_failure.json"
+    if status_path.exists() or failure_path.exists():
+        raise FileExistsError("refusing to overwrite global E2d smoke-gate evidence")
+    verify_replay_gate_passed(manifest)
+    preflight_record = preflight(manifest_path, manifest, phase="smoke_gate", cell_index=None)
+    write_json_new(raw_root / "smoke_gate_preflight.json", preflight_record)
+
+    cells = {int(cell["cell_index"]): cell for cell in manifest["full_cell_order"]}
+    smoke_runs_by_cell: dict[int, list[dict[str, Any]]] = {}
+    records: list[dict[str, Any]] = []
+    smokes_started = 0
+    smokes_passed = 0
+    try:
+        for smoke in manifest["smoke_gate"]["order"]:
+            cell_index = int(smoke["cell_index"])
+            repeat = int(smoke["repeat"])
+            cell = cells[cell_index]
+            root = cell_root(manifest, cell)
+            if repeat == 1:
+                if root.exists():
+                    raise FileExistsError(f"refusing to overwrite E2d smoke cell: {root}")
+                root.mkdir(parents=True, exist_ok=False)
+                smoke_runs_by_cell[cell_index] = []
+            elif cell_index not in smoke_runs_by_cell:
+                raise RuntimeError(f"smoke repeat order drifted for {cell_name(cell)}")
+
+            smokes_started += 1
+            validation = run_once(
+                manifest,
+                cell,
+                root / "smoke" / f"run_{repeat}",
+                max_steps=int(manifest["design"]["smoke_steps"]),
+                phase="new_arm_smoke",
+                repeat=repeat,
+                identities=preflight_record["identities"],
+            )
+            smoke_runs_by_cell[cell_index].append(validation)
+            smokes_passed += 1
+            if repeat != 2:
+                continue
+
+            smoke_runs = smoke_runs_by_cell[cell_index]
+            if len(smoke_runs) != 2:
+                raise RuntimeError(f"incomplete smoke pair for {cell_name(cell)}")
+            repeated = compare_repeats(smoke_runs[0], smoke_runs[1])
+            baseline_identity = {
+                arm: compare_identity_to_reference(
+                    smoke_runs[0],
+                    reference_record(manifest, int(cell["fleet_seed"]), arm, "smoke"),
+                    manifest,
+                )
+                for arm in ("ingress_dla", "dla")
+            }
+            smoke_validation = {
+                "schema_version": "e2d_smoke_validation_v1",
+                "status": (
+                    "passed"
+                    if repeated["pass"] and all(item["pass"] for item in baseline_identity.values())
+                    else "failed"
+                ),
+                "cell": cell,
+                "repeat": repeated,
+                "identity_against_reused_e2c": baseline_identity,
+            }
+            stored_path = root / "smoke_validation.json"
+            write_json_new(stored_path, smoke_validation)
+            if smoke_validation["status"] != "passed":
+                raise RuntimeError(f"E2d repeated-smoke gate failed: {cell_name(cell)}")
+            records.append(
+                {
+                    "cell": cell,
+                    "smoke_validation": str(stored_path),
+                    "smokes_passed": 2,
+                }
+            )
+        if any(
+            (cell_root(manifest, cell) / "full").exists() for cell in manifest["full_cell_order"]
+        ):
+            raise RuntimeError("smoke phase created or encountered full-cell evidence")
+    except Exception as error:
+        write_json_new(
+            failure_path,
+            {
+                "schema_version": "e2d_smoke_gate_failure_v1",
+                "status": "stopped_on_mandatory_gate",
+                "error_type": type(error).__name__,
+                "error": str(error),
+                "smokes_started": smokes_started,
+                "smokes_passed": smokes_passed,
+                "completed_seed_pairs": len(records),
+                "failed_evidence_retained": True,
+                "full_cells_authorised": False,
+            },
+        )
+        raise
+
+    result = {
+        "schema_version": "e2d_smoke_gate_status_v1",
+        "status": "passed",
+        "smokes_planned": 8,
+        "smokes_passed": 8,
+        "records": records,
+    }
+    write_json_new(status_path, result)
+    return result
+
+
+def verify_prior_full_cell_order(manifest: dict[str, Any], cell_index: int) -> None:
+    for prior in manifest["full_cell_order"]:
+        if int(prior["cell_index"]) >= cell_index:
+            continue
+        status_path = cell_root(manifest, prior) / "cell_status.json"
+        if (
+            not status_path.is_file()
+            or json.loads(status_path.read_text(encoding="utf-8")).get("status") != "passed"
+        ):
+            raise RuntimeError(f"prior E2d cell did not pass: {cell_name(prior)}")
+
+
+def run_full_cell(
+    manifest_path: Path, manifest: dict[str, Any], cell: dict[str, Any]
+) -> dict[str, Any]:
+    cell_index = int(cell["cell_index"])
+    root = cell_root(manifest, cell)
+    verify_all_smoke_evidence(manifest)
+    verify_prior_full_cell_order(manifest, cell_index)
+    if not root.is_dir():
+        raise RuntimeError(f"global smoke evidence is missing for E2d cell: {root}")
+    protected = (
+        root / "cell_preflight.json",
+        root / "cell_validation.json",
+        root / "cell_status.json",
+        root / "cell_failure.json",
+        root / "full",
+    )
+    if any(path.exists() for path in protected):
+        raise FileExistsError(f"refusing to overwrite E2d full-cell evidence: {root}")
+    preflight_record = preflight(manifest_path, manifest, phase="full_cell", cell_index=cell_index)
+    write_json_new(root / "cell_preflight.json", preflight_record)
+    identities = preflight_record["identities"]
+    try:
         full = run_once(
             manifest,
             cell,
@@ -646,7 +825,7 @@ def run_cell(manifest_path: Path, manifest: dict[str, Any], cell: dict[str, Any]
         "schema_version": "e2d_cell_status_v1",
         "status": "passed",
         "cell": cell,
-        "smoke_runs_completed": 2,
+        "smoke_runs_verified": 2,
         "full_runs_completed": 1,
         "full_evaluator_wall_seconds": float(full["summary"]["wall_s"]),
         "cell_validation": str(root / "cell_validation.json"),
@@ -689,16 +868,19 @@ def main() -> int:
     parser.add_argument("--manifest", required=True, type=Path)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--run-replay-gate", action="store_true")
-    group.add_argument("--cell-index", type=int)
+    group.add_argument("--run-smoke-gate", action="store_true")
+    group.add_argument("--full-cell-index", type=int, choices=(1, 2, 3, 4))
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     if args.run_replay_gate:
         result = run_replay_gate(args.manifest, manifest)
+    elif args.run_smoke_gate:
+        result = run_smoke_gate(args.manifest, manifest)
     else:
         cells = {int(cell["cell_index"]): cell for cell in manifest["full_cell_order"]}
-        if args.cell_index not in cells:
-            raise SystemExit(f"undeclared E2d cell index: {args.cell_index}")
-        result = run_cell(args.manifest, manifest, cells[args.cell_index])
+        if args.full_cell_index not in cells:
+            raise SystemExit(f"undeclared E2d cell index: {args.full_cell_index}")
+        result = run_full_cell(args.manifest, manifest, cells[args.full_cell_index])
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
