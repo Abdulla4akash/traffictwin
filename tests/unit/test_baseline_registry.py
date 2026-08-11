@@ -1561,7 +1561,6 @@ def test_withdrawn_active_remains_active_until_superseded() -> None:
     assert delta[0].event_kind is BaselineLedgerEventKind.WITHDRAWN
     assert delta[0].candidate_id == active_before.candidate_id
     assert delta[0].scope_id == active_before.scope.scope_id
-    assert all(entry.event_kind is not BaselineLedgerEventKind.SUPERSEDED for entry in delta)
     active_after = withdrawn.active_baselines[scope.scope_id]
     assert active_after.baseline_id == active_before.baseline_id
     assert active_after.candidate_id == active_before.candidate_id

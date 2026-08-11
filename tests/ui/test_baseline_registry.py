@@ -294,17 +294,47 @@ req = BaselinePromotionRequest(
     operation=BaselinePromotionOperation.PROMOTE,
 )
 reg, _ = promote_baseline(reg, req, clock=_fixed)
-st.session_state["baseline_registry_state"] = reg
+if "baseline_registry_state" not in st.session_state:
+    st.session_state["baseline_registry_state"] = reg
 render(load_ui_config())
 """
     )
     assert not at.exception, f"setup failed: {at.exception}"
-    try:
-        at.text_input(key="baseline_withdraw_cand").set_value("cand-active").run()
-        at.text_input(key="baseline_withdraw_actor").set_value("operator").run()
-        at.button(key="baseline_withdraw_button").click().run()
-    except Exception as exc:
-        raise AssertionError(f"AppTest withdraw interaction failed: {exc}") from exc
+
+    # Verify initial active and not withdrawn before interaction (prove scaffold not hiding)
+    # Inspect state via page's session state after first render
+    # Use direct AppTest session state: the registry should have active candidate not withdrawn
+    # We check via dataframe before withdraw to ensure test is not vacuous
+    initial_found = False
+    for df in at.dataframe:
+        val = df.value if hasattr(df, "value") else None
+        if val is not None:
+            import pandas as pd  # type: ignore[import-untyped]
+
+            if (
+                isinstance(val, pd.DataFrame)
+                and "candidate_id" in val.columns
+                and (val["candidate_id"] == "cand-active").any()
+            ):
+                initial_found = True
+                if "candidate_withdrawn" in val.columns:
+                    row = val[val["candidate_id"] == "cand-active"]
+                    assert not row.empty
+                    assert bool(row.iloc[0]["candidate_withdrawn"]) is False, (
+                        "initially should not be withdrawn"
+                    )
+                if "withdrawn" in val.columns:
+                    row2 = val[val["candidate_id"] == "cand-active"]
+                    if not row2.empty and "withdrawn" in val.columns:
+                        # candidates table withdrawn flag should be False initially
+                        assert bool(row2.iloc[0]["withdrawn"]) is False or str(
+                            row2.iloc[0]["withdrawn"]
+                        ).lower() in ("false", "no")
+    assert initial_found, "cand-active not found in initial tables — scaffold failed"
+
+    at.text_input(key="baseline_withdraw_cand").set_value("cand-active").run()
+    at.text_input(key="baseline_withdraw_actor").set_value("operator").run()
+    at.button(key="baseline_withdraw_button").click().run()
 
     warnings = [str(w.value) for w in at.warning]
     combined_warn = " ".join(warnings).lower()
@@ -312,32 +342,72 @@ render(load_ui_config())
     assert "remains active" in combined_warn, f"warning missing remains active: {warnings}"
     assert "supersed" in combined_warn
 
-    # Check that active table still shows withdrawn flag (best-effort via dataframe)
-    has_active = False
-    for df in at.dataframe:
-        try:
-            val = df.value if hasattr(df, "value") else None
-            if val is not None:
-                import pandas as pd  # type: ignore[import-untyped]
+    # Prove warning explicitly says it remains active until superseded (not just generic)
+    assert "remains active" in combined_warn and "until" in combined_warn
 
-                if (
-                    isinstance(val, pd.DataFrame)
-                    and val.astype(str)
-                    .apply(lambda row: row.str.contains("cand-active").any(), axis=1)
-                    .any()
-                ):
-                    has_active = True
-                    if "candidate_withdrawn" in val.columns:
-                        row = val[val["candidate_id"] == "cand-active"]
-                        if not row.empty:
-                            assert bool(row.iloc[0]["candidate_withdrawn"]) is True
-                    if "withdrawn" in val.columns:
-                        row2 = val[val["candidate_id"] == "cand-active"]
-                        if not row2.empty:
-                            assert (
-                                bool(row2.iloc[0]["withdrawn"]) is True
-                                or str(row2.iloc[0]["withdrawn"]).lower() == "true"
-                            )
-        except Exception:  # noqa: S112
+    # Inspect ledger and active record directly via session state after rerun
+    import streamlit as st  # noqa: F401
+
+    # Retrieve registry from AppTest session_state (survives rerun)
+    reg_after = at.session_state["baseline_registry_state"]
+    # Ledger must contain new WITHDRAWN
+    from traffictwin.baseline_registry.models import BaselineLedgerEventKind
+
+    assert len(reg_after.ledger) >= 1
+    # Find delta: last event should be WITHDRAWN for cand-active
+    # Since initial ledger had promote, the new event is at end
+    last = reg_after.ledger[-1]
+    assert last.event_kind is BaselineLedgerEventKind.WITHDRAWN
+    assert last.candidate_id == "cand-active"
+    assert last.scope_id == "scope-a"
+    # Active baseline still references that candidate
+    assert "scope-a" in reg_after.active_baselines
+    assert reg_after.active_baselines["scope-a"].candidate_id == "cand-active"
+
+    # Check that active table still shows withdrawn flag — now without swallowing
+    found_active = False
+    found_candidate = False
+    for df in at.dataframe:
+        val = df.value if hasattr(df, "value") else None
+        if val is None:
             continue
-    assert has_active or "cand-active" in combined_warn
+        import pandas as pd
+
+        if not isinstance(val, pd.DataFrame):
+            continue
+        if "candidate_id" not in val.columns:
+            continue
+        # Active baselines table has candidate_withdrawn column
+        if "candidate_withdrawn" in val.columns and (val["candidate_id"] == "cand-active").any():
+            found_active = True
+            row = val[val["candidate_id"] == "cand-active"]
+            assert not row.empty, "active baseline row for cand-active missing"
+            assert "candidate_withdrawn" in val.columns, (
+                "candidate_withdrawn column missing in active table"
+            )
+            assert bool(row.iloc[0]["candidate_withdrawn"]) is True, (
+                "active row candidate_withdrawn must be True"
+            )
+            assert row.iloc[0]["status"] == "active", (
+                f"status should be active, got {row.iloc[0]['status']}"
+            )
+        # Candidates table has withdrawn column
+        if "withdrawn" in val.columns and (val["candidate_id"] == "cand-active").any():
+            found_candidate = True
+            row2 = val[val["candidate_id"] == "cand-active"]
+            assert not row2.empty, "candidate row for cand-active missing"
+            assert "withdrawn" in val.columns, "withdrawn column missing in candidates table"
+            assert (
+                bool(row2.iloc[0]["withdrawn"]) is True
+                or str(row2.iloc[0]["withdrawn"]).lower() == "true"
+            ), "candidates withdrawn must be True"
+            # active flag should still be yes/True in candidates table
+            if "active" in val.columns:
+                assert str(row2.iloc[0]["active"]).lower() in ("yes", "true"), (
+                    f"active flag should be yes/True, got {row2.iloc[0]['active']}"
+                )
+
+    assert found_active, (
+        "active-baselines dataframe row for cand-active with candidate_withdrawn=True not found"
+    )
+    assert found_candidate, "candidates dataframe row for cand-active with withdrawn=True not found"
