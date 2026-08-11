@@ -1,12 +1,14 @@
 # Streamlit/Pytest Isolation Guard — V4 Review
 
-Date: 2026-08-10 (updated 2026-08-11 for a3d0054 remediation)
+Date: 2026-08-10 (updated 2026-08-11 for 68d50a4 remediation, supersedes a3d0054 and 43a525a)
 Branch: agent/platform-streamlit-test-isolation-v1
+Abandoned Head: `63acdb96321ad30d1e245b124ace6f563ed82f73` (interim review, superseded by a3d0054)
 Base: 7b1b0b55b399108b237f6e9a31a6747f4c15c81b (origin/main Merge PR #30)
 Heads:
 - original lane `2f81a64e8c51b3963ddaafbbfe8a6f3d9544933d` — blocking defect: passing polluter silently repaired
 - interim `a3d005442bc2c9dbc41be4bc5f7c211cf111be51` — added reporting, but introduced guard regressions (REQUEST CHANGES)
-- this remediation `43a525addc2be1fc1d78adf8b10a92265a79d00b` — fixes blockers 1–8, preserves source polluter fix
+- interim `43a525addc2be1fc1d78adf8b10a92265a79d00b` — fixes blockers 1–8, preserves source polluter fix (probe had uv/-q segfault)
+- this remediation `68d50a4e204f855574186256a58e9cf64035897d` — probe robustness for uv/capture (exit -11 fix), preserves all blocker fixes
 
 ## Objective
 
@@ -109,8 +111,8 @@ Recorded `passed/failed/skipped/deselected/exit code` per run in handoff report.
 
 | Suite | Command | Result |
 |---|---|---|
-| Hardening subset | `pytest -q tests/unit/test_apptest_cold_start_hardening.py` | **35 passed**, 1 warning (`apptest_installed` first-run install) |
-| Study capsule UI | `pytest -q -rs tests/ui/test_study_capsule_ui.py` | **8 passed**, 0 failed, 0 skipped, 1 warning (first AppTest install) — previously at `a3d0054`: 7 passed, 1 skipped (`DeltaGeneratorSingleton`) |
+| Hardening subset | `uv run pytest -q tests/unit/test_apptest_cold_start_hardening.py` | **35 passed**, 1 warning (`apptest_installed` first-run install) |
+| Study capsule UI | `uv run pytest -q -rs tests/ui/test_study_capsule_ui.py` | **8 passed**, 0 failed, 0 skipped, 1 warning (first AppTest install) — previously at `a3d0054`: 7 passed, 1 skipped (`DeltaGeneratorSingleton`) |
 | Guard | `pytest -q tests/unit/test_streamlit_isolation_guard.py` | **19 passed** (was 12 at base, 16 at `a3d0054`) |
 | Polluter→victim | `pytest -q tests/unit/test_apptest_cold_start_hardening.py tests/unit/ui/test_resource_strategy_explorer_page.py` | **45 passed** |
 | Unit/UI | `pytest -q tests/unit/ui` | **243 passed** |
@@ -148,7 +150,7 @@ Fable-owned files untouched: `src/traffictwin/ui/labels.py`, `src/traffictwin/ui
 
 ## Evidence Captured
 
-- Hardening isolated: 35 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b` (was 1 failed/34 passed/2 errors @ `a3d0054`)
-- Study capsule: 8 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b` (was 7 passed/1 skipped @ `a3d0054`)
-- Guard: 19 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b`
+- Hardening isolated: 35 passed @ `68d50a4e204f855574186256a58e9cf64035897d` (was 1 failed/34 passed/2 errors @ `a3d0054`, probe fixed for uv/-q)
+- Study capsule: 8 passed @ `68d50a4e204f855574186256a58e9cf64035897d` (was 7 passed/1 skipped @ `a3d0054`)
+- Guard: 19 passed @ `68d50a4e204f855574186256a58e9cf64035897d` (now passes under both uv and direct -q)
 - Mutation probes: reporting-only, restoration, has_run_first rewind all killed as above

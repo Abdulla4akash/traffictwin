@@ -81,8 +81,18 @@ def _victim_can_render() -> bool:
 # ---------------------------------------------------------------------------
 
 
-def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]:
-    """Create a temporary probe under ``tests/`` and run it via the real guard."""
+def _run_probe_subprocess(
+    probe_source: str, capfd: object | None = None
+) -> subprocess.CompletedProcess[str]:
+    """Create a temporary probe under ``tests/`` and run it via the real guard.
+
+    When called from inside a pytest test that has ``capfd`` capture active,
+    the subprocess's ``capture_output=True`` can deadlock with pytest's FD
+    capture and trigger a segfault (exit -11). To avoid that, we temporarily
+    disable pytest's capture via ``capfd.disabled()`` when a ``capfd`` fixture
+    is supplied, and we also isolate the subprocess with ``start_new_session``
+    and a clean env (removing ``PYTEST_CURRENT_TEST``).
+    """
     repo_root = Path(__file__).resolve().parents[2]
     # Use a temp file inside tests/ so tests/conftest.py applies.
     fd, probe_path_str = tempfile.mkstemp(
@@ -97,24 +107,51 @@ def _run_probe_subprocess(probe_source: str) -> subprocess.CompletedProcess[str]
         # Run pytest on that single file serially, with warnings always shown.
         # Use sys.executable -m pytest to avoid uv indirection segfault.
         env = dict(os.environ)
+        env.pop("PYTEST_CURRENT_TEST", None)
+        env.pop("UV_RUN_RECURSION_DEPTH", None)
+        env.pop("UV", None)
         # Ensure src is on path via pythonpath; pyproject already sets pythonpath=["."].
+        cmd = [
+            sys.executable,
+            "-m",
+            "pytest",
+            str(probe_path),
+            "-v",
+            "-s",
+            "-W",
+            "always::pytest.PytestWarning",
+            "-p",
+            "no:cacheprovider",
+        ]
+        # Disable pytest's FD capture around the subprocess call when possible.
+        # ``capfd`` is an optional fixture passed by the caller.
+        if capfd is not None:
+            try:
+                disabled = capfd.disabled  # type: ignore[attr-defined]
+            except AttributeError:
+                disabled = None
+            if disabled is not None:
+                with disabled():  # type: ignore[no-untyped-call]
+                    result = subprocess.run(  # noqa: S603 - trusted local probe file
+                        cmd,
+                        cwd=str(repo_root),
+                        capture_output=True,
+                        text=True,
+                        timeout=60,
+                        env=env,
+                        stdin=subprocess.DEVNULL,
+                        start_new_session=True,
+                    )
+                return result
         result = subprocess.run(  # noqa: S603 - trusted local probe file
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                str(probe_path),
-                "-v",
-                "-W",
-                "always::pytest.PytestWarning",
-                "-p",
-                "no:cacheprovider",
-            ],
+            cmd,
             cwd=str(repo_root),
             capture_output=True,
             text=True,
             timeout=60,
             env=env,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
         )
         return result
     finally:
@@ -323,7 +360,9 @@ def test_mutation_restore_actually_restores() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_real_fixture_passing_polluter_emits_warning_and_victim_passes() -> None:
+def test_real_fixture_passing_polluter_emits_warning_and_victim_passes(
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     """End-to-end via real autouse fixture: polluter passes, warning visible, victim restored."""
     probe = """
 import types
@@ -358,7 +397,7 @@ def test_b_victim_sees_real_streamlit():
     result = app.run(timeout=30)
     assert not result.exception
 """
-    result = _run_probe_subprocess(probe)
+    result = _run_probe_subprocess(probe, capfd=capfd)
     combined = result.stdout + result.stderr
     assert result.returncode == 0, (
         f"probe should pass (2 passed) but got {result.returncode}:\\n{combined}"
@@ -374,7 +413,7 @@ def test_b_victim_sees_real_streamlit():
     assert "BODS_API_KEY" not in combined or "secret" not in combined.lower()
 
 
-def test_real_fixture_legitimate_import_is_not_a_leak() -> None:
+def test_real_fixture_legitimate_import_is_not_a_leak(capfd: pytest.CaptureFixture[str]) -> None:
     """Legitimate lazy import of real streamlit must NOT be reported as leak."""
     probe = """
 import importlib
@@ -393,7 +432,7 @@ def test_b_still_real():
     assert hasattr(m, "secrets")
     assert "streamlit" in sys.modules
 """
-    result = _run_probe_subprocess(probe)
+    result = _run_probe_subprocess(probe, capfd=capfd)
     combined = result.stdout + result.stderr
     assert result.returncode == 0, f"legitimate import probe failed: {combined}"
     assert "2 passed" in combined, f"expected 2 passed: {combined}"
@@ -403,7 +442,7 @@ def test_b_still_real():
     )
 
 
-def test_real_fixture_has_run_first_is_process_scoped() -> None:
+def test_real_fixture_has_run_first_is_process_scoped(capfd: pytest.CaptureFixture[str]) -> None:
     """Process-scoped has_run_first: second test must see first-run consumed."""
     probe = """
 from tests._apptest_runtime import reset_apptest_cold_state
@@ -434,7 +473,7 @@ def test_b_sees_still_consumed():
     # Guard must NOT have rewound has_run_first; second test sees True
     assert snap.apptest_has_run_first is True, "has_run_first must remain True process-scoped"
 """
-    result = _run_probe_subprocess(probe)
+    result = _run_probe_subprocess(probe, capfd=capfd)
     combined = result.stdout + result.stderr
     assert result.returncode == 0, f"process-scoped probe failed: {combined}"
     assert "2 passed" in combined, f"expected 2 passed: {combined}"
