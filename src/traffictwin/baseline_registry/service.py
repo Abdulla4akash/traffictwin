@@ -33,6 +33,7 @@ _LIMITATIONS = [
     "Evidence and source standing are declared and checked at promotion; synthetic evidence is never relabelled as observed.",  # noqa: E501
     "Regression-gate policy is declared per baseline; this registry does not claim causality, optimality, or production readiness.",  # noqa: E501
     "Portable exports exclude local paths, retrieval clocks, and secrets; fingerprints use deterministic canonical JSON.",  # noqa: E501
+    "Withdrawing a candidate does not deactivate an already-active baseline; an active withdrawn candidate remains active until it is superseded by another valid candidate because this workflow has no separate deactivate, retire, or revoke operation.",  # noqa: E501
 ]
 
 

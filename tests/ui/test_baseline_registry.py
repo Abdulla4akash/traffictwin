@@ -273,3 +273,39 @@ render(load_ui_config())
     # Ensure no exception and boundary text
     warnings = [str(w.value) for w in at.warning]
     assert any("never promoted automatically" in w for w in warnings)
+
+
+def test_baseline_registry_page_renders_withdrawn_limitation() -> None:
+    import pathlib
+    import tempfile
+
+    from streamlit.testing.v1 import AppTest
+
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    runner = tmp / "runner.py"
+    runner.write_text(
+        """
+from traffictwin.ui.pages.baseline_registry import render
+from traffictwin.ui.state import load_ui_config
+render(load_ui_config())
+""",
+        encoding="utf-8",
+    )
+    at = AppTest.from_file(str(runner), default_timeout=30)
+    at.run()
+    assert not at.exception
+    # Collect all markdown/caption/expander text that would contain limitations
+    texts: list[str] = []
+    for col in [at.markdown, at.caption, at.expander, at.warning]:
+        try:
+            for v in col:  # type: ignore[attr-defined]
+                texts.append(str(v.value) if hasattr(v, "value") else str(v))
+        except Exception:  # noqa: S110
+            pass
+    # Also check via AppTest's markdown raw
+    combined = " ".join(texts).lower()
+    # The limitation should be visible in the limitations/boundary section
+    assert "does not deactivate" in combined and "withdraw" in combined, (
+        f"withdrawn-active limitation not rendered: {combined[:2000]}"
+    )
+    assert "no separate deactivate" in combined

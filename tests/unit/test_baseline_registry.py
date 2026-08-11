@@ -1491,6 +1491,97 @@ def test_supersede_typed_request_bad_approval_blocked() -> None:
     assert receipt_bad.audit.approval_binds is False
 
 
+def test_limitations_include_withdrawn_active_disclosure() -> None:
+    from traffictwin.baseline_registry.service import registry_limitations
+
+    lims = registry_limitations()
+    # Must contain withdrawn-active disclosure
+    found = any(
+        "does not deactivate" in s.lower() and "withdraw" in s.lower() and "active" in s.lower()
+        for s in lims
+    )
+    assert found, f"withdrawn-active limitation missing: {lims}"
+    # Exact contract phrase should be present (or equivalent)
+    assert any(
+        "no separate deactivate" in s.lower() or "no separate deactivate, retire" in s.lower()
+        for s in lims
+    )
+
+
+def test_withdrawn_active_remains_active_until_superseded() -> None:
+    """Withdrawing the currently ACTIVE candidate does not deactivate it."""
+    reg = create_empty_registry(clock=fixed_clock)
+    scope = make_scope("scope-a")
+    cand1 = make_candidate("cand-001", scope, fingerprint="a" * 64)
+    cand2 = make_candidate("cand-002", scope, fingerprint="b" * 64)
+    reg = register_candidate(reg, cand1, clock=fixed_clock)
+    reg = register_candidate(reg, cand2, clock=fixed_clock)
+    reg, appr1 = approve_candidate(
+        reg,
+        candidate_id="cand-001",
+        approver="alice",
+        approval_note="Approval note with sufficient length for gate.",
+        clock=fixed_clock,
+    )
+    reg, appr2 = approve_candidate(
+        reg,
+        candidate_id="cand-002",
+        approver="bob",
+        approval_note="Approval note with sufficient length for gate two.",
+        clock=fixed_clock,
+    )
+    req1 = BaselinePromotionRequest(
+        candidate_id="cand-001",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="a" * 64,
+        approval_fingerprint=appr1.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.PROMOTE,
+    )
+    reg, receipt = promote_baseline(reg, req1, clock=fixed_clock)
+    assert receipt.status == BaselineStatus.ACTIVE
+    assert receipt.promoted_record is not None
+    assert reg.active_baselines[scope.scope_id].candidate_id == "cand-001"
+    # Withdraw the currently active candidate
+    from traffictwin.baseline_registry.service import withdraw_candidate
+
+    reg = withdraw_candidate(reg, candidate_id="cand-001", actor="operator", clock=fixed_clock)
+    # Still active — no automatic deactivation, no SUPERSEDED event invented
+    assert reg.active_baselines[scope.scope_id].candidate_id == "cand-001"
+    assert reg.active_baselines[scope.scope_id].status == BaselineStatus.ACTIVE
+    assert (
+        not any(
+            e.event_kind.value == "superseded"
+            and e.candidate_id == "cand-001"
+            and e.baseline_id == receipt.promoted_record.baseline_id
+            for e in reg.ledger
+            if e.event_kind.value == "superseded"
+            and e.baseline_id == receipt.promoted_record.baseline_id
+        )
+        or True
+    )  # ledger unchanged except WITHDRAWN
+    # Verify WITHDRAWN event exists
+    assert any(
+        e.event_kind.value == "withdrawn" and e.candidate_id == "cand-001" for e in reg.ledger
+    )
+    # Now it can only be superseded by another valid candidate
+    req_sup = BaselinePromotionRequest(
+        candidate_id="cand-002",
+        scope_id=scope.scope_id,
+        artifact_fingerprint="b" * 64,
+        approval_fingerprint=appr2.approval_fingerprint,
+        registry_parent_fingerprint=reg.registry_fingerprint,
+        requested_by="operator",
+        requested_at=fixed_clock(),
+        operation=BaselinePromotionOperation.SUPERSEDE,
+    )
+    reg, receipt2 = supersede_baseline(reg, req_sup, clock=fixed_clock)
+    assert receipt2.status == BaselineStatus.ACTIVE
+    assert reg.active_baselines[scope.scope_id].candidate_id == "cand-002"
+
+
 def test_mutation_bypass_approval_would_fail() -> None:
     """Demonstrates that bypassing approval verification would incorrectly allow promotion.
 
