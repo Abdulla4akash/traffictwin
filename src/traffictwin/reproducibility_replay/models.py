@@ -146,7 +146,7 @@ class ReplayPlan(StrictModel):
             "capsule_id": self.capsule_id,
             "entries": sorted(
                 [e.model_dump(mode="json") for e in self.entries],
-                key=lambda x: (x.get("artifact_kind", ""), x.get("logical_id", "")),
+                key=lambda x: (x.get("artifact_kind") or "", x.get("logical_id") or ""),
             ),
             "limitations": sorted(self.limitations),
             "manifest_fingerprint": self.manifest_fingerprint,
@@ -247,7 +247,7 @@ class ReplayReceipt(StrictModel):
                     }
                     for e in self.executions
                 ],
-                key=lambda x: (x.get("artifact_kind", ""), x.get("logical_id", "")),
+                key=lambda x: (x.get("artifact_kind") or "", x.get("logical_id") or ""),
             ),
             "failed_count": self.failed_count,
             "limitations": sorted(self.limitations),
@@ -256,13 +256,13 @@ class ReplayReceipt(StrictModel):
             "mismatched_count": self.mismatched_count,
             "mismatches": sorted(
                 [m.model_dump(mode="json") for m in self.mismatches],
-                key=lambda x: (x.get("artifact_kind", ""), x.get("logical_id", "")),
+                key=lambda x: (x.get("artifact_kind") or "", x.get("logical_id") or ""),
             ),
             "plan_fingerprint": self.plan_fingerprint,
             "receipt_id": self.receipt_id,
             "refusals": sorted(
                 [r.model_dump(mode="json") for r in self.refusals],
-                key=lambda x: (x.get("artifact_kind", ""), x.get("logical_id", "")),
+                key=lambda x: (x.get("artifact_kind") or "", x.get("logical_id") or ""),
             ),
             "warnings": sorted(self.warnings),
         }

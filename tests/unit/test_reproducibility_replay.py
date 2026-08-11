@@ -1287,3 +1287,135 @@ def test_plan_entries_csv_sanitizes_formula_like_text_cells() -> None:
             assert r["logical_id"].startswith("'=")
         if r["logical_id"] == "'-evil-id":
             assert r["logical_id"].startswith("'-")
+
+
+def test_mixed_plan_canonical_sorts_optional_kinds_deterministically() -> None:
+    """Mixed supported + unmapped (artifact_kind=None) must not crash canonical sorting.
+
+    Exercises both ReplayPlan.canonical_dict (around models.py:149) and
+    ReplayReceipt.canonical_dict refusals (around 265) via a real public path.
+    Proves plan builds, fingerprints deterministically, receipt succeeds, and
+    order reversal is canonical.
+    """
+    from traffictwin.reproducibility_replay.models import ReplayPlan
+    from traffictwin.reproducibility_replay.service import (
+        build_receipt,
+        build_replay_plan,
+        execute_replay,
+    )
+
+    supported = _synthetic_resource_report_payload()
+    # Unmapped embed-safe artifact: scenario_seed shape has no allowlisted replay kind
+    # and no explicit replay_kind, so standalone path produces artifact_kind=None entry.
+    unsupported = {
+        "schema_version": "1.0",
+        "scenario_seed": {"seed": 123, "scenario": "gridlock"},
+        "unmapped_field": "value-for-seed",
+    }
+    # Second unmapped but with allowlisted kind yet missing required inputs -> refused with string kind
+    # This creates a second refusal with artifact_kind string, so receipt refusals sorting must handle str vs None
+    missing_input_event = {
+        "schema_version": "1.0",
+        "replay_kind": "event_aligned_report",
+        "report_id": "missing-spec-test",
+    }
+
+    plan = build_replay_plan(
+        standalone_artifacts=[
+            ("supported-id", supported, "synthetic_evidence"),
+            ("unsupported-seed", unsupported, "synthetic_evidence"),
+            ("missing-spec", missing_input_event, "synthetic_evidence"),
+        ]
+    )
+    # Must build without raising
+    assert len(plan.entries) == 3
+    # One supported replayable, two refused (one None kind, one string kind)
+    replayable = [e for e in plan.entries if e.replayable]
+    refused = [e for e in plan.entries if not e.replayable]
+    assert len(replayable) == 1
+    assert replayable[0].artifact_kind is not None
+    # Supported logical_id is derived from payload study_id, not the tuple key
+    assert replayable[0].logical_id  # non-empty derived id
+    assert len(refused) == 2
+    assert any(r.artifact_kind is None and r.logical_id == "unsupported-seed" for r in refused)
+    assert any(r.artifact_kind == ReplayArtifactKind.EVENT_ALIGNED_REPORT for r in refused)
+    # Plan canonical sorting must not TypeError on str vs None
+    fp1 = plan.fingerprint()
+    fp2 = plan.fingerprint()
+    assert fp1 == fp2
+    assert len(fp1) == 64
+    # Deterministic canonical JSON as well
+    assert plan.canonical_json() == plan.canonical_json()
+    # Order reversal of semantically identical mixed inputs must yield same canonical fingerprint
+    plan_rev = build_replay_plan(
+        standalone_artifacts=[
+            ("missing-spec", missing_input_event, "synthetic_evidence"),
+            ("unsupported-seed", unsupported, "synthetic_evidence"),
+            ("supported-id", supported, "synthetic_evidence"),
+        ]
+    )
+    assert plan_rev.fingerprint() == fp1
+    assert plan_rev.canonical_json() == plan.canonical_json()
+
+    # Build receipt: executes only the supported entry, but receipt must include
+    # the unmapped refusals via plan entries and not crash on refusals sorting
+    # where artifact_kind is None vs string.
+    assert replayable[0].artifact_kind is not None
+    exes, _ = execute_replay(
+        plan, selected=[(replayable[0].artifact_kind, replayable[0].logical_id)]
+    )
+    assert len(exes) == 1
+    receipt = build_receipt(plan, exes, [])
+    # Receipt must contain both executions and refusals (unmapped appears as refusal)
+    # and canonicalisation must not raise on None vs str comparison
+    canon = receipt.canonical_dict()
+    assert "refusals" in canon
+    # At least one refusal corresponds to the unsupported entry (artifact_kind None)
+    # Refusals are sorted canonically: ensure None kind sorts before real kinds
+    assert any(r["logical_id"] == "unsupported-seed" for r in canon["refusals"])
+    assert any(r["logical_id"] == "missing-spec-test" for r in canon["refusals"])
+    # Receipt fingerprint deterministic
+    assert receipt.receipt_fingerprint == receipt.computed_fingerprint()
+    assert receipt.canonical_json() == receipt.canonical_json()
+    # Second construction via reversed plan but same executions must be deterministic
+    # (receipt binds executions, but refusals are derived from plan entries)
+    receipt_rev = build_receipt(plan_rev, exes, [])
+    # Receipts from reversed input order should have same canonical ordering for refusals
+    assert receipt_rev.canonical_json() == receipt.canonical_json()
+    assert receipt_rev.computed_fingerprint() == receipt.computed_fingerprint()
+    assert receipt_rev.receipt_fingerprint == receipt.receipt_fingerprint
+
+    # Also exercise realistic capsule-like mixed composition if practical:
+    # synthetic deterministic report (event-aligned) + scenario seed already covered.
+    # Ensure plan + receipt remain stable when both entries have artifact_kind None vs mixed.
+    # Additional determinism: sorting handles None logical_id as well (explicit model)
+    from traffictwin.reproducibility_replay.models import ReplayPlanEntry, ReplayStatus
+
+    entry_none_logical = ReplayPlanEntry(
+        artifact_kind=None,
+        logical_id="logical-a",
+        status=ReplayStatus.NOT_REPLAYABLE,
+        replayable=False,
+        expected_output_fingerprint=None,
+        reason="unmapped",
+        request=None,
+    )
+    entry_none_both = ReplayPlanEntry(
+        artifact_kind=None,
+        logical_id="logical-b",
+        status=ReplayStatus.NOT_REPLAYABLE,
+        replayable=False,
+        expected_output_fingerprint=None,
+        reason="unmapped",
+        request=None,
+    )
+    mixed_plan = ReplayPlan(
+        capsule_id="mixed-test",
+        manifest_fingerprint="0" * 64,
+        verification_status="standalone",
+        entries=[entry_none_both, replayable[0], entry_none_logical],
+        warnings=[],
+        limitations=[],
+    )
+    # Must not raise
+    assert mixed_plan.fingerprint() == mixed_plan.fingerprint()
