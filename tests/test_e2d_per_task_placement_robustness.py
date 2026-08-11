@@ -694,6 +694,17 @@ def test_campaign_initialisation_preserves_versioned_historical_review_receipt(
     assert (raw_root / "manifest_snapshot.json").read_bytes() == manifest_path.read_bytes()
 
 
+def test_manifest_preserves_superseded_receipt_and_binds_distinct_v2_path() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text())
+    superseded = manifest["superseded_prerun_package"]
+    old_path = Path(superseded["claude_receipt_path"])
+    new_path = Path(manifest["review_gate"]["verdict_path"])
+    assert old_path != new_path
+    assert old_path.name == "claude_review_verdict.json"
+    assert new_path.name == "claude_review_verdict_v2.json"
+    assert sha256(old_path) == superseded["claude_receipt_sha256"]
+
+
 def test_reference_hash_verification_detects_mutation(tmp_path: Path) -> None:
     payloads = {
         "summary.json": b"{}\n",
@@ -730,6 +741,10 @@ def test_decision_record_preserves_construct_and_claim_boundaries() -> None:
         "Individual tasks are never statistical replicates",
         "not confirmed physical task-result return",
         "exact `APPROVE`",
+        "Zero replay probes",
+        "zero full cells ran",
+        "`--run-smoke-gate`",
+        "`independent_review/claude_review_verdict_v2.json`",
     ):
         assert phrase in record
 
@@ -771,7 +786,7 @@ def test_all_reused_e2c_reference_hashes_are_bound_and_verify() -> None:
 def test_manifest_binds_exact_source_and_input_hashes() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text())
     assert manifest["repositories"]["traffictwin"]["candidate_scientific_code_commit"] == (
-        "a2843fdb54eb3779147a8e4768a5b416f532fc4c"
+        "eb8571810cc0f29c8477b14e15a73d7e3c915f69"
     )
     assert (
         sha256(Path(manifest["paths"]["runner"]))

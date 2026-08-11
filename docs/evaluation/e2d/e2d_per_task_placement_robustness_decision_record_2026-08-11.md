@@ -14,6 +14,39 @@ four new 3,600-step cells remain forbidden until an independent Claude review re
 manifest SHA-256.
 `APPROVE_WITH_MINOR_FIXES` is not authority.
 
+## Preserved pre-execution stop and corrected package
+
+The first exact independent review returned `APPROVE` for TrafficTwin
+`6443b936064dba2766dcb8dee9146b246bc769bf`, vec_env
+`2f63706f46319433a2ba3af1df97afd0e56a95d1` and manifest SHA-256
+`b2d04fa31ae40fb0519ebd019817599be428392bf6b1ee98656740ea509aa420`. The identity,
+closed-evidence, environment, process and storage preflight checks passed. Before any Manchester
+trace process launched, however, inspection showed that the reviewed runner combined each seed's
+two smokes with its full cell. That executable ordering contradicted the frozen requirement that
+all eight new-arm smokes pass before any 3,600-step cell.
+
+Execution authority for that superseded package was revoked immediately. Zero replay probes, zero
+new-arm smokes and zero full cells ran; no scientific output existed or was discarded. The original
+approval receipt remains immutable outside Git at
+`independent_review/claude_review_verdict.json`, with SHA-256
+`853756c699386b70a16045e15cf96bf042c8200a3d18de406df44fa0bd03e549`.
+
+The corrected TrafficTwin-only package exposes three disjoint commands, in order:
+
+1. `--run-replay-gate` runs only the eight existing-mode ten-step probes;
+2. `--run-smoke-gate` requires the replay gate and runs all eight ordered new-arm smokes without
+   any full cell;
+3. `--full-cell-index {1,2,3,4}` requires the replay gate, the global smoke PASS record, all eight
+   revalidated smoke records and prior full-cell completion, then runs only the selected full cell.
+
+This orchestration correction changes no evaluator, intervention, seed, configuration, metric,
+statistic or scientific claim. It creates a new TrafficTwin head and manifest SHA and therefore
+requires a fresh exact Claude `APPROVE`. The new manifest binds a distinct immutable receipt path,
+`independent_review/claude_review_verdict_v2.json`; the superseded receipt cannot authorise the
+corrected package. The corrected TrafficTwin scientific-code commit is
+`eb8571810cc0f29c8477b14e15a73d7e3c915f69`; the regenerated manifest SHA-256 is
+`f77afb231f7d0be2c13627e9fbdc6bf635ea86b351bf0a0e7c83295ef0435740`.
+
 ## Why this intervention is required
 
 E2c found a negative `dla - ingress_dla` offered-task deadline-attainment direction in all four

@@ -1,7 +1,7 @@
 {
   "schema_version": "e2d_per_task_placement_robustness_manifest_v1",
-  "created_utc": "2026-08-11T17:19:38Z",
-  "status": "predeclared_before_any_e2d_scientific_trace_run",
+  "created_utc": "2026-08-11T20:22:13Z",
+  "status": "corrected_predeclared_before_any_e2d_scientific_trace_run",
   "statistical_status": "matched four-draw construct-validity robustness study; fleet seed is the replication unit and tasks are not independent replicates",
   "closed_prerequisites": {
     "e1": {
@@ -48,7 +48,7 @@
     "traffictwin": {
       "parent_branch": "agent/e2c-gated-placement-multidraw-v1",
       "parent_commit": "1a08d6e148a1e8c430da39c3d575eda3f8ea5929",
-      "candidate_scientific_code_commit": "3f9aa930b87b7a443b376910d7013fe3c03aba6f",
+      "candidate_scientific_code_commit": "eb8571810cc0f29c8477b14e15a73d7e3c915f69",
       "branch": "agent/e2d-per-task-placement-robustness-v1",
       "remote": "https://github.com/Abdulla4akash/traffictwin.git",
       "draft_pr_base": "agent/e2c-gated-placement-multidraw-v1",
@@ -70,6 +70,19 @@
       "modification_allowed": false
     }
   },
+  "superseded_prerun_package": {
+    "traffictwin_head": "6443b936064dba2766dcb8dee9146b246bc769bf",
+    "vec_env_head": "2f63706f46319433a2ba3af1df97afd0e56a95d1",
+    "manifest_sha256": "b2d04fa31ae40fb0519ebd019817599be428392bf6b1ee98656740ea509aa420",
+    "claude_verdict": "APPROVE",
+    "claude_receipt_path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/independent_review/claude_review_verdict.json",
+    "claude_receipt_sha256": "853756c699386b70a16045e15cf96bf042c8200a3d18de406df44fa0bd03e549",
+    "execution_authority": "revoked_before_trace_launch_due_to_runner_phase-order_mismatch",
+    "trace_replays_started": 0,
+    "new_arm_smokes_started": 0,
+    "full_cells_started": 0,
+    "scientific_output_discarded": false
+  },
   "paths": {
     "traffictwin_checkout": "/Users/akashx/AntigravityTest/traffictwin-e2d",
     "vec_env_checkout": "/Users/akashx/AntigravityTest/vec-env-e2d",
@@ -84,7 +97,7 @@
     "analyzer": "/Users/akashx/AntigravityTest/traffictwin-e2d/scripts/analyze_e2d_per_task_placement_robustness.py"
   },
   "traffic_twin_code_hashes_at_candidate_scientific_code_commit": {
-    "runner_sha256": "1e9069f04d72244d1b744f2eb065ef4c0c96b31ca9f26f097da59c4c27105c65",
+    "runner_sha256": "755e6a2f384ae3f5dde8b1ec0d19830c3fb65cdc94b7307c32ccb7ac2f2783b7",
     "validator_sha256": "77fe5fefbb3ff05c741b5fc7ea901e94ee70f1b20c136a5a7a034b25ab923f27",
     "analyzer_sha256": "d31e30c474f6a678b368d7980ebe085510124d672592337d0b2cf211795c79f1"
   },
@@ -343,7 +356,39 @@
     "serial_repeats_per_new_cell": 2,
     "steps": 10,
     "total_new_arm_runs": 8,
+    "order": [
+      {"smoke_index": 1, "cell_index": 1, "fleet_seed": 1, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 2, "cell_index": 1, "fleet_seed": 1, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 3, "cell_index": 2, "fleet_seed": 2, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 4, "cell_index": 2, "fleet_seed": 2, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 5, "cell_index": 3, "fleet_seed": 3, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 6, "cell_index": 3, "fleet_seed": 3, "arm": "per_task_dla", "repeat": 2},
+      {"smoke_index": 7, "cell_index": 4, "fleet_seed": 4, "arm": "per_task_dla", "repeat": 1},
+      {"smoke_index": 8, "cell_index": 4, "fleet_seed": 4, "arm": "per_task_dla", "repeat": 2}
+    ],
     "requirements": ["scientific summaries exact excluding wall_s", "all arrays exact in shape, dtype and bytes", "exact task/fleet/action identity against both reused E2c arms", "actor logits within frozen diagnostic tolerance", "task/path/work conservation", "finite values", "no overwrite"]
+  },
+  "execution_phase_interface": {
+    "phase_order": ["existing_mode_replay_gate", "global_new_arm_smoke_gate", "ordered_full_cells"],
+    "replay": {
+      "argument": "--run-replay-gate",
+      "runs": 8,
+      "may_launch_new_arm_smoke": false,
+      "may_launch_full_cell": false
+    },
+    "smoke": {
+      "argument": "--run-smoke-gate",
+      "runs": 8,
+      "requires_global_replay_pass": true,
+      "may_launch_full_cell": false
+    },
+    "full": {
+      "argument": "--full-cell-index {1,2,3,4}",
+      "runs": 4,
+      "requires_global_replay_pass": true,
+      "requires_global_smoke_pass_and_all_eight_valid_smokes": true,
+      "reruns_smoke": false
+    }
   },
   "analysis": {
     "primary_outcome": "deadline-met tasks / all offered tasks",
@@ -372,7 +417,7 @@
   "review_gate": {
     "required_verdict": "APPROVE",
     "allowed_verdicts": ["APPROVE", "APPROVE_WITH_MINOR_FIXES", "REQUEST_CHANGES", "BLOCK"],
-    "verdict_path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/independent_review/claude_review_verdict.json",
+    "verdict_path": "/Users/akashx/AntigravityTest/e2d_outputs/e2d-per-task-placement-robustness-v1/independent_review/claude_review_verdict_v2.json",
     "exact_identities": ["TrafficTwin pre-run HEAD", "vec_env candidate commit", "manifest SHA-256"],
     "trace_run_forbidden_before_exact_approve": true
   },
@@ -402,6 +447,8 @@
     "manifest changes after first trace replay",
     "TrafficTwin, vec_env, tos-data, evaluator, helper, vec_jax, actor, trace, Python, package, backend or device identity mismatch",
     "independent verdict is not exact APPROVE for all frozen identities",
+    "global replay gate is not passed before the global smoke gate",
+    "global smoke gate status or any of its eight declared smoke records is absent, failed or invalid before a full cell",
     "an existing mode differs in synthetic or post-approval trace replay evidence",
     "new mode adds RNG, changes actor/action stream, selects a common broadcast target, or updates temporary work for rejection",
     "repeated smokes differ or task/fleet/action identity differs from reused E2c evidence",
@@ -422,7 +469,7 @@
     "universal_least_busy_or_general_controller_superiority_allowed": false
   },
   "permission_boundaries": {
-    "authorised_after_exact_approval": ["eight fixed existing-mode ten-step replay probes", "two serial ten-step per_task_dla smokes for each fleet seed 1-4", "four serial 3600-step per_task_dla cells in fixed order", "matched analysis against exact reused E2c ingress_dla and dla records", "one private vec_env branch and draft PR", "one private TrafficTwin branch and draft PR"],
+    "authorised_after_exact_approval": ["first, eight fixed existing-mode ten-step replay probes", "second, one global gate containing two serial ten-step per_task_dla smokes for each fleet seed 1-4", "third and only after all eight smokes pass, four serial 3600-step per_task_dla cells in fixed order", "matched analysis against exact reused E2c ingress_dla and dla records", "one private vec_env branch and draft PR", "one private TrafficTwin branch and draft PR"],
     "forbidden": ["any trace run before exact approval", "seed 0 or seed outside 1-4", "new ingress_dla/dla full cells", "off/jsq/P2C/DLA-P2C/JIQ/randomized routing", "nonzero backhaul/E3", "another cap/service/backend/evaluator seed/trace/fleet family", "scaling/prediction/learning/retraining/action masking/RSU actor observation", "ordinary traffic/bus modelling", "merge or Randy-upstream push", "automatic follow-on study"],
     "next_action": "independent exact-head pre-run review"
   }
