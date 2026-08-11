@@ -1240,3 +1240,81 @@ def test_allow_nan_false() -> None:
     assert "Infinity" not in canonical
     full = export_report_json(report)
     assert "NaN" not in full
+
+
+def test_duplicate_same_timestamp_timeline_fingerprint_is_order_independent() -> None:
+    """Same-timestamp duplicate must be order-independent via total canonical timeline ordering."""
+    plan = _base_frozen_plan()
+    cells = sorted(plan.planned_run_cells, key=lambda c: c.cell_id)
+    dup_id = cells[0].cell_id
+    # Two duplicate attachments with *exact same timestamp* but distinct semantic content
+    same_ts = ATTACH_TIME
+    att_a = EvidenceAttachment(
+        artifact_fingerprint=hashlib.sha256(b"dup_same_a").hexdigest(),
+        cell_id=dup_id,
+        artifact_type="metric_collection",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="ratio",
+        is_admitted=True,
+        admission_label=ArtifactAdmission.ADMITTED,
+        attached_at=same_ts,
+    )
+    att_b = EvidenceAttachment(
+        artifact_fingerprint=hashlib.sha256(b"dup_same_b").hexdigest(),
+        cell_id=dup_id,
+        artifact_type="metric_collection",
+        observed_metric_key="task.completion.rate",
+        observed_metric_version=METRIC_VERSION,
+        observed_unit="seconds",  # distinct semantic
+        is_admitted=False,
+        admission_label=ArtifactAdmission.UNADMITTED,
+        attached_at=same_ts,
+    )
+    other_atts = [_admitted_attachment(c.cell_id) for c in cells[1:]]
+    # Order AB
+    all_ab = [att_a, att_b] + other_atts
+    attached_ab = plan.model_copy(
+        update={
+            "evidence_attachments": all_ab,
+            "status": StudyPlanStatus.EVIDENCE_ATTACHED,
+            "evidence_attached_at": ATTACH_TIME,
+            "fingerprint": plan.fingerprint,
+        }
+    )
+    attached_ab = attached_ab.model_copy(
+        update={"evidence_state_fingerprint": attached_ab.compute_evidence_state_fingerprint()}
+    )
+    report_ab = build_accrual_report(attached_ab)
+    # Order BA
+    all_ba = [att_b, att_a] + other_atts
+    attached_ba = plan.model_copy(
+        update={
+            "evidence_attachments": all_ba,
+            "status": StudyPlanStatus.EVIDENCE_ATTACHED,
+            "evidence_attached_at": ATTACH_TIME,
+            "fingerprint": plan.fingerprint,
+        }
+    )
+    attached_ba = attached_ba.model_copy(
+        update={"evidence_state_fingerprint": attached_ba.compute_evidence_state_fingerprint()}
+    )
+    report_ba = build_accrual_report(attached_ba)
+    # Substantive equality
+    assert report_ab.snapshot.duplicate_count == report_ba.snapshot.duplicate_count == 1
+    assert report_ab.snapshot.admitted_count == report_ba.snapshot.admitted_count
+    assert report_ab.snapshot.complete_count == report_ba.snapshot.complete_count
+    assert any("duplicate" in b.lower() for b in report_ab.blockers)
+    assert any("duplicate" in b.lower() for b in report_ba.blockers)
+    for report in (report_ab, report_ba):
+        dup_cell = next(c for c in report.cells if c.cell_id == dup_id)
+        assert dup_cell.status == AccrualCellStatus.DUPLICATE
+    # Timeline semantically equivalent: same events, same count
+    assert len(report_ab.timeline) == len(report_ba.timeline)
+    # Required identity assertions
+    assert report_ab.fingerprint == report_ba.fingerprint
+    assert report_ab.compute_fingerprint() == report_ba.compute_fingerprint()
+    # Also canonical timeline serializes same order
+    ab_payload = report_ab.canonical_payload()
+    ba_payload = report_ba.canonical_payload()
+    assert ab_payload["timeline"] == ba_payload["timeline"]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from typing import Any
 
 from traffictwin.preregistration.models import (
     EvidenceAttachment,
@@ -1249,7 +1250,26 @@ def build_accrual_report(
 
     blockers = sorted(set(blockers))
     deviations = sorted(deviations, key=lambda d: (d.code.value, d.cell_id or ""))
-    timeline = sorted(timeline, key=lambda t: (t.timestamp or "", t.event_type, t.cell_id or ""))
+
+    def _canonical_details_svc(details: Any) -> str:  # noqa: ANN401
+        import json
+
+        if details is None:
+            return ""
+        return json.dumps(
+            details, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+
+    timeline = sorted(
+        timeline,
+        key=lambda t: (
+            t.timestamp or "",
+            t.event_type,
+            t.cell_id or "",
+            _canonical_details_svc(t.details),
+            t.message,
+        ),
+    )
 
     # Reconciliation
     expected_status_sum = (

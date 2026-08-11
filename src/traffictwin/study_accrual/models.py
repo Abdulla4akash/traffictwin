@@ -226,12 +226,22 @@ class AccrualReport(FrozenStrictModel):
             key=lambda d: (d.get("code", ""), d.get("cell_id") or ""),
         )
         data["warnings"] = sorted(data.get("warnings", []), key=lambda w: w.get("code", ""))
+
+        def _canonical_details(details: Any) -> str:  # noqa: ANN401
+            if details is None:
+                return ""
+            return json.dumps(
+                details, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+            )
+
         data["timeline"] = sorted(
             data.get("timeline", []),
             key=lambda t: (
                 t.get("timestamp") or "",
                 t.get("event_type", ""),
                 t.get("cell_id") or "",
+                _canonical_details(t.get("details")),
+                t.get("message") or "",
             ),
         )
         data["amendment_history"] = sorted(
