@@ -1,0 +1,2936 @@
+{
+  "combined_descriptive_pilot_plus_replication_summary": {
+    "fleet_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "held_out_confirmatory_test": false,
+    "label": "combined descriptive pilot-plus-replication summary",
+    "per_seed_differences": {
+      "0": -0.02083329190958194,
+      "1": -0.022097034971995777,
+      "2": -0.020519134178846987,
+      "3": -0.021447383092104255,
+      "4": -0.020825491498546178
+    },
+    "summary": {
+      "count": 5,
+      "maximum": -0.020519134178846987,
+      "mean": -0.021144467130215026,
+      "median": -0.02083329190958194,
+      "minimum": -0.022097034971995777,
+      "raw_values": [
+        -0.02083329190958194,
+        -0.022097034971995777,
+        -0.020519134178846987,
+        -0.021447383092104255,
+        -0.020825491498546178
+      ],
+      "sign_consistency": "all_negative",
+      "sign_counts": {
+        "negative": 5,
+        "positive": 0,
+        "zero": 0
+      }
+    }
+  },
+  "interpretation_limits": {
+    "equivalence_or_noninferiority_claim_supported": false,
+    "general_controller_superiority_supported": false,
+    "physical_or_kubernetes_deployment_tested": false,
+    "population_wide_performance_supported": false,
+    "seed0_used_in_primary_interval": false,
+    "tasks_used_as_independent_replicates": false
+  },
+  "new_arm_records_by_seed": {
+    "1": {
+      "dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5316876403404833,
+          "v2i": 0.1906163502427381,
+          "v2v": 0.2776960094167786
+        },
+        "actor_stream_sha256": {
+          "veh_action": "ad7137253c6560f80c8ece4a431bafd15ea2304429941b55fc28d47732320429",
+          "veh_actor_logits": "1bfd1b579f0cb95c94018821ca1cf2fe738b46eb55a1f3378ccd1be68795fae8"
+        },
+        "admitted_task_deadline_attainment": 0.8945371252611779,
+        "admitted_tasks": 10202339,
+        "deadline_met_latency_mean_ms": 49.76166583628915,
+        "deadline_met_tasks": 9126371,
+        "energy_j_per_offered_task": 0.47327269456939974,
+        "latency_ms_per_admitted_task": 75.97412005227429,
+        "latency_ms_per_offered_task": 510.4408477241995,
+        "latency_percentiles_ms": {
+          "admitted_p50": 40.490989685058594,
+          "admitted_p95": 271.4491516113279,
+          "admitted_p99": 703.3877893066398,
+          "deadline_met_p50": 36.34566116333008,
+          "deadline_met_p95": 153.58990478515625,
+          "deadline_met_p99": 358.63398437500064,
+          "offered_p50": 66.09784317016602,
+          "offered_p95": 5000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.6979357359313086,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/02_seed_1_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 38444,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2216579,
+          "v2i_unavailable": 111,
+          "v2v_mqd_rejected": 618761,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.5889466456234362,
+          "t2": 0.7846467048533902,
+          "t3": 0.6894899976133798
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66816,
+            66866,
+            66624,
+            50427,
+            25121,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "execution_share_per_rsu": [
+            0.24221508479123013,
+            0.24239634009294772,
+            0.24151906443263466,
+            0.18280322199424334,
+            0.09106628868894415,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "forwarded_admitted_task_count": 234143,
+          "forwarded_share_of_admitted_v2i": 0.8487932022011644,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.24239634009294772
+          },
+          "ingress_count_per_rsu": [
+            529530,
+            245935,
+            385110,
+            316650,
+            155801,
+            269439,
+            217441,
+            80524,
+            47140,
+            244974
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              18737,
+              17613,
+              15844,
+              11475,
+              5441,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              3664,
+              4578,
+              5164,
+              4598,
+              2377,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              10550,
+              9611,
+              9917,
+              7492,
+              3861,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              9784,
+              9946,
+              9277,
+              6875,
+              3291,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              3904,
+              3681,
+              3987,
+              2972,
+              1604,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              8639,
+              8659,
+              8316,
+              5674,
+              2728,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4516,
+              4830,
+              5071,
+              4157,
+              2226,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              1844,
+              1952,
+              2078,
+              1656,
+              757,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              548,
+              817,
+              911,
+              813,
+              408,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4630,
+              5179,
+              6059,
+              4715,
+              2428,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "maximum_execution_share": 0.24239634009294772,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            1295738,
+            738004,
+            318232,
+            109474,
+            31096,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 275854,
+          "v2i_attempts": 2492544
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 7345416.0,
+          "v2i_offered": 40107836.0,
+          "v2i_rejected_or_unavailable": 32762420.0,
+          "veh_admitted": 270455040.0,
+          "veh_offered": 282604672.0,
+          "veh_rejected": 12149632.0
+        }
+      },
+      "ingress_dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5316876403404833,
+          "v2i": 0.1906163502427381,
+          "v2v": 0.2776960094167786
+        },
+        "actor_stream_sha256": {
+          "veh_action": "ad7137253c6560f80c8ece4a431bafd15ea2304429941b55fc28d47732320429",
+          "veh_actor_logits": "1bfd1b579f0cb95c94018821ca1cf2fe738b46eb55a1f3378ccd1be68795fae8"
+        },
+        "admitted_task_deadline_attainment": 0.8947591496852673,
+        "admitted_tasks": 10522739,
+        "deadline_met_latency_mean_ms": 54.74468124652627,
+        "deadline_met_tasks": 9415317,
+        "energy_j_per_offered_task": 0.47328986312114024,
+        "latency_ms_per_admitted_task": 80.42983333521813,
+        "latency_ms_per_offered_task": 421.07836002322995,
+        "latency_percentiles_ms": {
+          "admitted_p50": 41.324344635009766,
+          "admitted_p95": 314.8572021484374,
+          "admitted_p99": 696.7870166015623,
+          "deadline_met_p50": 37.31429672241211,
+          "deadline_met_p95": 195.91631164550762,
+          "deadline_met_p99": 388.13912841796866,
+          "offered_p50": 65.40088272094727,
+          "offered_p95": 1000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.7200327709033044,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/01_seed_1_ingress_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 38444,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 1896179,
+          "v2i_unavailable": 111,
+          "v2v_mqd_rejected": 618761,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.5931537623950133,
+          "t2": 0.8394180151703801,
+          "t3": 0.699129342577917
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66839,
+            66309,
+            66904,
+            66764,
+            59413,
+            66534,
+            65161,
+            41521,
+            30482,
+            66327
+          ],
+          "execution_share_per_rsu": [
+            0.11209819976050475,
+            0.11120931683477175,
+            0.11220721370422672,
+            0.11197241444082555,
+            0.09964377597466852,
+            0.11158667279380935,
+            0.10928396287488218,
+            0.06963643011199924,
+            0.051122508192817155,
+            0.11123950531149476
+          ],
+          "forwarded_admitted_task_count": 0,
+          "forwarded_share_of_admitted_v2i": 0.0,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.061084705511409564
+          },
+          "ingress_count_per_rsu": [
+            529530,
+            245935,
+            385110,
+            316650,
+            155801,
+            269439,
+            217441,
+            80524,
+            47140,
+            244974
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              66839,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              66309,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              66904,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              66764,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              59413,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              66534,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              65161,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              41521,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              30482,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66327
+            ]
+          ],
+          "maximum_execution_share": 0.11220721370422672,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            529530,
+            245935,
+            385110,
+            316650,
+            155801,
+            269439,
+            217441,
+            80524,
+            47140,
+            244974
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 596254,
+          "v2i_attempts": 2492544
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 16177963.0,
+          "v2i_offered": 40107836.0,
+          "v2i_rejected_or_unavailable": 23929873.0,
+          "veh_admitted": 270455040.0,
+          "veh_offered": 282604672.0,
+          "veh_rejected": 12149632.0
+        }
+      }
+    },
+    "2": {
+      "dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5233538188441718,
+          "v2i": 0.2129385264901194,
+          "v2v": 0.2637076546657088
+        },
+        "actor_stream_sha256": {
+          "veh_action": "994ef6c67d97066aded4bcad27aeaae7e97b35ed2956e4c799502760dbb0c7f0",
+          "veh_actor_logits": "85d88931d628180b5aaddfd57f4dacf7dd8f1607b8b139dd7b4a27d53d7ad056"
+        },
+        "admitted_task_deadline_attainment": 0.894048292328446,
+        "admitted_tasks": 9991939,
+        "deadline_met_latency_mean_ms": 49.915660055728715,
+        "deadline_met_tasks": 8933276,
+        "energy_j_per_offered_task": 0.465085207254627,
+        "latency_ms_per_admitted_task": 78.55599598836622,
+        "latency_ms_per_offered_task": 545.8955867568598,
+        "latency_percentiles_ms": {
+          "admitted_p50": 40.50999450683594,
+          "admitted_p95": 289.06221618652313,
+          "admitted_p99": 744.0948266601551,
+          "deadline_met_p50": 36.1717414855957,
+          "deadline_met_p95": 153.3343963623047,
+          "deadline_met_p99": 362.04402923583984,
+          "offered_p50": 67.65912246704102,
+          "offered_p95": 5000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.6831688695690211,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/04_seed_2_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 35176,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2503499,
+          "v2i_unavailable": 217,
+          "v2v_mqd_rejected": 545403,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.576379967945777,
+          "t2": 0.7660766734637607,
+          "t3": 0.6761259951900422
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66818,
+            66763,
+            66572,
+            53776,
+            26789,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "execution_share_per_rsu": [
+            0.23802534928291025,
+            0.2378294231221368,
+            0.23714902500017812,
+            0.19156591312277801,
+            0.0954302894719968,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "forwarded_admitted_task_count": 240486,
+          "forwarded_share_of_admitted_v2i": 0.8566817945411409,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.23802534928291025
+          },
+          "ingress_count_per_rsu": [
+            650487,
+            339123,
+            361422,
+            325694,
+            96241,
+            245468,
+            308104,
+            81612,
+            33555,
+            342728
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              14628,
+              14747,
+              13909,
+              12035,
+              6056,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              9118,
+              9509,
+              8927,
+              6792,
+              3341,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              7326,
+              7381,
+              8720,
+              6827,
+              3571,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              7894,
+              8173,
+              8110,
+              6458,
+              3136,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              1924,
+              1915,
+              2017,
+              1813,
+              917,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              5679,
+              5607,
+              5977,
+              4753,
+              2294,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              9372,
+              8872,
+              8466,
+              6421,
+              3197,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              2313,
+              2524,
+              1977,
+              1691,
+              763,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              568,
+              732,
+              863,
+              619,
+              330,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              7996,
+              7303,
+              7606,
+              6367,
+              3184,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "maximum_execution_share": 0.23802534928291025,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            1446961,
+            823974,
+            356180,
+            122635,
+            34684,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 280718,
+          "v2i_attempts": 2784434
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 7504054.5,
+          "v2i_offered": 44836444.0,
+          "v2i_rejected_or_unavailable": 37332389.5,
+          "veh_admitted": 275911840.0,
+          "veh_offered": 286316096.0,
+          "veh_rejected": 10404256.0
+        }
+      },
+      "ingress_dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5233538188441718,
+          "v2i": 0.2129385264901194,
+          "v2v": 0.2637076546657088
+        },
+        "actor_stream_sha256": {
+          "veh_action": "994ef6c67d97066aded4bcad27aeaae7e97b35ed2956e4c799502760dbb0c7f0",
+          "veh_actor_logits": "23ceb196e9c8f02d42b3e978e2a5d08fd09148c598d006aab32398ed2f02d77e"
+        },
+        "admitted_task_deadline_attainment": 0.8942650095169324,
+        "admitted_tasks": 10289555,
+        "deadline_met_latency_mean_ms": 54.46406093556232,
+        "deadline_met_tasks": 9201589,
+        "energy_j_per_offered_task": 0.4651011139751705,
+        "latency_ms_per_admitted_task": 82.54274630924272,
+        "latency_ms_per_offered_task": 463.7079403748816,
+        "latency_percentiles_ms": {
+          "admitted_p50": 41.30527114868164,
+          "admitted_p95": 329.8794647216793,
+          "admitted_p99": 735.9780908203111,
+          "deadline_met_p50": 37.15790939331055,
+          "deadline_met_p95": 193.09977416992174,
+          "deadline_met_p99": 386.2511779785149,
+          "offered_p50": 66.96602630615234,
+          "offered_p95": 1050.4469482421873,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.7036880037478681,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/03_seed_2_ingress_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 35176,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2205883,
+          "v2i_unavailable": 217,
+          "v2v_mqd_rejected": 545403,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.5805905256525542,
+          "t2": 0.8161591610676857,
+          "t3": 0.685422339989352
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66488,
+            66840,
+            66657,
+            66765,
+            46325,
+            65501,
+            66354,
+            42050,
+            24764,
+            66590
+          ],
+          "execution_share_per_rsu": [
+            0.11496470897439888,
+            0.11557335380593221,
+            0.11525692765772028,
+            0.11544367095830436,
+            0.08010077221813001,
+            0.11325808269961649,
+            0.1147330089533038,
+            0.07270884990334305,
+            0.04281954718207818,
+            0.11514107764717274
+          ],
+          "forwarded_admitted_task_count": 0,
+          "forwarded_share_of_admitted_v2i": 0.0,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.07275380662385403
+          },
+          "ingress_count_per_rsu": [
+            650487,
+            339123,
+            361422,
+            325694,
+            96241,
+            245468,
+            308104,
+            81612,
+            33555,
+            342728
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              66488,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              66840,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              66657,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              66765,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              46325,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              65501,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66354,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              42050,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              24764,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66590
+            ]
+          ],
+          "maximum_execution_share": 0.11557335380593221,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            650487,
+            339123,
+            361422,
+            325694,
+            96241,
+            245468,
+            308104,
+            81612,
+            33555,
+            342728
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 578334,
+          "v2i_attempts": 2784434
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 15626173.0,
+          "v2i_offered": 44836444.0,
+          "v2i_rejected_or_unavailable": 29210271.0,
+          "veh_admitted": 275911840.0,
+          "veh_offered": 286316096.0,
+          "veh_rejected": 10404256.0
+        }
+      }
+    },
+    "3": {
+      "dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5285842238675141,
+          "v2i": 0.21445241802800408,
+          "v2v": 0.2569633581044818
+        },
+        "actor_stream_sha256": {
+          "veh_action": "b30d5b4c2551c54a40502045614d00e37c54fb71746484284ab004be15472c44",
+          "veh_actor_logits": "a773e615e2fce29449b689d315a3bc0667dff7d83214bb9d4602b29f048741b4"
+        },
+        "admitted_task_deadline_attainment": 0.8951659035884748,
+        "admitted_tasks": 9955511,
+        "deadline_met_latency_mean_ms": 49.662278718387256,
+        "deadline_met_tasks": 8911834,
+        "energy_j_per_offered_task": 0.46056077766733144,
+        "latency_ms_per_admitted_task": 78.61545469639881,
+        "latency_ms_per_offered_task": 551.7134722428491,
+        "latency_percentiles_ms": {
+          "admitted_p50": 40.236328125,
+          "admitted_p95": 290.9237976074219,
+          "admitted_p99": 753.7156188964854,
+          "deadline_met_p50": 35.75478744506836,
+          "deadline_met_p95": 153.1078002929687,
+          "deadline_met_p99": 361.9712246704101,
+          "offered_p50": 67.62505340576172,
+          "offered_p95": 5000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.6815291008099121,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/06_seed_3_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 34106,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2523340,
+          "v2i_unavailable": 188,
+          "v2v_mqd_rejected": 563089,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.578057615018994,
+          "t2": 0.7633663300737521,
+          "t3": 0.6738014882719033
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66756,
+            66970,
+            66575,
+            53609,
+            26792,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "execution_share_per_rsu": [
+            0.23781804190921332,
+            0.2385804162421358,
+            0.23717322997342377,
+            0.19098189539084154,
+            0.09544641648438558,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "forwarded_admitted_task_count": 238385,
+          "forwarded_share_of_admitted_v2i": 0.8492458194099081,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.2385804162421358
+          },
+          "ingress_count_per_rsu": [
+            664706,
+            339552,
+            343436,
+            377993,
+            175268,
+            226932,
+            296205,
+            71763,
+            34315,
+            274060
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              15527,
+              16666,
+              15437,
+              12933,
+              6258,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11501,
+              10715,
+              9133,
+              6781,
+              3287,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              6143,
+              6214,
+              7423,
+              6128,
+              3274,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              6020,
+              6684,
+              8258,
+              6971,
+              3653,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              5455,
+              4609,
+              4452,
+              3299,
+              1681,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              4173,
+              4442,
+              5088,
+              4301,
+              2062,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              8592,
+              8573,
+              7887,
+              5991,
+              2942,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              3268,
+              2562,
+              1953,
+              1415,
+              717,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              617,
+              578,
+              731,
+              582,
+              307,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              5460,
+              5927,
+              6213,
+              5208,
+              2611,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "maximum_execution_share": 0.2385804162421358,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            1457534,
+            830304,
+            358460,
+            123013,
+            34919,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 280702,
+          "v2i_attempts": 2804230
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 7502810.5,
+          "v2i_offered": 45145548.0,
+          "v2i_rejected_or_unavailable": 37642737.5,
+          "veh_admitted": 275580640.0,
+          "veh_offered": 286588736.0,
+          "veh_rejected": 11008096.0
+        }
+      },
+      "ingress_dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5285842238675141,
+          "v2i": 0.21445241802800408,
+          "v2v": 0.2569633581044818
+        },
+        "actor_stream_sha256": {
+          "veh_action": "b30d5b4c2551c54a40502045614d00e37c54fb71746484284ab004be15472c44",
+          "veh_actor_logits": "a773e615e2fce29449b689d315a3bc0667dff7d83214bb9d4602b29f048741b4"
+        },
+        "admitted_task_deadline_attainment": 0.8953672318805528,
+        "admitted_tasks": 10266497,
+        "deadline_met_latency_mean_ms": 54.66174471309364,
+        "deadline_met_tasks": 9192285,
+        "energy_j_per_offered_task": 0.460575957879004,
+        "latency_ms_per_admitted_task": 83.04286846818346,
+        "latency_ms_per_offered_task": 464.88865953301234,
+        "latency_percentiles_ms": {
+          "admitted_p50": 41.02139663696289,
+          "admitted_p95": 334.11286010742185,
+          "admitted_p99": 743.9504150390535,
+          "deadline_met_p50": 36.934165954589844,
+          "deadline_met_p95": 196.93783264160155,
+          "deadline_met_p99": 391.0873693847658,
+          "offered_p50": 66.9194564819336,
+          "offered_p95": 1048.1890197753885,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.7029764839020164,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/05_seed_3_ingress_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 34106,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2212354,
+          "v2i_unavailable": 188,
+          "v2v_mqd_rejected": 563089,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.582426073418852,
+          "t2": 0.816352829831921,
+          "t3": 0.6831481662801158
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66918,
+            66869,
+            66696,
+            66740,
+            62500,
+            65690,
+            66305,
+            38305,
+            25063,
+            66602
+          ],
+          "execution_share_per_rsu": [
+            0.11309676721515394,
+            0.113013953299712,
+            0.11272156947580482,
+            0.11279593299171185,
+            0.10562999418612512,
+            0.11102134908938495,
+            0.11206074823217642,
+            0.06473851083679236,
+            0.04235847270858966,
+            0.11256270196454889
+          ],
+          "forwarded_admitted_task_count": 0,
+          "forwarded_share_of_admitted_v2i": 0.0,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.07073829450656427
+          },
+          "ingress_count_per_rsu": [
+            664706,
+            339552,
+            343436,
+            377993,
+            175268,
+            226932,
+            296205,
+            71763,
+            34315,
+            274060
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              66918,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              66869,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              66696,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              66740,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              62500,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              65690,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66305,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              38305,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              25063,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66602
+            ]
+          ],
+          "maximum_execution_share": 0.11309676721515394,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            664706,
+            339552,
+            343436,
+            377993,
+            175268,
+            226932,
+            296205,
+            71763,
+            34315,
+            274060
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 591688,
+          "v2i_attempts": 2804230
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 16090320.0,
+          "v2i_offered": 45145548.0,
+          "v2i_rejected_or_unavailable": 29055228.0,
+          "veh_admitted": 275580640.0,
+          "veh_offered": 286588736.0,
+          "veh_rejected": 11008096.0
+        }
+      }
+    },
+    "4": {
+      "dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5437405754592645,
+          "v2i": 0.21992769477817542,
+          "v2v": 0.2363317297625601
+        },
+        "actor_stream_sha256": {
+          "veh_action": "56103ef6fef8aa4323509c68dafd46facd306ad80188bfffaf00b17ac77708c3",
+          "veh_actor_logits": "808063ae9d172b97dd414be5e068342b07bebfe91b7a95d2e3611669204aeb18"
+        },
+        "admitted_task_deadline_attainment": 0.901248151593291,
+        "admitted_tasks": 9982922,
+        "deadline_met_latency_mean_ms": 49.10739094529453,
+        "deadline_met_tasks": 8997090,
+        "energy_j_per_offered_task": 0.45797325896737545,
+        "latency_ms_per_admitted_task": 75.03333232494454,
+        "latency_ms_per_offered_task": 544.3416420966465,
+        "latency_percentiles_ms": {
+          "admitted_p50": 39.70839881896973,
+          "admitted_p95": 277.4176681518551,
+          "admitted_p99": 707.2433697509764,
+          "deadline_met_p50": 35.2142333984375,
+          "deadline_met_p95": 150.83566055297806,
+          "deadline_met_p99": 361.4345803833007,
+          "offered_p50": 66.51032257080078,
+          "offered_p95": 5000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.6880490208419335,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/08_seed_4_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 30585,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2593578,
+          "v2i_unavailable": 99,
+          "v2v_mqd_rejected": 469050,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.5886954573538138,
+          "t2": 0.7680706972534201,
+          "t3": 0.6797636022054819
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66764,
+            66786,
+            66422,
+            54857,
+            27320,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "execution_share_per_rsu": [
+            0.23662674686070126,
+            0.23670471984660588,
+            0.23541462135254776,
+            0.19442564035314674,
+            0.09682827158699836,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "forwarded_admitted_task_count": 241809,
+          "forwarded_share_of_admitted_v2i": 0.8570258976640003,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.23670471984660588
+          },
+          "ingress_count_per_rsu": [
+            561181,
+            293188,
+            436729,
+            399039,
+            120118,
+            323033,
+            279753,
+            69526,
+            39974,
+            353285
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              12195,
+              13571,
+              13300,
+              10857,
+              5324,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              11403,
+              10101,
+              8153,
+              5921,
+              2828,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              7237,
+              7459,
+              9126,
+              7759,
+              4071,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              8445,
+              8820,
+              9372,
+              7762,
+              3877,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              2934,
+              2808,
+              3148,
+              2241,
+              1156,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              5275,
+              5955,
+              6574,
+              5929,
+              2949,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              8379,
+              7793,
+              6605,
+              5510,
+              2753,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              2565,
+              2424,
+              1799,
+              1354,
+              640,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              960,
+              886,
+              981,
+              723,
+              363,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              7371,
+              6969,
+              7364,
+              6801,
+              3359,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          ],
+          "maximum_execution_share": 0.23670471984660588,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            1494911,
+            851640,
+            367218,
+            126227,
+            35830,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 282149,
+          "v2i_attempts": 2875826
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 7551220.0,
+          "v2i_offered": 46274504.0,
+          "v2i_rejected_or_unavailable": 38723284.0,
+          "veh_admitted": 271531232.0,
+          "veh_offered": 280852864.0,
+          "veh_rejected": 9321632.0
+        }
+      },
+      "ingress_dla": {
+        "action_shares_per_offered_task": {
+          "local": 0.5437405754592645,
+          "v2i": 0.21992769477817542,
+          "v2v": 0.2363317297625601
+        },
+        "actor_stream_sha256": {
+          "veh_action": "56103ef6fef8aa4323509c68dafd46facd306ad80188bfffaf00b17ac77708c3",
+          "veh_actor_logits": "808063ae9d172b97dd414be5e068342b07bebfe91b7a95d2e3611669204aeb18"
+        },
+        "admitted_task_deadline_attainment": 0.9012095645139964,
+        "admitted_tasks": 10285520,
+        "deadline_met_latency_mean_ms": 53.7636589344585,
+        "deadline_met_tasks": 9269409,
+        "energy_j_per_offered_task": 0.45798885978944703,
+        "latency_ms_per_admitted_task": 79.25702774385738,
+        "latency_ms_per_offered_task": 460.61849306153437,
+        "latency_percentiles_ms": {
+          "admitted_p50": 40.47261619567871,
+          "admitted_p95": 320.73367614746087,
+          "admitted_p99": 701.4566870117205,
+          "deadline_met_p50": 36.52381134033203,
+          "deadline_met_p95": 192.22446899414052,
+          "deadline_met_p99": 387.13044921874996,
+          "offered_p50": 65.82273864746094,
+          "offered_p95": 1000.0,
+          "offered_p99": 5000.0
+        },
+        "offered_task_deadline_attainment": 0.7088745123404797,
+        "offered_tasks": 13076234,
+        "raw_output": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/07_seed_4_ingress_dla/full/run_1",
+        "rejection_and_unavailability": {
+          "local_mqd_rejected": 30585,
+          "v2i_cap_rejected": 0,
+          "v2i_gate_rejected": 2290980,
+          "v2i_unavailable": 99,
+          "v2v_mqd_rejected": 469050,
+          "v2v_unavailable": 0
+        },
+        "task_class_completion": {
+          "t1": 0.5928482838144525,
+          "t2": 0.8190608797760374,
+          "t3": 0.6891509751485518
+        },
+        "task_stream_sha256": {
+          "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+          "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+        },
+        "v2i_path_metrics": {
+          "actual_execution_count_per_rsu": [
+            66686,
+            66878,
+            66729,
+            66878,
+            52631,
+            66422,
+            66380,
+            38113,
+            27484,
+            66546
+          ],
+          "execution_share_per_rsu": [
+            0.11404248333039758,
+            0.11437083046172106,
+            0.11411601940668357,
+            0.11437083046172106,
+            0.09000644723273483,
+            0.11359100602482783,
+            0.11351918008985082,
+            0.06517861570901604,
+            0.0470015237359063,
+            0.1138030635471409
+          ],
+          "forwarded_admitted_task_count": 0,
+          "forwarded_share_of_admitted_v2i": 0.0,
+          "imbalance_diagnostic": {
+            "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+            "name": "execution_share_range",
+            "value": 0.06736930672581476
+          },
+          "ingress_count_per_rsu": [
+            561181,
+            293188,
+            436729,
+            399039,
+            120118,
+            323033,
+            279753,
+            69526,
+            39974,
+            353285
+          ],
+          "ingress_to_execution_pair_matrix": [
+            [
+              66686,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              66878,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              66729,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              66878,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              52631,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              66422,
+              0,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66380,
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              38113,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              27484,
+              0
+            ],
+            [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              66546
+            ]
+          ],
+          "maximum_execution_share": 0.11437083046172106,
+          "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+          "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+          "schema_version": "e2_native_v2i_path_v1",
+          "selected_target_count_per_rsu": [
+            561181,
+            293188,
+            436729,
+            399039,
+            120118,
+            323033,
+            279753,
+            69526,
+            39974,
+            353285
+          ],
+          "total_forwarding_latency_ms": 0.0,
+          "v2i_admitted_tasks": 584747,
+          "v2i_attempts": 2875826
+        },
+        "v2i_work_ms": {
+          "v2i_admitted": 15822533.0,
+          "v2i_offered": 46274504.0,
+          "v2i_rejected_or_unavailable": 30451971.0,
+          "veh_admitted": 271531232.0,
+          "veh_offered": 280852864.0,
+          "veh_rejected": 9321632.0
+        }
+      }
+    }
+  },
+  "primary_estimand": "dla - ingress_dla",
+  "primary_outcome": "offered-task deadline attainment",
+  "primary_replication_sample": {
+    "fleet_seeds": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "per_seed_differences": {
+      "1": -0.022097034971995777,
+      "2": -0.020519134178846987,
+      "3": -0.021447383092104255,
+      "4": -0.020825491498546178
+    },
+    "summary": {
+      "confidence_interval": {
+        "confidence_level": 0.95,
+        "critical_value": 3.182446305284263,
+        "degrees_of_freedom": 3,
+        "excludes_zero": true,
+        "lower": -0.022335254070273147,
+        "method": "two-sided Student t interval over fleet-draw differences",
+        "upper": -0.02010926780047345
+      },
+      "decision": "evidence_of_directional_difference_within_bounded_four_draw_replication",
+      "equivalence_or_noninferiority_claim_supported": false,
+      "maximum": -0.020519134178846987,
+      "mean": -0.0212222609353733,
+      "median": -0.021136437295325217,
+      "minimum": -0.022097034971995777,
+      "n_fleet_draws": 4,
+      "raw_paired_differences": [
+        -0.022097034971995777,
+        -0.020519134178846987,
+        -0.021447383092104255,
+        -0.020825491498546178
+      ],
+      "replication_unit": "fleet_seed",
+      "sample_standard_deviation": 0.0006994576047060331,
+      "seed0_included": false,
+      "sign_counts": {
+        "negative": 4,
+        "positive": 0,
+        "zero": 0
+      },
+      "standard_error": 0.00034972880235301654,
+      "tasks_used_as_independent_replicates": false
+    }
+  },
+  "reused_seed0_arm_records": {
+    "dla": {
+      "action_shares_per_offered_task": {
+        "local": 0.5349689367749154,
+        "v2i": 0.20284043555659834,
+        "v2v": 0.2621906276684862
+      },
+      "actor_stream_sha256": {
+        "veh_action": "10082bddfec2e91906bde647a64f2a4be101c53dd206dff0ac2e9457c80bae21",
+        "veh_actor_logits": "55b3c1a398dda5c97bbe77834bc095f39233fcf6c941aba73fc59a83b874d15a"
+      },
+      "admitted_task_deadline_attainment": 0.8977163015206314,
+      "admitted_tasks": 10122571,
+      "deadline_met_latency_mean_ms": 49.45833484186598,
+      "deadline_met_tasks": 9087197,
+      "energy_j_per_offered_task": 0.46799625182602267,
+      "latency_ms_per_admitted_task": 75.43855488887161,
+      "latency_ms_per_offered_task": 522.7803124355223,
+      "latency_percentiles_ms": {
+        "admitted_p50": 40.18512725830078,
+        "admitted_p95": 272.63690185546875,
+        "admitted_p99": 705.0292053222672,
+        "deadline_met_p50": 35.95466995239258,
+        "deadline_met_p95": 152.0665924072265,
+        "deadline_met_p99": 359.2510681152344,
+        "offered_p50": 66.1947250366211,
+        "offered_p95": 5000.0,
+        "offered_p99": 5000.0
+      },
+      "offered_task_deadline_attainment": 0.6949399192458624,
+      "offered_tasks": 13076234,
+      "raw_output": "/Users/akashx/AntigravityTest/e2_outputs/e2-native-placement-pilot-v1/full/dla/run_1",
+      "rejection_and_unavailability": {
+        "local_mqd_rejected": 34124,
+        "v2i_cap_rejected": 0,
+        "v2i_gate_rejected": 2373522,
+        "v2i_unavailable": 138,
+        "v2v_mqd_rejected": 545879,
+        "v2v_unavailable": 0
+      },
+      "task_class_completion": {
+        "t1": 0.5891462198650542,
+        "t2": 0.7785346715505173,
+        "t3": 0.6870863956526795
+      },
+      "task_stream_sha256": {
+        "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+        "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+      },
+      "v2i_path_metrics": {
+        "actual_execution_count_per_rsu": [
+          66743,
+          66899,
+          66772,
+          52223,
+          26092,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "execution_share_per_rsu": [
+          0.23945481094539858,
+          0.2400144943654948,
+          0.23955885465810878,
+          0.18736120030567324,
+          0.0936106397253246,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "forwarded_admitted_task_count": 232729,
+        "forwarded_share_of_admitted_v2i": 0.8349651453562421,
+        "imbalance_diagnostic": {
+          "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+          "name": "execution_share_range",
+          "value": 0.2400144943654948
+        },
+        "ingress_count_per_rsu": [
+          602163,
+          336491,
+          304428,
+          381844,
+          104157,
+          242968,
+          288519,
+          50591,
+          56306,
+          284922
+        ],
+        "ingress_to_execution_pair_matrix": [
+          [
+            21315,
+            19916,
+            16717,
+            12243,
+            5813,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8775,
+            8354,
+            8666,
+            6645,
+            3501,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6464,
+            7105,
+            7833,
+            6078,
+            3029,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7490,
+            8787,
+            9303,
+            7450,
+            3784,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1445,
+            1807,
+            2339,
+            1978,
+            1048,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4439,
+            4657,
+            5273,
+            4621,
+            2264,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8857,
+            7827,
+            7653,
+            5786,
+            2886,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            980,
+            1075,
+            982,
+            889,
+            471,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            504,
+            925,
+            1173,
+            998,
+            538,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6474,
+            6446,
+            6833,
+            5535,
+            2758,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        "maximum_execution_share": 0.2400144943654948,
+        "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+        "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+        "schema_version": "e2_native_v2i_path_v1",
+        "selected_target_count_per_rsu": [
+          1378776,
+          785094,
+          339179,
+          116432,
+          32908,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "total_forwarding_latency_ms": 0.0,
+        "v2i_admitted_tasks": 278729,
+        "v2i_attempts": 2652389
+      },
+      "v2i_work_ms": {
+        "v2i_admitted": 7420560.0,
+        "v2i_offered": 42670748.0,
+        "v2i_rejected_or_unavailable": 35250188.0,
+        "veh_admitted": 270951552.0,
+        "veh_offered": 281346752.0,
+        "veh_rejected": 10395200.0
+      }
+    },
+    "ingress_dla": {
+      "action_shares_per_offered_task": {
+        "local": 0.5349689367749154,
+        "v2i": 0.20284043555659834,
+        "v2v": 0.2621906276684862
+      },
+      "actor_stream_sha256": {
+        "veh_action": "10082bddfec2e91906bde647a64f2a4be101c53dd206dff0ac2e9457c80bae21",
+        "veh_actor_logits": "37e866996017033ca2eae19c10159d5b9bbbf9e7af39c6dc91baf005a7f49895"
+      },
+      "admitted_task_deadline_attainment": 0.897826700671642,
+      "admitted_tasks": 10424749,
+      "deadline_met_latency_mean_ms": 53.968900012799665,
+      "deadline_met_tasks": 9359618,
+      "energy_j_per_offered_task": 0.4680104378676613,
+      "latency_ms_per_admitted_task": 79.4831729761551,
+      "latency_ms_per_offered_task": 439.5121445517111,
+      "latency_percentiles_ms": {
+        "admitted_p50": 40.91936111450195,
+        "admitted_p95": 312.7068786621088,
+        "admitted_p99": 699.0016406249974,
+        "deadline_met_p50": 36.99208068847656,
+        "deadline_met_p95": 190.37826843261723,
+        "deadline_met_p99": 384.92349700927736,
+        "offered_p50": 65.49383544921875,
+        "offered_p95": 1000.0,
+        "offered_p99": 5000.0
+      },
+      "offered_task_deadline_attainment": 0.7157732111554443,
+      "offered_tasks": 13076234,
+      "raw_output": "/Users/akashx/AntigravityTest/e2b_outputs/e2b-placement-admission-factorial-v1/full/ingress_dla/run_1",
+      "rejection_and_unavailability": {
+        "local_mqd_rejected": 34124,
+        "v2i_cap_rejected": 0,
+        "v2i_gate_rejected": 2071344,
+        "v2i_unavailable": 138,
+        "v2v_mqd_rejected": 545879,
+        "v2v_unavailable": 0
+      },
+      "task_class_completion": {
+        "t1": 0.5934588586494406,
+        "t2": 0.829222119215356,
+        "t3": 0.6966071745476131
+      },
+      "task_stream_sha256": {
+        "task_active": "5d800bd8c855952b8134c26a6b9a3b11a68a5a403b85d8ef6c7a1c3fcd11c2d8",
+        "task_type": "58816fc109d0418704bad66abe799c3ef556ba12d3079466b0eba6460b25ff21"
+      },
+      "v2i_path_metrics": {
+        "actual_execution_count_per_rsu": [
+          66677,
+          66858,
+          66811,
+          66688,
+          48470,
+          66210,
+          66375,
+          31974,
+          34343,
+          66501
+        ],
+        "execution_share_per_rsu": [
+          0.11478085132387801,
+          0.11509243304005633,
+          0.1150115250806067,
+          0.11479978722928111,
+          0.08343848498985208,
+          0.11397693606721902,
+          0.11426097464826555,
+          0.05504151266898144,
+          0.0591196181144314,
+          0.11447787683742837
+        ],
+        "forwarded_admitted_task_count": 0,
+        "forwarded_share_of_admitted_v2i": 0.0,
+        "imbalance_diagnostic": {
+          "definition": "max(per-RSU execution share) - min(per-RSU execution share)",
+          "name": "execution_share_range",
+          "value": 0.06005092037107489
+        },
+        "ingress_count_per_rsu": [
+          602163,
+          336491,
+          304428,
+          381844,
+          104157,
+          242968,
+          288519,
+          50591,
+          56306,
+          284922
+        ],
+        "ingress_to_execution_pair_matrix": [
+          [
+            66677,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            66858,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            66811,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            66688,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            48470,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            66210,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            66375,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            31974,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            34343,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            66501
+          ]
+        ],
+        "maximum_execution_share": 0.11509243304005633,
+        "mean_forwarding_latency_ms_per_admitted_v2i": 0.0,
+        "mean_forwarding_latency_ms_per_forwarded_v2i": 0.0,
+        "schema_version": "e2_native_v2i_path_v1",
+        "selected_target_count_per_rsu": [
+          602163,
+          336491,
+          304428,
+          381844,
+          104157,
+          242968,
+          288519,
+          50591,
+          56306,
+          284922
+        ],
+        "total_forwarding_latency_ms": 0.0,
+        "v2i_admitted_tasks": 580907,
+        "v2i_attempts": 2652389
+      },
+      "v2i_work_ms": {
+        "v2i_admitted": 15643411.0,
+        "v2i_offered": 42670748.0,
+        "v2i_rejected_or_unavailable": 27027337.0,
+        "veh_admitted": 270951552.0,
+        "veh_offered": 281346752.0,
+        "veh_rejected": 10395200.0
+      }
+    }
+  },
+  "schema_version": "e2c_gated_placement_multidraw_comparison_v1",
+  "secondary_paired_outcomes": {
+    "admitted_task_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -297616.0,
+        "mean": -307900.0,
+        "median": -306792.0,
+        "minimum": -320400.0,
+        "raw_values": [
+          -320400.0,
+          -297616.0,
+          -310986.0,
+          -302598.0
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -320400.0,
+        "2": -297616.0,
+        "3": -310986.0,
+        "4": -302598.0
+      }
+    },
+    "admitted_task_deadline_attainment": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 3.858707929460525e-05,
+        "mean": -0.00015037070633980298,
+        "median": -0.00020902274028222756,
+        "minimum": -0.00022202442408936207,
+        "raw_values": [
+          -0.00022202442408936207,
+          -0.00021671718848648158,
+          -0.00020132829207797354,
+          3.858707929460525e-05
+        ],
+        "sign_consistency": "mixed",
+        "sign_counts": {
+          "negative": 3,
+          "positive": 1,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -0.00022202442408936207,
+        "2": -0.00021671718848648158,
+        "3": -0.00020132829207797354,
+        "4": 3.858707929460525e-05
+      }
+    },
+    "admitted_task_latency_ms": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -3.986750320876496,
+        "mean": -4.273393198629456,
+        "median": -4.325554595348741,
+        "minimum": -4.455713282943847,
+        "raw_values": [
+          -4.455713282943847,
+          -3.986750320876496,
+          -4.427413771784643,
+          -4.22369541891284
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -4.455713282943847,
+        "2": -3.986750320876496,
+        "3": -4.427413771784643,
+        "4": -4.22369541891284
+      }
+    },
+    "cap_rejected_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 0.0,
+        "mean": 0.0,
+        "median": 0.0,
+        "minimum": 0.0,
+        "raw_values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "sign_consistency": "all_numerically_zero_without_equivalence_claim",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 0,
+          "zero": 4
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": 0.0,
+        "4": 0.0
+      }
+    },
+    "deadline_met_latency_ms": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -4.548400879833608,
+        "mean": -4.79678756848527,
+        "median": -4.819641699700544,
+        "minimum": -4.999465994706384,
+        "raw_values": [
+          -4.9830154102371225,
+          -4.548400879833608,
+          -4.999465994706384,
+          -4.656267989163965
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -4.9830154102371225,
+        "2": -4.548400879833608,
+        "3": -4.999465994706384,
+        "4": -4.656267989163965
+      }
+    },
+    "deadline_met_task_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -268313.0,
+        "mean": -277507.25,
+        "median": -276385.0,
+        "minimum": -288946.0,
+        "raw_values": [
+          -288946.0,
+          -268313.0,
+          -280451.0,
+          -272319.0
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -288946.0,
+        "2": -268313.0,
+        "3": -280451.0,
+        "4": -272319.0
+      }
+    },
+    "energy_j_per_offered_task": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -1.5180211672571886e-05,
+        "mean": -1.596407650704401e-05,
+        "median": -1.5753771307552844e-05,
+        "minimum": -1.7168551740498472e-05,
+        "raw_values": [
+          -1.7168551740498472e-05,
+          -1.590672054352371e-05,
+          -1.5180211672571886e-05,
+          -1.5600822071581977e-05
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -1.7168551740498472e-05,
+        "2": -1.590672054352371e-05,
+        "3": -1.5180211672571886e-05,
+        "4": -1.5600822071581977e-05
+      }
+    },
+    "execution_share_range": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 0.18131163458153815,
+        "mean": 0.17094017802423925,
+        "median": 0.16858876742818132,
+        "minimum": 0.16527154265905622,
+        "raw_values": [
+          0.18131163458153815,
+          0.16527154265905622,
+          0.16784212173557153,
+          0.16933541312079112
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 0.18131163458153815,
+        "2": 0.16527154265905622,
+        "3": 0.16784212173557153,
+        "4": 0.16933541312079112
+      }
+    },
+    "forwarded_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 241809.0,
+        "mean": 238705.75,
+        "median": 239435.5,
+        "minimum": 234143.0,
+        "raw_values": [
+          234143.0,
+          240486.0,
+          238385.0,
+          241809.0
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 234143.0,
+        "2": 240486.0,
+        "3": 238385.0,
+        "4": 241809.0
+      }
+    },
+    "forwarded_share": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 0.8570258976640003,
+        "mean": 0.8529366784540534,
+        "median": 0.8529638069755245,
+        "minimum": 0.8487932022011644,
+        "raw_values": [
+          0.8487932022011644,
+          0.8566817945411409,
+          0.8492458194099081,
+          0.8570258976640003
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 0.8487932022011644,
+        "2": 0.8566817945411409,
+        "3": 0.8492458194099081,
+        "4": 0.8570258976640003
+      }
+    },
+    "gate_rejected_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 320400.0,
+        "mean": 307900.0,
+        "median": 306792.0,
+        "minimum": 297616.0,
+        "raw_values": [
+          320400.0,
+          297616.0,
+          310986.0,
+          302598.0
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 320400.0,
+        "2": 297616.0,
+        "3": 310986.0,
+        "4": 302598.0
+      }
+    },
+    "maximum_execution_share": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 0.130189126388721,
+        "mean": 0.12511466506939142,
+        "median": 0.12396782225197994,
+        "minimum": 0.12233388938488482,
+        "raw_values": [
+          0.130189126388721,
+          0.12245199547697803,
+          0.12548364902698186,
+          0.12233388938488482
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 0.130189126388721,
+        "2": 0.12245199547697803,
+        "3": 0.12548364902698186,
+        "4": 0.12233388938488482
+      }
+    },
+    "offered_task_latency_ms": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": 89.36248770096955,
+        "mean": 85.52452395697415,
+        "median": 85.27398087247445,
+        "minimum": 82.18764638197814,
+        "raw_values": [
+          89.36248770096955,
+          82.18764638197814,
+          86.82481270983675,
+          83.72314903511216
+        ],
+        "sign_consistency": "all_positive",
+        "sign_counts": {
+          "negative": 0,
+          "positive": 4,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": 89.36248770096955,
+        "2": 82.18764638197814,
+        "3": 86.82481270983675,
+        "4": 83.72314903511216
+      }
+    },
+    "v2i_admitted_count": {
+      "descriptive_summary": {
+        "count": 4,
+        "maximum": -297616.0,
+        "mean": -307900.0,
+        "median": -306792.0,
+        "minimum": -320400.0,
+        "raw_values": [
+          -320400.0,
+          -297616.0,
+          -310986.0,
+          -302598.0
+        ],
+        "sign_consistency": "all_negative",
+        "sign_counts": {
+          "negative": 4,
+          "positive": 0,
+          "zero": 0
+        }
+      },
+      "direction": "dla_minus_ingress_dla",
+      "raw_paired_differences_by_fleet_seed": {
+        "1": -320400.0,
+        "2": -297616.0,
+        "3": -310986.0,
+        "4": -302598.0
+      }
+    }
+  },
+  "statistical_status": "matched four-new-fleet-draw replication"
+}

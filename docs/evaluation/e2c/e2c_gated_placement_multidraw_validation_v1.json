@@ -1,0 +1,152 @@
+{
+  "cell_evidence": [
+    {
+      "cell": {
+        "arm": "ingress_dla",
+        "cell_index": 1,
+        "fleet_seed": 1
+      },
+      "cell_status_sha256": "68bd86f15124cb0ad7d183307824d3dc50f6ccd4e036969f6ab0bc0f52b05cc9",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/01_seed_1_ingress_dla/cell_validation.json",
+      "cell_validation_sha256": "6a8fe82494cf7f46021a7ede518a8549a04fcfb407dce1de78d9ae9535e37b84",
+      "full_checksums_sha256": "b2d2baf4b61fa89c84b583feb2e25798deed27f515e128a9a7748cef3dd2bb19",
+      "full_evaluator_wall_seconds": 7614.5,
+      "full_per_step_sha256": "842e1f3e014ce4e8f0912a448ab03f46690467505ea1a03f555036ed1348ac63",
+      "full_per_task_sha256": "3def68a3904a09a571d93b119075f3c80d9e48af6728362d41bcf6745a87a7ab",
+      "full_summary_sha256": "c960e2bfd4d374960d1c67d15578c61ad7a27c971aacec6ff069b84192f1ea9d",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "dla",
+        "cell_index": 2,
+        "fleet_seed": 1
+      },
+      "cell_status_sha256": "9f057409f68d57e83047c092379db96c70a239ebed5e305b41e1ce20bcc3de96",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/02_seed_1_dla/cell_validation.json",
+      "cell_validation_sha256": "4b080da85434914a860ea844dcff73f674b1a2fd595ea2e1a3346200ceeb5a9a",
+      "full_checksums_sha256": "d7425f9230a3a810ca29e1092aefb377d7f2adbfc73fcda913501b40c6652383",
+      "full_evaluator_wall_seconds": 7963.5,
+      "full_per_step_sha256": "b11d92f406f2005fe040b81b03cef8480500375bb91b1cfeff30ecf076f89c9b",
+      "full_per_task_sha256": "3b4ebf9ff8d9ef194a613d7505c10c497403b6333b0562b2ca399ebebd1a9c8f",
+      "full_summary_sha256": "64a384f4ca575a1731e67e1eaa570f7ec9b2c86913337529f01d34e7551c394a",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "ingress_dla",
+        "cell_index": 3,
+        "fleet_seed": 2
+      },
+      "cell_status_sha256": "c96949120a8cc782804018a61a43e7d70410956c306ad0aaa298643161ef4541",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/03_seed_2_ingress_dla/cell_validation.json",
+      "cell_validation_sha256": "0d1a1a525818d3a7c761134dbf586fc7dd3cc28d8a73bd181e3bc657eb1623fe",
+      "full_checksums_sha256": "cdd54728119de3b5e4ed024da4d6519cc90c841cb18bed4c11041a7df0ae7e80",
+      "full_evaluator_wall_seconds": 7647.5,
+      "full_per_step_sha256": "9fce7458bc96802d445923e60a89433f5796e0fe29c8ec72800289987245ed4a",
+      "full_per_task_sha256": "6ce54e0b270f85df964056cbe10da5594315c8008ef9180dbdbc996b9ca3c0de",
+      "full_summary_sha256": "e925cf2f4a9b912752bb34fd68dbff78c16df5d4749a67b66c872c0ccb7c5e47",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "dla",
+        "cell_index": 4,
+        "fleet_seed": 2
+      },
+      "cell_status_sha256": "891d980161426e4f2aae8e0b167a7d9ef7ab027be7522ce8477e7a9a3700aa8c",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/04_seed_2_dla/cell_validation.json",
+      "cell_validation_sha256": "f0d94520cf7074b58d8d13f92c8f8d70e5631361a939121c08fe5757676d1441",
+      "full_checksums_sha256": "e1bd59a82dfd5feac79670496b921594b32d3eb55757848f26916d90b7712e6b",
+      "full_evaluator_wall_seconds": 7422.7,
+      "full_per_step_sha256": "7f5324bd027b84dc415e4e5b14ae0a06f98cc15de88ad98843e9b15df1c873d4",
+      "full_per_task_sha256": "827b830e35c6124208600efab792938f699800f75a05c131b28086423a097f6d",
+      "full_summary_sha256": "9fc2a8b7b304c30267cc06f0f4a465232ae854ba63688fedfaf6cd1a22fb543e",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "ingress_dla",
+        "cell_index": 5,
+        "fleet_seed": 3
+      },
+      "cell_status_sha256": "5f22be0b8475380f6c7d6ebbbe77f77414da91890f99dd15fc3c1bc7dbd1328a",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/05_seed_3_ingress_dla/cell_validation.json",
+      "cell_validation_sha256": "ec4338753804d4bbead421b691640a66e119758701e7b816414ad2a27459b900",
+      "full_checksums_sha256": "dc7a936cb7b0ac4b01c7400fb8443f486f7e6b4cc0c0f3763628a1efaa62d902",
+      "full_evaluator_wall_seconds": 6841.7,
+      "full_per_step_sha256": "41bac036faba786f36d7c9a85ce2b836cfe9762b77cd1c9d0d3b0bf2e74475e7",
+      "full_per_task_sha256": "24b6d8a86c8c388fb8787c6f236f5d709f29a8483d8322baaf8a36dc23cc09c3",
+      "full_summary_sha256": "23e6c1726e0a2acadd91c6e0d7c70f6e8301dee3bb94cf111fc7a54da44a6814",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "dla",
+        "cell_index": 6,
+        "fleet_seed": 3
+      },
+      "cell_status_sha256": "cb9a5431e5339d59a51c4c60a32422ac555aceb8845f03da6194e36db63c4c59",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/06_seed_3_dla/cell_validation.json",
+      "cell_validation_sha256": "6616dd8706e90fcfa1a4670322e8c7613781ba5c6c8fb8e25fe92eb8bcf20965",
+      "full_checksums_sha256": "2757bb507527e94c7bc4c47419f81234351bf14abf5ded4e39048ea0dc80f44b",
+      "full_evaluator_wall_seconds": 6423.3,
+      "full_per_step_sha256": "e8216e47d2153676791a4012f70eca43d66fe321832bf6a64c076d133b9eb8d7",
+      "full_per_task_sha256": "8657f50c32775d14a45921212972a3fae0675adb453eca37d060874c0908af01",
+      "full_summary_sha256": "a8765a72308430a4b242365598baa4074dee7bbc523f426c5946deb62abb8c82",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "ingress_dla",
+        "cell_index": 7,
+        "fleet_seed": 4
+      },
+      "cell_status_sha256": "73a2ef60c4a6aa8522568a1270591d28fd928256cbef1dc3ec277d5cbb9343fc",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/07_seed_4_ingress_dla/cell_validation.json",
+      "cell_validation_sha256": "3823d27d952fa1d0459117e665160f1fcca0d071293c6fd08d5186a24bff31fc",
+      "full_checksums_sha256": "1965f178d8da0b388f9796e58843d383bf2d6e7108c9705732e221fa52178c5d",
+      "full_evaluator_wall_seconds": 6072.2,
+      "full_per_step_sha256": "f6093cad48b2c8cb4976305e6e913eb3c2f17634678b3f883e2aa34ecb744fbd",
+      "full_per_task_sha256": "28f5fb7ef9cf43ec9318be45671dbc03bba77678f504185843a22ce243a82636",
+      "full_summary_sha256": "3601ddb52a2b3aa6bb0795755371c34bd36bb6dddfcca5391687098c1741ccbe",
+      "status": "passed"
+    },
+    {
+      "cell": {
+        "arm": "dla",
+        "cell_index": 8,
+        "fleet_seed": 4
+      },
+      "cell_status_sha256": "b0e65d2d01c5712a8fb48ba48715d6a8a8dd8e693cd5a37a68657275dd32ac27",
+      "cell_validation_path": "/Users/akashx/AntigravityTest/e2c_outputs/e2c-gated-placement-multidraw-v1/cells/08_seed_4_dla/cell_validation.json",
+      "cell_validation_sha256": "17cb52548bb1bbcf490ced4e48d4b6b3fa673a22e006af4ab2d1207b835378f3",
+      "full_checksums_sha256": "7ec82b8f1326fccc8de5eaf6f939da71f02fd9ddf5dcef5c56e8e43a6e3ad562",
+      "full_evaluator_wall_seconds": 6099.2,
+      "full_per_step_sha256": "a522c7c144e7ff4fe144367f39922bb6e537bc6ecb1537a28487757d81236686",
+      "full_per_task_sha256": "0bd637d85853794b0e5083266c810fa226f776ac209f5bf81a4290d4c160676c",
+      "full_summary_sha256": "d63e068080a2d6fc3f13d2b8a83229af8410c011e3cff8634ae08cb8214c22fe",
+      "status": "passed"
+    }
+  ],
+  "cells_failed": 0,
+  "cells_passed": 8,
+  "cells_planned": 8,
+  "cells_started": 8,
+  "cells_stopped": 0,
+  "closed_prerequisites_verified": true,
+  "cross_arm_task_fleet_action_identity_passed": true,
+  "full_runs_passed": 8,
+  "full_runs_planned": 8,
+  "manifest_sha256": "fcaf2ee34b68ca4e4ef2e088d72ce2c5a410cf66ff9934a451fd8047204c480a",
+  "pairs_passed": 4,
+  "path_reconciliation_passed": true,
+  "schema_version": "e2c_gated_placement_multidraw_validation_v1",
+  "seed0_reuse_verified": true,
+  "smoke_runs_passed": 16,
+  "smoke_runs_planned": 16,
+  "status": "passed",
+  "task_accounting_passed": true,
+  "v2i_work_conservation_passed": true,
+  "vehicle_work_conservation_passed": true
+}
