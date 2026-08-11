@@ -105,7 +105,10 @@ def _limitations() -> list[str]:
         "Windows use half-open semantics [start,end); no interpolation or zero-fill.",
         "Findings are descriptive during declared windows, not causal claims.",
         "Mutations are restricted to closed, bounded types already supported on main.",
-        "Portable output contains no absolute paths, wall-clock, or credentials.",
+        "Portable output contains no absolute paths or credentials; "
+        "wall-clock/created_at_utc is excluded from deterministic identity/fingerprint and "
+        "appears in portable output only as optional non-identity metadata when a caller "
+        "explicitly supplies a clock.",
     ]
 
 

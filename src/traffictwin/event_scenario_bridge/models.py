@@ -28,6 +28,21 @@ def _validate_identifier(value: str, field_name: str) -> str:
     return value
 
 
+_CAUSAL_TERMS = ("causal", "caused", "proves", "proven")
+
+
+def _contains_causal_claim(value: str) -> bool:
+    lowered = value.lower()
+    return any(term in lowered for term in _CAUSAL_TERMS)
+
+
+def _validate_no_causal_claim(value: str, field_name: str) -> str:
+    if _contains_causal_claim(value):
+        msg = f"{field_name} must not claim causality; use descriptive what-if wording"
+        raise ValueError(msg)
+    return value
+
+
 class StrictModel(BaseModel):
     """Strict base: rejects unknown fields and validates on assignment."""
 
@@ -201,6 +216,12 @@ class ScenarioMutationProposal(StrictModel):
     random_seed: int | None = Field(default=None, ge=0, le=2_147_483_647)
     table_kind: str | None = None
 
+    @field_validator("target_description")
+    @classmethod
+    def validate_target_description(cls, value: str) -> str:
+        _validate_no_causal_claim(value, "target_description")
+        return value
+
     @field_validator("rsu_id")
     @classmethod
     def validate_rsu_id(cls, value: str | None) -> str | None:
@@ -263,7 +284,7 @@ class EventScenarioBridgeRequest(StrictModel):
     description: str = Field(default="", max_length=2_000)
     event_reference: DeclaredEventReference
     baseline_seed_fingerprint: str = Field(pattern=r"^[0-9a-f]{64}$")
-    baseline_seed_id: str = Field(min_length=1, max_length=128)
+    baseline_seed_id: str = Field(min_length=1, max_length=112)
     impact_envelope: EventImpactEnvelope
     mutation_proposals: list[ScenarioMutationProposal] = Field(
         min_length=1, max_length=8, description="At least one ordered mutation"
@@ -275,10 +296,14 @@ class EventScenarioBridgeRequest(StrictModel):
     @field_validator("title")
     @classmethod
     def validate_title(cls, value: str) -> str:
-        lowered = value.lower()
-        for term in ["causal", "caused", "proves", "proven"]:
-            if term in lowered:
-                raise ValueError("title must not claim causality; use descriptive what-if wording")
+        _validate_no_causal_claim(value, "title")
+        return value
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: str) -> str:
+        if value:
+            _validate_no_causal_claim(value, "description")
         return value
 
     @field_validator("bridge_id")

@@ -483,3 +483,158 @@ def test_half_open_windows_exact_boundaries() -> None:
     assert (windows["pre"][1] - windows["pre"][0]).total_seconds() == 600
     assert (windows["event"][1] - windows["event"][0]).total_seconds() == 600
     assert (windows["post"][1] - windows["post"][0]).total_seconds() == 600
+
+
+def test_f1_causal_mutation_target_description_fails_at_typed_boundary() -> None:
+    """F1: causal mutation target must fail during typed request validation."""
+    causal_target = "This target proves the closure caused delays"
+    proposal = {
+        "mutation_kind": "lane_closure",
+        "target_description": causal_target,
+        "lanes_closed": 1,
+    }
+    # Direct proposal validation must fail with causal claim
+    with pytest.raises(
+        ValidationError,
+        match="target_description.*must not claim|must not claim.*target_description",
+    ):
+        ScenarioMutationProposal.model_validate(proposal)
+    # Also via full request validation
+    _ = ScenarioMutationProposal.model_validate  # placeholder
+    # Build otherwise-valid request dict with causal target via model_validate
+    base = {
+        "bridge_id": "bridge-001",
+        "title": "What-if study for authored closure event",
+        "description": "Unexecuted design linking event to scenario",
+        "event_reference": _event_ref().model_dump(mode="json"),
+        "baseline_seed_fingerprint": "a" * 64,
+        "baseline_seed_id": "seed-baseline",
+        "impact_envelope": _envelope().model_dump(mode="json"),
+        "mutation_proposals": [proposal],
+        "intended_metrics": ["task.completion.rate"],
+        "intended_windows": ["pre", "event", "post"],
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        EventScenarioBridgeRequest.model_validate(base)
+    err_text = str(excinfo.value).lower()
+    assert "target_description" in err_text or "target" in err_text
+    assert "causal" in err_text
+    # Benign target must pass
+    benign = ScenarioMutationProposal(
+        mutation_kind=MutationKind.LANE_CLOSURE,
+        target_description="Close 1 lane on link-a for what-if review",
+        lanes_closed=1,
+    )
+    assert benign.target_description == "Close 1 lane on link-a for what-if review"
+    req = _request(mutation_proposals=[benign])
+    manifest = build_event_scenario_bridge_manifest(req)
+    assert manifest.verify_fingerprint()
+
+
+def test_f2_causal_description_fails_before_study_question() -> None:
+    """F2: causal description fails at typed boundary, not derived."""
+    short_title = "What-if for link-a"
+    causal_desc = "This description proves the event caused the congestion"
+    base = {
+        "bridge_id": "bridge-001",
+        "title": short_title,
+        "description": causal_desc,
+        "event_reference": _event_ref().model_dump(mode="json"),
+        "baseline_seed_fingerprint": "a" * 64,
+        "baseline_seed_id": "seed-baseline",
+        "impact_envelope": _envelope().model_dump(mode="json"),
+        "mutation_proposals": [_lane_closure().model_dump(mode="json")],
+        "intended_metrics": ["task.completion.rate"],
+        "intended_windows": ["pre", "event", "post"],
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        EventScenarioBridgeRequest.model_validate(base)
+    err_text = str(excinfo.value).lower()
+    assert "description" in err_text
+    assert "causal" in err_text
+    # Ensure no manifest is created — validation failed before service
+    # (service never entered because model_validate raised)
+    # Benign description must pass
+    benign_req = _request(description="Unexecuted design for review; descriptive windows only")
+    manifest = build_event_scenario_bridge_manifest(benign_req)
+    assert manifest.request.description == "Unexecuted design for review; descriptive windows only"
+    assert manifest.verify_fingerprint()
+
+
+def test_f3_baseline_seed_id_length_bound_enforced() -> None:
+    """F3: baseline seed id 112 valid, 113 refused, derived stays ≤128, fixtures unchanged."""
+    # 112 valid
+    seed_112 = "a" * 112
+    req112 = _request(baseline_seed_id=seed_112)
+    assert len(req112.baseline_seed_id) == 112
+    manifest112 = build_event_scenario_bridge_manifest(req112)
+    derived = manifest112.scenario_seed_handoff.derived_seed_id
+    assert len(derived) <= 128, f"derived {len(derived)} exceeds 128: {derived}"
+    # also check experiment plan derived id
+    assert len(manifest112.experiment_plan_handoff.derived_seed_id) <= 128
+    assert manifest112.verify_fingerprint()
+    # 113 refused
+    seed_113 = "b" * 113
+    base = {
+        "bridge_id": "bridge-001",
+        "title": "What-if study for authored closure event",
+        "description": "Unexecuted design linking event to scenario",
+        "event_reference": _event_ref().model_dump(mode="json"),
+        "baseline_seed_fingerprint": "a" * 64,
+        "baseline_seed_id": seed_113,
+        "impact_envelope": _envelope().model_dump(mode="json"),
+        "mutation_proposals": [_lane_closure().model_dump(mode="json")],
+        "intended_metrics": ["task.completion.rate"],
+        "intended_windows": ["pre", "event", "post"],
+    }
+    with pytest.raises(ValidationError) as excinfo:
+        EventScenarioBridgeRequest.model_validate(base)
+    assert (
+        "baseline_seed_id" in str(excinfo.value)
+        or "112" in str(excinfo.value)
+        or "at most 112" in str(excinfo.value).lower()
+        or "too_long" in str(excinfo.value).lower()
+        or "ensure this value has at most 112" in str(excinfo.value).lower()
+    )
+    # Ordinary fixture ids unchanged
+    ordinary = _request(baseline_seed_id="seed-baseline")
+    m_ordinary = build_event_scenario_bridge_manifest(ordinary)
+    assert m_ordinary.baseline_seed_id == "seed-baseline"
+    assert m_ordinary.verify_fingerprint()
+
+
+def test_f4_limitation_matches_portable_created_at_behavior() -> None:
+    """F4: limitation matches portable created_at behavior."""
+    req = _request()
+    # Two different clocks
+    from datetime import timedelta
+
+    clock_a = _utc(2026, 7, 17, 12) + timedelta(days=1)
+    clock_b = _utc(2030, 1, 1, 0)
+    m_a = build_event_scenario_bridge_manifest(req, clock=clock_a)
+    m_b = build_event_scenario_bridge_manifest(req, clock=clock_b)
+    # Fingerprint / canonical identical
+    assert m_a.bridge_fingerprint == m_b.bridge_fingerprint
+    assert m_a.canonical_json() == m_b.canonical_json()
+    assert m_a.verify_fingerprint() and m_b.verify_fingerprint()
+    # Portable metadata may differ
+    portable_a = m_a.to_portable_dict()
+    portable_b = m_b.to_portable_dict()
+    assert portable_a.get("created_at_utc") != portable_b.get("created_at_utc")
+    assert portable_a["bridge_fingerprint"] == portable_b["bridge_fingerprint"]
+    # Limitation text states metadata excluded from identity, not absent
+    lim_text = " ".join(m_a.limitations).lower()
+    assert (
+        "excluded from deterministic identity" in lim_text
+        or "excluded from deterministic identity/fingerprint" in lim_text
+    )
+    assert "optional" in lim_text or "non-identity" in lim_text
+    assert "when a caller explicitly supplies a clock" in lim_text or "when a caller" in lim_text
+    # Ensure old false claim not present
+    assert (
+        lim_text.count("portable output contains no absolute paths, wall-clock, or credentials")
+        == 0
+    )
+    # Ensure portable without clock has no created_at_utc
+    m_none = build_event_scenario_bridge_manifest(req, clock=None)
+    assert "created_at_utc" not in m_none.to_portable_dict()
