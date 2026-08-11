@@ -23,7 +23,14 @@ from run_e2d_per_task_placement_robustness import (  # noqa: E402
 )
 from validate_e2d_per_task_placement_robustness import (  # noqa: E402
     format_command,
+    reference_record,
+    sha256,
     verify_reference_record,
+)
+
+MANIFEST_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "docs/evaluation/e2d/e2d_per_task_placement_robustness_manifest_v1.json"
 )
 
 
@@ -241,3 +248,47 @@ def test_decision_record_preserves_construct_and_claim_boundaries() -> None:
         "exact `APPROVE`",
     ):
         assert phrase in record
+
+
+def test_frozen_manifest_sidecar_and_authorised_inventory() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text())
+    sidecar = MANIFEST_PATH.with_suffix(".sha256")
+    assert sidecar.read_text().split()[0] == sha256(MANIFEST_PATH)
+    validate_manifest_contract(manifest)
+    assert manifest["design"]["seed0_authorised"] is False
+    assert manifest["analysis"]["task_level_pseudoreplication_allowed"] is False
+    assert manifest["review_gate"]["required_verdict"] == "APPROVE"
+    assert manifest["compute_and_storage"]["projected_total_evaluator_wall_seconds"] < 108000
+    assert (
+        manifest["compute_and_storage"]["initial_observed_free_bytes"]
+        >= manifest["compute_and_storage"]["minimum_initial_free_bytes"]
+    )
+
+
+def test_all_reused_e2c_reference_hashes_are_bound_and_verify() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text())
+    checked = 0
+    for seed in (1, 2, 3, 4):
+        for arm in ("ingress_dla", "dla"):
+            for phase in ("smoke", "full"):
+                assert verify_reference_record(reference_record(manifest, seed, arm, phase))["pass"]
+                checked += 1
+    assert checked == 16
+
+
+def test_manifest_binds_exact_source_and_input_hashes() -> None:
+    manifest = json.loads(MANIFEST_PATH.read_text())
+    assert (
+        sha256(Path(manifest["paths"]["evaluator"]))
+        == manifest["repositories"]["vec_env"]["evaluator_sha256"]
+    )
+    assert (
+        sha256(Path(manifest["paths"]["per_task_placement_helper"]))
+        == manifest["repositories"]["vec_env"]["per_task_helper_sha256"]
+    )
+    assert (
+        sha256(Path(manifest["inputs"]["actor"]["path"])) == manifest["inputs"]["actor"]["sha256"]
+    )
+    assert (
+        sha256(Path(manifest["inputs"]["trace"]["path"])) == manifest["inputs"]["trace"]["sha256"]
+    )
