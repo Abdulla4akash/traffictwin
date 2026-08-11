@@ -30,7 +30,9 @@ from traffictwin.calibration.models import (
     CalibrationCandidate,
     CalibrationMetricSpec,
     CalibrationObservedReference,
+    CalibrationStatus,
     CalibrationStudy,
+    ExclusionReasonCode,
     MissingnessPolicy,
 )
 from traffictwin.calibration.service import (
@@ -573,7 +575,8 @@ def test_coverage_threshold() -> None:
     assert summary.alignment_audit.exclusion_reason_code == "COVERAGE_INSUFFICIENT"
     assert summary.status.value == "excluded"
 
-    # Now at threshold exactly 75% with threshold 0.75 should be accepted
+    # Now at threshold exactly 75% with threshold 0.75:  # noqa: E501
+    # aggregate 12/16 =75% passes audit, but per-metric flow 4/8=50% fails gate
     alignment_75 = CalibrationAlignmentSpec(
         window_start_utc=synthetic_window_start(),
         window_end_utc=synthetic_window_end(),
@@ -593,8 +596,20 @@ def test_coverage_threshold() -> None:
     )
     report2 = build_calibration_report(study2)
     summary2 = report2.candidate_summaries[0]
+    # Aggregate audit passes exactly at threshold
     assert summary2.alignment_audit.coverage_percentage == 75.0
     assert summary2.alignment_audit.is_excluded is False
+    # Per-metric gate must still exclude because flow.count is only 50%
+    assert summary2.status == CalibrationStatus.EXCLUDED
+    assert summary2.exclusion is not None
+    assert summary2.exclusion.reason_code == ExclusionReasonCode.COVERAGE_INSUFFICIENT.value
+    assert summary2.candidate_id not in report2.ranking
+    flow_res = next(m for m in summary2.metric_results if m.metric_key == "flow.count")
+    assert flow_res.coverage_percentage == 50.0
+    assert flow_res.count_paired == 4
+    speed_res = next(m for m in summary2.metric_results if m.metric_key == "traffic.speed.mean_mps")
+    assert speed_res.coverage_percentage == 100.0
+    assert speed_res.count_paired == 8
 
 
 def test_compatible_candidate_ranking_with_normalization() -> None:
