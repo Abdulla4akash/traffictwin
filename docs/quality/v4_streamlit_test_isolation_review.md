@@ -6,7 +6,7 @@ Base: 7b1b0b55b399108b237f6e9a31a6747f4c15c81b (origin/main Merge PR #30)
 Heads:
 - original lane `2f81a64e8c51b3963ddaafbbfe8a6f3d9544933d` — blocking defect: passing polluter silently repaired
 - interim `a3d005442bc2c9dbc41be4bc5f7c211cf111be51` — added reporting, but introduced guard regressions (REQUEST CHANGES)
-- this remediation `TBD` — fixes blockers 1–8, preserves source polluter fix
+- this remediation `43a525addc2be1fc1d78adf8b10a92265a79d00b` — fixes blockers 1–8, preserves source polluter fix
 
 ## Objective
 
@@ -148,7 +148,7 @@ Fable-owned files untouched: `src/traffictwin/ui/labels.py`, `src/traffictwin/ui
 
 ## Evidence Captured
 
-- Hardening isolated: 35 passed @ `TBD` (was 1 failed/34 passed/2 errors @ `a3d0054`)
-- Study capsule: 8 passed @ `TBD` (was 7 passed/1 skipped @ `a3d0054`)
-- Guard: 19 passed @ `TBD`
+- Hardening isolated: 35 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b` (was 1 failed/34 passed/2 errors @ `a3d0054`)
+- Study capsule: 8 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b` (was 7 passed/1 skipped @ `a3d0054`)
+- Guard: 19 passed @ `43a525addc2be1fc1d78adf8b10a92265a79d00b`
 - Mutation probes: reporting-only, restoration, has_run_first rewind all killed as above
