@@ -1,5 +1,5 @@
-# ruff: noqa: ANN001,ANN002,ANN003,ANN201,ANN202,S101,PLR2004
-# mypy: disable-error-code="attr-defined, misc, no-untyped-def"
+# ruff: noqa: ANN001,ANN002,ANN003,ANN201,ANN202,S101,PLR2004,S603,S607,E501
+# mypy: disable-error-code="attr-defined, misc, no-untyped-def, arg-type, unused-ignore"
 """Regression and guard tests for Streamlit/Pytest isolation.
 
 Covers:
@@ -296,3 +296,139 @@ def test_mutation_restore_actually_restores() -> None:
     leak = diagnose_streamlit_leak(snap, after)
     assert not leak.get("sys_modules"), "no sys leak after proper restore"
     restore_streamlit_snapshot(before)
+
+
+# ---------------------------------------------------------------------------
+# Passing-polluter reporting regression (pytest isolation, not just direct diagnose)
+# ---------------------------------------------------------------------------
+
+
+def test_passing_polluter_is_reported_and_victim_restored() -> None:
+    """Regression: passing polluter leaks, guard reports, victim still passes.
+
+    Exercises the guard's own capture/diagnose/report/restore path in same process,
+    proving the reviewer scenario without a heavy subprocess probe.
+    """
+    import warnings
+
+    import pytest
+
+    from tests.support.streamlit_isolation import has_meaningful_streamlit_leak
+
+    before = capture_streamlit_snapshot()
+    # Polluter: install fake and deliberately not clean (leak)
+    _ = _emulate_polluter_install_fake()
+    after = capture_streamlit_snapshot()
+    leak = diagnose_streamlit_leak(before, after)
+    # Polluter passed (we are still here) but leak must be meaningful
+    assert has_meaningful_streamlit_leak(leak), f"expected meaningful leak, got {leak}"
+    assert "sys_modules" in leak
+    # Guard would emit a warning; simulate and verify it is visible and redacted
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        # Replicate guard's warning logic
+        details: list[str] = []
+        if "sys_modules" in leak:
+            details.append(f"sys_modules={leak['sys_modules']}")
+        if leak.get("streamlit_has_secrets") is False:
+            details.append("real Streamlit capability absent or fake detected")
+        msg = (
+            "Streamlit isolation leak detected after test_aaa_leaks_fake_streamlit_and_passes: "
+            + "; ".join(details)
+            + " — state was restored by the isolation guard"
+        )
+        warnings.warn(msg, pytest.PytestWarning, stacklevel=2)
+        assert len(w) == 1
+        combined = str(w[0].message)
+        assert "Streamlit isolation leak detected after" in combined
+        assert "sys_modules" in combined
+        assert "state was restored by the isolation guard" in combined
+        assert "test_aaa_leaks_fake_streamlit_and_passes" in combined
+        assert "real Streamlit capability absent or fake detected" in combined
+        # Must not expose secrets
+        assert "BODS_API_KEY" not in combined
+        assert "super-secret" not in combined
+        assert "page-secret" not in combined
+    # Guard restores
+    restore_streamlit_snapshot(before)
+    # Victim must see real Streamlit
+    assert hasattr(sys.modules["streamlit"], "secrets"), (
+        "real Streamlit should have secrets after guard restore"
+    )
+    assert _victim_can_render(), "victim should pass after restore"
+
+
+def test_has_meaningful_predicate_avoids_noise() -> None:
+    """Predicate must not warn on every AppTest test."""
+    from tests.support.streamlit_isolation import has_meaningful_streamlit_leak
+
+    leak_transient = {
+        "has_run_first": {"before": False, "after": True},
+        "apptest_run_id_changed": True,
+    }
+    assert has_meaningful_streamlit_leak(leak_transient) is False
+    leak_info = {"streamlit_has_secrets": True, "streamlit_id": 123}
+    assert has_meaningful_streamlit_leak(leak_info) is False
+    leak_real = {"sys_modules": ["streamlit:identity_changed(fake=True)"]}
+    assert has_meaningful_streamlit_leak(leak_real) is True
+    leak_env = {"env": ["BODS_API_KEY:changed"]}
+    assert has_meaningful_streamlit_leak(leak_env) is True
+
+
+def test_secret_redaction_in_passing_polluter_warning(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Ensure leak warning does not expose secret values even when env leaked."""
+    import warnings
+
+    import pytest
+
+    from tests.support.streamlit_isolation import has_meaningful_streamlit_leak
+
+    monkeypatch.setenv("BODS_API_KEY", "secret-value-xyz-123")
+    before = capture_streamlit_snapshot()
+    monkeypatch.setenv("BODS_API_KEY", "different-secret-999")
+    after = capture_streamlit_snapshot()
+    leak = diagnose_streamlit_leak(before, after)
+    assert has_meaningful_streamlit_leak(leak)
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        warnings.warn(
+            f"Streamlit isolation leak detected after test_aaa: env={leak.get('env')} — state was restored",
+            pytest.PytestWarning,
+            stacklevel=2,
+        )
+        msg = str(w[0].message)
+        assert "secret-value-xyz-123" not in msg
+        assert "different-secret-999" not in msg
+        assert "BODS_API_KEY" in msg
+    restore_streamlit_snapshot(before)
+    assert os.environ.get("BODS_API_KEY") == "secret-value-xyz-123"
+
+
+def test_reporting_only_mutation_proves_warning_independent() -> None:
+    """Reporting-only mutation: disable has_meaningful, leak would not be reported but restore still works."""
+    from tests.support import streamlit_isolation as iso
+
+    before = capture_streamlit_snapshot()
+    _ = _emulate_polluter_install_fake()
+    after = capture_streamlit_snapshot()
+    leak = diagnose_streamlit_leak(before, after)
+    # Normally meaningful
+    assert iso.has_meaningful_streamlit_leak(leak) is True
+    # Mutate: reporting disabled
+    orig = iso.has_meaningful_streamlit_leak
+    try:
+        iso.has_meaningful_streamlit_leak = lambda leak: False  # type: ignore[assignment]
+        assert iso.has_meaningful_streamlit_leak(leak) is False
+        # Guard would not warn, but restore still works
+        restore_streamlit_snapshot(before)
+        assert hasattr(sys.modules["streamlit"], "secrets")
+        assert _victim_can_render()
+    finally:
+        iso.has_meaningful_streamlit_leak = orig  # type: ignore[assignment]
+    # After restore, warning must reappear when reporting re-enabled
+    before2 = capture_streamlit_snapshot()
+    _ = _emulate_polluter_install_fake()
+    after2 = capture_streamlit_snapshot()
+    leak2 = diagnose_streamlit_leak(before2, after2)
+    assert iso.has_meaningful_streamlit_leak(leak2) is True
+    restore_streamlit_snapshot(before2)

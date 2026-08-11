@@ -565,9 +565,10 @@ def test_wrapper_install_does_not_call_apptest() -> None:
 
     fake_mod2 = types.ModuleType("streamlit.testing.v1")
     fake_mod2.AppTest = CountingFake  # type: ignore[attr-defined]
-    # Reinstall with this counting fake
+    # Use a local save to avoid overwriting _saved_modules which holds the real modules
+    _local_saved: dict[str, object] = {}
     for name in ("streamlit", "streamlit.testing", "streamlit.testing.v1"):
-        _saved_modules[name] = sys.modules.get(name)
+        _local_saved[name] = sys.modules.get(name)
     sys.modules["streamlit"] = types.ModuleType("streamlit")
     sys.modules["streamlit.testing"] = types.ModuleType("streamlit.testing")
     sys.modules["streamlit.testing.v1"] = fake_mod2
@@ -589,12 +590,14 @@ def test_wrapper_install_does_not_call_apptest() -> None:
         except Exception:
             pass
         reset_apptest_cold_state()
-        for name, orig in list(_saved_modules.items()):
+        for name, orig in list(_local_saved.items()):
             if orig is None:
                 sys.modules.pop(name, None)
             else:
                 sys.modules[name] = orig  # type: ignore[assignment]
-        _saved_modules.clear()
+        _local_saved.clear()
+        # Restore the original fake's real via _uninstall_fake
+        _uninstall_fake(fake)
 
 
 # ---------------------------------------------------------------------------

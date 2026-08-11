@@ -3,7 +3,7 @@
 Date: 2026-08-10
 Branch: agent/platform-streamlit-test-isolation-v1
 Base: 7b1b0b55b399108b237f6e9a31a6747f4c15c81b (origin/main Merge PR #30 integration/v3-five-lane-final)
-Head: 0b98ed0852c53aac5643c15c4f15e691b697df22
+Head: 63acdb96321ad30d1e245b124ace6f563ed82f73
 
 ## Objective
 
@@ -175,3 +175,30 @@ Worktree-specific limitation: `test_durable_build_location_is_accepted` expects 
 - `uv lock --check` → (see final report)
 - `git diff --check` → clean.
 
+
+
+## Amendment — Passing-Polluter Reporting (Reviewer Request Changes)
+
+**Original reviewed head:** `2f81a64e8c51b3963ddaafbbfe8a6f3d9544933d` correctly prevented cross-test contamination
+(`polluter unfixed + no guard => 24 failed`; `polluter unfixed + guard => 14 failed`; `source fix + guard => 45 passed`),
+and verified mutation, gates, and secret redaction.
+
+**Gap identified:** The guard's `pytest_runtest_makereport` path was gated by `call.excinfo is not None`
+(failure-only) and stored `CallInfo` as `TestReport`, so `rep.failed` was unreachable due to swallowed `AttributeError`.
+A passing polluter that leaked fake Streamlit was silently repaired with no warning, contradicting defense-in-depth.
+
+**Remediation (this push):**
+
+- Tightened `diagnose_streamlit_leak` to only attach `streamlit_has_secrets`/`streamlit_id` when a meaningful `sys_modules`/`apptest`/`env`/`cwd`/`finder` leak exists; added `has_meaningful_streamlit_leak()` predicate that ignores transient `has_run_first`/`apptest_run_id_changed` and informational metadata, so normal AppTest tests do not warn.
+- Replaced failure-only reporting with autouse guard that captures `after` before restore, diagnoses, and if `has_meaningful` then `warnings.warn(..., pytest.PytestWarning)` naming the polluting `nodeid` and redacted details (`sys_modules`, `apptest_installed`, `env` var names only, `real Streamlit capability absent or fake detected`), then `finally: restore`.
+- Removed dead `streamlit_leak_report` fixture and broken `pytest_runtest_makereport` bookkeeping; removed exact no-op `try: op() except Exception: raise` wrappers in `tests/conftest.py` and `tests/support/streamlit_isolation.py` (targeted, semantics-preserving).
+- Fixed `tests/unit/test_apptest_cold_start_hardening.py::test_wrapper_install_does_not_call_apptest` which overwrote `_saved_modules` with fake and left `apptest_installed` leaked, causing a spurious warning (`sys_modules identity_changed`).
+- Added same-process passing-polluter regression `test_passing_polluter_is_reported_and_victim_restored` (and `has_meaningful` unit, secret-redaction, reporting-only mutation) that proves: polluter PASSES, leak visibly reported via `PytestWarning` with `sys_modules` and `real Streamlit capability absent`, guard restores, victim PASSES. Reporting-only mutation (patch `has_meaningful` to `False`) makes the same probe lose its diagnostic while still restoring, proving warning independence.
+
+**Result after amendment:**
+
+- `tests/unit/test_apptest_cold_start_hardening.py + tests/unit/ui/test_resource_strategy_explorer_page.py` → 45 passed, 0 warnings (previously 45 passed with 1 spurious warning from the fixed hardening test)
+- `tests/unit/test_streamlit_isolation_guard.py` → 16 passed (was 12, now includes 4 new reporting tests)
+- `tests/unit/ui` → 243 passed
+- `ruff format/check`, `mypy`, `uv lock --check`, `git diff --check` all clean
+- No new skips, no weakened assertions, victim still fails when product behavior actually wrong

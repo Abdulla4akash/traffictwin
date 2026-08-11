@@ -61,8 +61,6 @@ class _PatchedLoader(importlib.abc.Loader):
                 # Tolerate missing Streamlit only when not needed.
                 return
             raise
-        except Exception:
-            raise
 
 
 class _LazyPatchFinder(importlib.abc.MetaPathFinder):
@@ -164,8 +162,6 @@ def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
         if exc.name is not None and exc.name.startswith("streamlit"):
             return
         raise
-    except Exception:
-        raise
 
 
 # ---------------------------------------------------------------------------
@@ -179,94 +175,52 @@ def _streamlit_isolation_guard(request):  # type: ignore[no-untyped-def]
 
     - Snapshots only sys.modules["streamlit"] hierarchy, AppTest.run wrapper flags,
       selected env vars, cwd, and finder. Does not clear all sys.modules or reload app.
-    - Restores after each test so a leaking fake does not pollute the next victim.
-    - Must not conceal a leaking test: if a test leaks and still passes, the leak
-      is reported via the diagnostic helper; the underlying polluter fix ensures
-      leaking tests are fixed at source. This guard is defense-in-depth.
-    """
-    # Lazy import so conftest import does not import streamlit.
-    from tests.support.streamlit_isolation import (
-        capture_streamlit_snapshot,
-        restore_streamlit_snapshot,
-    )
-
-    before = capture_streamlit_snapshot()
-    # Store for diagnostic hook.
-    request.node._streamlit_before = before  # type: ignore[attr-defined, unused-ignore]
-    yield
-    # Capture after before restore for diagnostics.
-    after = capture_streamlit_snapshot()
-    request.node._streamlit_after = after  # type: ignore[attr-defined, unused-ignore]
-    # Always restore — targeted, not indiscriminate.
-    try:
-        restore_streamlit_snapshot(before)
-    except Exception:
-        raise
-
-
-@pytest.fixture
-def streamlit_leak_report(request):  # type: ignore[no-untyped-def]
-    """Optional diagnostic fixture: reports relevant leaked state when test fails.
-
-    Usage:
-        def test_foo(streamlit_leak_report):
-            ...
-
-    Must not dump credentials or entire environment.
+    - Diagnoses pre-restoration after-state and visibly reports meaningful leaks
+      even when the polluting test passes. The guard is defense-in-depth, not
+      concealment.
+    - Always restores the before snapshot, even if reporting raises or warnings
+      are configured as errors.
     """
     from tests.support.streamlit_isolation import (
         capture_streamlit_snapshot,
         diagnose_streamlit_leak,
-        format_leak_report,
+        has_meaningful_streamlit_leak,
+        restore_streamlit_snapshot,
     )
 
     before = capture_streamlit_snapshot()
     yield
+    # Capture post-test state before restoration for diagnosis.
     after = capture_streamlit_snapshot()
     leak = diagnose_streamlit_leak(before, after)
-    # Only emit when test failed (via request.node.rep_call) or when leak critical.
-    # We attach to report via terminal output on failure.
+    # Report meaningful leaks even when test passed.
     try:
-        rep = getattr(request.node, "rep_call", None)
-        failed = rep is not None and rep.failed
-    except Exception:
-        failed = False
-    if failed or leak.get("sys_modules") or leak.get("apptest_installed"):
-        # Do not include secret values; diagnose already redacts.
-        report = format_leak_report(leak)
-        # Emit to stdout for pytest capture; also stash for hook.
-        request.node._streamlit_leak_report = report  # type: ignore[attr-defined, unused-ignore]
-        if failed:
-            print(f"\n{report}\n")
+        if has_meaningful_streamlit_leak(leak):
+            import warnings
 
-
-# Hook to capture rep_call for diagnostic fixture.
-@pytest.hookimpl(tryfirst=True)
-def pytest_runtest_makereport(item, call):  # type: ignore[no-untyped-def]
-    # Store report for fixture diagnostics.
-    if call.when == "call":
-        item.rep_call = call  # type: ignore[attr-defined, unused-ignore]
-    # On failure, emit leak diagnostics if available.
-    if call.when == "call" and call.excinfo is not None:
-        before = getattr(item, "_streamlit_before", None)
-        after = getattr(item, "_streamlit_after", None)
-        if before is not None:
-            try:
-                from tests.support.streamlit_isolation import (
-                    diagnose_streamlit_leak,
-                    format_leak_report,
-                )
-
-                leak_after = after
-                if leak_after is None:
-                    from tests.support.streamlit_isolation import capture_streamlit_snapshot
-
-                    leak_after = capture_streamlit_snapshot()
-                leak = diagnose_streamlit_leak(before, leak_after)
-                if leak:
-                    # Attach as extra section; also print compact.
-                    report = format_leak_report(leak)
-                    # Use terminal reporter if available, else print.
-                    print(f"\n[streamlit-isolation] leak on failure:\n{report}\n")
-            except Exception:
-                pass
+            # Compact, secret-safe message naming the polluting node.
+            details: list[str] = []
+            if "sys_modules" in leak:
+                details.append(f"sys_modules={leak['sys_modules']}")
+            if "apptest_installed" in leak:
+                details.append(f"apptest_installed={leak['apptest_installed']}")
+            if "env" in leak:
+                details.append(f"env={leak['env']}")
+            if "cwd" in leak:
+                details.append("cwd_changed")
+            if "finder_present" in leak:
+                details.append("finder_changed")
+            # Include fake detection from diagnose.
+            if leak.get("streamlit_has_secrets") is False:
+                details.append("real Streamlit capability absent or fake detected")
+            if not details:
+                details.append(str(leak))
+            msg = (
+                f"Streamlit isolation leak detected after {request.node.nodeid}: "
+                + "; ".join(details)
+                + " — state was restored by the isolation guard"
+            )
+            warnings.warn(msg, pytest.PytestWarning, stacklevel=2)
+    finally:
+        # Restore even if warning is configured as error.
+        restore_streamlit_snapshot(before)

@@ -150,51 +150,43 @@ def restore_streamlit_snapshot(snapshot: StreamlitIsolationSnapshot) -> None:
             sys.modules[key] = val  # type: ignore[assignment]
 
     # Restore apptest runtime flags.
+    import importlib
+
+    mod = sys.modules.get(_RUNTIME_MODULE)
+    if mod is None:
+        mod = importlib.import_module(_RUNTIME_MODULE)
+    # Restore original and installed.
+    # Need to handle AppTest.run restoration directly if needed.
+    # If snapshot says installed, ensure AppTest.run is patched; if not, ensure unwrapped.
+    # Use uninstall/install to keep invariants.
+    cur_installed = bool(getattr(mod, "_installed", False))
+    # If state differs, repair.
+    if cur_installed != snapshot.apptest_installed:
+        if snapshot.apptest_installed:
+            # Need to install.
+            try:
+                from tests._apptest_runtime import install_apptest_run_patch
+
+                install_apptest_run_patch()
+            except ModuleNotFoundError as exc:
+                if exc.name is None or not exc.name.startswith("streamlit"):
+                    raise
+        else:
+            try:
+                from tests._apptest_runtime import uninstall_apptest_run_patch
+
+                uninstall_apptest_run_patch()
+            except ModuleNotFoundError as exc:
+                if exc.name is None or not exc.name.startswith("streamlit"):
+                    raise
+    # Restore has_run_first independently (does not affect installed).
     try:
-        import importlib
-
-        mod = sys.modules.get(_RUNTIME_MODULE)
-        if mod is None:
-            mod = importlib.import_module(_RUNTIME_MODULE)
-        # Restore original and installed.
-        # Need to handle AppTest.run restoration directly if needed.
-        # If snapshot says installed, ensure AppTest.run is patched; if not, ensure unwrapped.
-        # Use uninstall/install to keep invariants.
-        cur_installed = bool(getattr(mod, "_installed", False))
-        # If state differs, repair.
-        if cur_installed != snapshot.apptest_installed:
-            if snapshot.apptest_installed:
-                # Need to install.
-                try:
-                    from tests._apptest_runtime import install_apptest_run_patch
-
-                    install_apptest_run_patch()
-                except ModuleNotFoundError as exc:
-                    if exc.name is None or not exc.name.startswith("streamlit"):
-                        raise
-                except Exception:
-                    raise
-            else:
-                try:
-                    from tests._apptest_runtime import uninstall_apptest_run_patch
-
-                    uninstall_apptest_run_patch()
-                except ModuleNotFoundError as exc:
-                    if exc.name is None or not exc.name.startswith("streamlit"):
-                        raise
-                except Exception:
-                    raise
-        # Restore has_run_first independently (does not affect installed).
-        try:
-            mod._has_run_first = snapshot.apptest_has_run_first  # type: ignore[attr-defined]
-        except Exception:
-            pass
-        # For extra safety, if run_id mismatch and streamlit loaded, ensure restoration.
-        # If snapshot had no streamlit but now has fake, the sys.modules restore already handled.
-        # If snapshot had real patched run, the install/uninstall above restored it.
+        mod._has_run_first = snapshot.apptest_has_run_first  # type: ignore[attr-defined]
     except Exception:
-        # Fail-closed: do not hide restoration errors.
-        raise
+        pass
+    # For extra safety, if run_id mismatch and streamlit loaded, ensure restoration.
+    # If snapshot had no streamlit but now has fake, the sys.modules restore already handled.
+    # If snapshot had real patched run, the install/uninstall above restored it.
 
     # Restore cwd.
     try:
@@ -317,20 +309,48 @@ def diagnose_streamlit_leak(
             "after": after.finder_present,
         }
 
-    # Streamlit identity details without path.
-    try:
-        mod = sys.modules.get("streamlit")
-        if mod is not None:
-            has_secrets = hasattr(mod, "secrets")
-            leaked["streamlit_has_secrets"] = has_secrets
-            # Module identity
-            leaked["streamlit_id"] = id(mod)
-        else:
-            leaked["streamlit_present"] = False
-    except Exception:
-        pass
+    # Only attach Streamlit identity details when there is a meaningful sys_modules
+    # or apptest leak, to avoid noisy diagnostics on every test (streamlit_id etc
+    # would otherwise make the dict non-empty for informational purposes).
+    if (
+        sys_leaked
+        or "apptest_installed" in leaked
+        or "env" in leaked
+        or "cwd" in leaked
+        or "finder_present" in leaked
+    ):
+        try:
+            mod = sys.modules.get("streamlit")
+            if mod is not None:
+                has_secrets = hasattr(mod, "secrets")
+                leaked["streamlit_has_secrets"] = has_secrets
+                leaked["streamlit_id"] = id(mod)
+            else:
+                leaked["streamlit_present"] = False
+        except Exception:
+            pass
 
     return leaked
+
+
+def has_meaningful_streamlit_leak(leak: dict[str, object]) -> bool:
+    """Predicate for meaningful isolation breach (not just informational metadata).
+
+    Returns True only for actual state leaks that the guard should report:
+    - streamlit module presence/identity changed (sys_modules)
+    - streamlit.testing hierarchy changed (sys_modules)
+    - real streamlit replaced by fake (sys_modules identity_changed fake)
+    - AppTest wrapper installation state leaked (apptest_installed)
+    - selected guarded environment state leaked (env)
+    - cwd / finder where applicable (cwd, finder_present)
+
+    Transient AppTest execution state such as ``has_run_first`` or
+    ``apptest_run_id_changed`` alone is NOT meaningful and is ignored to avoid
+    noise on normal AppTest tests. Likewise, informational fields like
+    ``streamlit_has_secrets`` / ``streamlit_id`` alone are not meaningful.
+    """
+    meaningful_keys = {"sys_modules", "apptest_installed", "env", "cwd", "finder_present"}
+    return any(key in leak for key in meaningful_keys)
 
 
 def format_leak_report(leak: dict[str, object]) -> str:
