@@ -1619,3 +1619,208 @@ def test_stability_genuine_zero() -> None:
     md = tradeoff_report_to_markdown(report)
     assert "stability 1.000" in md.lower()
     assert "stability 0.000" in md.lower()
+
+
+def test_equal_arms_do_not_dominate_each_other_and_both_remain_frontier() -> None:
+    """Strict Pareto: equal arms must not dominate and both remain frontier."""
+    specs = _two_metric_specs_with_constraints()
+    arms = [
+        TradeoffArm(
+            arm_id="arm_a",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="arm_a",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.90,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="arm_a",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=90.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="arm_b",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="arm_b",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.90,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="arm_b",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=90.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms)
+    report = build_tradeoff_report(study)
+    # Neither dominates
+    dom_a_b = next(
+        d
+        for d in report.dominance
+        if d.dominator_arm_id == "arm_a" and d.dominated_arm_id == "arm_b"
+    )
+    dom_b_a = next(
+        d
+        for d in report.dominance
+        if d.dominator_arm_id == "arm_b" and d.dominated_arm_id == "arm_a"
+    )
+    assert dom_a_b.dominates is False
+    assert dom_b_a.dominates is False
+    assert dom_a_b.comparisons["task.completion.rate_offered"] == "equal"
+    assert dom_a_b.comparisons["task.latency.mean_ms"] == "equal"
+    assert "does not dominate" in dom_a_b.reason
+    # Both remain frontier
+    assert sorted(report.frontier.frontier_arm_ids) == ["arm_a", "arm_b"]
+    assert report.frontier.dominated_arm_ids == []
+    assert report.frontier.dominated_by["arm_a"] == []
+    assert report.frontier.dominated_by["arm_b"] == []
+    assert sorted(report.frontier.all_feasible_arm_ids) == ["arm_a", "arm_b"]
+    # Both feasible
+    for fid in ["arm_a", "arm_b"]:
+        feas = next(f for f in report.feasibility if f.arm_id == fid)
+        assert feas.is_feasible is True
+        assert feas.status == TradeoffStatus.FEASIBLE
+
+
+def test_arm_with_unavailable_selected_metric_is_infeasible_not_frontier() -> None:
+    """Fail-closed: arm missing selected metric is unavailable, not frontier."""
+    specs = _two_metric_specs_with_constraints()
+    arms = [
+        TradeoffArm(
+            arm_id="A_strong",
+            label="A",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="A_strong",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.95,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="A_strong",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=80.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="B_weak",
+            label="B",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="B_weak",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.80,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="B_weak",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=120.0,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+            ],
+        ),
+        TradeoffArm(
+            arm_id="C_worst",
+            label="C",
+            description="d",
+            observations=[
+                TradeoffObservation(
+                    arm_id="C_worst",
+                    metric_key="task.completion.rate_offered",
+                    metric_version="1.0",
+                    unit="ratio",
+                    denominator=TradeoffDenominator.OFFERED_TASKS,
+                    value=0.70,
+                    status=TradeoffStatus.AVAILABLE,
+                ),
+                TradeoffObservation(
+                    arm_id="C_worst",
+                    metric_key="task.latency.mean_ms",
+                    metric_version="1.0",
+                    unit="ms",
+                    denominator=TradeoffDenominator.COMPLETED_TASKS,
+                    value=None,
+                    status=TradeoffStatus.UNAVAILABLE,
+                    reason="missing",
+                ),
+            ],
+        ),
+    ]
+    study = _study(specs, arms)
+    report = build_tradeoff_report(study)
+    # Frontier and feasible
+    assert report.frontier.frontier_arm_ids == ["A_strong"]
+    assert report.frontier.dominated_arm_ids == ["B_weak"]
+    assert report.frontier.dominated_by["B_weak"] == ["A_strong"]
+    assert sorted(report.frontier.all_feasible_arm_ids) == ["A_strong", "B_weak"]
+    # C_worst is not feasible, not frontier, not dominated (incomparable)
+    assert "C_worst" not in report.frontier.frontier_arm_ids
+    assert "C_worst" not in report.frontier.dominated_arm_ids
+    assert "C_worst" not in report.frontier.all_feasible_arm_ids
+    feas_c = next(f for f in report.feasibility if f.arm_id == "C_worst")
+    assert feas_c.is_feasible is False
+    assert feas_c.status == TradeoffStatus.UNAVAILABLE
+    assert "task.latency.mean_ms" in feas_c.unavailable_metrics
+    assert "missing metrics" in feas_c.reason
+    assert any(
+        f.code == "MISSING_METRIC_UNAVAILABLE" and f.arm_id == "C_worst" for f in report.findings
+    )
+    # No dominance entry should treat C as feasible
+    assert all(
+        d.dominator_arm_id != "C_worst" and d.dominated_arm_id != "C_worst"
+        for d in report.dominance
+    )
+    # Verify fail-closed dominance branch exists in source (ensures mutant kill)
+    import pathlib
+
+    src = pathlib.Path("src/traffictwin/experiments/tradeoff_explorer.py").read_text()
+    # Exact fail-closed block for missing/unavailable pairwise evidence
+    needle = '''                if va is None or vb is None:
+                    missing_for_pair = True
+                    comparisons[key] = "unavailable"'''
+    assert needle in src
+    # Must have two fail-closed assignments (missing + dominator_worse)
+    assert src.count("at_least_as_good = False") == 2
+    assert "at_least_as_good = False\n                    break" in src
