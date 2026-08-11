@@ -100,17 +100,14 @@ def test_study_accrual_page_empty_state_for_draft() -> None:
     at = _app()
     at.run()
     assert not at.exception
-    # After demo, counters should be present
-    all_text = " ".join([str(x.value) for x in at.metric] + [str(x.value) for x in at.caption])
-    # Metrics include Expected/Attached etc.
-    # At least one metric title should contain Expected
+    # After demo, counters should be present — direct assertion on rendered metric labels
     metric_labels = []
     try:  # noqa: SIM105
         metric_labels = [str(m.label) for m in at.metric]
     except Exception:  # noqa: S110
         pass
-    # Fallback check via text search
-    assert "Expected" in all_text or metric_labels
+    assert metric_labels
+    assert any("Expected" in label for label in metric_labels)
 
 
 def test_study_accrual_page_preserves_unavailable_and_no_recompute() -> None:
