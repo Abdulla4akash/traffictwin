@@ -27,8 +27,11 @@ _STUDY_VERSION_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+\-]{0,63}$")
 _WINDOWS_PATH = re.compile(r"(?i)(?<![\w])(?:[a-z]:[\\/][^\s\"'<>]+)")
 _FILE_URI = re.compile(r"(?i)file://[^\s\"'<>]+")
 _HOME_PATH = re.compile(r"(?<![\w])~[/\\][^\s\"'<>]+")
-# POSIX absolute paths: an isolated slash segment not part of plain word.
-_POSIX_ABS = re.compile(r"(?<![\w/])/(?!/)[^\s\"'<>]+")
+# POSIX absolute paths: require two segments when embedded in prose
+# e.g. /tmp/foo, /Users/akashx, /home/user/x — avoids flagging
+# isolated "/token" in prose like "ratio /token".
+_POSIX_ABS_EMBEDDED = re.compile(r"(?<![\w/])/(?!/)[^\s\"'<>]+/[^\s\"'<>]+")
+_POSIX_ABS_WHOLE = re.compile(r"^\s*/(?!/)[^\s\"'<>]+\s*$")
 
 _SECRET_HINTS = (
     re.compile(r"(?i)api[_-]?key\s*[:=]"),
@@ -39,12 +42,18 @@ _SECRET_HINTS = (
 
 
 def _contains_absolute_path(value: str) -> bool:
-    return bool(
-        _WINDOWS_PATH.search(value)
-        or _FILE_URI.search(value)
-        or _HOME_PATH.search(value)
-        or _POSIX_ABS.search(value)
-    )
+    if _WINDOWS_PATH.search(value):
+        return True
+    if _FILE_URI.search(value):
+        return True
+    if _HOME_PATH.search(value):
+        return True
+    if _POSIX_ABS_EMBEDDED.search(value):
+        return True
+    # Whole-string absolute path (e.g. "/token" or "/tmp/foo" as entire value)
+    # still rejected even though embedded single-segment is allowed.
+    stripped = value.strip()
+    return bool(_POSIX_ABS_WHOLE.match(stripped) and "://" not in stripped)
 
 
 def _contains_secret_hint(value: str) -> bool:

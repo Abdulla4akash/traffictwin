@@ -8,6 +8,7 @@ import json
 from datetime import UTC, datetime
 
 import pytest
+from pydantic import ValidationError
 
 from traffictwin.study_workspace.adapters import (
     event_aligned_report_to_ref,
@@ -487,7 +488,7 @@ def test_missing_artifact_stays_unavailable() -> None:
 
 
 def test_unavailable_requires_reason() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.METRIC_COLLECTION,
             fingerprint=_fp("unavail-no-reason"),
@@ -516,7 +517,7 @@ def test_no_local_path_in_portable_json() -> None:
 
 
 def test_local_path_in_label_rejected() -> None:
-    with pytest.raises(Exception, match="must not contain absolute"):
+    with pytest.raises(ValidationError, match="must not contain absolute"):
         WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.GENERIC_REPORT,
             fingerprint=_fp("path-label"),
@@ -529,7 +530,7 @@ def test_local_path_in_label_rejected() -> None:
 
 
 def test_local_path_in_reason_rejected() -> None:
-    with pytest.raises(Exception, match="must not contain absolute"):
+    with pytest.raises(ValidationError, match="must not contain absolute"):
         WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.GENERIC_REPORT,
             fingerprint=_fp("path-reason"),
@@ -543,7 +544,7 @@ def test_local_path_in_reason_rejected() -> None:
 
 
 def test_extra_fields_forbidden() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):  # ValidationError via extra_forbid
         StudyWorkspaceManifest.model_validate(
             {
                 "workspace_id": "ws",
@@ -754,7 +755,7 @@ def test_event_aligned_report_adapter() -> None:
     report = build_event_aligned_report(
         [(b1, anchor1), (b2, anchor2)], spec, report_id="adapter-event-report"
     )
-    ref = event_aligned_report_to_ref(report)
+    ref = event_aligned_report_to_ref(report, standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH)
     assert ref.kind is WorkspaceArtifactKind.EVENT_ALIGNED_REPORT
     assert len(ref.fingerprint) == 64
     assert ref.schema_version == "1.0"
@@ -777,7 +778,9 @@ def test_resource_strategy_adapter() -> None:
 
         study = load_resource_strategy_study_from_json(text)
         report = build_resource_strategy_report(study)
-        ref = resource_strategy_report_to_ref(report)
+        ref = resource_strategy_report_to_ref(
+            report, standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH
+        )
         assert ref.kind is WorkspaceArtifactKind.RESOURCE_STRATEGY_REPORT
         assert len(ref.fingerprint) == 64
     except Exception:
@@ -896,7 +899,7 @@ def test_export_lineage_csv_bounded() -> None:
 
 
 def test_bounded_inputs_reject_overlong_reason() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         WorkspaceArtifactRef(
             kind=WorkspaceArtifactKind.GENERIC_REPORT,
             fingerprint=_fp("long-reason"),
@@ -911,7 +914,7 @@ def test_bounded_inputs_reject_overlong_reason() -> None:
 
 def test_workspace_manifest_rejects_too_many_artifacts() -> None:
     arts = [_ref(seed=f"art-{i}", label=f"label-{i}") for i in range(65)]
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         StudyWorkspaceManifest(
             workspace_id="ws",
             workspace_version="1.0",
@@ -1104,7 +1107,8 @@ def test_preregistered_declared_archived_is_invalid() -> None:
     assert any(b.code == "contradictory_lifecycle" for b in report.blockers)
 
 
-def test_plan_plus_finished_report_no_evidence_attachment_is_analysis_complete() -> None:
+def test_analysis_complete_without_evidence_refs_is_valid() -> None:
+    """Case A: plan + available compatible report, no evidence refs → ANALYSIS_COMPLETE."""
     c, p = _contract_and_plan("c-no-ev", "p-no-ev")
     rep = WorkspaceArtifactRef(
         kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
@@ -1112,7 +1116,7 @@ def test_plan_plus_finished_report_no_evidence_attachment_is_analysis_complete()
         schema_version="1.0",
         label="event-report",
         parent_fingerprint=_fp("p-no-ev"),
-        standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
         compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
         availability=WorkspaceAvailabilityState.AVAILABLE,
     )
@@ -1509,3 +1513,650 @@ def test_authored_and_static_not_treated_as_evidence() -> None:
     # But we have plan + authored refs, but evidence-like is false, so should be PREREGISTERED, not EVIDENCE_REVIEW
     # Add a real evidence-like later to ensure transition
     assert report.derived_stage == WorkspaceLifecycleStage.PREREGISTERED
+
+
+# ---------------------------------------------------------------------------
+# B1 — Evidence availability gates advanced lifecycle
+# ---------------------------------------------------------------------------
+
+
+def _evidence_like(
+    seed: str,
+    avail: WorkspaceAvailabilityState,
+    reason: str | None = None,
+    parent_seed: str = "p-no-ev",
+) -> WorkspaceArtifactRef:
+    # Use METRIC_COLLECTION as evidence-like kind with ADMITTED standing
+    if avail is WorkspaceAvailabilityState.UNAVAILABLE and reason is None:
+        reason = "temporarily unavailable for review"
+    if avail is WorkspaceAvailabilityState.INVALID and reason is None:
+        reason = "invalid due to test"
+    # INVALID still requires reason? The model only requires reason for UNAVAILABLE, not INVALID.
+    # For INVALID we provide reason anyway to satisfy bounded checks.
+    return WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.METRIC_COLLECTION,
+        fingerprint=_fp(seed),
+        schema_version="1.0",
+        label=f"ev-{seed}",
+        parent_fingerprint=_fp(parent_seed),
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=avail,
+        reason=reason
+        if avail in {WorkspaceAvailabilityState.UNAVAILABLE, WorkspaceAvailabilityState.INVALID}
+        else None,
+    )
+
+
+def test_b1_case_a_no_evidence_ref_plus_report_is_analysis_complete() -> None:
+    c, p = _contract_and_plan("c-b1a", "p-b1a")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1a"),
+        schema_version="1.0",
+        label="report-b1a",
+        parent_fingerprint=_fp("p-b1a"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.is_valid is True
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_COMPLETE
+
+
+def test_b1_case_b_pending_evidence_blocks_complete() -> None:
+    c, p = _contract_and_plan("c-b1b", "p-b1b")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1b"),
+        schema_version="1.0",
+        label="report-b1b",
+        parent_fingerprint=_fp("p-b1b"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    ev = _evidence_like(
+        "ev-pending-b1b", WorkspaceAvailabilityState.PENDING_REVIEW, parent_seed="p-b1b"
+    )
+    m = _manifest(c, p, rep, ev)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_READY
+    assert report.derived_stage != WorkspaceLifecycleStage.ANALYSIS_COMPLETE  # type: ignore[comparison-overlap]
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY  # type: ignore[comparison-overlap]
+    assert report.derived_stage != WorkspaceLifecycleStage.ARCHIVED  # type: ignore[comparison-overlap]
+    # Also declared archived should be blocked
+    m_arch = _manifest(c, p, rep, ev, declared_stage=WorkspaceLifecycleStage.ARCHIVED)
+    report_arch = validate_workspace(m_arch)
+    assert report_arch.is_valid is False
+    assert report_arch.derived_stage == WorkspaceLifecycleStage.BLOCKED
+
+
+def test_b1_case_c_unavailable_evidence_blocks_complete() -> None:
+    c, p = _contract_and_plan("c-b1c", "p-b1c")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1c"),
+        schema_version="1.0",
+        label="report-b1c",
+        parent_fingerprint=_fp("p-b1c"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    ev = _evidence_like(
+        "ev-unavail-b1c", WorkspaceAvailabilityState.UNAVAILABLE, parent_seed="p-b1c"
+    )
+    m = _manifest(c, p, rep, ev)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_READY
+    assert report.derived_stage != WorkspaceLifecycleStage.ANALYSIS_COMPLETE  # type: ignore[comparison-overlap]
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY  # type: ignore[comparison-overlap]
+
+
+def test_b1_case_d_partial_evidence_blocks_complete() -> None:
+    c, p = _contract_and_plan("c-b1d", "p-b1d")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1d"),
+        schema_version="1.0",
+        label="report-b1d",
+        parent_fingerprint=_fp("p-b1d"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    ev = _evidence_like("ev-partial-b1d", WorkspaceAvailabilityState.PARTIAL, parent_seed="p-b1d")
+    m = _manifest(c, p, rep, ev)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_READY
+    assert report.derived_stage != WorkspaceLifecycleStage.ANALYSIS_COMPLETE  # type: ignore[comparison-overlap]
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY  # type: ignore[comparison-overlap]
+
+
+def test_b1_case_e_invalid_evidence_is_blocker() -> None:
+    c, p = _contract_and_plan("c-b1e", "p-b1e")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1e"),
+        schema_version="1.0",
+        label="report-b1e",
+        parent_fingerprint=_fp("p-b1e"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    ev = _evidence_like("ev-invalid-b1e", WorkspaceAvailabilityState.INVALID, parent_seed="p-b1e")
+    m = _manifest(c, p, rep, ev)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert any(b.code == "availability_invalid" for b in report.blockers)
+
+
+def test_b1_case_f_capsule_cannot_override_unresolved_evidence() -> None:
+    c, p = _contract_and_plan("c-b1f", "p-b1f")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1f"),
+        schema_version="1.0",
+        label="report-b1f",
+        parent_fingerprint=_fp("p-b1f"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    ev = _evidence_like(
+        "ev-pending-b1f", WorkspaceAvailabilityState.PENDING_REVIEW, parent_seed="p-b1f"
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-b1f"),
+        schema_version="1.0",
+        label="capsule-b1f",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, ev, cap)
+    report = validate_workspace(m)
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_READY
+    # Declared archived must be blocked
+    m_arch = _manifest(c, p, rep, ev, cap, declared_stage=WorkspaceLifecycleStage.ARCHIVED)
+    report_arch = validate_workspace(m_arch)
+    assert report_arch.is_valid is False
+    assert report_arch.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert any(b.code == "contradictory_lifecycle" for b in report_arch.blockers)
+
+
+def test_b1_unavailable_capsule_not_review_ready() -> None:
+    c, p = _contract_and_plan("c-b1g", "p-b1g")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b1g"),
+        schema_version="1.0",
+        label="report-b1g",
+        parent_fingerprint=_fp("p-b1g"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap_unavail = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-unavail"),
+        schema_version="1.0",
+        label="capsule-unavail",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.UNAVAILABLE,
+        reason="capsule pending",
+    )
+    m = _manifest(c, p, rep, cap_unavail)
+    report = validate_workspace(m)
+    assert report.derived_stage == WorkspaceLifecycleStage.ANALYSIS_COMPLETE
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY  # type: ignore[comparison-overlap]
+
+
+# ---------------------------------------------------------------------------
+# B2 — Compatibility standing fail-closed
+# ---------------------------------------------------------------------------
+
+
+def test_b2_report_incompatible_is_blocked() -> None:
+    c, p = _contract_and_plan("c-b2a", "p-b2a")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2-incompat"),
+        schema_version="1.0",
+        label="report-incompat",
+        parent_fingerprint=_fp("p-b2a"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.INCOMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert any(b.code == "compatibility_incompatible" for b in report.blockers)
+
+
+def test_b2_report_blocked_is_blocked() -> None:
+    c, p = _contract_and_plan("c-b2b", "p-b2b")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2-blocked"),
+        schema_version="1.0",
+        label="report-blocked",
+        parent_fingerprint=_fp("p-b2b"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.BLOCKED,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert any(b.code == "compatibility_blocked" for b in report.blockers)
+
+
+def test_b2_report_review_required_is_blocked() -> None:
+    c, p = _contract_and_plan("c-b2c", "p-b2c")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2-review"),
+        schema_version="1.0",
+        label="report-review",
+        parent_fingerprint=_fp("p-b2c"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.REVIEW_REQUIRED,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert any(b.code == "compatibility_review_required" for b in report.blockers)
+
+
+def test_b2_capsule_incompatible_not_review_ready() -> None:
+    c, p = _contract_and_plan("c-b2d", "p-b2d")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2d"),
+        schema_version="1.0",
+        label="report-b2d",
+        parent_fingerprint=_fp("p-b2d"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-b2-incompat"),
+        schema_version="1.0",
+        label="capsule-incompat",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.INCOMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, cap)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+    assert report.derived_stage != WorkspaceLifecycleStage.REVIEW_READY  # type: ignore[comparison-overlap]
+    assert report.derived_stage != WorkspaceLifecycleStage.ARCHIVED  # type: ignore[comparison-overlap]
+
+
+def test_b2_capsule_blocked_not_review_ready() -> None:
+    c, p = _contract_and_plan("c-b2e", "p-b2e")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2e"),
+        schema_version="1.0",
+        label="report-b2e",
+        parent_fingerprint=_fp("p-b2e"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-b2-blocked"),
+        schema_version="1.0",
+        label="capsule-blocked",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.BLOCKED,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, cap)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+
+
+def test_b2_capsule_review_required_not_review_ready() -> None:
+    c, p = _contract_and_plan("c-b2f", "p-b2f")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2f"),
+        schema_version="1.0",
+        label="report-b2f",
+        parent_fingerprint=_fp("p-b2f"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-b2-review"),
+        schema_version="1.0",
+        label="capsule-review",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.REVIEW_REQUIRED,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, cap)
+    report = validate_workspace(m)
+    assert report.is_valid is False
+    assert report.derived_stage == WorkspaceLifecycleStage.BLOCKED
+
+
+def test_b2_compatible_control_retains_lifecycle() -> None:
+    c, p = _contract_and_plan("c-b2g", "p-b2g")
+    rep = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.EVENT_ALIGNED_REPORT,
+        fingerprint=_fp("rep-b2g"),
+        schema_version="1.0",
+        label="report-b2g",
+        parent_fingerprint=_fp("p-b2g"),
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    cap = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.STUDY_CAPSULE_MANIFEST,
+        fingerprint=_fp("cap-b2g"),
+        schema_version="1.0",
+        label="capsule-b2g",
+        standing=WorkspaceArtifactStanding.AUTHORED_CONFIGURATION,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, rep, cap)
+    report = validate_workspace(m)
+    assert report.is_valid is True
+    assert report.derived_stage == WorkspaceLifecycleStage.REVIEW_READY
+
+
+def test_b2_provenance_trace_not_applicable_not_blocked() -> None:
+    c, p = _contract_and_plan("c-b2h", "p-b2h")
+    prov = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.PROVENANCE_TRACE,
+        fingerprint=_fp("prov-b2h"),
+        schema_version="1.0",
+        label="prov-trace",
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.NOT_APPLICABLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+    )
+    m = _manifest(c, p, prov)
+    report = validate_workspace(m)
+    # Provenance with NOT_APPLICABLE should not be blocked
+    assert not any(b.code == "compatibility_incompatible" for b in report.blockers)
+
+
+# ---------------------------------------------------------------------------
+# B3 — generic_report_to_ref rejects None/scalars, accepts structured
+# ---------------------------------------------------------------------------
+
+
+def test_b3_generic_none_rejected() -> None:
+    with pytest.raises(ValueError, match="no deterministic"):
+        generic_report_to_ref(
+            None,
+            kind=WorkspaceArtifactKind.GENERIC_REPORT,
+            label="none-report",
+            standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        )
+
+
+def test_b3_generic_true_rejected() -> None:
+    with pytest.raises(ValueError, match="no deterministic"):
+        generic_report_to_ref(
+            True,
+            kind=WorkspaceArtifactKind.GENERIC_REPORT,
+            label="true-report",
+            standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        )
+
+
+def test_b3_generic_scalar_primitives_rejected() -> None:
+    for scalar in [False, 1, 3.14, "hello", 42]:
+        with pytest.raises(ValueError, match="no deterministic"):
+            generic_report_to_ref(
+                scalar,
+                kind=WorkspaceArtifactKind.GENERIC_REPORT,
+                label="scalar",
+                standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+            )
+
+
+def test_b3_generic_structured_dict_accepted() -> None:
+    payload = {"schema_version": "1.0", "report_id": "structured-dict", "value": 123}
+    ref = generic_report_to_ref(
+        payload,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="dict-report",
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+    )
+    assert len(ref.fingerprint) == 64
+    # Same dict must be deterministic
+    ref2 = generic_report_to_ref(
+        payload,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="dict-report",
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+    )
+    assert ref.fingerprint == ref2.fingerprint
+
+
+def test_b3_generic_structured_model_accepted() -> None:
+    from pydantic import BaseModel
+
+    class DummyReport(BaseModel):
+        model_config = {"extra": "forbid"}
+        schema_version: str = "1.0"
+        report_id: str = "structured-model"
+        value: int = 99
+
+    dummy = DummyReport()
+    ref = generic_report_to_ref(
+        dummy,
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        label="model-report",
+        standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+    )
+    assert len(ref.fingerprint) == 64
+
+
+def test_b3_generic_string_primitive_rejected_even_if_json_serializable() -> None:
+    with pytest.raises(ValueError, match="no deterministic"):
+        generic_report_to_ref(
+            "hello world",
+            kind=WorkspaceArtifactKind.GENERIC_REPORT,
+            label="str-report",
+            standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Q — Report adapters must not hard-code standing
+# ---------------------------------------------------------------------------
+
+
+def test_event_aligned_adapter_explicit_standing_variants() -> None:
+    from datetime import timedelta
+    from pathlib import Path
+
+    from traffictwin.event_aligned.models import (
+        EventAlignedWindowSpec,
+        EventAnchor,
+        EventAnchorKind,
+    )
+    from traffictwin.event_aligned.service import build_event_aligned_report
+    from traffictwin.ingestion.bundle import validate_bundle
+
+    baseline = Path("tests/fixtures/bundles/baseline_valid")
+    variation = Path("tests/fixtures/bundles/variation_valid")
+    if not baseline.exists() or not variation.exists():
+        pytest.skip("bundle fixtures not available")
+    b1 = validate_bundle(baseline)
+    b2 = validate_bundle(variation)
+    ca1 = b1.manifest.bundle.created_at  # type: ignore[union-attr]
+    ca2 = b2.manifest.bundle.created_at  # type: ignore[union-attr]
+    anchor1 = EventAnchor(
+        kind=EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
+        anchor_time_utc=ca1 + timedelta(seconds=5),
+        source_label="Authored — Manual timestamp",
+    )
+    anchor2 = EventAnchor(
+        kind=EventAnchorKind.MANUAL_AUTHORED_TIMESTAMP,
+        anchor_time_utc=ca2 + timedelta(seconds=5),
+        source_label="Authored — Manual timestamp",
+    )
+    spec = EventAlignedWindowSpec(
+        pre_duration_s=10,
+        event_duration_s=10,
+        post_duration_s=10,
+        bin_width_s=5,
+        metric_key="task.completion.rate",
+        metric_version="1.0",
+        metric_unit="ratio",
+    )
+    report = build_event_aligned_report(
+        [(b1, anchor1), (b2, anchor2)], spec, report_id="standing-variant-report"
+    )
+    ref_synth = event_aligned_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
+    )
+    ref_unadmitted = event_aligned_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.UNADMITTED_RESEARCH
+    )
+    ref_admitted = event_aligned_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH
+    )
+    assert ref_synth.fingerprint == ref_unadmitted.fingerprint == ref_admitted.fingerprint
+    assert ref_synth.standing == WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
+    assert ref_unadmitted.standing == WorkspaceArtifactStanding.UNADMITTED_RESEARCH
+    assert ref_admitted.standing == WorkspaceArtifactStanding.ADMITTED_RESEARCH
+
+
+def test_resource_strategy_adapter_explicit_standing_variants() -> None:
+    from pathlib import Path
+
+    from traffictwin.experiments.resource_strategy import load_resource_strategy_study_from_json
+
+    fixture = Path("tests/fixtures/resource_strategy/synthetic_study_v1.json")
+    if not fixture.exists():
+        pytest.skip("resource strategy fixture not available")
+    text = fixture.read_text(encoding="utf-8")
+    try:
+        from traffictwin.experiments.resource_strategy import build_resource_strategy_report
+
+        study = load_resource_strategy_study_from_json(text)
+        report = build_resource_strategy_report(study)
+    except Exception:
+        pytest.skip("resource strategy report build not available")
+    ref_synth = resource_strategy_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
+    )
+    ref_unadmitted = resource_strategy_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.UNADMITTED_RESEARCH
+    )
+    ref_admitted = resource_strategy_report_to_ref(
+        report, standing=WorkspaceArtifactStanding.ADMITTED_RESEARCH
+    )
+    assert ref_synth.fingerprint == ref_unadmitted.fingerprint == ref_admitted.fingerprint
+    assert ref_synth.standing == WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE
+    assert ref_unadmitted.standing == WorkspaceArtifactStanding.UNADMITTED_RESEARCH
+    assert ref_admitted.standing == WorkspaceArtifactStanding.ADMITTED_RESEARCH
+
+
+# ---------------------------------------------------------------------------
+# Q — POSIX path heuristic: benign prose vs real paths
+# ---------------------------------------------------------------------------
+
+
+def test_posix_benign_ratio_token_accepted() -> None:
+    # "ratio /token" should NOT be rejected as a path
+    ref = WorkspaceArtifactRef(
+        kind=WorkspaceArtifactKind.GENERIC_REPORT,
+        fingerprint=_fp("posix-benign"),
+        schema_version="1.0",
+        label="benign-label",
+        standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+        compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+        availability=WorkspaceAvailabilityState.AVAILABLE,
+        reason=None,
+    )
+    # The label itself is fine, but test the underlying validator via reason
+    # Create a manifest with description containing benign prose
+    m = StudyWorkspaceManifest(
+        workspace_id="ws-posix-benign",
+        workspace_version="1.0",
+        study_id="study-posix-benign",
+        artifacts=[ref],
+        description="ratio /token is a metric unit, not a path",
+    )
+    # Should validate without raising path error
+    report = validate_workspace(m)
+    assert report.is_valid is True
+
+
+def test_posix_real_absolute_paths_rejected() -> None:
+    for path in [
+        "/Users/akashx/traffictwin",
+        "/tmp/foo",
+        "/home/user/foo",
+        "file:///tmp/foo",
+        "~/data/file.csv",
+        "C:\\Windows\\foo",
+    ]:
+        with pytest.raises(ValidationError, match="must not contain absolute"):
+            WorkspaceArtifactRef(
+                kind=WorkspaceArtifactKind.GENERIC_REPORT,
+                fingerprint=_fp(f"posix-real-{path}"),
+                schema_version="1.0",
+                label=path,  # label contains absolute path
+                standing=WorkspaceArtifactStanding.NOT_APPLICABLE,
+                compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
+                availability=WorkspaceAvailabilityState.AVAILABLE,
+            )
+
+
+def test_posix_embedded_two_segment_rejected() -> None:
+    # Embedded path with two segments should be rejected
+    with pytest.raises(ValidationError, match="must not contain absolute"):
+        StudyWorkspaceManifest(
+            workspace_id="ws-embedded-path",
+            workspace_version="1.0",
+            study_id="study-embedded-path",
+            artifacts=[],
+            description="see /tmp/file.csv for details",
+        )
+
+
+def test_https_not_rejected_as_posix() -> None:
+    m = StudyWorkspaceManifest(
+        workspace_id="ws-https",
+        workspace_version="1.0",
+        study_id="study-https",
+        artifacts=[],
+        description="see https://example.com/docs for details",
+    )
+    report = validate_workspace(m)
+    assert report.is_valid is True

@@ -1,8 +1,7 @@
-# ruff: noqa: E501
 """Adapters turning existing V3 artifacts into generic workspace references.
 
 Adapters return ``WorkspaceArtifactRef`` records without copying payloads
-or silently modifying them. They handle only interfaces present on main.
+or silently modifying them.
 """
 
 from __future__ import annotations
@@ -22,7 +21,11 @@ from traffictwin.study_workspace.models import (
 
 def _hex64_of_canonical(value: object) -> str:
     canonical = json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
     ).encode("utf-8")
     return hashlib.sha256(canonical).hexdigest()
 
@@ -50,7 +53,6 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
         ):
             fp = fingerprint.lower()
         else:
-            # Try deterministic compute mechanisms
             fp = None
             compute = getattr(plan, "compute_fingerprint", None)
             if callable(compute):
@@ -61,7 +63,6 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
                 except Exception:
                     fp = None
             if fp is None:
-                # Try canonical payload methods
                 canonical = None
                 if hasattr(plan, "canonical_payload") and callable(plan.canonical_payload):
                     try:
@@ -82,10 +83,6 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
                             canonical = None
                     except Exception:
                         canonical = None
-                    else:
-                        if fp is None and canonical is None:
-                            # canonical_json succeeded but fp not set yet
-                            pass
                 if fp is None and canonical is not None:
                     fp = canonical
             if fp is None and hasattr(plan, "model_dump"):
@@ -95,9 +92,9 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
                 except Exception:
                     fp = None
             if fp is None:
-                # Fail closed: cannot bind content via plan_id alone
                 raise ValueError(
-                    "StudyPlan has no authoritative fingerprint and no deterministic content representation"
+                    "StudyPlan has no authoritative fingerprint and no "
+                    "deterministic content representation"
                 )
 
         schema_version = getattr(plan, "schema_version", "1.0")
@@ -135,9 +132,11 @@ def study_plan_to_ref(plan: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
             compatibility_standing=compat,
             parent_fingerprint=parent_fp,
             availability=availability,
-            reason=None
-            if availability is WorkspaceAvailabilityState.AVAILABLE
-            else "plan is in draft/pending review",
+            reason=(
+                None
+                if availability is WorkspaceAvailabilityState.AVAILABLE
+                else "plan is in draft/pending review"
+            ),
         )
     except Exception as exc:  # pragma: no cover - fail-closed adapter
         raise ValueError(f"study_plan adapter failed: {exc}") from exc
@@ -228,7 +227,11 @@ def source_data_contract_to_ref(contract: Any) -> WorkspaceArtifactRef:  # noqa:
 # ---------------------------------------------------------------------------
 
 
-def event_aligned_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
+def event_aligned_report_to_ref(
+    report: Any,  # noqa: ANN401
+    *,
+    standing: WorkspaceArtifactStanding,
+) -> WorkspaceArtifactRef:
     """Adapt an ``EventAlignedReport`` to a workspace reference."""
     try:
         fingerprint = getattr(report, "fingerprint", None)
@@ -255,7 +258,7 @@ def event_aligned_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: A
             fingerprint=fp,
             schema_version=str(schema_version),
             label=_safe_label(str(report_id), "event-aligned-report"),
-            standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+            standing=standing,
             compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
             availability=WorkspaceAvailabilityState.AVAILABLE,
         )
@@ -268,7 +271,11 @@ def event_aligned_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: A
 # ---------------------------------------------------------------------------
 
 
-def resource_strategy_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noqa: ANN401
+def resource_strategy_report_to_ref(
+    report: Any,  # noqa: ANN401
+    *,
+    standing: WorkspaceArtifactStanding,
+) -> WorkspaceArtifactRef:
     """Adapt a ``ResourceStrategyReport`` to a workspace reference."""
     try:
         fp = getattr(report, "report_fingerprint", None)
@@ -293,7 +300,7 @@ def resource_strategy_report_to_ref(report: Any) -> WorkspaceArtifactRef:  # noq
             fingerprint=fp,
             schema_version=str(schema_version),
             label=_safe_label(str(study_id), "resource-strategy-report"),
-            standing=WorkspaceArtifactStanding.SYNTHETIC_EVIDENCE,
+            standing=standing,
             compatibility_standing=WorkspaceCompatibilityStanding.COMPATIBLE,
             availability=WorkspaceAvailabilityState.AVAILABLE,
         )
@@ -376,10 +383,7 @@ def generic_report_to_ref(
     label: str = "generic-report",
     standing: WorkspaceArtifactStanding,
 ) -> WorkspaceArtifactRef:
-    """Adapt any model with a deterministic fingerprint to a generic reference.
-
-    Requires explicit standing; fails closed if no deterministic identity exists.
-    """
+    """Adapt any model with a deterministic fingerprint to a generic reference."""
     try:
         fp_val: str | None = None
         # 1. existing valid stored fingerprint
@@ -425,12 +429,8 @@ def generic_report_to_ref(
                     fp_val = _hex64_of_canonical(dump)
                 except Exception:
                     fp_val = None
-            # 5. JSON-serializable primitive/list/dict
-            if (
-                fp_val is None
-                and isinstance(report, (dict, list, str, int, float, bool))
-                or isinstance(report, type(None))
-            ):
+            # 5. structured dict/list payload fallback (explicitly supported)
+            if fp_val is None and isinstance(report, (dict, list)):
                 try:
                     fp_val = _hex64_of_canonical(report)
                 except Exception:
@@ -438,16 +438,18 @@ def generic_report_to_ref(
             # 6. Fail closed if no deterministic representation
             if fp_val is None or not isinstance(fp_val, str) or len(fp_val) != 64:
                 raise ValueError(
-                    "generic report has no deterministic fingerprint; provide a valid fingerprint, computed_fingerprint, canonical_json, or model_dump"
+                    "generic report has no deterministic fingerprint; provide "
+                    "a valid fingerprint, computed_fingerprint, canonical_json, "
+                    "or model_dump"
                 )
 
         schema_version = getattr(report, "schema_version", "1.0")
-        # Label resolution: explicit label param wins, but honour report's own ids if present and label is default
         report_label = label
         if label == "generic-report":
-            # Try to extract meaningful label from object without inventing identity
             candidate_label = getattr(
-                report, "report_id", getattr(report, "trace_id", getattr(report, "label", None))
+                report,
+                "report_id",
+                getattr(report, "trace_id", getattr(report, "label", None)),
             )
             if isinstance(candidate_label, str) and candidate_label.strip():
                 report_label = candidate_label

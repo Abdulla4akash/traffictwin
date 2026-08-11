@@ -397,3 +397,132 @@ def test_progression_excludes_blocked() -> None:
     # The new progression lists 9 stages, blocked separate
     assert "draft" in source.lower()
     assert "archived" in source.lower()
+
+
+def test_synthetic_fixture_clears_non_empty_path_input() -> None:
+    """B4: Load synthetic fixture must override a non-empty path."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["study_workspace_path"] = ""
+    app.session_state["study_workspace_uploaded_text"] = None
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception
+    # Set non-empty path via text_input
+    path_inputs = [w for w in result.text_input if w.key == "study_workspace_path_input"]
+    assert path_inputs, "path input not found"
+    # Simulate typing non-empty value
+    path_inputs[0].set_value("some-non-empty-value.json").run(timeout=30)
+    # After rerun, there will be a new result with non-empty path
+    result_after_typing = app.run(timeout=30)
+    # Now click Load synthetic fixture
+    btn = next(
+        (b for b in result_after_typing.button if b.key == "study_workspace_load_fixture"), None
+    )
+    assert btn is not None, "Load synthetic fixture button not found after typing"
+    btn.click()
+    result2 = app.run(timeout=30)
+    assert not result2.exception, f"After click with non-empty path raised: {result2.exception}"
+    # Path input must be empty
+    path_inputs2 = [w for w in result2.text_input if w.key == "study_workspace_path_input"]
+    assert path_inputs2, "path input missing after fixture"
+    # The widget value should be empty string
+    assert path_inputs2[0].value == "" or path_inputs2[0].value is None, (
+        f"path not cleared: {path_inputs2[0].value!r}"
+    )
+    # Synthetic manifest remains loaded
+    try:
+        uploaded = app.session_state["study_workspace_uploaded_text"]
+    except KeyError:
+        uploaded = None
+    assert uploaded, "uploaded_text should remain after clearing path"
+    # Synthetic workspace content is rendered
+    texts2: list[str] = []
+    for coll in (
+        result2.caption,
+        result2.markdown,
+        result2.info,
+        result2.subheader,
+        result2.success,
+    ):
+        try:
+            texts2.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    joined2 = " ".join(texts2)
+    assert "Study identity" in joined2 or "Lifecycle stage" in joined2, (
+        f"Missing workspace render: {joined2[:500]}"
+    )
+    # Ensure not popped by stale path logic: still shows synthetic, not empty
+    assert "No workspace manifest" not in joined2 or "Study identity" in joined2
+
+
+def test_app_pages_wrapper_is_direct_and_no_fallback() -> None:
+    """B5: wrapper must be direct renderer without blanket fallback."""
+    source = Path("src/traffictwin/ui/app_pages/study_workspace.py").read_text(encoding="utf-8")
+    assert "from traffictwin.ui.pages.study_workspace import render" in source
+    assert "from traffictwin.ui.state import load_ui_config" in source
+    assert "render(load_ui_config())" in source
+    assert "UiPage" not in source
+    assert "run_page_script" not in source
+    assert "except Exception" not in source
+    assert "UiConfig()" not in source  # no fallback UiConfig()
+
+
+def test_wrapper_renders_with_one_h1_and_boundaries() -> None:
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    assert not result.exception, f"Wrapper raised: {result.exception}"
+    # One H1
+    h1_count = len(result.title)  # title corresponds to H1
+    # Alternative: check header
+    assert h1_count == 1, f"Expected 1 H1, got {h1_count}: {[t.value for t in result.title]}"
+    texts: list[str] = []
+    for coll in (result.caption, result.info, result.markdown, result.warning):
+        try:
+            texts.extend(str(getattr(item, "value", "")) for item in coll)
+        except Exception:  # noqa: S112
+            continue
+    joined = " ".join(texts)
+    assert (
+        "without copying or silently modifying" in joined.lower()
+        or "evidence and authority" in joined.lower()
+        or "synthetic" in joined.lower()
+    )
+    # Boundaries visible
+    assert (
+        "never admits evidence" in joined.lower()
+        or "synthetic evidence is never" in joined.lower()
+        or "without copying" in joined.lower()
+    )
+
+
+def test_wrapper_does_not_swallow_renderer_exception(monkeypatch: pytest.MonkeyPatch) -> None:
+    """B5: prove wrapper no longer swallows renderer exceptions."""
+    try:
+        from streamlit.testing.v1 import AppTest
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"AppTest not available: {exc}")
+
+    # Patch the underlying render to raise
+    import traffictwin.ui.pages.study_workspace as pages_mod
+
+    def _failing_render(_config: object) -> None:  # noqa: ANN001
+        raise RuntimeError("synthetic renderer failure for test")
+
+    monkeypatch.setattr(pages_mod, "render", _failing_render)
+    app = AppTest.from_file("src/traffictwin/ui/app_pages/study_workspace.py")
+    app.session_state["_v07_navigation_active"] = False
+    result = app.run(timeout=30)
+    # Should have exception, not be swallowed
+    assert result.exception is not None, "Wrapper swallowed exception, expected propagation"
+    assert "synthetic renderer failure" in str(result.exception)

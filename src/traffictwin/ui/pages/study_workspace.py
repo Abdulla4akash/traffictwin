@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Study Workspace & Research Lifecycle Cockpit — thin UI over typed workspace services."""
 
 from __future__ import annotations
@@ -60,7 +59,9 @@ def _default_manifest() -> StudyWorkspaceManifest:
         workspace_version="1.0",
         study_id="study-demo-001",
         study_title="Manchester What-If: Demand Surge",
-        description="Synthetic workspace seed for local preview. Replace with your admitted manifest.",
+        description=(
+            "Synthetic workspace seed for local preview. Replace with your admitted manifest."
+        ),
         artifacts=[
             WorkspaceArtifactRef(
                 kind=WorkspaceArtifactKind.SOURCE_CONTRACT,
@@ -184,8 +185,9 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     st.warning(EVIDENCE_BOUNDARY)
     st.info(AUTHORITY_BOUNDARY)
     st.caption(
-        "This page is the research-project front door. It explains which artifacts are present, "
-        "their fingerprint, schema, and standing — it does not re-derive results or reinterpret evidence."
+        "This page is the research-project front door. It explains which "
+        "artifacts are present, their fingerprint, schema, and standing — it "
+        "does not re-derive results or reinterpret evidence."
     )
 
     # ------------------------------------------------------------------
@@ -193,18 +195,27 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     # ------------------------------------------------------------------
     st.subheader("1. Load a study workspace manifest")
     st.caption(
-        "Provide a portable workspace manifest JSON (no local paths, no wall-clock in identity). "
-        "Upload or enter a path; no payloads are stored inside the manifest — only fingerprint references."
+        "Provide a portable workspace manifest JSON (no local paths, no "
+        "wall-clock in identity). Upload or enter a path; no payloads are "
+        "stored inside the manifest — only fingerprint references."
     )
 
     path_str = st.session_state.get("study_workspace_path", "")
+
+    def _load_synthetic_fixture() -> None:
+        demo = _default_manifest()
+        st.session_state["study_workspace_uploaded_text"] = demo.model_dump_json()
+        st.session_state["study_workspace_path"] = ""
+        st.session_state["study_workspace_path_input"] = ""
 
     col_a, col_b = st.columns([3, 1])
     with col_a:
         new_path = st.text_input(
             "Workspace manifest path",
             value=str(path_str),
-            help="Path to a validated workspace manifest JSON (portable, no local filesystem paths).",
+            help=(
+                "Path to a validated workspace manifest JSON (portable, no local filesystem paths)."
+            ),
             key="study_workspace_path_input",
         )
         if new_path != path_str:
@@ -212,12 +223,11 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
             st.session_state.pop("study_workspace_uploaded_text", None)
 
     with col_b:
-        if st.button("Load synthetic fixture", key="study_workspace_load_fixture"):
-            demo = _default_manifest()
-            # Store validated typed representation through same boundary
-            st.session_state["study_workspace_uploaded_text"] = demo.model_dump_json()
-            st.session_state["study_workspace_path"] = ""
-            st.rerun()
+        st.button(
+            "Load synthetic fixture",
+            key="study_workspace_load_fixture",
+            on_click=_load_synthetic_fixture,
+        )
 
     uploaded = st.file_uploader(
         "Or upload a workspace manifest JSON",
@@ -252,13 +262,16 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         if not current_path_str or not str(current_path_str).strip():
             # Empty state — guidance, not error
             st.info(
-                "No workspace manifest selected. Enter a path to a validated workspace JSON or upload one. "
-                "Use the synthetic fixture to explore the workflow, or provide your own admitted workspace."
+                "No workspace manifest selected. Enter a path "
+                "to a validated workspace JSON or upload one. "
+                "Use the synthetic fixture to explore the "
+                "workflow, or provide your own admitted workspace."
             )
             with st.container(border=True):
                 st.markdown("**Empty workspace — next actions**")
                 st.caption(
-                    "The workspace is the front door that lists every referenced artifact by fingerprint. "
+                    "The workspace is the front door that lists "
+                    "every referenced artifact by fingerprint. "
                     "Example synthetic manifest shows a source contract and a preregistration plan."
                 )
                 demo = _default_manifest()
@@ -276,7 +289,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         if isinstance(result2, str):
             if "not found" in result2.lower():
                 st.info(
-                    "No admitted workspace exists at the selected path. The page has a useful empty state when no admitted workspace exists. "
+                    "No admitted workspace exists at the selected path. The page "
+                    "has a useful empty state when no admitted workspace exists. "
                     "Provide a validated workspace manifest or switch to the synthetic fixture."
                 )
                 # Show empty-state example anyway
@@ -320,7 +334,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
 
     # Evidence / authority standing before results (again, before inventory)
     st.caption(
-        "Standing and availability below describe what is actually referenced, not what is desired. "
+        "Standing and availability below describe what "
+        "is actually referenced, not what is desired. "
         "Unavailable remains unavailable; synthetic and imported are never relabelled as admitted."
     )
 
@@ -332,13 +347,15 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         st.markdown(f"{_badge_for_stage(derived_stage)} **{derived_stage.value.upper()}**")
         if manifest.declared_stage is not None:
             st.caption(
-                f"Declared stage: `{manifest.declared_stage.value}` · Derived stage: `{derived_stage.value}`"
+                "Declared stage: `{manifest.declared_stage.value}` "
+                "· Derived stage: `{derived_stage.value}`"
             )
             if manifest.declared_stage != derived_stage:
                 st.error("Declared stage contradicts derived stage — see blocker panel.")
         else:
             st.caption(
-                f"Inferred from explicit artifact standings; no declared stage supplied. Derived: `{derived_stage.value}`"
+                "Inferred from explicit artifact standings; no declared "
+                f"stage supplied. Derived: `{derived_stage.value}`"
             )
         # Normal lifecycle progression (BLOCKED is separate validation state)
         normal_progression = [
@@ -362,7 +379,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     st.subheader("4. Artifact inventory grouped by role")
     if not manifest.artifacts:
         st.info(
-            "No artifacts referenced yet — the workspace is in draft. Add a source contract and preregistration plan to advance."
+            "No artifacts referenced yet — the workspace is in draft. "
+            "Add a source contract and preregistration plan to advance."
         )
     else:
         # Group by kind
@@ -387,7 +405,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                     }
                     for r in refs
                 ]
-                # Show standing badges per row as caption rather than per-cell badges (table keeps raw values)
+                # Show standing badges per row as caption rather than
+                # per-cell badges (table keeps raw values)
                 st.dataframe(
                     rows,
                     hide_index=True,
@@ -445,7 +464,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     else:
         if validation.blockers:
             st.error(
-                f"{len(validation.blockers)} blocker(s) — the workspace cannot advance until resolved."
+                f"{len(validation.blockers)} blocker(s) — the workspace "
+                "cannot advance until resolved."
             )
             for blk in validation.blockers:
                 with st.container(border=True):
@@ -453,7 +473,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                     st.caption(blk.message)
                     if blk.related_fingerprints:
                         st.caption(
-                            f"Related: {', '.join(fp[:12] + '…' for fp in blk.related_fingerprints)}"
+                            "Related: "
+                            + ", ".join(fp[:12] + "…" for fp in blk.related_fingerprints)
                         )
                     st.caption(
                         f"Full fingerprints: {', '.join(blk.related_fingerprints) or 'none'}"
@@ -469,7 +490,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
                     st.caption(warn.message)
                     if warn.related_fingerprints:
                         st.caption(
-                            f"Related: {', '.join(fp[:12] + '…' for fp in warn.related_fingerprints)}"
+                            "Related: "
+                            + ", ".join(fp[:12] + "…" for fp in warn.related_fingerprints)
                         )
 
         with st.expander("Advanced: full validation report JSON"):
@@ -499,7 +521,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     # ------------------------------------------------------------------
     st.subheader("8. Lineage and relations")
     st.caption(
-        "Bounded parent linkages between referenced artifacts. Missing parents are explicit blockers, not hidden."
+        "Bounded parent linkages between referenced artifacts. "
+        "Missing parents are explicit blockers, not hidden."
     )
     lineage_rows = []
     fp_to_ref = {a.fingerprint: a for a in manifest.artifacts}
@@ -567,7 +590,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
         st.markdown(f"**Workspace fingerprint:** `{fingerprint_summary(fp)}`")
         st.caption(f"Full fingerprint: `{fp}`")
         st.caption(
-            "Fingerprint binds all semantic fields, sorted for order independence; excludes wall clock and local paths."
+            "Fingerprint binds all semantic fields, sorted for order "
+            "independence; excludes wall clock and local paths."
         )
         if manifest.provenance:
             prov_rows = [{"key": k, "value": v} for k, v in sorted(manifest.provenance.items())]
@@ -592,7 +616,8 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     # ------------------------------------------------------------------
     st.subheader("10. Portable exports")
     st.caption(
-        "JSON export is the exact portable workspace manifest used by the page; CSV exports are tabular inventories."
+        "JSON export is the exact portable workspace manifest "
+        "used by the page; CSV exports are tabular inventories."
     )
     st.download_button(
         "Download workspace JSON",
@@ -617,6 +642,7 @@ def render(config: UiConfig) -> None:  # noqa: ARG001
     )
 
     st.caption(
-        "Portable JSON contains no absolute paths, credentials, or wall-clock timestamps in its fingerprint. "
+        "Portable JSON contains no absolute paths, credentials, "
+        "or wall-clock timestamps in its fingerprint. "
         "Local filesystem paths never enter the canonical identity."
     )
