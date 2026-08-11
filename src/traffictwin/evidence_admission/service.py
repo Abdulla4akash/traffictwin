@@ -385,12 +385,15 @@ class EvidenceAdmissionInboxService:
 
         ledger_state = ledger.current_state
         if ledger_state != EvidenceReviewState.ADMITTED:
-            raise ExportRefusedError(
-                f"export refused: ledger state is {ledger_state.value!r} "
-                f"if present else None, not admitted"
-                if ledger_state is not None
-                else "export refused: ledger has no admitted decision, not admitted"
-            )
+            if ledger_state is not None:
+                raise ExportRefusedError(
+                    f"export refused: ledger state is {ledger_state.value!r}, not 'admitted'"
+                )
+            else:
+                raise ExportRefusedError(
+                    "export refused: ledger has no admission decision; "
+                    "current ledger state is unavailable"
+                )
         if not ledger.decisions:
             raise ExportRefusedError("export refused: ledger has no decisions")
         if ledger.tail_fingerprint == _GENESIS:

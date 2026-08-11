@@ -345,8 +345,8 @@ def test_rejected_can_only_reopen_to_pending() -> None:
 
 def test_pending_cannot_export() -> None:
     svc, case_id = _service_with_case()
-    # Still pending, no decision
-    with pytest.raises(ExportRefusedError, match="not admitted"):
+    # Still pending, no decision — human-readable unavailable, not code fragment
+    with pytest.raises(ExportRefusedError, match="unavailable"):
         svc.export_admitted_attachment(case_id)
     # Pending -> needs_information still not admitted
     svc.append_decision(
@@ -372,7 +372,7 @@ def test_rejected_cannot_export() -> None:
         reviewer_label="r1",
         decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
     )
-    with pytest.raises(ExportRefusedError, match="not admitted"):
+    with pytest.raises(ExportRefusedError, match="admitted"):
         svc.export_admitted_attachment(case_id)
 
 
@@ -400,7 +400,7 @@ def test_withdrawn_admission_cannot_export() -> None:
         reviewer_label="r2",
         decision_timestamp=datetime(2026, 8, 10, 12, 2, tzinfo=UTC),
     )
-    with pytest.raises(ExportRefusedError, match="not admitted"):
+    with pytest.raises(ExportRefusedError, match="admitted"):
         svc.export_admitted_attachment(case_id)
 
 

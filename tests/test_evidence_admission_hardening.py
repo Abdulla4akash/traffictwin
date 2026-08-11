@@ -80,7 +80,7 @@ def test_zero_decision_attack_corrupted_case_is_refused() -> None:
     svc._cases[case_id] = type(svc._cases[case_id])(case=corrupted, ledger=ledger)
     with pytest.raises(
         (ExportRefusedError, LedgerVerificationError),
-        match="(?i)(admitted|mismatch|genesis|no admitted)",
+        match="(?i)(admitted|admission|mismatch|genesis|unavailable|no admitted)",
     ):
         svc.export_admitted_attachment(case_id)
 
@@ -449,3 +449,35 @@ def test_verify_case_with_ledger_documents_case_only_limitation() -> None:
     # Corrupted case should show violation
     corrupted = case.model_copy(update={"current_state": EvidenceReviewState.ADMITTED})
     assert verify_case_with_ledger(corrupted, ledger) != []
+
+
+def test_export_refusal_message_is_human_readable() -> None:
+    """Regression: export refusal renders real ledger state and no code fragments."""
+    # Rejected ledger → message must contain rejected + admitted, no fragments
+    svc, case_id = _svc_case("case-refusal-rej", "cell-refusal-rej")
+    svc.append_decision(
+        case_id=case_id,
+        decision_id="dec-1",
+        decision=EvidenceReviewState.REJECTED,
+        reason="rights restricted",
+        reviewer_label="r1",
+        decision_timestamp=datetime(2026, 8, 10, 12, 1, tzinfo=UTC),
+    )
+    with pytest.raises(ExportRefusedError) as exc_rejected:
+        svc.export_admitted_attachment(case_id)
+    msg_rej = str(exc_rejected.value)
+    assert "rejected" in msg_rej
+    assert "admitted" in msg_rej
+    assert "if present" not in msg_rej
+    assert "else None" not in msg_rej
+    assert "export refused" in msg_rej.lower()
+
+    # Pending empty ledger → unavailable, no fragments
+    svc2, case_id2 = _svc_case("case-refusal-pending", "cell-refusal-pending")
+    with pytest.raises(ExportRefusedError) as exc_pending:
+        svc2.export_admitted_attachment(case_id2)
+    msg_pend = str(exc_pending.value)
+    assert "export refused" in msg_pend.lower()
+    assert "unavailable" in msg_pend.lower() or "no admission" in msg_pend.lower()
+    assert "if present" not in msg_pend
+    assert "else None" not in msg_pend
