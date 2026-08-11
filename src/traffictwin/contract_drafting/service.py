@@ -60,29 +60,57 @@ MIN_SAMPLES = 2
 # Constants
 # ---------------------------------------------------------------------------
 
-_PRIVACY_KEYWORDS = frozenset(
+# High-confidence privacy signals — token-aware, not substring.
+_PRIVACY_SINGLE_TOKENS: frozenset[str] = frozenset(
     {
         "email",
-        "name",
-        "address",
         "phone",
         "ssn",
-        "personal",
-        "private",
-        "private_key",
-        "user_id",
-        "userid",
-        "customer",
-        "patient",
-        "student",
         "password",
         "secret",
-        "api_key",
-        "apikey",
-        "token",
         "credential",
     }
 )
+
+_PRIVACY_COMPOUND_SEQUENCES: tuple[tuple[str, ...], ...] = (
+    ("api", "key"),
+    ("private", "key"),
+    ("user", "id"),
+)
+
+_PRIVACY_COMPACT_FORMS: frozenset[str] = frozenset(
+    {
+        "apikey",
+        "userid",
+    }
+)
+
+
+def _tokenize_field_name(field_name: str) -> list[str]:
+    """Split field name into lowercased tokens on _, -, and camelCase boundaries.
+
+    Examples:
+        api_key -> ["api", "key"]
+        privateKey -> ["private", "key"]
+        access_token_count -> ["access", "token", "count"]
+        secretariat_office -> ["secretariat", "office"]
+    """
+    # First split on underscores and hyphens; keep alphanumeric chunks
+    chunks = re.split(r"[_-]+", field_name)
+    tokens: list[str] = []
+    for chunk in chunks:
+        if not chunk:
+            continue
+        # Insert boundary before Upper that follows lower/digit:  apiKey -> api Key
+        spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", " ", chunk)
+        # Insert boundary inside consecutive caps before Capital+lower: APIKey -> API Key
+        spaced = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", " ", spaced)
+        for part in spaced.split():
+            # Extract alphanumeric runs (defensive)
+            for sub in re.findall(r"[A-Za-z0-9]+", part):
+                tokens.append(sub.lower())
+    return tokens
+
 
 # ---------------------------------------------------------------------------
 # Helpers — fingerprint helpers
@@ -459,9 +487,25 @@ def _compute_field_consensus(
 # ---------------------------------------------------------------------------
 
 
-def _privacy_review_required(field_name: str, logical_type: LogicalType) -> bool:
-    lower = field_name.lower()
-    return any(kw in lower for kw in _PRIVACY_KEYWORDS)
+def _privacy_review_required(field_name: str, logical_type: LogicalType) -> bool:  # noqa: ARG001
+    """High-confidence token/token-sequence matcher (conservative heuristic)."""
+    tokens = _tokenize_field_name(field_name)
+    if not tokens:
+        return False
+    # Compact exact forms: apikey, userid (normalised without separators)
+    normalized = re.sub(r"[^a-z0-9]", "", field_name.lower())
+    if normalized in _PRIVACY_COMPACT_FORMS:
+        return True
+    # Single-token signals: exact token match
+    if any(t in _PRIVACY_SINGLE_TOKENS for t in tokens):
+        return True
+    # Compound contiguous sequences: api+key, private+key, user+id
+    for seq in _PRIVACY_COMPOUND_SEQUENCES:
+        seq_len = len(seq)
+        for i in range(len(tokens) - seq_len + 1):
+            if tuple(tokens[i : i + seq_len]) == seq:
+                return True
+    return False
 
 
 def _build_recommendations(

@@ -514,35 +514,52 @@ def test_schema_identity_no_redaction_collapse(tmp_path: Path) -> None:
     handoff_json = export_handoff_json(handoff)
     assert "[REDACTED_SECRET_FIELD]" not in handoff_json
     assert "api_key" in handoff_json and "password" in handoff_json
-    # Distinctness
-    api_key_val = "api_key"  # noqa: S105
-    password_val = "password"  # noqa: S105
-    assert api_key_val != password_val
-    # CSV set matches JSON set
+    # CSV set matches JSON set — real product distinctness already proven by
+    # json_fields == handoff_fields == csv_fields containing both names
     assert csv_fields == json_fields
     assert json_fields == handoff_fields
 
 
-def test_no_false_positive_redaction(tmp_path: Path) -> None:
-    """Ordinary identifiers containing token/secret substrings must not be redacted."""
+def test_benign_sensitive_substrings_do_not_require_privacy_review(tmp_path: Path) -> None:
+    """Benign traffic/schema fields must NOT trigger privacy review (no substring over-flag)."""
+    headers = [
+        "road_name",
+        "segment_name",
+        "filename",
+        "access_token_count",
+        "tokenised_route_id",
+        "secretariat_office",
+    ]
     p1 = tmp_path / "fp1.csv"
     p2 = tmp_path / "fp2.csv"
-    headers = ["access_token_count", "tokenised_route_id", "secretariat_office"]
-    _write_csv(p1, headers, [["1", "a", "x"], ["2", "b", "y"]])
-    _write_csv(p2, headers, [["3", "c", "z"], ["4", "d", "w"]])
+    _write_csv(p1, headers, [["r1", "s1", "f1", "1", "a", "x"], ["r2", "s2", "f2", "2", "b", "y"]])
+    _write_csv(p2, headers, [["r3", "s3", "f3", "3", "c", "z"], ["r4", "s4", "f4", "4", "d", "w"]])
     report = build_draft_report([p1, p2])
     csv_text = export_report_csv(report)
     report_json = export_report_json(report)
     handoff = prepare_handoff(report, source_id="test_src", contract_version="1.0.0")
     handoff_json = export_handoff_json(handoff)
+    # Schema names must be preserved exact, no redaction placeholder anywhere
     for name in headers:
         assert name in csv_text, f"{name} missing or redacted in CSV"
         assert name in report_json, f"{name} missing in report JSON"
         assert name in handoff_json, f"{name} missing in handoff"
-        assert "[REDACTED" not in csv_text or name in csv_text
-    # All three remain distinct
-    assert len(set(headers)) == 3
-    # Verify CSV field set matches JSON
+    assert "[REDACTED_SECRET_FIELD]" not in csv_text
+    assert "[REDACTED" not in csv_text
+    assert "[REDACTED_SECRET_FIELD]" not in report_json
+    assert "[REDACTED" not in report_json
+    assert "[REDACTED_SECRET_FIELD]" not in handoff_json
+    assert "[REDACTED" not in handoff_json
+    # Privacy classification must be false for every benign field
+    for name in headers:
+        rec = next(df for df in report.draft_fields if df.field_name == name)
+        assert rec.privacy_review_required is False, f"{name} incorrectly requires privacy review"
+        assert not any(
+            finding.code == "PRIVACY_REVIEW_REQUIRED" and finding.field_name == name
+            for finding in report.findings
+        ), f"unexpected PRIVACY_REVIEW_REQUIRED for {name}"
+    # All distinct and sets agree
+    assert len(set(headers)) == len(headers)
     csv_fields = set()
     lines = csv_text.strip().splitlines()
     reader = csv.DictReader(lines)
@@ -607,7 +624,7 @@ def test_cross_surface_schema_identity(tmp_path: Path) -> None:
         export_handoff_json(handoff),
     ]:
         assert "[REDACTED_SECRET_FIELD]" not in text
-        assert "[REDACTED" not in text or "api_key" in text  # ensure not hiding
+        assert "[REDACTED" not in text
 
 
 def test_privacy_finding_for_sensitive_name(tmp_path: Path) -> None:
@@ -636,3 +653,120 @@ def test_privacy_finding_for_sensitive_name(tmp_path: Path) -> None:
         export_handoff_json(handoff),
     ]:
         assert "k1" not in text and "k2" not in text
+
+
+@pytest.mark.parametrize(
+    "field_name,should_trigger",
+    [
+        # Must trigger — high-confidence exact tokens / sequences
+        ("api_key", True),
+        ("apiKey", True),
+        ("password", True),
+        ("secret", True),
+        ("private_key", True),
+        ("user_id", True),
+        # Also check compact forms
+        ("apikey", True),
+        ("userid", True),
+        ("privateKey", True),
+        # Must NOT trigger — benign substrings
+        ("road_name", False),
+        ("segment_name", False),
+        ("filename", False),
+        ("access_token_count", False),
+        ("tokenised_route_id", False),
+        ("secretariat_office", False),
+        # Additional benign to ensure no over-flag
+        ("link_id", False),
+        ("free_flow_speed", False),
+        ("volume", False),
+    ],
+)
+def test_privacy_token_aware_matrix(field_name: str, should_trigger: bool, tmp_path: Path) -> None:
+    """High-confidence token matcher: exact positives and benign negatives."""
+    # Use two samples with this field plus a control field "ok"
+    p1 = tmp_path / f"m_{field_name}_1.csv"
+    p2 = tmp_path / f"m_{field_name}_2.csv"
+    _write_csv(p1, [field_name, "ok"], [["v1", "1"], ["v2", "2"]])
+    _write_csv(p2, [field_name, "ok"], [["v3", "3"], ["v4", "4"]])
+    report = build_draft_report([p1, p2])
+    rec = next(df for df in report.draft_fields if df.field_name == field_name)
+    assert rec.privacy_review_required is should_trigger, (  # noqa: E501
+        f"{field_name!r} privacy_review_required={rec.privacy_review_required} "  # noqa: E501
+        f"expected {should_trigger}"  # noqa: E501
+    )
+    has_finding = any(
+        f.code == "PRIVACY_REVIEW_REQUIRED" and f.field_name == field_name for f in report.findings
+    )
+    assert has_finding is should_trigger, (
+        f"{field_name!r} PRIVACY_REVIEW_REQUIRED finding={has_finding} expected {should_trigger}"
+    )
+    # Schema name must remain exact and never redacted
+    json_text = export_report_json(report)
+    csv_text = export_report_csv(report)
+    handoff = prepare_handoff(report, source_id="test_src")
+    handoff_json = export_handoff_json(handoff)
+    for text in [json_text, csv_text, handoff_json]:
+        assert field_name in text
+        assert "[REDACTED" not in text
+        assert "[REDACTED_SECRET_FIELD]" not in text
+
+
+def test_non_personal_traffic_handoff_contains_no_personal_data(tmp_path: Path) -> None:
+    """Ordinary traffic schema must not claim personal data."""
+    headers = ["link_id", "road_name", "free_flow_speed", "volume"]
+    p1 = tmp_path / "traffic1.csv"
+    p2 = tmp_path / "traffic2.csv"
+    _write_csv(p1, headers, [["1", "High Road", "30", "100"], ["2", "Main St", "40", "200"]])
+    _write_csv(p2, headers, [["3", "Park Lane", "50", "150"], ["4", "Broadway", "60", "250"]])
+    report = build_draft_report([p1, p2])
+    # No privacy flags for any ordinary field
+    for name in headers:
+        rec = next(df for df in report.draft_fields if df.field_name == name)
+        assert rec.privacy_review_required is False, f"{name} incorrectly flagged"
+        assert not any(
+            f.code == "PRIVACY_REVIEW_REQUIRED" and f.field_name == name for f in report.findings
+        )
+    assert not any(f.code == "PRIVACY_REVIEW_REQUIRED" for f in report.findings)
+    # Handoff rights must be false
+    handoff = prepare_handoff(report, source_id="traffic_src", contract_version="1.0.0")
+    # Validate via real SourceDataContract (prepare_handoff already did)
+    assert handoff.draft_contract["rights"]["contains_personal_data"] is False  # type: ignore[index]
+    # Also via model
+    from traffictwin.data_contract.models import SourceDataContract
+
+    contract = SourceDataContract.model_validate(handoff.draft_contract)
+    assert contract.rights.contains_personal_data is False
+    # Handoff JSON must preserve exact names and no redaction
+    handoff_json = export_handoff_json(handoff)
+    for name in headers:
+        assert name in handoff_json
+    assert "[REDACTED" not in handoff_json
+
+
+def test_sensitive_fields_still_require_privacy_review(tmp_path: Path) -> None:
+    """Sensitive positive signals must still trigger and remain exact."""
+    headers = ["api_key", "password", "secret", "ok"]
+    p1 = tmp_path / "sens1.csv"
+    p2 = tmp_path / "sens2.csv"
+    _write_csv(p1, headers, [["a1", "p1", "s1", "1"], ["a2", "p2", "s2", "2"]])
+    _write_csv(p2, headers, [["a3", "p3", "s3", "3"], ["a4", "p4", "s4", "4"]])
+    report = build_draft_report([p1, p2])
+    for name in ["api_key", "password", "secret"]:
+        rec = next(df for df in report.draft_fields if df.field_name == name)
+        assert rec.privacy_review_required is True, f"{name} should require review"
+        assert any(
+            f.code == "PRIVACY_REVIEW_REQUIRED" and f.field_name == name for f in report.findings
+        )
+        # Exact name preserved everywhere, no placeholder
+        assert name in export_report_json(report)
+        assert name in export_report_csv(report)
+        handoff = prepare_handoff(report, source_id="test_src")
+        assert name in export_handoff_json(handoff)
+        assert "[REDACTED" not in export_report_json(report)
+    # ok must not trigger
+    ok_rec = next(df for df in report.draft_fields if df.field_name == "ok")
+    assert ok_rec.privacy_review_required is False
+    # Handoff should claim personal data because sensitive fields present
+    handoff2 = prepare_handoff(report, source_id="test_src")
+    assert handoff2.draft_contract["rights"]["contains_personal_data"] is True  # type: ignore[index]

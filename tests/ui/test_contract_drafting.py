@@ -90,12 +90,27 @@ def test_contract_drafting_page_accessibility_heading() -> None:
     app = _run_app("src/traffictwin/ui/app_pages/contract_drafting.py")
     app.run(timeout=20)
     assert not app.exception
-    # Accessibility: page must have title header
-    assert any("Contract Drafting Assistant" in str(t.value) for t in app.title)
+    # Exactly one H1, non-empty
+    titles = [str(t.value) for t in app.title]
+    assert len(titles) == 1, f"expected exactly one H1, got {titles}"
+    assert titles[0].strip() != "", "H1 must be non-empty"
+    assert "Contract Drafting Assistant" in titles[0]
+    # Authority/evidence boundary visible before results
+    warnings = [str(w.value) for w in app.warning]
+    assert any("does not freeze" in w.lower() for w in warnings), (
+        f"boundary not visible: {warnings}"
+    )
+    assert any("evidence and authority boundary" in w.lower() for w in warnings)
+    # Useful empty state when no report
+    infos = [str(i.value) for i in app.info]
+    captions = [str(c.value) for c in app.caption]
+    assert any("No samples profiled" in s for s in infos) or any(
+        "Bounded inspection" in s for s in captions
+    )
 
 
 def test_contract_drafting_shows_sensitive_name_with_review_signal() -> None:
-    """UI must preserve sensitive-looking field name and surface review finding."""
+    """Positive UI: api_key row shows privacy_review=True and PRIVACY_REVIEW_REQUIRED."""
     from traffictwin.contract_drafting.service import build_draft_report
 
     tmp = Path(tempfile.mkdtemp())
@@ -119,28 +134,120 @@ def test_contract_drafting_shows_sensitive_name_with_review_signal() -> None:
     app.session_state["cda_handoff"] = handoff.model_dump(mode="json")
     app.run(timeout=20)
     assert not app.exception
-    # Field name must not be redacted/hidden
-    all_text = " ".join(
+    # Exactly one H1 and boundary still visible
+    assert len([str(t.value) for t in app.title]) == 1
+    # Field name must be exact and not redacted
+    draft_df_text = ""
+    for df in app.dataframe:
+        try:
+            draft_df_text += str(df.value)
+        except Exception:
+            draft_df_text += ""
+    assert "api_key" in draft_df_text, f"api_key not in draft dataframe: {draft_df_text[:500]}"
+    assert "[REDACTED" not in draft_df_text
+    # Must show privacy_review = True for api_key row (actual column value) — draft table
+    found_api_key_true = False
+    found_ok_false = False
+    for df in app.dataframe:
+        val = df.value
+        records = []
+        if hasattr(val, "to_dict"):
+            try:
+                records = val.to_dict(orient="records")
+            except Exception:
+                records = []
+        elif isinstance(val, list):
+            records = val
+        if not records or not any("privacy_review" in r for r in records if isinstance(r, dict)):
+            continue
+        for row in records:
+            if isinstance(row, dict) and row.get("field") == "api_key":
+                assert row.get("privacy_review") == "True", (
+                    f"api_key privacy_review should be True: {row}"
+                )
+                found_api_key_true = True
+            if isinstance(row, dict) and row.get("field") == "ok":
+                assert row.get("privacy_review") == "False", f"ok should be False: {row}"
+                found_ok_false = True
+    assert found_api_key_true, "api_key row not found in draft dataframe"
+    assert found_ok_false, "ok row not found in draft dataframe"
+    # Findings must contain exact PRIVACY_REVIEW_REQUIRED for api_key
+    combined = " ".join(
         str(x.value)
-        for x in list(app.dataframe)
+        for x in list(app.info)
+        + list(app.warning)
         + list(app.markdown)
         + list(app.caption)
-        + list(app.info)
-        + list(app.warning)
-        + list(app.success)
+        + list(app.error)
     )
-    # At least one dataframe should contain the exact name
-    # Check via dataframe content or overall text
-    assert "api_key" in all_text or any("api_key" in str(df.value) for df in app.dataframe)
-    assert "[REDACTED" not in all_text
-    # Review signal must be visible (finding or privacy flag)
-    # Look for privacy-related text in info/warning/markdown
+    assert "PRIVACY_REVIEW_REQUIRED" in combined, (
+        f"missing PRIVACY_REVIEW_REQUIRED: {combined[:500]}"
+    )
+    assert "api_key" in combined
+
+
+def test_contract_drafting_benign_fields_show_no_privacy_review() -> None:
+    """Negative UI: benign fields show privacy_review=False and no finding."""
+    from traffictwin.contract_drafting.service import build_draft_report
+
+    tmp = Path(tempfile.mkdtemp())
+    p1 = tmp / "ben1.csv"
+    p2 = tmp / "ben2.csv"
+    headers = ["road_name", "access_token_count", "secretariat_office"]
+    with p1.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(headers)
+        w.writerow(["High Road", "1", "office1"])
+    with p2.open("w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(headers)
+        w.writerow(["Main St", "2", "office2"])
+    report = build_draft_report([p1, p2])
+
+    app = _run_app("src/traffictwin/ui/app_pages/contract_drafting.py")
+    app.session_state["cda_report"] = report.model_dump(mode="json")
+    from traffictwin.contract_drafting.service import prepare_handoff
+
+    handoff = prepare_handoff(report, source_id="test_src")
+    app.session_state["cda_handoff"] = handoff.model_dump(mode="json")
+    app.run(timeout=20)
+    assert not app.exception
+    # Draft table must contain benign rows with privacy_review False
+    found_benign = dict.fromkeys(headers, False)
+    for df in app.dataframe:
+        val = df.value
+        records = []
+        if hasattr(val, "to_dict"):
+            try:
+                records = val.to_dict(orient="records")
+            except Exception:
+                records = []
+        elif isinstance(val, list):
+            records = val
+        if not records or not any("privacy_review" in r for r in records if isinstance(r, dict)):
+            continue
+        for row in records:
+            if isinstance(row, dict) and row.get("field") in headers:
+                assert row.get("privacy_review") == "False", (
+                    f"{row.get('field')} should be False: {row}"
+                )
+                key = row.get("field")
+                if isinstance(key, str):
+                    found_benign[key] = True
+    for h, found in found_benign.items():
+        assert found, f"benign field {h} not found in draft dataframe"
+    # No PRIVACY_REVIEW_REQUIRED for benign fields
     combined = " ".join(
         str(x.value)
         for x in list(app.info) + list(app.warning) + list(app.markdown) + list(app.caption)
     )
-    # The report's finding should be rendered somewhere
-    assert "PRIVACY_REVIEW_REQUIRED" in combined or "privacy" in combined.lower()
+    for name in headers:
+        assert name in str([df.value for df in app.dataframe])
+        assert not any(
+            "PRIVACY_REVIEW_REQUIRED" in str(x.value) and name in str(x.value)
+            for x in list(app.info) + list(app.warning) + list(app.markdown)
+        ), f"unexpected PRIVACY finding for {name}"
+    assert "[REDACTED" not in combined
 
 
 def test_contract_drafting_first_click_succeeds() -> None:
