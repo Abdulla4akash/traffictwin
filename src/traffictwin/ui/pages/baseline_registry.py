@@ -20,6 +20,7 @@ from traffictwin.baseline_registry.service import (
     build_candidate,
     candidates_to_csv,
     create_empty_registry,
+    is_candidate_withdrawn,
     list_restorable_candidates,
     promote_baseline,
     register_candidate,
@@ -111,6 +112,12 @@ def render(config: object) -> None:  # noqa: ARG001
 
     registry = _get_registry()
 
+    # Flash notice for withdrawal of active baseline (survives rerun)
+    flash = st.session_state.pop("baseline_withdraw_flash", None)
+    if flash:
+        # Use warning to make operator immediately see the actual result
+        st.warning(flash)
+
     # ------------------------------------------------------------------
     # Limitations
     # ------------------------------------------------------------------
@@ -137,6 +144,7 @@ def render(config: object) -> None:  # noqa: ARG001
     if registry.active_baselines:
         rows = []
         for scope_id, rec in sorted(registry.active_baselines.items()):
+            withdrawn_flag = is_candidate_withdrawn(registry, rec.candidate_id, scope_id)
             rows.append(
                 {
                     "scope_id": scope_id,
@@ -153,6 +161,8 @@ def render(config: object) -> None:  # noqa: ARG001
                     if rec.superseded_baseline_fingerprint
                     else "—",
                     "record_fingerprint": fingerprint_summary(rec.record_fingerprint),
+                    "candidate_withdrawn": withdrawn_flag,
+                    "status": rec.status.value,
                 }
             )
         st.dataframe(
@@ -188,6 +198,7 @@ def render(config: object) -> None:  # noqa: ARG001
                 rec.candidate_id == cand_id for rec in registry.active_baselines.values()
             )
             is_approved = cand_id in registry.approvals
+            withdrawn = is_candidate_withdrawn(registry, cand_id, cand.scope.scope_id)
             cand_rows.append(
                 {
                     "candidate_id": cand_id,
@@ -200,6 +211,7 @@ def render(config: object) -> None:  # noqa: ARG001
                     "schema": cand.schema_version,
                     "approved": "yes" if is_approved else "no",
                     "active": "yes" if is_active else "no",
+                    "withdrawn": withdrawn,
                 }
             )
         st.dataframe(
@@ -715,9 +727,34 @@ def render(config: object) -> None:  # noqa: ARG001
                 st.error("Candidate ID required")
             else:
                 try:
+                    # Determine if candidate is currently active before withdrawal
+                    was_active = False
+                    was_scope: str | None = None
+                    for s_id, rec in registry.active_baselines.items():
+                        if rec.candidate_id == w_cand:
+                            was_active = True
+                            was_scope = s_id
+                            break
+                    # Also check candidate exists to get scope if not active
+                    if not was_active and w_cand in registry.candidates:
+                        was_scope = registry.candidates[w_cand].scope.scope_id
                     new_reg = withdraw_candidate(registry, candidate_id=w_cand, actor=w_actor)
                     _set_registry(new_reg)
-                    st.success(f"Withdrew {w_cand}")
+                    if was_active and was_scope is not None:
+                        # Active withdrawn remains active — warn operator, survives rerun
+                        msg = (
+                            f"Candidate {w_cand} was withdrawn, but it remains the active baseline for scope {was_scope}. "  # noqa: E501
+                            "Withdrawal does not deactivate an active baseline; it remains active "  # noqa: E501
+                            "until another valid candidate supersedes it."  # noqa: E501
+                        )
+                        st.session_state["baseline_withdraw_flash"] = msg
+                        # Also store for immediate test inspection (before rerun)
+                        st.warning(msg)
+                    else:
+                        st.session_state["baseline_withdraw_flash"] = (
+                            f"Candidate {w_cand} was withdrawn."
+                        )
+                        st.success(f"Candidate {w_cand} was withdrawn.")
                     st.rerun()
                 except Exception as exc:
                     st.error(f"Withdraw failed: {exc}")

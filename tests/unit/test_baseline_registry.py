@@ -11,6 +11,7 @@ from pydantic import ValidationError
 from traffictwin.baseline_registry.models import (
     BaselineCandidate,
     BaselineEvidenceStanding,
+    BaselineLedgerEventKind,
     BaselinePromotionOperation,
     BaselinePromotionRequest,
     BaselineScope,
@@ -1502,10 +1503,10 @@ def test_limitations_include_withdrawn_active_disclosure() -> None:
     )
     assert found, f"withdrawn-active limitation missing: {lims}"
     # Exact contract phrase should be present (or equivalent)
-    assert any(
-        "no separate deactivate" in s.lower() or "no separate deactivate, retire" in s.lower()
-        for s in lims
-    )
+    combined = " ".join(s.lower() for s in lims)
+    assert "does not deactivate" in combined
+    assert "remains active" in combined
+    assert "no separate deactivate" in combined
 
 
 def test_withdrawn_active_remains_active_until_superseded() -> None:
@@ -1547,21 +1548,26 @@ def test_withdrawn_active_remains_active_until_superseded() -> None:
     # Withdraw the currently active candidate
     from traffictwin.baseline_registry.service import withdraw_candidate
 
-    reg = withdraw_candidate(reg, candidate_id="cand-001", actor="operator", clock=fixed_clock)
+    ledger_len_before = len(reg.ledger)
+    active_before = reg.active_baselines[scope.scope_id]
+    # Withdraw the currently active candidate
+    withdrawn = withdraw_candidate(
+        reg, candidate_id="cand-001", actor="operator", clock=fixed_clock
+    )
     # Still active — no automatic deactivation, no SUPERSEDED event invented
-    assert reg.active_baselines[scope.scope_id].candidate_id == "cand-001"
-    assert reg.active_baselines[scope.scope_id].status == BaselineStatus.ACTIVE
-    assert (
-        not any(
-            e.event_kind.value == "superseded"
-            and e.candidate_id == "cand-001"
-            and e.baseline_id == receipt.promoted_record.baseline_id
-            for e in reg.ledger
-            if e.event_kind.value == "superseded"
-            and e.baseline_id == receipt.promoted_record.baseline_id
-        )
-        or True
-    )  # ledger unchanged except WITHDRAWN
+    assert len(withdrawn.ledger) == ledger_len_before + 1
+    delta = withdrawn.ledger[ledger_len_before:]
+    assert len(delta) == 1
+    assert delta[0].event_kind is BaselineLedgerEventKind.WITHDRAWN
+    assert delta[0].candidate_id == active_before.candidate_id
+    assert delta[0].scope_id == active_before.scope.scope_id
+    assert all(entry.event_kind is not BaselineLedgerEventKind.SUPERSEDED for entry in delta)
+    active_after = withdrawn.active_baselines[scope.scope_id]
+    assert active_after.baseline_id == active_before.baseline_id
+    assert active_after.candidate_id == active_before.candidate_id
+    assert active_after.record_fingerprint == active_before.record_fingerprint
+    # Use withdrawn as new reg for subsequent supersede check
+    reg = withdrawn
     # Verify WITHDRAWN event exists
     assert any(
         e.event_kind.value == "withdrawn" and e.candidate_id == "cand-001" for e in reg.ledger
