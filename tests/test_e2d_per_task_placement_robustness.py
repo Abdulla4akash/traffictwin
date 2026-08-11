@@ -423,9 +423,23 @@ def test_all_eight_smokes_are_revalidated_before_full_authority(
     records = []
     for cell in manifest["full_cell_order"]:
         root = runner.cell_root(manifest, cell)
-        write_status(root / "smoke_validation.json", {"status": "passed", "cell": cell})
+        write_status(
+            root / "smoke_validation.json",
+            {
+                "status": "passed",
+                "cell": cell,
+                "repeat": {"pass": True},
+                "identity_against_reused_e2c": {
+                    "ingress_dla": {"pass": True},
+                    "dla": {"pass": True},
+                },
+            },
+        )
         for repeat in (1, 2):
-            (root / "smoke" / f"run_{repeat}").mkdir(parents=True)
+            write_status(
+                root / "smoke" / f"run_{repeat}" / "run_validation.json",
+                {"status": "passed", "run": cell},
+            )
         records.append(
             {
                 "cell": cell,
@@ -728,6 +742,14 @@ def test_frozen_manifest_sidecar_and_authorised_inventory() -> None:
     assert manifest["design"]["seed0_authorised"] is False
     assert manifest["analysis"]["task_level_pseudoreplication_allowed"] is False
     assert manifest["review_gate"]["required_verdict"] == "APPROVE"
+    assert manifest["review_gate"]["verdict_path"].endswith("claude_review_verdict_v2.json")
+    assert manifest["execution_phase_interface"]["phase_order"] == [
+        "existing_mode_replay_gate",
+        "global_new_arm_smoke_gate",
+        "ordered_full_cells",
+    ]
+    assert manifest["execution_phase_interface"]["smoke"]["may_launch_full_cell"] is False
+    assert manifest["execution_phase_interface"]["full"]["reruns_smoke"] is False
     assert manifest["compute_and_storage"]["projected_total_evaluator_wall_seconds"] < 108000
     assert (
         manifest["compute_and_storage"]["initial_observed_free_bytes"]
@@ -748,6 +770,13 @@ def test_all_reused_e2c_reference_hashes_are_bound_and_verify() -> None:
 
 def test_manifest_binds_exact_source_and_input_hashes() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text())
+    assert manifest["repositories"]["traffictwin"]["candidate_scientific_code_commit"] == (
+        "a2843fdb54eb3779147a8e4768a5b416f532fc4c"
+    )
+    assert (
+        sha256(Path(manifest["paths"]["runner"]))
+        == manifest["traffic_twin_code_hashes_at_candidate_scientific_code_commit"]["runner_sha256"]
+    )
     assert (
         sha256(Path(manifest["paths"]["evaluator"]))
         == manifest["repositories"]["vec_env"]["evaluator_sha256"]
@@ -762,3 +791,7 @@ def test_manifest_binds_exact_source_and_input_hashes() -> None:
     assert (
         sha256(Path(manifest["inputs"]["trace"]["path"])) == manifest["inputs"]["trace"]["sha256"]
     )
+    assert manifest["superseded_prerun_package"]["claude_receipt_sha256"] == (
+        "853756c699386b70a16045e15cf96bf042c8200a3d18de406df44fa0bd03e549"
+    )
+    assert manifest["superseded_prerun_package"]["full_cells_started"] == 0

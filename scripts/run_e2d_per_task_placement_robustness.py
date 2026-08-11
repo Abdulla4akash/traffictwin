@@ -592,15 +592,23 @@ def verify_all_smoke_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
         stored = require_passed_status(stored_path, f"smoke validation for {cell_name(cell)}")
         if stored.get("cell") != cell:
             raise RuntimeError(f"smoke validation cell identity drift: {cell_name(cell)}")
-        smoke_runs = [
-            validate_run(
-                root / "smoke" / f"run_{repeat}",
-                manifest=manifest,
-                run=cell,
-                expected_steps=int(manifest["design"]["smoke_steps"]),
+        smoke_runs: list[dict[str, Any]] = []
+        for repeat in (1, 2):
+            run_dir = root / "smoke" / f"run_{repeat}"
+            stored_run = require_passed_status(
+                run_dir / "run_validation.json",
+                f"smoke run {repeat} validation for {cell_name(cell)}",
             )
-            for repeat in (1, 2)
-        ]
+            if stored_run.get("run") != cell:
+                raise RuntimeError(f"smoke run {repeat} identity drift: {cell_name(cell)}")
+            smoke_runs.append(
+                validate_run(
+                    run_dir,
+                    manifest=manifest,
+                    run=cell,
+                    expected_steps=int(manifest["design"]["smoke_steps"]),
+                )
+            )
         repeated = compare_repeats(smoke_runs[0], smoke_runs[1])
         baseline_identity = {
             arm: compare_identity_to_reference(
@@ -617,6 +625,11 @@ def verify_all_smoke_evidence(manifest: dict[str, Any]) -> dict[str, Any]:
         )
         if not passed:
             raise RuntimeError(f"stored smoke evidence no longer validates: {cell_name(cell)}")
+        if (
+            stored.get("repeat") != repeated
+            or stored.get("identity_against_reused_e2c") != baseline_identity
+        ):
+            raise RuntimeError(f"stored smoke validation content drifted: {cell_name(cell)}")
         expected_records.append(
             {
                 "cell": cell,
