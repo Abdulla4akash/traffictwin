@@ -31,6 +31,10 @@ from validate_e2c_gated_placement_multidraw import (  # noqa: E402
 )
 
 MANIFEST_PATH = ROOT / "docs/evaluation/e2c/e2c_gated_placement_multidraw_manifest_v1.json"
+SUPERVISOR_SUMMARY_PATH = (
+    ROOT / "docs/evaluation/e2c/e2c_gated_placement_supervisor_summary_2026-08-10.md"
+)
+ANALYZER_PATH = ROOT / "scripts/analyze_e2c_gated_placement_multidraw.py"
 
 
 def frozen_manifest() -> dict:
@@ -60,6 +64,33 @@ def test_manifest_freezes_only_the_eight_authorised_cells() -> None:
 def test_manifest_sidecar_matches_frozen_bytes() -> None:
     observed = hashlib.sha256(MANIFEST_PATH.read_bytes()).hexdigest()
     assert MANIFEST_PATH.with_suffix(".sha256").read_text().split()[0] == observed
+
+
+def test_supervisor_summary_and_template_retain_f1_boundaries() -> None:
+    summary = " ".join(SUPERVISOR_SUMMARY_PATH.read_text(encoding="utf-8").split())
+    analyzer = " ".join(ANALYZER_PATH.read_text(encoding="utf-8").split())
+    required_fragments = (
+        "four new matched provisional `uk2030` fleet draws (seeds 1–4)",
+        "fixed evaluator seed 0",
+        "one Manchester incident hour",
+        "one 2.5x waiting-room cap (6,220 tasks per RSU)",
+        "fixed 1x service and zero-cost backhaul",
+        "does not observe current RSU load",
+        "does not select the execution RSU",
+        "No ordinary/free-flow traffic control was run",
+        "confirmed physical task-result return",
+        "one common `argmin(rsu_busy_ms)` target per substep",
+        "population-wide or Manchester-wide claim",
+        "physical-deployment or Kubernetes evidence",
+        "universal JSQ harm",
+        "general controller superiority",
+    )
+    for fragment in required_fragments:
+        assert fragment in summary
+        assert fragment in analyzer
+    assert "-0.022097034972" in summary
+    assert "-0.020109267800" in summary
+    assert "which excluded zero" in summary
 
 
 def test_command_template_changes_only_declared_cell_values(tmp_path: Path) -> None:

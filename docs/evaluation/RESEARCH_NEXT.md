@@ -1,9 +1,9 @@
 # Current authoritative research direction
 
-**Status date:** 2026-08-10
+**Status date:** 2026-08-11
 **Scope:** supervisor-aligned Randy/VEC dissertation experiments
 **Current phase:** E1, E2, E2b and the bounded E2c matched gated-placement replication are closed;
-researcher review is the next decision gate
+the E2c post-run F1 reporting amendment awaits fresh independent exact-head review
 **Execution authority:** none; E2c has completed all authorised cells and no further experiment is
 authorised without a new direct researcher instruction
 
@@ -199,6 +199,11 @@ establishes:
   smokes used 344.7 seconds, for 56,429.3 seconds (15.6748 hours) total under the 30-hour cap; raw
   evidence before the root index used 1,680,469,503 bytes, and the final root checksum ledger and
   evidence index were written without overwrite;
+- E2c post-run reporting amendment: independent final-evidence review found the science valid but
+  required the supervisor-facing summary to carry the study's essential limitations. The
+  [explicit amendment record](e2c/e2c_postrun_reporting_amendment_2026-08-11.md) preserves the
+  historical evidence-index hash and confirms that no scientific evidence, manifest, statistic,
+  validation, configuration, raw output or checksum ledger changed;
 - Randy's reported `0.6943`: not reproduced;
 - native physical completion/result-return evidence: unavailable.
 
@@ -207,7 +212,7 @@ The cumulative evidence and interpretation are in the
 
 ## The next thing to do
 
-**Researcher review of the completed bounded E2c evidence package.**
+**Fresh independent exact-head review of the reporting-only E2c F1 amendment.**
 
 The exact E2c contract is the
 [E2c manifest](e2c/e2c_gated_placement_multidraw_manifest_v1.json), with its SHA-256 sidecar. The
@@ -218,13 +223,17 @@ seed 0 is prior pilot evidence and why only placement differs in the new matched
 [comparison](e2c/e2c_gated_placement_multidraw_comparison_v1.json),
 [mechanism summary](e2c/e2c_gated_placement_mechanism_summary_v1.json) and
 [evidence index](e2c/e2c_gated_placement_multidraw_evidence_index_v1.json) are the authoritative
-completed records.
+completed records. The
+[post-run reporting amendment](e2c/e2c_postrun_reporting_amendment_2026-08-11.md) records why the
+supervisor summary changed after execution without rewriting the historical evidence index.
 
 ### Exit condition
 
-E2c met its exit condition: exact independent approval, all 16 repeated smokes, all eight full
-cells, four paired validations, the primary four-draw analysis, the separately labelled seed-0-to-4
-descriptive summary and final checksum/evidence records passed. Stop here for researcher review.
+E2c met its scientific exit condition: exact independent approval, all 16 repeated smokes, all
+eight full cells, four paired validations, the primary four-draw analysis, the separately labelled
+seed-0-to-4 descriptive summary and final checksum/evidence records passed. The final repository
+head is not frozen until the reporting-only amendment receives fresh independent exact-head review.
+No evaluator run is part of that review gate.
 
 ## What follows after this gate
 

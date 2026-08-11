@@ -571,14 +571,28 @@ E2c stops here. The exact next gate is researcher review.
     outputs["supervisor"].write_text(
         f"""# Supervisor-facing E2c summary — 10 August 2026
 
-The four-new-draw matched E2c replication completed all 16 smoke and eight full-cell gates. The
-four `dla - ingress_dla` offered-attainment differences were
-`{", ".join(f"{value:+.9f}" for value in primary_values)}`. Their mean was
-`{primary["mean"]:+.9f}` and the two-sided 95% Student-t interval with three degrees of freedom was
-`[{primary["confidence_interval"]["lower"]:+.9f}, {primary["confidence_interval"]["upper"]:+.9f}]`,
-yielding `{primary["decision"]}`. Seed 0 was excluded from that interval and appears only in the
-separately labelled combined descriptive pilot-plus-replication summary. Researcher review is the
-next decision gate; no further experiment is authorised.
+The E2c evidence passed all 16 smoke and eight full-cell gates. For the four new matched fleet
+draws, the `dla - ingress_dla` offered-task deadline-attainment differences were seed 1
+`{primary_values[0]:+.12f}`, seed 2 `{primary_values[1]:+.12f}`, seed 3
+`{primary_values[2]:+.12f}` and seed 4 `{primary_values[3]:+.12f}`. All four were negative; their
+mean was `{primary["mean"]:+.12f}`, and the two-sided 95% Student-t interval with three degrees of
+freedom was `{primary_ci}`, which excluded zero. Seed 0 was excluded from this primary interval and
+remains prior pilot evidence.
+
+Within this bounded four-new-draw Manchester incident replication, JSQ execution placement under
+the inherited one-common-target-per-substep implementation produced lower offered-task deadline
+attainment than strongest-link execution when both used the same deadline-aware admission gate.
+
+The evidence is limited to four new matched provisional `uk2030` fleet draws (seeds 1–4), fixed
+evaluator seed 0, one Manchester incident hour, one 2.5x waiting-room cap (6,220 tasks per RSU),
+fixed 1x service and zero-cost backhaul. The frozen vehicle actor does not observe current RSU load
+and does not select the execution RSU. No ordinary/free-flow traffic control was run, and deadline
+attainment is a simulator outcome rather than confirmed physical task-result return. The inherited
+DLA/JSQ implementation selects one common `argmin(rsu_busy_ms)` target per substep.
+
+These results do not support a population-wide or Manchester-wide claim, physical-deployment or
+Kubernetes evidence, universal JSQ harm, or general controller superiority. E2c remains closed;
+fresh independent exact-head review is the next gate, and no further experiment is authorised.
 """,
         encoding="utf-8",
     )
