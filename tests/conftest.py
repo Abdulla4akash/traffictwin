@@ -1,4 +1,4 @@
-# ruff: noqa: ANN001,ANN401,ANN002,ANN003,ANN201,ANN202,S110,SIM105
+# ruff: noqa: ANN001,ANN401,ANN002,ANN003,ANN201,ANN202
 """Pytest plugin for AppTest cold-start hardening — lazy, fail-closed.
 
 First AppTest.run in a pytest process gets max(requested,60); later calls
@@ -153,7 +153,7 @@ def pytest_sessionfinish(session, exitstatus):  # type: ignore[no-untyped-def]
     try:
         if _finder in sys.meta_path:
             sys.meta_path.remove(_finder)
-    except Exception:
+    except ValueError:
         pass
     # Restore AppTest.run — fail closed if helper is broken.
     try:
@@ -204,8 +204,6 @@ def _streamlit_isolation_guard(request):  # type: ignore[no-untyped-def]
                 details.append(f"sys_modules={leak['sys_modules']}")
             if "apptest_installed" in leak:
                 details.append(f"apptest_installed={leak['apptest_installed']}")
-            if "env" in leak:
-                details.append(f"env={leak['env']}")
             if "cwd" in leak:
                 details.append("cwd_changed")
             if "finder_present" in leak:
