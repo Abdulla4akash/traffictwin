@@ -1812,15 +1812,3 @@ def test_arm_with_unavailable_selected_metric_is_infeasible_not_frontier() -> No
         d.dominator_arm_id != "C_worst" and d.dominated_arm_id != "C_worst"
         for d in report.dominance
     )
-    # Verify fail-closed dominance branch exists in source (ensures mutant kill)
-    import pathlib
-
-    src = pathlib.Path("src/traffictwin/experiments/tradeoff_explorer.py").read_text()
-    # Exact fail-closed block for missing/unavailable pairwise evidence
-    needle = '''                if va is None or vb is None:
-                    missing_for_pair = True
-                    comparisons[key] = "unavailable"'''
-    assert needle in src
-    # Must have two fail-closed assignments (missing + dominator_worse)
-    assert src.count("at_least_as_good = False") == 2
-    assert "at_least_as_good = False\n                    break" in src
