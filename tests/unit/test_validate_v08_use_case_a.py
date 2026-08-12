@@ -5,6 +5,9 @@ Discriminating mutations required by contract:
 - Replacing an unavailable/DESIGN-ONLY CAPABILITY standing with REAL MANCHESTER DATA => FAIL.
 - Breaking an entry-point locator (unreachable file or not allowlisted) => FAIL.
 - Using an unsupported evidence standing (underscored or invented) => FAIL.
+- Replacing a real service/entry point with a nonexistent path => FAIL (and restore => PASS).
+- Replacing a real service with an unrelated existing path => FAIL.
+- Introducing a nonexistent src/... reference in Markdown => FAIL.
 """
 
 from __future__ import annotations
@@ -172,4 +175,73 @@ def test_mutation_tt_req_008_mandatory_flag_fails() -> None:
     }
     with pytest.raises(SystemExit) as exc:
         validate_manifest(mutated)
+    assert exc.value.code != 0
+
+
+def test_mutation_manifest_service_to_nonexistent_fails_and_restore_passes() -> None:
+    """Discriminating mutation: real service -> nonexistent path must FAIL, restore -> PASS."""
+    manifest = _load_manifest()
+    mutated = copy.deepcopy(manifest)
+    # S5 is Scenario Builder — replace its real service with nonexistent path
+    for step in mutated["steps"]:
+        if step["step_id"] == "S5_synthetic_what_if":
+            step["service"] = "src/traffictwin/ui/services/nonexistent_service.py"
+            break
+    with pytest.raises(SystemExit) as exc:
+        validate_manifest(mutated)
+    assert exc.value.code != 0
+    # Restore must pass
+    validate_manifest(manifest)
+
+
+def test_mutation_manifest_service_to_unrelated_existing_fails() -> None:
+    """Replacing service with an existing but unrelated page (home.py) must FAIL."""
+    manifest = _load_manifest()
+    mutated = copy.deepcopy(manifest)
+    mutated["steps"][4]["service"] = "src/traffictwin/ui/pages/home.py"
+    with pytest.raises(SystemExit) as exc:
+        validate_manifest(mutated)
+    assert exc.value.code != 0
+
+
+def test_mutation_demo_contract_service_to_nonexistent_fails_and_restore_passes() -> None:
+    """Demo contract service mutation to nonexistent path must FAIL, restore -> PASS."""
+    manifest = _load_manifest()
+    contract = _load_contract()
+    mutated = copy.deepcopy(contract)
+    # Mutate last binding (S5) service to nonexistent
+    for binding in mutated["sequence_bindings"]:
+        if binding["step_id"] == "S5_synthetic_what_if":
+            binding["service"] = "src/traffictwin/platform/platform_composer.py"
+            break
+    with pytest.raises(SystemExit) as exc:
+        validate_demo_contract(mutated, manifest)
+    assert exc.value.code != 0
+    # Restore must pass
+    validate_demo_contract(contract, manifest)
+
+
+def test_mutation_doc_nonexistent_src_fails_and_restore_passes() -> None:
+    """Markdown src/... reference to nonexistent path must FAIL, restore -> PASS."""
+    manifest = _load_manifest()
+    doc = _load_doc()
+    mutated = doc + "\nReference `src/traffictwin/platform/platform_composer.py` for test.\n"
+    with pytest.raises(SystemExit) as exc:
+        validate_doc(mutated, manifest)
+    assert exc.value.code != 0
+    # Restore must pass
+    validate_doc(doc, manifest)
+
+
+def test_mutation_doc_missing_scenario_service_binding_fails() -> None:
+    """Doc missing the real Scenario Builder service identity must FAIL."""
+    manifest = _load_manifest()
+    doc = _load_doc()
+    # Remove the real service reference and replace with unrelated existing path
+    mutated = doc.replace(
+        "src/traffictwin/ui/services/scenario.py",
+        "src/traffictwin/ui/pages/home.py",
+    )
+    with pytest.raises(SystemExit) as exc:
+        validate_doc(mutated, manifest)
     assert exc.value.code != 0

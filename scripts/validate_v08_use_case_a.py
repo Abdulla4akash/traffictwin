@@ -67,6 +67,40 @@ ALLOWLISTED_V08_LOCATORS = {
     "src/traffictwin/cli.py",
 }
 
+# Regex for src/... references (files or directories) found in markdown/manifest/contract.
+SRC_REF_RE = re.compile(r"src/[A-Za-z0-9_./-]+")
+
+# Expected route per locator — validates route binding, not just file existence.
+EXPECTED_ROUTE_FOR_LOCATOR = {
+    "src/traffictwin/ui/pages/manchester_evidence_hub.py": "/Manchester_Evidence_Hub",
+    "src/traffictwin/ui/pages/manchester_operations.py": "/Manchester_Operations",
+    "src/traffictwin/ui/pages/scenario_builder.py": "/Scenario_Builder",
+}
+
+# Valid service-module paths that are genuinely reachable at v0.8 and bound to use-case steps.
+# Prevents a merely existing but unrelated path (e.g. home.py) from passing as a service.
+ALLOWED_SERVICE_MODULES = {
+    "src/traffictwin/ui/manchester_evidence_hub.py",
+    "src/traffictwin/ui/manchester_context.py",
+    "src/traffictwin/ui/manchester_operations.py",
+    "src/traffictwin/integration/manchester/bods_live.py",
+    "src/traffictwin/integration/manchester/bods_live_control.py",
+    "src/traffictwin/integration/manchester/national_highways_live.py",
+    "src/traffictwin/integration/manchester/dft_acquisition.py",
+    "src/traffictwin/integration/manchester/webtris_acquisition.py",
+    "src/traffictwin/integration/manchester/tfgm_acquisition.py",
+    "src/traffictwin/integration/manchester/boundary_reference.py",
+    "src/traffictwin/ui/services/scenario.py",
+    "src/traffictwin/ui/services/__init__.py",
+    "src/traffictwin/experiments/scenario_mutation.py",
+    "src/traffictwin/doctor.py",
+    "src/traffictwin/cli.py",
+    "src/traffictwin/ingestion",
+    "src/traffictwin/ingestion/",
+    "src/traffictwin/integration/sumo_execution/scenario_synthetic_square",
+    "src/traffictwin/integration/sumo_execution/scenario_synthetic_square/",
+}
+
 # Sources that must remain DESIGN-ONLY CAPABILITY and must never become
 # REAL MANCHESTER DATA or REAL EXTERNAL NON-MANCHESTER DATA.
 MUST_REMAIN_DESIGN_ONLY = {
@@ -99,6 +133,123 @@ DESIGN_ONLY_AS_IMPLEMENTED_PATTERNS = [
 def _fail(msg: str) -> None:
     print(f"VALIDATION FAILED: {msg}", file=sys.stderr)
     sys.exit(1)
+
+
+def _extract_src_refs(text: str) -> list[str]:
+    return SRC_REF_RE.findall(text)
+
+
+def _validate_src_path_exists(src_path: str, context: str) -> None:
+    # Normalise trailing slash — both file and directory forms are accepted
+    stripped = src_path.rstrip("/")
+    candidate = REPO_ROOT / stripped
+    # Also try with trailing slash preserved for directories
+    if not candidate.exists() and not (REPO_ROOT / src_path).exists():
+        _fail(f"{context} references missing path at exact v0.8: {src_path}")
+
+
+def _validate_service_string(service_str: str, context: str) -> None:
+    # Explicitly forbid the known nonexistent defect
+    if "platform_composer" in service_str or "platform/platform_composer" in service_str:
+        _fail(
+            f"{context} references nonexistent service "
+            f"src/traffictwin/platform/platform_composer.py (defect at exact v0.8)"
+        )
+    refs = _extract_src_refs(service_str)
+    if not refs:
+        # If service claims to be a code path but contains no src/... ref, it is not verifiable
+        if service_str.strip() and "src/" in service_str:
+            _fail(f"{context} service string has unparseable src reference: {service_str!r}")
+        return
+    for ref in refs:
+        # Strip trailing punctuation that regex may include
+        clean = ref.rstrip(".,;:`'\"")
+        _validate_src_path_exists(clean, context)
+        # Prevent merely-existing but unrelated file from passing as a service:
+        # for service claims, the path must be in allowlisted service modules or be a
+        # directory/prefix thereof (ingestion/ and synthetic square). Otherwise it is unrelated.
+        normalised = clean.rstrip("/")
+        if normalised not in {
+            p.rstrip("/") for p in ALLOWED_SERVICE_MODULES
+        } and not normalised.startswith("src/traffictwin/integration/sumo_execution"):
+            # Allow any sub-path under ingestion and integration/manchester that is a real service
+            # but reject clearly unrelated pages like home.py, about.py, etc.
+            if (
+                normalised.startswith("src/traffictwin/ui/pages/")
+                and normalised not in ALLOWLISTED_V08_LOCATORS
+            ):
+                _fail(f"{context} references unrelated page as service: {clean!r}")
+            if normalised == "src/traffictwin/ui/pages/home.py":
+                _fail(f"{context} references unrelated service module: {clean!r}")
+
+
+def _validate_cli_and_route_bindings() -> None:
+    cli_path = REPO_ROOT / "src/traffictwin/cli.py"
+    if not cli_path.is_file():
+        _fail("CLI locator src/traffictwin/cli.py missing at exact v0.8")
+    cli_text = cli_path.read_text(encoding="utf-8")
+    if '@app.command("doctor")' not in cli_text and "def doctor_command" not in cli_text:
+        _fail("CLI src/traffictwin/cli.py does not define traffictwin doctor command")
+    if "bundle_app" not in cli_text or "app.add_typer(bundle_app" not in cli_text:
+        _fail("CLI src/traffictwin/cli.py does not expose traffictwin bundle subcommand")
+    if "evidence_app" not in cli_text or "app.add_typer(evidence_app" not in cli_text:
+        _fail("CLI src/traffictwin/cli.py does not expose traffictwin evidence subcommand")
+    # Route / binding check — validate UiPage and page_runtime mappings
+    labels_path = REPO_ROOT / "src/traffictwin/ui/labels.py"
+    runtime_path = REPO_ROOT / "src/traffictwin/ui/page_runtime.py"
+    if labels_path.is_file() and runtime_path.is_file():
+        labels_text = labels_path.read_text(encoding="utf-8")
+        runtime_text = runtime_path.read_text(encoding="utf-8")
+        if "MANCHESTER_EVIDENCE_HUB" not in labels_text or "SCENARIO" not in labels_text:
+            _fail("UiPage labels missing Manchester/Scenario entries for route binding")
+        if (
+            "UiPage.MANCHESTER_EVIDENCE_HUB" not in runtime_text
+            or "UiPage.SCENARIO" not in runtime_text
+        ):
+            _fail("page_runtime missing Manchester Evidence Hub / Scenario Builder route mapping")
+    # Service symbol binding for Scenario Builder — prevents unrelated existing file from passing
+    sb_path = REPO_ROOT / "src/traffictwin/ui/pages/scenario_builder.py"
+    svc_init = REPO_ROOT / "src/traffictwin/ui/services/__init__.py"
+    svc_impl = REPO_ROOT / "src/traffictwin/ui/services/scenario.py"
+    for p, label in [
+        (sb_path, "src/traffictwin/ui/pages/scenario_builder.py"),
+        (svc_init, "src/traffictwin/ui/services/__init__.py"),
+        (svc_impl, "src/traffictwin/ui/services/scenario.py"),
+    ]:
+        if not p.is_file():
+            _fail(f"Scenario Builder service chain missing: {label}")
+    sb_text = sb_path.read_text(encoding="utf-8")
+    init_text = svc_init.read_text(encoding="utf-8")
+    impl_text = svc_impl.read_text(encoding="utf-8")
+    # Page must import from ui.services
+    if "from traffictwin.ui.services import" not in sb_text:
+        _fail("Scenario Builder page does not import from traffictwin.ui.services")
+    # Services __init__ must re-export scenario functions
+    for sym in ["build_synthetic_config_from_form", "generate_synthetic_bundle_for_ui"]:
+        if sym not in init_text:
+            _fail(
+                f"ui.services __init__ does not re-export {sym} (Scenario Builder binding broken)"
+            )
+        if f"def {sym}" not in impl_text:
+            _fail(f"ui.services scenario.py does not implement {sym}")
+    # Implementation must wrap experiments/scenario_mutation
+    if "from traffictwin.experiments.scenario_mutation import" not in impl_text:
+        _fail(
+            "ui.services scenario.py does not import from "  # noqa: E501
+            "experiments.scenario_mutation (chain broken)"  # noqa: E501
+        )
+
+
+def _validate_markdown_src_refs(doc_text: str) -> None:
+    refs = _extract_src_refs(doc_text)
+    for ref in refs:
+        clean = ref.rstrip(".,;:`'\"")
+        # Skip badge-like or incomplete trailing slash already handled
+        _validate_src_path_exists(clean, "doc Markdown")
+        if "platform/platform_composer" in clean:
+            _fail(
+                "doc Markdown references nonexistent src/traffictwin/platform/platform_composer.py"
+            )
 
 
 def _load_json(path: Path) -> dict[str, Any]:
@@ -209,10 +360,38 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
                 f"step {step['step_id']} locator not found at exact v0.8: {locator} "
                 f"(expected file at {abs_path})"
             )
-        # Route and credential_requirement should be present for strengthened validation
-        if "route" not in step and step["step_id"] != "S3_bus_live_context":
+        # Route validation — must match expected route for locator (prevents unrelated route)
+        if "route" in step:
+            expected = EXPECTED_ROUTE_FOR_LOCATOR.get(locator_str)
+            if expected is not None and step["route"] != expected:
+                _fail(
+                    f"step {step['step_id']} route {step['route']!r} "
+                    f"does not match expected {expected!r} for locator {locator_str!r}"
+                )
+        elif step["step_id"] != "S3_bus_live_context":
             # S3 shares locator with S2/S4, route optional there; others should have route
             pass
+        # Service-module validation — every declared service path must exist and be allowlisted
+        if "service" in step:
+            _validate_service_string(
+                str(step["service"]), f"manifest step {step['step_id']} service"
+            )
+        # Provenance src refs in step must exist
+        if "provenance" in step:
+            for ref in _extract_src_refs(str(step["provenance"])):
+                _validate_src_path_exists(
+                    ref.rstrip(".,;:`'\""), f"manifest step {step['step_id']} provenance"
+                )
+    # Validate source provenance src refs exist
+    for src in sources:
+        prov = str(src.get("provenance", ""))
+        for ref in _extract_src_refs(prov):
+            clean = ref.rstrip(".,;:`'\"")
+            # Skip 'none' provenance for design-only
+            if clean:
+                _validate_src_path_exists(clean, f"manifest source {src['source_id']} provenance")
+    # Cross-artifact CLI / route / symbol binding validation
+    _validate_cli_and_route_bindings()
     # S-035 / TT-REQ-008 honesty: if present, must not be mandatory, and RSU bulk  # noqa: E501
     # must not be imported. Manifest no longer carries detailed investigations;   # noqa: E501
     # if it does, enforce SHOULD.
@@ -258,6 +437,28 @@ def validate_demo_contract(contract: dict[str, Any], manifest: dict[str, Any]) -
             _fail(f"demo_contract locator {locator_str!r} not in allowlisted v0.8 entry points")
         if not (REPO_ROOT / locator).is_file():
             _fail(f"demo_contract locator not found: {locator}")
+        # Route binding for demo_contract must match expected
+        if "route" in binding:
+            expected = EXPECTED_ROUTE_FOR_LOCATOR.get(locator_str)
+            if expected is not None and binding["route"] != expected:
+                _fail(
+                    f"demo_contract binding {binding.get('step_id')} route {binding['route']!r} "
+                    f"does not match expected {expected!r}"
+                )
+        # Service-module validation for demo_contract
+        if "service" in binding:
+            _validate_service_string(
+                str(binding["service"]), f"demo_contract binding {binding.get('step_id')} service"
+            )
+    # Also validate any src refs in sequence_bindings actions / provenance are reachable
+    for binding in seq:
+        for key in ("action", "expected_output", "service", "provenance"):
+            if key in binding and isinstance(binding[key], str):
+                for ref in _extract_src_refs(binding[key]):
+                    _validate_src_path_exists(
+                        ref.rstrip(".,;:`'\""),
+                        f"demo_contract binding {binding.get('step_id')} {key}",
+                    )
     # Inputs must use human vocabulary categories and must not promote design-only
     inputs = contract.get("inputs", {})
     # Check human vocab keys are present
@@ -377,6 +578,35 @@ def validate_doc(doc_text: str, manifest: dict[str, Any]) -> None:
         loc = step.get("locator", "")
         if loc and loc not in doc_text:
             _fail(f"doc missing step locator: {loc}")
+    # Service modules mentioned in manifest must also appear in doc (where applicable)
+    # and doc service column must not reference nonexistent modules
+    _validate_markdown_src_refs(doc_text)
+    # Validate that doc's Scenario Builder service row does not contain the defect
+    if "platform/platform_composer" in doc_text:
+        _fail("doc still references nonexistent src/traffictwin/platform/platform_composer.py")
+    # Validate that every src ref extracted from doc provenance table is a real service
+    # Strengthened: check that scenario_builder service references are the real chain
+    if "scenario_builder.py" in doc_text:
+        # Ensure the doc mentions the real service chain, not the defect
+        if "src/traffictwin/ui/services/scenario.py" not in doc_text:
+            _fail(  # noqa: E501
+                "doc Scenario Builder row must reference real service "  # noqa: E501
+                "src/traffictwin/ui/services/scenario.py"  # noqa: E501
+            )
+        if "src/traffictwin/experiments/scenario_mutation.py" not in doc_text:
+            _fail(  # noqa: E501
+                "doc Scenario Builder row must reference underlying "  # noqa: E501
+                "src/traffictwin/experiments/scenario_mutation.py"  # noqa: E501
+            )
+    # CLI and route bindings must be present in doc where claimed
+    if "traffictwin doctor" not in doc_text:
+        _fail("doc missing CLI binding traffictwin doctor")
+    if "traffictwin bundle" not in doc_text:
+        _fail("doc missing CLI binding traffictwin bundle")
+    # Route strings must appear for each locator
+    for loc, expected_route in EXPECTED_ROUTE_FOR_LOCATOR.items():
+        if loc in doc_text and expected_route not in doc_text:
+            _fail(f"doc missing expected route {expected_route!r} for locator {loc}")
 
 
 def main() -> int:
