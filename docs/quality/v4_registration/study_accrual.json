@@ -1,0 +1,10 @@
+{
+  "enum_name": "STUDY_ACCRUAL_MONITOR",
+  "label": "Study Accrual Monitor",
+  "url": "study-accrual",
+  "script": "app_pages/study_accrual.py",
+  "renderer": "traffictwin.ui.pages.study_accrual:render",
+  "group": "Results",
+  "description": "Deterministic monitor showing how collected and reviewed evidence compares with the frozen preregistered plan over time.",
+  "icon": ":material/monitoring:"
+}
