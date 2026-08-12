@@ -1,0 +1,275 @@
+{
+  "schema_version": "1.0.0",
+  "campaign": "v08-requirements-closure",
+  "lane": "03",
+  "worker": "muse-03",
+  "feature": "ITS service case A — Manchester current-twin workflow",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "workflow_id": "use_case_a_manchester_current_context_review",
+  "doc_ref": "docs/closure/v08_alignment/use_case_a_manchester_current_twin.md",
+  "source_hashes": {
+    "FINAL_AUDIT": "0da517b76817fd653a6afee4ab0a9dca986e60f299ec54b662066c7d14d5dbb9",
+    "NEGOTIATED_V1_WHOLE_FILE": "732075260bcea1bcb404f97fb47709d4217455459e46801befe90b2103e2afe2",
+    "NEGOTIATED_V1_CANONICAL_PAYLOAD": "58d9b0e7a60fe0bdf00f06ed33c637ad4d764891d8cac8898cf11e4250303595",
+    "AUDIT_SOURCE_INDEX": "7ce9b43250d8b72e3c1aa9e0bbbc369b251bf7b7aedcae39ea8ed8cdda860d24",
+    "S_001": "d2940e257e455de3f6694d59d66c4d3661471c732618700ad34b4d65240597b0",
+    "S_003": "c88175e344c8aa0cfd5eba6164a8b5941670c7cc5bb69e89213c6c019bcd8c0f",
+    "S_004": "df504ec76271f2cb4b2fa34be1f53f55d1363e65d4352456f856a92178d3da82",
+    "S_007": "e8dbbdfa43995870b7e79b8de00dd5e3d73d2988a3846c5bac178bb6b3ab4ec4",
+    "RESEARCH_AUDIT_SEMANTIC_CONTRACT": "c7e01197160cb43db5f35bf804e6aa2beae6272a5915a1581369bdf0ec284645",
+    "PRODUCT_DESIGN_V2": "f45a9449bab70dde579a35ffe4f8e00eeca25d02ee2f6b68b16583816d524045",
+    "S_035_SANDRA_DIRECT_BODY": "08e0fedfedb44c7e9e48ba5a5faf8c6e467d670fdc9d966b7ec11c00c00492ed"
+  },
+  "user": {
+    "role": "Internal transport analyst / dissertation author (supervised planning brief)",
+    "not": ["live traffic operator", "public end user", "automatic road-actuation controller"]
+  },
+  "decision": {
+    "question": "Can a bounded current/context review with honestly separated evidence be demonstrated without asserting a live city-wide twin, measured general-road traffic from BODS, or operational general-road current state?",
+    "type": "documentation/bounded-review readiness",
+    "honesty_label": "INFERENCE"
+  },
+  "sources": [
+    {
+      "source_id": "bods_bus_positions",
+      "display_name": "BODS SIRI-VM bus positions (GM box)",
+      "classification": "REAL MANCHESTER DATA",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "live_vehicle_when_configured_else_unavailable",
+      "provenance": "src/traffictwin/integration/manchester/bods_live.py; src/traffictwin/ui/manchester_evidence_hub.py",
+      "coverage_scope": "Bus positions only — NOT general private-vehicle traffic, NOT Manchester-wide road flow",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "available when BODS_API_KEY configured else not_ready_credential_missing; otherwise no_live",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "national_highways_operational",
+      "display_name": "National Highways DATEX2 operational snapshots (strategic road only)",
+      "classification": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "evidence_standing": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "freshness": "near_live_when_configured_else_unavailable",
+      "provenance": "src/traffictwin/integration/manchester/national_highways_live.py",
+      "coverage_scope": "Strategic road network only — NOT Manchester city-road coverage; external to Greater Manchester general road network",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "available when NATIONAL_HIGHWAYS_API_KEY configured else not_ready_credential_missing",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "dft_historical_counts",
+      "display_name": "DfT traffic count survey (raw counts / AADF)",
+      "classification": "REAL MANCHESTER DATA",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "historical",
+      "provenance": "src/traffictwin/integration/manchester/dft_acquisition.py",
+      "coverage_scope": "DfT count points (survey, not live)",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "accepted_available when snapshot present else not_accepted",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "webtris_historical",
+      "display_name": "WebTRIS strategic-road site/day reports (strategic road only)",
+      "classification": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "evidence_standing": "REAL EXTERNAL NON-MANCHESTER DATA",
+      "freshness": "historical",
+      "provenance": "src/traffictwin/integration/manchester/webtris_acquisition.py",
+      "coverage_scope": "Strategic road only — external non-Manchester; must never be presented as near_live",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "accepted_available when snapshot present else not_accepted",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "tfgm_signal_locations",
+      "display_name": "TfGM signal location archive (2,529 locations)",
+      "classification": "REAL MANCHESTER DATA",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "static",
+      "provenance": "src/traffictwin/integration/manchester/tfgm_acquisition.py",
+      "coverage_scope": "Static reference layer — Greater Manchester static infrastructure",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "accepted_available_static_archive via bundled archive",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "ons_boundary",
+      "display_name": "ONS December 2025 Greater Manchester / Manchester boundary",
+      "classification": "REAL MANCHESTER DATA",
+      "evidence_standing": "REAL MANCHESTER DATA",
+      "freshness": "static",
+      "provenance": "src/traffictwin/ui/manchester_context.py; src/traffictwin/integration/manchester/boundary_data/",
+      "coverage_scope": "Display boundary only — Greater Manchester reference",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "accepted_available_static bundled GeoJSON",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "manual_incident_authored",
+      "display_name": "Authored incident / event definition (Scenario Builder)",
+      "classification": "SYNTHETIC DATA",
+      "evidence_standing": "SYNTHETIC DATA",
+      "freshness": "synthetic",
+      "provenance": "src/traffictwin/ui/pages/scenario_builder.py; src/traffictwin/experiments/scenario_mutation.py",
+      "coverage_scope": "Authored scenario only — never observed evidence; bounded synthetic what-if input",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "authored_available — always authorable locally, no provider required",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "synthetic_square_sumo",
+      "display_name": "Pinned synthetic SUMO square scenario (netconvert 1.27.1)",
+      "classification": "SIMULATION OUTPUT",
+      "evidence_standing": "SIMULATION OUTPUT",
+      "freshness": "synthetic",
+      "provenance": "src/traffictwin/integration/sumo_execution/scenario_synthetic_square/",
+      "coverage_scope": "Synthetic fixture only — not Manchester observation; pinned deterministic square",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "synthetic fixture always present under src/traffictwin/integration/sumo_execution/",
+      "unavailable_design_only": false
+    },
+    {
+      "source_id": "general_live_road_traffic_bods",
+      "display_name": "Measured general private-vehicle road traffic from BODS",
+      "classification": "DESIGN-ONLY CAPABILITY",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "provenance": "none — no adapter; explicitly refused as bus-only ceiling",
+      "coverage_scope": "Unavailable — BODS is bus-only; no general road traffic adapter exists",
+      "honesty_label": "SOURCE-DERIVED FACT",
+      "availability_detail": "unavailable — design-only; no live retrieval; BODS ceiling is bus-only (S-005/S-006)",
+      "unavailable_design_only": true
+    },
+    {
+      "source_id": "live_city_wide_twin",
+      "display_name": "Continuous city-wide live twin fusion",
+      "classification": "DESIGN-ONLY CAPABILITY",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "provenance": "none — no deployment",
+      "coverage_scope": "Unavailable — would require production deployment; explicitly not claimed",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "unavailable — design-only capability, no live deployment",
+      "unavailable_design_only": true
+    },
+    {
+      "source_id": "social_media_ingestion",
+      "display_name": "Social media event ingestion",
+      "classification": "DESIGN-ONLY CAPABILITY",
+      "evidence_standing": "DESIGN-ONLY CAPABILITY",
+      "freshness": "unavailable",
+      "provenance": "none — adapter not implemented per design (DEFERRED)",
+      "coverage_scope": "Deferred — no Manchester adapter, design-only",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "availability_detail": "deferred — DESIGN-ONLY CAPABILITY, adapter not implemented",
+      "unavailable_design_only": true
+    }
+  ],
+  "steps": [
+    {
+      "step_id": "S1_inventory",
+      "title": "Inventory evidence via Manchester Evidence Hub",
+      "entry_point": "Manchester Evidence Hub UI page",
+      "locator": "src/traffictwin/ui/pages/manchester_evidence_hub.py",
+      "service": "src/traffictwin/ui/manchester_evidence_hub.py",
+      "route": "/Manchester_Evidence_Hub",
+      "inputs": ["bods_bus_positions", "national_highways_operational", "dft_historical_counts", "webtris_historical", "tfgm_signal_locations", "ons_boundary", "general_live_road_traffic_bods", "live_city_wide_twin", "social_media_ingestion"],
+      "output": "Readiness table + deterministic fingerprint (typed-state only)",
+      "freshness": "derived per source — no relabelling",
+      "provenance": "typed machine state + fingerprint (no secrets)",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "credential_requirement": "none — hub renders honest blockers when BODS_API_KEY/NATIONAL_HIGHWAYS_API_KEY absent; no live retrieval"
+    },
+    {
+      "step_id": "S2_strategic_context",
+      "title": "Inspect strategic-road context (National Highways) in Manchester Operations",
+      "entry_point": "Manchester Operations UI page",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "service": "src/traffictwin/integration/manchester/national_highways_live.py",
+      "route": "/Manchester_Operations",
+      "inputs": ["national_highways_operational", "ons_boundary", "tfgm_signal_locations"],
+      "output": "Source-separated map layer + near_live strategic-road scene when configured, otherwise honest blocker",
+      "freshness": "near_live when configured else unavailable",
+      "provenance": "coordinated_national_highways_refresh SHA / control state",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "credential_requirement": "optional — NATIONAL_HIGHWAYS_API_KEY when present yields near_live; when absent shows not_ready_credential_missing blocker, no live retrieval assumed"
+    },
+    {
+      "step_id": "S3_bus_live_context",
+      "title": "Inspect bus-only live context (BODS) in Manchester Operations",
+      "entry_point": "Manchester Operations UI page",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "service": "src/traffictwin/integration/manchester/bods_live.py",
+      "inputs": ["bods_bus_positions"],
+      "output": "live_vehicle scene with bus markers + staleness/outage labelling, or honest no_live placeholder",
+      "freshness": "live_vehicle when configured else unavailable",
+      "provenance": "bods_live_control_state SHA / SIRI-VM receipt",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "credential_requirement": "optional — BODS_API_KEY when present yields live_vehicle bus-only; when absent shows no_live placeholder; never general road traffic"
+    },
+    {
+      "step_id": "S4_historical_baselines",
+      "title": "Review historical DfT / WebTRIS catalogues (offline-first)",
+      "entry_point": "Manchester Operations UI page",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "service": "src/traffictwin/integration/manchester/dft_acquisition.py + src/traffictwin/integration/manchester/webtris_acquisition.py",
+      "route": "/Manchester_Operations",
+      "inputs": ["dft_historical_counts", "webtris_historical"],
+      "output": "Catalogue view / site-day chart when accepted, otherwise not_accepted placeholder",
+      "freshness": "historical only — never near_live for WebTRIS",
+      "provenance": "accepted snapshot SHA-256 + catalogue path",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "credential_requirement": "none — offline-first catalogue; no provider call"
+    },
+    {
+      "step_id": "S5_synthetic_what_if",
+      "title": "Compose bounded synthetic incident via Scenario Builder",
+      "entry_point": "Scenario Builder UI page",
+      "locator": "src/traffictwin/ui/pages/scenario_builder.py",
+      "service": "src/traffictwin/experiments/scenario_mutation.py",
+      "route": "/Scenario_Builder",
+      "inputs": ["manual_incident_authored", "synthetic_square_sumo"],
+      "output": "Labelled synthetic bundle + deterministic metric/diagnostic table (labelled synthetic)",
+      "freshness": "synthetic",
+      "provenance": "scenario-mutation ledger + bundle SHA",
+      "honesty_label": "IMPLEMENTATION-VERIFIED FACT",
+      "credential_requirement": "none — bounded synthetic what-if; authored locally, never observed Manchester evidence"
+    }
+  ],
+  "outputs": {
+    "primary": "Manchester Current Context Review packet (hub fingerprint + scene SHAs / honest placeholders + synthetic bundle ID + one-page summary)",
+    "quality": "Bounded by source ceiling; no mixing of REAL MANCHESTER DATA / REAL EXTERNAL NON-MANCHESTER DATA / SYNTHETIC DATA / SIMULATION OUTPUT / DESIGN-ONLY CAPABILITY",
+    "provenance": "All inputs carry SHA-256 / acceptance path / control-state derivation; packet is reproducible from same workspace without live deployment",
+    "freshness": "Declared per source; no promotion of unavailable to fresher state",
+    "observable_artifacts": ["evidence_hub_fingerprint", "scene_SHAs_or_honest_placeholders", "synthetic_bundle_ledger_SHA", "one_page_summary_with_honest_classification"]
+  },
+  "limitations": [
+    "No live city-wide twin — DESIGN-ONLY CAPABILITY (unavailable)",
+    "No measured general/private-vehicle traffic from BODS — DESIGN-ONLY CAPABILITY (unavailable); BODS ceiling is bus-only",
+    "No operational general-road current state — unavailable from listed sources; would require measured city-road feed not present",
+    "No design-only behaviour presented as implemented — social media ingestion, live twin fusion remain DESIGN-ONLY CAPABILITY",
+    "No Manchester SUMO calibration or VEC chaining claimed — simulation is SIMULATION OUTPUT only",
+    "No RSU offloading evaluation — this Manchester current-context workflow does not implement or evaluate RSU load-management; that scope is separate and remains SHOULD/open decision"
+  ],
+  "acceptance": {
+    "every_step_resolves_to_v08_entry_point": true,
+    "every_source_has_standing_freshness_provenance": true,
+    "unavailable_stays_unavailable": true,
+    "can_drive_lane9_readiness_without_live_deployment": true,
+    "credentials_optional_and_deterministic": true
+  },
+  "red_lines": [
+    "Must not claim live city-wide twin",
+    "Must not claim measured road traffic from BODS",
+    "Must not claim operational general-road current state",
+    "Must not present design-only behaviour as implemented",
+    "Must not present REAL EXTERNAL NON-MANCHESTER DATA (National Highways/WebTRIS strategic-road) as REAL MANCHESTER DATA",
+    "Must not treat WebTRIS historical as near_live"
+  ],
+  "source_honesty_note": "TT-REQ-008 / S-035 RSU load-management investigations are out of scope for this Manchester current-context workflow. Workflow preserves SHOULD priority and does not implement, evaluate, or silently amend those investigations. No detailed RSU strategy material is imported; limitation is recorded here only to preserve source honesty for reviewers.",
+  "external_decisions_required": [
+    "Final supervisor-approved direction for TT-REQ-008 whether comparison becomes MUST — needs Sandra original 4 August Outlook thread with headers (not present)",
+    "Whether data-engineering/what-if extension TT-REQ-014 is lifted above MAY — not inferrable from owner choice",
+    "Any TfGM/NTIS measured-traffic feed: provider response, access, schema, quota, licence",
+    "Randy artifact permission for any private code/data beyond already-cited Q&A (S-007)",
+    "Calibration/uncertainty and held-out design for Manchester observation-to-SUMO baseline (MAN-09/MAN-10) — out of scope, carried as blocker"
+  ]
+}

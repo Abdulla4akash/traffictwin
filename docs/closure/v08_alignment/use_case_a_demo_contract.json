@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "use_case_a_demo_contract",
+  "workflow_id": "use_case_a_manchester_current_context_review",
+  "lane": "03",
+  "base_sha": "bd4570fd54ffd4e1eb21fc1d8e959190fbb103a6",
+  "manifest_ref": "docs/closure/v08_alignment/use_case_a_manifest.json",
+  "doc_ref": "docs/closure/v08_alignment/use_case_a_manchester_current_twin.md",
+  "purpose": "Deterministic bounded offline-first demo and Lane 9 replay. No live retrieval in tests; credentials optional/unavailable; no external probe.",
+  "preconditions": {
+    "workspace": "Local durable workspace exists (empty is acceptable); no production datastore required",
+    "credentials": "None required for deterministic offline demo; BODS_API_KEY / NATIONAL_HIGHWAYS_API_KEY are optional and when absent the demo shows honest not_ready_credential_missing blockers with no live retrieval",
+    "external_probe": "No network probe required; all assertions can be satisfied from typed state and stored artifacts; tests perform no live retrieval",
+    "determinism": "Demo contract is deterministic and bounded: same workspace produces same packet SHA; no external call assumed",
+    "honesty_label": "IMPLEMENTATION-VERIFIED FACT"
+  },
+  "inputs": {
+    "REAL_MANCHESTER_DATA": [
+      "bods_bus_positions (REAL MANCHESTER DATA — bus-only live_vehicle only when BODS_API_KEY present else no_live placeholder; never general road traffic)",
+      "dft_historical_counts (REAL MANCHESTER DATA — historical only when accepted snapshot present else not_accepted)",
+      "tfgm_signal_locations (REAL MANCHESTER DATA — static archive)",
+      "ons_boundary (REAL MANCHESTER DATA — static boundary)"
+    ],
+    "REAL_EXTERNAL_NON_MANCHESTER_DATA": [
+      "national_highways_operational (REAL EXTERNAL NON-MANCHESTER DATA — strategic road only, near_live only when NATIONAL_HIGHWAYS_API_KEY present else honest blocker; never Manchester city-road)",
+      "webtris_historical (REAL EXTERNAL NON-MANCHESTER DATA — historical strategic-road site/day reports only; never near_live)"
+    ],
+    "SYNTHETIC_DATA": [
+      "manual_incident_authored (SYNTHETIC DATA — bounded authored incident via Scenario Builder; never observed evidence)"
+    ],
+    "SIMULATION_OUTPUT": [
+      "synthetic_square_sumo (SIMULATION OUTPUT — pinned synthetic square fixture netconvert 1.27.1; not Manchester observation)"
+    ],
+    "DESIGN_ONLY_CAPABILITY_explicit_unavailable_must_remain_blocked": [
+      "general_live_road_traffic_bods (DESIGN-ONLY CAPABILITY — explicit unavailable input; BODS ceiling is bus-only)",
+      "live_city_wide_twin (DESIGN-ONLY CAPABILITY — explicit unavailable input; would require production deployment)",
+      "social_media_ingestion (DESIGN-ONLY CAPABILITY — explicit unavailable input; adapter deferred)"
+    ]
+  },
+  "sequence_bindings": [
+    {
+      "order": 1,
+      "step_id": "S1_inventory",
+      "locator": "src/traffictwin/ui/pages/manchester_evidence_hub.py",
+      "route": "/Manchester_Evidence_Hub",
+      "action": "Render Manchester Evidence Hub; capture readiness table and fingerprint (no live retrieval)",
+      "expected_output": "Fingerprint derived from typed machine state; blockers list contains BODS_API_KEY / NATIONAL_HIGHWAYS_API_KEY missing when absent; DESIGN-ONLY CAPABILITY sources show UNAVAILABLE/DEFERRED/BLOCKED",
+      "acceptance": "All 11 manifest sources appear with exact human evidence standing and none of the DESIGN-ONLY CAPABILITY unavailable sources is shown as REAL MANCHESTER DATA",
+      "credential_requirement": "none — deterministic; no live retrieval"
+    },
+    {
+      "order": 2,
+      "step_id": "S2_strategic_context",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "route": "/Manchester_Operations",
+      "service": "src/traffictwin/integration/manchester/national_highways_live.py",
+      "action": "Open Manchester Operations and inspect National Highways card/scene (bounded, credential-optional)",
+      "expected_output": "When unconfigured: explicit not_ready_credential_missing blocker with no live retrieval; when configured locally: near_live scene labelled REAL EXTERNAL NON-MANCHESTER DATA, strategic-road only, NOT Manchester city-road",
+      "acceptance": "Coverage scope never claims Manchester city-road operational traffic; REAL EXTERNAL NON-MANCHESTER DATA never presented as REAL MANCHESTER DATA",
+      "credential_requirement": "optional — deterministic demo assumes absent and shows honest blocker"
+    },
+    {
+      "order": 3,
+      "step_id": "S3_bus_live_context",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "route": "/Manchester_Operations",
+      "service": "src/traffictwin/integration/manchester/bods_live.py",
+      "action": "Inspect BODS card/scene in Manchester Operations (bounded, bus-only)",
+      "expected_output": "Deterministic demo shows no_live placeholder when unconfigured; live_vehicle bus markers with staleness labelling only when locally configured, explicitly NOT general road traffic",
+      "acceptance": "BODS (REAL MANCHESTER DATA, bus-only) is never presented as general_live_road_traffic_bods (DESIGN-ONLY CAPABILITY)",
+      "credential_requirement": "optional — deterministic demo assumes absent; no live retrieval in tests"
+    },
+    {
+      "order": 4,
+      "step_id": "S4_historical_baselines",
+      "locator": "src/traffictwin/ui/pages/manchester_operations.py",
+      "route": "/Manchester_Operations",
+      "service": "src/traffictwin/integration/manchester/dft_acquisition.py",
+      "action": "Open accepted DfT (REAL MANCHESTER DATA) and WebTRIS (REAL EXTERNAL NON-MANCHESTER DATA) catalogue views offline",
+      "expected_output": "Either bounded chart/catalogue rows or honest not_accepted placeholder; WebTRIS historical never labelled near_live",
+      "acceptance": "Freshness remains historical for both; no promotion; REAL EXTERNAL NON-MANCHESTER DATA not relabelled as REAL MANCHESTER DATA",
+      "credential_requirement": "none — offline-first catalogue; no provider call"
+    },
+    {
+      "order": 5,
+      "step_id": "S5_synthetic_what_if",
+      "locator": "src/traffictwin/ui/pages/scenario_builder.py",
+      "route": "/Scenario_Builder",
+      "service": "src/traffictwin/experiments/scenario_mutation.py",
+      "action": "Author one bounded SYNTHETIC DATA incident and materialise synthetic bundle over SIMULATION OUTPUT square",
+      "expected_output": "Labelled SYNTHETIC DATA bundle with mutation ledger and bundle SHA; metric/diagnostic table labelled SYNTHETIC DATA / SIMULATION OUTPUT",
+      "acceptance": "Synthetic/simulation output never mislabelled as observed REAL MANCHESTER DATA",
+      "credential_requirement": "none — bounded synthetic what-if; authored locally, no live retrieval"
+    }
+  ],
+  "outputs": {
+    "primary_artifact": "Manchester Current Context Review packet (JSON+fingerprint)",
+    "contains": ["evidence_hub_fingerprint", "scene_SHAs_or_placeholders", "synthetic_bundle_id_and_ledger_SHA", "one_page_summary_with_honest_human_evidence_standing"],
+    "resource_id": "synthetic-bundle",
+    "provenance": "Each input contributes its snapshot SHA-256 / acceptance path / control-state SHA; packet SHA is reproducible from same workspace without live deployment or provider account",
+    "freshness": "Declared per source in manifest with human evidence standing; no source promoted",
+    "quality": "Bounded by ceiling; SYNTHETIC DATA is SYNTHETIC DATA; SIMULATION OUTPUT is SIMULATION OUTPUT; DESIGN-ONLY CAPABILITY contributes no quality",
+    "observable_artifacts": ["evidence_hub_fingerprint", "scene_SHAs_or_honest_placeholders", "synthetic_bundle_ledger_SHA", "one_page_summary_with_honest_classification"]
+  },
+  "lane9_readiness": {
+    "replay_mechanism": "Re-derive packet from same stored SHAs and typed states via scripts/validate_v08_use_case_a.py and direct service calls; no external provider call required; deterministic",
+    "without_live_deployment": true,
+    "without_provider_account": true,
+    "credentials": "optional/unavailable — deterministic demo uses no credentials and performs no live retrieval",
+    "verification_command": "python3 scripts/validate_v08_use_case_a.py",
+    "secondary": "Traffictwin replay/registry portability is out of scope for this demo; Lane 9 re-derivation is local-file replay, not production deployment"
+  },
+  "red_lines": [
+    "Demo must not claim live city-wide twin (DESIGN-ONLY CAPABILITY)",
+    "Demo must not claim measured road traffic from BODS (DESIGN-ONLY CAPABILITY; BODS is bus-only REAL MANCHESTER DATA)",
+    "Demo must not claim operational general-road current state",
+    "Demo must not present DESIGN-ONLY CAPABILITY as implemented",
+    "Demo must not present REAL EXTERNAL NON-MANCHESTER DATA (National Highways/WebTRIS strategic-road) as REAL MANCHESTER DATA",
+    "Demo must not present WebTRIS historical as near_live",
+    "Demo must not perform live retrieval in tests; credentials remain optional/unavailable"
+  ],
+  "acceptance_criteria": {
+    "all_steps_resolve_to_v08_entry_point": true,
+    "all_sources_have_human_evidence_standing_freshness_provenance": true,
+    "unavailable_stays_unavailable": true,
+    "external_non_manchester_not_presented_as_manchester": true,
+    "no_prohibited_claim_in_artifacts": true,
+    "lane9_replay_without_live_deployment_and_without_live_retrieval": true,
+    "credentials_optional_and_deterministic": true
+  }
+}
